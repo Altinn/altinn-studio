@@ -67,9 +67,8 @@ export const AppDeployment = ({
       <Accordion.Item defaultOpen={!!kubernetesDeployment?.status}>
         <Accordion.Header className={classes.accordionHeader}>
           <AppDeploymentHeader
-            kubernetesDeploymentStatus={kubernetesDeployment?.status}
+            kubernetesDeployment={kubernetesDeployment}
             latestPipelineDeployment={latestPipelineDeployment}
-            version={kubernetesDeployment?.version}
             envName={envName}
             envType={envType}
             urlToApp={urlToApp}

@@ -45,13 +45,7 @@ export const AppEnvironments = () => {
   return (
     <div className={classes.appEnvironments}>
       {orgEnvironments.map((orgEnvironment: DeployEnvironment) => {
-        return (
-          <AppStatus
-            key={orgEnvironment.name}
-            envName={orgEnvironment.name}
-            envType={orgEnvironment.type}
-          />
-        );
+        return <AppStatus key={orgEnvironment.name} env={orgEnvironment} />;
       })}
     </div>
   );

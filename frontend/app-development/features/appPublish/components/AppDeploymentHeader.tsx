@@ -1,19 +1,18 @@
 import React from 'react';
 import classes from './AppDeploymentHeader.module.css';
-import { Heading, Link } from '@digdir/design-system-react';
+import { Alert, Heading, Link } from '@digdir/design-system-react';
 import classNames from 'classnames';
 import { Trans, useTranslation } from 'react-i18next';
 import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
-import { Alert } from '@digdir/design-system-react';
 import { formatDateTime } from 'app-shared/pure/date-format';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import { BuildResult } from 'app-shared/types/Build';
 import { StudioSpinner } from '@studio/components';
+import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 
 export interface AppDeploymentHeaderProps {
-  kubernetesDeploymentStatus?: KubernetesDeploymentStatus;
+  kubernetesDeployment?: KubernetesDeployment;
   latestPipelineDeployment?: PipelineDeployment;
-  version?: string;
   envName: string;
   envType: string;
   urlToApp?: string;
@@ -21,9 +20,8 @@ export interface AppDeploymentHeaderProps {
 }
 
 export const AppDeploymentHeader = ({
-  kubernetesDeploymentStatus,
+  kubernetesDeployment,
   latestPipelineDeployment,
-  version,
   envName,
   envType,
   urlToApp,
@@ -34,7 +32,7 @@ export const AppDeploymentHeader = ({
   const isProduction = envType.toLowerCase() === 'production';
   const headingText = isProduction ? t('general.production') : envName;
 
-  const showLinkToApp = kubernetesDeploymentStatus === KubernetesDeploymentStatus.completed;
+  const kubernetesDeploymentStatus = kubernetesDeployment?.status;
 
   const getStatus = () => {
     if (!kubernetesDeploymentStatus) {
@@ -44,15 +42,16 @@ export const AppDeploymentHeader = ({
     switch (kubernetesDeploymentStatus) {
       case KubernetesDeploymentStatus.completed:
         return (
-          <div className={classes.success}>
-            <div>{t('overview.success', { appDeployedVersion: version })}</div>
-            <div>
-              {showLinkToApp && (
-                <Link href={urlToApp} target='_blank' rel='noopener noreferrer'>
-                  {urlToAppLinkTxt}
-                </Link>
-              )}
-            </div>
+          <div>
+            <Trans
+              i18nKey={'overview.success'}
+              values={{
+                version: kubernetesDeployment.version,
+              }}
+              components={{
+                a: <Link href={urlToApp}> </Link>,
+              }}
+            />
             {/*
             <div>
               <Trans

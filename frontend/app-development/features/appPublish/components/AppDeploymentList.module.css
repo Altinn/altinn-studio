@@ -16,6 +16,7 @@
 
 .table {
   width: 100%;
+  border-collapse: separate;
   border-spacing: var(--fds-spacing-1);
 }
 

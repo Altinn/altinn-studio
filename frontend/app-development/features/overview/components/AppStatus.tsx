@@ -11,13 +11,14 @@ import { publishPath } from 'app-shared/api/paths';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
+import { Link } from '@digdir/design-system-react';
+import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 
 export type AppStatusProps = {
-  envName: string;
-  envType: string;
+  env: DeployEnvironment;
 };
 
-export const AppStatus = ({ envName, envType }: AppStatusProps) => {
+export const AppStatus = ({ env }: AppStatusProps) => {
   const { org, app } = useStudioUrlParams();
   const { t } = useTranslation();
 
@@ -43,21 +44,21 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
         <Trans
           i18nKey={'overview.app_status_error'}
           values={{
-            envName,
+            envName: env.name,
           }}
         />
       </Alert>
     );
 
   const kubernetesDeployment = appDeployment?.kubernetesDeploymentList.find(
-    (item) => item.envName.toLowerCase() === envName.toLowerCase(),
+    (item) => item.envName.toLowerCase() === env.name.toLowerCase(),
   );
 
   if (!kubernetesDeployment?.status) {
     return (
       <DeploymentStatusInfo
-        envType={envType}
-        envName={envName}
+        envType={env.type}
+        envName={env.name}
         severity='info'
         content={t('overview.no_app')}
         footer={
@@ -72,8 +73,8 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
   if (!kubernetesDeployment.status) {
     return (
       <DeploymentStatusInfo
-        envType={envType}
-        envName={envName}
+        envType={env.type}
+        envName={env.name}
         severity='info'
         content={t('overview.no_app')}
         footer={
@@ -97,10 +98,24 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
       );
       return (
         <DeploymentStatusInfo
-          envType={envType}
-          envName={envName}
+          envType={env.type}
+          envName={env.name}
           severity='success'
-          content={t('overview.success')}
+          content={
+            <Trans
+              i18nKey={'overview.success'}
+              values={{
+                version: kubernetesDeployment.version,
+              }}
+              components={{
+                a: (
+                  <Link href={`https://${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}>
+                    {' '}
+                  </Link>
+                ),
+              }}
+            />
+          }
           footer={
             <Trans
               i18nKey={'overview.last_published'}
@@ -120,8 +135,8 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
       );
       return (
         <DeploymentStatusInfo
-          envType={envType}
-          envName={envName}
+          envType={env.type}
+          envName={env.name}
           severity='warning'
           content={t('overview.unavailable')}
           footer={
@@ -134,8 +149,8 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
     default:
       return (
         <DeploymentStatusInfo
-          envType={envType}
-          envName={envName}
+          envType={env.type}
+          envName={env.name}
           severity='info'
           content={
             <StudioSpinner

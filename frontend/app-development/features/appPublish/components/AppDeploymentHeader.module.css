@@ -15,11 +15,6 @@
   text-transform: uppercase;
 }
 
-.success {
-  display: flex;
-  justify-content: space-between;
-}
-
 /* .headingContainer > svg {
   position: absolute;
   right: var(--fds-spacing-3);

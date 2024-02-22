@@ -32,10 +32,6 @@ export const AppDeploymentList = ({
 }: AppDeploymentListProps) => {
   const { t } = useTranslation();
 
-  const deployStatusUnavailable =
-    kubernetesDeployment?.status === KubernetesDeploymentStatus.completed &&
-    pipelineDeploymentList[0]?.tagName !== kubernetesDeployment?.version;
-
   // const getSeverity = (buildResult: BuildResult) => {
   //   switch (buildResult) {
   //     case BuildResult.canceled:
@@ -101,20 +97,10 @@ export const AppDeploymentList = ({
 
   return (
     <div className={classes.appDeploymentList}>
-      {deployStatusUnavailable && (
-        <Alert severity='warning'>
-          {t('app_publish.deployment_in_env.status_missing', {
-            envName,
-            tagName: kubernetesDeployment.version,
-          })}
-        </Alert>
-      )}
       {pipelineDeploymentList.length === 0 ? (
-        !deployStatusUnavailable && (
-          <span id={`deploy-history-for-${envName.toLowerCase()}-unavailable`}>
-            {t('app_deploy_table.deployed_version_history_empty', { envName })}
-          </span>
-        )
+        <span id={`deploy-history-for-${envName.toLowerCase()}-unavailable`}>
+          {t('app_deploy_table.deployed_version_history_empty', { envName })}
+        </span>
       ) : (
         <div>
           <Heading level={4} size='xxsmall' className={classes.heading}>
