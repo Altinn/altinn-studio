@@ -3,17 +3,17 @@ import classes from './PropertiesHeader.module.css';
 import { Divider, Heading, HelpText } from '@digdir/design-system-react';
 import { formItemConfigs } from '../../../data/formItemConfig';
 import { QuestionmarkDiamondIcon } from '@studio/icons';
-import type { FormComponent } from '../../../types/FormComponent';
 import { getComponentHelperTextByComponentType } from '../../../utils/language';
 import { useTranslation } from 'react-i18next';
 import { useComponentSchemaQuery } from '../../../hooks/queries/useComponentSchemaQuery';
 import { DataModelBindingRow } from './DataModelBindingRow';
 import { EditComponentIdRow } from './EditComponentIdRow';
+import type { FormItem } from '../../../types/FormItem';
 
 export type PropertiesHeaderProps = {
-  form: FormComponent;
+  form: FormItem;
   formId: string;
-  handleComponentUpdate: (component: FormComponent) => void;
+  handleComponentUpdate: (component: FormItem) => void;
 };
 
 export const PropertiesHeader = ({

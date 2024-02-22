@@ -1,6 +1,7 @@
 import type { FormComponent, FormComponentBase } from '../types/FormComponent';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
+import type { FormContainer } from '../types/FormContainer';
 
 const commonProps: Pick<FormComponentBase, 'id' | 'itemType' | 'dataModelBindings'> = {
   id: 'test',
@@ -89,8 +90,9 @@ const addressComponent: FormComponent<ComponentTypeV3.AddressComponent> = {
   type: ComponentTypeV3.AddressComponent,
   simplified: true,
 };
-const groupComponent: FormComponent<ComponentTypeV3.Group> = {
+const groupComponent: FormContainer = {
   ...commonProps,
+  itemType: 'CONTAINER',
   type: ComponentTypeV3.Group,
 };
 const navigationBarComponent: FormComponent<ComponentTypeV3.NavigationBar> = {

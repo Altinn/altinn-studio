@@ -3,14 +3,13 @@ import type { EditSettings, IGenericEditComponent } from './componentConfig';
 import { configComponents } from './componentConfig';
 import { componentSpecificEditConfig } from './componentConfig';
 import { ComponentSpecificContent } from './componentSpecificContent';
-import { Switch, Fieldset, Heading } from '@digdir/design-system-react';
+import { Switch, Fieldset } from '@digdir/design-system-react';
 import classes from './EditFormComponent.module.css';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { StudioSpinner } from '@studio/components';
 import { FormComponentConfig } from './FormComponentConfig';
 import { useSelector } from 'react-redux';
-import { getComponentTitleByComponentType } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
 import {
   addFeatureFlagToLocalStorage,
@@ -20,9 +19,7 @@ import {
 import { FormField } from 'app-shared/components/FormField';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';
-import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../types/FormItem';
-import { RepeatingGroupComponent } from './componentSpecificContent/RepeatingGroup';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -92,9 +89,6 @@ export const EditFormComponent = ({
           </Switch>
         )}
       />
-      <Heading level={2} size='xsmall'>
-        {getComponentTitleByComponentType(component.type, t)} ({component.type})
-      </Heading>
       {showComponentConfigBeta && isPending && (
         <StudioSpinner
           showSpinnerTitle
@@ -102,21 +96,12 @@ export const EditFormComponent = ({
         />
       )}
       {showComponentConfigBeta && !isPending && (
-        <>
-          {component.type === ComponentType.RepeatingGroup && (
-            <RepeatingGroupComponent
-              editFormId={editFormId}
-              component={component}
-              handleComponentUpdate={handleComponentUpdate}
-            />
-          )}
-          <FormComponentConfig
-            schema={schema}
-            component={component}
-            editFormId={editFormId}
-            handleComponentUpdate={handleComponentUpdate}
-          />
-        </>
+        <FormComponentConfig
+          schema={schema}
+          component={component}
+          editFormId={editFormId}
+          handleComponentUpdate={handleComponentUpdate}
+        />
       )}
       {!showComponentConfigBeta && (
         <>

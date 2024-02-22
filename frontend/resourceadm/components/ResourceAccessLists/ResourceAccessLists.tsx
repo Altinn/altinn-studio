@@ -1,9 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Alert, Checkbox, Heading, Link as DigdirLink } from '@digdir/design-system-react';
+import { Alert, Checkbox, Heading, Link as DigdirLink, Button } from '@digdir/design-system-react';
 import classes from './ResourceAccessLists.module.css';
-import { useGetAccessListsQuery } from '../../hooks/queries/useGetAccessListsQuery';
 import { StudioSpinner, StudioButton } from '@studio/components';
 import { PencilWritingIcon, PlusIcon } from '@studio/icons';
 import { useGetResourceAccessListsQuery } from '../../hooks/queries/useGetResourceAccessListsQuery';
@@ -31,14 +30,12 @@ export const ResourceAccessLists = ({
   const [selectedLists, setSelectedLists] = useState<string[]>([]);
 
   const {
-    data: envListData,
-    isLoading: isLoadingEnvListData,
-    error: envListDataError,
-  } = useGetAccessListsQuery(selectedContext, env);
-  const {
-    data: connectedLists,
-    isLoading: isLoadingConnectedLists,
-    error: connectedListsError,
+    data: accessLists,
+    isLoading: isLoadingAccessLists,
+    error: accessListsError,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
   } = useGetResourceAccessListsQuery(selectedContext, resourceData.identifier, env);
   const { mutate: addResourceAccessList } = useAddResourceAccessListMutation(
     selectedContext,
@@ -52,10 +49,15 @@ export const ResourceAccessLists = ({
   );
 
   useEffect(() => {
-    if (connectedLists) {
-      setSelectedLists(connectedLists.map((x) => x.accessListIdentifier));
+    if (accessLists) {
+      const connectedListIds = accessLists.pages
+        .filter((x) =>
+          x.resourceConnections?.some((y) => y.resourceIdentifier === resourceData.identifier),
+        )
+        .map((x) => x.identifier);
+      setSelectedLists(connectedListIds);
     }
-  }, [connectedLists]);
+  }, [accessLists, resourceData.identifier]);
 
   const handleRemove = (listItemId: string) => {
     setSelectedLists((old) => old.filter((y) => y !== listItemId));
@@ -67,11 +69,11 @@ export const ResourceAccessLists = ({
     setSelectedLists((old) => [...old, listItemId]);
   };
 
-  if (isLoadingEnvListData || isLoadingConnectedLists) {
+  if (isLoadingAccessLists) {
     return <StudioSpinner showSpinnerTitle spinnerTitle={t('resourceadm.loading_lists')} />;
   }
 
-  if (envListDataError || connectedListsError) {
+  if (accessListsError) {
     return <Alert severity='danger'>{t('resourceadm.listadmin_load_list_error')}</Alert>;
   }
 
@@ -105,7 +107,7 @@ export const ResourceAccessLists = ({
         {t('resourceadm.listadmin_resource_list_checkbox_header')}
       </Heading>
       <div className={classes.listCheckboxWrapper}>
-        {envListData.map((list) => {
+        {accessLists?.pages.map((list) => {
           return (
             <div key={list.identifier} className={classes.listCheckboxItem}>
               <Checkbox
@@ -140,6 +142,16 @@ export const ResourceAccessLists = ({
             </div>
           );
         })}
+        {hasNextPage && (
+          <Button
+            disabled={isFetchingNextPage}
+            size='small'
+            variant='tertiary'
+            onClick={() => fetchNextPage()}
+          >
+            {t('resourceadm.listadmin_load_more')}
+          </Button>
+        )}
       </div>
       <StudioButton
         variant='tertiary'
