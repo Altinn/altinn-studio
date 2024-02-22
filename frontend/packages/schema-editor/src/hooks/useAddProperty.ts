@@ -1,5 +1,4 @@
-import type { FieldType, NodePosition } from '@altinn/schema-model';
-import { ObjectKind, ROOT_POINTER } from '@altinn/schema-model';
+import { ObjectKind, ROOT_POINTER, type FieldType, type NodePosition } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
 import { useSavableSchemaModel } from '../hooks/useSavableSchemaModel';
 

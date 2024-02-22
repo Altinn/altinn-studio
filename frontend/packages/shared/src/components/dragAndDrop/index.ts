@@ -1,11 +1,7 @@
-import { DragAndDropProvider } from './DragAndDropProvider';
-import type { DragAndDropProviderProps } from './DragAndDropProvider';
-import { DragAndDropList } from './DragAndDropList';
-import type { DragAndDropListProps } from './DragAndDropList';
-import { DragAndDropListItem } from './DragAndDropListItem';
-import type { DragAndDropListItemProps } from './DragAndDropListItem';
-import { DragAndDropNewItem } from './DragAndDropNewItem';
-import type { DragAndDropNewItemProps } from './DragAndDropNewItem';
+import { DragAndDropProvider, type DragAndDropProviderProps } from './DragAndDropProvider';
+import { DragAndDropList, type DragAndDropListProps } from './DragAndDropList';
+import { DragAndDropListItem, type DragAndDropListItemProps } from './DragAndDropListItem';
+import { DragAndDropNewItem, type DragAndDropNewItemProps } from './DragAndDropNewItem';
 
 type DragAndDropComponent = {
   Provider: typeof DragAndDropProvider;

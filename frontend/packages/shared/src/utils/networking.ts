@@ -1,5 +1,4 @@
-import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
-import axios from 'axios';
+import axios, { type AxiosError, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 
 export async function get<T = any>(url: string, options?: AxiosRequestConfig): Promise<T> {
   const response: AxiosResponse = await axios.get<T>(url, options || undefined);

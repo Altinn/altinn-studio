@@ -1,5 +1,4 @@
-import type { RefObject } from 'react';
-import React, { createRef } from 'react';
+import React, { createRef, type RefObject } from 'react';
 import type { IAppDataState } from '../features/appData/appDataReducers';
 import type { ITextResourcesState } from '../features/appData/textResources/textResourcesSlice';
 import type { ITextResources, ITextResourcesWithLanguage } from 'app-shared/types/global';

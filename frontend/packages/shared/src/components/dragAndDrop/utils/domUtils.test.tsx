@@ -1,6 +1,5 @@
 import { render } from '@testing-library/react';
-import type { ReactNode } from 'react';
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import {
   domItemClass,
   domItemId,

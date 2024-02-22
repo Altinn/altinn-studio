@@ -1,4 +1,3 @@
-import type { UiSchemaNode } from '../../types';
 import {
   ArrRestrictionKey,
   FieldType,
@@ -6,6 +5,7 @@ import {
   ObjRestrictionKey,
   ObjectKind,
   StrRestrictionKey,
+  type UiSchemaNode,
 } from '../../types';
 import { getCombinationKind, getObjectKind, isField } from '../utils';
 import { arrayIntersection } from 'app-shared/utils/arrayUtils';

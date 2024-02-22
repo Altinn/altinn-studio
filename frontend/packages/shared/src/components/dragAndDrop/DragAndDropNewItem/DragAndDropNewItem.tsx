@@ -1,8 +1,6 @@
-import type { ReactNode } from 'react';
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import { useDrag } from 'react-dnd';
-import type { NewDndItem } from 'app-shared/types/dndTypes';
-import { DraggableEditorItemType } from 'app-shared/types/dndTypes';
+import { DraggableEditorItemType, type NewDndItem } from 'app-shared/types/dndTypes';
 import * as testids from '../../../../../../testing/testids';
 
 export interface DragAndDropNewItemProps<T> {

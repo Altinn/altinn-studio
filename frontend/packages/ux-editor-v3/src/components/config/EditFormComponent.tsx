@@ -1,7 +1,10 @@
 import React from 'react';
-import type { EditSettings, IGenericEditComponent } from './componentConfig';
-import { configComponents } from './componentConfig';
-import { componentSpecificEditConfig } from './componentConfig';
+import {
+  componentSpecificEditConfig,
+  configComponents,
+  type EditSettings,
+  type IGenericEditComponent,
+} from './componentConfig';
 import { ComponentSpecificContent } from './componentSpecificContent';
 import { Switch, Fieldset, Heading } from '@digdir/design-system-react';
 import classes from './EditFormComponent.module.css';

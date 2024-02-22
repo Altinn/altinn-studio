@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import React, { useState } from 'react';
+import React, { useState, type ReactNode } from 'react';
 import classes from './LocalChanges.module.css';
 import { useTranslation } from 'react-i18next';
 import { Paragraph } from '@digdir/design-system-react';

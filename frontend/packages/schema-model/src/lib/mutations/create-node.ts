@@ -1,5 +1,4 @@
-import type { UiSchemaNode, UiSchemaNodes } from '../../types';
-import { Keyword } from '../../types';
+import { Keyword, type UiSchemaNode, type UiSchemaNodes } from '../../types';
 import { createNodeBase, isCombination, isField, isObject, isReference } from '../utils';
 import { getParentNodeByPointer, hasNodePointer } from '../selectors';
 import { deepCopy } from 'app-shared/pure';

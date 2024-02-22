@@ -1,5 +1,9 @@
-import type { CombinationKind, NodePosition, UiSchemaReducer } from '../../types';
-import { FieldType } from '../../types';
+import {
+  FieldType,
+  type CombinationKind,
+  type NodePosition,
+  type UiSchemaReducer,
+} from '../../types';
 import { isField, isReference, splitPointerInBaseAndName } from '../utils';
 import { convertPropToType } from './convert-node';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';

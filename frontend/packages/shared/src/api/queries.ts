@@ -56,9 +56,8 @@ import type { ILayoutSettings, ITextResourcesWithLanguage, IFrontEndSettings } f
 import type { Organization } from 'app-shared/types/Organization';
 import type { OrgsState } from 'app-shared/types/OrgsState';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
-import type { Repository } from 'app-shared/types/Repository';
+import type { Repository, User } from 'app-shared/types/Repository';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
-import type { User } from 'app-shared/types/Repository';
 import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { componentSchemaUrl, expressionSchemaUrl, layoutSchemaUrl, newsListUrl, numberFormatSchemaUrl, orgsListUrl } from '../cdn-paths';

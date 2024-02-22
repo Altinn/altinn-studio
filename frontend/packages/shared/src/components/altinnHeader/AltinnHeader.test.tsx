@@ -1,7 +1,6 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import type { AltinnHeaderProps } from './AltinnHeader';
-import { AltinnHeader } from './AltinnHeader';
+import { AltinnHeader, type AltinnHeaderProps } from './AltinnHeader';
 import { Button } from '@digdir/design-system-react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { RepositoryType } from 'app-shared/types/global';

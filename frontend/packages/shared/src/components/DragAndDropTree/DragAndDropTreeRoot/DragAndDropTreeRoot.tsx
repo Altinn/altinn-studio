@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import React, { useState } from 'react';
+import React, { useState, type ReactNode } from 'react';
 import { DragAndDrop } from 'app-shared/components/dragAndDrop';
 import { StudioTreeView } from '@studio/components';
 import { DragAndDropTreeRootContext } from './DragAndDropTreeRootContext';

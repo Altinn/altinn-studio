@@ -15,6 +15,7 @@ import {
   setType,
   toggleArrayField,
 } from './ui-schema-reducers';
+// eslint-disable-next-line no-duplicate-imports -- Disabled dublicate erorr to avoid very long import statement
 import type {
   AddCombinationItemArgs,
   ChangeChildrenOrderArgs,

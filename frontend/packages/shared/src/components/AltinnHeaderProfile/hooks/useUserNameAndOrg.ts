@@ -1,5 +1,4 @@
-import type { Repository } from 'app-shared/types/Repository';
-import type { User } from 'app-shared/types/Repository';
+import type { User, Repository } from 'app-shared/types/Repository';
 import { useTranslation } from 'react-i18next';
 
 /**

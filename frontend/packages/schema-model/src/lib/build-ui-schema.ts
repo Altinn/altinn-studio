@@ -1,5 +1,10 @@
-import type { UiSchemaNode, UiSchemaNodes } from '../types';
-import { JsonSchemaType, Keyword, ObjectKind } from '../types';
+import {
+  JsonSchemaType,
+  Keyword,
+  ObjectKind,
+  type UiSchemaNode,
+  type UiSchemaNodes,
+} from '../types';
 import {
   createNodeBase,
   getCombinationKind,

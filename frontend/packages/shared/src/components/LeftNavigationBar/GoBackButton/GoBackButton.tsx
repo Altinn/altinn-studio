@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import classes from './GoBackButton.module.css';
 import cn from 'classnames';
 import { ArrowLeftIcon } from '@navikt/aksel-icons';

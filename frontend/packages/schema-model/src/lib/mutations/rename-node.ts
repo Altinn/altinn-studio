@@ -1,5 +1,4 @@
-import type { UiSchemaNodes } from '../../types';
-import { CombinationKind } from '../../types';
+import { CombinationKind, type UiSchemaNodes } from '../../types';
 import { getNodeByPointer, hasNodePointer } from '../selectors';
 import { isFieldOrCombination, isReference, splitPointerInBaseAndName } from '../utils';
 import { deepCopy } from 'app-shared/pure';

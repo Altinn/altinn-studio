@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import React, { useContext } from 'react';
+import React, { useContext, type ReactNode } from 'react';
 import { act, render as renderRtl, renderHook, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DragAndDropTreeRoot } from './DragAndDropTreeRoot';

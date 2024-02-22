@@ -1,8 +1,7 @@
 import React from 'react';
 import { act, render, screen } from '@testing-library/react';
 import { IconImage } from './Icon';
-import type { IActionMenuProps } from './ActionMenu';
-import { ActionMenu } from './ActionMenu';
+import { ActionMenu, type IActionMenuProps } from './ActionMenu';
 import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();

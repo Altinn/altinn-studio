@@ -1,8 +1,6 @@
 import { ProfileMenu } from 'app-shared/navigation/main-header/ProfileMenu';
-import type { Repository } from 'app-shared/types/Repository';
-import type { User } from 'app-shared/types/Repository';
-import type { ReactNode } from 'react';
-import React from 'react';
+import type { Repository, User } from 'app-shared/types/Repository';
+import React, { type ReactNode } from 'react';
 import classes from './AltinnHeaderProfile.module.css';
 import { useUserNameAndOrg } from './hooks/useUserNameAndOrg';
 

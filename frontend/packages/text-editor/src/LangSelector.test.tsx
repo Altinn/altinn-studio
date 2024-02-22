@@ -1,6 +1,5 @@
 import React from 'react';
-import { LangSelector } from './LangSelector';
-import type { ILangSelectorProps } from './LangSelector';
+import { LangSelector, type ILangSelectorProps } from './LangSelector';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../testing/mocks/i18nMock';

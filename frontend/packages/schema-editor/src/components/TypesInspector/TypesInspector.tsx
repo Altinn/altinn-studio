@@ -1,5 +1,4 @@
-import type { MouseEvent } from 'react';
-import React from 'react';
+import React, { type MouseEvent } from 'react';
 import { StudioButton } from '@studio/components';
 import { PlusIcon } from '@navikt/aksel-icons';
 import type { UiSchemaNode } from '@altinn/schema-model';

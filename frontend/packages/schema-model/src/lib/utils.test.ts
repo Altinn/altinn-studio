@@ -5,8 +5,7 @@ import {
   isNodeValidParent,
   replaceLastPointerSegment,
 } from './utils';
-import type { UiSchemaNode } from '../types';
-import { FieldType, Keyword } from '../types';
+import { FieldType, Keyword, type UiSchemaNode } from '../types';
 import { expect } from '@jest/globals';
 import { buildUiSchema } from './build-ui-schema';
 import { selectorsTestSchema } from '../../test/testUtils';

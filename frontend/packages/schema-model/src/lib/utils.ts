@@ -1,5 +1,11 @@
-import type { UiSchemaNode, UiSchemaNodes } from '../types';
-import { CombinationKind, FieldType, Keyword, ObjectKind } from '../types';
+import {
+  CombinationKind,
+  FieldType,
+  Keyword,
+  ObjectKind,
+  type UiSchemaNode,
+  type UiSchemaNodes,
+} from '../types';
 import { hasNodePointer } from './selectors';
 import { ROOT_POINTER } from './constants';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';

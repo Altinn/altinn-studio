@@ -1,5 +1,4 @@
-import type { UiSchemaNode } from '../../types';
-import { CombinationKind, FieldType, ObjectKind } from '../../types';
+import { CombinationKind, FieldType, ObjectKind, type UiSchemaNode } from '../../types';
 import { findEnumFieldType, findJsonFieldType, findUiFieldType } from './field-type';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 

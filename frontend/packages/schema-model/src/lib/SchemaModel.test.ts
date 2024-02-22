@@ -30,8 +30,13 @@ import {
 } from '../../test/uiSchemaMock';
 import { expect } from '@jest/globals';
 import { validateTestUiSchema } from '../../test/validateTestUiSchema';
-import type { NodePosition, UiSchemaNodes } from '../types';
-import { CombinationKind, FieldType, ObjectKind } from '../types';
+import {
+  CombinationKind,
+  FieldType,
+  ObjectKind,
+  type NodePosition,
+  type UiSchemaNodes,
+} from '../types';
 import type { FieldNode } from '../types/FieldNode';
 import type { ReferenceNode } from '../types/ReferenceNode';
 import { extractNameFromPointer } from './pointerUtils';

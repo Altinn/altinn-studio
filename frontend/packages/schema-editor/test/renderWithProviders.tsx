@@ -1,8 +1,9 @@
-import type { ReactNode } from 'react';
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import { render } from '@testing-library/react';
-import type { SchemaEditorAppContextProps } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
-import { SchemaEditorAppContext } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
+import {
+  SchemaEditorAppContext,
+  type SchemaEditorAppContextProps,
+} from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
 import { uiSchemaNodesMock } from './mocks/uiSchemaMock';
 import { SchemaModel } from '@altinn/schema-model';
 

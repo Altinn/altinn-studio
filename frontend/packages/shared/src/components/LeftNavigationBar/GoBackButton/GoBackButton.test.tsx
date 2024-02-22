@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import type { GoBackButtonProps } from './GoBackButton';
-import { GoBackButton } from './GoBackButton';
+import { GoBackButton, type GoBackButtonProps } from './GoBackButton';
 import { MemoryRouter } from 'react-router-dom';
 
 const mockBackButtonText: string = 'Go back';
