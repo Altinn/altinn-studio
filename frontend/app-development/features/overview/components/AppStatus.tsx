@@ -13,20 +13,19 @@ import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeplo
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import { Link } from '@digdir/design-system-react';
 import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
+import { getAppLink } from 'app-shared/ext-urls';
+import type { AppDeployment } from 'app-shared/types/api/AppDeployment';
 
 export type AppStatusProps = {
-  env: DeployEnvironment;
+  appDeployment: AppDeployment;
+  envName: string;
+  envType: string;
+  urlToApp: string;
 };
 
-export const AppStatus = ({ env }: AppStatusProps) => {
+export const AppStatus = ({ appDeployment, envName, envType, urlToApp }: AppStatusProps) => {
   const { org, app } = useStudioUrlParams();
   const { t } = useTranslation();
-
-  const {
-    data: appDeployment,
-    isPending: isPendingDeploys,
-    isError: deploysAreError,
-  } = useAppDeploymentsQuery(org, app, { hideDefaultError: true });
 
   const formatDateTime = (dateAsString: string): string => {
     return t('general.date_time_format', {
@@ -35,30 +34,15 @@ export const AppStatus = ({ env }: AppStatusProps) => {
     });
   };
 
-  if (isPendingDeploys)
-    return <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.loading_deploys')} />;
-
-  if (deploysAreError)
-    return (
-      <Alert severity='danger'>
-        <Trans
-          i18nKey={'overview.app_status_error'}
-          values={{
-            envName: env.name,
-          }}
-        />
-      </Alert>
-    );
-
   const kubernetesDeployment = appDeployment?.kubernetesDeploymentList.find(
-    (item) => item.envName.toLowerCase() === env.name.toLowerCase(),
+    (item) => item.envName.toLowerCase() === envName.toLowerCase(),
   );
 
   if (!kubernetesDeployment?.status) {
     return (
       <DeploymentStatusInfo
-        envType={env.type}
-        envName={env.name}
+        envType={envType}
+        envName={envName}
         severity='info'
         content={t('overview.no_app')}
         footer={
@@ -73,8 +57,8 @@ export const AppStatus = ({ env }: AppStatusProps) => {
   if (!kubernetesDeployment.status) {
     return (
       <DeploymentStatusInfo
-        envType={env.type}
-        envName={env.name}
+        envType={envType}
+        envName={envName}
         severity='info'
         content={t('overview.no_app')}
         footer={
@@ -98,8 +82,8 @@ export const AppStatus = ({ env }: AppStatusProps) => {
       );
       return (
         <DeploymentStatusInfo
-          envType={env.type}
-          envName={env.name}
+          envType={envType}
+          envName={envName}
           severity='success'
           content={
             <Trans
@@ -108,11 +92,7 @@ export const AppStatus = ({ env }: AppStatusProps) => {
                 version: kubernetesDeployment.version,
               }}
               components={{
-                a: (
-                  <Link href={`https://${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}>
-                    {' '}
-                  </Link>
-                ),
+                a: <Link href={urlToApp}> </Link>,
               }}
             />
           }
@@ -135,8 +115,8 @@ export const AppStatus = ({ env }: AppStatusProps) => {
       );
       return (
         <DeploymentStatusInfo
-          envType={env.type}
-          envName={env.name}
+          envType={envType}
+          envName={envName}
           severity='warning'
           content={t('overview.unavailable')}
           footer={
@@ -149,8 +129,8 @@ export const AppStatus = ({ env }: AppStatusProps) => {
     default:
       return (
         <DeploymentStatusInfo
-          envType={env.type}
-          envName={env.name}
+          envType={envType}
+          envName={envName}
           severity='info'
           content={
             <StudioSpinner

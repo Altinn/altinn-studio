@@ -20,7 +20,6 @@ export interface AppDeploymentProps {
   envName: string;
   envType: string;
   urlToApp?: string;
-  urlToAppLinkTxt?: string;
   deployPermission: boolean;
   orgName: string;
   imageOptions: ImageOption[];
@@ -34,7 +33,6 @@ export const AppDeployment = ({
   envType,
   imageOptions,
   urlToApp,
-  urlToAppLinkTxt,
   orgName,
 }: AppDeploymentProps) => {
   console.log('---', envName, '---');
@@ -72,7 +70,6 @@ export const AppDeployment = ({
             envName={envName}
             envType={envType}
             urlToApp={urlToApp}
-            urlToAppLinkTxt={urlToAppLinkTxt}
           />
         </Accordion.Header>
         <Accordion.Content className={classes.accordionContent}>

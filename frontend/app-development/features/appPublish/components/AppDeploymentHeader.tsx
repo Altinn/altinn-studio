@@ -16,7 +16,6 @@ export interface AppDeploymentHeaderProps {
   envName: string;
   envType: string;
   urlToApp?: string;
-  urlToAppLinkTxt?: string;
 }
 
 export const AppDeploymentHeader = ({
@@ -25,7 +24,6 @@ export const AppDeploymentHeader = ({
   envName,
   envType,
   urlToApp,
-  urlToAppLinkTxt,
 }: AppDeploymentHeaderProps) => {
   const { t } = useTranslation();
 

@@ -16,6 +16,7 @@ import type { ImageOption } from '../components/ImageOption';
 import { AppDeployment } from '../components/AppDeployment';
 import { Alert } from '@digdir/design-system-react';
 import { Trans } from 'react-i18next';
+import { getAppLink } from 'app-shared/ext-urls';
 
 export const DeployContainer = () => {
   const { org, app } = useStudioUrlParams();
@@ -89,8 +90,7 @@ export const DeployContainer = () => {
             key={index}
             envName={env.name}
             envType={env.type}
-            urlToApp={`https://${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}
-            urlToAppLinkTxt={`${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}
+            urlToApp={getAppLink(env.appPrefix, env.hostname, org, app)}
             imageOptions={imageOptions}
             pipelineDeploymentList={pipelineDeploymentList}
             kubernetesDeployment={kubernetesDeployment}

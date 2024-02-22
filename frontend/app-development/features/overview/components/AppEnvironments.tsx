@@ -1,7 +1,11 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useEnvironmentsQuery, useOrgListQuery } from 'app-development/hooks/queries';
+import {
+  useAppDeploymentsQuery,
+  useEnvironmentsQuery,
+  useOrgListQuery,
+} from 'app-development/hooks/queries';
 import { StudioSpinner } from '@studio/components';
 import type { ICreateAppDeploymentEnvObject } from 'app-development/sharedResources/appDeployment/types';
 import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
@@ -9,9 +13,10 @@ import { AppStatus } from './AppStatus';
 import { Alert } from '@digdir/design-system-react';
 import { NoEnvironmentsAlert } from './NoEnvironmentsAlert';
 import classes from './AppEnvironments.module.css';
+import { getAppLink } from 'app-shared/ext-urls';
 
 export const AppEnvironments = () => {
-  const { org } = useStudioUrlParams();
+  const { org, app } = useStudioUrlParams();
   const { t } = useTranslation();
 
   const {
@@ -24,11 +29,16 @@ export const AppEnvironments = () => {
     isPending: orgsIsPending,
     isError: orgsIsError,
   } = useOrgListQuery({ hideDefaultError: true });
+  const {
+    data: appDeployment,
+    isPending: isPendingDeploys,
+    isError: deploysAreError,
+  } = useAppDeploymentsQuery(org, app, { hideDefaultError: true });
 
-  if (envIsPending || orgsIsPending)
+  if (envIsPending || orgsIsPending || isPendingDeploys)
     return <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.loading_env')} />;
 
-  if (envIsError || orgsIsError)
+  if (envIsError || orgsIsError || deploysAreError)
     return <Alert severity='danger'>{t('overview.app_environments_error')}</Alert>;
 
   const selectedOrg = orgs.orgs[org];
@@ -45,7 +55,15 @@ export const AppEnvironments = () => {
   return (
     <div className={classes.appEnvironments}>
       {orgEnvironments.map((orgEnvironment: DeployEnvironment) => {
-        return <AppStatus key={orgEnvironment.name} env={orgEnvironment} />;
+        return (
+          <AppStatus
+            key={orgEnvironment.name}
+            appDeployment={appDeployment}
+            envName={orgEnvironment.name}
+            envType={orgEnvironment.type}
+            urlToApp={getAppLink(orgEnvironment.appPrefix, orgEnvironment.hostname, org, app)}
+          />
+        );
       })}
     </div>
   );
