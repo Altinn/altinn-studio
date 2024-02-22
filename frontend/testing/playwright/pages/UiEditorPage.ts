@@ -5,6 +5,7 @@ import type { ComponentType } from '../enum/ComponentType';
 import type { DragAndDropComponents } from '../types/DragAndDropComponents';
 import { expect } from '@playwright/test';
 import { DataTestId } from '../enum/DataTestId';
+import type { LanguageCode } from '../enum/LanguageCode';
 
 export class UiEditorPage extends BasePage {
   constructor(page: Page, environment?: Environment) {
@@ -141,6 +142,14 @@ export class UiEditorPage extends BasePage {
       .click();
   }
 
+  public async clickOnEditLabelText(): Promise<void> {
+    await this.page
+      .getByRole('button', {
+        name: this.textMock('ux_editor.text_resource_binding_edit_title'),
+      })
+      .click();
+  }
+
   public async writeLabelTextInTextarea(text: string): Promise<void> {
     await this.page.getByLabel(this.textMock('language.nb')).fill(text);
   }
@@ -228,6 +237,30 @@ export class UiEditorPage extends BasePage {
   public async waitForTreeItemToGetNewLabel(label: string): Promise<void> {
     const newTreeItemLabel = this.page.getByRole('treeitem', { name: label });
     await expect(newTreeItemLabel).toBeVisible();
+  }
+
+  public async deleteOldComponentId(): Promise<void> {
+    await this.page
+      .getByLabel(this.textMock('ux_editor.modal_properties_component_change_id'))
+      .clear();
+  }
+
+  public async writeNewComponentId(newId: string): Promise<void> {
+    await this.page
+      .getByLabel(this.textMock('ux_editor.modal_properties_component_change_id'))
+      .fill(newId);
+  }
+
+  public async verifyThatTextKeyIsVisible(textKey: string): Promise<void> {
+    await this.page.getByText(this.textMock('ux_editor.field_id', { id: textKey })).isVisible();
+  }
+
+  public async verifyThatTextKeyIsHidden(textKey: string): Promise<void> {
+    await this.page.getByText(this.textMock('ux_editor.field_id', { id: textKey })).isHidden();
+  }
+
+  public async verifyThatTextareaIsVisible(lang: LanguageCode): Promise<void> {
+    await this.page.getByRole('textbox', { name: this.textMock(`language.${lang}`) }).isVisible();
   }
 
   private getToolbarItems(): Locator {
