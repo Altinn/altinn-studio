@@ -205,7 +205,7 @@ const supportedPropertyTypes = [
   PropertyTypes.array,
 ];
 const supportedPropertyRefs = supportedPropertyTypes
-  .filter((p) => p !== 'object' && p !== 'array')
+  .filter((p) => p !== PropertyTypes.object && p !== PropertyTypes.array)
   .map((type) => getExpressionSchemaDefinitionReference(type));
 
 /**
