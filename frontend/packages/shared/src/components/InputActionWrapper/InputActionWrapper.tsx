@@ -3,7 +3,6 @@ import { CheckmarkIcon, TrashIcon, PencilWritingIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import type { ButtonProps } from '@digdir/design-system-react';
 import classes from './InputActionWrapper.module.css';
-import cn from 'classnames';
 import { StudioButton } from '@studio/components';
 
 type AvailableAction = 'edit' | 'save' | 'delete';
@@ -96,18 +95,12 @@ export const InputActionWrapper = ({
   };
 
   return (
-    <div
-      className={cn(classes.container, mode === 'standBy' && classes.standByContainer)}
-      onMouseOver={handleHover}
-      onMouseLeave={handleMouseLeave}
-    >
+    <div className={classes.container} onMouseOver={handleHover} onMouseLeave={handleMouseLeave}>
       {React.cloneElement(children, {
         ...rest,
         onFocus: handleFocus,
       })}
-      <div
-        className={cn(classes.buttonWrapper, mode === 'standBy' && classes.standByButtonWrapper)}
-      >
+      <div className={classes.buttonWrapper}>
         {actions.map((action) => (
           <StudioButton
             variant='tertiary'

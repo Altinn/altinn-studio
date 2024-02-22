@@ -1,3 +1,8 @@
+.container {
+  display: grid;
+  gap: 1rem;
+}
+
 .dataModelBindings {
   display: flex;
   flex-direction: column;

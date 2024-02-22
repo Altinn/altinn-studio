@@ -1,21 +1,13 @@
 .container {
-  margin-top: var(--fds-spacing-3);
   display: flex;
   align-items: center;
-  min-height: var(--fds-component-mode-height-medium);
-}
-
-.standByContainer {
-  position: relative;
+  justify-content: space-between;
+  padding: 6px 6px 6px 20px;
+  background-color: white;
+  border-radius: 4px;
+  min-height: var(--fds-sizing-10);
 }
 
 .buttonWrapper {
   display: flex;
-  background-color: var(--fds-semantic-background-subtle);
-}
-
-.standByButtonWrapper {
-  position: absolute;
-  right: 0;
-  top: 0.5;
 }

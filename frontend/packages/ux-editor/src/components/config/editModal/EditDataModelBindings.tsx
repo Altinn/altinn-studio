@@ -71,7 +71,10 @@ export const EditDataModelBindings = ({
     : '';
 
   return (
-    <div key={uniqueKey || ''}>
+    <div
+      key={uniqueKey || ''}
+      className={dataModelSelectVisible || selectedOption ? classes.wrapper : null}
+    >
       {!selectedOption && !dataModelSelectVisible ? (
         <StudioButton
           onClick={() => setDataModelSelectVisible(true)}
@@ -94,7 +97,7 @@ export const EditDataModelBindings = ({
           }}
           onSaveClick={() => setDataModelSelectVisible(false)}
         >
-          <div className={classes.selectDataModelComponent}>
+          <>
             {dataModelSelectVisible ? (
               <SelectDataModelComponent
                 propertyPath={`definitions/component/properties/dataModelBindings/properties/${
@@ -116,23 +119,19 @@ export const EditDataModelBindings = ({
               />
             ) : (
               selectedOption && (
-                <span className={classes.selectedOption}>
-                  <SelectedOption selectedOption={selectedOption} />
-                </span>
+                <div className={classes.labelAndSelectedOption}>
+                  {label &&
+                    `${t('ux_editor.modal_properties_data_model_selected')} ${labelSpecificText}`}
+                  <div className={classes.selectedOption}>
+                    <LinkIcon className={classes.linkIcon} />
+                    {selectedOption}
+                  </div>
+                </div>
               )
             )}
-          </div>
+          </>
         </InputActionWrapper>
       )}
-    </div>
-  );
-};
-
-const SelectedOption = ({ selectedOption }: { selectedOption: string }) => {
-  return (
-    <div className={classes.linkedDatamodelContainer}>
-      <LinkIcon className={classes.linkedDatamodelIcon} />
-      {selectedOption}
     </div>
   );
 };

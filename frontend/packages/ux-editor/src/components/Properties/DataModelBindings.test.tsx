@@ -1,47 +1,23 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
-import { FormItemContext } from '../../containers/FormItemContext';
+import { screen } from '@testing-library/react';
 import { DataModelBindings } from './DataModelBindings';
-import userEvent from '@testing-library/user-event';
+import { FormItemContext } from '../../containers/FormItemContext';
 import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
-import { component1Mock, component1IdMock } from '../../testing/layoutMock';
 import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { componentSchemaMocks } from '../../testing/componentSchemaMocks';
+import { datamodelNameMock } from 'app-shared/mocks/datamodelMetadataMocks';
+import { ComponentType } from 'app-shared/types/ComponentType';
+import type { FormItem } from '../../types/FormItem';
+import { componentMocks } from '../../testing/componentMocks';
 
-const mockSchema = {
-  properties: {
-    dataModelBindings: {
-      properties: {
-        simpleBinding: {
-          description: 'Description for simpleBinding',
-        },
-      },
-    },
-  },
-};
-
-const mockSchemaUndefined = {
-  properties: {
-    dataModelBindings: {
-      properties: undefined,
-    },
-  },
-};
-
-const mockHandleComponentUpdate = jest.fn();
-
-const defaultProps: DataModelBindingRowProps = {
-  schema: mockSchema,
-  component: component1Mock,
-  formId: component1IdMock,
-  handleComponentUpdate: mockHandleComponentUpdate,
-};
-
-describe('DataModelBindingRow', () => {
+describe('DataModelBindings', () => {
   afterEach(jest.clearAllMocks);
 
   it('renders EditDataModelBindings component when schema is present', () => {
-    renderProperties({ formItem: component1Mock, formItemId: component1IdMock });
+    render({});
 
     const datamodelButton = screen.getByRole('button', {
       name: textMock('ux_editor.modal_properties_data_model_link'),
@@ -50,52 +26,124 @@ describe('DataModelBindingRow', () => {
   });
 
   it('does not render EditDataModelBindings component when schema.properties is undefined', () => {
-    renderProperties(
-      { formItem: component1Mock, formItemId: component1IdMock },
-      { schema: mockSchemaUndefined },
-    );
+    const unknownComponent: FormItem = {
+      id: 'unknownComponentId',
+      type: 'unknown' as any,
+      itemType: 'COMPONENT',
+      propertyPath: 'definitions/unknownComponent',
+    };
+    render({ props: { formItem: unknownComponent, formItemId: 'unknownComponentId' } });
 
     const datamodelButton = screen.queryByRole('button', {
       name: textMock('ux_editor.modal_properties_data_model_link'),
     });
     expect(datamodelButton).not.toBeInTheDocument();
+
+    const spinner = screen.getByText(textMock('general.loading'));
+    expect(spinner).toBeInTheDocument();
   });
 
-  it('calls handleComponentUpdate when EditDataModelBindings component is updated', async () => {
-    const user = userEvent.setup();
-    renderProperties({ formItem: component1Mock, formItemId: component1IdMock });
-
-    const datamodelButton = screen.getByRole('button', {
-      name: textMock('ux_editor.modal_properties_data_model_link'),
+  it('should render alert component with information when component does not have any data model bindings to set', () => {
+    render({
+      props: {
+        formItem: componentMocks[ComponentType.Image],
+        formItemId: componentMocks[ComponentType.Image].id,
+      },
     });
-    expect(
-      screen.queryByRole('button', { name: textMock('general.delete') }),
-    ).not.toBeInTheDocument();
 
-    await act(() => user.click(datamodelButton));
+    const noDataModelBindingsAlert = screen.getByText(
+      textMock('ux_editor.modal_properties_data_model_binding_not_present'),
+    );
+    expect(noDataModelBindingsAlert).toBeInTheDocument();
+  });
 
-    const deleteButton = screen.getByRole('button', {
-      name: textMock('general.delete'),
+  const { dataModelBindings } = componentSchemaMocks[ComponentType.AddressComponent].properties;
+  it.each(Object.keys(dataModelBindings?.properties))(
+    'should render data model binding with label for prop, %s, on AddressComponent',
+    (prop) => {
+      render({
+        props: {
+          formItem: componentMocks[ComponentType.AddressComponent],
+          formItemId: componentMocks[ComponentType.AddressComponent].id,
+        },
+      });
+
+      const datamodelButton = screen.getByRole('button', {
+        name:
+          textMock('ux_editor.modal_properties_data_model_link') +
+          ' ' +
+          textMock('general.for') +
+          ' ' +
+          textMock(`ux_editor.modal_properties_data_model_label.${prop}`),
+      });
+      expect(datamodelButton).toBeInTheDocument();
+    },
+  );
+
+  it('should render already existing bindings in previewMode with label', () => {
+    render({
+      props: {
+        formItem: {
+          ...componentMocks[ComponentType.AddressComponent],
+          dataModelBindings: {
+            address: 'someAddressDataModelField',
+            careOf: 'someCareOfDataModelField',
+          },
+        },
+        formItemId: componentMocks[ComponentType.AddressComponent].id,
+      },
     });
-    expect(deleteButton).toBeInTheDocument();
 
-    await act(() => user.click(deleteButton));
-    expect(mockHandleComponentUpdate).toHaveBeenCalledTimes(1);
+    ['address', 'careOf'].forEach((prop) => {
+      const datamodelButton = screen.getByText(
+        textMock('ux_editor.modal_properties_data_model_selected') +
+          ' ' +
+          textMock('general.for') +
+          ' ' +
+          textMock(`ux_editor.modal_properties_data_model_label.${prop}`),
+      );
+      expect(datamodelButton).toBeInTheDocument();
+    });
+
+    ['zipCode', 'postPlace', 'houseNumber'].forEach((prop) => {
+      const datamodelButton = screen.getByRole('button', {
+        name:
+          textMock('ux_editor.modal_properties_data_model_link') +
+          ' ' +
+          textMock('general.for') +
+          ' ' +
+          textMock(`ux_editor.modal_properties_data_model_label.${prop}`),
+      });
+      expect(datamodelButton).toBeInTheDocument();
+    });
   });
 });
 
-const renderProperties = (
-  formItemContextProps: Partial<FormItemContext> = {},
-  props: Partial<DataModelBindingRowProps> = {},
-) => {
+const defaultProps = {
+  formItemId: componentMocks[ComponentType.Input].id,
+  formItem: componentMocks[ComponentType.Input],
+};
+
+const render = async ({
+  props = defaultProps,
+}: {
+  props?: Partial<FormItemContext>;
+  editId?: string;
+}) => {
+  queryClientMock.setQueryData(
+    [QueryKey.FormComponent, props.formItem.type],
+    componentSchemaMocks[props.formItem.type],
+  );
+  queryClientMock.setQueryData([QueryKey.DatamodelMetadata, 'org', 'app'], datamodelNameMock);
+
   return renderWithProviders(
     <FormItemContext.Provider
       value={{
         ...formItemContextProviderMock,
-        ...formItemContextProps,
+        ...props,
       }}
     >
-      <DataModelBindings {...defaultProps} {...props} />
-    </FormContext.Provider>
+      <DataModelBindings />
+    </FormItemContext.Provider>,
   );
 };
