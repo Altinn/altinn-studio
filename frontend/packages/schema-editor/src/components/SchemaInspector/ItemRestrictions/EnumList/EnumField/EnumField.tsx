@@ -1,5 +1,4 @@
-import type { ChangeEvent, KeyboardEvent } from 'react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, type ChangeEvent, type KeyboardEvent } from 'react';
 import { Textfield } from '@digdir/design-system-react';
 import classes from './EnumField.module.css';
 import { useTranslation } from 'react-i18next';

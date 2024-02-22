@@ -1,13 +1,15 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { ItemPropertiesTab } from './ItemPropertiesTab';
-import type { CombinationNode, FieldNode, UiSchemaNodes } from '@altinn/schema-model';
 import {
   CombinationKind,
   FieldType,
   ObjectKind,
   SchemaModel,
   validateTestUiSchema,
+  type CombinationNode,
+  type FieldNode,
+  type UiSchemaNodes,
 } from '@altinn/schema-model';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';

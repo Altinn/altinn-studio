@@ -1,5 +1,4 @@
-import type { UiSchemaNode } from '../types';
-import { ObjectKind } from '../types';
+import { ObjectKind, type UiSchemaNode } from '../types';
 import { ROOT_POINTER } from './constants';
 import {
   isCombination,

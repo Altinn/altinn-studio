@@ -1,12 +1,19 @@
 import React from 'react';
 import { act, screen } from '@testing-library/react';
-import type { ItemFieldsTabProps } from './ItemFieldsTab';
-import { ItemFieldsTab } from './ItemFieldsTab';
-import type { FieldNode, UiSchemaNodes } from '@altinn/schema-model';
-import { FieldType, ObjectKind, SchemaModel, validateTestUiSchema } from '@altinn/schema-model';
+import { ItemFieldsTab, type ItemFieldsTabProps } from './ItemFieldsTab';
+import {
+  FieldType,
+  ObjectKind,
+  SchemaModel,
+  validateTestUiSchema,
+  type FieldNode,
+  type UiSchemaNodes,
+} from '@altinn/schema-model';
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
-import type { RenderWithProvidersData } from '../../../../test/renderWithProviders';
-import { renderWithProviders } from '../../../../test/renderWithProviders';
+import {
+  renderWithProviders,
+  type RenderWithProvidersData,
+} from '../../../../test/renderWithProviders';
 import userEvent from '@testing-library/user-event';
 import { nodeMockBase, rootNodeMock } from '../../../../test/mocks/uiSchemaMock';
 import { getSavedModel } from '../../../../test/test-utils';

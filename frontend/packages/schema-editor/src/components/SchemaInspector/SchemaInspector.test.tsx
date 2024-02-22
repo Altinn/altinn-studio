@@ -3,7 +3,6 @@ import { SchemaInspector } from './SchemaInspector';
 import { dataMock } from '../../mockData';
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { CombinationNode, FieldNode, UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import {
   buildUiSchema,
   CombinationKind,
@@ -11,6 +10,10 @@ import {
   ObjectKind,
   SchemaModel,
   validateTestUiSchema,
+  type CombinationNode,
+  type FieldNode,
+  type UiSchemaNode,
+  type UiSchemaNodes,
 } from '@altinn/schema-model';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';

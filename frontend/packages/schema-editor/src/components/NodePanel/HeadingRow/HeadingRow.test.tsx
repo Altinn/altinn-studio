@@ -1,5 +1,4 @@
-import { HeadingRow } from './HeadingRow';
-import type { HeadingRowProps } from './HeadingRow';
+import { HeadingRow, type HeadingRowProps } from './HeadingRow';
 import React from 'react';
 import type { SchemaEditorAppContextProps } from '../../../contexts/SchemaEditorAppContext';
 import { renderWithProviders } from '../../../../test/renderWithProviders';

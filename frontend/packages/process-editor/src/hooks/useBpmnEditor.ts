@@ -1,7 +1,7 @@
-import type { MutableRefObject } from 'react';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, type MutableRefObject } from 'react';
 import type BpmnModeler from 'bpmn-js/lib/Modeler';
 import { useBpmnContext } from '../contexts/BpmnContext';
+// eslint-disable-next-line no-duplicate-imports
 import type Modeler from 'bpmn-js/lib/Modeler';
 import { useBpmnModeler } from './useBpmnModeler';
 import { getBpmnEditorDetailsFromBusinessObject } from '../utils/hookUtils';

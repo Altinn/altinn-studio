@@ -1,7 +1,6 @@
 import { DragAndDrop } from 'app-shared/components/dragAndDrop';
 import { StudioTreeView } from '@studio/components';
-import type { ReactNode } from 'react';
-import React, { useContext } from 'react';
+import React, { useContext, type ReactNode } from 'react';
 import { DragAndDropTreeRootContext } from '../DragAndDropTreeRoot';
 import { DragAndDropTreeItemContext } from './DragAndDropTreeItemContext';
 import classes from './DragAndDropTreeItem.module.css';

@@ -1,7 +1,5 @@
-import type { BaseSyntheticEvent } from 'react';
-import React, { useEffect } from 'react';
-import type { FieldNode } from '@altinn/schema-model';
-import { FieldType, isField, isReference, ObjectKind } from '@altinn/schema-model';
+import React, { useEffect, type BaseSyntheticEvent } from 'react';
+import { FieldType, isField, isReference, ObjectKind, type FieldNode } from '@altinn/schema-model';
 import classes from './ItemFieldsTab.module.css';
 import { StudioButton, usePrevious } from '@studio/components';
 import { PlusIcon } from '@navikt/aksel-icons';

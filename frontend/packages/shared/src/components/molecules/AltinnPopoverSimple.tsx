@@ -1,8 +1,7 @@
 import React from 'react';
 import classes from './AltinnPopoverSimple.module.css';
-import type { PopoverOrigin } from '@mui/material';
 import { ButtonContainer } from 'app-shared/primitives';
-import { Popover } from '@mui/material';
+import { Popover, type PopoverOrigin } from '@mui/material';
 import { StudioButton } from '@studio/components';
 
 export interface IAltinnPopoverProps {

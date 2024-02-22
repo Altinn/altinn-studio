@@ -1,14 +1,16 @@
 /* eslint-disable testing-library/no-container, testing-library/no-node-access, react/display-name  */
-
 import React from 'react';
 import { render as renderRtl, screen } from '@testing-library/react';
-import type { DragAndDropTreeItemProps } from './DragAndDropTreeItem';
-import { DragAndDropTreeItem } from './DragAndDropTreeItem';
-import type { DragAndDropTreeRootContextProps } from '../DragAndDropTreeRoot';
-import { DragAndDropTreeRootContext } from '../DragAndDropTreeRoot';
+import { DragAndDropTreeItem, type DragAndDropTreeItemProps } from './DragAndDropTreeItem';
+import {
+  DragAndDropTreeRootContext,
+  type DragAndDropTreeRootContextProps,
+} from '../DragAndDropTreeRoot';
 import { DragAndDropTreeProvider } from '../DragAndDropTreeProvider';
-import type { DragAndDropTreeItemContextProps } from './DragAndDropTreeItemContext';
-import { DragAndDropTreeItemContext } from './DragAndDropTreeItemContext';
+import {
+  DragAndDropTreeItemContext,
+  type DragAndDropTreeItemContextProps,
+} from './DragAndDropTreeItemContext';
 import { StudioTreeView } from '@studio/components';
 
 // Test data:

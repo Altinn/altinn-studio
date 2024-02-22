@@ -1,5 +1,4 @@
-import type { ChangeEvent } from 'react';
-import React, { useState } from 'react';
+import React, { useState, type ChangeEvent } from 'react';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions } from './helpers/options';
 import {
@@ -11,7 +10,6 @@ import {
 } from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
-import type { CombinationKind, UiSchemaNode } from '@altinn/schema-model';
 import {
   addCombinationItem,
   deleteNode,
@@ -30,6 +28,8 @@ import {
   FieldType,
   combinationIsNullable,
   ROOT_POINTER,
+  type CombinationKind,
+  type UiSchemaNode,
 } from '@altinn/schema-model';
 import { makeDomFriendlyID } from '../../utils/ui-schema-utils';
 import { Divider } from 'app-shared/primitives';

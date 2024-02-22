@@ -1,8 +1,7 @@
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import React from 'react';
 import type { SchemaEditorAppContextProps } from '../../contexts/SchemaEditorAppContext';
-import { NodePanel } from './';
-import type { NodePanelProps } from './';
+import { NodePanel, type NodePanelProps } from './';
 import { extractNameFromPointer, ROOT_POINTER, SchemaModel } from '@altinn/schema-model';
 import {
   definitionNodeMock,

@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import classes from './BPMNEditor.module.css';
 import { useBpmnEditor } from '../../../hooks/useBpmnEditor';
 

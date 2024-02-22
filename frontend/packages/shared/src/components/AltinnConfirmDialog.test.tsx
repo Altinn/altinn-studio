@@ -1,8 +1,7 @@
 import React from 'react';
 import { render as rtlRender, act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { AltinnConfirmDialogProps } from './AltinnConfirmDialog';
-import { AltinnConfirmDialog } from './AltinnConfirmDialog';
+import { AltinnConfirmDialog, type AltinnConfirmDialogProps } from './AltinnConfirmDialog';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();

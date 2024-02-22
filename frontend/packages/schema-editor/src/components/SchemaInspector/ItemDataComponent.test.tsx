@@ -1,6 +1,5 @@
 import { ItemDataComponent } from './ItemDataComponent';
-import type { UiSchemaNode } from '@altinn/schema-model';
-import { SchemaModel } from '@altinn/schema-model';
+import { SchemaModel, type UiSchemaNode } from '@altinn/schema-model';
 import React from 'react';
 import { act, fireEvent, screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';

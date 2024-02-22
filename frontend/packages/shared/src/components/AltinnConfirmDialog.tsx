@@ -1,11 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import classes from './AltinnConfirmDialog.module.css';
-import type { LegacyPopoverProps } from '@digdir/design-system-react';
-import { LegacyPopover } from '@digdir/design-system-react';
+import { LegacyPopover, type LegacyPopoverProps } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
-import { StudioButton } from '@studio/components';
-import type { StudioButtonProps } from '@studio/components';
+import { StudioButton, type StudioButtonProps } from '@studio/components';
 
 export type AltinnConfirmDialogProps = {
   confirmText?: string;

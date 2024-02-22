@@ -1,7 +1,6 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import type { IAltinnHeaderMenuProps } from './AltinnHeaderMenu';
-import { AltinnHeaderMenu } from './AltinnHeaderMenu';
+import { AltinnHeaderMenu, type IAltinnHeaderMenuProps } from './AltinnHeaderMenu';
 import { MemoryRouter } from 'react-router-dom';
 import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';

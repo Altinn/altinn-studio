@@ -1,12 +1,5 @@
 import { render as renderRtl, screen } from '@testing-library/react';
 import { renderIcon } from './renderIcon';
-import type {
-  CombinationNode,
-  FieldNode,
-  ReferenceNode,
-  UiSchemaNode,
-  UiSchemaNodes,
-} from '@altinn/schema-model';
 import {
   CombinationKind,
   FieldType,
@@ -14,6 +7,11 @@ import {
   ROOT_POINTER,
   SchemaModel,
   validateTestUiSchema,
+  type CombinationNode,
+  type FieldNode,
+  type ReferenceNode,
+  type UiSchemaNode,
+  type UiSchemaNodes,
 } from '@altinn/schema-model';
 import { nodeMockBase } from '../../../../test/mocks/uiSchemaMock';
 

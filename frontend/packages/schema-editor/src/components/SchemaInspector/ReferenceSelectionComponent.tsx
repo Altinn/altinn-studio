@@ -1,7 +1,6 @@
 import React from 'react';
-import type { ReferenceNode, UiSchemaNode } from '@altinn/schema-model';
 import { makeDomFriendlyID } from '../../utils/ui-schema-utils';
-import { Keyword } from '@altinn/schema-model';
+import { Keyword, type ReferenceNode, type UiSchemaNode } from '@altinn/schema-model';
 import classes from './ReferenceSelectionComponent.module.css';
 import { LegacySelect } from '@digdir/design-system-react';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';

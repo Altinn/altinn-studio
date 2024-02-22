@@ -1,7 +1,6 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import type { AltinnHeaderProfileProps } from './AltinnHeaderProfile';
-import { AltinnHeaderProfile } from './AltinnHeaderProfile';
+import { AltinnHeaderProfile, type AltinnHeaderProfileProps } from './AltinnHeaderProfile';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 
 describe('AltinnHeaderProfile', () => {

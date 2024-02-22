@@ -1,6 +1,5 @@
 import React from 'react';
-import type { UiSchemaNode } from '@altinn/schema-model';
-import { ObjectKind } from '@altinn/schema-model';
+import { ObjectKind, type UiSchemaNode } from '@altinn/schema-model';
 import { InlineObject } from './InlineObject';
 import { ItemDataComponent } from './ItemDataComponent';
 import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';

@@ -1,5 +1,4 @@
-import type { MutableRefObject } from 'react';
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, type MutableRefObject } from 'react';
 import BpmnJS from 'bpmn-js/dist/bpmn-navigated-viewer.development.js';
 import { useBpmnContext } from '../contexts/BpmnContext';
 import type { BpmnViewerError } from '../types/BpmnViewerError';

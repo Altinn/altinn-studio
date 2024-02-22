@@ -1,6 +1,5 @@
 import React from 'react';
-import type { UiSchemaNode } from '@altinn/schema-model';
-import { FieldType, ObjectKind } from '@altinn/schema-model';
+import { FieldType, ObjectKind, type UiSchemaNode } from '@altinn/schema-model';
 import {
   BooleanIcon,
   CombinationIcon,
@@ -9,8 +8,8 @@ import {
   QuestionmarkIcon,
   ReferenceIcon,
   StringIcon,
+  type IconProps,
 } from '@studio/icons';
-import type { IconProps } from '@studio/icons';
 import classes from './NodeIcon.module.css';
 import cn from 'classnames';
 

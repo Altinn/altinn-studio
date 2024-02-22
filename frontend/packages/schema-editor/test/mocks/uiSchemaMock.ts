@@ -1,10 +1,13 @@
-import type {
-  CombinationNode,
-  FieldNode,
-  ReferenceNode,
-  UiSchemaNodes,
+import {
+  CombinationKind,
+  FieldType,
+  ObjectKind,
+  ROOT_POINTER,
+  type CombinationNode,
+  type FieldNode,
+  type ReferenceNode,
+  type UiSchemaNodes,
 } from '@altinn/schema-model';
-import { CombinationKind, FieldType, ObjectKind, ROOT_POINTER } from '@altinn/schema-model';
 
 const combinationNodePointer = '#/properties/test';
 const fieldNode1Pointer = '#/properties/test/anyOf/0';

@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import type { ConfigDetailsRowProps } from './ConfigDetailsRow';
-import { ConfigDetailsRow } from './ConfigDetailsRow';
+import { ConfigDetailsRow, type ConfigDetailsRowProps } from './ConfigDetailsRow';
 
 const mockTitle: string = 'Title';
 const mockText: string = 'Text';

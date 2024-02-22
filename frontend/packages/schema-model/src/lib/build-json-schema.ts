@@ -1,4 +1,3 @@
-import type { UiSchemaNode, UiSchemaNodes } from '../types';
 import {
   ArrRestrictionKey,
   FieldType,
@@ -6,6 +5,8 @@ import {
   Keyword,
   ObjectKind,
   SpecialArrayXsdField,
+  type UiSchemaNode,
+  type UiSchemaNodes,
 } from '../types';
 import JSONPointer from 'jsonpointer';
 import { findRequiredProps } from './mappers/required';
