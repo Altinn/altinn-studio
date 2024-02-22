@@ -1,3 +1,4 @@
+import type { LanguageCode } from '../enum/LanguageCode';
 import { BasePage } from '../helpers/BasePage';
 import type { Environment } from '../helpers/StudioEnvironment';
 import type { Page } from '@playwright/test';
@@ -8,6 +9,8 @@ const giteaPageTexts: Record<string, string> = {
   ui: 'ui',
   layouts: 'layouts',
   dataModelBindings: 'dataModelBindings',
+  config: 'config',
+  texts: 'texts',
 };
 
 export class GiteaPage extends BasePage {
@@ -59,6 +62,42 @@ export class GiteaPage extends BasePage {
 
   public async verifyThatDataModelBindingsAreVisible(dataModelBindingName: string): Promise<void> {
     await this.page.getByText(giteaPageTexts['dataModelBindings']).isVisible();
-    await this.page.getByText('"simpleBinding": "property1"').isVisible();
+    await this.page
+      .getByText(`"simpleBinding": "${dataModelBindingName}"`, { exact: true })
+      .isVisible();
+  }
+
+  public async verifyThatComponentIdIsVisible(id: string): Promise<void> {
+    await this.page.getByText(`"id": "${id}"`).isVisible();
+  }
+
+  public async verifyThatTextResourceBindingsTitleIsVisible(title: string): Promise<void> {
+    await this.page
+      .getByText(`"textResourceBindings": { "title": "${title}" }`, { exact: true })
+      .isVisible();
+  }
+
+  public async clickOnConfigFilesButton(): Promise<void> {
+    await this.page.getByRole('link', { name: giteaPageTexts['config'] }).click();
+  }
+
+  public async clickOnTextFilesButton(): Promise<void> {
+    await this.page.getByRole('link', { name: giteaPageTexts['texts'] }).click();
+  }
+
+  public async verifyThatResourceJsonFileIsVisible(lang: LanguageCode): Promise<void> {
+    await this.page.getByRole('link', { name: `resource.${lang}.json`, exact: true }).isVisible();
+  }
+
+  public async clickOnResourceJsonFile(lang: LanguageCode): Promise<void> {
+    await this.page.getByRole('link', { name: `resource.${lang}.json` }).click();
+  }
+
+  public async verifyLanguageFile(lang: LanguageCode): Promise<void> {
+    await this.page.getByText(`"language": "${lang}"`, { exact: true }).isVisible();
+  }
+
+  public async verifyTextIdAndValue(id: string, value: string): Promise<void> {
+    await this.page.getByText(`"id": "${id}", "value": "${value}"`, { exact: true }).isVisible();
   }
 }

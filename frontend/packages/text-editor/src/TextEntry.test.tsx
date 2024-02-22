@@ -21,7 +21,7 @@ describe('TextEntry', () => {
   it("should not call upsertTextResource when textEntryValue is '' ", async () => {
     const user = userEvent.setup();
     renderTextEntry();
-    const inputText1 = screen.getByRole('textbox', { name: 'nb translation' });
+    const inputText1 = getTextArea();
     await act(() => user.clear(inputText1));
     expect(mockUpsertTextResource).toHaveBeenCalledTimes(0);
   });
@@ -29,7 +29,7 @@ describe('TextEntry', () => {
   it("should return nothing when textEntryValue is '' ", async () => {
     const user = userEvent.setup();
     renderTextEntry();
-    const inputText2 = screen.getByRole('textbox', { name: 'nb translation' });
+    const inputText2 = getTextArea();
     await act(() => user.clear(inputText2));
     expect(textEntryValue).toEqual('');
   });
@@ -37,7 +37,7 @@ describe('TextEntry', () => {
   it('should toggle validation error message when textEntryValue changes from empty to has value', async () => {
     const user = userEvent.setup();
     renderTextEntry();
-    const inputText3 = screen.getByRole('textbox', { name: 'nb translation' });
+    const inputText3 = getTextArea();
     await act(() => user.clear(inputText3));
     expect(textId).toEqual(APP_NAME);
     expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
@@ -48,7 +48,7 @@ describe('TextEntry', () => {
   it('shouls not display validation error message when textId equal to APP_NAME but textEntryValue is not empty', async () => {
     const user = userEvent.setup();
     renderTextEntry();
-    const inputText4 = screen.getByRole('textbox', { name: 'nb translation' });
+    const inputText4 = getTextArea();
     await act(() => user.type(inputText4, 'Hello'));
     expect(textId).toEqual(APP_NAME);
     expect(screen.queryByText(textMock('validation_errors.required'))).not.toBeInTheDocument();
@@ -66,4 +66,13 @@ const renderTextEntry = async (props: Partial<TextEntryProps> = {}) => {
   };
 
   return render(<TextEntry {...allProps} />);
+};
+
+const getTextArea = (): HTMLElement => {
+  return screen.getByRole('textbox', {
+    name: textMock('text_editor.table_row_input_label', {
+      lang: textMock('language.nb'),
+      textKey: textId,
+    }),
+  });
 };
