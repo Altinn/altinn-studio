@@ -1464,6 +1464,7 @@
   "ux_editor.component_properties.minNumberOfAttachments": "Minimum antall vedlegg",
   "ux_editor.component_properties.mode": "Modus",
   "ux_editor.component_properties.openInNewTab": "Lenken skal åpnes i ny fane",
+  "ux_editor.component_properties.optionalIndicator": "Vis valgfri-indikator på ledetekst",
   "ux_editor.component_properties.options": "Alternativer",
   "ux_editor.component_properties.optionsId": "Kodeliste",
   "ux_editor.component_properties.pageBreak": "PDF-innstillinger (pageBreak)",
