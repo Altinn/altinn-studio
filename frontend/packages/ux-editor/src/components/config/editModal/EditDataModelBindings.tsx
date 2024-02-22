@@ -66,9 +66,14 @@ export const EditDataModelBindings = ({
     ? component.dataModelBindings[key || 'simpleBinding']
     : undefined;
 
+  const onlyShowArrayDataModelFields: boolean =
+    component.type === ComponentType.RepeatingGroup ||
+    ((component.type === ComponentType.FileUpload || ComponentType.FileUploadWithTag) &&
+      label === 'list');
+
   const labelSpecificText = label
-    ? t('general.for') + ' ' + t(`ux_editor.modal_properties_data_model_label.${label}`)
-    : '';
+    ? t(`ux_editor.modal_properties_data_model_label.${label}`)
+    : t(`ux_editor.component_title.${component.type}`);
 
   return (
     <div
@@ -84,7 +89,7 @@ export const EditDataModelBindings = ({
         >
           <div className={classes.datamodelLink}>
             <LinkIcon className={classes.linkIcon} />
-            {`${t('ux_editor.modal_properties_data_model_link')} ${labelSpecificText}`}
+            {labelSpecificText}
           </div>
         </StudioButton>
       ) : (
@@ -103,10 +108,10 @@ export const EditDataModelBindings = ({
                 propertyPath={`definitions/component/properties/dataModelBindings/properties/${
                   key || 'simpleBinding'
                 }`}
-                label={`${t('ux_editor.modal_properties_data_model_helper')} ${labelSpecificText}`}
+                label={labelSpecificText}
                 componentType={component.type}
                 inputId={`selectDataModelSelect-${label}`}
-                selectGroup={component.type === ComponentType.RepeatingGroup}
+                selectGroup={onlyShowArrayDataModelFields}
                 selectedElement={
                   component.dataModelBindings
                     ? component.dataModelBindings[key || 'simpleBinding']
@@ -120,8 +125,7 @@ export const EditDataModelBindings = ({
             ) : (
               selectedOption && (
                 <div className={classes.labelAndSelectedOption}>
-                  {label &&
-                    `${t('ux_editor.modal_properties_data_model_selected')} ${labelSpecificText}`}
+                  {labelSpecificText}
                   <div className={classes.selectedOption}>
                     <LinkIcon className={classes.linkIcon} />
                     {selectedOption}

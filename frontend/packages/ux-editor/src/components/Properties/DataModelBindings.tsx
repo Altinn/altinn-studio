@@ -22,6 +22,16 @@ export const DataModelBindings = (): React.JSX.Element => {
     return <Alert>{t('ux_editor.modal_properties_data_model_binding_not_present')}</Alert>;
   }
 
+  if (dataModelBindings.anyOf) {
+    dataModelBindings.anyOf.forEach((dataModelPropDescription) => {
+      const { properties } = dataModelPropDescription;
+      dataModelBindings.properties = {
+        ...dataModelBindings.properties,
+        ...properties,
+      };
+    });
+  }
+
   return (
     dataModelBindings?.properties && (
       <div className={classes.container}>

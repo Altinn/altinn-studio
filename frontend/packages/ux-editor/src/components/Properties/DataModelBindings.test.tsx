@@ -20,7 +20,7 @@ describe('DataModelBindings', () => {
     render({});
 
     const datamodelButton = screen.getByRole('button', {
-      name: textMock('ux_editor.modal_properties_data_model_link'),
+      name: textMock(`ux_editor.component_title.Input`),
     });
     expect(datamodelButton).toBeInTheDocument();
   });
@@ -33,11 +33,6 @@ describe('DataModelBindings', () => {
       propertyPath: 'definitions/unknownComponent',
     };
     render({ props: { formItem: unknownComponent, formItemId: 'unknownComponentId' } });
-
-    const datamodelButton = screen.queryByRole('button', {
-      name: textMock('ux_editor.modal_properties_data_model_link'),
-    });
-    expect(datamodelButton).not.toBeInTheDocument();
 
     const spinner = screen.getByText(textMock('general.loading'));
     expect(spinner).toBeInTheDocument();
@@ -69,12 +64,7 @@ describe('DataModelBindings', () => {
       });
 
       const datamodelButton = screen.getByRole('button', {
-        name:
-          textMock('ux_editor.modal_properties_data_model_link') +
-          ' ' +
-          textMock('general.for') +
-          ' ' +
-          textMock(`ux_editor.modal_properties_data_model_label.${prop}`),
+        name: textMock(`ux_editor.modal_properties_data_model_label.${prop}`),
       });
       expect(datamodelButton).toBeInTheDocument();
     },
@@ -96,23 +86,14 @@ describe('DataModelBindings', () => {
 
     ['address', 'careOf'].forEach((prop) => {
       const datamodelButton = screen.getByText(
-        textMock('ux_editor.modal_properties_data_model_selected') +
-          ' ' +
-          textMock('general.for') +
-          ' ' +
-          textMock(`ux_editor.modal_properties_data_model_label.${prop}`),
+        textMock(`ux_editor.modal_properties_data_model_label.${prop}`),
       );
       expect(datamodelButton).toBeInTheDocument();
     });
 
     ['zipCode', 'postPlace', 'houseNumber'].forEach((prop) => {
       const datamodelButton = screen.getByRole('button', {
-        name:
-          textMock('ux_editor.modal_properties_data_model_link') +
-          ' ' +
-          textMock('general.for') +
-          ' ' +
-          textMock(`ux_editor.modal_properties_data_model_label.${prop}`),
+        name: textMock(`ux_editor.modal_properties_data_model_label.${prop}`),
       });
       expect(datamodelButton).toBeInTheDocument();
     });

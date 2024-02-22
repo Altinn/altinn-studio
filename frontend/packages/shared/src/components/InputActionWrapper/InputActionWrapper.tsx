@@ -95,7 +95,11 @@ export const InputActionWrapper = ({
   };
 
   return (
-    <div className={classes.container} onMouseOver={handleHover} onMouseLeave={handleMouseLeave}>
+    <div
+      className={mode === 'standBy' ? classes.preview : classes.edit}
+      onMouseOver={handleHover}
+      onMouseLeave={handleMouseLeave}
+    >
       {React.cloneElement(children, {
         ...rest,
         onFocus: handleFocus,
@@ -103,8 +107,8 @@ export const InputActionWrapper = ({
       <div className={classes.buttonWrapper}>
         {actions.map((action) => (
           <StudioButton
-            variant='tertiary'
-            size='medium'
+            variant='secondary'
+            size='small'
             color={actionToColorMap[action]}
             key={action}
             onClick={() => handleActionClick(action)}
