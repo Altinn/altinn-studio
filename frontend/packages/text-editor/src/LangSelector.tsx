@@ -34,16 +34,20 @@ export const LangSelector = ({ onAddLang, options }: ILangSelectorProps) => {
     'data-value': selectedOption.value,
   };
   return (
-    <div className={classes.LanguageSelector}>
-      <LegacySelect
-        hideLabel={true}
-        onChange={handleSelectOnChange}
-        options={options}
-        value={selectedOption.value}
-      />
-      <StudioButton {...addButtonProps} size='small'>
-        {t('general.add')}
-      </StudioButton>
+    <div className={classes.languageSelector}>
+      <div className={classes.selectWrapper}>
+        <LegacySelect
+          label={t('schema_editor.language_add_language')}
+          onChange={handleSelectOnChange}
+          options={options}
+          value={selectedOption.value}
+        />
+      </div>
+      <div>
+        <StudioButton {...addButtonProps} size='small'>
+          {t('general.add')}
+        </StudioButton>
+      </div>
     </div>
   );
 };
