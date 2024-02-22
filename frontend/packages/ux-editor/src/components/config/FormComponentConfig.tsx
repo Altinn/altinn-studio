@@ -5,13 +5,17 @@ import { EditBooleanValue } from './editModal/EditBooleanValue';
 import { EditNumberValue } from './editModal/EditNumberValue';
 import { EditStringValue } from './editModal/EditStringValue';
 import { useText } from '../../hooks';
-import { getUnsupportedPropertyTypes } from '../../utils/component';
+import {
+  ExpressionSchemaBooleanDefinitionReference,
+  getUnsupportedPropertyTypes,
+} from '../../utils/component';
 import { EditGrid } from './editModal/EditGrid';
+import type { FormItem } from '../../types/FormItem';
 
 export interface IEditFormComponentProps {
   editFormId: string;
-  component: FormComponent;
-  handleComponentUpdate: (component: FormComponent) => void;
+  component: FormItem;
+  handleComponentUpdate: (component: FormItem) => void;
 }
 
 export interface FormComponentConfigProps extends IEditFormComponentProps {
@@ -30,6 +34,7 @@ export const FormComponentConfig = ({
   if (!schema?.properties) return null;
 
   const {
+    children,
     dataModelBindings,
     required,
     readOnly,
@@ -40,16 +45,12 @@ export const FormComponentConfig = ({
     optionsId,
     hasCustomFileEndings,
     validFileEndings,
-    children,
     grid,
     ...rest
   } = schema.properties;
 
-  // children property is not supported in component config - it should be part of container config.
-  const unsupportedPropertyKeys: string[] = getUnsupportedPropertyTypes(
-    rest,
-    children ? ['children'] : undefined,
-  );
+  const unsupportedPropertyKeys: string[] = getUnsupportedPropertyTypes(rest);
+
   return (
     <>
       {grid && (
@@ -66,7 +67,7 @@ export const FormComponentConfig = ({
       )}
       {!hideUnsupported && (
         <Heading level={3} size='xxsmall'>
-          {'Andre innstillinger'}
+          {t('ux_editor.component_other_properties_title')}
         </Heading>
       )}
 
@@ -119,7 +120,7 @@ export const FormComponentConfig = ({
         if (!rest[propertyKey]) return null;
         if (
           rest[propertyKey].type === 'boolean' ||
-          rest[propertyKey].$ref?.endsWith('layout/expression.schema.v1.json#/definitions/boolean')
+          rest[propertyKey].$ref?.endsWith(ExpressionSchemaBooleanDefinitionReference)
         ) {
           return (
             <EditBooleanValue

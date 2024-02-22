@@ -7,10 +7,10 @@ import classes from './StudioButton.module.css';
 import type { OverridableComponent } from '../../types/OverridableComponent';
 import type { IconPlacement } from '../../types/IconPlacement';
 
-export interface StudioButtonProps extends ButtonProps {
+export type StudioButtonProps = {
   icon?: ReactNode;
   iconPlacement?: IconPlacement;
-}
+} & Omit<ButtonProps, 'icon'>;
 
 const StudioButton: OverridableComponent<StudioButtonProps, HTMLButtonElement> = forwardRef<
   HTMLButtonElement,
@@ -22,7 +22,7 @@ const StudioButton: OverridableComponent<StudioButtonProps, HTMLButtonElement> =
     </span>
   );
   return (
-    <Button {...rest} className={cn(className, classes.studioButton)} ref={ref}>
+    <Button {...rest} className={cn(className, classes.studioButton)} icon={!children} ref={ref}>
       {icon && iconPlacement === 'left' && iconComponent}
       {children}
       {icon && iconPlacement === 'right' && iconComponent}

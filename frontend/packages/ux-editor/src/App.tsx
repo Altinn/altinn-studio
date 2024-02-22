@@ -33,7 +33,6 @@ export function App() {
   const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
 
   useEffect(() => {
-    console.log('areLayoutSetsFetched', areLayoutSetsFetched);
     if (
       areLayoutSetsFetched &&
       selectedLayoutSet &&

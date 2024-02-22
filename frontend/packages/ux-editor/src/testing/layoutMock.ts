@@ -39,6 +39,7 @@ export const componentWithOptionsMock: FormComponent = {
   propertyPath: 'definitions/radioAndCheckboxComponents',
 };
 export const container1IdMock = 'Container-1';
+export const container2IdMock = 'Container-2';
 export const customRootPropertiesMock: KeyValuePairs = {
   someCustomRootProp: 'someStringValue',
   someOtherCustomRootProp: 5,
@@ -68,10 +69,18 @@ export const layoutMock: IInternalLayout = {
       pageIndex: null,
       propertyPath: 'definitions/groupComponent',
     },
+    [container2IdMock]: {
+      id: container2IdMock,
+      itemType: 'CONTAINER',
+      type: ComponentType.RepeatingGroup,
+      pageIndex: null,
+      propertyPath: 'definitions/repeatingGroupComponent',
+    },
   },
   order: {
-    [baseContainerIdMock]: [container1IdMock, 'ComponentWithOptionsMock'],
-    [container1IdMock]: [component1IdMock, component2IdMock],
+    [baseContainerIdMock]: [container1IdMock, container2IdMock, 'ComponentWithOptionsMock'],
+    [container1IdMock]: [component1IdMock],
+    [container2IdMock]: [component2IdMock],
   },
   customRootProperties: customRootPropertiesMock,
   customDataProperties: customDataPropertiesMock,
@@ -84,7 +93,12 @@ export const layout1Mock: ExternalFormLayout = {
       {
         id: container1IdMock,
         type: ComponentType.Group,
-        children: [component1IdMock, component2IdMock],
+        children: [component1IdMock],
+      },
+      {
+        id: container2IdMock,
+        type: ComponentType.RepeatingGroup,
+        children: [component2IdMock],
       },
       {
         id: component1IdMock,
