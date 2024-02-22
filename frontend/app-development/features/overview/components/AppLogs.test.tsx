@@ -21,7 +21,7 @@ describe('AppLogs', () => {
   it('shows loading spinner when loading required data', () => {
     render();
 
-    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('overview.loading_app_logs'))).toBeInTheDocument();
   });
 
   it('shows error message if an error occured while fetching required data', async () => {
@@ -29,7 +29,9 @@ describe('AppLogs', () => {
       getEnvironments: jest.fn().mockImplementation(() => Promise.reject()),
     });
 
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('overview.loading_app_logs')),
+    );
 
     expect(screen.getByText(textMock('overview.app_logs_error'))).toBeInTheDocument();
   });
@@ -68,7 +70,9 @@ describe('AppLogs', () => {
       ),
     });
 
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('overview.loading_app_logs')),
+    );
 
     expect(
       screen.getByRole('heading', { name: textMock('overview.activity') }),
@@ -103,7 +107,9 @@ describe('AppLogs', () => {
       ),
     });
 
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('overview.loading_app_logs')),
+    );
 
     expect(
       screen.getByRole('heading', { name: textMock('overview.activity') }),

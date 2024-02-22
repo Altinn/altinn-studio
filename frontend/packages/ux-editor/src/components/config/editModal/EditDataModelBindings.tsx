@@ -1,5 +1,9 @@
 import type { IGenericEditComponent } from '../componentConfig';
-import { getMinOccursFromDataModel, getXsdDataTypeFromDataModel } from '../../../utils/datamodel';
+import {
+  getMaxOccursFromDataModel,
+  getMinOccursFromDataModel,
+  getXsdDataTypeFromDataModel,
+} from '../../../utils/datamodel';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import React, { useEffect, useState } from 'react';
 import { useText } from '../../../hooks';
@@ -42,6 +46,10 @@ export const EditDataModelBindings = ({
       timeStamp:
         component.type === ComponentType.Datepicker
           ? getXsdDataTypeFromDataModel(selectedDataModelElement, data) === 'DateTime'
+          : undefined,
+      maxCount:
+        component.type === ComponentType.RepeatingGroup
+          ? getMaxOccursFromDataModel(selectedDataModelElement, data)
           : undefined,
     });
   };
@@ -97,6 +105,7 @@ export const EditDataModelBindings = ({
                 }
                 componentType={component.type}
                 inputId={`selectDataModelSelect-${label}`}
+                selectGroup={component.type === ComponentType.RepeatingGroup}
                 selectedElement={
                   component.dataModelBindings
                     ? component.dataModelBindings[key || 'simpleBinding']
@@ -105,7 +114,6 @@ export const EditDataModelBindings = ({
                 onDataModelChange={(dataModelField: string) => {
                   handleDataModelChange(dataModelField, key);
                 }}
-                noOptionsMessage={t('general.no_options')}
                 helpText={helpText}
               />
             ) : (

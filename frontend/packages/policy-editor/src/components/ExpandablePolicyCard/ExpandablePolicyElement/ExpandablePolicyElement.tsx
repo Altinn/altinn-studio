@@ -93,8 +93,8 @@ export const ExpandablePolicyElement = ({
           onFocus={() => setIsButtonFocused(true)}
           onBlur={() => setIsButtonFocused(false)}
         >
-          <Label as='p' size='small'>
-            {title}
+          <Label asChild size='small'>
+            <p>{title}</p>
           </Label>
           {isOpen ? (
             <ChevronUpIcon

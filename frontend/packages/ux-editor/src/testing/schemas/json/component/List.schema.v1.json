@@ -72,7 +72,8 @@
           "Required",
           "AllExceptRequired",
           "All"
-        ]
+        ],
+        "type": "string"
       }
     },
     "renderAsSummary": {

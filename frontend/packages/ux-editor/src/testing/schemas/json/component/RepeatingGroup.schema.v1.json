@@ -140,7 +140,8 @@
           "Required",
           "AllExceptRequired",
           "All"
-        ]
+        ],
+        "type": "string"
       }
     },
     "edit": {

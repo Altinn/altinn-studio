@@ -47,6 +47,16 @@ export const getMinOccursFromDataModel = (
   return element?.minOccurs;
 };
 
+export const getMaxOccursFromDataModel = (
+  dataBindingName: string,
+  dataModel: DatamodelFieldElement[],
+): number => {
+  const element: DatamodelFieldElement = dataModel.find((e: DatamodelFieldElement) => {
+    return e.dataBindingName === dataBindingName;
+  });
+  return element?.maxOccurs;
+};
+
 export const getXsdDataTypeFromDataModel = (
   dataBindingName: string,
   dataModel: DatamodelFieldElement[],

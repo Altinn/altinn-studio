@@ -34,6 +34,7 @@ export const LocalChangesModal = ({
           </Heading>
         </div>
       }
+      closeButtonLabel={t('sync_header.close_local_changes_button')}
     >
       <LocalChanges org={org} app={app} />
     </StudioModal>

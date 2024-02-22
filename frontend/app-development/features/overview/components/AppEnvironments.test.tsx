@@ -21,7 +21,7 @@ describe('AppEnvironments', () => {
   it('shows loading spinner when loading required data', () => {
     render();
 
-    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('overview.loading_env'))).toBeInTheDocument();
   });
 
   it('shows error message if an error occured while fetching required data', async () => {
@@ -30,7 +30,7 @@ describe('AppEnvironments', () => {
       getOrgList: jest.fn().mockImplementation(() => Promise.reject()),
     });
 
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('overview.loading_env')));
 
     expect(screen.getByText(textMock('overview.app_environments_error'))).toBeInTheDocument();
   });
@@ -38,7 +38,7 @@ describe('AppEnvironments', () => {
   it('shows no environments message when organization has no environment', async () => {
     render();
 
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('overview.loading_env')));
 
     expect(
       screen.getByRole('heading', { name: textMock('app_publish.no_env_title') }),
@@ -80,7 +80,10 @@ describe('AppEnvironments', () => {
         ),
     });
 
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('overview.loading_env')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('overview.loading_deploys')),
+    );
 
     expect(screen.getByRole('heading', { name: envName })).toBeInTheDocument();
     expect(screen.getByText(textMock('overview.unavailable'))).toBeInTheDocument();

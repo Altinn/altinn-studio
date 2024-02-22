@@ -2,21 +2,20 @@ import type { RefObject } from 'react';
 import React, { forwardRef, useCallback, useEffect, useMemo, useState } from 'react';
 import type { TextfieldProps } from '@digdir/design-system-react';
 import { Textfield } from '@digdir/design-system-react';
-import { useTranslation } from 'react-i18next';
 import { convertNumberToString, convertStringToNumber, isStringValidDecimalNumber } from './utils';
 
 export interface StudioDecimalInputProps extends Omit<TextfieldProps, 'onChange'> {
   description: string;
   onChange: (value: number) => void;
   value?: number;
+  validationErrorMessage: string;
 }
 
 export const StudioDecimalInput = forwardRef(
   (
-    { description, onChange, value, ...rest }: StudioDecimalInputProps,
+    { description, onChange, value, validationErrorMessage, ...rest }: StudioDecimalInputProps,
     ref: RefObject<HTMLInputElement>,
   ) => {
-    const { t } = useTranslation();
     const [inputValue, setInputValue] = useState('');
     const [hasBeenBlurred, setHasBeenBlurred] = useState(false);
     const isEmpty = inputValue === '';
@@ -39,8 +38,8 @@ export const StudioDecimalInput = forwardRef(
     const errorMessage = useMemo(() => {
       const showErrorMessage =
         hasBeenBlurred && !isEmpty && !isStringValidDecimalNumber(inputValue);
-      return showErrorMessage ? t('validation_errors.numbers_only') : undefined;
-    }, [hasBeenBlurred, isEmpty, inputValue, t]);
+      return showErrorMessage ? validationErrorMessage : undefined;
+    }, [hasBeenBlurred, isEmpty, inputValue, validationErrorMessage]);
 
     return (
       <Textfield

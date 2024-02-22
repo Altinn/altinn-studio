@@ -27,7 +27,13 @@ export function AppRelease(props: IAppReleaseComponent) {
       return <i className={`${classes.buildFailedIcon} ai ai-circle-exclamation`} />;
     }
     if (status.status !== BuildStatus.completed) {
-      return <StudioSpinner className={classes.spinnerRoot} />;
+      return (
+        <StudioSpinner
+          spinnerTitle={t('app_create_release.loading')}
+          showSpinnerTitle={false}
+          className={classes.spinnerRoot}
+        />
+      );
     }
     return null;
   }

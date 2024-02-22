@@ -26,7 +26,8 @@ export const AppLogs = () => {
     isError: envIsError,
   } = useEnvironmentsQuery({ hideDefaultError: true });
 
-  if (isPendingDeploys || envIsPending) return <StudioSpinner />;
+  if (isPendingDeploys || envIsPending)
+    return <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.loading_app_logs')} />;
 
   if (deploysHasError || envIsError)
     return <Alert severity='danger'>{t('overview.app_logs_error')}</Alert>;

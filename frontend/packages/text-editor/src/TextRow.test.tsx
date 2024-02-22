@@ -7,6 +7,8 @@ import { textMock } from '../../../testing/mocks/i18nMock';
 import type { TextTableRowEntry } from './types';
 import { Table, TableBody } from '@digdir/design-system-react';
 
+const textKey: string = 'key1';
+
 describe('TextRow', () => {
   const renderTextRow = (props: Partial<TextRowProps> = {}) => {
     const textRowEntries: TextTableRowEntry[] = [
@@ -19,7 +21,7 @@ describe('TextRow', () => {
     const allProps: TextRowProps = {
       idExists: (_arg) => false,
       removeEntry: (_args) => undefined,
-      textId: 'key1',
+      textId: textKey,
       textRowEntries,
       variables: [],
       updateEntryId: (_args) => undefined,
@@ -42,7 +44,10 @@ describe('TextRow', () => {
     const upsertTextResource = jest.fn();
     renderTextRow({ upsertTextResource });
     const valueInput = screen.getByRole('textbox', {
-      name: 'nb translation',
+      name: textMock('text_editor.table_row_input_label', {
+        lang: textMock('language.nb'),
+        textKey,
+      }),
     });
 
     await act(() => user.type(valueInput, '-updated'));
@@ -50,20 +55,24 @@ describe('TextRow', () => {
 
     expect(upsertTextResource).toHaveBeenCalledWith({
       language: 'nb',
-      textId: 'key1',
+      textId: textKey,
       translation: 'value1-updated',
     });
   });
 
   test('renders a Button component with a PencilIcon when showButton is true', () => {
     renderTextRow({ showButton: true });
-    const button = screen.getByRole('button', { name: textMock('text_editor.toggle_edit_mode') });
+    const button = screen.getByRole('button', {
+      name: textMock('text_editor.toggle_edit_mode', { textKey }),
+    });
     expect(button).toBeInTheDocument();
   });
 
   test('Hide a Button component with a PencilIcon when showButton is false', () => {
     renderTextRow({ showButton: false });
-    const button = screen.queryByRole('button', { name: textMock('text_editor.toggle_edit_mode') });
+    const button = screen.queryByRole('button', {
+      name: textMock('text_editor.toggle_edit_mode', { textKey }),
+    });
     expect(button).not.toBeInTheDocument();
   });
 
@@ -72,12 +81,12 @@ describe('TextRow', () => {
     const updateEntryId = jest.fn();
     renderTextRow({ updateEntryId });
     const toggleKeyEditButton = screen.getByRole('button', {
-      name: textMock('text_editor.toggle_edit_mode'),
+      name: textMock('text_editor.toggle_edit_mode', { textKey }),
     });
     await act(() => user.click(toggleKeyEditButton));
 
     const idInput = screen.getByRole('textbox', {
-      name: textMock('text_editor.key.edit'),
+      name: textMock('text_editor.key.edit', { textKey }),
     });
     const emptyMsg = textMock('text_editor.key.error_empty');
     const illegalCharMsg = textMock('text_editor.key.error_invalid');

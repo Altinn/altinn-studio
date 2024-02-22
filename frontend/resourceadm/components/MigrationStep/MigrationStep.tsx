@@ -61,7 +61,7 @@ export const MigrationStep = ({
       const textArr = text.split('"');
 
       return (
-        <Paragraph size='small' className={classes.text}>
+        <Paragraph size='small'>
           {textArr[0] + ' "'}
           <LinkButton onClick={() => onNavigateToPageWithError(page)}>{textArr[1]}</LinkButton>
           {'" ' + textArr[2]}
@@ -73,8 +73,8 @@ export const MigrationStep = ({
 
   return (
     <div className={classes.wrapper}>
-      <Label as='p' size='medium' spacing>
-        {title}
+      <Label asChild size='medium' spacing>
+        <p>{title}</p>
       </Label>
       <Alert severity={isSuccess ? 'success' : 'danger'} iconTitle={text} className={classes.alert}>
         {displayText()}
