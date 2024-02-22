@@ -140,7 +140,8 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
           content={
             <StudioSpinner
               size='small'
-              spinnerText={t('overview.in_progress')}
+              spinnerTitle={t('overview.in_progress')}
+              showSpinnerTitle
               className={classes.loadingSpinner}
             />
           }

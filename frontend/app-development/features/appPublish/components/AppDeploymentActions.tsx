@@ -70,7 +70,8 @@ export const AppDeploymentActions = ({
         <>
           {deployInProgress ? (
             <StudioSpinner
-              spinnerText={t('app_publish.deployment_in_progress') + '...'}
+              spinnerTitle={t('app_publish.deployment_in_progress') + '...'}
+              showSpinnerTitle
               className={classes.loadingSpinner}
             />
           ) : (

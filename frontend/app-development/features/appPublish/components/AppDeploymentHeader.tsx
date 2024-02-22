@@ -71,7 +71,8 @@ export const AppDeploymentHeader = ({
         return (
           <StudioSpinner
             size='small'
-            spinnerText={t('overview.in_progress')}
+            spinnerTitle={t('overview.in_progress')}
+            showSpinnerTitle
             className={classes.loadingSpinner}
           />
         );
