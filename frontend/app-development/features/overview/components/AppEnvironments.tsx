@@ -55,10 +55,13 @@ export const AppEnvironments = () => {
   return (
     <div className={classes.appEnvironments}>
       {orgEnvironments.map((orgEnvironment: DeployEnvironment) => {
+        const kubernetesDeployment = appDeployment.kubernetesDeploymentList.find(
+          (item) => item.envName.toLowerCase() === orgEnvironment.name.toLowerCase(),
+        );
         return (
           <AppStatus
             key={orgEnvironment.name}
-            appDeployment={appDeployment}
+            kubernetesDeployment={kubernetesDeployment}
             envName={orgEnvironment.name}
             envType={orgEnvironment.type}
             urlToApp={getAppLink(orgEnvironment.appPrefix, orgEnvironment.hostname, org, app)}

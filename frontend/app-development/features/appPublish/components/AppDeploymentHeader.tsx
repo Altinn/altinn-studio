@@ -1,18 +1,16 @@
 import React from 'react';
 import classes from './AppDeploymentHeader.module.css';
-import { Alert, Heading, Link } from '@digdir/design-system-react';
-import classNames from 'classnames';
+import { Alert, Heading, Link, Paragraph } from '@digdir/design-system-react';
 import { Trans, useTranslation } from 'react-i18next';
 import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
-import { formatDateTime } from 'app-shared/pure/date-format';
-import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
-import { BuildResult } from 'app-shared/types/Build';
 import { StudioSpinner } from '@studio/components';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
+import { publishPath } from 'app-shared/api/paths';
+import { formatDateDDMMYY, formatTimeHHmm } from 'app-shared/pure/date-format';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface AppDeploymentHeaderProps {
   kubernetesDeployment?: KubernetesDeployment;
-  latestPipelineDeployment?: PipelineDeployment;
   envName: string;
   envType: string;
   urlToApp?: string;
@@ -20,27 +18,44 @@ export interface AppDeploymentHeaderProps {
 
 export const AppDeploymentHeader = ({
   kubernetesDeployment,
-  latestPipelineDeployment,
   envName,
   envType,
   urlToApp,
 }: AppDeploymentHeaderProps) => {
+  const { org, app } = useStudioUrlParams();
   const { t } = useTranslation();
 
-  const isProduction = envType.toLowerCase() === 'production';
-  const headingText = isProduction ? t('general.production') : envName;
+  const formatDateTime = (dateAsString: string): string => {
+    return t('general.date_time_format', {
+      date: formatDateDDMMYY(dateAsString),
+      time: formatTimeHHmm(dateAsString),
+    });
+  };
 
-  const kubernetesDeploymentStatus = kubernetesDeployment?.status;
+  if (!kubernetesDeployment?.status) {
+    return (
+      <DeploymentStatusInfo
+        envType={envType}
+        envName={envName}
+        severity='info'
+        content={t('overview.no_app')}
+        footer={
+          <Trans i18nKey='overview.go_to_publish'>
+            <a href={publishPath(org, app)} />
+          </Trans>
+        }
+      />
+    );
+  }
 
-  const getStatus = () => {
-    if (!kubernetesDeploymentStatus) {
-      return t('overview.no_app');
-    }
-
-    switch (kubernetesDeploymentStatus) {
-      case KubernetesDeploymentStatus.completed:
-        return (
-          <div>
+  switch (kubernetesDeployment.status) {
+    case KubernetesDeploymentStatus.completed:
+      return (
+        <DeploymentStatusInfo
+          envType={envType}
+          envName={envName}
+          severity='success'
+          content={
             <Trans
               i18nKey={'overview.success'}
               values={{
@@ -50,49 +65,82 @@ export const AppDeploymentHeader = ({
                 a: <Link href={urlToApp}> </Link>,
               }}
             />
-            {/*
-            <div>
-              <Trans
-                i18nKey={'overview.last_published'}
-                values={{
-                  lastPublishedDate: formatDateTime(appDe?.created),
-                }}
-              />
-            </div>
-            */}
-          </div>
-        );
-      case KubernetesDeploymentStatus.failed:
-        return t('overview.unavailable');
-      default:
-        return (
-          <StudioSpinner
-            size='small'
-            spinnerTitle={t('overview.in_progress')}
-            showSpinnerTitle
-            className={classes.loadingSpinner}
-          />
-        );
-    }
-  };
+          }
+          footer={
+            <Trans
+              i18nKey={'overview.last_published'}
+              values={{
+                lastPublishedDate: formatDateTime(kubernetesDeployment?.statusDate),
+              }}
+            />
+          }
+        />
+      );
+    case KubernetesDeploymentStatus.failed:
+      return (
+        <DeploymentStatusInfo
+          envType={envType}
+          envName={envName}
+          severity='danger'
+          content={t('overview.unavailable')}
+          footer={
+            <Trans i18nKey='overview.go_to_publish'>
+              <a href={publishPath(org, app)} />
+            </Trans>
+          }
+        />
+      );
+    default:
+      return (
+        <DeploymentStatusInfo
+          envType={envType}
+          envName={envName}
+          severity='info'
+          content={
+            <StudioSpinner
+              size='small'
+              spinnerTitle={t('overview.in_progress')}
+              showSpinnerTitle
+              className={classes.loadingSpinner}
+            />
+          }
+          footer={
+            <Trans i18nKey='overview.go_to_publish'>
+              <a href={publishPath(org, app)} />
+            </Trans>
+          }
+        />
+      );
+  }
+};
 
-  const getSeverity = () => {
-    switch (kubernetesDeploymentStatus) {
-      case KubernetesDeploymentStatus.completed:
-        return 'success';
-      case KubernetesDeploymentStatus.failed:
-        return 'danger';
-      default:
-        return 'info';
-    }
-  };
+type DeploymentStatusInfoProps = {
+  envType: string;
+  envName: string;
+  severity: 'success' | 'warning' | 'info' | 'danger';
+  content: string | React.ReactNode;
+  footer: string | JSX.Element;
+};
+const DeploymentStatusInfo = ({
+  envType,
+  envName,
+  severity,
+  content,
+  footer,
+}: DeploymentStatusInfoProps) => {
+  const { t } = useTranslation();
+  const isProduction = envType.toLowerCase() === 'production';
+  const headingText = isProduction ? t('general.production') : envName;
 
   return (
-    <Alert severity={getSeverity()} className={classNames(classes.headingContainer)}>
-      <Heading spacing level={2} size='xsmall' className={classes.envTitle}>
+    <Alert severity={severity} className={classes.alert}>
+      <Heading spacing level={2} size='xsmall' className={classes.heading}>
         {headingText}
       </Heading>
-      <div>{getStatus()}</div>
+      <Paragraph spacing size='small'>
+        {content}
+      </Paragraph>
+      <Paragraph size='xsmall'>{footer}</Paragraph>
     </Alert>
   );
 };

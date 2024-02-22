@@ -1,18 +1,18 @@
-.headingContainer {
+.alert {
   padding-right: var(--fds-spacing-6);
   /* box-shadow: unset;
   display: block;
   position: relative; */
 }
 
+.heading {
+  text-transform: uppercase;
+}
+
 .loadingSpinner {
   display: flex;
   align-items: center;
   gap: var(--fds-spacing-6);
-}
-
-.envTitle {
-  text-transform: uppercase;
 }
 
 /* .headingContainer > svg {

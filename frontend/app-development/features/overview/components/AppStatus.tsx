@@ -1,29 +1,23 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import classes from './AppStatus.module.css';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppDeploymentsQuery } from 'app-development/hooks/queries';
 import { Trans, useTranslation } from 'react-i18next';
 import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import { StudioSpinner } from '@studio/components';
 import { formatDateDDMMYY, formatTimeHHmm } from 'app-shared/pure/date-format';
-import { getAzureDevopsBuildResultUrl } from 'app-development/utils/urlHelper';
 import { publishPath } from 'app-shared/api/paths';
-import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
-import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import { Link } from '@digdir/design-system-react';
-import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
-import { getAppLink } from 'app-shared/ext-urls';
-import type { AppDeployment } from 'app-shared/types/api/AppDeployment';
+import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 
 export type AppStatusProps = {
-  appDeployment: AppDeployment;
+  kubernetesDeployment?: KubernetesDeployment;
   envName: string;
   envType: string;
   urlToApp: string;
 };
 
-export const AppStatus = ({ appDeployment, envName, envType, urlToApp }: AppStatusProps) => {
+export const AppStatus = ({ kubernetesDeployment, envName, envType, urlToApp }: AppStatusProps) => {
   const { org, app } = useStudioUrlParams();
   const { t } = useTranslation();
 
@@ -33,10 +27,6 @@ export const AppStatus = ({ appDeployment, envName, envType, urlToApp }: AppStat
       time: formatTimeHHmm(dateAsString),
     });
   };
-
-  const kubernetesDeployment = appDeployment?.kubernetesDeploymentList.find(
-    (item) => item.envName.toLowerCase() === envName.toLowerCase(),
-  );
 
   if (!kubernetesDeployment?.status) {
     return (
@@ -54,32 +44,8 @@ export const AppStatus = ({ appDeployment, envName, envType, urlToApp }: AppStat
     );
   }
 
-  if (!kubernetesDeployment.status) {
-    return (
-      <DeploymentStatusInfo
-        envType={envType}
-        envName={envName}
-        severity='info'
-        content={t('overview.no_app')}
-        footer={
-          <Trans i18nKey='overview.go_to_publish'>
-            <a href={publishPath(org, app)} />
-          </Trans>
-        }
-      />
-    );
-  }
-
   switch (kubernetesDeployment.status) {
     case KubernetesDeploymentStatus.completed:
-      // TODO - remove and replace by kubernetes date
-      const deploymentSucceeded = appDeployment?.pipelineDeploymentList.find(
-        (item) =>
-          item.tagName.toLowerCase() === kubernetesDeployment.version.toLowerCase() &&
-          (item.build.result === BuildResult.succeeded ||
-            item.build.result === BuildResult.partiallySucceeded) &&
-          item.build.finished !== null,
-      );
       return (
         <DeploymentStatusInfo
           envType={envType}
@@ -100,28 +66,22 @@ export const AppStatus = ({ appDeployment, envName, envType, urlToApp }: AppStat
             <Trans
               i18nKey={'overview.last_published'}
               values={{
-                lastPublishedDate: formatDateTime(deploymentSucceeded?.created),
+                lastPublishedDate: formatDateTime(kubernetesDeployment?.statusDate),
               }}
             />
           }
         />
       );
     case KubernetesDeploymentStatus.failed:
-      // TODO - remove and replace by a link to the publish page
-      const deploymentFailed = appDeployment?.pipelineDeploymentList.find(
-        (item) =>
-          item.tagName.toLowerCase() === kubernetesDeployment.version.toLowerCase() &&
-          item.build.result === BuildResult.failed,
-      );
       return (
         <DeploymentStatusInfo
           envType={envType}
           envName={envName}
-          severity='warning'
+          severity='danger'
           content={t('overview.unavailable')}
           footer={
-            <Trans i18nKey='overview.go_to_build_log'>
-              <a href={getAzureDevopsBuildResultUrl(deploymentFailed?.build.id)} />
+            <Trans i18nKey='overview.go_to_publish'>
+              <a href={publishPath(org, app)} />
             </Trans>
           }
         />
@@ -153,7 +113,7 @@ export const AppStatus = ({ appDeployment, envName, envType, urlToApp }: AppStat
 type DeploymentStatusInfoProps = {
   envType: string;
   envName: string;
-  severity: 'success' | 'warning' | 'info';
+  severity: 'success' | 'warning' | 'info' | 'danger';
   content: string | React.ReactNode;
   footer: string | JSX.Element;
 };

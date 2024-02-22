@@ -5,6 +5,7 @@ export interface KubernetesDeployment {
   release: string;
   version: string;
   status?: KubernetesDeploymentStatus;
+  statusDate?: string;
   available: boolean;
   availabilityPercentage: number;
 }
