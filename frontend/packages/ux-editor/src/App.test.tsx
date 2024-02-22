@@ -40,7 +40,7 @@ describe('App', () => {
   it('should render the spinner', () => {
     overrideFrontendVersionCheck();
     renderApp({}, { selectedLayoutSet });
-    expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
+    expect(screen.getByTitle(textMock('ux_editor.loading_page'))).toBeInTheDocument();
   });
 
   it('should render the component', async () => {
@@ -101,4 +101,4 @@ const overrideFrontendVersionCheck = () =>
   ]);
 
 const waitForLoadingToFinish = async () =>
-  await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+  await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('ux_editor.loading_page')));

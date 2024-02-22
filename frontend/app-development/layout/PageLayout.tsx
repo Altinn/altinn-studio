@@ -3,14 +3,18 @@ import { Outlet, matchPath, useLocation } from 'react-router-dom';
 import { PageHeader } from './PageHeader';
 import { useRepoMetadataQuery, useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { StudioCenter, StudioPageSpinner, StudioNotFoundPage } from '@studio/components';
+import { StudioCenter, StudioPageSpinner } from '@studio/components';
 import { MergeConflictWarning } from '../features/simpleMerge/MergeConflictWarning';
 import { useOrgListQuery } from '../hooks/queries';
+import { NotFoundPage } from './NotFoundPage';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Displays the layout for the app development pages
  */
 export const PageLayout = (): React.ReactNode => {
+  const { t } = useTranslation();
+
   const { pathname } = useLocation();
   const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
   const { org, app } = match.params;
@@ -30,14 +34,14 @@ export const PageLayout = (): React.ReactNode => {
   if (isRepoStatusPending || isUserPending) {
     return (
       <StudioCenter>
-        <StudioPageSpinner />
+        <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('repo_status.loading')} />
       </StudioCenter>
     );
   }
 
   const renderPages = () => {
     if (repoStatusError?.response?.status === ServerCodes.NotFound) {
-      return <StudioNotFoundPage />;
+      return <NotFoundPage />;
     }
     if (repoStatus?.hasMergeConflict) {
       return <MergeConflictWarning org={org} app={app} />;
