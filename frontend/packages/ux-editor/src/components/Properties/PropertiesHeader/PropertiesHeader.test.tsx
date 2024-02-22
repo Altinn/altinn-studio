@@ -1,9 +1,9 @@
 import React from 'react';
 import { act, screen } from '@testing-library/react';
 import { PropertiesHeader, type PropertiesHeaderProps } from './PropertiesHeader';
-import { FormContext } from '../../../containers/FormContext';
+import { FormItemContext } from '../../../containers/FormItemContext';
 import userEvent from '@testing-library/user-event';
-import { formContextProviderMock } from '../../../testing/formContextMocks';
+import { formItemContextProviderMock } from '../../../testing/formItemContextMocks';
 import { component1Mock, component1IdMock } from '../../../testing/layoutMock';
 import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
@@ -142,12 +142,12 @@ const render = (props: Partial<PropertiesHeaderProps> = {}) => {
     componentSchemaMocks[componentType],
   );
   return renderWithProviders(
-    <FormContext.Provider
+    <FormItemContext.Provider
       value={{
-        ...formContextProviderMock,
+        ...formItemContextProviderMock,
       }}
     >
       <PropertiesHeader {...defaultProps} {...props} />
-    </FormContext.Provider>,
+    </FormItemContext.Provider>,
   );
 };

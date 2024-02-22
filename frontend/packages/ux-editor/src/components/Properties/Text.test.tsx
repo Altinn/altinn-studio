@@ -2,7 +2,7 @@ import React from 'react';
 import { Text } from './Text';
 import { screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { FormContext } from '../../containers/FormContext';
+import { FormItemContext } from '../../containers/FormItemContext';
 import {
   component1IdMock,
   component1Mock,
@@ -13,7 +13,7 @@ import type { IAppDataState } from '../../features/appData/appDataReducers';
 import type { ITextResourcesState } from '../../features/appData/textResources/textResourcesSlice';
 import { renderWithMockStore } from '../../testing/mocks';
 import { appDataMock, textResourcesMock } from '../../testing/stateMocks';
-import { formContextProviderMock } from '../../testing/formContextMocks';
+import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { componentSchemaMocks } from '../../testing/componentSchemaMocks';
@@ -53,8 +53,8 @@ describe('TextTab', () => {
 
   describe('when editing a container', () => {
     const props = {
-      formId: container1IdMock,
-      form: { ...layoutMock.containers[container1IdMock] },
+      formItemId: container1IdMock,
+      formItem: { ...layoutMock.containers[container1IdMock] },
     };
 
     it('should render the component', async () => {
@@ -64,7 +64,7 @@ describe('TextTab', () => {
 
     it('should render all available textResourceBinding properties for the group component', async () => {
       await render({ props });
-      textResourceBindingsPropertiesForComponentType(props.form.type).forEach((trbProperty) => {
+      textResourceBindingsPropertiesForComponentType(props.formItem.type).forEach((trbProperty) => {
         expect(
           screen.getByText(
             textMock(`ux_editor.modal_properties_textResourceBindings_${trbProperty}`),
@@ -82,7 +82,7 @@ describe('TextTab', () => {
       await render({
         props: {
           ...props,
-          form: {
+          formItem: {
             ...layoutMock.containers[container1IdMock],
             textResourceBindings: { title: labelTextId, summaryTitle: addButtonTextId },
           },
@@ -96,7 +96,7 @@ describe('TextTab', () => {
       await render({
         props: {
           ...props,
-          form: {
+          formItem: {
             ...layoutMock.containers[container1IdMock],
             textResourceBindings: { title: labelTextId, add_button: addButtonTextId },
           },
@@ -112,8 +112,8 @@ describe('TextTab', () => {
 
   describe('when editing a component', () => {
     const props = {
-      formId: component1IdMock,
-      form: { ...component1Mock, dataModelBindings: {} },
+      formItemId: component1IdMock,
+      formItem: { ...component1Mock, dataModelBindings: {} },
     };
 
     it('should render the component', async () => {
@@ -123,7 +123,7 @@ describe('TextTab', () => {
 
     it('should render all available textResourceBinding properties for the input component', async () => {
       await render({ props });
-      textResourceBindingsPropertiesForComponentType(props.form.type).forEach((trbProperty) => {
+      textResourceBindingsPropertiesForComponentType(props.formItem.type).forEach((trbProperty) => {
         expect(
           screen.getByText(
             textMock(`ux_editor.modal_properties_textResourceBindings_${trbProperty}`),
@@ -141,7 +141,7 @@ describe('TextTab', () => {
       await render({
         props: {
           ...props,
-          form: {
+          formItem: {
             ...layoutMock.components[component1IdMock],
             textResourceBindings: { title: labelTextId, description: descriptionTextId },
           },
@@ -155,7 +155,7 @@ describe('TextTab', () => {
       await render({
         props: {
           ...props,
-          form: {
+          formItem: {
             ...layoutMock.components[component1IdMock],
             textResourceBindings: { title: labelTextId, description: descriptionTextId },
           },
@@ -172,7 +172,7 @@ describe('TextTab', () => {
       await render({
         props: {
           ...props,
-          form: {
+          formItem: {
             ...layoutMock.components[component1IdMock],
           },
         },
@@ -189,7 +189,7 @@ describe('TextTab', () => {
       await render({
         props: {
           ...props,
-          form: {
+          formItem: {
             ...layoutMock.components.ComponentWithOptionsMock,
             optionsId: 'optionsId',
           },
@@ -207,7 +207,7 @@ describe('TextTab', () => {
       await render({
         props: {
           ...props,
-          form: {
+          formItem: {
             ...layoutMock.components.ComponentWithOptionsMock,
             optionsId: 'optionsId',
           },
@@ -223,7 +223,7 @@ describe('TextTab', () => {
       await render({
         props: {
           ...props,
-          form: {
+          formItem: {
             ...layoutMock.components.ComponentWithOptionsMock,
             options: [{ label: labelTextId, value: 'value' }],
           },
@@ -237,10 +237,16 @@ describe('TextTab', () => {
   });
 });
 
-const render = async ({ props = {}, editId }: { props: Partial<FormContext>; editId?: string }) => {
+const render = async ({
+  props = {},
+  editId,
+}: {
+  props: Partial<FormItemContext>;
+  editId?: string;
+}) => {
   queryClientMock.setQueryData(
-    [QueryKey.FormComponent, props.form.type],
-    componentSchemaMocks[props.form.type],
+    [QueryKey.FormComponent, props.formItem.type],
+    componentSchemaMocks[props.formItem.type],
   );
   queryClientMock.setQueryData([QueryKey.TextResources, org, app], textResources);
   const textResourcesState: ITextResourcesState = {
@@ -253,13 +259,13 @@ const render = async ({ props = {}, editId }: { props: Partial<FormContext>; edi
   };
 
   return renderWithMockStore({ appData })(
-    <FormContext.Provider
+    <FormItemContext.Provider
       value={{
-        ...formContextProviderMock,
+        ...formItemContextProviderMock,
         ...props,
       }}
     >
       <Text />
-    </FormContext.Provider>,
+    </FormItemContext.Provider>,
   );
 };

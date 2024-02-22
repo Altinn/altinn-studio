@@ -3,7 +3,7 @@ import type { IInternalLayout } from '../../../types/global';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { renderItemList } from './renderItemList';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { useFormContext } from '../../FormContext';
+import { useFormItemContext } from '../../FormItemContext';
 import { getItem } from '../../../utils/formLayoutUtils';
 import { useTranslation } from 'react-i18next';
 
@@ -12,7 +12,7 @@ export type FormTreeProps = {
 };
 
 export const FormTree = ({ layout }: FormTreeProps) => {
-  const { handleEdit, formId } = useFormContext();
+  const { handleEdit, formItemId: formId } = useFormItemContext();
   const { t } = useTranslation();
 
   const handleSelect = async (id: string) => handleEdit(getItem(layout, id));

@@ -12,16 +12,16 @@ import {
 } from '../../../utils/expressionsUtils';
 import classes from './Expressions.module.css';
 import type { LayoutItemType } from '../../../types/global';
-import { FormContext } from '../../../containers/FormContext';
+import { FormItemContext } from '../../../containers/FormItemContext';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { Trans } from 'react-i18next';
 import { NewExpressionButton } from './NewExpressionButton';
 
 export const Expressions = () => {
-  const { form } = useContext(FormContext);
-  const availableProperties = getAllComponentPropertiesThatCanHaveExpressions(form);
+  const { formItem } = useContext(FormItemContext);
+  const availableProperties = getAllComponentPropertiesThatCanHaveExpressions(formItem);
   const propertiesFromComponentWithExpressions = getPropertiesWithExistingExpression(
-    form,
+    formItem,
     availableProperties,
   );
   const [propertiesWithExpressions, setPropertiesWithExpressions] = React.useState<
@@ -30,7 +30,7 @@ export const Expressions = () => {
   const [newlyAddedProperty, setNewlyAddedProperty] = React.useState<ExpressionProperty>(undefined);
   const t = useText();
   const expressionProperties = getExpressionPropertiesBasedOnComponentType(
-    form.itemType as LayoutItemType,
+    formItem.itemType as LayoutItemType,
   );
   const isExpressionLimitReached =
     propertiesWithExpressions?.length >= expressionProperties?.length;
@@ -79,7 +79,7 @@ export const Expressions = () => {
             <p>
               <Trans
                 i18nKey={'right_menu.expressions_property_on_component'}
-                values={{ componentName: form.id }}
+                values={{ componentName: formItem.id }}
                 components={{ bold: <strong /> }}
               />
             </p>
