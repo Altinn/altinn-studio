@@ -20,7 +20,9 @@ export class SettingsModal extends BasePage {
   }
 
   public async clickOnCloseSettingsModalButton(): Promise<void> {
-    await this.page.getByRole('button', { name: this.textMock('modal.close_icon') }).click();
+    await this.page
+      .getByRole('button', { name: this.textMock('settings_modal.close_button_label') })
+      .click();
   }
 
   public async verifyThatSettingsModalIsNotOpen(): Promise<void> {

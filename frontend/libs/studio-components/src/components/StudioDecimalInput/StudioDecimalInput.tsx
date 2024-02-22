@@ -1,6 +1,5 @@
 import type { RefObject } from 'react';
 import React, { forwardRef, useCallback, useEffect, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { convertNumberToString, convertStringToNumber, isStringValidDecimalNumber } from './utils';
 import type { StudioTextfieldProps } from '../StudioTextfield';
 import { StudioTextfield } from '../StudioTextfield';
@@ -9,14 +8,14 @@ export interface StudioDecimalInputProps extends Omit<StudioTextfieldProps, 'onC
   description: string;
   onChange: (value: number) => void;
   value?: number;
+  validationErrorMessage: string;
 }
 
 export const StudioDecimalInput = forwardRef(
   (
-    { description, onChange, value, ...rest }: StudioDecimalInputProps,
+    { description, onChange, value, validationErrorMessage, ...rest }: StudioDecimalInputProps,
     ref: RefObject<HTMLInputElement>,
   ) => {
-    const { t } = useTranslation();
     const [inputValue, setInputValue] = useState('');
 
     useEffect(() => {
@@ -34,9 +33,8 @@ export const StudioDecimalInput = forwardRef(
     );
 
     const errorMessage = useMemo(
-      () =>
-        !isStringValidDecimalNumber(inputValue) ? t('validation_errors.numbers_only') : undefined,
-      [inputValue, t],
+      () => (!isStringValidDecimalNumber(inputValue) ? validationErrorMessage : undefined),
+      [inputValue, validationErrorMessage],
     );
 
     return (

@@ -48,7 +48,10 @@ export const TextEntry = ({
         renderField={({ fieldProps }) => (
           <Textarea
             {...fieldProps}
-            aria-label={lang + ' translation'}
+            aria-label={t('text_editor.table_row_input_label', {
+              lang: t(`language.${lang}`),
+              textKey: textId,
+            })}
             value={textEntryValue}
             onBlur={handleTextEntryBlur}
             onChange={handleTextEntryChange}
