@@ -46,14 +46,20 @@ class SchemaRefUpgrader
         return warnings;
     }
 
-    public void Upgrade() 
+    public void Upgrade()
     {
         // Application metadata
         var appMetaJson = JsonNode.Parse(File.ReadAllText(applicationMetadataFile), null, new JsonDocumentOptions() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
         if (appMetaJson is JsonObject appMetaJsonObject)
         {
-            appMetaJsonObject["$schema"] = JsonValue.Create(applicationMetadataSchemaUri);
-            this.files.Add(applicationMetadataFile, appMetaJsonObject);
+            if (appMetaJsonObject.ContainsKey("$schema"))
+            {
+                appMetaJsonObject.Remove("$schema");
+            }
+            var schemaProperty = new KeyValuePair<string, JsonNode?>("$schema", JsonValue.Create(applicationMetadataSchemaUri));
+            var newAppMetaJson = new JsonObject(appMetaJsonObject.AsEnumerable().Select(n => KeyValuePair.Create<string, JsonNode?>(n.Key, n.Value?.DeepClone())).Prepend(schemaProperty));
+
+            this.files.Add(applicationMetadataFile, newAppMetaJson);
         }
         else
         {
@@ -124,8 +130,8 @@ class SchemaRefUpgrader
                 {
                     warnings.Add($"Unable to parse {compactSettingsFilePath}, skipping schema ref upgrade");
                 }
-            } 
-            else 
+            }
+            else
             {
                 warnings.Add($"Could not find {compactSettingsFilePath}, skipping schema ref upgrade");
             }
