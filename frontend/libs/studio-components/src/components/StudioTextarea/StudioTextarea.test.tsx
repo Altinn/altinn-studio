@@ -11,6 +11,18 @@ describe('StudioTextarea', () => {
     expect(screen.getByRole('textbox')).toBeInTheDocument();
   });
 
+  it('Renders with given label', () => {
+    const label = 'test-label';
+    renderTextarea({ label });
+    expect(screen.getByRole('textbox', { name: label })).toBeInTheDocument();
+  });
+
+  it('Renders with given label when there is an asterisk', () => {
+    const label = 'test-label';
+    renderTextarea({ label, withAsterisk: true });
+    expect(screen.getByRole('textbox', { name: label })).toBeInTheDocument();
+  });
+
   it('Renders with the given value', () => {
     const value = 'test';
     renderTextarea({ value });
@@ -83,7 +95,7 @@ describe('StudioTextarea', () => {
     expect(screen.queryByText(errorAfterBlur)).not.toBeInTheDocument();
   });
 
-  it('Displays the after blur error message when the use types something and then blurs', async () => {
+  it('Displays the message provided through the errorAfterBlur prop when the user types something and then blurs', async () => {
     const user = userEvent.setup();
     const errorAfterBlur = 'error message';
     renderTextarea({ errorAfterBlur });
@@ -93,7 +105,7 @@ describe('StudioTextarea', () => {
     expect(screen.getByText(errorAfterBlur)).toBeInTheDocument();
   });
 
-  it('Diplays the after blur error message when the user types something after blurring', async () => {
+  it('Diplays the message provided through the errorAfterBlur prop when the user types something after blurring', async () => {
     const user = userEvent.setup();
     const errorAfterBlur = 'error message';
     renderTextarea({ errorAfterBlur });
@@ -104,7 +116,7 @@ describe('StudioTextarea', () => {
     expect(screen.getByText(errorAfterBlur)).toBeInTheDocument();
   });
 
-  it('Does not display the after blur error message when the user empties the textarea after blurring', async () => {
+  it('Does not display the message provided through the errorAfterBlur prop when the user empties the textarea after blurring', async () => {
     const user = userEvent.setup();
     const errorAfterBlur = 'error message';
     renderTextarea({ errorAfterBlur });
