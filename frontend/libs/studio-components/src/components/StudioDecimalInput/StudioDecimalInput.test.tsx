@@ -1,8 +1,6 @@
-import type { RefObject } from 'react';
-import React from 'react';
+import React, { type RefObject } from 'react';
 import { act, render as rtlRender, screen } from '@testing-library/react';
-import type { StudioDecimalInputProps } from './StudioDecimalInput';
-import { StudioDecimalInput } from './StudioDecimalInput';
+import { StudioDecimalInput, type StudioDecimalInputProps } from './StudioDecimalInput';
 import userEvent from '@testing-library/user-event';
 
 const description = 'description';

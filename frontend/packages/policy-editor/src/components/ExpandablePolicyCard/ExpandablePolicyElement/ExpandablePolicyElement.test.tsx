@@ -1,8 +1,10 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { ExpandablePolicyElementProps } from './ExpandablePolicyElement';
-import { ExpandablePolicyElement } from './ExpandablePolicyElement';
+import {
+  ExpandablePolicyElement,
+  type ExpandablePolicyElementProps,
+} from './ExpandablePolicyElement';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 

@@ -1,5 +1,6 @@
 ﻿import { useEffect } from 'react';
 import type Modeler from 'bpmn-js/lib/Modeler';
+// eslint-disable-next-line no-duplicate-imports
 import BpmnModeler from 'bpmn-js/lib/Modeler';
 import SupportedPaletteProvider from '../../bpmnProviders/SupportedPaletteProvider';
 import SupportedContextPadProvider from '../../bpmnProviders/SupportedContextPadProvider';

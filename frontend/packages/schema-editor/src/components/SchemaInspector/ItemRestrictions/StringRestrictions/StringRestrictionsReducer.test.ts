@@ -1,11 +1,9 @@
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
-import type {
-  StringRestricionsReducerState,
-  StringRestrictionsReducerAction,
-} from './StringRestrictionsReducer';
 import {
   stringRestrictionsReducer,
   StringRestrictionsReducerActionType,
+  type StringRestricionsReducerState,
+  type StringRestrictionsReducerAction,
 } from './StringRestrictionsReducer';
 
 // Test data

@@ -1,5 +1,12 @@
-import type { ElementType, HTMLAttributes, KeyboardEvent, ReactNode } from 'react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  type ElementType,
+  type HTMLAttributes,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react';
 import { useTreeViewRootContext } from '../hooks/useTreeViewRootContext';
 import { useTreeViewItemContext } from '../hooks/useTreeViewItemContext';
 import {

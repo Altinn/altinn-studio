@@ -1,8 +1,7 @@
 import React from 'react';
 import { renderHook } from '@testing-library/react';
 import { useTreeViewRootContext } from './useTreeViewRootContext';
-import { StudioTreeViewRootContext } from '../StudioTreeViewRoot';
-import type { TreeViewRootContextProps } from '../StudioTreeViewRoot';
+import { StudioTreeViewRootContext, type TreeViewRootContextProps } from '../StudioTreeViewRoot';
 
 describe('useTreeViewRootContext', () => {
   it('Accesses the TreeViewRootContext from the provider', () => {

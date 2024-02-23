@@ -1,8 +1,6 @@
-import type { RefObject } from 'react';
-import React, { createRef } from 'react';
+import React, { createRef, type RefObject } from 'react';
 import { act, render, screen } from '@testing-library/react';
-import { StudioDeleteButton } from './StudioDeleteButton';
-import type { StudioDeleteButtonProps } from './StudioDeleteButton';
+import { StudioDeleteButton, type StudioDeleteButtonProps } from './StudioDeleteButton';
 import userEvent from '@testing-library/user-event';
 import { StudioButton } from '../StudioButton';
 

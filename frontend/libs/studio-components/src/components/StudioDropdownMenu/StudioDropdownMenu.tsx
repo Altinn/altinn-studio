@@ -1,8 +1,6 @@
 import React, { useRef, useState } from 'react';
-import { DropdownMenu } from '@digdir/design-system-react';
-import type { DropdownMenuProps } from '@digdir/design-system-react';
-import type { StudioButtonProps } from '../StudioButton';
-import { StudioButton } from '../StudioButton';
+import { DropdownMenu, type DropdownMenuProps } from '@digdir/design-system-react';
+import { StudioButton, type StudioButtonProps } from '../StudioButton';
 import { StudioDropdownMenuContext } from './StudioDropdownMenuContext';
 
 export interface StudioDropdownMenuProps

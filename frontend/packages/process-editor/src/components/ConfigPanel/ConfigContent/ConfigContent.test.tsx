@@ -2,8 +2,7 @@ import React from 'react';
 import { ConfigContent } from './ConfigContent';
 import { render as rtlRender, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
-import type { BpmnContextProps } from '../../../contexts/BpmnContext';
-import { BpmnContext } from '../../../contexts/BpmnContext';
+import { BpmnContext, type BpmnContextProps } from '../../../contexts/BpmnContext';
 import type { BpmnDetails } from '../../../types/BpmnDetails';
 import { BpmnTypeEnum } from '../../../enum/BpmnTypeEnum';
 

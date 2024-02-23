@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import React, { forwardRef } from 'react';
+import React, { forwardRef, type ReactNode } from 'react';
 import classes from './StudioModal.module.css';
 import ReactModal from 'react-modal'; // TODO - Replace with component from Designsystemet. Issue:
 import { MultiplyIcon } from '@studio/icons';

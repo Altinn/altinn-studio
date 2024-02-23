@@ -1,15 +1,22 @@
 import React from 'react';
 import { act, screen, within } from '@testing-library/react';
-import type { ItemFieldsTableProps } from './ItemFieldsTable';
-import { ItemFieldsTable } from './ItemFieldsTable';
-import type { FieldNode, UiSchemaNodes } from '@altinn/schema-model';
-import { extractNameFromPointer, FieldType, ObjectKind, SchemaModel } from '@altinn/schema-model';
-import type { RenderWithProvidersData } from '../../../../../test/renderWithProviders';
-import { renderWithProviders } from '../../../../../test/renderWithProviders';
+import { ItemFieldsTable, type ItemFieldsTableProps } from './ItemFieldsTable';
+import {
+  extractNameFromPointer,
+  FieldType,
+  ObjectKind,
+  SchemaModel,
+  validateTestUiSchema,
+  type FieldNode,
+  type UiSchemaNodes,
+} from '@altinn/schema-model';
+import {
+  renderWithProviders,
+  type RenderWithProvidersData,
+} from '../../../../../test/renderWithProviders';
 import { nodeMockBase, rootNodeMock } from '../../../../../test/mocks/uiSchemaMock';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { validateTestUiSchema } from '@altinn/schema-model';
 
 const selectedItemPointer = '#/properties/test';
 const selectedItemChildPointer = '#/properties/test/properties/testProperty';

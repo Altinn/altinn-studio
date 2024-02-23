@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import type { VerificationModalProps } from './VerificationModal';
-import { VerificationModal } from './VerificationModal';
+import { VerificationModal, type VerificationModalProps } from './VerificationModal';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { act } from 'react-dom/test-utils';
 import userEvent from '@testing-library/user-event';

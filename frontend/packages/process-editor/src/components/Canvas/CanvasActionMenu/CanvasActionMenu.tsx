@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import classes from './CanvasActionMenu.module.css';
 import { useTranslation } from 'react-i18next';
 import { Paragraph } from '@digdir/design-system-react';

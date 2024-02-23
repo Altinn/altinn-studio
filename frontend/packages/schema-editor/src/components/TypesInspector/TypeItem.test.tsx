@@ -1,6 +1,5 @@
 import React from 'react';
-import type { FieldNode } from '@altinn/schema-model';
-import { FieldType, ObjectKind, ROOT_POINTER } from '@altinn/schema-model';
+import { FieldType, ObjectKind, ROOT_POINTER, type FieldNode } from '@altinn/schema-model';
 import { screen } from '@testing-library/react';
 import { TypeItem } from './TypeItem';
 import { renderWithProviders } from '../../../test/renderWithProviders';

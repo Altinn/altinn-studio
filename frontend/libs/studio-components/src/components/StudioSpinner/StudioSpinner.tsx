@@ -1,7 +1,5 @@
-import type { HTMLAttributes } from 'react';
-import React, { forwardRef, useId } from 'react';
-import { Paragraph, Spinner } from '@digdir/design-system-react';
-import type { SpinnerProps } from '@digdir/design-system-react';
+import React, { forwardRef, useId, type HTMLAttributes } from 'react';
+import { Paragraph, Spinner, type SpinnerProps } from '@digdir/design-system-react';
 import classes from './StudioSpinner.module.css';
 
 export type StudioSpinnerProps = {

@@ -1,5 +1,4 @@
-import type { HTMLAttributes, ReactNode } from 'react';
-import React, { forwardRef } from 'react';
+import React, { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
 import classes from './StudioNotFoundPage.module.css';
 import cn from 'classnames';
 import { Heading, Link } from '@digdir/design-system-react';

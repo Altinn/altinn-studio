@@ -1,9 +1,7 @@
-import type { ReactNode } from 'react';
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { StudioModalProps } from './StudioModal';
-import { StudioModal } from './StudioModal';
+import { StudioModal, type StudioModalProps } from './StudioModal';
 
 const closeButtonLabel: string = 'close';
 

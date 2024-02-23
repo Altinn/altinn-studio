@@ -1,7 +1,5 @@
-import { StudioTreeViewRoot } from './StudioTreeViewRoot';
-import type { StudioTreeViewRootProps } from './StudioTreeViewRoot';
-import { StudioTreeViewItem } from './StudioTreeViewItem';
-import type { StudioTreeViewItemProps } from './StudioTreeViewItem';
+import { StudioTreeViewRoot, type StudioTreeViewRootProps } from './StudioTreeViewRoot';
+import { StudioTreeViewItem, type StudioTreeViewItemProps } from './StudioTreeViewItem';
 
 type StudioTreeViewComponent = {
   Root: typeof StudioTreeViewRoot;

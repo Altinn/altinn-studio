@@ -1,7 +1,5 @@
-import type { RefObject } from 'react';
-import React, { createRef } from 'react';
-import type { StudioButtonProps } from './StudioButton';
-import { StudioButton } from './StudioButton';
+import React, { createRef, type RefObject } from 'react';
+import { StudioButton, type StudioButtonProps } from './StudioButton';
 import { render, screen } from '@testing-library/react';
 import type { IconPlacement } from '../../types/IconPlacement';
 
