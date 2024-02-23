@@ -1,5 +1,4 @@
-import type { ChangeEvent, MouseEvent } from 'react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, type ChangeEvent, type MouseEvent } from 'react';
 import classes from './StudioGridSelector.module.css';
 import cn from 'classnames';
 import type { GridSize } from './types/GridSize';

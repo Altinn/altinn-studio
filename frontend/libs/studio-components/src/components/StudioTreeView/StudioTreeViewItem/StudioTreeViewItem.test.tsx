@@ -1,10 +1,7 @@
 import React from 'react';
-import type { StudioTreeViewItemProps } from './StudioTreeViewItem';
-import type { ByRoleOptions } from '@testing-library/react';
-import { act, render, screen } from '@testing-library/react';
-import { StudioTreeViewItem } from './StudioTreeViewItem';
-import type { TreeViewRootContextProps } from '../StudioTreeViewRoot';
-import { StudioTreeViewRootContext } from '../StudioTreeViewRoot';
+import { act, render, screen, type ByRoleOptions } from '@testing-library/react';
+import { StudioTreeViewItem, type StudioTreeViewItemProps } from './StudioTreeViewItem';
+import { StudioTreeViewRootContext, type TreeViewRootContextProps } from '../StudioTreeViewRoot';
 import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();

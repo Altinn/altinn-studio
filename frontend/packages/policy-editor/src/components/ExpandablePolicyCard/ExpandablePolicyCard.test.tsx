@@ -1,8 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { ExpandablePolicyCardProps } from './ExpandablePolicyCard';
-import { ExpandablePolicyCard } from './ExpandablePolicyCard';
+import { ExpandablePolicyCard, type ExpandablePolicyCardProps } from './ExpandablePolicyCard';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import type { PolicyEditorUsage } from '../../types';

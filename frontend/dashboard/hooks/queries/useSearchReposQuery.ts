@@ -1,7 +1,6 @@
 import type { SearchRepoFilterParams } from 'app-shared/types/api/SearchRepoFilterParams';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import type { UseQueryResult } from '@tanstack/react-query';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { SearchRepositoryResponse } from 'app-shared/types/api/SearchRepositoryResponse';
 

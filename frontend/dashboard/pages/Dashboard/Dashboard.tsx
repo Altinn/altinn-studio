@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, type ChangeEvent, type KeyboardEvent } from 'react';
 import classes from './Dashboard.module.css';
 import cn from 'classnames';
-import type { ChangeEvent, KeyboardEvent } from 'react';
 import { Textfield } from '@digdir/design-system-react';
 import { StudioButton } from '@studio/components';
 import { XMarkIcon } from '@navikt/aksel-icons';

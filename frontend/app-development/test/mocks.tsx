@@ -1,11 +1,12 @@
-import type { ReactNode } from 'react';
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import configureStore from 'redux-mock-store';
 import type { RootState } from '../store';
 import { Provider } from 'react-redux';
 import { render, renderHook } from '@testing-library/react';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import {
+  ServicesContextProvider,
+  type ServicesContextProps,
+} from 'app-shared/contexts/ServicesContext';
 import { BrowserRouter } from 'react-router-dom';
 import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewConnectionContext';
 

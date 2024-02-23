@@ -1,11 +1,8 @@
 import React from 'react';
 import { render as renderRtl, screen, waitFor } from '@testing-library/react';
 import { act } from 'react-dom/test-utils';
-
 import * as useMediaQuery from '../../hooks/useMediaQuery';
-
-import type { StudioAnimateHeightProps } from './StudioAnimateHeight';
-import { StudioAnimateHeight } from './StudioAnimateHeight';
+import { StudioAnimateHeight, type StudioAnimateHeightProps } from './StudioAnimateHeight';
 
 // Test data:
 const defaultProps: StudioAnimateHeightProps = {

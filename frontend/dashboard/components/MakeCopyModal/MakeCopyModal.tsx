@@ -1,5 +1,4 @@
-import type { MouseEvent, ChangeEvent } from 'react';
-import React, { useState } from 'react';
+import React, { useState, type MouseEvent, type ChangeEvent } from 'react';
 import { StudioSpinner } from '@studio/components';
 import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
 import type { PopoverOrigin } from '@mui/material';

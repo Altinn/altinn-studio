@@ -1,5 +1,9 @@
-import type { ReferenceNode } from '@altinn/schema-model';
-import { extractNameFromPointer, isReference, SchemaModel } from '@altinn/schema-model';
+import {
+  extractNameFromPointer,
+  isReference,
+  SchemaModel,
+  type ReferenceNode,
+} from '@altinn/schema-model';
 import {
   definitionNodeMock,
   combinationNodeMock,

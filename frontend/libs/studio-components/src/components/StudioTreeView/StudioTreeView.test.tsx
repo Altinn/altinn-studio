@@ -1,8 +1,6 @@
 import React from 'react';
-import type { StudioTreeViewRootProps } from './';
-import { StudioTreeView } from './';
-import type { ByRoleOptions } from '@testing-library/react';
-import { act, render, screen } from '@testing-library/react';
+import { StudioTreeView, type StudioTreeViewRootProps } from './';
+import { act, render, screen, type ByRoleOptions } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();

@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { act, render, screen } from '@testing-library/react';
-import type { StudioTextfieldProps } from './StudioTextfield';
-import { StudioTextfield } from './StudioTextfield';
+import { StudioTextfield, type StudioTextfieldProps } from './StudioTextfield';
 import { StudioTextarea } from '../StudioTextarea';
 import userEvent from '@testing-library/user-event';
 import type { RefObject } from 'react';

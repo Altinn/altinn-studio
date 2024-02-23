@@ -1,7 +1,6 @@
 import React from 'react';
 import { render as rtlRender, screen, act } from '@testing-library/react';
-import type { ProcessEditorProps } from './ProcessEditor';
-import { ProcessEditor } from './ProcessEditor';
+import { ProcessEditor, type ProcessEditorProps } from './ProcessEditor';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';

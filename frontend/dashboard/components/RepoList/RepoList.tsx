@@ -1,26 +1,31 @@
 import React, { useMemo, useRef, useState } from 'react';
-import type {
-  GridActionsColDef,
-  GridColDef,
-  GridPaginationModel,
-  GridRenderCellParams,
-  GridRowParams,
-  GridSortModel,
-  GridValueFormatterParams,
-  GridValueGetterParams,
+import {
+  DataGrid,
+  GridActionsCellItem,
+  GridOverlay,
+  nbNO,
+  type GridActionsColDef,
+  type GridColDef,
+  type GridPaginationModel,
+  type GridRenderCellParams,
+  type GridRowParams,
+  type GridSortModel,
+  type GridValueFormatterParams,
+  type GridValueGetterParams,
 } from '@mui/x-data-grid';
-import { DataGrid, GridActionsCellItem, GridOverlay, nbNO } from '@mui/x-data-grid';
 import cn from 'classnames';
 import type { RepositoryWithStarred } from 'dashboard/utils/repoUtils/repoUtils';
 import { MakeCopyModal } from '../MakeCopyModal';
 import { getRepoEditUrl } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
-import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
-import { DATAGRID_DEFAULT_PAGE_SIZE, DATAGRID_PAGE_SIZE_OPTIONS } from '../../constants';
+import {
+  DATAGRID_DEFAULT_PAGE_SIZE,
+  DATAGRID_PAGE_SIZE_OPTIONS,
+  type DATAGRID_PAGE_SIZE_TYPE,
+} from '../../constants';
 import classes from './RepoList.module.css';
 import type { User } from 'app-shared/types/Repository';
-import { useSetStarredRepoMutation } from '../../hooks/mutations';
-import { useUnsetStarredRepoMutation } from '../../hooks/mutations';
+import { useUnsetStarredRepoMutation, useSetStarredRepoMutation } from '../../hooks/mutations';
 import {
   PencilIcon,
   FilesIcon,
