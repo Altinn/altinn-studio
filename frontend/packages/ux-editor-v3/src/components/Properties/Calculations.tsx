@@ -6,12 +6,12 @@ import { RuleModal } from '../toolbar/RuleModal';
 import { OldDynamicsInfo } from './OldDynamicsInfo';
 import { Divider } from 'app-shared/primitives';
 import { useText } from '../../hooks';
-import { useFormContext } from '../../containers/FormContext';
+import { useFormItemContext } from '../../containers/FormItemContext';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';
 
 export const Calculations = () => {
-  const { form } = useFormContext();
+  const { formItem: form } = useFormItemContext();
 
   const [modalOpen, setModalOpen] = React.useState<boolean>(false);
   const t = useText();

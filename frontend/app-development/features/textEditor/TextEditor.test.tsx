@@ -177,7 +177,7 @@ describe('TextEditor', () => {
     renderWithProviders(<TextEditor />, {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
     });
-    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('text_editor.loading_page'))).toBeInTheDocument();
   });
 });
 
@@ -191,7 +191,7 @@ const render = async (queries: Partial<ServicesContextProps> = {}) => {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
   });
 
-  await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
+  await waitForElementToBeRemoved(() => screen.queryByText(textMock('text_editor.loading_page')));
 
   return view;
 };

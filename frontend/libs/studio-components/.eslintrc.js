@@ -9,7 +9,7 @@ module.exports = {
             selector: ['variable', 'function'],
             modifiers: ['exported'],
             format: ['PascalCase'],
-            prefix: ['Studio'],
+            prefix: ['Studio', 'use'],
           },
         ],
       },
@@ -31,7 +31,11 @@ module.exports = {
                 message:
                   'Files in the @studio/components package should not depend on app-specific packages.',
               },
-              // Todo: Add restriction for I18next: https://github.com/Altinn/altinn-studio/issues/12189
+              {
+                group: ['i18next', 'react-i18next'],
+                message:
+                  'In the components library, texts should be provided as input props to the components that needs them.',
+              },
             ],
           },
         ],

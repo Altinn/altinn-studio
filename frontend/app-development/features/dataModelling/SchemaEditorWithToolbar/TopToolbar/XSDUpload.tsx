@@ -57,7 +57,7 @@ export const XSDUpload = ({ disabled, submitButtonRenderer }: IXSDUploadProps) =
     <>
       <span ref={uploadButton}>
         {uploading ? (
-          <StudioSpinner spinnerText={t('app_data_modelling.uploading_xsd')} />
+          <StudioSpinner spinnerTitle={t('app_data_modelling.uploading_xsd')} showSpinnerTitle />
         ) : (
           <FileSelector
             busy={false}

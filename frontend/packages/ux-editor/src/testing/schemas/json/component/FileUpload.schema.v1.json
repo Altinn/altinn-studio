@@ -72,7 +72,8 @@
           "Required",
           "AllExceptRequired",
           "All"
-        ]
+        ],
+        "type": "string"
       }
     },
     "renderAsSummary": {
@@ -140,8 +141,22 @@
     },
     "dataModelBindings": {
       "anyOf": [
-        { "$ref": "#/definitions/IDataModelBindingsSimple" },
-        { "$ref": "#/definitions/IDataModelBindingsList" }
+        {
+          "title": "Data model binding",
+          "description": "Describes the location in the data model where the component should store its value(s). A simple binding is used for components that only store a single value, usually a string.",
+          "type": "object",
+          "properties": { "simpleBinding": { "type": "string" } },
+          "required": ["simpleBinding"],
+          "additionalProperties": false
+        },
+        {
+          "title": "Data model binding",
+          "description": "Describes the location in the data model where the component should store its value(s). A list binding should be pointed to an array structure in the data model, and is used for components that store multiple simple values (e.g. a list of strings).",
+          "type": "object",
+          "properties": { "list": { "type": "string" } },
+          "required": ["list"],
+          "additionalProperties": false
+        }
       ]
     },
     "maxFileSizeInMB": {
