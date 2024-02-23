@@ -5,13 +5,13 @@ import { useCreateDeploymentMutation } from '../../../hooks/mutations';
 import { Trans, useTranslation } from 'react-i18next';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import type { ImageOption } from './ImageOption';
-import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import { BuildResult } from 'app-shared/types/Build';
 import { toast } from 'react-toastify';
 import { Alert, Link } from '@digdir/design-system-react';
 
 export interface AppDeploymentActionsProps {
-  pipelineDeploymentList?: PipelineDeployment[];
+  appDeployedVersion: string;
+  inProgress: boolean;
   deployPermission: boolean;
   envName: string;
   imageOptions: ImageOption[];
@@ -19,7 +19,8 @@ export interface AppDeploymentActionsProps {
 }
 
 export const AppDeploymentActions = ({
-  pipelineDeploymentList,
+  appDeployedVersion,
+  inProgress,
   deployPermission,
   envName,
   imageOptions,
@@ -29,9 +30,12 @@ export const AppDeploymentActions = ({
   const { t } = useTranslation();
 
   const { org, app } = useStudioUrlParams();
-  const mutation = useCreateDeploymentMutation(org, app, { hideDefaultError: true });
+  const { data, mutate, isPending } = useCreateDeploymentMutation(org, app, {
+    hideDefaultError: true,
+  });
+  console.log('data', data);
   const startDeploy = () =>
-    mutation.mutate(
+    mutate(
       {
         tagName: selectedImageTag,
         envName,
@@ -54,8 +58,7 @@ export const AppDeploymentActions = ({
       },
     );
 
-  const latestPipelineDeployment = pipelineDeploymentList[0];
-  const deployInProgress = latestPipelineDeployment?.build?.result === BuildResult.none;
+  const deployInProgress = isPending || data?.build?.result === BuildResult.none || inProgress;
 
   if (!imageOptions.length) return null;
 
@@ -65,7 +68,7 @@ export const AppDeploymentActions = ({
         <Alert severity='info'>{t('app_publish.missing_rights', { envName, orgName })}</Alert>
       ) : (
         <DeployDropdown
-          appDeployedVersion={latestPipelineDeployment?.tagName}
+          appDeployedVersion={appDeployedVersion}
           envName={envName}
           disabled={!selectedImageTag || deployInProgress}
           inProgress={deployInProgress}

@@ -13,6 +13,7 @@ import type { ImageOption } from './ImageOption';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
+import { BuildResult } from 'app-shared/types/Build';
 
 export interface AppDeploymentProps {
   pipelineDeploymentList: PipelineDeployment[];
@@ -70,7 +71,8 @@ export const AppDeployment = ({
       </div>
       <div className={classes.bodyContainer}>
         <AppDeploymentActions
-          pipelineDeploymentList={pipelineDeploymentList}
+          appDeployedVersion={kubernetesDeployment?.version}
+          inProgress={pipelineDeploymentList.some((item) => item.build.result === BuildResult.none)}
           deployPermission={deployPermission}
           envName={envName}
           imageOptions={imageOptions}
