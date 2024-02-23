@@ -12,6 +12,10 @@
   top: var(--fds-spacing-3);
 }
 
+/* .inProgress > svg {
+  visibility: hidden;
+} */
+
 .heading {
   text-transform: uppercase;
 }
@@ -19,9 +23,9 @@
 .loadingSpinner {
   display: flex;
   align-items: center;
-  gap: var(--fds-spacing-6);
+  gap: var(--fds-spacing-4);
 }
 
-.loadingSpinner div {
+.loadingSpinner * {
   font-size: inherit !important;
 }

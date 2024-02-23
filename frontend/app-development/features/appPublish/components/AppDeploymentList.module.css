@@ -6,7 +6,7 @@
 }
 
 .heading {
-  margin-bottom: var(--fds-spacing-4);
+  margin-bottom: var(--fds-spacing-2);
 }
 
 .tableWrapper {
@@ -23,10 +23,6 @@
 .tableHeaderCell,
 .tableCell {
   padding: var(--fds-spacing-2);
-}
-
-.tableCell {
-  border: none;
 }
 
 .buildResult {

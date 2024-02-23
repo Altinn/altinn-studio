@@ -72,9 +72,15 @@ export const AppDeploymentList = ({
       case BuildResult.none:
       default:
         return (
-          <InformationSquareFillIcon
-            className={classNames(classes.icon, classes[`icon-${buildResult}`])}
+          <StudioSpinner
+            size='xsmall'
+            spinnerTitle={t('app_publish.deployment_in_progress')}
+            showSpinnerTitle={false}
+            className={classes.loadingSpinner}
           />
+          // <InformationSquareFillIcon
+          //   className={classNames(classes.icon, classes[`icon-${buildResult}`])}
+          // />
         );
     }
   };
@@ -120,7 +126,9 @@ export const AppDeploymentList = ({
                   <Table.HeaderCell className={classes.tableHeaderCell}>
                     {t('app_deploy_table.available_version_col')}
                   </Table.HeaderCell>
-                  <Table.HeaderCell>{t('app_deploy_table.deployed_by_col')}</Table.HeaderCell>
+                  <Table.HeaderCell className={classes.tableHeaderCell}>
+                    {t('app_deploy_table.deployed_by_col')}
+                  </Table.HeaderCell>
                   <Table.HeaderCell className={classes.tableHeaderCell} />
                 </Table.Row>
               </Table.Head>

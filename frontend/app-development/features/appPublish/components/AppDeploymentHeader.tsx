@@ -1,13 +1,12 @@
 import React from 'react';
 import classes from './AppDeploymentHeader.module.css';
-import { Alert, Heading, Link, Paragraph } from '@digdir/design-system-react';
+import { Alert, Heading, Link, Paragraph, Spinner } from '@digdir/design-system-react';
 import { Trans, useTranslation } from 'react-i18next';
 import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
-import { StudioSpinner } from '@studio/components';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
-import { publishPath } from 'app-shared/api/paths';
 import { formatDateDDMMYY, formatTimeHHmm } from 'app-shared/pure/date-format';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import classNames from 'classnames';
 
 export interface AppDeploymentHeaderProps {
   kubernetesDeployment?: KubernetesDeployment;
@@ -22,7 +21,6 @@ export const AppDeploymentHeader = ({
   envType,
   urlToApp,
 }: AppDeploymentHeaderProps) => {
-  const { org, app } = useStudioUrlParams();
   const { t } = useTranslation();
 
   const formatDateTime = (dateAsString: string): string => {
@@ -39,11 +37,6 @@ export const AppDeploymentHeader = ({
         envName={envName}
         severity='info'
         content={t('overview.no_app')}
-        footer={
-          <Trans i18nKey='overview.go_to_publish'>
-            <a href={publishPath(org, app)} />
-          </Trans>
-        }
       />
     );
   }
@@ -81,13 +74,8 @@ export const AppDeploymentHeader = ({
         <DeploymentStatusInfo
           envType={envType}
           envName={envName}
-          severity='danger'
+          severity='warning'
           content={t('overview.unavailable')}
-          footer={
-            <Trans i18nKey='overview.go_to_publish'>
-              <a href={publishPath(org, app)} />
-            </Trans>
-          }
         />
       );
     default:
@@ -97,18 +85,12 @@ export const AppDeploymentHeader = ({
           envName={envName}
           severity='info'
           content={
-            <StudioSpinner
-              size='small'
-              spinnerTitle={t('overview.in_progress')}
-              showSpinnerTitle
-              className={classes.loadingSpinner}
-            />
+            <span className={classes.loadingSpinner}>
+              <Spinner variant='interaction' title={t('overview.in_progress')} size='xsmall' />
+              {t('overview.in_progress')}
+            </span>
           }
-          footer={
-            <Trans i18nKey='overview.go_to_publish'>
-              <a href={publishPath(org, app)} />
-            </Trans>
-          }
+          className={classes.inProgress}
         />
       );
   }
@@ -119,7 +101,8 @@ type DeploymentStatusInfoProps = {
   envName: string;
   severity: 'success' | 'warning' | 'info' | 'danger';
   content: string | React.ReactNode;
-  footer: string | JSX.Element;
+  footer?: string | JSX.Element;
+  className?: string;
 };
 const DeploymentStatusInfo = ({
   envType,
@@ -127,20 +110,21 @@ const DeploymentStatusInfo = ({
   severity,
   content,
   footer,
+  className,
 }: DeploymentStatusInfoProps) => {
   const { t } = useTranslation();
   const isProduction = envType.toLowerCase() === 'production';
   const headingText = isProduction ? t('general.production') : envName;
 
   return (
-    <Alert severity={severity} className={classes.alert}>
+    <Alert severity={severity} className={classNames(classes.alert, className)}>
       <Heading spacing level={2} size='xsmall' className={classes.heading}>
         {headingText}
       </Heading>
-      <Paragraph spacing size='small'>
+      <Paragraph size='small' spacing={!!footer}>
         {content}
       </Paragraph>
-      <Paragraph size='xsmall'>{footer}</Paragraph>
+      {footer && <Paragraph size='xsmall'>{footer}</Paragraph>}
     </Alert>
   );
 };

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './DeployDropdown.module.css';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { StudioButton } from '@studio/components';
-import { LegacySelect } from '@digdir/design-system-react';
+import { Combobox, Spinner } from '@digdir/design-system-react';
 import type { ImageOption } from './ImageOption';
 import { useTranslation } from 'react-i18next';
 
@@ -14,6 +14,7 @@ export interface DeployDropdownProps {
   setSelectedImageTag: (tag) => void;
   selectedImageTag: string;
   startDeploy: any;
+  inProgress: boolean;
 }
 
 export const DeployDropdown = ({
@@ -24,6 +25,7 @@ export const DeployDropdown = ({
   setSelectedImageTag,
   disabled,
   startDeploy,
+  inProgress,
 }: DeployDropdownProps) => {
   const [isConfirmDeployDialogOpen, setIsConfirmDeployDialogOpen] = useState<boolean>();
   const { t } = useTranslation();
@@ -31,15 +33,26 @@ export const DeployDropdown = ({
     await startDeploy();
   };
   return (
-    <>
-      <div>{t('app_deploy_messages.choose_version')}</div>
+    <div className={classes.deployDropDown}>
       <div id={`deploy-select-${envName.toLowerCase()}`}>
         {imageOptions.length > 0 && (
-          <LegacySelect
-            key={imageOptions.length}
-            options={imageOptions || []}
-            onChange={(value: string) => setSelectedImageTag(value)}
-          />
+          <Combobox
+            size='small'
+            value={selectedImageTag ? [selectedImageTag] : undefined}
+            label={t('app_deploy_messages.choose_version')}
+            onValueChange={(selectedImageOptions: string[]) =>
+              setSelectedImageTag(selectedImageOptions[0])
+            }
+            disabled={inProgress}
+          >
+            {imageOptions.map((imageOption) => {
+              return (
+                <Combobox.Option key={imageOption.value} value={imageOption.value}>
+                  {imageOption.label}
+                </Combobox.Option>
+              );
+            })}
+          </Combobox>
         )}
       </div>
       <div className={classes.deployButton}>
@@ -56,7 +69,18 @@ export const DeployDropdown = ({
               id={`deploy-button-${envName.toLowerCase()}`}
               size='small'
             >
-              {t('app_deploy_messages.btn_deploy_new_version')}
+              {inProgress ? (
+                <>
+                  <Spinner
+                    variant='interaction'
+                    title={t('app_publish.deployment_in_progress')}
+                    size='xsmall'
+                  />
+                  {t('app_publish.deployment_in_progress')}
+                </>
+              ) : (
+                t('app_deploy_messages.btn_deploy_new_version')
+              )}
             </StudioButton>
           }
         >
@@ -70,6 +94,6 @@ export const DeployDropdown = ({
           </p>
         </AltinnConfirmDialog>
       </div>
-    </>
+    </div>
   );
 };

@@ -59,34 +59,29 @@ export const AppDeployment = ({
   // }, [deployPermission, latestDeploy, deployedVersionNotReachable]);
 
   return (
-    <Accordion color='neutral'>
-      <Accordion.Item defaultOpen={!!kubernetesDeployment?.status}>
-        <Accordion.Header className={classes.accordionHeader}>
-          <AppDeploymentHeader
-            kubernetesDeployment={kubernetesDeployment}
-            envName={envName}
-            envType={envType}
-            urlToApp={urlToApp}
-          />
-        </Accordion.Header>
-        <Accordion.Content className={classes.accordionContent}>
-          <div className={classes.mainContainer}></div>
-          <div className={classes.bodyContainer}>
-            <AppDeploymentActions
-              pipelineDeploymentList={pipelineDeploymentList}
-              deployPermission={deployPermission}
-              envName={envName}
-              imageOptions={imageOptions}
-              orgName={orgName}
-            />
-            <AppDeploymentList
-              envName={envName}
-              pipelineDeploymentList={pipelineDeploymentList}
-              kubernetesDeployment={kubernetesDeployment}
-            />
-          </div>
-        </Accordion.Content>
-      </Accordion.Item>
-    </Accordion>
+    <div className={classes.appDeployment}>
+      <div className={classes.appDeploymentHeader}>
+        <AppDeploymentHeader
+          kubernetesDeployment={kubernetesDeployment}
+          envName={envName}
+          envType={envType}
+          urlToApp={urlToApp}
+        />
+      </div>
+      <div className={classes.bodyContainer}>
+        <AppDeploymentActions
+          pipelineDeploymentList={pipelineDeploymentList}
+          deployPermission={deployPermission}
+          envName={envName}
+          imageOptions={imageOptions}
+          orgName={orgName}
+        />
+        <AppDeploymentList
+          envName={envName}
+          pipelineDeploymentList={pipelineDeploymentList}
+          kubernetesDeployment={kubernetesDeployment}
+        />
+      </div>
+    </div>
   );
 };

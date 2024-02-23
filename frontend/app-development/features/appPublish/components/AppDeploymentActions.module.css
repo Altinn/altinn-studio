@@ -1,10 +1,12 @@
 .appDeploymentActions {
-  width: 30%;
 }
 
 .loadingSpinner {
   display: flex;
-  justify-content: left;
   align-items: center;
-  gap: var(--fds-spacing-1);
+  gap: var(--fds-spacing-4);
+}
+
+.loadingSpinner * {
+  font-size: inherit !important;
 }

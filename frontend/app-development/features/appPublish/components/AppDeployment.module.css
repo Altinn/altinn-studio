@@ -1,11 +1,33 @@
+.appDeployment {
+  border-top: 2px solid #000000;
+}
+
+.appDeployment:first-of-type {
+  border: none;
+}
+
 .bodyContainer {
   display: flex;
+  flex-direction: column;
   flex: 1;
   gap: var(--fds-spacing-12);
+  overflow: auto;
   padding: var(--fds-spacing-6);
 }
 
-.accordionHeader > button {
+.appDeploymentHeader {
+  box-sizing: content-box;
+  border-bottom: 1px solid #c9c9c9;
+}
+
+@media (min-width: 1200px) {
+  .appDeploymentHeader {
+    max-width: 350px;
+    width: 25%;
+  }
+}
+
+/* .accordionHeader > button {
   padding-bottom: 0 !important;
   padding-top: 0 !important;
   padding-right: 0 !important;
@@ -13,9 +35,20 @@
 
 .accordionHeader > button > span {
   width: 100%;
-}
+} */
 
-.accordionContent {
+/* .accordionContent {
   padding: 0;
   padding-left: var(--fds-spacing-10);
+} */
+
+@media (min-width: 1200px) {
+  .appDeployment {
+    display: flex;
+  }
+
+  .appDeploymentHeader {
+    box-sizing: content-box;
+    border-right: 1px solid #c9c9c9;
+  }
 }

@@ -2,8 +2,7 @@ import React from 'react';
 import classes from './AppStatus.module.css';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { Trans, useTranslation } from 'react-i18next';
-import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
-import { StudioSpinner } from '@studio/components';
+import { Alert, Heading, Paragraph, Spinner } from '@digdir/design-system-react';
 import { formatDateDDMMYY, formatTimeHHmm } from 'app-shared/pure/date-format';
 import { publishPath } from 'app-shared/api/paths';
 import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
@@ -93,12 +92,10 @@ export const AppStatus = ({ kubernetesDeployment, envName, envType, urlToApp }: 
           envName={envName}
           severity='info'
           content={
-            <StudioSpinner
-              size='small'
-              spinnerTitle={t('overview.in_progress')}
-              showSpinnerTitle
-              className={classes.loadingSpinner}
-            />
+            <span className={classes.loadingSpinner}>
+              <Spinner variant='interaction' title={t('overview.in_progress')} size='xsmall' />
+              {t('overview.in_progress')}
+            </span>
           }
           footer={
             <Trans i18nKey='overview.go_to_publish'>

@@ -67,25 +67,16 @@ export const AppDeploymentActions = ({
       {!deployPermission ? (
         <Alert severity='info'>{t('app_publish.missing_rights', { envName, orgName })}</Alert>
       ) : (
-        <>
-          {deployInProgress ? (
-            <StudioSpinner
-              spinnerTitle={t('app_publish.deployment_in_progress') + '...'}
-              showSpinnerTitle
-              className={classes.loadingSpinner}
-            />
-          ) : (
-            <DeployDropdown
-              appDeployedVersion={latestPipelineDeployment?.tagName}
-              envName={envName}
-              disabled={selectedImageTag === null || deployInProgress}
-              selectedImageTag={selectedImageTag}
-              imageOptions={imageOptions}
-              setSelectedImageTag={setSelectedImageTag}
-              startDeploy={startDeploy}
-            />
-          )}
-        </>
+        <DeployDropdown
+          appDeployedVersion={latestPipelineDeployment?.tagName}
+          envName={envName}
+          disabled={!selectedImageTag || deployInProgress}
+          inProgress={deployInProgress}
+          selectedImageTag={selectedImageTag}
+          imageOptions={imageOptions}
+          setSelectedImageTag={setSelectedImageTag}
+          startDeploy={startDeploy}
+        />
       )}
     </div>
   );

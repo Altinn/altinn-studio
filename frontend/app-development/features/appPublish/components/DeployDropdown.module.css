@@ -1,3 +1,7 @@
+.deployDropDown {
+  width: 50%;
+}
+
 .deployButton {
-  margin-top: 2.6rem;
+  margin-top: var(--fds-spacing-4);
 }
