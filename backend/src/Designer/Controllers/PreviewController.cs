@@ -153,9 +153,13 @@ namespace Altinn.Studio.Designer.Controllers
             // Workaround to include the nuget version in the application metadata in response.
             // Needed until we can upgrade our version of app-lib-core to get the latest version
             // of the ApplicationMetadata class that includes the AltinnNugetVersion property.
+            // TODO: remove this workaround when we can upgrade our version of app-lib-core
+            // https://github.com/Altinn/altinn-studio/issues/12384
             string jsonApplicationMetadata = JsonSerializer.Serialize(applicationMetadata);
             AltinnApplicationMetadata altinnApplicationMetadata = JsonSerializer.Deserialize<AltinnApplicationMetadata>(jsonApplicationMetadata);
             string appLibVersion = _appDevelopmentService.GetAppLibVersion(context).ToString();
+
+            // Mock the AltinnNugetVersion property based on the appLibVersion
             altinnApplicationMetadata.AltinnNugetVersion = GetMockedAltinnNugetBuildFromVersion(appLibVersion);
 
             return Ok(altinnApplicationMetadata);
