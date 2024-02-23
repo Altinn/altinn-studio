@@ -1,7 +1,7 @@
 using Altinn.App.Core.Models;
 using Newtonsoft.Json;
 
-namespace Altinn.Studio.Designer.Models;
+namespace Altinn.Studio.Designer.Models.Dto;
 
 public class AltinnApplicationMetadata : ApplicationMetadata
 {
@@ -11,9 +11,9 @@ public class AltinnApplicationMetadata : ApplicationMetadata
     //
     // Parameters:
     //   id:
-    public AltinnApplicationMetadata(string id) : base(id)
+    public AltinnApplicationMetadata(ApplicationMetadata applicationMetadata) : base(applicationMetadata.Id)
     {
-        Id = id;
+
     }
 
     /// <summary>

@@ -14,6 +14,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
@@ -145,7 +146,7 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            AltinnApplicationMetadata applicationMetadata = (AltinnApplicationMetadata) await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
+            AltinnApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
             applicationMetadata.AltinnNugetVersion = _appDevelopmentService.GetAppLibVersion(editingContext).ToString();
             return Ok(applicationMetadata);
         }
