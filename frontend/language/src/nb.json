@@ -1659,6 +1659,7 @@
   "ux_editor.modal_properties_data_model_label.questions": "Spørsmål",
   "ux_editor.modal_properties_data_model_label.zipCode": "Postnummer",
   "ux_editor.modal_properties_data_model_link": "Legg til en datamodellknytning",
+  "ux_editor.modal_properties_data_model_restrictions_attachment_components": "Når vedlegg er en del av en repeterende gruppe er det påkrevd å sette en datamodellknytning",
   "ux_editor.modal_properties_data_model_selected": "Datamodellknytning",
   "ux_editor.modal_properties_description": "Beskrivelse:",
   "ux_editor.modal_properties_description_add": "Legg til beskrivelse",
