@@ -9,7 +9,7 @@
     "definitions": {
       "none-is-not-allowed": {
         "message": "none is not allowed",
-        "severity": "errors",
+        "severity": "error",
         "condition": ["equals", ["dataModel", ["argv", 0]], "none"]
       }
     }

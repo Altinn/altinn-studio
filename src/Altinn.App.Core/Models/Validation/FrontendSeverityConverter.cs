@@ -16,8 +16,8 @@ namespace Altinn.App.Core.Models.Validation
 
             return reader.GetString() switch
             {
-                "errors" => ValidationIssueSeverity.Error,
-                "warnings" => ValidationIssueSeverity.Warning,
+                "error" => ValidationIssueSeverity.Error,
+                "warning" => ValidationIssueSeverity.Warning,
                 "info" => ValidationIssueSeverity.Informational,
                 "success" => ValidationIssueSeverity.Success,
                 _ => throw new JsonException(),
@@ -29,8 +29,8 @@ namespace Altinn.App.Core.Models.Validation
         {
             string output = value switch
             {
-                ValidationIssueSeverity.Error => "errors",
-                ValidationIssueSeverity.Warning => "warnings",
+                ValidationIssueSeverity.Error => "error",
+                ValidationIssueSeverity.Warning => "warning",
                 ValidationIssueSeverity.Informational => "info",
                 ValidationIssueSeverity.Success => "success",
                 _ => throw new JsonException(),

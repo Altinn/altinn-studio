@@ -56,7 +56,8 @@ public class ExpressionValidator : IFormDataValidator
         }
 
         var validationConfig = JsonDocument.Parse(rawValidationConfig).RootElement;
-        var evaluatorState = await _layoutEvaluatorStateInitializer.Init(instance, data, dataElement.Id);
+        var layoutSet = _appResourceService.GetLayoutSetForTask(instance.Process.CurrentTask.ElementId);
+        var evaluatorState = await _layoutEvaluatorStateInitializer.Init(instance, data, layoutSet?.Id);
         return Validate(validationConfig, evaluatorState, _logger);
     }
 

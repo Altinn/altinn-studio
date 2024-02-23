@@ -1,15 +1,9 @@
 {
-  "name": "Should work in repeating groups",
+  "name": "Should work in repeating groups with hidden fields in some rows",
   "expects": [
     {
       "message": "none is not allowed",
-      "severity": "errors",
-      "field": "form.names[0].name",
-      "componentId": "name-input-0"
-    },
-    {
-      "message": "none is not allowed",
-      "severity": "errors",
+      "severity": "error",
       "field": "form.names[2].name",
       "componentId": "name-input-2"
     }
@@ -22,7 +16,7 @@
     "definitions": {
       "none-is-not-allowed": {
         "message": "none is not allowed",
-        "severity": "errors",
+        "severity": "error",
         "condition": ["equals", ["dataModel", ["argv", 0]], "none"]
       }
     }
@@ -31,16 +25,20 @@
     "form": {
       "names": [
         {
-          "name": "none"
+          "name": "none",
+          "hidden": true
         },
         {
-          "name": "John"
+          "name": "John",
+          "hidden": false
         },
         {
-          "name": "none"
+          "name": "none",
+          "hidden": false
         },
         {
-          "name": "Jane"
+          "name": "Jane",
+          "hidden": true
         }
       ]
     }
@@ -63,7 +61,8 @@
             "type": "Input",
             "dataModelBindings": {
               "simpleBinding": "form.names.name"
-            }
+            },
+            "hidden": ["dataModel", "form.names.hidden"]
           }
         ]
       }

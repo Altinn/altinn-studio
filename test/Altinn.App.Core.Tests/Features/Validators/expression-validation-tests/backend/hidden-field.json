@@ -1,31 +1,22 @@
 {
-  "name": "Should return an error if equals condition is met",
-  "expects": [
-    {
-      "message": "none is not allowed",
-      "severity": "errors",
-      "field": "form.name",
-      "componentId": "name-input"
-    }
-  ],
+  "name": "Should not return an error if component is hidden",
+  "expects": [],
   "validationConfig": {
     "$schema": "https://altinncdn.no/schemas/json/validation/validation.schema.v1.json",
     "validations": {
-      "form.name": ["none-is-not-allowed"],
-      "form.email": ["none-is-not-allowed"]
+      "form.name": ["none-is-not-allowed"]
     },
     "definitions": {
       "none-is-not-allowed": {
         "message": "none is not allowed",
-        "severity": "errors",
+        "severity": "error",
         "condition": ["equals", ["dataModel", ["argv", 0]], "none"]
       }
     }
   },
   "formData": {
     "form": {
-      "name": "none",
-      "email": "email@address.com"
+      "name": "none"
     }
   },
   "layouts": {
@@ -38,14 +29,8 @@
             "type": "Input",
             "dataModelBindings": {
               "simpleBinding": "form.name"
-            }
-          },
-          {
-            "id": "email-input",
-            "type": "Input",
-            "dataModelBindings": {
-              "simpleBinding": "form.email"
-            }
+            },
+            "hidden": true
           }
         ]
       }

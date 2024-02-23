@@ -3,7 +3,7 @@
   "expects": [
     {
       "message": "this value could be wrong",
-      "severity": "warnings",
+      "severity": "warning",
       "field": "form.name",
       "componentId": "name-input"
     }
@@ -15,14 +15,14 @@
         {
           "ref": "none-is-not-allowed",
           "message": "this value could be wrong",
-          "severity": "warnings"
+          "severity": "warning"
         }
       ]
     },
     "definitions": {
       "none-is-not-allowed": {
         "message": "none is not allowed",
-        "severity": "errors",
+        "severity": "error",
         "condition": ["equals", ["dataModel", ["argv", 0]], "none"]
       }
     }

@@ -3,25 +3,25 @@
   "expects": [
     {
       "message": "none is not allowed",
-      "severity": "errors",
+      "severity": "error",
       "field": "form.name",
       "componentId": "name-input"
     },
     {
       "message": "string is too short",
-      "severity": "errors",
+      "severity": "error",
       "field": "form.name",
       "componentId": "name-input"
     },
     {
       "message": "email must be real",
-      "severity": "errors",
+      "severity": "error",
       "field": "form.email",
       "componentId": "email-input"
     },
     {
       "message": "string is too short",
-      "severity": "errors",
+      "severity": "error",
       "field": "form.email",
       "componentId": "email-input"
     }
@@ -34,7 +34,7 @@
         "str-len",
         {
           "message": "this should not be shown",
-          "severity": "warnings",
+          "severity": "warning",
           "condition": ["startsWith", ["dataModel", ["argv", 0]], "a"]
         }
       ],
@@ -42,16 +42,20 @@
         "none-is-not-allowed",
         {
           "message": "email must be real",
-          "severity": "errors",
+          "severity": "error",
           "condition": ["contains", ["dataModel", ["argv", 0]], "fake"]
         },
         {
           "ref": "str-len",
-          "condition": ["lessThan", ["stringLength", ["dataModel", ["argv", 0]]], 20]
+          "condition": [
+            "lessThan",
+            ["stringLength", ["dataModel", ["argv", 0]]],
+            20
+          ]
         },
         {
           "message": "email must contain @",
-          "severity": "errors",
+          "severity": "error",
           "condition": ["notContains", ["dataModel", ["argv", 0]], "@"]
         }
       ]
@@ -59,13 +63,17 @@
     "definitions": {
       "none-is-not-allowed": {
         "message": "none is not allowed",
-        "severity": "errors",
+        "severity": "error",
         "condition": ["equals", ["dataModel", ["argv", 0]], "none"]
       },
       "str-len": {
         "message": "string is too short",
-        "severity": "errors",
-        "condition": ["lessThan", ["stringLength", ["dataModel", ["argv", 0]]], 5]
+        "severity": "error",
+        "condition": [
+          "lessThan",
+          ["stringLength", ["dataModel", ["argv", 0]]],
+          5
+        ]
       }
     }
   },

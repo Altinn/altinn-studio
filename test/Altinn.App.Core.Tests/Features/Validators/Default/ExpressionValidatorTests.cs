@@ -8,6 +8,7 @@ using Altinn.App.Core.Features.Validation.Default;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Validation;
 using Altinn.App.Core.Tests.Helpers;
@@ -32,6 +33,9 @@ public class ExpressionValidatorTests
 
     public ExpressionValidatorTests()
     {
+        _appResources
+            .Setup(ar => ar.GetLayoutSetForTask(null))
+            .Returns(new LayoutSet());
         _layoutInitializer = new(MockBehavior.Strict, _appResources.Object, _frontendSettings) { CallBase = false };
         _validator =
             new ExpressionValidator(_logger.Object, _appResources.Object, _layoutInitializer.Object);
@@ -41,7 +45,7 @@ public class ExpressionValidatorTests
     [ExpressionTest]
     public async Task RunExpressionValidationTest(ExpressionValidationTestModel testCase)
     {
-        var instance = new Instance();
+        var instance = new Instance() { Process = new ProcessState() { CurrentTask = new ProcessElementInfo() } };
         var dataElement = new DataElement();
 
         var dataModel = new JsonDataModel(testCase.FormData);
@@ -85,7 +89,9 @@ public class ExpressionTestAttribute : DataAttribute
 
     public override IEnumerable<object[]> GetData(MethodInfo methodInfo)
     {
-        var files = Directory.GetFiles(Path.Join("Features", "Validators", "shared-expression-validation-tests"));
+        var files = Directory
+            .GetFiles(Path.Join("Features", "Validators", "expression-validation-tests", "shared"))
+            .Concat( Directory.GetFiles(Path.Join("Features", "Validators", "expression-validation-tests", "backend")));
 
         foreach (var file in files)
         {
