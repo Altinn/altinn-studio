@@ -12,7 +12,6 @@ using Altinn.App.Core.Models;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
@@ -81,12 +80,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <summary>
         /// Gets the application metadata.
         /// </summary>
-        public async Task<AltinnApplicationMetadata> GetApplicationMetadata(CancellationToken cancellationToken = default)
+        public async Task<ApplicationMetadata> GetApplicationMetadata(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             string appMetadataRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
             string fileContent = await ReadTextByRelativePathAsync(appMetadataRelativeFilePath, cancellationToken);
-            AltinnApplicationMetadata applicationMetaData = JsonSerializer.Deserialize<AltinnApplicationMetadata>(fileContent, _jsonOptions);
+            ApplicationMetadata applicationMetaData = JsonSerializer.Deserialize<ApplicationMetadata>(fileContent, _jsonOptions);
 
             return applicationMetaData;
         }

@@ -45,6 +45,8 @@ namespace Altinn.Studio.Designer.Controllers
 
         // This value will be overridden to act as the task number for apps that use layout sets
         private const int PartyId = 51001;
+        private const string MINIMUM_NUGET_VERSION = "8.0.0.102";
+        private const int MINIMUM_PREVIEW_NUGET_VERSION = 15;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PreviewController"/> class.
@@ -144,11 +146,40 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult<AltinnApplicationMetadata>> ApplicationMetadata(string org, string app, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+            var context = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            AltinnApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
-            applicationMetadata.AltinnNugetVersion = _appDevelopmentService.GetAppLibVersion(editingContext).ToString();
-            return Ok(applicationMetadata);
+            ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
+
+            // Workaround to include the nuget version in the application metadata in response.
+            // Needed until we can upgrade our version of app-lib-core to get the latest version
+            // of the ApplicationMetadata class that includes the AltinnNugetVersion property.
+            string jsonApplicationMetadata = JsonSerializer.Serialize(applicationMetadata);
+            AltinnApplicationMetadata altinnApplicationMetadata = JsonSerializer.Deserialize<AltinnApplicationMetadata>(jsonApplicationMetadata);
+            string appLibVersion = _appDevelopmentService.GetAppLibVersion(context).ToString();
+            altinnApplicationMetadata.AltinnNugetVersion = GetMockedAltinnNugetBuildFromVersion(appLibVersion);
+
+            return Ok(altinnApplicationMetadata);
+        }
+
+        private string GetMockedAltinnNugetBuildFromVersion(string version)
+        {
+
+            string[] versionParts = version.Split('.');
+            if (versionParts.Length < 3 || Convert.ToInt32(versionParts[0]) < 8)
+            {
+                return string.Empty;
+            }
+
+            if (versionParts[2].Contains("-preview") && versionParts.Length == 4)
+            {
+                int previewVersion = Convert.ToInt32(versionParts[3]);
+                if (previewVersion < MINIMUM_PREVIEW_NUGET_VERSION)
+                {
+                    return string.Empty;
+                }
+            }
+
+            return MINIMUM_NUGET_VERSION;
         }
 
         /// <summary>
@@ -896,6 +927,13 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         [Route("instances/{partyId}/{instanceGuid}/pages/order")]
         public IActionResult UpdateAttachmentWithTag(string org, string app, [FromQuery] string currentPage, [FromQuery] string layoutSetId, [FromQuery] string dataTypeId)
+        {
+            return Ok();
+        }
+
+        [HttpGet]
+        [Route("api/v1/footer")]
+        public IActionResult Footer(string org, string app)
         {
             return Ok();
         }

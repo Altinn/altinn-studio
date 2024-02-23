@@ -11,7 +11,7 @@ public class AltinnApplicationMetadata : ApplicationMetadata
     //
     // Parameters:
     //   id:
-    public AltinnApplicationMetadata(ApplicationMetadata applicationMetadata) : base(applicationMetadata.Id)
+    public AltinnApplicationMetadata(string id) : base(id)
     {
 
     }
