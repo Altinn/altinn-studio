@@ -1,9 +1,14 @@
-import type { CombinationNode, ReferenceNode, UiSchemaNode } from '@altinn/schema-model';
-import { CombinationKind, FieldType, ObjectKind } from '@altinn/schema-model';
+import {
+  CombinationKind,
+  FieldType,
+  ObjectKind,
+  type CombinationNode,
+  type ReferenceNode,
+  type UiSchemaNode,
+} from '@altinn/schema-model';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import type { NodeIconProps } from './';
-import { NodeIcon } from './';
+import { NodeIcon, type NodeIconProps } from './';
 import { nodeMockBase } from '../../../test/mocks/uiSchemaMock';
 
 jest.mock('./NodeIcon.module.css', () => ({

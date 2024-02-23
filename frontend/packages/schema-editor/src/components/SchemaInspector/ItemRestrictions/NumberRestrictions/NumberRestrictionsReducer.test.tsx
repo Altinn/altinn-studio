@@ -1,12 +1,10 @@
 import { NumberRestrictionsError } from '@altinn/schema-editor/types';
-import { validateMinMax } from './NumberRestrictionsReducer';
-import type {
-  NumberRestrictionsReducerState,
-  NumberRestrictionsReducerAction,
-} from './NumberRestrictionsReducer';
 import {
   numberRestrictionsReducer,
   NumberRestrictionsReducerActionType,
+  validateMinMax,
+  type NumberRestrictionsReducerState,
+  type NumberRestrictionsReducerAction,
 } from './NumberRestrictionsReducer';
 import { IntRestrictionKey } from '@altinn/schema-model';
 

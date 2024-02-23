@@ -1,7 +1,6 @@
 import React from 'react';
 import { render as rtlRender } from '@testing-library/react';
-import type { ISyncModalProps } from './SyncModal';
-import { SyncModal } from './SyncModal';
+import { SyncModal, type ISyncModalProps } from './SyncModal';
 
 describe('syncModal', () => {
   it('should match snapshot when anchor element is null', () => {

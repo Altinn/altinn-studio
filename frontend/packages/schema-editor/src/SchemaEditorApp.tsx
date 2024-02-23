@@ -2,8 +2,10 @@ import React, { useMemo, useState } from 'react';
 import './App.css';
 
 import '@digdir/design-system-tokens/brand/altinn/tokens.css';
-import type { SchemaEditorAppContextProps } from './contexts/SchemaEditorAppContext';
-import { SchemaEditorAppContext } from './contexts/SchemaEditorAppContext';
+import {
+  SchemaEditorAppContext,
+  type SchemaEditorAppContextProps,
+} from './contexts/SchemaEditorAppContext';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { buildJsonSchema, buildUiSchema, SchemaModel } from '@altinn/schema-model';
 import { SchemaEditor } from './components/SchemaEditor';

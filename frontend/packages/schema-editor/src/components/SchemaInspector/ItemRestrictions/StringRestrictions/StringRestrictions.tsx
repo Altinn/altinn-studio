@@ -1,5 +1,4 @@
-import type { ChangeEvent } from 'react';
-import React, { useReducer, useState } from 'react';
+import React, { useReducer, useState, type ChangeEvent } from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import classes from './StringRestrictions.module.css';
@@ -15,10 +14,10 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import { Divider } from 'app-shared/primitives';
 import { makeDomFriendlyID } from '../../../../utils/ui-schema-utils';
-import type { StringRestrictionsReducerAction } from './StringRestrictionsReducer';
 import {
   stringRestrictionsReducer,
   StringRestrictionsReducerActionType,
+  type StringRestrictionsReducerAction,
 } from './StringRestrictionsReducer';
 import { useTranslation } from 'react-i18next';
 

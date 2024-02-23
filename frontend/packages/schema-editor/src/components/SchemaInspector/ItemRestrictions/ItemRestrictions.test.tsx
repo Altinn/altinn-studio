@@ -1,7 +1,6 @@
 import React from 'react';
 import { act, screen } from '@testing-library/react';
-import type { ItemRestrictionsProps } from './ItemRestrictions';
-import { ItemRestrictions } from './ItemRestrictions';
+import { ItemRestrictions, type ItemRestrictionsProps } from './ItemRestrictions';
 import { renderWithProviders } from '../../../../test/renderWithProviders';
 import userEvent from '@testing-library/user-event';
 import { fieldNode1Mock, uiSchemaNodesMock } from '../../../../test/mocks/uiSchemaMock';

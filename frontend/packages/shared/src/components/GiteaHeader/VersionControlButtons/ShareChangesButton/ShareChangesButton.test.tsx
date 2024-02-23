@@ -2,8 +2,7 @@ import React from 'react';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
-import type { IShareChangesButtonProps } from './ShareChangesButton';
-import { ShareChangesButton } from './ShareChangesButton';
+import { ShareChangesButton, type IShareChangesButtonProps } from './ShareChangesButton';
 
 const user = userEvent.setup();
 

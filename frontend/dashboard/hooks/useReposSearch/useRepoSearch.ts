@@ -3,8 +3,11 @@ import type { GridSortModel } from '@mui/x-data-grid';
 import { useSearchReposQuery } from '../queries';
 import type { SearchRepositoryResponse } from 'app-shared/types/api/SearchRepositoryResponse';
 import { useSearchParamsState } from '../useSearchParamsState';
-import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
-import { DATAGRID_PAGE_SIZE_OPTIONS, DATAGRID_DEFAULT_PAGE_SIZE } from '../../constants';
+import {
+  DATAGRID_PAGE_SIZE_OPTIONS,
+  DATAGRID_DEFAULT_PAGE_SIZE,
+  type DATAGRID_PAGE_SIZE_TYPE,
+} from '../../constants';
 
 type UseRepoSearchResult = {
   searchResults: SearchRepositoryResponse | undefined;

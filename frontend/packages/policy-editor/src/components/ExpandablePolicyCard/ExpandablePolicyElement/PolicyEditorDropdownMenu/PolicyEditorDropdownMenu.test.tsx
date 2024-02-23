@@ -1,8 +1,10 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { PolicyEditorDropdownMenuProps } from './PolicyEditorDropdownMenu';
-import { PolicyEditorDropdownMenu } from './PolicyEditorDropdownMenu';
+import {
+  PolicyEditorDropdownMenu,
+  type PolicyEditorDropdownMenuProps,
+} from './PolicyEditorDropdownMenu';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 

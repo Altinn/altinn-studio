@@ -1,6 +1,10 @@
 import { SavableSchemaModel } from './SavableSchemaModel';
-import type { NodePosition } from '@altinn/schema-model';
-import { extractNameFromPointer, ROOT_POINTER, SchemaModel } from '@altinn/schema-model';
+import {
+  extractNameFromPointer,
+  ROOT_POINTER,
+  SchemaModel,
+  type NodePosition,
+} from '@altinn/schema-model';
 import {
   uiSchemaNodesMock,
   definitionNodeMock,

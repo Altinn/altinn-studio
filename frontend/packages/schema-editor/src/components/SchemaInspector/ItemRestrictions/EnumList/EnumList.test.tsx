@@ -1,12 +1,10 @@
 import React from 'react';
 import { screen, act } from '@testing-library/react';
-import type { EnumListProps } from './EnumList';
-import { EnumList } from './EnumList';
+import { EnumList, type EnumListProps } from './EnumList';
 import { fieldNode1Mock, uiSchemaNodesMock } from '../../../../../test/mocks/uiSchemaMock';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../test/renderWithProviders';
-import type { FieldNode } from '@altinn/schema-model';
-import { SchemaModel } from '@altinn/schema-model';
+import { SchemaModel, type FieldNode } from '@altinn/schema-model';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 
 const mockEnums: string[] = ['a', 'b', 'c'];

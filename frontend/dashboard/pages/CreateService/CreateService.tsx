@@ -1,5 +1,4 @@
-import type { ChangeEvent } from 'react';
-import React, { useState } from 'react';
+import React, { useState, type ChangeEvent } from 'react';
 import { StudioButton, StudioSpinner } from '@studio/components';
 import { ServiceOwnerSelector } from '../../components/ServiceOwnerSelector';
 import { RepoNameInput } from '../../components/RepoNameInput';

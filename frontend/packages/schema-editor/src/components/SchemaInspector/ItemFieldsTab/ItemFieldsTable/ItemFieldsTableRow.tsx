@@ -1,14 +1,24 @@
-import type { ReactNode, KeyboardEvent, ChangeEventHandler } from 'react';
-import React, { useState } from 'react';
+import React, {
+  useState,
+  type ReactNode,
+  type KeyboardEvent,
+  type ChangeEventHandler,
+} from 'react';
 import classes from './ItemFieldsTable.module.css';
 import cn from 'classnames';
-import type { FieldType, UiSchemaNode } from '@altinn/schema-model';
-import { deleteNode, setType, isField } from '@altinn/schema-model';
+import {
+  deleteNode,
+  setType,
+  isField,
+  setRequired,
+  setPropertyName,
+  type FieldType,
+  type UiSchemaNode,
+} from '@altinn/schema-model';
 import { NameField } from '../../NameField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 import { NativeSelect, Switch } from '@digdir/design-system-react';
 import { AltinnConfirmDialog } from 'app-shared/components';
-import { setRequired, setPropertyName } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';
 import { StudioButton, StudioCenter } from '@studio/components';

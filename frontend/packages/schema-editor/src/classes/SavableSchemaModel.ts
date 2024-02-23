@@ -1,5 +1,10 @@
-import type { CombinationNode, FieldNode, NodePosition, UiSchemaNode } from '@altinn/schema-model';
-import { SchemaModel } from '@altinn/schema-model';
+import {
+  SchemaModel,
+  type CombinationNode,
+  type FieldNode,
+  type NodePosition,
+  type UiSchemaNode,
+} from '@altinn/schema-model';
 
 type SaveSchemaModel = (schema: SchemaModel) => void;
 

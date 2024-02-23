@@ -1,6 +1,7 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
 import type { RefAttributes, SVGProps } from 'react';
+// eslint-disable-next-line no-duplicate-imports
 import type React from 'react';
 import {
   AccordionIcon,

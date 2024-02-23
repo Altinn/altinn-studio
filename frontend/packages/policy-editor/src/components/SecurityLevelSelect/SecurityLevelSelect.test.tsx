@@ -1,8 +1,11 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { SecurityLevelSelectProps } from './SecurityLevelSelect';
-import { SecurityLevelSelect, authlevelOptions } from './SecurityLevelSelect';
+import {
+  SecurityLevelSelect,
+  authlevelOptions,
+  type SecurityLevelSelectProps,
+} from './SecurityLevelSelect';
 import type { RequiredAuthLevel } from '../../types';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { act } from 'react-dom/test-utils';

@@ -1,9 +1,14 @@
-import type { ChangeEvent } from 'react';
-import React from 'react';
-import type { UiSchemaNode } from '@altinn/schema-model';
-import { isField, isReference, pointerIsDefinition } from '@altinn/schema-model';
-import { FieldType } from '@altinn/schema-model';
-import { setRequired, setRestriction, setRestrictions } from '@altinn/schema-model';
+import React, { type ChangeEvent } from 'react';
+import {
+  setRequired,
+  setRestriction,
+  setRestrictions,
+  isField,
+  isReference,
+  pointerIsDefinition,
+  FieldType,
+  type UiSchemaNode,
+} from '@altinn/schema-model';
 import { ArrayRestrictions } from './ArrayRestrictions';
 import { NumberRestrictions } from './NumberRestrictions';
 import { ObjectRestrictions } from './ObjectRestrictions';
