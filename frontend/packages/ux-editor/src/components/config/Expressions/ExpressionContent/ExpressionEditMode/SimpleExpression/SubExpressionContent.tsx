@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, LegacySelect } from '@digdir/design-system-react';
+import { LegacySelect } from '@digdir/design-system-react';
 import {
   DataSource,
   expressionDataSourceTexts,
