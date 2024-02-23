@@ -18,7 +18,7 @@ namespace Altinn.App.logic.Validation
             return true;
         }
 
-        public Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data)
+        public Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data, string language)
         {
             List<ValidationIssue> validationIssues = new List<ValidationIssue>();
 
