@@ -1,15 +1,12 @@
 import React, { useState } from 'react';
 import classes from './AppDeploymentActions.module.css';
-import { StudioSpinner } from '@studio/components';
 import { DeployDropdown } from './DeployDropdown';
 import { useCreateDeploymentMutation } from '../../../hooks/mutations';
 import { Trans, useTranslation } from 'react-i18next';
-import { InformationSquareFillIcon } from '@navikt/aksel-icons';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import type { ImageOption } from './ImageOption';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
-import { BuildStatus } from 'app-shared/types/Build';
-import { AppDeploymentStatus } from './AppDeploymentStatus';
+import { BuildResult } from 'app-shared/types/Build';
 import { toast } from 'react-toastify';
 import { Alert, Link } from '@digdir/design-system-react';
 
@@ -58,7 +55,7 @@ export const AppDeploymentActions = ({
     );
 
   const latestPipelineDeployment = pipelineDeploymentList[0];
-  const deployInProgress = latestPipelineDeployment?.build?.status === BuildStatus.inProgress;
+  const deployInProgress = latestPipelineDeployment?.build?.result === BuildResult.none;
 
   if (!imageOptions.length) return null;
 

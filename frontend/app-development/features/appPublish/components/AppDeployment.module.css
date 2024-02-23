@@ -48,7 +48,6 @@
   }
 
   .appDeploymentHeader {
-    box-sizing: content-box;
     border-bottom: unset;
     border-right: 1px solid #c9c9c9;
   }
