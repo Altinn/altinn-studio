@@ -33,7 +33,7 @@ export const AppDeploymentActions = ({
   const { data, mutate, isPending } = useCreateDeploymentMutation(org, app, {
     hideDefaultError: true,
   });
-  console.log('data', data);
+
   const startDeploy = () =>
     mutate(
       {
@@ -58,7 +58,8 @@ export const AppDeploymentActions = ({
       },
     );
 
-  const deployInProgress = isPending || data?.build?.result === BuildResult.none || inProgress;
+  const deployIsPending = isPending || (data?.build?.result === BuildResult.none && !inProgress);
+  const deployInProgress = deployIsPending || inProgress;
 
   if (!imageOptions.length) return null;
 
@@ -71,6 +72,7 @@ export const AppDeploymentActions = ({
           appDeployedVersion={appDeployedVersion}
           envName={envName}
           disabled={!selectedImageTag || deployInProgress}
+          isPending={deployIsPending}
           inProgress={deployInProgress}
           selectedImageTag={selectedImageTag}
           imageOptions={imageOptions}

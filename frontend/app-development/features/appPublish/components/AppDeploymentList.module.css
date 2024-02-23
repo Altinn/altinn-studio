@@ -25,6 +25,19 @@
   padding: var(--fds-spacing-2);
 }
 
+.tableCell {
+  border: unset;
+}
+
+.tableIconCell {
+  text-align: center;
+  width: 1px;
+}
+
+.tableIconCell svg {
+  vertical-align: middle;
+}
+
 .buildResult {
   padding: var(--fds-spacing-2);
   display: flex;

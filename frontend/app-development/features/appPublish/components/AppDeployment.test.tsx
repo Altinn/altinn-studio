@@ -253,9 +253,7 @@ describe('AppDeploymentComponent', () => {
       },
     ];
     render({ deployHistory });
-    expect(
-      screen.getByText(`${textMock('app_publish.deployment_in_progress')}...`),
-    ).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_deploy.build_result.none'))).toBeInTheDocument();
   });
 
   it('should render error message if call to deployment endpoint fails', async () => {

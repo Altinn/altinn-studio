@@ -73,8 +73,8 @@ export const AppDeploymentList = ({
       default:
         return (
           <StudioSpinner
-            size='xsmall'
-            spinnerTitle={t('app_publish.deployment_in_progress')}
+            size='small'
+            spinnerTitle={t('app_deploy.build_result.none')}
             showSpinnerTitle={false}
             className={classes.loadingSpinner}
           />
@@ -116,7 +116,9 @@ export const AppDeploymentList = ({
             <Table size='small' stickyHeader className={classes.table}>
               <Table.Head>
                 <Table.Row>
-                  <Table.HeaderCell className={classes.tableHeaderCell} />
+                  <Table.HeaderCell
+                    className={classNames(classes.tableHeaderCell, classes.tableIconCell)}
+                  />
                   <Table.HeaderCell className={classes.tableHeaderCell}>
                     {t('app_deploy_table.status')}
                   </Table.HeaderCell>
@@ -133,10 +135,10 @@ export const AppDeploymentList = ({
                 </Table.Row>
               </Table.Head>
               <Table.Body>
-                {pipelineDeploymentList.map((deploy: PipelineDeployment, index) => {
+                {pipelineDeploymentList.map((deploy: PipelineDeployment) => {
                   return (
                     <Table.Row key={deploy.build.id} className={getClassName(deploy.build.result)}>
-                      <Table.Cell className={classes.tableCell}>
+                      <Table.Cell className={classNames(classes.tableCell, classes.tableIconCell)}>
                         {getIcon(deploy.build.result)}
                       </Table.Cell>
                       <Table.Cell className={classes.tableCell}>

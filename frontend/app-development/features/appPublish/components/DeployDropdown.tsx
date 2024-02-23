@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './DeployDropdown.module.css';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { StudioButton } from '@studio/components';
-import { Combobox } from '@digdir/design-system-react';
+import { Combobox, Spinner } from '@digdir/design-system-react';
 import type { ImageOption } from './ImageOption';
 import { useTranslation } from 'react-i18next';
 
@@ -14,6 +14,7 @@ export interface DeployDropdownProps {
   setSelectedImageTag: (tag) => void;
   selectedImageTag: string;
   startDeploy: any;
+  isPending: boolean;
   inProgress: boolean;
 }
 
@@ -25,6 +26,7 @@ export const DeployDropdown = ({
   setSelectedImageTag,
   disabled,
   startDeploy,
+  isPending,
   inProgress,
 }: DeployDropdownProps) => {
   const [isConfirmDeployDialogOpen, setIsConfirmDeployDialogOpen] = useState<boolean>();
@@ -69,6 +71,13 @@ export const DeployDropdown = ({
               id={`deploy-button-${envName.toLowerCase()}`}
               size='small'
             >
+              {isPending && (
+                <Spinner
+                  variant='interaction'
+                  title={t('app_deploy.build_result.none')}
+                  size='xsmall'
+                />
+              )}
               {t('app_deploy_messages.btn_deploy_new_version')}
             </StudioButton>
           }
