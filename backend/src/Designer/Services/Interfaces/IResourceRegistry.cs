@@ -46,5 +46,25 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Get Policy from Altinn 2 Service
         /// </summary>
         Task<XacmlPolicy> GetXacmlPolicy(string serviceCode, int serviceEditionCode, string identifier, string environment);
+
+        Task<AccessList> CreateAccessList(string org, string env, AccessList AccessList);
+
+        Task<AccessList> GetAccessList(string org, string identifier, string env);
+
+        Task<PagedAccessListResponse> GetAccessLists(string org, string env, int page);
+
+        Task<PagedAccessListResponse> GetResourceAccessLists(string org, string resourceId, string env, int page);
+
+        Task<bool> DeleteAccessList(string org, string identifier, string env);
+
+        Task<AccessList> UpdateAccessList(string org, string identifier, string env, AccessList accessList);
+
+        Task<bool> AddAccessListMember(string org, string identifier, string memberOrgnr, string env);
+
+        Task<bool> RemoveAccessListMember(string org, string identifier, string memberOrgnr, string env);
+
+        Task<bool> AddResourceAccessList(string org, string resourceId, string listId, string env);
+
+        Task<bool> RemoveResourceAccessList(string org, string resourceId, string listId, string env);
     }
 }

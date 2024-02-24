@@ -231,7 +231,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
         services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
     }
-    services.AddSingleton<IResourceAccessListService, ResourceAccessListService>();
     services.AddLocalization(options => options.ResourcesPath = "Resources");
 
     services.ConfigureLocalization();

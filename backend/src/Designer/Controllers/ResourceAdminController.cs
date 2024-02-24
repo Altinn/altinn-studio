@@ -36,10 +36,9 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IAltinn2MetadataClient _altinn2MetadataClient;
         private readonly IOrgService _orgService;
         private readonly IResourceRegistry _resourceRegistry;
-        private readonly IResourceAccessListService _resourceAccessListService;
         private readonly ResourceRegistryIntegrationSettings _resourceRegistrySettings;
 
-        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IAltinn2MetadataClient altinn2MetadataClient, IOrgService orgService, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IResourceRegistry resourceRegistry, IResourceAccessListService resourceAccessListService)
+        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IAltinn2MetadataClient altinn2MetadataClient, IOrgService orgService, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IResourceRegistry resourceRegistry)
         {
             _giteaApi = gitea;
             _repository = repository;
@@ -50,51 +49,50 @@ namespace Altinn.Studio.Designer.Controllers
             _orgService = orgService;
             _resourceRegistrySettings = resourceRegistryEnvironment.Value;
             _resourceRegistry = resourceRegistry;
-            _resourceAccessListService = resourceAccessListService;
         }
 
         [HttpPost]
         [Route("designer/api/{org}/resources/accesslist/")]
         public async Task<ActionResult<AccessList>> CreateAccessList(string org, string env, [FromBody] AccessList accessList)
         {
-            return await _resourceAccessListService.CreateAccessList(org, env, accessList);
+            return await _resourceRegistry.CreateAccessList(org, env, accessList);
         }
 
         [HttpGet]
         [Route("designer/api/{org}/resources/accesslist/")]
         public async Task<ActionResult<PagedAccessListResponse>> GetAccessLists(string org, string env, int page)
         {
-            return await _resourceAccessListService.GetAccessLists(org, env, page);
+            return await _resourceRegistry.GetAccessLists(org, env, page);
         }
 
         [HttpGet]
         [Route("designer/api/{org}/resources/accesslist/{identifier}")]
         public async Task<ActionResult<AccessList>> GetAccessList(string org, string identifier, string env)
         {
-            return await _resourceAccessListService.GetAccessList(org, identifier, env);
+            return await _resourceRegistry.GetAccessList(org, identifier, env);
         }
 
         [HttpDelete]
         [Route("designer/api/{org}/resources/accesslist/{identifier}")]
         public async Task<ActionResult> DeleteAccessList(string org, string identifier, string env)
         {
-            bool isSuccess = await _resourceAccessListService.DeleteAccessList(org, identifier, env);
+            bool isSuccess = await _resourceRegistry.DeleteAccessList(org, identifier, env);
             return isSuccess ? Ok() : BadRequest();
 
         }
 
-        [HttpPatch]
+        [HttpPut]
         [Route("designer/api/{org}/resources/accesslist/{identifier}")]
-        public async Task<ActionResult<AccessList>> UpdateAccessList(string org, string identifier, string env, [FromBody] IEnumerable<AccessListPatch> accessListPatch)
+        public async Task<ActionResult<AccessList>> UpdateAccessList(string org, string identifier, string env, [FromBody] AccessList accessList)
         {
-            return await _resourceAccessListService.UpdateAccessList(org, identifier, env, accessListPatch);
+            return await _resourceRegistry.UpdateAccessList(org, identifier, env, accessList);
         }
 
         [HttpPost]
         [Route("designer/api/{org}/resources/accesslist/{identifier}/members/{memberOrgNr}")]
         public async Task<ActionResult> AddAccessListMember(string org, string identifier, string memberOrgNr, string env)
         {
-            bool isSuccess = await _resourceAccessListService.AddAccessListMember(org, identifier, memberOrgNr, env);
+            bool isSuccess = await _resourceRegistry.AddAccessListMember(org, identifier, memberOrgNr, env);
             return isSuccess ? Ok() : BadRequest();
         }
 
@@ -102,7 +100,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/accesslist/{identifier}/members/{memberOrgNr}")]
         public async Task<ActionResult> RemoveAccessListMember(string org, string identifier, string memberOrgNr, string env)
         {
-            bool isSuccess = await _resourceAccessListService.RemoveAccessListMember(org, identifier, memberOrgNr, env);
+            bool isSuccess = await _resourceRegistry.RemoveAccessListMember(org, identifier, memberOrgNr, env);
             return isSuccess ? Ok() : BadRequest();
         }
 
@@ -110,14 +108,14 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/{id}/accesslists/")]
         public async Task<ActionResult<PagedAccessListResponse>> GetResourceAccessLists(string org, string id, string env, int page)
         {
-            return await _resourceAccessListService.GetResourceAccessLists(org, id, env, page);
+            return await _resourceRegistry.GetResourceAccessLists(org, id, env, page);
         }
 
         [HttpPost]
         [Route("designer/api/{org}/resources/{id}/accesslists/{listId}")]
         public async Task<ActionResult<ResourceAccessList>> AddResourceAccessList(string org, string id, string listId, string env)
         {
-            bool isSuccess = await _resourceAccessListService.AddResourceAccessList(org, id, listId, env);
+            bool isSuccess = await _resourceRegistry.AddResourceAccessList(org, id, listId, env);
             return isSuccess ? Ok() : BadRequest();
         }
 
@@ -125,7 +123,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/{id}/accesslists/{listId}")]
         public async Task<ActionResult> RemoveResourceAccessList(string org, string id, string listId, string env)
         {
-            bool isSuccess = await _resourceAccessListService.RemoveResourceAccessList(org, id, listId, env);
+            bool isSuccess = await _resourceRegistry.RemoveResourceAccessList(org, id, listId, env);
             return isSuccess ? Ok() : BadRequest();
         }
 

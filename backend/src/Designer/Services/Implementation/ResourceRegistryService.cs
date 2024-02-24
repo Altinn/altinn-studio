@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using Altinn.ApiClients.Maskinporten.Interfaces;
@@ -15,12 +18,9 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
-using Azure;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -285,6 +285,281 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             return policy;
         }
+
+        // RRR
+        public async Task<AccessList> GetAccessList(
+            string org,
+            string identifier,
+            string env
+        )
+        {
+            string listUrl = $"/{org}/{identifier}?include=members";
+            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Get, listUrl);
+
+            HttpResponseMessage getAccessListsResponse = await _httpClient.SendAsync(request);
+            getAccessListsResponse.EnsureSuccessStatusCode();
+            string responseContent = await getAccessListsResponse.Content.ReadAsStringAsync();
+            AccessList accessList = JsonSerializer.Deserialize<AccessList>(responseContent, _serializerOptions);
+
+            // TODO: test data list members
+            List<ListMember> _listMembers = new List<ListMember>() {
+                new()
+                {
+                    Id = "urn:altinn:Access:72439f71-2280-499c-bbf4-d00140053e08",
+                    Identifiers = new() { OrganizationNumber = "991825827" }
+                },
+                new()
+                {
+                    Id = "urn:altinn:Access:db8942da-6367-487c-af6b-44af672081d9",
+                    Identifiers = new() { OrganizationNumber = "997532422" }
+                },
+                new()
+                {
+                    Id = "urn:altinn:Access:81ba70dc-d6be-4e21-af41-a878283ac2a7",
+                    Identifiers = new() { OrganizationNumber = "891611862" }
+                },
+                new()
+                {
+                    Id = "urn:altinn:Access:fb6984b1-182c-4764-b9ed-d3e6ea63a40a",
+                    Identifiers = new() { OrganizationNumber = "111611111" }
+                }
+            };
+            IEnumerable<string> partyIds = _listMembers.Select(x => x.Identifiers.OrganizationNumber);
+
+            // lookup party names
+            if (partyIds.Any())
+            {
+                string brregUrl = "https://data.brreg.no/enhetsregisteret/api/{0}?organisasjonsnummer={1}&size=10000";
+                string partyIdsString = string.Join(",", partyIds);
+                BrregOrganizationResultSet[] result = await Task.WhenAll(
+                    GetBrregParties(string.Format(brregUrl, "enheter", partyIdsString)),
+                    GetBrregParties(string.Format(brregUrl, "underenheter", partyIdsString))
+                );
+
+                // TODO: handle error from brreg
+                accessList.Members = partyIds.Select(orgnr =>
+                {
+                    string enhetOrgName = result[0]
+                        .Embedded
+                        .Enheter
+                        ?.Find(enhet => enhet.Organisasjonsnummer.Equals(orgnr))
+                        ?.Navn;
+                    string underenhetOrgName = result[1]
+                        .Embedded
+                        .Underenheter
+                        ?.Find(enhet => enhet.Organisasjonsnummer.Equals(orgnr))
+                        ?.Navn;
+                    AccessListMember member = new()
+                    {
+                        OrgNr = orgnr,
+                        OrgName = enhetOrgName ?? underenhetOrgName,
+                        IsSubParty = enhetOrgName == null
+                    };
+                    return member;
+                });
+            }
+            return accessList;
+        }
+
+
+        public async Task<PagedAccessListResponse> GetAccessLists(string org,
+            string env, int page
+        )
+        {
+            string listUrl = $"/{org}";
+            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Get, listUrl);
+
+            HttpResponseMessage getAccessListsResponse = await _httpClient.SendAsync(request);
+            getAccessListsResponse.EnsureSuccessStatusCode();
+            string responseContent = await getAccessListsResponse.Content.ReadAsStringAsync();
+            AccessListInfoDtoPaginated res = JsonSerializer.Deserialize<AccessListInfoDtoPaginated>(responseContent, _serializerOptions);
+            return new PagedAccessListResponse()
+            {
+                Data = res.Data,
+                NextPage = GetNextPage(res)
+            };
+
+        }
+
+        public async Task<PagedAccessListResponse> GetResourceAccessLists(string org,
+            string resourceId,
+            string env,
+            int page
+        )
+        {
+            string listUrl = $"/{org}?include=resources&resource={resourceId}";
+            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Get, listUrl);
+
+            HttpResponseMessage getAccessListsResponse = await _httpClient.SendAsync(request);
+            getAccessListsResponse.EnsureSuccessStatusCode();
+            string responseContent = await getAccessListsResponse.Content.ReadAsStringAsync();
+            AccessListInfoDtoPaginated res = JsonSerializer.Deserialize<AccessListInfoDtoPaginated>(responseContent, _serializerOptions);
+            return new PagedAccessListResponse()
+            {
+                Data = res.Data,
+                NextPage = GetNextPage(res)
+            };
+        }
+
+        // RRR write
+        public async Task<AccessList> CreateAccessList(string org, string env, AccessList accessList)
+        {
+            CreateAccessListModel payload = new CreateAccessListModel()
+            {
+                Name = accessList.Name,
+                Description = accessList.Description
+            };
+            string serviceResourceString = JsonSerializer.Serialize(payload, _serializerOptions);
+            string createUrl = $"/{org}/{accessList.Identifier}";
+            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Put, createUrl, serviceResourceString);
+            
+            HttpResponseMessage response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            string responseContent = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<AccessList>(responseContent, _serializerOptions);
+        }
+
+        public async Task<bool> DeleteAccessList(string org, string identifier, string env)
+        {
+            string listUrl = $"/{org}/{identifier}";
+            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Delete, listUrl);
+            
+            HttpResponseMessage deleteAccessListResponse = await _httpClient.SendAsync(request);
+            return deleteAccessListResponse.IsSuccessStatusCode;
+        }
+
+        public async Task<AccessList> UpdateAccessList(
+            string org,
+            string identifier,
+            string env,
+            AccessList accessList
+        )
+        {
+            string listUrl = $"/{org}/{identifier}";
+            string serviceResourceString = JsonSerializer.Serialize(accessList, _serializerOptions);
+            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Put, listUrl, serviceResourceString);
+
+            HttpResponseMessage response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            string responseContent = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<AccessList>(responseContent, _serializerOptions);
+        }
+
+        public async Task<bool> AddAccessListMember(string org,
+            string identifier,
+            string memberOrgnr,
+            string env
+        )
+        {
+            // TODO
+            return true;
+        }
+
+        public async Task<bool> RemoveAccessListMember(
+            string org,
+            string identifier,
+            string memberOrgnr,
+            string env
+        )
+        {
+            // TODO
+            return true;
+        }
+
+        public async Task<bool> AddResourceAccessList(
+            string org,
+            string resourceId,
+            string listId,
+            string env
+        )
+        {
+            UpsertAccessListResourceConnectionDto data = new UpsertAccessListResourceConnectionDto();
+            data.Actions = new List<string>(); // actions are not used yet
+            string actionsContent = JsonSerializer.Serialize(data, _serializerOptions);
+            string addUrl = $"/{org}/{listId}/resource-connections/{resourceId}";
+            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Put, addUrl, actionsContent);
+
+            HttpResponseMessage response = await _httpClient.SendAsync(request);
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> RemoveResourceAccessList(
+            string org,
+            string resourceId,
+            string listId,
+            string env
+        )
+        {
+            string removeUrl = $"/{org}/{listId}/resource-connections/{resourceId}";
+            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Delete, removeUrl);
+
+            HttpResponseMessage removeResourceAccessListResponse = await _httpClient.SendAsync(request);
+            return removeResourceAccessListResponse.IsSuccessStatusCode;
+        }
+
+        private async Task<BrregOrganizationResultSet> GetBrregParties(string url)
+        {
+            HttpResponseMessage enheterResponse = await _httpClient.GetAsync(url);
+            string responseContent = await enheterResponse.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<BrregOrganizationResultSet>(
+                responseContent,
+                _serializerOptions
+            );
+        }
+
+        private int? GetNextPage(AccessListInfoDtoPaginated dto)
+        {
+            if (dto == null || dto.Links.Next == null)
+            {
+                return null;
+            }
+
+            string pattern = @"page=(\d+)";
+            Regex regex = new Regex(pattern);
+            Match matches = regex.Match(dto.Links.Next);
+            return int.Parse(matches.Groups[1].Value);
+        }
+
+        private async Task<HttpRequestMessage> CreateAccessListRequest(string env, HttpMethod verb, string relativeUrl, string serializedContent = null)
+        {
+            _maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(env);
+            TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
+            string baseUrl;
+
+            if (!env.ToLower().Equals("dev"))
+            {
+                tokenResponse = await _maskinPortenService.ExchangeToAltinnToken(tokenResponse, env);
+                baseUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryAccessListUrl}";
+            }
+            else
+            {
+                baseUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryAccessListUrl}";
+            }
+
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}{relativeUrl}");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
+            request.Method = verb;
+            if (serializedContent != null)
+            {
+                request.Content = new StringContent(serializedContent, Encoding.UTF8, "application/json"); ;
+            }
+
+            return request;
+        }
+
+        private class ListMemberIdentifier
+        {
+            public string OrganizationNumber { get; set; }
+        }
+
+        private class ListMember
+        {
+            public string Id { get; set; }
+            public string Since { get; set; }
+            public ListMemberIdentifier Identifiers { get; set; }
+        }
+        // RRR end
+
 
         private async Task<TokenResponse> GetBearerTokenFromMaskinporten()
         {
