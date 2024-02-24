@@ -30,7 +30,6 @@ export const rootStateMock: RootState = {
     createAppDeploymentErrors: [],
     getAppDeploymentsError: null,
   },
-  appReleases: null,
   userState: {
     session: {
       remainingMinutes: 25,
