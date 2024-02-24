@@ -27,14 +27,14 @@ describe('PageLayout', () => {
   it('initially displays the spinner when loading data', () => {
     render();
 
-    expect(screen.getByTitle(textMock('general.loading'))).toBeInTheDocument();
+    expect(screen.getByTitle(textMock('repo_status.loading'))).toBeInTheDocument();
   });
 
   it('renders "StudioNotFoundPage" when repoStatus has error', async () => {
     render({
       getRepoStatus: () => Promise.reject({ message: 'Not found', response: { status: 404 } }),
     });
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('repo_status.loading')));
 
     expect(
       screen.getByRole('heading', { name: textMock('not_found_page.heading'), level: 1 }),
@@ -45,7 +45,7 @@ describe('PageLayout', () => {
     render({
       getRepoStatus: () => Promise.resolve({ ...repoStatus, hasMergeConflict: true }),
     });
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('repo_status.loading')));
 
     expect(
       screen.getByRole('heading', { name: textMock('merge_conflict.headline'), level: 1 }),
@@ -77,7 +77,7 @@ describe('PageLayout', () => {
 
 const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesContextProps> = {}) => {
   render(queries);
-  await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+  await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('repo_status.loading')));
 };
 
 const render = async (queries: Partial<ServicesContextProps> = {}) => {

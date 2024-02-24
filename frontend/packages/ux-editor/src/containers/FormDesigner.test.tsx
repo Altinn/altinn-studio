@@ -38,14 +38,14 @@ const waitForData = async () => {
 describe('FormDesigner', () => {
   it('should render the spinner', () => {
     render();
-    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('ux_editor.loading_form_layout'))).toBeInTheDocument();
   });
 
   it('should render the component', async () => {
     await waitForData();
     render();
     await waitFor(() =>
-      expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument(),
+      expect(screen.queryByText(textMock('ux_editor.loading_form_layout'))).not.toBeInTheDocument(),
     );
   });
 });

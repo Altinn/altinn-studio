@@ -9,3 +9,4 @@ export { useText } from './useText';
 export { useTextResourcesSelector } from './useTextResourcesSelector';
 export type { ComponentValidationResult, ErrorCode } from './useValidateComponent';
 export { useValidateComponent } from './useValidateComponent';
+export { useComponentPropertyLabel } from './useComponentPropertyLabel';

@@ -1,15 +1,15 @@
 ﻿import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { Calculations } from './Calculations';
-import { FormContext } from '../../containers/FormContext';
-import { formContextProviderMock } from '../../testing/formContextMocks';
+import { FormItemContext } from '../../containers/FormItemContext';
+import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import type { FormComponent } from '../../types/FormComponent';
 
 describe('Calculations', () => {
   it('should render unknown component when components is unknown for Studio', () => {
     const formType = 'randomUnknownComponent' as unknown as FormComponent;
-    studioRender({ form: { ...formContextProviderMock.form, type: formType } });
+    studioRender({ formItem: { ...formItemContextProviderMock.formItem, type: formType } });
     expect(
       screen.getByText(
         textMock('ux_editor.edit_component.unknown_component', {
@@ -20,18 +20,18 @@ describe('Calculations', () => {
   });
 });
 
-const getCalculationsWithMockedFormContext = (props: Partial<FormContext> = {}) => {
+const getCalculationsWithMockedFormItemContext = (props: Partial<FormItemContext> = {}) => {
   return (
-    <FormContext.Provider
+    <FormItemContext.Provider
       value={{
-        ...formContextProviderMock,
+        ...formItemContextProviderMock,
         ...props,
       }}
     >
       <Calculations />
-    </FormContext.Provider>
+    </FormItemContext.Provider>
   );
 };
-const studioRender = (props: Partial<FormContext> = {}) => {
-  return render(getCalculationsWithMockedFormContext(props));
+const studioRender = (props: Partial<FormItemContext> = {}) => {
+  return render(getCalculationsWithMockedFormItemContext(props));
 };
