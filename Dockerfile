@@ -35,8 +35,8 @@ COPY ./frontend/testing/mockend/package.json ./frontend/testing/mockend/
 
 COPY ./frontend/testing/playwright/package.json ./frontend/testing/playwright/
 
-COPY ./.yarn ./.yarn
 COPY ./.yarnrc.yml ./.yarnrc.yml
+COPY ./.yarn/releases ./.yarn/releases
 
 RUN yarn --immutable
 
