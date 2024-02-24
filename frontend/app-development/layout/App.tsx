@@ -42,6 +42,8 @@ i18next.use(initReactI18next).init({
   },
 });
 
+console.log('test');
+
 export function App() {
   const { pathname } = useLocation();
   const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
