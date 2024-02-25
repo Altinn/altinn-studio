@@ -131,7 +131,7 @@ export const AppDeploymentList = ({
                   <Table.HeaderCell className={classes.tableHeaderCell}>
                     {t('app_deploy_table.deployed_by_col')}
                   </Table.HeaderCell>
-                  <Table.HeaderCell className={classes.tableHeaderCell} />
+                  {/* <Table.HeaderCell className={classes.tableHeaderCell} /> */}
                 </Table.Row>
               </Table.Head>
               <Table.Body>
@@ -146,10 +146,10 @@ export const AppDeploymentList = ({
                       </Table.Cell>
                       <Table.Cell className={classes.tableCell}>{deploy.tagName}</Table.Cell>
                       <Table.Cell className={classes.tableCell}>
-                        {formatDateTime(deploy.build.finished)}
+                        {deploy.build.finished && formatDateTime(deploy.build.finished)}
                       </Table.Cell>
                       <Table.Cell className={classes.tableCell}>{deploy.createdBy}</Table.Cell>
-                      <Table.Cell className={classes.tableCell}>
+                      {/* <Table.Cell className={classes.tableCell}>
                         <Trans i18nKey={'app_deploy.build_log'}>
                           <a
                             href={getAzureDevopsBuildResultUrl(deploy.build.id)}
@@ -157,7 +157,7 @@ export const AppDeploymentList = ({
                             rel='noopener noreferrer'
                           />
                         </Trans>
-                      </Table.Cell>
+                      </Table.Cell> */}
                     </Table.Row>
                   );
                 })}
