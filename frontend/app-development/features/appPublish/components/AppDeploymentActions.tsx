@@ -5,12 +5,12 @@ import { useCreateDeploymentMutation } from '../../../hooks/mutations';
 import { Trans, useTranslation } from 'react-i18next';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import type { ImageOption } from './ImageOption';
-import { BuildResult } from 'app-shared/types/Build';
 import { toast } from 'react-toastify';
 import { Alert, Link } from '@digdir/design-system-react';
 
 export interface AppDeploymentActionsProps {
   appDeployedVersion: string;
+  lastBuildId: string;
   inProgress: boolean;
   deployPermission: boolean;
   envName: string;
@@ -20,6 +20,7 @@ export interface AppDeploymentActionsProps {
 
 export const AppDeploymentActions = ({
   appDeployedVersion,
+  lastBuildId,
   inProgress,
   deployPermission,
   envName,
@@ -58,7 +59,7 @@ export const AppDeploymentActions = ({
       },
     );
 
-  const deployIsPending = isPending || (data?.build?.result === BuildResult.none && !inProgress);
+  const deployIsPending = isPending || data?.build?.id !== lastBuildId;
   const deployInProgress = deployIsPending || inProgress;
 
   if (!imageOptions.length) return null;

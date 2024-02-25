@@ -72,6 +72,7 @@ export const AppDeployment = ({
       <div className={classes.bodyContainer}>
         <AppDeploymentActions
           appDeployedVersion={kubernetesDeployment?.version}
+          lastBuildId={pipelineDeploymentList[0]?.build?.id}
           inProgress={pipelineDeploymentList.some((item) => item.build.result === BuildResult.none)}
           deployPermission={deployPermission}
           envName={envName}
