@@ -1,9 +1,5 @@
 .appDeployment {
-  border-top: 2px solid #000000;
-}
-
-.appDeployment:first-of-type {
-  border: none;
+  border-bottom: 2px solid #000000;
 }
 
 .bodyContainer {
