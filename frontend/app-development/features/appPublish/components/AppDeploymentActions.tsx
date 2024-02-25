@@ -59,7 +59,7 @@ export const AppDeploymentActions = ({
       },
     );
 
-  const deployIsPending = isPending || data?.build?.id !== lastBuildId;
+  const deployIsPending = isPending || (!!data?.build?.id && data?.build?.id !== lastBuildId);
   const deployInProgress = deployIsPending || inProgress;
 
   if (!imageOptions.length) return null;
