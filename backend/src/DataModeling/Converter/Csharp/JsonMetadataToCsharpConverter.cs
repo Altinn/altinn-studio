@@ -34,7 +34,6 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
             StringBuilder writer = new StringBuilder()
                 .AppendLine("using System;")
-                .AppendLine("using System.Runtime;")
                 .AppendLine("using System.Collections.Generic;")
                 .AppendLine("using System.ComponentModel.DataAnnotations;")
                 .AppendLine("using System.Linq;")
