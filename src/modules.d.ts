@@ -5,3 +5,9 @@ declare module '*.module.css' {
   // eslint-disable-next-line import/no-default-export
   export default styles;
 }
+
+declare module 'ajv-formats-draft2019' {
+  import type Ajv from 'ajv/dist/core';
+  function addAdditionalFormats(ajv: Ajv): void;
+  export = addAdditionalFormats;
+}

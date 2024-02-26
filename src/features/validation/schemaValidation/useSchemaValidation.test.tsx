@@ -1,102 +1,20 @@
-import Ajv from 'ajv';
-import Ajv2020 from 'ajv/dist/2020';
-import { v4 as uuid } from 'uuid';
+import { renderHook } from '@testing-library/react';
+import type { JSONSchema7 } from 'json-schema';
 
-import { createValidator, getSchemaValidationErrors } from 'src/features/validation/frontend/schemaValidation';
-import type { IApplicationMetadata } from 'src/features/applicationMetadata';
-import type { ILayoutSets } from 'src/layout/common.generated';
-import type { IDataType, IInstance, IProcess, ITask } from 'src/types/shared';
+import * as DataModelSchemaProvider from 'src/features/datamodel/DataModelSchemaProvider';
+import * as UseBindingSchema from 'src/features/datamodel/useBindingSchema';
+import { FD } from 'src/features/formData/FormDataWrite';
+import { useSchemaValidation } from 'src/features/validation/schemaValidation/useSchemaValidation';
+import type { IDataType } from 'src/types/shared';
 
-function runGetSchemaValidationErrors(formData: object, schema: object) {
-  const layoutName = 'layout';
-  const taskId = 'task';
-  const dataTypeId = uuid(); // Validators object is stored as a singleton, so we need a unique id for each dataType
-
-  const attachments = {};
-  const application: IApplicationMetadata = {
-    dataTypes: [
-      {
-        taskId,
-        id: dataTypeId,
-      } as IDataType,
-    ],
-  } as IApplicationMetadata;
-  const instance: IInstance = {} as IInstance;
-  const process = { currentTask: { elementId: taskId } as ITask } as IProcess;
-  const layoutSets: ILayoutSets = {
-    sets: [
-      {
-        id: layoutName,
-        dataType: dataTypeId,
-        tasks: [taskId],
-      },
-    ],
-  };
-
-  return getSchemaValidationErrors({
-    attachments,
-    currentLanguage: 'nb',
-    formData,
-    application,
-    instance,
-    process,
-    layoutSets,
-    schema,
-    taskId,
-    customValidation: null,
-  });
-}
-
-describe('schemaValidation', () => {
-  describe('createValidator', () => {
-    const schema = {
-      id: 'schema.json',
-      type: 'object',
-      properties: {
-        test: {
-          $ref: '#/$defs/Test',
-        },
-      },
-      $defs: {
-        Test: {
-          type: 'string',
-        },
-      },
-    };
-    const dataType: IDataType = {
-      id: 'test',
-      maxCount: 1,
-      minCount: 1,
-      appLogic: {
-        classRef: 'Altinn.App.Models.SomeClassName',
-      },
-      allowedContentTypes: ['application/xml'],
-    };
-
-    it('when receiving a 2020-12 draft schema it should create ajv2020 validator instance', () => {
-      const result = createValidator(
-        {
-          $schema: 'https://json-schema.org/draft/2020-12/schema',
-          ...schema,
-        },
-        dataType,
-      );
-      expect(result.validator).toBeInstanceOf(Ajv2020);
-    });
-
-    it('when receiving anything but 2020-12 draft schema it should create ajv validator instance', () => {
-      const result = createValidator(
-        {
-          $schema: 'http://json-schema.org/schema#',
-          ...schema,
-        },
-        dataType,
-      );
-      expect(result.validator).toBeInstanceOf(Ajv);
-    });
-  });
-
+describe('useSchemaValidation', () => {
   describe('format validation', () => {
+    beforeEach(() => {
+      jest.spyOn(FD, 'useDebounced').mockRestore();
+      jest.spyOn(DataModelSchemaProvider, 'useCurrentDataModelSchema').mockRestore();
+      jest.spyOn(UseBindingSchema, 'useCurrentDataModelType').mockRestore();
+    });
+
     const formatTests = [
       {
         format: 'date',
@@ -315,11 +233,12 @@ describe('schemaValidation', () => {
     formatTests.forEach(({ format, tests }) => {
       describe(format, () => {
         tests.forEach(({ value, expected }) => {
-          it(`${value} should ${expected ? 'be valid' : 'not be valid'}`, () => {
+          it(`${value} should ${expected ? 'be valid' : 'not be valid'}`, async () => {
             const formData = {
               field: value,
             };
-            const schema = {
+
+            const schema: JSONSchema7 = {
               $schema: 'https://json-schema.org/draft/2020-12/schema',
               type: 'object',
               properties: {
@@ -329,8 +248,14 @@ describe('schemaValidation', () => {
                 },
               },
             };
-            const result = runGetSchemaValidationErrors(formData, schema);
-            expect(result).toHaveLength(expected ? 0 : 1);
+
+            jest.spyOn(FD, 'useDebounced').mockReturnValue(formData);
+            jest.spyOn(DataModelSchemaProvider, 'useCurrentDataModelSchema').mockReturnValue(schema);
+            jest.spyOn(UseBindingSchema, 'useCurrentDataModelType').mockReturnValue({} as IDataType);
+
+            const { result } = renderHook(() => useSchemaValidation());
+
+            expect(Object.keys(result.current)).toHaveLength(expected ? 0 : 1);
           });
         });
       });

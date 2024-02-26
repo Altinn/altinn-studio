@@ -1,19 +1,13 @@
-import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { asExpression } from 'src/features/expressions/validation';
-import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
-import { getBaseDataModelBindings } from 'src/utils/databindings';
-import type { ExprConfig, Expression } from 'src/features/expressions/types';
+import type { ExprConfig } from 'src/features/expressions/types';
 import type {
-  FieldValidation,
   IExpressionValidation,
   IExpressionValidationConfig,
   IExpressionValidationRefResolved,
   IExpressionValidationRefUnresolved,
   IExpressionValidations,
-  ValidationDataSources,
 } from 'src/features/validation';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 const EXPR_CONFIG: ExprConfig<ExprVal.Boolean> = {
   defaultValue: false,
@@ -153,44 +147,4 @@ export function resolveExpressionValidationConfig(config: IExpressionValidationC
     }
   }
   return resolvedExpressionValidationDefinitions;
-}
-
-export function runExpressionValidationsOnNode(
-  node: LayoutNode,
-  { customValidation }: ValidationDataSources,
-): FieldValidation[] {
-  const resolvedDataModelBindings = node.item.dataModelBindings;
-  const baseDataModelBindings = getBaseDataModelBindings(resolvedDataModelBindings);
-
-  if (!customValidation || !resolvedDataModelBindings || !baseDataModelBindings) {
-    return [];
-  }
-
-  const dataSources = node.getDataSources();
-  const validations: FieldValidation[] = [];
-
-  for (const [bindingKey, field] of Object.entries(baseDataModelBindings)) {
-    const validationDefs = customValidation[field];
-    if (!validationDefs) {
-      continue;
-    }
-    for (const validationDef of validationDefs) {
-      const resolvedField = resolvedDataModelBindings[bindingKey];
-
-      const isInvalid = evalExpr(validationDef.condition as Expression, node, dataSources, {
-        config: EXPR_CONFIG,
-        positionalArguments: [resolvedField],
-      });
-      if (isInvalid) {
-        validations.push({
-          field: resolvedField,
-          source: FrontendValidationSource.Expression,
-          message: { key: validationDef.message },
-          severity: validationDef.severity,
-          category: validationDef.showImmediately ? 0 : ValidationMask.Expression,
-        });
-      }
-    }
-  }
-  return validations;
 }

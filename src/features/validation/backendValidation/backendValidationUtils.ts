@@ -1,5 +1,5 @@
 import { BackendValidationSeverity, BuiltInValidationIssueSources, ValidationMask } from 'src/features/validation';
-import { validationTexts } from 'src/features/validation/backend/validationTexts';
+import { validationTexts } from 'src/features/validation/backendValidation/validationTexts';
 import type { TextReference } from 'src/features/language/useLanguage';
 import type {
   BackendValidationIssue,

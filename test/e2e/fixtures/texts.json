@@ -21,6 +21,7 @@
   "requiredFieldDateFrom": "Du må fylle ut dato for navneendring",
   "requiredFieldFromValue": "Du må fylle ut 1. endre fra",
   "requiredFieldToValue": "Du må fylle ut 2. endre verdi 123 til ",
+  "requiredFieldToValue456": "Du må fylle ut 2. endre verdi 456 til ",
   "requiredOpenRepGroup": "Du må fylle ut åpne repterenede grupper",
   "requiredComment": "Du må fylle ut kommentarer",
   "requiredSendersName": "Du må fylle ut oppgave giver navn",

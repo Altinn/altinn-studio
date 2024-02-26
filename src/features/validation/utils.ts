@@ -1,50 +1,41 @@
 import { ValidationMask } from 'src/features/validation';
+import { implementsValidationFilter } from 'src/layout';
 import type { IAttachments, UploadedAttachment } from 'src/features/attachments';
 import type {
   BaseValidation,
   ComponentValidation,
   FieldValidation,
   FieldValidations,
-  FrontendValidations,
   NodeValidation,
   ValidationMaskKeys,
   ValidationSeverity,
   ValidationState,
 } from 'src/features/validation';
+import type { ValidationFilterFunction } from 'src/layout';
 import type { CompInternal } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
-export function isFieldValidation(validation: ComponentValidation | FieldValidation): validation is FieldValidation {
-  return 'field' in validation;
-}
+export function mergeFieldValidations(...X: FieldValidations[]): FieldValidations {
+  if (X.length === 0) {
+    return {};
+  }
 
-export function isComponentValidation(
-  validation: ComponentValidation | FieldValidation,
-): validation is ComponentValidation {
-  return 'componentId' in validation;
-}
+  if (X.length === 1) {
+    return X[0];
+  }
 
-export function mergeFieldValidations(a: FieldValidations, b: FieldValidations): FieldValidations {
-  const out = { ...a };
-  for (const [field, validations] of Object.entries(b)) {
-    if (!out[field]) {
-      out[field] = [];
+  const [X1, ...XRest] = X;
+  const out = structuredClone(X1);
+  for (const Xn of XRest) {
+    for (const [field, validations] of Object.entries(structuredClone(Xn))) {
+      if (!out[field]) {
+        out[field] = [];
+      }
+      out[field].push(...validations);
     }
-    out[field].push(...validations);
   }
   return out;
-}
-
-export function mergeNewFrontendValidations(dest: FrontendValidations, newValidations: FrontendValidations[]): void {
-  for (const validations of newValidations) {
-    for (const field of Object.keys(validations.fields)) {
-      dest.fields[field] = validations.fields[field];
-    }
-    for (const componentId of Object.keys(validations.components)) {
-      dest.components[componentId] = validations.components[componentId];
-    }
-  }
 }
 
 function isOfSeverity<V extends BaseValidation, S extends ValidationSeverity>(severity: S) {
@@ -61,6 +52,20 @@ export function hasValidationErrors<V extends BaseValidation>(validations: V[] |
   return validations?.some((validation: any) => validation.severity === 'error') ?? false;
 }
 
+function __default_filter__() {
+  return true;
+}
+export function validationNodeFilter(node: LayoutNode): ValidationFilterFunction {
+  if (implementsValidationFilter(node.def)) {
+    return node.def.getValidationFilter(node as any) ?? __default_filter__;
+  }
+  return __default_filter__;
+}
+
+/**
+ * Converts a field or component validation to a node validation
+ * NodeValidation contains additional information useful for navigating using the error report
+ */
 export function buildNodeValidation<Severity extends ValidationSeverity = ValidationSeverity>(
   node: LayoutNode,
   validation: FieldValidation<Severity> | ComponentValidation<Severity>,
@@ -123,24 +128,28 @@ export function getValidationsForNode(
     for (const [bindingKey, field] of Object.entries(node.item.dataModelBindings)) {
       if (state.fields[field]) {
         const validations = selectValidations(state.fields[field], mask, severity);
-        for (const validation of validations) {
-          validationMessages.push(buildNodeValidation(node, validation, bindingKey));
-        }
+        validationMessages.push(
+          ...validations
+            .filter(validationNodeFilter(node))
+            .map((validation) => buildNodeValidation(node, validation, bindingKey)),
+        );
       }
 
       if (state.components[node.item.id]?.bindingKeys?.[bindingKey]) {
         const validations = selectValidations(state.components[node.item.id].bindingKeys[bindingKey], mask, severity);
-        for (const validation of validations) {
-          validationMessages.push(buildNodeValidation(node, validation, bindingKey));
-        }
+        validationMessages.push(
+          ...validations
+            .filter(validationNodeFilter(node))
+            .map((validation) => buildNodeValidation(node, validation, bindingKey)),
+        );
       }
     }
   }
   if (state.components[node.item.id]?.component) {
     const validations = selectValidations(state.components[node.item.id].component, mask, severity);
-    for (const validation of validations) {
-      validationMessages.push(buildNodeValidation(node, validation));
-    }
+    validationMessages.push(
+      ...validations.filter(validationNodeFilter(node)).map((validation) => buildNodeValidation(node, validation)),
+    );
   }
   return validationMessages;
 }
@@ -181,38 +190,4 @@ export function attachmentsValid(
 
 export function attachmentIsMissingTag(attachment: UploadedAttachment): boolean {
   return attachment.data.tags === undefined || attachment.data.tags.length === 0;
-}
-
-/**
- * Remove validation from removed nodes.
- * This also removes field validations which are no longer bound to any other nodes.
- */
-export function purgeValidationsForNodes(
-  state: FrontendValidations,
-  removedNodes: LayoutNode[],
-  currentNodes: LayoutNode[],
-): void {
-  if (removedNodes.length === 0) {
-    return;
-  }
-
-  const fieldsToKeep = new Set<string>();
-  for (const node of currentNodes) {
-    if (node.item.dataModelBindings) {
-      for (const field of Object.values(node.item.dataModelBindings)) {
-        fieldsToKeep.add(field);
-      }
-    }
-  }
-
-  for (const node of removedNodes) {
-    delete state.components[node.item.id];
-    if (node.item.dataModelBindings) {
-      for (const field of Object.values(node.item.dataModelBindings)) {
-        if (!fieldsToKeep.has(field)) {
-          delete state.fields[field];
-        }
-      }
-    }
-  }
 }

@@ -1,17 +1,19 @@
+import { renderHook } from '@testing-library/react';
 import fs from 'node:fs';
 
 import { getHierarchyDataSourcesMock } from 'src/__mocks__/getHierarchyDataSourcesMock';
+import * as CustomValidationContext from 'src/features/customValidation/CustomValidationContext';
+import { resolveExpressionValidationConfig } from 'src/features/customValidation/customValidationUtils';
 import { convertLayouts } from 'src/features/expressions/shared';
+import { FD } from 'src/features/formData/FormDataWrite';
 import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
-import {
-  resolveExpressionValidationConfig,
-  runExpressionValidationsOnNode,
-} from 'src/features/validation/frontend/expressionValidation';
+import { useExpressionValidation } from 'src/features/validation/expressionValidation/useExpressionValidation';
 import { buildAuthContext } from 'src/utils/authContext';
 import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
 import { _private } from 'src/utils/layout/hierarchy';
+import * as NodesContext from 'src/utils/layout/NodesContext';
 import type { Layouts } from 'src/features/expressions/shared';
-import type { IExpressionValidationConfig, ValidationDataSources } from 'src/features/validation';
+import type { IExpressionValidationConfig } from 'src/features/validation';
 import type { HierarchyDataSources } from 'src/layout/layout';
 const { resolvedNodesInLayouts } = _private;
 
@@ -44,6 +46,12 @@ function getSharedTests() {
 }
 
 describe('Expression validation shared tests', () => {
+  beforeEach(() => {
+    jest.spyOn(FD, 'useDebounced').mockRestore();
+    jest.spyOn(CustomValidationContext, 'useCustomValidationConfig').mockRestore();
+    jest.spyOn(NodesContext, 'useNodes').mockRestore();
+  });
+
   const sharedTests = getSharedTests();
   it.each(sharedTests)('$name', ({ name: _, expects, validationConfig, formData, layouts }) => {
     const langTools = staticUseLanguageForTests();
@@ -66,32 +74,34 @@ describe('Expression validation shared tests', () => {
 
     const customValidation = resolveExpressionValidationConfig(validationConfig);
 
-    const validationContext = {
-      customValidation,
-    } as ValidationDataSources;
-
     const _layouts = convertLayouts(layouts);
     const rootCollection = resolvedNodesInLayouts(_layouts, '', dataSources);
-    const nodes = rootCollection.allNodes();
-    const validations = nodes.flatMap((node) => runExpressionValidationsOnNode(node, validationContext));
+
+    jest.spyOn(FD, 'useDebounced').mockReturnValue(formData);
+    jest.spyOn(CustomValidationContext, 'useCustomValidationConfig').mockReturnValue(customValidation);
+    jest.spyOn(NodesContext, 'useNodes').mockReturnValue(rootCollection);
+
+    const { result } = renderHook(() => useExpressionValidation());
     // Format results in a way that makes it easier to compare
 
-    const result = JSON.stringify(
-      Object.values(validations).map(({ message, severity, field }) => ({
-        message: message.key,
-        severity,
-        field,
-      })),
+    const validations = JSON.stringify(
+      Object.entries(result.current).flatMap(([field, V]) =>
+        V.map(({ message, severity }) => ({
+          message: message.key,
+          severity,
+          field,
+        })),
+      ),
       null,
       2,
     );
 
-    const expectedResult = JSON.stringify(
+    const expectedValidations = JSON.stringify(
       expects.map(({ message, severity, field }) => ({ message, severity, field })),
       null,
       2,
     );
 
-    expect(result).toEqual(expectedResult);
+    expect(validations).toEqual(expectedValidations);
   });
 });

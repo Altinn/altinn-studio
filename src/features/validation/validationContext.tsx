@@ -1,44 +1,30 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { useImmer } from 'use-immer';
-
 import { createContext } from 'src/core/contexts/context';
 import { Loader } from 'src/core/loading/Loader';
 import { useHasPendingAttachments } from 'src/features/attachments/AttachmentsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
-import { ValidationMask } from 'src/features/validation';
-import { useBackendValidation } from 'src/features/validation/backend/useBackendValidation';
-import { runValidationOnNodes } from 'src/features/validation/frontend/runValidations';
+import { useBackendValidation } from 'src/features/validation/backendValidation/useBackendValidation';
+import { useExpressionValidation } from 'src/features/validation/expressionValidation/useExpressionValidation';
+import { useInvalidDataValidation } from 'src/features/validation/invalidDataValidation/useInvalidDataValidation';
+import { useNodeValidation } from 'src/features/validation/nodeValidation/useNodeValidation';
+import { useSchemaValidation } from 'src/features/validation/schemaValidation/useSchemaValidation';
 import {
-  useOnAttachmentsChange,
-  useOnHierarchyChange,
-  useOnNodeDataChange,
-  useValidationDataSources,
-} from 'src/features/validation/hooks';
-import {
-  getValidationsForNode,
   getVisibilityMask,
   hasValidationErrors,
   mergeFieldValidations,
-  mergeNewFrontendValidations,
-  purgeValidationsForNodes,
   selectValidations,
 } from 'src/features/validation/utils';
+import { useVisibility } from 'src/features/validation/visibility/useVisibility';
 import {
-  addVisibilityForAttachment,
-  addVisibilityForNode,
-  getVisibilityForNode,
   onBeforeRowDelete,
-  removeVisibilityForAttachment,
-  removeVisibilityForNode,
   setVisibilityForAttachment,
   setVisibilityForNode,
-} from 'src/features/validation/visibility';
+} from 'src/features/validation/visibility/visibilityUtils';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useEffectEvent } from 'src/hooks/useEffectEvent';
 import { useWaitForState } from 'src/hooks/useWaitForState';
-import type { BackendValidationIssueGroups, FrontendValidations, ValidationContext } from 'src/features/validation';
-import type { Visibility } from 'src/features/validation/visibility';
+import type { BackendValidationIssueGroups, ValidationContext } from 'src/features/validation';
 import type { CompRepeatingGroupInternal } from 'src/layout/RepeatingGroup/config.generated';
 import type { BaseLayoutNode, LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -53,73 +39,25 @@ type Props = {
 };
 
 export function ValidationContext({ children, isCustomReceipt = false }: Props) {
-  const validationContext = useValidationDataSources();
+  // Get component validations
+  const componentValidations = useNodeValidation();
 
-  const [frontendValidations, setFrontendValidations] = useImmer<FrontendValidations>({
-    fields: {},
-    components: {},
-  });
+  // Get expression validations
+  const expressionValidations = useExpressionValidation();
 
-  const [visibility, setVisibility] = useImmer<Visibility>({
-    mask: 0,
-    children: {},
-    items: [],
-  });
+  // Get schema validations
+  const schemaValidations = useSchemaValidation();
 
-  /**
-   * This is a last resort to show all errors, to prevent unknown error
-   * if this is ever visible, there is probably something wring in the app.
-   */
-  const [showAllErrors, setShowAllErrors] = useState(false);
-
-  // Update frontend validations for nodes when their data changes
-  const initialValidationsSet = useOnNodeDataChange(async (changedNodes) => {
-    const newValidations = runValidationOnNodes(changedNodes, validationContext);
-
-    setFrontendValidations((state) => {
-      mergeNewFrontendValidations(state, newValidations);
-    });
-
-    await validating();
-    reduceNodeVisibility(changedNodes);
-  });
-
-  // Update frontend validations and visibility for nodes when they are added or removed
-  useOnHierarchyChange((addedNodes, removedNodes, currentNodes) => {
-    const newValidations = runValidationOnNodes(addedNodes, validationContext);
-
-    setFrontendValidations((state) => {
-      purgeValidationsForNodes(state, removedNodes, currentNodes);
-      mergeNewFrontendValidations(state, newValidations);
-    });
-
-    setVisibility((state) => {
-      removedNodes.forEach((node) => removeVisibilityForNode(node, state));
-      addedNodes.forEach((node) => addVisibilityForNode(node, state));
-    });
-  });
-
-  // Update frontend validations for nodes when their attachments change
-  const attachmentsBusy = useOnAttachmentsChange((changedNodes, addedAttachments, removedAttachments) => {
-    const newValidations = runValidationOnNodes(changedNodes, validationContext);
-
-    setFrontendValidations((state) => {
-      mergeNewFrontendValidations(state, newValidations);
-    });
-
-    setVisibility((state) => {
-      removedAttachments.forEach(({ attachmentId, node }) => removeVisibilityForAttachment(attachmentId, node, state));
-      addedAttachments.forEach(({ attachmentId, node }) => addVisibilityForAttachment(attachmentId, node, state));
-    });
-  });
+  // Get invalid data validations
+  const invalidDataValdiations = useInvalidDataValidation();
 
   // Get backend validations except if we are in a custom receipt
-  const lastSaveValidations = FD.useLastSaveValidationIssues();
   const {
     validations: backendValidations,
     processedLast: backendValidationsProcessedLast,
     initialValidationDone,
-  } = useBackendValidation({ fromLastSave: lastSaveValidations, enabled: !isCustomReceipt });
+  } = useBackendValidation({ enabled: !isCustomReceipt });
+
   const waitForSave = FD.useWaitForSave();
   const backendValidationsProcessedLastRef = useAsRef(backendValidationsProcessedLast);
   const waitForBackendValidations = useWaitForState(backendValidationsProcessedLastRef);
@@ -129,14 +67,26 @@ export function ValidationContext({ children, isCustomReceipt = false }: Props) 
   const validations = useMemo(
     () => ({
       task: backendValidations.task,
-      fields: mergeFieldValidations(backendValidations.fields, frontendValidations.fields),
-      components: frontendValidations.components,
+      fields: mergeFieldValidations(
+        backendValidations.fields,
+        invalidDataValdiations,
+        schemaValidations,
+        expressionValidations,
+      ),
+      components: componentValidations,
     }),
-    [backendValidations, frontendValidations],
+    [
+      backendValidations.fields,
+      backendValidations.task,
+      expressionValidations,
+      componentValidations,
+      invalidDataValdiations,
+      schemaValidations,
+    ],
   );
 
   // Provide a promise that resolves when all pending validations have been completed
-  const pendingAttachmentsRef = useAsRef(hasPendingAttachments || attachmentsBusy);
+  const pendingAttachmentsRef = useAsRef(hasPendingAttachments);
   const waitForAttachments = useWaitForState(pendingAttachmentsRef);
 
   const validating = useCallback(async () => {
@@ -151,21 +101,10 @@ export function ValidationContext({ children, isCustomReceipt = false }: Props) 
       lastBackendValidations === validationsFromSave;
   }, [waitForAttachments, waitForBackendValidations, waitForSave]);
 
-  const reduceNodeVisibility = useEffectEvent((nodes: LayoutNode[]) => {
-    setVisibility((state) => {
-      for (const node of nodes) {
-        const currentValidationMask = getValidationsForNode(
-          node,
-          validations,
-          ValidationMask.AllIncludingBackend,
-        ).reduce((mask, validation) => mask | validation.category, 0);
-
-        const currentVisibilityMask = getVisibilityForNode(node, state);
-
-        setVisibilityForNode(node, state, currentValidationMask & currentVisibilityMask);
-      }
-    });
-  });
+  /**
+   * Manage the visibility of validations
+   */
+  const { visibility, setVisibility } = useVisibility(validations);
 
   // Set visibility for a node
   const setNodeVisibility = useEffectEvent((nodes: LayoutNode[], newVisibility: number, rowIndex?: number) => {
@@ -188,6 +127,12 @@ export function ValidationContext({ children, isCustomReceipt = false }: Props) 
       setVisibilityForAttachment(attachmentId, node, state, newVisibility);
     });
   });
+
+  /**
+   * This is a last resort to show all errors, to prevent unknown error
+   * if this is ever visible, there is probably something wring in the app.
+   */
+  const [showAllErrors, setShowAllErrors] = useState(false);
 
   /**
    * Hide unbound errors as soon as possible.
@@ -216,7 +161,7 @@ export function ValidationContext({ children, isCustomReceipt = false }: Props) 
     backendValidationsProcessedLast,
   };
 
-  if ((!initialValidationDone || !initialValidationsSet) && !isCustomReceipt) {
+  if (!initialValidationDone && !isCustomReceipt) {
     return <Loader reason='validation' />;
   }
 

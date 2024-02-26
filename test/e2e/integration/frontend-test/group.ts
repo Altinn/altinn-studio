@@ -176,8 +176,6 @@ describe('Group', () => {
   });
 
   it('Validates group on row save', () => {
-    cy.intercept('GET', '**/instances/*/*/data/*/validate').as('validate');
-
     const layoutMutator = (component: CompExternal) => {
       // Remove component triggers and set required
       if (['currentValue', 'newValue'].includes(component.id) && component.type === 'Input') {
@@ -191,30 +189,24 @@ describe('Group', () => {
 
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
 
+    // Filling out everything works fine
     cy.get(appFrontend.group.addNewItem).click();
     cy.get(appFrontend.group.currentValue).type('123');
     cy.get(appFrontend.group.newValue).type('1');
+    cy.get(appFrontend.group.saveMainGroup).clickAndGone();
+
+    // Forgetting the second field triggers validation
+    cy.get(appFrontend.group.addNewItem).click();
+    cy.get(appFrontend.group.currentValue).type('456');
     cy.get(appFrontend.group.saveMainGroup).click();
+    cy.get(appFrontend.fieldValidation('newValue-1')).should('have.text', texts.requiredFieldToValue456);
+    cy.get(appFrontend.errorReport).should('contain.text', texts.requiredFieldToValue456);
+    cy.get(appFrontend.group.newValue).type('1');
+    cy.get(appFrontend.group.saveMainGroup).clickAndGone();
 
-    cy.intercept('PATCH', '**/data/**').as('saveData');
-    waitForOneMoreRequest(() => {
-      cy.get(appFrontend.group.addNewItem).click();
-      cy.get(appFrontend.group.currentValue).type('123');
-    });
-
-    // Sneaky way to avoid triggering validation on closing the row
-    cy.interceptLayout('group', layoutMutator);
-    cy.reloadAndWait();
-
-    cy.get(appFrontend.group.row(0).editBtn).click();
-    cy.get(appFrontend.group.saveMainGroup).click();
-
-    cy.get(appFrontend.group.saveMainGroup).should('not.exist');
-    cy.get(appFrontend.errorReport).should('not.exist');
-
-    cy.get(appFrontend.group.row(0).editBtn).click();
-    cy.get(appFrontend.group.currentValue).clear();
-    cy.get(appFrontend.group.currentValue).should('have.value', '');
+    // Forgetting the first field triggers validation
+    cy.get(appFrontend.group.addNewItem).click();
+    cy.get(appFrontend.group.newValue).type('789');
     cy.get(appFrontend.group.saveMainGroup).click();
 
     cy.get(appFrontend.errorReport)

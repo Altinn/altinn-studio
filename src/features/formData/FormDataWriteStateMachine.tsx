@@ -20,19 +20,25 @@ export interface FormDataState {
   // Use these values to render the form, and for other cases where you need the current data model immediately.
   currentData: object;
 
-  // This is a key-value map of invalid data, where the key is the (dot) path in the current data model to where
-  // the data would be located. In the currentData/debounced object(s), these values will be missing/undefined.
-  // The point of these values is for the data model to _seem like_ it can store anything, even though some values
-  // are simply not valid according to the JsonSchema we need to follow. This is useful for example when the user
-  // is typing a number, as the current model is updated for every keystroke, but if the user types '-5', the model
-  // will be invalid until the user types the '5' as well. This way we can show the user the value they are typing,
-  // as they are typing it, while also keeping it away from the data model until it is valid to store in it.
+  // This is a partial object containing potential invalid data, In the currentData object, these values will be
+  // missing/undefined. The point of these values is for the data model to _seem like_ it can store anything, even
+  // though some values are simply not valid according to the JsonSchema we need to follow. This is useful for example
+  // when the user is typing a number, as the current model is updated for every keystroke, but if the user
+  // types '-5', the model will be invalid until the user types the '5' as well. This way we can show the user the
+  // value they are typing, as they are typing it, while also keeping it away from the data model until it is valid
+  // to store in it.
   invalidCurrentData: object;
 
   // These values contain the current data model, with the values debounced at 400ms. This means that if the user is
   // typing, the values will be updated 400ms after the user stopped typing. Use these values when you need to perform
   // expensive operations on the data model, such as validation, calculations, or sending a request to save the model.
   debouncedCurrentData: object;
+
+  // This is a debounced variant of the invalidCurrentData model. This is useful for example when you want to show
+  // validation errors to the user, but you don't want to show them immediately as the user is typing. Instead,
+  // should wait until the user has stopped typing for a while, and then show the validation errors based off of
+  // this model.
+  invalidDebouncedCurrentData: object;
 
   // These values contain the last saved data model, with the values that were last saved to the server. We use this
   // to determine if there are any unsaved changes, and to diff the current data model against the last saved data
@@ -197,6 +203,7 @@ function makeActions(
   }
 
   function debounce(state: FormDataContext) {
+    state.invalidDebouncedCurrentData = state.invalidCurrentData;
     if (deepEqual(state.debouncedCurrentData, state.currentData)) {
       state.debouncedCurrentData = state.currentData;
       deduplicateModels(state);
@@ -368,10 +375,12 @@ export const createFormDataWriteStore = (
         };
       }
 
+      const emptyInvalidData = {};
       return {
         currentData: initialData,
-        invalidCurrentData: {},
+        invalidCurrentData: emptyInvalidData,
         debouncedCurrentData: initialData,
+        invalidDebouncedCurrentData: emptyInvalidData,
         lastSavedData: initialData,
         hasUnsavedChanges: false,
         validationIssues: undefined,

@@ -2,9 +2,9 @@ import { useMemo } from 'react';
 
 import type { NodeValidation } from '..';
 
-import { buildNodeValidation, selectValidations } from 'src/features/validation/utils';
+import { buildNodeValidation, selectValidations, validationNodeFilter } from 'src/features/validation/utils';
 import { useValidationContext } from 'src/features/validation/validationContext';
-import { getVisibilityForNode } from 'src/features/validation/visibility';
+import { getVisibilityForNode } from 'src/features/validation/visibility/visibilityUtils';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 /**
@@ -19,6 +19,6 @@ export function useComponentValidationsForNode(node: LayoutNode): NodeValidation
       return [];
     }
     const validations = selectValidations(component.component!, getVisibilityForNode(node, visibility));
-    return validations.map((validation) => buildNodeValidation(node, validation));
+    return validations.filter(validationNodeFilter(node)).map((validation) => buildNodeValidation(node, validation));
   }, [component, node, visibility]);
 }

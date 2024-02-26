@@ -1,13 +1,7 @@
-import type Ajv from 'ajv';
-import type { JSONSchema7 } from 'json-schema';
-
-import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { IAttachments } from 'src/features/attachments';
 import type { Expression, ExprValToActual } from 'src/features/expressions/types';
 import type { TextReference, ValidLangParam } from 'src/features/language/useLanguage';
-import type { Visibility } from 'src/features/validation/visibility';
-import type { ILayoutSets } from 'src/layout/common.generated';
-import type { IInstance, IProcess } from 'src/types/shared';
+import type { Visibility } from 'src/features/validation/visibility/visibilityUtils';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export enum FrontendValidationSource {
@@ -15,6 +9,7 @@ export enum FrontendValidationSource {
   Schema = '__schema__',
   Component = '__component__',
   Expression = '__expression__',
+  InvalidData = '__invalid_data__',
 }
 
 export type ValidationSeverity = 'error' | 'warning' | 'info' | 'success';
@@ -84,14 +79,6 @@ export type BackendValidations = {
   fields: FieldValidations;
 };
 
-/**
- * Validation format returned by frontend validation.
- */
-export type FrontendValidations = {
-  fields: FieldValidations;
-  components: ComponentValidations;
-};
-
 export type FieldValidations = {
   [field: string]: FieldValidation[];
 };
@@ -108,13 +95,6 @@ export type BackendValidationIssueGroups = {
  */
 export type BackendValidatorGroups = {
   [validator: string]: (BaseValidation | FieldValidation)[];
-};
-
-/**
- * (Future?) storage format for frontend expression validations.
- */
-export type ValidatorGroups = {
-  [validator: string]: FieldValidation[];
 };
 
 /**
@@ -162,11 +142,6 @@ export type NodeValidation<Severity extends ValidationSeverity = ValidationSever
   meta?: Record<string, string>;
 };
 
-export type AttachmentChange = {
-  node: LayoutNode;
-  attachmentId: string;
-};
-
 /**
  * Contains all of the necessary elements from the redux store to run frontend validations.
  */
@@ -174,16 +149,7 @@ export type ValidationDataSources = {
   currentLanguage: string;
   formData: object;
   attachments: IAttachments;
-  application: IApplicationMetadata;
-  instance: IInstance | null;
-  process: IProcess | null;
-  taskId: string | undefined;
-  layoutSets: ILayoutSets;
-  schema: JSONSchema7;
-  customValidation: IExpressionValidations | null;
 };
-
-export type ValidationContextGenerator = (node: LayoutNode | undefined) => ValidationDataSources;
 
 /**
  * This format is used by the backend to send validation issues to the frontend.
@@ -248,23 +214,4 @@ export type IExpressionValidationRefUnresolved =
 export type IExpressionValidationConfig = {
   validations: { [field: string]: (IExpressionValidationRefUnresolved | string)[] };
   definitions: { [name: string]: IExpressionValidationRefUnresolved };
-};
-
-export interface ISchemaValidator {
-  rootElementPath: string;
-  validator: Ajv;
-}
-
-export interface ISchemaValidators {
-  [id: string]: ISchemaValidator;
-}
-
-/**
- * This format is returned by the json schema validation, and needs to be mapped to components based on the datamodel bindingField.
- */
-export type ISchemaValidationError = {
-  message: TextReference;
-  bindingField: string;
-  invalidDataType: boolean;
-  keyword: string;
 };

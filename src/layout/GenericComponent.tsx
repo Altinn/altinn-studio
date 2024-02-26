@@ -72,19 +72,14 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
   const validations = useUnifiedValidationsForNode(node);
   const isValid = !hasValidationErrors(validations);
 
-  const filterValidationErrors = () => {
-    const maxLength = 'maxLength' in node.item && node.item.maxLength;
-
-    if (!maxLength) {
-      return validations;
-    }
-
-    // If maxLength is set in both schema and component, don't display the schema error message
-    return validations.filter(
-      (validation) =>
-        !(validation.message.key === 'validation_errors.maxLength' && validation.message.params?.at(0) === maxLength),
-    );
-  };
+  // If maxLength is set in both schema and component, don't display the schema error message
+  const maxLength = 'maxLength' in node.item && node.item.maxLength;
+  const filteredValidationErrors = maxLength
+    ? validations.filter(
+        (validation) =>
+          !(validation.message.key === 'validation_errors.maxLength' && validation.message.params?.at(0) === maxLength),
+      )
+    : validations;
 
   const formComponentContext = useMemo<IFormComponentContext>(
     () => ({
@@ -207,7 +202,7 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
           <RenderComponent {...componentProps} />
           {showValidationMessages && (
             <ComponentValidations
-              validations={filterValidationErrors()}
+              validations={filteredValidationErrors}
               node={node}
             />
           )}

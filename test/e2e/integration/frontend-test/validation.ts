@@ -774,5 +774,63 @@ describe('Validation', () => {
         name: 'Hører skolen på elevenes forslag? * Du må fylle ut hører skolen på elevenes forslag? Alltid',
       }).should('be.focused');
     });
+
+    it('Existing validations should not disappear when a backend validator is not executed', () => {
+      cy.goto('changename');
+      cy.get(appFrontend.changeOfName.newFirstName).type('test');
+      cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newFirstName)).should(
+        'have.text',
+        texts.testIsNotValidValue,
+      );
+
+      cy.intercept('PATCH', '**/data/**', (req) =>
+        req.reply((res) => res.send(JSON.stringify({ ...res.body, validationIssues: {} }))),
+      ).as('patchData');
+
+      cy.get(appFrontend.changeOfName.newMiddleName).type('hei');
+      cy.wait('@patchData');
+
+      cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newFirstName)).should(
+        'have.text',
+        texts.testIsNotValidValue,
+      );
+    });
+
+    it('Datepicker should show component validation instead of format error from schema', () => {
+      cy.interceptLayout('changename', (component) => {
+        if (component.type === 'Datepicker' && component.id === 'dateOfEffect') {
+          component.showValidations = ['AllExceptRequired'];
+        }
+      });
+
+      let c = 0;
+      cy.intercept('PATCH', '**/data/**', () => {
+        c++;
+      }).as('patchData');
+
+      cy.goto('changename');
+
+      cy.get(appFrontend.changeOfName.dateOfEffect).type('01012020');
+      cy.wait('@patchData').then(() => {
+        expect(c).to.be.eq(1);
+      });
+
+      cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.dateOfEffect)).should('not.exist');
+
+      cy.get(appFrontend.changeOfName.dateOfEffect).clear();
+      cy.get(appFrontend.changeOfName.dateOfEffect).type('45451234');
+      cy.wait('@patchData').then(() => {
+        expect(c).to.be.eq(2);
+      });
+
+      cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.dateOfEffect)).should(
+        'contain.text',
+        'Ugyldig datoformat',
+      );
+      cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.dateOfEffect)).should(
+        'not.contain.text',
+        'Feil format',
+      );
+    });
   });
 });

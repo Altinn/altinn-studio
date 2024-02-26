@@ -4,8 +4,8 @@ import type { AxiosError } from 'axios';
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
+import { resolveExpressionValidationConfig } from 'src/features/customValidation/customValidationUtils';
 import { useCurrentDataModelName } from 'src/features/datamodel/useBindingSchema';
-import { resolveExpressionValidationConfig } from 'src/features/validation/frontend/expressionValidation';
 import type { IExpressionValidationConfig, IExpressionValidations } from 'src/features/validation';
 
 const useCustomValidationConfigQuery = () => {

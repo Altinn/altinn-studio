@@ -1,25 +1,18 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import type { PropsFromGenericComponent, ValidateAny } from '..';
+import type { PropsFromGenericComponent } from '..';
 
-import { runAllValidations } from 'src/layout/componentValidation';
 import { LikertDef } from 'src/layout/Likert/config.def.generated';
 import { LikertHierarchyGenerator } from 'src/layout/Likert/hierarchy';
 import { LikertComponent } from 'src/layout/Likert/LikertComponent';
 import { LikertSummary } from 'src/layout/Likert/Summary/LikertSummary';
-import { type LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type {
-  ComponentValidation,
-  FrontendValidations,
-  ISchemaValidationError,
-  ValidationDataSources,
-} from 'src/features/validation';
+import type { ComponentValidation } from 'src/features/validation';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
 
-export class Likert extends LikertDef implements ValidateAny {
+export class Likert extends LikertDef {
   private _hierarchyGenerator = new LikertHierarchyGenerator();
 
   directRender(): boolean {
@@ -60,14 +53,6 @@ export class Likert extends LikertDef implements ValidateAny {
 
   hierarchyGenerator(): ComponentHierarchyGenerator<'Likert'> {
     return this._hierarchyGenerator;
-  }
-
-  runValidations(
-    node: LayoutNode,
-    ctx: ValidationDataSources,
-    schemaErrors: ISchemaValidationError[],
-  ): FrontendValidations {
-    return runAllValidations(node, ctx, schemaErrors);
   }
 
   // This component does not have empty field validation, so has to override its inherited method

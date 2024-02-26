@@ -10,17 +10,18 @@ import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { getDateConstraint, getDateFormat } from 'src/utils/dateHelpers';
 import { formatISOString } from 'src/utils/formatDate';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
+import type { BaseValidation, ComponentValidation, ValidationDataSources } from 'src/features/validation';
 import type {
-  ComponentValidation,
-  FieldValidation,
-  ISchemaValidationError,
-  ValidationDataSources,
-} from 'src/features/validation';
-import type { DisplayDataProps, PropsFromGenericComponent, ValidateComponent } from 'src/layout';
+  DisplayDataProps,
+  PropsFromGenericComponent,
+  ValidateComponent,
+  ValidationFilter,
+  ValidationFilterFunction,
+} from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export class Datepicker extends DatepickerDef implements ValidateComponent {
+export class Datepicker extends DatepickerDef implements ValidateComponent, ValidationFilter {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Datepicker'>>(
     function LayoutComponentDatepickerRender(props, _): JSX.Element | null {
       return <DatepickerComponent {...props} />;
@@ -98,27 +99,18 @@ export class Datepicker extends DatepickerDef implements ValidateComponent {
     return validations;
   }
 
-  // Since the format is validated in component validations, it needs to be ignored in schema validation
-  runSchemaValidation(node: LayoutNode<'Datepicker'>, schemaErrors: ISchemaValidationError[]): FieldValidation[] {
-    const field = node.item.dataModelBindings?.simpleBinding;
-    if (!field) {
-      return [];
-    }
+  /**
+   * Datepicker has a custom format validation which give a better error message than what the schema provides.
+   * Filter out the schema format vaildation to avoid duplicate error messages.
+   */
+  formatFilter(validation: BaseValidation): boolean {
+    return !(
+      validation.source === FrontendValidationSource.Schema && validation.message.key === 'validation_errors.pattern'
+    );
+  }
 
-    const validations: FieldValidation[] = [];
-
-    for (const error of schemaErrors) {
-      if (field === error.bindingField && error.keyword !== 'format') {
-        validations.push({
-          message: error.message,
-          severity: 'error',
-          field,
-          source: FrontendValidationSource.Schema,
-          category: ValidationMask.Schema,
-        });
-      }
-    }
-    return validations;
+  getValidationFilter(_node: LayoutNode): ValidationFilterFunction | null {
+    return this.formatFilter;
   }
 
   validateDataModelBindings(ctx: LayoutValidationCtx<'Datepicker'>): string[] {

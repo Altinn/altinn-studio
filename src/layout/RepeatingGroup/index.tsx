@@ -1,10 +1,9 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import type { PropsFromGenericComponent, ValidateAny, ValidateComponent } from '..';
+import type { PropsFromGenericComponent, ValidateComponent } from '..';
 
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
-import { runAllValidations } from 'src/layout/componentValidation';
 import { RepeatingGroupDef } from 'src/layout/RepeatingGroup/config.def.generated';
 import { GroupHierarchyGenerator } from 'src/layout/RepeatingGroup/hierarchy';
 import { RepeatingGroupContainer } from 'src/layout/RepeatingGroup/RepeatingGroupContainer';
@@ -12,17 +11,12 @@ import { RepeatingGroupProvider } from 'src/layout/RepeatingGroup/RepeatingGroup
 import { RepeatingGroupsFocusProvider } from 'src/layout/RepeatingGroup/RepeatingGroupFocusContext';
 import { SummaryRepeatingGroup } from 'src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type {
-  ComponentValidation,
-  FrontendValidations,
-  ISchemaValidationError,
-  ValidationDataSources,
-} from 'src/features/validation';
+import type { ComponentValidation } from 'src/features/validation';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export class RepeatingGroup extends RepeatingGroupDef implements ValidateAny, ValidateComponent {
+export class RepeatingGroup extends RepeatingGroupDef implements ValidateComponent {
   private _hierarchyGenerator = new GroupHierarchyGenerator();
 
   directRender(): boolean {
@@ -69,14 +63,6 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateAny, Va
 
   hierarchyGenerator(): ComponentHierarchyGenerator<'RepeatingGroup'> {
     return this._hierarchyGenerator;
-  }
-
-  runValidations(
-    node: LayoutNode,
-    ctx: ValidationDataSources,
-    schemaErrors: ISchemaValidationError[],
-  ): FrontendValidations {
-    return runAllValidations(node, ctx, schemaErrors);
   }
 
   runComponentValidation(node: LayoutNode<'RepeatingGroup'>): ComponentValidation[] {

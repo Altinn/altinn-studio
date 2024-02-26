@@ -1,25 +1,19 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { runAllValidations } from 'src/layout/componentValidation';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { GroupDef } from 'src/layout/Group/config.def.generated';
 import { GroupComponent } from 'src/layout/Group/GroupComponent';
 import { GroupHierarchyGenerator } from 'src/layout/Group/hierarchy';
 import { SummaryGroupComponent } from 'src/layout/Group/SummaryGroupComponent';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type {
-  ComponentValidation,
-  FrontendValidations,
-  ISchemaValidationError,
-  ValidationDataSources,
-} from 'src/features/validation';
-import type { PropsFromGenericComponent, ValidateAny, ValidateComponent } from 'src/layout';
+import type { ComponentValidation, ValidationDataSources } from 'src/features/validation';
+import type { PropsFromGenericComponent, ValidateComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export class Group extends GroupDef implements ValidateAny, ValidateComponent {
+export class Group extends GroupDef implements ValidateComponent {
   runComponentValidation: (node: LayoutNode, validationContext: ValidationDataSources) => ComponentValidation[];
   private _hierarchyGenerator = new GroupHierarchyGenerator();
 
@@ -71,14 +65,6 @@ export class Group extends GroupDef implements ValidateAny, ValidateComponent {
 
   hierarchyGenerator(): ComponentHierarchyGenerator<'Group'> {
     return this._hierarchyGenerator;
-  }
-
-  runValidations(
-    node: LayoutNode,
-    ctx: ValidationDataSources,
-    schemaErrors: ISchemaValidationError[],
-  ): FrontendValidations {
-    return runAllValidations(node, ctx, schemaErrors);
   }
 
   isDataModelBindingsRequired(): boolean {

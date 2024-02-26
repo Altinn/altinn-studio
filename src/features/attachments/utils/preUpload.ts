@@ -14,7 +14,7 @@ import { useApplicationMetadata } from 'src/features/applicationMetadata/Applica
 import { useLaxInstance, useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { type BackendValidationIssue } from 'src/features/validation';
-import { getValidationIssueMessage } from 'src/features/validation/backend/backendUtils';
+import { getValidationIssueMessage } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import type {

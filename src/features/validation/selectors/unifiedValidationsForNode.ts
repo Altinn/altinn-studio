@@ -4,7 +4,7 @@ import type { NodeValidation } from '..';
 
 import { getValidationsForNode } from 'src/features/validation/utils';
 import { useValidationContext } from 'src/features/validation/validationContext';
-import { getVisibilityForNode } from 'src/features/validation/visibility';
+import { getVisibilityForNode } from 'src/features/validation/visibility/visibilityUtils';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 /**
