@@ -61,7 +61,7 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Pdf
             });
 
             var httpClient = new HttpClient(delegatingHandler);
-            var pdfGeneratorClient = new PdfGeneratorClient(httpClient, _pdfGeneratorSettingsOptions, _platformSettingsOptions, _userTokenProvider.Object);
+            var pdfGeneratorClient = new PdfGeneratorClient(httpClient, _pdfGeneratorSettingsOptions, _platformSettingsOptions, _userTokenProvider.Object, _httpContextAccessor.Object);
 
             Stream pdf = await pdfGeneratorClient.GeneratePdf(new Uri(@"https://org.apps.hostName/appId/#/instance/instanceId"), CancellationToken.None);
 
@@ -78,7 +78,7 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Pdf
             });
 
             var httpClient = new HttpClient(delegatingHandler);
-            var pdfGeneratorClient = new PdfGeneratorClient(httpClient, _pdfGeneratorSettingsOptions, _platformSettingsOptions, _userTokenProvider.Object);
+            var pdfGeneratorClient = new PdfGeneratorClient(httpClient, _pdfGeneratorSettingsOptions, _platformSettingsOptions, _userTokenProvider.Object, _httpContextAccessor.Object);
 
             var func = async () => await pdfGeneratorClient.GeneratePdf(new Uri(@"https://org.apps.hostName/appId/#/instance/instanceId"), CancellationToken.None);
 
