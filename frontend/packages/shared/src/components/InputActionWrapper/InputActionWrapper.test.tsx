@@ -29,20 +29,14 @@ describe('InputActionWrapper', () => {
     expect(screen.getByLabelText('general.edit')).toBeInTheDocument();
   });
 
-  it('renders delete button when mode is (hoverMode)', async () => {
-    await render(<InputActionWrapper {...mockProps} mode='hoverMode' />);
-    expect(screen.getByLabelText('general.delete')).toBeInTheDocument();
-  });
-
   it('does not render save button when mode is (hoverMode)', async () => {
     await render(<InputActionWrapper {...mockProps} mode='hoverMode' />);
     expect(screen.queryByLabelText('general.save')).not.toBeInTheDocument();
   });
 
-  it('displays the edit and delete button when mode is (hoverMode)', async () => {
+  it('displays the edit button when mode is (hoverMode)', async () => {
     await render(<InputActionWrapper {...mockProps} mode='hoverMode' />);
     expect(screen.getByLabelText('general.edit')).toBeInTheDocument();
-    expect(screen.getByLabelText('general.delete')).toBeInTheDocument();
   });
 
   it('does not renders edit button when mode is (editMode)', async () => {
@@ -106,6 +100,5 @@ describe('InputActionWrapper', () => {
 
     rerender(<InputActionWrapper {...mockProps} mode={'hoverMode'} />);
     expect(screen.getByLabelText('general.edit')).toBeInTheDocument();
-    expect(screen.getByLabelText('general.delete')).toBeInTheDocument();
   });
 });

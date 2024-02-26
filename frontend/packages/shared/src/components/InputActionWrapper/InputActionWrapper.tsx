@@ -10,7 +10,7 @@ export type ActionGroup = 'editMode' | 'hoverMode' | 'standBy';
 
 const actionGroupMap: Record<ActionGroup, AvailableAction[]> = {
   editMode: ['save', 'delete'],
-  hoverMode: ['edit', 'delete'],
+  hoverMode: ['edit'],
   standBy: [],
 };
 
@@ -107,7 +107,7 @@ export const InputActionWrapper = ({
       <div className={classes.buttonWrapper}>
         {actions.map((action) => (
           <StudioButton
-            variant='secondary'
+            variant={mode === 'standBy' ? 'tertiary' : 'secondary'}
             size='small'
             color={actionToColorMap[action]}
             key={action}
