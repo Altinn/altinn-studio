@@ -104,7 +104,7 @@ function SoftValidations({
         useAsAlert={true}
         ariaLabel={ariaLabel}
       >
-        <ol style={{ paddingLeft: 0 }}>
+        <ol style={{ paddingLeft: 0, listStyleType: 'none' }}>
           {validations.map((validation) => (
             <li
               role='alert'
