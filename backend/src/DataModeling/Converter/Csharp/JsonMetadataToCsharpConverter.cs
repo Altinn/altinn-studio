@@ -34,11 +34,11 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
             StringBuilder writer = new StringBuilder()
                 .AppendLine("using System;")
+                .AppendLine("using System.Runtime;")
                 .AppendLine("using System.Collections.Generic;")
                 .AppendLine("using System.ComponentModel.DataAnnotations;")
                 .AppendLine("using System.Linq;")
                 .AppendLine("using System.Text.Json.Serialization;")
-                .AppendLine("using System.Threading.Tasks;")
                 .AppendLine("using System.Xml.Serialization;")
                 .AppendLine("using Microsoft.AspNetCore.Mvc.ModelBinding;")
                 .AppendLine("using Newtonsoft.Json;")

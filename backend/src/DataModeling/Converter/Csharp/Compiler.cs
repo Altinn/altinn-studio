@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -23,12 +24,26 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
         {
             var syntaxTree = SyntaxFactory.ParseSyntaxTree(SourceText.From(csharpCode));
 
-            var compilation = CSharpCompilation.Create(Guid.NewGuid().ToString())
-                .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-                .WithReferenceAssemblies(ReferenceAssemblyKind.Net60)
-                .AddReferences(MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.ModelBinding.BindNeverAttribute).GetTypeInfo().Assembly.Location))
-                .AddReferences(MetadataReference.CreateFromFile(typeof(Newtonsoft.Json.JsonPropertyAttribute).GetTypeInfo().Assembly.Location))
-                .AddSyntaxTrees(syntaxTree);
+            List<string> assemblyFilePaths =
+            [
+                typeof(object).Assembly.Location,
+                typeof(System.Runtime.AssemblyTargetedPatchBandAttribute).Assembly.Location,
+                Path.Combine(Path.GetDirectoryName(typeof(object).Assembly.Location), "System.Runtime.dll"),
+                typeof(List<>).GetTypeInfo().Assembly.Location,
+                typeof(System.ComponentModel.DataAnnotations.ValidationAttribute).GetTypeInfo().Assembly.Location,
+                typeof(Enumerable).GetTypeInfo().Assembly.Location,
+                typeof(System.Text.Json.Serialization.JsonConverterAttribute).GetTypeInfo().Assembly.Location,
+                typeof(System.Xml.Serialization.XmlAttributeAttribute).GetTypeInfo().Assembly.Location,
+                typeof(Microsoft.AspNetCore.Mvc.ModelBinding.BindNeverAttribute).GetTypeInfo().Assembly.Location,
+                typeof(Newtonsoft.Json.JsonPropertyAttribute).GetTypeInfo().Assembly.Location
+            ];
+
+            var compilation = CSharpCompilation.Create(
+                Guid.NewGuid().ToString(),
+                syntaxTrees: new[] { syntaxTree },
+                references: assemblyFilePaths.Select(filePath => MetadataReference.CreateFromFile(filePath)),
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            );
 
             Assembly assembly;
             using (var ms = new MemoryStream())
