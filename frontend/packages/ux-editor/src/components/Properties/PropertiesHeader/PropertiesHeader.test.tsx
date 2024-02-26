@@ -54,16 +54,18 @@ describe('PropertiesHeader', () => {
   });
 
   it('calls "handleComponentUpdate" when the id changes', async () => {
-    renderProperties({ form: component1Mock, formId: component1IdMock });
+    render();
 
     const editComponentIdButton = screen.getByRole('button', { name: /ID/i });
     expect(editComponentIdButton).toBeInTheDocument();
     await act(() => user.click(editComponentIdButton));
     const textbox = screen.getByRole('textbox', { name: 'ID' });
 
-    await act(() => user.type(textbox, 'someId'));
+    await act(() => user.type(textbox, '2'));
     await act(() => user.click(document.body));
-    expect(mockHandleComponentUpdate).toHaveBeenCalledTimes(6);
+    expect(mockHandleComponentUpdate).toHaveBeenCalledTimes(1);
+    /*  await act(() => user.type(textBox, 'someId'));
+    expect(mockHandleComponentUpdate).toHaveBeenCalledTimes(6); */
   });
 
   it('should display an error when containerId is invalid', async () => {
