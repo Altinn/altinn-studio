@@ -10,8 +10,8 @@ import { App } from 'app-development/layout/App';
 import { PageLayout } from 'app-development/layout/PageLayout';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { routerRoutes } from 'app-development/router/routes';
-import { StudioNotFoundPage } from '@studio/components';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
+import { NotFoundPage } from 'app-development/layout/NotFoundPage';
 
 const BASE_PATH = '/:org/:app';
 
@@ -24,9 +24,9 @@ const router = createBrowserRouter(
         {routerRoutes.map((route) => (
           <Route key={route.path} path={route.path} element={<route.subapp {...route.props} />} />
         ))}
-        <Route path='*' element={<StudioNotFoundPage />} />
+        <Route path='*' element={<NotFoundPage />} />
       </Route>
-      <Route path='*' element={<StudioNotFoundPage />} />
+      <Route path='*' element={<NotFoundPage />} />
     </Route>,
   ),
   {

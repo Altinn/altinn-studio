@@ -8,10 +8,13 @@ import { useSelectedFormLayout } from '../../../../hooks';
 import { useTranslation } from 'react-i18next';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { ajv } from '../../../../../../shared/src/utils/formValidationUtils/formValidationUtils';
+import { FormField } from '../../../FormField';
+import { Textfield } from '@digdir/design-system-react';
+import type { FormItem } from '../../../../types/FormItem';
 
 export interface EditComponentIdRowProps {
-  handleComponentUpdate: (component: FormComponent) => void;
-  component: FormComponent;
+  handleComponentUpdate: (component: FormItem) => void;
+  component: FormItem;
   helpText?: string;
 }
 export const EditComponentIdRow = ({

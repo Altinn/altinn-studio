@@ -34,6 +34,7 @@ export const EditNumberValue = ({
           {...fieldProps}
           onChange={fieldProps.onChange}
           description={getComponentPropertyLabel(propertyKey, t)}
+          validationErrorMessage={t('validation_errors.numbers_only')}
         />
       )}
     />

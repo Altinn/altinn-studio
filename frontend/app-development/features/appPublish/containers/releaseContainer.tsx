@@ -63,7 +63,10 @@ export function ReleaseContainer() {
       return (
         <div style={{ padding: '2rem' }}>
           <div>
-            <StudioSpinner />
+            <StudioSpinner
+              showSpinnerTitle={false}
+              spinnerTitle={t('app_create_release.loading')}
+            />
           </div>
           <div style={{ padding: '1.2rem' }}>{t('app_create_release.check_status')}</div>
         </div>
@@ -226,7 +229,7 @@ export function ReleaseContainer() {
       </div>
       <div className={classes.appReleaseCreateRelease}>{renderCreateRelease()}</div>
       <div className={classes.appReleaseHistoryTitle}>{t('app_release.earlier_releases')}</div>
-      <div className={classes.appReleaseHistory}>
+      <div>
         {!!releases.length &&
           releases.map((release: AppRelease, index: number) => (
             <ReleaseComponent key={index} release={release} />

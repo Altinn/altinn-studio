@@ -21,6 +21,7 @@ import InputSchema from './schemas/json/component/Input.schema.v1.json';
 import InstanceInformationSchema from './schemas/json/component/InstanceInformation.schema.v1.json';
 import InstantiationButtonSchema from './schemas/json/component/InstantiationButton.schema.v1.json';
 import LikertSchema from './schemas/json/component/Likert.schema.v1.json';
+import LikertItemSchema from './schemas/json/component/LikertItem.schema.v1.json';
 import LinkSchema from './schemas/json/component/Link.schema.v1.json';
 import ListSchema from './schemas/json/component/List.schema.v1.json';
 import MapSchema from './schemas/json/component/Map.schema.v1.json';
@@ -31,7 +32,7 @@ import PanelSchema from './schemas/json/component/Panel.schema.v1.json';
 import ParagraphSchema from './schemas/json/component/Paragraph.schema.v1.json';
 import PrintButtonSchema from './schemas/json/component/PrintButton.schema.v1.json';
 import RadioButtonsSchema from './schemas/json/component/RadioButtons.schema.v1.json';
-//import RepeatingGroupSchema from './schemas/json/component/RepeatingGroup.schema.v1.json';
+import RepeatingGroupSchema from './schemas/json/component/RepeatingGroup.schema.v1.json';
 import SummarySchema from './schemas/json/component/Summary.schema.v1.json';
 import TextAreaSchema from './schemas/json/component/TextArea.schema.v1.json';
 
@@ -59,6 +60,7 @@ export const componentSchemaMocks = {
   InstanceInformation: InstanceInformationSchema,
   InstantiationButton: InstantiationButtonSchema,
   Likert: LikertSchema,
+  LikertItem: LikertItemSchema,
   Link: LinkSchema,
   List: ListSchema,
   Map: MapSchema,
@@ -69,7 +71,7 @@ export const componentSchemaMocks = {
   Paragraph: ParagraphSchema,
   PrintButton: PrintButtonSchema,
   RadioButtons: RadioButtonsSchema,
-  //RepeatingGroup: RepeatingGroupSchema,
+  RepeatingGroup: RepeatingGroupSchema,
   Summary: SummarySchema,
   TextArea: TextAreaSchema,
 };

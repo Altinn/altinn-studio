@@ -117,7 +117,9 @@ export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeC
           />
           {errorMessage && <div className={classes.errorMessage}>{errorMessage}</div>}
         </div>
-        {isCopyAppPending && <StudioSpinner spinnerText={t('dashboard.creating_your_copy')} />}
+        {isCopyAppPending && (
+          <StudioSpinner showSpinnerTitle spinnerTitle={t('dashboard.creating_your_copy')} />
+        )}
       </SimpleContainer>
     </AltinnPopoverSimple>
   );

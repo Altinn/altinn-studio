@@ -3,16 +3,15 @@ import { Calculations } from './Calculations';
 import { Text } from './Text';
 import { useTranslation } from 'react-i18next';
 import { Accordion } from '@digdir/design-system-react';
-import { useFormContext } from '../../containers/FormContext';
+import { useFormItemContext } from '../../containers/FormItemContext';
 import classes from './Properties.module.css';
 import { Dynamics } from './Dynamics';
 import { PropertiesHeader } from './PropertiesHeader';
-import { isContainer } from '../../utils/formItemUtils';
 import { EditFormComponent } from '../config/EditFormComponent';
 
 export const Properties = () => {
   const { t } = useTranslation();
-  const { formId, form, handleUpdate, debounceSave } = useFormContext();
+  const { formItemId: formId, formItem: form, handleUpdate, debounceSave } = useFormItemContext();
   const formIdRef = React.useRef(formId);
 
   const [openList, setOpenList] = React.useState<string[]>([]);
@@ -34,7 +33,7 @@ export const Properties = () => {
 
   return (
     <div className={classes.root}>
-      {form && !isContainer(form) && (
+      {form && (
         <PropertiesHeader
           form={form}
           formId={formId}

@@ -1,12 +1,12 @@
 import React from 'react';
 import { EditDataModelBindings } from '../../../config/editModal/EditDataModelBindings';
-import type { FormComponent } from '../../../../types/FormComponent';
+import type { FormItem } from '../../../../types/FormItem';
 
 export type DataModelBindingRowProps = {
   schema: any;
-  component: FormComponent;
+  component: FormItem;
   formId: string;
-  handleComponentUpdate: (component: FormComponent) => void;
+  handleComponentUpdate: (component: FormItem) => void;
 };
 
 export const DataModelBindingRow = ({

@@ -2,9 +2,9 @@ import React from 'react';
 import { Properties } from './Properties';
 import { act, screen, waitFor } from '@testing-library/react';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
-import { FormContext } from '../../containers/FormContext';
+import { FormItemContext } from '../../containers/FormItemContext';
 import userEvent from '@testing-library/user-event';
-import { formContextProviderMock } from '../../testing/formContextMocks';
+import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
 import { component1Mock, component1IdMock } from '../../testing/layoutMock';
 import { renderWithProviders } from '../../testing/mocks';
 
@@ -58,14 +58,14 @@ describe('Properties', () => {
 
     it('Opens text when a component is selected', async () => {
       const { rerender } = renderProperties();
-      rerender(getComponent({ formId: 'test' }));
+      rerender(getComponent({ formItemId: 'test' }));
       const button = screen.queryByRole('button', { name: textText });
       await waitFor(() => expect(button).toHaveAttribute('aria-expanded', 'true'));
     });
   });
   describe('Default config', () => {
     it('hides the properties header when the form is undefined', () => {
-      renderProperties({ form: undefined });
+      renderProperties({ formItem: undefined });
 
       const heading = screen.queryByRole('heading', { level: 2 });
       expect(heading).not.toBeInTheDocument();
@@ -73,7 +73,7 @@ describe('Properties', () => {
 
     it('saves the component when changes are made in the properties header', async () => {
       const user = userEvent.setup();
-      renderProperties({ form: component1Mock, formId: component1IdMock });
+      renderProperties({ formItem: component1Mock, formItemId: component1IdMock });
 
       const heading = screen.getByRole('heading', {
         name: `ux_editor.component_title.${component1Mock.type}`,
@@ -88,8 +88,8 @@ describe('Properties', () => {
 
       await act(() => user.type(textbox, '2'));
       await act(() => user.click(document.body));
-      expect(formContextProviderMock.handleUpdate).toHaveBeenCalledTimes(1);
-      expect(formContextProviderMock.debounceSave).toHaveBeenCalledTimes(1);
+      expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalledTimes(1);
+      expect(formItemContextProviderMock.debounceSave).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -131,7 +131,7 @@ describe('Properties', () => {
     it('Shows new dynamics by default', async () => {
       const user = userEvent.setup();
       const { rerender } = renderProperties();
-      rerender(getComponent({ formId: 'test' }));
+      rerender(getComponent({ formItemId: 'test' }));
       const dynamicsButton = screen.queryByRole('button', { name: dynamicsText });
       await act(() => user.click(dynamicsButton));
       const newDynamics = screen.getByTestId(expressionsTestId);
@@ -159,7 +159,7 @@ describe('Properties', () => {
 
   it('Renders accordion', () => {
     const formIdMock = 'test-id';
-    renderProperties({ formId: formIdMock });
+    renderProperties({ formItemId: formIdMock });
     expect(screen.getByText(textText)).toBeInTheDocument();
     expect(screen.getByText(contentText)).toBeInTheDocument();
     expect(screen.getByText(dynamicsText)).toBeInTheDocument();
@@ -171,16 +171,16 @@ describe('Properties', () => {
   });
 });
 
-const getComponent = (formContextProps: Partial<FormContext> = {}) => (
-  <FormContext.Provider
+const getComponent = (formItemContextProps: Partial<FormItemContext> = {}) => (
+  <FormItemContext.Provider
     value={{
-      ...formContextProviderMock,
-      ...formContextProps,
+      ...formItemContextProviderMock,
+      ...formItemContextProps,
     }}
   >
     <Properties />
-  </FormContext.Provider>
+  </FormItemContext.Provider>
 );
 
-const renderProperties = (formContextProps: Partial<FormContext> = {}) =>
-  renderWithProviders(getComponent(formContextProps));
+const renderProperties = (formItemContextProps: Partial<FormItemContext> = {}) =>
+  renderWithProviders(getComponent(formItemContextProps));

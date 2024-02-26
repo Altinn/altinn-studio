@@ -4,12 +4,12 @@ import { ConditionalRendering } from './ConditionalRendering';
 import { Expressions } from '../config/Expressions';
 import { useText } from '../../hooks';
 import type { WindowWithRuleModel } from '../../hooks/queries/useRuleModelQuery';
-import { useFormContext } from '../../containers/FormContext';
+import { useFormItemContext } from '../../containers/FormItemContext';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';
 
 export const Dynamics = () => {
-  const { formId, form } = useFormContext();
+  const { formItemId: formId, formItem: form } = useFormItemContext();
 
   const [showOldExpressions, setShowOldExpressions] = useState<boolean>(false);
   const t = useText();

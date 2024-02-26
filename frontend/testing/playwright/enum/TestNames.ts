@@ -8,4 +8,5 @@ export enum TestNames {
   UI_EDITOR = 'ui-editor',
   GIT_SYNC = 'git-sync',
   SETTINGS_MODAL = 'settings-modal',
+  TEXT_EDITOR = 'text-editor',
 }

@@ -4,14 +4,14 @@ import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../testing/mocks';
 import { formDesignerMock } from '../../../testing/stateMocks';
-import { formContextProviderMock } from '../../../testing/formContextMocks';
+import { formItemContextProviderMock } from '../../../testing/formItemContextMocks';
 import type { IFormLayouts } from '../../../types/global';
 import { layout1NameMock, layoutMock } from '../../../testing/layoutMock';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { Expressions } from './Expressions';
-import { FormContext } from '../../../containers/FormContext';
+import { FormItemContext } from '../../../containers/FormItemContext';
 import type { FormComponent } from '../../../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { parsableExternalExpression } from '../../../testing/expressionMocks';
@@ -212,7 +212,7 @@ const render = ({
   queries = {},
   component = componentWithExpression,
 }: {
-  props?: Partial<FormContext>;
+  props?: Partial<FormItemContext>;
   queries?: Partial<ServicesContextProps>;
   component?: FormComponent | FormContainer;
 }) => {
@@ -223,15 +223,15 @@ const render = ({
     queries,
     queryClient,
   )(
-    <FormContext.Provider
+    <FormItemContext.Provider
       value={{
-        ...formContextProviderMock,
-        form: component,
-        formId: component.id,
+        ...formItemContextProviderMock,
+        formItem: component,
+        formItemId: component.id,
         ...props,
       }}
     >
       <Expressions />
-    </FormContext.Provider>,
+    </FormItemContext.Provider>,
   );
 };

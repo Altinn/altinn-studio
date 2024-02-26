@@ -1,6 +1,6 @@
-export const formContextProviderMock = {
-  formId: null,
-  form: null,
+export const formItemContextProviderMock = {
+  formItemId: null,
+  formItem: null,
   handleDiscard: jest.fn(),
   handleEdit: jest.fn(),
   handleUpdate: jest.fn(),
