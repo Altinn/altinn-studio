@@ -60,7 +60,12 @@ namespace Altinn.App.Models
         [JsonProperty("Radioknapp")]
         [JsonPropertyName("Radioknapp")]
         public string? Radioknapp { get; set; }
-
+        
+        [XmlElement("ReasonLabel")]
+        [JsonProperty("ReasonLabel")]
+        [JsonPropertyName("ReasonLabel")]
+        public string? ReasonLabel { get; set; }
+        
         [XmlElement("BegrunnelseFrivillig")]
         [JsonProperty("BegrunnelseFrivillig")]
         [JsonPropertyName("BegrunnelseFrivillig")]
@@ -2138,7 +2143,6 @@ namespace Altinn.App.Models
         [JsonProperty("KommunerMetadata")]
         [JsonPropertyName("KommunerMetadata")]
         public string? KommunerMetadata { get; set; }
-
     }
 
     public class GridData

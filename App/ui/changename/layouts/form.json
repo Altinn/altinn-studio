@@ -170,13 +170,29 @@
           "title": "BegrunnelseValgNavn"
         },
         "dataModelBindings": {
-          "simpleBinding": "Radioknapp"
+          "simpleBinding": "Radioknapp",
+          "labelBinding": "ReasonLabel"
         },
         "sortOrder": "asc",
         "optionsId": "reasons",
         "required": true,
         "readOnly": false,
         "preselectedOptionIndex": 0
+      },
+      {
+        "id": "reasonLabel",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Du valgte:"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "ReasonLabel"
+        },
+        "required": false,
+        "readOnly": true,
+        "grid": {
+          "md": 6
+        }
       },
       {
         "id": "begrunnelsefrivillig",
