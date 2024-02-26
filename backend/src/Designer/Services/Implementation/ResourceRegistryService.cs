@@ -419,13 +419,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return JsonSerializer.Deserialize<AccessList>(responseContent, _serializerOptions);
         }
 
-        public async Task<bool> DeleteAccessList(string org, string identifier, string env)
+        public async Task<HttpStatusCode> DeleteAccessList(string org, string identifier, string env)
         {
             string listUrl = $"/{org}/{identifier}";
             HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Delete, listUrl);
             
             HttpResponseMessage deleteAccessListResponse = await _httpClient.SendAsync(request);
-            return deleteAccessListResponse.IsSuccessStatusCode;
+            return deleteAccessListResponse.StatusCode;
         }
 
         public async Task<AccessList> UpdateAccessList(
@@ -445,17 +445,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return JsonSerializer.Deserialize<AccessList>(responseContent, _serializerOptions);
         }
 
-        public async Task<bool> AddAccessListMember(string org,
+        public async Task<HttpStatusCode> AddAccessListMember(string org,
             string identifier,
             string memberOrgnr,
             string env
         )
         {
             // TODO
-            return true;
+            return HttpStatusCode.OK;
         }
 
-        public async Task<bool> RemoveAccessListMember(
+        public async Task<HttpStatusCode> RemoveAccessListMember(
             string org,
             string identifier,
             string memberOrgnr,
@@ -463,10 +463,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         )
         {
             // TODO
-            return true;
+            return HttpStatusCode.OK;
         }
 
-        public async Task<bool> AddResourceAccessList(
+        public async Task<HttpStatusCode> AddResourceAccessList(
             string org,
             string resourceId,
             string listId,
@@ -480,10 +480,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Put, addUrl, actionsContent);
 
             HttpResponseMessage response = await _httpClient.SendAsync(request);
-            return response.IsSuccessStatusCode;
+            return response.StatusCode;
         }
 
-        public async Task<bool> RemoveResourceAccessList(
+        public async Task<HttpStatusCode> RemoveResourceAccessList(
             string org,
             string resourceId,
             string listId,
@@ -494,7 +494,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Delete, removeUrl);
 
             HttpResponseMessage removeResourceAccessListResponse = await _httpClient.SendAsync(request);
-            return removeResourceAccessListResponse.IsSuccessStatusCode;
+            return removeResourceAccessListResponse.StatusCode;
         }
 
         private async Task<BrregOrganizationResultSet> GetBrregParties(string url)

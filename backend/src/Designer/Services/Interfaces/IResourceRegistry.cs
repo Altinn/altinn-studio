@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.Designer.Models;
@@ -55,16 +56,16 @@ namespace Altinn.Studio.Designer.Services.Interfaces
 
         Task<PagedAccessListResponse> GetResourceAccessLists(string org, string resourceId, string env, int page);
 
-        Task<bool> DeleteAccessList(string org, string identifier, string env);
+        Task<HttpStatusCode> DeleteAccessList(string org, string identifier, string env);
 
         Task<AccessList> UpdateAccessList(string org, string identifier, string env, AccessList accessList);
 
-        Task<bool> AddAccessListMember(string org, string identifier, string memberOrgnr, string env);
+        Task<HttpStatusCode> AddAccessListMember(string org, string identifier, string memberOrgnr, string env);
 
-        Task<bool> RemoveAccessListMember(string org, string identifier, string memberOrgnr, string env);
+        Task<HttpStatusCode> RemoveAccessListMember(string org, string identifier, string memberOrgnr, string env);
 
-        Task<bool> AddResourceAccessList(string org, string resourceId, string listId, string env);
+        Task<HttpStatusCode> AddResourceAccessList(string org, string resourceId, string listId, string env);
 
-        Task<bool> RemoveResourceAccessList(string org, string resourceId, string listId, string env);
+        Task<HttpStatusCode> RemoveResourceAccessList(string org, string resourceId, string listId, string env);
     }
 }
