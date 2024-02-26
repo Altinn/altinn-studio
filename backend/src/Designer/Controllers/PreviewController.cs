@@ -555,7 +555,19 @@ namespace Altinn.Studio.Designer.Controllers
             string refererHeader = Request.Headers["Referer"];
             string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
             Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, partyId, layoutSetName, cancellationToken);
-            return Ok(mockInstance.Process);
+            AppProcessState processState = new AppProcessState
+            {
+                CurrentTask = mockInstance.Process.CurrentTask,
+                ProcessTasks = new List<AppProcessTaskTypeInfo>
+                {
+                    new AppProcessTaskTypeInfo
+                    {
+                        ElementId = "Task_1",
+                        AltinnTaskType = "data"
+                    }
+                }
+            };
+            return Ok(processState);
         }
 
         /// <summary>
@@ -938,6 +950,13 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [Route("api/v1/footer")]
         public IActionResult Footer(string org, string app)
+        {
+            return Ok();
+        }
+
+        [HttpGet]
+        [Route("api/validationconfig/{modelname}")]
+        public IActionResult ValidationConfig(string org, string app, string modelname)
         {
             return Ok();
         }
