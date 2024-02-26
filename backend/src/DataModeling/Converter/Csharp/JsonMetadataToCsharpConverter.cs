@@ -21,16 +21,17 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
         private string Indent(int level = 1) => new string(' ', level * _generationSettings.IndentSize);
 
-        /// <summary>
-        /// Create Model from ServiceMetadata object
-        /// </summary>
-        /// <param name="serviceMetadata">ServiceMetadata object</param>
-        /// <returns>The model code in C#</returns>
-        public string CreateModelFromMetadata(ModelMetadata serviceMetadata)
+        /// <inheritdoc />
+        public string CreateModelFromMetadata(ModelMetadata serviceMetadata, bool separateNamespaces = false)
         {
             Dictionary<string, string> classes = new();
 
-            CreateModelFromMetadataRecursive(classes, serviceMetadata.Elements.Values.First(el => el.ParentElement == null), serviceMetadata, serviceMetadata.TargetNamespace);
+            var rootElementType = serviceMetadata.GetRootElement();
+            string modelNamespace = _generationSettings.ModelNamespace +
+                                    (separateNamespaces ? $".{rootElementType.TypeName}"
+                                        : string.Empty);
+
+            CreateModelFromMetadataRecursive(classes, rootElementType, serviceMetadata, serviceMetadata.TargetNamespace);
 
             StringBuilder writer = new StringBuilder()
                 .AppendLine("using System;")
@@ -41,7 +42,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 .AppendLine("using System.Xml.Serialization;")
                 .AppendLine("using Microsoft.AspNetCore.Mvc.ModelBinding;")
                 .AppendLine("using Newtonsoft.Json;")
-                .AppendLine($"namespace {_generationSettings.ModelNamespace}")
+                .AppendLine($"namespace {modelNamespace}")
                 .AppendLine("{")
                 .Append(string.Concat(classes.Values))
                 .AppendLine("}");

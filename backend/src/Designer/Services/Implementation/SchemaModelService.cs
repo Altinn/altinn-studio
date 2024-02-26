@@ -143,7 +143,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await UpdateCSharpClasses(altinnAppGitRepository, modelMetadata, schemaName);
 
-            await UpdateApplicationMetadata(altinnAppGitRepository, schemaName, modelMetadata.Elements.Values.First(e => e.ParentElement == null).TypeName);
+            await UpdateApplicationMetadata(altinnAppGitRepository, schemaName, modelMetadata.GetRootElement().TypeName);
 
             return jsonContent;
         }
@@ -296,7 +296,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private async Task UpdateCSharpClasses(AltinnAppGitRepository altinnAppGitRepository, ModelMetadata modelMetadata, string schemaName)
         {
-            string csharpClasses = _modelMetadataToCsharpConverter.CreateModelFromMetadata(modelMetadata);
+            ApplicationMetadata application = await altinnAppGitRepository.GetApplicationMetadata();
+            string modelName = modelMetadata.GetRootElement().TypeName;
+            bool separateNamespace = !application.DataTypes.Any(d => d.AppLogic?.ClassRef == $"Altinn.App.Models.{modelName}");
+
+            string csharpClasses = _modelMetadataToCsharpConverter.CreateModelFromMetadata(modelMetadata, separateNamespace);
             await altinnAppGitRepository.SaveCSharpClasses(csharpClasses, schemaName);
         }
 
@@ -417,7 +421,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await UpdateCSharpClasses(altinnAppGitRepository, modelMetadata, schemaName);
 
-            await UpdateApplicationMetadata(altinnAppGitRepository, schemaName, modelMetadata.Elements.Values.First(e => e.ParentElement == null).TypeName);
+            await UpdateApplicationMetadata(altinnAppGitRepository, schemaName,
+                modelMetadata.GetRootElement().TypeName);
 
             return jsonContent;
         }
