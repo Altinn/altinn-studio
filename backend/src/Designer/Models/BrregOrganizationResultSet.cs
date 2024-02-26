@@ -23,6 +23,6 @@ namespace Altinn.Studio.Designer.Models
     public class BrregOrganizationResultSet
     {
         [JsonPropertyName("_embedded")]
-        public BrregEnheterEmbedded Embedded { get; set; }
+        public BrregEnheterEmbedded? Embedded { get; set; }
     }
 }

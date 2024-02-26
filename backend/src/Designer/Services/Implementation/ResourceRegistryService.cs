@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -35,6 +36,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly ResourceRegistryIntegrationSettings _resourceRegistrySettings;
         private readonly ResourceRegistryMaskinportenIntegrationSettings _maskinportenIntegrationSettings;
         private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase, WriteIndented = true };
+        private static readonly Dictionary<string, List<ListMember>> _listMembers = new Dictionary<string, List<ListMember>>();
 
         public ResourceRegistryService()
         {
@@ -301,30 +303,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string responseContent = await getAccessListsResponse.Content.ReadAsStringAsync();
             AccessList accessList = JsonSerializer.Deserialize<AccessList>(responseContent, _serializerOptions);
 
-            // TODO: test data list members
-            List<ListMember> _listMembers = new List<ListMember>() {
-                new()
-                {
-                    Id = "urn:altinn:Access:72439f71-2280-499c-bbf4-d00140053e08",
-                    Identifiers = new() { OrganizationNumber = "991825827" }
-                },
-                new()
-                {
-                    Id = "urn:altinn:Access:db8942da-6367-487c-af6b-44af672081d9",
-                    Identifiers = new() { OrganizationNumber = "997532422" }
-                },
-                new()
-                {
-                    Id = "urn:altinn:Access:81ba70dc-d6be-4e21-af41-a878283ac2a7",
-                    Identifiers = new() { OrganizationNumber = "891611862" }
-                },
-                new()
-                {
-                    Id = "urn:altinn:Access:fb6984b1-182c-4764-b9ed-d3e6ea63a40a",
-                    Identifiers = new() { OrganizationNumber = "111611111" }
-                }
-            };
-            IEnumerable<string> partyIds = _listMembers.Select(x => x.Identifiers.OrganizationNumber);
+            List<ListMember> list;
+            _listMembers.TryGetValue(identifier, out list);
+
+            IEnumerable<string> partyIds = (list ?? new List<ListMember>()).Select(x => x.Identifiers.OrganizationNumber);
 
             // lookup party names
             if (partyIds.Any())
@@ -335,24 +317,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     GetBrregParties(string.Format(brregUrl, "enheter", partyIdsString)),
                     GetBrregParties(string.Format(brregUrl, "underenheter", partyIdsString))
                 );
-
+                List<BrregOrganization> enheter = new List<BrregOrganization>();
+                List<BrregOrganization> underenheter = new List<BrregOrganization>();
+                if (result[0].Embedded != null)
+                {
+                    enheter.AddRange(result[0].Embedded.Enheter);
+                }
+                if (result[1].Embedded != null)
+                {
+                    underenheter.AddRange(result[1].Embedded.Underenheter);
+                }
                 // TODO: handle error from brreg
                 accessList.Members = partyIds.Select(orgnr =>
                 {
-                    string enhetOrgName = result[0]
-                        .Embedded
-                        .Enheter
-                        ?.Find(enhet => enhet.Organisasjonsnummer.Equals(orgnr))
-                        ?.Navn;
-                    string underenhetOrgName = result[1]
-                        .Embedded
-                        .Underenheter
-                        ?.Find(enhet => enhet.Organisasjonsnummer.Equals(orgnr))
-                        ?.Navn;
+                    string enhetOrgName = enheter.Find(enhet => enhet.Organisasjonsnummer.Equals(orgnr))?.Navn;
+                    string underenhetOrgName = underenheter.Find(enhet => enhet.Organisasjonsnummer.Equals(orgnr))?.Navn;
                     AccessListMember member = new()
                     {
                         OrgNr = orgnr,
-                        OrgName = enhetOrgName ?? underenhetOrgName,
+                        OrgName = enhetOrgName ?? underenhetOrgName ?? "",
                         IsSubParty = enhetOrgName == null
                     };
                     return member;
@@ -451,7 +434,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string env
         )
         {
-            // TODO
+            List<ListMember> list;
+            ListMember newMember = new ListMember()
+            {
+                Id = new Guid().ToString(),
+                Identifiers = new() { OrganizationNumber = memberOrgnr }
+            };
+            if (_listMembers.TryGetValue(identifier, out list))
+            {
+                list.Add(newMember);
+            }
+            else
+            {
+                _listMembers.Add(identifier, new List<ListMember>() { newMember });
+            }
+            
             return HttpStatusCode.OK;
         }
 
@@ -462,7 +459,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string env
         )
         {
-            // TODO
+            List<ListMember> list;
+            if (_listMembers.TryGetValue(identifier, out list))
+            {
+                list.RemoveAll(item => item.Identifiers.OrganizationNumber == memberOrgnr);
+            }
+
             return HttpStatusCode.OK;
         }
 
