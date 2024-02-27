@@ -30,24 +30,6 @@ export const rootStateMock: RootState = {
     createAppDeploymentErrors: [],
     getAppDeploymentsError: null,
   },
-  appReleases: null,
-  configuration: {
-    environments: {
-      error: null,
-      result: [],
-    },
-    orgs: {
-      error: null,
-      allOrgs: [],
-    },
-  },
-  repoStatus: {
-    resettingLocalRepo: false,
-    branch: {
-      master: 'mockBranch',
-    },
-    error: null,
-  },
   userState: {
     session: {
       remainingMinutes: 25,
