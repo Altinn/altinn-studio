@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Newtonsoft.Json;
@@ -46,9 +48,23 @@ namespace Designer.Tests.Controllers.PreviewController
 
             string responseBody = await response.Content.ReadAsStringAsync();
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            ProcessState processState = JsonConvert.DeserializeObject<ProcessState>(responseDocument.RootElement.ToString());
+            AppProcessState processState = await response.Content.ReadAsAsync<AppProcessState>();
+            var expectedProcessTasks = new List<AppProcessTaskTypeInfo>
+            {
+                new AppProcessTaskTypeInfo
+                {
+                    ElementId = "Task1",
+                    AltinnTaskType = "data"
+                },
+                new AppProcessTaskTypeInfo
+                {
+                    ElementId = "Task2",
+                    AltinnTaskType = "data"
+                }
+            };
             Assert.Equal("data", processState.CurrentTask.AltinnTaskType);
             Assert.Equal("Task_1", processState.CurrentTask.ElementId);
+            Assert.Equal(expectedProcessTasks, processState.ProcessTasks);
         }
     }
 }
