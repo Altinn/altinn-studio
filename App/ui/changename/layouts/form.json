@@ -741,6 +741,22 @@
         "buttonStyle": "secondary"
       },
       {
+        "id": "choose-extra",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "Vis ekstra sider"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "ChooseExtraPages"
+        },
+        "options": [
+          {
+            "label": "Tall-input",
+            "value": "numeric-fields"
+          }
+        ]
+      },
+      {
         "id": "button-group1",
         "type": "ButtonGroup",
         "children": ["printBtn", "toSummary"]

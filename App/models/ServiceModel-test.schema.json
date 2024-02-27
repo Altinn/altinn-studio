@@ -474,6 +474,18 @@
         },
         "neverValidatedInput": {
           "type": "string"
+        },
+        "ChooseExtraPages": {
+          "type": "string"
+        },
+        "Numeric": {
+          "type": "object",
+          "properties": {
+            "Decimal": { "type": "number" },
+            "Int32": { "type": "integer", "@xsdType": "int" },
+            "Int64": { "type": "integer", "@xsdType": "long" },
+            "Int16": { "type": "integer", "@xsdType": "short" }
+          }
         }
       },
       "required": [

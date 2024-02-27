@@ -3,6 +3,7 @@
     "pages": {
         "order": [
             "form",
+            "numeric-fields",
             "summary",
             "grid"
         ],

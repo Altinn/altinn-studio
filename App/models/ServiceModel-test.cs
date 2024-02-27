@@ -90,6 +90,39 @@ namespace Altinn.App.Models
         [JsonProperty("neverValidatedInput")]
         [JsonPropertyName("neverValidatedInput")]
         public string? neverValidatedInput { get; set; }
+
+        [XmlElement("ChooseExtraPages")]
+        [JsonProperty("ChooseExtraPages")]
+        [JsonPropertyName("ChooseExtraPages")]
+        public string? ChooseExtraPages { get; set; }
+
+        [XmlElement("Numeric")]
+        [JsonProperty("Numeric")]
+        [JsonPropertyName("Numeric")]
+        public Numeric? Numeric { get; set; }
+    }
+
+    public class Numeric
+    {
+        [XmlElement("Decimal")]
+        [JsonProperty("Decimal")]
+        [JsonPropertyName("Decimal")]
+        public decimal Decimal { get; set; }
+
+        [XmlElement("Int32")]
+        [JsonProperty("Int32")]
+        [JsonPropertyName("Int32")]
+        public int Int32 { get; set; }
+
+        [XmlElement("Int64")]
+        [JsonProperty("Int64")]
+        [JsonPropertyName("Int64")]
+        public long Int64 { get; set; }
+
+        [XmlElement("Int16")]
+        [JsonProperty("Int16")]
+        [JsonPropertyName("Int16")]
+        public short Int16 { get; set; }
     }
 
     public class Innledninggrp9309
