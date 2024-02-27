@@ -8,15 +8,6 @@ namespace Altinn.App.Core.Configuration
     /// </summary>
     public class AppSettings
     {
-        /// <summary>
-        /// Constant for the location of resource files
-        /// </summary>
-        public const string RESOURCE_FOLDER_NAME = "Resources/";
-
-        /// <summary>
-        /// Constant for the location of service metadata file
-        /// </summary>
-        public const string METADATA_FILENAME = "metadata.json";
 
         /// <summary>
         /// Constant for the location of json schema file
@@ -99,11 +90,6 @@ namespace Altinn.App.Core.Configuration
         public string RuleConfigurationJSONFileName { get; set; } = "RuleConfiguration.json";
 
         /// <summary>
-        /// Gets or sets The ServiceMetadata file name
-        /// </summary>
-        public string ServiceMetadataFileName { get; set; } = METADATA_FILENAME;
-
-        /// <summary>
         /// Gets or sets The JSON schema file name
         /// </summary>
         public string JsonSchemaFileName { get; set; } = JSON_SCHEMA_FILENAME;
@@ -172,27 +158,6 @@ namespace Altinn.App.Core.Configuration
         /// Option to disable csrf check
         /// </summary>
         public bool DisableCsrfCheck { get; set; }
-
-        /// <summary>
-        /// Gets the styles config element
-        /// </summary>
-        public string GetStylesConfig()
-        {
-            StylesConfig stylesConfig = new StylesConfig();
-            stylesConfig.InternalStyles.Add(RuntimeCssFileName);
-            stylesConfig.ExternalStyles.Add(DefaultBootstrapUrl);
-
-            return JsonConvert.SerializeObject(stylesConfig);
-        }
-
-        /// <summary>
-        /// Get Resource Folder name
-        /// </summary>
-        /// <returns>The resource folder</returns>
-        public string GetResourceFolder()
-        {
-            return RESOURCE_FOLDER_NAME;
-        }
 
         /// <summary>
         /// Cache lifetime for app resources

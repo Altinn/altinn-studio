@@ -14,15 +14,6 @@ namespace Altinn.App.Core.Internal.App
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="resource">the resource.</param>
-        /// <returns>The app resource.</returns>
-        byte[] GetAppResource(string org, string app, string resource);
-
-        /// <summary>
-        /// Get the app resource for the given parameters.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="textResource">the resource.</param>
         /// <returns>The app resource.</returns>
         byte[] GetText(string org, string app, string textResource);
@@ -37,27 +28,11 @@ namespace Altinn.App.Core.Internal.App
         Task<TextResource?> GetTexts(string org, string app, string language);
 
         /// <summary>
-        /// Returns the model metadata for an app.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The ServiceMetadata for an app.</returns>
-        [Obsolete("GetModelMetaDataJSON is no longer used by app frontend. Use GetModelJsonSchema.")]
-        string GetModelMetaDataJSON(string org, string app);
-
-        /// <summary>
         /// Returns the json schema for the provided model id.
         /// </summary>
         /// <param name="modelId">Unique identifier for the model.</param>
         /// <returns>The JSON schema for the model</returns>
         string GetModelJsonSchema(string modelId);
-
-        /// <summary>
-        /// Method that fetches the runtime resources stored in wwwroot
-        /// </summary>
-        /// <param name="resource">the resource</param>
-        /// <returns>The filestream for the resource file</returns>
-        byte[]? GetRuntimeResource(string resource);
 
         /// <summary>
         /// Returns the application metadata for an application.

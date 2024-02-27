@@ -12,116 +12,15 @@ namespace Altinn.App.Api.Controllers
     /// </summary>
     public class ResourceController : ControllerBase
     {
-        private readonly AppSettings _appSettings;
         private readonly IAppResources _appResourceService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ResourceController"/> class
         /// </summary>
-        /// <param name="appSettings">App settings</param>
         /// <param name="appResourcesService">The execution service</param>
-        public ResourceController(IOptions<AppSettings> appSettings, IAppResources appResourcesService)
+        public ResourceController(IAppResources appResourcesService)
         {
-            _appSettings = appSettings.Value;
             _appResourceService = appResourcesService;
-        }
-
-        /// <summary>
-        /// Method to retrieve embedded content in app like images, css, fonts, +++++
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="id">The name of the resource</param>
-        /// <returns>File content with content type set</returns>
-        [HttpGet]
-        [Route("{org}/{app}/api/resource/{id}")]
-        [HttpGet]
-        public IActionResult Index(string org, string app, string id)
-        {
-            if (id == _appSettings.FormLayoutJSONFileName)
-            {
-                return GetLayouts(org, app);
-            }
-
-            byte[] fileContent = _appResourceService.GetAppResource(org, app, id);
-
-            if (fileContent != null)
-            {
-                return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(Path.GetExtension(id).ToLower()).ToString());
-            }
-
-            if (id == _appSettings.RuleConfigurationJSONFileName || id == _appSettings.RuleHandlerFileName)
-            {
-                return NoContent();
-            }
-
-            return NotFound();
-        }
-
-        /// <summary>
-        /// Method to retrieve the runtime resources
-        /// </summary>
-        /// <returns>File content with content type set</returns>
-        /// TODO: Figure out if this can be deleted
-        [HttpGet]
-        [Route("{org}/{app}/api/runtimeresources/{id}/")]
-        [HttpGet]
-        public IActionResult GetRuntimeResource(string id)
-        {
-            byte[]? fileContent = _appResourceService.GetRuntimeResource(id);
-
-            if (fileContent != null)
-            {
-                return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(Path.GetExtension(id).ToLower()).ToString());
-            }
-
-            return StatusCode(404);
-        }
-
-        /// <summary>
-        /// Method to retrieve textresources
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The text resource file content or 404</returns>
-        [HttpGet]
-        [Route("{org}/{app}/api/textresources")]
-        [Obsolete("TextResources endpoint is obsolete. Use endpoint in TextsController.")]
-        [HttpGet]
-        public IActionResult GetTextResources(string org, string app)
-        {
-            string defaultLang = "nb";
-            string culture = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
-            string id = $"resource.{culture}.json";
-            byte[] fileContent = _appResourceService.GetText(org, app, id);
-            if (fileContent != null)
-            {
-                return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(Path.GetExtension(id).ToLower()).ToString());
-            }
-
-            id = $"resource.{defaultLang}.json";
-            fileContent = _appResourceService.GetText(org, app, id);
-            if (fileContent != null)
-            {
-                return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(Path.GetExtension(id).ToLower()).ToString());
-            }
-
-            return StatusCode(404);
-        }
-
-        /// <summary>
-        /// Get the model metadata
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The model metadata</returns>
-        [HttpGet]
-        [Route("{org}/{app}/api/metadata/{id}")]
-        [Obsolete("Metadata endpoint is obsolete. Use jsonschema endpoint.")]
-        public ActionResult GetModelMetadata([FromRoute] string org, [FromRoute] string app)
-        {
-            string metadata = _appResourceService.GetModelMetaDataJSON(org, app);
-            return Ok(metadata);
         }
 
         /// <summary>
