@@ -38,7 +38,6 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 .AppendLine("using System.ComponentModel.DataAnnotations;")
                 .AppendLine("using System.Linq;")
                 .AppendLine("using System.Text.Json.Serialization;")
-                .AppendLine("using System.Threading.Tasks;")
                 .AppendLine("using System.Xml.Serialization;")
                 .AppendLine("using Microsoft.AspNetCore.Mvc.ModelBinding;")
                 .AppendLine("using Newtonsoft.Json;")
