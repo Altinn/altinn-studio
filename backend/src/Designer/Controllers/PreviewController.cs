@@ -525,7 +525,9 @@ namespace Altinn.Studio.Designer.Controllers
             List<string> tasks = await _previewService.GetTasksForAllLayoutSets(org, app, developer, cancellationToken);
             AppProcessState processState = new AppProcessState(mockInstance.Process)
             {
-                ProcessTasks = new List<AppProcessTaskTypeInfo>(tasks?.ConvertAll(task => new AppProcessTaskTypeInfo { ElementId = task, AltinnTaskType = "data"}))
+                ProcessTasks = tasks != null
+                    ? new List<AppProcessTaskTypeInfo>(tasks?.ConvertAll(task => new AppProcessTaskTypeInfo { ElementId = task, AltinnTaskType = "data"}))
+                    : null
             };
 
             return Ok(processState);
