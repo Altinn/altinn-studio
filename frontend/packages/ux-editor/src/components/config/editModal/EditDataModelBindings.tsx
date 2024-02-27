@@ -1,6 +1,6 @@
 import type { IGenericEditComponent } from '../componentConfig';
 import {
-  dataModelFieldsFilter,
+  getDataModelFieldsFilter,
   getMaxOccursFromDataModel,
   getMinOccursFromDataModel,
   getXsdDataTypeFromDataModel,
@@ -107,7 +107,7 @@ export const EditDataModelBindings = ({
                 label={labelSpecificText}
                 componentType={component.type}
                 inputId={`selectDataModelSelect-${label}`}
-                dataModelFieldsFilter={dataModelFieldsFilter(component.type, label === 'list')}
+                dataModelFieldsFilter={getDataModelFieldsFilter(component.type, label === 'list')}
                 selectedElement={
                   component.dataModelBindings
                     ? component.dataModelBindings[key || 'simpleBinding']

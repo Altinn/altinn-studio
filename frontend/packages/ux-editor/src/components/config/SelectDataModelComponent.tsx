@@ -36,12 +36,10 @@ export const SelectDataModelComponent = ({
 
   useEffect(() => {
     if (!data) return;
-    const elementNames = data
-      .filter((element) => dataModelFieldsFilter(element))
-      .map((element) => ({
-        value: element.dataBindingName,
-        label: element.dataBindingName,
-      }));
+    const elementNames = data.filter(dataModelFieldsFilter).map((element) => ({
+      value: element.dataBindingName,
+      label: element.dataBindingName,
+    }));
     setDataModelElementNames(elementNames);
   }, [data, dataModelFieldsFilter]);
 

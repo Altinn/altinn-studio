@@ -76,7 +76,7 @@ const repeatingGroupFilter = (element: DatamodelFieldElement) =>
 const multipleAttachmentsFilter = (element: DatamodelFieldElement) =>
   element.dataBindingName && element.maxOccurs > 1 && element.xsdValueType === 'String';
 
-export const dataModelFieldsFilter = (
+export const getDataModelFieldsFilter = (
   componentType: ComponentType,
   label: boolean,
 ): ((element: DatamodelFieldElement) => boolean) => {

@@ -5,7 +5,7 @@ import { SelectDataModelComponent } from './SelectDataModelComponent';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { dataModelFieldsFilter } from '../../utils/datamodel';
+import { getDataModelFieldsFilter } from '../../utils/datamodel';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
@@ -72,7 +72,7 @@ const render = async ({
     <SelectDataModelComponent
       label={textMock(`ux_editor.component_title.${componentType}`)}
       onDataModelChange={handleComponentChange}
-      dataModelFieldsFilter={dataModelFieldsFilter(componentType, label)}
+      dataModelFieldsFilter={getDataModelFieldsFilter(componentType, label)}
       selectedElement={undefined}
     />,
   );
