@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { act, fireEvent, getByLabelText, screen } from '@testing-library/react';
 import { PropertiesHeader, type PropertiesHeaderProps } from './PropertiesHeader';
 import { FormItemContext } from '../../../containers/FormItemContext';
 import userEvent from '@testing-library/user-event';
@@ -53,33 +53,34 @@ describe('PropertiesHeader', () => {
     ).toBeInTheDocument();
   });
 
-  it('calls "handleComponentUpdate" when the id changes', async () => {
+  it('should invoke "handleComponentUpdate" when id field blurs', async () => {
     render();
 
-    const editComponentIdButton = screen.getByRole('button', { name: /ID/i });
-    expect(editComponentIdButton).toBeInTheDocument();
+    const editComponentIdButton = screen.getByRole('button', { name: 'ID: Component-1' });
     await act(() => user.click(editComponentIdButton));
-    const textbox = screen.getByRole('textbox', { name: 'ID' });
 
-    await act(() => user.type(textbox, '2'));
-    await act(() => user.click(document.body));
+    const inputField = screen.getByLabelText('ID');
+    await act(() => user.type(inputField, 'someNewId'));
+    fireEvent.blur(inputField);
+
     expect(mockHandleComponentUpdate).toHaveBeenCalledTimes(1);
-    /*  await act(() => user.type(textBox, 'someId'));
-    expect(mockHandleComponentUpdate).toHaveBeenCalledTimes(6); */
   });
 
-  it('should display an error when containerId is invalid', async () => {
+  it('should not invoke "handleComponentUpdateMock" when input field has error', async () => {
     await render();
 
-    const containerIdInput = screen.getByRole('textbox', {
-      name: textMock('ux_editor.modal_properties_component_change_id'),
-    });
+    const editComponentIdButton = screen.getByRole('button', { name: 'ID: Component-1' });
+    await act(() => user.click(editComponentIdButton));
 
-    await act(() => user.type(containerIdInput, 'test@'));
-    expect(
-      screen.getByText(textMock('ux_editor.modal_properties_component_id_not_valid')),
-    ).toBeInTheDocument();
-    expect(mockHandleComponentUpdate).toHaveBeenCalledTimes(4);
+    const containerIdInput = screen.getByLabelText('ID');
+
+    const invalidId = 'test@';
+    await act(() => user.type(containerIdInput, invalidId));
+    fireEvent.blur(containerIdInput);
+
+    expect(screen.getByText(textMock('ux_editor.modal_properties_component_id_not_valid')));
+    expect(containerIdInput).toHaveAttribute('aria-invalid', 'true');
+    expect(mockHandleComponentUpdate).toHaveBeenCalledTimes(0);
   });
 
   it('should show dataModelBinding selector', async () => {
@@ -94,10 +95,8 @@ describe('PropertiesHeader', () => {
   it('should only show component-id editing option when component does not have dataModelBinding', async () => {
     await render({ form: componentMocks[ComponentType.AccordionGroup] });
 
-    const componentId = screen.getByRole('textbox', {
-      name: textMock('ux_editor.modal_properties_component_change_id'),
-    });
-    expect(componentId).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'ID: test' }));
+
     const dataModelBinding = screen.queryByRole('button', {
       name: textMock('ux_editor.modal_properties_data_model_link'),
     });

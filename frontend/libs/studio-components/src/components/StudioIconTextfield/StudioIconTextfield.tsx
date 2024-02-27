@@ -1,10 +1,10 @@
 import React from 'react';
-import { type TextfieldProps, Textfield } from '@digdir/design-system-react';
 import classes from './StudioIconTextfield.module.css';
+import { StudioTextfield, type StudioTextfieldProps } from '../StudioTextfield';
 
 export type StudioIconTextfieldProps = {
   icon: React.ReactNode;
-} & TextfieldProps;
+} & StudioTextfieldProps;
 
 export const StudioIconTextfield = ({ icon, ...rest }: StudioIconTextfieldProps) => {
   return (
@@ -12,7 +12,7 @@ export const StudioIconTextfield = ({ icon, ...rest }: StudioIconTextfieldProps)
       <div aria-hidden className={classes.iconContainer}>
         {icon}
       </div>
-      <Textfield {...rest} name='componentIdInput' />
+      <StudioTextfield {...rest} />
     </div>
   );
 };

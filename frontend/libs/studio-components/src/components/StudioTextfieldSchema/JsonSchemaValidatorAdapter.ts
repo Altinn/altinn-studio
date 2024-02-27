@@ -7,7 +7,7 @@ export interface StudioJSONValidatorErrorObject {
   keyword: string;
 }
 
-export class StudioJSONValidatorUtils<
+export class JsonSchemaValidatorAdapter<
   T extends StudioJSONValidator,
   Error extends StudioJSONValidatorErrorObject,
 > {

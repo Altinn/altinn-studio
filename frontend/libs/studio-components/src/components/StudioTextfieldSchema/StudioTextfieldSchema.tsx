@@ -1,33 +1,30 @@
 import React from 'react';
+import { JsonSchemaValidatorAdapter } from './JsonSchemaValidatorAdapter';
 import {
-  StudioToggableTextfield,
-  type StudioToggableTextfieldProps,
+  StudioToggleableTextfield,
+  type StudioToggleableTextfieldProps,
 } from '../StudioToggableTextfield';
-import type { JsonSchema } from '../../../../../../packages/shared/src/types/JsonSchema';
-
-import { StudioJSONValidatorUtils } from '../StudioJSONValidatorUtils';
 
 export type SchemaValidationError = {
   errorCode: string;
   details: string;
 };
-export type StudioTextfieldSchemaProps = {
-  schema: JsonSchema;
+export type StudioTextfieldSchemaProps<Schema> = {
+  schema: Schema & { $id: string };
   propertyPath: string;
   jsonValidator: any;
   onError?: (error: SchemaValidationError | null) => void;
-} & StudioToggableTextfieldProps;
+} & StudioToggleableTextfieldProps;
 
-export const StudioTextfieldSchema = ({
+export const StudioTextfieldSchema = <Schema,>({
   jsonValidator,
   schema,
   inputProps,
   propertyPath,
   onError,
   ...rest
-}: StudioTextfieldSchemaProps) => {
-  const studioJSONValidator = new StudioJSONValidatorUtils(jsonValidator);
-
+}: StudioTextfieldSchemaProps<Schema>): React.ReactElement => {
+  const studioJSONValidator = new JsonSchemaValidatorAdapter(jsonValidator);
   const propertyId = schema && propertyPath ? `${schema.$id}#/${propertyPath}` : null;
 
   const validateAgainstSchema = (
@@ -36,12 +33,14 @@ export const StudioTextfieldSchema = ({
     const newValue = event.target.value;
 
     if (studioJSONValidator.isPropertyRequired(schema, propertyPath) && newValue?.length === 0) {
-      return { errorCode: 'required', details: 'Property value is required' };
+      return createSchemaError('required', 'Property value is required');
     }
+
     if (propertyId) {
       const error = studioJSONValidator.validateProperty(propertyId, newValue);
-      return error ? { errorCode: error, details: 'Result of validate property' } : null;
+      return error ? createSchemaError(error, 'Result of validate property') : null;
     }
+
     return null;
   };
 
@@ -49,19 +48,22 @@ export const StudioTextfieldSchema = ({
     const validationError = validateAgainstSchema(event);
 
     onError?.(validationError || null);
-
     inputProps.onChange?.(event);
   };
 
   return (
-    <StudioToggableTextfield
+    <StudioToggleableTextfield
       {...rest}
       inputProps={{
         ...inputProps,
-        onChange: (e) => handleOnChange(e),
+        onChange: (event: React.ChangeEvent<HTMLInputElement>) => handleOnChange(event),
         error: inputProps.error,
-        'aria-label': `input-${propertyPath}`,
       }}
     />
   );
 };
+
+const createSchemaError = (errorCode: string, details: string): SchemaValidationError => ({
+  errorCode,
+  details,
+});

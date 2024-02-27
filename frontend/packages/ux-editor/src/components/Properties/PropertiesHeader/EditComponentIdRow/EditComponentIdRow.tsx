@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import type { FormComponent } from '../../../../types/FormComponent';
+import React, { useState } from 'react';
 import { StudioTextfieldSchema, type SchemaValidationError } from '@studio/components';
 import { KeyVerticalIcon } from '@navikt/aksel-icons';
 import classes from './EditComponentIdRow.module.css';
@@ -7,9 +6,7 @@ import { idExists } from '../../../../utils/formLayoutUtils';
 import { useSelectedFormLayout } from '../../../../hooks';
 import { useTranslation } from 'react-i18next';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
-import { ajv } from '../../../../../../shared/src/utils/formValidationUtils/formValidationUtils';
-import { FormField } from '../../../FormField';
-import { Textfield } from '@digdir/design-system-react';
+import { ajv } from 'app-shared/utils/formValidationUtils';
 import type { FormItem } from '../../../../types/FormItem';
 
 export interface EditComponentIdRowProps {
@@ -17,23 +14,19 @@ export interface EditComponentIdRowProps {
   component: FormItem;
   helpText?: string;
 }
+
 export const EditComponentIdRow = ({
   component,
   handleComponentUpdate,
-  helpText,
 }: EditComponentIdRowProps) => {
   const { components, containers } = useSelectedFormLayout();
   const { t } = useTranslation();
-  const [idInputValue, setIdInputValue] = useState(component.id);
   const [{ data: layoutSchema }] = useLayoutSchemaQuery();
   const [errorMessage, setErrorMessage] = useState<string | undefined>(null);
 
-  useEffect(() => {
-    setIdInputValue(component.id);
-  }, [component.id]);
+  const idInputValue = component.id;
 
   const saveComponentUpdate = (id: string) => {
-    if (errorMessage) return;
     handleComponentUpdate({
       ...component,
       id,
@@ -41,34 +34,23 @@ export const EditComponentIdRow = ({
   };
 
   const validateId = (value: string) => {
-    setIdInputValue(value);
     if (value?.length === 0) {
-      setErrorMessage(t('validation_errors.required'));
       return t('validation_errors.required');
     }
     if (value !== component.id && idExists(value, components, containers)) {
-      setErrorMessage(t('ux_editor.modal_properties_component_id_not_unique_error'));
       return t('ux_editor.modal_properties_component_id_not_unique_error');
     }
     return '';
   };
 
-  const handleValidationError = (error: SchemaValidationError | null) => {
-    console.log('error', error);
+  const handleValidationError = (error: SchemaValidationError | null): void => {
+    const errorCodeMap = {
+      required: t('validation_errors.required'),
+      unique: t('ux_editor.modal_properties_component_id_not_unique_error'),
+      pattern: t('ux_editor.modal_properties_component_id_not_valid'),
+    };
 
-    switch (error?.errorCode) {
-      case 'required':
-        setErrorMessage(t('validation_errors.required'));
-        break;
-      case 'unique':
-        setErrorMessage(t('ux_editor.modal_properties_component_id_not_unique_error'));
-        break;
-      case 'pattern':
-        setErrorMessage(t('ux_editor.modal_properties_component_id_not_valid'));
-        break;
-      default:
-        setErrorMessage(null);
-    }
+    setErrorMessage(errorCodeMap[error?.errorCode]);
   };
 
   return (
@@ -88,7 +70,7 @@ export const EditComponentIdRow = ({
         inputProps={{
           icon: <KeyVerticalIcon className={classes.prefixIcon} />,
           value: idInputValue,
-          onBlur: (e) => saveComponentUpdate(e.target.value),
+          onBlur: (event) => saveComponentUpdate(event.target.value),
           label: 'ID',
           size: 'small',
           error: errorMessage,

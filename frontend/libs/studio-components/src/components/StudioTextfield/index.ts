@@ -1,2 +1,1 @@
-export { StudioToggableTextfield } from './StudioToggableTextfield';
-export { StudioTextfieldSchema, type SchemaValidationError } from './StudioTextfieldSchema';
+export { StudioTextfield, type StudioTextfieldProps } from './StudioTextfield';

@@ -13,4 +13,6 @@ export * from './StudioSpinner';
 export * from './StudioTextarea';
 export * from './StudioTextfield';
 export * from './StudioTreeView';
-export * from './StudioTextField';
+export * from './StudioToggableTextfield';
+export * from './StudioIconTextfield';
+export * from './StudioTextfieldSchema';

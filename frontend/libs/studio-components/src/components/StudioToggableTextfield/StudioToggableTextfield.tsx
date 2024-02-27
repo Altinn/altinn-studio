@@ -1,56 +1,68 @@
 import React, { useId, useState } from 'react';
-import type { StudioTextfieldToggleViewProps } from './StudioTextfieldToggleView/StudioTextfieldToggleView';
-import {
-  StudioIconTextfield,
-  type StudioIconTextfieldProps,
-} from './StudioIconTextfield/StudioIconTextfield';
-import { StudioTextfieldToggleView } from './StudioTextfieldToggleView/StudioTextfieldToggleView';
-import { HelpText } from '@digdir/design-system-react';
 
-export type StudioToggableTextfieldProps = {
-  viewProps: Omit<StudioTextfieldToggleViewProps, 'onClick'>;
-  inputProps: StudioIconTextfieldProps;
-  helpText?: string;
+import { HelpText } from '@digdir/design-system-react';
+import {
+  StudioTextfieldToggleView,
+  type StudioTextfieldToggleViewProps,
+} from './StudioTextfieldToggleView';
+
+import { StudioIconTextfield, type StudioIconTextfieldProps } from '../StudioIconTextfield';
+
+export type StudioToggleableTextfieldProps = {
   customValidation?: (value: string) => string | undefined;
+  helpText?: string;
+  inputProps: StudioIconTextfieldProps;
+  viewProps: Omit<StudioTextfieldToggleViewProps, 'onClick'>;
 };
 
-export const StudioToggableTextfield = ({
+export const StudioToggleableTextfield = ({
   inputProps,
   viewProps,
   helpText,
   customValidation,
-}: StudioToggableTextfieldProps) => {
+}: StudioToggleableTextfieldProps) => {
   const [isViewMode, setIsViewMode] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(null);
   const helpTextId = useId();
 
-  const toggleViewMode = () => {
+  const toggleViewMode = (): void => {
     setIsViewMode((prevMode) => !prevMode);
   };
 
   const runCustomValidation = (event: React.ChangeEvent<HTMLInputElement>): boolean => {
-    const isErrorExists = customValidation(event.target.value);
-    if (isErrorExists) {
-      setErrorMessage(isErrorExists);
+    const errorValidationMessage = customValidation(event.target.value);
+
+    if (errorValidationMessage) {
+      setErrorMessage(errorValidationMessage);
       return true;
     }
-    setErrorMessage(undefined);
+    setErrorMessage(null);
     return false;
   };
 
-  const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+  const handleBlur = (event: React.FocusEvent<HTMLInputElement>): void => {
+    // Should not close the view mode or blur if there is an error
+    if (errorMessage || inputProps.error) {
+      return;
+    }
+
     if (event.relatedTarget?.id !== helpTextId) {
       toggleViewMode();
     }
+
     inputProps.onBlur?.(event);
   };
 
   const handleOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (customValidation) runCustomValidation(event);
+    if (customValidation) {
+      runCustomValidation(event);
+    }
+
     inputProps.onChange?.(event);
   };
 
   if (isViewMode) return <StudioTextfieldToggleView onClick={toggleViewMode} {...viewProps} />;
+
   return (
     <>
       <StudioIconTextfield
