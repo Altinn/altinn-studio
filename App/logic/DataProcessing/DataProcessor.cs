@@ -9,12 +9,12 @@ namespace Altinn.App.AppLogic.DataProcessing
 {
   public class DataProcessor: IDataProcessor
   {
-    public Task ProcessDataWrite(Instance instance, Guid? dataId, object data, object previous)
+    public Task ProcessDataWrite(Instance instance, Guid? dataId, object data, object previous, string language)
     {
       return Task.CompletedTask;
     }
 
-    public Task ProcessDataRead(Instance instance, Guid? dataId, object data)
+    public Task ProcessDataRead(Instance instance, Guid? dataId, object data, string language)
     {
       if (data.GetType() != typeof(Skjema))
       {
