@@ -81,8 +81,8 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: FingerButtonIcon,
   },
-  [ComponentType.AddressComponent]: {
-    name: ComponentType.AddressComponent,
+  [ComponentType.Address]: {
+    name: ComponentType.Address,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       simplified: true,
@@ -382,7 +382,7 @@ export const formItemConfigs: FormItemConfigs = {
 };
 
 export const advancedItems: FormItemConfigs[ComponentType][] = [
-  formItemConfigs[ComponentType.AddressComponent],
+  formItemConfigs[ComponentType.Address],
   formItemConfigs[ComponentType.AttachmentList],
   formItemConfigs[ComponentType.Group],
   formItemConfigs[ComponentType.Grid],

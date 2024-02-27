@@ -99,7 +99,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     buttonStyle: ButtonStyle;
     action: ActionButtonAction;
   };
-  [ComponentType.AddressComponent]: FormComponentProps &
+  [ComponentType.Address]: FormComponentProps &
     SummarizableComponentProps &
     LabeledComponentProps & {
       simplified?: boolean;
