@@ -87,6 +87,16 @@ namespace Altinn.App.Models
 
   public class arbeidserfaring
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public Guid AltinnRowId { get; set; }
+
+    public bool AltinnRowIdSpecified()
+    {
+      return AltinnRowId == default;
+    }
+
     [XmlElement("arbeidsgiver", Order = 1)]
     [JsonProperty("arbeidsgiver")]
     [JsonPropertyName("arbeidsgiver")]
@@ -126,6 +136,16 @@ namespace Altinn.App.Models
 
   public class prosjekter
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public Guid AltinnRowId { get; set; }
+
+    public bool AltinnRowIdSpecified()
+    {
+      return AltinnRowId == default;
+    }
+
     [MaxLength(32)]
     [XmlElement("tittel", Order = 1)]
     [JsonProperty("tittel")]
