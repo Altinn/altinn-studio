@@ -1,8 +1,6 @@
 import { useRef, useEffect, type MutableRefObject } from 'react';
 import type BpmnModeler from 'bpmn-js/lib/Modeler';
 import { useBpmnContext } from '../contexts/BpmnContext';
-// eslint-disable-next-line no-duplicate-imports
-import type Modeler from 'bpmn-js/lib/Modeler';
 import { useBpmnModeler } from './useBpmnModeler';
 import { getBpmnEditorDetailsFromBusinessObject } from '../utils/hookUtils';
 
@@ -23,7 +21,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
       console.log('Canvas reference is not yet available in the DOM.');
       return;
     }
-    const modelerInstance: Modeler = getModeler(canvasRef.current);
+    const modelerInstance: BpmnModeler = getModeler(canvasRef.current);
 
     // set modelerRef.current to the Context so that it can be used in other components
     modelerRef.current = modelerInstance;

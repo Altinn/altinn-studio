@@ -1,16 +1,14 @@
 ﻿import { useEffect } from 'react';
-import type Modeler from 'bpmn-js/lib/Modeler';
-// eslint-disable-next-line no-duplicate-imports
 import BpmnModeler from 'bpmn-js/lib/Modeler';
 import SupportedPaletteProvider from '../../bpmnProviders/SupportedPaletteProvider';
 import SupportedContextPadProvider from '../../bpmnProviders/SupportedContextPadProvider';
 import { altinnCustomTasks } from '../../extensions/altinnCustomTasks';
 
 // Save the instance outside React Ecosystem, ensures to not creating new instances between renders.
-let modelerInstance: Modeler | null = null;
+let modelerInstance: BpmnModeler | null = null;
 
 type UseBpmnModelerResult = {
-  getModeler: (canvasContainer: HTMLDivElement) => Modeler;
+  getModeler: (canvasContainer: HTMLDivElement) => BpmnModeler;
 };
 
 export const useBpmnModeler = (): UseBpmnModelerResult => {
@@ -33,7 +31,7 @@ export const useBpmnModeler = (): UseBpmnModelerResult => {
     });
   };
 
-  const getModeler = (canvasContainer: HTMLDivElement): Modeler => {
+  const getModeler = (canvasContainer: HTMLDivElement): BpmnModeler => {
     if (!modelerInstance) {
       modelerInstance = initializeModeler(canvasContainer);
     }

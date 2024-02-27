@@ -1,9 +1,7 @@
 import { ComponentTypeV3 as ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { FormItem } from '../types/FormItem';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
-import type { RefAttributes, SVGProps } from 'react';
-// eslint-disable-next-line no-duplicate-imports
-import type React from 'react';
+import type { ComponentType as ReactComponentType, RefAttributes, SVGProps } from 'react';
 import ActionButtonSchema from '../testing/schemas/json/component/ActionButton.schema.v1.json';
 import {
   AccordionIcon,
@@ -39,7 +37,7 @@ export type FormItemConfig<T extends ComponentTypeV3 = ComponentTypeV3> = {
   name: T;
   itemType: LayoutItemType;
   defaultProperties: FormItem<T>;
-  icon?: React.ComponentType<SVGProps<SVGSVGElement> & { title?: string; titleId?: string }> &
+  icon?: ReactComponentType<SVGProps<SVGSVGElement> & { title?: string; titleId?: string }> &
     RefAttributes<SVGSVGElement>;
 } & (T extends ContainerComponentType ? { validChildTypes: ComponentTypeV3[] } : {});
 

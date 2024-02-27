@@ -1,8 +1,6 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
-import type { RefAttributes, SVGProps } from 'react';
-// eslint-disable-next-line no-duplicate-imports
-import type React from 'react';
+import type { ComponentType as ReactComponentType, RefAttributes, SVGProps } from 'react';
 import {
   AccordionIcon,
   CalendarIcon,
@@ -40,7 +38,7 @@ export type FormItemConfig<T extends ComponentType = ComponentType> = {
   name: T;
   itemType: T extends ContainerComponentType ? LayoutItemType.Container : LayoutItemType.Component;
   defaultProperties: ComponentSpecificConfig<T>;
-  icon?: React.ComponentType<SVGProps<SVGSVGElement> & { title?: string; titleId?: string }> &
+  icon?: ReactComponentType<SVGProps<SVGSVGElement> & { title?: string; titleId?: string }> &
     RefAttributes<SVGSVGElement>;
   propertyPath?: string;
 } & (T extends ContainerComponentType ? { validChildTypes: ComponentType[] } : {});

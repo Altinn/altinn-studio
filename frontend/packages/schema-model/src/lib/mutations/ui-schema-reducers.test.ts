@@ -14,20 +14,17 @@ import {
   setTitle,
   setType,
   toggleArrayField,
-} from './ui-schema-reducers';
-// eslint-disable-next-line no-duplicate-imports -- Disabled dublicate erorr to avoid very long import statement
-import type {
-  AddCombinationItemArgs,
-  ChangeChildrenOrderArgs,
-  SetCombinationTypeArgs,
-  SetDescriptionArgs,
-  SetPropertyNameArgs,
-  SetRefArgs,
-  SetRestrictionArgs,
-  SetRestrictionsArgs,
-  SetTitleArgs,
-  SetTypeArgs,
-  SetCustomPropertiesArgs,
+  type AddCombinationItemArgs,
+  type ChangeChildrenOrderArgs,
+  type SetCombinationTypeArgs,
+  type SetDescriptionArgs,
+  type SetPropertyNameArgs,
+  type SetRefArgs,
+  type SetRestrictionArgs,
+  type SetRestrictionsArgs,
+  type SetTitleArgs,
+  type SetTypeArgs,
+  type SetCustomPropertiesArgs,
 } from './ui-schema-reducers';
 import {
   allOfNodeMock,
