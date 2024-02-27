@@ -522,13 +522,21 @@ namespace Altinn.Studio.Designer.Controllers
             string refererHeader = Request.Headers["Referer"];
             string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
             Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, partyId, layoutSetName, cancellationToken);
-            List<string> tasks = await _previewService.GetTasksForAllLayoutSets(org, app, developer, cancellationToken);
-            AppProcessState processState = new AppProcessState(mockInstance.Process)
+            try
             {
-                ProcessTasks = new List<AppProcessTaskTypeInfo>(tasks.ConvertAll(task => new AppProcessTaskTypeInfo { ElementId = task, AltinnTaskType = "data"}))
-            };
+                List<string> tasks = await _previewService.GetTasksForAllLayoutSets(org, app, developer, cancellationToken);
+                AppProcessState processState = new AppProcessState(mockInstance.Process)
+                {
+                    ProcessTasks = new List<AppProcessTaskTypeInfo>(tasks?.ConvertAll(task => new AppProcessTaskTypeInfo { ElementId = task, AltinnTaskType = "data"}))
+                };
 
-            return Ok(processState);
+                return Ok(processState);
+            }
+            catch (NotFoundException)
+            {
+                // Handle case where no layoutsets exist
+                return new AppProcessState(mockInstance.Process);
+            }
         }
 
         /// <summary>
