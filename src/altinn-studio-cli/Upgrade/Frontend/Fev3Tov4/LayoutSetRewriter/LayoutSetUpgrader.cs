@@ -144,6 +144,15 @@ class LayoutSetUpgrader
         var newLayoutsPath = Path.Combine(uiFolder, layoutSetName, "layouts");
         if (Directory.Exists(oldLayoutsPath))
         {
+            if (Directory.Exists(newLayoutsPath) && Directory.GetFileSystemEntries(newLayoutsPath).Count() == 0)
+            {
+                Directory.Delete(newLayoutsPath, false);
+            }
+            else
+            {
+                throw new Exception($"The folder {newLayoutsPath} already exists and is not empty");
+            }
+
             Directory.Move(oldLayoutsPath, newLayoutsPath);
         }
         else
