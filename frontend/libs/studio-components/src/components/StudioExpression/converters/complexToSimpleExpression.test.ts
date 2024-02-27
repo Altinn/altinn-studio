@@ -8,14 +8,14 @@ import type {
   NumberRelationFunc,
 } from '../types/Expression';
 import type { ValueInComplexFormat } from '../types/ValueInComplexFormat';
-import type { SimpleSubExpressionValue } from '../types/SimpleSubExpressionValue';
+import type { SimpleSubexpressionValue } from '../types/SimpleSubexpressionValue';
 import { NumberRelationOperator } from '../enums/NumberRelationOperator';
 import { DataLookupFuncName } from '../enums/DataLookupFuncName';
 import { GeneralRelationOperator } from '../enums/GeneralRelationOperator';
 import { KeyLookupFuncName } from '../enums/KeyLookupFuncName';
 import { InstanceContext } from '../enums/InstanceContext';
 import { LogicalTupleOperator } from '../enums/LogicalTupleOperator';
-import { SimpleSubExpressionValueType } from '../enums/SimpleSubExpressionValueType';
+import { SimpleSubexpressionValueType } from '../enums/SimpleSubexpressionValueType';
 
 describe('complexToSimpleExpression', () => {
   it.each([true, false])('Returns true when the expression is %s', (value) => {
@@ -25,7 +25,7 @@ describe('complexToSimpleExpression', () => {
   it('Returns an empty expression when the expression is null', () => {
     const expectedResult: SimplifiedExpression = {
       logicalOperator: DEFAULT_LOGICAL_OPERATOR,
-      subExpressions: [],
+      subexpressions: [],
     };
     const result = complexToSimpleExpression(null);
     expect(result).toEqual(expectedResult);
@@ -35,11 +35,11 @@ describe('complexToSimpleExpression', () => {
     const expression: NumberRelationFunc = [operator, [DataLookupFuncName.DataModel, 'test'], 1];
     const expectedResult: SimplifiedExpression = {
       logicalOperator: DEFAULT_LOGICAL_OPERATOR,
-      subExpressions: [
+      subexpressions: [
         {
           relationalOperator: operator,
-          firstOperand: { type: SimpleSubExpressionValueType.Datamodel, path: 'test' },
-          secondOperand: { type: SimpleSubExpressionValueType.Number, value: 1 },
+          firstOperand: { type: SimpleSubexpressionValueType.Datamodel, path: 'test' },
+          secondOperand: { type: SimpleSubexpressionValueType.Number, value: 1 },
         },
       ],
     };
@@ -50,11 +50,11 @@ describe('complexToSimpleExpression', () => {
     const expression: GenericRelationFunc = [operator, 1, [DataLookupFuncName.DataModel, 'test']];
     const expectedResult: SimplifiedExpression = {
       logicalOperator: DEFAULT_LOGICAL_OPERATOR,
-      subExpressions: [
+      subexpressions: [
         {
           relationalOperator: operator,
-          firstOperand: { type: SimpleSubExpressionValueType.Number, value: 1 },
-          secondOperand: { type: SimpleSubExpressionValueType.Datamodel, path: 'test' },
+          firstOperand: { type: SimpleSubexpressionValueType.Number, value: 1 },
+          secondOperand: { type: SimpleSubexpressionValueType.Datamodel, path: 'test' },
         },
       ],
     };
@@ -63,39 +63,39 @@ describe('complexToSimpleExpression', () => {
 
   type ValueTestDataItem = {
     input: ValueInComplexFormat;
-    expectedOutput: SimpleSubExpressionValue;
+    expectedOutput: SimpleSubexpressionValue;
   };
   const expressionValueTestData: Record<string, ValueTestDataItem> = {
     'component loookup': {
       input: [DataLookupFuncName.Component, 'someid'],
-      expectedOutput: { type: SimpleSubExpressionValueType.Component, id: 'someid' },
+      expectedOutput: { type: SimpleSubexpressionValueType.Component, id: 'someid' },
     },
     'datamodel lookup': {
       input: [DataLookupFuncName.DataModel, '#/test'],
-      expectedOutput: { type: SimpleSubExpressionValueType.Datamodel, path: '#/test' },
+      expectedOutput: { type: SimpleSubexpressionValueType.Datamodel, path: '#/test' },
     },
     'instance context lookup': {
       input: [KeyLookupFuncName.InstanceContext, InstanceContext.InstanceId],
       expectedOutput: {
-        type: SimpleSubExpressionValueType.InstanceContext,
+        type: SimpleSubexpressionValueType.InstanceContext,
         key: InstanceContext.InstanceId,
       },
     },
     string: {
       input: 'test',
-      expectedOutput: { type: SimpleSubExpressionValueType.String, value: 'test' },
+      expectedOutput: { type: SimpleSubexpressionValueType.String, value: 'test' },
     },
     number: {
       input: 1,
-      expectedOutput: { type: SimpleSubExpressionValueType.Number, value: 1 },
+      expectedOutput: { type: SimpleSubexpressionValueType.Number, value: 1 },
     },
     boolean: {
       input: true,
-      expectedOutput: { type: SimpleSubExpressionValueType.Boolean, value: true },
+      expectedOutput: { type: SimpleSubexpressionValueType.Boolean, value: true },
     },
     null: {
       input: null,
-      expectedOutput: { type: SimpleSubExpressionValueType.Null },
+      expectedOutput: { type: SimpleSubexpressionValueType.Null },
     },
   };
 
@@ -106,11 +106,11 @@ describe('complexToSimpleExpression', () => {
       const expression: GenericRelationFunc = [GeneralRelationOperator.Equals, input, 1];
       const expectedResult: SimplifiedExpression = {
         logicalOperator: DEFAULT_LOGICAL_OPERATOR,
-        subExpressions: [
+        subexpressions: [
           {
             relationalOperator: GeneralRelationOperator.Equals,
             firstOperand: expectedOutput,
-            secondOperand: { type: SimpleSubExpressionValueType.Number, value: 1 },
+            secondOperand: { type: SimpleSubexpressionValueType.Number, value: 1 },
           },
         ],
       };
@@ -132,17 +132,17 @@ describe('complexToSimpleExpression', () => {
       ];
       const expectedResult: SimplifiedExpression = {
         logicalOperator: operator,
-        subExpressions: [
+        subexpressions: [
           {
             relationalOperator: GeneralRelationOperator.Equals,
-            firstOperand: { type: SimpleSubExpressionValueType.Datamodel, path: '#/test' },
-            secondOperand: { type: SimpleSubExpressionValueType.Boolean, value: true },
+            firstOperand: { type: SimpleSubexpressionValueType.Datamodel, path: '#/test' },
+            secondOperand: { type: SimpleSubexpressionValueType.Boolean, value: true },
           },
           {
             relationalOperator: GeneralRelationOperator.NotEquals,
-            firstOperand: { type: SimpleSubExpressionValueType.String, value: 'test' },
+            firstOperand: { type: SimpleSubexpressionValueType.String, value: 'test' },
             secondOperand: {
-              type: SimpleSubExpressionValueType.InstanceContext,
+              type: SimpleSubexpressionValueType.InstanceContext,
               key: InstanceContext.InstanceOwnerPartyId,
             },
           },

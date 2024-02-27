@@ -1,10 +1,10 @@
 import type { Props } from './Props';
-import type { SimpleSubExpressionValueType } from '../../../../../enums/SimpleSubExpressionValueType';
+import type { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSubexpressionValueType';
 import React, { useContext } from 'react';
 import { StudioExpressionContext } from '../../../../../StudioExpressionContext';
 import { StudioDecimalInput } from '../../../../../../StudioDecimalInput';
 
-export const NumberInput = ({ value, onChange }: Props<SimpleSubExpressionValueType.Number>) => {
+export const NumberInput = ({ value, onChange }: Props<SimpleSubexpressionValueType.Number>) => {
   const { texts } = useContext(StudioExpressionContext);
 
   const handleChange = (number: number) => onChange({ ...value, value: number });

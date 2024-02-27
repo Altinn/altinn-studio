@@ -1,36 +1,36 @@
-import { SimpleSubExpressionValueType } from '../../../../../enums/SimpleSubExpressionValueType';
-import type { SimpleSubExpressionValue } from '../../../../../types/SimpleSubExpressionValue';
+import { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSubexpressionValueType';
+import type { SimpleSubexpressionValue } from '../../../../../types/SimpleSubexpressionValue';
 import { InstanceContext } from '../../../../../enums/InstanceContext';
 
-export const getDefaultValueOfType = (newType: SimpleSubExpressionValueType) =>
+export const getDefaultValueOfType = (newType: SimpleSubexpressionValueType) =>
   defaultValueByType[newType];
 
 const defaultValueByType: {
-  [K in SimpleSubExpressionValueType]: SimpleSubExpressionValue<K>;
+  [K in SimpleSubexpressionValueType]: SimpleSubexpressionValue<K>;
 } = {
-  [SimpleSubExpressionValueType.Component]: {
-    type: SimpleSubExpressionValueType.Component,
+  [SimpleSubexpressionValueType.Component]: {
+    type: SimpleSubexpressionValueType.Component,
     id: '',
   },
-  [SimpleSubExpressionValueType.Datamodel]: {
-    type: SimpleSubExpressionValueType.Datamodel,
+  [SimpleSubexpressionValueType.Datamodel]: {
+    type: SimpleSubexpressionValueType.Datamodel,
     path: '',
   },
-  [SimpleSubExpressionValueType.InstanceContext]: {
-    type: SimpleSubExpressionValueType.InstanceContext,
+  [SimpleSubexpressionValueType.InstanceContext]: {
+    type: SimpleSubexpressionValueType.InstanceContext,
     key: InstanceContext.AppId,
   },
-  [SimpleSubExpressionValueType.String]: {
-    type: SimpleSubExpressionValueType.String,
+  [SimpleSubexpressionValueType.String]: {
+    type: SimpleSubexpressionValueType.String,
     value: '',
   },
-  [SimpleSubExpressionValueType.Number]: {
-    type: SimpleSubExpressionValueType.Number,
+  [SimpleSubexpressionValueType.Number]: {
+    type: SimpleSubexpressionValueType.Number,
     value: 0,
   },
-  [SimpleSubExpressionValueType.Boolean]: {
-    type: SimpleSubExpressionValueType.Boolean,
+  [SimpleSubexpressionValueType.Boolean]: {
+    type: SimpleSubexpressionValueType.Boolean,
     value: false,
   },
-  [SimpleSubExpressionValueType.Null]: { type: SimpleSubExpressionValueType.Null },
+  [SimpleSubexpressionValueType.Null]: { type: SimpleSubexpressionValueType.Null },
 };

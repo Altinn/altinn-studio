@@ -1,4 +1,4 @@
-import type { SimpleSubExpression } from './SimpleSubExpression';
+import type { SimpleSubexpression } from './SimpleSubexpression';
 import type { LogicalTupleOperator } from '../enums/LogicalTupleOperator';
 
 export type SimplifiedExpression<O extends LogicalTupleOperator = LogicalTupleOperator> =
@@ -8,6 +8,6 @@ export type SimplifiedExpression<O extends LogicalTupleOperator = LogicalTupleOp
 export type SimpleLogicalExpression<O extends LogicalTupleOperator = LogicalTupleOperator> = {
   [K in O]: {
     logicalOperator: K;
-    subExpressions: SimpleSubExpression[];
+    subexpressions: SimpleSubexpression[];
   };
 }[O];

@@ -4,7 +4,7 @@ import {
   ExpressionErrorKey,
   LogicalTupleOperator,
   NumberRelationOperator,
-  SimpleSubExpressionValueType,
+  SimpleSubexpressionValueType,
   GeneralRelationOperator,
   InstanceContext,
 } from '@studio/components';
@@ -13,8 +13,8 @@ export const useExpressionTexts = (): ExpressionTexts => {
   const { t } = useTranslation();
   const mapArrayToTranslations = useMapArrayToTranslations();
 
-  const valueTypeKeys = Object.values(SimpleSubExpressionValueType);
-  const valueTypes = mapArrayToTranslations<SimpleSubExpressionValueType>(
+  const valueTypeKeys = Object.values(SimpleSubexpressionValueType);
+  const valueTypes = mapArrayToTranslations<SimpleSubexpressionValueType>(
     valueTypeKeys,
     (key) => `expression.valueType.${key}`,
   );
@@ -47,14 +47,14 @@ export const useExpressionTexts = (): ExpressionTexts => {
   );
 
   return {
-    addSubExpression: t('expression.addSubExpression'),
+    addSubexpression: t('expression.addSubexpression'),
     and: t('expression.and'),
     andOr: t('expression.andOr'),
     cannotSaveSinceInvalid: t('expression.cannotSaveSinceInvalid'),
     cannotSimplify: t('expression.cannotSimplify'),
     changeToSimplifiedWarning: t('expression.changeToSimplifiedWarning'),
     componentId: t('expression.componentId'),
-    confirmDeleteSubExpression: t('expression.deleteSubExpressionWarning'),
+    confirmDeleteSubexpression: t('expression.confirmDeleteSubexpression'),
     datamodelPath: t('expression.datamodelPath'),
     delete: t('general.delete'),
     disabledLogicalOperator: t('expression.disabledLogicalOperator'),
@@ -82,7 +82,7 @@ export const useExpressionTexts = (): ExpressionTexts => {
     saveAndClose: t('expression.saveAndClose'),
     secondOperand: t('expression.secondOperand'),
     simplified: t('expression.simplified'),
-    subExpression: (index: number) => t('expression.subExpression', { number: index + 1 }),
+    subexpression: (index: number) => t('expression.subExpression', { number: index + 1 }),
     transformToLogical: t('expression.transformToLogical'),
     true: t('expression.true'),
     value: t('expression.value'),

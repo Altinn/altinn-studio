@@ -1,4 +1,4 @@
-import { SimpleSubExpressionValueType } from '../../../../../enums/SimpleSubExpressionValueType';
+import { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSubexpressionValueType';
 import React from 'react';
 import type { Props } from './Props';
 import { DatamodelPointerSelector } from './DatamodelPointerSelector';
@@ -8,22 +8,22 @@ import { StringInput } from './StringInput';
 import { NumberInput } from './NumberInput';
 import { BooleanInput } from './BooleanInput';
 
-export const SubExpressionValueContentInput = ({
+export const SubexpressionValueContentInput = ({
   onChange,
   value,
-}: Props<SimpleSubExpressionValueType>) => {
+}: Props<SimpleSubexpressionValueType>) => {
   switch (value.type) {
-    case SimpleSubExpressionValueType.Datamodel:
+    case SimpleSubexpressionValueType.Datamodel:
       return <DatamodelPointerSelector onChange={onChange} value={value} />;
-    case SimpleSubExpressionValueType.Component:
+    case SimpleSubexpressionValueType.Component:
       return <ComponentIdSelector onChange={onChange} value={value} />;
-    case SimpleSubExpressionValueType.InstanceContext:
+    case SimpleSubexpressionValueType.InstanceContext:
       return <InstanceContextKeySelector onChange={onChange} value={value} />;
-    case SimpleSubExpressionValueType.String:
+    case SimpleSubexpressionValueType.String:
       return <StringInput onChange={onChange} value={value} />;
-    case SimpleSubExpressionValueType.Number:
+    case SimpleSubexpressionValueType.Number:
       return <NumberInput onChange={onChange} value={value} />;
-    case SimpleSubExpressionValueType.Boolean:
+    case SimpleSubexpressionValueType.Boolean:
       return <BooleanInput onChange={onChange} value={value} />;
     default:
       return null;

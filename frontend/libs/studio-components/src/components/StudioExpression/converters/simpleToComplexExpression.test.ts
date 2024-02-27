@@ -7,14 +7,14 @@ import type {
   LogicalTupleFunc,
 } from '../types/Expression';
 import { simpleToComplexExpression } from './simpleToComplexExpression';
-import type { SimpleSubExpressionValue } from '../types/SimpleSubExpressionValue';
+import type { SimpleSubexpressionValue } from '../types/SimpleSubexpressionValue';
 import { LogicalTupleOperator } from '../enums/LogicalTupleOperator';
 import { NumberRelationOperator } from '../enums/NumberRelationOperator';
 import { DataLookupFuncName } from '../enums/DataLookupFuncName';
 import { GeneralRelationOperator } from '../enums/GeneralRelationOperator';
 import { KeyLookupFuncName } from '../enums/KeyLookupFuncName';
 import { InstanceContext } from '../enums/InstanceContext';
-import { SimpleSubExpressionValueType } from '../enums/SimpleSubExpressionValueType';
+import { SimpleSubexpressionValueType } from '../enums/SimpleSubexpressionValueType';
 
 describe('simpleToComplexExpression', () => {
   it.each([true, false])('Returns the expression when the expression is %s', (value) => {
@@ -25,7 +25,7 @@ describe('simpleToComplexExpression', () => {
   it('Converts an empty expression to null', () => {
     const emptyExpression: SimplifiedExpression = {
       logicalOperator: LogicalTupleOperator.And,
-      subExpressions: [],
+      subexpressions: [],
     };
     const result = simpleToComplexExpression(emptyExpression);
     expect(result).toBeNull();
@@ -36,11 +36,11 @@ describe('simpleToComplexExpression', () => {
     (relationalOperator) => {
       const singleExpression: SimplifiedExpression = {
         logicalOperator: LogicalTupleOperator.And,
-        subExpressions: [
+        subexpressions: [
           {
             relationalOperator,
-            firstOperand: { type: SimpleSubExpressionValueType.Component, id: 'test' },
-            secondOperand: { type: SimpleSubExpressionValueType.Number, value: 1 },
+            firstOperand: { type: SimpleSubexpressionValueType.Component, id: 'test' },
+            secondOperand: { type: SimpleSubexpressionValueType.Number, value: 1 },
           },
         ],
       };
@@ -59,14 +59,14 @@ describe('simpleToComplexExpression', () => {
     (relationalOperator) => {
       const singleExpression: SimplifiedExpression = {
         logicalOperator: LogicalTupleOperator.And,
-        subExpressions: [
+        subexpressions: [
           {
             relationalOperator,
             firstOperand: {
-              type: SimpleSubExpressionValueType.Datamodel,
+              type: SimpleSubexpressionValueType.Datamodel,
               path: '#/properties/test',
             },
-            secondOperand: { type: SimpleSubExpressionValueType.String, value: 'Lorem ipsum' },
+            secondOperand: { type: SimpleSubexpressionValueType.String, value: 'Lorem ipsum' },
           },
         ],
       };
@@ -81,58 +81,58 @@ describe('simpleToComplexExpression', () => {
   );
 
   type SimpleExpressionTestData = {
-    subExpressionValue: SimpleSubExpressionValue;
+    subexpressionValue: SimpleSubexpressionValue;
     expectedResult: DataLookupFunc | KeyLookupFunc | string | number | boolean | null;
   };
   const testExpressionValues: {
-    [T in SimpleSubExpressionValue['type']]: SimpleExpressionTestData;
+    [T in SimpleSubexpressionValue['type']]: SimpleExpressionTestData;
   } = {
     component: {
-      subExpressionValue: { type: SimpleSubExpressionValueType.Component, id: 'test' },
+      subexpressionValue: { type: SimpleSubexpressionValueType.Component, id: 'test' },
       expectedResult: [DataLookupFuncName.Component, 'test'],
     },
     datamodel: {
-      subExpressionValue: {
-        type: SimpleSubExpressionValueType.Datamodel,
+      subexpressionValue: {
+        type: SimpleSubexpressionValueType.Datamodel,
         path: '#/properties/test',
       },
       expectedResult: [DataLookupFuncName.DataModel, '#/properties/test'],
     },
     instanceContext: {
-      subExpressionValue: {
-        type: SimpleSubExpressionValueType.InstanceContext,
+      subexpressionValue: {
+        type: SimpleSubexpressionValueType.InstanceContext,
         key: InstanceContext.InstanceId,
       },
       expectedResult: [KeyLookupFuncName.InstanceContext, InstanceContext.InstanceId],
     },
     string: {
-      subExpressionValue: { type: SimpleSubExpressionValueType.String, value: 'Lorem ipsum' },
+      subexpressionValue: { type: SimpleSubexpressionValueType.String, value: 'Lorem ipsum' },
       expectedResult: 'Lorem ipsum',
     },
     number: {
-      subExpressionValue: { type: SimpleSubExpressionValueType.Number, value: 1 },
+      subexpressionValue: { type: SimpleSubexpressionValueType.Number, value: 1 },
       expectedResult: 1,
     },
     boolean: {
-      subExpressionValue: { type: SimpleSubExpressionValueType.Boolean, value: true },
+      subexpressionValue: { type: SimpleSubexpressionValueType.Boolean, value: true },
       expectedResult: true,
     },
     null: {
-      subExpressionValue: { type: SimpleSubExpressionValueType.Null },
+      subexpressionValue: { type: SimpleSubexpressionValueType.Null },
       expectedResult: null,
     },
   };
 
   it.each(Object.keys(testExpressionValues))('Converts a single %s value', (type) => {
     const relationalOperator = GeneralRelationOperator.Equals;
-    const { subExpressionValue, expectedResult } = testExpressionValues[type];
+    const { subexpressionValue, expectedResult } = testExpressionValues[type];
     const singleExpression: SimplifiedExpression = {
       logicalOperator: LogicalTupleOperator.And,
-      subExpressions: [
+      subexpressions: [
         {
           relationalOperator,
-          firstOperand: subExpressionValue,
-          secondOperand: { type: SimpleSubExpressionValueType.Boolean, value: false },
+          firstOperand: subexpressionValue,
+          secondOperand: { type: SimpleSubexpressionValueType.Boolean, value: false },
         },
       ],
     };
@@ -146,24 +146,24 @@ describe('simpleToComplexExpression', () => {
     (logicalOperator) => {
       const logicalTupleExpression: SimplifiedExpression = {
         logicalOperator,
-        subExpressions: [
+        subexpressions: [
           {
             relationalOperator: GeneralRelationOperator.Equals,
-            firstOperand: { type: SimpleSubExpressionValueType.Boolean, value: true },
-            secondOperand: { type: SimpleSubExpressionValueType.Component, id: 'test' },
+            firstOperand: { type: SimpleSubexpressionValueType.Boolean, value: true },
+            secondOperand: { type: SimpleSubexpressionValueType.Component, id: 'test' },
           },
           {
             relationalOperator: GeneralRelationOperator.NotEquals,
             firstOperand: {
-              type: SimpleSubExpressionValueType.Datamodel,
+              type: SimpleSubexpressionValueType.Datamodel,
               path: '#/properties/test',
             },
-            secondOperand: { type: SimpleSubExpressionValueType.String, value: 'Lorem ipsum' },
+            secondOperand: { type: SimpleSubexpressionValueType.String, value: 'Lorem ipsum' },
           },
           {
             relationalOperator: NumberRelationOperator.GreaterThan,
-            firstOperand: { type: SimpleSubExpressionValueType.Number, value: 4 },
-            secondOperand: { type: SimpleSubExpressionValueType.Component, id: 'test2' },
+            firstOperand: { type: SimpleSubexpressionValueType.Number, value: 4 },
+            secondOperand: { type: SimpleSubexpressionValueType.Component, id: 'test2' },
           },
         ],
       };

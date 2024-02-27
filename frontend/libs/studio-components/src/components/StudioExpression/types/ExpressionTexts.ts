@@ -1,18 +1,18 @@
-import type { SimpleSubExpressionValueType } from '../enums/SimpleSubExpressionValueType';
+import type { SimpleSubexpressionValueType } from '../enums/SimpleSubexpressionValueType';
 import type { LogicalTupleOperator } from '../enums/LogicalTupleOperator';
 import type { ExpressionErrorKey } from '../enums/ExpressionErrorKey';
 import type { RelationalOperator } from './RelationalOperator';
 import type { InstanceContext } from '../enums/InstanceContext';
 
 export type ExpressionTexts = {
-  addSubExpression: string;
+  addSubexpression: string;
   and: string;
   andOr: string;
   cannotSaveSinceInvalid: string;
   cannotSimplify: string;
   changeToSimplifiedWarning: string;
   componentId: string;
-  confirmDeleteSubExpression: string;
+  confirmDeleteSubexpression: string;
   datamodelPath: string;
   delete: string;
   disabledLogicalOperator: string;
@@ -40,10 +40,10 @@ export type ExpressionTexts = {
   saveAndClose: string;
   secondOperand: string;
   simplified: string;
-  subExpression: (index: number) => string;
+  subexpression: (index: number) => string;
   transformToLogical: string;
   true: string;
   value: string;
   valueType: string;
-  valueTypes: Record<SimpleSubExpressionValueType, string>;
+  valueTypes: Record<SimpleSubexpressionValueType, string>;
 };

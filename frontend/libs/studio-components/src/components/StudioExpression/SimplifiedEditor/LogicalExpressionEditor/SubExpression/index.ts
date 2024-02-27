@@ -1,2 +1,2 @@
-export { SubExpression } from './SubExpression';
-export type { SubExpressionProps } from './SubExpression';
+export { Subexpression } from './Subexpression';
+export type { SubexpressionProps } from './Subexpression';

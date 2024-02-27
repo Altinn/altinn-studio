@@ -12,7 +12,7 @@ import {
 } from './test-data/expressions';
 import userEvent from '@testing-library/user-event';
 import { GeneralRelationOperator } from './enums/GeneralRelationOperator';
-import { SimpleSubExpressionValueType } from './enums/SimpleSubExpressionValueType';
+import { SimpleSubexpressionValueType } from './enums/SimpleSubexpressionValueType';
 import { expressionToString } from './converters/expressionToString';
 
 const onChange = jest.fn();
@@ -85,26 +85,26 @@ describe('StudioExpression', () => {
   it('Renders a logical expression with one sub-exression when the provided expression is a simple relational expression', () => {
     renderExpression(genericOperatorRelation);
     const logicalExpressionGroup = screen.getByRole('group', { name: texts.logicalOperation });
-    within(logicalExpressionGroup).getByRole('group', { name: texts.subExpression(0) });
+    within(logicalExpressionGroup).getByRole('group', { name: texts.subexpression(0) });
   });
 
   it('Renders all sub-expressions', () => {
     renderExpression(logicalExpression);
     const logicalExpressionGroup = screen.getByRole('group', { name: texts.logicalOperation });
     logicalExpression.slice(1).forEach((_, index) => {
-      within(logicalExpressionGroup).getByRole('group', { name: texts.subExpression(index) });
+      within(logicalExpressionGroup).getByRole('group', { name: texts.subexpression(index) });
     });
   });
 
   it('Renders add sub-expression button', () => {
     renderExpression(logicalExpression);
-    screen.getByRole('button', { name: texts.addSubExpression });
+    screen.getByRole('button', { name: texts.addSubexpression });
   });
 
   it('Calls the onChange function with the new expression when the user adds a sub-expression', async () => {
     const user = userEvent.setup();
     renderExpression(logicalExpression);
-    await act(() => user.click(screen.getByRole('button', { name: texts.addSubExpression })));
+    await act(() => user.click(screen.getByRole('button', { name: texts.addSubexpression })));
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith([
       ...logicalExpression,
@@ -116,8 +116,8 @@ describe('StudioExpression', () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockReturnValue(true);
     renderExpression(logicalExpression);
-    const subExpressionToDelete = screen.getByRole('group', { name: texts.subExpression(0) });
-    const deleteButton = within(subExpressionToDelete).getByRole('button', { name: texts.delete });
+    const subexpressionToDelete = screen.getByRole('group', { name: texts.subexpression(0) });
+    const deleteButton = within(subexpressionToDelete).getByRole('button', { name: texts.delete });
     await act(() => user.click(deleteButton));
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith(numberOperatorRelation);
@@ -168,7 +168,7 @@ describe('StudioExpression', () => {
     await act(() => user.click(editButton));
     const firstOperandGroup = screen.getByRole('group', { name: texts.firstOperand });
     const typeSelect = within(firstOperandGroup).getByRole('combobox', { name: texts.valueType });
-    await act(() => user.selectOptions(typeSelect, SimpleSubExpressionValueType.Boolean));
+    await act(() => user.selectOptions(typeSelect, SimpleSubexpressionValueType.Boolean));
     const saveButton = screen.getByRole('button', { name: texts.saveAndClose });
     await act(() => user.click(saveButton));
     expect(onChange).not.toHaveBeenCalled();

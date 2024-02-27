@@ -5,16 +5,16 @@ import { ExpressionErrorKey } from '../enums/ExpressionErrorKey';
 import type { RelationalOperator } from '../types/RelationalOperator';
 import { NumberRelationOperator } from '../enums/NumberRelationOperator';
 import { GeneralRelationOperator } from '../enums/GeneralRelationOperator';
-import { SimpleSubExpressionValueType } from '../enums/SimpleSubExpressionValueType';
+import { SimpleSubexpressionValueType } from '../enums/SimpleSubexpressionValueType';
 
-const valueTypes: Record<SimpleSubExpressionValueType, string> = {
-  [SimpleSubExpressionValueType.Boolean]: 'Boolean',
-  [SimpleSubExpressionValueType.Component]: 'Component',
-  [SimpleSubExpressionValueType.Datamodel]: 'Datamodel',
-  [SimpleSubExpressionValueType.InstanceContext]: 'Instance context',
-  [SimpleSubExpressionValueType.Null]: 'Null',
-  [SimpleSubExpressionValueType.Number]: 'Number',
-  [SimpleSubExpressionValueType.String]: 'String',
+const valueTypes: Record<SimpleSubexpressionValueType, string> = {
+  [SimpleSubexpressionValueType.Boolean]: 'Boolean',
+  [SimpleSubexpressionValueType.Component]: 'Component',
+  [SimpleSubexpressionValueType.Datamodel]: 'Datamodel',
+  [SimpleSubexpressionValueType.InstanceContext]: 'Instance context',
+  [SimpleSubexpressionValueType.Null]: 'Null',
+  [SimpleSubexpressionValueType.Number]: 'Number',
+  [SimpleSubexpressionValueType.String]: 'String',
 };
 
 const relationalOperators: Record<RelationalOperator, string> = {
@@ -48,7 +48,7 @@ const errorMessages: Record<ExpressionErrorKey, string> = {
 };
 
 export const texts: ExpressionTexts = {
-  addSubExpression: 'Add sub-expression',
+  addSubexpression: 'Add subexpression',
   and: 'and',
   andOr: 'and / or',
   cannotSimplify: 'The expression is not in a format that is supported by the simplified editor.',
@@ -56,7 +56,7 @@ export const texts: ExpressionTexts = {
   changeToSimplifiedWarning:
     'The expression is not valid and will not be saved if you leave the tab. Are you sure you want to continue?',
   componentId: 'Component ID',
-  confirmDeleteSubExpression: 'Are you sure you want to delete this sub-expression?',
+  confirmDeleteSubexpression: 'Are you sure you want to delete this sub-expression?',
   datamodelPath: 'Datamodel path',
   delete: 'Delete',
   disabledLogicalOperator: 'There must be at least two sub-expressions to use a logical operator.',
@@ -84,7 +84,7 @@ export const texts: ExpressionTexts = {
   saveAndClose: 'Save and close',
   secondOperand: 'Second operand',
   simplified: 'Simplified',
-  subExpression: (index: number) => `Sub-expression number ${index + 1}`,
+  subexpression: (index: number) => `Sub-expression number ${index + 1}`,
   transformToLogical: 'Transform to logical expression',
   true: 'True',
   value: 'Value',

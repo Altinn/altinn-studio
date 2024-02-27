@@ -14,12 +14,12 @@ import {
   isSimpleValueFunc,
 } from '../validators/isExpressionSimple';
 import { DEFAULT_LOGICAL_OPERATOR } from '../config';
-import type { SimpleSubExpressionValue } from '../types/SimpleSubExpressionValue';
-import type { SimpleSubExpression } from '../types/SimpleSubExpression';
+import type { SimpleSubexpressionValue } from '../types/SimpleSubexpressionValue';
+import type { SimpleSubexpression } from '../types/SimpleSubexpression';
 import type { ValueInComplexFormat } from '../types/ValueInComplexFormat';
 import type { RelationFunc } from '../types/RelationFunc';
 import { DataLookupFuncName } from '../enums/DataLookupFuncName';
-import { SimpleSubExpressionValueType } from '../enums/SimpleSubExpressionValueType';
+import { SimpleSubexpressionValueType } from '../enums/SimpleSubexpressionValueType';
 
 export const complexToSimpleExpression = (expression: Expression): SimplifiedExpression => {
   if (!isExpressionSimple(expression)) throw new Error('Expression is not simple.');
@@ -34,19 +34,19 @@ export const complexToSimpleExpression = (expression: Expression): SimplifiedExp
 
 const nullExpressionInSimpleFormat: SimplifiedExpression = {
   logicalOperator: DEFAULT_LOGICAL_OPERATOR,
-  subExpressions: [],
+  subexpressions: [],
 };
 
 const complexRelationFuncToSimpleExpression = (func: RelationFunc): SimplifiedExpression => ({
   logicalOperator: DEFAULT_LOGICAL_OPERATOR,
-  subExpressions: [complexRelationFuncToSimpleSubExpression(func)],
+  subexpressions: [complexRelationFuncToSimpleSubexpression(func)],
 });
 
-const complexRelationFuncToSimpleSubExpression = ([
+const complexRelationFuncToSimpleSubexpression = ([
   relationalOperator,
   firstValue,
   secondValue,
-]: RelationFunc): SimpleSubExpression => {
+]: RelationFunc): SimpleSubexpression => {
   if (!isSimpleValueFunc(firstValue) || !isSimpleValueFunc(secondValue))
     throw new Error(
       'Relation function is not convertable. This should have been picked up by the validator.',
@@ -58,45 +58,45 @@ const complexRelationFuncToSimpleSubExpression = ([
   };
 };
 
-const complexValueToSimple = (value: ValueInComplexFormat): SimpleSubExpressionValue => {
+const complexValueToSimple = (value: ValueInComplexFormat): SimpleSubexpressionValue => {
   if (isSimpleDataLookupFunc(value)) return dataLookupFuncToSimpleFormat(value);
   if (isSimpleKeyLookupFunc(value)) return keyLookupFuncToSimpleFormat(value);
   return primitiveValueToSimpleFormat(value);
 };
 
-const dataLookupFuncToSimpleFormat = ([source, key]: DataLookupFunc): SimpleSubExpressionValue => {
+const dataLookupFuncToSimpleFormat = ([source, key]: DataLookupFunc): SimpleSubexpressionValue => {
   if (typeof key !== 'string')
     throw new Error(
       'Data lookup function is not convertable. This should have been picked up by the validator.',
     );
   switch (source) {
     case DataLookupFuncName.Component:
-      return { type: SimpleSubExpressionValueType.Component, id: key };
+      return { type: SimpleSubexpressionValueType.Component, id: key };
     case DataLookupFuncName.DataModel:
-      return { type: SimpleSubExpressionValueType.Datamodel, path: key };
+      return { type: SimpleSubexpressionValueType.Datamodel, path: key };
   }
 };
 
-const keyLookupFuncToSimpleFormat = ([, key]: KeyLookupFunc): SimpleSubExpressionValue => {
+const keyLookupFuncToSimpleFormat = ([, key]: KeyLookupFunc): SimpleSubexpressionValue => {
   if (typeof key !== 'string')
     throw new Error(
       'Key lookup function is not convertable. This should have been picked up by the validator.',
     );
-  return { type: SimpleSubExpressionValueType.InstanceContext, key };
+  return { type: SimpleSubexpressionValueType.InstanceContext, key };
 };
 
 const primitiveValueToSimpleFormat = (
   value: string | number | boolean | null,
-): SimpleSubExpressionValue => {
+): SimpleSubexpressionValue => {
   switch (typeof value) {
     case 'string':
-      return { type: SimpleSubExpressionValueType.String, value };
+      return { type: SimpleSubexpressionValueType.String, value };
     case 'number':
-      return { type: SimpleSubExpressionValueType.Number, value };
+      return { type: SimpleSubexpressionValueType.Number, value };
     case 'boolean':
-      return { type: SimpleSubExpressionValueType.Boolean, value };
+      return { type: SimpleSubexpressionValueType.Boolean, value };
     default:
-      return { type: SimpleSubExpressionValueType.Null };
+      return { type: SimpleSubexpressionValueType.Null };
   }
 };
 
@@ -105,5 +105,5 @@ const logicalTupleFuncToSimpleFormat = ([
   ...values
 ]: LogicalTupleFunc): SimplifiedExpression => ({
   logicalOperator,
-  subExpressions: values.map(complexRelationFuncToSimpleSubExpression),
+  subexpressions: values.map(complexRelationFuncToSimpleSubexpression),
 });

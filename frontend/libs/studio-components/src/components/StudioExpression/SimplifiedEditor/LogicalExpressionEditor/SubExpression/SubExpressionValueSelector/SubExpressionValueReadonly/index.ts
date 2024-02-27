@@ -1,2 +1,2 @@
-export { SubExpressionValueReadonly } from './SubExpressionValueReadonly';
-export type { SubExpressionValueReadonlyProps } from './SubExpressionValueReadonly';
+export { SubexpressionValueReadonly } from './SubexpressionValueReadonly';
+export type { SubexpressionValueReadonlyProps } from './SubexpressionValueReadonly';

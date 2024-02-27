@@ -1,7 +1,7 @@
-import type { SimpleSubExpressionValueType } from '../../../../../enums/SimpleSubExpressionValueType';
-import type { SimpleSubExpressionValue } from '../../../../../types/SimpleSubExpressionValue';
+import type { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSubexpressionValueType';
+import type { SimpleSubexpressionValue } from '../../../../../types/SimpleSubexpressionValue';
 
-export type Props<T extends SimpleSubExpressionValueType> = {
-  onChange: (value: SimpleSubExpressionValue<T>) => void;
-  value: SimpleSubExpressionValue<T>;
+export type Props<T extends SimpleSubexpressionValueType> = {
+  onChange: (value: SimpleSubexpressionValue<T>) => void;
+  value: SimpleSubexpressionValue<T>;
 };

@@ -1,1 +1,1 @@
-export { SubExpressionToolbar, SubExpressionToolbarProps } from './SubExpressionToolbar';
+export { SubexpressionToolbar, SubexpressionToolbarProps } from './SubexpressionToolbar';

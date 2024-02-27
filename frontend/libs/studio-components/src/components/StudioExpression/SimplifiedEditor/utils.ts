@@ -1,6 +1,6 @@
 import type { SimpleLogicalExpression } from '../types/SimplifiedExpression';
 import type { LogicalTupleOperator } from '../enums/LogicalTupleOperator';
-import type { SimpleSubExpression } from '../types/SimpleSubExpression';
+import type { SimpleSubexpression } from '../types/SimpleSubexpression';
 import { ArrayUtils } from '@studio/pure-functions';
 import { DEFAULT_SUBEXPRESSION } from '../config';
 
@@ -12,33 +12,33 @@ export const changeOperator = (
   logicalOperator: newOperator,
 });
 
-export const addDefaultSubExpression = (
+export const addDefaultSubexpression = (
   expression: SimpleLogicalExpression,
-): SimpleLogicalExpression => addSubExpression(expression, DEFAULT_SUBEXPRESSION);
+): SimpleLogicalExpression => addSubexpression(expression, DEFAULT_SUBEXPRESSION);
 
-const addSubExpression = (
+const addSubexpression = (
   expression: SimpleLogicalExpression,
-  newSubExpression: SimpleSubExpression,
+  newSubexpression: SimpleSubexpression,
 ): SimpleLogicalExpression => {
-  const newExpressions = [...expression.subExpressions, newSubExpression];
-  return changeSubExpressions(expression, newExpressions);
+  const newExpressions = [...expression.subexpressions, newSubexpression];
+  return changeSubexpressions(expression, newExpressions);
 };
 
-export const changeSubExpressions = (
+export const changeSubexpressions = (
   expression: SimpleLogicalExpression,
-  newSubExpressions: SimpleSubExpression[],
+  newSubexpressions: SimpleSubexpression[],
 ): SimpleLogicalExpression => ({
   ...expression,
-  subExpressions: newSubExpressions,
+  subexpressions: newSubexpressions,
 });
 
-export const changeSubExpression = (
-  subExpressions: SimpleSubExpression[],
+export const changeSubexpression = (
+  subexpressions: SimpleSubexpression[],
   index: number,
-  newSubExpression: SimpleSubExpression,
-): SimpleSubExpression[] => ArrayUtils.replaceByIndex(subExpressions, index, newSubExpression);
+  newSubexpression: SimpleSubexpression,
+): SimpleSubexpression[] => ArrayUtils.replaceByIndex(subexpressions, index, newSubexpression);
 
-export const deleteSubExpression = (
-  subExpressions: SimpleSubExpression[],
+export const deleteSubexpression = (
+  subexpressions: SimpleSubexpression[],
   index: number,
-): SimpleSubExpression[] => ArrayUtils.removeItemByIndex(subExpressions, index);
+): SimpleSubexpression[] => ArrayUtils.removeItemByIndex(subexpressions, index);

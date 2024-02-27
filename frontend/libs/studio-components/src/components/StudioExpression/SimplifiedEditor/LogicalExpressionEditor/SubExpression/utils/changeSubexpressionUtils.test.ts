@@ -2,27 +2,27 @@ import {
   changeFirstOperand,
   changeRelationalOperator,
   changeSecondOperand,
-} from './changeSubExpressionUtils';
-import type { SimpleSubExpression } from '../../../../types/SimpleSubExpression';
-import { SimpleSubExpressionValueType } from '../../../../enums/SimpleSubExpressionValueType';
+} from './changeSubexpressionUtils';
+import type { SimpleSubexpression } from '../../../../types/SimpleSubexpression';
+import { SimpleSubexpressionValueType } from '../../../../enums/SimpleSubexpressionValueType';
 import { GeneralRelationOperator } from '../../../../enums/GeneralRelationOperator';
-import type { SimpleSubExpressionValue } from '../../../../types/SimpleSubExpressionValue';
+import type { SimpleSubexpressionValue } from '../../../../types/SimpleSubexpressionValue';
 
-describe('changeSubExpressionUtils', () => {
-  const createTestExpression = (): SimpleSubExpression => ({
+describe('changeSubexpressionUtils', () => {
+  const createTestExpression = (): SimpleSubexpression => ({
     relationalOperator: GeneralRelationOperator.Equals,
     firstOperand: {
-      type: SimpleSubExpressionValueType.String,
+      type: SimpleSubexpressionValueType.String,
       value: 'test',
     },
     secondOperand: {
-      type: SimpleSubExpressionValueType.String,
+      type: SimpleSubexpressionValueType.String,
       value: 'test',
     },
   });
 
   describe('changeRelationalOperator', () => {
-    it('Changes the relational operator of a SimpleSubExpression object', () => {
+    it('Changes the relational operator of a SimpleSubexpression object', () => {
       const expression = createTestExpression();
       const newOperator = GeneralRelationOperator.NotEquals;
       const newExpression = changeRelationalOperator(expression, newOperator);
@@ -39,7 +39,7 @@ describe('changeSubExpressionUtils', () => {
   describe('Operand change', () => {
     type TestCase = {
       changeOperandFunction: typeof changeFirstOperand;
-      key: keyof SimpleSubExpression;
+      key: keyof SimpleSubexpression;
     };
 
     const testCases: { [functionName: string]: TestCase } = {
@@ -56,10 +56,10 @@ describe('changeSubExpressionUtils', () => {
     describe.each(Object.keys(testCases))('%s', (functionName) => {
       const { changeOperandFunction, key } = testCases[functionName];
 
-      it('Changes the correct operand of a SimpleSubExpression object', () => {
+      it('Changes the correct operand of a SimpleSubexpression object', () => {
         const expression = createTestExpression();
-        const newOperand: SimpleSubExpressionValue = {
-          type: SimpleSubExpressionValueType.Number,
+        const newOperand: SimpleSubexpressionValue = {
+          type: SimpleSubexpressionValueType.Number,
           value: 5,
         };
         const newExpression = changeOperandFunction(expression, newOperand);
@@ -69,7 +69,7 @@ describe('changeSubExpressionUtils', () => {
       it('Does not change the original object', () => {
         const expression = createTestExpression();
         changeOperandFunction(createTestExpression(), {
-          type: SimpleSubExpressionValueType.Number,
+          type: SimpleSubexpressionValueType.Number,
           value: 5,
         });
         expect(expression).toEqual(createTestExpression());

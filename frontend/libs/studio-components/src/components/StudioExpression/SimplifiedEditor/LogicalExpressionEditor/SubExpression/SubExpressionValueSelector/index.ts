@@ -1,2 +1,2 @@
-export { SubExpressionValueSelector } from './SubExpressionValueSelector';
-export type { SubExpressionValueSelectorProps } from './SubExpressionValueSelector';
+export { SubexpressionValueSelector } from './SubexpressionValueSelector';
+export type { SubexpressionValueSelectorProps } from './SubexpressionValueSelector';

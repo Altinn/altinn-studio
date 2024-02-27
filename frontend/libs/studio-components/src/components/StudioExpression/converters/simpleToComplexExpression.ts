@@ -8,13 +8,13 @@ import type {
   LogicalTupleFunc,
 } from '../types/Expression';
 import type { RelationalOperator } from '../types/RelationalOperator';
-import type { SimpleSubExpression } from '../types/SimpleSubExpression';
-import type { SimpleSubExpressionValue } from '../types/SimpleSubExpressionValue';
+import type { SimpleSubexpression } from '../types/SimpleSubexpression';
+import type { SimpleSubexpressionValue } from '../types/SimpleSubexpressionValue';
 import type { NumberRelationOperator } from '../enums/NumberRelationOperator';
 import type { GeneralRelationOperator } from '../enums/GeneralRelationOperator';
 import { DataLookupFuncName } from '../enums/DataLookupFuncName';
 import { KeyLookupFuncName } from '../enums/KeyLookupFuncName';
-import { SimpleSubExpressionValueType } from '../enums/SimpleSubExpressionValueType';
+import { SimpleSubexpressionValueType } from '../enums/SimpleSubexpressionValueType';
 
 export const simpleToComplexExpression = (
   simpleExpression: SimplifiedExpression,
@@ -25,15 +25,15 @@ export const simpleToComplexExpression = (
 
 const simpleLogicalExpressionToComplex = ({
   logicalOperator,
-  subExpressions,
+  subexpressions,
 }: SimpleLogicalExpression): BooleanExpression => {
-  switch (subExpressions.length) {
+  switch (subexpressions.length) {
     case 0:
       return null;
     case 1:
-      return subExpressionToComplex(subExpressions[0]);
+      return subexpressionToComplex(subexpressions[0]);
     default:
-      return [logicalOperator, ...subExpressions.map(subExpressionToComplex)] as LogicalTupleFunc;
+      return [logicalOperator, ...subexpressions.map(subexpressionToComplex)] as LogicalTupleFunc;
   }
 };
 
@@ -43,30 +43,30 @@ type RelationalOperation<O extends RelationalOperator> = O extends NumberRelatio
     ? GenericRelationFunc<O>
     : never;
 
-const subExpressionToComplex = <O extends RelationalOperator>({
+const subexpressionToComplex = <O extends RelationalOperator>({
   relationalOperator,
   firstOperand,
   secondOperand,
-}: SimpleSubExpression<O>): RelationalOperation<O> =>
+}: SimpleSubexpression<O>): RelationalOperation<O> =>
   [
     relationalOperator,
-    subExpressionValueToComplex(firstOperand),
-    subExpressionValueToComplex(secondOperand),
+    subexpressionValueToComplex(firstOperand),
+    subexpressionValueToComplex(secondOperand),
   ] as RelationalOperation<O>;
 
-const subExpressionValueToComplex = (
-  subExpression: SimpleSubExpressionValue,
+const subexpressionValueToComplex = (
+  subexpression: SimpleSubexpressionValue,
 ): DataLookupFunc | KeyLookupFunc | string | number | boolean | null => {
-  switch (subExpression.type) {
-    case SimpleSubExpressionValueType.Component:
-      return [DataLookupFuncName.Component, subExpression.id];
-    case SimpleSubExpressionValueType.Datamodel:
-      return [DataLookupFuncName.DataModel, subExpression.path];
-    case SimpleSubExpressionValueType.InstanceContext:
-      return [KeyLookupFuncName.InstanceContext, subExpression.key];
-    case SimpleSubExpressionValueType.Null:
+  switch (subexpression.type) {
+    case SimpleSubexpressionValueType.Component:
+      return [DataLookupFuncName.Component, subexpression.id];
+    case SimpleSubexpressionValueType.Datamodel:
+      return [DataLookupFuncName.DataModel, subexpression.path];
+    case SimpleSubexpressionValueType.InstanceContext:
+      return [KeyLookupFuncName.InstanceContext, subexpression.key];
+    case SimpleSubexpressionValueType.Null:
       return null;
     default:
-      return subExpression.value;
+      return subexpression.value;
   }
 };

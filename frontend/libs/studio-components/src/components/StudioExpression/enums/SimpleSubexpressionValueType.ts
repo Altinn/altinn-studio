@@ -1,4 +1,4 @@
-export enum SimpleSubExpressionValueType {
+export enum SimpleSubexpressionValueType {
   Component = 'component',
   Datamodel = 'datamodel',
   InstanceContext = 'instanceContext',

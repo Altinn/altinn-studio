@@ -1,4 +1,4 @@
-import type { SimpleSubExpressionValueType } from '../../../../../enums/SimpleSubExpressionValueType';
+import type { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSubexpressionValueType';
 import React, { useContext, useState } from 'react';
 import { StudioExpressionContext } from '../../../../../StudioExpressionContext';
 import { ExpressionErrorKey } from '../../../../../enums/ExpressionErrorKey';
@@ -9,7 +9,7 @@ import type { Props } from './Props';
 export const DatamodelPointerSelector = ({
   value,
   onChange,
-}: Props<SimpleSubExpressionValueType.Datamodel>) => {
+}: Props<SimpleSubexpressionValueType.Datamodel>) => {
   const { dataLookupOptions, texts } = useContext(StudioExpressionContext);
   const [errorKey, setErrorKey] = useState<ExpressionErrorKey | null>(null);
   const [pathValue, setPathValue] = useState<string>(value.path);

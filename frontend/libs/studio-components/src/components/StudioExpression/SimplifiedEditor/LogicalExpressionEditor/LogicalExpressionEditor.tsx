@@ -4,23 +4,23 @@ import type {
 } from '../../types/SimplifiedExpression';
 import type { LogicalTupleOperator } from '../../enums/LogicalTupleOperator';
 import {
-  addDefaultSubExpression,
+  addDefaultSubexpression,
   changeOperator,
-  changeSubExpression,
-  changeSubExpressions,
-  deleteSubExpression,
+  changeSubexpression,
+  changeSubexpressions,
+  deleteSubexpression,
 } from '../utils';
-import type { SimpleSubExpression } from '../../types/SimpleSubExpression';
+import type { SimpleSubexpression } from '../../types/SimpleSubexpression';
 import classes from './LogicalExpressionEditor.module.css';
 import { StudioButton } from '../../../StudioButton';
 import type { MutableRefObject, ReactNode } from 'react';
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import React, { Fragment, useContext } from 'react';
 import { PlusIcon } from '@studio/icons';
-import { SubExpression } from './SubExpression';
+import { Subexpression } from './SubExpression';
 import { StudioExpressionContext } from '../../StudioExpressionContext';
 import { LogicalOperatorToggle } from './LogicalOperatorToggle';
-import { OperatorBetweenSubExpressions } from './OperatorBetweenSubExpressions';
+import { OperatorBetweenSubexpressions } from './OperatorBetweenSubexpressions';
 import { Fieldset } from '@digdir/design-system-react';
 import { v4 as uuidv4 } from 'uuid';
 import { ArrayUtils } from '@studio/pure-functions';
@@ -33,12 +33,12 @@ export type LogicalExpressionEditorProps = {
 export const LogicalExpressionEditor = ({ expression, onChange }: LogicalExpressionEditorProps) => {
   const { texts } = useContext(StudioExpressionContext);
   const internalIds = useRef<string[]>([]); // Used to keep track of the order of the subcomponents
-  const { subExpressions, logicalOperator } = expression;
+  const { subexpressions, logicalOperator } = expression;
 
-  const areInternalIdsInSync = internalIds.current.length === subExpressions.length;
+  const areInternalIdsInSync = internalIds.current.length === subexpressions.length;
   if (!areInternalIdsInSync) {
     internalIds.current = [];
-    for (let i = 0; i < subExpressions.length; i++) {
+    for (let i = 0; i < subexpressions.length; i++) {
       internalIds.current.push(uuidv4());
     }
   }
@@ -46,59 +46,59 @@ export const LogicalExpressionEditor = ({ expression, onChange }: LogicalExpress
   const handleOperatorChange = (operator: LogicalTupleOperator) =>
     onChange(changeOperator(expression, operator));
 
-  const handleSubExpressionsChange = (newSubexpressions: SimpleSubExpression[]) =>
-    onChange(changeSubExpressions(expression, newSubexpressions));
+  const handleSubexpressionsChange = (newSubexpressions: SimpleSubexpression[]) =>
+    onChange(changeSubexpressions(expression, newSubexpressions));
 
-  const handleAddSubExpression = () => {
-    onChange(addDefaultSubExpression(expression));
+  const handleAddSubexpression = () => {
+    onChange(addDefaultSubexpression(expression));
     internalIds.current.push(uuidv4());
   };
 
   return (
     <Fieldset size='small' legend={texts.logicalOperation} hideLegend>
       <div className={classes.fieldsetContent}>
-        {subExpressions.length > 1 && (
+        {subexpressions.length > 1 && (
           <LogicalOperatorToggle onChange={handleOperatorChange} operator={logicalOperator} />
         )}
-        <SubExpressionList
-          componentBetween={<OperatorBetweenSubExpressions logicalExpression={expression} />}
-          expressions={subExpressions}
+        <SubexpressionList
+          componentBetween={<OperatorBetweenSubexpressions logicalExpression={expression} />}
+          expressions={subexpressions}
           internalIds={internalIds}
-          onChange={handleSubExpressionsChange}
+          onChange={handleSubexpressionsChange}
         />
         <StudioButton
           icon={<PlusIcon />}
-          onClick={handleAddSubExpression}
+          onClick={handleAddSubexpression}
           size='small'
           variant='secondary'
         >
-          {texts.addSubExpression}
+          {texts.addSubexpression}
         </StudioButton>
       </div>
     </Fieldset>
   );
 };
 
-type SubExpressionListProps = {
+type SubexpressionListProps = {
   componentBetween: ReactNode;
-  expressions: SimpleSubExpression[];
+  expressions: SimpleSubexpression[];
   internalIds: MutableRefObject<string[]>;
-  onChange: (subExpressions: SimpleSubExpression[]) => void;
+  onChange: (subexpressions: SimpleSubexpression[]) => void;
 };
 
-const SubExpressionList = ({
+const SubexpressionList = ({
   expressions,
   onChange,
   componentBetween,
   internalIds,
-}: SubExpressionListProps) => {
+}: SubexpressionListProps) => {
   const { texts } = useContext(StudioExpressionContext);
 
-  const handleSubExpressionChange = (index: number, expression: SimpleSubExpression) =>
-    onChange(changeSubExpression(expressions, index, expression));
+  const handleSubexpressionChange = (index: number, expression: SimpleSubexpression) =>
+    onChange(changeSubexpression(expressions, index, expression));
 
   const handleDeleteExpression = (index: number) => {
-    onChange(deleteSubExpression(expressions, index));
+    onChange(deleteSubexpression(expressions, index));
     internalIds.current = ArrayUtils.removeItemByIndex(internalIds.current, index);
   };
 
@@ -106,10 +106,10 @@ const SubExpressionList = ({
     <>
       {expressions.map((expression, index) => (
         <Fragment key={internalIds.current[index]}>
-          <SubExpression
+          <Subexpression
             expression={expression}
-            legend={texts.subExpression(index)}
-            onChange={(exp) => handleSubExpressionChange(index, exp)}
+            legend={texts.subexpression(index)}
+            onChange={(exp) => handleSubexpressionChange(index, exp)}
             onDelete={() => handleDeleteExpression(index)}
           />
           {componentBetween}

@@ -16,5 +16,5 @@ export { InstanceContext } from './enums/InstanceContext';
 export { KeyLookupFuncName } from './enums/KeyLookupFuncName';
 export { LogicalTupleOperator } from './enums/LogicalTupleOperator';
 export { NumberRelationOperator } from './enums/NumberRelationOperator';
-export { SimpleSubExpressionValueType } from './enums/SimpleSubExpressionValueType';
+export { SimpleSubexpressionValueType } from './enums/SimpleSubexpressionValueType';
 export { StudioExpression } from './StudioExpression';

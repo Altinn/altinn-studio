@@ -1,5 +1,5 @@
 import type { Props } from './Props';
-import type { SimpleSubExpressionValueType } from '../../../../../enums/SimpleSubExpressionValueType';
+import type { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSubexpressionValueType';
 import type { ChangeEvent } from 'react';
 import React, { useContext } from 'react';
 import { StudioExpressionContext } from '../../../../../StudioExpressionContext';
@@ -9,7 +9,7 @@ import { NativeSelect } from '@digdir/design-system-react';
 export const InstanceContextKeySelector = ({
   value,
   onChange,
-}: Props<SimpleSubExpressionValueType.InstanceContext>) => {
+}: Props<SimpleSubexpressionValueType.InstanceContext>) => {
   const { texts } = useContext(StudioExpressionContext);
   const options = Object.values(InstanceContext);
   const handleChange = (event: ChangeEvent<HTMLSelectElement>) =>

@@ -2,26 +2,26 @@ import React, { useContext } from 'react';
 import { StudioButton } from '../../../../../StudioButton';
 import { StudioDeleteButton } from '../../../../../StudioDeleteButton';
 import { FloppydiskIcon, PencilIcon } from '@studio/icons';
-import classes from './SubExpressionToolbar.module.css';
+import classes from './SubexpressionToolbar.module.css';
 import { StudioExpressionContext } from '../../../../StudioExpressionContext';
 
-export type SubExpressionToolbarProps = {
+export type SubexpressionToolbarProps = {
   isInEditMode: boolean;
   onSave: () => void;
   onDelete: () => void;
   onEnableEditMode: () => void;
 };
 
-export const SubExpressionToolbar = ({
+export const SubexpressionToolbar = ({
   isInEditMode,
   onSave,
   onDelete,
   onEnableEditMode,
-}: SubExpressionToolbarProps) => {
+}: SubexpressionToolbarProps) => {
   const { texts } = useContext(StudioExpressionContext);
 
   return (
-    <div className={classes.subExpressionToolbar} role='toolbar'>
+    <div className={classes.subexpressionToolbar} role='toolbar'>
       {isInEditMode ? (
         <StudioButton
           color='success'
@@ -44,7 +44,7 @@ export const SubExpressionToolbar = ({
       )}
       <StudioDeleteButton
         onDelete={onDelete}
-        confirmMessage={texts.confirmDeleteSubExpression}
+        confirmMessage={texts.confirmDeleteSubexpression}
         size='small'
       >
         {texts.delete}
