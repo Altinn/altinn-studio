@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.Models
 {
-    public class BrregOrganization
+    public class BrregParty
     {
         [JsonPropertyName("organisasjonsnummer")]
         public string Organisasjonsnummer { get; set; }
@@ -12,17 +12,17 @@ namespace Altinn.Studio.Designer.Models
         public string? Navn { get; set; }
     }
 
-    public class BrregEnheterEmbedded
+    public class BrregPartyEmbedded
     {
         [JsonPropertyName("enheter")]
-        public List<BrregOrganization>? Enheter { get; set; }
+        public List<BrregParty>? Parties { get; set; }
         [JsonPropertyName("underenheter")]
-        public List<BrregOrganization>? Underenheter { get; set; }
+        public List<BrregParty>? SubParties { get; set; }
     }
 
-    public class BrregOrganizationResultSet
+    public class BrregPartyResultSet
     {
         [JsonPropertyName("_embedded")]
-        public BrregEnheterEmbedded? Embedded { get; set; }
+        public BrregPartyEmbedded? Embedded { get; set; }
     }
 }

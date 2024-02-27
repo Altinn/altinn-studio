@@ -21,6 +21,7 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Azure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -303,8 +304,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string responseContent = await getAccessListsResponse.Content.ReadAsStringAsync();
             AccessList accessList = JsonSerializer.Deserialize<AccessList>(responseContent, _serializerOptions);
 
-            List<ListMember> list;
-            _listMembers.TryGetValue(identifier, out list);
+            _listMembers.TryGetValue(identifier, out List<ListMember> list);
 
             IEnumerable<string> partyIds = (list ?? new List<ListMember>()).Select(x => x.Identifiers.OrganizationNumber);
 
@@ -313,25 +313,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 string brregUrl = "https://data.brreg.no/enhetsregisteret/api/{0}?organisasjonsnummer={1}&size=10000";
                 string partyIdsString = string.Join(",", partyIds);
-                BrregOrganizationResultSet[] result = await Task.WhenAll(
+                List<BrregParty>[] parties = await Task.WhenAll(
                     GetBrregParties(string.Format(brregUrl, "enheter", partyIdsString)),
                     GetBrregParties(string.Format(brregUrl, "underenheter", partyIdsString))
                 );
-                List<BrregOrganization> enheter = new List<BrregOrganization>();
-                List<BrregOrganization> underenheter = new List<BrregOrganization>();
-                if (result[0].Embedded != null)
-                {
-                    enheter.AddRange(result[0].Embedded.Enheter);
-                }
-                if (result[1].Embedded != null)
-                {
-                    underenheter.AddRange(result[1].Embedded.Underenheter);
-                }
-                // TODO: handle error from brreg
+
                 accessList.Members = partyIds.Select(orgnr =>
                 {
-                    string enhetOrgName = enheter.Find(enhet => enhet.Organisasjonsnummer.Equals(orgnr))?.Navn;
-                    string underenhetOrgName = underenheter.Find(enhet => enhet.Organisasjonsnummer.Equals(orgnr))?.Navn;
+                    string enhetOrgName = parties[0].Find(enhet => enhet.Organisasjonsnummer.Equals(orgnr))?.Navn;
+                    string underenhetOrgName = parties[1].Find(enhet => enhet.Organisasjonsnummer.Equals(orgnr))?.Navn;
                     AccessListMember member = new()
                     {
                         OrgNr = orgnr,
@@ -408,6 +398,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Delete, listUrl);
             
             HttpResponseMessage deleteAccessListResponse = await _httpClient.SendAsync(request);
+            deleteAccessListResponse.EnsureSuccessStatusCode();
             return deleteAccessListResponse.StatusCode;
         }
 
@@ -482,6 +473,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Put, addUrl, actionsContent);
 
             HttpResponseMessage response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
             return response.StatusCode;
         }
 
@@ -496,17 +488,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
             HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Delete, removeUrl);
 
             HttpResponseMessage removeResourceAccessListResponse = await _httpClient.SendAsync(request);
+            removeResourceAccessListResponse.EnsureSuccessStatusCode();
             return removeResourceAccessListResponse.StatusCode;
         }
 
-        private async Task<BrregOrganizationResultSet> GetBrregParties(string url)
+        private async Task<List<BrregParty>> GetBrregParties(string url)
         {
             HttpResponseMessage enheterResponse = await _httpClient.GetAsync(url);
+            enheterResponse.EnsureSuccessStatusCode();
             string responseContent = await enheterResponse.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<BrregOrganizationResultSet>(
+            BrregPartyResultSet results = JsonSerializer.Deserialize<BrregPartyResultSet>(
                 responseContent,
                 _serializerOptions
             );
+            return results.Embedded != null ? results.Embedded.Parties ?? results.Embedded.SubParties: new List<BrregParty>();
         }
 
         private int? GetNextPage(AccessListInfoDtoPaginated dto)
@@ -530,7 +525,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             if (!env.ToLower().Equals("dev"))
             {
-                tokenResponse = await _maskinPortenService.ExchangeToAltinnToken(tokenResponse, env);
+                // TODO: remove disableCaching if environment is added to cacheKey in ExchangeToAltinnToken
+                tokenResponse = await _maskinPortenService.ExchangeToAltinnToken(tokenResponse, env, disableCaching: true);
                 baseUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryAccessListUrl}";
             }
             else
