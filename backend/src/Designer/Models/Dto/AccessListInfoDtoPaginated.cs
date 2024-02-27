@@ -10,6 +10,6 @@ namespace Altinn.Studio.Designer.Models.Dto
     public class AccessListInfoDtoPaginated
     {
         public IEnumerable<AccessList> Data { get; set; }
-        public PaginatedLinks? Links {  get; set; }
+        public PaginatedLinks? Links { get; set; }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -21,7 +20,6 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Azure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -385,7 +383,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string serviceResourceString = JsonSerializer.Serialize(payload, _serializerOptions);
             string createUrl = $"/{org}/{accessList.Identifier}";
             HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Put, createUrl, serviceResourceString);
-            
+
             HttpResponseMessage response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
             string responseContent = await response.Content.ReadAsStringAsync();
@@ -396,7 +394,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             string listUrl = $"/{org}/{identifier}";
             HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Delete, listUrl);
-            
+
             HttpResponseMessage deleteAccessListResponse = await _httpClient.SendAsync(request);
             deleteAccessListResponse.EnsureSuccessStatusCode();
             return deleteAccessListResponse.StatusCode;
@@ -439,7 +437,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 _listMembers.Add(identifier, new List<ListMember>() { newMember });
             }
-            
+
             return HttpStatusCode.OK;
         }
 
@@ -501,7 +499,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 responseContent,
                 _serializerOptions
             );
-            return results.Embedded != null ? results.Embedded.Parties ?? results.Embedded.SubParties: new List<BrregParty>();
+            return results.Embedded != null ? results.Embedded.Parties ?? results.Embedded.SubParties : new List<BrregParty>();
         }
 
         private int? GetNextPage(AccessListInfoDtoPaginated dto)
@@ -523,10 +521,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
             string baseUrl;
 
+            //Checks if not tested locally by passing dev as env parameter
             if (!env.ToLower().Equals("dev"))
             {
-                // TODO: remove disableCaching if environment is added to cacheKey in ExchangeToAltinnToken
-                tokenResponse = await _maskinPortenService.ExchangeToAltinnToken(tokenResponse, env, disableCaching: true);
                 baseUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryAccessListUrl}";
             }
             else

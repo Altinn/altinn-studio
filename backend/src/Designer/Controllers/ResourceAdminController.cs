@@ -4,9 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.ApiClients.Maskinporten.Extensions;
 using Altinn.Authorization.ABAC.Xacml;
-using Altinn.ResourceRegistry.Core.Enums.Altinn2;
 using Altinn.ResourceRegistry.Core.Models;
 using Altinn.ResourceRegistry.Core.Models.Altinn2;
 using Altinn.Studio.Designer.Configuration;
@@ -16,7 +14,6 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
-using Humanizer.Localisation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -56,7 +53,9 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/accesslist/")]
         public async Task<ActionResult<AccessList>> CreateAccessList(string org, string env, [FromBody] AccessList accessList)
         {
-            return await _resourceRegistry.CreateAccessList(org, env, accessList);
+            AccessList newAccessList = await _resourceRegistry.CreateAccessList(org, env, accessList);
+            return Created($"designer/api/{org}/resources/accesslist/{newAccessList.Identifier}", newAccessList);
+
         }
 
         [HttpGet]
