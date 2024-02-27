@@ -6,7 +6,6 @@ import { idExists } from '../../../../utils/formLayoutUtils';
 import { useSelectedFormLayout } from '../../../../hooks';
 import { useTranslation } from 'react-i18next';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
-import { ajv } from 'app-shared/utils/formValidationUtils';
 import type { FormItem } from '../../../../types/FormItem';
 
 export interface EditComponentIdRowProps {
@@ -78,7 +77,6 @@ export const EditComponentIdRow = ({
         customValidation={(value) => {
           return validateId(value);
         }}
-        jsonValidator={ajv}
       />
     </div>
   );

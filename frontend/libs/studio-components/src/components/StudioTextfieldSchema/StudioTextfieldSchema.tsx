@@ -1,5 +1,6 @@
 import React from 'react';
-import { JsonSchemaValidatorAdapter } from './JsonSchemaValidatorAdapter';
+import { JsonSchemaValidator } from './JsonSchemaValidator';
+import { type JsonSchema } from '../../types/JSONSchema';
 import {
   StudioToggleableTextfield,
   type StudioToggleableTextfieldProps,
@@ -9,22 +10,21 @@ export type SchemaValidationError = {
   errorCode: string;
   details: string;
 };
-export type StudioTextfieldSchemaProps<Schema> = {
-  schema: Schema & { $id: string };
+
+export type StudioTextfieldSchemaProps = {
+  schema: JsonSchema;
   propertyPath: string;
-  jsonValidator: any;
   onError?: (error: SchemaValidationError | null) => void;
 } & StudioToggleableTextfieldProps;
 
-export const StudioTextfieldSchema = <Schema,>({
-  jsonValidator,
+export const StudioTextfieldSchema = ({
   schema,
   inputProps,
   propertyPath,
   onError,
   ...rest
-}: StudioTextfieldSchemaProps<Schema>): React.ReactElement => {
-  const studioJSONValidator = new JsonSchemaValidatorAdapter(jsonValidator);
+}: StudioTextfieldSchemaProps): React.ReactElement => {
+  const jsonSchemaValidator = new JsonSchemaValidator(schema);
   const propertyId = schema && propertyPath ? `${schema.$id}#/${propertyPath}` : null;
 
   const validateAgainstSchema = (
@@ -32,12 +32,12 @@ export const StudioTextfieldSchema = <Schema,>({
   ): SchemaValidationError | null => {
     const newValue = event.target.value;
 
-    if (studioJSONValidator.isPropertyRequired(schema, propertyPath) && newValue?.length === 0) {
+    if (jsonSchemaValidator.isPropertyRequired(propertyPath) && newValue?.length === 0) {
       return createSchemaError('required', 'Property value is required');
     }
 
     if (propertyId) {
-      const error = studioJSONValidator.validateProperty(propertyId, newValue);
+      const error = jsonSchemaValidator.validateProperty(propertyId, newValue);
       return error ? createSchemaError(error, 'Result of validate property') : null;
     }
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, getByLabelText, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import { PropertiesHeader, type PropertiesHeaderProps } from './PropertiesHeader';
 import { FormItemContext } from '../../../containers/FormItemContext';
 import userEvent from '@testing-library/user-event';
