@@ -52,14 +52,7 @@ class SchemaRefUpgrader
         var appMetaJson = JsonNode.Parse(File.ReadAllText(applicationMetadataFile), null, new JsonDocumentOptions() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
         if (appMetaJson is JsonObject appMetaJsonObject)
         {
-            if (appMetaJsonObject.ContainsKey("$schema"))
-            {
-                appMetaJsonObject.Remove("$schema");
-            }
-            var schemaProperty = new KeyValuePair<string, JsonNode?>("$schema", JsonValue.Create(applicationMetadataSchemaUri));
-            var newAppMetaJson = new JsonObject(appMetaJsonObject.AsEnumerable().Select(n => KeyValuePair.Create<string, JsonNode?>(n.Key, n.Value?.DeepClone())).Prepend(schemaProperty));
-
-            this.files.Add(applicationMetadataFile, newAppMetaJson);
+            this.files.Add(applicationMetadataFile, WithSchemaRef(appMetaJsonObject, applicationMetadataSchemaUri));
         }
         else
         {
@@ -73,8 +66,7 @@ class SchemaRefUpgrader
             var textResourceJson = JsonNode.Parse(File.ReadAllText(textResourceFile), null, new JsonDocumentOptions() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
             if (textResourceJson is JsonObject textResourceJsonObject)
             {
-                textResourceJsonObject["$schema"] = JsonValue.Create(textResourcesSchemaUri);
-                this.files.Add(textResourceFile, textResourceJsonObject);
+                this.files.Add(textResourceFile, WithSchemaRef(textResourceJsonObject, textResourcesSchemaUri));
             }
             else
             {
@@ -90,8 +82,7 @@ class SchemaRefUpgrader
             var footerJson = JsonNode.Parse(File.ReadAllText(footerFile), null, new JsonDocumentOptions() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
             if (footerJson is JsonObject footerJsonObject)
             {
-                footerJsonObject["$schema"] = JsonValue.Create(footerSchemaUri);
-                this.files.Add(footerFile, footerJsonObject);
+                this.files.Add(footerFile, WithSchemaRef(footerJsonObject, footerSchemaUri));
             }
             else
             {
@@ -104,8 +95,7 @@ class SchemaRefUpgrader
         var layoutSetsJson = JsonNode.Parse(File.ReadAllText(layoutSetsFile), null, new JsonDocumentOptions() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
         if (layoutSetsJson is JsonObject layoutSetsJsonObject)
         {
-            layoutSetsJsonObject["$schema"] = JsonValue.Create(layoutSetsSchemaUri);
-            this.files.Add(layoutSetsFile, layoutSetsJsonObject);
+            this.files.Add(layoutSetsFile, WithSchemaRef(layoutSetsJsonObject, layoutSetsSchemaUri));
         }
         else
         {
@@ -123,8 +113,7 @@ class SchemaRefUpgrader
                 var layoutSettingsJson = JsonNode.Parse(File.ReadAllText(layoutSettingsFile), null, new JsonDocumentOptions() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
                 if (layoutSettingsJson is JsonObject layoutSettingsJsonObject)
                 {
-                    layoutSettingsJsonObject["$schema"] = JsonValue.Create(layoutSettingsSchemaUri);
-                    this.files.Add(layoutSettingsFile, layoutSettingsJsonObject);
+                    this.files.Add(layoutSettingsFile, WithSchemaRef(layoutSettingsJsonObject, layoutSettingsSchemaUri));
                 }
                 else
                 {
@@ -143,8 +132,7 @@ class SchemaRefUpgrader
                 var layoutJson = JsonNode.Parse(File.ReadAllText(layoutFile), null, new JsonDocumentOptions() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
                 if (layoutJson is JsonObject layoutJsonObject)
                 {
-                    layoutJsonObject["$schema"] = JsonValue.Create(layoutSchemaUri);
-                    this.files.Add(layoutFile, layoutJsonObject);
+                    this.files.Add(layoutFile, WithSchemaRef(layoutJsonObject, layoutSchemaUri));
                 }
                 else
                 {
@@ -154,6 +142,18 @@ class SchemaRefUpgrader
             }
         }
 
+    }
+
+    public JsonObject WithSchemaRef(JsonObject json, string schemaUrl)
+    {
+        if (json.ContainsKey("$schema"))
+        {
+            json.Remove("$schema");
+        }
+
+        var schemaProperty = new KeyValuePair<string, JsonNode?>("$schema", JsonValue.Create(schemaUrl));
+
+        return new JsonObject(json.AsEnumerable().Select(n => KeyValuePair.Create<string, JsonNode?>(n.Key, n.Value?.DeepClone())).Prepend(schemaProperty));
     }
 
     public async Task Write()
