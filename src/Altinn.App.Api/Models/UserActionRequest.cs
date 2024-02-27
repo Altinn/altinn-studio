@@ -24,4 +24,10 @@ public class UserActionRequest
     /// </summary>
     [JsonPropertyName("metadata")]
     public Dictionary<string, string>? Metadata { get; set; }
+
+    /// <summary>
+    /// Ignored validators that should not be evauated as part of this action
+    /// </summary>
+    [JsonPropertyName("ignoredValidators")]
+    public List<string>? IgnoredValidators { get; set; }
 }

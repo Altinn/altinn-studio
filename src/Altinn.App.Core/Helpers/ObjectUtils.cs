@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Reflection;
 
 namespace Altinn.App.Core.Helpers;
 
@@ -10,13 +11,25 @@ public static class ObjectUtils
     /// <summary>
     /// Recursively initialize all <see cref="List{T}"/> properties on the object that are currently null
     /// Also ensure that all string properties that are empty are set to null
+    /// And set empty Guid properties named "AltinnRowId" to a new random guid
     /// </summary>
     /// <param name="model">The object to mutate</param>
-    public static void InitializeListsAndNullEmptyStrings(object model)
+    public static void InitializeAltinnRowId(object model)
     {
+        ArgumentNullException.ThrowIfNull(model);
+
         foreach (var prop in model.GetType().GetProperties())
         {
-            if (prop.PropertyType.IsGenericType && prop.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+            if (PropertyIsAltinRowGuid(prop))
+            {
+                var value = (Guid)(prop.GetValue(model) ?? Guid.Empty);
+                if (value == Guid.Empty)
+                {
+                    // Initialize empty Guid with new random value
+                    prop.SetValue(model, Guid.NewGuid());
+                }
+            }
+            else if (prop.PropertyType.IsGenericType && prop.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
             {
                 var value = prop.GetValue(model);
                 if (value is null)
@@ -29,7 +42,7 @@ public static class ObjectUtils
                     foreach (var item in (IList)value)
                     {
                         // Recurse into values of a list
-                        InitializeListsAndNullEmptyStrings(item);
+                        InitializeAltinnRowId(item);
                     }
                 }
             }
@@ -46,9 +59,53 @@ public static class ObjectUtils
                 // continue recursion over all properties
                 if (value is not null)
                 {
-                    InitializeListsAndNullEmptyStrings(value);
+                    InitializeAltinnRowId(value);
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Set all <see cref="Guid"/> properties named "AltinnRowId" to Guid.Empty
+    /// </summary>
+    public static void RemoveAltinnRowId(object model)
+    {
+        foreach (var prop in model.GetType().GetProperties())
+        {
+            // Handle guid fields named "AltinnRowId"
+            if (PropertyIsAltinRowGuid(prop))
+            {
+                prop.SetValue(model, Guid.Empty);
+            }
+            // Recurse into lists
+            else if (prop.PropertyType.IsGenericType && prop.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+            {
+                var value = prop.GetValue(model);
+                if (value is not null)
+                {
+                    foreach (var item in (IList)value)
+                    {
+                        // Recurse into values of a list
+                        RemoveAltinnRowId(item);
+                    }
+                }
+            }
+            // Recurse into all properties that are not lists
+            else if (prop.GetIndexParameters().Length == 0)
+            {
+                var value = prop.GetValue(model);
+
+                // continue recursion over all properties
+                if (value is not null)
+                {
+                    RemoveAltinnRowId(value);
+                }
+            }
+        }
+    }
+
+    private static bool PropertyIsAltinRowGuid(PropertyInfo prop)
+    {
+        return prop.PropertyType == typeof(Guid) && prop.Name == "AltinnRowId";
     }
 }

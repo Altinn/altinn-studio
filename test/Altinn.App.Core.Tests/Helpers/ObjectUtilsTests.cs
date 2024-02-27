@@ -8,6 +8,8 @@ public class ObjectUtilsTests
 {
     public class TestClass
     {
+        public Guid AltinnRowId { get; set; }
+
         public string? StringValue { get; set; }
 
         public decimal Decimal { get; set; }
@@ -25,7 +27,7 @@ public class ObjectUtilsTests
         var test = new TestClass();
         test.Children.Should().BeNull();
 
-        ObjectUtils.InitializeListsAndNullEmptyStrings(test);
+        ObjectUtils.InitializeAltinnRowId(test);
 
         test.Children.Should().BeEmpty();
     }
@@ -39,7 +41,7 @@ public class ObjectUtilsTests
         };
         test.Children.Should().BeNull();
 
-        ObjectUtils.InitializeListsAndNullEmptyStrings(test);
+        ObjectUtils.InitializeAltinnRowId(test);
 
         test.Children.Should().BeEmpty();
         test.StringValue.Should().Be("some");
@@ -54,7 +56,7 @@ public class ObjectUtilsTests
         };
         test.Children.Should().BeEmpty();
 
-        ObjectUtils.InitializeListsAndNullEmptyStrings(test);
+        ObjectUtils.InitializeAltinnRowId(test);
 
         test.Children.Should().BeEmpty();
     }
@@ -90,7 +92,7 @@ public class ObjectUtilsTests
         subChild.Child!.Children.Should().BeNull();
 
         // Act
-        ObjectUtils.InitializeListsAndNullEmptyStrings(test);
+        ObjectUtils.InitializeAltinnRowId(test);
 
         // Assert
         test.Children.Should().BeEmpty();
@@ -100,5 +102,69 @@ public class ObjectUtilsTests
         subChild.Children.Should().BeEmpty();
         subChild.Child.Should().NotBeNull();
         subChild.Child!.Children.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void TestGuidInitialized()
+    {
+        var test = new TestClass()
+        {
+            Child = new(),
+            Children = new List<TestClass>()
+            {
+                new TestClass(),
+                new TestClass()
+            }
+        };
+        test.AltinnRowId.Should().Be(Guid.Empty);
+        test.Child.AltinnRowId.Should().Be(Guid.Empty);
+        test.Children.Should().AllSatisfy(c => c.AltinnRowId.Should().Be(Guid.Empty));
+
+        ObjectUtils.InitializeAltinnRowId(test);
+
+        test.AltinnRowId.Should().NotBe(Guid.Empty);
+        test.Child.AltinnRowId.Should().NotBe(Guid.Empty);
+        test.Children.Should().AllSatisfy(c => c.AltinnRowId.Should().NotBe(Guid.Empty));
+    }
+
+    [Fact]
+    public void TestRemoveAltinnRowId()
+    {
+        var test = new TestClass()
+        {
+            AltinnRowId = Guid.NewGuid(),
+            Child = new()
+            {
+                AltinnRowId = Guid.NewGuid(),
+                Child = new()
+                {
+                    AltinnRowId = Guid.NewGuid(),
+                    Children = new()
+                    {
+                        new TestClass()
+                        {
+                            AltinnRowId = Guid.NewGuid(),
+                            Child = new()
+                            {
+                                AltinnRowId = Guid.NewGuid()
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        test.AltinnRowId.Should().NotBe(Guid.Empty);
+        test.Child.AltinnRowId.Should().NotBe(Guid.Empty);
+        test.Child.Child.AltinnRowId.Should().NotBe(Guid.Empty);
+        test.Child.Child.Children.Should().ContainSingle().Which.AltinnRowId.Should().NotBe(Guid.Empty);
+        test.Child.Child.Children.Should().ContainSingle().Which.Child!.AltinnRowId.Should().NotBe(Guid.Empty);
+
+        ObjectUtils.RemoveAltinnRowId(test);
+
+        test.AltinnRowId.Should().Be(Guid.Empty);
+        test.Child.AltinnRowId.Should().Be(Guid.Empty);
+        test.Child.Child.AltinnRowId.Should().Be(Guid.Empty);
+        test.Child.Child.Children.Should().ContainSingle().Which.AltinnRowId.Should().Be(Guid.Empty);
+        test.Child.Child.Children.Should().ContainSingle().Which.Child!.AltinnRowId.Should().Be(Guid.Empty);
     }
 }

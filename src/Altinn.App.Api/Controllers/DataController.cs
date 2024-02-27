@@ -252,6 +252,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="dataGuid">unique id to identify the data element to get</param>
+        /// <param name="includeRowId">Whether to initialize or remove AltinnRowId fields in the model</param>
         /// <param name="language">The language selected by the user.</param>
         /// <returns>The data element is returned in the body of the response</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
@@ -262,6 +263,7 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
             [FromRoute] Guid dataGuid,
+            [FromQuery] bool includeRowId = false,
             [FromQuery] string? language = null)
         {
             try
@@ -289,7 +291,7 @@ namespace Altinn.App.Api.Controllers
                 }
                 else if (dataType.AppLogic?.ClassRef is not null)
                 {
-                    return await GetFormData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, dataType, language, instance);
+                    return await GetFormData(org, app, instanceOwnerPartyId, instanceGuid, instance, dataGuid, dataElement, dataType, includeRowId, language);
                 }
 
                 return await GetBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, dataElement);
@@ -502,8 +504,8 @@ namespace Altinn.App.Api.Controllers
                 await dataProcessor.ProcessDataWrite(instance, Guid.Parse(dataElement.Id), model, oldModel, language);
             }
 
-            // Ensure that all lists are changed from null to empty list.
-            ObjectUtils.InitializeListsAndNullEmptyStrings(model);
+            // Ensure that all lists are changed from null to empty list and that rowId is initialized.
+            ObjectUtils.InitializeAltinnRowId(model);
 
             var validationIssues = await _validationService.ValidateFormData(instance, dataElement, dataType, model, oldModel, dataPatchRequest.IgnoredValidators, language);
             var response = new DataPatchResponse
@@ -662,6 +664,8 @@ namespace Altinn.App.Api.Controllers
 
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
 
+            ObjectUtils.InitializeAltinnRowId(appModel);
+
             DataElement dataElement = await _dataClient.InsertFormData(appModel, instanceGuid, _appModel.GetModelType(classRef), org, app, instanceOwnerPartyId, dataType);
             SelfLinkHelper.SetDataAppSelfLinks(instanceOwnerPartyId, instanceGuid, dataElement, Request);
 
@@ -729,10 +733,12 @@ namespace Altinn.App.Api.Controllers
             string app,
             int instanceOwnerId,
             Guid instanceGuid,
+            Instance instance,
             Guid dataGuid,
+            DataElement dataElement,
             DataType dataType,
-            string? language,
-            Instance instance)
+            bool includeRowId,
+            string? language)
         {
             // Get Form Data from data service. Assumes that the data element is form data.
             object appModel = await _dataClient.GetFormData(
@@ -748,13 +754,7 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Did not find form data for data element {dataGuid}");
             }
 
-            if (instance.Data.FirstOrDefault(d => d.Id == dataGuid.ToString())?.Locked == true)
-            {
-                // Skip further processing if the data element is locked
-                return Ok(appModel);
-            }
-
-            // we need to save the changes if dataProcessRead changes the model
+            // we need to save a copy to detect changes if dataProcessRead changes the model
             byte[] beforeProcessDataRead = JsonSerializer.SerializeToUtf8Bytes(appModel);
 
             foreach (var dataProcessor in _dataProcessors)
@@ -763,12 +763,31 @@ namespace Altinn.App.Api.Controllers
                 await dataProcessor.ProcessDataRead(instance, dataGuid, appModel, language);
             }
 
-            if (!beforeProcessDataRead.SequenceEqual(JsonSerializer.SerializeToUtf8Bytes(appModel)))
+            if (includeRowId)
             {
-                // Save back the changes if dataProcessRead has changed the model
-                await _dataClient.UpdateData(appModel, instanceGuid, appModel.GetType(), org, app, instanceOwnerId, dataGuid);
+                ObjectUtils.InitializeAltinnRowId(appModel);
             }
 
+            // Save back the changes if dataProcessRead has changed the model and the element is not locked
+            if (!dataElement.Locked && !beforeProcessDataRead.SequenceEqual(JsonSerializer.SerializeToUtf8Bytes(appModel)))
+            {
+                try
+                {
+                    await _dataClient.UpdateData(appModel, instanceGuid, appModel.GetType(), org, app, instanceOwnerId, dataGuid);
+                }
+                catch (PlatformHttpException e) when (e.Response.StatusCode == HttpStatusCode.Forbidden)
+                {
+                    _logger.LogInformation("User does not have write access to the data element. Skipping update.");
+                }
+            }
+
+            if (!includeRowId)
+            {
+                // If the consumer does not request AltinnRowId to be initialized, we remove it from the model
+                ObjectUtils.RemoveAltinnRowId(appModel);
+            }
+
+            // This is likely not required as the instance is already read
             string? userOrgClaim = User.GetOrg();
             if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
             {
@@ -817,6 +836,8 @@ namespace Altinn.App.Api.Controllers
 
             await UpdatePresentationTextsOnInstance(instance, dataType.Id, serviceModel);
             await UpdateDataValuesOnInstance(instance, dataType.Id, serviceModel);
+
+            ObjectUtils.InitializeAltinnRowId(serviceModel);
 
             // Save Formdata to database
             DataElement updatedDataElement = await _dataClient.UpdateData(
