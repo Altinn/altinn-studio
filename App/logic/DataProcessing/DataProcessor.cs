@@ -26,7 +26,7 @@ namespace Altinn.App.Logic.DataProcessing
     /// <param name="instance">The instance that data belongs to</param>
     /// <param name="dataId">The dataId for data if available</param>
     /// <param name="data">The data as object</param>
-    public Task ProcessDataWrite(Instance instance, Guid? dataId, object data, object previous)
+    public Task ProcessDataWrite(Instance instance, Guid? dataId, object data, object previous, string language)
     {
       return Task.CompletedTask;
     }
@@ -44,7 +44,7 @@ namespace Altinn.App.Logic.DataProcessing
     /// <param name="instance">The instance that data belongs to</param>
     /// <param name="dataId">The dataId for data if available</param>
     /// <param name="data">The data as object</param>
-    public Task ProcessDataRead(Instance instance, Guid? dataId, object data)
+    public Task ProcessDataRead(Instance instance, Guid? dataId, object data, string language)
     {
       if (data.GetType() != typeof(Skjema))
       {
