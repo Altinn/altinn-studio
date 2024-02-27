@@ -1,10 +1,10 @@
 [
   {
-    "id": "cert",
-    "value": "Sertifisering"
+    "value": "cert",
+    "label": "Sertifisering"
   },
   {
-    "id": "course",
-    "value": "Kursbevis"
+    "value": "course",
+    "label": "Kursbevis"
   }
 ]
