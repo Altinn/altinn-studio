@@ -11,6 +11,10 @@ function useDynamicsQuery() {
   const { fetchDynamics } = useAppQueries();
   const layoutSetId = useCurrentLayoutSetId();
 
+  if (!layoutSetId) {
+    throw new Error('No layoutSet id found');
+  }
+
   return useQuery({
     queryKey: ['fetchDynamics', layoutSetId],
     queryFn: async () => (await fetchDynamics(layoutSetId))?.data || null,

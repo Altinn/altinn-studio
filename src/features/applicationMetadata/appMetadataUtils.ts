@@ -75,21 +75,12 @@ export const onEntryValuesThatHaveState: ShowTypes[] = ['new-instance', 'select-
 
 /**
  * Get the current layout set for application if it exists
- * @param application the application metadata
- * @param instance the instance if present
- * @param layoutSets the layout sets if present
- * @returns the layout set for the application if present
  */
-export function getLayoutSetIdForApplication({ application, layoutSets, taskId }: CommonProps): string | undefined {
+export function getLayoutSetIdForApplication({ application, layoutSets, taskId }: CommonProps) {
   const showOnEntry = application.onEntry?.show;
-  if (isStatelessApp(application)) {
-    // we have a stateless app with a layout set
+  if (isStatelessApp(application) && typeof showOnEntry === 'string') {
+    // We have a stateless app with a layout set
     return showOnEntry;
-  }
-
-  // instance - get layoutSet based on current data task
-  if (!layoutSets) {
-    return undefined;
   }
 
   const dataType = getCurrentDataTypeForApplication({ application, layoutSets, taskId });
@@ -98,10 +89,6 @@ export function getLayoutSetIdForApplication({ application, layoutSets, taskId }
 
 /**
  * Get the current data type for the application
- * @param application the application metadata
- * @param instance the instance, if present
- * @param layoutSets the layout sets, if present
- * @returns the current data type
  */
 export function getCurrentDataTypeForApplication({ application, layoutSets, taskId }: CommonProps): string | undefined {
   const showOnEntry = application.onEntry?.show;

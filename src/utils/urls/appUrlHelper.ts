@@ -119,37 +119,14 @@ export const redirectToUpgrade = (reqAuthLevel: string) => {
 };
 
 export const getJsonSchemaUrl = () => `${appPath}/api/jsonschema/`;
-
 export const getCustomValidationConfigUrl = (dataTypeId: string) => `${appPath}/api/validationconfig/${dataTypeId}`;
-
-export const getLayoutSettingsUrl = (layoutSetId: string | undefined) => {
-  if (layoutSetId === undefined) {
-    return `${appPath}/api/layoutsettings`;
-  }
-  return `${appPath}/api/layoutsettings/${layoutSetId}`;
-};
-
+export const getLayoutSettingsUrl = (layoutSetId: string) => `${appPath}/api/layoutsettings/${layoutSetId}`;
 export const getLayoutSetsUrl = () => `${appPath}/api/layoutsets`;
 export const getFooterLayoutUrl = () => `${appPath}/api/v1/footer`;
-
-export const getFetchFormDynamicsUrl = (layoutSetId?: string) => {
-  if (layoutSetId) {
-    return `${appPath}/api/ruleconfiguration/${layoutSetId}`;
-  }
-  return `${appPath}/api/resource/RuleConfiguration.json`;
-};
-
+export const getFetchFormDynamicsUrl = (layoutSetId: string) => `${appPath}/api/ruleconfiguration/${layoutSetId}`;
 export const getLayoutsUrl = (layoutSetId: string) => `${appPath}/api/layouts/${layoutSetId}`;
-
-export const getRulehandlerUrl = (layoutset?: string) => {
-  if (!layoutset) {
-    return `${appPath}/api/resource/RuleHandler.js`;
-  }
-  return `${appPath}/api/rulehandler/${layoutset}`;
-};
-
+export const getRulehandlerUrl = (layoutSet: string) => `${appPath}/api/rulehandler/${layoutSet}`;
 export const getActiveInstancesUrl = (partyId: string) => `${appPath}/instances/${partyId}/active`;
-
 export const getInstanceUiUrl = (instanceId: string) => `${appPath}#/instance/${instanceId}`;
 
 export const appFrontendCDNPath = 'https://altinncdn.no/toolkits/altinn-app-frontend';

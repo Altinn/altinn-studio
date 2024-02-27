@@ -13,11 +13,13 @@ function useLayoutSettingsQuery() {
   const { fetchLayoutSettings } = useAppQueries();
   const layoutSetId = useLayoutSetId();
 
-  const queryId = layoutSetId;
+  if (!layoutSetId) {
+    throw new Error('No layoutSet id found');
+  }
 
   return useQuery({
-    queryKey: ['layoutSettings', queryId],
-    queryFn: () => fetchLayoutSettings(queryId),
+    queryKey: ['layoutSettings', layoutSetId],
+    queryFn: () => fetchLayoutSettings(layoutSetId),
     onError: (error: HttpClientError) => {
       window.logError('Fetching layout settings failed:\n', error);
     },

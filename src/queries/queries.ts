@@ -180,7 +180,7 @@ export const fetchLayoutSets = (): Promise<ILayoutSets> => httpGet(getLayoutSets
 
 export const fetchLayouts = (layoutSetId: string): Promise<ILayoutCollection> => httpGet(getLayoutsUrl(layoutSetId));
 
-export const fetchLayoutSettings = (layoutSetId: string | undefined): Promise<ILayoutSettings> =>
+export const fetchLayoutSettings = (layoutSetId: string): Promise<ILayoutSettings> =>
   httpGet(getLayoutSettingsUrl(layoutSetId));
 
 export const fetchOptions = (url: string): Promise<AxiosResponse<IRawOption[]> | null> => httpGetRaw<IRawOption[]>(url);
@@ -211,10 +211,10 @@ export const fetchFormData = (url: string, options?: AxiosRequestConfig): Promis
 export const fetchPdfFormat = (instanceId: string, dataGuid: string): Promise<IPdfFormat> =>
   httpGet(getPdfFormatUrl(instanceId, dataGuid));
 
-export const fetchDynamics = (layoutSetId?: string): Promise<{ data: IFormDynamics } | null> =>
+export const fetchDynamics = (layoutSetId: string): Promise<{ data: IFormDynamics } | null> =>
   httpGet(getFetchFormDynamicsUrl(layoutSetId));
 
-export const fetchRuleHandler = (layoutSetId?: string): Promise<string | null> =>
+export const fetchRuleHandler = (layoutSetId: string): Promise<string | null> =>
   httpGet(getRulehandlerUrl(layoutSetId));
 
 export const fetchTextResources = (selectedLanguage: string): Promise<ITextResourceResult> =>

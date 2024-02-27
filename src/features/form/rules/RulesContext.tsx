@@ -14,6 +14,10 @@ const useRulesQuery = () => {
   const { fetchRuleHandler } = useAppQueries();
   const layoutSetId = useCurrentLayoutSetId();
 
+  if (!layoutSetId) {
+    throw new Error('No layoutSet id found');
+  }
+
   const utils = useQuery({
     queryKey: ['fetchRules', layoutSetId],
     queryFn: () => fetchRuleHandler(layoutSetId),

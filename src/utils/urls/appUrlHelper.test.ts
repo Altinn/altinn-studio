@@ -348,12 +348,6 @@ describe('Frontend urlHelper.ts', () => {
   });
 
   describe('getRulehandlerUrl', () => {
-    it('should return default when no parameter is passed', () => {
-      const result = getRulehandlerUrl();
-
-      expect(result).toBe('https://local.altinn.cloud/ttd/test/api/resource/RuleHandler.js');
-    });
-
     it('should return rule handler as passed argument', () => {
       const result = getRulehandlerUrl('custom-handler.js');
 
@@ -370,12 +364,6 @@ describe('Frontend urlHelper.ts', () => {
   });
 
   describe('getLayoutSettingsUrl', () => {
-    it('should return default when no parameter is passed', () => {
-      const result = getLayoutSettingsUrl(undefined);
-
-      expect(result).toBe('https://local.altinn.cloud/ttd/test/api/layoutsettings');
-    });
-
     it('should return layout as passed argument', () => {
       const result = getLayoutSettingsUrl('custom-layout.json');
 
@@ -384,14 +372,6 @@ describe('Frontend urlHelper.ts', () => {
   });
 
   describe('getFetchFormDynamicsUrl', () => {
-    it('should return default when no parameter is passed', () => {
-      const undefinedResult = getFetchFormDynamicsUrl();
-
-      const expected = 'https://local.altinn.cloud/ttd/test/api/resource/RuleConfiguration.json';
-
-      expect(undefinedResult).toBe(expected);
-    });
-
     it('should return layout as passed argument', () => {
       const result = getFetchFormDynamicsUrl('custom-rule.json');
 
