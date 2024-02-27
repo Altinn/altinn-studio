@@ -113,6 +113,7 @@ export function SummaryComponent({ summaryNode, overrides, ref }: ISummaryCompon
                   <Lang
                     id={message.key}
                     params={message.params}
+                    node={targetNode}
                   />
                 }
               />
