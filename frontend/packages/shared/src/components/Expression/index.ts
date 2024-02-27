@@ -1,1 +1,1 @@
-export { Expression, ExpressionProps } from './Expression';
+export { Expression, type ExpressionProps } from './Expression';

@@ -24,7 +24,7 @@ const componentValue: DataLookupFunc<DataLookupFuncName.Component> = [
 const stringValue: string = 'some-text';
 const numberValue: number = 5;
 
-export const genericOperatorRelation: GenericRelationFunc = [
+export const generalOperatorRelation: GenericRelationFunc = [
   GeneralRelationOperator.Equals,
   datamodelValue,
   stringValue,
@@ -38,12 +38,12 @@ export const numberOperatorRelation: NumberRelationFunc = [
 
 export const logicalExpression: LogicalTupleFunc = [
   LogicalTupleOperator.And,
-  genericOperatorRelation,
+  generalOperatorRelation,
   numberOperatorRelation,
 ];
 
 export const tooComplexExpression: Expression = [
   LogicalTupleOperator.Or,
-  [LogicalTupleOperator.And, genericOperatorRelation, numberOperatorRelation],
-  genericOperatorRelation,
+  [LogicalTupleOperator.And, generalOperatorRelation, numberOperatorRelation],
+  generalOperatorRelation,
 ];

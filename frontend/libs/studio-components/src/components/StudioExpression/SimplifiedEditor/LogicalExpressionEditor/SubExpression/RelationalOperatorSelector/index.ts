@@ -1,4 +1,4 @@
 export {
   RelationalOperatorSelector,
-  RelationalOperatorSelectorProps,
+  type RelationalOperatorSelectorProps,
 } from './RelationalOperatorSelector';

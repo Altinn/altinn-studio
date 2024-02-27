@@ -1,4 +1,4 @@
 export {
   OperatorBetweenSubexpressions,
-  OperatorBetweenSubexpressionsProps,
+  type OperatorBetweenSubexpressionsProps,
 } from './OperatorBetweenSubexpressions';
