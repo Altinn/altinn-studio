@@ -5,6 +5,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using LibGit2Sharp;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -79,20 +80,25 @@ public class PreviewService : IPreviewService
     {
         cancellationToken.ThrowIfCancellationRequested();
         AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-        LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
-        List<string> tasks = new();
-        if (layoutSets?.Sets is { Count: > 0 })
+        try
         {
-            foreach (LayoutSetConfig layoutSet in layoutSets.Sets)
+            LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+            List<string> tasks = new();
+            if (layoutSets?.Sets is { Count: > 0 })
             {
-                if (!tasks.Contains(layoutSet.Tasks[0]))
+                foreach (LayoutSetConfig layoutSet in layoutSets.Sets)
                 {
-                    tasks.Add(layoutSet.Tasks[0]);
+                    if (!tasks.Contains(layoutSet.Tasks[0]))
+                    {
+                        tasks.Add(layoutSet.Tasks[0]);
+                    }
                 }
             }
+            return tasks;
+        } catch (NotFoundException)
+        {
+            return null;
         }
-        return tasks;
-
     }
 
     /// <summary>
