@@ -1,4 +1,5 @@
-import { StudioExpression, StudioExpressionProps } from '@studio/components';
+import type { StudioExpressionProps } from '@studio/components';
+import { StudioExpression } from '@studio/components';
 import { useExpressionTexts } from './useExpressionTexts';
 import React from 'react';
 

@@ -31,7 +31,8 @@ interface RouterRoute {
 }
 
 const latestFrontendVersion = '4';
-const isLatestFrontendVersion = (version: AppVersion): boolean => true; //version?.frontendVersion?.startsWith(latestFrontendVersion) || !version?.frontendVersion;
+const isLatestFrontendVersion = (version: AppVersion): boolean =>
+  version?.frontendVersion?.startsWith(latestFrontendVersion);
 
 const UiEditor = () => {
   const { org, app } = useStudioUrlParams();
