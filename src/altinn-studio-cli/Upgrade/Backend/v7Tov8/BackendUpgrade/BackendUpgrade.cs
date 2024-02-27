@@ -5,6 +5,7 @@ using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.ProcessRewriter;
 using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.ProjectRewriters;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
 
 namespace Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.BackendUpgrade;
@@ -208,6 +209,31 @@ public class BackendUpgrade
             if (dataProcessorSource != newUsingSource)
             {
                 await File.WriteAllTextAsync(sourceTree.FilePath, dataProcessorSource.ToFullString());
+            }
+
+            if (sourceTree.FilePath.Contains("/models/"))
+            {
+                // Find all classes that are used in a List
+                var classNamesInList = dataProcessorSource
+                    .DescendantNodes()
+                    .OfType<PropertyDeclarationSyntax>()
+                    .Where(p => p is { Type: GenericNameSyntax { Identifier.ValueText: "List" } })
+                    .Select(p =>
+                        ((GenericNameSyntax)p.Type)
+                            .TypeArgumentList.Arguments
+                                .OfType<IdentifierNameSyntax>()
+                                .FirstOrDefault()
+                                ?.Identifier
+                                .ValueText)
+                    .OfType<string>()
+                    .ToList();
+
+                var rowIdRewriter = new ModelRewriter(classNamesInList);
+                var rowIdSource = rowIdRewriter.Visit(dataProcessorSource);
+                if (rowIdSource != dataProcessorSource)
+                {
+                    await File.WriteAllTextAsync(sourceTree.FilePath, rowIdSource.ToFullString());
+                }
             }
         }
 
