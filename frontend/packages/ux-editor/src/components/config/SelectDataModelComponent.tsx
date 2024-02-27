@@ -4,6 +4,7 @@ import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetad
 import { FormField } from '../FormField';
 import type { Option } from 'packages/text-editor/src/types';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import type { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
 
 export interface ISelectDataModelProps {
   inputId?: string;
@@ -12,7 +13,7 @@ export interface ISelectDataModelProps {
   onDataModelChange: (dataModelField: string) => void;
   noOptionsMessage?: string;
   hideRestrictions?: boolean;
-  selectGroup?: boolean;
+  dataModelFieldsFilter?: (dataModelField: DatamodelFieldElement) => boolean;
   componentType?: string;
   propertyPath?: string;
   helpText?: string;
@@ -24,7 +25,7 @@ export const SelectDataModelComponent = ({
   label,
   onDataModelChange,
   noOptionsMessage,
-  selectGroup,
+  dataModelFieldsFilter,
   componentType,
   helpText,
   propertyPath,
@@ -36,17 +37,13 @@ export const SelectDataModelComponent = ({
   useEffect(() => {
     if (!data) return;
     const elementNames = data
-      .filter(
-        (element) =>
-          element.dataBindingName &&
-          ((!selectGroup && element.maxOccurs <= 1) || (selectGroup && element.maxOccurs > 1)),
-      )
+      .filter((element) => dataModelFieldsFilter(element))
       .map((element) => ({
         value: element.dataBindingName,
         label: element.dataBindingName,
       }));
     setDataModelElementNames(elementNames);
-  }, [data, selectGroup]);
+  }, [data, dataModelFieldsFilter]);
 
   const onChangeSelectedBinding = (e: any) => {
     onDataModelChange(e);

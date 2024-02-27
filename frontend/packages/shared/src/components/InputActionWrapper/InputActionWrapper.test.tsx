@@ -34,9 +34,10 @@ describe('InputActionWrapper', () => {
     expect(screen.queryByLabelText('general.save')).not.toBeInTheDocument();
   });
 
-  it('displays the edit button when mode is (hoverMode)', async () => {
+  it('displays only the edit button when mode is (hoverMode)', async () => {
     await render(<InputActionWrapper {...mockProps} mode='hoverMode' />);
     expect(screen.getByLabelText('general.edit')).toBeInTheDocument();
+    expect(screen.queryByLabelText('general.delete')).not.toBeInTheDocument();
   });
 
   it('does not renders edit button when mode is (editMode)', async () => {

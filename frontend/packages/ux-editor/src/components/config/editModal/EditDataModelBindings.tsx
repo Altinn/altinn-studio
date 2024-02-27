@@ -14,6 +14,7 @@ import { StudioButton } from '@studio/components';
 import classes from './EditDataModelBindings.module.css';
 import { InputActionWrapper } from 'app-shared/components/InputActionWrapper';
 import { useTranslation } from 'react-i18next';
+import type { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
 
 export interface EditDataModelBindingsProps extends IGenericEditComponent {
   renderOptions?: {
@@ -54,6 +55,28 @@ export const EditDataModelBindings = ({
     });
   };
 
+  const generalFilter = (element: DatamodelFieldElement) =>
+    element.dataBindingName && element.maxOccurs <= 1;
+  const repeatingGroupFilter = (element: DatamodelFieldElement) =>
+    element.dataBindingName && element.maxOccurs > 1;
+  const multipleAttachmentsFilter = (element: DatamodelFieldElement) =>
+    element.dataBindingName && element.maxOccurs > 1 && element.xsdValueType === 'String';
+
+  const dataModelFieldsFilter = (
+    componentType: ComponentType,
+    label: boolean,
+  ): ((element: DatamodelFieldElement) => boolean) => {
+    switch (componentType) {
+      case ComponentType.RepeatingGroup:
+        return repeatingGroupFilter;
+      case ComponentType.FileUpload:
+      case ComponentType.FileUploadWithTag:
+        return label ? multipleAttachmentsFilter : generalFilter;
+      default:
+        return generalFilter;
+    }
+  };
+
   const { uniqueKey, key, label } = renderOptions || {};
 
   const [dataModelSelectVisible, setDataModelSelectVisible] = useState(false);
@@ -65,11 +88,6 @@ export const EditDataModelBindings = ({
   const selectedOption = component.dataModelBindings
     ? component.dataModelBindings[key || 'simpleBinding']
     : undefined;
-
-  const onlyShowArrayDataModelFields: boolean =
-    component.type === ComponentType.RepeatingGroup ||
-    ((component.type === ComponentType.FileUpload || ComponentType.FileUploadWithTag) &&
-      label === 'list');
 
   const labelSpecificText = label
     ? t(`ux_editor.modal_properties_data_model_label.${label}`)
@@ -111,7 +129,7 @@ export const EditDataModelBindings = ({
                 label={labelSpecificText}
                 componentType={component.type}
                 inputId={`selectDataModelSelect-${label}`}
-                selectGroup={onlyShowArrayDataModelFields}
+                dataModelFieldsFilter={dataModelFieldsFilter(component.type, label === 'list')}
                 selectedElement={
                   component.dataModelBindings
                     ? component.dataModelBindings[key || 'simpleBinding']
