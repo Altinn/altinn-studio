@@ -1,18 +1,12 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import classes from './AppDeployment.module.css';
-import { Accordion, Link } from '@digdir/design-system-react';
-import { useCreateDeploymentMutation } from '../../../hooks/mutations';
-import { useTranslation, Trans } from 'react-i18next';
 
-import { toast } from 'react-toastify';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { AppDeploymentHeader } from './AppDeploymentHeader';
 import { AppDeploymentActions } from './AppDeploymentActions';
 import { AppDeploymentList } from './AppDeploymentList';
 import type { ImageOption } from './ImageOption';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
-import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
 import { BuildResult } from 'app-shared/types/Build';
 
 export interface AppDeploymentProps {
@@ -36,32 +30,9 @@ export const AppDeployment = ({
   urlToApp,
   orgName,
 }: AppDeploymentProps) => {
-  console.log('---', envName, '---');
-  const { t } = useTranslation();
-
-  const { org, app } = useStudioUrlParams();
-  const mutation = useCreateDeploymentMutation(org, app, { hideDefaultError: true });
-
-  // useEffect(() => {
-  //   if (deployPermission && latestDeploy && deployedVersionNotReachable) {
-  //     toast.error(() => (
-  //       <Trans
-  //         i18nKey={'app_deploy_messages.unable_to_list_deploys'}
-  //         components={{
-  //           a: (
-  //             <Link href='/contact' inverted={true}>
-  //               {' '}
-  //             </Link>
-  //           ),
-  //         }}
-  //       />
-  //     ));
-  //   }
-  // }, [deployPermission, latestDeploy, deployedVersionNotReachable]);
-
   return (
-    <div className={classes.appDeployment}>
-      <div className={classes.appDeploymentHeader}>
+    <div className={classes.container}>
+      <div className={classes.header}>
         <AppDeploymentHeader
           kubernetesDeployment={kubernetesDeployment}
           envName={envName}
@@ -69,7 +40,7 @@ export const AppDeployment = ({
           urlToApp={urlToApp}
         />
       </div>
-      <div className={classes.bodyContainer}>
+      <div className={classes.content}>
         <AppDeploymentActions
           appDeployedVersion={kubernetesDeployment?.version}
           lastBuildId={pipelineDeploymentList[0]?.build?.id}
@@ -79,11 +50,7 @@ export const AppDeployment = ({
           imageOptions={imageOptions}
           orgName={orgName}
         />
-        <AppDeploymentList
-          envName={envName}
-          pipelineDeploymentList={pipelineDeploymentList}
-          kubernetesDeployment={kubernetesDeployment}
-        />
+        <AppDeploymentList envName={envName} pipelineDeploymentList={pipelineDeploymentList} />
       </div>
     </div>
   );

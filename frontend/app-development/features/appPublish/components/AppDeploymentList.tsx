@@ -1,23 +1,21 @@
 import React from 'react';
 import classes from './AppDeploymentList.module.css';
-import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
+import { Heading, Link } from '@digdir/design-system-react';
 import { Table } from '@digdir/design-system-react';
 import { formatDateTime } from 'app-shared/pure/date-format';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { BuildResult } from 'app-shared/types/Build';
-import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
-import { getAzureDevopsBuildResultUrl } from '../../../utils/urlHelper';
 import {
-  InformationSquareFillIcon,
   ExclamationmarkTriangleFillIcon,
   CheckmarkCircleFillIcon,
   XMarkOctagonFillIcon,
 } from '@studio/icons';
 import { StudioSpinner } from '@studio/components';
+import { getAzureDevopsBuildResultUrl } from 'app-development/utils/urlHelper';
 
 export interface AppDeploymentListProps {
   envName: string;
@@ -25,28 +23,15 @@ export interface AppDeploymentListProps {
   kubernetesDeployment?: KubernetesDeployment;
 }
 
-export const AppDeploymentList = ({
-  pipelineDeploymentList,
-  kubernetesDeployment,
-  envName,
-}: AppDeploymentListProps) => {
-  const { t } = useTranslation();
+const showBuildLogLink = (startedDateStr: string) => {
+  const currentDate = new Date();
+  const startedDate = new Date(startedDateStr);
+  const daysDiff = (currentDate.getTime() - startedDate.getTime()) / (1000 * 60 * 60 * 24);
+  return daysDiff <= 30;
+};
 
-  // const getSeverity = (buildResult: BuildResult) => {
-  //   switch (buildResult) {
-  //     case BuildResult.canceled:
-  //       return 'warning';
-  //     case BuildResult.failed:
-  //       return 'danger';
-  //     case BuildResult.partiallySucceeded:
-  //       return 'warning';
-  //     case BuildResult.succeeded:
-  //       return 'success';
-  //     case BuildResult.none:
-  //     default:
-  //       return '';
-  //   }
-  // };
+export const AppDeploymentList = ({ pipelineDeploymentList, envName }: AppDeploymentListProps) => {
+  const { t } = useTranslation();
 
   const getIcon = (buildResult: BuildResult) => {
     switch (buildResult) {
@@ -74,13 +59,10 @@ export const AppDeploymentList = ({
         return (
           <StudioSpinner
             size='small'
-            spinnerTitle={t('app_deploy.build_result.none')}
+            spinnerTitle={t('app_deployment.pipeline_deployment.build_result.none')}
             showSpinnerTitle={false}
             className={classes.loadingSpinner}
           />
-          // <InformationSquareFillIcon
-          //   className={classNames(classes.icon, classes[`icon-${buildResult}`])}
-          // />
         );
     }
   };
@@ -102,15 +84,15 @@ export const AppDeploymentList = ({
   };
 
   return (
-    <div className={classes.appDeploymentList}>
+    <div className={classes.container}>
       {pipelineDeploymentList.length === 0 ? (
         <span id={`deploy-history-for-${envName.toLowerCase()}-unavailable`}>
-          {t('app_deploy_table.deployed_version_history_empty', { envName })}
+          {t('app_deployment.table.deployed_version_history_empty', { envName })}
         </span>
       ) : (
         <div>
           <Heading level={4} size='xxsmall' className={classes.heading}>
-            {t('app_deploy_table.deployed_version_history', { envName })}
+            {t('app_deployment.table.deployed_version_history', { envName })}
           </Heading>
           <div className={classes.tableWrapper} id={`deploy-history-table-${envName}`}>
             <Table size='small' stickyHeader className={classes.table}>
@@ -120,18 +102,20 @@ export const AppDeploymentList = ({
                     className={classNames(classes.tableHeaderCell, classes.tableIconCell)}
                   />
                   <Table.HeaderCell className={classes.tableHeaderCell}>
-                    {t('app_deploy_table.status')}
+                    {t('app_deployment.table.status')}
                   </Table.HeaderCell>
                   <Table.HeaderCell className={classes.tableHeaderCell}>
-                    {t('app_deploy_table.version_col')}
+                    {t('app_deployment.table.version_col')}
                   </Table.HeaderCell>
                   <Table.HeaderCell className={classes.tableHeaderCell}>
-                    {t('app_deploy_table.available_version_col')}
+                    {t('app_deployment.table.available_version_col')}
                   </Table.HeaderCell>
                   <Table.HeaderCell className={classes.tableHeaderCell}>
-                    {t('app_deploy_table.deployed_by_col')}
+                    {t('app_deployment.table.deployed_by_col')}
                   </Table.HeaderCell>
-                  {/* <Table.HeaderCell className={classes.tableHeaderCell} /> */}
+                  <Table.HeaderCell className={classes.tableHeaderCell}>
+                    {t('app_deployment.build_log')}
+                  </Table.HeaderCell>
                 </Table.Row>
               </Table.Head>
               <Table.Body>
@@ -142,22 +126,26 @@ export const AppDeploymentList = ({
                         {getIcon(deploy.build.result)}
                       </Table.Cell>
                       <Table.Cell className={classes.tableCell}>
-                        {t(`app_deploy.build_result.${deploy.build.result}`)}
+                        {t(
+                          `app_deployment.pipeline_deployment.build_result.${deploy.build.result}`,
+                        )}
                       </Table.Cell>
                       <Table.Cell className={classes.tableCell}>{deploy.tagName}</Table.Cell>
                       <Table.Cell className={classes.tableCell}>
                         {deploy.build.finished && formatDateTime(deploy.build.finished)}
                       </Table.Cell>
                       <Table.Cell className={classes.tableCell}>{deploy.createdBy}</Table.Cell>
-                      {/* <Table.Cell className={classes.tableCell}>
-                        <Trans i18nKey={'app_deploy.build_log'}>
-                          <a
+                      <Table.Cell className={classes.tableCell}>
+                        {showBuildLogLink(deploy.build.started) && (
+                          <Link
                             href={getAzureDevopsBuildResultUrl(deploy.build.id)}
                             target='_newTab'
                             rel='noopener noreferrer'
-                          />
-                        </Trans>
-                      </Table.Cell> */}
+                          >
+                            {t('app_deployment.build_log')}
+                          </Link>
+                        )}
+                      </Table.Cell>
                     </Table.Row>
                   );
                 })}

@@ -41,10 +41,10 @@ describe('AppEnvironments', () => {
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('overview.loading_env')));
 
     expect(
-      screen.getByRole('heading', { name: textMock('app_publish.no_env_title') }),
+      screen.getByRole('heading', { name: textMock('app_deployment.no_env_title') }),
     ).toBeInTheDocument();
-    expect(screen.getByText(textMock('app_publish.no_env_1'))).toBeInTheDocument();
-    expect(screen.getByText(textMock('app_publish.no_env_2'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_deployment.no_env_1'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_deployment.no_env_2'))).toBeInTheDocument();
   });
 
   it('shows statuses when organization has environments', async () => {
@@ -86,7 +86,9 @@ describe('AppEnvironments', () => {
     );
 
     expect(screen.getByRole('heading', { name: envName })).toBeInTheDocument();
-    expect(screen.getByText(textMock('overview.unavailable'))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('app_deployment.kubernetes_deployment.status.failed')),
+    ).toBeInTheDocument();
     expect(screen.getByText(textMock('overview.go_to_build_log'))).toBeInTheDocument();
   });
 });

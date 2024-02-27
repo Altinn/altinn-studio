@@ -33,7 +33,7 @@ export const AppStatus = ({ kubernetesDeployment, envName, envType, urlToApp }: 
         envType={envType}
         envName={envName}
         severity='info'
-        content={t('overview.no_app')}
+        content={t('app_deployment.kubernetes_deployment.status.none')}
         footer={
           <Trans i18nKey='overview.go_to_publish'>
             <a href={publishPath(org, app)} />
@@ -52,7 +52,7 @@ export const AppStatus = ({ kubernetesDeployment, envName, envType, urlToApp }: 
           severity='success'
           content={
             <Trans
-              i18nKey={'overview.success'}
+              i18nKey={'app_deployment.kubernetes_deployment.status.completed'}
               values={{
                 version: kubernetesDeployment.version,
               }}
@@ -63,7 +63,7 @@ export const AppStatus = ({ kubernetesDeployment, envName, envType, urlToApp }: 
           }
           footer={
             <Trans
-              i18nKey={'overview.last_published'}
+              i18nKey={'app_deployment.last_published'}
               values={{
                 lastPublishedDate: formatDateTime(kubernetesDeployment?.statusDate),
               }}
@@ -77,7 +77,7 @@ export const AppStatus = ({ kubernetesDeployment, envName, envType, urlToApp }: 
           envType={envType}
           envName={envName}
           severity='danger'
-          content={t('overview.unavailable')}
+          content={t('app_deployment.kubernetes_deployment.status.failed')}
           footer={
             <Trans i18nKey='overview.go_to_publish'>
               <a href={publishPath(org, app)} />
@@ -93,8 +93,12 @@ export const AppStatus = ({ kubernetesDeployment, envName, envType, urlToApp }: 
           severity='info'
           content={
             <span className={classes.loadingSpinner}>
-              <Spinner variant='interaction' title={t('overview.in_progress')} size='xsmall' />
-              {t('overview.in_progress')}
+              <Spinner
+                variant='interaction'
+                title={t('app_deployment.kubernetes_deployment.status.progressing')}
+                size='xsmall'
+              />
+              {t('app_deployment.kubernetes_deployment.status.progressing')}
             </span>
           }
           footer={

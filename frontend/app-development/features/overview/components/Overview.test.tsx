@@ -89,7 +89,7 @@ describe('Overview', () => {
         }),
       ),
     });
-    expect(await screen.findByText(textMock('app_publish.no_env_title'))).toBeInTheDocument();
+    expect(await screen.findByText(textMock('app_deployment.no_env_title'))).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', { name: textMock('overview.activity') }),
     ).not.toBeInTheDocument();
@@ -97,7 +97,9 @@ describe('Overview', () => {
 
   it('should display RepoOwnedByPersonInfo if repo is not owned by an org', async () => {
     render();
-    expect(await screen.findByText(textMock('app_publish.private_app_owner'))).toBeInTheDocument();
+    expect(
+      await screen.findByText(textMock('app_deployment.private_app_owner')),
+    ).toBeInTheDocument();
   });
 });
 

@@ -27,16 +27,18 @@ describe('AppDeploymentComponent', () => {
   it('should render', () => {
     render();
     expect(
-      screen.getByText(`${textMock('app_deploy.environment', { envName: 'test' })}`),
+      screen.getByText(`${textMock('app_deployment.environment', { envName: 'test' })}`),
     ).toBeInTheDocument();
   });
 
   it('should render with no deploy history', () => {
     render();
-    expect(screen.getByText(textMock('overview.no_app'))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('app_deployment.kubernetes_deployment.status.none')),
+    ).toBeInTheDocument();
     expect(
       screen.getByText(
-        textMock('app_deploy_table.deployed_version_history_empty', { envName: 'test' }),
+        textMock('app_deployment.table.deployed_version_history_empty', { envName: 'test' }),
       ),
     ).toBeInTheDocument();
   });
@@ -45,7 +47,7 @@ describe('AppDeploymentComponent', () => {
     render({ deployPermission: false });
     expect(
       screen.getByText(
-        textMock('app_publish.missing_rights', { envName: 'test', orgName: 'test' }),
+        textMock('app_deployment.missing_rights', { envName: 'test', orgName: 'test' }),
       ),
     ).toBeInTheDocument();
   });
@@ -74,10 +76,16 @@ describe('AppDeploymentComponent', () => {
     ];
     render({ deployHistory });
     expect(
-      screen.getByText(textMock('overview.success', { appDeployedVersion: 'test' })),
+      screen.getByText(
+        textMock('app_deployment.kubernetes_deployment.status.failed', {
+          appDeployedVersion: 'test',
+        }),
+      ),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(textMock('app_deploy_table.deployed_version_history', { envName: 'test' })),
+      screen.getByText(
+        textMock('app_deployment.table.deployed_version_history', { envName: 'test' }),
+      ),
     ).toBeInTheDocument();
     expect(screen.getByText('test')).toBeInTheDocument();
   });
@@ -108,7 +116,7 @@ describe('AppDeploymentComponent', () => {
     render({ deployHistory });
     expect(
       await screen.findByText(
-        textMock('app_deploy_messages.failed', {
+        textMock('app_deployment.messages.failed', {
           envName: 'testEnv',
           tagName: 'testTag',
           time: date,
@@ -141,7 +149,7 @@ describe('AppDeploymentComponent', () => {
     ];
     render({ deployHistory });
     expect(
-      screen.getByText(textMock('app_deploy.deployed_version_unavailable')),
+      screen.getByText(textMock('app_deployment.deployed_version_unavailable')),
     ).toBeInTheDocument();
   });
 
@@ -223,7 +231,9 @@ describe('AppDeploymentComponent', () => {
       },
     ];
     render({ imageOptions });
-    expect(screen.getByText(textMock('app_deploy_messages.choose_version'))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('app_deployment.messages.choose_version')),
+    ).toBeInTheDocument();
     const dropdown = screen.getByRole('combobox');
     expect(dropdown).toBeInTheDocument();
     await act(() => user.click(dropdown));
@@ -253,7 +263,9 @@ describe('AppDeploymentComponent', () => {
       },
     ];
     render({ deployHistory });
-    expect(screen.getByText(textMock('app_deploy.build_result.none'))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.none')),
+    ).toBeInTheDocument();
   });
 
   it('should render error message if call to deployment endpoint fails', async () => {
@@ -271,7 +283,9 @@ describe('AppDeploymentComponent', () => {
       createDeployment: jest.fn().mockRejectedValue(new Error('test error')),
     };
     render({ imageOptions }, queries);
-    expect(screen.getByText(textMock('app_deploy_messages.choose_version'))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('app_deployment.messages.choose_version')),
+    ).toBeInTheDocument();
     const dropdown = screen.getByRole('combobox');
     expect(dropdown).toBeInTheDocument();
     await act(() => user.click(dropdown));
@@ -279,13 +293,13 @@ describe('AppDeploymentComponent', () => {
     await act(() =>
       user.click(
         screen.getByRole('button', {
-          name: textMock('app_deploy_messages.btn_deploy_new_version'),
+          name: textMock('app_deployment.messages.btn_deploy_new_version'),
         }),
       ),
     );
     await act(() => user.click(screen.getByRole('button', { name: textMock('general.yes') })));
     expect(
-      await screen.findByText(textMock('app_deploy_messages.technical_error_1')),
+      await screen.findByText(textMock('app_deployment.messages.technical_error_1')),
     ).toBeInTheDocument();
   });
 });

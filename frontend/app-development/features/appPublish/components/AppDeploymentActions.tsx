@@ -45,7 +45,7 @@ export const AppDeploymentActions = ({
         onError: (): void => {
           toast.error(() => (
             <Trans
-              i18nKey={'app_deploy_messages.technical_error_1'}
+              i18nKey={'app_deployment.messages.technical_error_1'}
               components={{
                 a: (
                   <Link href='/contact' inverted={true}>
@@ -65,9 +65,9 @@ export const AppDeploymentActions = ({
   if (!imageOptions.length) return null;
 
   return (
-    <div className={classes.appDeploymentActions}>
+    <div className={classes.container}>
       {!deployPermission ? (
-        <Alert severity='info'>{t('app_publish.missing_rights', { envName, orgName })}</Alert>
+        <Alert severity='info'>{t('app_deployment.missing_rights', { envName, orgName })}</Alert>
       ) : (
         <DeployDropdown
           appDeployedVersion={appDeployedVersion}

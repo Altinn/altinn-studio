@@ -5,7 +5,6 @@ import { Trans, useTranslation } from 'react-i18next';
 import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { formatDateDDMMYY, formatTimeHHmm } from 'app-shared/pure/date-format';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import classNames from 'classnames';
 
 export interface AppDeploymentHeaderProps {
@@ -36,7 +35,7 @@ export const AppDeploymentHeader = ({
         envType={envType}
         envName={envName}
         severity='info'
-        content={t('overview.no_app')}
+        content={t('app_deployment.kubernetes_deployment.status.none')}
       />
     );
   }
@@ -50,7 +49,7 @@ export const AppDeploymentHeader = ({
           severity='success'
           content={
             <Trans
-              i18nKey={'overview.success'}
+              i18nKey={'app_deployment.kubernetes_deployment.status.completed'}
               values={{
                 version: kubernetesDeployment.version,
               }}
@@ -61,7 +60,7 @@ export const AppDeploymentHeader = ({
           }
           footer={
             <Trans
-              i18nKey={'overview.last_published'}
+              i18nKey={'app_deployment.last_published'}
               values={{
                 lastPublishedDate: formatDateTime(kubernetesDeployment?.statusDate),
               }}
@@ -75,7 +74,7 @@ export const AppDeploymentHeader = ({
           envType={envType}
           envName={envName}
           severity='warning'
-          content={t('overview.unavailable')}
+          content={t('app_deployment.kubernetes_deployment.status.failed')}
         />
       );
     default:
@@ -86,8 +85,12 @@ export const AppDeploymentHeader = ({
           severity='info'
           content={
             <span className={classes.loadingSpinner}>
-              <Spinner variant='interaction' title={t('overview.in_progress')} size='xsmall' />
-              {t('overview.in_progress')}
+              <Spinner
+                variant='interaction'
+                title={t('app_deployment.kubernetes_deployment.status.progressing')}
+                size='xsmall'
+              />
+              {t('app_deployment.kubernetes_deployment.status.progressing')}
             </span>
           }
           className={classes.inProgress}

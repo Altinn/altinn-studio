@@ -87,8 +87,10 @@ describe('AppStatus', () => {
     );
 
     expect(screen.getByRole('heading', { name: envNameTest })).toBeInTheDocument();
-    expect(screen.getByText(textMock('overview.success'))).toBeInTheDocument();
-    expect(screen.getByText(textMock('overview.last_published'))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('app_deployment.kubernetes_deployment.status.completed')),
+    ).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_deployment.last_published'))).toBeInTheDocument();
   });
 
   it('shows no app alert when application not deployed', async () => {
@@ -99,7 +101,9 @@ describe('AppStatus', () => {
     );
 
     expect(screen.getByRole('heading', { name: envNameTest })).toBeInTheDocument();
-    expect(screen.getByText(textMock('overview.no_app'))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('app_deployment.kubernetes_deployment.status.none')),
+    ).toBeInTheDocument();
     expect(screen.getByText(textMock('overview.go_to_publish'))).toBeInTheDocument();
   });
 
@@ -126,7 +130,9 @@ describe('AppStatus', () => {
     );
 
     expect(screen.getByRole('heading', { name: envNameTest })).toBeInTheDocument();
-    expect(screen.getByText(textMock('overview.unavailable'))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('app_deployment.kubernetes_deployment.status.failed')),
+    ).toBeInTheDocument();
     expect(screen.getByText(textMock('overview.go_to_build_log'))).toBeInTheDocument();
   });
 });

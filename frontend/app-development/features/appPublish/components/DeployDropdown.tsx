@@ -41,7 +41,7 @@ export const DeployDropdown = ({
           <Combobox
             size='small'
             value={selectedImageTag ? [selectedImageTag] : undefined}
-            label={t('app_deploy_messages.choose_version')}
+            label={t('app_deployment.messages.choose_version')}
             onValueChange={(selectedImageOptions: string[]) =>
               setSelectedImageTag(selectedImageOptions[0])
             }
@@ -74,21 +74,21 @@ export const DeployDropdown = ({
               {isPending && (
                 <Spinner
                   variant='interaction'
-                  title={t('app_deploy.build_result.none')}
+                  title={t('app_deployment.pipeline_deployment.build_result.none')}
                   size='xsmall'
                 />
               )}
-              {t('app_deploy_messages.btn_deploy_new_version')}
+              {t('app_deployment.messages.btn_deploy_new_version')}
             </StudioButton>
           }
         >
           <p>
             {appDeployedVersion
-              ? t('app_deploy_messages.deploy_confirmation', {
+              ? t('app_deployment.messages.deploy_confirmation', {
                   selectedImageTag,
                   appDeployedVersion,
                 })
-              : t('app_deploy_messages.deploy_confirmation_short', { selectedImageTag })}
+              : t('app_deployment.messages.deploy_confirmation_short', { selectedImageTag })}
           </p>
         </AltinnConfirmDialog>
       </div>

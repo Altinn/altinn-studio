@@ -1,4 +1,4 @@
-.appDeploymentList {
+.container {
   display: flex;
   flex-direction: column;
   gap: var(--fds-spacing-6);
@@ -36,16 +36,6 @@
 
 .tableIconCell svg {
   vertical-align: middle;
-}
-
-.buildResult {
-  padding: var(--fds-spacing-2);
-  display: flex;
-  align-items: center;
-}
-
-.buildResult * {
-  font-size: inherit !important;
 }
 
 .canceled {
@@ -86,8 +76,4 @@
 }
 .icon-succeeded {
   color: var(--fds-semantic-border-success-default);
-}
-
-.selected {
-  font-weight: bold;
 }

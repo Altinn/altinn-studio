@@ -17,7 +17,7 @@
 //       await render();
 
 //       const deleteButton = screen.getByRole('button', {
-//         name: textMock('app_deploy_messages.btn_deploy_new_version'),
+//         name: textMock('app_deployment.messages.btn_deploy_new_version'),
 //       });
 //       await act(() => user.click(deleteButton));
 
@@ -25,7 +25,7 @@
 //       expect(dialog).toBeInTheDocument();
 
 //       const text = await screen.findByText(
-//         textMock('app_deploy_messages.deploy_confirmation_short', { selectedImageTag: '' }),
+//         textMock('app_deployment.messages.deploy_confirmation_short', { selectedImageTag: '' }),
 //       );
 //       expect(text).toBeInTheDocument();
 
@@ -40,7 +40,7 @@
 //       await render();
 
 //       const deleteButton = screen.getByRole('button', {
-//         name: textMock('app_deploy_messages.btn_deploy_new_version'),
+//         name: textMock('app_deployment.messages.btn_deploy_new_version'),
 //       });
 //       await act(() => user.click(deleteButton));
 
@@ -55,7 +55,7 @@
 //       await render();
 
 //       const deleteButton = screen.getByRole('button', {
-//         name: textMock('app_deploy_messages.btn_deploy_new_version'),
+//         name: textMock('app_deployment.messages.btn_deploy_new_version'),
 //       });
 //       await act(() => user.click(deleteButton));
 
@@ -70,7 +70,7 @@
 //       await render();
 
 //       const deleteButton = screen.getByRole('button', {
-//         name: textMock('app_deploy_messages.btn_deploy_new_version'),
+//         name: textMock('app_deployment.messages.btn_deploy_new_version'),
 //       });
 //       await act(() => user.click(deleteButton));
 

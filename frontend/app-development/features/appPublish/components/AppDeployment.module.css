@@ -1,8 +1,13 @@
-.appDeployment {
+.container {
   border-bottom: 2px solid #000000;
 }
 
-.bodyContainer {
+.header {
+  box-sizing: content-box;
+  border-bottom: 1px solid #c9c9c9;
+}
+
+.content {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -11,40 +16,16 @@
   padding: var(--fds-spacing-6);
 }
 
-.appDeploymentHeader {
-  box-sizing: content-box;
-  border-bottom: 1px solid #c9c9c9;
-}
-
 @media (min-width: 1200px) {
-  .appDeploymentHeader {
-    max-width: 350px;
-    width: 25%;
-  }
-}
-
-/* .accordionHeader > button {
-  padding-bottom: 0 !important;
-  padding-top: 0 !important;
-  padding-right: 0 !important;
-}
-
-.accordionHeader > button > span {
-  width: 100%;
-} */
-
-/* .accordionContent {
-  padding: 0;
-  padding-left: var(--fds-spacing-10);
-} */
-
-@media (min-width: 1200px) {
-  .appDeployment {
+  .container {
     display: flex;
   }
 
-  .appDeploymentHeader {
+  .header {
     border-bottom: unset;
     border-right: 1px solid #c9c9c9;
+
+    max-width: 350px;
+    width: 25%;
   }
 }

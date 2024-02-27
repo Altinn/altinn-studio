@@ -14,8 +14,6 @@ import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import type { ImageOption } from '../components/ImageOption';
 import { AppDeployment } from '../components/AppDeployment';
-import { Alert } from '@digdir/design-system-react';
-import { Trans } from 'react-i18next';
 import { getAppLink } from 'app-shared/ext-urls';
 
 export const DeployContainer = () => {
