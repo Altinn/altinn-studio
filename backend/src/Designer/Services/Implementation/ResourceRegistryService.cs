@@ -35,6 +35,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly ResourceRegistryIntegrationSettings _resourceRegistrySettings;
         private readonly ResourceRegistryMaskinportenIntegrationSettings _maskinportenIntegrationSettings;
         private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase, WriteIndented = true };
+
+        // Test data until register is available from Altinn 3
         private static readonly Dictionary<string, List<ListMember>> _listMembers = new Dictionary<string, List<ListMember>>();
 
         public ResourceRegistryService()
@@ -332,9 +334,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return accessList;
         }
 
-
         public async Task<PagedAccessListResponse> GetAccessLists(string org,
-            string env, int page
+            string env, int? page
         )
         {
             string listUrl = $"/{org}";
@@ -355,7 +356,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<PagedAccessListResponse> GetResourceAccessLists(string org,
             string resourceId,
             string env,
-            int page
+            int? page
         )
         {
             string listUrl = $"/{org}?include=resources&resource={resourceId}";

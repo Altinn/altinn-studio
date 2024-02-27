@@ -55,7 +55,6 @@ namespace Altinn.Studio.Designer.Controllers
         {
             AccessList newAccessList = await _resourceRegistry.CreateAccessList(org, env, accessList);
             return Created($"designer/api/{org}/resources/accesslist/{newAccessList.Identifier}", newAccessList);
-
         }
 
         [HttpGet]
@@ -78,7 +77,6 @@ namespace Altinn.Studio.Designer.Controllers
         {
             HttpStatusCode statusCode = await _resourceRegistry.DeleteAccessList(org, identifier, env);
             return new StatusCodeResult(((int)statusCode));
-
         }
 
         [HttpPut]

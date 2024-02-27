@@ -13,6 +13,6 @@ namespace Altinn.Studio.Designer.Models
         public string Name { get; set; }
         public string? Description { get; set; }
         public IEnumerable<AccessListMember>? Members { get; set; }
-        public IEnumerable<ResourceConnection>? ResourceConnections { get; set; }
+        public IEnumerable<AccessListResourceConnection>? ResourceConnections { get; set; }
     }
 }
