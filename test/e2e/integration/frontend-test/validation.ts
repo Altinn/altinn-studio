@@ -766,13 +766,19 @@ describe('Validation', () => {
       cy.goto('likert');
       cy.findByRole('button', { name: /Send inn/ }).click();
 
-      cy.findByRole('radio', {
-        name: 'Hører skolen på elevenes forslag? * Du må fylle ut hører skolen på elevenes forslag? Alltid',
-      }).should('not.be.focused');
+      cy.findByRole('radiogroup', {
+        name: 'Spørsmål Hører skolen på elevenes forslag? * Du må fylle ut hører skolen på elevenes forslag?',
+      }).within(() => {
+        cy.findByRole('radio', { name: 'Alltid' }).should('not.be.focused');
+      });
+
       cy.findByRole('button', { name: /Du må fylle ut hører skolen på elevenes forslag/ }).click();
-      cy.findByRole('radio', {
-        name: 'Hører skolen på elevenes forslag? * Du må fylle ut hører skolen på elevenes forslag? Alltid',
-      }).should('be.focused');
+
+      cy.findByRole('radiogroup', {
+        name: 'Spørsmål Hører skolen på elevenes forslag? * Du må fylle ut hører skolen på elevenes forslag?',
+      }).within(() => {
+        cy.findByRole('radio', { name: 'Alltid' }).should('be.focused');
+      });
     });
 
     it('Existing validations should not disappear when a backend validator is not executed', () => {

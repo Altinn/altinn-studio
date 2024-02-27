@@ -6,9 +6,7 @@
 TODO(1779): Remove these styles after going through all the different Table styles in
 Altinn, and making sure they are consistent. */
 .likertTable {
-  box-shadow:
-    0 1px 1px rgba(0, 0, 0, 0.12),
-    0 2px 2px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.12), 0 2px 2px rgba(0, 0, 0, 0.12);
 }
 
 .likertTable th {
@@ -31,6 +29,7 @@ Altinn, and making sure they are consistent. */
 .likertTable tr:hover {
   background-color: #e3f7ff;
 }
+
 /* ==== */
 
 .likertRadioGroupWrapperMobile {
@@ -41,4 +40,30 @@ Altinn, and making sure they are consistent. */
   display: block;
   width: 100%;
   padding: 12px;
+}
+
+.likertTableHeaderCell:not(:first-of-type) {
+  width: 100px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.likertRadioButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/*
+  This styling was causing a weird frame around
+  the input element in some screen readers.
+*/
+.likertRadioButton input {
+  left: unset;
+  top: unset;
+}
+
+.likertRadioButton label {
+  margin: 0;
+  gap: 0;
 }

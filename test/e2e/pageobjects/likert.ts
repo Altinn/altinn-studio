@@ -13,7 +13,7 @@ export class Likert {
   public options = ['Alltid', 'Nesten alltid', 'Ofte', 'Noen ganger', 'Sjelden'];
 
   selectRequiredRadios() {
-    cy.findByRole('table', { name: this.requiredTableTitle }).within(() => {
+    cy.findByRole('group', { name: this.requiredTableTitle }).within(() => {
       this.requiredQuestions.forEach((question, index) => {
         this.selectRadio(`${question} *`, this.options[index]);
       });
@@ -21,37 +21,22 @@ export class Likert {
   }
 
   selectOptionalRadios() {
-    cy.findByRole('table', { name: this.optionalTableTitle }).within(() => {
+    cy.findByRole('group', { name: this.optionalTableTitle }).within(() => {
       this.optionalQuestions.forEach((question, index) => {
         this.selectRadio(question, this.options[index]);
       });
     });
   }
 
-  selectRequiredRadiosInMobile() {
-    this.requiredQuestions.forEach((question, index) => {
-      this.selectRadioInMobile(`${question} *`, this.options[index]);
-    });
-  }
-
   selectRadio(question, option) {
-    cy.findByRole('row', { name: question }).within(() => {
-      cy.findByRole('radio', { name: new RegExp(option) }).check();
-    });
-  }
-
-  selectRadioInMobile(question, option) {
-    cy.findByRole('radiogroup', { name: question }).within(() => {
+    cy.findByRole('radiogroup', { name: new RegExp(question) }).within(() => {
       cy.findByRole('radio', { name: new RegExp(option) }).check();
     });
   }
 
   assertOptionalLikertColumnHeaders() {
-    cy.findByRole('table', { name: this.optionalTableTitle }).within(() => {
-      cy.findByRole('columnheader', { name: 'Spørsmål' });
-      this.options.forEach((option) => {
-        cy.findByRole('columnheader', { name: option });
-      });
+    cy.findByRole('group', { name: this.optionalTableTitle }).within(() => {
+      cy.findByText('Spørsmål');
     });
   }
 }

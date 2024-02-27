@@ -1,9 +1,9 @@
 import React, { forwardRef } from 'react';
 
-import { Table } from '@digdir/design-system-react';
+import { Radio, Table } from '@digdir/design-system-react';
 import { Typography } from '@material-ui/core';
 
-import { RadioButton } from 'src/components/form/RadioButton';
+import { Lang } from 'src/features/language/Lang';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { LayoutStyle } from 'src/layout/common.generated';
@@ -45,13 +45,16 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, IControlledRadioGroup
 
   const id = node.item.id;
   const groupContainerId = node.closest((n) => n.type === 'Likert')?.item.id;
+
+  const headerColumnId = `${groupContainerId}-likert-columnheader-left`;
   const rowLabelId = `row-label-${id}`;
 
   return (
     <Table.Row
-      aria-labelledby={rowLabelId}
+      aria-labelledby={`${headerColumnId} ${rowLabelId}`}
       data-componentid={node.item.id}
       data-is-loading={fetchingOptions ? 'true' : 'false'}
+      role='radiogroup'
       ref={ref}
     >
       <Table.Cell id={rowLabelId}>
@@ -63,18 +66,21 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, IControlledRadioGroup
           />
         </Typography>
       </Table.Cell>
-      {calculatedOptions?.map((option, colIndex) => {
-        const colLabelId = `${groupContainerId}-likert-columnheader-${colIndex}`;
+      {calculatedOptions?.map((option) => {
         const isChecked = selected === option.value;
         return (
           <Table.Cell key={option.value}>
-            <RadioButton
-              aria-labelledby={`${rowLabelId} ${colLabelId}`}
+            <Radio
               checked={isChecked}
               onChange={handleChange}
               value={option.value}
+              className={classes.likertRadioButton}
               name={rowLabelId}
-            />
+            >
+              <span className='sr-only'>
+                <Lang id={option.label} />
+              </span>
+            </Radio>
           </Table.Cell>
         );
       })}

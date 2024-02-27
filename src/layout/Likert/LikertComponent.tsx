@@ -106,12 +106,16 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
             aria-labelledby={(hasTitle && titleId) || undefined}
             aria-describedby={(hasDescription && descriptionId) || undefined}
             className={classes.likertTable}
+            role='group'
           >
-            <Table.Head id={`likert-table-header-${id}`}>
+            <Table.Head
+              id={`likert-table-header-${id}`}
+              aria-hidden={true}
+            >
               <Table.Row>
-                <Table.HeaderCell>
+                <Table.HeaderCell id={`${id}-likert-columnheader-left`}>
                   <span
-                    className={cn({
+                    className={cn(classes.likertTableHeaderCell, {
                       'sr-only': node?.item.textResourceBindings?.leftColumnHeader == null,
                     })}
                   >
@@ -125,6 +129,7 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
                   return (
                     <Table.HeaderCell
                       key={option.value}
+                      className={classes.likertTableHeaderCell}
                       id={colLabelId}
                     >
                       {lang(option.label)}

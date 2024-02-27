@@ -1,5 +1,3 @@
-import escapeRegex from 'escape-string-regexp';
-
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Likert } from 'test/e2e/pageobjects/likert';
 
@@ -18,7 +16,7 @@ describe('Likert', () => {
     });
 
     // Check the second required question and take a snapshot
-    likertPage.selectRadio(new RegExp(`^${escapeRegex(likertPage.requiredQuestions[1])}`), likertPage.options[1]);
+    likertPage.selectRadio(likertPage.requiredQuestions[1], likertPage.options[1]);
     cy.findAllByRole('alert').should('have.length', 2);
     cy.snapshot('likert');
   });
