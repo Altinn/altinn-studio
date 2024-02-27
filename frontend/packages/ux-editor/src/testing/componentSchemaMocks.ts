@@ -8,6 +8,7 @@ import ButtonSchema from './schemas/json/component/Button.schema.v1.json';
 import ButtonGroupSchema from './schemas/json/component/ButtonGroup.schema.v1.json';
 import CheckboxesSchema from './schemas/json/component/Checkboxes.schema.v1.json';
 import CustomSchema from './schemas/json/component/Custom.schema.v1.json';
+import CustomButtonSchema from './schemas/json/component/CustomButton.schema.v1.json';
 import DatepickerSchema from './schemas/json/component/Datepicker.schema.v1.json';
 import DropdownSchema from './schemas/json/component/Dropdown.schema.v1.json';
 import FileUploadSchema from './schemas/json/component/FileUpload.schema.v1.json';
@@ -36,8 +37,9 @@ import RepeatingGroupSchema from './schemas/json/component/RepeatingGroup.schema
 import SummarySchema from './schemas/json/component/Summary.schema.v1.json';
 import TextAreaSchema from './schemas/json/component/TextArea.schema.v1.json';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
-export const componentSchemaMocks = {
+export const componentSchemaMocks: Record<ComponentType, JsonSchema> = {
   [ComponentType.AccordionGroup]: AccordionGroupSchema,
   [ComponentType.Accordion]: AccordionSchema,
   [ComponentType.ActionButton]: ActionButtonSchema,
@@ -48,6 +50,7 @@ export const componentSchemaMocks = {
   [ComponentType.ButtonGroup]: ButtonGroupSchema,
   [ComponentType.Checkboxes]: CheckboxesSchema,
   [ComponentType.Custom]: CustomSchema,
+  [ComponentType.CustomButton]: CustomButtonSchema,
   [ComponentType.Datepicker]: DatepickerSchema,
   [ComponentType.Dropdown]: DropdownSchema,
   [ComponentType.FileUpload]: FileUploadSchema,
