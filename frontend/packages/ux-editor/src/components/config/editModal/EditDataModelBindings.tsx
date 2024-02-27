@@ -1,5 +1,6 @@
 import type { IGenericEditComponent } from '../componentConfig';
 import {
+  dataModelFieldsFilter,
   getMaxOccursFromDataModel,
   getMinOccursFromDataModel,
   getXsdDataTypeFromDataModel,
@@ -14,7 +15,6 @@ import { StudioButton } from '@studio/components';
 import classes from './EditDataModelBindings.module.css';
 import { InputActionWrapper } from 'app-shared/components/InputActionWrapper';
 import { useTranslation } from 'react-i18next';
-import type { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
 
 export interface EditDataModelBindingsProps extends IGenericEditComponent {
   renderOptions?: {
@@ -53,28 +53,6 @@ export const EditDataModelBindings = ({
           ? getMaxOccursFromDataModel(selectedDataModelElement, data)
           : undefined,
     });
-  };
-
-  const generalFilter = (element: DatamodelFieldElement) =>
-    element.dataBindingName && element.maxOccurs <= 1;
-  const repeatingGroupFilter = (element: DatamodelFieldElement) =>
-    element.dataBindingName && element.maxOccurs > 1;
-  const multipleAttachmentsFilter = (element: DatamodelFieldElement) =>
-    element.dataBindingName && element.maxOccurs > 1 && element.xsdValueType === 'String';
-
-  const dataModelFieldsFilter = (
-    componentType: ComponentType,
-    label: boolean,
-  ): ((element: DatamodelFieldElement) => boolean) => {
-    switch (componentType) {
-      case ComponentType.RepeatingGroup:
-        return repeatingGroupFilter;
-      case ComponentType.FileUpload:
-      case ComponentType.FileUploadWithTag:
-        return label ? multipleAttachmentsFilter : generalFilter;
-      default:
-        return generalFilter;
-    }
   };
 
   const { uniqueKey, key, label } = renderOptions || {};

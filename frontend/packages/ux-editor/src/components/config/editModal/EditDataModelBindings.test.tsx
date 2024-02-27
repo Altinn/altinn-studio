@@ -39,7 +39,7 @@ const datamodelMetadata: DatamodelMetadataResponse = {
       displayString: 'testModel.field1',
       isReadOnly: false,
       isTagContent: false,
-      jsonSchemaPointer: '#/definitions/testModel/properteis/field1',
+      jsonSchemaPointer: '#/definitions/testModel/properties/field1',
       maxOccurs: 1,
       minOccurs: 1,
       name: 'testModel/field1',
@@ -49,6 +49,24 @@ const datamodelMetadata: DatamodelMetadataResponse = {
       xmlSchemaXPath: '/testModel/field1',
       xPath: '/testModel/field1',
     },
+    datePickerField: {
+      id: 'datePickerField',
+      type: 'SimpleType',
+      dataBindingName: 'datePickerField',
+      displayString: 'datePickerField',
+      isReadOnly: false,
+      isTagContent: false,
+      jsonSchemaPointer: '#/definitions/datePickerField',
+      maxOccurs: 1,
+      minOccurs: 1,
+      name: 'datePickerField',
+      parentElement: null,
+      restrictions: [],
+      texts: [],
+      xsdValueType: 'DateTime',
+      xmlSchemaXPath: 'datePickerField',
+      xPath: 'datePickerField',
+    },
   },
 };
 
@@ -56,7 +74,7 @@ const getDatamodelMetadata = () => Promise.resolve(datamodelMetadata);
 const defaultComponent = componentMocks[ComponentType.Input];
 const defaultRenderOptions = {
   uniqueKey: 'someComponentId-datamodel-select',
-  key: 'simpleBinding',
+  key: undefined,
   label: undefined,
 };
 
@@ -93,7 +111,12 @@ describe('EditDataModelBindings', () => {
 
   it('should show select with no selected option by default', async () => {
     const user = userEvent.setup();
-    await render({});
+    await render({
+      component: {
+        ...defaultComponent,
+        dataModelBindings: undefined,
+      },
+    });
     const linkIcon = screen.getByRole('button', {
       name: textMock('ux_editor.component_title.Input'),
     });
@@ -163,6 +186,29 @@ describe('EditDataModelBindings', () => {
       maxCount: undefined,
       required: true,
       timeStamp: undefined,
+    });
+  });
+
+  it('check that handleComponentChange is called with timestamp for DatePicker component', async () => {
+    const user = userEvent.setup();
+    const handleComponentChange = jest.fn();
+    await render({
+      handleComponentChange,
+      component: { ...defaultComponent, type: ComponentType.Datepicker },
+    });
+    const linkIcon = screen.getByRole('button', {
+      name: textMock('ux_editor.component_title.Datepicker'),
+    });
+    await act(() => user.click(linkIcon));
+    const option = screen.getByText('datePickerField');
+    await act(() => user.click(option));
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...defaultComponent,
+      type: ComponentType.Datepicker,
+      dataModelBindings: { simpleBinding: 'datePickerField' },
+      maxCount: undefined,
+      required: true,
+      timeStamp: true,
     });
   });
 

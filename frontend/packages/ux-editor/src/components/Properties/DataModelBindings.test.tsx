@@ -8,10 +8,10 @@ import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { componentSchemaMocks } from '../../testing/componentSchemaMocks';
-import { datamodelNameMock } from 'app-shared/mocks/datamodelMetadataMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../types/FormItem';
 import { componentMocks } from '../../testing/componentMocks';
+import { component3IdMock, component3Mock, layoutMock } from '../../testing/layoutMock';
 
 describe('DataModelBindings', () => {
   afterEach(jest.clearAllMocks);
@@ -50,6 +50,20 @@ describe('DataModelBindings', () => {
       textMock('ux_editor.modal_properties_data_model_binding_not_present'),
     );
     expect(noDataModelBindingsAlert).toBeInTheDocument();
+  });
+
+  it('should render alert component with information when attachment component exist inside a repeating group component', () => {
+    render({
+      props: {
+        formItem: component3Mock,
+        formItemId: component3IdMock,
+      },
+    });
+
+    const attachmentComponentInsideRepGroupAlert = screen.getByText(
+      textMock('ux_editor.modal_properties_data_model_restrictions_attachment_components'),
+    );
+    expect(attachmentComponentInsideRepGroupAlert).toBeInTheDocument();
   });
 
   const { dataModelBindings } = componentSchemaMocks[ComponentType.AddressComponent].properties;
@@ -111,12 +125,13 @@ const render = async ({
   props?: Partial<FormItemContext>;
   editId?: string;
 }) => {
+  queryClientMock.setQueryData([QueryKey.FormLayouts, 'org', 'app', 'test-layout-set'], {
+    default: layoutMock,
+  });
   queryClientMock.setQueryData(
     [QueryKey.FormComponent, props.formItem.type],
     componentSchemaMocks[props.formItem.type],
   );
-  queryClientMock.setQueryData([QueryKey.DatamodelMetadata, 'org', 'app'], datamodelNameMock);
-
   return renderWithProviders(
     <FormItemContext.Provider
       value={{
