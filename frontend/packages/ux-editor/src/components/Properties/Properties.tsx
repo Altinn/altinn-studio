@@ -8,9 +8,6 @@ import classes from './Properties.module.css';
 import { Dynamics } from './Dynamics';
 import { PropertiesHeader } from './PropertiesHeader';
 import { EditFormComponent } from '../config/EditFormComponent';
-import type { DataLookupOptions, Expression } from '@studio/components';
-import { DataLookupFuncName, StudioExpression } from '@studio/components';
-import { useExpressionTexts } from 'app-shared/hooks/useExpressionTexts';
 
 export const Properties = () => {
   const { t } = useTranslation();
@@ -34,27 +31,8 @@ export const Properties = () => {
     }
   };
 
-  const dataLookupOptions: DataLookupOptions = {
-    [DataLookupFuncName.Component]: ['test', 'asdasdsd'],
-    [DataLookupFuncName.DataModel]: ['#/sdfdsf/asdad'],
-  };
-
-  const [expressionState, setExpressionState] = React.useState<Expression>(true);
-  const handleExpressionChange = (expression: Expression) => {
-    setExpressionState(expression);
-    console.log(expression);
-  };
-
-  const expressionTexts = useExpressionTexts();
-
   return (
     <div className={classes.root}>
-      <StudioExpression
-        expression={expressionState}
-        onChange={handleExpressionChange}
-        dataLookupOptions={dataLookupOptions}
-        texts={expressionTexts}
-      />
       {form && (
         <PropertiesHeader
           form={form}
