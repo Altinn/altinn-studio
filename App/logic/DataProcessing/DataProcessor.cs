@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components.Forms;
+using Newtonsoft.Json;
 
 namespace Altinn.App.logic.DataProcessing
 {
@@ -17,6 +19,7 @@ namespace Altinn.App.logic.DataProcessing
 
         public Task ProcessDataWrite(Instance instance, Guid? dataId, object data, object? previous)
         {
+ 
             if (data.GetType() == typeof(NestedGroup))
             {
                 NestedGroup model = (NestedGroup)data;
@@ -144,6 +147,24 @@ namespace Altinn.App.logic.DataProcessing
             if (data.GetType() == typeof(Skjema))
             {
                 Skjema model = (Skjema)data;
+
+                if (model.ReasonLabels == null)
+                {
+                    model.ReasonLabelsVerify = null;
+                }
+                
+                if (model.ReasonLabels?.Count  > 0)
+                {
+                    /*
+                     This converts saved labels from checkboxes from string[] to string
+                     The reason we do this is to be able to verify that the correct labels have
+                     been saved when we run cypress tests.
+                     */
+                    var json = JsonConvert.SerializeObject(model, Formatting.Indented);
+                    var stringToSave = string.Join(",", model.ReasonLabels);
+                    model.ReasonLabelsVerify = stringToSave;
+                }
+                
                 if (model?.NyttNavngrp9313?.NyttNavngrp9314?.PersonFornavnNyttdatadef34758?.value == "TriggerCalculation")
                 {
                     model.NyttNavngrp9313.NyttNavngrp9314.PersonMellomnavnNyttdatadef34759 ??= new PersonMellomnavnNyttdatadef34759();

@@ -12,6 +12,15 @@
     "ReasonLabel": {
       "type": "string"
     },
+    "ReasonLabels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ReasonLabelsVerify": {
+      "type": "string"
+    },
     "BegrunnelseFrivillig": {
       "type": "string"
     },
@@ -415,6 +424,15 @@
         },
         "ReasonLabel": {
           "type": "string"
+        },
+        "ReasonLabelsVerify": {
+          "type": "string"
+        },
+        "ReasonLabels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "Radioknapp": {
           "texts": {

@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using System.Xml.Serialization;
 using System.ComponentModel.DataAnnotations;
@@ -61,10 +62,20 @@ namespace Altinn.App.Models
         [JsonPropertyName("Radioknapp")]
         public string? Radioknapp { get; set; }
         
+        [XmlElement("ReasonLabelsVerify")]
+        [JsonProperty("ReasonLabelsVerify")]
+        [JsonPropertyName("ReasonLabelsVerify")]
+        public string? ReasonLabelsVerify { get; set; }
+        
         [XmlElement("ReasonLabel")]
         [JsonProperty("ReasonLabel")]
         [JsonPropertyName("ReasonLabel")]
         public string? ReasonLabel { get; set; }
+        
+        [XmlElement("ReasonLabels")]
+        [JsonProperty("ReasonLabels")]
+        [JsonPropertyName("ReasonLabels")]
+        public List<string>? ReasonLabels { get; set; }
         
         [XmlElement("BegrunnelseFrivillig")]
         [JsonProperty("BegrunnelseFrivillig")]

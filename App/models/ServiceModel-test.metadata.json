@@ -12,6 +12,15 @@
     "ReasonLabel": {
       "type": "string"
     },
+    "ReasonLabels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ReasonLabelsVerify": {
+      "type": "string"
+    },
     "BegrunnelseFrivillig": {
       "type": "string"
     },
@@ -414,6 +423,9 @@
           "$ref": "#/definitions/Begrunnelse-grp-9317"
         },
         "ReasonLabel": {
+          "type": "string"
+        },
+        "ReasonLabelsVerify": {
           "type": "string"
         },
         "Radioknapp": {
