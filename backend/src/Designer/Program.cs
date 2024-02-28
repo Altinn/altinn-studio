@@ -8,7 +8,6 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Configuration.Marker;
 using Altinn.Studio.Designer.EventHandlers;
-using Altinn.Studio.Designer.EventHandlers.ProcessTaskIdChanged;
 using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Hubs;
 using Altinn.Studio.Designer.Hubs.SyncHub;
