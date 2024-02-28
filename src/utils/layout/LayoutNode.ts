@@ -16,7 +16,7 @@ import type {
   TypeFromConfig,
 } from 'src/layout/layout';
 import type { IComponentFormData } from 'src/utils/formComponentUtils';
-import type { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
+import type { ChildLookupRestriction, ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
 import type { LayoutObject } from 'src/utils/layout/LayoutObject';
 
 export interface IsHiddenOptions {
@@ -41,6 +41,7 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
     public top: LayoutPage,
     private readonly dataSources: HierarchyDataSources,
     public readonly rowIndex?: number,
+    public readonly rowId?: string,
   ) {
     this.def = getLayoutComponentObject(item.type as any);
     this.itemWithExpressions = structuredClone(item);
@@ -67,7 +68,8 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
       return this;
     }
 
-    const sibling = this.parent.children(matching, this.rowIndex);
+    const restriction = typeof this.rowId !== 'undefined' ? { onlyInRowUuid: this.rowId } : undefined;
+    const sibling = this.parent.children(matching, restriction);
     if (sibling) {
       return sibling as LayoutNode;
     }
@@ -96,9 +98,9 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
     return parents;
   }
 
-  private childrenAsList(onlyInRowIndex?: number): LayoutNode[] {
+  private childrenAsList(restriction?: ChildLookupRestriction): LayoutNode[] {
     const hierarchy = this.def.hierarchyGenerator() as unknown as ComponentHierarchyGenerator<Type>;
-    return hierarchy.childrenFromNode(this as unknown as LayoutNode<Type>, onlyInRowIndex);
+    return hierarchy.childrenFromNode(this as unknown as LayoutNode<Type>, restriction);
   }
 
   /**
@@ -107,10 +109,13 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
    * the row number, otherwise you'll most likely just find a component on the first row.
    */
   public children(): LayoutNode[];
-  public children(matching: (item: CompInternal) => boolean, onlyInRowIndex?: number): LayoutNode | undefined;
-  public children(matching: undefined, onlyInRowIndex?: number): LayoutNode[];
-  public children(matching?: (item: CompInternal) => boolean, onlyInRowIndex?: number): any {
-    const list = this.childrenAsList(onlyInRowIndex);
+  public children(
+    matching: (item: CompInternal) => boolean,
+    restriction?: ChildLookupRestriction,
+  ): LayoutNode | undefined;
+  public children(matching: undefined, restriction?: ChildLookupRestriction): LayoutNode[];
+  public children(matching?: (item: CompInternal) => boolean, restriction?: ChildLookupRestriction): any {
+    const list = this.childrenAsList(restriction);
     if (!matching) {
       return list;
     }
@@ -129,23 +134,23 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
    * LayoutNode objects. Implemented here for parity with LayoutPage.
    *
    * @param includeGroups If true, also includes the group nodes (which also includes self, when this node is a group)
-   * @param onlyInRowIndex If set, it will only include children with the given row index. It will still include all
-   *        children of nested groups regardless of row-index.
+   * @param restriction If set, it will only include children with the given row UUID or row index. It will still
+   *        include all children of nested groups regardless of row-id or index.
    */
-  public flat(includeGroups: true, onlyInRowIndex?: number): LayoutNode[];
-  public flat(includeGroups: false, onlyInRowIndex?: number): LayoutNode<CompExceptGroup>[];
-  public flat(includeGroups: boolean, onlyInRowIndex?: number): LayoutNode[] {
+  public flat(includeGroups: true, restriction?: ChildLookupRestriction): LayoutNode[];
+  public flat(includeGroups: false, restriction?: ChildLookupRestriction): LayoutNode<CompExceptGroup>[];
+  public flat(includeGroups: boolean, restriction?: ChildLookupRestriction): LayoutNode[] {
     const out: BaseLayoutNode[] = [];
-    const recurse = (item: BaseLayoutNode, rowIndex?: number) => {
+    const recurse = (item: BaseLayoutNode, restriction?: ChildLookupRestriction) => {
       if (includeGroups || item.item.type !== 'Group') {
         out.push(item);
       }
-      for (const child of item.children(undefined, rowIndex)) {
+      for (const child of item.children(undefined, restriction)) {
         recurse(child);
       }
     };
 
-    recurse(this, onlyInRowIndex);
+    recurse(this, restriction);
     return out as LayoutNode[];
   }
 

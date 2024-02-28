@@ -98,7 +98,7 @@ function fillOutGroup() {
 
   cy.get(appFrontend.group.saveMainGroup).clickAndGone();
 
-  cy.get(appFrontend.nextButton).click();
+  cy.gotoNavPage('hide');
   cy.get(appFrontend.group.sendersName).type('automation');
   cy.get(appFrontend.nextButton).click();
   cy.get(appFrontend.group.summaryText).should('be.visible');

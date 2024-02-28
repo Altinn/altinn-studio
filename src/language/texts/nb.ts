@@ -338,6 +338,13 @@ export function nb(): FixedLanguageList {
         'Denne versjonen av app frontend er ikke kompatibel med den versjonen av backend-bibliotekene du bruker. Oppdater til nyeste versjon av pakkene og prøv igjen.',
       min_backend_version: 'Minimum backend versjon er {0}',
     },
+    missing_row_id_error: {
+      title: 'Mangler rad-ID',
+      message:
+        'Når data ble lastet inn manglet det en rad-ID. Dette er en feil i konfigurasjonen av skjemaet, og må rettes opp ved hjelp av migreringsverktøyene. Sjekk loggene i utviklerverktøyene for mer informasjon.',
+      full_message:
+        'Datamodellen mangler egenskapen {0} i stien {1}. Dette skal automatisk bli lagt til i datamodellen dersom du bruker riktig versjon av nuget-pakkene og har kjørt migreringsverktøyene. Les mer om verktøyene i dokumentasjonen: https://docs.altinn.studio/community/changelog/app-nuget/v8/migrating-from-v7/',
+    },
     likert: {
       left_column_default_header_text: 'Spørsmål',
     },

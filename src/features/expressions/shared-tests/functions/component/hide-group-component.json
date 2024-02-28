@@ -73,27 +73,33 @@
     },
     "Bedrifter": [
       {
+        "altinnRowId": "company0",
         "Navn": "Hell og lykke AS",
         "Ansatte": [
           {
+            "altinnRowId": "company0-emplyee0",
             "Navn": "Kaare",
             "Alder": 24
           },
           {
+            "altinnRowId": "company0-emplyee1",
             "Navn": "Per",
             "Alder": 24
           }
         ]
       },
       {
+        "altinnRowId": "company1",
         "Navn": "Nedtur og motgang AS",
         "Ansatte": [
           {
+            "altinnRowId": "company1-emplyee0",
             "Navn": "Arne",
             "Alder": 24,
             "AlderSkjult": true
           },
           {
+            "altinnRowId": "company1-emplyee1",
             "Navn": "Vidar",
             "Alder": 14
           }

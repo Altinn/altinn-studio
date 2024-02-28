@@ -37,7 +37,7 @@ export function runConditionalRenderingRules(
           runConditionalRenderingRule(connection, firstChild, componentsToHide);
           if (connection.repeatingGroup.childGroupId) {
             const childId = `${connection.repeatingGroup.childGroupId}-${row.index}`;
-            const childNode = node.flat(true, row.index).find((n) => n.item.id === childId);
+            const childNode = node.flat(true, { onlyInRowUuid: row.uuid }).find((n) => n.item.id === childId);
             if (childNode && childNode.isType('RepeatingGroup')) {
               for (const childRow of childNode.item.rows) {
                 const firstNestedChild = childRow.items[0] as LayoutNode | undefined;

@@ -37,7 +37,7 @@ export function useCurrentDataModelGuid() {
   return getCurrentTaskDataElementId({ application, instance, taskId, layoutSets });
 }
 
-export function useCurrentDataModelUrl() {
+export function useCurrentDataModelUrl(includeRowIds: boolean) {
   const isAnonymous = useAllowAnonymous();
   const instance = useLaxInstanceData();
   const layoutSetId = useCurrentLayoutSetId();
@@ -47,38 +47,38 @@ export function useCurrentDataModelUrl() {
   const language = useCurrentLanguage();
 
   if (isStateless && isAnonymous && dataType) {
-    return getAnonymousStatelessDataModelUrl(dataType);
+    return getAnonymousStatelessDataModelUrl(dataType, includeRowIds);
   }
 
   if (isStateless && !isAnonymous && dataType) {
-    return getStatelessDataModelUrl(dataType);
+    return getStatelessDataModelUrl(dataType, includeRowIds);
   }
 
   if (instance?.id && dataElementUuid) {
-    return getDataElementUrl(instance.id, dataElementUuid, language);
+    return getDataElementUrl(instance.id, dataElementUuid, language, includeRowIds);
   }
 
   return undefined;
 }
 
-export function useDataModelUrl(dataType: string | undefined) {
+export function useDataModelUrl(includeRowIds: boolean, dataType: string | undefined) {
   const isAnonymous = useAllowAnonymous();
   const isStateless = useIsStatelessApp();
   const instance = useLaxInstanceData();
   const language = useCurrentLanguage();
 
   if (isStateless && isAnonymous && dataType) {
-    return getAnonymousStatelessDataModelUrl(dataType);
+    return getAnonymousStatelessDataModelUrl(dataType, includeRowIds);
   }
 
   if (isStateless && !isAnonymous && dataType) {
-    return getStatelessDataModelUrl(dataType);
+    return getStatelessDataModelUrl(dataType, includeRowIds);
   }
 
   if (instance?.id && dataType) {
     const uuid = getFirstDataElementId(instance, dataType);
     if (uuid) {
-      return getDataElementUrl(instance.id, uuid, language);
+      return getDataElementUrl(instance.id, uuid, language, includeRowIds);
     }
   }
 

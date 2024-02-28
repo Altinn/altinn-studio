@@ -1,7 +1,7 @@
-import dot from 'dot-object';
 import { getPatch } from 'fast-array-diff';
 import deepEqual from 'fast-deep-equal';
 
+import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import type { JsonPatch } from 'src/features/formData/jsonPatch/types';
 
 interface Props<T> {
@@ -47,16 +47,6 @@ function isObject(value: any): value is object {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function isScalarOrMissing(value: any): value is string | number | boolean | null | undefined {
-  return (
-    value === null ||
-    value === undefined ||
-    typeof value === 'string' ||
-    typeof value === 'number' ||
-    typeof value === 'boolean'
-  );
-}
-
 function compareAny(props: CompareProps<any>) {
   const { prev, next } = props;
   if (isObject(prev) && isObject(next)) {
@@ -79,42 +69,20 @@ function compareObjects({ prev, next, current, path, ...rest }: CompareProps<obj
 }
 
 /**
- * This comparison function is used to determine if two values in an array are similar enough to be considered
- * the same. This is used to determine if an item has been removed or added - or if it has been (slightly) changed and
- * the values within it should be compared individually instead.
+ * This comparison function is used to determine if two values in an array can be considered the same. This is used to
+ * determine if an item (i.e. a row in a repeating group) has been removed or added.
  */
-function isSimilarEnough(left: any, right: any): boolean {
+function isSameRow(left: any, right: any): boolean {
   if (isObject(left) && isObject(right)) {
-    const flatLeft = dot.dot(left);
-    const flatRight = dot.dot(right);
-
-    // Produce a set of keys in left object, but leave out nested arrays (those should be compared separately).
-    const keysLeft = new Set(Object.keys(flatLeft).filter((key) => key.match(/^[^[\]]+$/)));
-    const keysRight = new Set(Object.keys(flatRight).filter((key) => key.match(/^[^[\]]+$/)));
-
-    const numRemove = [...keysLeft].filter((key) => !keysRight.has(key)).length;
-    const numReplace = [...keysLeft].filter(
-      (key) => keysRight.has(key) && !deepEqual(flatLeft[key], flatRight[key]),
-    ).length;
-
-    // Object that can be extended without removing anything does not make destructive changes, so we can
-    // consider it similar enough.
-    if (numRemove > 0) {
+    if (!(ALTINN_ROW_ID in left && ALTINN_ROW_ID in right)) {
+      window.logWarn(
+        `Unable to compare objects in array, as one or both are missing ` +
+          `the ${ALTINN_ROW_ID} property. You may experience duplicated or missing rows in the form.`,
+      );
       return false;
     }
 
-    // We want to consider an object similar enough if it only replaces a single value, and does not
-    // remove anything. As soon as multiple values are replaced in an object, we'll consider it to be
-    // different enough to warrant a full comparison (which may lead to removing an item from the array
-    // and adding a new one instead).
-    // eslint-disable-next-line sonarjs/prefer-single-boolean-return
-    if (numReplace > 1) {
-      return false;
-    }
-
-    // Finally, if there are only add operations left, and/or few enough replace and remove operations,
-    // objects are considered similar.
-    return true;
+    return left[ALTINN_ROW_ID] === right[ALTINN_ROW_ID];
   }
 
   if (Array.isArray(left) && Array.isArray(right)) {
@@ -132,47 +100,9 @@ function isSimilarEnough(left: any, right: any): boolean {
  * even if it looks like it at a glance.
  */
 function compareArrays({ prev, next, current, hasCurrent, patch, path }: CompareProps<any[]>) {
-  const realPrev = [...prev];
-  const realNext = [...next];
-  if (hasCurrent && Array.isArray(current)) {
-    if (current.length > realPrev.length) {
-      // Add the objects we added locally to realPrev + realNext to make sure isSimilarEnough runs on every row, and
-      // that we create a patch that will update missing/outdated values in current array items even if we didn't have
-      // the array item(s) before.
-      const locallyAdded = current.slice(realPrev.length);
-      realPrev.push(...locallyAdded);
-      realNext.push(...locallyAdded);
-    } else if (current.length < realPrev.length) {
-      // Run a diff on current and prev to figure out which row(s) we deleted locally after saving. That row should not
-      // be considered when producing the patch, as there is no point in trying to update a row that has been deleted.
-      for (const origin of [realPrev, realNext]) {
-        const preDiff = getPatch(origin, current, isSimilarEnough);
-        for (const part of preDiff) {
-          const { type, newPos: nextPos, oldPos: prevPos, items } = part;
-          if (type === 'add') {
-            let nextIndex = nextPos;
-            for (const _item of items) {
-              origin.splice(nextIndex, 0, {});
-              nextIndex++;
-            }
-          }
-          if (type === 'remove') {
-            // We'll count down instead of up so that we can remove the items from the end first, and then we won't
-            // have to worry about the indices changing.
-            let addToIndex = items.length - 1;
-            for (const _item of items) {
-              const oldIdx = prevPos + addToIndex--;
-              origin.splice(oldIdx, 1);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  const diff = getPatch(realPrev, realNext, isSimilarEnough);
+  const diff = getPatch(prev, next, isSameRow);
   const localPatch: JsonPatch = [];
-  const arrayAfterChanges = [...realPrev];
+  const arrayAfterChanges = [...prev];
   for (const part of diff) {
     const { type, newPos: nextPos, oldPos: prevPos, items } = part;
     if (type === 'add') {
@@ -202,7 +132,7 @@ function compareArrays({ prev, next, current, hasCurrent, patch, path }: Compare
   if (localPatch.length) {
     if (!hasCurrent) {
       // Always add a test first to make sure the original array is still the same as the one we're changing
-      patch.push({ op: 'test', path: pointer(path), value: realPrev });
+      patch.push({ op: 'test', path: pointer(path), value: prev });
     }
     patch.push(...localPatch);
   }
@@ -211,8 +141,14 @@ function compareArrays({ prev, next, current, hasCurrent, patch, path }: Compare
   // are similar enough, it doesn't check that they're entirely equal.
   const childPatches: JsonPatch = [];
   for (const [index, prevItem] of arrayAfterChanges.entries()) {
-    const nextItem = realNext[index];
+    const nextItem = next[index];
     const currentItem = Array.isArray(current) ? current[index] : undefined;
+    if (hasCurrent && currentItem === undefined) {
+      // The array item that the backend made changes to have been deleted from the frontend, so we don't need to
+      // compare it to the current model. A later PATCH from app-frontend will delete the row.
+      continue;
+    }
+
     compareAny({
       prev: prevItem,
       next: nextItem,
@@ -240,7 +176,6 @@ function compareValues({ prev, next, hasCurrent, current, patch, path }: Compare
     }
     if (Array.isArray(current) && Array.isArray(next)) {
       // Add all the array items form the next (backend) array that are missing from the current (frontend) array
-      // patch.push({ op: 'add', path: pointer([...path, '-']), value: next[i] });
       for (const item of next || []) {
         patch.push({ op: 'add', path: pointer([...path, '-']), value: item });
       }
@@ -249,12 +184,12 @@ function compareValues({ prev, next, hasCurrent, current, patch, path }: Compare
     if (isObject(current) && isObject(next)) {
       return compareObjects({ prev: {}, next, hasCurrent, current, patch, path });
     }
-    if (!isScalarOrMissing(current) || !isScalarOrMissing(next)) {
-      // TODO: Investigate these cases and possibly log wantings/notices about them
-      return;
-    }
 
-    // Do not overwrite changes that have been made to the current object since the next object was created
+    // Do not overwrite changes that have been made to the current object since the next object was created.
+    // This way we'll possibly overwrite changes made by other users (or the backend), but we'll do that in
+    // the next request. most times this will happen is when the user has been editing the form after the
+    // save request started (and before the response was returned), and as long as the ProcessDataWrite code
+    // on the backend that potentially makes changes to the code is idempotent, this should be fine.
     return;
   }
 

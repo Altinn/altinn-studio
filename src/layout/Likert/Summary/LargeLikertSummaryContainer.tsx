@@ -13,7 +13,7 @@ export interface IDisplayLikertContainer {
   groupNode: BaseLayoutNode<CompLikertInternal>;
   divRef?: React.Ref<HTMLDivElement>;
   id?: string;
-  onlyRowIndex?: number | undefined;
+  onlyInRowUuid?: string | undefined;
   renderLayoutNode: (node: LayoutNode) => JSX.Element | null;
 }
 
@@ -29,7 +29,7 @@ export function LargeLikertSummaryContainer({
   divRef,
   groupNode,
   id,
-  onlyRowIndex,
+  onlyInRowUuid,
   renderLayoutNode,
 }: IDisplayLikertContainer) {
   const container = groupNode.item;
@@ -42,6 +42,7 @@ export function LargeLikertSummaryContainer({
   const headingLevel = Math.min(Math.max(groupNode.parents().length + 1, 2), 6) as HeadingLevel;
   const headingSize = headingSizes[headingLevel];
   const legend = summaryTitle ?? title;
+  const restriction = typeof onlyInRowUuid === 'string' ? { onlyInRowUuid } : undefined;
 
   return (
     <Fieldset
@@ -64,7 +65,7 @@ export function LargeLikertSummaryContainer({
         data-testid='display-group-container'
         className={classes.groupContainer}
       >
-        {groupNode.children(undefined, onlyRowIndex).map((n) => renderLayoutNode(n))}
+        {groupNode.children(undefined, restriction).map((n) => renderLayoutNode(n))}
       </div>
     </Fieldset>
   );

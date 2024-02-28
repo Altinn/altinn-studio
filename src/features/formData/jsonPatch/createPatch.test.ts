@@ -1,6 +1,8 @@
 import { applyPatch } from 'fast-json-patch';
+import { v4 as uuidv4 } from 'uuid';
 
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
+import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import type { JsonPatch } from 'src/features/formData/jsonPatch/types';
 
 interface TestPatchProps<T> {
@@ -120,24 +122,33 @@ describe('createPatch', () => {
 
   describe('should create a shallower add op for a nested array with objects', () => {
     const common = { d: 5, e: 6 };
+    const row1 = uuidv4();
+    const row2 = uuidv4();
+    const row3 = uuidv4();
     testPatch({
       prev: {
         a: [
-          { b: 1, ...common },
-          { b: 2, ...common },
+          { [ALTINN_ROW_ID]: row1, b: 1, ...common },
+          { [ALTINN_ROW_ID]: row2, b: 2, ...common },
         ],
       },
-      next: { a: [{ b: 1, ...common }, { b: 2, ...common }, { b: 3 }] },
+      next: {
+        a: [
+          { [ALTINN_ROW_ID]: row1, b: 1, ...common },
+          { [ALTINN_ROW_ID]: row2, b: 2, ...common },
+          { [ALTINN_ROW_ID]: row3, b: 3 },
+        ],
+      },
       expectedPatch: [
         {
           op: 'test',
           path: '/a',
           value: [
-            { b: 1, ...common },
-            { b: 2, ...common },
+            { [ALTINN_ROW_ID]: row1, b: 1, ...common },
+            { [ALTINN_ROW_ID]: row2, b: 2, ...common },
           ],
         },
-        { op: 'add', path: '/a/-', value: { b: 3 } },
+        { op: 'add', path: '/a/-', value: { [ALTINN_ROW_ID]: row3, b: 3 } },
       ],
     });
   });
@@ -176,11 +187,25 @@ describe('createPatch', () => {
   });
 
   describe('should create a remove op when removing an object from a nested array', () => {
+    const row1 = uuidv4();
+    const row2 = uuidv4();
     testPatch({
-      prev: { a: [{ b: 1 }, { b: 2 }] },
-      next: { a: [{ b: 1 }] },
+      prev: {
+        a: [
+          { [ALTINN_ROW_ID]: row1, b: 1 },
+          { [ALTINN_ROW_ID]: row2, b: 2 },
+        ],
+      },
+      next: { a: [{ [ALTINN_ROW_ID]: row1, b: 1 }] },
       expectedPatch: [
-        { op: 'test', path: '/a', value: [{ b: 1 }, { b: 2 }] },
+        {
+          op: 'test',
+          path: '/a',
+          value: [
+            { [ALTINN_ROW_ID]: row1, b: 1 },
+            { [ALTINN_ROW_ID]: row2, b: 2 },
+          ],
+        },
         { op: 'remove', path: '/a/1' },
       ],
     });
@@ -229,29 +254,37 @@ describe('createPatch', () => {
   });
 
   describe('should create a valid patch when removing objects and adding objects to the array while the length stays the same', () => {
+    const row1 = uuidv4();
+    const row2 = uuidv4();
+    const row3 = uuidv4();
+    const row4 = uuidv4();
     testPatch({
       prev: {
         a: [
-          { b: 1, row: 'first' },
-          { b: 2, row: 'second' },
-          { b: 3, row: 'third' },
+          { [ALTINN_ROW_ID]: row1, b: 1, row: 'first' },
+          { [ALTINN_ROW_ID]: row2, b: 2, row: 'second' },
+          { [ALTINN_ROW_ID]: row3, b: 3, row: 'third' },
         ],
       },
       next: {
-        a: [{ b: 2, row: 'second' }, { b: 3, row: 'third' }, { b: 4 }],
+        a: [
+          { [ALTINN_ROW_ID]: row2, b: 2, row: 'second' },
+          { [ALTINN_ROW_ID]: row3, b: 3, row: 'third' },
+          { [ALTINN_ROW_ID]: row4, b: 4 },
+        ],
       },
       expectedPatch: [
         {
           op: 'test',
           path: '/a',
           value: [
-            { b: 1, row: 'first' },
-            { b: 2, row: 'second' },
-            { b: 3, row: 'third' },
+            { [ALTINN_ROW_ID]: row1, b: 1, row: 'first' },
+            { [ALTINN_ROW_ID]: row2, b: 2, row: 'second' },
+            { [ALTINN_ROW_ID]: row3, b: 3, row: 'third' },
           ],
         },
         { op: 'remove', path: '/a/0' },
-        { op: 'add', path: '/a/-', value: { b: 4 } },
+        { op: 'add', path: '/a/-', value: { [ALTINN_ROW_ID]: row4, b: 4 } },
       ],
     });
   });
@@ -282,9 +315,11 @@ describe('createPatch', () => {
   });
 
   describe('should prefer a simple replace op for a number in a nested array', () => {
+    const outer_row = uuidv4();
+    const inner_row = uuidv4();
     testPatch({
-      prev: { a: [{ b: [{ a: 5, b: 3, c: 8 }] }] },
-      next: { a: [{ b: [{ a: 5, b: 3, c: 9 }] }] },
+      prev: { a: [{ [ALTINN_ROW_ID]: outer_row, b: [{ [ALTINN_ROW_ID]: inner_row, a: 5, b: 3, c: 8 }] }] },
+      next: { a: [{ [ALTINN_ROW_ID]: outer_row, b: [{ [ALTINN_ROW_ID]: inner_row, a: 5, b: 3, c: 9 }] }] },
       expectedPatch: [
         { op: 'test', path: '/a/0/b/0/c', value: 8 },
         { op: 'replace', path: '/a/0/b/0/c', value: 9 },
@@ -304,10 +339,22 @@ describe('createPatch', () => {
   });
 
   describe('should create a minimal patch with replace operations when multiple values are changed inside nested arrays', () => {
-    const equalObject = { foo: 'bar', baz: 'qux' };
+    const obj1 = { [ALTINN_ROW_ID]: uuidv4(), foo: 'bar', baz: 'qux' };
+    const obj2 = { [ALTINN_ROW_ID]: uuidv4(), foo: 'bar', baz: 'qux' };
+    const obj3 = { [ALTINN_ROW_ID]: uuidv4(), foo: 'bar', baz: 'qux' };
+    const rowId = uuidv4();
+    const parent = uuidv4();
     testPatch({
-      prev: { a: [{ b: [equalObject, { a: 5, b: 3, c: 8 }, equalObject, { d: 4, ...equalObject }] }] },
-      next: { a: [{ b: [equalObject, { a: 5, b: 3, c: 9 }, equalObject, { d: 5, ...equalObject }] }] },
+      prev: {
+        a: [
+          { [ALTINN_ROW_ID]: parent, b: [obj1, { [ALTINN_ROW_ID]: rowId, a: 5, b: 3, c: 8 }, obj2, { d: 4, ...obj3 }] },
+        ],
+      },
+      next: {
+        a: [
+          { [ALTINN_ROW_ID]: parent, b: [obj1, { [ALTINN_ROW_ID]: rowId, a: 5, b: 3, c: 9 }, obj2, { d: 5, ...obj3 }] },
+        ],
+      },
       expectedPatch: [
         { op: 'test', path: '/a/0/b/1/c', value: 8 },
         { op: 'replace', path: '/a/0/b/1/c', value: 9 },
@@ -351,9 +398,10 @@ describe('createPatch', () => {
   });
 
   describe('should create add operations for new properties in an empty object, even when inside an array', () => {
+    const rowId = uuidv4();
     testPatch({
-      prev: { a: [{}] },
-      next: { a: [{ b: 1, d: 2, e: 5, f: 8 }] },
+      prev: { a: [{ [ALTINN_ROW_ID]: rowId }] },
+      next: { a: [{ [ALTINN_ROW_ID]: rowId, b: 1, d: 2, e: 5, f: 8 }] },
       expectedPatch: [
         { op: 'add', path: '/a/0/b', value: 1 },
         { op: 'add', path: '/a/0/d', value: 2 },
@@ -369,9 +417,33 @@ describe('createPatch', () => {
     // that could lead to the whole upper object being compared and it was assumed the whole object was changed enough
     // that it should be removed and a new one added.
     const complex = { d: 5, e: 6, f: 7 };
+    const parent = uuidv4();
+    const row1 = uuidv4();
+    const row2 = uuidv4();
+    const row3 = uuidv4();
     testPatch({
-      prev: { a: [{ b: { c: 1 }, nested: [{}, {}, {}] }] },
-      next: { a: [{ b: { c: 2 }, nested: [complex, complex, complex] }] },
+      prev: {
+        a: [
+          {
+            [ALTINN_ROW_ID]: parent,
+            b: { c: 1 },
+            nested: [{ [ALTINN_ROW_ID]: row1 }, { [ALTINN_ROW_ID]: row2 }, { [ALTINN_ROW_ID]: row3 }],
+          },
+        ],
+      },
+      next: {
+        a: [
+          {
+            [ALTINN_ROW_ID]: parent,
+            b: { c: 2 },
+            nested: [
+              { [ALTINN_ROW_ID]: row1, ...complex },
+              { [ALTINN_ROW_ID]: row2, ...complex },
+              { [ALTINN_ROW_ID]: row3, ...complex },
+            ],
+          },
+        ],
+      },
       expectedPatch: [
         { op: 'test', path: '/a/0/b/c', value: 1 },
         { op: 'replace', path: '/a/0/b/c', value: 2 },
@@ -412,9 +484,9 @@ describe('createPatch', () => {
   });
 
   describe('should not apply updates to a row that has been removed in the current model', () => {
-    const objA = { foo: 'bar', row: 'a' };
-    const objB = { foo: 'baz', row: 'b' };
-    const objC = { foo: 'qux', row: 'c' };
+    const objA = { [ALTINN_ROW_ID]: uuidv4(), foo: 'bar', row: 'a' };
+    const objB = { [ALTINN_ROW_ID]: uuidv4(), foo: 'baz', row: 'b' };
+    const objC = { [ALTINN_ROW_ID]: uuidv4(), foo: 'qux', row: 'c' };
     testPatch({
       prev: { a: [objA, objB, objC] },
       next: { a: [objA, { ...objB, foo: 'baz2' }, objC] },
@@ -425,31 +497,40 @@ describe('createPatch', () => {
   });
 
   describe('should seamlessly apply changes to one property even if another property has changed in current', () => {
+    const rowId = uuidv4();
     testPatch({
-      prev: { a: [{ b: 1, c: 2 }] },
-      next: { a: [{ b: 1, c: 3 }] },
-      current: { a: [{ b: 1, c: 2 }] },
-      final: { a: [{ b: 1, c: 3 }] },
+      prev: { a: [{ [ALTINN_ROW_ID]: rowId, b: 1, c: 2 }] },
+      next: { a: [{ [ALTINN_ROW_ID]: rowId, b: 1, c: 3 }] },
+      current: { a: [{ [ALTINN_ROW_ID]: rowId, b: 1, c: 2 }] },
+      final: { a: [{ [ALTINN_ROW_ID]: rowId, b: 1, c: 3 }] },
       expectedPatch: [{ op: 'replace', path: '/a/0/c', value: 3 }],
     });
   });
 
   describe('should seamlessly add a property even if another property has changed in current', () => {
+    const rowId = uuidv4();
     testPatch({
-      prev: { a: [{ b: 1 }] },
-      next: { a: [{ b: 1, c: 3 }] },
-      current: { a: [{ b: 2 }] },
-      final: { a: [{ b: 2, c: 3 }] },
+      prev: { a: [{ [ALTINN_ROW_ID]: rowId, b: 1 }] },
+      next: { a: [{ [ALTINN_ROW_ID]: rowId, b: 1, c: 3 }] },
+      current: { a: [{ [ALTINN_ROW_ID]: rowId, b: 2 }] },
+      final: { a: [{ [ALTINN_ROW_ID]: rowId, b: 2, c: 3 }] },
       expectedPatch: [{ op: 'add', path: '/a/0/c', value: 3 }],
     });
   });
 
   describe('should preserve row added by openByDefault in nested group (1)', () => {
+    const rowId = uuidv4();
+    const childRow = uuidv4();
     testPatch({
-      prev: { group: [{}] },
-      next: { group: [{ a: 5, childGroup: [] }] },
-      current: { group: [{ childGroup: [{}] }] }, // While saving, our current model got a new blank row
-      final: { group: [{ a: 5, childGroup: [{}] }] }, // The final model should have the blank row
+      prev: { group: [{ [ALTINN_ROW_ID]: rowId }] },
+      next: { group: [{ [ALTINN_ROW_ID]: rowId, a: 5, childGroup: [] }] },
+
+      // While saving, our current model got a new blank row
+      current: { group: [{ [ALTINN_ROW_ID]: rowId, childGroup: [{ [ALTINN_ROW_ID]: childRow }] }] },
+
+      // The final model should have the blank row
+      final: { group: [{ [ALTINN_ROW_ID]: rowId, a: 5, childGroup: [{ [ALTINN_ROW_ID]: childRow }] }] },
+
       expectedPatch: [
         // The patch should respect the change in current and not overwrite it
         { op: 'add', path: '/group/0/a', value: 5 },
@@ -458,26 +539,41 @@ describe('createPatch', () => {
   });
 
   describe('should preserve row added by openByDefault in nested group (2)', () => {
+    const parentOnClient = uuidv4();
+    const newFromServer = uuidv4();
+    const child = uuidv4();
     testPatch({
       // The only change from the above is that we don't already have an object in prev, so in this case the two rows
       // (one from next, one from current) should be treated as two separate rows.
       prev: { group: [] },
-      next: { group: [{ a: 5, childGroup: [] }] },
-      current: { group: [{ childGroup: [{}] }] },
-      final: { group: [{ a: 5, childGroup: [] }, { childGroup: [{}] }] },
+      next: { group: [{ [ALTINN_ROW_ID]: newFromServer, a: 5, childGroup: [] }] },
+      current: { group: [{ [ALTINN_ROW_ID]: parentOnClient, childGroup: [{ [ALTINN_ROW_ID]: child }] }] },
+      final: {
+        group: [
+          { [ALTINN_ROW_ID]: parentOnClient, childGroup: [{ [ALTINN_ROW_ID]: child }] },
+          { [ALTINN_ROW_ID]: newFromServer, a: 5, childGroup: [] },
+        ],
+      },
       expectedPatch: [
-        { op: 'add', path: '/group/-', value: { childGroup: [{}] } },
-        { op: 'remove', path: '/group/0/childGroup/0' },
-        { op: 'add', path: '/group/0/a', value: 5 },
+        {
+          op: 'add',
+          path: '/group/-',
+          value: {
+            a: 5,
+            altinnRowId: newFromServer,
+            childGroup: [],
+          },
+        },
       ],
     });
   });
 
   describe('should ignore removed data in current array that is changed in next', () => {
+    const rowId = uuidv4();
     testPatch({
       // In many ways, this is the exact opposite of what happens in the two tests above
-      prev: { group: [{ a: 5 }] },
-      next: { group: [{ a: 6 }] },
+      prev: { group: [{ [ALTINN_ROW_ID]: rowId, a: 5 }] },
+      next: { group: [{ [ALTINN_ROW_ID]: rowId, a: 6 }] },
       current: { group: [] },
       final: { group: [] },
       expectedPatch: [],
@@ -487,12 +583,17 @@ describe('createPatch', () => {
   describe('adding a row with backend updates will only add new properties', () => {
     // It is important that we create new array objects for every `childGroup`, to make sure createPatch() compares
     // these properly, not just by equality (===).
-    const existingRow = { a: 1, b: 2, childGroup: 'replace-this-with-an-empty-array' };
-    const newRow = { a: 1, b: 2, c: 3 };
+    const existingRow = { [ALTINN_ROW_ID]: uuidv4(), a: 1, b: 2, childGroup: 'replace-this-with-an-empty-array' };
+    const newRow = { [ALTINN_ROW_ID]: uuidv4(), a: 1, b: 2, c: 3 };
     testPatch({
-      prev: { group: [{ ...existingRow, childGroup: [] }, {}] },
+      prev: { group: [{ ...existingRow, childGroup: [] }, { [ALTINN_ROW_ID]: newRow[ALTINN_ROW_ID] }] },
       next: { group: [{ ...existingRow, childGroup: [] }, newRow] },
-      current: { group: [{ ...existingRow, childGroup: [] }, { d: 5 }] },
+      current: {
+        group: [
+          { ...existingRow, childGroup: [] },
+          { [ALTINN_ROW_ID]: newRow[ALTINN_ROW_ID], d: 5 },
+        ],
+      },
       final: {
         group: [
           { ...existingRow, childGroup: [] },
@@ -508,50 +609,65 @@ describe('createPatch', () => {
   });
 
   describe('uploaded file on the client mapped to an array should not be overwritten by backend', () => {
+    const rowId = uuidv4();
     testPatch({
-      prev: { group: [{ fileIds: [] }] },
-      next: { group: [{ fileIds: [] }] },
-      current: { group: [{ fileIds: ['fileId1'] }] },
-      final: { group: [{ fileIds: ['fileId1'] }] },
+      prev: { group: [{ [ALTINN_ROW_ID]: rowId, fileIds: [] }] },
+      next: { group: [{ [ALTINN_ROW_ID]: rowId, fileIds: [] }] },
+      current: { group: [{ [ALTINN_ROW_ID]: rowId, fileIds: ['fileId1'] }] },
+      final: { group: [{ [ALTINN_ROW_ID]: rowId, fileIds: ['fileId1'] }] },
       expectedPatch: [],
     });
   });
 
   describe('when backend is slow and responds a little late with a prefill value for an array, we should keep both', () => {
+    const rowFromServer = uuidv4();
+    const rowFromClient = uuidv4();
     testPatch({
       prev: { group: [] },
-      next: { group: [{ rowFrom: 'server' }] },
-      current: { group: [{ rowFrom: 'client' }] },
-      final: { group: [{ rowFrom: 'server' }, { rowFrom: 'client' }] },
-      expectedPatch: [
-        // The patch we generate is a bit weird, but it works.
-        { op: 'add', path: '/group/-', value: { rowFrom: 'client' } },
-        { op: 'replace', path: '/group/0/rowFrom', value: 'server' },
-      ],
+      next: { group: [{ [ALTINN_ROW_ID]: rowFromServer, rowFrom: 'server' }] },
+      current: { group: [{ [ALTINN_ROW_ID]: rowFromClient, rowFrom: 'client' }] },
+      final: {
+        group: [
+          { [ALTINN_ROW_ID]: rowFromClient, rowFrom: 'client' },
+          { [ALTINN_ROW_ID]: rowFromServer, rowFrom: 'server' },
+        ],
+      },
+      expectedPatch: [{ op: 'add', path: '/group/-', value: { [ALTINN_ROW_ID]: rowFromServer, rowFrom: 'server' } }],
     });
   });
 
-  describe('when backend is slow and response a little late with a prefill value for an array, we should still add it2', () => {
+  describe('when backend is slow and responds a little late with a prefill value for an array, we should still add it2', () => {
+    const rowId = uuidv4();
     testPatch({
       prev: {},
-      next: { group: [{ rowFrom: 'server' }] },
+      next: { group: [{ [ALTINN_ROW_ID]: rowId, rowFrom: 'server' }] },
       current: { group: [] },
-      final: { group: [{ rowFrom: 'server' }] },
-      expectedPatch: [{ op: 'add', path: '/group/-', value: { rowFrom: 'server' } }],
+      final: { group: [{ [ALTINN_ROW_ID]: rowId, rowFrom: 'server' }] },
+      expectedPatch: [{ op: 'add', path: '/group/-', value: { [ALTINN_ROW_ID]: rowId, rowFrom: 'server' } }],
     });
   });
 
   describe('same thing as above, but with existing rows', () => {
+    const fromClient1 = uuidv4();
+    const fromClient2 = uuidv4();
+    const fromServer = uuidv4();
     testPatch({
-      prev: { group: [{ rowFrom: 'client' }] },
-      next: { group: [{ rowFrom: 'client' }, { rowFrom: 'server' }] },
-      current: { group: [{ rowFrom: 'client' }, {}] },
-      final: { group: [{ rowFrom: 'client' }, { rowFrom: 'server' }, {}] },
-      expectedPatch: [
-        // The patch we generate is a bit weird, but it works.
-        { op: 'add', path: '/group/0', value: { rowFrom: 'client' } },
-        { op: 'add', path: '/group/1/rowFrom', value: 'server' },
-      ],
+      prev: { group: [{ [ALTINN_ROW_ID]: fromClient1, rowFrom: 'client' }] },
+      next: {
+        group: [
+          { [ALTINN_ROW_ID]: fromClient1, rowFrom: 'client' },
+          { [ALTINN_ROW_ID]: fromServer, rowFrom: 'server' },
+        ],
+      },
+      current: { group: [{ [ALTINN_ROW_ID]: fromClient1, rowFrom: 'client' }, { [ALTINN_ROW_ID]: fromClient2 }] },
+      final: {
+        group: [
+          { [ALTINN_ROW_ID]: fromClient1, rowFrom: 'client' },
+          { [ALTINN_ROW_ID]: fromClient2 },
+          { [ALTINN_ROW_ID]: fromServer, rowFrom: 'server' },
+        ],
+      },
+      expectedPatch: [{ op: 'add', path: '/group/-', value: { [ALTINN_ROW_ID]: fromServer, rowFrom: 'server' } }],
     });
   });
 
@@ -586,6 +702,7 @@ describe('createPatch', () => {
   describe('createPatch with complex sequential actions', () => {
     function testActions<T extends object>(actions: Action<T>[]) {
       const currentModel = {} as T;
+      let currentCopy = {} as T;
       const lastSavedModel = {} as T;
       for (const action of actions) {
         switch (action.type) {
@@ -594,7 +711,9 @@ describe('createPatch', () => {
             Object.assign(lastSavedModel, action.model);
             break;
           case 'localChange':
-            action.makeChange(currentModel);
+            currentCopy = structuredClone(currentModel);
+            action.makeChange(currentCopy);
+            Object.assign(currentModel, currentCopy);
             expect(currentModel).toEqual(action.expectedAfter);
             break;
           case 'patchRequest':
@@ -634,7 +753,7 @@ describe('createPatch', () => {
       return { type: 'finalModel', model };
     }
 
-    describe('should work with a simple add operation', () => {
+    test('should work with a simple add operation', () => {
       testActions([
         initialFetch({}),
         localChange(
@@ -649,7 +768,9 @@ describe('createPatch', () => {
       ]);
     });
 
-    describe('opening repeating group with delayed response', () => {
+    test('opening repeating group with delayed response', () => {
+      const fromClient = uuidv4();
+      const fromServer = uuidv4();
       testActions<{ group: null | { rowFrom: string }[]; a: number }>([
         initialFetch({ group: null, a: 0 }),
         localChange(
@@ -674,17 +795,74 @@ describe('createPatch', () => {
         // Then openByDefault kicks in and adds a row to the array
         localChange(
           (model) => {
-            model['group'].push({ rowFrom: 'client' });
+            model['group'].push({ [ALTINN_ROW_ID]: fromClient, rowFrom: 'client' });
           },
-          { group: [{ rowFrom: 'client' }], a: 1 },
+          { group: [{ [ALTINN_ROW_ID]: fromClient, rowFrom: 'client' }], a: 1 },
         ),
 
         // The backend responds with a prefill value for the array
-        patchResponse({ group: [{ rowFrom: 'server' }], a: 1 }),
+        patchResponse({ group: [{ [ALTINN_ROW_ID]: fromServer, rowFrom: 'server' }], a: 1 }),
 
         // Now we should have two rows in the array, one from the backend and one from the user. As the one we
         // got from the backend appeared last, that one will be appended to the array.
-        finalModel({ group: [{ rowFrom: 'client' }, { rowFrom: 'server' }], a: 1 }),
+        finalModel({
+          group: [
+            { [ALTINN_ROW_ID]: fromClient, rowFrom: 'client' },
+            { [ALTINN_ROW_ID]: fromServer, rowFrom: 'server' },
+          ],
+          a: 1,
+        }),
+      ]);
+    });
+
+    test('getting changes for a row that was deleted on the client', () => {
+      const row1 = uuidv4();
+      const row2 = uuidv4();
+      testActions<{ group: { a: number }[] }>([
+        initialFetch({
+          group: [
+            { [ALTINN_ROW_ID]: row1, a: 1 },
+            { [ALTINN_ROW_ID]: row2, a: 2 },
+          ],
+        }),
+        localChange(
+          (model) => {
+            model.group[1].a = 3;
+          },
+          {
+            group: [
+              { [ALTINN_ROW_ID]: row1, a: 1 },
+              { [ALTINN_ROW_ID]: row2, a: 3 },
+            ],
+          },
+        ),
+        patchRequest([
+          { op: 'test', path: '/group/1/a', value: 2 },
+          { op: 'replace', path: '/group/1/a', value: 3 },
+        ]),
+
+        // While we're waiting for a response, the user deletes the row
+        localChange(
+          (model) => {
+            model.group.splice(1, 1);
+          },
+          {
+            group: [{ [ALTINN_ROW_ID]: row1, a: 1 }],
+          },
+        ),
+
+        // The backend responds with a new value for the row that was deleted
+        patchResponse({
+          group: [
+            { [ALTINN_ROW_ID]: row1, a: 1 },
+            { [ALTINN_ROW_ID]: row2, a: 4 },
+          ],
+        }),
+
+        // The row that was deleted should not be added back
+        finalModel({
+          group: [{ [ALTINN_ROW_ID]: row1, a: 1 }],
+        }),
       ]);
     });
   });

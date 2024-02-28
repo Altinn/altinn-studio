@@ -335,6 +335,13 @@ export function en() {
         'This version of the app frontend is not compatible with the version of the backend libraries you are using. Update to the latest version of the packages and try again.',
       min_backend_version: 'Minimum backend version is {0}',
     },
+    missing_row_id_error: {
+      title: 'Missing row-ID',
+      message:
+        'When data was loaded, a row-ID was missing. This is an error in the configuration of the form, and must be corrected using the migration tools. Sjekk loggene i utviklerverktøyene for mer informasjon.',
+      full_message:
+        'The data model is missing the property {0} in the path {1}. This should be automatically added to the data model if you are using the correct version of the NuGet packages and have run the migration tools. Read more about the tools in the documentation: https://docs.altinn.studio/community/changelog/app-nuget/v8/migrating-from-v7/',
+    },
     likert: {
       left_column_default_header_text: 'Question',
     },

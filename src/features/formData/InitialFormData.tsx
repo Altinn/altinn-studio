@@ -17,7 +17,7 @@ import { HttpStatusCodes } from 'src/utils/network/networking';
  * initial data. When this is provided, you'll have the tools needed to read/write form data.
  */
 export function InitialFormDataProvider({ children }: PropsWithChildren) {
-  const url = useCurrentDataModelUrl();
+  const url = useCurrentDataModelUrl(true);
   const { error, isLoading, data } = useFormDataQuery(url);
   const autoSaveBehaviour = usePageSettings().autoSaveBehavior;
 

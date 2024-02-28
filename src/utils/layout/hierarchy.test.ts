@@ -1,5 +1,6 @@
 import { getFormLayoutMock } from 'src/__mocks__/getFormLayoutMock';
 import { getHierarchyDataSourcesMock } from 'src/__mocks__/getHierarchyDataSourcesMock';
+import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { getLayoutComponentObject } from 'src/layout';
 import { _private } from 'src/utils/layout/hierarchy';
 import { generateHierarchy } from 'src/utils/layout/HierarchyGenerator';
@@ -69,12 +70,17 @@ describe('Hierarchical layout tools', () => {
   const repeatingGroupsFormData = {
     Group2: [
       {
+        [ALTINN_ROW_ID]: 'r1',
         Input: '1',
-        Nested: [{ Input: '1-1' }, { Input: '1-2' }],
+        Nested: [
+          { [ALTINN_ROW_ID]: 'r1n1', Input: '1-1' },
+          { [ALTINN_ROW_ID]: 'r1n2', Input: '1-2' },
+        ],
       },
       {
+        [ALTINN_ROW_ID]: 'r2',
         Input: '2',
-        Nested: [{ Input: '2-1' }],
+        Nested: [{ [ALTINN_ROW_ID]: 'r2n1', Input: '2-1' }],
       },
     ],
   };
@@ -82,20 +88,44 @@ describe('Hierarchical layout tools', () => {
   const manyRepeatingGroupsFormData = {
     Group2: [
       {
+        [ALTINN_ROW_ID]: 'r1',
         Input: '1',
-        Nested: [{ Input: '1-1' }, { Input: '1-2' }, { Input: '1-3' }, { Input: '1-4' }],
+        Nested: [
+          { [ALTINN_ROW_ID]: 'r1n1', Input: '1-1' },
+          { [ALTINN_ROW_ID]: 'r1n2', Input: '1-2' },
+          { [ALTINN_ROW_ID]: 'r1n3', Input: '1-3' },
+          { [ALTINN_ROW_ID]: 'r1n4', Input: '1-4' },
+        ],
       },
       {
+        [ALTINN_ROW_ID]: 'r2',
         Input: '2',
-        Nested: [{ Input: '2-1' }, { Input: '2-2' }, { Input: '2-3' }, { Input: '2-4' }],
+        Nested: [
+          { [ALTINN_ROW_ID]: 'r2n1', Input: '2-1' },
+          { [ALTINN_ROW_ID]: 'r2n2', Input: '2-2' },
+          { [ALTINN_ROW_ID]: 'r2n3', Input: '2-3' },
+          { [ALTINN_ROW_ID]: 'r2n4', Input: '2-4' },
+        ],
       },
       {
+        [ALTINN_ROW_ID]: 'r3',
         Input: '3',
-        Nested: [{ Input: '3-1' }, { Input: '3-2' }, { Input: '3-3' }, { Input: '3-4' }],
+        Nested: [
+          { [ALTINN_ROW_ID]: 'r3n1', Input: '3-1' },
+          { [ALTINN_ROW_ID]: 'r3n2', Input: '3-2' },
+          { [ALTINN_ROW_ID]: 'r3n3', Input: '3-3' },
+          { [ALTINN_ROW_ID]: 'r3n4', Input: '3-4' },
+        ],
       },
       {
+        [ALTINN_ROW_ID]: 'r4',
         Input: '4',
-        Nested: [{ Input: '4-1' }, { Input: '4-2' }, { Input: '4-3' }, { Input: '4-4' }],
+        Nested: [
+          { [ALTINN_ROW_ID]: 'r4n1', Input: '4-1' },
+          { [ALTINN_ROW_ID]: 'r4n2', Input: '4-2' },
+          { [ALTINN_ROW_ID]: 'r4n3', Input: '4-3' },
+          { [ALTINN_ROW_ID]: 'r4n4', Input: '4-4' },
+        ],
       },
     ],
   };
@@ -233,7 +263,9 @@ describe('Hierarchical layout tools', () => {
 
       const group2 = flatWithGroups.find((node) => node.item.id === components.group2.id);
       expect(group2?.children((n) => n.type === 'Input')?.item.id).toEqual(`${components.group2i.id}-0`);
-      expect(group2?.children((n) => n.type === 'Input', 1)?.item.id).toEqual(`${components.group2i.id}-1`);
+      expect(group2?.children((n) => n.type === 'Input', { onlyInRowIndex: 1 })?.item.id).toEqual(
+        `${components.group2i.id}-1`,
+      );
 
       expect(otherDeepComponent?.closest((c) => c.id === 'not-found')).toBeUndefined();
     });
@@ -241,15 +273,15 @@ describe('Hierarchical layout tools', () => {
     it('should support indexes when using start/stop in groups', () => {
       const formData = {
         Group: [
-          { Title: 'title0' },
-          { Title: 'title1' },
-          { Title: 'title2' },
-          { Title: 'title3' },
-          { Title: 'title4' },
-          { Title: 'title5' },
-          { Title: 'title6' },
-          { Title: 'title7' },
-          { Title: 'title8' },
+          { [ALTINN_ROW_ID]: 'lr0', Title: 'title0' },
+          { [ALTINN_ROW_ID]: 'lr1', Title: 'title1' },
+          { [ALTINN_ROW_ID]: 'lr2', Title: 'title2' },
+          { [ALTINN_ROW_ID]: 'lr3', Title: 'title3' },
+          { [ALTINN_ROW_ID]: 'lr4', Title: 'title4' },
+          { [ALTINN_ROW_ID]: 'lr5', Title: 'title5' },
+          { [ALTINN_ROW_ID]: 'lr6', Title: 'title6' },
+          { [ALTINN_ROW_ID]: 'lr7', Title: 'title7' },
+          { [ALTINN_ROW_ID]: 'lr8', Title: 'title8' },
         ],
       };
 

@@ -85,69 +85,89 @@
     "form": {
       "people": [
         {
+          "altinnRowId": "people0",
           "number": "0",
           "names": [
             {
+              "altinnRowId": "people0-name0",
               "name": "none"
             },
             {
+              "altinnRowId": "people0-name1",
               "name": "John"
             },
             {
+              "altinnRowId": "people0-name2",
               "name": "none"
             },
             {
+              "altinnRowId": "people0-name3",
               "name": "Jane"
             }
           ]
         },
         {
+          "altinnRowId": "people1",
           "number": "0",
           "names": [
             {
+              "altinnRowId": "people1-name0",
               "name": "none"
             },
             {
+              "altinnRowId": "people1-name1",
               "name": "John"
             },
             {
+              "altinnRowId": "people1-name2",
               "name": "none"
             },
             {
+              "altinnRowId": "people1-name3",
               "name": "Jane"
             }
           ]
         },
         {
+          "altinnRowId": "people2",
           "number": "1234",
           "names": [
             {
+              "altinnRowId": "people2-name0",
               "name": "none"
             },
             {
+              "altinnRowId": "people2-name1",
               "name": "John"
             },
             {
+              "altinnRowId": "people2-name2",
               "name": "none"
             },
             {
+              "altinnRowId": "people2-name3",
               "name": "Jane"
             }
           ]
         },
         {
+          "altinnRowId": "people3",
           "number": "5678",
           "names": [
             {
+              "altinnRowId": "people3-name0",
               "name": "none"
             },
             {
+              "altinnRowId": "people3-name1",
               "name": "John"
             },
             {
+              "altinnRowId": "people3-name2",
               "name": "none"
             },
             {
+              "altinnRowId": "people3-name3",
               "name": "Jane"
             }
           ]

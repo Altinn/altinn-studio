@@ -57,7 +57,6 @@ export function SummaryGroupComponent({
             key={`summary-${targetNode.item.id}`}
             id={`summary-${targetNode.item.id}`}
             groupNode={targetNode}
-            onlyRowIndex={undefined}
             isSummary={true}
             renderLayoutNode={(n) => {
               if (inExcludedChildren(n) || n.isHidden()) {

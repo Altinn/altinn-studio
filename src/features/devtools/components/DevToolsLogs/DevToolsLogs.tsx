@@ -103,12 +103,31 @@ export const DevToolsLogs = () => {
           <div key={log.index}>
             <span>{log.index}.</span>
             <pre style={{ color: colorMap[log.level] }}>
-              {log.message.split('\n').map((line) => (
-                <>
-                  {line}
-                  <br />
-                </>
-              ))}
+              {log.message.split('\n').map((line) => {
+                // Find URLs and make them clickable as links
+                const urlRegex = /(https?:\/\/[^\s]+)/g;
+                const split = line.split(urlRegex);
+                return (
+                  <>
+                    {split.map((part, index) => {
+                      if (part.match(urlRegex)) {
+                        return (
+                          <a
+                            key={index}
+                            href={part}
+                            target='_blank'
+                            rel='noreferrer'
+                          >
+                            {part}
+                          </a>
+                        );
+                      }
+                      return part;
+                    })}
+                    <br />
+                  </>
+                );
+              })}
             </pre>
           </div>
         ))}

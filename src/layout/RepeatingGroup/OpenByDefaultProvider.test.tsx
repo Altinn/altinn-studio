@@ -4,6 +4,7 @@ import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { FD } from 'src/features/formData/FormDataWrite';
+import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import {
   RepeatingGroupProvider,
   useRepeatingGroup,
@@ -18,13 +19,24 @@ import type {
 } from 'src/layout/RepeatingGroup/config.generated';
 import type { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 
+// Mocking so that we can predict the UUIDs for new rows
+const nextUuids: string[] = [];
+jest.mock('uuid', () => ({
+  v4: () => {
+    if (nextUuids.length === 0) {
+      throw new Error('No more UUIDs');
+    }
+    return nextUuids.shift()!;
+  },
+}));
+
 describe('openByDefault', () => {
   function RenderTest() {
     const state = useRepeatingGroupSelector((state) => ({
-      editingIndex: state.editingIndex,
-      addingIndexes: state.addingIndexes,
+      editingId: state.editingId,
+      addingIds: state.addingIds,
     }));
-    const { deleteRow, visibleRowIndexes, hiddenRowIndexes } = useRepeatingGroup();
+    const { deleteRow, visibleRows, hiddenRows } = useRepeatingGroup();
 
     const data = FD.useDebouncedPick('MyGroup');
     return (
@@ -32,14 +44,14 @@ describe('openByDefault', () => {
         <div data-testid='state'>
           {JSON.stringify({
             ...state,
-            visibleRowIndexes,
-            hiddenRowIndexes: [...hiddenRowIndexes.values()],
+            visibleRows: visibleRows.map((row) => row.index),
+            hiddenRows: hiddenRows.map((row) => row.index),
             data,
           })}
         </div>
         <button
           onClick={() => {
-            deleteRow(visibleRowIndexes[visibleRowIndexes.length - 1]);
+            deleteRow(visibleRows[visibleRows.length - 1].uuid);
           }}
         >
           Delete last visible row
@@ -49,6 +61,7 @@ describe('openByDefault', () => {
   }
 
   interface Row {
+    altinnRowId: string;
     id: number;
     name: string;
   }
@@ -177,10 +190,10 @@ describe('openByDefault', () => {
 
     await waitUntil({
       state: {
-        editingIndex: undefined,
-        addingIndexes: [],
-        visibleRowIndexes: [],
-        hiddenRowIndexes: [],
+        editingId: undefined,
+        addingIds: [],
+        visibleRows: [],
+        hiddenRows: [],
         data: [],
       },
       mutations,
@@ -188,40 +201,49 @@ describe('openByDefault', () => {
   });
 
   it('should add one new row by default when on', async () => {
+    nextUuids.push('abc123');
     const { mutations } = await render({
       existingRows: [],
       edit: { openByDefault: true },
     });
     await waitUntil({
       state: {
-        editingIndex: 0,
-        addingIndexes: [],
-        visibleRowIndexes: [0],
-        hiddenRowIndexes: [],
-        data: [{ id: 1, name: 'test' }],
+        editingId: 'abc123',
+        addingIds: [],
+        visibleRows: [0],
+        hiddenRows: [],
+        data: [{ [ALTINN_ROW_ID]: 'abc123', id: 1, name: 'test' }],
       },
       expectedPatch: [
         { op: 'test', path: '/MyGroup', value: [] },
-        { op: 'add', path: '/MyGroup/-', value: {} },
+        { op: 'add', path: '/MyGroup/-', value: { [ALTINN_ROW_ID]: 'abc123' } },
       ],
-      newModelAfterSave: { MyGroup: [{ id: 1, name: 'test' }] },
+      newModelAfterSave: {
+        MyGroup: [{ [ALTINN_ROW_ID]: 'abc123', id: 1, name: 'test' }],
+      },
       mutations,
     });
   });
 
   it('should not add a new row if one already exists', async () => {
     const { mutations } = await render({
-      existingRows: [{ id: 1, name: 'test' }],
+      existingRows: [{ [ALTINN_ROW_ID]: 'abc123', id: 1, name: 'test' }],
       edit: { openByDefault: true },
     });
 
     await waitUntil({
       state: {
-        editingIndex: undefined,
-        addingIndexes: [],
-        visibleRowIndexes: [0],
-        hiddenRowIndexes: [],
-        data: [{ id: 1, name: 'test' }],
+        editingId: undefined,
+        addingIds: [],
+        visibleRows: [0],
+        hiddenRows: [],
+        data: [
+          {
+            [ALTINN_ROW_ID]: expect.any(String),
+            id: 1,
+            name: 'test',
+          },
+        ],
       },
       mutations,
     });
@@ -231,17 +253,23 @@ describe('openByDefault', () => {
     'should open the row if one exist and openByDefault is %s',
     async (openByDefault) => {
       const { mutations } = await render({
-        existingRows: [{ id: 1, name: 'test' }],
+        existingRows: [{ [ALTINN_ROW_ID]: 'def456', id: 1, name: 'test' }],
         edit: { openByDefault },
       });
 
       await waitUntil({
         state: {
-          editingIndex: 0,
-          addingIndexes: [],
-          visibleRowIndexes: [0],
-          hiddenRowIndexes: [],
-          data: [{ id: 1, name: 'test' }],
+          editingId: 'def456',
+          addingIds: [],
+          visibleRows: [0],
+          hiddenRows: [],
+          data: [
+            {
+              [ALTINN_ROW_ID]: 'def456',
+              id: 1,
+              name: 'test',
+            },
+          ],
         },
         mutations,
       });
@@ -251,6 +279,7 @@ describe('openByDefault', () => {
   it.each(['first', 'last'] as const)(
     'should add the first row if none exists and openByDefault is %s',
     async (openByDefault) => {
+      nextUuids.push('abc123-def456');
       const { mutations } = await render({
         existingRows: [],
         edit: { openByDefault },
@@ -258,17 +287,25 @@ describe('openByDefault', () => {
 
       await waitUntil({
         state: {
-          editingIndex: 0,
-          addingIndexes: [],
-          visibleRowIndexes: [0],
-          hiddenRowIndexes: [],
-          data: [{ id: 5, name: 'foo bar' }],
+          editingId: 'abc123-def456',
+          addingIds: [],
+          visibleRows: [0],
+          hiddenRows: [],
+          data: [
+            {
+              [ALTINN_ROW_ID]: 'abc123-def456',
+              id: 5,
+              name: 'foo bar',
+            },
+          ],
         },
         expectedPatch: [
           { op: 'test', path: '/MyGroup', value: [] },
-          { op: 'add', path: '/MyGroup/-', value: {} },
+          { op: 'add', path: '/MyGroup/-', value: { [ALTINN_ROW_ID]: 'abc123-def456' } },
         ],
-        newModelAfterSave: { MyGroup: [{ id: 5, name: 'foo bar' }] },
+        newModelAfterSave: {
+          MyGroup: [{ [ALTINN_ROW_ID]: 'abc123-def456', id: 5, name: 'foo bar' }],
+        },
         mutations,
       });
     },
@@ -278,17 +315,17 @@ describe('openByDefault', () => {
     'should not add a new row if one already exists and openByDefault is %s',
     async (openByDefault) => {
       const { mutations } = await render({
-        existingRows: [{ id: 1, name: 'test' }],
+        existingRows: [{ [ALTINN_ROW_ID]: 'cba321', id: 1, name: 'test' }],
         edit: { openByDefault },
       });
 
       await waitUntil({
         state: {
-          editingIndex: 0,
-          addingIndexes: [],
-          visibleRowIndexes: [0],
-          hiddenRowIndexes: [],
-          data: [{ id: 1, name: 'test' }],
+          editingId: 'cba321',
+          addingIds: [],
+          visibleRows: [0],
+          hiddenRows: [],
+          data: [{ [ALTINN_ROW_ID]: 'cba321', id: 1, name: 'test' }],
         },
         mutations,
       });
@@ -300,21 +337,21 @@ describe('openByDefault', () => {
     async (openByDefault) => {
       const { mutations } = await render({
         existingRows: [
-          { id: 1, name: 'test' },
-          { id: 2, name: 'test' },
+          { [ALTINN_ROW_ID]: 'a1', id: 1, name: 'test' },
+          { [ALTINN_ROW_ID]: 'a2', id: 2, name: 'test' },
         ],
         edit: { openByDefault },
       });
 
       await waitUntil({
         state: {
-          editingIndex: openByDefault === 'last' ? 1 : 0,
-          addingIndexes: [],
-          visibleRowIndexes: [0, 1],
-          hiddenRowIndexes: [],
+          editingId: openByDefault === 'last' ? 'a2' : 'a1',
+          addingIds: [],
+          visibleRows: [0, 1],
+          hiddenRows: [],
           data: [
-            { id: 1, name: 'test' },
-            { id: 2, name: 'test' },
+            { [ALTINN_ROW_ID]: 'a1', id: 1, name: 'test' },
+            { [ALTINN_ROW_ID]: 'a2', id: 2, name: 'test' },
           ],
         },
         mutations,
@@ -325,31 +362,32 @@ describe('openByDefault', () => {
   it.each(['first', 'last', true] as const)(
     'should add a new row if one already exists but is hidden, and openByDefault is %s',
     async (openByDefault) => {
+      nextUuids.push('c3-2');
       const { mutations } = await render({
-        existingRows: [{ id: 1, name: 'test' }],
+        existingRows: [{ [ALTINN_ROW_ID]: 'c3', id: 1, name: 'test' }],
         edit: { openByDefault },
         hiddenRow: ['equals', ['dataModel', 'MyGroup.name'], 'test'],
       });
 
       await waitUntil({
         state: {
-          editingIndex: 1,
-          addingIndexes: [],
-          visibleRowIndexes: [1],
-          hiddenRowIndexes: [0],
+          editingId: 'c3-2',
+          addingIds: [],
+          visibleRows: [1],
+          hiddenRows: [0],
           data: [
-            { id: 1, name: 'test' },
-            { id: 2, name: 'bar baz' },
+            { [ALTINN_ROW_ID]: 'c3', id: 1, name: 'test' },
+            { [ALTINN_ROW_ID]: 'c3-2', id: 2, name: 'bar baz' },
           ],
         },
         expectedPatch: [
-          { op: 'test', path: '/MyGroup', value: [{ id: 1, name: 'test' }] },
-          { op: 'add', path: '/MyGroup/-', value: {} },
+          { op: 'test', path: '/MyGroup', value: [{ [ALTINN_ROW_ID]: 'c3', id: 1, name: 'test' }] },
+          { op: 'add', path: '/MyGroup/-', value: { [ALTINN_ROW_ID]: 'c3-2' } },
         ],
         newModelAfterSave: {
           MyGroup: [
-            { id: 1, name: 'test' },
-            { id: 2, name: 'bar baz' },
+            { [ALTINN_ROW_ID]: 'c3', id: 1, name: 'test' },
+            { [ALTINN_ROW_ID]: 'c3-2', id: 2, name: 'bar baz' },
           ],
         },
         mutations,
@@ -360,8 +398,9 @@ describe('openByDefault', () => {
   it.each(['first', 'last', true] as const)(
     'should only attempt to add one new row if new rows keep getting hidden, and openByDefault is %s',
     async (openByDefault) => {
+      nextUuids.push('d5-2');
       const { mutations } = await render({
-        existingRows: [{ id: 1, name: 'test' }],
+        existingRows: [{ [ALTINN_ROW_ID]: 'd5', id: 1, name: 'test' }],
         edit: { openByDefault },
         hiddenRow: ['equals', true, true],
       });
@@ -370,23 +409,23 @@ describe('openByDefault', () => {
       // can't do anything about it, but a warning is logged.
       await waitUntil({
         state: {
-          editingIndex: undefined,
-          addingIndexes: [],
-          visibleRowIndexes: [],
-          hiddenRowIndexes: [0, 1],
+          editingId: undefined,
+          addingIds: [],
+          visibleRows: [],
+          hiddenRows: [0, 1],
           data: [
-            { id: 1, name: 'test' },
-            { id: 2, name: 'test' },
+            { [ALTINN_ROW_ID]: 'd5', id: 1, name: 'test' },
+            { [ALTINN_ROW_ID]: 'd5-2', id: 2, name: 'test' },
           ],
         },
         expectedPatch: [
-          { op: 'test', path: '/MyGroup', value: [{ id: 1, name: 'test' }] },
-          { op: 'add', path: '/MyGroup/-', value: {} },
+          { op: 'test', path: '/MyGroup', value: [{ [ALTINN_ROW_ID]: 'd5', id: 1, name: 'test' }] },
+          { op: 'add', path: '/MyGroup/-', value: { [ALTINN_ROW_ID]: 'd5-2' } },
         ],
         newModelAfterSave: {
           MyGroup: [
-            { id: 1, name: 'test' },
-            { id: 2, name: 'test' },
+            { [ALTINN_ROW_ID]: 'd5', id: 1, name: 'test' },
+            { [ALTINN_ROW_ID]: 'd5-2', id: 2, name: 'test' },
           ],
         },
         expectedWarning: expect.stringContaining(
@@ -403,31 +442,32 @@ describe('openByDefault', () => {
     'should immediately hide the row again, but not create a new one if the backend ' +
       'responds with prefill that makes the new row hidden again, and openByDefault is %s',
     async (openByDefault) => {
+      nextUuids.push('e6-2');
       const { mutations } = await render({
-        existingRows: [{ id: 1, name: 'test' }],
+        existingRows: [{ [ALTINN_ROW_ID]: 'e6', id: 1, name: 'test' }],
         edit: { openByDefault },
         hiddenRow: ['equals', ['dataModel', 'MyGroup.name'], 'test'],
       });
 
       await waitUntil({
         state: {
-          editingIndex: undefined,
-          addingIndexes: [],
-          visibleRowIndexes: [],
-          hiddenRowIndexes: [0, 1],
+          editingId: undefined,
+          addingIds: [],
+          visibleRows: [],
+          hiddenRows: [0, 1],
           data: [
-            { id: 1, name: 'test' },
-            { id: 2, name: 'test' },
+            { [ALTINN_ROW_ID]: 'e6', id: 1, name: 'test' },
+            { [ALTINN_ROW_ID]: 'e6-2', id: 2, name: 'test' },
           ],
         },
         expectedPatch: [
-          { op: 'test', path: '/MyGroup', value: [{ id: 1, name: 'test' }] },
-          { op: 'add', path: '/MyGroup/-', value: {} },
+          { op: 'test', path: '/MyGroup', value: [{ [ALTINN_ROW_ID]: 'e6', id: 1, name: 'test' }] },
+          { op: 'add', path: '/MyGroup/-', value: { [ALTINN_ROW_ID]: 'e6-2' } },
         ],
         newModelAfterSave: {
           MyGroup: [
-            { id: 1, name: 'test' },
-            { id: 2, name: 'test' },
+            { [ALTINN_ROW_ID]: 'e6', id: 1, name: 'test' },
+            { [ALTINN_ROW_ID]: 'e6-2', id: 2, name: 'test' },
           ],
         },
         mutations,
@@ -443,10 +483,10 @@ describe('openByDefault', () => {
 
     await waitUntil({
       state: {
-        editingIndex: undefined,
-        addingIndexes: [],
-        visibleRowIndexes: [],
-        hiddenRowIndexes: [],
+        editingId: undefined,
+        addingIds: [],
+        visibleRows: [],
+        hiddenRows: [],
         data: [],
       },
       mutations,
@@ -458,17 +498,17 @@ describe('openByDefault', () => {
     async (openByDefault) => {
       const user = userEvent.setup({ delay: null });
       const { mutations } = await render({
-        existingRows: [{ id: 1, name: 'test' }],
+        existingRows: [{ [ALTINN_ROW_ID]: 'f7', id: 1, name: 'test' }],
         edit: { openByDefault },
       });
 
       await waitUntil({
         state: {
-          editingIndex: openByDefault === true ? undefined : 0,
-          addingIndexes: [],
-          visibleRowIndexes: [0],
-          hiddenRowIndexes: [],
-          data: [{ id: 1, name: 'test' }],
+          editingId: openByDefault === true ? undefined : 'f7',
+          addingIds: [],
+          visibleRows: [0],
+          hiddenRows: [],
+          data: [{ [ALTINN_ROW_ID]: 'f7', id: 1, name: 'test' }],
         },
         mutations,
       });
@@ -477,14 +517,14 @@ describe('openByDefault', () => {
 
       await waitUntil({
         state: {
-          editingIndex: undefined,
-          addingIndexes: [],
-          visibleRowIndexes: [],
-          hiddenRowIndexes: [],
+          editingId: undefined,
+          addingIds: [],
+          visibleRows: [],
+          hiddenRows: [],
           data: [],
         },
         expectedPatch: [
-          { op: 'test', path: '/MyGroup', value: [{ id: 1, name: 'test' }] },
+          { op: 'test', path: '/MyGroup', value: [{ [ALTINN_ROW_ID]: 'f7', id: 1, name: 'test' }] },
           { op: 'remove', path: '/MyGroup/0' },
         ],
         newModelAfterSave: { MyGroup: [] },

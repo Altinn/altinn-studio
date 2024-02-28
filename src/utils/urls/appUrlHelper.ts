@@ -32,11 +32,12 @@ export const getFileTagUrl = (instanceId: string, dataGuid: string, tag: string 
   return `${appPath}/instances/${instanceId}/data/${dataGuid}/tags`;
 };
 
-export const getAnonymousStatelessDataModelUrl = (dataType: string) =>
-  `${appPath}/v1/data/anonymous?dataType=${dataType}`;
-export const getStatelessDataModelUrl = (dataType: string) => `${appPath}/v1/data?dataType=${dataType}`;
-export const getDataElementUrl = (instanceId: string, dataGuid: string, language: string) => {
-  const queryString = getQueryStringFromObject({ language });
+export const getAnonymousStatelessDataModelUrl = (dataType: string, includeRowIds: boolean) =>
+  `${appPath}/v1/data/anonymous?dataType=${dataType}&includeRowId=${includeRowIds.toString()}}`;
+export const getStatelessDataModelUrl = (dataType: string, includeRowIds: boolean) =>
+  `${appPath}/v1/data?dataType=${dataType}&includeRowId=${includeRowIds.toString()}}`;
+export const getDataElementUrl = (instanceId: string, dataGuid: string, language: string, includeRowIds: boolean) => {
+  const queryString = getQueryStringFromObject({ language, includeRowId: includeRowIds.toString() });
   return `${appPath}/instances/${instanceId}/data/${dataGuid}${queryString}`;
 };
 

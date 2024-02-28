@@ -40,6 +40,7 @@ const { Provider, useCtx } = createContext<FormDataWriteProxies>({
     appendToList: defaultProxy as Proxy<'appendToList'>,
     removeIndexFromList: defaultProxy as Proxy<'removeIndexFromList'>,
     removeValueFromList: defaultProxy as Proxy<'removeValueFromList'>,
+    removeFromListCallback: defaultProxy as Proxy<'removeFromListCallback'>,
     setMultiLeafValues: defaultProxy as Proxy<'setMultiLeafValues'>,
     unlock: defaultProxy as Proxy<'unlock'>,
     lock: defaultProxy as Proxy<'lock'>,

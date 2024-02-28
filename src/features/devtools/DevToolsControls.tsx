@@ -19,10 +19,12 @@ import { VersionSwitcher } from 'src/features/devtools/components/VersionSwitche
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import classes from 'src/features/devtools/DevTools.module.css';
+import { useIsInFormContext } from 'src/features/form/FormContext';
 
 export const DevToolsControls = () => {
   const activeTab = useDevToolsStore((state) => state.activeTab);
   const setActiveTab = useDevToolsStore((state) => state.actions.setActiveTab);
+  const isInForm = useIsInFormContext();
 
   return (
     <Tabs
@@ -34,9 +36,9 @@ export const DevToolsControls = () => {
       <Tabs.List className={classes.tabList}>
         <Tabs.Tab value={DevToolsTab.General}>{DevToolsTab.General}</Tabs.Tab>
         <Tabs.Tab value={DevToolsTab.Logs}>{DevToolsTab.Logs}</Tabs.Tab>
-        <Tabs.Tab value={DevToolsTab.Layout}>{DevToolsTab.Layout}</Tabs.Tab>
-        <Tabs.Tab value={DevToolsTab.Components}>{DevToolsTab.Components}</Tabs.Tab>
-        <Tabs.Tab value={DevToolsTab.Expressions}>{DevToolsTab.Expressions}</Tabs.Tab>
+        {isInForm && <Tabs.Tab value={DevToolsTab.Layout}>{DevToolsTab.Layout}</Tabs.Tab>}
+        {isInForm && <Tabs.Tab value={DevToolsTab.Components}>{DevToolsTab.Components}</Tabs.Tab>}
+        {isInForm && <Tabs.Tab value={DevToolsTab.Expressions}>{DevToolsTab.Expressions}</Tabs.Tab>}
         {/* <Tabs.Tab value={DevToolsTab.FeatureToggles}>{DevToolsTab.FeatureToggles}</Tabs.Tab> */}
       </Tabs.List>
       <Tabs.Content value={DevToolsTab.General}>
@@ -54,15 +56,21 @@ export const DevToolsControls = () => {
       <Tabs.Content value={DevToolsTab.Logs}>
         <DevToolsLogs />
       </Tabs.Content>
-      <Tabs.Content value={DevToolsTab.Layout}>
-        <LayoutInspector />
-      </Tabs.Content>
-      <Tabs.Content value={DevToolsTab.Components}>
-        <NodeInspector />
-      </Tabs.Content>
-      <Tabs.Content value={DevToolsTab.Expressions}>
-        <ExpressionPlayground />
-      </Tabs.Content>
+      {isInForm && (
+        <Tabs.Content value={DevToolsTab.Layout}>
+          <LayoutInspector />
+        </Tabs.Content>
+      )}
+      {isInForm && (
+        <Tabs.Content value={DevToolsTab.Components}>
+          <NodeInspector />
+        </Tabs.Content>
+      )}
+      {isInForm && (
+        <Tabs.Content value={DevToolsTab.Expressions}>
+          <ExpressionPlayground />
+        </Tabs.Content>
+      )}
       {
         // <Tabs.Content value={DevToolsTab.FeatureToggles}>
         //   <FeatureToggles />

@@ -67,7 +67,7 @@ export function RepeatingGroupsFocusProvider({ children }: PropsWithChildren) {
 
       for (const row of node.item.rows) {
         if (row.items.find((item) => item.item.id === targetChild?.item.id)) {
-          openForEditing(row.index);
+          openForEditing(row.uuid);
           return true;
         }
       }

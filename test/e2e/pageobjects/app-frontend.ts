@@ -253,6 +253,42 @@ export class AppFrontend {
     }),
   };
 
+  public pets = {
+    decisionPanel: {
+      manualButton: '#custom-button-forceShowPets',
+      autoPetsButton: '#custom-button-generatePets',
+      autoFarmAnimalsButton: '#custom-button-generateWholeFarm',
+    },
+    group: {
+      table: '#group-pets-table-body',
+      tableRows: '#group-pets-table-body tr',
+      tableRow: (idx: number) => ({
+        species: `#pet-species-${idx}`,
+        name: `#group-pets-table-body tr[data-row-num=${idx}] td:nth-child(2)`,
+        editButton: `#group-pets-table-body tr[data-row-num=${idx}] button:contains("Rediger")`,
+        deleteButton: `#group-pets-table-body tr[data-row-num=${idx}] button:contains("Slett")`,
+      }),
+      addButton: '#add-button-pets',
+      editContainer: {
+        _: '[data-testid=group-edit-container]',
+        species: '[data-testid=group-edit-container] [id^="pet-species"]',
+        name: '[data-testid=group-edit-container] [id^="pet-name"]',
+        age: '[data-testid=group-edit-container] [id^="pet-age"]',
+        sortOrder: '[data-testid=group-edit-container] [id^="futureSortOrder-inside"]',
+        sortButton: '[data-testid=group-edit-container] [id^="custom-button-sortOrderButton-inside"]',
+        saveAndClose: '[data-testid=group-edit-container] #save-button-pets',
+      },
+    },
+    hide: {
+      _: '#form-content-hiddenPets',
+      all: '#form-content-hiddenPets input[type=checkbox]',
+    },
+    sortOutside: {
+      sortOrder: '#futureSortOrder-outside',
+      sortButton: '#custom-button-sortOrderButton-outside',
+    },
+  };
+
   //Stateless-app
   public stateless = {
     name: '#name',

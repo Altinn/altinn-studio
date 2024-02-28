@@ -16,7 +16,7 @@ export interface IGroupComponent {
   groupNode: LayoutNode<'Group'>;
   containerDivRef?: React.Ref<HTMLDivElement>;
   id?: string;
-  onlyRowIndex?: number | undefined;
+  onlyInRowUuid?: string;
   isSummary?: boolean;
   renderLayoutNode: (node: LayoutNode) => JSX.Element | null;
 }
@@ -33,7 +33,7 @@ export function GroupComponent({
   groupNode,
   containerDivRef,
   id,
-  onlyRowIndex,
+  onlyInRowUuid,
   isSummary,
   renderLayoutNode,
 }: IGroupComponent) {
@@ -51,6 +51,7 @@ export function GroupComponent({
     container.headingLevel ?? (Math.min(Math.max(groupNode.parents().length + 1, 2), 6) as HeadingLevel);
   const headingSize = headingSizes[headingLevel];
   const legend = isSummary ? summaryTitle : title;
+  const restriction = typeof onlyInRowUuid === 'string' ? { onlyInRowUuid } : undefined;
 
   return (
     <ConditionalWrapper
@@ -78,7 +79,7 @@ export function GroupComponent({
           data-testid='display-group-container'
           className={cn({ [classes.groupingIndicator]: isIndented && !isNested }, classes.groupContainer)}
         >
-          {groupNode.children(undefined, onlyRowIndex).map((n) => renderLayoutNode(n))}
+          {groupNode.children(undefined, restriction).map((n) => renderLayoutNode(n))}
         </div>
       </Fieldset>
     </ConditionalWrapper>

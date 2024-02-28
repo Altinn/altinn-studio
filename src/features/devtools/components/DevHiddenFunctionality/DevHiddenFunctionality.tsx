@@ -4,12 +4,22 @@ import { Fieldset, ToggleGroup } from '@digdir/design-system-react';
 
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { useComponentRefs } from 'src/features/devtools/hooks/useComponentRefs';
+import { useIsInFormContext } from 'src/features/form/FormContext';
 import { useNodes } from 'src/utils/layout/NodesContext';
 import type { IDevToolsState } from 'src/features/devtools/data/types';
 
 const pseudoHiddenCssFilter = 'contrast(0.75)';
 
 export function DevHiddenFunctionality() {
+  const isInForm = useIsInFormContext();
+  if (!isInForm) {
+    return null;
+  }
+
+  return <InnerDevHiddenFunctionality />;
+}
+
+function InnerDevHiddenFunctionality() {
   const state = useDevToolsStore((state) => state.hiddenComponents);
   const setShowHiddenComponents = useDevToolsStore((state) => state.actions.setShowHiddenComponents);
   const hierarchy = useNodes();

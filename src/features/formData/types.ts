@@ -12,6 +12,14 @@ import type { BackendValidationIssueGroups, BuiltInValidationIssueSources } from
  */
 export const DEFAULT_DEBOUNCE_TIMEOUT = 400;
 
+/**
+ * This field always exists in the data model for objects inside arrays (i.e. repeating groups). It's used to
+ * identify the object in the array in a way that's more stable than the index. This is important because the
+ * index can change when the array is sorted, and we want to be able to sort the array without losing track of
+ * which objects are which within it.
+ */
+export const ALTINN_ROW_ID = 'altinnRowId';
+
 export interface IDataModelPatchRequest {
   patch: JsonPatch;
   ignoredValidators: BuiltInValidationIssueSources[];

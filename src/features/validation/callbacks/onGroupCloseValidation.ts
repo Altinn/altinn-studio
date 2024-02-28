@@ -21,11 +21,11 @@ export function useOnGroupCloseValidation() {
   const waitForBackendValidations = useWaitForState(lastBackendValidationsRef);
 
   /* Ensures the callback will have the latest state */
-  const callback = useEffectEvent((node: LayoutNode, rowIndex: number, masks: AllowedValidationMasks): boolean => {
+  const callback = useEffectEvent((node: LayoutNode, rowUuid: string, masks: AllowedValidationMasks): boolean => {
     const mask = getVisibilityMask(masks);
 
     const nodesWithErrors = node
-      .flat(true, rowIndex)
+      .flat(true, { onlyInRowUuid: rowUuid })
       .filter((n) => n.item.id !== node.item.id) // Exclude self, only check children
       .filter(shouldValidateNode)
       .filter((n) => getValidationsForNode(n, state, mask, 'error').length > 0);
@@ -39,10 +39,10 @@ export function useOnGroupCloseValidation() {
   });
 
   return useCallback(
-    async (node: LayoutNode, rowIndex: number, masks: AllowedValidationMasks) => {
+    async (node: LayoutNode, rowUuid: string, masks: AllowedValidationMasks) => {
       const localWait = await validating();
       await waitForBackendValidations(localWait);
-      return callback(node, rowIndex, masks);
+      return callback(node, rowUuid, masks);
     },
     [callback, validating, waitForBackendValidations],
   );

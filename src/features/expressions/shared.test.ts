@@ -38,8 +38,8 @@ function findComponent(context: FunctionTest['context'], collection: LayoutPages
       // group context, but actually pointing to a row inside the group. This is supported
       // in useExpressions() itself, but evalExpr() requires the context of an actual component
       // inside the group.
-      const rowIndex = [...rowIndices].pop();
-      return foundMaybeGroup.children(undefined, rowIndex)[0];
+      const rowIndex = [...rowIndices].pop()!;
+      return foundMaybeGroup.children(undefined, { onlyInRowIndex: rowIndex })[0];
     }
   }
 

@@ -16,7 +16,7 @@ export const AttachmentFileName = ({ attachment, mobileView }: { attachment: IAt
   const instanceId = useLaxInstanceData()?.id;
   const url =
     isAttachmentUploaded(attachment) && instanceId
-      ? makeUrlRelativeIfSameDomain(getDataElementUrl(instanceId, attachment.data.id, language))
+      ? makeUrlRelativeIfSameDomain(getDataElementUrl(instanceId, attachment.data.id, language, false))
       : undefined;
 
   const fileName = (

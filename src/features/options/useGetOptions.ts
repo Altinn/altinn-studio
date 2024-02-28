@@ -169,7 +169,8 @@ export function useGetOptions<T extends ValueType>(props: Props<T>): OptionsResu
   const downstreamParameters: string = fetchedOptions?.headers['altinn-downstreamparameters'];
   useEffect(() => {
     if (dataModelBindings && 'metadata' in dataModelBindings && dataModelBindings.metadata && downstreamParameters) {
-      setValue('metadata' as any, downstreamParameters);
+      // The value might be url-encoded
+      setValue('metadata' as any, decodeURIComponent(downstreamParameters));
     }
   }, [dataModelBindings, downstreamParameters, setValue]);
 

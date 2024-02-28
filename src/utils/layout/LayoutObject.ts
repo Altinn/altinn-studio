@@ -1,4 +1,5 @@
 import type { CompExceptGroup, CompInternal } from 'src/layout/layout';
+import type { ChildLookupRestriction } from 'src/utils/layout/HierarchyGenerator';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 /**
@@ -16,19 +17,13 @@ export interface LayoutObject<Item extends CompInternal = CompInternal, Child ex
    * Returns a list of direct children, or finds the first node matching a given criteria
    */
   children(): Child[];
-
   children(matching: (item: Item) => boolean): Child | undefined;
 
   /**
    * This returns all the child nodes (including duplicate components for repeating groups) as a flat list of
    * LayoutNode objects.
-   *
-   * @param includeGroups If true, also includes the group nodes
-   * @param onlyInRows
    */
-  flat(includeGroups: true, onlyInRows?: number): LayoutNode[];
-
-  flat(includeGroups: false, onlyInRows?: number): LayoutNode<CompExceptGroup>[];
-
-  flat(includeGroups: boolean, onlyInRows?: number): LayoutNode[];
+  flat(includeGroups: true, restriction?: ChildLookupRestriction): LayoutNode[];
+  flat(includeGroups: false, restriction?: ChildLookupRestriction): LayoutNode<CompExceptGroup>[];
+  flat(includeGroups: boolean, restriction?: ChildLookupRestriction): LayoutNode[];
 }

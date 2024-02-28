@@ -13,7 +13,7 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 export function useDeepValidationsForNode(
   node: LayoutNode | undefined,
   onlyChildren: boolean = false,
-  onlyInRowIndex?: number,
+  onlyInRowUuid?: string,
 ): NodeValidation[] {
   const state = useValidationContext().state;
   const visibility = useValidationContext().visibility;
@@ -22,9 +22,11 @@ export function useDeepValidationsForNode(
     if (!node) {
       return [];
     }
-    const nodesToValidate = onlyChildren ? node.flat(true, onlyInRowIndex) : [node, ...node.flat(true, onlyInRowIndex)];
+
+    const restriction = onlyInRowUuid ? { onlyInRowUuid } : undefined;
+    const nodesToValidate = onlyChildren ? node.flat(true, restriction) : [node, ...node.flat(true, restriction)];
     return nodesToValidate.flatMap((node) =>
       getValidationsForNode(node, state, getVisibilityForNode(node, visibility)),
     );
-  }, [node, onlyChildren, onlyInRowIndex, state, visibility]);
+  }, [node, onlyChildren, onlyInRowUuid, state, visibility]);
 }

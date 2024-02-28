@@ -210,6 +210,7 @@ const knownDataModels: { [key: string]: any } = {
     Sender: null,
     SomeNumberValue: null,
     IsSomeValue: null,
+    GwTargetTask: 'Task_2',
   },
   'ServiceModel-test': {
     skjemanummer: 1533,
@@ -372,6 +373,11 @@ const knownDataModels: { [key: string]: any } = {
     PrefillValuesShadow: null,
     PrefillValuesEnabled: true,
     Group2Teller: 0,
+    Pets: [],
+    ForceShowPets: false,
+    NumPets: 0,
+    HiddenPets: null,
+    PetSortOrder: null,
   },
   likert: {
     Questions: [

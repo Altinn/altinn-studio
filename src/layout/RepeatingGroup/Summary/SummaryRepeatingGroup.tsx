@@ -13,6 +13,7 @@ import classes from 'src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup.mod
 import { EditButton } from 'src/layout/Summary/EditButton';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import type { ITextResourceBindings } from 'src/layout/layout';
+import type { HRepGroupRow } from 'src/layout/RepeatingGroup/config.generated';
 import type { ISummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -49,46 +50,43 @@ export function SummaryRepeatingGroup({
   const titleTrb = textBindings && 'title' in textBindings ? textBindings.title : undefined;
   const ariaLabel = langAsString(summaryTitleTrb ?? summaryAccessibleTitleTrb ?? titleTrb);
 
-  const rowIndexes: (number | undefined)[] = [];
+  const rows: HRepGroupRow[] = [];
   for (const row of targetNode.item.rows) {
-    row && rowIndexes.push(row.index);
+    if (!row || row.groupExpressions?.hiddenRow || row.index === undefined) {
+      continue;
+    }
+    rows.push(row);
   }
 
-  if (summaryNode.item.largeGroup && overrides?.largeGroup !== false && rowIndexes.length) {
+  if (summaryNode.item.largeGroup && overrides?.largeGroup !== false && rows.length) {
     return (
       <>
-        {rowIndexes.map((idx) => {
-          if (idx !== undefined && targetNode.item.rows[idx]?.groupExpressions?.hiddenRow) {
-            return null;
-          }
+        {rows.map((row) => (
+          <LargeGroupSummaryContainer
+            key={`summary-${targetNode.item.id}-${row.uuid}`}
+            id={`summary-${targetNode.item.id}-${row.index}`}
+            groupNode={targetNode}
+            onlyInRowUuid={row.uuid}
+            renderLayoutNode={(n) => {
+              if (inExcludedChildren(n) || n.isHidden()) {
+                return null;
+              }
 
-          return (
-            <LargeGroupSummaryContainer
-              key={`summary-${targetNode.item.id}-${idx}`}
-              id={`summary-${targetNode.item.id}-${idx}`}
-              groupNode={targetNode}
-              onlyRowIndex={idx}
-              renderLayoutNode={(n) => {
-                if (inExcludedChildren(n) || n.isHidden()) {
-                  return null;
-                }
-
-                return (
-                  <SummaryComponent
-                    key={n.item.id}
-                    summaryNode={summaryNode}
-                    overrides={{
-                      ...overrides,
-                      targetNode: n,
-                      grid: {},
-                      largeGroup: false,
-                    }}
-                  />
-                );
-              }}
-            />
-          );
-        })}
+              return (
+                <SummaryComponent
+                  key={n.item.id}
+                  summaryNode={summaryNode}
+                  overrides={{
+                    ...overrides,
+                    targetNode: n,
+                    grid: {},
+                    largeGroup: false,
+                  }}
+                />
+              );
+            }}
+          />
+        ))}
       </>
     );
   }
@@ -115,16 +113,18 @@ export function SummaryRepeatingGroup({
           ) : null}
         </div>
         <div style={{ width: '100%' }}>
-          {rowIndexes.length === 0 ? (
+          {rows.length === 0 ? (
             <span className={classes.emptyField}>
               <Lang id={'general.empty_summary'} />
             </span>
           ) : (
-            rowIndexes
-              .filter((idx) => targetNode.children(undefined, idx).some((child) => !child.isHidden()))
-              .map((idx) => {
+            rows
+              .filter((row) =>
+                targetNode.children(undefined, { onlyInRowUuid: row.uuid }).some((child) => !child.isHidden()),
+              )
+              .map((row) => {
                 const childSummaryComponents = targetNode
-                  .children(undefined, idx)
+                  .children(undefined, { onlyInRowUuid: row.uuid })
                   .filter((n) => !inExcludedChildren(n))
                   .map((child) => {
                     if (child.isHidden() || !child.isCategory(CompCategory.Form)) {
@@ -146,7 +146,7 @@ export function SummaryRepeatingGroup({
                 return (
                   <div
                     data-testid={'summary-repeating-row'}
-                    key={`row-${idx}`}
+                    key={`row-${row.uuid}`}
                     className={classes.border}
                   >
                     {childSummaryComponents}

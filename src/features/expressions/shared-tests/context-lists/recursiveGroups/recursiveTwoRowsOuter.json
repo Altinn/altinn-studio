@@ -131,15 +131,19 @@
   "dataModel": {
     "group": [
       {
+        "altinnRowId": "row0",
         "subgroup": [
           {
+            "altinnRowId": "row0-child0",
             "asdf": "123"
           }
         ]
       },
       {
+        "altinnRowId": "row1",
         "subgroup": [
           {
+            "altinnRowId": "row1-child0",
             "asdf": "456"
           }
         ]

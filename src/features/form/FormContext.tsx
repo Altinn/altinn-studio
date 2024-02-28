@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { ContextNotProvided, createContext } from 'src/core/contexts/context';
 import { AttachmentsProvider, AttachmentsStoreProvider } from 'src/features/attachments/AttachmentsContext';
 import { CustomValidationConfigProvider } from 'src/features/customValidation/CustomValidationContext';
 import { DataModelSchemaProvider } from 'src/features/datamodel/DataModelSchemaProvider';
@@ -17,6 +18,15 @@ import { AllOptionsProvider, AllOptionsStoreProvider } from 'src/features/option
 import { ValidationContext } from 'src/features/validation/validationContext';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
 import { NodesProvider } from 'src/utils/layout/NodesContext';
+
+const { Provider, useLaxCtx } = createContext<undefined>({
+  name: 'Form',
+  required: true,
+});
+
+export function useIsInFormContext() {
+  return useLaxCtx() !== ContextNotProvided;
+}
 
 /**
  * This helper-context provider is used to provide all the contexts needed for forms to work
@@ -42,9 +52,11 @@ export function FormProvider({ children }: React.PropsWithChildren) {
                               <AttachmentsProvider>
                                 <AllOptionsProvider>
                                   {hasProcess ? (
-                                    <ProcessNavigationProvider>{children}</ProcessNavigationProvider>
+                                    <ProcessNavigationProvider>
+                                      <Provider value={undefined}>{children}</Provider>
+                                    </ProcessNavigationProvider>
                                   ) : (
-                                    children
+                                    <Provider value={undefined}>{children}</Provider>
                                   )}
                                 </AllOptionsProvider>
                               </AttachmentsProvider>

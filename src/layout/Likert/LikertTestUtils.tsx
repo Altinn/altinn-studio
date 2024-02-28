@@ -1,8 +1,10 @@
 import React from 'react';
 
 import { screen, within } from '@testing-library/react';
+import { v4 as uuidv4 } from 'uuid';
 import type { AxiosResponse } from 'axios';
 
+import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
 import { LikertComponent } from 'src/layout/Likert/LikertComponent';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
@@ -26,6 +28,7 @@ const questionBinding = 'Question';
 
 export const generateMockFormData = (likertQuestions: IQuestion[]) => ({
   [groupBinding]: Array.from({ length: likertQuestions.length }, (_, index) => ({
+    [ALTINN_ROW_ID]: uuidv4(),
     [answerBinding]: likertQuestions[index].Answer,
     [questionBinding]: likertQuestions[index].Question,
   })),

@@ -19,17 +19,17 @@ import { RepeatingGroupTable } from 'src/layout/RepeatingGroup/RepeatingGroupTab
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 
 export const RepeatingGroupContainer = forwardRef((_, ref: React.ForwardedRef<HTMLDivElement>): JSX.Element | null => {
-  const { node, visibleRowIndexes } = useRepeatingGroup();
-  const { editingIndex } = useRepeatingGroupSelector((state) => ({
-    editingIndex: state.editingIndex,
+  const { node, visibleRows } = useRepeatingGroup();
+  const { editingId } = useRepeatingGroupSelector((state) => ({
+    editingId: state.editingId,
   }));
-  const isEditingAnyRow = editingIndex !== undefined;
+  const isEditingAnyRow = editingId !== undefined;
 
   const { textResourceBindings, edit, type } = node.item;
   const { title, description } = textResourceBindings || {};
 
-  const numRows = visibleRowIndexes.length;
-  const lastIndex = visibleRowIndexes[numRows - 1];
+  const numRows = visibleRows.length;
+  const lastIndex = visibleRows[numRows - 1];
   const validations = useUnifiedValidationsForNode(node);
 
   if (node.isHidden() || type !== 'RepeatingGroup') {
@@ -55,8 +55,8 @@ export const RepeatingGroupContainer = forwardRef((_, ref: React.ForwardedRef<HT
         wrapper={(children) => <FullWidthWrapper>{children}</FullWidthWrapper>}
       >
         <>
-          {isEditingAnyRow && editingIndex !== undefined && edit?.mode === 'hideTable' && (
-            <RepeatingGroupsEditContainer editIndex={editingIndex} />
+          {isEditingAnyRow && editingId !== undefined && edit?.mode === 'hideTable' && (
+            <RepeatingGroupsEditContainer editId={editingId} />
           )}
           {edit?.mode === 'showAll' && (
             <Fieldset
@@ -70,13 +70,13 @@ export const RepeatingGroupContainer = forwardRef((_, ref: React.ForwardedRef<HT
               }
               className={classes.showAllFieldset}
             >
-              {visibleRowIndexes.map((index) => (
+              {visibleRows.map((row) => (
                 <div
-                  key={`repeating-group-item-${index}`}
-                  style={{ width: '100%', marginBottom: !isNested && index == lastIndex ? 15 : 0 }}
+                  key={`repeating-group-item-${row.uuid}`}
+                  style={{ width: '100%', marginBottom: !isNested && row == lastIndex ? 15 : 0 }}
                 >
                   <RepeatingGroupsEditContainer
-                    editIndex={index}
+                    editId={row.uuid}
                     forceHideSaveButton={true}
                   />
                 </div>
@@ -103,21 +103,19 @@ RepeatingGroupContainer.displayName = 'RepeatingGroupContainer';
 function AddButton() {
   const { lang, langAsString } = useLanguage();
   const { triggerFocus } = useRepeatingGroupsFocusContext();
-  const { node, addRow, visibleRowIndexes } = useRepeatingGroup();
-  const { editingAll, editingNone, editingIndex, currentlyAddingRow } = useRepeatingGroupSelector((state) => ({
+  const { node, addRow, visibleRows } = useRepeatingGroup();
+  const { editingAll, editingNone, editingId, currentlyAddingRow } = useRepeatingGroupSelector((state) => ({
     editingAll: state.editingAll,
     editingNone: state.editingNone,
-    editingIndex: state.editingIndex,
-    currentlyAddingRow: state.addingIndexes.length > 0,
+    editingId: state.editingId,
+    currentlyAddingRow: state.addingIds.length > 0,
   }));
-  const isEditingAnyRow = editingIndex !== undefined;
+  const isEditingAnyRow = editingId !== undefined;
 
   const { textResourceBindings, id, edit } = node.item;
   const { add_button, add_button_full } = textResourceBindings || {};
 
-  const numRows = visibleRowIndexes.length;
-  const lastIndex = visibleRowIndexes[numRows - 1];
-
+  const numRows = visibleRows.length;
   const tooManyRows = 'maxCount' in node.item && typeof node.item.maxCount == 'number' && numRows >= node.item.maxCount;
   const forceShow = editingAll || editingNone || edit?.alwaysShowAddButton === true;
 
@@ -133,14 +131,14 @@ function AddButton() {
     <Button
       id={`add-button-${id}`}
       onClick={async () => {
-        await addRow();
-        triggerFocus(lastIndex + 1);
+        const newRow = await addRow();
+        newRow.index !== undefined && triggerFocus(newRow.index);
       }}
       onKeyUp={async (event: React.KeyboardEvent<HTMLButtonElement>) => {
         const allowedKeys = ['enter', ' ', 'spacebar'];
         if (allowedKeys.includes(event.key.toLowerCase())) {
-          await addRow();
-          triggerFocus(lastIndex + 1);
+          const newRow = await addRow();
+          newRow.index !== undefined && triggerFocus(newRow.index);
         }
       }}
       variant='secondary'

@@ -4,6 +4,7 @@ import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { AxiosResponse } from 'axios';
 
+import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { renderWithNode } from 'src/test/renderWithProviders';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
@@ -81,7 +82,10 @@ async function render(props: RenderProps) {
         },
       }),
       fetchFormData: async () => ({
-        Group: props.options,
+        Group: structuredClone(props.options ?? []).map((option, index) => ({
+          [ALTINN_ROW_ID]: `row-${index}`,
+          ...option,
+        })),
         result: '',
         someOther: 'value',
       }),

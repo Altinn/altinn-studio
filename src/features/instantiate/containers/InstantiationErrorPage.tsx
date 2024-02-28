@@ -10,9 +10,10 @@ export type IInstantiationErrorPageProps = {
   title: React.ReactNode;
   content: React.ReactNode;
   statusCode?: React.ReactNode;
+  showContactInfo?: boolean;
 } & RouteProps;
 
-export function InstantiationErrorPage({ content, statusCode, title }: IInstantiationErrorPageProps) {
+export function InstantiationErrorPage({ content, statusCode, title, showContactInfo }: IInstantiationErrorPageProps) {
   return (
     <InstantiationContainer>
       <Grid
@@ -23,6 +24,7 @@ export function InstantiationErrorPage({ content, statusCode, title }: IInstanti
           title={title}
           content={content}
           statusCode={statusCode}
+          showContactInfo={showContactInfo}
         />
       </Grid>
     </InstantiationContainer>

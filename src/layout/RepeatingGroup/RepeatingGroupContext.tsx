@@ -1,33 +1,35 @@
 import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
+import { v4 as uuidv4 } from 'uuid';
 import { createStore } from 'zustand';
 
 import { createContext } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { useAttachmentDeletionInRepGroups } from 'src/features/attachments/useAttachmentDeletionInRepGroups';
 import { FD } from 'src/features/formData/FormDataWrite';
+import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useOnGroupCloseValidation } from 'src/features/validation/callbacks/onGroupCloseValidation';
 import { useOnDeleteGroupRow } from 'src/features/validation/validationContext';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import { OpenByDefaultProvider } from 'src/layout/RepeatingGroup/OpenByDefaultProvider';
-import type { CompRepeatingGroupInternal } from 'src/layout/RepeatingGroup/config.generated';
+import type { CompRepeatingGroupInternal, HRepGroupRow } from 'src/layout/RepeatingGroup/config.generated';
 import type { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface Store {
   editingAll: boolean;
   editingNone: boolean;
-  editingIndex: number | undefined;
-  deletingIndexes: number[];
-  addingIndexes: number[];
+  editingId: string | undefined;
+  deletingIds: string[];
+  addingIds: string[];
 }
 
 interface ZustandHiddenMethods {
-  startAddingRow: (idx: number) => void;
-  endAddingRow: (idx: number) => void;
-  startDeletingRow: (idx: number) => void;
-  endDeletingRow: (idx: number, successful: boolean) => void;
+  startAddingRow: (uuid: string) => void;
+  endAddingRow: (uuid: string) => void;
+  startDeletingRow: (uuid: string) => void;
+  endDeletingRow: (uuid: string, successful: boolean) => void;
 }
 
 interface ExtendedState {
@@ -37,22 +39,22 @@ interface ExtendedState {
   isFirstRender: boolean;
 
   // Methods for getting/setting state about which rows are in edit mode
-  toggleEditing: (index: number) => void;
-  openForEditing: (index: number) => void;
+  toggleEditing: (uuid: string) => void;
+  openForEditing: (uuid: string) => void;
   openNextForEditing: () => void;
-  closeForEditing: (index: number) => void;
+  closeForEditing: (uuid: string) => void;
 }
 
 type AddRowResult =
-  | { result: 'stoppedByBinding'; index: undefined }
-  | { result: 'stoppedByValidation'; index: undefined }
-  | { result: 'addedAndOpened' | 'addedAndHidden'; index: number };
+  | { result: 'stoppedByBinding'; uuid: undefined; index: undefined }
+  | { result: 'stoppedByValidation'; uuid: undefined; index: undefined }
+  | { result: 'addedAndOpened' | 'addedAndHidden'; uuid: string; index: number };
 
 interface ContextMethods extends ExtendedState {
   addRow: () => Promise<AddRowResult>;
-  deleteRow: (index: number) => Promise<boolean>;
-  isEditing: (index: number) => boolean;
-  isDeleting: (index: number) => boolean;
+  deleteRow: (uuid: string) => Promise<boolean>;
+  isEditing: (uuid: string) => boolean;
+  isDeleting: (uuid: string) => boolean;
 }
 
 type ZustandState = Store & ZustandHiddenMethods & Omit<ExtendedState, 'toggleEditing'>;
@@ -69,46 +71,56 @@ const ExtendedStore = createContext<ExtendedContext>({
   required: true,
 });
 
+interface Row {
+  index: number;
+  uuid: string;
+}
+
 interface NodeState {
   numVisibleRows: number;
-  visibleRowIndexes: number[];
-  hiddenRowIndexes: Set<number>;
-  editableRowIndexes: number[];
-  deletableRowIndexes: number[];
+  visibleRows: Row[];
+  hiddenRows: Row[];
+  editableRows: Row[];
+  deletableRows: Row[];
 }
 
 function produceStateFromNode(node: BaseLayoutNode<CompRepeatingGroupInternal>): NodeState {
-  const hidden: number[] = [];
-  const visible: number[] = [];
-  const editable: number[] = [];
-  const deletable: number[] = [];
+  const hidden: Row[] = [];
+  const visible: Row[] = [];
+  const editable: Row[] = [];
+  const deletable: Row[] = [];
   for (const row of node.item.rows) {
+    const rowObj: Row = {
+      index: row.index,
+      uuid: row.uuid,
+    };
+
     if (row.groupExpressions?.hiddenRow) {
-      hidden.push(row.index);
+      hidden.push(rowObj);
     } else {
-      visible.push(row.index);
+      visible.push(rowObj);
 
       // Only the visible rows can be edited or deleted
       if (row.groupExpressions?.edit?.editButton !== false) {
-        editable.push(row.index);
+        editable.push(rowObj);
       }
       if (row.groupExpressions?.edit?.deleteButton !== false) {
-        deletable.push(row.index);
+        deletable.push(rowObj);
       }
     }
   }
 
-  visible.sort();
-  hidden.sort();
-  editable.sort();
-  deletable.sort();
+  for (const toSort of [visible, hidden, editable, deletable]) {
+    // Sort by index
+    toSort.sort((a, b) => a.index - b.index);
+  }
 
   return {
     numVisibleRows: visible.length,
-    visibleRowIndexes: visible,
-    hiddenRowIndexes: new Set(hidden),
-    editableRowIndexes: editable,
-    deletableRowIndexes: deletable,
+    visibleRows: visible,
+    hiddenRows: hidden,
+    editableRows: editable,
+    deletableRows: deletable,
   };
 }
 
@@ -122,28 +134,29 @@ function newStore({ nodeRef }: NewStoreProps) {
     editingNone: nodeRef.current.item.edit?.mode === 'onlyTable',
     isFirstRender: true,
     editingIndex: undefined,
-    deletingIndexes: [],
-    addingIndexes: [],
+    editingId: undefined,
+    deletingIds: [],
+    addingIds: [],
 
-    closeForEditing: (idx) => {
+    closeForEditing: (uuid) => {
       set((state) => {
-        if (state.editingIndex === idx) {
-          return { editingIndex: undefined };
+        if (state.editingId === uuid) {
+          return { editingId: undefined };
         }
         return state;
       });
     },
 
-    openForEditing: (idx) => {
+    openForEditing: (uuid) => {
       set((state) => {
-        if (state.editingIndex === idx || state.editingAll || state.editingNone) {
+        if (state.editingId === uuid || state.editingAll || state.editingNone) {
           return state;
         }
-        const { editableRowIndexes } = produceStateFromNode(nodeRef.current);
-        if (!editableRowIndexes.includes(idx)) {
+        const { editableRows } = produceStateFromNode(nodeRef.current);
+        if (!editableRows.some((row) => row.uuid === uuid)) {
           return state;
         }
-        return { editingIndex: idx };
+        return { editingId: uuid };
       });
     },
 
@@ -152,60 +165,63 @@ function newStore({ nodeRef }: NewStoreProps) {
         if (state.editingAll || state.editingNone) {
           return state;
         }
-        const { editableRowIndexes } = produceStateFromNode(nodeRef.current);
-        if (state.editingIndex === undefined) {
-          return { editingIndex: editableRowIndexes[0] };
+        const { editableRows } = produceStateFromNode(nodeRef.current);
+        if (state.editingId === undefined) {
+          const firstRow = editableRows[0];
+          return { editingId: firstRow.uuid };
         }
-        const isLast = state.editingIndex === editableRowIndexes[editableRowIndexes.length - 1];
+        const isLast = state.editingId === editableRows[editableRows.length - 1].uuid;
         if (isLast) {
-          return { editingIndex: undefined };
+          return { editingId: undefined };
         }
-        return { editingIndex: editableRowIndexes[editableRowIndexes.indexOf(state.editingIndex) + 1] };
+        const currentIndex = editableRows.findIndex((row) => row.uuid === state.editingId);
+        const nextRow = editableRows[currentIndex + 1];
+        return { editingId: nextRow.uuid };
       });
     },
 
-    startAddingRow: (idx) => {
+    startAddingRow: (uuid) => {
       set((state) => {
-        if (state.addingIndexes.includes(idx)) {
+        if (state.addingIds.includes(uuid)) {
           return state;
         }
-        return { addingIndexes: [...state.addingIndexes, idx], editingIndex: undefined };
+        return { addingIds: [...state.addingIds, uuid], editingId: undefined };
       });
     },
 
-    endAddingRow: (idx) => {
+    endAddingRow: (uuid) => {
       set((state) => {
-        const i = state.addingIndexes.indexOf(idx);
+        const i = state.addingIds.indexOf(uuid);
         if (i === -1) {
           return state;
         }
-        return { addingIndexes: [...state.addingIndexes.slice(0, i), ...state.addingIndexes.slice(i + 1)] };
+        return { addingIds: [...state.addingIds.slice(0, i), ...state.addingIds.slice(i + 1)] };
       });
     },
 
-    startDeletingRow: (idx) => {
+    startDeletingRow: (uuid) => {
       set((state) => {
-        if (state.deletingIndexes.includes(idx)) {
+        if (state.deletingIds.includes(uuid)) {
           return state;
         }
-        return { deletingIndexes: [...state.deletingIndexes, idx] };
+        return { deletingIds: [...state.deletingIds, uuid] };
       });
     },
 
-    endDeletingRow: (idx, successful) => {
+    endDeletingRow: (uuid, successful) => {
       set((state) => {
-        const isEditing = state.editingIndex === idx;
-        const i = state.deletingIndexes.indexOf(idx);
+        const isEditing = state.editingId === uuid;
+        const i = state.deletingIds.indexOf(uuid);
         if (i === -1 && !isEditing) {
           return state;
         }
-        const deletingIndexes = [...state.deletingIndexes.slice(0, i), ...state.deletingIndexes.slice(i + 1)];
+        const deletingIds = [...state.deletingIds.slice(0, i), ...state.deletingIds.slice(i + 1)];
         if (isEditing && successful) {
-          return { editingIndex: undefined, deletingIndexes };
+          return { editingId: undefined, deletingIds };
         }
         return {
-          deletingIndexes,
-          editingIndex: isEditing && successful ? undefined : state.editingIndex,
+          deletingIds,
+          editingId: isEditing && successful ? undefined : state.editingId,
         };
       });
     },
@@ -218,7 +234,7 @@ function useExtendedRepeatingGroupState(node: BaseLayoutNode<CompRepeatingGroupI
   const stateRef = useAsRef(state);
 
   const appendToList = FD.useAppendToList();
-  const removeIndexFromList = FD.useRemoveIndexFromList();
+  const removeFromList = FD.useRemoveFromListCallback();
   const onBeforeRowDeletion = useAttachmentDeletionInRepGroups(node);
   const onDeleteGroupRow = useOnDeleteGroupRow();
   const onGroupCloseValidation = useOnGroupCloseValidation();
@@ -231,29 +247,29 @@ function useExtendedRepeatingGroupState(node: BaseLayoutNode<CompRepeatingGroupI
     setIsFirstRender(false);
   }, []);
 
-  const editingIndex = state.editingIndex;
-  const editingIsHidden = editingIndex !== undefined && !nodeState.visibleRowIndexes.includes(editingIndex);
+  const editingId = state.editingId;
+  const editingIsHidden = editingId !== undefined && !nodeState.visibleRows.some((row) => row.uuid === editingId);
   useEffect(() => {
-    if (editingIndex !== undefined && editingIsHidden) {
-      stateRef.current.closeForEditing(editingIndex);
+    if (editingId !== undefined && editingIsHidden) {
+      stateRef.current.closeForEditing(editingId);
     }
-  }, [editingIndex, editingIsHidden, stateRef]);
+  }, [editingId, editingIsHidden, stateRef]);
 
   const maybeValidateRow = useCallback(() => {
-    const { editingAll, editingIndex, editingNone } = stateRef.current;
+    const { editingAll, editingId, editingNone } = stateRef.current;
     const validateOnSaveRow = nodeRef.current.item.validateOnSaveRow;
-    if (!validateOnSaveRow || editingAll || editingNone || editingIndex === undefined) {
+    if (!validateOnSaveRow || editingAll || editingNone || editingId === undefined) {
       return Promise.resolve(false);
     }
-    return onGroupCloseValidation(nodeRef.current, editingIndex, validateOnSaveRow);
+    return onGroupCloseValidation(nodeRef.current, editingId, validateOnSaveRow);
   }, [nodeRef, onGroupCloseValidation, stateRef]);
 
   const openForEditing = useCallback(
-    async (index: number) => {
+    async (uuid: string) => {
       if (await maybeValidateRow()) {
         return;
       }
-      stateRef.current.openForEditing(index);
+      stateRef.current.openForEditing(uuid);
     },
     [maybeValidateRow, stateRef],
   );
@@ -266,40 +282,40 @@ function useExtendedRepeatingGroupState(node: BaseLayoutNode<CompRepeatingGroupI
   }, [maybeValidateRow, stateRef]);
 
   const closeForEditing = useCallback(
-    async (index: number) => {
+    async (uuid: string) => {
       if (await maybeValidateRow()) {
         return;
       }
-      stateRef.current.closeForEditing(index);
+      stateRef.current.closeForEditing(uuid);
     },
     [maybeValidateRow, stateRef],
   );
 
   const toggleEditing = useCallback(
-    async (index: number) => {
+    async (uuid: string) => {
       if (await maybeValidateRow()) {
         return;
       }
-      const { editingIndex, closeForEditing, openForEditing } = stateRef.current;
-      if (editingIndex === index) {
-        closeForEditing(index);
+      const { editingId, closeForEditing, openForEditing } = stateRef.current;
+      if (editingId === uuid) {
+        closeForEditing(uuid);
       } else {
-        openForEditing(index);
+        openForEditing(uuid);
       }
     },
     [maybeValidateRow, stateRef],
   );
 
   const isEditing = useCallback(
-    (index: number) => {
-      const { editingAll, editingIndex, editingNone } = stateRef.current;
+    (uuid: string) => {
+      const { editingAll, editingId, editingNone } = stateRef.current;
       if (editingAll) {
         return true;
       }
       if (editingNone) {
         return false;
       }
-      return editingIndex === index;
+      return editingId === uuid;
     },
     [stateRef],
   );
@@ -308,56 +324,63 @@ function useExtendedRepeatingGroupState(node: BaseLayoutNode<CompRepeatingGroupI
     const binding = nodeRef.current.item.dataModelBindings.group;
     const { startAddingRow, endAddingRow } = stateRef.current;
     if (!binding) {
-      return { result: 'stoppedByBinding', index: undefined };
+      return { result: 'stoppedByBinding', uuid: undefined, index: undefined };
     }
     if (await maybeValidateRow()) {
-      return { result: 'stoppedByValidation', index: undefined };
+      return { result: 'stoppedByValidation', uuid: undefined, index: undefined };
     }
-    const nextIndex = nodeRef.current.item.rows.length;
-    startAddingRow(nextIndex);
+    const uuid = uuidv4();
+    startAddingRow(uuid);
     appendToList({
       path: binding,
-      newValue: {},
+      newValue: { [ALTINN_ROW_ID]: uuid },
     });
-    await waitForNode((node) => node.item.rows.some((row) => row.index === nextIndex));
-    endAddingRow(nextIndex);
-    if (nodeStateRef.current.visibleRowIndexes.includes(nextIndex)) {
-      await openForEditing(nextIndex);
-      return { result: 'addedAndOpened', index: nextIndex };
+    let foundRow: HRepGroupRow | undefined;
+    await waitForNode((node) => {
+      foundRow = node.item.rows.find((row) => row.uuid === uuid);
+      return !!foundRow;
+    });
+    endAddingRow(uuid);
+    const index = foundRow?.index ?? -1;
+    if (nodeStateRef.current.visibleRows.some((row) => row.uuid === uuid)) {
+      await openForEditing(uuid);
+      return { result: 'addedAndOpened', uuid, index };
     }
 
-    return { result: 'addedAndHidden', index: nextIndex };
+    return { result: 'addedAndHidden', uuid, index };
   }, [appendToList, maybeValidateRow, nodeRef, nodeStateRef, openForEditing, stateRef, waitForNode]);
 
   const deleteRow = useCallback(
-    async (index: number) => {
+    async (uuid: string) => {
       const binding = nodeRef.current.item.dataModelBindings.group;
-      const { deletableRowIndexes } = nodeStateRef.current;
+      const { deletableRows } = nodeStateRef.current;
       const { startDeletingRow, endDeletingRow } = stateRef.current;
-      if (!deletableRowIndexes.includes(index)) {
+      const row = deletableRows.find((row) => row.uuid === uuid);
+      if (!row) {
         return false;
       }
 
-      startDeletingRow(index);
-      const attachmentDeletionSuccessful = await onBeforeRowDeletion(index);
+      startDeletingRow(uuid);
+      const attachmentDeletionSuccessful = await onBeforeRowDeletion(uuid);
       if (attachmentDeletionSuccessful && binding) {
-        onDeleteGroupRow(nodeRef.current, index);
-        removeIndexFromList({
+        onDeleteGroupRow(nodeRef.current, row.index);
+        removeFromList({
           path: binding,
-          index,
+          startAtIndex: row.index,
+          callback: (item) => item[ALTINN_ROW_ID] === uuid,
         });
 
-        endDeletingRow(index, true);
+        endDeletingRow(uuid, true);
         return true;
       }
 
-      endDeletingRow(index, false);
+      endDeletingRow(uuid, false);
       return false;
     },
-    [nodeRef, nodeStateRef, onBeforeRowDeletion, onDeleteGroupRow, removeIndexFromList, stateRef],
+    [nodeRef, nodeStateRef, onBeforeRowDeletion, onDeleteGroupRow, removeFromList, stateRef],
   );
 
-  const isDeleting = useCallback((index: number) => stateRef.current.deletingIndexes.includes(index), [stateRef]);
+  const isDeleting = useCallback((uuid: string) => stateRef.current.deletingIds.includes(uuid), [stateRef]);
 
   return {
     node,

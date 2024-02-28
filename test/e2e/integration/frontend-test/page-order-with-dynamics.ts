@@ -13,15 +13,17 @@ describe('Calculate Page Order', () => {
       },
     );
     cy.goto('group');
-    cy.get(appFrontend.navMenuButtons).should('have.length', 4);
+    cy.get(appFrontend.navMenuButtons).should('have.length', 5);
 
     cy.get(appFrontend.group.prefill.stor).check();
     cy.get(appFrontend.navMenuCurrent).should('have.text', '1. prefill');
 
     // Both pages the 'repeating' and 'hide' pages are now hidden
-    cy.get(appFrontend.navMenuButtons).should('have.length', 2);
+    cy.get(appFrontend.navMenuButtons).should('have.length', 3);
 
-    cy.get(appFrontend.nextButton).click();
-    cy.get(appFrontend.navMenuCurrent).should('have.text', '2. summary');
+    cy.get(appFrontend.nextButton).clickAndGone();
+    cy.get(appFrontend.navMenuCurrent).should('have.text', '2. Kjæledyr');
+    cy.get(appFrontend.nextButton).clickAndGone();
+    cy.get(appFrontend.navMenuCurrent).should('have.text', '3. summary');
   });
 });

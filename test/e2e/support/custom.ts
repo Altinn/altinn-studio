@@ -1,12 +1,13 @@
-import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-import JQueryWithSelector = Cypress.JQueryWithSelector;
 import deepEqual from 'fast-deep-equal';
 import type axe from 'axe-core';
 import type { Options as AxeOptions } from 'cypress-axe';
 
+import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+
 import { breakpoints } from 'src/hooks/useIsMobile';
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 import type { LayoutContextValue } from 'src/features/form/layout/LayoutsContext';
+import JQueryWithSelector = Cypress.JQueryWithSelector;
 
 const appFrontend = new AppFrontend();
 
@@ -32,6 +33,18 @@ Cypress.Commands.add('dsUncheck', { prevSubject: true }, (subject: JQueryWithSel
   if (subject && subject.is(':checked')) {
     cy.wrap(subject).parent().click();
   }
+});
+
+Cypress.Commands.add('waitUntilSaved', () => {
+  // If the data-unsaved-changes attribute does not exist, the page is not in a data/form state, and we should not
+  // wait for it to be saved.
+  cy.get('body').then(($body) => {
+    if ($body.data('unsaved-changes') === undefined) {
+      cy.log('Not in a data task/form, no need to wait for save');
+    } else {
+      cy.get('body').should('have.attr', 'data-unsaved-changes', 'false');
+    }
+  });
 });
 
 Cypress.Commands.add('dsSelect', (selector, value) => {
@@ -124,6 +137,18 @@ const knownWcagViolations: KnownViolation[] = [
     spec: 'frontend-test/group.ts',
     test: 'Opens delete warning popup when alertOnDelete is true and deletes on confirm',
     id: 'aria-dialog-name',
+    nodeLength: 1,
+  },
+  {
+    spec: 'frontend-test/group-pets.ts',
+    test: 'should be possible to add predefined pets, sort them, validate them, hide them and delete them',
+    id: 'color-contrast',
+    nodeLength: 2,
+  },
+  {
+    spec: 'frontend-test/group-pets.ts',
+    test: 'should snapshot the decision panel',
+    id: 'color-contrast',
     nodeLength: 1,
   },
   {
@@ -236,6 +261,7 @@ Cypress.Commands.add('getCurrentPageId', () => cy.location('hash').then((hash) =
 
 Cypress.Commands.add('snapshot', (name: string) => {
   cy.clearSelectionAndWait();
+  cy.waitUntilSaved();
 
   // Running wcag tests before taking snapshot, because the resizing of the viewport can cause some elements to
   // re-render and go slightly out of sync with the proper state of the application. One example is the Dropdown
@@ -336,6 +362,7 @@ Cypress.Commands.add('testWcag', () => {
 });
 
 Cypress.Commands.add('reloadAndWait', () => {
+  cy.waitUntilSaved();
   cy.reload();
   cy.get('#readyForPrint').should('exist');
   cy.findByRole('progressbar').should('not.exist');

@@ -11,8 +11,8 @@ import { isAtLeastVersion } from 'src/utils/versionCompare';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 export const MINIMUM_APPLICATION_VERSION = {
-  build: '8.0.0.102',
-  name: 'v8.0.0-preview.15',
+  build: '8.0.0.106',
+  name: 'v8.0.0-rc1',
 };
 
 const useApplicationMetadataQuery = () => {

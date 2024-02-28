@@ -16,26 +16,22 @@ import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/Repeatin
 import { RepeatingGroupTableRow } from 'src/layout/RepeatingGroup/RepeatingGroupTableRow';
 import { RepeatingGroupTableTitle } from 'src/layout/RepeatingGroup/RepeatingGroupTableTitle';
 import { getColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
-import type { GridRowsInternal, ITableColumnFormatting } from 'src/layout/common.generated';
+import type { ITableColumnFormatting } from 'src/layout/common.generated';
+import type { ChildLookupRestriction } from 'src/utils/layout/HierarchyGenerator';
 
 export function RepeatingGroupTable(): React.JSX.Element | null {
   const mobileView = useIsMobileOrTablet();
-  const { node, isEditing, visibleRowIndexes } = useRepeatingGroup();
-  const rowsBefore = node.item.rowsBefore;
-  const rowsAfter = node.item.rowsAfter;
-
-  const container = node.item;
-  const { textResourceBindings, labelSettings, id, edit, minCount, stickyHeader } = container;
-
+  const { node, isEditing, visibleRows } = useRepeatingGroup();
+  const { textResourceBindings, labelSettings, id, edit, minCount, stickyHeader } = node.item;
   const required = !!minCount && minCount > 0;
 
-  const columnSettings = container.tableColumns
-    ? structuredClone(container.tableColumns)
+  const columnSettings = node.item.tableColumns
+    ? structuredClone(node.item.tableColumns)
     : ({} as ITableColumnFormatting);
 
-  const getTableNodes = (rowIndex: number) => {
-    const tableHeaders = container?.tableHeaders;
-    const nodes = node.children(undefined, rowIndex).filter((child) => {
+  const getTableNodes = (restriction: ChildLookupRestriction) => {
+    const tableHeaders = node.item?.tableHeaders;
+    const nodes = node.children(undefined, restriction).filter((child) => {
       if (tableHeaders) {
         const { id, baseComponentId } = child.item;
         return !!(tableHeaders.includes(id) || (baseComponentId && tableHeaders.includes(baseComponentId)));
@@ -55,18 +51,20 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
     return nodes;
   };
 
-  const tableNodes = getTableNodes(0);
-  const numRows = visibleRowIndexes.length;
-  const firstRowIndex = visibleRowIndexes[0];
+  const tableNodes = getTableNodes({ onlyInRowIndex: 0 });
+  const numRows = visibleRows.length;
+  const firstRowId = numRows >= 1 ? visibleRows[0].uuid : undefined;
 
   const isEmpty = numRows === 0;
-  const showTableHeader = numRows > 0 && !(numRows == 1 && isEditing(firstRowIndex));
+  const showTableHeader = numRows > 0 && !(numRows == 1 && firstRowId !== undefined && isEditing(firstRowId));
 
   const showDeleteButtonColumns = new Set<boolean>();
   const showEditButtonColumns = new Set<boolean>();
   for (const row of node.item.rows) {
-    showDeleteButtonColumns.add(row?.groupExpressions?.edit?.deleteButton !== false);
-    showEditButtonColumns.add(row?.groupExpressions?.edit?.editButton !== false);
+    if (visibleRows.some((r) => r.uuid === row.uuid)) {
+      showDeleteButtonColumns.add(row.groupExpressions.edit?.deleteButton !== false);
+      showEditButtonColumns.add(row.groupExpressions.edit?.editButton !== false);
+    }
   }
   let displayDeleteColumn = showDeleteButtonColumns.has(true) || !showDeleteButtonColumns.has(false);
   let displayEditColumn = showEditButtonColumns.has(true) || !showEditButtonColumns.has(false);
@@ -80,57 +78,13 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
     displayEditColumn = false;
   }
 
-  const isNested = typeof container?.baseComponentId === 'string';
+  const isNested = typeof node.item?.baseComponentId === 'string';
 
   if (!tableNodes) {
     return null;
   }
 
   const extraCells = [...(displayEditColumn ? [null] : []), ...(displayDeleteColumn ? [null] : [])];
-
-  function RenderExtraRows({ rows, where }: { rows: GridRowsInternal | undefined; where: 'Before' | 'After' }) {
-    if (isEmpty || !rows) {
-      return null;
-    }
-
-    if (mobileView) {
-      const nodes = nodesFromGridRows(rows).filter((child) => !child.isHidden());
-      if (!nodes) {
-        return null;
-      }
-
-      return (
-        <Table.Body>
-          <Table.Row>
-            <Table.Cell className={classes.mobileTableCell}>
-              {nodes.map((child) => (
-                <GenericComponent
-                  key={child.item.id}
-                  node={child}
-                />
-              ))}
-            </Table.Cell>
-            {/* One extra cell to make place for edit/delete buttons */}
-            <Table.Cell className={classes.mobileTableCell} />
-          </Table.Row>
-        </Table.Body>
-      );
-    }
-
-    return (
-      <>
-        {rows.map((row, index) => (
-          <GridRowRenderer
-            key={`grid${where}-${index}`}
-            row={{ ...row, cells: [...row.cells, ...extraCells] }}
-            isNested={isNested}
-            mutableColumnSettings={columnSettings}
-            node={node}
-          />
-        ))}
-      </>
-    );
-  }
 
   return (
     <div
@@ -155,7 +109,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
         )}
         // If the list is empty, the border of the table will be visible as a line above
         // the "Legg til ny" button.
-        border={isNested && visibleRowIndexes.length > 0}
+        border={isNested && visibleRows.length > 0}
       >
         {textResourceBindings?.title && (
           <Caption
@@ -167,10 +121,10 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
             required={required}
           />
         )}
-
-        <RenderExtraRows
-          rows={rowsBefore}
+        <ExtraRows
           where={'Before'}
+          extraCells={extraCells}
+          columnSettings={columnSettings}
         />
         {showTableHeader && !mobileView && (
           <Table.Head id={`group-${id}-table-header`}>
@@ -205,16 +159,16 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
           </Table.Head>
         )}
         <Table.Body id={`group-${id}-table-body`}>
-          {visibleRowIndexes.map((index: number) => {
-            const isEditingRow = isEditing(index) && edit?.mode !== 'onlyTable';
+          {visibleRows.map((row) => {
+            const isEditingRow = isEditing(row.uuid) && edit?.mode !== 'onlyTable';
             return (
-              <React.Fragment key={index}>
+              <React.Fragment key={row.uuid}>
                 <RepeatingGroupTableRow
                   className={cn({
                     [classes.editingRow]: isEditingRow,
                     [classes.editRowOnTopOfStickyHeader]: isEditingRow && stickyHeader,
                   })}
-                  index={index}
+                  uuid={row.uuid}
                   getTableNodes={getTableNodes}
                   mobileView={mobileView}
                   displayDeleteColumn={displayDeleteColumn}
@@ -222,7 +176,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
                 />
                 {isEditingRow && (
                   <Table.Row
-                    key={`edit-container-${index}`}
+                    key={`edit-container-${row.uuid}`}
                     className={cn(
                       { [classes.editContainerOnTopOfStickyHeader]: isEditingRow && stickyHeader },
                       classes.editContainerRow,
@@ -236,7 +190,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
                           : tableNodes.length + 3 + (displayEditColumn ? 1 : 0) + (displayDeleteColumn ? 1 : 0)
                       }
                     >
-                      {edit?.mode !== 'onlyTable' && <RepeatingGroupsEditContainer editIndex={index} />}
+                      {edit?.mode !== 'onlyTable' && <RepeatingGroupsEditContainer editId={row.uuid} />}
                     </Table.Cell>
                   </Table.Row>
                 )}
@@ -244,11 +198,69 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
             );
           })}
         </Table.Body>
-        <RenderExtraRows
-          rows={rowsAfter}
+        <ExtraRows
           where={'After'}
+          extraCells={extraCells}
+          columnSettings={columnSettings}
         />
       </Table>
     </div>
+  );
+}
+
+interface ExtraRowsProps {
+  where: 'Before' | 'After';
+  extraCells: null[];
+  columnSettings: ITableColumnFormatting;
+}
+
+function ExtraRows({ where, extraCells, columnSettings }: ExtraRowsProps) {
+  const mobileView = useIsMobileOrTablet();
+  const { visibleRows, node } = useRepeatingGroup();
+  const numRows = visibleRows.length;
+  const isEmpty = numRows === 0;
+  const isNested = typeof node.item.baseComponentId === 'string';
+
+  const rows = where === 'Before' ? node.item.rowsBefore : node.item.rowsAfter;
+  if (isEmpty || !rows) {
+    return null;
+  }
+
+  if (mobileView) {
+    const nodes = nodesFromGridRows(rows).filter((child) => !child.isHidden());
+    if (!nodes) {
+      return null;
+    }
+
+    return (
+      <Table.Body>
+        <Table.Row>
+          <Table.Cell className={classes.mobileTableCell}>
+            {nodes.map((child) => (
+              <GenericComponent
+                key={child.item.id}
+                node={child}
+              />
+            ))}
+          </Table.Cell>
+          {/* One extra cell to make place for edit/delete buttons */}
+          <Table.Cell className={classes.mobileTableCell} />
+        </Table.Row>
+      </Table.Body>
+    );
+  }
+
+  return (
+    <>
+      {rows.map((row, index) => (
+        <GridRowRenderer
+          key={`grid${where}-${index}`}
+          row={{ ...row, cells: [...row.cells, ...extraCells] }}
+          isNested={isNested}
+          mutableColumnSettings={columnSettings}
+          node={node}
+        />
+      ))}
+    </>
   );
 }

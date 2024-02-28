@@ -31,15 +31,19 @@
     "form": {
       "names": [
         {
+          "altinnRowId": "name0",
           "name": "none"
         },
         {
+          "altinnRowId": "name1",
           "name": "John"
         },
         {
+          "altinnRowId": "name2",
           "name": "none"
         },
         {
+          "altinnRowId": "name3",
           "name": "Jane"
         }
       ]

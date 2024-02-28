@@ -184,6 +184,7 @@ export const makeFormDataMethodProxies = (
     setMultiLeafValues: makeProxy('setMultiLeafValues', ref),
     removeValueFromList: makeProxy('removeValueFromList', ref),
     removeIndexFromList: makeProxy('removeIndexFromList', ref),
+    removeFromListCallback: makeProxy('removeFromListCallback', ref),
     appendToListUnique: makeProxy('appendToListUnique', ref),
     appendToList: makeProxy('appendToList', ref),
     unlock: makeProxy('unlock', ref),

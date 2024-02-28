@@ -1,4 +1,5 @@
 import React from 'react';
+import type { JSX } from 'react';
 
 import { Button } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
@@ -20,35 +21,24 @@ import type {
 } from 'src/layout/RepeatingGroup/config.generated';
 
 export interface IRepeatingGroupsEditContainer {
-  editIndex: number;
+  editId: string;
   className?: string;
   forceHideSaveButton?: boolean;
 }
 
-export function RepeatingGroupsEditContainer({
-  editIndex,
-  ...props
-}: IRepeatingGroupsEditContainer): JSX.Element | null {
+export function RepeatingGroupsEditContainer({ editId, ...props }: IRepeatingGroupsEditContainer): JSX.Element | null {
   const { node } = useRepeatingGroup();
   const group = node.item;
-  const row = group.rows[editIndex];
+  const row = group.rows.find((r) => r.uuid === editId);
 
-  if (!row) {
-    return null;
-  }
-
-  const shouldHideRow = node.item.rows[editIndex]?.groupExpressions?.hiddenRow;
-  if (shouldHideRow) {
+  if (!row || row.groupExpressions.hiddenRow) {
     return null;
   }
 
   return (
-    <RepeatingGroupEditRowProvider
-      node={node}
-      editIndex={editIndex}
-    >
+    <RepeatingGroupEditRowProvider editId={editId}>
       <RepeatingGroupsEditContainerInternal
-        editIndex={editIndex}
+        editId={editId}
         group={group}
         row={row}
         {...props}
@@ -59,7 +49,7 @@ export function RepeatingGroupsEditContainer({
 
 function RepeatingGroupsEditContainerInternal({
   className,
-  editIndex,
+  editId,
   forceHideSaveButton,
   group,
   row,
@@ -67,11 +57,12 @@ function RepeatingGroupsEditContainerInternal({
   group: CompRepeatingGroupInternal;
   row: CompRepeatingGroupInternal['rows'][number];
 }): JSX.Element | null {
-  const { node, closeForEditing, deleteRow, openNextForEditing, isDeleting, visibleRowIndexes } = useRepeatingGroup();
+  const { node, closeForEditing, deleteRow, openNextForEditing, isDeleting, visibleRows } = useRepeatingGroup();
 
+  const editingRowIndex = visibleRows.find((r) => r.uuid === editId)?.index;
   let moreVisibleRowsAfterEditIndex = false;
-  for (const visibleRowIndex of visibleRowIndexes) {
-    if (visibleRowIndex > editIndex) {
+  for (const visibleRow of visibleRows) {
+    if (editingRowIndex !== undefined && visibleRow.index > editingRowIndex) {
       moreVisibleRowsAfterEditIndex = true;
       break;
     }
@@ -130,7 +121,7 @@ function RepeatingGroupsEditContainerInternal({
 
   return (
     <div
-      id={`group-edit-container-${id}-${editIndex}`}
+      id={`group-edit-container-${id}-${editId}`}
       className={cn(
         isNested ? classes.nestedEditContainer : classes.editContainer,
         { [classes.hideTable]: hideTable, [classes.nestedHideTable]: hideTable && isNested },
@@ -152,8 +143,8 @@ function RepeatingGroupsEditContainerInternal({
               variant='tertiary'
               color='danger'
               size='small'
-              disabled={isDeleting(editIndex)}
-              onClick={() => deleteRow(editIndex)}
+              disabled={isDeleting(editId)}
+              onClick={() => deleteRow(editId)}
               data-testid='delete-button'
             >
               <Lang id={'general.delete'} />
@@ -173,7 +164,7 @@ function RepeatingGroupsEditContainerInternal({
           alignItems='flex-start'
           item={true}
           spacing={3}
-          ref={(n) => refSetter && refSetter(editIndex, 'editContainer', n)}
+          ref={(n) => refSetter && editingRowIndex !== undefined && refSetter(editingRowIndex, 'editContainer', n)}
         >
           {getGenericComponentsToRender()}
         </Grid>
@@ -235,7 +226,7 @@ function RepeatingGroupsEditContainerInternal({
               <Grid item={true}>
                 <Button
                   id={`save-button-${id}`}
-                  onClick={() => closeForEditing(editIndex)}
+                  onClick={() => closeForEditing(editId)}
                   variant={saveAndNextButtonVisible ? 'secondary' : 'primary'}
                   color='first'
                   size='small'

@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { SummaryGroupComponent } from 'src/layout/Group/SummaryGroupComponent';
 import { renderWithNode } from 'src/test/renderWithProviders';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -35,6 +36,7 @@ describe('SummaryGroupComponent', () => {
         fetchFormData: async () => ({
           mockGroup: [
             {
+              [ALTINN_ROW_ID]: 'abc123',
               mockDataBinding1: '1',
               mockDataBinding2: '2',
             },

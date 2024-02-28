@@ -381,6 +381,8 @@ describe('Validation', () => {
     cy.get(appFrontend.group.sendersName).type('hello world');
     cy.get(appFrontend.errorReport).should('not.exist');
     cy.get(appFrontend.prevButton).click();
+    cy.navPage('Kjæledyr').should('have.attr', 'aria-current', 'page');
+    cy.get(appFrontend.prevButton).click();
 
     cy.changeLayout((component) => {
       if (
@@ -599,7 +601,7 @@ describe('Validation', () => {
     });
 
     cy.goto('group');
-    cy.get(appFrontend.navMenuButtons).should('have.length', 4);
+    cy.get(appFrontend.navMenuButtons).should('have.length', 5);
 
     cy.gotoNavPage('hide');
     cy.get(appFrontend.group.sendersName).type('tull og tøys'); // Causes validation error
@@ -608,7 +610,9 @@ describe('Validation', () => {
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     cy.addItemToGroup(2, 3, 'hideSendersName');
     cy.get(appFrontend.nextButton).click();
-    cy.get(appFrontend.navMenuButtons).should('have.length', 4); // 'hide' page is still visible
+    cy.navPage('Kjæledyr').should('have.attr', 'aria-current', 'page');
+    cy.get(appFrontend.nextButton).click();
+    cy.get(appFrontend.navMenuButtons).should('have.length', 5); // 'hide' page is still visible
     cy.navPage('hide').should('have.attr', 'aria-current', 'page');
     cy.get(appFrontend.group.sendersName).should('not.exist');
     cy.get(appFrontend.errorReport).should('not.exist');
@@ -653,7 +657,7 @@ describe('Validation', () => {
     });
 
     cy.goto('group');
-    cy.get(appFrontend.navMenuButtons).should('have.length', 4);
+    cy.get(appFrontend.navMenuButtons).should('have.length', 5);
 
     cy.gotoNavPage('hide');
     cy.get(appFrontend.group.sendersName).type('tull og tøys'); // Causes validation error
@@ -662,7 +666,9 @@ describe('Validation', () => {
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     cy.addItemToGroup(1, 11, 'whatever');
     cy.get(appFrontend.nextButton).click();
-    cy.get(appFrontend.navMenuButtons).should('have.length', 4); // 'hide' page should be visible and active
+    cy.navPage('Kjæledyr').should('have.attr', 'aria-current', 'page');
+    cy.get(appFrontend.nextButton).click();
+    cy.get(appFrontend.navMenuButtons).should('have.length', 5); // 'hide' page should be visible and active
     cy.navPage('hide').should('have.attr', 'aria-current', 'page');
     cy.get(appFrontend.group.sendersName).should('not.exist');
     cy.get(appFrontend.errorReport).should('not.exist');
@@ -682,7 +688,7 @@ describe('Validation', () => {
     );
 
     cy.goto('group');
-    cy.get(appFrontend.navMenuButtons).should('have.length', 4);
+    cy.get(appFrontend.navMenuButtons).should('have.length', 5);
 
     cy.gotoNavPage('hide');
     cy.get(appFrontend.group.sendersName).type('tull og tøys'); // Causes validation error
@@ -691,7 +697,9 @@ describe('Validation', () => {
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     cy.addItemToGroup(2, 3, 'hidePage');
     cy.get(appFrontend.nextButton).click();
-    cy.get(appFrontend.navMenuButtons).should('have.length', 3); // 'hide' page is now invisible
+    cy.navPage('Kjæledyr').should('have.attr', 'aria-current', 'page');
+    cy.get(appFrontend.nextButton).click();
+    cy.get(appFrontend.navMenuButtons).should('have.length', 4); // 'hide' page is now invisible
     cy.get(appFrontend.errorReport).should('not.exist');
     cy.navPage('summary').should('have.attr', 'aria-current', 'page');
 

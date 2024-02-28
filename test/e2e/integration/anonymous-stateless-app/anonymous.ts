@@ -31,7 +31,7 @@ describe('Anonymous (stateless)', () => {
 
   it('rapid form data updates should respect the last user action', () => {
     // Delaying the save operation makes sure we have time to trigger multiple updates
-    cy.intercept('**/data/anonymous?dataType=default', { delay: 200 }).as('postData');
+    cy.intercept('**/data/anonymous?dataType=default**', { delay: 200 }).as('postData');
     cy.findByRole('radio', { name: 'kvinne' }).click();
     cy.findByRole('radio', { name: 'kvinne' }).blur();
     // Wait for @postData to start, but do not wait for it to finish

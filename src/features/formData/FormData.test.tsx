@@ -304,7 +304,10 @@ describe('FormData', () => {
             onClick={async () => {
               if (isLocked) {
                 // Unlock with some pretend updated form data
-                unlock({ obj1: { prop1: 'new value' } });
+                unlock({
+                  newDataModel: { obj1: { prop1: 'new value' } },
+                  validationIssues: { obj1: [] },
+                });
               } else {
                 await lock();
               }

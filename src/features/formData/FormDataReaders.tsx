@@ -238,7 +238,7 @@ export function DataModelFetcher() {
 }
 
 function SpecificDataModelFetcher({ reader, isAvailable }: { reader: DataModelReader; isAvailable: boolean }) {
-  const url = useDataModelUrl(reader.getName());
+  const url = useDataModelUrl(false, reader.getName());
   const enabled = isAvailable && reader.isLoading();
   const { data, error } = useFormDataQuery(enabled ? url : undefined);
   const { updateModel } = useCtx();

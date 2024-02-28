@@ -93,28 +93,36 @@
     "Side1": "Hei verden",
     "Dyr": [
       {
+        "altinnRowId": "animal0",
         "Navn": "Pia Potet",
         "Art": "Kanin"
       },
       {
+        "altinnRowId": "animal1",
         "Navn": "Erling Ert",
         "Art": "Dovendyr"
       },
       {
+        "altinnRowId": "animal2",
         "Navn": "Mona Melon",
         "Art": "Hamster"
       }
     ],
     "Mennesker": [
       {
+        "altinnRowId": "person0",
         "Navn": "Kåre",
         "Alder": 28,
-        "FavorittDyr": [{ "Art": "Kanin" }, { "Art": "Hamster" }]
+        "FavorittDyr": [
+          { "altinnRowId": "person0-fav0", "Art": "Kanin" },
+          { "altinnRowId": "person0-fav1", "Art": "Hamster" }
+        ]
       },
       {
+        "altinnRowId": "person1",
         "Navn": "Arild",
         "Alder": 14,
-        "FavorittDyr": [{ "Art": "Dovendyr" }]
+        "FavorittDyr": [{ "altinnRowId": "person1-fav1", "Art": "Dovendyr" }]
       }
     ]
   }

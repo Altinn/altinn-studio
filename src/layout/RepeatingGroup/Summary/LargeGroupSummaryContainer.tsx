@@ -14,7 +14,7 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 export interface IDisplayRepAsLargeGroup {
   groupNode: BaseLayoutNode<CompRepeatingGroupInternal>;
   id?: string;
-  onlyRowIndex?: number | undefined;
+  onlyInRowUuid?: string | undefined;
   renderLayoutNode: (node: LayoutNode) => JSX.Element | null;
 }
 
@@ -26,7 +26,12 @@ const headingSizes: { [k in HeadingLevel]: Parameters<typeof Heading>[0]['size']
   [6]: 'xsmall',
 };
 
-export function LargeGroupSummaryContainer({ groupNode, id, onlyRowIndex, renderLayoutNode }: IDisplayRepAsLargeGroup) {
+export function LargeGroupSummaryContainer({
+  groupNode,
+  id,
+  onlyInRowUuid,
+  renderLayoutNode,
+}: IDisplayRepAsLargeGroup) {
   if (groupNode.isHidden()) {
     return null;
   }
@@ -37,6 +42,7 @@ export function LargeGroupSummaryContainer({ groupNode, id, onlyRowIndex, render
   const headingLevel = Math.min(Math.max(groupNode.parents().length + 1, 2), 6) as HeadingLevel;
   const headingSize = headingSizes[headingLevel];
   const legend = summaryTitle ?? title;
+  const restriction = typeof onlyInRowUuid === 'string' ? { onlyInRowUuid } : undefined;
 
   return (
     <Fieldset
@@ -58,7 +64,7 @@ export function LargeGroupSummaryContainer({ groupNode, id, onlyRowIndex, render
         id={id || container.id}
         className={classes.largeGroupContainer}
       >
-        {groupNode.children(undefined, onlyRowIndex).map((n) => renderLayoutNode(n))}
+        {groupNode.children(undefined, restriction).map((n) => renderLayoutNode(n))}
       </div>
     </Fieldset>
   );

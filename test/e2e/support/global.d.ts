@@ -128,6 +128,12 @@ declare global {
       setPermissions(permissionFormat: string): void;
 
       /**
+       * Wait for the app to finish saving the currently edited form data (happens automatically when
+       * using reloadAndWait())
+       */
+      waitUntilSaved(): Chainable<null>;
+
+      /**
        * Check a checkbox/radio from the design system.
        * Our design system radios/checkboxes are a little special, as they hide the HTML input element and provide
        * their own stylized variant. Cypress can't check/uncheck a hidden input field, and although we can tell

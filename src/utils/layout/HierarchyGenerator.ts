@@ -21,6 +21,7 @@ export interface Claim {
 export interface CommonChildFactoryProps {
   parent: LayoutNode | LayoutPage;
   rowIndex?: number;
+  rowId?: string;
 }
 
 export interface ChildFactoryProps<T extends CompTypes> extends CommonChildFactoryProps {
@@ -193,6 +194,7 @@ export class HierarchyGenerator {
     parent,
     overrideParentId,
     rowIndex,
+    rowId,
     directMutators = [],
     recursiveMutators = [],
   }: NewChildProps): LayoutNode | undefined {
@@ -245,19 +247,20 @@ export class HierarchyGenerator {
       item: clone,
       parent,
       rowIndex,
+      rowId,
     });
   }
 
   /**
    * Utility function to make it easier to create a LayoutNode object (used by processors in components)
    */
-  makeNode<T extends CompTypes>({ item, parent, rowIndex }: ChildFactoryProps<T>): LayoutNode<T> {
+  makeNode<T extends CompTypes>({ item, parent, rowIndex, rowId }: ChildFactoryProps<T>): LayoutNode<T> {
     const def = this.getLayoutComponentObject(item.type as CompTypes);
     if (!def) {
       throw new Error(`Could not find definition for component type '${item.type}'`);
     }
 
-    const node = def.makeNode(item as any, parent || this.top, this.top, this.dataSources, rowIndex);
+    const node = def.makeNode(item as any, parent || this.top, this.top, this.dataSources, rowIndex, rowId);
     this.top._addChild(node);
 
     return node as LayoutNode<T>;
@@ -378,6 +381,16 @@ export class HierarchyGenerator {
   }
 }
 
+export interface ChildLookupRowIndexRestriction {
+  onlyInRowIndex: number;
+}
+
+export interface ChildLookupRowUuidRestriction {
+  onlyInRowUuid: string;
+}
+
+export type ChildLookupRestriction = ChildLookupRowUuidRestriction | ChildLookupRowIndexRestriction;
+
 /**
  * This class should be implemented in components that interacts with the hierarchy generation process. For simple
  * components that has no need to claim children or manipulate them, SimpleComponentHierarchyGenerator will
@@ -386,7 +399,7 @@ export class HierarchyGenerator {
 export abstract class ComponentHierarchyGenerator<Type extends CompTypes> {
   abstract stage1(generator: HierarchyGenerator, item: UnprocessedItem<Type>): void;
   abstract stage2(ctx: HierarchyContext): ChildFactory<Type>;
-  abstract childrenFromNode(node: LayoutNode<Type>, onlyInRowIndex?: number): LayoutNode[];
+  abstract childrenFromNode(node: LayoutNode<Type>, restriction?: ChildLookupRestriction): LayoutNode[];
 }
 
 /**

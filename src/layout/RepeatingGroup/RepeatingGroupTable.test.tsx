@@ -1,11 +1,17 @@
 import React from 'react';
 
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import ResizeObserverModule from 'resize-observer-polyfill';
+import { v4 as uuidv4 } from 'uuid';
 
 import { getFormLayoutRepeatingGroupMock } from 'src/__mocks__/getFormLayoutGroupMock';
-import { RepeatingGroupProvider, useRepeatingGroupSelector } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
+import { ALTINN_ROW_ID } from 'src/features/formData/types';
+import {
+  RepeatingGroupProvider,
+  useRepeatingGroup,
+  useRepeatingGroupSelector,
+} from 'src/layout/RepeatingGroup/RepeatingGroupContext';
 import { RepeatingGroupTable } from 'src/layout/RepeatingGroup/RepeatingGroupTable';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithNode } from 'src/test/renderWithProviders';
@@ -122,13 +128,14 @@ describe('RepeatingGroupTable', () => {
       expect(screen.getByText('test row 1')).toBeInTheDocument();
       await userEvent.click(screen.getAllByRole('button', { name: /slett/i })[0]);
 
-      expect(formDataMethods.removeIndexFromList).toBeCalledTimes(1);
-      expect(formDataMethods.removeIndexFromList).toBeCalledWith({
+      expect(formDataMethods.removeFromListCallback).toBeCalledTimes(1);
+      expect(formDataMethods.removeFromListCallback).toBeCalledWith({
         path: 'some-group',
-        index: 0,
+        startAtIndex: 0,
+        callback: expect.any(Function),
       });
 
-      expect(screen.queryByText('test row 0')).not.toBeInTheDocument();
+      await waitFor(() => expect(screen.queryByText('test row 0')).not.toBeInTheDocument());
       expect(screen.getByText('test row 1')).toBeInTheDocument();
     });
 
@@ -187,10 +194,10 @@ describe('RepeatingGroupTable', () => {
         }),
         fetchFormData: async () => ({
           'some-group': [
-            { checkBoxBinding: 'option.value', prop1: 'test row 0' },
-            { checkBoxBinding: 'option.value', prop1: 'test row 1' },
-            { checkBoxBinding: 'option.value', prop1: 'test row 2' },
-            { checkBoxBinding: 'option.value', prop1: 'test row 3' },
+            { [ALTINN_ROW_ID]: uuidv4(), checkBoxBinding: 'option.value', prop1: 'test row 0' },
+            { [ALTINN_ROW_ID]: uuidv4(), checkBoxBinding: 'option.value', prop1: 'test row 1' },
+            { [ALTINN_ROW_ID]: uuidv4(), checkBoxBinding: 'option.value', prop1: 'test row 2' },
+            { [ALTINN_ROW_ID]: uuidv4(), checkBoxBinding: 'option.value', prop1: 'test row 3' },
           ],
         }),
       },
@@ -198,6 +205,8 @@ describe('RepeatingGroupTable', () => {
 });
 
 function LeakEditIndex() {
-  const editingIndex = useRepeatingGroupSelector((state) => state.editingIndex);
+  const editingId = useRepeatingGroupSelector((state) => state.editingId);
+  const { visibleRows } = useRepeatingGroup();
+  const editingIndex = visibleRows.find((r) => r.uuid === editingId)?.index;
   return <div data-testid='editIndex'>{editingIndex === undefined ? 'undefined' : editingIndex}</div>;
 }

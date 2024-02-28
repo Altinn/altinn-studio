@@ -4,12 +4,22 @@ import { Chip, Fieldset, LegacySelect } from '@digdir/design-system-react';
 import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/DevNavigationButtons/DevNavigationButtons.module.css';
+import { useIsInFormContext } from 'src/features/form/FormContext';
 import { usePageNavigationContext } from 'src/features/form/layout/PageNavigationContext';
 import { useLayoutSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { useNodes } from 'src/utils/layout/NodesContext';
 
-export const DevNavigationButtons = () => {
+export function DevNavigationButtons() {
+  const isInForm = useIsInFormContext();
+  if (!isInForm) {
+    return null;
+  }
+
+  return <InnerDevNavigationButtons />;
+}
+
+const InnerDevNavigationButtons = () => {
   const { navigateToPage, currentPageId } = useNavigatePage();
   const { hidden } = usePageNavigationContext();
   const orderWithHidden = useLayoutSettings().pages.order;
