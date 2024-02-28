@@ -5,18 +5,31 @@
       <bpmn:outgoing>To_Task_1</bpmn:outgoing>
     </bpmn:startEvent>
 
-    <!-- Regular data steps. These individual forms have to be filled out, one by one, in this order  -->
+    <!-- Regular data steps. These individual forms have to be filled out, one by one, in this order, or you can
+      skip directly to another task using the options in Task_1 -->
     <bpmn:task id="Task_1" name="Utfylling (message)">
       <bpmn:incoming>To_Task_1</bpmn:incoming>
-      <bpmn:outgoing>To_Task_2</bpmn:outgoing>
+      <bpmn:outgoing>To_Main_GW</bpmn:outgoing>
       <bpmn:extensionElements>
         <altinn:taskExtension>
           <altinn:taskType>data</altinn:taskType>
         </altinn:taskExtension>
+        <altinn:gatewayExtension>
+          <altinn:connectedDataTypeId>message</altinn:connectedDataTypeId>
+        </altinn:gatewayExtension>
       </bpmn:extensionElements>
     </bpmn:task>
+
+    <bpmn:exclusiveGateway id="Gateway_0" name="Gateway (to skip to other data tasks)">
+      <bpmn:incoming>To_Main_GW</bpmn:incoming>
+      <bpmn:outgoing>GW_To_Task_2</bpmn:outgoing>
+      <bpmn:outgoing>GW_To_Task_3</bpmn:outgoing>
+      <bpmn:outgoing>GW_To_Task_4</bpmn:outgoing>
+      <bpmn:outgoing>GW_To_Task_5</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
     <bpmn:task id="Task_2" name="Utfylling (changename)">
-      <bpmn:incoming>To_Task_2</bpmn:incoming>
+      <bpmn:incoming>GW_To_Task_2</bpmn:incoming>
       <bpmn:outgoing>To_Task_3</bpmn:outgoing>
       <bpmn:extensionElements>
         <altinn:taskExtension>
@@ -33,6 +46,10 @@
       <bpmn:extensionElements>
         <altinn:taskExtension>
           <altinn:taskType>data</altinn:taskType>
+          <altinn:actions>
+            <altinn:action type="serverAction">sortPets</altinn:action>
+            <altinn:action type="serverAction">generatePets</altinn:action>
+          </altinn:actions>
         </altinn:taskExtension>
       </bpmn:extensionElements>
     </bpmn:task>
@@ -101,8 +118,22 @@
     <bpmn:endEvent id="EndEvent_1" name="End">
       <bpmn:incoming>To_End</bpmn:incoming>
     </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="To_Main_GW" sourceRef="Task_1" targetRef="Gateway_0" />
+    <bpmn:sequenceFlow id="GW_To_Task_2" sourceRef="Gateway_0" targetRef="Task_2">
+      <bpmn:conditionExpression>["equals", ["dataModel", "GwTargetTask"], "Task_2"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="GW_To_Task_3" sourceRef="Gateway_0" targetRef="Task_3">
+      <bpmn:conditionExpression>["equals", ["dataModel", "GwTargetTask"], "Task_3"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="GW_To_Task_4" sourceRef="Gateway_0" targetRef="Task_4">
+      <bpmn:conditionExpression>["equals", ["dataModel", "GwTargetTask"], "Task_4"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="GW_To_Task_5" sourceRef="Gateway_0" targetRef="Task_5">
+      <bpmn:conditionExpression>["equals", ["dataModel", "GwTargetTask"], "Task_5"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+
     <bpmn:sequenceFlow id="To_Task_1" sourceRef="StartEvent_1" targetRef="Task_1" />
-    <bpmn:sequenceFlow id="To_Task_2" sourceRef="Task_1" targetRef="Task_2" />
     <bpmn:sequenceFlow id="To_Task_3" sourceRef="Task_2" targetRef="Task_3" />
     <bpmn:sequenceFlow id="To_Task_4" sourceRef="Task_3" targetRef="Task_4" />
     <bpmn:sequenceFlow id="To_Task_5" sourceRef="Task_4" targetRef="Task_5" />

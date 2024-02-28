@@ -1,0 +1,254 @@
+﻿{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "expandedWidth": true,
+    "layout": [
+      {
+        "id": "nav-rep3",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "NoteToDevs",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Funksjonalitet vi kan teste her i fremtiden:<br><ul><li>Lagring av visningsverdi i options-komponenter (som igjen kan hentes ut i sjekkboksene under)</li><li>Sortering i backend ved hjelp av visningsverdi (nå sorteres det vha. lagret verdi)</li><li>Ytelsesforbedringer for Dropdown-komponenten</li></ul>"
+        }
+      },
+      {
+        "id": "generatePanel",
+        "type": "Group",
+        "textResourceBindings": {
+          "title": "Pets.GeneratePanel.Title",
+          "description": "Pets.GeneratePanel.Description"
+        },
+        "groupingIndicator": "panel",
+        "children": ["panelButtons"],
+        "hidden": ["dataModel", "ForceShowPets"]
+      },
+      {
+        "id": "panelButtons",
+        "type": "ButtonGroup",
+        "children": ["forceShowPets", "generatePets", "generateWholeFarm"]
+      },
+      {
+        "id": "forceShowPets",
+        "type": "CustomButton",
+        "textResourceBindings": {
+          "title": "Pets.ForceShowButton"
+        },
+        "actions": [
+          { "type": "ServerAction", "id": "generatePets" }
+        ],
+        "buttonStyle": "secondary"
+      },
+      {
+        "id": "generatePets",
+        "type": "CustomButton",
+        "textResourceBindings": {
+          "title": "Pets.GenerateButton"
+        },
+        "actions": [
+          { "type": "ServerAction", "id": "generatePets" }
+        ],
+        "buttonStyle": "primary"
+      },
+      {
+        "id": "generateWholeFarm",
+        "type": "CustomButton",
+        "textResourceBindings": {
+          "title": "Pets.GenerateWholeFarmButton"
+        },
+        "actions": [
+          { "type": "ServerAction", "id": "generatePets" }
+        ],
+        "buttonStyle": "primary"
+      },
+      {
+        "id": "pets",
+        "type": "RepeatingGroup",
+        "children": ["pet-species", "pet-name", "pet-age", "futureSortOrder-inside", "sortOrderButton-inside"],
+        "dataModelBindings": {
+          "group": "Pets"
+        },
+        "textResourceBindings": {
+          "title": "Pets.Title",
+          "add_button_full": "Pets.AddButton"
+        },
+        "edit": {
+          "saveAndNextButton": true
+        },
+        "tableHeaders": ["pet-species", "pet-name"],
+        "tableColumns": {
+          "pet-species": {
+            "alignText": "left",
+            "editInTable": true,
+            "showInExpandedEdit": true
+          }
+        },
+        "hidden": ["not", ["dataModel", "ForceShowPets"]],
+        "hiddenRow": [
+          "commaContains",
+          ["dataModel", "HiddenPets"],
+          ["dataModel", "Pets.UniqueId"]
+        ],
+        "stickyHeader": true
+      },
+      {
+        "id": "pet-species",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Pets.Species"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Pets.Species"
+        },
+        "optionsId": "pet-species",
+        "required": true,
+        "grid": {
+          "md": 4
+        }
+      },
+      {
+        "id": "pet-name",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Pets.Name"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Pets.Name"
+        },
+        "required": true,
+        "grid": {
+          "md": 4
+        }
+      },
+      {
+        "id": "pet-age",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Pets.Age"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Pets.Age"
+        },
+        "required": false,
+        "readOnly": false,
+        "formatting": {
+          "number": {
+            "suffix": " år",
+            "allowNegative": false
+          },
+          "align": "right"
+        },
+        "grid": {
+          "md": 4
+        }
+      },
+      {
+        "id": "futureSortOrder-inside",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Pets.SortOrder"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "PetSortOrder"
+        },
+        "grid": {
+          "xs": 9
+        },
+        "optionsId": "pet-sort-order"
+      },
+      {
+        "id": "sortOrderButton-inside",
+        "type": "CustomButton",
+        "textResourceBindings": {
+          "title": "Pets.SortOrderButton"
+        },
+        "grid": {
+          "xs": 3
+        },
+        "actions": [
+          { "type": "ServerAction", "id": "sortPets" }
+        ],
+        "buttonStyle": "secondary"
+      },
+      {
+        "id": "hiddenPets",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "Pets.HiddenTitle",
+          "description": "Pets.HiddenDescription"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "HiddenPets"
+        },
+        "source": {
+          "group": "Pets",
+          "label": "PetName",
+          "value": "Pets.UniqueId"
+        },
+        "hidden": ["not", ["dataModel", "ForceShowPets"]]
+      },
+      {
+        "id": "futureSortOrder-outside",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Pets.SortOrder"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "PetSortOrder"
+        },
+        "grid": {
+          "xs": 9
+        },
+        "optionsId": "pet-sort-order",
+        "hidden": ["not", ["dataModel", "ForceShowPets"]]
+      },
+      {
+        "id": "sortOrderButton-outside",
+        "type": "CustomButton",
+        "textResourceBindings": {
+          "title": "Pets.SortOrderButton"
+        },
+        "grid": {
+          "xs": 3
+        },
+        "actions": [
+          { "type": "ServerAction", "id": "sortPets" }
+        ],
+        "buttonStyle": "secondary",
+        "hidden": ["not", ["dataModel", "ForceShowPets"]]
+      },
+      {
+        "id": "bottomButtons",
+        "type": "ButtonGroup",
+        "children": ["resetButton", "nav-page-rep3"]
+      },
+      {
+        "id": "resetButton",
+        "type": "CustomButton",
+        "textResourceBindings": {
+          "title": "Pets.ResetButton"
+        },
+        "actions": [
+          { "type": "ServerAction", "id": "generatePets" }
+        ],
+        "buttonStyle": "secondary",
+        "hidden": ["not", ["dataModel", "ForceShowPets"]]
+      },
+      {
+        "id": "nav-page-rep3",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "next": "Neste",
+          "back": "Forrige"
+        },
+        "validateOnNext": {
+          "page": "current",
+          "show": ["All"]
+        },
+        "showBackButton": true
+      }
+    ]
+  }
+}

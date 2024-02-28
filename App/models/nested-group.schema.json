@@ -152,6 +152,38 @@
         },
         "PrefillValuesEnabled": {
           "type": "boolean"
+        },
+        "Pets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "UniqueId": {
+                "type": "string"
+              },
+              "Species": {
+                "type": "string"
+              },
+              "Name": {
+                "type": "string"
+              },
+              "Age": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "NumPets": {
+          "type": "integer"
+        },
+        "HiddenPets": {
+          "type": "string"
+        },
+        "ForceShowPets": {
+          "type": "boolean"
+        },
+        "PetSortOrder": {
+          "type": "string"
         }
       },
       "required": [

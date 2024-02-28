@@ -45,5 +45,10 @@ namespace Altinn.App.Models
     [JsonPropertyName("SomeNumberValue")]
     public int? SomeNumberValue { get; set; }
 
+    [XmlElement("GwTargetTask")]
+    [JsonProperty("GwTargetTask")]
+    [JsonPropertyName("GwTargetTask")]
+    public string GwTargetTask { get; set; } = "Task_2";
+
   }
 }
