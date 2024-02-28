@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -25,9 +26,11 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
             var compilation = CSharpCompilation.Create(Guid.NewGuid().ToString())
                 .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-                .WithReferenceAssemblies(ReferenceAssemblyKind.Net60)
+                .WithReferenceAssemblies(ReferenceAssemblyKind.NetStandard20)
                 .AddReferences(MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.ModelBinding.BindNeverAttribute).GetTypeInfo().Assembly.Location))
                 .AddReferences(MetadataReference.CreateFromFile(typeof(Newtonsoft.Json.JsonPropertyAttribute).GetTypeInfo().Assembly.Location))
+                .AddReferences(MetadataReference.CreateFromFile(typeof(System.Text.Json.JsonElement).GetTypeInfo().Assembly.Location))
+                .AddReferences(MetadataReference.CreateFromFile(typeof(RangeAttribute).GetTypeInfo().Assembly.Location))
                 .AddSyntaxTrees(syntaxTree);
 
             Assembly assembly;

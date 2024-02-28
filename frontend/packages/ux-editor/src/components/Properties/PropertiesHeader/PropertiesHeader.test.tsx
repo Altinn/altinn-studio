@@ -4,11 +4,9 @@ import { PropertiesHeader, type PropertiesHeaderProps } from './PropertiesHeader
 import { FormItemContext } from '../../../containers/FormItemContext';
 import userEvent from '@testing-library/user-event';
 import { formItemContextProviderMock } from '../../../testing/formItemContextMocks';
-import { component1Mock, component1IdMock } from '../../../testing/layoutMock';
+import { component1Mock } from '../../../testing/layoutMock';
 import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
-import { componentMocks } from '../../../testing/componentMocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { componentSchemaMocks } from '../../../testing/componentSchemaMocks';
@@ -17,7 +15,6 @@ const mockHandleComponentUpdate = jest.fn();
 
 const defaultProps: PropertiesHeaderProps = {
   form: component1Mock,
-  formId: component1IdMock,
   handleComponentUpdate: mockHandleComponentUpdate,
 };
 const user = userEvent.setup();
@@ -83,15 +80,6 @@ describe('PropertiesHeader', () => {
     expect(mockHandleComponentUpdate).toHaveBeenCalledTimes(0);
   });
 
-  it('should show dataModelBinding selector', async () => {
-    await render();
-
-    const dataModelBinding = screen.getByRole('button', {
-      name: textMock('ux_editor.modal_properties_data_model_link'),
-    });
-    expect(dataModelBinding).toBeInTheDocument();
-  });
-
   it('should only show component-id editing option when component does not have dataModelBinding', async () => {
     await render({ form: componentMocks[ComponentType.AccordionGroup] });
 
@@ -137,7 +125,6 @@ describe('PropertiesHeader', () => {
     );
   });
 });
-
 const render = (props: Partial<PropertiesHeaderProps> = {}) => {
   const componentType = props.form ? props.form.type : defaultProps.form.type;
   queryClientMock.setQueryData(
