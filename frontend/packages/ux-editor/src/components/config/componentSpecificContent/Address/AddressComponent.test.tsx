@@ -10,7 +10,7 @@ import userEvent from '@testing-library/user-event';
 
 // Test data:
 const component: FormAddressComponent = {
-  type: ComponentType.AddressComponent,
+  type: ComponentType.Address,
   dataModelBindings: {
     test: 'test',
   },

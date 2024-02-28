@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,11 +22,12 @@ namespace Altinn.Studio.Designer.Filters
     /// </summary>
     public class UseSystemTextJsonAttribute : ActionFilterAttribute, IActionModelConvention
     {
-        private static readonly JsonSerializerOptions s_jsonSerializerOptions = new JsonSerializerOptions()
+        private static readonly JsonSerializerOptions s_jsonSerializerOptions = new()
         {
             PropertyNameCaseInsensitive = true,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            TypeInfoResolver = new DefaultJsonTypeInfoResolver()
         };
 
         public void Apply(ActionModel action)
@@ -41,8 +43,7 @@ namespace Altinn.Studio.Designer.Filters
         // Use System.Text.Json for all ObjectResult responses
         public override void OnActionExecuted(ActionExecutedContext context)
         {
-            var formatter = new SystemTextJsonOutputFormatter(
-                s_jsonSerializerOptions);
+            var formatter = new SystemTextJsonOutputFormatter(s_jsonSerializerOptions);
             if (context.Result is ObjectResult objectResult)
             {
                 // remove Newtonsoft formatter

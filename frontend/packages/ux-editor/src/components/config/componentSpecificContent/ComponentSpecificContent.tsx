@@ -14,7 +14,7 @@ export function ComponentSpecificContent({
   layoutName,
 }: IGenericEditComponent) {
   switch (component.type) {
-    case ComponentType.AddressComponent:
+    case ComponentType.Address:
       return (
         <AddressComponent
           component={component}

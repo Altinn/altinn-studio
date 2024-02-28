@@ -10,9 +10,6 @@ import {
 } from '../features/overview/handleServiceInformationSagas';
 import { appDeploymentSagas } from '../sharedResources/appDeployment/appDeploymentSagas';
 import { applicationMetadataSagas } from '../sharedResources/applicationMetadata/applicationMetadataSagas';
-import { appReleaseSagas } from '../sharedResources/appRelease/appReleaseSagas';
-import { configurationSagas } from '../sharedResources/configuration/configurationSagas';
-import { repoStatusSagas } from '../sharedResources/repoStatus/repoStatusSagas';
 import userSagas from '../sharedResources/user/userSagas';
 
 function* root(): SagaIterator {
@@ -23,10 +20,7 @@ function* root(): SagaIterator {
   yield fork(watchHandleFetchServiceConfigSaga);
   yield fork(watchHandleSaveServiceConfigSaga);
   yield fork(applicationMetadataSagas);
-  yield fork(repoStatusSagas);
-  yield fork(appReleaseSagas);
   yield fork(appDeploymentSagas);
-  yield fork(configurationSagas);
   yield fork(userSagas);
 }
 

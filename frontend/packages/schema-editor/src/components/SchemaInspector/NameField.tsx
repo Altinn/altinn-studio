@@ -12,10 +12,11 @@ export type NameFieldProps = TextfieldProps & {
   id?: string;
   pointer: string;
   handleSave: (newNodeName: string, errorCode: string) => void;
+  hideLabel?: boolean;
   label?: string;
 };
 
-export function NameField({ id, pointer, handleSave, label, ...props }: NameFieldProps) {
+export function NameField({ id, pointer, handleSave, label, hideLabel, ...props }: NameFieldProps) {
   const { t } = useTranslation();
   const { schemaModel } = useSchemaEditorAppContext();
   const [nodeName, setNodeName] = useState(extractNameFromPointer(pointer));
@@ -56,6 +57,7 @@ export function NameField({ id, pointer, handleSave, label, ...props }: NameFiel
       renderField={({ errorCode, customRequired, fieldProps }) => (
         <StudioTextfield
           {...fieldProps}
+          hideLabel={hideLabel}
           id={id}
           onChange={(e) => fieldProps.onChange(e.target.value, e)}
           onBlur={(e) => onNameBlur(e.target.value, errorCode)}
