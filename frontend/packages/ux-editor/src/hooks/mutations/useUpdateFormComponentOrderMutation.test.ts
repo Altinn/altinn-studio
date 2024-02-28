@@ -7,6 +7,7 @@ import type { IFormLayoutOrder } from '../../types/global';
 import {
   component1IdMock,
   component2IdMock,
+  component3IdMock,
   container1IdMock,
   container2IdMock,
   externalLayoutsMock,
@@ -32,7 +33,7 @@ describe('useUpdateFormComponentOrderMutation', () => {
 
     const newOrder: IFormLayoutOrder = {
       ...layoutMock.order,
-      [container2IdMock]: [],
+      [container2IdMock]: [component3IdMock],
       [container1IdMock]: [component2IdMock, component1IdMock],
     };
     await componentOrderResult.current.mutateAsync(newOrder);
@@ -51,6 +52,7 @@ describe('useUpdateFormComponentOrderMutation', () => {
             expect.objectContaining({ id: 'ComponentWithOptionsMock' }),
             expect.objectContaining({ id: component2IdMock }),
             expect.objectContaining({ id: component1IdMock }),
+            expect.objectContaining({ id: component3IdMock }),
           ],
         }),
       }),
