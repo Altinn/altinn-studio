@@ -12,8 +12,6 @@ import { useLayoutSetsQuery } from './hooks/queries/useLayoutSetsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from './hooks/useAppContext';
 import { FormItemContextProvider } from './containers/FormItemContext';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { UnsupportedVersionMessage } from './components/UnsupportedVersionMessage';
 
 /**
  * This is the main React component responsible for controlling
