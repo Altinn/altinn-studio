@@ -134,17 +134,18 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Get the Json Schema file representing the application model to disk.
+        /// Saves the model metadata model for the application (a JSON where the model hierarchy is flatten,
+        /// in order to easier generate the C# class) to disk.
         /// </summary>
-        /// <param name="modelName">The name of the model without extensions. This will be used as filename.</param>
-        /// <returns>A string containing content of the json schema.</returns>
-        [Obsolete("Generic method GetJsonSchema is deprecated. Use a dedicated one instead.")]
-        public async Task<string> GetJsonSchema(string modelName)
+        /// <param name="modelName">The name of the model. </param>
+        public async Task<string> GetModelMetadata(string modelName)
         {
-            string relativeFilePath = GetRelativeModelFilePath(modelName);
-            string jsonSchemaContent = await ReadTextByRelativePathAsync(relativeFilePath);
-
-            return jsonSchemaContent;
+            string modelMetadataFileName = GetPathToModelMetadata(modelName);
+            if (!FileExistsByRelativePath(modelMetadataFileName))
+            {
+                throw new FileNotFoundException("Model metadata file not found.");
+            }
+            return await ReadTextByRelativePathAsync(modelMetadataFileName);
         }
 
         /// <summary>
@@ -155,7 +156,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="modelName">The name of the model. </param>
         public async Task SaveModelMetadata(string modelMetadata, string modelName)
         {
-            string modelMetadataRelativeFilePath = Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.metadata.json");
+            string modelMetadataRelativeFilePath = GetPathToModelMetadata(modelName);
             await WriteTextByRelativePathAsync(modelMetadataRelativeFilePath, modelMetadata, true);
         }
 
@@ -166,8 +167,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="modelName">The name of the model, will be used as filename.</param>
         public async Task SaveCSharpClasses(string csharpClasses, string modelName)
         {
-            string modelMetadataRelativeFilePath = Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.cs");
-            await WriteTextByRelativePathAsync(modelMetadataRelativeFilePath, csharpClasses, true);
+            string csharpModelRelativeFilePath = Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.cs");
+            await WriteTextByRelativePathAsync(csharpModelRelativeFilePath, csharpClasses, true);
         }
 
         /// <summary>
@@ -178,7 +179,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <returns>A string containing the relative path to the file saved.</returns>
         public override async Task<string> SaveJsonSchema(string jsonSchema, string modelName)
         {
-            string relativeFilePath = GetRelativeModelFilePath(modelName);
+            string relativeFilePath = GetPathToModelJsonSchema(modelName);
             await WriteTextByRelativePathAsync(relativeFilePath, jsonSchema, true);
 
             return relativeFilePath;
@@ -798,13 +799,18 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Gets the relative path to a model.
+        /// Gets the relative path to a json schema model.
         /// </summary>
         /// <param name="modelName">The name of the model without extensions.</param>
         /// <returns>A string with the relative path to the model file, including file extension. </returns>
-        private string GetRelativeModelFilePath(string modelName)
+        private string GetPathToModelJsonSchema(string modelName)
         {
             return Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.schema.json");
+        }
+
+        private string GetPathToModelMetadata(string modelName)
+        {
+            return Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.metadata.json");
         }
 
         private static string GetPathToTexts()
