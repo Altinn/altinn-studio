@@ -58,7 +58,7 @@ export const userLogoutAfterPath = () => `/Home/Logout`;
 export const languagesPath = (org, app) => `${basePath}/${org}/${app}/languages`; // Get
 
 // Model
-export const datamodelMetadataPath = (org, app) => `${basePath}/${org}/${app}/model/metadata`; // Get
+export const datamodelMetadataPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/model/metadata?${s({ layoutSetName })}`; // Get
 
 // Organizations
 export const orgsListPath = () => `${basePath}/orgs`; // Get
