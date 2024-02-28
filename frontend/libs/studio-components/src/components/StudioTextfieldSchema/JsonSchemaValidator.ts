@@ -3,29 +3,33 @@ import addFormats from 'ajv-formats';
 import { type JsonSchema } from '../../types/JSONSchema';
 
 export class JsonSchemaValidator {
-  private readonly jsonSchema: JsonSchema = null;
+  private readonly layoutSchema: JsonSchema = null;
+
   private JSONValidator: Ajv = new Ajv({
     allErrors: true,
     strict: false,
   });
 
-  constructor(schema: JsonSchema) {
-    if (!schema) return;
+  constructor(layoutSchema: JsonSchema, schemas: JsonSchema[]) {
+    if (!layoutSchema) return;
 
     addFormats(this.JSONValidator);
-    this.jsonSchema = schema;
-    this.addSchemaToValidator(schema);
+    this.layoutSchema = layoutSchema;
+
+    [...schemas, layoutSchema].forEach((schema: JsonSchema): void => {
+      this.addSchemaToValidator(schema);
+    });
   }
 
   public isPropertyRequired(propertyPath: string): boolean {
-    if (!this.jsonSchema || !propertyPath) return false;
+    if (!this.layoutSchema || !propertyPath) return false;
     const parent = this.getPropertyByPath(
       propertyPath.substring(0, propertyPath.lastIndexOf('/properties')),
     );
     return parent?.required?.includes(propertyPath.split('/').pop());
   }
 
-  public validateProperty(propertyId: string, value: any): string | null {
+  public validateProperty(propertyId: string, value: string): string | null {
     const JSONSchemaValidationErrors = this.validate(propertyId, value);
     const firstError = JSONSchemaValidationErrors?.[0];
     const isCurrentComponentError = firstError?.instancePath === '';
@@ -40,10 +44,10 @@ export class JsonSchemaValidator {
   }
 
   private getPropertyByPath(path: string) {
-    return { ...path.split('/').reduce((o, p) => (o || {})[p], this.jsonSchema) };
+    return { ...path.split('/').reduce((o, p) => (o || {})[p], this.layoutSchema) };
   }
 
-  private validate(schemaId: string, data: any): ErrorObject[] | null {
+  private validate(schemaId: string, data: string): ErrorObject[] | null {
     const validateJsonSchema = this.JSONValidator.getSchema(schemaId);
     if (validateJsonSchema) {
       validateJsonSchema(data);

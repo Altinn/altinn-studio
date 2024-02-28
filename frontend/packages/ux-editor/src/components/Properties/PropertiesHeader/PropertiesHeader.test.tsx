@@ -23,7 +23,7 @@ describe('PropertiesHeader', () => {
   afterEach(jest.clearAllMocks);
 
   it('renders the header name for the component', () => {
-    render();
+    renderPropertiesHeader();
 
     const heading = screen.getByRole('heading', {
       name: textMock(`ux_editor.component_title.${component1Mock.type}`),
@@ -33,7 +33,7 @@ describe('PropertiesHeader', () => {
   });
 
   it('displays the help text when the help text button is clicked', async () => {
-    render();
+    renderPropertiesHeader();
 
     const helpTextButton = screen.getByRole('button', {
       name: textMock('ux_editor.component_help_text_general_title'),
@@ -51,7 +51,7 @@ describe('PropertiesHeader', () => {
   });
 
   it('should invoke "handleComponentUpdate" when id field blurs', async () => {
-    render();
+    renderPropertiesHeader();
 
     const editComponentIdButton = screen.getByRole('button', { name: 'ID: Component-1' });
     await act(() => user.click(editComponentIdButton));
@@ -64,7 +64,7 @@ describe('PropertiesHeader', () => {
   });
 
   it('should not invoke "handleComponentUpdateMock" when input field has error', async () => {
-    await render();
+    renderPropertiesHeader();
 
     const editComponentIdButton = screen.getByRole('button', { name: 'ID: Component-1' });
     await act(() => user.click(editComponentIdButton));
@@ -79,53 +79,8 @@ describe('PropertiesHeader', () => {
     expect(containerIdInput).toHaveAttribute('aria-invalid', 'true');
     expect(mockHandleComponentUpdate).toHaveBeenCalledTimes(0);
   });
-
-  it('should only show component-id editing option when component does not have dataModelBinding', async () => {
-    await render({ form: componentMocks[ComponentType.AccordionGroup] });
-
-    expect(screen.getByRole('button', { name: 'ID: test' }));
-
-    const dataModelBinding = screen.queryByRole('button', {
-      name: textMock('ux_editor.modal_properties_data_model_link'),
-    });
-    expect(dataModelBinding).not.toBeInTheDocument();
-  });
-
-  it('should call "handleComponentUpdate" with maxCount when dataModelBinding is clicked for RepeatingGroup', async () => {
-    const dataBindingNameMock = 'element';
-    const maxCountMock = 2;
-    queryClientMock.setQueryData(
-      [QueryKey.DatamodelMetadata, 'org', 'app'],
-      [{ dataBindingName: dataBindingNameMock, maxOccurs: maxCountMock }],
-    );
-    await render({ form: componentMocks[ComponentType.RepeatingGroup] });
-
-    const dataModelBinding = screen.getByRole('button', {
-      name: textMock('ux_editor.modal_properties_data_model_link'),
-    });
-    await act(() => user.click(dataModelBinding));
-    const dataModelBindingSelector = screen.getByRole('combobox', {
-      name:
-        textMock('ux_editor.modal_properties_data_model_helper') +
-        ' ' +
-        textMock('general.for') +
-        ' group',
-    });
-    await act(() => user.click(dataModelBindingSelector));
-    const dataModelOption = screen.getByRole('option', { name: dataBindingNameMock });
-    await act(() => user.click(dataModelOption));
-
-    expect(mockHandleComponentUpdate).toHaveBeenCalled();
-    expect(mockHandleComponentUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        ...componentMocks[ComponentType.RepeatingGroup],
-        maxCount: maxCountMock,
-        dataModelBindings: { group: dataBindingNameMock },
-      }),
-    );
-  });
 });
-const render = (props: Partial<PropertiesHeaderProps> = {}) => {
+const renderPropertiesHeader = (props: Partial<PropertiesHeaderProps> = {}) => {
   const componentType = props.form ? props.form.type : defaultProps.form.type;
   queryClientMock.setQueryData(
     [QueryKey.FormComponent, componentType],

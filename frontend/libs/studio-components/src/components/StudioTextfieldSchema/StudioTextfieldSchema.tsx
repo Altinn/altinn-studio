@@ -12,20 +12,22 @@ export type SchemaValidationError = {
 };
 
 export type StudioTextfieldSchemaProps = {
-  schema: JsonSchema;
+  layoutSchema: JsonSchema;
+  relatedSchemas: JsonSchema[];
   propertyPath: string;
   onError?: (error: SchemaValidationError | null) => void;
 } & StudioToggleableTextfieldProps;
 
 export const StudioTextfieldSchema = ({
-  schema,
+  layoutSchema,
+  relatedSchemas,
   inputProps,
   propertyPath,
   onError,
   ...rest
 }: StudioTextfieldSchemaProps): React.ReactElement => {
-  const jsonSchemaValidator = new JsonSchemaValidator(schema);
-  const propertyId = schema && propertyPath ? `${schema.$id}#/${propertyPath}` : null;
+  const jsonSchemaValidator = new JsonSchemaValidator(layoutSchema, relatedSchemas);
+  const propertyId = layoutSchema && propertyPath ? `${layoutSchema.$id}#/${propertyPath}` : null;
 
   const validateAgainstSchema = (
     event: React.ChangeEvent<HTMLInputElement>,

@@ -5,8 +5,8 @@ import classes from './EditComponentIdRow.module.css';
 import { idExists } from '../../../../utils/formLayoutUtils';
 import { useSelectedFormLayout } from '../../../../hooks';
 import { useTranslation } from 'react-i18next';
-import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import type { FormItem } from '../../../../types/FormItem';
+import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 
 export interface EditComponentIdRowProps {
   handleComponentUpdate: (component: FormItem) => void;
@@ -19,8 +19,11 @@ export const EditComponentIdRow = ({
   handleComponentUpdate,
 }: EditComponentIdRowProps) => {
   const { components, containers } = useSelectedFormLayout();
+
   const { t } = useTranslation();
-  const [{ data: layoutSchema }] = useLayoutSchemaQuery();
+  const [{ data: layoutSchema }, , { data: expressionSchema }, { data: numberFormatSchema }] =
+    useLayoutSchemaQuery();
+
   const [errorMessage, setErrorMessage] = useState<string | undefined>(null);
 
   const idInputValue = component.id;
@@ -48,7 +51,6 @@ export const EditComponentIdRow = ({
       unique: t('ux_editor.modal_properties_component_id_not_unique_error'),
       pattern: t('ux_editor.modal_properties_component_id_not_valid'),
     };
-
     setErrorMessage(errorCodeMap[error?.errorCode]);
   };
 
@@ -56,7 +58,8 @@ export const EditComponentIdRow = ({
     <div className={classes.StudioTextfieldSchema}>
       <StudioTextfieldSchema
         onError={handleValidationError}
-        schema={layoutSchema}
+        layoutSchema={layoutSchema}
+        relatedSchemas={[expressionSchema, numberFormatSchema]}
         propertyPath='definitions/component/properties/id'
         key={component.id}
         helpText={t('ux_editor.edit_component.id_help_text')}
