@@ -66,14 +66,14 @@ describe('DataModelBindings', () => {
     expect(attachmentComponentInsideRepGroupAlert).toBeInTheDocument();
   });
 
-  const { dataModelBindings } = componentSchemaMocks[ComponentType.AddressComponent].properties;
+  const { dataModelBindings } = componentSchemaMocks[ComponentType.Address].properties;
   it.each(Object.keys(dataModelBindings?.properties))(
     'should render data model binding with label for prop, %s, on AddressComponent',
     (prop) => {
       render({
         props: {
-          formItem: componentMocks[ComponentType.AddressComponent],
-          formItemId: componentMocks[ComponentType.AddressComponent].id,
+          formItem: componentMocks[ComponentType.Address],
+          formItemId: componentMocks[ComponentType.Address].id,
         },
       });
 
@@ -88,13 +88,13 @@ describe('DataModelBindings', () => {
     render({
       props: {
         formItem: {
-          ...componentMocks[ComponentType.AddressComponent],
+          ...componentMocks[ComponentType.Address],
           dataModelBindings: {
             address: 'someAddressDataModelField',
             careOf: 'someCareOfDataModelField',
           },
         },
-        formItemId: componentMocks[ComponentType.AddressComponent].id,
+        formItemId: componentMocks[ComponentType.Address].id,
       },
     });
 
