@@ -41,7 +41,8 @@
         },
         "grid": {
           "xs": 6
-        }
+        },
+        "readOnly": true
       },
       {
         "type": "Input",
@@ -51,7 +52,7 @@
         },
         "textResourceBindings": {
           "title": "Int32 (store tall, ikke desimaltall)",
-          "description": "Hvor mange ganger sparka du lilletåa i bordbeinet?",
+          "description": "Hvor mange ganger sparka du lilletåa i bordbeinet?"
         },
         "formatting": {
           "number": {
@@ -78,7 +79,8 @@
         },
         "grid": {
           "xs": 6
-        }
+        },
+        "readOnly": true
       },
       {
         "type": "Input",
@@ -88,7 +90,7 @@
         },
         "textResourceBindings": {
           "title": "Int64 (store tall, ikke desimaltall)",
-          "description": "Hvor mange ganger har du hatt hodepine denne uken?",
+          "description": "Hvor mange ganger har du hatt hodepine denne uken?"
         },
         "formatting": {
           "number": {
@@ -115,7 +117,8 @@
         },
         "grid": {
           "xs": 6
-        }
+        },
+        "readOnly": true
       },
       {
         "type": "Input",
@@ -125,7 +128,7 @@
         },
         "textResourceBindings": {
           "title": "Int16 (mindre tall, ikke desimaltall)",
-          "description": "Hvor mange myggstikk fikk du?",
+          "description": "Hvor mange myggstikk fikk du?"
         },
         "formatting": {
           "number": {
@@ -152,7 +155,8 @@
         },
         "grid": {
           "xs": 6
-        }
+        },
+        "readOnly": true
       },
       {
         "id": "numericFieldNavigate",
