@@ -29,7 +29,15 @@ class LayoutMutator
         var layoutSets = Directory.GetDirectories(uiFolder);
         foreach (var layoutSet in layoutSets)
         {
-            var layoutFiles = Directory.GetFiles(Path.Join(layoutSet, "layouts"), "*.json");
+            var layoutsFolder = Path.Combine(layoutSet, "layouts");
+            if (!Directory.Exists(layoutsFolder))
+            {
+              var compactLayoutsPath = string.Join(Path.DirectorySeparatorChar, layoutSet.Split(Path.DirectorySeparatorChar)[^2..]);
+              warnings.Add($"No layouts folder found in layoutset {compactLayoutsPath}, skipping");
+              continue;
+            }
+
+            var layoutFiles = Directory.GetFiles(layoutsFolder, "*.json");
             foreach (var layoutFile in layoutFiles)
             {
                 var layoutText = File.ReadAllText(layoutFile);
@@ -37,7 +45,8 @@ class LayoutMutator
 
                 if (layoutJson is not JsonObject layoutJsonObject)
                 {
-                    warnings.Add($"Unable to parse {layoutFile} as a json object, skipping");
+                    var compactLayoutFilePath = string.Join(Path.DirectorySeparatorChar, layoutFile.Split(Path.DirectorySeparatorChar)[^3..]);
+                    warnings.Add($"Unable to parse {compactLayoutFilePath} as a json object, skipping");
                     continue;
                 }
 

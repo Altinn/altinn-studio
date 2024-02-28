@@ -26,7 +26,7 @@ class FooterUpgrader
 
     public void Upgrade()
     {
-        var footerFile = Path.Join(uiFolder, "footer.json");
+        var footerFile = Path.Combine(uiFolder, "footer.json");
         if (File.Exists(footerFile))
         {
             var footerJson = JsonNode.Parse(File.ReadAllText(footerFile), null, new JsonDocumentOptions() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
@@ -75,6 +75,6 @@ class FooterUpgrader
         };
 
         var footerText = footer.ToJsonString(options);
-        await File.WriteAllTextAsync(Path.Join(uiFolder, "footer.json"), footerText);
+        await File.WriteAllTextAsync(Path.Combine(uiFolder, "footer.json"), footerText);
     }
 }

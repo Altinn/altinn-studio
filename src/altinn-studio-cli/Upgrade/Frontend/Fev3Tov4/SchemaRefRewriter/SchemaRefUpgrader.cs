@@ -76,7 +76,7 @@ class SchemaRefUpgrader
         }
 
         // Footer
-        var footerFile = Path.Join(uiFolder, "footer.json");
+        var footerFile = Path.Combine(uiFolder, "footer.json");
         if (File.Exists(footerFile))
         {
             var footerJson = JsonNode.Parse(File.ReadAllText(footerFile), null, new JsonDocumentOptions() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
@@ -107,7 +107,7 @@ class SchemaRefUpgrader
         foreach (var layoutSet in layoutSets)
         {
             // Layout settings
-            var layoutSettingsFile = Path.Join(layoutSet, "Settings.json");
+            var layoutSettingsFile = Path.Combine(layoutSet, "Settings.json");
             var compactSettingsFilePath = string.Join(Path.DirectorySeparatorChar, layoutSettingsFile.Split(Path.DirectorySeparatorChar)[^2..]);
             if (File.Exists(layoutSettingsFile)) {
                 var layoutSettingsJson = JsonNode.Parse(File.ReadAllText(layoutSettingsFile), null, new JsonDocumentOptions() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
@@ -126,22 +126,31 @@ class SchemaRefUpgrader
             }
 
             // Layout files
-            var layoutFiles = Directory.GetFiles(Path.Join(layoutSet, "layouts"), "*.json");
-            foreach (var layoutFile in layoutFiles)
+            var layoutsFolder = Path.Combine(layoutSet, "layouts");
+            if (Directory.Exists(layoutsFolder))
             {
-                var layoutJson = JsonNode.Parse(File.ReadAllText(layoutFile), null, new JsonDocumentOptions() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
-                if (layoutJson is JsonObject layoutJsonObject)
-                {
-                    this.files.Add(layoutFile, WithSchemaRef(layoutJsonObject, layoutSchemaUri));
-                }
-                else
-                {
-                    var compactLayoutFilePath = string.Join(Path.DirectorySeparatorChar, layoutFile.Split(Path.DirectorySeparatorChar)[^3..]);
-                    warnings.Add($"Unable to parse {compactLayoutFilePath}, skipping schema ref upgrade");
-                }
+              var layoutFiles = Directory.GetFiles(layoutsFolder, "*.json");
+              foreach (var layoutFile in layoutFiles)
+              {
+                  var layoutJson = JsonNode.Parse(File.ReadAllText(layoutFile), null, new JsonDocumentOptions() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
+                  if (layoutJson is JsonObject layoutJsonObject)
+                  {
+                      this.files.Add(layoutFile, WithSchemaRef(layoutJsonObject, layoutSchemaUri));
+                  }
+                  else
+                  {
+                      var compactLayoutFilePath = string.Join(Path.DirectorySeparatorChar, layoutFile.Split(Path.DirectorySeparatorChar)[^3..]);
+                      warnings.Add($"Unable to parse {compactLayoutFilePath}, skipping schema ref upgrade");
+                  }
+              }
+            } 
+            else 
+            {
+              var compactLayoutsPath = string.Join(Path.DirectorySeparatorChar, layoutSet.Split(Path.DirectorySeparatorChar)[^2..]);
+              warnings.Add($"No layouts folder found in layoutset {compactLayoutsPath}, skipping");
+              continue;
             }
         }
-
     }
 
     public JsonObject WithSchemaRef(JsonObject json, string schemaUrl)

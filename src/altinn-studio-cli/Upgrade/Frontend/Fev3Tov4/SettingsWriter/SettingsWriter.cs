@@ -35,7 +35,15 @@ class SettingsCreator
             continue;
           }
 
-          var order = Directory.GetFiles(Path.Combine(layoutSet, "layouts"), "*.json").Select(f => $@"""{Path.GetFileNameWithoutExtension(f)}""").ToList();
+          var layoutsFolder = Path.Combine(layoutSet, "layouts");
+          if (!Directory.Exists(layoutsFolder))
+          {
+            var compactFilePath = string.Join(Path.DirectorySeparatorChar, layoutSet.Split(Path.DirectorySeparatorChar)[^2..]);
+            warnings.Add($"No layouts folder found in layoutset {compactFilePath}, skipping");
+            continue;
+          }
+
+          var order = Directory.GetFiles(layoutsFolder, "*.json").Select(f => $@"""{Path.GetFileNameWithoutExtension(f)}""").ToList();
 
           var layoutSettingsJsonString = $@"{{""$schema"": ""https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json"", ""pages"": {{""order"": [{string.Join(", ", order)}]}}}}";
           settingsCollection.Add(settingsFileName, JsonNode.Parse(layoutSettingsJsonString)!);
