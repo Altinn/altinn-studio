@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
@@ -86,12 +87,9 @@ public class PreviewService : IPreviewService
             List<string> tasks = new();
             if (layoutSets?.Sets is { Count: > 0 })
             {
-                foreach (LayoutSetConfig layoutSet in layoutSets.Sets)
+                foreach (LayoutSetConfig layoutSet in layoutSets.Sets.Where(ls => !tasks.Contains(ls.Tasks[0])))
                 {
-                    if (!tasks.Contains(layoutSet.Tasks[0]))
-                    {
-                        tasks.Add(layoutSet.Tasks[0]);
-                    }
+                    tasks.Add(layoutSet.Tasks[0]);
                 }
             }
             return tasks;
