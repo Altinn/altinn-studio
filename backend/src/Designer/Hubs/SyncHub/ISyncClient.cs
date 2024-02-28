@@ -6,4 +6,5 @@ public interface ISyncClient
 
 {
     Task FileSyncError(SyncError syncError);
+    Task FileSyncSuccess(SyncSuccess syncSuccess);
 }
