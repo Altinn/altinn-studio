@@ -48,7 +48,9 @@ export const Properties = () => {
           <Accordion.Header onHeaderClick={() => toggleOpen('text')}>
             {t('right_menu.text')}
           </Accordion.Header>
-          <Accordion.Content>{formId ? <Text /> : t('right_menu.content_empty')}</Accordion.Content>
+          <Accordion.Content className={classes.texts}>
+            {formId ? <Text /> : t('right_menu.content_empty')}
+          </Accordion.Content>
         </Accordion.Item>
         <Accordion.Item open={openList.includes('datamodel')}>
           <Accordion.Header onHeaderClick={() => toggleOpen('datamodel')}>

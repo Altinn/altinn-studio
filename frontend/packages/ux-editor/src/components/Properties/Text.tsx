@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { useFormItemContext } from '../../containers/FormItemContext';
 import { useTranslation } from 'react-i18next';
 import { Heading, Alert } from '@digdir/design-system-react';
-import { EditTextResourceBindings } from '../config/editModal/EditTextResourceBindings';
+import { EditTextResourceBindings } from '../config/editModal/EditTextResourceBindings/EditTextResourceBindings';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { StudioSpinner } from '@studio/components';
@@ -42,9 +42,6 @@ export const Text = () => {
     <>
       {schema.properties.textResourceBindings?.properties && (
         <div className={classes.textResourceContainer}>
-          <Heading level={3} size='xxsmall' spacing>
-            {t('general.text')}
-          </Heading>
           <EditTextResourceBindings
             component={form}
             handleComponentChange={async (updatedComponent) => {

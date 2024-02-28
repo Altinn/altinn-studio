@@ -1,10 +1,10 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { TextResource } from '../../TextResource';
-import type { TranslationKey } from 'language/type';
-import type { IAppState } from '../../../types/global';
+import { TextResource } from '../../../../TextResource/TextResource';
+import type { TranslationKey } from '@altinn-studio/language/type';
+import type { IAppState } from '../../../../../types/global';
 import { useTranslation } from 'react-i18next';
-import type { EditTextResourceBindingBase } from './EditTextResourceBindings';
+import type { EditTextResourceBindingBase } from '../EditTextResourceBindings';
 
 export interface EditTextResourceBindingProps extends EditTextResourceBindingBase {
   textKey: string;
@@ -28,7 +28,7 @@ export const EditTextResourceBinding = ({
     (state: IAppState) => state.formDesigner?.layout?.selectedLayout,
   );
 
-  const handleTextResourceChange = (value: string) =>
+  const handleTextResourceIdChange = (value: string) =>
     handleComponentChange({
       ...component,
       textResourceBindings: {
@@ -43,9 +43,10 @@ export const EditTextResourceBinding = ({
     handleComponentChange(componentCopy);
     removeTextResourceBinding?.();
   };
+
   return (
     <TextResource
-      handleIdChange={handleTextResourceChange}
+      handleIdChange={handleTextResourceIdChange}
       handleRemoveTextResource={handleRemoveTextResourceBinding}
       label={t(labelKey)}
       description={t(descriptionKey)}

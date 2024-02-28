@@ -9,6 +9,7 @@ export * from './StudioLabelWrapper';
 export * from './StudioModal';
 export * from './StudioNotFoundPage';
 export * from './StudioPageSpinner';
+export * from './StudioPropertyButton';
 export * from './StudioSpinner';
 export * from './StudioTextarea';
 export * from './StudioTextfield';

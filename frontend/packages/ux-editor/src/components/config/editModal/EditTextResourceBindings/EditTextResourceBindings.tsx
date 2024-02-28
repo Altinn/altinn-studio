@@ -1,8 +1,8 @@
 import React from 'react';
-import { EditTextResourceBinding } from './EditTextResourceBinding';
+import { EditTextResourceBinding } from './EditTextResourceBinding/EditTextResourceBinding';
 import classes from './EditTextResourceBindings.module.css';
-import type { FormContainer } from '../../../types/FormContainer';
-import type { FormComponent } from '../../../types/FormComponent';
+import type { FormContainer } from '../../../../types/FormContainer';
+import type { FormComponent } from '../../../../types/FormComponent';
 
 export interface EditTextResourceBindingBase {
   editFormId?: string;

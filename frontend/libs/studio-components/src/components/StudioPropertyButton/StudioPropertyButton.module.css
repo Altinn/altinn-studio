@@ -1,0 +1,47 @@
+.propertyButton {
+  border-radius: 0;
+  display: flex;
+  padding: 0 var(--fds-spacing-5);
+  justify-content: flex-start;
+  overflow: hidden;
+}
+
+.propertyButton.withValue {
+  height: 4em;
+}
+
+.propertyButton.withValue .content {
+  color: var(--fds-semantic-text-neutral-default);
+  text-align: left;
+}
+
+.propertyButton.withValue .property {
+  font-weight: bold;
+}
+
+.content {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.property,
+.value {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.editIconWrapper {
+  flex: 1;
+  text-align: right;
+  display: none;
+}
+
+.propertyButton:hover .editIconWrapper,
+.propertyButton:focus .editIconWrapper {
+  display: inline-block;
+}
+
+.propertyButton.withoutValue {
+  height: 3em;
+}

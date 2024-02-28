@@ -1,8 +1,9 @@
 .root {
   --frame-offset: 4px;
-  border-radius: 1rem;
+  border-radius: var(--fds-border_radius-medium);
   padding: 1rem;
   display: flex;
+  box-shadow: var(--fds-shadow-small);
   flex-direction: column;
   gap: 4px;
   margin-top: 8px;
@@ -17,7 +18,6 @@
 .root.isSearching {
   --search-background-color: #1eadf718;
   background-color: var(--search-background-color);
-  box-shadow: 0 0 0 var(--frame-offset) var(--search-background-color);
 }
 
 .root.previewMode:not(.isSearching):not(:hover) .button {

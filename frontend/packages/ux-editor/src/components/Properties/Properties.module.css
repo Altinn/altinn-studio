@@ -2,3 +2,8 @@
   background: var(--fds-semantic-surface-neutral-subtle);
   flex: var(--properties-width-fraction);
 }
+
+.texts {
+  background-color: white;
+  padding: calc(var(--fds-spacing-5) - 1em / 2) 0;
+}

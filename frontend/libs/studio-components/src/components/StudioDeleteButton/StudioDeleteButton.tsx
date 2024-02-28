@@ -8,7 +8,7 @@ import React from 'react';
 
 export interface StudioDeleteButtonProps extends StudioButtonProps {
   onDelete: () => void;
-  confirmMessage: string;
+  confirmMessage?: string;
 }
 
 const StudioDeleteButton: OverridableComponent<StudioDeleteButtonProps, HTMLButtonElement> =
@@ -16,7 +16,7 @@ const StudioDeleteButton: OverridableComponent<StudioDeleteButtonProps, HTMLButt
     ({ confirmMessage, onClick, onDelete, ...rest }, ref) => {
       const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
         onClick?.(event);
-        if (confirm(confirmMessage)) onDelete();
+        if (!confirmMessage || confirm(confirmMessage)) onDelete();
       };
 
       return (
@@ -25,6 +25,7 @@ const StudioDeleteButton: OverridableComponent<StudioDeleteButtonProps, HTMLButt
           icon={<TrashIcon />}
           onClick={handleClick}
           variant='secondary'
+          size='small'
           {...rest}
           ref={ref}
         />

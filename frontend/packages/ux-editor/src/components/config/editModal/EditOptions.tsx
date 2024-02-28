@@ -1,24 +1,20 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { IOption } from '../../../types/global';
-import {
-  Fieldset,
-  Heading,
-  HelpText,
-  Paragraph,
-  Switch,
-  Textfield,
-} from '@digdir/design-system-react';
+import { Heading, HelpText, Paragraph, Switch } from '@digdir/design-system-react';
 import classes from './EditOptions.module.css';
 import type { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';
-import { PlusIcon, TrashIcon } from '@navikt/aksel-icons';
-import { TextResource } from '../../TextResource';
-import { useText, useComponentErrorMessage } from '../../../hooks';
+import { PlusIcon } from '@navikt/aksel-icons';
+import { useComponentErrorMessage } from '../../../hooks';
 import { addOptionToComponent, generateRandomOption } from '../../../utils/component';
 import { ErrorMessage } from '@digdir/design-system-react';
 import { FormField } from '../../FormField';
 import { StudioButton } from '@studio/components';
 import type { ComponentType } from 'app-shared/types/ComponentType';
+import { EditOption } from './EditOption';
+import { replaceByIndex } from 'app-shared/utils/arrayUtils';
+import { Option } from 'app-shared/types/Option';
+import { useTranslation } from 'react-i18next';
 
 type SelectionComponentType = ComponentType.Checkboxes | ComponentType.RadioButtons;
 
@@ -62,7 +58,7 @@ export function EditOptions<T extends SelectionComponentType>({
   const previousEditFormId = useRef(editFormId);
   const initialSelectedOptionType = getSelectedOptionsType(component.optionsId, component.options);
   const [selectedOptionsType, setSelectedOptionsType] = useState(initialSelectedOptionType);
-  const t = useText();
+  const { t } = useTranslation();
 
   const errorMessage = useComponentErrorMessage(component);
 
@@ -88,31 +84,21 @@ export function EditOptions<T extends SelectionComponentType>({
     });
   };
 
-  const handleUpdateOptionLabel = (index: number) => (id: string) => {
+  const handleOptionsChange = (options: Option[]) =>
     handleComponentChange({
       ...component,
-      options: component.options.map((option, idx) =>
-        idx === index ? { ...option, label: id } : option,
-      ),
+      options,
     });
-  };
 
-  const handleUpdateOptionValue = (index: number, e: any) => {
-    handleComponentChange({
-      ...component,
-      options: component.options.map((option, idx) =>
-        idx === index ? { ...option, value: e.target.value } : option,
-      ),
-    });
+  const handleOptionChange = (index: number) => (newOption: Option) => {
+    const newOptions = replaceByIndex(component.options, index, newOption);
+    return handleOptionsChange(newOptions);
   };
 
   const handleRemoveOption = (index: number) => {
     const options = [...component.options];
     options.splice(index, 1);
-    handleComponentChange({
-      ...component,
-      options,
-    });
+    handleOptionsChange(options);
   };
 
   const handleAddOption = () => {
@@ -152,49 +138,21 @@ export function EditOptions<T extends SelectionComponentType>({
             renderField={() => (
               <div>
                 {component.options?.map((option, index) => {
-                  const updateValue = (e: any) => handleUpdateOptionValue(index, e);
                   const removeItem = () => handleRemoveOption(index);
-                  const key = `${option.label}-${index}`; // Figure out a way to remove index from key.
-                  const optionTitle = `${
+                  const key = `${option.value}-${index}`; // Figure out a way to remove index from key.
+                  const optionNumber = index + 1;
+                  const legend =
                     component.type === 'RadioButtons'
-                      ? t('ux_editor.modal_radio_button_increment')
-                      : t('ux_editor.modal_check_box_increment')
-                  } ${index + 1}`;
+                      ? t('ux_editor.radios_option', { optionNumber })
+                      : t('ux_editor.checkboxes_option', { optionNumber });
                   return (
                     <div className={classes.optionContainer} key={key}>
-                      <div className={classes.optionContentWrapper}>
-                        <Fieldset legend={optionTitle}>
-                          <div className={classes.optionContent}>
-                            <TextResource
-                              handleIdChange={handleUpdateOptionLabel(index)}
-                              placeholder={
-                                component.type === 'RadioButtons'
-                                  ? t('ux_editor.modal_radio_button_add_label')
-                                  : t('ux_editor.modal_check_box_add_label')
-                              }
-                              textResourceId={option.label}
-                            />
-                            <div>
-                              <Textfield
-                                label={t('general.value')}
-                                onChange={updateValue}
-                                placeholder={t('general.value')}
-                                value={option.value}
-                              />
-                            </div>
-                          </div>
-                        </Fieldset>
-                      </div>
-                      <div>
-                        <StudioButton
-                          color='danger'
-                          icon={<TrashIcon />}
-                          onClick={removeItem}
-                          variant='tertiary'
-                          size='small'
-                          title={t('ux_editor.properties_panel.options.remove_option')}
-                        />
-                      </div>
+                      <EditOption
+                        option={option}
+                        onChange={handleOptionChange(index)}
+                        legend={legend}
+                        onDelete={removeItem}
+                      />
                     </div>
                   );
                 })}

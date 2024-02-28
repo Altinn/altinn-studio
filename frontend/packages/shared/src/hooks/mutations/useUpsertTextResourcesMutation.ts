@@ -1,5 +1,5 @@
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, UseMutationResult, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import {
@@ -13,7 +13,10 @@ export interface UpsertTextResourcesMutationArgs {
   textResources: ITextResource[];
 }
 
-export const useUpsertTextResourcesMutation = (org: string, app: string) => {
+export const useUpsertTextResourcesMutation = (
+  org: string,
+  app: string,
+): UseMutationResult<UpsertTextResourcesMutationArgs> => {
   const previewConnection = usePreviewConnection();
   const { upsertTextResources } = useServicesContext();
   const queryClient = useQueryClient();
