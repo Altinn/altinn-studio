@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -37,7 +38,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase, WriteIndented = true };
 
         // Test data until register is available from Altinn 3
-        private static readonly Dictionary<string, List<AccessListMemberDto>> _listMembers = new Dictionary<string, List<AccessListMemberDto>>();
+        private static readonly ConcurrentDictionary<string, List<AccessListMemberDto>> _listMembers = new ConcurrentDictionary<string, List<AccessListMemberDto>>();
 
         public ResourceRegistryService()
         {
@@ -436,7 +437,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             else
             {
-                _listMembers.Add(identifier, new List<AccessListMemberDto>() { newMember });
+                _listMembers.TryAdd(identifier, new List<AccessListMemberDto>() { newMember });
             }
 
             return HttpStatusCode.OK;
@@ -520,24 +521,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             _maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(env);
             TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
-            string baseUrl;
-
             //Checks if not tested locally by passing dev as env parameter
-            if (!env.ToLower().Equals("dev"))
-            {
-                baseUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryAccessListUrl}";
-            }
-            else
-            {
-                baseUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryAccessListUrl}";
-            }
+            string baseUrl = !env.ToLower().Equals("dev")
+                ? $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryAccessListUrl}"
+                : $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryAccessListUrl}";
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}{relativeUrl}");
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
             request.Method = verb;
             if (serializedContent != null)
             {
-                request.Content = new StringContent(serializedContent, Encoding.UTF8, "application/json"); ;
+                request.Content = new StringContent(serializedContent, Encoding.UTF8, "application/json");
             }
 
             return request;
