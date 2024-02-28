@@ -217,6 +217,7 @@
   "deploy_to_test.shared_with_org_true": "Du har delt dine endringer med din organisasjon",
   "deploy_to_test.write_permission_checking": "Sjekker om du har tilgang til å legge ut appen",
   "deploy_to_test.write_permission_false": "Du har ikke tilgang til å legge ut appen",
+  "expression": "Uttrykk",
   "expression.addSubexpression": "Legg til underuttrykk",
   "expression.and": "og",
   "expression.andOr": "og/eller",

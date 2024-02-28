@@ -20,6 +20,7 @@ export type ExpressionTexts = {
   errorListFooter: string;
   errorListHeader: string;
   errorMessages: Record<ExpressionErrorKey, string>;
+  expression: string;
   false: string;
   firstOperand: string;
   instanceContext: Record<InstanceContext, string>;

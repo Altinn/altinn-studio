@@ -62,6 +62,7 @@ export const useExpressionTexts = (): ExpressionTexts => {
     errorListFooter: t('expression.errorListFooter'),
     errorListHeader: t('expression.errorListHeader'),
     errorMessages,
+    expression: t('expression'),
     false: t('expression.false'),
     firstOperand: t('expression.firstOperand'),
     instanceContext,

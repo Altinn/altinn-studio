@@ -35,6 +35,7 @@ describe('StudioExpression', () => {
       'aria-selected',
       'true',
     );
+    screen.getByRole('textbox', { name: texts.expression });
   });
 
   it('Displays an information message when the expression is not simplifiable and the user opens the simplified editor', async () => {
@@ -83,7 +84,7 @@ describe('StudioExpression', () => {
     expect(within(logicalExpressionGroup).queryByRole('group')).not.toBeInTheDocument();
   });
 
-  it('Renders a logical expression with one sub-exression when the provided expression is a simple relational expression', () => {
+  it('Renders a logical expression with one subexression when the provided expression is a simple relational expression', () => {
     renderExpression(generalOperatorRelation);
     const logicalExpressionGroup = screen.getByRole('group', { name: texts.logicalOperation });
     within(logicalExpressionGroup).getByRole('group', { name: texts.subexpression(0) });
@@ -102,7 +103,7 @@ describe('StudioExpression', () => {
     },
   );
 
-  it('Renders add sub-expression button', () => {
+  it('Renders add subexpression button', () => {
     renderExpression(logicalExpression);
     screen.getByRole('button', { name: texts.addSubexpression });
   });
@@ -124,7 +125,7 @@ describe('StudioExpression', () => {
     ]);
   });
 
-  it('Calls the onChange function with the new expression when the user removes a sub-expression', async () => {
+  it('Calls the onChange function with the new expression when the user removes a subexpression', async () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockReturnValue(true);
     renderExpression(logicalExpression);
