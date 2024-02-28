@@ -526,7 +526,7 @@ namespace Altinn.Studio.Designer.Controllers
             AppProcessState processState = new AppProcessState(mockInstance.Process)
             {
                 ProcessTasks = tasks != null
-                    ? new List<AppProcessTaskTypeInfo>(tasks?.ConvertAll(task => new AppProcessTaskTypeInfo { ElementId = task, AltinnTaskType = "data"}))
+                    ? new List<AppProcessTaskTypeInfo>(tasks?.ConvertAll(task => new AppProcessTaskTypeInfo { ElementId = task, AltinnTaskType = "data" }))
                     : null
             };
 

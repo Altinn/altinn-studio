@@ -93,7 +93,8 @@ public class PreviewService : IPreviewService
                 }
             }
             return tasks;
-        } catch (NotFoundException)
+        }
+        catch (NotFoundException)
         {
             return null;
         }
