@@ -72,6 +72,7 @@ export const ItemFieldsTableRow = ({
           className={nameFieldClass}
           disabled={readonly}
           handleSave={handleChangeNodeName}
+          hideLabel
           onKeyDown={onKeyDown}
           pointer={fullPath}
           size='small'
