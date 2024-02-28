@@ -37,7 +37,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase, WriteIndented = true };
 
         // Test data until register is available from Altinn 3
-        private static readonly Dictionary<string, List<ListMember>> _listMembers = new Dictionary<string, List<ListMember>>();
+        private static readonly Dictionary<string, List<AccessListMemberDto>> _listMembers = new Dictionary<string, List<AccessListMemberDto>>();
 
         public ResourceRegistryService()
         {
@@ -304,9 +304,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string responseContent = await getAccessListsResponse.Content.ReadAsStringAsync();
             AccessList accessList = JsonSerializer.Deserialize<AccessList>(responseContent, _serializerOptions);
 
-            _listMembers.TryGetValue(identifier, out List<ListMember> list);
+            _listMembers.TryGetValue(identifier, out List<AccessListMemberDto> list);
 
-            IEnumerable<string> partyIds = (list ?? new List<ListMember>()).Select(x => x.Identifiers.OrganizationNumber);
+            IEnumerable<string> partyIds = (list ?? new List<AccessListMemberDto>()).Select(x => x.Identifiers.OrganizationNumber);
 
             // lookup party names
             if (partyIds.Any())
@@ -424,8 +424,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string env
         )
         {
-            List<ListMember> list;
-            ListMember newMember = new ListMember()
+            List<AccessListMemberDto> list;
+            AccessListMemberDto newMember = new AccessListMemberDto()
             {
                 Id = new Guid().ToString(),
                 Identifiers = new() { OrganizationNumber = memberOrgnr }
@@ -436,7 +436,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             else
             {
-                _listMembers.Add(identifier, new List<ListMember>() { newMember });
+                _listMembers.Add(identifier, new List<AccessListMemberDto>() { newMember });
             }
 
             return HttpStatusCode.OK;
@@ -449,7 +449,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string env
         )
         {
-            List<ListMember> list;
+            List<AccessListMemberDto> list;
             if (_listMembers.TryGetValue(identifier, out list))
             {
                 list.RemoveAll(item => item.Identifiers.OrganizationNumber == memberOrgnr);
@@ -541,18 +541,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return request;
-        }
-
-        private class ListMemberIdentifier
-        {
-            public string OrganizationNumber { get; set; }
-        }
-
-        private class ListMember
-        {
-            public string Id { get; set; }
-            public string Since { get; set; }
-            public ListMemberIdentifier Identifiers { get; set; }
         }
         // RRR end
 
