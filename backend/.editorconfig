@@ -153,6 +153,7 @@ csharp_space_between_square_brackets = false
 
 # Custom style
 dotnet_diagnostic.IDE0011.severity = warning
+dotnet_diagnostic.IDE0005.severity = warning
 
 # Xml project files
 [*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,nativeproj,locproj}]
