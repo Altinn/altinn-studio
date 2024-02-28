@@ -1,12 +1,12 @@
 import type { IGenericEditComponent } from '../componentConfig';
 import {
+  getDataModelFieldsFilter,
   getMaxOccursFromDataModel,
   getMinOccursFromDataModel,
   getXsdDataTypeFromDataModel,
 } from '../../../utils/datamodel';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import React, { useEffect, useState } from 'react';
-import { useText } from '../../../hooks';
 import { SelectDataModelComponent } from '../SelectDataModelComponent';
 import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
@@ -15,6 +15,7 @@ import { StudioButton } from '@studio/components';
 import classes from './EditDataModelBindings.module.css';
 import { InputActionWrapper } from 'app-shared/components/InputActionWrapper';
 import type { FormItem } from '../../../types/FormItem';
+import { useTranslation } from 'react-i18next';
 
 export interface EditDataModelBindingsProps<T extends ComponentType>
   extends IGenericEditComponent<T> {
@@ -35,7 +36,7 @@ export const EditDataModelBindings = <T extends ComponentType = ComponentType>({
 }: EditDataModelBindingsProps<T>) => {
   const { org, app } = useStudioUrlParams();
   const { data } = useDatamodelMetadataQuery(org, app);
-  const t = useText();
+  const { t } = useTranslation();
 
   const handleDataModelChange = (selectedDataModelElement: string, key = 'simpleBinding') => {
     handleComponentChange({
@@ -68,8 +69,15 @@ export const EditDataModelBindings = <T extends ComponentType = ComponentType>({
     ? component.dataModelBindings[key || 'simpleBinding']
     : undefined;
 
+  const labelSpecificText = label
+    ? t(`ux_editor.modal_properties_data_model_label.${label}`)
+    : t(`ux_editor.component_title.${component.type}`);
+
   return (
-    <div key={uniqueKey || ''} className={classes.wrapper}>
+    <div
+      key={uniqueKey || ''}
+      className={dataModelSelectVisible || selectedOption ? classes.wrapper : null}
+    >
       {!selectedOption && !dataModelSelectVisible ? (
         <StudioButton
           onClick={() => setDataModelSelectVisible(true)}
@@ -79,7 +87,7 @@ export const EditDataModelBindings = <T extends ComponentType = ComponentType>({
         >
           <div className={classes.datamodelLink}>
             <LinkIcon className={classes.linkIcon} />
-            {t('ux_editor.modal_properties_data_model_link')}
+            {labelSpecificText}
           </div>
         </StudioButton>
       ) : (
@@ -92,22 +100,16 @@ export const EditDataModelBindings = <T extends ComponentType = ComponentType>({
           }}
           onSaveClick={() => setDataModelSelectVisible(false)}
         >
-          <div className={classes.selectDataModelComponent}>
+          <>
             {dataModelSelectVisible ? (
               <SelectDataModelComponent
                 propertyPath={`definitions/component/properties/dataModelBindings/properties/${
                   key || 'simpleBinding'
                 }`}
-                label={
-                  label
-                    ? `${t('ux_editor.modal_properties_data_model_helper')} ${t(
-                        'general.for',
-                      )} ${label}`
-                    : t('ux_editor.modal_properties_data_model_helper')
-                }
+                label={labelSpecificText}
                 componentType={component.type}
                 inputId={`selectDataModelSelect-${label}`}
-                selectGroup={component.type === ComponentType.RepeatingGroup}
+                dataModelFieldsFilter={getDataModelFieldsFilter(component.type, label === 'list')}
                 selectedElement={
                   component.dataModelBindings
                     ? component.dataModelBindings[key || 'simpleBinding']
@@ -120,23 +122,18 @@ export const EditDataModelBindings = <T extends ComponentType = ComponentType>({
               />
             ) : (
               selectedOption && (
-                <span className={classes.selectedOption}>
-                  <SelectedOption selectedOption={selectedOption} />
-                </span>
+                <div className={classes.labelAndSelectedOption}>
+                  {labelSpecificText}
+                  <div className={classes.selectedOption}>
+                    <LinkIcon className={classes.linkIcon} />
+                    {selectedOption}
+                  </div>
+                </div>
               )
             )}
-          </div>
+          </>
         </InputActionWrapper>
       )}
-    </div>
-  );
-};
-
-const SelectedOption = ({ selectedOption }: { selectedOption: string }) => {
-  return (
-    <div className={classes.linkedDatamodelContainer}>
-      <LinkIcon className={classes.linkedDatamodelIcon} />
-      {selectedOption}
     </div>
   );
 };
