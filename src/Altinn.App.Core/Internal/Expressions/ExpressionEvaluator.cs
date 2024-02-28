@@ -20,9 +20,9 @@ public static class ExpressionEvaluator
         {
             var expr = property switch
             {
-                "hidden" => context.Component.Hidden,
+                "hidden" => context.Component?.Hidden,
                 "hiddenRow" => context.Component is RepeatingGroupComponent repeatingGroup ? repeatingGroup.HiddenRow : null,
-                "required" => context.Component.Required,
+                "required" => context.Component?.Required,
                 _ => throw new ExpressionEvaluatorTypeErrorException($"unknown boolean expression property {property}")
             };
             if (expr is null)
@@ -40,14 +40,14 @@ public static class ExpressionEvaluator
         }
         catch (Exception e)
         {
-            throw new ExpressionEvaluatorTypeErrorException($"Error while evaluating \"{property}\" on \"{context.Component.PageId}.{context.Component.Id}\"", e);
+            throw new ExpressionEvaluatorTypeErrorException($"Error while evaluating \"{property}\" on \"{context.Component?.PageId}.{context.Component?.Id}\"", e);
         }
     }
 
     /// <summary>
     /// Evaluate a <see cref="Expression" /> from a given <see cref="LayoutEvaluatorState" /> in a <see cref="ComponentContext" />
     /// </summary>
-    public static object? EvaluateExpression(LayoutEvaluatorState state, Expression expr, ComponentContext? context, object[]? positionalArguments = null)
+    public static object? EvaluateExpression(LayoutEvaluatorState state, Expression expr, ComponentContext context, object[]? positionalArguments = null)
     {
         if (expr is null)
         {
@@ -92,7 +92,7 @@ public static class ExpressionEvaluator
         return ret;
     }
 
-    private static object? DataModel(string? key, ComponentContext? context, LayoutEvaluatorState state)
+    private static object? DataModel(string? key, ComponentContext context, LayoutEvaluatorState state)
     {
         var data = state.GetModelData(key, context);
 
@@ -105,7 +105,7 @@ public static class ExpressionEvaluator
         };
     }
 
-    private static object? Component(object?[] args, ComponentContext? context, LayoutEvaluatorState state)
+    private static object? Component(object?[] args, ComponentContext context, LayoutEvaluatorState state)
     {
         var componentId = args.First()?.ToString();
         if (componentId is null)
@@ -113,7 +113,7 @@ public static class ExpressionEvaluator
             throw new ArgumentException("Cannot lookup component null");
         }
 
-        if (context is null)
+        if (context.Component is null)
         {
             throw new ArgumentException("The component expression requires a component context");
         }
@@ -125,7 +125,7 @@ public static class ExpressionEvaluator
             throw new NotImplementedException("Component lookup for components in groups not implemented");
         }
 
-        if (!targetContext.Component.DataModelBindings.TryGetValue("simpleBinding", out var binding))
+        if (targetContext.Component?.DataModelBindings.TryGetValue("simpleBinding", out var binding) != true)
         {
             throw new ArgumentException("component lookup requires the target component to have a simpleBinding");
         }

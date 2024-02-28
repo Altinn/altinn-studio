@@ -134,7 +134,7 @@ public class LayoutEvaluatorState
             throw new ArgumentException("ComponentContexts have not been generated");
         }
         // First look only on the relevant page
-        var pageContext = _pageContexts.FirstOrDefault(c => c.Component.Id == pageName);
+        var pageContext = _pageContexts.FirstOrDefault(c => c.Component?.Id == pageName);
         if (pageContext is null)
         {
             throw new ArgumentException($"Unknown page name {pageName}");
@@ -142,7 +142,7 @@ public class LayoutEvaluatorState
         // Find all decendent contexts that matches componentId and all the given rowIndicies
         var matches = pageContext.Decendants.Where(
                             context =>
-                                context.Component.Id == componentId &&
+                                context.Component?.Id == componentId &&
                                 (context.RowIndices?.Zip(rowIndicies ?? Enumerable.Empty<int>()).All((i) => i.First == i.Second) ?? true)).ToArray();
         if (matches.Length == 1)
         {
@@ -157,7 +157,7 @@ public class LayoutEvaluatorState
         // Find all decendent contexts that matches componentId and all the given rowIndicies
         matches = _pageContexts.SelectMany(p => p.Decendants.Where(
                             context =>
-                                context.Component.Id == componentId &&
+                                context.Component?.Id == componentId &&
                                 (context.RowIndices?.Zip(rowIndicies ?? Enumerable.Empty<int>()).All((i) => i.First == i.Second) ?? true))).ToArray();
         if (matches.Length != 1)
         {

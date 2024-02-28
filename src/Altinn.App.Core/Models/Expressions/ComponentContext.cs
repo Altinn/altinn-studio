@@ -12,7 +12,7 @@ public sealed class ComponentContext
     /// <summary>
     /// Constructor for ComponentContext
     /// </summary>
-    public ComponentContext(BaseComponent component, int[]? rowIndices, int? rowLength, IEnumerable<ComponentContext>? childContexts = null)
+    public ComponentContext(BaseComponent? component, int[]? rowIndices, int? rowLength, IEnumerable<ComponentContext>? childContexts = null)
     {
         Component = component;
         RowIndices = rowIndices;
@@ -27,7 +27,7 @@ public sealed class ComponentContext
     /// <summary>
     /// The component from <see cref="LayoutModel"/> that should be used as context
     /// </summary>
-    public BaseComponent Component { get; }
+    public BaseComponent? Component { get; }
 
     /// <summary>
     /// The indicies for this context (in case the component is part of a repeating group)

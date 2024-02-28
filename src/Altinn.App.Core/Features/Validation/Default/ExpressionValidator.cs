@@ -1,6 +1,8 @@
 using System.Text.Json;
+using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
@@ -15,6 +17,7 @@ public class ExpressionValidator : IFormDataValidator
     private readonly ILogger<ExpressionValidator> _logger;
     private readonly IAppResources _appResourceService;
     private readonly LayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
+    private readonly IAppMetadata _appMetadata;
 
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
@@ -25,11 +28,12 @@ public class ExpressionValidator : IFormDataValidator
     /// <summary>
     /// Constructor for the expression validator
     /// </summary>
-    public ExpressionValidator(ILogger<ExpressionValidator> logger, IAppResources appResourceService, LayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer)
+    public ExpressionValidator(ILogger<ExpressionValidator> logger, IAppResources appResourceService, LayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer, IAppMetadata appMetadata)
     {
         _logger = logger;
         _appResourceService = appResourceService;
         _layoutEvaluatorStateInitializer = layoutEvaluatorStateInitializer;
+        _appMetadata = appMetadata;
     }
 
     /// <inheritdoc />
@@ -56,16 +60,13 @@ public class ExpressionValidator : IFormDataValidator
         }
 
         var validationConfig = JsonDocument.Parse(rawValidationConfig).RootElement;
-        var layoutSet = _appResourceService.GetLayoutSetForTask(instance.Process.CurrentTask.ElementId);
+        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var layoutSet = _appResourceService.GetLayoutSetForTask(appMetadata.DataTypes.First(dt=>dt.Id == dataElement.DataType).TaskId);
         var evaluatorState = await _layoutEvaluatorStateInitializer.Init(instance, data, layoutSet?.Id);
-        return Validate(validationConfig, evaluatorState, _logger);
-    }
+        var hiddenFields = LayoutEvaluator.GetHiddenFieldsForRemoval(evaluatorState, true);
 
-
-    internal static List<ValidationIssue> Validate(JsonElement validationConfig, LayoutEvaluatorState evaluatorState, ILogger logger)
-    {
         var validationIssues = new List<ValidationIssue>();
-        var expressionValidations = ParseExpressionValidationConfig(validationConfig, logger);
+        var expressionValidations = ParseExpressionValidationConfig(validationConfig, _logger);
         foreach (var validationObject in expressionValidations)
         {
             var baseField = validationObject.Key;
@@ -73,6 +74,10 @@ public class ExpressionValidator : IFormDataValidator
             var validations = validationObject.Value;
             foreach (var resolvedField in resolvedFields)
             {
+                if (hiddenFields.Contains(resolvedField)) {
+                    continue;
+                }
+                var context = new ComponentContext(component: null, rowIndices: DataModel.GetRowIndices(resolvedField), rowLength: null);
                 var positionalArguments = new[] { resolvedField };
                 foreach (var validation in validations)
                 {
@@ -83,7 +88,7 @@ public class ExpressionValidator : IFormDataValidator
                             continue;
                         }
 
-                        var isInvalid = ExpressionEvaluator.EvaluateExpression(evaluatorState, validation.Condition, null, positionalArguments);
+                        var isInvalid = ExpressionEvaluator.EvaluateExpression(evaluatorState, validation.Condition, context, positionalArguments);
                         if (isInvalid is not bool)
                         {
                             throw new ArgumentException($"Validation condition for {resolvedField} did not evaluate to a boolean");
@@ -103,7 +108,7 @@ public class ExpressionValidator : IFormDataValidator
                     }
                     catch(Exception e)
                     {
-                        logger.LogError(e, "Error while evaluating expression validation for {resolvedField}", resolvedField);
+                        _logger.LogError(e, "Error while evaluating expression validation for {resolvedField}", resolvedField);
                         throw;
                     }
                 }

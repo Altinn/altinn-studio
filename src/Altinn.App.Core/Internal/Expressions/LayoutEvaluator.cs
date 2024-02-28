@@ -13,14 +13,14 @@ public static class LayoutEvaluator
     /// <summary>
     /// Get a list of fields that are only referenced in hidden components in <see cref="LayoutEvaluatorState" />
     /// </summary>
-    public static List<string> GetHiddenFieldsForRemoval(LayoutEvaluatorState state)
+    public static List<string> GetHiddenFieldsForRemoval(LayoutEvaluatorState state, bool includeHiddenRowChildren = false)
     {
         var hiddenModelBindings = new HashSet<string>();
         var nonHiddenModelBindings = new HashSet<string>();
 
         foreach (var context in state.GetComponentContexts())
         {
-            HiddenFieldsForRemovalRecurs(state, hiddenModelBindings, nonHiddenModelBindings, context);
+            HiddenFieldsForRemovalRecurs(state, includeHiddenRowChildren, hiddenModelBindings, nonHiddenModelBindings, context);
         }
 
         var forRemoval = hiddenModelBindings.Except(nonHiddenModelBindings);
@@ -28,14 +28,14 @@ public static class LayoutEvaluator
         return existsForRemoval.ToList();
     }
 
-    private static void HiddenFieldsForRemovalRecurs(LayoutEvaluatorState state, HashSet<string> hiddenModelBindings, HashSet<string> nonHiddenModelBindings, ComponentContext context)
+    private static void HiddenFieldsForRemovalRecurs(LayoutEvaluatorState state, bool includeHiddenRowChildren, HashSet<string> hiddenModelBindings, HashSet<string> nonHiddenModelBindings, ComponentContext context)
     {
 
         // Recurse children
         foreach (var childContext in context.ChildContexts)
         {
-            // Check if row is already hidden
-            if (context.HiddenRows is not null)
+            // Ignore children of hidden rows if includeHiddenRowChildren is false
+            if (!includeHiddenRowChildren && context.HiddenRows is not null)
             {
                 var currentRow = childContext.RowIndices?.Last();
                 var rowIsHidden = currentRow is not null && context.HiddenRows.Contains(currentRow.Value);
@@ -45,7 +45,7 @@ public static class LayoutEvaluator
                 }
             }
 
-            HiddenFieldsForRemovalRecurs(state, hiddenModelBindings, nonHiddenModelBindings, childContext);
+            HiddenFieldsForRemovalRecurs(state, includeHiddenRowChildren, hiddenModelBindings, nonHiddenModelBindings, childContext);
         }
 
         // Remove data for hidden rows
@@ -67,22 +67,25 @@ public static class LayoutEvaluator
         }
 
         // Remove data if hidden
-        foreach (var (bindingName, binding) in context.Component.DataModelBindings)
+        if (context.Component is not null)
         {
-            if (bindingName == "group")
+            foreach (var (bindingName, binding) in context.Component.DataModelBindings)
             {
-                continue;
-            }
+                if (bindingName == "group")
+                {
+                    continue;
+                }
 
-            var indexed_binding = state.AddInidicies(binding, context);
+                var indexed_binding = state.AddInidicies(binding, context);
 
-            if (context.IsHidden == true)
-            {
-                hiddenModelBindings.Add(indexed_binding);
-            }
-            else
-            {
-                nonHiddenModelBindings.Add(indexed_binding);
+                if (context.IsHidden == true)
+                {
+                    hiddenModelBindings.Add(indexed_binding);
+                }
+                else
+                {
+                    nonHiddenModelBindings.Add(indexed_binding);
+                }
             }
         }
     }
@@ -124,7 +127,7 @@ public static class LayoutEvaluator
             }
 
             var required = ExpressionEvaluator.EvaluateBooleanExpression(state, context, "required", false);
-            if (required)
+            if (required && context.Component is not null)
             {
                 foreach (var (bindingName, binding) in context.Component.DataModelBindings)
                 {

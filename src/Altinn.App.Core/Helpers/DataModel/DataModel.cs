@@ -116,6 +116,17 @@ public class DataModel : IDataModelAccessor
         return currentKey + "." + key;
     }
 
+    private static readonly Regex RowIndexRegex = new Regex(@"^([^[\]]+(\[(\d+)])?)+$", RegexOptions.None, TimeSpan.FromSeconds(1));
+    /// <summary>
+    /// Get the row indices from a key
+    /// </summary>
+    public static int[]? GetRowIndices(string key)
+    {
+        var match = RowIndexRegex.Match(key);
+        var rowIndices = match.Groups[3].Captures.Select(c => c.Value).Select(int.Parse).ToArray();
+        return rowIndices.Length == 0 ? null : rowIndices;
+    }
+
     private string[] GetResolvedKeysRecursive(string[] keyParts, object currentModel, int currentIndex = 0, string currentKey = "")
     {
         if (currentModel is null)
