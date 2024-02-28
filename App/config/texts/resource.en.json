@@ -336,6 +336,48 @@
       "id": "reasons.other",
       "value": "Other reason"
     },
+
+    {
+      "id": "colors.purple",
+      "value": "Purple"
+    },
+    {
+      "id": "colors.blue",
+      "value": "Blue"
+    },
+    {
+      "id": "colors.green",
+      "value": "Green"
+    },
+    {
+      "id": "colors.red",
+      "value": "Red"
+    },
+    {
+      "id": "colors.yellow",
+      "value": "Yellow"
+    },
+    {
+      "id": "colors.orange",
+      "value": "Orange"
+    },
+    {
+      "id": "colors.cyan",
+      "value": "Cyan"
+    },
+    {
+      "id": "colors.magenta",
+      "value": "Magenta"
+    },
+    {
+      "id": "colors.teal",
+      "value": "Teal"
+    },
+    {
+      "id": "colors.pink",
+      "value": "Pink"
+    },
+
     {
       "id": "customConfirm.body",
       "value": "Dette er en egendefinert bekreftelsesside. For å se den innebyggede, må dette fjernes fra layout-sets.json, men det gjøres bl.a. automatisk i Cypress-testene. PS: Her kan du også gå tilbake! Prøv den råkule knappen til venstre.<br><br>Og forresten, på forrige side valgte du {0}.",

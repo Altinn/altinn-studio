@@ -1,20 +1,17 @@
 {
-    "$schema": "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json",
-    "pages": {
-        "order": [
-            "form",
-            "numeric-fields",
-            "summary",
-            "grid"
-        ],
-        "excludeFromPdf": [
-            "summary"
-        ],
-        "showLanguageSelector": true
-    },
-    "components": {
-        "excludeFromPdf": [
-            "confirmChangeName"
-        ]
-    }
+  "$schema": "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json",
+  "pages": {
+    "order": [
+      "form",
+      "numeric-fields",
+      "label-data-bindings",
+      "summary",
+      "grid"
+    ],
+    "excludeFromPdf": ["summary"],
+    "showLanguageSelector": true
+  },
+  "components": {
+    "excludeFromPdf": ["confirmChangeName"]
+  }
 }

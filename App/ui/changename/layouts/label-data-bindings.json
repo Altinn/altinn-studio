@@ -1,0 +1,49 @@
+{
+  "data": {
+    "hidden": [
+      "not",
+      [
+        "commaContains",
+        ["dataModel", "ChooseExtraPages"],
+        "label-data-bindings"
+      ]
+    ],
+    "layout": [
+      {
+        "id": "numericFieldNavBar",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "reasonCheckboxes",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "BegrunnelseValgNavn"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Radioknapp",
+          "label": "ReasonLabels"
+        },
+        "sortOrder": "asc",
+        "optionsId": "colors",
+        "required": true,
+        "readOnly": false,
+        "preselectedOptionIndex": 0
+      },
+      {
+        "id": "reasonLabelsVerify",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Du valgte:"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "ReasonLabelsVerify"
+        },
+        "required": false,
+        "readOnly": true,
+        "grid": {
+          "md": 6
+        }
+      }
+    ]
+  }
+}

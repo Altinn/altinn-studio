@@ -753,6 +753,10 @@
           {
             "label": "Tall-input",
             "value": "numeric-fields"
+          },
+          {
+            "label": "Label Databindings",
+            "value": "label-data-bindings"
           }
         ]
       },

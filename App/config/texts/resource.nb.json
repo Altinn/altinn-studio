@@ -359,6 +359,47 @@
       "value": "Annen begrunnelse "
     },
     {
+      "id": "colors.purple",
+      "value": "Lilla"
+    },
+    {
+      "id": "colors.blue",
+      "value": "Blå"
+    },
+    {
+      "id": "colors.green",
+      "value": "Grønn"
+    },
+    {
+      "id": "colors.red",
+      "value": "Rød"
+    },
+    {
+      "id": "colors.yellow",
+      "value": "Gul"
+    },
+    {
+      "id": "colors.orange",
+      "value": "Oransje"
+    },
+    {
+      "id": "colors.cyan",
+      "value": "Cyan"
+    },
+    {
+      "id": "colors.magenta",
+      "value": "Magenta"
+    },
+    {
+      "id": "colors.teal",
+      "value": "Teal"
+    },
+    {
+      "id": "colors.pink",
+      "value": "Rosa"
+    },
+
+    {
       "id": "TestCustomButtonInput.title",
       "value": "Her kan man skrive input"
     },
