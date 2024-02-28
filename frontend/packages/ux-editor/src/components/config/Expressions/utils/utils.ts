@@ -9,7 +9,7 @@ export const expressionPropertiesOnFormItem = <T extends ComponentType>(
 ): FormItemProperty<T>[] => {
   // Todo: See if https://github.com/Altinn/altinn-studio/issues/12382 eliminates the need to cast the types in this function
   switch (componentType) {
-    case ComponentType.AddressComponent:
+    case ComponentType.Address:
     case ComponentType.Checkboxes:
     case ComponentType.Custom:
     case ComponentType.Datepicker:

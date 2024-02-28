@@ -12,7 +12,7 @@ import type { ComponentType } from 'app-shared/types/ComponentType';
 export const AddressComponent = ({
   component,
   handleComponentChange,
-}: IGenericEditComponent<ComponentType.AddressComponent>) => {
+}: IGenericEditComponent<ComponentType.Address>) => {
   const t = useText();
 
   const handleToggleAddressSimple = (isChecked: boolean) => {

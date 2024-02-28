@@ -17,7 +17,7 @@ import { GeneralRelationOperator } from '@studio/components';
 describe('utils', () => {
   describe('expressionPropertiesOnFormItem', () => {
     it('Returns hidden, required and readonly for form components', () => {
-      expect(expressionPropertiesOnFormItem(ComponentType.AddressComponent)).toEqual([
+      expect(expressionPropertiesOnFormItem(ComponentType.Address)).toEqual([
         { key: 'hidden' },
         { key: 'required' },
         { key: 'readOnly' },
