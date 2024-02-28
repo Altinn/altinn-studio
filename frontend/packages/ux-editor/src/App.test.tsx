@@ -74,15 +74,6 @@ describe('App', () => {
     expect(removeSelectedLayoutSetMock).not.toHaveBeenCalled();
   });
 
-  it('Renders the unsupported version message by default', async () => {
-    renderApp(mockQueries, { selectedLayoutSet });
-    expect(
-      screen.getByRole('heading', {
-        name: textMock('ux_editor.unsupported_version_message_title', { version: 'V4' }),
-      }),
-    ).toBeInTheDocument();
-  });
-
   it('Does not render the unsupported version message when the shouldOverrideAppFrontendCheck feature flag is set', async () => {
     overrideFrontendVersionCheck();
     renderApp(mockQueries, { selectedLayoutSet });

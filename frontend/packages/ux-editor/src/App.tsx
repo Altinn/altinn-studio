@@ -78,12 +78,6 @@ export function App() {
     }
   }, [setSelectedLayoutSet, selectedLayoutSet, layoutSets, app]);
 
-  if (!shouldDisplayFeature('shouldOverrideAppFrontendCheck')) {
-    return (
-      <UnsupportedVersionMessage version='V4' closestSupportedVersion='V3' category='too-new' />
-    );
-  }
-
   if (componentHasError) {
     const mappedError = mapErrorToDisplayError();
     return <ErrorPage title={mappedError.title} message={mappedError.message} />;
