@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './AppDeploymentList.module.css';
 import { Heading, Link } from '@digdir/design-system-react';
 import { Table } from '@digdir/design-system-react';
-import { formatDateTime } from 'app-shared/pure/date-format';
+import { formatDateTime, isDateWithinDays, isDateWithinSeconds } from 'app-shared/pure/date-format';
 import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 
@@ -22,13 +22,6 @@ export interface AppDeploymentListProps {
   pipelineDeploymentList: PipelineDeployment[];
   kubernetesDeployment?: KubernetesDeployment;
 }
-
-const showBuildLogLink = (startedDateStr: string) => {
-  const currentDate = new Date();
-  const startedDate = new Date(startedDateStr);
-  const daysDiff = (currentDate.getTime() - startedDate.getTime()) / (1000 * 60 * 60 * 24);
-  return daysDiff <= 30;
-};
 
 export const AppDeploymentList = ({ pipelineDeploymentList, envName }: AppDeploymentListProps) => {
   const { t } = useTranslation();
@@ -120,14 +113,20 @@ export const AppDeploymentList = ({ pipelineDeploymentList, envName }: AppDeploy
               </Table.Head>
               <Table.Body>
                 {pipelineDeploymentList.map((deploy: PipelineDeployment) => {
+                  const isFailing =
+                    deploy.build.result === BuildResult.none &&
+                    !isDateWithinSeconds(deploy.build.started, 60);
                   return (
-                    <Table.Row key={deploy.build.id} className={getClassName(deploy.build.result)}>
+                    <Table.Row
+                      key={deploy.build.id}
+                      className={isFailing ? classes.failing : getClassName(deploy.build.result)}
+                    >
                       <Table.Cell className={classNames(classes.tableCell, classes.tableIconCell)}>
                         {getIcon(deploy.build.result)}
                       </Table.Cell>
                       <Table.Cell className={classes.tableCell}>
                         {t(
-                          `app_deployment.pipeline_deployment.build_result.${deploy.build.result}`,
+                          `app_deployment.pipeline_deployment.build_result.${isFailing ? 'failing' : deploy.build.result}`,
                         )}
                       </Table.Cell>
                       <Table.Cell className={classes.tableCell}>{deploy.tagName}</Table.Cell>
@@ -136,7 +135,7 @@ export const AppDeploymentList = ({ pipelineDeploymentList, envName }: AppDeploy
                       </Table.Cell>
                       <Table.Cell className={classes.tableCell}>{deploy.createdBy}</Table.Cell>
                       <Table.Cell className={classes.tableCell}>
-                        {showBuildLogLink(deploy.build.started) && (
+                        {isDateWithinDays(deploy.build.started, 30) && (
                           <Link
                             href={getAzureDevopsBuildResultUrl(deploy.build.id)}
                             target='_newTab'

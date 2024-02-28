@@ -53,6 +53,9 @@
 .succeeded {
   background-color: var(--fds-semantic-surface-success-subtle);
 }
+.failing {
+  background-color: var(--fds-semantic-surface-warning-subtle);
+}
 
 .icon {
   --icon-size: calc((4 * 6 / 16) * var(--fds-font-size-f0)); /** Fluid sizing-6 */

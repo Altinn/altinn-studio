@@ -17,6 +17,17 @@ export const formatDateDDMMYY = (dateasstring: string, timeZone?: string) =>
 export const formatDateTime = (dateasstring: string, timeZone?: string) =>
   [formatDateDDMMYY(dateasstring, timeZone), formatTimeHHmm(dateasstring, timeZone)].join(' ');
 
+export const isDateWithinSeconds = (date: string, seconds: number) => {
+  const currentDate = new Date();
+  const startedDate = new Date(date);
+  const diff = (currentDate.getTime() - startedDate.getTime()) / 1000;
+  return diff <= seconds;
+};
+
+export const isDateWithinDays = (date: string, days: number) => {
+  return isDateWithinSeconds(date, days * 60 * 60 * 24);
+};
+
 /**
  * Adds minutes to a date and returns a new Date object
  *
