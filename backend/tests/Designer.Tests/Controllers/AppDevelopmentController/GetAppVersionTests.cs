@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Dto;
-using Altinn.Studio.Designer.ViewModels.Response;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;

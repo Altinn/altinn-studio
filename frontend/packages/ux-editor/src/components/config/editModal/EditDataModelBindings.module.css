@@ -1,35 +1,26 @@
 .wrapper {
+  display: grid;
+  gap: 1rem;
   width: 100%;
-}
-
-.datamodelLink {
-  display: flex;
-  align-items: center;
 }
 
 .linkIcon {
   font-size: 1.5rem;
 }
 
-.selectDataModelComponent {
-  margin-top: -25px;
-  width: 100%;
+.labelAndSelectedOption {
+  display: flex;
+  flex-direction: column;
 }
 
-.linkedDatamodelContainer {
-  margin-top: 25px;
+.selectedOption,
+.datamodelLink {
   display: flex;
   align-items: center;
-  gap: var(--fds-spacing-1);
-  padding-block: 0.75rem;
-}
-
-.linkedDatamodelIcon {
-  height: var(--fds-sizing-4);
-  width: var(--fds-sizing-4);
+  gap: 4px;
 }
 
 .selectedOption {
-  gap: var(--fds-spacing-1);
   word-break: break-word;
+  font-weight: bold;
 }

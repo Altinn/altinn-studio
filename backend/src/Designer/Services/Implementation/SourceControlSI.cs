@@ -14,7 +14,6 @@ using LibGit2Sharp;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Commit = LibGit2Sharp.Commit;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {

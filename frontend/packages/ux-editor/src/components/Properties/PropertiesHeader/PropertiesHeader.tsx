@@ -5,20 +5,16 @@ import { formItemConfigs } from '../../../data/formItemConfig';
 import { QuestionmarkDiamondIcon } from '@studio/icons';
 import { getComponentHelperTextByComponentType } from '../../../utils/language';
 import { useTranslation } from 'react-i18next';
-import { useComponentSchemaQuery } from '../../../hooks/queries/useComponentSchemaQuery';
-import { DataModelBindingRow } from './DataModelBindingRow';
 import { EditComponentIdRow } from './EditComponentIdRow';
 import type { FormItem } from '../../../types/FormItem';
 
 export type PropertiesHeaderProps = {
   form: FormItem;
-  formId: string;
   handleComponentUpdate: (component: FormItem) => void;
 };
 
 export const PropertiesHeader = ({
   form,
-  formId,
   handleComponentUpdate,
 }: PropertiesHeaderProps): React.JSX.Element => {
   const { t } = useTranslation();
@@ -27,8 +23,6 @@ export const PropertiesHeader = ({
   const Icon = isUnknownInternalComponent
     ? QuestionmarkDiamondIcon
     : formItemConfigs[form.type]?.icon;
-
-  const { data: schema } = useComponentSchemaQuery(form.type);
 
   return (
     <>
@@ -48,16 +42,6 @@ export const PropertiesHeader = ({
         <div className={classes.contentRow}>
           <EditComponentIdRow component={form} handleComponentUpdate={handleComponentUpdate} />
         </div>
-        {schema && (
-          <div className={classes.contentRow}>
-            <DataModelBindingRow
-              schema={schema}
-              component={form}
-              formId={formId}
-              handleComponentUpdate={handleComponentUpdate}
-            />
-          </div>
-        )}
       </div>
     </>
   );

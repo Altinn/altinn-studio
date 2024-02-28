@@ -1,13 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>Altinn.Studio.DataModeling</AssemblyName>
     <Company>Altinn</Company>
     <LangVersion>latest</LangVersion>
     <RootNamespace>Altinn.Studio.DataModeling</RootNamespace>
-    <!-- SonarCloud needs this -->
-    <ProjectGuid>{B5B494B4-88BA-407E-9CA3-9516FACD58CC}</ProjectGuid>
   </PropertyGroup>
 
   <ItemGroup>
