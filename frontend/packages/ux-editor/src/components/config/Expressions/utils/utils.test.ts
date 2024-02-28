@@ -57,7 +57,7 @@ describe('utils', () => {
   });
 
   describe('setExpressionOnFormItem', () => {
-    it('Sets an expression on a form item', () => {
+    it('Sets an expression on a simple item', () => {
       const inputComponent: FormComponent<ComponentType.Input> = {
         id: 'inputComponent',
         itemType: 'COMPONENT',
@@ -74,10 +74,34 @@ describe('utils', () => {
       );
       expect(result).toEqual({ ...inputComponent, required: expression });
     });
+
+    it('Sets an expression on a subkey', () => {
+      const repeatingGroup: FormContainer<ComponentType.RepeatingGroup> = {
+        id: 'repeatingGroup',
+        itemType: 'CONTAINER',
+        pageIndex: null,
+        type: ComponentType.RepeatingGroup,
+      };
+      const property: FormItemProperty<ComponentType.RepeatingGroup> = {
+        key: 'edit',
+        subKey: 'addButton',
+      };
+      const expression: BooleanExpression = [GeneralRelationOperator.Equals, 1, 1];
+      const expectedResult: FormContainer<ComponentType.RepeatingGroup> = {
+        ...repeatingGroup,
+        edit: { addButton: expression },
+      };
+      const result = setExpressionOnFormItem<ComponentType.RepeatingGroup>(
+        repeatingGroup,
+        property,
+        expression,
+      );
+      expect(result).toEqual(expectedResult);
+    });
   });
 
   describe('removeExpressionFromFormItem', () => {
-    it('Removes an expression from a form item', () => {
+    it('Removes an expression from a simple form item', () => {
       const inputComponent: FormComponent<ComponentType.Input> = {
         id: 'inputComponent',
         itemType: 'COMPONENT',
@@ -88,6 +112,28 @@ describe('utils', () => {
       const property: FormItemProperty<ComponentType.Input> = { key: 'required' };
       const result = removeExpressionFromFormItem<ComponentType.Input>(inputComponent, property);
       expect(result).toEqual({ ...inputComponent, required: undefined });
+    });
+
+    it('Removes an expression from a subkey', () => {
+      const repeatingGroup: FormContainer<ComponentType.RepeatingGroup> = {
+        id: 'repeatingGroup',
+        itemType: 'CONTAINER',
+        pageIndex: null,
+        type: ComponentType.RepeatingGroup,
+        edit: {
+          addButton: [GeneralRelationOperator.Equals, 1, 1],
+          deleteButton: true,
+        },
+      };
+      const property: FormItemProperty<ComponentType.RepeatingGroup> = {
+        key: 'edit',
+        subKey: 'addButton',
+      };
+      const result = removeExpressionFromFormItem<ComponentType.RepeatingGroup>(
+        repeatingGroup,
+        property,
+      );
+      expect(result).toEqual({ ...repeatingGroup, edit: { deleteButton: true } });
     });
   });
 

@@ -6,16 +6,39 @@ import userEvent from '@testing-library/user-event';
 import { FormItemContext } from '../../../../containers/FormItemContext';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent } from '../../../../types/FormComponent';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { FormItem } from '../../../../types/FormItem';
 
 const user = userEvent.setup();
 
 describe('NewExpressionButton', () => {
   afterEach(jest.clearAllMocks);
 
-  it('renders add expression button by default', () => {
-    renderAddButton();
-    const addButton = screen.getByText(textMock('right_menu.expressions_add'));
-    expect(addButton).toBeInTheDocument();
+  const testComponents: KeyValuePairs<FormItem> = {
+    'a paragraph element': {
+      id: 'test',
+      itemType: 'COMPONENT',
+      type: ComponentType.Paragraph,
+    },
+    'an input element': {
+      id: 'test',
+      itemType: 'COMPONENT',
+      type: ComponentType.Input,
+    },
+    'a repeating group': {
+      id: 'test',
+      itemType: 'CONTAINER',
+      type: ComponentType.RepeatingGroup,
+      edit: {},
+    },
+  };
+
+  it.each(Object.keys(testComponents))('Renders a dropdown menu for %s', async (key) => {
+    const formItem = testComponents[key];
+    renderAddButton({ formItem, formItemId: formItem.id });
+    const button = screen.getByRole('button', { name: textMock('right_menu.expressions_add') });
+    await act(() => user.click(button));
+    screen.getByRole('dialog');
   });
 
   it('renders dropdown when button is clicked', async () => {
