@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Altinn.ResourceRegistry.Core.Models;
-using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Models
 {

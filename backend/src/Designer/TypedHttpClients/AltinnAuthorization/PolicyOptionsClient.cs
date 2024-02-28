@@ -2,14 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Repository.Models;
-using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Microsoft.Extensions.Logging;
 using PolicyAdmin.Models;
-using static System.Net.WebRequestMethods;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
 {

@@ -2,7 +2,7 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { useFormItemContext } from '../../containers/FormItemContext';
 import { useTranslation } from 'react-i18next';
-import { Heading, Paragraph } from '@digdir/design-system-react';
+import { Heading, Alert } from '@digdir/design-system-react';
 import { EditTextResourceBindings } from '../config/editModal/EditTextResourceBindings';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
@@ -35,7 +35,7 @@ export const Text = () => {
   }
 
   if (!schema?.properties) {
-    return <Paragraph>{t('ux_editor.properties_panel.texts.no_properties')}</Paragraph>;
+    return <Alert>{t('ux_editor.properties_panel.texts.no_properties')}</Alert>;
   }
 
   return (
