@@ -354,7 +354,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("api/v1/parties/validateInstantiation")]
         public IActionResult ValidateInstantiation()
         {
-            return Content(@"{""valid"": true}");
+            return Content("""{"valid": true}""");
         }
 
         /// <summary>
@@ -588,7 +588,7 @@ namespace Altinn.Studio.Designer.Controllers
             string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
             if (string.IsNullOrEmpty(layoutSetName))
             {
-                string endProcess = @"{""ended"": ""ended""}";
+                string endProcess = """{"ended": "ended"}""";
                 return Ok(endProcess);
             }
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);

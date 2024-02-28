@@ -3,13 +3,13 @@ import { Calculations } from './Calculations';
 import { Content } from './Content';
 import { useTranslation } from 'react-i18next';
 import { Accordion } from '@digdir/design-system-react';
-import { useFormContext } from '../../containers/FormContext';
+import { useFormItemContext } from '../../containers/FormItemContext';
 import classes from './Properties.module.css';
 import { Dynamics } from './Dynamics';
 
 export const Properties = () => {
   const { t } = useTranslation();
-  const { formId } = useFormContext();
+  const { formItemId: formId } = useFormItemContext();
   const formIdRef = React.useRef(formId);
 
   const [openList, setOpenList] = React.useState<string[]>([]);

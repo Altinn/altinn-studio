@@ -44,7 +44,7 @@ export const expandAnyOf = (schema: any, layoutSchema: any) => {
         ref = expandAllOf(ref, layoutSchema, false);
       }
       anyOf.push(ref);
-    } else if (item.properties) {
+    } else {
       anyOf.push(item);
     }
   });
@@ -112,6 +112,10 @@ export const expandRefsInProperties = (properties: any, layoutSchema: any) => {
     }
     if (expandedProperties[property].allOf) {
       expandedProperties[property] = expandAllOf(expandedProperties[property], layoutSchema);
+    }
+
+    if (expandedProperties[property].anyOf) {
+      expandedProperties[property].anyOf = expandAnyOf(expandedProperties[property], layoutSchema);
     }
     ensureStringTypeWithEnums(expandedProperties[property]);
   }

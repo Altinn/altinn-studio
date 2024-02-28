@@ -11,7 +11,7 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResources
 import { useLayoutSetsQuery } from './hooks/queries/useLayoutSetsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from './hooks/useAppContext';
-import { FormContextProvider } from './containers/FormContext';
+import { FormItemContextProvider } from './containers/FormItemContext';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { UnsupportedVersionMessage } from './components/UnsupportedVersionMessage';
 
@@ -91,9 +91,9 @@ export function App() {
 
   if (componentIsReady) {
     return (
-      <FormContextProvider>
+      <FormItemContextProvider>
         <FormDesigner selectedLayout={selectedLayout} selectedLayoutSet={selectedLayoutSet} />
-      </FormContextProvider>
+      </FormItemContextProvider>
     );
   }
   return <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('ux_editor.loading_page')} />;

@@ -40,7 +40,7 @@ export type FormFileUploaderWithTagComponent = FormComponent<ComponentType.FileU
 export type FormButtonComponent = FormComponent<
   ComponentType.Button | ComponentType.NavigationButtons
 >;
-export type FormAddressComponent = FormComponent<ComponentType.AddressComponent>;
+export type FormAddressComponent = FormComponent<ComponentType.Address>;
 
 export type FormComponent<T extends SimpleComponentType = SimpleComponentType> = {
   [componentType in ComponentType]: FormComponentBase<componentType> &
