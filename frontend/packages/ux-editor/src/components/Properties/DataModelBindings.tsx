@@ -60,7 +60,11 @@ export const DataModelBindings = (): React.JSX.Element => {
             </Alert>
           )}
         {dataModelBindings.anyOf && (
-          <Switch checked={multipleAttachments} onChange={handleMultipleAttachmentsSwitch}>
+          <Switch
+            checked={multipleAttachments}
+            onChange={handleMultipleAttachmentsSwitch}
+            className={classes.switch}
+          >
             {t('ux_editor.modal_properties_data_model_link_multiple_attachments')}
           </Switch>
         )}

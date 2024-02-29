@@ -46,7 +46,7 @@ export const SelectDataModelComponent = ({
   const onChangeSelectedBinding = (e: any) => {
     onDataModelChange(e);
   };
-  
+
   return (
     <FormField
       id={inputId}

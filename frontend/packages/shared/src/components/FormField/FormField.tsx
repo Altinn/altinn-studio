@@ -140,11 +140,11 @@ export const FormField = <T extends unknown, TT extends unknown>({
     <div className={className}>
       <div className={helpText && classes.container}>
         <div className={classes.formField}>{renderField(generateProps())}</div>
-          {helpText && (
-            <HelpText className={classes.helpText} title={helpText}>
-              {helpText}
-            </HelpText>
-          )}
+        {helpText && (
+          <HelpText className={classes.helpText} title={helpText}>
+            {helpText}
+          </HelpText>
+        )}
       </div>
       {errorCode && (
         <ErrorMessage id={errorMessageId} className={classes.errorMessageText} size='small'>

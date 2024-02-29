@@ -36,9 +36,9 @@ export const EditBinding = ({
     <fieldset className={classes.editBinding}>
       <legend className={classes.legend}>{label}</legend>
       <SelectDataModelComponent
-        dataModelFieldsFilter={getDataModelFieldsFilter(component.type, label === 'list')}
+        dataModelFieldsFilter={getDataModelFieldsFilter(component.type, bindingKey === 'list')}
         helpText={helpText}
-        inputId={`selectDataModelSelect-${label}`}
+        inputId={`selectDataModelSelect-${bindingKey}`}
         label={label}
         onDataModelChange={onBindingChange}
         propertyPath={propertyPath}
