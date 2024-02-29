@@ -94,6 +94,27 @@ describe('StudioTextfieldSchema', () => {
     expect(screen.getByRole('button', { name: 'Edit id' })).toBeInTheDocument();
   });
 
+  it('should not toggle to view mode on blur if input is invalid', async () => {
+    const user = userEvent.setup();
+
+    renderStudioTextfieldSchema({
+      viewProps: {
+        children: 'Edit id',
+      },
+      inputProps: {
+        ...defaultProps.inputProps,
+        label: 'Your id',
+        error: 'my awesome error message',
+      },
+    });
+
+    await act(() => user.click(screen.getByRole('button', { name: 'Edit id' })));
+    expect(screen.queryByRole('button', { name: 'Edit id' })).not.toBeInTheDocument();
+
+    fireEvent.blur(screen.getByLabelText('Your id'));
+    expect(screen.queryByRole('button', { name: 'Edit id' })).not.toBeInTheDocument();
+  });
+
   it('should validate field against json schema and invoke "onError" if validation has errors', async () => {
     const user = userEvent.setup();
 
