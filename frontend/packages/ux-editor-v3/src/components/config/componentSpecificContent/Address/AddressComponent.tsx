@@ -20,7 +20,7 @@ export const AddressComponent = ({ component, handleComponentChange }: IGenericE
 
   return (
     <Fieldset
-      className={classes.root}
+      className={classes.container}
       legend={t('ux_editor.address_component.settings')}
       hideLegend
     >

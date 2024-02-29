@@ -35,7 +35,7 @@ export const EditDataModelBindings = ({
   const { org, app } = useStudioUrlParams();
   const { data } = useDatamodelMetadataQuery(org, app);
   const { t } = useTranslation();
-
+  
   const handleDataModelChange = (selectedDataModelElement: string, key = 'simpleBinding') => {
     handleComponentChange({
       ...component,
@@ -74,13 +74,13 @@ export const EditDataModelBindings = ({
   return (
     <div
       key={uniqueKey || ''}
-      className={dataModelSelectVisible || selectedOption ? classes.wrapper : null}
+      className={dataModelSelectVisible ? classes.editDatamodelWrapper : classes.wrapper}
     >
       {!selectedOption && !dataModelSelectVisible ? (
         <StudioButton
           onClick={() => setDataModelSelectVisible(true)}
           variant='tertiary'
-          size='medium'
+          size='small'
           fullWidth
         >
           <div className={classes.datamodelLink}>
@@ -120,13 +120,19 @@ export const EditDataModelBindings = ({
               />
             ) : (
               selectedOption && (
-                <div className={classes.labelAndSelectedOption}>
-                  {labelSpecificText}
-                  <div className={classes.selectedOption}>
-                    <LinkIcon className={classes.linkIcon} />
-                    {selectedOption}
-                  </div>
-                </div>
+                  <StudioButton
+                      onClick={() => setDataModelSelectVisible(true)}
+                      variant='tertiary'
+                      size='small'
+                      fullWidth
+                      className={classes.labelAndSelectedOption}
+                  >
+                    <strong>{labelSpecificText}</strong>
+                    <div className={classes.selectedOption}>
+                      <LinkIcon className={classes.linkIcon} />
+                      {selectedOption}
+                    </div>
+                  </StudioButton>
               )
             )}
           </>

@@ -1,16 +1,25 @@
 .wrapper {
+  
+}
+
+.editDatamodelWrapper {
   display: grid;
   gap: 1rem;
   width: 100%;
+  box-sizing: border-box;
+  margin-left: var(--fds-sizing-5, 1rem);
+  padding-right: var(--fds-sizing-5, 1rem);
 }
 
 .linkIcon {
-  font-size: 1.5rem;
+  font-size: 1rem;
 }
 
 .labelAndSelectedOption {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  color: var(--fds-semantic-text-neutral-default);
 }
 
 .selectedOption,
@@ -22,5 +31,4 @@
 
 .selectedOption {
   word-break: break-word;
-  font-weight: bold;
 }
