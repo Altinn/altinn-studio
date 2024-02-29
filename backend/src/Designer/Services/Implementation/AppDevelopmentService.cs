@@ -5,12 +5,14 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Models;
+using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 using NuGet.Versioning;
 using LayoutSets = Altinn.Studio.Designer.Models.LayoutSets;
 using PlatformStorageModels = Altinn.Platform.Storage.Interface.Models;
@@ -147,7 +149,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<JsonNode> GetModelMetadata(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName, CancellationToken cancellationToken = default)
+        public async Task<ModelMetadata> GetModelMetadata(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             AltinnAppGitRepository altinnAppGitRepository =
@@ -159,7 +161,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string taskId = await GetTaskIdBasedOnLayoutSet(altinnRepoEditingContext, layoutSetName, cancellationToken);
             string modelName = GetModelName(applicationMetadata, taskId);
             string fileContent = await altinnAppGitRepository.GetModelMetadata(modelName);
-            return JsonNode.Parse(fileContent);
+            return JsonConvert.DeserializeObject<ModelMetadata>(fileContent);
         }
 
         private string GetModelName(ApplicationMetadata applicationMetadata, [CanBeNull] string taskId)
@@ -167,7 +169,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             PlatformStorageModels.DataType data = applicationMetadata.DataTypes
                 .FirstOrDefault(data => data.AppLogic != null && DoesDataTaskMatchTaskId(data, taskId) && !string.IsNullOrEmpty(data.AppLogic.ClassRef));
 
-            return data?.Id;
+            return data?.Id ?? string.Empty;
         }
 
         private bool DoesDataTaskMatchTaskId(PlatformStorageModels.DataType data, [CanBeNull] string taskId)

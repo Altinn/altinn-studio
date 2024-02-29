@@ -143,7 +143,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string modelMetadataFileName = GetPathToModelMetadata(modelName);
             if (!FileExistsByRelativePath(modelMetadataFileName))
             {
-                throw new FileNotFoundException("Model metadata file not found.");
+                return "{}";
             }
             return await ReadTextByRelativePathAsync(modelMetadataFileName);
         }
