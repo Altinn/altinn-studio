@@ -28,7 +28,7 @@ export const ReceiptContent = ({
     return (
       <div className={classes.wrapper}>
         <div className={classes.accordionWrapper}>
-          <Accordion color='neutral' className={classes.accordion}>
+          <Accordion color='neutral'>
             <PageAccordion
               pageName={receiptName}
               isOpen={receiptName === selectedAccordion}
