@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import {
   internalUnParsableComplexExpression,
   simpleInternalExpression,
+  componentId,
 } from '../../../../../testing/expressionMocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../../../testing/mocks';
@@ -13,7 +14,7 @@ import { layout1NameMock, layoutMock } from '../../../../../testing/layoutMock';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { componentId } from '../../../../../testing/expressionMocks';
+
 import type { ExpressionPreviewProps } from './ExpressionPreview';
 import { ExpressionPreview } from './ExpressionPreview';
 

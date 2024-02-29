@@ -2,14 +2,14 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
-import { Heading, Paragraph } from '@digdir/design-system-react';
+import { Heading, Paragraph, Accordion } from '@digdir/design-system-react';
 import { useText } from '../../hooks';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 import { useLayoutSetsQuery } from '../../hooks/queries/useLayoutSetsQuery';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
 import { ConfigureLayoutSetPanel } from './ConfigureLayoutSetPanel';
-import { Accordion } from '@digdir/design-system-react';
+
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import classes from './Elements.module.css';
