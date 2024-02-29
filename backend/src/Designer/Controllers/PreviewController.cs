@@ -971,12 +971,9 @@ namespace Altinn.Studio.Designer.Controllers
                 return string.Empty;
             }
 
-            if (IsPreviewVersion(versionParts))
+            if (IsPreviewVersion(versionParts) && GetPreviewVersion(versionParts) < MINIMUM_PREVIEW_NUGET_VERSION)
             {
-                if (GetPreviewVersion(versionParts) < MINIMUM_PREVIEW_NUGET_VERSION)
-                {
-                    return string.Empty;
-                }
+                return string.Empty;
             }
 
             return MINIMUM_NUGET_VERSION;
