@@ -71,15 +71,14 @@ export const ResourceSwitchInput = ({
   const [isChecked, setIsChecked] = useState(value);
 
   return (
-    <>
-      <div className={classes.divider} />
-      <Label size='small' spacing htmlFor={id}>
+    <div className={classes.inputWrapper}>
+      <Label size='small' spacing>
         {label}
       </Label>
-      <div className={classes.inputWrapper}>
-        <Paragraph short size='small' className={classes.description} id={descriptionId}>
-          {description}
-        </Paragraph>
+      <Paragraph short size='small' className={classes.description} id={descriptionId}>
+        {description}
+      </Paragraph>
+      <div className={classes.toggleWrapper}>
         <Switch
           checked={isChecked}
           onChange={(event) => {
@@ -90,19 +89,21 @@ export const ResourceSwitchInput = ({
           onFocus={onFocus}
           id={id}
           aria-describedby={descriptionId}
+          aria-label={label}
           size='small'
-        />
-        <Paragraph
-          size='small'
-          className={isChecked ? classes.toggleTextActive : classes.toggleTextInactive}
         >
-          {t(toggleTextTranslationKey, {
-            shouldText: isChecked
-              ? t('resourceadm.switch_should')
-              : t('resourceadm.switch_should_not'),
-          })}
-        </Paragraph>
+          <Paragraph
+            size='small'
+            className={isChecked ? classes.toggleTextActive : classes.toggleTextInactive}
+          >
+            {t(toggleTextTranslationKey, {
+              shouldText: isChecked
+                ? t('resourceadm.switch_should')
+                : t('resourceadm.switch_should_not'),
+            })}
+          </Paragraph>
+        </Switch>
       </div>
-    </>
+    </div>
   );
 };

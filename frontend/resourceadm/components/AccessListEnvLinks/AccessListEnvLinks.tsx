@@ -7,6 +7,7 @@ import { useUrlParams } from 'resourceadm/hooks/useSelectedContext';
 import { getAvailableEnvironments } from 'resourceadm/utils/resourceUtils/resourceUtils';
 import { useResourcePolicyPublishStatusQuery } from 'resourceadm/hooks/queries';
 import { StudioSpinner } from '@studio/components';
+import { ArrowForwardIcon } from '@studio/icons';
 import classes from './AccessListEnvLinks.module.css';
 
 export const AccessListEnvLinks = (): React.JSX.Element => {
@@ -20,7 +21,10 @@ export const AccessListEnvLinks = (): React.JSX.Element => {
     const isPublishedInEnv = publishStatusData?.publishedVersions.some(
       (version) => version.environment === env.id && version.version,
     );
-    return { ...env, isResourcePublished: isPublishedInEnv };
+    return {
+      ...env,
+      isResourcePublished: isPublishedInEnv || env.id === 'at22' || env.id === 'tt02',
+    };
   });
 
   return (
@@ -54,6 +58,7 @@ export const AccessListEnvLinks = (): React.JSX.Element => {
                   <Link
                     to={`${getResourcePageURL(selectedContext, repo, resourceId, 'accesslists')}/${env.id}/`}
                   >
+                    <ArrowForwardIcon />
                     {t('resourceadm.about_resource_edit_rrr', { env: t(env.label) })}
                   </Link>
                 </Button>

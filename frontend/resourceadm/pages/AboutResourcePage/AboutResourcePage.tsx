@@ -98,8 +98,8 @@ export const AboutResourcePage = ({
    */
   const displayContent = () => {
     return (
-      <>
-        <Heading size='large' spacing level={1}>
+      <div className={classes.resourceFields}>
+        <Heading size='large' level={1}>
           {t('resourceadm.about_resource_title')}
         </Heading>
         <ResourceRadioGroup
@@ -114,6 +114,7 @@ export const AboutResourcePage = ({
           onChange={(selected: ResourceTypeOption) =>
             handleSave({ ...resourceData, resourceType: selected })
           }
+          required
           errorText={t('resourceadm.about_resource_resource_type_error')}
         />
         <ResourceLanguageTextField
@@ -126,6 +127,7 @@ export const AboutResourcePage = ({
           onBlur={(translations: SupportedLanguage) =>
             handleSave({ ...resourceData, title: translations })
           }
+          required
           errorText={showAllErrors ? t('resourceadm.about_resource_error_usage_string_title') : ''}
         />
         <ResourceLanguageTextField
@@ -139,6 +141,7 @@ export const AboutResourcePage = ({
           onBlur={(translations: SupportedLanguage) =>
             handleSave({ ...resourceData, description: translations })
           }
+          required
           errorText={
             showAllErrors ? t('resourceadm.about_resource_error_usage_string_description') : ''
           }
@@ -161,22 +164,25 @@ export const AboutResourcePage = ({
           descriptionId='isDelegableSwitchDescription'
           toggleTextTranslationKey='resourceadm.about_resource_delegable_show_text'
         />
-        <ResourceLanguageTextField
-          label={t('resourceadm.about_resource_rights_description_label')}
-          description={t('resourceadm.about_resource_rights_description_text')}
-          translationDescription={t('resourceadm.about_resource_translation_right_description')}
-          isTranslationPanelOpen={translationType === 'rightDescription'}
-          value={resourceData.rightDescription}
-          onFocus={() => setTranslationType('rightDescription')}
-          onBlur={(translations: SupportedLanguage) =>
-            handleSave({ ...resourceData, rightDescription: translations })
-          }
-          errorText={
-            showAllErrors && resourceData.delegable
-              ? t('resourceadm.about_resource_error_usage_string_rights_description')
-              : ''
-          }
-        />
+        {resourceData.delegable && (
+          <ResourceLanguageTextField
+            label={t('resourceadm.about_resource_rights_description_label')}
+            description={t('resourceadm.about_resource_rights_description_text')}
+            translationDescription={t('resourceadm.about_resource_translation_right_description')}
+            isTranslationPanelOpen={translationType === 'rightDescription'}
+            value={resourceData.rightDescription}
+            onFocus={() => setTranslationType('rightDescription')}
+            onBlur={(translations: SupportedLanguage) =>
+              handleSave({ ...resourceData, rightDescription: translations })
+            }
+            required
+            errorText={
+              showAllErrors && resourceData.delegable
+                ? t('resourceadm.about_resource_error_usage_string_rights_description')
+                : ''
+            }
+          />
+        )}
         <ResourceTextField
           label={t('resourceadm.about_resource_keywords_label')}
           description={t('resourceadm.about_resource_keywords_text')}
@@ -188,7 +194,6 @@ export const AboutResourcePage = ({
           }
         />
         <ResourceRadioGroup
-          spacingTop
           label={t('resourceadm.about_resource_status_label')}
           description={t('resourceadm.about_resource_status_text')}
           value={resourceData.status}
@@ -198,6 +203,7 @@ export const AboutResourcePage = ({
           onChange={(selected: ResourceStatusOption) =>
             handleSave({ ...resourceData, status: selected })
           }
+          required
           errorText={t('resourceadm.about_resource_status_error')}
         />
         {resourceData.resourceType !== 'MaskinportenSchema' && (
@@ -238,6 +244,7 @@ export const AboutResourcePage = ({
             onChange={(selected: ResourceAvailableForTypeOption[]) =>
               handleSave({ ...resourceData, availableForType: selected })
             }
+            required
             value={resourceData.availableForType ?? []}
           />
         )}
@@ -248,6 +255,7 @@ export const AboutResourcePage = ({
             onResourceReferenceFieldChanged={(resourceReferences: ResourceReference[]) => {
               handleSave({ ...resourceData, resourceReferences: resourceReferences });
             }}
+            required
             showErrors={showAllErrors}
           />
         )}
@@ -257,6 +265,7 @@ export const AboutResourcePage = ({
           onContactPointsChanged={(contactPoints: ResourceContactPoint[]) =>
             handleSave({ ...resourceData, contactPoints: contactPoints })
           }
+          required
           showErrors={showAllErrors}
         />
         <ResourceSwitchInput
@@ -290,7 +299,7 @@ export const AboutResourcePage = ({
             )}
           </>
         )}
-      </>
+      </div>
     );
   };
 
