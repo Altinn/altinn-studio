@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Altinn.App.Core.Models;
+using Altinn.Studio.Designer.Models.App;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
 {
