@@ -4,5 +4,5 @@
 }
 
 .datamodelBindings {
-  padding-left: 0;
+  padding: var(--fds-spacing-5) 0;
 }

@@ -989,6 +989,8 @@
   "right_menu.content": "Innhold",
   "right_menu.content_empty": "Ingen komponent valgt...",
   "right_menu.dataModelBindings": "Datamodellknytninger",
+  "right_menu.dataModelBindings_delete_confirm": "Er du sikker på at du vil slette denne datamodellknytningen?",
+  "right_menu.dataModelBindings_edit": "Rediger {{binding}}",
   "right_menu.dynamics": "Dynamikk",
   "right_menu.dynamics_description": "Rediger dynamikk som kan brukes i reglene for beregninger og visning av felter.",
   "right_menu.dynamics_edit": "Rediger dynamikk",
