@@ -41,7 +41,7 @@ export const DesignView = (): ReactNode => {
   const dispatch = useDispatch();
   const { org, app } = useStudioUrlParams();
   const { selectedLayoutSet } = useAppContext();
-  const { mutate: addLayoutMutation, isPending: isAddLayoutPending } = useAddLayoutMutation(
+  const { mutate: addLayoutMutation, isPending: isAddLayoutMutationPending } = useAddLayoutMutation(
     org,
     app,
     selectedLayoutSet,
@@ -100,8 +100,6 @@ export const DesignView = (): ReactNode => {
   };
 
   const handleAddPage = () => {
-    if (isAddLayoutPending) return;
-
     let newNum = 1;
     let newLayoutName = `${t('ux_editor.page')}${layoutOrder.length + newNum}`;
 
@@ -151,15 +149,15 @@ export const DesignView = (): ReactNode => {
           selectedAccordion={openAccordion}
           formLayoutData={formLayoutData}
           onClickAccordion={() => handleClickAccordion(receiptName)}
-          onClickAddPage={() => handleAddPage()}
         />
       </div>
       <div className={classes.buttonContainer}>
         <StudioButton
-          icon={<PlusIcon />}
+          icon={<PlusIcon aria-hidden />}
           onClick={() => handleAddPage()}
           size='small'
           className={classes.button}
+          disabled={isAddLayoutMutationPending}
         >
           {t('ux_editor.pages_add')}
         </StudioButton>

@@ -20,8 +20,6 @@ export const ReceiptContent = ({
   formLayoutData,
   onClickAccordion,
 }: ReceiptContentProps): ReactNode => {
-  const { t } = useTranslation();
-
   if (receiptName) {
     const receiptData = formLayoutData.find((d) => d.page === receiptName);
     if (receiptData === undefined) return null;
