@@ -3,7 +3,6 @@ import React from 'react';
 import { StudioTextfieldSchema, type StudioTextfieldSchemaProps } from './StudioTextfieldSchema';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { before } from 'lodash-es';
 
 const defaultLayoutSchemaMock: JsonSchema = {
   $id: 'id',
