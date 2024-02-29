@@ -1,5 +1,4 @@
 import type {
-  AppDeploymentsResponse,
   AppReleasesResponse,
   CreateRepoCommitPayload,
   DatamodelMetadataResponse,
@@ -20,10 +19,12 @@ import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { Resource, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
-import type { PipelineDeployment } from 'app-shared/types/PipelineDeployment';
+import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import type { Organization } from 'app-shared/types/Organization';
 import type { Repository } from 'app-shared/types/Repository';
+import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
+import type { AppDeployment } from 'app-shared/types/api/AppDeployment';
 
 export const appReleasesResponse: AppReleasesResponse = {
   results: [],
@@ -47,8 +48,9 @@ export const datamodelMetadataResponse: DatamodelMetadataResponse = {
   elements: {},
 };
 
-export const appDeploymentsResponse: AppDeploymentsResponse = {
-  results: [],
+export const appDeployment: AppDeployment = {
+  pipelineDeploymentList: [],
+  kubernetesDeploymentList: [],
 };
 
 export const pipelineDeployment: PipelineDeployment = {
@@ -61,11 +63,17 @@ export const pipelineDeployment: PipelineDeployment = {
   created: '',
   build: {
     id: '',
-    status: BuildStatus.completed,
-    result: BuildResult.succeeded,
+    status: BuildStatus.none,
+    result: BuildResult.none,
     started: '',
     finished: '',
   },
+};
+
+export const kubernetesDeployment: KubernetesDeployment = {
+  envName: '',
+  release: '',
+  version: '',
 };
 
 export const deployEnvironment: DeployEnvironment = {

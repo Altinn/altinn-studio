@@ -7,7 +7,6 @@ import {
   useOrgListQuery,
 } from 'app-development/hooks/queries';
 import { StudioSpinner } from '@studio/components';
-import type { ICreateAppDeploymentEnvObject } from 'app-development/sharedResources/appDeployment/types';
 import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import { AppStatus } from './AppStatus';
 import { Alert } from '@digdir/design-system-react';
@@ -48,8 +47,8 @@ export const AppEnvironments = () => {
     return <NoEnvironmentsAlert />;
   }
 
-  const orgEnvironments: ICreateAppDeploymentEnvObject[] = environmentList.filter(
-    (env: DeployEnvironment) => selectedOrg.environments.includes(env.name),
+  const orgEnvironments: DeployEnvironment[] = environmentList.filter((env: DeployEnvironment) =>
+    selectedOrg.environments.includes(env.name),
   );
 
   return (

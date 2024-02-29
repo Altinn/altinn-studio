@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-import type { AppStatusProps } from './AppStatus';
-import { AppStatus } from './AppStatus';
+import type { AppDeploymentHeaderProps } from './AppDeploymentHeader';
+import { AppDeploymentHeader } from './AppDeploymentHeader';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
 import { textMock } from '../../../../testing/mocks/i18nMock';
@@ -14,18 +14,18 @@ const app = 'test-ttd';
 const envName = 'tt02';
 const envType = 'test';
 
-const render = (props: Partial<AppStatusProps> = {}) => {
-  const allProps: AppStatusProps = {
+const render = (props: Partial<AppDeploymentHeaderProps> = {}) => {
+  const allProps: AppDeploymentHeaderProps = {
     envName,
     envType,
     ...props,
   };
-  return renderWithProviders(<AppStatus {...allProps} />, {
-    startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
+  return renderWithProviders(<AppDeploymentHeader {...allProps} />, {
+    startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/deploy`,
   });
 };
 
-describe('AppStatus', () => {
+describe('AppDeploymentHeader', () => {
   it('shows production when environment is production', async () => {
     render({
       envName: 'production',

@@ -88,11 +88,7 @@ export const AppDeploymentHeader = ({
             severity='warning'
             content={
               <span className={classes.loadingSpinner}>
-                <Spinner
-                  variant='interaction'
-                  title={t('app_deployment.kubernetes_deployment.status.failing')}
-                  size='xsmall'
-                />
+                <Spinner variant='interaction' title='' size='xsmall' />
                 {t('app_deployment.kubernetes_deployment.status.failing')}
               </span>
             }
@@ -106,11 +102,7 @@ export const AppDeploymentHeader = ({
           severity='info'
           content={
             <span className={classes.loadingSpinner}>
-              <Spinner
-                variant='interaction'
-                title={t('app_deployment.kubernetes_deployment.status.progressing')}
-                size='xsmall'
-              />
+              <Spinner variant='interaction' title='' size='xsmall' />
               {t('app_deployment.kubernetes_deployment.status.progressing')}
             </span>
           }
