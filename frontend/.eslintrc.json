@@ -12,6 +12,7 @@
     "react/prop-types": "error",
     "react/require-default-props": "off",
     "import/prefer-default-export": "off",
+    "import/no-duplicates": "error",
     "react/jsx-key": "error",
     "react/jsx-filename-extension": [
       "warn",

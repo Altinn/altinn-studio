@@ -7,6 +7,7 @@ import {
   Paragraph,
   Switch,
   Textfield,
+  ErrorMessage,
 } from '@digdir/design-system-react';
 import classes from './EditOptions.module.css';
 import type { IGenericEditComponent } from '../componentConfig';
@@ -15,7 +16,7 @@ import { PlusIcon, TrashIcon } from '@navikt/aksel-icons';
 import { TextResource } from '../../TextResource';
 import { useText, useComponentErrorMessage } from '../../../hooks';
 import { addOptionToComponent, generateRandomOption } from '../../../utils/component';
-import { ErrorMessage } from '@digdir/design-system-react';
+
 import { FormField } from '../../FormField';
 import { StudioButton } from '@studio/components';
 import type { ComponentType } from 'app-shared/types/ComponentType';

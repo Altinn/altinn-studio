@@ -1,13 +1,14 @@
 import { NumberRestrictionsError } from '@altinn/schema-editor/types';
-import { validateMinMax } from './NumberRestrictionsReducer';
+import {
+  validateMinMax,
+  numberRestrictionsReducer,
+  NumberRestrictionsReducerActionType,
+} from './NumberRestrictionsReducer';
 import type {
   NumberRestrictionsReducerState,
   NumberRestrictionsReducerAction,
 } from './NumberRestrictionsReducer';
-import {
-  numberRestrictionsReducer,
-  NumberRestrictionsReducerActionType,
-} from './NumberRestrictionsReducer';
+
 import { IntRestrictionKey } from '@altinn/schema-model';
 
 const maxNumber = 5;
