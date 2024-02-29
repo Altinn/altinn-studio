@@ -966,21 +966,35 @@ namespace Altinn.Studio.Designer.Controllers
         {
 
             string[] versionParts = version.Split('.');
-            if (versionParts.Length < 3 || Convert.ToInt32(versionParts[0]) < 8)
+            if (!IsValidSemVerVersion(versionParts))
             {
                 return string.Empty;
             }
 
-            if (versionParts[2].Contains("-preview") && versionParts.Length == 4)
+            if (IsPreviewVersion(versionParts))
             {
-                int previewVersion = Convert.ToInt32(versionParts[3]);
-                if (previewVersion < MINIMUM_PREVIEW_NUGET_VERSION)
+                if (GetPreviewVersion(versionParts) < MINIMUM_PREVIEW_NUGET_VERSION)
                 {
                     return string.Empty;
                 }
             }
 
             return MINIMUM_NUGET_VERSION;
+        }
+
+        private bool IsValidSemVerVersion(string[] versionParts)
+        {
+            return versionParts.Length >= 3 && Convert.ToInt32(versionParts[0]) >= 8;
+        }
+
+        private bool IsPreviewVersion(string[] versionParts)
+        {
+            return versionParts[2].Contains("-preview") && versionParts.Length == 4;
+        }
+
+        private int GetPreviewVersion(string[] versionParts)
+        {
+            return Convert.ToInt32(versionParts[3]);
         }
     }
 }
