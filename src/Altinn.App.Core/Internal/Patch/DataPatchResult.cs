@@ -1,12 +1,11 @@
-using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Models.Validation;
 
-namespace Altinn.App.Api.Models;
+namespace Altinn.App.Core.Internal.Patch;
 
 /// <summary>
-/// Represents the response from a data patch operation on the <see cref="DataController"/>.
+/// Result of a data patch operation in the <see cref="IPatchService"/>.
 /// </summary>
-public class DataPatchResponse
+public class DataPatchResult
 {
     /// <summary>
     /// The validation issues that were found during the patch operation.
