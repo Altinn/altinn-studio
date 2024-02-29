@@ -1,7 +1,10 @@
 import React from 'react';
 import { act, render, screen, fireEvent } from '@testing-library/react';
-import { StudioToggleableTextfield } from './StudioToggableTextfield';
-import type { StudioToggleableTextfieldProps } from './StudioToggableTextfield';
+import {
+  StudioToggleableTextfield,
+  type StudioToggleableTextfieldProps,
+} from './StudioToggleableTextfield';
+
 import userEvent from '@testing-library/user-event';
 
 describe('StudioToggleableTextfield', () => {

@@ -4,7 +4,7 @@ import { type JsonSchema } from '../../types/JSONSchema';
 import {
   StudioToggleableTextfield,
   type StudioToggleableTextfieldProps,
-} from '../StudioToggableTextfield';
+} from '../StudioToggleableTextfield';
 
 export type SchemaValidationError = {
   errorCode: string;

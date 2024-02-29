@@ -1,7 +1,7 @@
 export {
   StudioToggleableTextfield,
   type StudioToggleableTextfieldProps,
-} from './StudioToggableTextfield';
+} from './StudioToggleableTextfield';
 export {
   StudioTextfieldToggleView,
   type StudioTextfieldToggleViewProps,

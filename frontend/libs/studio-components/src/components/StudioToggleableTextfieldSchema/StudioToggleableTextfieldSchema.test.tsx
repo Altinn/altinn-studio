@@ -1,6 +1,9 @@
 import type { JsonSchema } from '../../types/JSONSchema';
 import React from 'react';
-import { StudioTextfieldSchema, type StudioTextfieldSchemaProps } from './StudioTextfieldSchema';
+import {
+  StudioTextfieldSchema,
+  type StudioTextfieldSchemaProps,
+} from './StudioToggleableTextfieldSchema';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
