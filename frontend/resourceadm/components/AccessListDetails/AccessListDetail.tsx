@@ -6,7 +6,6 @@ import classes from './AccessListDetail.module.css';
 import type { AccessList } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from '../FieldWrapper';
 import { useEditAccessListMutation } from '../../hooks/mutations/useEditAccessListMutation';
-import { createReplacePatch } from '../../utils/jsonPatchUtils/jsonPatchUtils';
 import { useDeleteAccessListMutation } from '../../hooks/mutations/useDeleteAccessListMutation';
 import { AccessListMembers } from '../AccessListMembers';
 import { TrashIcon } from '@studio/icons';
@@ -37,8 +36,8 @@ export const AccessListDetail = ({
   const { mutate: deleteAccessList } = useDeleteAccessListMutation(org, list.identifier, env);
 
   // change list name, description and possibly other properties
-  const handleSave = (diff: Partial<AccessList>): void => {
-    editAccessList(createReplacePatch<Partial<AccessList>>(diff));
+  const handleSave = (accessList: AccessList): void => {
+    editAccessList(accessList);
   };
 
   const handleDelete = (): void => {
@@ -90,7 +89,7 @@ export const AccessListDetail = ({
           aria-describedby='listname-description'
           value={listName}
           onChange={(event) => setListName(event.target.value)}
-          onBlur={(event) => handleSave({ name: event.target.value })}
+          onBlur={(event) => handleSave({ ...list, name: event.target.value })}
         />
       </FieldWrapper>
       <FieldWrapper
@@ -104,7 +103,7 @@ export const AccessListDetail = ({
           aria-describedby='listdescription-description'
           value={listDescription}
           onChange={(event) => setListDescription(event.target.value)}
-          onBlur={(event) => handleSave({ description: event.target.value })}
+          onBlur={(event) => handleSave({ ...list, description: event.target.value })}
         />
       </FieldWrapper>
       <AccessListMembers org={org} env={env} list={list} />
