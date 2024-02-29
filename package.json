@@ -3,7 +3,7 @@
   "dependencies": {
     "@altinn/altinn-design-system": "0.30.0",
     "@altinn/figma-design-tokens": "6.0.1",
-    "@digdir/design-system-react": "0.49.0",
+    "@digdir/design-system-react": "0.51.1",
     "@digdir/design-system-tokens": "0.13.0",
     "@microsoft/applicationinsights-react-js": "17.1.0",
     "@microsoft/applicationinsights-web": "3.1.0",
