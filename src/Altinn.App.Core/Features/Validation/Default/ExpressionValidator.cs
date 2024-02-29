@@ -59,14 +59,14 @@ public class ExpressionValidator : IFormDataValidator
             return new List<ValidationIssue>();
         }
 
-        var validationConfig = JsonDocument.Parse(rawValidationConfig).RootElement;
+        using var validationConfig = JsonDocument.Parse(rawValidationConfig);
         var appMetadata = await _appMetadata.GetApplicationMetadata();
-        var layoutSet = _appResourceService.GetLayoutSetForTask(appMetadata.DataTypes.First(dt=>dt.Id == dataElement.DataType).TaskId);
+        var layoutSet = _appResourceService.GetLayoutSetForTask(appMetadata.DataTypes.First(dt => dt.Id == dataElement.DataType).TaskId);
         var evaluatorState = await _layoutEvaluatorStateInitializer.Init(instance, data, layoutSet?.Id);
         var hiddenFields = LayoutEvaluator.GetHiddenFieldsForRemoval(evaluatorState, true);
 
         var validationIssues = new List<ValidationIssue>();
-        var expressionValidations = ParseExpressionValidationConfig(validationConfig, _logger);
+        var expressionValidations = ParseExpressionValidationConfig(validationConfig.RootElement, _logger);
         foreach (var validationObject in expressionValidations)
         {
             var baseField = validationObject.Key;
@@ -74,7 +74,8 @@ public class ExpressionValidator : IFormDataValidator
             var validations = validationObject.Value;
             foreach (var resolvedField in resolvedFields)
             {
-                if (hiddenFields.Contains(resolvedField)) {
+                if (hiddenFields.Contains(resolvedField))
+                {
                     continue;
                 }
                 var context = new ComponentContext(component: null, rowIndices: DataModel.GetRowIndices(resolvedField), rowLength: null);
@@ -106,7 +107,7 @@ public class ExpressionValidator : IFormDataValidator
                             validationIssues.Add(validationIssue);
                         }
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         _logger.LogError(e, "Error while evaluating expression validation for {resolvedField}", resolvedField);
                         throw;
