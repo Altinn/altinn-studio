@@ -2,7 +2,7 @@ import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import type { ErrorObject } from 'ajv';
 
-export const ajv = new Ajv({
+const ajv = new Ajv({
   allErrors: true,
   strict: false,
 });
@@ -18,10 +18,6 @@ export const addSchemas = (schemas: any[]) => {
       }
     }
   });
-};
-
-export const getSchema = ($id: string) => {
-  return ajv.getSchema($id);
 };
 
 export const getPropertyByPath = (schema: any, path: string) => {
