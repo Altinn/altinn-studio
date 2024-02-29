@@ -11,12 +11,13 @@ import {
   hasMultiPageGroup,
   hasNavigationButtons,
   hasSubContainers,
+  isComponentTypeValidChild,
   isContainer,
+  isItemChildOfContainer,
   moveLayoutItem,
   removeComponent,
   removeComponentsByType,
   updateContainer,
-  isComponentTypeValidChild,
   validateDepth,
 } from './formLayoutUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -521,6 +522,32 @@ describe('formLayoutUtils', () => {
       expect(isComponentTypeValidChild(mockInternal, buttonGroupId, ComponentType.Paragraph)).toBe(
         false,
       );
+    });
+  });
+
+  describe('isItemChildOfContainer', () => {
+    it('Returns true if the item is a child of the given container type', () => {
+      expect(
+        isItemChildOfContainer(mockInternal, paragraphInGroupComponent, ComponentType.Group),
+      ).toBe(true);
+    });
+
+    it('Returns true if the item is a child of any container when containerType is not specified', () => {
+      expect(isItemChildOfContainer(mockInternal, paragraphInGroupComponent)).toBe(true);
+    });
+
+    it('Returns false if the item is not a child of the given container type', () => {
+      expect(
+        isItemChildOfContainer(
+          mockInternal,
+          paragraphInGroupComponent,
+          ComponentType.AccordionGroup,
+        ),
+      ).toBe(false);
+    });
+
+    it('Returns false if the item is not a child of any container when containerType is not specified', () => {
+      expect(isItemChildOfContainer(mockInternal, paragraphComponent)).toBe(false);
     });
   });
 

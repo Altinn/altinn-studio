@@ -1,6 +1,6 @@
 using System.IO;
 using System.Threading.Tasks;
-using Altinn.App.Core.Models;
+using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 using Microsoft.AspNetCore.Authorization;

@@ -1,0 +1,29 @@
+.definedBinding {
+  border-radius: 0;
+  padding-left: var(--fds-spacing-5);
+  padding-right: var(--fds-spacing-5);
+}
+
+.mainContent {
+  align-items: flex-start;
+  color: var(--fds-semantic-text-neutral-default);
+  display: flex;
+  flex-direction: column;
+}
+
+.selectedOption {
+  align-items: center;
+  display: flex;
+  gap: var(--fds-spacing-1);
+}
+
+.pencilIcon {
+  visibility: hidden;
+  flex: 1;
+  text-align: right;
+}
+
+.definedBinding:hover .pencilIcon,
+.definedBinding:focus .pencilIcon {
+  visibility: visible;
+}

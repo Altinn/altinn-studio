@@ -3,7 +3,6 @@ import { CheckmarkIcon, TrashIcon, PencilWritingIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import type { ButtonProps } from '@digdir/design-system-react';
 import classes from './InputActionWrapper.module.css';
-import cn from 'classnames';
 import { StudioButton } from '@studio/components';
 
 type AvailableAction = 'edit' | 'save' | 'delete';
@@ -11,7 +10,7 @@ export type ActionGroup = 'editMode' | 'hoverMode' | 'standBy';
 
 const actionGroupMap: Record<ActionGroup, AvailableAction[]> = {
   editMode: ['save', 'delete'],
-  hoverMode: ['edit', 'delete'],
+  hoverMode: ['edit'],
   standBy: [],
 };
 
@@ -97,7 +96,7 @@ export const InputActionWrapper = ({
 
   return (
     <div
-      className={cn(classes.container, mode === 'standBy' && classes.standByContainer)}
+      className={mode === 'standBy' ? classes.preview : classes.edit}
       onMouseOver={handleHover}
       onMouseLeave={handleMouseLeave}
     >
@@ -105,13 +104,11 @@ export const InputActionWrapper = ({
         ...rest,
         onFocus: handleFocus,
       })}
-      <div
-        className={cn(classes.buttonWrapper, mode === 'standBy' && classes.standByButtonWrapper)}
-      >
+      <div className={classes.buttonWrapper}>
         {actions.map((action) => (
           <StudioButton
-            variant='tertiary'
-            size='medium'
+            variant={mode === 'standBy' ? 'tertiary' : 'secondary'}
+            size='small'
             color={actionToColorMap[action]}
             key={action}
             onClick={() => handleActionClick(action)}

@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -7,8 +6,6 @@ using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Polly;
-using Polly.Retry;
 using Xunit;
 
 namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
