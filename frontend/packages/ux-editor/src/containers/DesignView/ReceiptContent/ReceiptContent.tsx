@@ -4,7 +4,6 @@ import classes from './ReceiptContent.module.css';
 import type { FormLayoutPage } from '../../../types/FormLayoutPage';
 import { PageAccordion } from '../PageAccordion';
 import { Accordion } from '@digdir/design-system-react';
-import { useTranslation } from 'react-i18next';
 import { FormTree } from '../FormTree';
 
 export type ReceiptContentProps = {
