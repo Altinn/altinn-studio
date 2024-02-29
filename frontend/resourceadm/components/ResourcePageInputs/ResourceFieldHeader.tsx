@@ -5,13 +5,11 @@ import classes from './ResourcePageInputs.module.css';
 
 interface ResourceFieldHeaderProps {
   label: string;
-  fieldId?: string;
   required?: boolean;
 }
 
 export const ResourceFieldHeader = ({
   label,
-  fieldId,
   required,
 }: ResourceFieldHeaderProps): React.ReactNode => {
   const { t } = useTranslation();

@@ -151,7 +151,6 @@ export const AboutResourcePage = ({
           description={t('resourceadm.about_resource_homepage_text')}
           value={resourceData.homepage ?? ''}
           onFocus={() => setTranslationType('none')}
-          id='aboutHomepage'
           onBlur={(val: string) => handleSave({ ...resourceData, homepage: val })}
         />
         <ResourceSwitchInput
@@ -188,7 +187,6 @@ export const AboutResourcePage = ({
           description={t('resourceadm.about_resource_keywords_text')}
           value={resourceData.keywords ? mapKeywordsArrayToString(resourceData.keywords) : ''}
           onFocus={() => setTranslationType('none')}
-          id='aboutKeywords'
           onBlur={(val: string) =>
             handleSave({ ...resourceData, keywords: mapKeywordStringToKeywordTypeArray(val) })
           }

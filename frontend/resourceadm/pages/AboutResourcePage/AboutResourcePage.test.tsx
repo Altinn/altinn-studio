@@ -101,6 +101,7 @@ describe('AboutResourcePage', () => {
 
     const titleNbInput = screen.getByLabelText(
       textMock('resourceadm.about_resource_resource_title_label'),
+      { exact: false },
     );
     expect(titleNbInput).toHaveValue(mockResource1.title.nb);
 
@@ -122,12 +123,14 @@ describe('AboutResourcePage', () => {
 
     const titleNbInput = screen.getByLabelText(
       textMock('resourceadm.about_resource_resource_title_label'),
+      { exact: false },
     );
     await act(() => user.type(titleNbInput, mockNewTitleInput));
     expect(mockOnSaveResource).not.toHaveBeenCalled();
 
     const descriptionNbInput = screen.getByLabelText(
       textMock('resourceadm.about_resource_resource_description_label'),
+      { exact: false },
     );
     await act(() => user.type(descriptionNbInput, mockNewDescriptionInput));
     expect(mockOnSaveResource).toHaveBeenCalled();
@@ -139,6 +142,7 @@ describe('AboutResourcePage', () => {
 
     const descriptionNbInput = screen.getByLabelText(
       textMock('resourceadm.about_resource_resource_description_label'),
+      { exact: false },
     );
     expect(descriptionNbInput).toHaveValue(mockResource1.description.nb);
 
@@ -211,6 +215,7 @@ describe('AboutResourcePage', () => {
 
     const rightDescriptionInput = screen.getByLabelText(
       textMock('resourceadm.about_resource_rights_description_label'),
+      { exact: false },
     );
     expect(rightDescriptionInput).toHaveValue(mockResource1.rightDescription.nb);
 
@@ -218,7 +223,9 @@ describe('AboutResourcePage', () => {
     await act(() => user.type(rightDescriptionInput, mockNewRightDescriptionInput));
 
     expect(
-      screen.getByLabelText(textMock('resourceadm.about_resource_rights_description_label')),
+      screen.getByLabelText(textMock('resourceadm.about_resource_rights_description_label'), {
+        exact: false,
+      }),
     ).toHaveValue(`${mockResource1.rightDescription.nb}${mockNewRightDescriptionInput}`);
   });
 

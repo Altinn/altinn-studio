@@ -24,10 +24,6 @@ type ResourceTextFieldProps = {
    */
   onFocus: () => void;
   /**
-   * The id of the field
-   */
-  id: string;
-  /**
    * Flag for if the value is valid
    */
   isValid?: boolean;
@@ -63,7 +59,6 @@ type ResourceTextFieldProps = {
  * @property {string}[description] - The description of the text field
  * @property {string}[value] - The value in the field
  * @property {function}[onFocus] - unction to be executed when the field is focused
- * @property {string}[id] - The id of the field
  * @property {boolean}[isValid] - Flag for if the value is valid
  * @property {function}[onKeyDown] - Function to be executed on key down
  * @property {function}[onBlur] - Function to be executed on blur
@@ -80,7 +75,6 @@ export const ResourceTextField = forwardRef<HTMLInputElement, ResourceTextFieldP
       description,
       value,
       onFocus,
-      id,
       isValid = true,
       onKeyDown,
       onBlur,
@@ -95,7 +89,7 @@ export const ResourceTextField = forwardRef<HTMLInputElement, ResourceTextFieldP
     return (
       <div className={classes.inputWrapper}>
         <Textfield
-          label={<ResourceFieldHeader label={label} fieldId={id} required={required} />}
+          label={<ResourceFieldHeader label={label} required={required} />}
           description={description}
           size='small'
           value={val}
