@@ -1,10 +1,9 @@
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import type { Policy } from '@altinn/policy-editor';
+import type { Policy, RequiredAuthLevel } from '@altinn/policy-editor';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { AxiosError } from 'axios';
-import type { RequiredAuthLevel } from '@altinn/policy-editor';
 
 const DEFAULT_AUTH_LEVEL: RequiredAuthLevel = '3';
 
