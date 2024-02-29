@@ -1,13 +1,4 @@
-.StudioTextfieldSchema {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.container {
   width: 100%;
-}
-
-.prefixIcon {
-  color: var(--fds-semantic-text-neutral-default);
-  font-size: 25px;
-  display: flex;
-  align-items: center;
+  padding-bottom: var(--fds-spacing-2);
 }

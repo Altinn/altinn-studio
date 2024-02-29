@@ -55,14 +55,13 @@ export const EditComponentIdRow = ({
   };
 
   return (
-    <div className={classes.StudioTextfieldSchema}>
+    <div className={classes.container}>
       <StudioTextfieldSchema
         onError={handleValidationError}
         layoutSchema={layoutSchema}
         relatedSchemas={[expressionSchema, numberFormatSchema]}
         propertyPath='definitions/component/properties/id'
         key={component.id}
-        helpText={t('ux_editor.edit_component.id_help_text')}
         viewProps={{
           children: `ID: ${component.id}`,
           variant: 'tertiary',
@@ -70,7 +69,7 @@ export const EditComponentIdRow = ({
           style: { paddingLeft: 0, paddingRight: 0 },
         }}
         inputProps={{
-          icon: <KeyVerticalIcon className={classes.prefixIcon} />,
+          icon: <KeyVerticalIcon />,
           value: idInputValue,
           onBlur: (event) => saveComponentUpdate(event.target.value),
           label: 'ID',

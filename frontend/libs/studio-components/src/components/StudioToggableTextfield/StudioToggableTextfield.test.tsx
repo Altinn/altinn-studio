@@ -101,17 +101,6 @@ describe('StudioToggleableTextfield', () => {
     expect(onChangeMock).toHaveBeenCalledTimes(inputValue.length);
   });
 
-  it('should render the help text button when toggle to edit mode', async () => {
-    const user = userEvent.setup();
-
-    renderStudioTextField({
-      viewProps: { children: 'edit' },
-    });
-
-    await act(() => user.click(screen.getByRole('button', { name: 'edit' })));
-    expect(screen.getByText('helpText'));
-  });
-
   it('should render error message if customValidation occured', async () => {
     const user = userEvent.setup();
 
@@ -138,7 +127,6 @@ const renderStudioTextField = (props: Partial<StudioToggleableTextfieldProps>) =
       children: 'edit',
     },
     customValidation: jest.fn(),
-    helpText: 'helpText',
   };
   return render(<StudioToggleableTextfield {...defaultProps} {...props} />);
 };
