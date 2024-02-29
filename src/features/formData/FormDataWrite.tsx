@@ -110,7 +110,15 @@ export function FormDataWriteProvider({ url, initialData, autoSaving, children }
 
 function FormDataEffects({ url }: { url: string }) {
   const state = useSelector((s) => s);
-  const { currentData, debouncedCurrentData, lastSavedData, controlState, cancelSave } = state;
+  const {
+    currentData,
+    debouncedCurrentData,
+    lastSavedData,
+    controlState,
+    cancelSave,
+    invalidCurrentData,
+    invalidDebouncedCurrentData,
+  } = state;
   const { debounceTimeout, autoSaving, manualSaveRequested, lockedBy, isSaving } = controlState;
   const { mutate, error } = useFormDataSaveMutation(state);
   const debounce = useDebounceImmediately();
@@ -152,13 +160,13 @@ function FormDataEffects({ url }: { url: string }) {
   // saving the data model to the backend. Freezing can also be triggered manually, when a manual save is requested.
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (currentData !== debouncedCurrentData) {
+      if (currentData !== debouncedCurrentData || invalidCurrentData !== invalidDebouncedCurrentData) {
         debounce();
       }
     }, debounceTimeout);
 
     return () => clearTimeout(timer);
-  }, [debounce, currentData, debouncedCurrentData, debounceTimeout]);
+  }, [debounce, currentData, debouncedCurrentData, debounceTimeout, invalidCurrentData, invalidDebouncedCurrentData]);
 
   // Save the data model when the data has been frozen to debouncedCurrentData and is different from the saved data
   useEffect(() => {

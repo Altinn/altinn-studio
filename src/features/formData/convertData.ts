@@ -49,25 +49,30 @@ function convertToType(value: Value, schema: JSONSchema7 | JSONSchema7Definition
     typeof schema.type === 'string' &&
     AllValidTypes.includes(schema.type as any)
   ) {
-    return convertToScalar(value, schema.type as ValidTypes);
+    return convertToScalar(value, schema.type as ValidTypes, schema['@xsdType']);
   }
 
   throw new Error(`Unsupported schema: ${JSON.stringify(schema)}`);
 }
 
-function convertToScalar(value: Value, targetType: ValidTypes): ReturnType {
+function convertToScalar(value: Value, targetType: ValidTypes, xsdType?: string): ReturnType {
   const sVal = String(value);
   if (targetType === 'string') {
     return { newValue: sVal, error: false };
   }
 
-  if (targetType === 'number') {
-    const parsed = asDecimal(sVal);
-    return isNaN(parsed) ? { newValue: undefined, error: true } : { newValue: parsed, error: false };
-  }
+  if (targetType === 'number' || targetType === 'integer') {
+    let parsed: number;
+    if (xsdType === 'int') {
+      parsed = asInt32(sVal);
+    } else if (xsdType === 'long') {
+      parsed = asInt64(sVal);
+    } else if (xsdType === 'short') {
+      parsed = asInt16(sVal);
+    } else {
+      parsed = asDecimal(sVal);
+    }
 
-  if (targetType === 'integer') {
-    const parsed = asInt32(sVal);
     return isNaN(parsed) ? { newValue: undefined, error: true } : { newValue: parsed, error: false };
   }
 
@@ -84,38 +89,67 @@ function convertToScalar(value: Value, targetType: ValidTypes): ReturnType {
   return { newValue: undefined, error: true };
 }
 
-/**
- * Checks if a string can be parsed to a decimal in C#.
- * 1. Empty string is not valid
- * 2. Value must be parsable as float in javascript
- * 3. Value must be between +- 7.9e28
- * 4. Spaces will be removed, and commas will be replaced with dots
- * @see https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/floating-point-numeric-types
- */
-export function asDecimal(value: string): number {
-  if (!value.length) {
-    return NaN;
-  }
-  const trimmed = value.replace(/,/g, '.').replace(/\s/g, '');
-  if (trimmed.endsWith('.')) {
-    return NaN;
-  }
-  const parsedValue = parseFloat(trimmed);
-  return !isNaN(parsedValue) && isFinite(parsedValue) && parsedValue < 7.92e28 && parsedValue > -7.92e28
-    ? parsedValue
-    : NaN;
-}
-
-export function asInt32(value: string): number {
+function asNumber(value: string, type: 'float' | 'int', isValid: (n: number) => boolean): number {
   if (!value.length) {
     return NaN;
   }
   const trimmed = value.replace(/,/g, '').replace(/\s/g, '');
-  if (!trimmed.match(/^-?\d+$/)) {
+  if ((type === 'int' && !trimmed.match(/^-?\d+$/)) || (type === 'float' && !trimmed.match(/^-?\d+(\.\d+)?$/))) {
     return NaN;
   }
-  const parsedValue = parseInt(trimmed);
-  return !isNaN(parsedValue) && isFinite(parsedValue) && parsedValue < 2147483647 && parsedValue > -2147483648
-    ? parsedValue
-    : NaN;
+  const parsedValue = type === 'float' ? parseFloat(trimmed) : parseInt(trimmed, 10);
+  if (isNaN(parsedValue) || !isFinite(parsedValue)) {
+    return NaN;
+  }
+
+  if (!isValid(parsedValue)) {
+    return NaN;
+  }
+
+  // The number type in JS is sneaky, because it cannot properly represent all numbers, and it will lie to you
+  // about it by rounding them. By checking the string representation of the number, we can see if it was rounded
+  // when parsed. If it was, we return NaN to indicate that the number is not valid and could not be parsed properly.
+  // We don't know the importance of the precision, so instead of losing precision, we show validation errors.
+  const toStr = parsedValue.toString();
+  if (toStr !== trimmed) {
+    // Remove leading zeros and check again (0001 === 1)
+    const trimmedNoLeadingZeros = trimmed.replace(/^(-?)0+/, '$1');
+    if (parsedValue.toString() === trimmedNoLeadingZeros) {
+      return parsedValue;
+    }
+    // If the number is a decimal, try to remove trailing zeros (1.2000 === 1.2)
+    const trimmedNoTrailingZeros = trimmed.replace(/(\.\d+?)0+$/, '$1');
+    if (parsedValue.toString() === trimmedNoTrailingZeros) {
+      return parsedValue;
+    }
+    return NaN;
+  }
+
+  return parsedValue;
+}
+
+/**
+ * Checks if a string can be parsed to a decimal in C#.
+ * 1. Empty string is not valid
+ * 2. Value must be parsable as float in javascript
+ * 3. Spaces will be removed, and commas will be replaced with dots
+ * 4. Since the JS number type is a double, we can't check for overflow - so the number type bounds are used instead
+ * @see https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/floating-point-numeric-types
+ */
+export function asDecimal(value: string): number {
+  // We always indicate that this is valid as long as it's possible to parse it as a number. The limits for a decimal
+  // type in C# are larger than the limits for a number in JS, so we can't check for overflow.
+  return asNumber(value, 'float', () => true);
+}
+
+export function asInt32(value: string): number {
+  return asNumber(value, 'int', (n) => n <= Math.pow(2, 31) - 1 && n >= -Math.pow(2, 31));
+}
+
+export function asInt64(value: string): number {
+  return asNumber(value, 'int', (n) => n <= Number.MAX_SAFE_INTEGER && n >= Number.MIN_SAFE_INTEGER);
+}
+
+export function asInt16(value: string): number {
+  return asNumber(value, 'int', (n) => n <= Math.pow(2, 15) - 1 && n >= -Math.pow(2, 15));
 }

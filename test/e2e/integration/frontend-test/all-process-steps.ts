@@ -304,6 +304,8 @@ const knownDataModels: { [key: string]: any } = {
       Kommune: null,
       KommunerMetadata: 'language=nb,id=131,variant=,date=ANY_DATE,level=,parentCode=',
     },
+    ChooseExtraPages: null,
+    Numeric: null,
     GridData: {
       TotalGjeld: 1000000,
       Bolig: { Prosent: 80, Belop: 800000, Verifisert: null, IBruk: null },
