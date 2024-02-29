@@ -43,7 +43,7 @@ export const EditDataModelBindings = ({
         ...component.dataModelBindings,
         [key]: selectedDataModelElement,
       },
-      required: getMinOccursFromDataModel(selectedDataModelElement, data) > 0,
+      required: getMinOccursFromDataModel(selectedDataModelElement, data) > 0 || undefined,
       timeStamp:
         component.type === ComponentType.Datepicker
           ? getXsdDataTypeFromDataModel(selectedDataModelElement, data) === 'DateTime'
