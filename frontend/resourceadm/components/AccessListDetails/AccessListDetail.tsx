@@ -36,8 +36,8 @@ export const AccessListDetail = ({
   const { mutate: deleteAccessList } = useDeleteAccessListMutation(org, list.identifier, env);
 
   // change list name, description and possibly other properties
-  const handleSave = (payload: AccessList): void => {
-    editAccessList(payload);
+  const handleSave = (accessList: AccessList): void => {
+    editAccessList(accessList);
   };
 
   const handleDelete = (): void => {
