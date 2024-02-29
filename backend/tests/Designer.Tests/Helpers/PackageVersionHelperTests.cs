@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using Altinn.Studio.Designer.Helpers;
 using DotNet.Testcontainers.Builders;
 using FluentAssertions;
