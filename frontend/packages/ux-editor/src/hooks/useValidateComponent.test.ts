@@ -1,4 +1,3 @@
-import { ComponentType } from 'app-shared/types/ComponentType';
 import { ErrorCode, useValidateComponent } from './useValidateComponent';
 import type {
   FormCheckboxesComponent,
@@ -6,6 +5,7 @@ import type {
   FormRadioButtonsComponent,
 } from '../types/FormComponent';
 import { optionListIdsMock, renderHookWithMockStore } from '../testing/mocks';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 describe('useValidateComponent', () => {
   describe('Checkboxes', () => {
@@ -16,7 +16,9 @@ describe('useValidateComponent', () => {
         id: 'test',
         optionsId: '',
         options: [],
-        dataModelBindings: {},
+        dataModelBindings: {
+          simpleBinding: '',
+        },
       };
       expect(render(component)).toEqual({
         isValid: false,
@@ -34,7 +36,9 @@ describe('useValidateComponent', () => {
           { label: 'test1', value: 'test' },
           { label: 'test2', value: 'test' },
         ],
-        dataModelBindings: {},
+        dataModelBindings: {
+          simpleBinding: '',
+        },
       };
       expect(render(component)).toEqual({
         isValid: false,
@@ -49,7 +53,9 @@ describe('useValidateComponent', () => {
         id: 'test',
         optionsId: optionListIdsMock[0],
         options: [],
-        dataModelBindings: {},
+        dataModelBindings: {
+          simpleBinding: '',
+        },
       };
       expect(render(component)).toEqual({ isValid: true });
     });
@@ -64,7 +70,9 @@ describe('useValidateComponent', () => {
           { label: 'test1', value: 'test1' },
           { label: 'test2', value: 'test2' },
         ],
-        dataModelBindings: {},
+        dataModelBindings: {
+          simpleBinding: '',
+        },
       };
       expect(render(component)).toEqual({ isValid: true });
     });
@@ -78,7 +86,9 @@ describe('useValidateComponent', () => {
         id: 'test',
         optionsId: '',
         options: [],
-        dataModelBindings: {},
+        dataModelBindings: {
+          simpleBinding: '',
+        },
       };
       expect(render(component)).toEqual({
         isValid: false,
@@ -96,7 +106,9 @@ describe('useValidateComponent', () => {
           { label: 'test1', value: 'test' },
           { label: 'test2', value: 'test' },
         ],
-        dataModelBindings: {},
+        dataModelBindings: {
+          simpleBinding: '',
+        },
       };
       expect(render(component)).toEqual({
         isValid: false,
@@ -111,7 +123,9 @@ describe('useValidateComponent', () => {
         id: 'test',
         optionsId: optionListIdsMock[1],
         options: [],
-        dataModelBindings: {},
+        dataModelBindings: {
+          simpleBinding: '',
+        },
       };
       expect(render(component)).toEqual({ isValid: true });
     });
@@ -126,7 +140,9 @@ describe('useValidateComponent', () => {
           { label: 'test1', value: 'test1' },
           { label: 'test2', value: 'test2' },
         ],
-        dataModelBindings: {},
+        dataModelBindings: {
+          simpleBinding: '',
+        },
       };
       expect(render(component)).toEqual({ isValid: true });
     });

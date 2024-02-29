@@ -21,6 +21,9 @@ export const component1Mock: FormComponent<ComponentType.Input> = {
   itemType: 'COMPONENT',
   propertyPath: 'definitions/inputComponent',
   pageIndex: null,
+  dataModelBindings: {
+    simpleBinding: 'someBinding',
+  },
 };
 export const component2IdMock = 'Component-2';
 export const component2TypeMock = ComponentType.Paragraph;
@@ -35,7 +38,9 @@ export const component3Mock: FormComponent = {
   id: component3IdMock,
   type: ComponentType.FileUpload,
   itemType: 'COMPONENT',
-  description: 'test',
+  dataModelBindings: {
+    simpleBinding: 'someBinding',
+  },
   displayMode: 'list',
   pageIndex: null,
   propertyPath: 'definitions/fileUploadComponent',
@@ -51,6 +56,9 @@ export const componentWithOptionsMock: FormComponent = {
   pageIndex: null,
   optionsId: '',
   propertyPath: 'definitions/radioAndCheckboxComponents',
+  dataModelBindings: {
+    simpleBinding: 'someBinding',
+  },
 };
 export const container1IdMock = 'Container-1';
 export const container2IdMock = 'Container-2';
@@ -113,11 +121,17 @@ export const layout1Mock: ExternalFormLayout = {
       {
         id: container2IdMock,
         type: ComponentType.RepeatingGroup,
+        dataModelBindings: {
+          group: 'someGroup',
+        },
         children: [component2IdMock, component3IdMock],
       },
       {
         id: component1IdMock,
         type: component1TypeMock,
+        dataModelBindings: {
+          simpleBinding: 'someBinding',
+        },
       },
       {
         id: component2IdMock,
@@ -126,7 +140,9 @@ export const layout1Mock: ExternalFormLayout = {
       {
         id: component3IdMock,
         type: ComponentType.FileUpload,
-        description: 'test',
+        dataModelBindings: {
+          simpleBinding: 'someBinding',
+        },
         displayMode: 'list',
         hasCustomFileEndings: false,
         maxFileSizeInMB: 1,
@@ -137,6 +153,9 @@ export const layout1Mock: ExternalFormLayout = {
         id: 'ComponentWithOptionsMock',
         type: ComponentType.Checkboxes,
         optionsId: '',
+        dataModelBindings: {
+          simpleBinding: 'someBinding',
+        },
       },
     ],
     ...customDataPropertiesMock,

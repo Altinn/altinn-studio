@@ -55,25 +55,33 @@ const formLayoutsData: IFormLayouts = {
         id: component0AId,
         type: ComponentType.Input,
         itemType: 'COMPONENT',
-        dataModelBindings: {},
+        dataModelBindings: {
+          simpleBinding: '',
+        },
       },
       [component0BId]: {
         id: component0BId,
         type: ComponentType.Input,
         itemType: 'COMPONENT',
-        dataModelBindings: {},
+        dataModelBindings: {
+          simpleBinding: '',
+        },
       },
       [component1AId]: {
         id: component1AId,
         type: ComponentType.Input,
         itemType: 'COMPONENT',
-        dataModelBindings: {},
+        dataModelBindings: {
+          simpleBinding: '',
+        },
       },
       [component1BId]: {
         id: component1BId,
         type: ComponentType.Input,
         itemType: 'COMPONENT',
-        dataModelBindings: {},
+        dataModelBindings: {
+          simpleBinding: '',
+        },
       },
     },
     order: {
@@ -97,13 +105,17 @@ const formLayoutsData: IFormLayouts = {
         id: component2AId,
         type: ComponentType.Input,
         itemType: 'COMPONENT',
-        dataModelBindings: {},
+        dataModelBindings: {
+          simpleBinding: '',
+        },
       },
       [component2BId]: {
         id: component2BId,
         type: ComponentType.Input,
         itemType: 'COMPONENT',
-        dataModelBindings: {},
+        dataModelBindings: {
+          simpleBinding: '',
+        },
       },
     },
     order: { [container2Id]: container2Order },

@@ -92,7 +92,7 @@ const render = async ({
           title: 'ServiceName',
         },
         itemType: 'COMPONENT',
-        dataModelBindings: {},
+        dataModelBindings: { simpleBinding: '' },
         optionsId: '',
         ...componentProps,
       }}

@@ -30,6 +30,9 @@ const internalComponent1: FormComponent = {
 const externalComponent2: ExternalComponent = {
   id: component2Id,
   type: ComponentType.Input,
+  dataModelBindings: {
+    simpleBinding: '',
+  },
 };
 const internalComponent2: FormComponent = {
   id: component2Id,
@@ -37,6 +40,9 @@ const internalComponent2: FormComponent = {
   pageIndex: null,
   propertyPath: 'definitions/inputComponent',
   type: ComponentType.Input,
+  dataModelBindings: {
+    simpleBinding: '',
+  },
 };
 
 const externalComponent3: ExternalComponent = {

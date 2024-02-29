@@ -11,6 +11,7 @@ import { useFormLayout } from '../../hooks/useFormLayoutsSelector';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { isItemChildOfContainer } from '../../utils/formLayoutUtils';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
+import type { FormComponent } from '../../types/FormComponent';
 
 export const DataModelBindings = (): React.JSX.Element => {
   const selectedLayout = useSelector(selectedLayoutNameSelector);
@@ -43,10 +44,18 @@ export const DataModelBindings = (): React.JSX.Element => {
     setMultipleAttachments(!multipleAttachments);
     const updatedComponent = {
       ...formItem,
-      dataModelBindings: {},
+      dataModelBindings: {
+        simpleBinding: !multipleAttachments ? '' : undefined,
+        list: multipleAttachments ? '' : undefined,
+      },
     };
-    handleUpdate(updatedComponent);
-    debounceSave(formItemId, updatedComponent);
+    handleUpdate(
+      updatedComponent as FormComponent<ComponentType.FileUpload | ComponentType.FileUploadWithTag>,
+    );
+    debounceSave(
+      formItemId,
+      updatedComponent as FormComponent<ComponentType.FileUpload | ComponentType.FileUploadWithTag>,
+    );
   };
 
   return (

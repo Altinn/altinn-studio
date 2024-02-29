@@ -29,7 +29,7 @@ const render = async ({ maxLength = undefined, handleComponentChange = jest.fn()
         },
         maxLength,
         itemType: 'COMPONENT',
-        dataModelBindings: {},
+        dataModelBindings: { simpleBinding: '' },
       }}
     />,
   );

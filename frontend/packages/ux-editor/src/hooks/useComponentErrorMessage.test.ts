@@ -16,7 +16,9 @@ describe('useComponentErrorMessage', () => {
       id: 'test',
       optionsId: '',
       itemType: 'COMPONENT',
-      dataModelBindings: {},
+      dataModelBindings: {
+        simpleBinding: '',
+      },
     };
     const { result } = renderHook(invalidComponent);
     expect(result.current).toEqual(textMock('ux_editor.checkboxes_error_DuplicateValues'));
@@ -33,7 +35,9 @@ describe('useComponentErrorMessage', () => {
       id: 'test',
       optionsId: '',
       itemType: 'COMPONENT',
-      dataModelBindings: {},
+      dataModelBindings: {
+        simpleBinding: '',
+      },
     };
     const { result } = renderHook(validComponent);
     expect(result.current).toBeNull();

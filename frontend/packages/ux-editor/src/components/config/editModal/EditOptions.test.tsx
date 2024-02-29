@@ -15,7 +15,7 @@ const mockComponent: FormRadioButtonsComponent = {
   },
   maxLength: 10,
   itemType: 'COMPONENT',
-  dataModelBindings: {},
+  dataModelBindings: { simpleBinding: '' },
 };
 
 const renderEditOptions = ({ component = mockComponent, handleComponentChange = jest.fn() } = {}) =>

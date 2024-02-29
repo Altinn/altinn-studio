@@ -15,6 +15,7 @@ import { StudioButton } from '@studio/components';
 import classes from './EditDataModelBindings.module.css';
 import { InputActionWrapper } from 'app-shared/components/InputActionWrapper';
 import { useTranslation } from 'react-i18next';
+import type { FormComponent } from '../../../types/FormComponent';
 
 export interface EditDataModelBindingsProps extends IGenericEditComponent {
   renderOptions?: {
@@ -52,7 +53,7 @@ export const EditDataModelBindings = ({
         component.type === ComponentType.RepeatingGroup
           ? getMaxOccursFromDataModel(selectedDataModelElement, data)
           : undefined,
-    });
+    } as FormComponent);
   };
 
   const { uniqueKey, key, label } = renderOptions || {};

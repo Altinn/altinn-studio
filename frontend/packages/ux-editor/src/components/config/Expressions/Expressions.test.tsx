@@ -28,6 +28,7 @@ const componentWithExpression: FormComponent = {
   type: ComponentType.Input,
   itemType: 'COMPONENT',
   hidden: parsableExternalExpression,
+  dataModelBindings: { simpleBinding: '' },
 };
 
 describe('Expressions', () => {
@@ -74,6 +75,7 @@ describe('Expressions', () => {
       hidden: parsableExternalExpression,
       required: parsableExternalExpression,
       readOnly: parsableExternalExpression,
+      dataModelBindings: { simpleBinding: '' },
     };
     render({
       component: componentWithMultipleExpressions,
@@ -182,6 +184,7 @@ describe('Expressions', () => {
       hidden: true,
       required: false,
       readOnly: true,
+      dataModelBindings: { simpleBinding: '' },
     };
     render({
       component: componentWithoutExpressions,

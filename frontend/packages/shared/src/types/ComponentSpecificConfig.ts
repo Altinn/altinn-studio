@@ -7,6 +7,46 @@ import type { ActionButtonAction } from 'app-shared/types/ActionButtonAction';
 import type { GridRow } from 'app-shared/types/GridRow';
 import type { HTMLAutoCompleteValue } from 'app-shared/types/HTMLAutoCompleteValue';
 
+type DataModelBindingsForAddress = {
+  address: string;
+  zipCode: string;
+  postPlace: string;
+  careOf?: string;
+  houseNumber?: string;
+};
+
+type DataModelBindingsForCustom = {
+  [id: string]: string;
+};
+
+type DataModelBindingsForGroup = {
+  group: string;
+};
+
+type DataModelBindingsForList = {
+  [id: string]: string;
+};
+
+type DataModelBindingsLikert = {
+  answer: string;
+  questions: string;
+};
+
+type DataModelBindingsList = {
+  list: string;
+};
+
+type DataModelBindingsOptionsSimple = {
+  simpleBinding: string;
+  metadata?: string;
+};
+
+export type DataModelBindingsSimple = {
+  simpleBinding: string;
+};
+
+type DataModelBindingsForFileUpload = DataModelBindingsSimple | DataModelBindingsList;
+
 type Option<T extends string | boolean | number = string | boolean | number> = {
   label: string;
   value: T;
@@ -35,7 +75,6 @@ type SelectionComponentFull = SelectionComponent & {
 };
 
 type FileUploadComponentBase = {
-  description: string;
   hasCustomFileEndings: boolean;
   maxFileSizeInMB: number;
   displayMode: string;
@@ -102,6 +141,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
   [ComponentType.Address]: FormComponentProps &
     SummarizableComponentProps &
     LabeledComponentProps & {
+      dataModelBindings: DataModelBindingsForAddress;
       simplified?: boolean;
       saveWhileTyping?: number;
     };
@@ -116,11 +156,13 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     SummarizableComponentProps &
     LabeledComponentProps &
     SelectionComponentFull & {
+      dataModelBindings: DataModelBindingsOptionsSimple;
       layout?: LayoutStyle;
       alertOnChange?: boolean;
     };
   [ComponentType.Custom]: FormComponentProps &
     SummarizableComponentProps & {
+      dataModelBindings?: DataModelBindingsForCustom;
       tagName: string;
       [id: string]: any;
     };
@@ -131,6 +173,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
   [ComponentType.Datepicker]: FormComponentProps &
     SummarizableComponentProps &
     LabeledComponentProps & {
+      dataModelBindings: DataModelBindingsSimple;
       minDate?: string;
       maxDate?: string;
       timeStamp?: boolean;
@@ -139,15 +182,20 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
   [ComponentType.Dropdown]: FormComponentProps &
     SummarizableComponentProps &
     LabeledComponentProps &
-    SelectionComponentFull;
+    SelectionComponentFull & {
+      dataModelBindings: DataModelBindingsOptionsSimple;
+    };
   [ComponentType.FileUpload]: FormComponentProps &
     SummarizableComponentProps &
     LabeledComponentProps &
-    FileUploadComponentBase;
+    FileUploadComponentBase & { dataModelBindings?: DataModelBindingsForFileUpload };
   [ComponentType.FileUploadWithTag]: FormComponentProps &
     SummarizableComponentProps &
     LabeledComponentProps &
-    FileUploadComponentBase & { optionsId: string };
+    FileUploadComponentBase & {
+      dataModelBindings?: DataModelBindingsForFileUpload;
+      optionsId: string;
+    };
   [ComponentType.Grid]: SummarizableComponentProps & LabeledComponentProps & { rows: GridRow[] };
   [ComponentType.Group]: SummarizableComponentProps & {
     groupingIndicator?: 'indented' | 'panel';
@@ -170,6 +218,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
   [ComponentType.Input]: FormComponentProps &
     SummarizableComponentProps &
     LabeledComponentProps & {
+      dataModelBindings: DataModelBindingsSimple;
       saveWhileTyping?: number;
       formatting?: {
         currency?: string;
@@ -212,11 +261,13 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
   [ComponentType.Likert]: FormComponentProps &
     SummarizableComponentProps &
     SelectionComponent & {
+      dataModelBindings: DataModelBindingsLikert;
       filter?: { key: 'start' | 'stop'; value: string | number };
     };
   [ComponentType.LikertItem]: FormComponentProps &
     SummarizableComponentProps &
     SelectionComponentFull & {
+      dataModelBindings: DataModelBindingsOptionsSimple;
       layout?: LayoutStyle;
     };
   [ComponentType.Link]: {
@@ -225,6 +276,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
   };
   [ComponentType.List]: FormComponentProps &
     SummarizableComponentProps & {
+      dataModelBindings: DataModelBindingsForList;
       tableHeaders: KeyValuePairs;
       sortableColumns?: string[];
       pagination?: {
@@ -240,6 +292,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
   [ComponentType.Map]: FormComponentProps &
     SummarizableComponentProps &
     LabeledComponentProps & {
+      dataModelBindings: DataModelBindingsSimple;
       centerLocation?: {
         latitude: number;
         longitude: number;
@@ -250,7 +303,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
   [ComponentType.MultipleSelect]: FormComponentProps &
     SummarizableComponentProps &
     LabeledComponentProps &
-    SelectionComponentFull;
+    SelectionComponentFull & { dataModelBindings: DataModelBindingsOptionsSimple };
   [ComponentType.NavigationBar]: {
     compact?: boolean;
     validateOnForward?: PageValidation;
@@ -271,11 +324,13 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     SummarizableComponentProps &
     SelectionComponentFull &
     LabeledComponentProps & {
+      dataModelBindings: DataModelBindingsOptionsSimple;
       layout?: LayoutStyle;
       alertOnChange?: boolean;
       showAsCard?: boolean;
     };
   [ComponentType.RepeatingGroup]: SummarizableComponentProps & {
+    dataModelBindings: DataModelBindingsForGroup;
     validateOnSaveRow?: AllowedValidationMasks;
     edit?: {
       mode?: string;
@@ -312,6 +367,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
   [ComponentType.TextArea]: FormComponentProps &
     SummarizableComponentProps &
     LabeledComponentProps & {
+      dataModelBindings: DataModelBindingsSimple;
       saveWhileTyping?: number;
       autocomplete?: HTMLAutoCompleteValue;
       maxLength?: number;

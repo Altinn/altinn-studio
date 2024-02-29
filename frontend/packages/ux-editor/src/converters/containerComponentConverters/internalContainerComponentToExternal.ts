@@ -1,8 +1,9 @@
-import type { FormContainer } from '../../types/FormContainer';
 import type { ExternalContainerComponent } from '../../types/ExternalContainerComponent';
+import type { FormItem } from '../../types/FormItem';
+import type { ContainerComponentType } from '../../types/ContainerComponent';
 
 export const internalContainerComponentToExternal = (
-  internalContainerComponent: FormContainer,
+  internalContainerComponent: FormItem,
   children: string[],
 ): ExternalContainerComponent => {
   const propertiesToKeep = { ...internalContainerComponent };
@@ -12,6 +13,6 @@ export const internalContainerComponentToExternal = (
   return {
     ...propertiesToKeep,
     children,
-    type: internalContainerComponent.type,
-  };
+    type: internalContainerComponent.type as ContainerComponentType,
+  } as any;
 };

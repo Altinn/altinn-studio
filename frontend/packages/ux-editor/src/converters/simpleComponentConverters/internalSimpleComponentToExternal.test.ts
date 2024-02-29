@@ -18,12 +18,14 @@ describe('internalGroupComponentToExternal', () => {
       propertyPath,
       type,
       customProperty,
+      dataModelBindings: { simpleBinding: '' },
     };
     const result = internalSimpleComponentToExternal(internalSimpleComponent);
     expect(result).toEqual({
       id,
       type,
       customProperty,
+      dataModelBindings: { simpleBinding: '' },
     });
   });
 });

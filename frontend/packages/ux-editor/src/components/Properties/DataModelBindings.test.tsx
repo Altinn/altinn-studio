@@ -91,6 +91,8 @@ describe('DataModelBindings', () => {
           ...componentMocks[ComponentType.Address],
           dataModelBindings: {
             address: 'someAddressDataModelField',
+            postPlace: 'somePostPlaceDataModelField',
+            zipCode: 'someZipCodeDataModelField',
             careOf: 'someCareOfDataModelField',
           },
         },

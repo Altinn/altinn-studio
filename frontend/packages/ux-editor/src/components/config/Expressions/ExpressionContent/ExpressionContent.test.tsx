@@ -166,6 +166,7 @@ const componentWithExpression: FormComponent = {
   type: ComponentType.Input,
   itemType: 'COMPONENT',
   hidden: parsableExternalExpression,
+  dataModelBindings: { simpleBinding: '' },
 };
 
 const render = ({
