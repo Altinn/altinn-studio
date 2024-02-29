@@ -1,82 +1,173 @@
-// import React from 'react';
-// import { StudioTextfieldSchema, type StudioTextfieldSchemaProps } from './StudioTextfieldSchema';
-// import { render } from '@testing-library/react';
+import type { JsonSchema } from '../../types/JSONSchema';
+import React from 'react';
+import { StudioTextfieldSchema, type StudioTextfieldSchemaProps } from './StudioTextfieldSchema';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { before } from 'lodash-es';
 
-// TODO RE-IMPLEMENT TESTS IN THIS FILE
+const defaultLayoutSchemaMock: JsonSchema = {
+  $id: 'id',
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
+  definitions: {
+    component: {
+      type: 'object',
+      properties: {
+        id: {
+          type: 'string',
+          title: 'id',
+          pattern: '^[0-9a-zA-Z][0-9a-zA-Z-]*(-?[a-zA-Z]+|[a-zA-Z][0-9]+|-[0-9]{6,})$',
+          description:
+            'The component ID. Must be unique within all layouts/pages in a layout-set. Cannot end with <dash><number>.',
+        },
+      },
+      required: ['id'],
+    },
+  },
+};
 
-// const handleOnChange = jest.fn();
+const defaultProps: StudioTextfieldSchemaProps = {
+  layoutSchema: defaultLayoutSchemaMock,
+  relatedSchemas: [],
+  viewProps: {
+    value: '',
+    onChange: () => {},
+  },
+  inputProps: {
+    value: '',
+    onChange: () => {},
+    icon: <div />,
+  },
+  propertyPath: 'definitions/component/properties/id',
+  onError: jest.fn(),
+};
 
 describe('StudioTextfieldSchema', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
-
-  test('should render StudioTextfieldSchema', () => {
-    expect(true).toBeTruthy();
+  it('should render as view mode as default and support rest props', () => {
+    renderStudioTextfieldSchema({
+      viewProps: {
+        children: 'Edit id',
+        className: 'test-class',
+      },
+    });
+    const editButton = screen.getByRole('button', { name: 'Edit id' });
+    expect(editButton).toBeInTheDocument();
+    expect(editButton).toHaveClass('test-class');
   });
-  // it('should render StudioTextfieldSchema', async () => {
-  //   renderStudioTextfieldSchema();
-  //   expect(screen.getByText('test')).toBeInTheDocument();
-  // });
-  //
-  // it('should call handleOnchange when changing text input', async () => {
-  //   const user = userEvent.setup();
-  //   renderStudioTextfieldSchema({
-  //     inputProps: { onChange: handleOnChange, icon: <div>icon</div> },
-  //   });
-  //   const editComponentIdButton = screen.getByRole('button', { name: /test/i });
-  //   expect(editComponentIdButton).toBeInTheDocument();
-  //   await act(() => user.click(editComponentIdButton));
-  //   const input = screen.getByRole('textbox');
-  //   await act(() => user.type(input, 'test'));
-  //   expect(handleOnChange).toHaveBeenCalled();
-  // });
-  //
-  // it('should run schema validation when changing text input', async () => {
-  //   const mockValidateProperty = jest.fn();
-  //   const user = userEvent.setup();
-  //
-  //   renderStudioTextfieldSchema({
-  //     jsonValidator: {
-  //       getSchema: jest.fn(),
-  //       validateProperty: mockValidateProperty,
-  //     },
-  //     inputProps: { onChange: handleOnChange, icon: <div>icon</div> },
-  //   });
-  //
-  //   const editComponentIdButton = screen.getByRole('button', { name: 'test' });
-  //   await act(() => user.click(editComponentIdButton));
-  //
-  //   const input = screen.getByRole('textbox');
-  //   await act(() => user.type(input, 'test'));
-  //
-  //   expect(mockValidateProperty).toHaveBeenCalled();
-  // });
+
+  it('should toggle to edit mode when clicking edit', async () => {
+    const user = userEvent.setup();
+
+    renderStudioTextfieldSchema({
+      viewProps: {
+        children: 'Edit id',
+      },
+      inputProps: {
+        ...defaultProps.inputProps,
+        label: 'Your id',
+      },
+    });
+
+    await act(() => user.click(screen.getByRole('button', { name: 'Edit id' })));
+    expect(screen.getByLabelText('Your id')).toBeInTheDocument();
+  });
+
+  it('should toggle to view mode on blur', async () => {
+    const user = userEvent.setup();
+
+    renderStudioTextfieldSchema({
+      viewProps: {
+        children: 'Edit id',
+      },
+      inputProps: {
+        ...defaultProps.inputProps,
+        label: 'Your id',
+      },
+    });
+
+    await act(() => user.click(screen.getByRole('button', { name: 'Edit id' })));
+    expect(screen.queryByRole('button', { name: 'Edit id' })).not.toBeInTheDocument();
+
+    fireEvent.blur(screen.getByLabelText('Your id'));
+    expect(screen.getByRole('button', { name: 'Edit id' })).toBeInTheDocument();
+  });
+
+  it('should validate field against json schema and invoke "onError" if validation has errors', async () => {
+    const user = userEvent.setup();
+
+    renderStudioTextfieldSchema({
+      viewProps: {
+        children: 'Edit id',
+      },
+      inputProps: {
+        ...defaultProps.inputProps,
+        label: 'Your id',
+      },
+    });
+    await act(() => user.click(screen.getByRole('button', { name: 'Edit id' })));
+
+    await act(() => user.type(screen.getByLabelText('Your id'), 'invalid-value-01'));
+    expect(defaultProps.onError).toHaveBeenCalledWith({
+      errorCode: 'pattern',
+      details: 'Result of validate property',
+    });
+  });
+
+  it('should validate field against json schema and invoke "onError" if field is required', async () => {
+    const user = userEvent.setup();
+
+    renderStudioTextfieldSchema({
+      viewProps: {
+        children: 'Edit id',
+      },
+      inputProps: {
+        ...defaultProps.inputProps,
+        label: 'Your id',
+      },
+    });
+    await act(() => user.click(screen.getByRole('button', { name: 'Edit id' })));
+
+    await act(() => user.type(screen.getByLabelText('Your id'), 'first-id'));
+    await act(() => user.clear(screen.getByLabelText('Your id')));
+
+    expect(defaultProps.onError).toHaveBeenCalledWith({
+      errorCode: 'required',
+      details: 'Property value is required',
+    });
+  });
+
+  it('should invoke onChange and onError when input changes with error', async () => {
+    const user = userEvent.setup();
+    const onErrorMock = jest.fn();
+    const onChangeMock = jest.fn();
+
+    renderStudioTextfieldSchema({
+      onError: onErrorMock,
+      viewProps: {
+        children: 'Edit id',
+      },
+      inputProps: {
+        ...defaultProps.inputProps,
+        label: 'Your id',
+        onChange: onChangeMock,
+      },
+    });
+
+    await act(() => user.click(screen.getByRole('button', { name: 'Edit id' })));
+
+    const invalidValue = '1';
+    await act(() => user.type(screen.getByLabelText('Your id'), invalidValue));
+    expect(onErrorMock).toHaveBeenCalledWith({
+      details: 'Result of validate property',
+      errorCode: 'pattern',
+    });
+    expect(onChangeMock).toHaveBeenCalledTimes(1);
+  });
 });
 
-// const renderStudioTextfieldSchema = <T,>(props: Partial<StudioTextfieldSchemaProps> = {}) => {
-//   const defaultProps: StudioTextfieldSchemaProps = {
-//     schema: {
-//       $id: 'test',
-//       type: 'object',
-//       properties: {
-//         id: {
-//           type: 'string',
-//         },
-//       },
-//     } as StudioTextfieldSchemaProps['schema'],
-//     propertyPath: 'properties/id',
-//     inputProps: {
-//       id: 'test',
-//       value: 'test',
-//       onChange: jest.fn(),
-//
-//       icon: <div>icon</div>,
-//     },
-//     viewProps: {
-//       children: 'test',
-//       variant: 'tertiary',
-//     },
-//   };
-//   return render(<StudioTextfieldSchema {...defaultProps} {...props} />);
-// };
+const renderStudioTextfieldSchema = (props: Partial<StudioTextfieldSchemaProps> = {}) => {
+  return render(<StudioTextfieldSchema {...defaultProps} {...props} />);
+};

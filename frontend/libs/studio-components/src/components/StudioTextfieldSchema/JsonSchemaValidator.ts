@@ -1,5 +1,4 @@
 import Ajv, { type ErrorObject } from 'ajv';
-import addFormats from 'ajv-formats';
 import { type JsonSchema } from '../../types/JSONSchema';
 
 export class JsonSchemaValidator {
@@ -13,7 +12,6 @@ export class JsonSchemaValidator {
   constructor(layoutSchema: JsonSchema, schemas: JsonSchema[]) {
     if (!layoutSchema) return;
 
-    addFormats(this.JSONValidator);
     this.layoutSchema = layoutSchema;
 
     [...schemas, layoutSchema].forEach((schema: JsonSchema): void => {
@@ -26,10 +24,11 @@ export class JsonSchemaValidator {
     const parent = this.getPropertyByPath(
       propertyPath.substring(0, propertyPath.lastIndexOf('/properties')),
     );
+
     return parent?.required?.includes(propertyPath.split('/').pop());
   }
 
-  public validateProperty(propertyId: string, value: string): string | null {
+  public validateProperty(propertyId: string, value: unknown): string | null {
     const JSONSchemaValidationErrors = this.validate(propertyId, value);
     const firstError = JSONSchemaValidationErrors?.[0];
     const isCurrentComponentError = firstError?.instancePath === '';
@@ -47,7 +46,7 @@ export class JsonSchemaValidator {
     return { ...path.split('/').reduce((o, p) => (o || {})[p], this.layoutSchema) };
   }
 
-  private validate(schemaId: string, data: string): ErrorObject[] | null {
+  private validate(schemaId: string, data: unknown): ErrorObject[] | null {
     const validateJsonSchema = this.JSONValidator.getSchema(schemaId);
     if (validateJsonSchema) {
       validateJsonSchema(data);
