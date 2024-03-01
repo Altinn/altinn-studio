@@ -1,7 +1,7 @@
 import React from 'react';
 import { Properties } from './Properties';
 import { act, screen, waitFor } from '@testing-library/react';
-import { mockUseTranslation, textMock } from '../../../../../testing/mocks/i18nMock';
+import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { FormItemContext } from '../../containers/FormItemContext';
 import userEvent from '@testing-library/user-event';
 import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
