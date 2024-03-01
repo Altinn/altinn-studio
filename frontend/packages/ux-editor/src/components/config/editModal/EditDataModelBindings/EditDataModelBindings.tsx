@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { UndefinedBinding } from './UndefinedBinding';
 import { EditBinding } from './EditBinding';
 import { DefinedBinding } from './DefinedBinding';
+import type { FormComponent } from '../../../../types/FormComponent';
 
 export interface EditDataModelBindingsProps extends IGenericEditComponent {
   renderOptions?: {
@@ -58,7 +59,7 @@ export const EditDataModelBindings = ({
         component.type === ComponentType.RepeatingGroup
           ? getMaxOccursFromDataModel(selectedDataModelElement, data)
           : undefined,
-    });
+    } as FormComponent);
   };
 
   const handleDelete = () => {
