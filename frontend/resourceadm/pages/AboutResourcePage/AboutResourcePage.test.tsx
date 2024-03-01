@@ -14,6 +14,7 @@ import type {
 import {
   getMissingInputLanguageString,
   mapKeywordsArrayToString,
+  resourceStatusMap,
 } from '../../utils/resourceUtils/resourceUtils';
 import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
@@ -32,7 +33,7 @@ const mockResource1: Resource = {
   title: { nb: 'ressurs 1', nn: 'res1', en: 'resource 1' },
   description: { nb: 'Beskrivelse av resource 1', nn: 'Mock', en: 'Description of test resource' },
   keywords: [
-    { language: 'nb', word: 'Key1 ' },
+    { language: 'nb', word: 'Key 1' },
     { language: 'nb', word: 'Key 2' },
   ],
   visible: false,
@@ -57,7 +58,7 @@ const mockResource2: Resource = {
 const mockResourceType: ResourceTypeOption = textMock(
   'resourceadm.about_resource_resource_type_system_resource',
 );
-const mockStatus: ResourceStatusOption = textMock('resourceadm.about_resource_status_deprecated');
+const mockStatus: ResourceStatusOption = 'Deprecated';
 
 const mockNewTitleInput: string = '23';
 const mockNewDescriptionInput: string = ' test';
@@ -169,10 +170,12 @@ describe('AboutResourcePage', () => {
 
     await act(() => user.clear(homepageInput));
     await act(() => user.type(homepageInput, mockNewHomepageInput));
+    await act(() => homepageInput.blur());
 
-    expect(
-      screen.getByLabelText(textMock('resourceadm.about_resource_homepage_label')),
-    ).toHaveValue(`${mockResource1.homepage}${mockNewHomepageInput}`);
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockResource1,
+      homepage: mockNewHomepageInput,
+    });
   });
 
   it('handles delegable switch changes', async () => {
@@ -186,10 +189,10 @@ describe('AboutResourcePage', () => {
 
     await act(() => user.click(delegableInput));
 
-    const delegableInputAfter = screen.getByLabelText(
-      textMock('resourceadm.about_resource_delegable_label'),
-    );
-    expect(delegableInputAfter).not.toBeChecked();
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockResource1,
+      delegable: false,
+    });
   });
 
   it('handles keyword input change', async () => {
@@ -203,10 +206,12 @@ describe('AboutResourcePage', () => {
     expect(keywordInput).toHaveValue(keywordString);
 
     await act(() => user.type(keywordInput, mockNewKeyboardInput));
+    await act(() => keywordInput.blur());
 
-    expect(
-      screen.getByLabelText(textMock('resourceadm.about_resource_keywords_label')),
-    ).toHaveValue(`${keywordString}${mockNewKeyboardInput}`);
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockResource1,
+      keywords: [...mockResource1.keywords, { language: 'nb', word: 'key 3' }],
+    });
   });
 
   it('handles rights description input change', async () => {
@@ -221,22 +226,28 @@ describe('AboutResourcePage', () => {
 
     await act(() => user.clear(rightDescriptionInput));
     await act(() => user.type(rightDescriptionInput, mockNewRightDescriptionInput));
+    await act(() => rightDescriptionInput.blur());
 
-    expect(
-      screen.getByLabelText(textMock('resourceadm.about_resource_rights_description_label'), {
-        exact: false,
-      }),
-    ).toHaveValue(`${mockResource1.rightDescription.nb}${mockNewRightDescriptionInput}`);
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockResource1,
+      rightDescription: {
+        ...mockResource1.rightDescription,
+        nb: `${mockResource1.rightDescription.nb}${mockNewRightDescriptionInput}`,
+      },
+    });
   });
 
   it('handles status change', async () => {
     const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
-    const statusRadio = screen.getByLabelText(mockStatus);
+    const statusRadio = screen.getByLabelText(textMock(resourceStatusMap[mockStatus]));
     await act(() => user.click(statusRadio));
 
-    expect(statusRadio).toBeChecked();
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockResource1,
+      status: mockStatus,
+    });
   });
 
   it('handles self identifiable switch changes', async () => {
@@ -250,10 +261,10 @@ describe('AboutResourcePage', () => {
 
     await act(() => user.click(input));
 
-    const inputAfter = screen.getByLabelText(
-      textMock('resourceadm.about_resource_self_identified_label'),
-    );
-    expect(inputAfter).toBeChecked();
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockResource1,
+      selfIdentifiedUserEnabled: true,
+    });
   });
 
   it('handles enterprise switch changes', async () => {
@@ -265,10 +276,10 @@ describe('AboutResourcePage', () => {
 
     await act(() => user.click(input));
 
-    const inputAfter = screen.getByLabelText(
-      textMock('resourceadm.about_resource_enterprise_label'),
-    );
-    expect(inputAfter).toBeChecked();
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockResource1,
+      enterpriseUserEnabled: true,
+    });
   });
 
   it('handles visible switch changes', async () => {
@@ -280,8 +291,10 @@ describe('AboutResourcePage', () => {
 
     await act(() => user.click(input));
 
-    const inputAfter = screen.getByLabelText(textMock('resourceadm.about_resource_visible_label'));
-    expect(inputAfter).toBeChecked();
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockResource1,
+      visible: true,
+    });
   });
 
   it('displays errors for the required translation fields when showAllErrors are true', async () => {
