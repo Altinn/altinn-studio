@@ -98,6 +98,9 @@ export const layoutMock: IInternalLayout = {
       type: ComponentType.RepeatingGroup,
       pageIndex: null,
       propertyPath: 'definitions/repeatingGroupComponent',
+      dataModelBindings: {
+        group: 'someGroup',
+      },
     },
   },
   order: {
