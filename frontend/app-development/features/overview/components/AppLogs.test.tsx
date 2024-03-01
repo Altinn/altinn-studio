@@ -5,6 +5,7 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { pipelineDeployment, deployEnvironment } from 'app-shared/mocks/mocks';
+import { BuildResult } from 'app-shared/types/Build';
 
 // Test data
 const org = 'ttd';
@@ -40,16 +41,28 @@ describe('AppLogs', () => {
     render({
       getDeployments: jest.fn().mockImplementation(() =>
         Promise.resolve({
-          results: [
+          pipelineDeploymentList: [
             {
               ...pipelineDeployment,
               tagName: '2',
               envName: 'production',
+              build: {
+                ...pipelineDeployment.build,
+                id: 2,
+                result: BuildResult.succeeded,
+                finished: new Date().toString(),
+              },
             },
             {
               ...pipelineDeployment,
               tagName: '1',
               envName: 'tt02',
+              build: {
+                ...pipelineDeployment.build,
+                id: 1,
+                result: BuildResult.succeeded,
+                finished: new Date().toString(),
+              },
             },
           ],
         }),
@@ -87,7 +100,13 @@ describe('AppLogs', () => {
       ),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(textMock('overview.app_logs_title', { tagName: '1', envName: 'TT02' })),
+      screen.getByText(
+        textMock('overview.app_logs_title', {
+          tagName: '1',
+          environment: textMock('general.test'),
+          envName: 'TT02',
+        }),
+      ),
     ).toBeInTheDocument();
   });
 
@@ -95,7 +114,7 @@ describe('AppLogs', () => {
     render({
       getDeployments: jest.fn().mockImplementation(() =>
         Promise.resolve({
-          results: [
+          pipelineDeploymentList: [
             {
               ...pipelineDeployment,
               build: {
