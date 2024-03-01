@@ -1,4 +1,3 @@
-import type { KeyboardEvent } from 'react';
 import React, { useState, forwardRef } from 'react';
 import classes from './ResourcePageInputs.module.css';
 import { Textfield } from '@digdir/design-system-react';
@@ -28,10 +27,6 @@ type ResourceTextFieldProps = {
    */
   isValid?: boolean;
   /**
-   * Function to be executed on key down
-   */
-  onKeyDown?: (e: KeyboardEvent<HTMLInputElement>, value: string) => void;
-  /**
    * Function to be executed on blur
    * @param value the value used in the field
    * @returns void
@@ -60,7 +55,6 @@ type ResourceTextFieldProps = {
  * @property {string}[value] - The value in the field
  * @property {function}[onFocus] - unction to be executed when the field is focused
  * @property {boolean}[isValid] - Flag for if the value is valid
- * @property {function}[onKeyDown] - Function to be executed on key down
  * @property {function}[onBlur] - Function to be executed on blur
  * @property {boolean}[showErrorMessage] - Flag for if the error message should be shown
  * @property {string}[errorText] - The text to be shown
@@ -76,7 +70,6 @@ export const ResourceTextField = forwardRef<HTMLInputElement, ResourceTextFieldP
       value,
       onFocus,
       isValid = true,
-      onKeyDown,
       onBlur,
       showErrorMessage = false,
       errorText,
@@ -99,7 +92,6 @@ export const ResourceTextField = forwardRef<HTMLInputElement, ResourceTextFieldP
           onFocus={onFocus}
           error={!isValid}
           ref={ref}
-          onKeyDown={(e) => (onKeyDown ? onKeyDown(e, val) : undefined)}
           onBlur={() => onBlur(val)}
           required={required}
         />
