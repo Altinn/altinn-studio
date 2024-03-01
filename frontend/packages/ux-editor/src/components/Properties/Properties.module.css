@@ -4,5 +4,8 @@
 }
 
 .datamodelBindings {
-  padding: var(--fds-spacing-5) 0;
+  --gap: 1rem;
+  --item-vertical-padding: calc(var(--gap) / 2);
+  --vertical-padding: calc(var(--fds-spacing-5) - var(--item-vertical-padding));
+  padding: var(--vertical-padding) 0;
 }
