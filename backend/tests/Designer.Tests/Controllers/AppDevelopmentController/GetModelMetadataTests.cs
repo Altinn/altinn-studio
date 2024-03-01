@@ -56,12 +56,11 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            
+
             string responseContent = await response.Content.ReadAsStringAsync();
-            string responseContentLowerCase = responseContent.ToLowerInvariant();
-            string expectedResposeContentLowerCase = JsonConvert
-                .SerializeObject(JsonConvert.DeserializeObject<ModelMetadata>("{}")).ToLowerInvariant();
-            responseContentLowerCase.Should().Be(expectedResposeContentLowerCase);
+            string expectedResponse = JsonConvert
+                .SerializeObject(JsonConvert.DeserializeObject<ModelMetadata>("{}"));
+            responseContent.Should().Be(expectedResponse);
         }
 
         private async Task<string> AddModelMetadataToRepo(string createdFolderPath, string expectedModelMetadataPath)

@@ -8,6 +8,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -143,7 +144,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string modelMetadataFileName = GetPathToModelMetadata(modelName);
             if (!FileExistsByRelativePath(modelMetadataFileName))
             {
-                return "{}";
+                ModelMetadata emptyModel = JsonSerializer.Deserialize<ModelMetadata>("{}");
+                return JsonSerializer.Serialize(emptyModel);
             }
             return await ReadTextByRelativePathAsync(modelMetadataFileName);
         }

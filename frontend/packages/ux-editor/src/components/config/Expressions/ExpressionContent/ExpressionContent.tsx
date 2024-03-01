@@ -29,7 +29,7 @@ export const ExpressionContent = ({
   const { org, app } = useStudioUrlParams();
   const { selectedLayoutSet } = useAppContext();
   const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedLayoutSet);
-  const { data: datamodelMetadata } = useDatamodelMetadataQuery(org, app);
+  const { data: datamodelMetadata } = useDatamodelMetadataQuery(org, app, selectedLayoutSet);
 
   const dataLookupOptions: DataLookupOptions = useMemo(
     () => ({

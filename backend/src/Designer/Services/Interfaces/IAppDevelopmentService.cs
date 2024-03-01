@@ -75,7 +75,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="layoutSetName">Name of current layoutSet in ux-editor that edited layout belongs to</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The service metadata for an app.</returns>
-        public Task<ModelMetadata> GetModelMetadata(AltinnRepoEditingContext altinnRepoEditingContext, [CanBeNull] string layoutSetName, CancellationToken cancellationToken = default);
+        public Task<JsonNode> GetModelMetadata(
+            AltinnRepoEditingContext altinnRepoEditingContext, [CanBeNull] string layoutSetName,
+            CancellationToken cancellationToken = default);
 
 
         /// <summary>
