@@ -1,0 +1,6 @@
+.envButtonsWrapper {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  max-width: 32rem;
+}
