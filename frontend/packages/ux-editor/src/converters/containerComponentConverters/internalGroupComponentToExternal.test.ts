@@ -15,7 +15,7 @@ describe('internalGroupComponentToExternal', () => {
       type: ComponentType.Group,
       pageIndex: null,
       customProperty,
-    };
+    } as FormContainer<ComponentType.Group>;
     const result = internalContainerComponentToExternal(internalGroupComponent, children);
     expect(result).toEqual({
       id,

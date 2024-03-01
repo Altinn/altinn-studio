@@ -8,11 +8,12 @@ import { stringToArray, arrayToString } from '../../../../utils/stringUtils';
 import classes from './MapComponent.module.css';
 import type { MapLayer } from 'app-shared/types/MapLayer';
 import { StudioButton } from '@studio/components';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
 export const MapComponent = ({
   component,
   handleComponentChange,
-}: IGenericEditComponent): JSX.Element => {
+}: IGenericEditComponent<ComponentType.Map>): JSX.Element => {
   const t = useText();
 
   const handleCenterLocationChange = (value: number, propertyName: string): void => {
@@ -99,7 +100,8 @@ export const MapComponent = ({
   );
 };
 
-interface AddMapLayerProps extends IGenericEditComponent {}
+interface AddMapLayerProps extends IGenericEditComponent<ComponentType.Map> {}
+
 const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JSX.Element => {
   const t = useText();
 

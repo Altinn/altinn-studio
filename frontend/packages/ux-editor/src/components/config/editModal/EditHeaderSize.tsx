@@ -3,6 +3,7 @@ import { LegacySelect } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import { FormField } from '../../FormField';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
 enum HeaderSize {
   S = 'h4',
@@ -11,7 +12,10 @@ enum HeaderSize {
 }
 
 // Todo: This should be called "level" instead of "size"
-export const EditHeaderSize = ({ handleComponentChange, component }: IGenericEditComponent) => {
+export const EditHeaderSize = ({
+  handleComponentChange,
+  component,
+}: IGenericEditComponent<ComponentType.Header>) => {
   const t = useText();
   const sizes = [
     { value: HeaderSize.S, label: t('ux_editor.modal_header_type_h4') },
