@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { EditDataModelBindings } from '../config/editModal/EditDataModelBindings';
+import { EditDataModelBindings } from '../config/editModal/EditDataModelBindings/EditDataModelBindings';
 import { StudioSpinner } from '@studio/components';
 import { Alert, Switch } from '@digdir/design-system-react';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
@@ -69,7 +69,11 @@ export const DataModelBindings = (): React.JSX.Element => {
             </Alert>
           )}
         {dataModelBindings.anyOf && (
-          <Switch checked={multipleAttachments} onChange={handleMultipleAttachmentsSwitch}>
+          <Switch
+            checked={multipleAttachments}
+            onChange={handleMultipleAttachmentsSwitch}
+            className={classes.switch}
+          >
             {t('ux_editor.modal_properties_data_model_link_multiple_attachments')}
           </Switch>
         )}

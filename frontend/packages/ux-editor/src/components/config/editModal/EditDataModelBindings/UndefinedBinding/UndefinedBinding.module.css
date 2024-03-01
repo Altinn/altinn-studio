@@ -1,0 +1,6 @@
+.undefinedBinding {
+  border-radius: 0;
+  justify-content: flex-start;
+  padding-left: var(--fds-spacing-5);
+  padding-right: var(--fds-spacing-5);
+}
