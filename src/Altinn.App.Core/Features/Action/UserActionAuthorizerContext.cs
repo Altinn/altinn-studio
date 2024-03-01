@@ -22,7 +22,7 @@ public class UserActionAuthorizerContext
         TaskId = taskId;
         Action = action;
     }
-    
+
     /// <summary>
     /// Gets or sets the user
     /// </summary>

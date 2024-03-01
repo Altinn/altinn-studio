@@ -107,11 +107,11 @@ public class StatelessDataControllerTests
                 options.ClearProviders();
             });
 
-            builder.ConfigureServices(services=>
+            builder.ConfigureServices(services =>
             {
-                services.AddTransient<IProfileClient>((sp)=>ProfileClientMoq.Object);
-                services.AddTransient<IAltinnPartyClient>((sp)=>RegisterClientMoq.Object);
-                services.AddTransient<IAppResources>((sp)=>AppResourcesMoq.Object);
+                services.AddTransient<IProfileClient>((sp) => ProfileClientMoq.Object);
+                services.AddTransient<IAltinnPartyClient>((sp) => RegisterClientMoq.Object);
+                services.AddTransient<IAppResources>((sp) => AppResourcesMoq.Object);
             });
         }
     }
@@ -121,15 +121,15 @@ public class StatelessDataControllerTests
     {
         // Arrange
         var factory = new StatelessDataControllerWebApplicationFactory();
-        
+
         var client = factory.CreateClient();
         string token = PrincipalUtil.GetToken(1337, null);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         using var request = new HttpRequestMessage(HttpMethod.Get, "/tdd/demo-app/v1/data?dataType=xml");
-        request.Headers.Add("party", new string[]{"partyid:234", "partyid:234"}); // Double header
+        request.Headers.Add("party", new string[] { "partyid:234", "partyid:234" }); // Double header
 
-        factory.AppResourcesMoq.Setup(ar=>ar.GetClassRefForLogicDataType(It.IsAny<string>())).Returns("Not.In.Valid.Namespace.ClassRef");
-        factory.RegisterClientMoq.Setup(p=>p.GetParty(234)).ReturnsAsync(new Platform.Register.Models.Party
+        factory.AppResourcesMoq.Setup(ar => ar.GetClassRefForLogicDataType(It.IsAny<string>())).Returns("Not.In.Valid.Namespace.ClassRef");
+        factory.RegisterClientMoq.Setup(p => p.GetParty(234)).ReturnsAsync(new Platform.Register.Models.Party
         {
             PartyId = 234,
         });
@@ -142,21 +142,21 @@ public class StatelessDataControllerTests
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
         responseText.Should().Contain("Invalid party header.");
     }
-    
+
     [Fact]
     public async void Get_Returns_Forbidden_when_party_has_no_rights()
     {
         // Arrange
         var factory = new StatelessDataControllerWebApplicationFactory();
-        
+
         var client = factory.CreateClient();
         string token = PrincipalUtil.GetToken(1337, null);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         using var request = new HttpRequestMessage(HttpMethod.Get, "/tdd/demo-app/v1/data?dataType=xml");
-        request.Headers.Add("party", new string[]{"partyid:234"});
+        request.Headers.Add("party", new string[] { "partyid:234" });
 
-        factory.AppResourcesMoq.Setup(ar=>ar.GetClassRefForLogicDataType(It.IsAny<string>())).Returns("Not.In.Valid.Namespace.ClassRef");
-        factory.RegisterClientMoq.Setup(p=>p.GetParty(234)).ReturnsAsync(new Platform.Register.Models.Party
+        factory.AppResourcesMoq.Setup(ar => ar.GetClassRefForLogicDataType(It.IsAny<string>())).Returns("Not.In.Valid.Namespace.ClassRef");
+        factory.RegisterClientMoq.Setup(p => p.GetParty(234)).ReturnsAsync(new Platform.Register.Models.Party
         {
             PartyId = 234,
         });
@@ -239,7 +239,7 @@ public class StatelessDataControllerTests
         registerMock.VerifyNoOtherCalls();
         pdpMock.VerifyNoOtherCalls();
     }
-    
+
     [Fact]
     public async void Get_Returns_Forbidden_when_returned_descision_is_Deny()
     {
@@ -276,7 +276,7 @@ public class StatelessDataControllerTests
                     }
                 }
             });
-        registerMock.Setup(r=>r.GetParty(12345)).ReturnsAsync(new Platform.Register.Models.Party
+        registerMock.Setup(r => r.GetParty(12345)).ReturnsAsync(new Platform.Register.Models.Party
         {
             PartyId = 12345,
         });
@@ -289,14 +289,14 @@ public class StatelessDataControllerTests
         result.Should().BeOfType<StatusCodeResult>().Which.StatusCode.Should().Be(403);
         appResourcesMock.Verify(x => x.GetClassRefForLogicDataType(dataType), Times.Once);
         appResourcesMock.VerifyNoOtherCalls();
-        registerMock.Verify(r=>r.GetParty(12345));
+        registerMock.Verify(r => r.GetParty(12345));
         pdpMock.Verify(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()));
         pdpMock.VerifyNoOtherCalls();
         dataProcessorMock.VerifyNoOtherCalls();
         prefillMock.VerifyNoOtherCalls();
         registerMock.VerifyNoOtherCalls();
     }
-    
+
     [Fact]
     public async void Get_Returns_OK_with_appModel()
     {
@@ -336,7 +336,7 @@ public class StatelessDataControllerTests
             });
         appModelMock.Setup(a => a.Create(classRef))
             .Returns(new DummyModel());
-        registerMock.Setup(r=>r.GetParty(12345)).ReturnsAsync(new Platform.Register.Models.Party
+        registerMock.Setup(r => r.GetParty(12345)).ReturnsAsync(new Platform.Register.Models.Party
         {
             PartyId = 12345,
         });
@@ -353,7 +353,7 @@ public class StatelessDataControllerTests
         appModelMock.Verify(a => a.Create(classRef), Times.Once);
         prefillMock.Verify(p => p.PrefillDataModel("12345", dataType, It.IsAny<DummyModel>(), null));
         dataProcessorMock.Verify(a => a.ProcessDataRead(It.IsAny<Instance>(), null, It.IsAny<DummyModel>(), null));
-        registerMock.Verify(r=>r.GetParty(12345));
+        registerMock.Verify(r => r.GetParty(12345));
         appResourcesMock.VerifyNoOtherCalls();
         pdpMock.VerifyNoOtherCalls();
         dataProcessorMock.VerifyNoOtherCalls();

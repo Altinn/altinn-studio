@@ -14,11 +14,11 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
     /// <summary>
     /// Implementation of <see cref="ISignClient"/> that sends signing requests to platform
     /// </summary>
-    public class SignClient: ISignClient
+    public class SignClient : ISignClient
     {
         private readonly IUserTokenProvider _userTokenProvider;
         private readonly HttpClient _client;
-        
+
         /// <summary>
         /// Create a new instance of <see cref="SignClient"/>
         /// </summary>
@@ -27,7 +27,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         /// <param name="userTokenProvider">Service that can provide user token</param>
         public SignClient(
             IOptions<PlatformSettings> platformSettings,
-            HttpClient httpClient, 
+            HttpClient httpClient,
             IUserTokenProvider userTokenProvider)
         {
             var platformSettings1 = platformSettings.Value;
@@ -39,7 +39,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             _client = httpClient;
             _userTokenProvider = userTokenProvider;
         }
-        
+
         /// <inheritdoc/>
         public async Task SignDataElements(SignatureContext signatureContext)
         {
@@ -50,7 +50,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             {
                 return;
             }
-            
+
             throw new PlatformHttpException(response, "Failed to sign dataelements");
         }
 

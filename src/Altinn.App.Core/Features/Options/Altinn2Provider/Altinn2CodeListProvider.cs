@@ -39,7 +39,7 @@ namespace Altinn.App.Core.Features.Options.Altinn2Provider
         private readonly IMemoryCache _cache;
 
         /// <inheritdoc />
-        public string Id { get;  private set; }
+        public string Id { get; private set; }
 
         /// <summary>
         /// <see cref="CommonOptionProviderServiceCollectionExtensions.AddAltinn2CodeList" />

@@ -46,15 +46,15 @@ namespace Altinn.App.Api.Tests.Controllers
             _instanceClient
                 .Setup(a => a.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
                 .Returns(Task.FromResult(new Instance()
+                {
+                    Org = org,
+                    AppId = $"{org}/{app}",
+                    Id = $"{partyId}/{instanceId}",
+                    Process = new ProcessState()
                     {
-                         Org = org,
-                         AppId = $"{org}/{app}",
-                         Id = $"{partyId}/{instanceId}",
-                         Process = new ProcessState()
-                         {
-                            CurrentTask = new ProcessElementInfo() { ElementId = taskId, },
-                         }
-                     }));
+                        CurrentTask = new ProcessElementInfo() { ElementId = taskId, },
+                    }
+                }));
         }
 
         [Fact]
@@ -77,7 +77,7 @@ namespace Altinn.App.Api.Tests.Controllers
             var pdfController = new PdfController(_instanceClient.Object, _pdfFormatter.Object, _appResources.Object, _appModel.Object, _dataClient.Object, env.Object, pdfService);
 
             var result = await pdfController.GetPdfPreview(org, app, partyId, instanceId);
-            
+
             result.Should().BeOfType(typeof(NotFoundResult));
             handler.Protected().Verify("SendAsync", Times.Never(), ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>());
         }
@@ -113,7 +113,7 @@ namespace Altinn.App.Api.Tests.Controllers
                 var result = await pdfController.GetPdfPreview(org, app, partyId, instanceId);
                 result.Should().BeOfType(typeof(FileStreamResult));
             }
-            
+
             requestBody.Should().Contain(@"url"":""http://local.altinn.cloud/org/app/#/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1");
             requestBody.Should().NotContain(@"name"":""frontendVersion");
         }

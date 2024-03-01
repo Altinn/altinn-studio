@@ -68,7 +68,7 @@ public class MimeTypeMapTests
         Action act = () => MimeTypeMap.GetMimeType(null);
         act.Should().Throw<ArgumentNullException>();
     }
-    
+
     [Fact]
     public void GetMimeType_returns_octetstream_for_unknown_fileextension()
     {

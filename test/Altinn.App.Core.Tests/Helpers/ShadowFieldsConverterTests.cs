@@ -53,7 +53,7 @@ public class ShadowFieldsConverterTests
             },
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };
-        
+
         // Check that serialization with modifier removes shadow fields from result
         string serializedData = JsonSerializer.Serialize(data, options);
         Assert.DoesNotContain("AltinnSF_", serializedData);

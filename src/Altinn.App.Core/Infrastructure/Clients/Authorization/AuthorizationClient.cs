@@ -137,6 +137,6 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
             return MultiDecisionHelper.ValidatePdpMultiDecision(actionsResult, response.Response, user);
         }
 
-        
+
     }
 }

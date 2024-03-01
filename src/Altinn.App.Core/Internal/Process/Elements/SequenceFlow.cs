@@ -30,7 +30,7 @@ namespace Altinn.App.Core.Internal.Process.Elements
         /// </summary>
         [XmlAttribute("flowtype", Namespace = "http://altinn.no")]
         public string FlowType { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the condition expression of a sequence flow
         /// </summary>

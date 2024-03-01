@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Api.Controllers
-{    
+{
     /// <summary>
     /// To handle authentication related operations
     /// </summary>

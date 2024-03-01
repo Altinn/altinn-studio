@@ -6,7 +6,7 @@ namespace Altinn.App.Core.Internal.Process.Elements;
 /// Extended representation of a status object that holds the process state of an application instance.
 /// The process is defined by the application's process specification BPMN file.
 /// </summary>
-public class AppProcessState: ProcessState
+public class AppProcessState : ProcessState
 {
     /// <summary>
     /// Default constructor
@@ -21,7 +21,7 @@ public class AppProcessState: ProcessState
     /// <param name="processState"></param>
     public AppProcessState(ProcessState? processState)
     {
-        if(processState == null)
+        if (processState == null)
         {
             return;
         }
@@ -33,7 +33,7 @@ public class AppProcessState: ProcessState
         }
         Ended = processState.Ended;
         EndEvent = processState.EndEvent;
-        
+
     }
     /// <summary>
     /// Gets or sets a status object containing the task info of the currentTask of an ongoing process.

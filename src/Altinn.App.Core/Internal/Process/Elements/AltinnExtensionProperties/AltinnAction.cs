@@ -37,7 +37,7 @@ namespace Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties
             Value = id;
             ActionType = actionType;
         }
-        
+
         /// <summary>
         /// Gets or sets the ID of the action
         /// </summary>
@@ -50,7 +50,7 @@ namespace Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties
         [XmlAttribute("type", Namespace = "http://altinn.no/process")]
         public ActionType ActionType { get; set; }
     }
-    
+
     /// <summary>
     /// Defines the different types of actions
     /// </summary>

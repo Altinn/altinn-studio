@@ -57,7 +57,7 @@ namespace Altinn.App.Api.Models
                 _dataElements.Add(dataElementFileScanResult);
 
                 RecalculateAggregatedStatus();
-            }            
+            }
         }
 
         private void RecalculateAggregatedStatus()

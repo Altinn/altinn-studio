@@ -4,7 +4,7 @@ using Altinn.App.Core.Features.Action;
 
 namespace Altinn.App.Core.Tests.Internal.Process.Action.TestData
 {
-    public class UserActionAuthorizerStub: IUserActionAuthorizer
+    public class UserActionAuthorizerStub : IUserActionAuthorizer
     {
         public Task<bool> AuthorizeAction(UserActionAuthorizerContext context)
         {

@@ -52,7 +52,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.KeyVault
         }
 
         private string GetTokenFromSecrets(string secretId)
-            =>  GetTokenFromLocalSecrets(secretId) ??
+            => GetTokenFromLocalSecrets(secretId) ??
                 GetTokenFromConfiguration(secretId) ??
                 throw new ArgumentException($"SecretId={secretId} does not exist in appsettings or secrets.json");
 

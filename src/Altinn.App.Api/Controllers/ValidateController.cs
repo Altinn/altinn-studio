@@ -63,14 +63,14 @@ namespace Altinn.App.Api.Controllers
                 throw new ValidationException("Unable to validate instance without a started process.");
             }
 
-            try 
+            try
             {
                 List<ValidationIssue> messages = await _validationService.ValidateInstanceAtTask(instance, taskId, language);
                 return Ok(messages);
-            } 
-            catch (PlatformHttpException exception) 
+            }
+            catch (PlatformHttpException exception)
             {
-                if (exception.Response.StatusCode == System.Net.HttpStatusCode.Forbidden) 
+                if (exception.Response.StatusCode == System.Net.HttpStatusCode.Forbidden)
                 {
                     return StatusCode(403);
                 }

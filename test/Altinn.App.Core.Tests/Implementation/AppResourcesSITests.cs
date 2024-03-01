@@ -67,7 +67,7 @@ public class AppResourcesSITests
         actual.Should().NotBeNull();
         actual.Should().BeEquivalentTo(expected);
     }
-    
+
     [Fact]
     public void GetApplication_handles_onEntry_null()
     {

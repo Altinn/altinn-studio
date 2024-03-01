@@ -39,7 +39,7 @@ public class GenericDataProcessorTests
     {
         var processor = new DummyProcessor();
         var data = new DummyModel();
-        await processor.ProcessDataRead(new Instance(), dataId: null, (object)data, language:null);
+        await processor.ProcessDataRead(new Instance(), dataId: null, (object)data, language: null);
         processor.ReadCalled.Should().BeTrue();
         processor.WriteCalled.Should().BeFalse();
         await processor.ProcessDataWrite(new Instance(), null, (object)data, null, null);
@@ -52,7 +52,7 @@ public class GenericDataProcessorTests
     {
         var processor = new DummyProcessor();
         var data = new WrongModel();
-        await processor.ProcessDataRead(new Instance(), dataId: null, (object)data, language:null);
+        await processor.ProcessDataRead(new Instance(), dataId: null, (object)data, language: null);
         processor.ReadCalled.Should().BeFalse();
         processor.WriteCalled.Should().BeFalse();
         await processor.ProcessDataWrite(new Instance(), null, (object)data, null, null);

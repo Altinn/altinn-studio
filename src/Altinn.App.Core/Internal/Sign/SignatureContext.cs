@@ -21,7 +21,7 @@ public class SignatureContext
         DataElementSignatures.AddRange(dataElementSignature);
         Signee = signee;
     }
-    
+
     /// <summary>
     /// Create a new signing context for multiple data elements
     /// </summary>
@@ -36,12 +36,12 @@ public class SignatureContext
         DataElementSignatures = dataElementSignatures;
         Signee = signee;
     }
-    
+
     /// <summary>
     /// The id of the DataType where the signature should be stored
     /// </summary>
     public string SignatureDataTypeId { get; }
-    
+
     /// <summary>
     /// Identifier for the instance containing the data elements to sign
     /// </summary>
@@ -50,8 +50,8 @@ public class SignatureContext
     /// <summary>
     /// List of DataElements and whether they are signed or not <see cref="DataElementSignature"/>
     /// </summary>
-    public List<DataElementSignature> DataElementSignatures { get; } = new ();
-    
+    public List<DataElementSignature> DataElementSignatures { get; } = new();
+
     /// <summary>
     /// The user performing the signing <see cref="Signee"/>
     /// </summary>
@@ -67,12 +67,12 @@ public class Signee
     /// User id of the user performing the signing
     /// </summary>
     public string UserId { get; set; }
-    
+
     /// <summary>
     /// The SSN of the user performing the signing, set if the signer is a person
     /// </summary>
     public string? PersonNumber { get; set; }
-    
+
     /// <summary>
     /// The organisation number of the user performing the signing, set if the signer is an organisation
     /// </summary>
@@ -104,12 +104,12 @@ public class DataElementSignature
         DataElementId = dataElementId;
         Signed = signed;
     }
-    
+
     /// <summary>
     /// ID of the DataElement that should be included in the signature
     /// </summary>
     public string DataElementId { get; }
-    
+
     /// <summary>
     /// Whether the DataElement is signed or not
     /// </summary>

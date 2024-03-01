@@ -26,13 +26,13 @@ public class ProcessEngineMetricsDecoratorTests
         var decorator = new ProcessEngineMetricsDecorator(processEngine.Object);
         (await ReadPrometheusMetricsToString()).Should().NotContain("altinn_app_process_start_count{result=\"success\"}");
 
-        var result = decorator.StartProcess(new ProcessStartRequest());
+        var result = await decorator.StartProcess(new ProcessStartRequest());
 
         (await ReadPrometheusMetricsToString()).Should().Contain("altinn_app_process_start_count{result=\"success\"} 1");
-        result.Result.Success.Should().BeTrue();
-        result = decorator.StartProcess(new ProcessStartRequest());
+        result.Success.Should().BeTrue();
+        result = await decorator.StartProcess(new ProcessStartRequest());
         (await ReadPrometheusMetricsToString()).Should().Contain("altinn_app_process_start_count{result=\"success\"} 2");
-        result.Result.Success.Should().BeTrue();
+        result.Success.Should().BeTrue();
         processEngine.Verify(p => p.StartProcess(It.IsAny<ProcessStartRequest>()), Times.Exactly(2));
         processEngine.VerifyNoOtherCalls();
     }
@@ -46,13 +46,13 @@ public class ProcessEngineMetricsDecoratorTests
         var decorator = new ProcessEngineMetricsDecorator(processEngine.Object);
         (await ReadPrometheusMetricsToString()).Should().NotContain("altinn_app_process_start_count{result=\"failure\"}");
 
-        var result = decorator.StartProcess(new ProcessStartRequest());
+        var result = await decorator.StartProcess(new ProcessStartRequest());
 
         (await ReadPrometheusMetricsToString()).Should().Contain("altinn_app_process_start_count{result=\"failure\"} 1");
-        result.Result.Success.Should().BeFalse();
-        result = decorator.StartProcess(new ProcessStartRequest());
+        result.Success.Should().BeFalse();
+        result = await decorator.StartProcess(new ProcessStartRequest());
         (await ReadPrometheusMetricsToString()).Should().Contain("altinn_app_process_start_count{result=\"failure\"} 2");
-        result.Result.Success.Should().BeFalse();
+        result.Success.Should().BeFalse();
         processEngine.Verify(p => p.StartProcess(It.IsAny<ProcessStartRequest>()), Times.Exactly(2));
         processEngine.VerifyNoOtherCalls();
     }
@@ -66,7 +66,7 @@ public class ProcessEngineMetricsDecoratorTests
         var decorator = new ProcessEngineMetricsDecorator(processEngine.Object);
         (await ReadPrometheusMetricsToString()).Should().NotContain("altinn_app_process_task_next_count{result=\"success\",action=\"write\",task=\"Task_1\"}");
 
-        var result = decorator.Next(new ProcessNextRequest()
+        var result = await decorator.Next(new ProcessNextRequest()
         {
             Instance = new()
             {
@@ -82,8 +82,8 @@ public class ProcessEngineMetricsDecoratorTests
         });
 
         (await ReadPrometheusMetricsToString()).Should().Contain("altinn_app_process_task_next_count{result=\"success\",action=\"write\",task=\"Task_1\"} 1");
-        result.Result.Success.Should().BeTrue();
-        result = decorator.Next(new ProcessNextRequest()
+        result.Success.Should().BeTrue();
+        result = await decorator.Next(new ProcessNextRequest()
         {
             Instance = new()
             {
@@ -99,7 +99,7 @@ public class ProcessEngineMetricsDecoratorTests
         });
         var prometheusMetricsToString = await ReadPrometheusMetricsToString();
         prometheusMetricsToString.Should().Contain("altinn_app_process_task_next_count{result=\"success\",action=\"write\",task=\"Task_1\"} 2");
-        result.Result.Success.Should().BeTrue();
+        result.Success.Should().BeTrue();
         processEngine.Verify(p => p.Next(It.IsAny<ProcessNextRequest>()), Times.Exactly(2));
         processEngine.VerifyNoOtherCalls();
     }
@@ -113,7 +113,7 @@ public class ProcessEngineMetricsDecoratorTests
         var decorator = new ProcessEngineMetricsDecorator(processEngine.Object);
         (await ReadPrometheusMetricsToString()).Should().NotContain("altinn_app_process_task_next_count{result=\"failure\",action=\"write\",task=\"Task_1\"}");
 
-        var result = decorator.Next(new ProcessNextRequest()
+        var result = await decorator.Next(new ProcessNextRequest()
         {
             Instance = new()
             {
@@ -129,8 +129,8 @@ public class ProcessEngineMetricsDecoratorTests
         });
 
         (await ReadPrometheusMetricsToString()).Should().Contain("altinn_app_process_task_next_count{result=\"failure\",action=\"write\",task=\"Task_1\"} 1");
-        result.Result.Success.Should().BeFalse();
-        result = decorator.Next(new ProcessNextRequest()
+        result.Success.Should().BeFalse();
+        result = await decorator.Next(new ProcessNextRequest()
         {
             Instance = new()
             {
@@ -146,7 +146,7 @@ public class ProcessEngineMetricsDecoratorTests
         });
         var prometheusMetricsToString = await ReadPrometheusMetricsToString();
         prometheusMetricsToString.Should().Contain("altinn_app_process_task_next_count{result=\"failure\",action=\"write\",task=\"Task_1\"} 2");
-        result.Result.Success.Should().BeFalse();
+        result.Success.Should().BeFalse();
         processEngine.Verify(p => p.Next(It.IsAny<ProcessNextRequest>()), Times.Exactly(2));
         processEngine.VerifyNoOtherCalls();
     }
@@ -175,7 +175,7 @@ public class ProcessEngineMetricsDecoratorTests
         (await ReadPrometheusMetricsToString()).Should().NotContain("altinn_app_process_end_count{result=\"success\"}");
         (await ReadPrometheusMetricsToString()).Should().NotContain("altinn_app_process_end_time_total{result=\"success\"}");
 
-        var result = decorator.Next(new ProcessNextRequest()
+        var result = await decorator.Next(new ProcessNextRequest()
         {
             Instance = new()
             {
@@ -193,8 +193,8 @@ public class ProcessEngineMetricsDecoratorTests
         (await ReadPrometheusMetricsToString()).Should().Contain("altinn_app_process_task_next_count{result=\"success\",action=\"confirm\",task=\"Task_2\"} 1");
         (await ReadPrometheusMetricsToString()).Should().Contain("altinn_app_process_end_count{result=\"success\"} 1");
         (await ReadPrometheusMetricsToString()).Should().Contain("altinn_app_process_end_time_total{result=\"success\"} 20");
-        result.Result.Success.Should().BeTrue();
-        result = decorator.Next(new ProcessNextRequest()
+        result.Success.Should().BeTrue();
+        result = await decorator.Next(new ProcessNextRequest()
         {
             Instance = new()
             {
@@ -212,7 +212,7 @@ public class ProcessEngineMetricsDecoratorTests
         prometheusMetricsToString.Should().Contain("altinn_app_process_task_next_count{result=\"success\",action=\"confirm\",task=\"Task_2\"} 2");
         (await ReadPrometheusMetricsToString()).Should().Contain("altinn_app_process_end_count{result=\"success\"} 2");
         (await ReadPrometheusMetricsToString()).Should().Contain("altinn_app_process_end_time_total{result=\"success\"} 40");
-        result.Result.Success.Should().BeTrue();
+        result.Success.Should().BeTrue();
         processEngine.Verify(p => p.Next(It.IsAny<ProcessNextRequest>()), Times.Exactly(2));
         processEngine.VerifyNoOtherCalls();
     }
@@ -240,7 +240,7 @@ public class ProcessEngineMetricsDecoratorTests
         prometheusMetricsToString.Should().NotContain("altinn_app_process_end_count{result=\"failure\"}");
         prometheusMetricsToString.Should().NotContain("altinn_app_process_end_time_total{result=\"failure\"}");
 
-        var result = decorator.Next(new ProcessNextRequest()
+        var result = await decorator.Next(new ProcessNextRequest()
         {
             Instance = new()
             {
@@ -259,8 +259,8 @@ public class ProcessEngineMetricsDecoratorTests
         prometheusMetricsToString.Should().Contain("altinn_app_process_task_next_count{result=\"failure\",action=\"confirm\",task=\"Task_3\"} 1");
         prometheusMetricsToString.Should().Contain("altinn_app_process_end_count{result=\"failure\"} 1");
         prometheusMetricsToString.Should().NotContain("altinn_app_process_end_time_total{result=\"failure\"}");
-        result.Result.Success.Should().BeFalse();
-        result = decorator.Next(new ProcessNextRequest()
+        result.Success.Should().BeFalse();
+        result = await decorator.Next(new ProcessNextRequest()
         {
             Instance = new()
             {
@@ -278,7 +278,7 @@ public class ProcessEngineMetricsDecoratorTests
         prometheusMetricsToString.Should().Contain("altinn_app_process_task_next_count{result=\"failure\",action=\"confirm\",task=\"Task_3\"} 2");
         prometheusMetricsToString.Should().Contain("altinn_app_process_end_count{result=\"failure\"} 2");
         prometheusMetricsToString.Should().NotContain("altinn_app_process_end_time_total{result=\"failure\"}");
-        result.Result.Success.Should().BeFalse();
+        result.Success.Should().BeFalse();
         processEngine.Verify(p => p.Next(It.IsAny<ProcessNextRequest>()), Times.Exactly(2));
         processEngine.VerifyNoOtherCalls();
     }

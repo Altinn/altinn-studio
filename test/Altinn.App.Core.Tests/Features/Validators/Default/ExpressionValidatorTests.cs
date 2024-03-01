@@ -98,7 +98,7 @@ public class ExpressionTestAttribute : DataAttribute
     {
         var files = Directory
             .GetFiles(Path.Join("Features", "Validators", "expression-validation-tests", "shared"))
-            .Concat( Directory.GetFiles(Path.Join("Features", "Validators", "expression-validation-tests", "backend")));
+            .Concat(Directory.GetFiles(Path.Join("Features", "Validators", "expression-validation-tests", "backend")));
 
         foreach (var file in files)
         {

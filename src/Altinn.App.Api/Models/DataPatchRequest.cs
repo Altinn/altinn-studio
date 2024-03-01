@@ -14,7 +14,7 @@ public class DataPatchRequest
     /// </summary>
     [JsonPropertyName("patch")]
     public required JsonPatch Patch { get; init; }
-    
+
     /// <summary>
     /// List of validators to ignore during the patch operation.
     /// Issues from these validators will not be run during the save operation, but the validator will run on process/next

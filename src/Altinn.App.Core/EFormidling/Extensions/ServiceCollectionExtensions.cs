@@ -19,11 +19,11 @@ public static class ServiceCollectionExtensions
     /// <param name="services">The <see cref="IServiceCollection"/> being built.</param>
     /// <param name="configuration">A reference to the current <see cref="IConfiguration"/> object.</param>
     /// <typeparam name="TM">App specific implementation of <see cref="IEFormidlingMetadata"/></typeparam>
-    public static void AddEFormidlingServices<TM>(this IServiceCollection services, IConfiguration configuration) where TM: IEFormidlingMetadata
+    public static void AddEFormidlingServices<TM>(this IServiceCollection services, IConfiguration configuration) where TM : IEFormidlingMetadata
     {
         AddEFormidlingServices<TM, DefaultEFormidlingReceivers>(services, configuration);
     }
-    
+
     /// <summary>
     /// Add Eformidling services and app specific <see cref="IEFormidlingMetadata" /> and <see cref="IEFormidlingReceivers" /> implementation.
     /// <see cref="DefaultEFormidlingReceivers" /> will not be registered.
@@ -32,7 +32,7 @@ public static class ServiceCollectionExtensions
     /// <param name="configuration">A reference to the current <see cref="IConfiguration"/> object.</param>
     /// <typeparam name="TM">App specific implementation of <see cref="IEFormidlingMetadata"/></typeparam>
     /// <typeparam name="TR">App specific implementation of <see cref="IEFormidlingReceivers"/></typeparam>
-    public static void AddEFormidlingServices<TM, TR>(this IServiceCollection services, IConfiguration configuration) where TM: IEFormidlingMetadata where TR: IEFormidlingReceivers
+    public static void AddEFormidlingServices<TM, TR>(this IServiceCollection services, IConfiguration configuration) where TM : IEFormidlingMetadata where TR : IEFormidlingReceivers
     {
         services.AddTransient(typeof(IEFormidlingReceivers), typeof(TR));
         services.AddHttpClient<IEFormidlingClient, Common.EFormidlingClient.EFormidlingClient>();

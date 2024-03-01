@@ -56,7 +56,7 @@ namespace Altinn.App.Api.Tests.Utils
 
         public static string GetOrgToken(string org, int authenticationLevel = 3)
         {
-            ClaimsPrincipal principal = GetOrgPrincipal(org, authenticationLevel);            
+            ClaimsPrincipal principal = GetOrgPrincipal(org, authenticationLevel);
             return JwtTokenMock.GenerateToken(principal, new TimeSpan(1, 1, 1));
         }
 

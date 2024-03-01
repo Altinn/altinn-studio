@@ -200,7 +200,6 @@ public class JsonDataModel : IDataModelAccessor
 
         // Otherwise, just recurse
         return GetResolvedKeysRecursive(keyParts, childModel, currentIndex + 1, DataModel.JoinFieldKeyParts(currentKey, key));
-
     }
 
     /// <inheritdoc />
@@ -292,7 +291,6 @@ public class JsonDataModel : IDataModelAccessor
             // Set the property to null
             containingObject[lastKey] = null;
         }
-
     }
 
     /// <inheritdoc />

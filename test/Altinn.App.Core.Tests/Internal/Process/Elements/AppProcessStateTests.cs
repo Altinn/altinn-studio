@@ -61,7 +61,7 @@ public class AppProcessStateTests
         AppProcessState actual = new(input);
         actual.Should().BeEquivalentTo(expected);
     }
-    
+
     [Fact]
     public void Constructor_with_ProcessState_copies_values_validated_null()
     {
@@ -107,7 +107,7 @@ public class AppProcessStateTests
         AppProcessState actual = new(input);
         actual.Should().BeEquivalentTo(expected);
     }
-    
+
     [Fact]
     public void Constructor_with_ProcessState_copies_values_currenttask_null()
     {

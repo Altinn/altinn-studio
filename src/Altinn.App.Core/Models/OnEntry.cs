@@ -1,12 +1,14 @@
 using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
 
-namespace Altinn.App.Core.Models {
-    
+namespace Altinn.App.Core.Models
+{
+
     /// <summary>
     /// The on entry configuration
     /// </summary>
-    public class OnEntry : OnEntryConfig {
+    public class OnEntry : OnEntryConfig
+    {
 
         /// <summary>
         /// Options for displaying the instance selection component

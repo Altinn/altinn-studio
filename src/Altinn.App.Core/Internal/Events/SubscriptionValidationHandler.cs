@@ -15,7 +15,7 @@ namespace Altinn.App.Core.Internal.Events
         /// <inheritdoc/>
         public Task<bool> ProcessEvent(CloudEvent cloudEvent)
         {
-            return Task.FromResult(true); 
+            return Task.FromResult(true);
         }
     }
 }

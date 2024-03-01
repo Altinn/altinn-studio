@@ -20,7 +20,7 @@ using Xunit;
 
 namespace Altinn.App.PlatformServices.Tests.Implementation;
 
-public class DefaultTaskEventsTests: IDisposable
+public class DefaultTaskEventsTests : IDisposable
 {
     private readonly ILogger<DefaultTaskEvents> _logger = NullLogger<DefaultTaskEvents>.Instance;
     private readonly Mock<IAppResources> _resMock;
@@ -76,7 +76,7 @@ public class DefaultTaskEventsTests: IDisposable
             _layoutStateInitializer);
         await te.OnAbandonProcessTask("Task_1", new Instance());
     }
-    
+
     [Fact]
     public async void OnAbandonProcessTask_calls_all_added_implementations()
     {
@@ -278,7 +278,7 @@ public class DefaultTaskEventsTests: IDisposable
             AppId = "ttd/shadow-fields-test",
             Data = new List<DataElement>()
             {
-                { 
+                {
                     new()
                     {
                         DataType = "model",
@@ -319,7 +319,7 @@ public class DefaultTaskEventsTests: IDisposable
         _metaMock.Verify(r => r.GetApplicationMetadata());
         _dataMock.Verify(r => r.GetFormData(instanceGuid, modelType, "ttd", "shadow-fields-test", 1000, dataElementId));
     }
-    
+
     [Fact]
     public async void OnEndProcessTask_calls_all_added_implementations_of_IProcessTaskStart()
     {
@@ -399,7 +399,7 @@ public class DefaultTaskEventsTests: IDisposable
         _metaMock.Verify(r => r.GetApplicationMetadata());
         _instanceMock.Verify(i => i.DeleteInstance(1000, Guid.Parse("fa0678ad-960d-4307-aba2-ba29c9804c9d"), true), Times.Never);
     }
-    
+
     [Fact]
     public async void OnEndProcessTask_deletes_old_datatypes_generated_from_task_beeing_ended()
     {
@@ -467,7 +467,7 @@ public class DefaultTaskEventsTests: IDisposable
         _instanceMock.Verify(i => i.DeleteInstance(1000, Guid.Parse("fa0678ad-960d-4307-aba2-ba29c9804c9d"), true), Times.Never);
         _dataMock.Verify(d => d.DeleteData("ttd", "test", 1337, Guid.Parse("fa0678ad-960d-4307-aba2-ba29c9804c9d"), Guid.Parse("ba0678ad-960d-4307-aba2-ba29c9804c9d"), false), Times.Once);
     }
-    
+
     [Fact]
     public async void OnEndProcessTask_sets_hard_soft_delete_if_process_ended_and_autoDeleteOnProcessEnd_true()
     {
@@ -506,7 +506,7 @@ public class DefaultTaskEventsTests: IDisposable
         _metaMock.Verify(r => r.GetApplicationMetadata());
         _instanceMock.Verify(i => i.DeleteInstance(1000, Guid.Parse("fa0678ad-960d-4307-aba2-ba29c9804c9d"), true), Times.Once);
     }
-    
+
     [Fact]
     public async void OnEndProcessTask_does_not_sets_hard_soft_delete_if_process_not_ended_and_autoDeleteOnProcessEnd_true()
     {
@@ -530,7 +530,7 @@ public class DefaultTaskEventsTests: IDisposable
         var instance = new Instance()
         {
             Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d",
-            AppId = "ttd/test",            
+            AppId = "ttd/test",
             InstanceOwner = new()
             {
                 PartyId = "1000"
@@ -542,7 +542,7 @@ public class DefaultTaskEventsTests: IDisposable
         _metaMock.Verify(r => r.GetApplicationMetadata());
         _instanceMock.Verify(i => i.DeleteInstance(1000, Guid.Parse("fa0678ad-960d-4307-aba2-ba29c9804c9d"), true), Times.Never);
     }
-    
+
     [Fact]
     public async void OnEndProcessTask_does_not_sets_hard_soft_delete_if_process_null_and_autoDeleteOnProcessEnd_true()
     {
@@ -663,7 +663,7 @@ public class DefaultTaskEventsTests: IDisposable
 
     private ModelWithShadowFields GetDataElementForShadowFields()
     {
-            return new ModelWithShadowFields()
+        return new ModelWithShadowFields()
         {
             AltinnSF_hello = "hello",
             AltinnSF_test = "test",

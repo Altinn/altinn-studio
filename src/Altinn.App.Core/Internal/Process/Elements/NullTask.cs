@@ -6,7 +6,7 @@ namespace Altinn.App.Core.Internal.Process.Elements;
 /// <summary>
 /// Null implementation. Used when no other <see cref="ITask"/> can be found
 /// </summary>
-public class NullTask: ITask
+public class NullTask : ITask
 {
     /// <inheritdoc/>
     public async Task HandleTaskStart(string elementId, Instance instance, Dictionary<string, string> prefill)

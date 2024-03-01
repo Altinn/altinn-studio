@@ -113,7 +113,7 @@ namespace Altinn.App.Api.Controllers
             }
 
             DataElement? dataElement = instance.Data.FirstOrDefault(m => m.Id.Equals(dataGuid.ToString()));
-            
+
             if (dataElement == null)
             {
                 return NotFound("Unable to find data element based on the given parameters.");

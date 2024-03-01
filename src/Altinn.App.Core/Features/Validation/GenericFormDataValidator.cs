@@ -54,7 +54,7 @@ public abstract class GenericFormDataValidator<TModel> : IFormDataValidator
     /// <param name="description">Optional description if you want to provide a user friendly message that don't rely on the translation system</param>
     /// <param name="code">optional short code for the type of issue</param>
     /// <param name="customTextParams">List of parameters to replace after looking up the translation. Zero indexed {0}</param>
-    protected void CreateValidationIssue<T>(Expression<Func<TModel,T>> selector, string textKey, ValidationIssueSeverity severity = ValidationIssueSeverity.Error, string? description = null, string? code = null, List<string>? customTextParams = null)
+    protected void CreateValidationIssue<T>(Expression<Func<TModel, T>> selector, string textKey, ValidationIssueSeverity severity = ValidationIssueSeverity.Error, string? description = null, string? code = null, List<string>? customTextParams = null)
     {
         Debug.Assert(ValidationIssues.Value is not null);
         AddValidationIssue(new ValidationIssue

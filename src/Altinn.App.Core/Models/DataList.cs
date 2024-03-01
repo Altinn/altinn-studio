@@ -18,6 +18,6 @@ namespace Altinn.App.Core.Models
         /// <summary>
         /// Gets or sets the metadata of the DataList.
         /// </summary>
-        public DataListMetadata _metaData { get; set; }  = new DataListMetadata();
+        public DataListMetadata _metaData { get; set; } = new DataListMetadata();
     }
 }

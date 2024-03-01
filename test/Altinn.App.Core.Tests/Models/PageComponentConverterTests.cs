@@ -73,7 +73,6 @@ public class PageComponentConverterTestModel
     public JsonElement Layout { get; set; }
 
     public HierarchyTestModel[]? ExpectedHierarchy { get; set; }
-
 }
 
 public class HierarchyTestModel

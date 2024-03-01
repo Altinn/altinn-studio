@@ -47,7 +47,7 @@ public class ProcessStateExtensionTests
         Assert.Same(original.CurrentTask.Validated, copy.CurrentTask.Validated);
         copy.Should().BeEquivalentTo(original);
     }
-    
+
     [Fact]
     public void Copy_returns_state_with_current_null_when_original_null()
     {

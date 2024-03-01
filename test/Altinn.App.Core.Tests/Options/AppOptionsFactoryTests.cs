@@ -30,7 +30,7 @@ namespace Altinn.App.PlatformServices.Tests.Options
 
             IAppOptionsProvider optionsProvider1 = factory.GetOptionsProvider("fylke");
             IAppOptionsProvider optionsProvider2 = factory.GetOptionsProvider("kommune");
-            
+
             optionsProvider1.Id.Should().Be("fylke");
             optionsProvider2.Id.Should().Be("kommune");
         }

@@ -15,7 +15,7 @@ public interface ITaskEvents
     /// <param name="prefill">Prefill data</param>
     /// <returns></returns>
     public Task OnStartProcessTask(string taskId, Instance instance, Dictionary<string, string> prefill);
-    
+
     /// <summary>
     /// Is called after the process task is ended. Method can update instance and data element metadata. 
     /// </summary>
@@ -23,12 +23,12 @@ public interface ITaskEvents
     /// <param name="instance">Instance data</param>
     /// <returns></returns>
     public Task OnEndProcessTask(string endEvent, Instance instance);
-    
+
     /// <summary>
     /// Is called after the process task is abonded. Method can update instance and data element metadata. 
     /// </summary>
     /// <param name="taskId">task id of task to abandon</param>
     /// <param name="instance">Instance data</param>
     public Task OnAbandonProcessTask(string taskId, Instance instance);
-    
+
 }

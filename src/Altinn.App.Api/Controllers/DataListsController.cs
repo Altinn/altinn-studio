@@ -9,7 +9,7 @@ namespace Altinn.App.Api.Controllers
     /// Represents the DataLists API.
     /// </summary>
     [ApiController]
-    public class DataListsController: ControllerBase
+    public class DataListsController : ControllerBase
     {
         private readonly IDataListsService _dataListsService;
 

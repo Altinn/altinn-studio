@@ -45,7 +45,7 @@ public class RequiredLayoutValidator : IFormDataValidator
     public async Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data, string? language)
     {
         var appMetadata = await _appMetadata.GetApplicationMetadata();
-        var layoutSet = _appResourcesService.GetLayoutSetForTask(appMetadata.DataTypes.First(dt=>dt.Id == dataElement.DataType).TaskId);
+        var layoutSet = _appResourcesService.GetLayoutSetForTask(appMetadata.DataTypes.First(dt => dt.Id == dataElement.DataType).TaskId);
         var evaluationState = await _layoutEvaluatorStateInitializer.Init(instance, data, layoutSet?.Id);
         return LayoutEvaluator.RunLayoutValidationsForRequired(evaluationState, dataElement.Id);
     }

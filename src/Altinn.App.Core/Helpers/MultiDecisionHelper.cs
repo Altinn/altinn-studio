@@ -42,7 +42,7 @@ public static class MultiDecisionHelper
 
         return jsonRequest;
     }
-    
+
     /// <summary>
     /// Validate a multi decision result and returns a dictionary with the actions and the result.
     /// </summary>
@@ -181,5 +181,5 @@ public static class MultiDecisionHelper
 
         return references;
     }
-    
+
 }

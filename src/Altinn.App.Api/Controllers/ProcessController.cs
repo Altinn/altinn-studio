@@ -133,7 +133,7 @@ namespace Altinn.App.Api.Controllers
                 {
                     return Conflict(result.ErrorMessage);
                 }
-                
+
                 AppProcessState appProcessState = await ConvertAndAuthorizeActions(instance, result.ProcessStateChange?.NewProcessState);
                 return Ok(appProcessState);
             }
@@ -236,7 +236,7 @@ namespace Altinn.App.Api.Controllers
                 {
                     processNext = await DeserializeFromStream<ProcessNext>(Request.Body);
                 }
-                
+
                 Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
 
                 if (instance?.Process == null)
@@ -264,7 +264,7 @@ namespace Altinn.App.Api.Controllers
                 {
                     return Forbid();
                 }
-                
+
                 _logger.LogDebug("User is authorized to perform action {Action}", checkedAction);
                 var request = new ProcessNextRequest()
                 {
@@ -439,7 +439,7 @@ namespace Altinn.App.Api.Controllers
                 return ExceptionResponse(processException, $"Unable to find retrieve process history for instance {instanceOwnerPartyId}/{instanceGuid}. Exception: {processException}");
             }
         }
-        
+
         private async Task<AppProcessState> ConvertAndAuthorizeActions(Instance instance, ProcessState? processState)
         {
             AppProcessState appProcessState = new AppProcessState(processState);
@@ -458,15 +458,15 @@ namespace Altinn.App.Api.Controllers
                     appProcessState.CurrentTask.UserActions = authDecisions;
                 }
             }
-            
+
             var processTasks = new List<AppProcessTaskTypeInfo>();
             foreach (var processElement in _processReader.GetAllFlowElements().OfType<ProcessTask>())
             {
                 processTasks.Add(new AppProcessTaskTypeInfo
-                    {
-                        ElementId = processElement.Id,
-                        AltinnTaskType = processElement.ExtensionElements?.TaskExtension?.TaskType
-                    });
+                {
+                    ElementId = processElement.Id,
+                    AltinnTaskType = processElement.ExtensionElements?.TaskExtension?.TaskType
+                });
             }
 
             appProcessState.ProcessTasks = processTasks;
@@ -534,7 +534,7 @@ namespace Altinn.App.Api.Controllers
 
             return ExceptionResponse(e, defaultMessage);
         }
-        
+
         private static async Task<T?> DeserializeFromStream<T>(Stream stream)
         {
             using StreamReader reader = new StreamReader(stream);

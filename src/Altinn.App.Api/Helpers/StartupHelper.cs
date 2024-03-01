@@ -13,7 +13,7 @@ public static class StartupHelper
     /// Delegate for swagger funciton
     /// </summary>
     public delegate void SwaggerIncludeXmlComments(string filepath, bool a);
-    
+
     /// <summary>
     /// Includes comments in swagger based on XML comment files 
     /// </summary>

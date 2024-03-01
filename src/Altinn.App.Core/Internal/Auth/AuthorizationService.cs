@@ -69,11 +69,11 @@ public class AuthorizationService : IAuthorizationService
         {
             authorizedActions.Add(new UserAction()
             {
-               Id = action.Value,
-               Authorized = authDecisions[action.Value],
-               ActionType = action.ActionType
+                Id = action.Value,
+                Authorized = authDecisions[action.Value],
+                ActionType = action.ActionType
             });
-            
+
         }
 
         return authorizedActions;

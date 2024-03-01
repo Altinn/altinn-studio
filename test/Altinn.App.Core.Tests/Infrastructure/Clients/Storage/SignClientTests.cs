@@ -79,7 +79,7 @@ public class SignClientTests
             },
             SignatureDocumentDataType = "sign-data-type"
         };
-        
+
         await signClient.SignDataElements(signatureContext);
 
         // Assert
@@ -91,7 +91,7 @@ public class SignClientTests
         SignRequest actual = await JsonSerializerPermissive.DeserializeAsync<SignRequest>(platformRequest!.Content!);
         actual.Should().BeEquivalentTo(expectedRequest);
     }
-    
+
     [Fact]
     public async Task SignDataElements_throws_PlatformHttpException_if_platform_returns_http_errorcode()
     {
@@ -120,8 +120,8 @@ public class SignClientTests
                 PersonNumber = "0101011337"
             },
             new DataElementSignature(dataElementId));
-        
-        var ex = await Assert.ThrowsAsync<PlatformHttpException>(async() => await signClient.SignDataElements(signatureContext));
+
+        var ex = await Assert.ThrowsAsync<PlatformHttpException>(async () => await signClient.SignDataElements(signatureContext));
         ex.Should().NotBeNull();
         ex.Response.Should().NotBeNull();
         ex.Response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);

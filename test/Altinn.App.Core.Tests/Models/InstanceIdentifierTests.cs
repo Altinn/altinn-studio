@@ -25,7 +25,7 @@ namespace Altinn.App.PlatformServices.Tests.Models
         public void Url_CreateFromUrl_ShouldThrowExceptionOnInvalidUrl()
         {
             var url = "/yabbin/hvem-er-hvem/512345/2539cacc-1f49-4852-907b-d184e7285a60/process/next";
-            
+
             Action action = () => InstanceIdentifier.CreateFromUrl(url);
 
             action.Should().Throw<ArgumentException>();

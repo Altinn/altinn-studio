@@ -11,12 +11,12 @@ public interface IUserActionAuthorizerProvider
     /// Gets or sets the action
     /// </summary>
     public string? Action { get; }
-            
+
     /// <summary>
     /// Gets or sets the task id
     /// </summary>
     public string? TaskId { get; }
-        
+
     /// <summary>
     /// Gets or sets the authorizer implementation
     /// </summary>

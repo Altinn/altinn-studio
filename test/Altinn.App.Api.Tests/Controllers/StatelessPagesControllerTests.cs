@@ -80,17 +80,17 @@ public class StatelessPagesControllerTests
             appResourcesMock.Object,
             pageOrderMock.Object
         );
-        
+
         // Act
         var response = await controller.GetPageOrder(org, app, layoutSetId, currentpage, null, formdata);
-        
+
         // Assert
         response.Result.Should().BeOfType<BadRequestObjectResult>();
         appResourcesMock.VerifyNoOtherCalls();
         pageOrderMock.VerifyNoOtherCalls();
         appModelMock.VerifyNoOtherCalls();
     }
-    
+
     [Fact]
     public async Task GetPageOrder_Returns_BadRequest_when_datatype_empty()
     {
@@ -103,10 +103,10 @@ public class StatelessPagesControllerTests
             appResourcesMock.Object,
             pageOrderMock.Object
         );
-        
+
         // Act
         var response = await controller.GetPageOrder(org, app, layoutSetId, currentpage, string.Empty, formdata);
-        
+
         // Assert
         response.Result.Should().BeOfType<BadRequestObjectResult>();
         appResourcesMock.VerifyNoOtherCalls();

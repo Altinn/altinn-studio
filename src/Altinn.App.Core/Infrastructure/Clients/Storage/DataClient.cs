@@ -42,7 +42,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         public DataClient(
             IOptions<PlatformSettings> platformSettings,
             ILogger<DataClient> logger,
-            HttpClient httpClient, 
+            HttpClient httpClient,
             IUserTokenProvider userTokenProvider)
         {
             _platformSettings = platformSettings.Value;
@@ -73,7 +73,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             string apiUrl = $"instances/{instance.Id}/data?dataType={dataType}";
             string token = _userTokenProvider.GetUserToken();
             DataElement dataElement;
-            
+
             using MemoryStream stream = new MemoryStream();
             Serialize(dataToSerialize, type, stream);
 
@@ -102,7 +102,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             string token = _userTokenProvider.GetUserToken();
 
             using MemoryStream stream = new MemoryStream();
-            
+
             Serialize(dataToSerialize, type, stream);
 
             stream.Position = 0;
@@ -294,7 +294,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         public async Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string? filename, Stream stream, string? generatedFromTask = null)
         {
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceId}/data?dataType={dataType}";
-            if(!string.IsNullOrEmpty(generatedFromTask))
+            if (!string.IsNullOrEmpty(generatedFromTask))
             {
                 apiUrl += $"&generatedFromTask={generatedFromTask}";
             }
@@ -348,7 +348,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             _logger.LogError($"Updating attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}");
             throw await PlatformHttpException.CreateAsync(response);
         }
-        
+
         /// <inheritdoc />
         public async Task<DataElement> UpdateBinaryData(InstanceIdentifier instanceIdentifier, string? contentType, string filename, Guid dataGuid, Stream stream)
         {

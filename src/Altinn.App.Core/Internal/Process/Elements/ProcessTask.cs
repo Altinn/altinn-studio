@@ -6,7 +6,7 @@ namespace Altinn.App.Core.Internal.Process.Elements
     /// <summary>
     /// Class representing the task of a process
     /// </summary>
-    public class ProcessTask: ProcessElement
+    public class ProcessTask : ProcessElement
     {
         /// <summary>
         /// Defines the extension elements

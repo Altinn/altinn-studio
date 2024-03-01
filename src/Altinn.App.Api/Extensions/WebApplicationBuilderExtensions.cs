@@ -23,7 +23,7 @@ public static class WebApplicationBuilderExtensions
             app.UseDeveloperExceptionPage();
             webApp.UseAltinnPrometheus(appId);
         }
-        
+
         app.UseHttpMetrics();
         app.UseMetricServer();
         app.UseDefaultSecurityHeaders();

@@ -56,8 +56,8 @@ public class InstancesController_CopyInstanceTests
         ControllerContext controllerContext = new ControllerContext()
         {
             HttpContext = _httpContextMock.Object
-        }; 
-        
+        };
+
         SUT = new InstancesController(
             _logger.Object,
             _registrer.Object,
@@ -74,7 +74,7 @@ public class InstancesController_CopyInstanceTests
             _profile.Object,
             _processEngine.Object,
             _oarganizationClientMock.Object)
-        { 
+        {
             ControllerContext = controllerContext
         };
     }
@@ -218,7 +218,7 @@ public class InstancesController_CopyInstanceTests
         Guid instanceGuid = Guid.NewGuid();
 
         // Storage returns Forbidden if the given instance id is wrong.
-        PlatformHttpException platformHttpException = 
+        PlatformHttpException platformHttpException =
             await PlatformHttpException.CreateAsync(new HttpResponseMessage(System.Net.HttpStatusCode.Forbidden));
 
         _httpContextMock.Setup(httpContext => httpContext.User).Returns(PrincipalUtil.GetUserPrincipal(1337, null));
@@ -361,11 +361,11 @@ public class InstancesController_CopyInstanceTests
         _instanceClient.Setup(i => i.GetInstance(It.IsAny<Instance>())).ReturnsAsync(instance);
         _instantiationValidator.Setup(v => v.Validate(It.IsAny<Instance>())).ReturnsAsync(instantiationValidationResult);
         _processEngine.Setup(p => p.StartProcess(It.IsAny<ProcessStartRequest>()))
-            .ReturnsAsync(() => { return new ProcessChangeResult(){Success = true}; });
+            .ReturnsAsync(() => { return new ProcessChangeResult() { Success = true }; });
         _processEngine.Setup(p => p.UpdateInstanceAndRerunEvents(It.IsAny<ProcessStartRequest>(), It.IsAny<List<InstanceEvent>>()));
-        _data.Setup(p=>p.GetFormData(instanceGuid, It.IsAny<Type?>()!, Org, AppName, InstanceOwnerPartyId, dataGuid))
+        _data.Setup(p => p.GetFormData(instanceGuid, It.IsAny<Type?>()!, Org, AppName, InstanceOwnerPartyId, dataGuid))
             .ReturnsAsync(new { test = "test" });
-        _data.Setup(p=>p.InsertFormData(It.IsAny<object>(), instanceGuid,  It.IsAny<Type?>()!, Org, AppName, InstanceOwnerPartyId, dataTypeId))
+        _data.Setup(p => p.InsertFormData(It.IsAny<object>(), instanceGuid, It.IsAny<Type?>()!, Org, AppName, InstanceOwnerPartyId, dataTypeId))
             .ReturnsAsync(new DataElement());
 
         // Act
@@ -390,17 +390,17 @@ public class InstancesController_CopyInstanceTests
         return new($"{org}/{app}")
         {
             CopyInstanceSettings = new CopyInstanceSettings { Enabled = enableCopyInstance },
-            DataTypes = new List<DataType> 
-            { 
-                new DataType 
-                { 
+            DataTypes = new List<DataType>
+            {
+                new DataType
+                {
                     Id = "data_type_1",
                     AppLogic = new ApplicationLogic
                     {
                         ClassRef = "App.Models.Skjema",
                     },
                     TaskId = "First"
-                } 
+                }
             },
             Org = org
         };

@@ -6,7 +6,7 @@ namespace Altinn.App.Core.Features.Options
     public class DefaultAppOptionsProvider : IAppOptionsProvider
     {
         private readonly IAppOptionsFileHandler _appOptionsFileHandler;
-        
+
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultAppOptionsProvider"/> class.
         /// </summary>

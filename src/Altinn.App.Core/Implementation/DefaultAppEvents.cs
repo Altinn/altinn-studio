@@ -10,7 +10,7 @@ namespace Altinn.App.Core.Implementation;
 /// <summary>
 /// Default handling of instance events
 /// </summary>
-public class DefaultAppEvents: IAppEvents
+public class DefaultAppEvents : IAppEvents
 {
     private readonly ILogger<DefaultAppEvents> _logger;
     private readonly IAppMetadata _appMetadata;
@@ -21,8 +21,8 @@ public class DefaultAppEvents: IAppEvents
     /// Constructor with services from DI
     /// </summary>
     public DefaultAppEvents(
-        ILogger<DefaultAppEvents> logger, 
-        IAppMetadata appMetadata, 
+        ILogger<DefaultAppEvents> logger,
+        IAppMetadata appMetadata,
         IInstanceClient instanceClient,
         IDataClient dataClient)
     {
@@ -30,7 +30,7 @@ public class DefaultAppEvents: IAppEvents
         _appMetadata = appMetadata;
         _instanceClient = instanceClient;
         _dataClient = dataClient;
-        
+
     }
 
     /// <inheritdoc />
@@ -46,7 +46,7 @@ public class DefaultAppEvents: IAppEvents
 
         _logger.LogInformation("OnEndProcess for {Id}, endEvent: {EndEvent}", instance.Id, endEvent);
     }
-    
+
     private async Task AutoDeleteDataElements(Instance instance)
     {
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
@@ -56,7 +56,7 @@ public class DefaultAppEvents: IAppEvents
         {
             return;
         }
-        
+
         instance = await _instanceClient.GetInstance(instance);
         List<DataElement> elementsToDelete = instance.Data.Where(e => typesToDelete.Contains(e.DataType)).ToList();
 

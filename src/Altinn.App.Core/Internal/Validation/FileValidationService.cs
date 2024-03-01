@@ -27,7 +27,7 @@ namespace Altinn.App.Core.Internal.Validation
         {
             List<ValidationIssue> allErrors = new();
             bool allSuccess = true;
-            
+
             List<IFileValidator> fileValidators = _fileValidatorFactory.GetFileValidators(dataType.EnabledFileValidators).ToList();
             foreach (IFileValidator fileValidator in fileValidators)
             {

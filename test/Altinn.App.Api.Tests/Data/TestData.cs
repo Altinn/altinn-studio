@@ -20,8 +20,8 @@ public static class TestData
         return Path.Combine(testDataDirectory, "apps", org, app);
     }
 
-    public static string GetAppSpecificTestdataDirectory(string org, string app) 
-    { 
+    public static string GetAppSpecificTestdataDirectory(string org, string app)
+    {
         var appDirectory = GetApplicationDirectory(org, app);
         return Path.Join(appDirectory, "_testdata_");
     }
@@ -89,7 +89,7 @@ public static class TestData
     public static string GetTestDataRolesFolder(int userId, int resourcePartyId)
     {
         string testDataDirectory = GetTestDataRootDirectory();
-        return Path.Combine(testDataDirectory, "authorization","roles", "User_" + userId, "party_" + resourcePartyId, "roles.json");
+        return Path.Combine(testDataDirectory, "authorization", "roles", "User_" + userId, "party_" + resourcePartyId, "roles.json");
     }
 
     public static string GetAltinnAppsPolicyPath(string org, string app)
@@ -103,7 +103,7 @@ public static class TestData
         string testDataDirectory = GetTestDataRootDirectory();
         return Path.Combine(testDataDirectory, "Register", "Party");
     }
-    
+
     public static string GetRegisterProfilePath()
     {
         string testDataDirectory = GetTestDataRootDirectory();
@@ -134,7 +134,7 @@ public static class TestData
         File.Copy(preInstancePath, instancePath, true);
 
         string dataPath = GetDataDirectory(org, app, instanceOwnerId, instanceGuid);
-        
+
         if (Directory.Exists(dataPath))
         {
             foreach (string filePath in Directory.GetFiles(dataPath, "*.*", SearchOption.AllDirectories))

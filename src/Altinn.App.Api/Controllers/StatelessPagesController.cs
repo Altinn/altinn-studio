@@ -30,8 +30,8 @@ namespace Altinn.App.Api.Controllers
         /// <param name="resources">The app resource service</param>
         /// <param name="pageOrder">The page order service</param>
         public StatelessPagesController(
-            IAppModel appModel, 
-            IAppResources resources, 
+            IAppModel appModel,
+            IAppResources resources,
             IPageOrder pageOrder)
         {
             _appModel = appModel;

@@ -18,7 +18,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
 {
     private readonly Mock<IDataProcessor> _dataProcessor = new();
 
-    private static readonly JsonSerializerOptions JsonSerializerOptions = new ()
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
@@ -60,7 +60,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         var createDataElementResponseParsed =
             JsonSerializer.Deserialize<DataElement>(createDataElementResponseContent, JsonSerializerOptions)!;
         var dataGuid = createDataElementResponseParsed.Id;
-        
+
         // Update data element
         using var updateDataElementContent =
             new StringContent("""{"melding":{"name": "Ola Olsen"}}""", System.Text.Encoding.UTF8, "application/json");
@@ -94,7 +94,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
 
                 return Task.CompletedTask;
             });
-        
+
         // Run previous test with different setup
         // Setup test data
         string org = "tdd";
@@ -123,7 +123,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         var createDataElementResponseParsed =
             JsonSerializer.Deserialize<DataElement>(createDataElementResponseContent, JsonSerializerOptions)!;
         var dataGuid = createDataElementResponseParsed.Id;
-        
+
         // Verify stored data
         var firstReadDataElementResponse = await client.GetAsync($"/{org}/{app}/instances/{instanceId}/data/{dataGuid}");
         var firstReadDataElementResponseContent = await firstReadDataElementResponse.Content.ReadAsStringAsync();
@@ -147,10 +147,10 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         readDataElementResponseParsed.Melding!.Name.Should().Be("Ola Olsen");
         readDataElementResponseParsed.Melding.Toggle.Should().BeTrue();
 
-        _dataProcessor.Verify(p=>p.ProcessDataRead(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == Guid.Parse(dataGuid)), It.IsAny<Skjema>(), null), Times.Exactly(2));
+        _dataProcessor.Verify(p => p.ProcessDataRead(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == Guid.Parse(dataGuid)), It.IsAny<Skjema>(), null), Times.Exactly(2));
         _dataProcessor.Verify(p => p.ProcessDataWrite(It.IsAny<Instance>(), It.Is<Guid>(dataId => dataId == Guid.Parse(dataGuid)), It.IsAny<Skjema>(), It.IsAny<Skjema?>(), null), Times.Exactly(1)); // TODO: Shouldn't this be 2 because of the first write?
         _dataProcessor.VerifyNoOtherCalls();
-        
+
     }
 
 

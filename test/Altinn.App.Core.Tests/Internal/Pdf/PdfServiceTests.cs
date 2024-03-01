@@ -152,7 +152,7 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Pdf
 
             var dataModelId = Guid.NewGuid();
             var attachmentId = Guid.NewGuid();
-            
+
             Instance instance = new()
             {
                 Id = $"509378/{Guid.NewGuid()}",

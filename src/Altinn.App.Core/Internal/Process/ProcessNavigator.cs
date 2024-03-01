@@ -67,10 +67,11 @@ public class ProcessNavigator : IProcessNavigator
             var gateway = (ExclusiveGateway)directFlowTarget;
             List<SequenceFlow> outgoingFlows = _processReader.GetOutgoingSequenceFlows(directFlowTarget);
             IProcessExclusiveGateway? gatewayFilter = null;
-            if(outgoingFlows.Any(a => a.ConditionExpression != null))
+            if (outgoingFlows.Any(a => a.ConditionExpression != null))
             {
                 gatewayFilter = _gatewayFactory.GetProcessExclusiveGateway("AltinnExpressionsExclusiveGateway");
-            } else
+            }
+            else
             {
                 gatewayFilter = _gatewayFactory.GetProcessExclusiveGateway(directFlowTarget.Id);
             }
@@ -86,7 +87,7 @@ public class ProcessNavigator : IProcessNavigator
                     Action = action,
                     DataTypeId = gateway.ExtensionElements?.GatewayExtension?.ConnectedDataTypeId
                 };
-                
+
                 filteredList = await gatewayFilter.FilterAsync(outgoingFlows, instance, gatewayInformation);
             }
             var defaultSequenceFlow = filteredList.Find(s => s.Id == gateway.Default);

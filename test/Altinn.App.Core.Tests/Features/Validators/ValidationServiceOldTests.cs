@@ -61,7 +61,7 @@ public class ValidationServiceOldTests
 
         var instance = new Instance();
         var dataType = new DataType() { EnableFileScan = true };
-        var dataElement = new DataElement() 
+        var dataElement = new DataElement()
         {
             DataType = "test",
             FileScanResult = FileScanResult.Infected
@@ -79,7 +79,7 @@ public class ValidationServiceOldTests
         IValidationService validationService = serviceProvider.GetRequiredService<IValidationService>();
 
         var dataType = new DataType()
-            { Id = "test", TaskId = "Task_1", AppLogic = null, EnableFileScan = true };
+        { Id = "test", TaskId = "Task_1", AppLogic = null, EnableFileScan = true };
         var instance = new Instance()
         {
         };
@@ -264,13 +264,13 @@ public class ValidationServiceOldTests
     {
         ModelStateHelpers.ModelKeyToField("null", typeof(TestModel)).Should().Be("null");
     }
-    
+
     [Fact]
     public void ModelKeyToField_StringInputWithAttr_ReturnsMappedString()
     {
         ModelStateHelpers.ModelKeyToField("FirstLevelProp", typeof(TestModel)).Should().Be("level1");
     }
-    
+
     [Fact]
     public void ModelKeyToField_SubModel_ReturnsMappedString()
     {

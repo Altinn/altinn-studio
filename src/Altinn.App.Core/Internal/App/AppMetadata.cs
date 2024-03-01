@@ -56,7 +56,7 @@ namespace Altinn.App.Core.Internal.App
                     {
                         throw new ApplicationConfigException($"Deserialization returned null, Could indicate problems with deserialization of {filename}");
                     }
-                    
+
                     application.Features = await _frontendFeatures.GetFrontendFeatures();
                     _application = application;
 

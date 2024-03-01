@@ -19,7 +19,7 @@ public class UserActionServiceTests
         userAction.Should().BeOfType<DummyUserAction>();
         userAction!.Id.Should().Be("dummy");
     }
-    
+
     [Fact]
     public void GetActionHandlerOrDefault_should_return_first_DummyActionHandler_for_id_dummy_if_multiple()
     {
@@ -31,7 +31,7 @@ public class UserActionServiceTests
         userAction.Should().BeOfType<DummyUserAction>();
         userAction!.Id.Should().Be("dummy");
     }
-    
+
     [Fact]
     public void GetActionHandlerOrDefault_should_return_null_if_id_not_found_and_default_not_set()
     {
@@ -41,7 +41,7 @@ public class UserActionServiceTests
 
         userAction.Should().BeNull();
     }
-    
+
     [Fact]
     public void GetActionHandlerOrDefault_should_return_null_if_id_is_null_and_default_not_set()
     {
@@ -51,7 +51,7 @@ public class UserActionServiceTests
 
         userAction.Should().BeNull();
     }
-    
+
     internal class DummyUserAction : IUserAction
     {
         public string Id => "dummy";
@@ -61,7 +61,7 @@ public class UserActionServiceTests
             return Task.FromResult(UserActionResult.SuccessResult());
         }
     }
-    
+
     internal class DummyUserAction2 : IUserAction
     {
         public string Id => "dummy";

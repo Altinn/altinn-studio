@@ -11,7 +11,7 @@ public interface IUserAction
     /// The id of the user action
     /// </summary>
     string Id { get; }
-        
+
     /// <summary>
     /// Method for handling the user action
     /// </summary>

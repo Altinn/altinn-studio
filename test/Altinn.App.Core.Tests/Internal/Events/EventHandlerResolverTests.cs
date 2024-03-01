@@ -11,7 +11,7 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Events
     public class EventHandlerResolverTests
     {
         [Fact]
-        public void ResolveEventHandler_SubscriptionValidationHandler_ShouldReturnSubscriptionValidationHandler()
+        public async void ResolveEventHandler_SubscriptionValidationHandler_ShouldReturnSubscriptionValidationHandler()
         {
             var factory = new EventHandlerResolver(new List<IEventHandler>() { new SubscriptionValidationHandler() });
 
@@ -19,7 +19,8 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Events
 
             eventHandler.Should().BeOfType<SubscriptionValidationHandler>();
             eventHandler.EventType.Should().Be("platform.events.validatesubscription");
-            eventHandler.ProcessEvent(new CloudEvent()).Result.Should().BeTrue();
+            var success = await eventHandler.ProcessEvent(new CloudEvent());
+            success.Should().BeTrue();
         }
 
         [Fact]
@@ -29,7 +30,7 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Events
 
             IEventHandler eventHandler = factory.ResolveEventHandler("this.event.should.not.exists");
             Action action = () => eventHandler.ProcessEvent(new CloudEvent());
-            
+
             eventHandler.Should().BeOfType<UnhandledEventHandler>();
             eventHandler.EventType.Should().Be("app.events.unhandled");
             action.Should().Throw<NotImplementedException>();

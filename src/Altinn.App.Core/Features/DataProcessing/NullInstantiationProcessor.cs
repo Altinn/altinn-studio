@@ -6,7 +6,7 @@ namespace Altinn.App.Core.Features.DataProcessing;
 /// Default implementation of the IInstantiationProcessor interface.
 /// This implementation does not do any thing to the data
 /// </summary>
-public class NullInstantiationProcessor: IInstantiationProcessor
+public class NullInstantiationProcessor : IInstantiationProcessor
 {
     /// <inheritdoc />
     public async Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill)

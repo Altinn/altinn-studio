@@ -9,12 +9,13 @@ namespace Altinn.App.PlatformServices.Tests.DataLists
     public class NullInstanceDataListProviderTest
     {
         [Fact]
-        public void Constructor_InitializedWithEmptyValues()
+        public async void Constructor_InitializedWithEmptyValues()
         {
             var provider = new NullInstanceDataListProvider();
 
             provider.Id.Should().Be(string.Empty);
-            provider.GetInstanceDataListAsync(new InstanceIdentifier(12345, Guid.NewGuid()), "nb", new Dictionary<string, string>()).Result.ListItems.Should().BeNull();
+            var options = await provider.GetInstanceDataListAsync(new InstanceIdentifier(12345, Guid.NewGuid()), "nb", new Dictionary<string, string>());
+            options.ListItems.Should().BeNull();
         }
     }
 }

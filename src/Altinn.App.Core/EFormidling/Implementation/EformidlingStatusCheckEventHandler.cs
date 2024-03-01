@@ -136,7 +136,7 @@ namespace Altinn.App.Core.EFormidling.Implementation
         /// a logged on user/org.
         private async Task<Instance> AddCompleteConfirmation(InstanceIdentifier instanceIdentifier)
         {
-            string url = $"instances/{instanceIdentifier.InstanceOwnerPartyId}/{instanceIdentifier.InstanceGuid}/complete";            
+            string url = $"instances/{instanceIdentifier.InstanceOwnerPartyId}/{instanceIdentifier.InstanceGuid}/complete";
 
             TokenResponse altinnToken = await GetOrganizationToken();
 

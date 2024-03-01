@@ -17,7 +17,7 @@ namespace Altinn.App.Core.Models.Process
         /// Gets or sets the error type if the process change was not successful
         /// </summary>
         public ProcessErrorType? ErrorType { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the process state change if the process change was successful
         /// </summary>
@@ -33,12 +33,12 @@ namespace Altinn.App.Core.Models.Process
         /// The process change was not allowed due to the current state of the process
         /// </summary>
         Conflict,
-        
+
         /// <summary>
         /// The process change lead to an internal error
         /// </summary>
         Internal,
-        
+
         /// <summary>
         /// The user is not authorized to perform the process change
         /// </summary>

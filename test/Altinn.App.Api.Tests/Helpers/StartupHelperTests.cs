@@ -25,7 +25,7 @@ public class StartupHelperTests
         testDouble.GetStrings().Should().Equal($"{AppContext.BaseDirectory}Altinn.App.Api.Tests.xml", $"{AppContext.BaseDirectory}Altinn.App.Api.xml");
         testDouble.GetBools().Should().Equal(false, false);
     }
-    
+
     [Fact]
     public void IncludeXmlComments_discards_exceptions()
     {

@@ -6,7 +6,7 @@ namespace Altinn.App.Core.Internal.Process.Elements
     /// <summary>
     /// TaskBase with default implentation
     /// </summary>
-    public abstract class TaskBase: ITask
+    public abstract class TaskBase : ITask
     {
         /// <summary>
         /// hallooo asdf

@@ -29,7 +29,7 @@ namespace Altinn.App.Core.Features.Options.Altinn2Provider
         public async Task<MetadataCodelistResponse> GetAltinn2Codelist(string id, string langCode, int? version = null)
         {
             var response = await _client.GetAsync($"https://www.altinn.no/api/metadata/codelists/{id}/{version?.ToString() ?? string.Empty}?language={langCode}");
-            if(response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 response = await _client.GetAsync($"https://www.altinn.no/api/metadata/codelists/{id}/{version?.ToString() ?? string.Empty}");
             }

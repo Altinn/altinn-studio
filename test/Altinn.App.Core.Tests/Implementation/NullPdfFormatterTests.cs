@@ -35,12 +35,12 @@ public class NullPdfFormatterTests
                 }
             }
         };
-        
+
         var nullPdfFormatter = new NullPdfFormatter();
-        
+
         // Act
         var result = await nullPdfFormatter.FormatPdf(layoutSettings, new DummyModel());
-        
+
         // Assert
         result.Should().BeEquivalentTo(layoutSettings);
     }

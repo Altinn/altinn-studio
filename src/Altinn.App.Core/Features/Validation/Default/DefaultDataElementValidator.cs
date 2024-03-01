@@ -20,7 +20,7 @@ public class DefaultDataElementValidator : IDataElementValidator
         var issues = new List<ValidationIssue>();
         if (dataElement.ContentType == null)
         {
-            issues.Add( new ValidationIssue
+            issues.Add(new ValidationIssue
             {
                 Code = ValidationIssueCodes.DataElementCodes.MissingContentType,
                 DataElementId = dataElement.Id,
@@ -36,7 +36,7 @@ public class DefaultDataElementValidator : IDataElementValidator
                 dataType.AllowedContentTypes.TrueForAll(ct =>
                     !ct.Equals(contentTypeWithoutEncoding, StringComparison.OrdinalIgnoreCase)))
             {
-                issues.Add( new ValidationIssue
+                issues.Add(new ValidationIssue
                 {
                     DataElementId = dataElement.Id,
                     Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
@@ -50,7 +50,7 @@ public class DefaultDataElementValidator : IDataElementValidator
         if (dataType.MaxSize.HasValue && dataType.MaxSize > 0 &&
             (long)dataType.MaxSize * 1024 * 1024 < dataElement.Size)
         {
-            issues.Add( new ValidationIssue
+            issues.Add(new ValidationIssue
             {
                 DataElementId = dataElement.Id,
                 Code = ValidationIssueCodes.DataElementCodes.DataElementTooLarge,
@@ -62,7 +62,7 @@ public class DefaultDataElementValidator : IDataElementValidator
 
         if (dataType.EnableFileScan && dataElement.FileScanResult == FileScanResult.Infected)
         {
-            issues.Add( new ValidationIssue
+            issues.Add(new ValidationIssue
             {
                 DataElementId = dataElement.Id,
                 Code = ValidationIssueCodes.DataElementCodes.DataElementFileInfected,
@@ -75,7 +75,7 @@ public class DefaultDataElementValidator : IDataElementValidator
         if (dataType.EnableFileScan && dataType.ValidationErrorOnPendingFileScan &&
             dataElement.FileScanResult == FileScanResult.Pending)
         {
-            issues.Add( new ValidationIssue
+            issues.Add(new ValidationIssue
             {
                 DataElementId = dataElement.Id,
                 Code = ValidationIssueCodes.DataElementCodes.DataElementFileScanPending,

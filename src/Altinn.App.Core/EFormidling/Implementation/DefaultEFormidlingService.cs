@@ -183,7 +183,7 @@ public class DefaultEFormidlingService : IEFormidlingService
     private async Task SendInstanceData(Instance instance, Dictionary<string, string> requestHeaders)
     {
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
-        
+
         Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
         int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
         foreach (DataElement dataElement in instance.Data)

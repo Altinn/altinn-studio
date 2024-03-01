@@ -25,9 +25,9 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
         /// Initializes a new instance of the <see cref="EventsClient"/> class.
         /// </summary>
         public EventsSubscriptionClient(
-            IOptions<PlatformSettings> platformSettings, 
-            HttpClient httpClient, 
-            IOptions<GeneralSettings> generalSettings, 
+            IOptions<PlatformSettings> platformSettings,
+            HttpClient httpClient,
+            IOptions<GeneralSettings> generalSettings,
             IEventSecretCodeProvider secretCodeProvider,
             ILogger<EventsSubscriptionClient> logger)
         {
@@ -64,7 +64,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
 
             _logger.LogInformation("About to send the following subscription request {subscriptionJson}", serializedSubscriptionRequest);
             HttpResponseMessage response = await _client.PostAsync(
-                "subscriptions", 
+                "subscriptions",
                 new StringContent(serializedSubscriptionRequest, Encoding.UTF8, "application/json"));
 
             if (response.IsSuccessStatusCode)

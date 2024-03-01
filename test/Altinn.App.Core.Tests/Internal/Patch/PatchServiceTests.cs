@@ -20,7 +20,7 @@ namespace Altinn.App.Core.Tests.Internal.Patch;
 
 public class PatchServiceTests
 {
-     // Test data
+    // Test data
     private static readonly Guid DataGuid = new("12345678-1234-1234-1234-123456789123");
 
     private readonly Instance _instance = new()
@@ -129,7 +129,7 @@ public class PatchServiceTests
         issue.Description.Should().Be("First error");
         _dataProcessorMock.Verify(d => d.ProcessDataWrite(It.IsAny<Instance>(), It.IsAny<Guid>(), It.IsAny<MyModel>(), It.IsAny<MyModel?>(), null));
     }
-    
+
     [Fact]
     public async Task Test_JsonPatchTest_fail()
     {
@@ -168,7 +168,7 @@ public class PatchServiceTests
         err.Extensions.Should().ContainKey("previousModel");
         err.Extensions.Should().ContainKey("patchOperationIndex");
     }
-    
+
     [Fact]
     public async Task Test_JsonPatch_does_not_deserialize()
     {
@@ -189,7 +189,7 @@ public class PatchServiceTests
         _formDataValidator.Setup(fdv => fdv.ValidateFormData(
                 It.Is<Instance>(i => i == _instance),
                 It.Is<DataElement>(de => de == _dataElement),
-                It.IsAny<MyModel>(), 
+                It.IsAny<MyModel>(),
                 null))
             .ReturnsAsync(validationIssues);
 

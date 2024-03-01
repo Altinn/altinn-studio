@@ -43,7 +43,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
             IHttpContextAccessor httpContextAccessor,
             IOptionsMonitor<AppSettings> settings,
             HttpClient httpClient,
-            IAccessTokenGenerator accessTokenGenerator, 
+            IAccessTokenGenerator accessTokenGenerator,
             IAppMetadata appMetadata)
         {
             _logger = logger;

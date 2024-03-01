@@ -422,7 +422,7 @@ namespace Altinn.App.Api.Controllers
                 {
                     await UpdateDataValuesOnInstance(instance, dataType.Id, res.Ok.NewDataModel);
                     await UpdatePresentationTextsOnInstance(instance, dataType.Id, res.Ok.NewDataModel);
-                    
+
                     return Ok(new DataPatchResponse
                     {
                         NewDataModel = res.Ok.NewDataModel,

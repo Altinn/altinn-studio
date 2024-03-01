@@ -26,17 +26,17 @@ public class UserActionContext
     /// The instance the action is performed on
     /// </summary>
     public Instance Instance { get; }
-    
+
     /// <summary>
     /// The user performing the action
     /// </summary>
     public int UserId { get; }
-    
+
     /// <summary>
     /// The id of the button that triggered the action (optional)
     /// </summary>
     public string? ButtonId { get; }
-    
+
     /// <summary>
     /// Additional metadata for the action
     /// </summary>

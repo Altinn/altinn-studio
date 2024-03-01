@@ -46,7 +46,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         /// <inheritdoc/>
         public Stream GetProcessDefinition()
         {
-            string bpmnFilePath = Path.Join(_appSettings.AppBasePath , _appSettings.ConfigurationFolder , _appSettings.ProcessFolder , _appSettings.ProcessFileName);
+            string bpmnFilePath = Path.Join(_appSettings.AppBasePath, _appSettings.ConfigurationFolder, _appSettings.ProcessFolder, _appSettings.ProcessFileName);
 
             try
             {

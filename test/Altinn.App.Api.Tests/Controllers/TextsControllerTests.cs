@@ -32,15 +32,15 @@ public class TextsControllerTests
                 }
             }
         };
-        
+
         var appResourceMock = new Mock<IAppResources>();
         appResourceMock.Setup(a => a.GetTexts(org, app, language))
             .Returns(Task.FromResult<TextResource?>(expected));
-        
+
         // Act
         var controller = new TextsController(appResourceMock.Object);
         var result = await controller.Get(org, app, language);
-        
+
         // Assert
         var resultValue = result.Value;
         resultValue.Should().NotBeNull();
@@ -48,7 +48,7 @@ public class TextsControllerTests
         appResourceMock.Verify(a => a.GetTexts(org, app, language), Times.Once);
         appResourceMock.VerifyNoOtherCalls();
     }
-    
+
     [Fact]
     public async Task Get_checks_for_nb_text_if_language_specific_not_found_and_return_404_if_not_found()
     {
@@ -71,7 +71,7 @@ public class TextsControllerTests
                 }
             }
         };
-        
+
         var appResourceMock = new Mock<IAppResources>();
         appResourceMock.Setup(a => a.GetTexts(org, app, language))
             .Returns(Task.FromResult<TextResource?>(null));
@@ -80,7 +80,7 @@ public class TextsControllerTests
         // Act
         var controller = new TextsController(appResourceMock.Object);
         var result = await controller.Get(org, app, language);
-        
+
         // Assert
         var resultValue = result.Value;
         result.Result.Should().BeOfType<NotFoundResult>();
@@ -89,20 +89,20 @@ public class TextsControllerTests
         appResourceMock.Verify(a => a.GetTexts(org, app, "nb"), Times.Once);
         appResourceMock.VerifyNoOtherCalls();
     }
-    
+
     [Fact]
     public async Task Get_returns_bad_request_when_language_has_length_greater_than_two()
     {
         // Arrange
         const string org = "ttd";
         const string app = "unit-app";
-        
+
         var appResourceMock = new Mock<IAppResources>();
-        
+
         // Act
         var controller = new TextsController(appResourceMock.Object);
         var result = await controller.Get(org, app, "null");
-        
+
         // Assert
         result.Result.Should().BeOfType<BadRequestObjectResult>();
         var resultValue = result.Value;

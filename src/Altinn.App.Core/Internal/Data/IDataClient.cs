@@ -119,7 +119,7 @@ namespace Altinn.App.Core.Internal.Data
         /// <param name="instanceGuid">The instance id</param>
         /// <param name="dataGuid">The data id</param>
         /// <param name="request">Http request containing the attachment to be saved</param>
-        [Obsolete(message:"Deprecated please use UpdateBinaryData(InstanceIdentifier, string, string, Guid, Stream) instead", error: false)]
+        [Obsolete(message: "Deprecated please use UpdateBinaryData(InstanceIdentifier, string, string, Guid, Stream) instead", error: false)]
         Task<DataElement> UpdateBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, HttpRequest request);
 
         /// <summary>
@@ -151,7 +151,7 @@ namespace Altinn.App.Core.Internal.Data
         /// <param name="dataElement">The data element with values to update</param>
         /// <returns>the updated data element</returns>
         Task<DataElement> Update(Instance instance, DataElement dataElement);
-        
+
         /// <summary>
         /// Lock data element in storage
         /// </summary>
@@ -159,7 +159,7 @@ namespace Altinn.App.Core.Internal.Data
         /// <param name="dataGuid">Id of the DataElement to lock</param>
         /// <returns></returns>
         Task<DataElement> LockDataElement(InstanceIdentifier instanceIdentifier, Guid dataGuid);
-        
+
         /// <summary>
         /// Unlock data element in storage
         /// </summary>

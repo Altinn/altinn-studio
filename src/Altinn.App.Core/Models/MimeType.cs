@@ -64,7 +64,7 @@ public class MimeType
         return other != null && Type == other.Type && Aliases.SequenceEqual(other.Aliases);
     }
 
-    
+
     /// <summary>
     /// Check if the mime type matches the given object
     /// Supported types are:

@@ -47,7 +47,7 @@ namespace Altinn.App.Api.Tests.Mocks
             File.WriteAllText(instancePath, instance.ToString());
 
             _logger.LogInformation("Created instance for app {org}/{app}. writing to path: {instancePath}", org, app, instancePath);
-            
+
             return Task.FromResult(instance);
         }
 
@@ -65,15 +65,15 @@ namespace Altinn.App.Api.Tests.Mocks
         public Task<Instance> GetInstance(string app, string org, int instanceOwnerPartyId, Guid instanceId)
         {
             Instance instance = GetTestInstance(app, org, instanceOwnerPartyId, instanceId);
-            
+
             if (instance is null)
             {
                 throw new IOException($"Could not load instance {instanceId} from app {org}/{app}");
-            }            
+            }
 
             instance.Data = GetDataElements(org, app, instanceOwnerPartyId, instanceId);
             (instance.LastChangedBy, instance.LastChanged) = FindLastChanged(instance);
-                
+
             return Task.FromResult(instance);
         }
 
@@ -93,7 +93,7 @@ namespace Altinn.App.Api.Tests.Mocks
 
             string content = File.ReadAllText(instancePath);
 
-            Instance storedInstance = JsonConvert.DeserializeObject<Instance>(content) ?? 
+            Instance storedInstance = JsonConvert.DeserializeObject<Instance>(content) ??
                 throw new InvalidDataException($"Something went wrong deserializing json for instance {instance.Id} from path {instancePath}");
 
             // Archiving instance if process was ended
@@ -121,9 +121,9 @@ namespace Altinn.App.Api.Tests.Mocks
             }
 
             string content = File.ReadAllText(instancePath);
-            Instance instance = JsonConvert.DeserializeObject<Instance>(content) ?? 
+            Instance instance = JsonConvert.DeserializeObject<Instance>(content) ??
                 throw new InvalidDataException($"Something went wrong deserializing json for instance from path {instancePath}");
-            
+
             return instance;
         }
 
@@ -160,7 +160,7 @@ namespace Altinn.App.Api.Tests.Mocks
             {
                 return dataElements;
             }
-           
+
             foreach (string file in Directory.GetFiles(path))
             {
                 if (file.Contains(".pretest"))
@@ -169,7 +169,7 @@ namespace Altinn.App.Api.Tests.Mocks
                 }
 
                 string content = File.ReadAllText(Path.Combine(path, file));
-                DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(content) ?? 
+                DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(content) ??
                     throw new InvalidDataException($"Something went wrong deserializing json for data from path {file}");
 
                 if (dataElement.DeleteStatus?.IsHardDeleted == true && string.IsNullOrEmpty(_httpContextAccessor?.HttpContext?.User?.GetOrg()))
@@ -225,7 +225,7 @@ namespace Altinn.App.Api.Tests.Mocks
             {
                 throw new IOException($"Could not find file for instance on specified path {instancePath}.");
             }
-                        
+
             string content = File.ReadAllText(instancePath);
             Instance storedInstance = JsonConvert.DeserializeObject<Instance>(content) ??
                 throw new InvalidDataException($"Something went wrong deserializing json for instance from path {instancePath}");

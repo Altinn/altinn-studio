@@ -41,7 +41,7 @@ public class UniqueSignatureAuthorizerTests : IDisposable
         _processReaderMock.Verify(p => p.GetFlowElement("Task_2"));
         result.Should().BeTrue();
     }
-    
+
     [Fact]
     public async Task AuthorizeAction_returns_true_if_uniqueFromSignaturesInDataTypes_null()
     {
@@ -77,7 +77,7 @@ public class UniqueSignatureAuthorizerTests : IDisposable
         _processReaderMock.Verify(p => p.GetFlowElement("Task_2"));
         result.Should().BeTrue();
     }
-    
+
     [Fact]
     public async Task AuthorizeAction_returns_true_if_TaskExtension_is_null()
     {
@@ -100,7 +100,7 @@ public class UniqueSignatureAuthorizerTests : IDisposable
         _processReaderMock.Verify(p => p.GetFlowElement("Task_2"));
         result.Should().BeTrue();
     }
-    
+
     [Fact]
     public async Task AuthorizeAction_returns_true_if_other_user_has_signed_previously()
     {
@@ -135,7 +135,7 @@ public class UniqueSignatureAuthorizerTests : IDisposable
         _dataClientMock.Verify(d => d.GetBinaryData("ttd", "xunit-app", 500001, Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4"), Guid.Parse("ca62613c-f058-4899-b962-89dd6496a751")));
         result.Should().BeTrue();
     }
-    
+
     [Fact]
     public async Task AuthorizeAction_returns_false_if_same_user_has_signed_previously()
     {
@@ -170,7 +170,7 @@ public class UniqueSignatureAuthorizerTests : IDisposable
         _dataClientMock.Verify(d => d.GetBinaryData("ttd", "xunit-app", 500001, Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4"), Guid.Parse("ca62613c-f058-4899-b962-89dd6496a751")));
         result.Should().BeFalse();
     }
-    
+
     [Fact]
     public async Task AuthorizeAction_returns_true_if_taskID_is_null()
     {
@@ -201,7 +201,7 @@ public class UniqueSignatureAuthorizerTests : IDisposable
         bool result = await authorizer.AuthorizeAction(new UserActionAuthorizerContext(user, new InstanceIdentifier("500001/abba2e90-f86f-4881-b0e8-38334408bcb4"), null, "sign"));
         result.Should().BeTrue();
     }
-    
+
     [Fact]
     public async Task AuthorizeAction_returns_true_if_dataelement_not_of_type_SignDocument()
     {
@@ -236,7 +236,7 @@ public class UniqueSignatureAuthorizerTests : IDisposable
         _dataClientMock.Verify(d => d.GetBinaryData("ttd", "xunit-app", 500001, Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4"), Guid.Parse("ca62613c-f058-4899-b962-89dd6496a751")));
         result.Should().BeTrue();
     }
-    
+
     [Fact]
     public async Task AuthorizeAction_returns_true_if_signdumcument_is_missing_signee()
     {
@@ -271,7 +271,7 @@ public class UniqueSignatureAuthorizerTests : IDisposable
         _dataClientMock.Verify(d => d.GetBinaryData("ttd", "xunit-app", 500001, Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4"), Guid.Parse("ca62613c-f058-4899-b962-89dd6496a751")));
         result.Should().BeTrue();
     }
-    
+
     [Fact]
     public async Task AuthorizeAction_returns_true_if_signdumcument_is_missing_signee_userid()
     {
@@ -306,7 +306,7 @@ public class UniqueSignatureAuthorizerTests : IDisposable
         _dataClientMock.Verify(d => d.GetBinaryData("ttd", "xunit-app", 500001, Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4"), Guid.Parse("ca62613c-f058-4899-b962-89dd6496a751")));
         result.Should().BeTrue();
     }
-    
+
     [Fact]
     public async Task AuthorizeAction_returns_true_if_signdumcument_signee_userid_is_null()
     {

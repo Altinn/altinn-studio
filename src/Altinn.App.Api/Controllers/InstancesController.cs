@@ -84,8 +84,8 @@ namespace Altinn.App.Api.Controllers
             IEventsClient eventsClient,
             IOptions<AppSettings> appSettings,
             IPrefill prefillService,
-            IProfileClient profileClient, 
-            IProcessEngine processEngine, 
+            IProfileClient profileClient,
+            IProcessEngine processEngine,
             IOrganizationClient orgClient)
         {
             _logger = logger;
@@ -274,7 +274,7 @@ namespace Altinn.App.Api.Controllers
             Instance instance;
             instanceTemplate.Process = null;
             ProcessStateChange? change = null;
-            
+
             try
             {
                 // start process and goto next task
@@ -289,7 +289,7 @@ namespace Altinn.App.Api.Controllers
                 {
                     return Conflict(result.ErrorMessage);
                 }
-                
+
                 change = result.ProcessStateChange;
 
                 // create the instance
@@ -440,7 +440,7 @@ namespace Altinn.App.Api.Controllers
                     Dryrun = true,
                     Prefill = instansiationInstance.Prefill
                 };
-                
+
                 processResult = await _processEngine.StartProcess(request);
 
                 Instance? source = null;
@@ -569,7 +569,7 @@ namespace Altinn.App.Api.Controllers
             {
                 return StatusCode((int)HttpStatusCode.Forbidden, validationResult);
             }
-            
+
             ProcessStartRequest processStartRequest = new()
             {
                 Instance = targetInstance,

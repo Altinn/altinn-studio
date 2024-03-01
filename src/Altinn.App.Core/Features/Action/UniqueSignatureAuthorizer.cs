@@ -61,7 +61,7 @@ public class UniqueSignatureAuthorizer : IUserActionAuthorizer
 
         return true;
     }
-    
+
     private async Task<string> GetUserIdFromDataElementContainingSignDocument(AppIdentifier appIdentifier, InstanceIdentifier instanceIdentifier, DataElement dataElement)
     {
         await using var data = await _dataClient.GetBinaryData(appIdentifier.Org, appIdentifier.App, instanceIdentifier.InstanceOwnerPartyId, instanceIdentifier.InstanceGuid, Guid.Parse(dataElement.Id));

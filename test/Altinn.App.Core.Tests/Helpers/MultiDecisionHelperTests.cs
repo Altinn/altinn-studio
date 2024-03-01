@@ -11,11 +11,11 @@ namespace Altinn.App.Core.Tests.Helpers;
 
 public class MultiDecisionHelperTests
 {
-    private static readonly JsonSerializerOptions SerializerOptions = new() 
+    private static readonly JsonSerializerOptions SerializerOptions = new()
     {
         WriteIndented = true
     };
-    
+
     [Fact]
     public void CreateMultiDecisionRequest_generates_multidecisionrequest_with_all_actions_current_task_elemtnId()
     {
@@ -48,10 +48,10 @@ public class MultiDecisionHelperTests
         };
 
         var result = MultiDecisionHelper.CreateMultiDecisionRequest(claimsPrincipal, instance, actions);
-        
+
         CompareWithOrUpdateGoldenFile("multidecision-all-actions-task", result);
     }
-    
+
     [Fact]
     public void CreateMultiDecisionRequest_generates_multidecisionrequest_with_all_actions_instanceId_is_GUID_only()
     {
@@ -84,10 +84,10 @@ public class MultiDecisionHelperTests
         };
 
         var result = MultiDecisionHelper.CreateMultiDecisionRequest(claimsPrincipal, instance, actions);
-        
+
         CompareWithOrUpdateGoldenFile("multidecision-all-actions-guid", result);
     }
-    
+
     [Fact]
     public void CreateMultiDecisionRequest_generates_multidecisionrequest_with_all_actions_endevent()
     {
@@ -119,10 +119,10 @@ public class MultiDecisionHelperTests
         };
 
         var result = MultiDecisionHelper.CreateMultiDecisionRequest(claimsPrincipal, instance, actions);
-        
+
         CompareWithOrUpdateGoldenFile("multidecision-all-actions-endevent", result);
     }
-    
+
     [Fact]
     public void CreateMultiDecisionRequest_throws_ArgumentNullException_if_user_is_null()
     {
@@ -175,7 +175,7 @@ public class MultiDecisionHelperTests
         var result = MultiDecisionHelper.ValidatePdpMultiDecision(actions, response, GetClaims("501337"));
         result.Should().BeEquivalentTo(expected);
     }
-    
+
     [Fact]
     public void ValidateDecisionResult_one_action_denied()
     {
@@ -197,7 +197,7 @@ public class MultiDecisionHelperTests
         var result = MultiDecisionHelper.ValidatePdpMultiDecision(actions, response, GetClaims("501337"));
         result.Should().BeEquivalentTo(expected);
     }
-    
+
     [Fact]
     public void ValidateDecisionResult_throws_ArgumentNullException_if_response_is_null()
     {
@@ -211,7 +211,7 @@ public class MultiDecisionHelperTests
         Action act = () => MultiDecisionHelper.ValidatePdpMultiDecision(actions, null, GetClaims("501337"));
         act.Should().Throw<ArgumentNullException>().WithMessage("Value cannot be null. (Parameter 'results')");
     }
-    
+
     [Fact]
     public void ValidateDecisionResult_throws_ArgumentNullException_if_user_is_null()
     {

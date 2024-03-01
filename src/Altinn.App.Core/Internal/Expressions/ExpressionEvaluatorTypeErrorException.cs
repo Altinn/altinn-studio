@@ -8,7 +8,7 @@ namespace Altinn.App.Core.Internal.Expressions;
 public class ExpressionEvaluatorTypeErrorException : Exception
 {
     /// <inheritdoc />
-    public ExpressionEvaluatorTypeErrorException(string msg) : base(msg) {}
+    public ExpressionEvaluatorTypeErrorException(string msg) : base(msg) { }
     /// <inheritdoc />
-    public ExpressionEvaluatorTypeErrorException(string msg, Exception innerException) : base(msg, innerException) {}
+    public ExpressionEvaluatorTypeErrorException(string msg, Exception innerException) : base(msg, innerException) { }
 }

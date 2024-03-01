@@ -21,13 +21,13 @@ public class UserActionResponse
     /// </summary>
     [JsonPropertyName("updatedValidationIssues")]
     public Dictionary<string, Dictionary<string, List<ValidationIssue>>>? UpdatedValidationIssues { get; set; }
-    
+
     /// <summary>
     /// Actions the client should perform after action has been performed backend
     /// </summary>
     [JsonPropertyName("clientActions")]
     public List<ClientAction>? ClientActions { get; set; }
-    
+
     /// <summary>
     /// Validation issues that occured when processing action
     /// </summary>

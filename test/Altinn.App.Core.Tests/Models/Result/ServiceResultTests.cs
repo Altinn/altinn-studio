@@ -15,7 +15,7 @@ public class ServiceResultTests
         res.Ok.Should().Be(value);
         res.Error.Should().BeNull();
     }
-    
+
     [Fact]
     public void Ok_result_handles_null()
     {
@@ -25,7 +25,7 @@ public class ServiceResultTests
         res.Ok.Should().BeNull();
         res.Error.Should().BeNull();
     }
-    
+
     [Fact]
     public void Error_result()
     {

@@ -6,7 +6,7 @@ namespace Altinn.App.Core.Internal.Process.Elements
     /// <summary>
     /// Class representing the start event of a process
     /// </summary>
-    public class StartEvent: ProcessElement
+    public class StartEvent : ProcessElement
     {
         /// <summary>
         /// String representation of process element type

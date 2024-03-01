@@ -10,7 +10,7 @@ public class ExampleModel
     /// The name
     /// </summary>
     public string Name { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// The age
     /// </summary>

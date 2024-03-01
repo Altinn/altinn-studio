@@ -70,7 +70,7 @@ namespace Altinn.App.Core.Tests.Infrastructure.Clients.Storage
             Assert.NotNull(platformRequest);
             AssertHttpRequest(platformRequest, expectedUri, HttpMethod.Post, "\"a cats story.pdf\"", "application/pdf");
         }
-        
+
         [Fact]
         public async Task InsertBinaryData_MethodProduceValidPlatformRequest_with_generatedFrom_query_params()
         {
@@ -317,7 +317,7 @@ namespace Altinn.App.Core.Tests.Infrastructure.Clients.Storage
 
                 await Task.CompletedTask;
                 return new HttpResponseMessage()
-                    { Content = new StringContent("{\"dataElements\":[{\"Id\":\"aaaa-bbbb-cccc-dddd\",\"Size\":10,\"DataType\":\"cats\"},{\"Id\":\"eeee-ffff-gggg-hhhh\", \"Size\":20,\"DataType\":\"dogs\"}]}") };
+                { Content = new StringContent("{\"dataElements\":[{\"Id\":\"aaaa-bbbb-cccc-dddd\",\"Size\":10,\"DataType\":\"cats\"},{\"Id\":\"eeee-ffff-gggg-hhhh\", \"Size\":20,\"DataType\":\"dogs\"}]}") };
             });
             var expectedUri = new Uri($"{apiStorageEndpoint}instances/{instanceIdentifier}/dataelements", UriKind.RelativeOrAbsolute);
             var response = await dataClient.GetBinaryDataList("ttd", "app", instanceIdentifier.InstanceOwnerPartyId, instanceIdentifier.InstanceGuid);

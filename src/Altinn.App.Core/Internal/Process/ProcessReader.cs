@@ -127,7 +127,7 @@ public class ProcessReader : IProcessReader
 
         return _definitions.Process.ExclusiveGateway.Find(e => e.Id == elementId);
     }
-    
+
     /// <inheritdoc />
     public List<ProcessElement> GetNextElements(string? currentElementId)
     {
@@ -157,7 +157,7 @@ public class ProcessReader : IProcessReader
 
         return GetSequenceFlows().FindAll(sf => flowElement.Outgoing.Contains(sf.Id)).ToList();
     }
-    
+
     /// <inheritdoc />
     public List<ProcessElement> GetAllFlowElements()
     {

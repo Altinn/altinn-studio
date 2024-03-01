@@ -3,7 +3,7 @@ using Altinn.App.Core.Internal.AppModel;
 
 namespace Altinn.App.Api.Tests.Mocks;
 
-public class AppModelMock: IAppModel
+public class AppModelMock : IAppModel
 {
     public object Create(string classRef)
     {

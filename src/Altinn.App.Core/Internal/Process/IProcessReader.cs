@@ -13,7 +13,7 @@ public interface IProcessReader
     /// </summary>
     /// <returns></returns>
     public List<StartEvent> GetStartEvents();
-    
+
     /// <summary>
     /// Get ids of all defined StartEvents in the process
     /// </summary>
@@ -26,13 +26,13 @@ public interface IProcessReader
     /// <param name="elementId">Id of process element</param>
     /// <returns>true if elementId is of type StartEvent</returns>
     public bool IsStartEvent(string? elementId);
-    
+
     /// <summary>
     /// Get all defined Tasks in the process
     /// </summary>
     /// <returns></returns>
     public List<ProcessTask> GetProcessTasks();
-    
+
     /// <summary>
     /// Get ids of all defined Tasks in the process
     /// </summary>
@@ -45,13 +45,13 @@ public interface IProcessReader
     /// <param name="elementId">Id of process element</param>
     /// <returns>true if elementId is of type Task</returns>
     public bool IsProcessTask(string? elementId);
-    
+
     /// <summary>
     /// Get all ExclusiveGateways defined in the process
     /// </summary>
     /// <returns></returns>
     public List<ExclusiveGateway> GetExclusiveGateways();
-    
+
     /// <summary>
     /// Get ids of all defined ExclusiveGateways in the process
     /// </summary>
@@ -63,13 +63,13 @@ public interface IProcessReader
     /// </summary>
     /// <returns></returns>
     public List<EndEvent> GetEndEvents();
-    
+
     /// <summary>
     /// Get ids of all EndEvents defined in the process
     /// </summary>
     /// <returns></returns>
     public List<string> GetEndEventIds();
-    
+
     /// <summary>
     /// Check id element is EndEvent
     /// </summary>
@@ -89,20 +89,20 @@ public interface IProcessReader
     /// <param name="flowElement">Element to get the outgoing sequenceflows from</param>
     /// <returns>Outgoing sequence flows</returns>
     public List<SequenceFlow> GetOutgoingSequenceFlows(ProcessElement? flowElement);
-    
+
     /// <summary>
     /// Get ids of all SequenceFlows defined in the process
     /// </summary>
     /// <returns></returns>
     public List<string> GetSequenceFlowIds();
-    
+
     /// <summary>
     /// Find all possible next elements from current element
     /// </summary>
     /// <param name="currentElementId">Current process element id</param>
     /// <returns></returns>
     public List<ProcessElement> GetNextElements(string? currentElementId);
-    
+
     /// <summary>
     /// Returns StartEvent, Task or EndEvent with given Id, null if element not found
     /// </summary>

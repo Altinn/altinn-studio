@@ -14,7 +14,7 @@ public interface IAppEvents
     /// <param name="instance">Instance data</param>
     /// <returns></returns>
     public Task OnStartAppEvent(string startEvent, Instance instance);
-    
+
     /// <summary>
     /// Is called when the process for an instance is ended.
     /// </summary>

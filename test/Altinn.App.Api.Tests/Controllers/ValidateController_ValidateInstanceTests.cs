@@ -31,7 +31,7 @@ public class ValidateControllerValidateInstanceTests : ApiTestBase, IClassFixtur
     private readonly Mock<IDataProcessor> _dataProcessorMock = new(MockBehavior.Strict);
     private readonly Mock<IFormDataValidator> _formDataValidatorMock = new(MockBehavior.Strict);
 
-    private static readonly JsonSerializerOptions JsonSerializerOptions = new ()
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = true,
@@ -112,7 +112,7 @@ public class ValidateControllerValidateInstanceTests : ApiTestBase, IClassFixtur
             .Returns(
                 (object data, ModelStateDictionary issues) =>
                 {
-                    issues.AddModelError((Skjema s)=>s.Melding!.NestedList, "*FIXED*CustomErrorText");
+                    issues.AddModelError((Skjema s) => s.Melding!.NestedList, "*FIXED*CustomErrorText");
                     return Task.CompletedTask;
                 }).Verifiable(Times.Once);
 
@@ -126,12 +126,12 @@ public class ValidateControllerValidateInstanceTests : ApiTestBase, IClassFixtur
         response.Should().HaveStatusCode(HttpStatusCode.OK);
         var parsedResponse = ParseResponse<List<ValidationIssue>>(responseString);
         parsedResponse.Should().HaveCount(2);
-        var taskIssue = parsedResponse.Should().ContainSingle(i=>i.DataElementId == null).Which;
+        var taskIssue = parsedResponse.Should().ContainSingle(i => i.DataElementId == null).Which;
         taskIssue.Field.Should().BeNull();
         taskIssue.Description.Should().Be("TaskErrorText");
         taskIssue.Severity.Should().Be(ValidationIssueSeverity.Error);
 
-        var dataIssue = parsedResponse.Should().ContainSingle(i=>i.DataElementId != null).Which;
+        var dataIssue = parsedResponse.Should().ContainSingle(i => i.DataElementId != null).Which;
         dataIssue.Field.Should().Be("melding.nested_list");
         dataIssue.Description.Should().Be("CustomErrorText");
         dataIssue.Severity.Should().Be(ValidationIssueSeverity.Fixed);

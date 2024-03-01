@@ -434,7 +434,6 @@ public class TestDataModel
 
         // First index is ignored if it is explicit
         modelHelper.AddIndicies("friends[0].friends", new int[] { 2, 3 }).Should().Be("friends[0].friends[3]");
-
     }
 
     [Fact]

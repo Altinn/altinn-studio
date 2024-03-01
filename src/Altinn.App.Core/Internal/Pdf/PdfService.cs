@@ -90,7 +90,8 @@ public class PdfService : IPdfService
     }
 
     /// <inheritdoc/>
-    public async Task<Stream> GeneratePdf(Instance instance, string taskId, CancellationToken ct) {
+    public async Task<Stream> GeneratePdf(Instance instance, string taskId, CancellationToken ct)
+    {
         var language = GetOverriddenLanguage();
         // Avoid a costly call if the language is allready overriden by the user
         language = language.IsNullOrEmpty() ? await GetLanguage() : language;
@@ -98,7 +99,8 @@ public class PdfService : IPdfService
         return await GeneratePdfContent(instance, taskId, ct, language);
     }
 
-    private async Task<Stream> GeneratePdfContent(Instance instance, string taskId, CancellationToken ct, string language) {
+    private async Task<Stream> GeneratePdfContent(Instance instance, string taskId, CancellationToken ct, string language)
+    {
         var baseUrl = _generalSettings.FormattedExternalAppBaseUrl(new AppIdentifier(instance));
         var pagePath = _pdfGeneratorSettings.AppPdfPagePathTemplate.ToLowerInvariant().Replace("{instanceid}", instance.Id);
 
@@ -154,7 +156,7 @@ public class PdfService : IPdfService
         if (_httpContextAccessor.HttpContext != null)
         {
             StringValues queryLanguage;
-            bool hasQueryLanguage = _httpContextAccessor.HttpContext.Request.Query.TryGetValue("language", out queryLanguage) ||  _httpContextAccessor.HttpContext.Request.Query.TryGetValue("lang", out queryLanguage);
+            bool hasQueryLanguage = _httpContextAccessor.HttpContext.Request.Query.TryGetValue("language", out queryLanguage) || _httpContextAccessor.HttpContext.Request.Query.TryGetValue("lang", out queryLanguage);
             if (hasQueryLanguage)
             {
                 return queryLanguage.ToString();

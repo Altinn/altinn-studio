@@ -35,5 +35,5 @@ public static class ProcessStateExtensions
         copyOfState.StartEvent = original.StartEvent;
 
         return copyOfState;
-    } 
+    }
 }

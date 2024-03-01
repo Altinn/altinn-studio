@@ -50,7 +50,7 @@ namespace Altinn.App.Core.Models
         [JsonPropertyName("alternativesubject")]
         public string AlternativeSubject { get; set; }
 
-         /// <summary>
+        /// <summary>
         /// Gets or sets the cloudEvent data content. The event payload.
         /// The payload depends on the type and the dataschema.
         /// </summary>

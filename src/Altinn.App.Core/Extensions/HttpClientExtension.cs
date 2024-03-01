@@ -68,7 +68,7 @@ namespace Altinn.App.Core.Extensions
 
             return httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead, CancellationToken.None);
         }
-        
+
         /// <summary>
         /// Extension that add authorization header to request
         /// </summary>

@@ -6,14 +6,14 @@ namespace Altinn.App.Core.Internal.Process.Elements
     /// <summary>
     /// Represents an exclusive gateway from a BPMN process definition.
     /// </summary>
-    public class ExclusiveGateway: ProcessElement
+    public class ExclusiveGateway : ProcessElement
     {
         /// <summary>
         /// Get or sets the default path of the exclusive gateway.
         /// </summary>
         [XmlAttribute("default")]
         public string? Default { get; set; }
-        
+
         /// <summary>
         ///
         /// </summary>

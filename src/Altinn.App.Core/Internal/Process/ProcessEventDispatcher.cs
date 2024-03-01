@@ -24,11 +24,11 @@ class ProcessEventDispatcher : IProcessEventDispatcher
     private readonly ILogger<ProcessEventDispatcher> _logger;
 
     public ProcessEventDispatcher(
-        IInstanceClient instanceClient, 
+        IInstanceClient instanceClient,
         IInstanceEventClient instanceEventClient,
-        ITaskEvents taskEvents, 
-        IAppEvents appEvents, 
-        IEventsClient eventsClient, 
+        ITaskEvents taskEvents,
+        IAppEvents appEvents,
+        IEventsClient eventsClient,
         IOptions<AppSettings> appSettings,
         ILogger<ProcessEventDispatcher> logger)
     {
@@ -78,8 +78,8 @@ class ProcessEventDispatcher : IProcessEventDispatcher
             }
         }
     }
-    
-    
+
+
     private async Task DispatchProcessEventsToStorage(Instance instance, List<InstanceEvent>? events)
     {
         string org = instance.Org;

@@ -101,7 +101,7 @@ public static class ModelStateHelpers
         var rest = keyParts?.ElementAtOrDefault(1);
 
         var properties = data?.GetProperties();
-        var property = properties is not null ? Array.Find(properties,p => p.Name == key) : null;
+        var property = properties is not null ? Array.Find(properties, p => p.Name == key) : null;
         var jsonPropertyName = property
             ?.GetCustomAttributes(true)
             .OfType<JsonPropertyNameAttribute>()

@@ -244,7 +244,7 @@ public class ExpressionsExclusiveGatewayTests
         Assert.Single(result);
         Assert.Equal("2", result[0].Id);
     }
-    
+
     [Fact]
     public async Task FilterAsync_Expression_filters_based_on_datamodel_set_by_gateway()
     {
@@ -336,7 +336,7 @@ public class ExpressionsExclusiveGatewayTests
         Assert.Single(result);
         Assert.Equal("2", result[0].Id);
     }
-    
+
     private static ExpressionsExclusiveGateway SetupExpressionsGateway(List<DataType> dataTypes, string? layoutSets = null, object? formData = null, Type? dataType = null)
     {
         var resources = new Mock<IAppResources>();

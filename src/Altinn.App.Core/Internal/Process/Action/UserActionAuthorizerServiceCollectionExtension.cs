@@ -21,7 +21,7 @@ public static class UserActionAuthorizerServiceCollectionExtension
     {
         return services.RegisterUserActionAuthorizer<T>(taskId, action);
     }
-    
+
     /// <summary>
     /// Adds a transient user action authorizer to the service collection connected to a action in all tasks
     /// </summary>
@@ -33,7 +33,7 @@ public static class UserActionAuthorizerServiceCollectionExtension
     {
         return services.RegisterUserActionAuthorizer<T>(null, action);
     }
-    
+
     /// <summary>
     /// Adds a transient user action authorizer to the service collection connected to all actions in a task
     /// </summary>
@@ -45,7 +45,7 @@ public static class UserActionAuthorizerServiceCollectionExtension
     {
         return services.RegisterUserActionAuthorizer<T>(taskId, null);
     }
-    
+
     /// <summary>
     /// Adds a transient user action authorizer to the service collection connected to all actions in all tasks
     /// </summary>
@@ -56,7 +56,7 @@ public static class UserActionAuthorizerServiceCollectionExtension
     {
         return services.RegisterUserActionAuthorizer<T>(null, null);
     }
-    
+
     private static IServiceCollection RegisterUserActionAuthorizer<T>(this IServiceCollection services, string? taskId, string? action) where T : class, IUserActionAuthorizer
     {
         services.TryAddTransient<T>();

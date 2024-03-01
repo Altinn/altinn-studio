@@ -27,7 +27,7 @@ public class AuthorizationClientTests
         var pdpResponse = GetXacmlJsonRespons("one-action-denied");
         pdpMock.Setup(s => s.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>())).ReturnsAsync(pdpResponse);
         AuthorizationClient client = new AuthorizationClient(Options.Create(new PlatformSettings()), httpContextAccessorMock.Object, httpClientMock.Object, appSettingsMock.Object, pdpMock.Object, NullLogger<AuthorizationClient>.Instance);
-        
+
         var claimsPrincipal = GetClaims("1337");
 
         var instance = new Instance()
@@ -49,7 +49,7 @@ public class AuthorizationClientTests
                 EndEvent = "EndEvent_1"
             }
         };
-        
+
         var expected = new Dictionary<string, bool>()
         {
             { "read", true },
@@ -67,7 +67,7 @@ public class AuthorizationClientTests
         var actual = await client.AuthorizeActions(instance, claimsPrincipal, actions);
         actual.Should().BeEquivalentTo(expected);
     }
-    
+
     [Fact]
     public async Task AuthorizeActions_returns_empty_dictionary_if_no_response_from_pdp()
     {
@@ -77,7 +77,7 @@ public class AuthorizationClientTests
         Mock<IOptionsMonitor<AppSettings>> appSettingsMock = new();
         pdpMock.Setup(s => s.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>())).ReturnsAsync(new XacmlJsonResponse());
         AuthorizationClient client = new AuthorizationClient(Options.Create(new PlatformSettings()), httpContextAccessorMock.Object, httpClientMock.Object, appSettingsMock.Object, pdpMock.Object, NullLogger<AuthorizationClient>.Instance);
-        
+
         var claimsPrincipal = GetClaims("1337");
 
         var instance = new Instance()
@@ -99,7 +99,7 @@ public class AuthorizationClientTests
                 EndEvent = "EndEvent_1"
             }
         };
-        
+
         var expected = new Dictionary<string, bool>();
         var actions = new List<string>()
         {
@@ -111,7 +111,7 @@ public class AuthorizationClientTests
         var actual = await client.AuthorizeActions(instance, claimsPrincipal, actions);
         actual.Should().BeEquivalentTo(expected);
     }
-    
+
     private static ClaimsPrincipal GetClaims(string partyId)
     {
         return new ClaimsPrincipal(new List<ClaimsIdentity>()
@@ -123,7 +123,7 @@ public class AuthorizationClientTests
             })
         });
     }
-    
+
     private static XacmlJsonResponse GetXacmlJsonRespons(string filename)
     {
         var xacmlJesonRespons = File.ReadAllText(Path.Join("Infrastructure", "Clients", "Authorization", "TestData", $"{filename}.json"));

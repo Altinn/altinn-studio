@@ -127,7 +127,7 @@ namespace Altinn.App.Api.Controllers
             foreach (var dataProcessor in _dataProcessors)
             {
                 _logger.LogInformation(
-                    "ProcessDataRead for {modelType} using {dataProcesor}", 
+                    "ProcessDataRead for {modelType} using {dataProcesor}",
                     appModel.GetType().Name,
                     dataProcessor.GetType().Name);
                 await dataProcessor.ProcessDataRead(virtualInstance, null, appModel, language);

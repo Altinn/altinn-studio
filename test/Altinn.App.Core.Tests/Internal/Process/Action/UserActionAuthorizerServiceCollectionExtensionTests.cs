@@ -104,7 +104,7 @@ public class UserActionAuthorizerServiceCollectionExtensionTests
         provider.Action.Should().BeNull();
         provider.Authorizer.Should().BeOfType<UserActionAuthorizerStub>();
     }
-    
+
     [Fact]
     public void AddTransientUserActionAuthorizerForAllActionsInAllTasks_adds_IUserActinAuthorizerProvider_without_task_and_action_set()
     {

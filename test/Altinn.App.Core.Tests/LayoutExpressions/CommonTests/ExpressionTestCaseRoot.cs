@@ -53,7 +53,7 @@ public class ExpressionTestCaseRoot
 
     [JsonPropertyName("instance")]
     public Instance? Instance { get; set; }
-    
+
     [JsonPropertyName("gatewayAction")]
     public string? GatewayAction { get; set; }
 

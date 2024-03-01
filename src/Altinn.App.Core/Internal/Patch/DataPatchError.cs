@@ -17,7 +17,7 @@ public class DataPatchError
     /// The type of error that occurred.
     /// </summary>
     public DataPatchErrorType? ErrorType { get; set; }
-    
+
     /// <summary>
     /// Additional information about the error.
     /// </summary>

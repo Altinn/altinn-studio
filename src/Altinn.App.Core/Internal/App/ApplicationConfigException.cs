@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Internal.App
     /// <summary>
     /// Configuration is not valid for application
     /// </summary>
-    public class ApplicationConfigException: Exception
+    public class ApplicationConfigException : Exception
     {
 
         /// <summary>

@@ -79,4 +79,4 @@ void Configure()
 // This "hack" (documentet by Microsoft) is done to
 // make the Program class public and available for
 // integration tests.
-public partial class Program {}
+public partial class Program { }

@@ -17,7 +17,7 @@ public class ServiceResult<T, TU>
     /// The error returned when the result is an error
     /// </summary>
     public TU? Error { get; }
-    
+
     /// <summary>
     /// Whether the result is Ok or an Error
     /// </summary>
@@ -37,7 +37,7 @@ public class ServiceResult<T, TU>
     /// </summary>
     /// <returns></returns>
     public static implicit operator ServiceResult<T, TU>(T okData) => new(okData, default, true);
-    
+
     /// <summary>
     /// Implicitly create a ServiceResult with an error result
     /// </summary>

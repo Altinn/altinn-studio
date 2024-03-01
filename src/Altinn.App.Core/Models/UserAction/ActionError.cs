@@ -18,7 +18,7 @@ public class ActionError
     /// </summary>
     [JsonPropertyName("message")]
     public string Message { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Error metadata
     /// </summary>

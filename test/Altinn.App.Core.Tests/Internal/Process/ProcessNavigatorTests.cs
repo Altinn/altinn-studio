@@ -20,20 +20,20 @@ public class ProcessNavigatorTests
         IProcessNavigator processNavigator = SetupProcessNavigator("simple-linear.bpmn", new List<IProcessExclusiveGateway>());
         ProcessElement nextElements = await processNavigator.GetNextTask(new Instance(), "Task1", null);
         nextElements.Should().BeEquivalentTo(new ProcessTask()
+        {
+            Id = "Task2",
+            Name = "Bekreft skjemadata",
+            Incoming = new List<string> { "Flow2" },
+            Outgoing = new List<string> { "Flow3" },
+            ExtensionElements = new ExtensionElements()
             {
-                Id = "Task2",
-                Name = "Bekreft skjemadata",
-                Incoming = new List<string> { "Flow2" },
-                Outgoing = new List<string> { "Flow3" },
-                ExtensionElements = new ExtensionElements()
+                TaskExtension = new()
                 {
-                    TaskExtension = new()
-                    {
-                        TaskType = "confirmation",
-                        AltinnActions = new()
-                    },
-                }
-            });
+                    TaskType = "confirmation",
+                    AltinnActions = new()
+                },
+            }
+        });
     }
 
     [Fact]
@@ -50,24 +50,24 @@ public class ProcessNavigatorTests
         IProcessNavigator processNavigator = SetupProcessNavigator("simple-gateway-default.bpmn", new List<IProcessExclusiveGateway>());
         ProcessElement nextElements = await processNavigator.GetNextTask(new Instance(), "Task1", null);
         nextElements.Should().BeEquivalentTo(new ProcessTask()
+        {
+            Id = "Task2",
+            Name = null!,
+            ExtensionElements = new()
             {
-                Id = "Task2",
-                Name = null!,
-                ExtensionElements = new()
+                TaskExtension = new()
                 {
-                  TaskExtension = new()
-                  {
-                      TaskType = "confirm",
-                      AltinnActions = new()
+                    TaskType = "confirm",
+                    AltinnActions = new()
                       {
                           new("confirm"),
                           new("reject")
                       }
-                  }
-                },
-                Incoming = new List<string> { "Flow3" },
-                Outgoing = new List<string> { "Flow5" }
-            });
+                }
+            },
+            Incoming = new List<string> { "Flow3" },
+            Outgoing = new List<string> { "Flow5" }
+        });
     }
 
     [Fact]
@@ -84,28 +84,28 @@ public class ProcessNavigatorTests
                 { "choose", "Flow3" }
             }
         };
-        
+
         ProcessElement nextElements = await processNavigator.GetNextTask(i, "Task1", null);
         nextElements.Should().BeEquivalentTo(new ProcessTask()
+        {
+            Id = "Task2",
+            Name = null!,
+            ExtensionElements = new()
             {
-                Id = "Task2",
-                Name = null!,
-                ExtensionElements = new()
+                TaskExtension = new()
                 {
-                    TaskExtension = new()
-                    {
-                        TaskType = "data",
-                        AltinnActions = new()
+                    TaskType = "data",
+                    AltinnActions = new()
                         {
                             new("submit")
                         }
-                    }
-                },
-                Incoming = new List<string> { "Flow3" },
-                Outgoing = new List<string> { "Flow5" }
-            });
+                }
+            },
+            Incoming = new List<string> { "Flow3" },
+            Outgoing = new List<string> { "Flow5" }
+        });
     }
-    
+
     [Fact]
     public async void GetNextTask_throws_ProcessException_if_multiple_targets_found()
     {
@@ -141,14 +141,14 @@ public class ProcessNavigatorTests
         };
         ProcessElement nextElements = await processNavigator.GetNextTask(i, "Task1", null);
         nextElements.Should().BeEquivalentTo(new EndEvent()
-            {
-                Id = "EndEvent",
-                Name = null!,
-                Incoming = new List<string> { "Flow6" },
-                Outgoing = new List<string>()
-            });
+        {
+            Id = "EndEvent",
+            Name = null!,
+            Incoming = new List<string> { "Flow6" },
+            Outgoing = new List<string>()
+        });
     }
-    
+
     [Fact]
     public async void GetNextTask_runs_custom_filter_and_returns_empty_list_if_all_filtered_out()
     {
@@ -165,21 +165,21 @@ public class ProcessNavigatorTests
                 { "choose2", "Bar" }
             }
         };
-        
+
         ProcessElement nextElements = await processNavigator.GetNextTask(i, "Task1", null);
         nextElements.Should().BeNull();
     }
-    
+
     [Fact]
     public async void GetNextTask_returns_empty_list_if_element_has_no_next()
     {
         IProcessNavigator processNavigator = SetupProcessNavigator("simple-gateway-with-join-gateway.bpmn", new List<IProcessExclusiveGateway>());
         Instance i = new Instance();
-        
+
         ProcessElement nextElements = await processNavigator.GetNextTask(i, "EndEvent", null);
         nextElements.Should().BeNull();
     }
-    
+
     private static IProcessNavigator SetupProcessNavigator(string bpmnfile, IEnumerable<IProcessExclusiveGateway> gatewayFilters)
     {
         ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);

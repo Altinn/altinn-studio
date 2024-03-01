@@ -73,9 +73,9 @@ public class DefaultEFormidlingServiceTests
         eFormidlingReceivers.Setup(er => er.GetEFormidlingReceivers(instance)).ReturnsAsync(new List<Receiver>());
         eFormidlingMetadata.Setup(em => em.GenerateEFormidlingMetadata(instance)).ReturnsAsync(() =>
         {
-            return ("fakefilename.txt", Stream.Null); 
+            return ("fakefilename.txt", Stream.Null);
         });
-        
+
         var defaultEformidlingService = new DefaultEFormidlingService(
             logger,
             userTokenProvider.Object,
@@ -99,7 +99,7 @@ public class DefaultEFormidlingServiceTests
             { General.EFormidlingAccessTokenHeaderName, "access-token" },
             { General.SubscriptionKeyHeaderName, "subscription-key" }
         };
-        
+
         appMetadata.Verify(a => a.GetApplicationMetadata());
         tokenGenerator.Verify(t => t.GenerateAccessToken("ttd", "test-app"));
         userTokenProvider.Verify(u => u.GetUserToken());
@@ -109,17 +109,17 @@ public class DefaultEFormidlingServiceTests
         eFormidlingClient.Verify(ec => ec.UploadAttachment(Stream.Null, "41C1099C-7EDD-47F5-AD1F-6267B497796F", "fakefilename.txt", expectedReqHeaders));
         eFormidlingClient.Verify(ec => ec.SendMessage("41C1099C-7EDD-47F5-AD1F-6267B497796F", expectedReqHeaders));
         eventClient.Verify(e => e.AddEvent(EformidlingConstants.CheckInstanceStatusEventType, instance));
-        
+
         eFormidlingClient.VerifyNoOtherCalls();
         eventClient.VerifyNoOtherCalls();
         tokenGenerator.VerifyNoOtherCalls();
         userTokenProvider.VerifyNoOtherCalls();
         eFormidlingReceivers.VerifyNoOtherCalls();
         appMetadata.VerifyNoOtherCalls();
-        
+
         result.IsCompletedSuccessfully.Should().BeTrue();
     }
-    
+
     [Fact]
     public void SendEFormidlingShipment_throws_exception_if_send_fails()
     {
@@ -170,11 +170,11 @@ public class DefaultEFormidlingServiceTests
         eFormidlingReceivers.Setup(er => er.GetEFormidlingReceivers(instance)).ReturnsAsync(new List<Receiver>());
         eFormidlingMetadata.Setup(em => em.GenerateEFormidlingMetadata(instance)).ReturnsAsync(() =>
         {
-            return ("fakefilename.txt", Stream.Null); 
+            return ("fakefilename.txt", Stream.Null);
         });
         eFormidlingClient.Setup(ec => ec.SendMessage(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
             .ThrowsAsync(new Exception("XUnit expected exception"));
-        
+
         var defaultEformidlingService = new DefaultEFormidlingService(
             logger,
             userTokenProvider.Object,
@@ -199,7 +199,7 @@ public class DefaultEFormidlingServiceTests
             { General.EFormidlingAccessTokenHeaderName, "access-token" },
             { General.SubscriptionKeyHeaderName, "subscription-key" }
         };
-        
+
         appMetadata.Verify(a => a.GetApplicationMetadata());
         tokenGenerator.Verify(t => t.GenerateAccessToken("ttd", "test-app"));
         userTokenProvider.Verify(u => u.GetUserToken());
@@ -208,14 +208,14 @@ public class DefaultEFormidlingServiceTests
         eFormidlingClient.Verify(ec => ec.CreateMessage(It.IsAny<StandardBusinessDocument>(), expectedReqHeaders));
         eFormidlingClient.Verify(ec => ec.UploadAttachment(Stream.Null, "41C1099C-7EDD-47F5-AD1F-6267B497796F", "fakefilename.txt", expectedReqHeaders));
         eFormidlingClient.Verify(ec => ec.SendMessage("41C1099C-7EDD-47F5-AD1F-6267B497796F", expectedReqHeaders));
-        
+
         eFormidlingClient.VerifyNoOtherCalls();
         eventClient.VerifyNoOtherCalls();
         tokenGenerator.VerifyNoOtherCalls();
         userTokenProvider.VerifyNoOtherCalls();
         eFormidlingReceivers.VerifyNoOtherCalls();
         appMetadata.VerifyNoOtherCalls();
-        
+
         result.IsCompletedSuccessfully.Should().BeFalse();
     }
 }

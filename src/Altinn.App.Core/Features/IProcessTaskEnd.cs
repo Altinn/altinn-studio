@@ -12,5 +12,5 @@ public interface IProcessTaskEnd
     /// </summary>
     /// <param name="taskId">The taskId</param>
     /// <param name="instance">The instance</param>
-    public Task End(string taskId, Instance instance);   
+    public Task End(string taskId, Instance instance);
 }

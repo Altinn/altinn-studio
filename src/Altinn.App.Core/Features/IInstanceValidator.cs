@@ -17,7 +17,7 @@ public interface IInstanceValidator
     /// <param name="validationResults">Object containing any validation errors/warnings</param>
     /// <returns>Task to indicate when validation is completed</returns>
     public Task ValidateData(object data, ModelStateDictionary validationResults);
-    
+
     /// <summary>
     /// Is called to run custom task validation events.
     /// </summary>

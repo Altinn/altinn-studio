@@ -120,7 +120,7 @@ namespace Altinn.App.Core.Interface
         /// <param name="instanceGuid">The instance id</param>
         /// <param name="dataGuid">The data id</param>
         /// <param name="request">Http request containing the attachment to be saved</param>
-        [Obsolete(message:"Deprecated please use UpdateBinaryData(InstanceIdentifier, string, string, Guid, Stream) instead", error: false)]
+        [Obsolete(message: "Deprecated please use UpdateBinaryData(InstanceIdentifier, string, string, Guid, Stream) instead", error: false)]
         Task<DataElement> UpdateBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, HttpRequest request);
 
         /// <summary>

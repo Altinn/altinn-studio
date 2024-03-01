@@ -475,7 +475,7 @@ namespace Altinn.App.Core.Tests.Internal.App
             actual.UnmappedProperties!["foo"].Should().BeOfType<JsonElement>();
             ((JsonElement)actual.UnmappedProperties["foo"]).GetProperty("bar").GetString().Should().Be("baz");
         }
-        
+
         [Fact]
         public async Task GetApplicationMetadata_deserialize_serialize_unmapped_properties()
         {

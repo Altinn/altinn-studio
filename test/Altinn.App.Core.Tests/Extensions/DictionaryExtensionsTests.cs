@@ -74,7 +74,7 @@ namespace Altinn.App.Core.Tests.Extensions
             };
 
             IHeaderDictionary headers = new HeaderDictionary();
-            headers.Add("Altinn-DownstreamParameters", options.Parameters.ToUrlEncodedNameValueString(','));
+            headers.Append("Altinn-DownstreamParameters", options.Parameters.ToUrlEncodedNameValueString(','));
 
             Assert.Equal("lang=nb,level=1,name=%C3%86%C3%98%C3%85,variant=Sm%C3%A5vilt1", headers["Altinn-DownstreamParameters"]);
         }

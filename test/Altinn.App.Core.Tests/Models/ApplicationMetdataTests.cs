@@ -15,7 +15,7 @@ public class ApplicationMetdataTests
         AppIdentifier expected = new AppIdentifier("ttd/test");
         metadata.AppIdentifier.Should().BeEquivalentTo(expected);
     }
-    
+
     [Fact]
     public void UpdatingIdUpdatesAppIdentifier()
     {
@@ -28,7 +28,7 @@ public class ApplicationMetdataTests
         AppIdentifier expectedUpdate = new AppIdentifier("ttd/updated");
         metadata.AppIdentifier.Should().BeEquivalentTo(expectedUpdate);
     }
-    
+
     [Fact]
     public void UpdatingIdFailsIfInvalidApplicationIdFormat()
     {

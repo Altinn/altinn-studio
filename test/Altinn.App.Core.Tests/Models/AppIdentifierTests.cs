@@ -15,7 +15,7 @@ namespace Altinn.App.PlatformServices.Tests.Models
             var org = "ttd";
             var app = "test-app";
             var appId = $"{org}/{app}";
-            
+
             var appIdentifier = new AppIdentifier(appId);
 
             appIdentifier.Org.Should().Be(org);
@@ -108,5 +108,5 @@ namespace Altinn.App.PlatformServices.Tests.Models
         }
     }
 
-    #pragma warning restore CA1806 // Do not ignore method results
+#pragma warning restore CA1806 // Do not ignore method results
 }

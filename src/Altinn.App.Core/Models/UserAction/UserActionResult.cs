@@ -20,12 +20,12 @@ public class UserActionResult
     /// Actions for the client to perform after the user action has been handled
     /// </summary>
     public List<ClientAction>? ClientActions { get; set; }
-    
+
     /// <summary>
     /// Validation issues that should be displayed to the user
     /// </summary>
     public ActionError? Error { get; set; }
-    
+
     /// <summary>
     /// Creates a success result
     /// </summary>
@@ -40,7 +40,7 @@ public class UserActionResult
         };
         return userActionResult;
     }
-    
+
     /// <summary>
     /// Creates a failure result
     /// </summary>

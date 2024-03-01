@@ -18,7 +18,7 @@ public class TestBackendExclusiveFunctions
     {
         _output = output;
     }
-    
+
     [Theory]
     [ExclusiveTest("gatewayAction")]
     public void GatewayAction_Theory(ExpressionTestCaseRoot test) => RunTestCase(test);

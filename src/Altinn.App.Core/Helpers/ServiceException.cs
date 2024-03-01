@@ -11,7 +11,7 @@ namespace Altinn.App.Core.Helpers
         /// <summary>
         /// The proposed return http status code.
         /// </summary>
-        public HttpStatusCode StatusCode { get;  }
+        public HttpStatusCode StatusCode { get; }
 
         /// <summary>
         /// Add a proposed http status return code and message.
