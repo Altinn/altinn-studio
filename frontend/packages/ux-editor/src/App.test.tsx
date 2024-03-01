@@ -10,7 +10,6 @@ import type { AppContextProps } from './AppContext';
 import ruleHandlerMock from './testing/ruleHandlerMock';
 import { layoutSetsMock } from './testing/layoutMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import type { SupportedFeatureFlags } from 'app-shared/utils/featureToggleUtils';
 
 const { selectedLayoutSet } = appStateMock.formDesigner.layout;
 const mockQueries: Partial<ServicesContextProps> = {
@@ -38,19 +37,16 @@ describe('App', () => {
   afterEach(() => typedLocalStorage.setItem('featureFlags', []));
 
   it('should render the spinner', () => {
-    overrideFrontendVersionCheck();
     renderApp({}, { selectedLayoutSet });
     expect(screen.getByTitle(textMock('ux_editor.loading_page'))).toBeInTheDocument();
   });
 
   it('should render the component', async () => {
-    overrideFrontendVersionCheck();
     renderApp(mockQueries, { selectedLayoutSet });
     await waitForLoadingToFinish();
   });
 
   it('Removes the preview layout set from local storage if it does not exist', async () => {
-    overrideFrontendVersionCheck();
     const removeSelectedLayoutSetMock = jest.fn();
     const layoutSetThatDoesNotExist = 'layout-set-that-does-not-exist';
     typedLocalStorage.setItem('selectedLayoutSet', layoutSetThatDoesNotExist);
@@ -63,7 +59,6 @@ describe('App', () => {
   });
 
   it('Does not remove the preview layout set from local storage if it exists', async () => {
-    overrideFrontendVersionCheck();
     const removeSelectedLayoutSetMock = jest.fn();
     typedLocalStorage.setItem('selectedLayoutSet', selectedLayoutSet);
     renderApp(mockQueries, {
@@ -73,23 +68,7 @@ describe('App', () => {
     await waitForLoadingToFinish();
     expect(removeSelectedLayoutSetMock).not.toHaveBeenCalled();
   });
-
-  it('Does not render the unsupported version message when the shouldOverrideAppFrontendCheck feature flag is set', async () => {
-    overrideFrontendVersionCheck();
-    renderApp(mockQueries, { selectedLayoutSet });
-    await waitForLoadingToFinish();
-    expect(
-      screen.queryByRole('heading', {
-        name: textMock('ux_editor.unsupported_version_message_title', { version: 'V4' }),
-      }),
-    ).not.toBeInTheDocument();
-  });
 });
-
-const overrideFrontendVersionCheck = () =>
-  typedLocalStorage.setItem('featureFlags', [
-    'shouldOverrideAppFrontendCheck' satisfies SupportedFeatureFlags,
-  ]);
 
 const waitForLoadingToFinish = async () =>
   await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('ux_editor.loading_page')));
