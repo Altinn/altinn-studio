@@ -10,7 +10,7 @@ import { convertNumberToString, convertStringToNumber, isStringValidDecimalNumbe
 import { type StudioTextfieldProps, StudioTextfield } from '../StudioTextfield';
 
 export interface StudioDecimalInputProps extends Omit<StudioTextfieldProps, 'onChange'> {
-  description: string;
+  description?: string;
   onChange: (value: number) => void;
   value?: number;
   validationErrorMessage: string;

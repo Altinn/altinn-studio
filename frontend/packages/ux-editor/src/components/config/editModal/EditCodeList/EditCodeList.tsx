@@ -9,8 +9,11 @@ import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { FormField } from '../../../FormField';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import classes from './EditCodeList.module.css';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
-export function EditCodeList({ component, handleComponentChange }: IGenericEditComponent) {
+export function EditCodeList<
+  T extends ComponentType.Checkboxes | ComponentType.RadioButtons | ComponentType.Dropdown,
+>({ component, handleComponentChange }: IGenericEditComponent<T>) {
   const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
 
