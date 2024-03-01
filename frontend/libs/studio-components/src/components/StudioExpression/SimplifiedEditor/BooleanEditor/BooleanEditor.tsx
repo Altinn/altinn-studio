@@ -2,9 +2,9 @@ import type { SimplifiedExpression } from '../../types/SimplifiedExpression';
 import { DEFAULT_LOGICAL_EXPRESSION } from '../../config';
 import { StudioBooleanToggleGroup } from '../../../StudioBooleanToggleGroup';
 import { StudioButton } from '../../../StudioButton';
-import React, { useContext } from 'react';
+import React from 'react';
 import classes from './BooleanEditor.module.css';
-import { StudioExpressionContext } from '../../StudioExpressionContext';
+import { useStudioExpressionContext } from '../../StudioExpressionContext';
 
 export type BooleanEditorProps = {
   expression: boolean;
@@ -12,7 +12,7 @@ export type BooleanEditorProps = {
 };
 
 export const BooleanEditor = ({ expression, onChange }: BooleanEditorProps) => {
-  const { texts } = useContext(StudioExpressionContext);
+  const { texts } = useStudioExpressionContext();
 
   const handleSwitchToLogical = () => onChange(DEFAULT_LOGICAL_EXPRESSION);
 

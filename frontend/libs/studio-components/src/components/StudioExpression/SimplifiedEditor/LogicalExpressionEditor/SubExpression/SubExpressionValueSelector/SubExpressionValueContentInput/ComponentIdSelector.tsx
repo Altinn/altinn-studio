@@ -1,7 +1,7 @@
 import type { Props } from './Props';
 import type { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSubexpressionValueType';
-import React, { useContext, useState } from 'react';
-import { StudioExpressionContext } from '../../../../../StudioExpressionContext';
+import React, { useState } from 'react';
+import { useStudioExpressionContext } from '../../../../../StudioExpressionContext';
 import { ExpressionErrorKey } from '../../../../../enums/ExpressionErrorKey';
 import { DataLookupFuncName } from '../../../../../enums/DataLookupFuncName';
 import { Combobox } from '@digdir/design-system-react';
@@ -10,7 +10,7 @@ export const ComponentIdSelector = ({
   value,
   onChange,
 }: Props<SimpleSubexpressionValueType.Component>) => {
-  const { dataLookupOptions, texts } = useContext(StudioExpressionContext);
+  const { dataLookupOptions, texts } = useStudioExpressionContext();
   const [errorKey, setErrorKey] = useState<ExpressionErrorKey | null>(null);
   const [idValue, setIdValue] = useState<string>(value.id);
 

@@ -1,11 +1,11 @@
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import type { Expression } from '../types/Expression';
 import { isStringValidAsExpression } from '../validators/isStringValidAsExpression';
 import { stringToExpression } from '../converters/stringToExpression';
 import { expressionToString } from '../converters/expressionToString';
 import { StudioTextarea } from '../../StudioTextarea';
 import classes from './ManualEditor.module.css';
-import { StudioExpressionContext } from '../StudioExpressionContext';
+import { useStudioExpressionContext } from '../StudioExpressionContext';
 
 export type ManualEditorProps = {
   expression: Expression;
@@ -18,7 +18,7 @@ export const ManualEditor = ({
   onChange,
   isManualExpressionValidRef,
 }: ManualEditorProps) => {
-  const { texts } = useContext(StudioExpressionContext);
+  const { texts } = useStudioExpressionContext();
   const initialExpressionString = expressionToString(givenExpression);
   const isInitiallyValid = isStringValidAsExpression(initialExpressionString);
   const [expressionString, setExpressionString] = useState<string>(initialExpressionString);

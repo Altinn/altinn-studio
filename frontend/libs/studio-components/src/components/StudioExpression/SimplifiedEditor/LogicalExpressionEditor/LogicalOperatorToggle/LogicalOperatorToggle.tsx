@@ -1,6 +1,6 @@
 import { LogicalTupleOperator } from '../../../enums/LogicalTupleOperator';
-import React, { useContext } from 'react';
-import { StudioExpressionContext } from '../../../StudioExpressionContext';
+import React from 'react';
+import { useStudioExpressionContext } from '../../../StudioExpressionContext';
 import { Paragraph, ToggleGroup } from '@digdir/design-system-react';
 import classes from './LogicalOperatorToggle.module.css';
 
@@ -10,7 +10,7 @@ export type LogicalOperatorToggleProps = {
 };
 
 export const LogicalOperatorToggle = ({ operator, onChange }: LogicalOperatorToggleProps) => {
-  const { texts } = useContext(StudioExpressionContext);
+  const { texts } = useStudioExpressionContext();
 
   return (
     <div className={classes.logicalOperatorToggle}>

@@ -1,12 +1,12 @@
 import type { SimpleSubexpressionValue } from '../../../../../types/SimpleSubexpressionValue';
 import type { ReactNode } from 'react';
-import React, { useContext } from 'react';
+import React from 'react';
 import { Paragraph, Tag } from '@digdir/design-system-react';
 import { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSubexpressionValueType';
 import classes from './SubexpressionValueReadonly.module.css';
 import { StudioCodeFragment } from '../../../../../../StudioCodeFragment';
 import { LinkIcon } from '@studio/icons';
-import { StudioExpressionContext } from '../../../../../StudioExpressionContext';
+import { useStudioExpressionContext } from '../../../../../StudioExpressionContext';
 
 export type SubexpressionValueReadonlyProps<T extends SimpleSubexpressionValueType> = {
   value: SimpleSubexpressionValue<T>;
@@ -36,7 +36,7 @@ export const SubexpressionValueReadonly = ({
 const DatamodelLookupValue = ({
   value,
 }: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.Datamodel>) => {
-  const { texts } = useContext(StudioExpressionContext);
+  const { texts } = useStudioExpressionContext();
   return (
     <Binding
       name={texts.readonlyDatamodelPath}
@@ -48,7 +48,7 @@ const DatamodelLookupValue = ({
 const ComponentLookupValue = ({
   value,
 }: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.Component>) => {
-  const { texts } = useContext(StudioExpressionContext);
+  const { texts } = useStudioExpressionContext();
   return (
     <Binding
       name={texts.readonlyComponentId}
@@ -60,7 +60,7 @@ const ComponentLookupValue = ({
 const InstanceContextValue = ({
   value,
 }: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.InstanceContext>) => {
-  const { texts } = useContext(StudioExpressionContext);
+  const { texts } = useStudioExpressionContext();
   const name = texts.instanceContext[value.key];
   return (
     <Binding
@@ -99,7 +99,7 @@ const NumberValue = ({
 const BooleanValue = ({
   value,
 }: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.Boolean>) => {
-  const { texts } = useContext(StudioExpressionContext);
+  const { texts } = useStudioExpressionContext();
   return (
     <Tag size='small' color={value.value ? 'success' : 'danger'}>
       {value.value ? texts.true : texts.false}

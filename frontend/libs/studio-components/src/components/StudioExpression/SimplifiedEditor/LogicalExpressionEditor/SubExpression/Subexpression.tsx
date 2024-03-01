@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { SimpleSubexpression } from '../../../types/SimpleSubexpression';
 import type { RelationalOperator } from '../../../types/RelationalOperator';
 import {
@@ -16,7 +16,7 @@ import type { ExpressionErrorKey } from '../../../enums/ExpressionErrorKey';
 import { findSubexpressionErrors } from './utils/findSubexpressionErrors';
 import { SubexpressionErrors } from './SubExpressionErrors';
 import { Fieldset } from '@digdir/design-system-react';
-import { StudioExpressionContext } from '../../../StudioExpressionContext';
+import { useStudioExpressionContext } from '../../../StudioExpressionContext';
 
 export type SubexpressionProps = {
   expression: SimpleSubexpression;
@@ -26,7 +26,7 @@ export type SubexpressionProps = {
 };
 
 export const Subexpression = ({ expression, legend, onChange, onDelete }: SubexpressionProps) => {
-  const { texts } = useContext(StudioExpressionContext);
+  const { texts } = useStudioExpressionContext();
   const [isInEditMode, setIsInEditMode] = useState<boolean>(false);
   const [expressionState, setExpressionState] = useState<SimpleSubexpression>(expression);
   const [errors, setErrors] = useState<ExpressionErrorKey[]>([]);

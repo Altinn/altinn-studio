@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import type { Expression } from '../types/Expression';
 import { isExpressionSimple } from '../validators/isExpressionSimple';
 import { Alert } from '@digdir/design-system-react';
@@ -6,7 +6,7 @@ import { complexToSimpleExpression } from '../converters/complexToSimpleExpressi
 import type { SimplifiedExpression } from '../types/SimplifiedExpression';
 import { simpleToComplexExpression } from '../converters/simpleToComplexExpression';
 import { InternalFormatEditor } from './InternalFormatEditor';
-import { StudioExpressionContext } from '../StudioExpressionContext';
+import { useStudioExpressionContext } from '../StudioExpressionContext';
 
 export type SimplifiedEditorProps = {
   expression: Expression;
@@ -14,7 +14,7 @@ export type SimplifiedEditorProps = {
 };
 
 export const SimplifiedEditor = ({ expression, onChange }: SimplifiedEditorProps) => {
-  const { texts } = useContext(StudioExpressionContext);
+  const { texts } = useStudioExpressionContext();
 
   if (!isExpressionSimple(expression)) {
     return <Alert severity='info'>{texts.cannotSimplify}</Alert>;

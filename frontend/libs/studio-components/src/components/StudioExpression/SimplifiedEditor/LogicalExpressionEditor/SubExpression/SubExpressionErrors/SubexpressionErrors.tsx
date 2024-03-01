@@ -1,7 +1,7 @@
 import type { ExpressionErrorKey } from '../../../../enums/ExpressionErrorKey';
 import { ErrorMessage, List } from '@digdir/design-system-react';
-import React, { useContext } from 'react';
-import { StudioExpressionContext } from '../../../../StudioExpressionContext';
+import React from 'react';
+import { useStudioExpressionContext } from '../../../../StudioExpressionContext';
 import classes from './SubexpressionErrors.module.css';
 
 export type SubexpressionErrorsProps = {
@@ -9,7 +9,7 @@ export type SubexpressionErrorsProps = {
 };
 
 export const SubexpressionErrors = ({ errorKeys }: SubexpressionErrorsProps) => {
-  const { texts } = useContext(StudioExpressionContext);
+  const { texts } = useStudioExpressionContext();
 
   return (
     <div className={classes.subexpressionErrors}>

@@ -1,11 +1,11 @@
 import type { Props } from './Props';
 import type { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSubexpressionValueType';
-import React, { useContext } from 'react';
-import { StudioExpressionContext } from '../../../../../StudioExpressionContext';
+import React from 'react';
+import { useStudioExpressionContext } from '../../../../../StudioExpressionContext';
 import { StudioBooleanToggleGroup } from '../../../../../../StudioBooleanToggleGroup';
 
 export const BooleanInput = ({ value, onChange }: Props<SimpleSubexpressionValueType.Boolean>) => {
-  const { texts } = useContext(StudioExpressionContext);
+  const { texts } = useStudioExpressionContext();
 
   const handleChange = (booleanValue: boolean) => onChange({ ...value, value: booleanValue });
 

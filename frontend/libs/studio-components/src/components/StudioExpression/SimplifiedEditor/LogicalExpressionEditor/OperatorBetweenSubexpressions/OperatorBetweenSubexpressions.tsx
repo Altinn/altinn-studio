@@ -1,6 +1,6 @@
 import type { SimpleLogicalExpression } from '../../../types/SimplifiedExpression';
-import React, { useContext } from 'react';
-import { StudioExpressionContext } from '../../../StudioExpressionContext';
+import React from 'react';
+import { useStudioExpressionContext } from '../../../StudioExpressionContext';
 import { LogicalTupleOperator } from '../../../enums/LogicalTupleOperator';
 import { Paragraph } from '@digdir/design-system-react';
 import classes from './OperatorBetweenSubexpressions.module.css';
@@ -12,7 +12,7 @@ export type OperatorBetweenSubexpressionsProps = {
 export const OperatorBetweenSubexpressions = ({
   logicalExpression,
 }: OperatorBetweenSubexpressionsProps) => {
-  const { texts } = useContext(StudioExpressionContext);
+  const { texts } = useStudioExpressionContext();
 
   const text =
     logicalExpression.subexpressions.length > 1

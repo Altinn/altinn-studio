@@ -14,11 +14,10 @@ import type { SimpleSubexpression } from '../../types/SimpleSubexpression';
 import classes from './LogicalExpressionEditor.module.css';
 import { StudioButton } from '../../../StudioButton';
 import type { MutableRefObject, ReactNode } from 'react';
-import { useRef } from 'react';
-import React, { Fragment, useContext } from 'react';
+import React, { Fragment, useRef } from 'react';
 import { PlusIcon } from '@studio/icons';
 import { Subexpression } from './SubExpression';
-import { StudioExpressionContext } from '../../StudioExpressionContext';
+import { useStudioExpressionContext } from '../../StudioExpressionContext';
 import { LogicalOperatorToggle } from './LogicalOperatorToggle';
 import { OperatorBetweenSubexpressions } from './OperatorBetweenSubexpressions';
 import { Fieldset } from '@digdir/design-system-react';
@@ -31,7 +30,7 @@ export type LogicalExpressionEditorProps = {
 };
 
 export const LogicalExpressionEditor = ({ expression, onChange }: LogicalExpressionEditorProps) => {
-  const { texts } = useContext(StudioExpressionContext);
+  const { texts } = useStudioExpressionContext();
   const internalIds = useRef<string[]>([]); // Used to keep track of the order of the subcomponents
   const { subexpressions, logicalOperator } = expression;
 
@@ -92,7 +91,7 @@ const SubexpressionList = ({
   componentBetween,
   internalIds,
 }: SubexpressionListProps) => {
-  const { texts } = useContext(StudioExpressionContext);
+  const { texts } = useStudioExpressionContext();
 
   const handleSubexpressionChange = (index: number, expression: SimpleSubexpression) =>
     onChange(changeSubexpression(expressions, index, expression));

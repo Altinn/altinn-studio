@@ -1,9 +1,9 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { StudioButton } from '../../../../../StudioButton';
 import { StudioDeleteButton } from '../../../../../StudioDeleteButton';
 import { FloppydiskIcon, PencilIcon } from '@studio/icons';
 import classes from './SubexpressionToolbar.module.css';
-import { StudioExpressionContext } from '../../../../StudioExpressionContext';
+import { useStudioExpressionContext } from '../../../../StudioExpressionContext';
 
 export type SubexpressionToolbarProps = {
   isInEditMode: boolean;
@@ -18,7 +18,7 @@ export const SubexpressionToolbar = ({
   onDelete,
   onEnableEditMode,
 }: SubexpressionToolbarProps) => {
-  const { texts } = useContext(StudioExpressionContext);
+  const { texts } = useStudioExpressionContext();
 
   return (
     <div className={classes.subexpressionToolbar} role='toolbar'>
