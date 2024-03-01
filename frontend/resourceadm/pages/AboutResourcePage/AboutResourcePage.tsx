@@ -159,8 +159,6 @@ export const AboutResourcePage = ({
           value={resourceData.delegable ?? true}
           onFocus={() => setTranslationType('none')}
           onChange={(isChecked: boolean) => handleSave({ ...resourceData, delegable: isChecked })}
-          id='isDelegableSwitch'
-          descriptionId='isDelegableSwitchDescription'
           toggleTextTranslationKey='resourceadm.about_resource_delegable_show_text'
         />
         {resourceData.delegable && (
@@ -213,8 +211,6 @@ export const AboutResourcePage = ({
             onChange={(isChecked: boolean) =>
               handleSave({ ...resourceData, selfIdentifiedUserEnabled: isChecked })
             }
-            id='selfIdentifiedUsersEnabledSwitch'
-            descriptionId='selfIdentifiedUsersEnabledSwitchDescription'
             toggleTextTranslationKey='resourceadm.about_resource_self_identified_show_text'
           />
         )}
@@ -227,8 +223,6 @@ export const AboutResourcePage = ({
             onChange={(isChecked: boolean) =>
               handleSave({ ...resourceData, enterpriseUserEnabled: isChecked })
             }
-            id='enterpriseUserEnabledSwitch'
-            descriptionId='enterpriseUserEnabledSwitchDescription'
             toggleTextTranslationKey='resourceadm.about_resource_enterprise_show_text'
           />
         )}
@@ -272,8 +266,6 @@ export const AboutResourcePage = ({
           value={resourceData.visible ?? false}
           onFocus={() => setTranslationType('none')}
           onChange={(isChecked: boolean) => handleSave({ ...resourceData, visible: isChecked })}
-          id='isVisibleSwitch'
-          descriptionId='isVisibleSwitchDescription'
           toggleTextTranslationKey='resourceadm.about_resource_visible_show_text'
         />
         {shouldDisplayFeature('resourceAccessLists') && (
@@ -286,8 +278,6 @@ export const AboutResourcePage = ({
               onChange={(isChecked: boolean) =>
                 handleSave({ ...resourceData, limitedByRRR: isChecked })
               }
-              id='limitedByRRRSwitch'
-              descriptionId='limitedByRRRSwitchSwitchDescription'
               toggleTextTranslationKey='resourceadm.about_resource_use_rrr_show_text'
             />
             {resourceData.limitedByRRR && (

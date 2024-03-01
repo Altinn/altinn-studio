@@ -28,14 +28,6 @@ type ResourceSwitchInputProps = {
    */
   onChange: (isChecked: boolean) => void;
   /**
-   * The id of the field
-   */
-  id: string;
-  /**
-   * The id of the description of the field
-   */
-  descriptionId: string;
-  /**
    * The translation key to be put inside the translation function
    */
   toggleTextTranslationKey: string;
@@ -50,8 +42,6 @@ type ResourceSwitchInputProps = {
  * @property {string}[value] - The value in the switch
  * @property {function}[onFocus] - unction to be executed when the field is focused
  * @property {function}[onChange] - Function to be executed on change
- * @property {string}[id] - The id of the field
- * @property {string}[descriptionId] - The id of the description of the field
  * @property {string}[toggleTextTranslationKey] - The translation key to be put inside the translation function
  *
  * @returns {React.JSX.Element} - The rendered component
@@ -62,8 +52,6 @@ export const ResourceSwitchInput = ({
   value,
   onFocus,
   onChange,
-  id,
-  descriptionId,
   toggleTextTranslationKey,
 }: ResourceSwitchInputProps): React.JSX.Element => {
   const { t } = useTranslation();
@@ -75,7 +63,7 @@ export const ResourceSwitchInput = ({
       <Label size='small' spacing>
         {label}
       </Label>
-      <Paragraph short size='small' className={classes.description} id={descriptionId}>
+      <Paragraph short size='small' className={classes.description}>
         {description}
       </Paragraph>
       <div className={classes.toggleWrapper}>
@@ -87,8 +75,7 @@ export const ResourceSwitchInput = ({
             onChange(newValue);
           }}
           onFocus={onFocus}
-          id={id}
-          aria-describedby={descriptionId}
+          aria-description={description}
           aria-label={label}
           size='small'
         >
