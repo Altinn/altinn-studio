@@ -2118,12 +2118,12 @@ namespace Altinn.App.Models
         [JsonProperty("Gateadresse_æøå")]
         [JsonPropertyName("Gateadresse_æøå")]
         public string? Gateadresse { get; set; }
-
-        [XmlElement("Postnr", Order = 2)]
-        [JsonProperty("Postnr")]
-        [JsonPropertyName("Postnr")]
-        public string? Postnr { get; set; }
-
+        
+        [XmlElement("CareOf", Order = 2)]
+        [JsonProperty("CareOf")]
+        [JsonPropertyName("CareOf")]
+        public string? CareOf { get; set; }
+        
         [XmlElement("Poststed", Order = 3)]
         [JsonProperty("Poststed")]
         [JsonPropertyName("Poststed")]
@@ -2138,7 +2138,17 @@ namespace Altinn.App.Models
         [JsonProperty("KommunerMetadata")]
         [JsonPropertyName("KommunerMetadata")]
         public string? KommunerMetadata { get; set; }
-
+        
+        [XmlElement("Postnr", Order = 6)]
+        [JsonProperty("Postnr")]
+        [JsonPropertyName("Postnr")]
+        public string? Postnr { get; set; }
+        
+        [XmlElement("HouseNumber", Order = 7)]
+        [JsonProperty("HouseNumber")]
+        [JsonPropertyName("HouseNumber")]
+        public string? HouseNumber { get; set; }
+        
     }
 
     public class GridData

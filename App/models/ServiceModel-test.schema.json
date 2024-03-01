@@ -394,9 +394,7 @@
           "@xsdType": "XmlAttribute"
         },
         "etatid": {
-          "enum": [
-            "974761076"
-          ],
+          "enum": ["974761076"],
           "type": "string",
           "@xsdType": "XmlAttribute"
         },
@@ -438,6 +436,9 @@
             "Postnr": {
               "type": "string"
             },
+            "CareOf": {
+              "type": "string"
+            },
             "Poststed": {
               "type": "string"
             },
@@ -446,13 +447,12 @@
             },
             "KommunerMetadata": {
               "type": "string"
+            },
+            "HouseNumber": {
+              "type": "string"
             }
           },
-          "required": [
-            "Gateadresse_æøå",
-            "Postnr",
-            "Poststed"
-          ]
+          "required": ["Gateadresse_æøå", "Postnr", "Poststed"]
         },
         "GridData": {
           "type": "object",
@@ -463,7 +463,7 @@
             "Kredittkort": { "$ref": "#/definitions/GjeldsFordeling" },
             "TotalProsent": { "type": "integer" },
             "ShowAll": { "type": "string" },
-            "Examples": { "$ref":  "#/definitions/GridExamples" }
+            "Examples": { "$ref": "#/definitions/GridExamples" }
           }
         },
         "TestCustomButtonInput": {
@@ -488,20 +488,17 @@
           }
         }
       },
-      "required": [
-        "skjemanummer",
-        "spesifikasjonsnummer"
-      ],
+      "required": ["skjemanummer", "spesifikasjonsnummer"],
       "@xsdAnyAttribute": true
     },
     "GridExamples": {
       "type": "object",
-        "properties": {
-          "ExampleDate": { "type": "string" },
-          "ExampleDropdown": { "type": "string" },
-          "ExampleMultiSelect": { "type": "string" },
-          "ExampleTextArea": { "type": "string" }
-        }
+      "properties": {
+        "ExampleDate": { "type": "string" },
+        "ExampleDropdown": { "type": "string" },
+        "ExampleMultiSelect": { "type": "string" },
+        "ExampleTextArea": { "type": "string" }
+      }
     },
     "GjeldsFordeling": {
       "type": "object",
@@ -536,9 +533,7 @@
           "$ref": "#/definitions/SamtykkeTilElektroniskKommunikasjon-grp-9312"
         }
       },
-      "required": [
-        "gruppeid"
-      ]
+      "required": ["gruppeid"]
     },
     "NavneendringenGjelderFor-grp-9310": {
       "properties": {
@@ -564,9 +559,7 @@
           "$ref": "#/definitions/SubjektEtternavnFolkeregistrert-datadef-34729"
         }
       },
-      "required": [
-        "gruppeid"
-      ]
+      "required": ["gruppeid"]
     },
     "MeldingMeldingsmottakerFodselsnummer-datadef-33548": {
       "properties": {
@@ -581,10 +574,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "Tekst1111Modulus11-repformat-18": {
       "texts": {
@@ -610,10 +600,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "SubjektFornavnFolkeregistrert-datadef-34730": {
       "properties": {
@@ -628,10 +615,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "Tekst60-repformat-407": {
       "minLength": 1,
@@ -651,10 +635,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "SubjektEtternavnFolkeregistrert-datadef-34729": {
       "properties": {
@@ -669,10 +650,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "Signerer-grp-9320": {
       "properties": {
@@ -716,9 +694,7 @@
           "$ref": "#/definitions/SignererEkstraMalform-datadef-34895"
         }
       },
-      "required": [
-        "gruppeid"
-      ]
+      "required": ["gruppeid"]
     },
     "SignererEkstraFodselsnummer-datadef-34744": {
       "properties": {
@@ -733,10 +709,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "SignererEkstraEtternavn-datadef-34745": {
       "properties": {
@@ -751,10 +724,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "SignererEkstraFornavn-datadef-34746": {
       "properties": {
@@ -769,10 +739,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "SignererEkstraMellomnavn-datadef-34747": {
       "properties": {
@@ -787,10 +754,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "SignererEkstraEpost-datadef-34749": {
       "properties": {
@@ -805,10 +769,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "Tekst50-repformat-70": {
       "minLength": 1,
@@ -830,10 +791,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "Tekst15-repformat-61": {
       "minLength": 1,
@@ -853,10 +811,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "Tekst10-repformat-45": {
       "minLength": 1,
@@ -876,10 +831,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "Dato-repformat-5": {
       "type": "string",
@@ -898,10 +850,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "Time-repformat-223": {
       "type": "string",
@@ -920,10 +869,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "Tekst1JN-repformat-1142": {
       "minLength": 1,
@@ -944,10 +890,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "TredjeSignerer-grp-9349": {
       "properties": {
@@ -1039,9 +982,7 @@
           "$ref": "#/definitions/SignererTredjeMalform-datadef-34883"
         }
       },
-      "required": [
-        "gruppeid"
-      ]
+      "required": ["gruppeid"]
     },
     "SignererTredjeFodselsnummer-datadef-34884": {
       "properties": {
@@ -1056,10 +997,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "SignererTredjeEtternavn-datadef-34885": {
       "properties": {
@@ -1074,10 +1012,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "SignererTredjeFornavn-datadef-34886": {
       "properties": {
@@ -1092,10 +1027,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "SignererTredjeMellomnavn-datadef-34887": {
       "properties": {
@@ -1110,10 +1042,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "SignererTredjeEpost-datadef-34889": {
       "properties": {
@@ -1128,10 +1057,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "SignererTredjeMobiltelefonnummer-datadef-34890": {
       "properties": {
@@ -1146,10 +1072,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "SignererTredjeReferanseAltinn-datadef-34891": {
       "properties": {
@@ -1164,10 +1087,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "SignererTredjeArkivDato-datadef-34892": {
       "properties": {
@@ -1182,10 +1102,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "SignererTredjeTidspunkt-datadef-34893": {
       "properties": {
@@ -1200,10 +1117,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "SignererTredjeAksept-datadef-34894": {
       "properties": {
@@ -1218,10 +1132,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "SignererTredjeMalform-datadef-34883": {
       "properties": {
@@ -1236,10 +1147,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "Kontaktinformasjon-grp-9311": {
       "properties": {
@@ -1289,9 +1197,7 @@
           "$ref": "#/definitions/MelderMalform-datadef-34882"
         }
       },
-      "required": [
-        "gruppeid"
-      ]
+      "required": ["gruppeid"]
     },
     "MeldingFodselsnummer-datadef-34734": {
       "properties": {
@@ -1306,10 +1212,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "MelderFornavn-datadef-34736": {
       "properties": {
@@ -1324,10 +1227,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "MelderMellomnavn-datadef-34737": {
       "properties": {
@@ -1342,10 +1242,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "MelderEtternavn-datadef-34735": {
       "properties": {
@@ -1360,10 +1257,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "MelderFultnavn": {
       "properties": {
@@ -1378,10 +1272,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "MelderEpost-datadef-34739": {
       "properties": {
@@ -1396,10 +1287,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "MelderMobiltelefonnummer-datadef-34740": {
       "properties": {
@@ -1414,10 +1302,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "MelderArkivDato-datadef-34741": {
       "properties": {
@@ -1432,10 +1317,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "MelderArkivTidspunkt-datadef-34742": {
       "properties": {
@@ -1450,10 +1332,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "MelderReferanseAltinn-datadef-34743": {
       "properties": {
@@ -1468,10 +1347,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "MelderMalform-datadef-34882": {
       "properties": {
@@ -1486,10 +1362,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "SamtykkeTilElektroniskKommunikasjon-grp-9312": {
       "properties": {
@@ -1506,9 +1379,7 @@
           "$ref": "#/definitions/AvgiverFolkeregisterSamtykke-datadef-34756"
         }
       },
-      "required": [
-        "gruppeid"
-      ]
+      "required": ["gruppeid"]
     },
     "AvgiverSkattSamtykke-datadef-34755": {
       "properties": {
@@ -1523,10 +1394,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "Tekst1JND-repformat-1162": {
       "minLength": 1,
@@ -1547,10 +1415,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "NyttNavn-grp-9313": {
       "properties": {
@@ -1564,9 +1429,7 @@
           "$ref": "#/definitions/NyttNavn-grp-9314"
         }
       },
-      "required": [
-        "gruppeid"
-      ]
+      "required": ["gruppeid"]
     },
     "NyttNavn-grp-9314": {
       "properties": {
@@ -1589,9 +1452,7 @@
           "$ref": "#/definitions/PersonBekrefterNyttNavn"
         }
       },
-      "required": [
-        "gruppeid"
-      ]
+      "required": ["gruppeid"]
     },
     "PersonEtternavnNytt-datadef-34757": {
       "properties": {
@@ -1606,10 +1467,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonFornavnNytt-datadef-34758": {
       "properties": {
@@ -1625,10 +1483,7 @@
           "maxLength": 4
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnNytt-datadef-34759": {
       "properties": {
@@ -1643,10 +1498,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonBekrefterNyttNavn": {
       "properties": {
@@ -1661,10 +1513,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "Tilknytning-grp-9315": {
       "properties": {
@@ -1678,9 +1527,7 @@
           "$ref": "#/definitions/TilknytningTilNavnet-grp-9316"
         }
       },
-      "required": [
-        "gruppeid"
-      ]
+      "required": ["gruppeid"]
     },
     "TilknytningTilNavnet-grp-9316": {
       "properties": {
@@ -1709,9 +1556,7 @@
           "$ref": "#/definitions/TilknytningMellomnavnEkstra-grp-9355"
         }
       },
-      "required": [
-        "gruppeid"
-      ]
+      "required": ["gruppeid"]
     },
     "TilknytningEtternavn1-grp-9350": {
       "properties": {
@@ -1752,9 +1597,7 @@
           "$ref": "#/definitions/PersonEtternavnForsteTilknyttetGardFesteavgift-datadef-34905"
         }
       },
-      "required": [
-        "gruppeid"
-      ]
+      "required": ["gruppeid"]
     },
     "PersonEtternavnForste-datadef-34896": {
       "properties": {
@@ -1769,10 +1612,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonEtternavnForsteTilknytningstype-datadef-34897": {
       "properties": {
@@ -1787,25 +1627,12 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "KodelisteEttValg9Navnetilknytning-repformat-1156": {
       "minLength": 1,
       "maxLength": 2,
-      "enum": [
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9"
-      ],
+      "enum": ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
       "type": "string"
     },
     "PersonEtternavnForsteTilknytningBeskrivelse-datadef-34898": {
@@ -1821,10 +1648,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "Tekst500-repformat-166": {
       "minLength": 1,
@@ -1844,10 +1668,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonEtternavnForsteTilknyttetPersonsEtternavn-datadef-34900": {
       "properties": {
@@ -1862,10 +1683,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonEtternavnForsteTilknyttetGardNavn-datadef-34901": {
       "properties": {
@@ -1880,10 +1698,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonEtternavnForsteTilknyttetGardKommunenummer-datadef-34902": {
       "properties": {
@@ -1898,10 +1713,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "Tekst44BareTall-repformat-10": {
       "texts": {
@@ -1929,10 +1741,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "Tekst5-repformat-238": {
       "minLength": 1,
@@ -1952,10 +1761,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "Tekst4-repformat-28": {
       "minLength": 1,
@@ -1975,10 +1781,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "TilknytningEtternavn2-grp-9351": {
       "properties": {
@@ -2019,9 +1822,7 @@
           "$ref": "#/definitions/PersonEtternavnAndreTilknyttetGardFesteavgift-datadef-34915"
         }
       },
-      "required": [
-        "gruppeid"
-      ]
+      "required": ["gruppeid"]
     },
     "PersonEtternavnAndre-datadef-34906": {
       "properties": {
@@ -2036,10 +1837,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonEtternavnAndreTilknytningstype-datadef-34907": {
       "properties": {
@@ -2054,10 +1852,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonEtternavnAndreTilknytningBeskrivelse-datadef-34908": {
       "properties": {
@@ -2072,10 +1867,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonEtternavnAndreTilknyttetPersonsFodselsnummer-datadef-34909": {
       "properties": {
@@ -2090,10 +1882,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonEtternavnAndreTilknyttetPersonsEtternavn-datadef-34910": {
       "properties": {
@@ -2108,10 +1897,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonEtternavnAndreTilknyttetGardNavn-datadef-34911": {
       "properties": {
@@ -2126,10 +1912,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonEtternavnAndreTilknyttetGardKommunenummer-datadef-34912": {
       "properties": {
@@ -2144,10 +1927,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonEtternavnAndreTilknyttetGardGardsnummer-datadef-34913": {
       "properties": {
@@ -2162,10 +1942,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonEtternavnAndreTilknyttetGardBruksnummer-datadef-34914": {
       "properties": {
@@ -2180,10 +1957,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonEtternavnAndreTilknyttetGardFesteavgift-datadef-34915": {
       "properties": {
@@ -2198,10 +1972,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "TilknytningMellomnavn1-grp-9352": {
       "properties": {
@@ -2242,9 +2013,7 @@
           "$ref": "#/definitions/PersonMellomnavnForsteTilknyttetGardFestenummer-datadef-34925"
         }
       },
-      "required": [
-        "gruppeid"
-      ]
+      "required": ["gruppeid"]
     },
     "PersonMellomnavnForste-datadef-34916": {
       "properties": {
@@ -2259,10 +2028,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnForsteTilknytningstype-datadef-34917": {
       "properties": {
@@ -2277,10 +2043,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnForsteTilknytningBeskrivelse-datadef-34918": {
       "properties": {
@@ -2295,10 +2058,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnForsteTilknyttetPersonsFodselsnummer-datadef-34919": {
       "properties": {
@@ -2313,10 +2073,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnForsteTilknyttetPersonsEtternavn-datadef-34920": {
       "properties": {
@@ -2331,10 +2088,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnForsteTilknyttetGardNavn-datadef-34921": {
       "properties": {
@@ -2349,10 +2103,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnForsteTilknyttetGardKommunenummer-datadef-34922": {
       "properties": {
@@ -2367,10 +2118,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnForsteTilknyttetGardGardsnummer-datadef-34923": {
       "properties": {
@@ -2385,10 +2133,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnForsteTilknyttetGardBruksnummer-datadef-34924": {
       "properties": {
@@ -2403,10 +2148,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnForsteTilknyttetGardFestenummer-datadef-34925": {
       "properties": {
@@ -2421,10 +2163,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "TilknytningMellomnavn2-grp-9353": {
       "properties": {
@@ -2465,9 +2204,7 @@
           "$ref": "#/definitions/PersonMellomnavnAndreTilknyttetGardFestenummer-datadef-34935"
         }
       },
-      "required": [
-        "gruppeid"
-      ]
+      "required": ["gruppeid"]
     },
     "PersonMellomnavnAndre-datadef-34926": {
       "properties": {
@@ -2482,10 +2219,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnAndreTilknytningstype-datadef-34927": {
       "properties": {
@@ -2500,10 +2234,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnAndreTilknytningBeskrivelse-datadef-34928": {
       "properties": {
@@ -2518,10 +2249,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnAndreTilknyttetPersonsFodselsnummer-datadef-34929": {
       "properties": {
@@ -2536,10 +2264,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnAndreTilknyttetPersonsEtternavn-datadef-34930": {
       "properties": {
@@ -2554,10 +2279,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnAndreTilknyttetGardNavn-datadef-34931": {
       "properties": {
@@ -2572,10 +2294,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnAndreTilknyttetGardKommunenummer-datadef-34932": {
       "properties": {
@@ -2590,10 +2309,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnAndreTilknyttetGardGardsnummer-datadef-34933": {
       "properties": {
@@ -2608,10 +2324,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnAndreTilknyttetGardBruksnummer-datadef-34934": {
       "properties": {
@@ -2626,10 +2339,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnAndreTilknyttetGardFestenummer-datadef-34935": {
       "properties": {
@@ -2644,10 +2354,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "TilknytningMellomnavn3-grp-9354": {
       "properties": {
@@ -2688,9 +2395,7 @@
           "$ref": "#/definitions/PersonMellomnavnTredjeTilknyttetGardFestenummer-datadef-34945"
         }
       },
-      "required": [
-        "gruppeid"
-      ]
+      "required": ["gruppeid"]
     },
     "PersonMellomnavnTredje-datadef-34936": {
       "properties": {
@@ -2705,10 +2410,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnTredjeTilknytningstype-datadef-34937": {
       "properties": {
@@ -2723,10 +2425,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnTredjeTilknytningBeskrivelse-datadef-34938": {
       "properties": {
@@ -2741,10 +2440,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnTredjeTilknyttetPersonsFodselsnummer-datadef-34939": {
       "properties": {
@@ -2759,10 +2455,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnTredjeTilknyttetPersonsEtternavn-datadef-34940": {
       "properties": {
@@ -2777,10 +2470,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnTredjeTilknyttetGardNavn-datadef-34941": {
       "properties": {
@@ -2795,10 +2485,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnTredjeTilknyttetGardKommunenummer-datadef-34942": {
       "properties": {
@@ -2813,10 +2500,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnTredjeTilknyttetGardGardsnummer-datadef-34943": {
       "properties": {
@@ -2831,10 +2515,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnTredjeTilknyttetGardBruksnummer-datadef-34944": {
       "properties": {
@@ -2849,10 +2530,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "PersonMellomnavnTredjeTilknyttetGardFestenummer-datadef-34945": {
       "properties": {
@@ -2867,10 +2545,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "TilknytningMellomnavnEkstra-grp-9355": {
       "properties": {
@@ -2884,9 +2559,7 @@
           "$ref": "#/definitions/PersonMellomnavnBeskrivelse-datadef-34946"
         }
       },
-      "required": [
-        "gruppeid"
-      ]
+      "required": ["gruppeid"]
     },
     "PersonMellomnavnBeskrivelse-datadef-34946": {
       "properties": {
@@ -2901,10 +2574,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "Begrunnelse-grp-9317": {
       "properties": {
@@ -2918,9 +2588,7 @@
           "$ref": "#/definitions/BegrunnelseForNyttNavn-grp-9318"
         }
       },
-      "required": [
-        "gruppeid"
-      ]
+      "required": ["gruppeid"]
     },
     "BegrunnelseForNyttNavn-grp-9318": {
       "properties": {
@@ -2937,9 +2605,7 @@
           "$ref": "#/definitions/PersonFornavnAnnetBegrunnelse-datadef-34948"
         }
       },
-      "required": [
-        "gruppeid"
-      ]
+      "required": ["gruppeid"]
     },
     "PersonForrigeFornavnValgt-datadef-34947": {
       "properties": {
@@ -2954,10 +2620,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     },
     "Tekst101-repformat-1141": {
       "minLength": 1,
@@ -2978,10 +2641,7 @@
           "@xsdType": "XmlSimpleContentExtension"
         }
       },
-      "required": [
-        "orid",
-        "value"
-      ]
+      "required": ["orid", "value"]
     }
   }
 }
