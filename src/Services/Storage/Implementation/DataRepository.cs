@@ -212,7 +212,7 @@ namespace LocalTest.Services.Storage.Implementation
 
         private static async Task<string> ReadFileAsString(string path)
         {
-            Stream stream = await ReadFileAsStream(path);
+            using Stream stream = await ReadFileAsStream(path);
             using StreamReader reader = new StreamReader(stream);
             return await reader.ReadToEndAsync();
         }
