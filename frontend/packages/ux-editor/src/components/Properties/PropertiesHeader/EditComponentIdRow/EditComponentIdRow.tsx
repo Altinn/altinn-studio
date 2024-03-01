@@ -72,7 +72,7 @@ export const EditComponentIdRow = ({
           icon: <KeyVerticalIcon />,
           value: idInputValue,
           onBlur: (event) => saveComponentUpdate(event.target.value),
-          label: 'ID',
+          label: t('ux_editor.modal_properties_component_change_id'),
           size: 'small',
           error: errorMessage,
         }}

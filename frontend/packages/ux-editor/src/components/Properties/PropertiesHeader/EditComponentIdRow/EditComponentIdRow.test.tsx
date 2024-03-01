@@ -38,7 +38,7 @@ describe('EditComponentIdRow', () => {
     const testIdButton = screen.getByRole('button', { name: 'ID: test' });
     await act(() => user.click(testIdButton));
     const textField = screen.getByRole('textbox', {
-      name: 'ID',
+      name: textMock('ux_editor.modal_properties_component_change_id'),
     });
     expect(textField).toBeInTheDocument();
   });
@@ -49,7 +49,7 @@ describe('EditComponentIdRow', () => {
     const testIdButton = screen.getByRole('button', { name: 'ID: test' });
     await act(() => user.click(testIdButton));
     const textField = screen.getByRole('textbox', {
-      name: 'ID',
+      name: textMock('ux_editor.modal_properties_component_change_id'),
     });
     await act(() => user.click(document.body));
     expect(textField).not.toBeInTheDocument();
@@ -62,19 +62,21 @@ describe('EditComponentIdRow', () => {
     const testIdButton = screen.getByRole('button', { name: 'ID: test' });
     await act(() => user.click(testIdButton));
     const textField = screen.getByRole('textbox', {
-      name: 'ID',
+      name: textMock('ux_editor.modal_properties_component_change_id'),
     });
     await act(() => user.type(textField, 'newTestId'));
     await act(() => user.click(document.body));
     expect(handleComponentUpdate).toHaveBeenCalled();
   });
 
-  it('should show error requiered error message when id is empty', async () => {
+  it('should show error required error message when id is empty', async () => {
     const user = userEvent.setup();
     await studioRender({});
     const testIdButton = screen.getByRole('button', { name: 'ID: test' });
     await act(() => user.click(testIdButton));
-    const textField = screen.getByRole('textbox', { name: 'ID' });
+    const textField = screen.getByRole('textbox', {
+      name: textMock('ux_editor.modal_properties_component_change_id'),
+    });
     await act(() => user.clear(textField));
     expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
   });

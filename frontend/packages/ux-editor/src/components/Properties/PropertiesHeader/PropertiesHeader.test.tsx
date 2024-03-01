@@ -56,7 +56,9 @@ describe('PropertiesHeader', () => {
     const editComponentIdButton = screen.getByRole('button', { name: 'ID: Component-1' });
     await act(() => user.click(editComponentIdButton));
 
-    const inputField = screen.getByLabelText('ID');
+    const inputField = screen.getByLabelText(
+      textMock('ux_editor.modal_properties_component_change_id'),
+    );
     await act(() => user.type(inputField, 'someNewId'));
     fireEvent.blur(inputField);
 
@@ -69,7 +71,9 @@ describe('PropertiesHeader', () => {
     const editComponentIdButton = screen.getByRole('button', { name: 'ID: Component-1' });
     await act(() => user.click(editComponentIdButton));
 
-    const containerIdInput = screen.getByLabelText('ID');
+    const containerIdInput = screen.getByLabelText(
+      textMock('ux_editor.modal_properties_component_change_id'),
+    );
 
     const invalidId = 'test@';
     await act(() => user.type(containerIdInput, invalidId));
