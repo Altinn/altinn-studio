@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
+using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
@@ -28,8 +30,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
-            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            ProcessState processState = JsonConvert.DeserializeObject<ProcessState>(responseDocument.RootElement.ToString());
+            ProcessState processState = JsonSerializer.Deserialize<ProcessState>(responseBody, JsonSerializerOptions);
             Assert.Equal("data", processState.CurrentTask.AltinnTaskType);
             Assert.Equal("Task_1", processState.CurrentTask.ElementId);
         }
@@ -45,10 +46,24 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
-            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            ProcessState processState = JsonConvert.DeserializeObject<ProcessState>(responseDocument.RootElement.ToString());
+            AppProcessState processState =
+                JsonSerializer.Deserialize<AppProcessState>(responseBody, JsonSerializerOptions);
+            var expectedProcessTasks = new List<AppProcessTaskTypeInfo>
+            {
+                new AppProcessTaskTypeInfo
+                {
+                    ElementId = "Task_1",
+                    AltinnTaskType = "data"
+                },
+                new AppProcessTaskTypeInfo
+                {
+                    ElementId = "Task_2",
+                    AltinnTaskType = "data"
+                }
+            };
             Assert.Equal("data", processState.CurrentTask.AltinnTaskType);
             Assert.Equal("Task_1", processState.CurrentTask.ElementId);
+            expectedProcessTasks.Should().BeEquivalentTo(processState.ProcessTasks);
         }
     }
 }

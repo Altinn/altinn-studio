@@ -19,8 +19,8 @@ import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import { DATAGRID_DEFAULT_PAGE_SIZE, DATAGRID_PAGE_SIZE_OPTIONS } from '../../constants';
 import classes from './RepoList.module.css';
 import type { User } from 'app-shared/types/Repository';
-import { useSetStarredRepoMutation } from '../../hooks/mutations';
-import { useUnsetStarredRepoMutation } from '../../hooks/mutations';
+import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from '../../hooks/mutations';
+
 import {
   PencilIcon,
   FilesIcon,

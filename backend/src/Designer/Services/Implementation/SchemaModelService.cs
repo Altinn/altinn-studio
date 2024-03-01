@@ -8,7 +8,6 @@ using System.Text.Unicode;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Schema;
-using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.DataModeling.Converter.Interfaces;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
@@ -20,6 +19,7 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 using Microsoft.Extensions.Logging;
