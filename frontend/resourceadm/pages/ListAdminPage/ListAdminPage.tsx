@@ -43,8 +43,10 @@ export const ListAdminPage = (): React.JSX.Element => {
 
   return (
     <div className={classes.listAdminPageWrapper}>
-      <DigdirLink as={Link} to={getResourceDashboardURL(selectedContext, repo)}>
-        {t('resourceadm.listadmin_back')}
+      <DigdirLink asChild>
+        <Link to={getResourceDashboardURL(selectedContext, repo)}>
+          {t('resourceadm.listadmin_back')}
+        </Link>
       </DigdirLink>
       <Heading level={1} size='large'>
         {t('resourceadm.listadmin_header')}

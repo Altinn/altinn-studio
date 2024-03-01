@@ -3,10 +3,15 @@ import { act, screen } from '@testing-library/react';
 import type { IReferenceSelectionProps } from './ReferenceSelectionComponent';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
-import { createNodeBase, Keyword, ObjectKind, SchemaModel } from '@altinn/schema-model';
+import {
+  createNodeBase,
+  Keyword,
+  ObjectKind,
+  SchemaModel,
+  validateTestUiSchema,
+} from '@altinn/schema-model';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../test/renderWithProviders';
-import { validateTestUiSchema } from '@altinn/schema-model';
 
 const user = userEvent.setup();
 

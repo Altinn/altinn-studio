@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
 import classes from './TextRow.module.css';
-import type { UpsertTextResourceMutation } from './types';
+import type {
+  UpsertTextResourceMutation,
+  TextResourceIdMutation,
+  TextResourceVariable,
+  TextTableRowEntry,
+} from './types';
 import { TrashIcon, PencilIcon } from '@studio/icons';
 import { TableCell, TableRow, Textfield } from '@digdir/design-system-react';
 
 import { useTranslation } from 'react-i18next';
 import { ButtonContainer } from 'app-shared/primitives';
-import type { TextResourceIdMutation, TextResourceVariable, TextTableRowEntry } from './types';
+
 import { validateTextId } from './utils';
 import { TextEntry } from './TextEntry';
 import { Variables } from './Variables';
