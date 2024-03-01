@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './ReceiptContent.module.css';
 import type { FormLayoutPage } from '../../../types/FormLayoutPage';
@@ -18,28 +17,28 @@ export const ReceiptContent = ({
   selectedAccordion,
   formLayoutData,
   onClickAccordion,
-}: ReceiptContentProps): ReactNode => {
-  if (receiptName) {
-    const receiptData = formLayoutData.find((d) => d.page === receiptName);
-    if (receiptData === undefined) return null;
+}: ReceiptContentProps): React.ReactElement | null => {
+  if (!receiptName) return null;
 
-    const layout = receiptData.data;
+  const receiptData = formLayoutData.find((d) => d.page === receiptName);
+  if (receiptData === undefined) return null;
 
-    return (
-      <div className={classes.wrapper}>
-        <div className={classes.accordionWrapper}>
-          <Accordion color='neutral'>
-            <PageAccordion
-              pageName={receiptName}
-              isOpen={receiptName === selectedAccordion}
-              onClick={onClickAccordion}
-              pageIsReceipt
-            >
-              <FormTree layout={layout} />
-            </PageAccordion>
-          </Accordion>
-        </div>
+  const layout = receiptData.data;
+
+  return (
+    <div className={classes.wrapper}>
+      <div className={classes.accordionWrapper}>
+        <Accordion color='neutral'>
+          <PageAccordion
+            pageName={receiptName}
+            isOpen={receiptName === selectedAccordion}
+            onClick={onClickAccordion}
+            pageIsReceipt
+          >
+            <FormTree layout={layout} />
+          </PageAccordion>
+        </Accordion>
       </div>
-    );
-  }
+    </div>
+  );
 };
