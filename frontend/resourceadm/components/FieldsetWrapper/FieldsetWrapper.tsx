@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Modal } from '@digdir/design-system-react';
 import classes from './FieldsetWrapper.module.css';
 import { StudioButton } from '@studio/components';
+import { TrashIcon, PlusIcon } from '@studio/icons';
 
 const DELETE_ID_NOT_SET = -1;
 
@@ -117,6 +118,9 @@ export const FieldsetWrapper = <T,>({
             <StudioButton
               size='small'
               color='danger'
+              variant='secondary'
+              icon={<TrashIcon />}
+              iconPlacement='left'
               onClick={() => {
                 deleteModalRef.current?.showModal();
                 setDeleteId(pos);
@@ -145,7 +149,14 @@ export const FieldsetWrapper = <T,>({
         </Modal.Footer>
       </Modal>
       {displayFields}
-      <StudioButton size='small' onClick={handleClickAddButton} className={classes.buttonWrapper}>
+      <StudioButton
+        size='small'
+        variant='secondary'
+        icon={<PlusIcon />}
+        iconPlacement='left'
+        onClick={handleClickAddButton}
+        className={classes.buttonWrapper}
+      >
         {t(translations.addButton)}
       </StudioButton>
     </div>
