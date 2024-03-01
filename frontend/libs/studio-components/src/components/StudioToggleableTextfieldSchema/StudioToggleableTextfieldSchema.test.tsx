@@ -1,8 +1,8 @@
 import type { JsonSchema } from '../../types/JSONSchema';
 import React from 'react';
 import {
-  StudioTextfieldSchema,
-  type StudioTextfieldSchemaProps,
+  StudioToggleableTextfieldSchema,
+  type StudioToggleableTextfieldSchemaProps,
 } from './StudioToggleableTextfieldSchema';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -28,7 +28,7 @@ const defaultLayoutSchemaMock: JsonSchema = {
   },
 };
 
-const defaultProps: StudioTextfieldSchemaProps = {
+const defaultProps: StudioToggleableTextfieldSchemaProps = {
   layoutSchema: defaultLayoutSchemaMock,
   relatedSchemas: [],
   viewProps: {
@@ -44,7 +44,7 @@ const defaultProps: StudioTextfieldSchemaProps = {
   onError: jest.fn(),
 };
 
-describe('StudioTextfieldSchema', () => {
+describe('StudioToggleableTextfieldSchema', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -191,6 +191,6 @@ describe('StudioTextfieldSchema', () => {
   });
 });
 
-const renderStudioTextfieldSchema = (props: Partial<StudioTextfieldSchemaProps> = {}) => {
-  return render(<StudioTextfieldSchema {...defaultProps} {...props} />);
+const renderStudioTextfieldSchema = (props: Partial<StudioToggleableTextfieldSchemaProps> = {}) => {
+  return render(<StudioToggleableTextfieldSchema {...defaultProps} {...props} />);
 };

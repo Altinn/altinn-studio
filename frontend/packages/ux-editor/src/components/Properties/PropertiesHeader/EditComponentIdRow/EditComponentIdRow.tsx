@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudioTextfieldSchema, type SchemaValidationError } from '@studio/components';
+import { StudioToggleableTextfieldSchema, type SchemaValidationError } from '@studio/components';
 import { KeyVerticalIcon } from '@navikt/aksel-icons';
 import classes from './EditComponentIdRow.module.css';
 import { idExists } from '../../../../utils/formLayoutUtils';
@@ -56,7 +56,7 @@ export const EditComponentIdRow = ({
 
   return (
     <div className={classes.container}>
-      <StudioTextfieldSchema
+      <StudioToggleableTextfieldSchema
         onError={handleValidationError}
         layoutSchema={layoutSchema}
         relatedSchemas={[expressionSchema, numberFormatSchema]}

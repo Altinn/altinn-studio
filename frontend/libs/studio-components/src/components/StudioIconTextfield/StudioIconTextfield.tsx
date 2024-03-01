@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { StudioTextfield, type StudioTextfieldProps } from '../StudioTextfield';
+import cn from 'classnames';
 
 import classes from './StudioIconTextfield.module.css';
 
@@ -7,17 +8,21 @@ export type StudioIconTextfieldProps = {
   icon: React.ReactNode;
 } & StudioTextfieldProps;
 
-export const StudioIconTextfield = ({
-  icon,
-  className,
-  ...rest
-}: StudioIconTextfieldProps): React.ReactElement => {
-  return (
-    <div className={classes.container}>
-      <div aria-hidden className={classes.prefixIcon}>
-        {icon}
+export const StudioIconTextfield = forwardRef<HTMLDivElement, StudioIconTextfieldProps>(
+  (
+    { icon, className: givenClassName, ...rest }: StudioIconTextfieldProps,
+    ref,
+  ): React.ReactElement => {
+    const className = cn(givenClassName, classes.textfield);
+    return (
+      <div className={classes.container} ref={ref}>
+        <div aria-hidden className={classes.prefixIcon}>
+          {icon}
+        </div>
+        <StudioTextfield {...rest} className={className} />
       </div>
-      <StudioTextfield {...rest} className={`${className} ${classes.textfield}`} />
-    </div>
-  );
-};
+    );
+  },
+);
+
+StudioIconTextfield.displayName = 'StudioIconTextfield';
