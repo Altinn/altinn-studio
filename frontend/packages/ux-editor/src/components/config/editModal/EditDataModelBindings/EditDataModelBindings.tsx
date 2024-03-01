@@ -13,8 +13,10 @@ import { useTranslation } from 'react-i18next';
 import { UndefinedBinding } from './UndefinedBinding';
 import { EditBinding } from './EditBinding';
 import { DefinedBinding } from './DefinedBinding';
+import type { FormItem } from '../../../../types/FormItem';
 
-export interface EditDataModelBindingsProps extends IGenericEditComponent {
+export interface EditDataModelBindingsProps<T extends ComponentType>
+  extends IGenericEditComponent<T> {
   renderOptions?: {
     label?: string;
     returnValue?: any;
@@ -24,12 +26,12 @@ export interface EditDataModelBindingsProps extends IGenericEditComponent {
   helpText?: string;
 }
 
-export const EditDataModelBindings = ({
+export const EditDataModelBindings = <T extends ComponentType>({
   component,
   handleComponentChange,
   renderOptions,
   helpText,
-}: EditDataModelBindingsProps) => {
+}: EditDataModelBindingsProps<T>) => {
   const { org, app } = useStudioUrlParams();
   const { data } = useDatamodelMetadataQuery(org, app);
   const { t } = useTranslation();
@@ -58,7 +60,7 @@ export const EditDataModelBindings = ({
         component.type === ComponentType.RepeatingGroup
           ? getMaxOccursFromDataModel(selectedDataModelElement, data)
           : undefined,
-    });
+    } as FormItem<T>);
   };
 
   const handleDelete = () => {
