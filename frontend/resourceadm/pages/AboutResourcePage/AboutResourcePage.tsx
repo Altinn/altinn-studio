@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
-import { Heading, Link as DigdirLink } from '@digdir/design-system-react';
-import { Link } from 'react-router-dom';
+import { Heading } from '@digdir/design-system-react';
 import type { Translation } from '../../types/Translation';
 import type {
   Resource,
@@ -18,7 +17,6 @@ import {
   mapKeywordStringToKeywordTypeArray,
   mapKeywordsArrayToString,
   resourceTypeMap,
-  getAvailableEnvironments,
 } from '../../utils/resourceUtils/resourceUtils';
 import { useTranslation } from 'react-i18next';
 import {
@@ -29,10 +27,9 @@ import {
   ResourceRadioGroup,
 } from '../../components/ResourcePageInputs';
 import { ResourceContactPointFields } from '../../components/ResourceContactPointFields';
-import { getResourcePageURL } from '../../utils/urlUtils';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { useUrlParams } from '../../hooks/useSelectedContext';
 import { ResourceReferenceFields } from '../../components/ResourceReferenceFields';
+import { AccessListEnvLinks } from 'resourceadm/components/AccessListEnvLinks';
 
 export type AboutResourcePageProps = {
   showAllErrors: boolean;
@@ -59,8 +56,6 @@ export const AboutResourcePage = ({
   id,
 }: AboutResourcePageProps): React.JSX.Element => {
   const { t } = useTranslation();
-
-  const { resourceId, selectedContext, repo } = useUrlParams();
 
   /**
    * Resource type options
@@ -182,7 +177,6 @@ export const AboutResourcePage = ({
               : ''
           }
         />
-
         <ResourceTextField
           label={t('resourceadm.about_resource_keywords_label')}
           description={t('resourceadm.about_resource_keywords_text')}
@@ -290,24 +284,8 @@ export const AboutResourcePage = ({
               toggleTextTranslationKey='resourceadm.about_resource_use_rrr_show_text'
             />
             {resourceData.limitedByRRR && (
-              <div>
-                {getAvailableEnvironments(selectedContext).map((env) => {
-                  return (
-                    <div key={env.id}>
-                      <DigdirLink
-                        as={Link}
-                        to={`${getResourcePageURL(
-                          selectedContext,
-                          repo,
-                          resourceId,
-                          'accesslists',
-                        )}/${env.id}/`}
-                      >
-                        {t('resourceadm.about_resource_edit_rrr', { env: t(env.label) })}
-                      </DigdirLink>
-                    </div>
-                  );
-                })}
+              <div data-testid='rrr-buttons'>
+                <AccessListEnvLinks />
               </div>
             )}
           </>

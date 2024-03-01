@@ -21,7 +21,7 @@ export const useGetAccessListQuery = (
   const { getAccessList } = useServicesContext();
 
   return useQuery<AccessList>({
-    queryKey: [QueryKey.AccessList, listIdentifier, env],
+    queryKey: [QueryKey.AccessList, env, listIdentifier],
     queryFn: () => getAccessList(org, listIdentifier, env),
     enabled: !!org && !!listIdentifier && !!env,
   });

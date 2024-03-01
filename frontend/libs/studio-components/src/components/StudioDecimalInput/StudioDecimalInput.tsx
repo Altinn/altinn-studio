@@ -1,8 +1,13 @@
-import type { RefObject } from 'react';
-import React, { forwardRef, useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type RefObject,
+} from 'react';
 import { convertNumberToString, convertStringToNumber, isStringValidDecimalNumber } from './utils';
-import type { StudioTextfieldProps } from '../StudioTextfield';
-import { StudioTextfield } from '../StudioTextfield';
+import { type StudioTextfieldProps, StudioTextfield } from '../StudioTextfield';
 
 export interface StudioDecimalInputProps extends Omit<StudioTextfieldProps, 'onChange'> {
   description?: string;
