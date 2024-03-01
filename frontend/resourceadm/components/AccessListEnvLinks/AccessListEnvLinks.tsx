@@ -23,7 +23,7 @@ export const AccessListEnvLinks = (): React.JSX.Element => {
     );
     return {
       ...env,
-      isResourcePublished: isPublishedInEnv || env.id === 'at22' || env.id === 'tt02',
+      isResourcePublished: isPublishedInEnv,
     };
   });
 
