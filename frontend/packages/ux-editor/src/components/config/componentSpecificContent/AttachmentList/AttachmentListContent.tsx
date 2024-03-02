@@ -1,19 +1,17 @@
-import React from 'react';
-import { Combobox } from '@digdir/design-system-react';
+import React, { useState } from 'react';
+import { Combobox, Label, Checkbox } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import type { IGenericEditComponent } from '../../componentConfig';
 import classes from './AttachmentListContent.module.css';
+import { translateToAllAttachments, translateToSomeAttachments } from './AttachmentListUtils';
 
 type IAttachmentListContent = IGenericEditComponent & {
   selectedAttachments: string[];
   attachments: string[];
   onlyCurrentTask: boolean;
   includePdf: boolean;
-  reservedDataTypes: {
-    currentTask: string;
-    refDataAsPdf: string;
-    includeAll: string;
-  };
+  noneSelected: boolean;
+  setNoneSelected: (noneSelected: boolean) => void;
 };
 
 export const AttachmentListContent = ({
@@ -23,54 +21,74 @@ export const AttachmentListContent = ({
   attachments,
   onlyCurrentTask,
   includePdf,
-  reservedDataTypes,
+  noneSelected,
+  setNoneSelected,
 }: IAttachmentListContent) => {
   const { t } = useTranslation();
-
-  const handleValueChanges = (updatedSelection: string[]) => {
-    const lastSelected = updatedSelection[updatedSelection.length - 1];
-
-    updatedSelection =
-      lastSelected === reservedDataTypes.currentTask
-        ? [reservedDataTypes.currentTask]
-        : updatedSelection.filter((dataType) => dataType !== reservedDataTypes.includeAll);
-
-    if (onlyCurrentTask) {
-      updatedSelection.push(reservedDataTypes.currentTask);
+  const handleCheckboxChange = (isChecked: boolean) => {
+    if (!isChecked && !includePdf) {
+      setNoneSelected(true);
+      return;
     }
-    if (includePdf) {
-      updatedSelection.push(reservedDataTypes.refDataAsPdf);
-    }
+    setNoneSelected(false);
+    const resultingSelection = isChecked
+      ? translateToAllAttachments(includePdf, onlyCurrentTask)
+      : translateToSomeAttachments(includePdf, onlyCurrentTask, []);
 
-    handleComponentChange({ ...component, dataTypeIds: updatedSelection });
+    handleComponentChange({ ...component, dataTypeIds: resultingSelection });
   };
 
-  const getTextToDisplay = (dataType: string) =>
-    dataType === reservedDataTypes.includeAll
-      ? t('ux_editor.component_properties.select_all_attachments')
-      : dataType;
+  const handleValueChanges = (updatedSelection: string[]) => {
+    if (updatedSelection.length === 0 && !includePdf) {
+      setNoneSelected(true);
+      return;
+    }
+    setNoneSelected(false);
+    const isAllAttachmentsSelected: boolean = updatedSelection.length === attachments.length;
+    console.log(isAllAttachmentsSelected);
+    const resultingSelection = isAllAttachmentsSelected
+      ? translateToAllAttachments(includePdf, onlyCurrentTask)
+      : translateToSomeAttachments(includePdf, onlyCurrentTask, updatedSelection);
+    console.log(resultingSelection);
+    handleComponentChange({ ...component, dataTypeIds: resultingSelection });
+  };
 
   return (
-    <Combobox
-      multiple
-      label={t('ux_editor.component_properties.select_attachments')}
-      className={classes.comboboxLabel}
-      size='small'
-      value={
-        selectedAttachments.length === 0 ? [reservedDataTypes.includeAll] : selectedAttachments
-      }
-      onValueChange={handleValueChanges}
-    >
-      {attachments?.map((attachment) => {
-        return (
-          <Combobox.Option
-            key={attachment}
-            value={attachment}
-            description={getTextToDisplay(attachment)}
-            displayValue={getTextToDisplay(attachment)}
-          />
-        );
-      })}
-    </Combobox>
+    <>
+      <Label htmlFor={'attachmentList'}>
+        {t('ux_editor.component_properties.select_attachments')}
+      </Label>
+      <Checkbox
+        size='small'
+        checked={!noneSelected && selectedAttachments.length === attachments.length}
+        indeterminate={
+          selectedAttachments.length > 0 && selectedAttachments.length < attachments.length
+        }
+        value='Alle Vedlegg'
+        onChange={(e) => handleCheckboxChange(e.target.checked)}
+      >
+        {t('ux_editor.component_properties.select_all_attachments')}
+      </Checkbox>
+      <Combobox
+        id={'attachmentList'}
+        multiple
+        className={classes.comboboxLabel}
+        size='small'
+        value={!noneSelected ? selectedAttachments : []}
+        onValueChange={handleValueChanges}
+        error={noneSelected && t('ux_editor.component_title.AttachmentList_error')}
+      >
+        {attachments?.map((attachment) => {
+          return (
+            <Combobox.Option
+              key={attachment}
+              value={attachment}
+              description={attachment}
+              displayValue={attachment}
+            />
+          );
+        })}
+      </Combobox>
+    </>
   );
 };

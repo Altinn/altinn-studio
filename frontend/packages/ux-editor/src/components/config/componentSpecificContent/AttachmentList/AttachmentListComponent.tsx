@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { useAppMetadataQuery } from 'app-development/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
@@ -11,31 +11,36 @@ import { useTranslation } from 'react-i18next';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { ArrayUtils } from '@studio/pure-functions';
+import {
+  reservedDataTypes,
+  translateToAllAttachments,
+  translateToSomeAttachments,
+} from './AttachmentListUtils';
 
 export const AttachmentListComponent = ({
   component,
   handleComponentChange,
 }: IGenericEditComponent<ComponentType.AttachmentList>) => {
+  const [noneSelected, setNoneSelected] = useState<boolean>(false);
+  const [includePdf, setIncludePdf] = useState<boolean>(
+    (component?.dataTypeIds || []).includes(
+      reservedDataTypes.refDataAsPdf || reservedDataTypes.includeAll,
+    ),
+  );
   const { org, app } = useStudioUrlParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
   const { data: appMetadata } = useAppMetadataQuery(org, app);
   const { selectedLayoutSet } = useAppContext();
   const { t } = useTranslation();
-
-  const reservedDataTypes = {
-    currentTask: 'current-task',
-    refDataAsPdf: 'ref-data-as-pdf',
-    includeAll: 'include-all',
-  };
-
-  const selectedAttachments = component?.dataTypeIds ?? [];
-  const onlyCurrentTask = selectedAttachments.includes(reservedDataTypes.currentTask);
-  const includePdf = selectedAttachments.includes(reservedDataTypes.refDataAsPdf);
+  console.log(component);
+  const onlyCurrentTask = (component?.dataTypeIds || []).includes(reservedDataTypes.currentTask);
+  // const includePdf = (component?.dataTypeIds || []).includes(reservedDataTypes.refDataAsPdf);
 
   const tasks: string[] = layoutSets
     ? getTasks(layoutSets, selectedLayoutSet, onlyCurrentTask)
     : [];
-  const attachmentsToDisplay: string[] = getAttachments(tasks, appMetadata, reservedDataTypes);
+  const attachmentsToDisplay: string[] = getAttachments(tasks, appMetadata);
+  const selectedAttachments = getSelectedAttachments(component?.dataTypeIds, attachmentsToDisplay);
 
   const selectedAttachmentsToDisplay = selectedAttachments.filter((attachment: string) => {
     const isNotTaskId = attachment !== reservedDataTypes.currentTask;
@@ -46,25 +51,42 @@ export const AttachmentListComponent = ({
   });
 
   const onChangePdf = (isChecked: boolean) => {
-    const updatedSelectedAttachments: string[] = toggleItemInArray(
-      selectedAttachments,
-      reservedDataTypes.refDataAsPdf,
-      isChecked,
-    );
+    setIncludePdf(isChecked);
+    if (!isChecked && selectedAttachmentsToDisplay.length === 0) {
+      setNoneSelected(true);
+      return;
+    }
+    setNoneSelected(false);
 
+    console.log(isChecked);
+    // const isAllAttachmentsSelected: boolean =
+    //   selectedAttachmentsToDisplay.length === attachmentsToDisplay.length;
+    const isAllAttachmentsSelected: boolean =
+      selectedAttachmentsToDisplay.length === attachmentsToDisplay.length;
+    // Legg til noneselected et sted her
+    console.log(noneSelected);
+    const resultingSelection =
+      isAllAttachmentsSelected && !noneSelected
+        ? translateToAllAttachments(isChecked, onlyCurrentTask)
+        : translateToSomeAttachments(
+            isChecked,
+            onlyCurrentTask,
+            !noneSelected ? selectedAttachmentsToDisplay : [],
+          );
+    console.log(resultingSelection);
     handleComponentChange({
       ...component,
-      dataTypeIds: updatedSelectedAttachments,
+      dataTypeIds: resultingSelection,
     });
   };
-
+  console.log('ispdf', includePdf);
   const onChangeTask = (isChecked: boolean) => {
     const updatedSelectedAttachments: string[] = toggleItemInArray(
       selectedAttachments,
       reservedDataTypes.currentTask,
       isChecked,
     );
-
+    // if (!noneSelected && !isChecked)
     handleComponentChange({
       ...component,
       dataTypeIds: updatedSelectedAttachments,
@@ -90,7 +112,8 @@ export const AttachmentListComponent = ({
         attachments={attachmentsToDisplay}
         onlyCurrentTask={onlyCurrentTask}
         includePdf={includePdf}
-        reservedDataTypes={reservedDataTypes}
+        noneSelected={noneSelected}
+        setNoneSelected={setNoneSelected}
       />
     </>
   );
@@ -120,11 +143,7 @@ const sampleTasks = (layoutSets: LayoutSets, selectedLayoutSet: string): string[
   return tasks;
 };
 
-const getAttachments = (
-  tasks: string[],
-  appMetaData: ApplicationMetadata,
-  reservedDataTypes: { currentTask: string; refDataAsPdf: string; includeAll: string },
-): string[] => {
+const getAttachments = (tasks: string[], appMetaData: ApplicationMetadata): string[] => {
   const filteredDataTypes = appMetaData?.dataTypes.filter(
     (dataType: DataTypeElement) =>
       !dataType.appLogic &&
@@ -136,8 +155,22 @@ const getAttachments = (
   const mappedDataTypes = filteredDataTypes?.map((dataType: DataTypeElement) => dataType.id) ?? [];
   const sortedDataTypes = mappedDataTypes.sort((a, b) => a.localeCompare(b));
 
-  sortedDataTypes.length !== 0 && mappedDataTypes.unshift(reservedDataTypes.includeAll);
-  return mappedDataTypes;
+  return sortedDataTypes;
+};
+
+const getSelectedAttachments = (
+  incomingSelectedAttachments: string[] | undefined,
+  incomingAttachments: string[],
+): string[] => {
+  // All attachments is configured as either 'include-all', empty array, undefined or only containing 'current-task'
+  const isAllAttachmentsSelected: boolean =
+    incomingSelectedAttachments?.includes('include-all') ||
+    (Array.isArray(incomingSelectedAttachments) && incomingSelectedAttachments.length === 0) ||
+    incomingSelectedAttachments === undefined ||
+    (incomingSelectedAttachments.includes('current-task') &&
+      incomingSelectedAttachments.length === 1);
+
+  return isAllAttachmentsSelected ? incomingAttachments : incomingSelectedAttachments;
 };
 
 const toggleItemInArray = (array: string[], item: string, add: boolean): string[] =>

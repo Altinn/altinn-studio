@@ -1495,6 +1495,7 @@
   "ux_editor.component_title.AddressComponent": "Adresse",
   "ux_editor.component_title.Alert": "Varsel",
   "ux_editor.component_title.AttachmentList": "Liste over vedlegg",
+  "ux_editor.component_title.AttachmentList_error": "Du må velge minst ett vedlegg eller PDF",
   "ux_editor.component_title.Button": "Knapp",
   "ux_editor.component_title.ButtonGroup": "Knappegruppe",
   "ux_editor.component_title.Checkboxes": "Avkrysningsbokser",
