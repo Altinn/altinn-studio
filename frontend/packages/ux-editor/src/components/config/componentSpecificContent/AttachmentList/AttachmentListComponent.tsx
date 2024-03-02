@@ -27,14 +27,14 @@ export const AttachmentListComponent = ({
       reservedDataTypes.refDataAsPdf || reservedDataTypes.includeAll,
     ),
   );
+  const [onlyCurrentTask, setOnlyCurrentTask] = useState<boolean>(
+    (component?.dataTypeIds || []).includes(reservedDataTypes.currentTask),
+  );
   const { org, app } = useStudioUrlParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
   const { data: appMetadata } = useAppMetadataQuery(org, app);
   const { selectedLayoutSet } = useAppContext();
   const { t } = useTranslation();
-  console.log(component);
-  const onlyCurrentTask = (component?.dataTypeIds || []).includes(reservedDataTypes.currentTask);
-  // const includePdf = (component?.dataTypeIds || []).includes(reservedDataTypes.refDataAsPdf);
 
   const tasks: string[] = layoutSets
     ? getTasks(layoutSets, selectedLayoutSet, onlyCurrentTask)
@@ -56,15 +56,11 @@ export const AttachmentListComponent = ({
       setNoneSelected(true);
       return;
     }
-    setNoneSelected(false);
 
-    console.log(isChecked);
-    // const isAllAttachmentsSelected: boolean =
-    //   selectedAttachmentsToDisplay.length === attachmentsToDisplay.length;
     const isAllAttachmentsSelected: boolean =
       selectedAttachmentsToDisplay.length === attachmentsToDisplay.length;
-    // Legg til noneselected et sted her
-    console.log(noneSelected);
+
+    // Check if all is selected from the backend and no attachments are selected in current state
     const resultingSelection =
       isAllAttachmentsSelected && !noneSelected
         ? translateToAllAttachments(isChecked, onlyCurrentTask)
@@ -73,20 +69,25 @@ export const AttachmentListComponent = ({
             onlyCurrentTask,
             !noneSelected ? selectedAttachmentsToDisplay : [],
           );
-    console.log(resultingSelection);
+
+    setNoneSelected(false);
     handleComponentChange({
       ...component,
       dataTypeIds: resultingSelection,
     });
   };
-  console.log('ispdf', includePdf);
+
   const onChangeTask = (isChecked: boolean) => {
+    setOnlyCurrentTask(isChecked);
+    if (noneSelected && !includePdf) {
+      return;
+    }
     const updatedSelectedAttachments: string[] = toggleItemInArray(
       selectedAttachments,
       reservedDataTypes.currentTask,
       isChecked,
     );
-    // if (!noneSelected && !isChecked)
+
     handleComponentChange({
       ...component,
       dataTypeIds: updatedSelectedAttachments,
@@ -162,7 +163,7 @@ const getSelectedAttachments = (
   incomingSelectedAttachments: string[] | undefined,
   incomingAttachments: string[],
 ): string[] => {
-  // All attachments is configured as either 'include-all', empty array, undefined or only containing 'current-task'
+  // Attachments configured as 'include-all', empty, undefined, or only 'current-task'
   const isAllAttachmentsSelected: boolean =
     incomingSelectedAttachments?.includes('include-all') ||
     (Array.isArray(incomingSelectedAttachments) && incomingSelectedAttachments.length === 0) ||
