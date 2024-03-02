@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Combobox, Label, Checkbox } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import type { IGenericEditComponent } from '../../componentConfig';
@@ -44,12 +44,12 @@ export const AttachmentListContent = ({
       return;
     }
     setNoneSelected(false);
+
     const isAllAttachmentsSelected: boolean = updatedSelection.length === attachments.length;
-    console.log(isAllAttachmentsSelected);
-    const resultingSelection = isAllAttachmentsSelected
+    const resultingSelection: string[] = isAllAttachmentsSelected
       ? translateToAllAttachments(includePdf, onlyCurrentTask)
       : translateToSomeAttachments(includePdf, onlyCurrentTask, updatedSelection);
-    console.log(resultingSelection);
+
     handleComponentChange({ ...component, dataTypeIds: resultingSelection });
   };
 
