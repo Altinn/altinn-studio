@@ -51,6 +51,10 @@ jest.mock('./Calculations', () => ({
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 describe('Properties', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('Text', () => {
     it('Toggles text when clicked', async () => {
       const user = userEvent.setup();
@@ -98,13 +102,34 @@ describe('Properties', () => {
       });
       expect(heading).toBeInTheDocument();
 
+      const editComponentIdButton = screen.getByRole('button', { name: /ID/i });
+      expect(editComponentIdButton).toBeInTheDocument();
+      await act(() => user.click(editComponentIdButton));
       const textbox = screen.getByRole('textbox', {
         name: 'ux_editor.modal_properties_component_change_id',
       });
 
-      await act(() => user.type(textbox, '2'));
+      const validId = 'valid-id';
+      await act(() => user.type(textbox, validId));
+      await act(() => user.click(document.body));
       expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalledTimes(1);
       expect(formItemContextProviderMock.debounceSave).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not invoke handleUpdate when the id is invalid', async () => {
+      const user = userEvent.setup();
+      renderProperties({ formItem: component1Mock, formItemId: component1IdMock });
+      await act(() => user.click(screen.getByRole('button', { name: `ID: ${component1Mock.id}` })));
+
+      const invalidId = 'invalidId-01';
+      await act(() =>
+        user.type(
+          screen.getByLabelText('ux_editor.modal_properties_component_change_id'),
+          invalidId,
+        ),
+      );
+
+      expect(formItemContextProviderMock.handleUpdate).not.toHaveBeenCalled();
     });
   });
 

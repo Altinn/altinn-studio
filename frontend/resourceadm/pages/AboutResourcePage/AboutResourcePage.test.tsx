@@ -1,5 +1,4 @@
 import React from 'react';
-import { MemoryRouter } from 'react-router-dom';
 import { render, screen } from '@testing-library/react';
 import type { AboutResourcePageProps } from './AboutResourcePage';
 import { AboutResourcePage } from './AboutResourcePage';
@@ -17,6 +16,9 @@ import {
   mapKeywordsArrayToString,
 } from '../../utils/resourceUtils/resourceUtils';
 import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const mockContactPoint: ResourceContactPoint = {
   category: 'test',
@@ -336,25 +338,19 @@ describe('AboutResourcePage', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should display access list links when RRR is enabled', () => {
+  it('should display access list links when RRR is enabled', async () => {
     addFeatureFlagToLocalStorage('resourceAccessLists');
 
     render(
-      <MemoryRouter>
+      <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
         <AboutResourcePage
           {...defaultProps}
           resourceData={{ ...mockResource2, limitedByRRR: true }}
         />
-      </MemoryRouter>,
+      </ServicesContextProvider>,
     );
 
-    expect(
-      screen.getByText(
-        textMock('resourceadm.about_resource_edit_rrr', {
-          env: textMock('resourceadm.deploy_test_env'),
-        }),
-      ),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId('rrr-buttons')).toBeInTheDocument();
   });
 
   it('should display correct fields for resourceType MaskinportenSchema', () => {
