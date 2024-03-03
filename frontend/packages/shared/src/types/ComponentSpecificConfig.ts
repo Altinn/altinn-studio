@@ -6,6 +6,7 @@ import type { HeadingLevel } from 'app-shared/types/HeadingLevel';
 import type { ActionButtonAction } from 'app-shared/types/ActionButtonAction';
 import type { GridRow } from 'app-shared/types/GridRow';
 import type { HTMLAutoCompleteValue } from 'app-shared/types/HTMLAutoCompleteValue';
+import type { BooleanExpression, StringExpression } from '@studio/components';
 
 type Option<T extends string | boolean | number = string | boolean | number> = {
   label: string;
@@ -23,10 +24,10 @@ type SelectionComponent = {
   sortOrder?: 'asc' | 'desc';
   source?: {
     group: string;
-    label: string;
+    label: StringExpression;
     value: string;
-    description?: string;
-    helpText?: string;
+    description?: StringExpression;
+    helpText?: StringExpression;
   };
 };
 
@@ -42,12 +43,12 @@ type FileUploadComponentBase = {
   maxNumberOfAttachments: number;
   minNumberOfAttachments: number;
   validFileEndings?: string;
-  alertOnDelete?: boolean;
+  alertOnDelete?: BooleanExpression;
 };
 
 type FormComponentProps = {
-  readonly?: boolean;
-  required?: boolean;
+  readOnly?: BooleanExpression;
+  required?: BooleanExpression;
   showValidation?: AllowedValidationMasks;
 };
 
@@ -61,7 +62,7 @@ type AllowedValidationMasks =
   | 'All';
 
 type SummarizableComponentProps = {
-  renderAsSummary?: boolean;
+  renderAsSummary?: BooleanExpression;
 };
 
 type LabeledComponentProps = {
@@ -117,7 +118,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     LabeledComponentProps &
     SelectionComponentFull & {
       layout?: LayoutStyle;
-      alertOnChange?: boolean;
+      alertOnChange?: BooleanExpression;
     };
   [ComponentType.Custom]: FormComponentProps &
     SummarizableComponentProps & {
@@ -272,28 +273,28 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     SelectionComponentFull &
     LabeledComponentProps & {
       layout?: LayoutStyle;
-      alertOnChange?: boolean;
+      alertOnChange?: BooleanExpression;
       showAsCard?: boolean;
     };
   [ComponentType.RepeatingGroup]: SummarizableComponentProps & {
     validateOnSaveRow?: AllowedValidationMasks;
     edit?: {
       mode?: string;
-      addButton?: boolean;
-      saveButton?: boolean;
-      deleteButton?: boolean;
-      editButton?: boolean;
+      addButton?: BooleanExpression;
+      saveButton?: BooleanExpression;
+      deleteButton?: BooleanExpression;
+      editButton?: BooleanExpression;
       multiPage?: boolean;
       openByDefault?: boolean | 'first' | 'last';
-      alertOnDelete?: boolean;
-      saveAndNextButton?: boolean;
+      alertOnDelete?: BooleanExpression;
+      saveAndNextButton?: BooleanExpression;
       alwaysShowAddButton?: boolean;
     };
     maxCount?: number;
     minCount?: number;
     tableHeaders?: string[];
     tableColumns?: KeyValuePairs;
-    hiddenRow?: boolean;
+    hiddenRow?: BooleanExpression;
     rowsBefore?: GridRow[];
     rowsAfter?: GridRow[];
     labelSettings?: LabelSettings;
