@@ -1,138 +1,101 @@
-// import React from 'react';
-// import { screen, waitForElementToBeRemoved } from '@testing-library/react';
-// import { AppStatus } from './AppStatus';
-// import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
-// import { renderWithProviders } from '../../../test/testUtils';
-// import { textMock } from '../../../../testing/mocks/i18nMock';
-// import { pipelineDeployment } from 'app-shared/mocks/mocks';
+import React from 'react';
+import type { AppDeploymentActionsProps } from './AppDeploymentActions';
+import { AppDeploymentActions } from './AppDeploymentActions';
+import { act, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { renderWithMockStore } from 'app-development/test/mocks';
+import { textMock } from '../../../../testing/mocks/i18nMock';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
-// // Test data
-// const org = 'ttd';
-// const app = 'test-ttd';
-// const envNameTest = 'tt02';
-// const envTypeTest = 'test';
+const defaultProps: AppDeploymentActionsProps = {
+  appDeployedVersion: 'test',
+  lastBuildId: '',
+  inProgress: false,
+  deployPermission: true,
+  envName: 'test',
+  imageOptions: [
+    {
+      label: 'test 1',
+      value: 'test1',
+    },
+    {
+      label: 'test 2',
+      value: 'test2',
+    },
+  ],
+  orgName: 'test',
+};
 
-// const render = (queries = {}, envName = envNameTest, envType = envTypeTest) => {
-//   return renderWithProviders(<AppStatus envName={envName} envType={envType} />, {
-//     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
-//     queries,
-//   });
-// };
+const render = (
+  props?: Partial<AppDeploymentActionsProps>,
+  queries?: Partial<ServicesContextProps>,
+) => {
+  return renderWithMockStore({}, queries)(<AppDeploymentActions {...defaultProps} {...props} />);
+};
+describe('AppDeploymentActions', () => {
+  it('should render missing rights message if deployPermission is false', () => {
+    render({ deployPermission: false });
+    expect(
+      screen.getByText(
+        textMock('app_deployment.missing_rights', {
+          envName: defaultProps.envName,
+          orgName: defaultProps.orgName,
+        }),
+      ),
+    ).toBeInTheDocument();
+  });
 
-// describe('AppDeploymentActions', () => {
-//   it('shows loading spinner when loading required data', () => {
-//     render();
+  it('should not render when image options are empty', async () => {
+    render({ imageOptions: [] });
+    expect(screen.queryByText(textMock('app_deployment.choose_version'))).not.toBeInTheDocument();
+  });
 
-//     expect(screen.getByText(textMock('overview.loading_deploys'))).toBeInTheDocument();
-//   });
+  it('should render deploy dropdown with image options', async () => {
+    const user = userEvent.setup();
 
-//   it('shows error message if an error occured while fetching required data', async () => {
-//     render({
-//       getDeployments: jest.fn().mockImplementation(() => Promise.reject()),
-//     });
+    render();
 
-//     await waitForElementToBeRemoved(() =>
-//       screen.queryByTitle(textMock('overview.loading_deploys')),
-//     );
+    const select = screen.getByLabelText(textMock('app_deployment.choose_version'));
+    await act(() => user.click(select));
 
-//     expect(screen.getByText(textMock('overview.app_status_error'))).toBeInTheDocument();
-//   });
+    expect(
+      screen.getByRole('option', { name: defaultProps.imageOptions[0].label }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('option', { name: defaultProps.imageOptions[1].label }),
+    ).toBeInTheDocument();
+  });
 
-//   it('shows production when environment is production', async () => {
-//     const envNameProduction = 'production';
-//     const envTypeProduction = 'production';
-//     render(
-//       {
-//         getDeployments: jest.fn().mockImplementation(() =>
-//           Promise.resolve({
-//             results: [
-//               {
-//                 ...pipelineDeployment,
-//                 deployedInEnv: true,
-//               },
-//             ],
-//           }),
-//         ),
-//       },
-//       envNameProduction,
-//       envTypeProduction,
-//     );
+  it('should be disabled when deployment is in progress', () => {
+    render({ inProgress: true });
 
-//     await waitForElementToBeRemoved(() =>
-//       screen.queryByTitle(textMock('overview.loading_deploys')),
-//     );
+    expect(screen.getByLabelText(textMock('app_deployment.choose_version'))).toBeDisabled();
+  });
 
-//     expect(
-//       screen.getByRole('heading', { name: textMock('general.production') }),
-//     ).toBeInTheDocument();
-//   });
+  it('should render error message if call to deployment endpoint fails', async () => {
+    const user = userEvent.setup();
 
-//   it('shows success alert when application deployed', async () => {
-//     render({
-//       getDeployments: jest.fn().mockImplementation(() =>
-//         Promise.resolve({
-//           results: [
-//             {
-//               ...pipelineDeployment,
-//               envName: envNameTest,
-//               deployedInEnv: true,
-//             },
-//           ],
-//         }),
-//       ),
-//     });
+    const queries: Partial<ServicesContextProps> = {
+      createDeployment: jest.fn().mockRejectedValue(new Error('test error')),
+    };
+    render({}, queries);
 
-//     await waitForElementToBeRemoved(() =>
-//       screen.queryByTitle(textMock('overview.loading_deploys')),
-//     );
+    const select = screen.getByLabelText(textMock('app_deployment.choose_version'));
+    await act(() => user.click(select));
 
-//     expect(screen.getByRole('heading', { name: envNameTest })).toBeInTheDocument();
-//     expect(
-//       screen.getByText(textMock('app_deployment.kubernetes_deployment.status.completed')),
-//     ).toBeInTheDocument();
-//     expect(screen.getByText(textMock('app_deployment.last_published'))).toBeInTheDocument();
-//   });
+    const option = screen.getByRole('option', { name: defaultProps.imageOptions[1].label });
+    await act(() => user.click(option));
 
-//   it('shows no app alert when application not deployed', async () => {
-//     render();
+    const deployButton = await screen.findByRole('button', {
+      name: textMock('app_deployment.btn_deploy_new_version'),
+    });
+    await act(() => user.click(deployButton));
 
-//     await waitForElementToBeRemoved(() =>
-//       screen.queryByTitle(textMock('overview.loading_deploys')),
-//     );
+    const confirmButton = screen.getByRole('button', { name: textMock('general.yes') });
+    await act(() => user.click(confirmButton));
 
-//     expect(screen.getByRole('heading', { name: envNameTest })).toBeInTheDocument();
-//     expect(
-//       screen.getByText(textMock('app_deployment.kubernetes_deployment.status.none')),
-//     ).toBeInTheDocument();
-//     expect(screen.getByText(textMock('overview.go_to_publish'))).toBeInTheDocument();
-//   });
-
-//   it('shows unavailable alert when application not reachable', async () => {
-//     render({
-//       getDeployments: jest.fn().mockImplementation(() =>
-//         Promise.resolve({
-//           results: [
-//             {
-//               ...pipelineDeployment,
-//               envName: envNameTest,
-//               build: {
-//                 ...pipelineDeployment.build,
-//                 finished: '2023-10-03T09:57:41.29Z',
-//               },
-//             },
-//           ],
-//         }),
-//       ),
-//     });
-
-//     await waitForElementToBeRemoved(() =>
-//       screen.queryByTitle(textMock('overview.loading_deploys')),
-//     );
-
-//     expect(screen.getByRole('heading', { name: envNameTest })).toBeInTheDocument();
-//     expect(
-//       screen.getByText(textMock('app_deployment.kubernetes_deployment.status.failed')),
-//     ).toBeInTheDocument();
-//     expect(screen.getByText(textMock('overview.go_to_build_log'))).toBeInTheDocument();
-//   });
-// });
+    expect(
+      await screen.findByText(textMock('app_deployment.technical_error_1')),
+    ).toBeInTheDocument();
+  });
+});

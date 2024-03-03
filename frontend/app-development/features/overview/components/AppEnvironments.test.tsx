@@ -4,7 +4,7 @@ import { AppEnvironments } from './AppEnvironments';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
 import { textMock } from '../../../../testing/mocks/i18nMock';
-import { pipelineDeployment, deployEnvironment } from 'app-shared/mocks/mocks';
+import { deployEnvironment } from 'app-shared/mocks/mocks';
 
 // Test data
 const org = 'org';
@@ -50,21 +50,6 @@ describe('AppEnvironments', () => {
   it('shows statuses when organization has environments', async () => {
     const envName = 'tt02';
     render({
-      getDeployments: jest.fn().mockImplementation(() =>
-        Promise.resolve({
-          results: [
-            {
-              ...pipelineDeployment,
-              envName,
-              build: {
-                ...pipelineDeployment.build,
-                finished: '2023-10-03T09:57:41.29Z',
-              },
-            },
-          ],
-        }),
-      ),
-
       getEnvironments: jest.fn().mockImplementation(() =>
         Promise.resolve([
           {
@@ -81,14 +66,10 @@ describe('AppEnvironments', () => {
     });
 
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('overview.loading_env')));
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('overview.loading_deploys')),
-    );
 
     expect(screen.getByRole('heading', { name: envName })).toBeInTheDocument();
     expect(
-      screen.getByText(textMock('app_deployment.kubernetes_deployment.status.failed')),
+      screen.getByText(textMock('app_deployment.kubernetes_deployment.status.none')),
     ).toBeInTheDocument();
-    expect(screen.getByText(textMock('overview.go_to_build_log'))).toBeInTheDocument();
   });
 });

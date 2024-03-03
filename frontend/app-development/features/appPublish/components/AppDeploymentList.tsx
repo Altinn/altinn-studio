@@ -1,7 +1,6 @@
 import React from 'react';
 import classes from './AppDeploymentList.module.css';
-import { Heading, Link } from '@digdir/design-system-react';
-import { Table } from '@digdir/design-system-react';
+import { Heading, Link, Table } from '@digdir/design-system-react';
 import { formatDateTime, isDateWithinDays, isDateWithinSeconds } from 'app-shared/pure/date-format';
 import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
@@ -107,7 +106,7 @@ export const AppDeploymentList = ({ pipelineDeploymentList, envName }: AppDeploy
                     {t('app_deployment.table.deployed_by_col')}
                   </Table.HeaderCell>
                   <Table.HeaderCell className={classes.tableHeaderCell}>
-                    {t('app_deployment.build_log')}
+                    {t('app_deployment.table.build_log')}
                   </Table.HeaderCell>
                 </Table.Row>
               </Table.Head>
@@ -141,7 +140,7 @@ export const AppDeploymentList = ({ pipelineDeploymentList, envName }: AppDeploy
                             target='_newTab'
                             rel='noopener noreferrer'
                           >
-                            {t('app_deployment.build_log')}
+                            {t('app_deployment.table.build_log')}
                           </Link>
                         )}
                       </Table.Cell>

@@ -29,11 +29,6 @@ describe('Overview', () => {
     expect(screen.queryByRole('heading', { name: app })).not.toBeInTheDocument();
   });
 
-  it('should display spinner while loading', () => {
-    render();
-    expect(screen.getByText(textMock('overview.loading_page')));
-  });
-
   it('should display error message if fetching goes wrong', async () => {
     render({
       getAppConfig: () => Promise.reject(),

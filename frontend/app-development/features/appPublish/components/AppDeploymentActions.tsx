@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import classes from './AppDeploymentActions.module.css';
 import { DeployDropdown } from './DeployDropdown';
 import { useCreateDeploymentMutation } from '../../../hooks/mutations';
 import { Trans, useTranslation } from 'react-i18next';
@@ -35,6 +34,12 @@ export const AppDeploymentActions = ({
     hideDefaultError: true,
   });
 
+  if (!deployPermission) {
+    return (
+      <Alert severity='info'>{t('app_deployment.missing_rights', { envName, orgName })}</Alert>
+    );
+  }
+
   const startDeploy = () =>
     mutate(
       {
@@ -45,7 +50,7 @@ export const AppDeploymentActions = ({
         onError: (): void => {
           toast.error(() => (
             <Trans
-              i18nKey={'app_deployment.messages.technical_error_1'}
+              i18nKey={'app_deployment.technical_error_1'}
               components={{
                 a: (
                   <Link href='/contact' inverted={true}>
@@ -65,22 +70,14 @@ export const AppDeploymentActions = ({
   if (!imageOptions.length) return null;
 
   return (
-    <div className={classes.container}>
-      {!deployPermission ? (
-        <Alert severity='info'>{t('app_deployment.missing_rights', { envName, orgName })}</Alert>
-      ) : (
-        <DeployDropdown
-          appDeployedVersion={appDeployedVersion}
-          envName={envName}
-          disabled={!selectedImageTag || deployInProgress}
-          isPending={deployIsPending}
-          inProgress={deployInProgress}
-          selectedImageTag={selectedImageTag}
-          imageOptions={imageOptions}
-          setSelectedImageTag={setSelectedImageTag}
-          startDeploy={startDeploy}
-        />
-      )}
-    </div>
+    <DeployDropdown
+      appDeployedVersion={appDeployedVersion}
+      disabled={deployInProgress}
+      isPending={deployIsPending}
+      selectedImageTag={selectedImageTag}
+      imageOptions={imageOptions}
+      setSelectedImageTag={setSelectedImageTag}
+      startDeploy={startDeploy}
+    />
   );
 };

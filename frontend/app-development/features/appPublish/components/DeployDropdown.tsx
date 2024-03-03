@@ -8,44 +8,37 @@ import { useTranslation } from 'react-i18next';
 
 export interface DeployDropdownProps {
   appDeployedVersion: string;
-  envName: string;
   imageOptions: ImageOption[];
   disabled: boolean;
-  setSelectedImageTag: (tag) => void;
+  setSelectedImageTag: (tag: string) => void;
   selectedImageTag: string;
-  startDeploy: any;
+  startDeploy: () => void;
   isPending: boolean;
-  inProgress: boolean;
 }
 
 export const DeployDropdown = ({
   appDeployedVersion,
   imageOptions,
-  envName,
   selectedImageTag,
   setSelectedImageTag,
   disabled,
   startDeploy,
   isPending,
-  inProgress,
 }: DeployDropdownProps) => {
   const [isConfirmDeployDialogOpen, setIsConfirmDeployDialogOpen] = useState<boolean>();
   const { t } = useTranslation();
-  const onStartDeployClick = async () => {
-    await startDeploy();
-  };
   return (
     <div className={classes.deployDropDown}>
-      <div id={`deploy-select-${envName.toLowerCase()}`}>
+      <div>
         {imageOptions.length > 0 && (
           <Combobox
             size='small'
             value={selectedImageTag ? [selectedImageTag] : undefined}
-            label={t('app_deployment.messages.choose_version')}
+            label={t('app_deployment.choose_version')}
             onValueChange={(selectedImageOptions: string[]) =>
               setSelectedImageTag(selectedImageOptions[0])
             }
-            disabled={inProgress}
+            disabled={disabled}
           >
             {imageOptions.map((imageOption) => {
               return (
@@ -61,34 +54,34 @@ export const DeployDropdown = ({
         <AltinnConfirmDialog
           open={isConfirmDeployDialogOpen}
           confirmColor='first'
-          onConfirm={onStartDeployClick}
+          onConfirm={startDeploy}
           onClose={() => setIsConfirmDeployDialogOpen(false)}
           placement='right'
           trigger={
             <StudioButton
-              disabled={disabled}
+              disabled={!selectedImageTag || disabled}
               onClick={() => setIsConfirmDeployDialogOpen((prevState) => !prevState)}
-              id={`deploy-button-${envName.toLowerCase()}`}
               size='small'
             >
               {isPending && (
                 <Spinner
                   variant='interaction'
-                  title={t('app_deployment.pipeline_deployment.build_result.none')}
+                  title=''
                   size='xsmall'
+                  data-testid='spinner-test-id'
                 />
               )}
-              {t('app_deployment.messages.btn_deploy_new_version')}
+              {t('app_deployment.btn_deploy_new_version')}
             </StudioButton>
           }
         >
           <p>
             {appDeployedVersion
-              ? t('app_deployment.messages.deploy_confirmation', {
+              ? t('app_deployment.deploy_confirmation', {
                   selectedImageTag,
                   appDeployedVersion,
                 })
-              : t('app_deployment.messages.deploy_confirmation_short', { selectedImageTag })}
+              : t('app_deployment.deploy_confirmation_short', { selectedImageTag })}
           </p>
         </AltinnConfirmDialog>
       </div>
