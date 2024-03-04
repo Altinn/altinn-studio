@@ -66,7 +66,6 @@ export const EditComponentIdRow = ({
           children: `ID: ${component.id}`,
           variant: 'tertiary',
           fullWidth: true,
-          style: { paddingLeft: 0, paddingRight: 0 },
         }}
         inputProps={{
           icon: <KeyVerticalIcon />,
@@ -75,6 +74,7 @@ export const EditComponentIdRow = ({
           label: t('ux_editor.modal_properties_component_change_id'),
           size: 'small',
           error: errorMessage,
+          className: classes.idInput,
         }}
         customValidation={(value) => {
           return validateId(value);
