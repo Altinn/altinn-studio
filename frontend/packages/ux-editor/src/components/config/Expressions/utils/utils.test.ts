@@ -49,6 +49,7 @@ describe('utils', () => {
         pageIndex: null,
         type: ComponentType.Input,
         required: false,
+        dataModelBindings: { simpleBinding: '' },
       };
       const property: FormItemProperty<ComponentType.Input> = { key: 'hidden' };
       const result = addExpressionToFormItem<ComponentType.Input>(inputComponent, property);
@@ -64,6 +65,7 @@ describe('utils', () => {
         pageIndex: null,
         type: ComponentType.Input,
         required: false,
+        dataModelBindings: { simpleBinding: '' },
       };
       const property: FormItemProperty<ComponentType.Input> = { key: 'required' };
       const expression: BooleanExpression = [GeneralRelationOperator.Equals, 1, 1];
@@ -81,6 +83,7 @@ describe('utils', () => {
         itemType: 'CONTAINER',
         pageIndex: null,
         type: ComponentType.RepeatingGroup,
+        dataModelBindings: { group: '' },
       };
       const property: FormItemProperty<ComponentType.RepeatingGroup> = {
         key: 'edit',
@@ -108,6 +111,7 @@ describe('utils', () => {
         pageIndex: null,
         type: ComponentType.Input,
         required: [GeneralRelationOperator.Equals, 1, 1],
+        dataModelBindings: { simpleBinding: '' },
       };
       const property: FormItemProperty<ComponentType.Input> = { key: 'required' };
       const result = removeExpressionFromFormItem<ComponentType.Input>(inputComponent, property);
@@ -120,6 +124,7 @@ describe('utils', () => {
         itemType: 'CONTAINER',
         pageIndex: null,
         type: ComponentType.RepeatingGroup,
+        dataModelBindings: { group: '' },
         edit: {
           addButton: [GeneralRelationOperator.Equals, 1, 1],
           deleteButton: true,
@@ -144,6 +149,7 @@ describe('utils', () => {
         itemType: 'CONTAINER',
         type: ComponentType.RepeatingGroup,
         hidden: true,
+        dataModelBindings: { group: '' },
         edit: {
           addButton: null,
           editButton: [GeneralRelationOperator.Equals, 1, 1],
@@ -165,6 +171,7 @@ describe('utils', () => {
         id: 'repeatingGroup',
         itemType: 'CONTAINER',
         type: ComponentType.RepeatingGroup,
+        dataModelBindings: { group: '' },
         edit: {
           alertOnDelete: null,
           editButton: [GeneralRelationOperator.Equals, 1, 1],
@@ -191,6 +198,7 @@ describe('utils', () => {
         id: 'repeatingGroup',
         itemType: 'CONTAINER',
         type: ComponentType.RepeatingGroup,
+        dataModelBindings: { group: '' },
         hidden,
         edit: {
           addButton,
@@ -223,6 +231,7 @@ describe('utils', () => {
         itemType: 'COMPONENT',
         pageIndex: null,
         type: ComponentType.Input,
+        dataModelBindings: { simpleBinding: '' },
       };
       const hiddenProp: FormItemProperty<ComponentType.Input> = { key: 'hidden' };
       expect(getPropertyValue<ComponentType.Input>(inputComponent, hiddenProp)).toBeUndefined();

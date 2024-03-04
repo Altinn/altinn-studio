@@ -173,6 +173,9 @@ const repeatingGroupContainer: FormContainer<ComponentType.RepeatingGroup> = {
   ...commonProps,
   itemType: 'CONTAINER',
   type: ComponentType.RepeatingGroup,
+  dataModelBindings: {
+    group: '',
+  },
 };
 
 export const componentMocks = {

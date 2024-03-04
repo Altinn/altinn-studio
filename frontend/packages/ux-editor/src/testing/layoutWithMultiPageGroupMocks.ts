@@ -54,6 +54,7 @@ const internalComponent3: FormContainer = {
   id: component3Id,
   itemType: 'CONTAINER',
   type: ComponentType.Group,
+
   pageIndex: null,
   propertyPath: 'definitions/groupComponent',
 };
@@ -68,6 +69,9 @@ const externalComponent3_1: ExternalComponent = {
   ],
   edit: { multiPage: true },
   type: ComponentType.RepeatingGroup,
+  dataModelBindings: {
+    group: '',
+  },
 };
 const internalComponent3_1: FormContainer<ComponentType.RepeatingGroup> = {
   edit: { multiPage: true },
@@ -76,6 +80,9 @@ const internalComponent3_1: FormContainer<ComponentType.RepeatingGroup> = {
   type: ComponentType.RepeatingGroup,
   pageIndex: null,
   propertyPath: 'definitions/repeatingGroupComponent',
+  dataModelBindings: {
+    group: '',
+  },
 };
 
 const externalComponent3_1_1: ExternalComponent = {

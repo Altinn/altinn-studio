@@ -69,9 +69,6 @@ describe('Expressions', () => {
       id: 'some-id',
       type: ComponentType.Input,
       itemType: 'COMPONENT',
-      hidden: parsableExternalExpression,
-      required: parsableExternalExpression,
-      readOnly: parsableExternalExpression,
       hidden: parsableLogicalExpression,
       required: parsableLogicalExpression,
       readOnly: parsableLogicalExpression,
@@ -91,6 +88,7 @@ describe('Expressions', () => {
         itemType: 'CONTAINER',
         type: ComponentType.RepeatingGroup,
         hidden: parsableLogicalExpression,
+        dataModelBindings: { group: '' },
         edit: {
           addButton: parsableLogicalExpression,
           alertOnDelete: parsableLogicalExpression,
@@ -158,6 +156,7 @@ describe('Expressions', () => {
       id: 'some-id',
       itemType: 'CONTAINER',
       type: ComponentType.RepeatingGroup,
+      dataModelBindings: { group: '' },
       edit: {
         multiPage: true,
       },
