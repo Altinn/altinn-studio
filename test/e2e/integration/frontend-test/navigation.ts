@@ -34,4 +34,26 @@ describe('Navigation', () => {
 
     cy.get('#main-content').should('be.focused');
   });
+
+  it('should focus main-content whenever navigating to a new task', () => {
+    cy.goto('message');
+
+    cy.findByText('Appen for test av app frontend').should('exist');
+
+    cy.findByRole('button', { name: /Send inn/ }).click();
+
+    cy.get('#main-content').should('be.focused');
+  });
+
+  it('should not focus main-content when loading the page in the browser', () => {
+    cy.goto('message');
+
+    cy.findByText('Appen for test av app frontend').should('exist');
+
+    cy.reload();
+
+    cy.findByText('Appen for test av app frontend').should('exist');
+
+    cy.get('#main-content').should('not.be.focused');
+  });
 });
