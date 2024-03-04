@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { StudioSectionHeader } from './StudioSectionHeader';
+import { StudioSectionHeader, type StudioSectionHeaderProps } from './StudioSectionHeader';
 
 describe('StudioSectionHeader', () => {
   it('should display icon if provided', () => {
