@@ -1,4 +1,4 @@
-import React, { type MutableRefObject } from 'react';
+import React, { type ForwardedRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { StudioSectionHeader, type StudioSectionHeaderProps } from './StudioSectionHeader';
 
@@ -24,8 +24,8 @@ describe('StudioSectionHeader', () => {
   });
 
   it('should be able to pass HTMLDivElement attributes', () => {
-    renderStudioSectionHeader({ className: 'test-class-name', 'data-testid': 'elementId' });
-    expect(screen.getByTestId('elementId')).toHaveClass('test-class-name');
+    renderStudioSectionHeader({ className: 'test-class-name' });
+    expect(screen.getByTestId('headerTestId')).toHaveClass('test-class-name');
   });
 
   it('should be possible to use the ref-api to get the underlying HTMLDivElement', () => {
@@ -38,7 +38,7 @@ describe('StudioSectionHeader', () => {
 const renderStudioSectionHeader = (
   props: Partial<
     StudioSectionHeaderProps & {
-      ref?: ((instance: HTMLDivElement | null) => void) | MutableRefObject<HTMLDivElement | null>;
+      ref?: ForwardedRef<HTMLDivElement>;
     }
   > = {},
 ) => {
@@ -51,5 +51,5 @@ const renderStudioSectionHeader = (
       title: '',
     },
   };
-  return render(<StudioSectionHeader {...defaultProps} {...props} />);
+  return render(<StudioSectionHeader {...defaultProps} {...props} data-testid='headerTestId' />);
 };
