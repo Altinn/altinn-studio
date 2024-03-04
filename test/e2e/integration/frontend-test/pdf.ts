@@ -31,10 +31,10 @@ describe('PDF', () => {
     cy.get(appFrontend.changeOfName.reference2).should('have.value', '');
     cy.dsSelect(appFrontend.changeOfName.reference, 'Sophie Salt');
     cy.dsSelect(appFrontend.changeOfName.reference2, 'Dole');
-    cy.findByRole('textbox', { name: /gateadresse/i }).type('Økern 1');
-    cy.findByRole('textbox', { name: /postnr/i }).type('0101');
+    cy.findByRole('textbox', { name: /Adresse/i }).type('Økern 1');
+    cy.findByRole('textbox', { name: /Zip Code/i }).type('0101');
 
-    cy.findByRole('textbox', { name: /poststed/i }).should('have.value', 'OSLO');
+    cy.findByRole('textbox', { name: /Post Place/i }).should('have.value', 'OSLO');
 
     cy.testPdf(() => {
       cy.findByRole('table').should('contain.text', 'Mottaker:Testdepartementet');

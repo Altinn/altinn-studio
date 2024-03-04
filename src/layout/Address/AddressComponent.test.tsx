@@ -358,4 +358,94 @@ describe('AddressComponent', () => {
     ).not.toBeInTheDocument();
     expect(screen.queryByRole('textbox', { name: 'Bolignummer (Valgfri)' })).not.toBeInTheDocument();
   });
+
+  it('should display optional title when set', async () => {
+    await render({
+      component: {
+        required: true,
+        simplified: false,
+        id: 'address-title',
+        textResourceBindings: {
+          title: 'TEST TITLE',
+        },
+      },
+    });
+    expect(screen.getByTestId('label-address_address_address-title')).toHaveTextContent('TEST TITLE');
+  });
+
+  it('should display care-of title when set', async () => {
+    const ID = 'care-of-title';
+    const TITLE = 'CARE OF TITLE';
+    await render({
+      component: {
+        required: true,
+        simplified: false,
+        id: ID,
+        textResourceBindings: {
+          careOfTitle: TITLE,
+        },
+      },
+    });
+    expect(screen.getByTestId(`label-address_care_of_${ID}`)).toHaveTextContent(TITLE);
+  });
+
+  it('should display zip code title when set', async () => {
+    const ID = 'zip_code';
+    const TITLE = 'ZIP CODE TITLE';
+
+    await render({
+      component: {
+        required: true,
+        simplified: false,
+        id: ID,
+        textResourceBindings: {
+          zipCodeTitle: TITLE,
+        },
+      },
+    });
+    expect(screen.getByTestId(`label-address_zip_code_${ID}`)).toHaveTextContent(TITLE);
+  });
+
+  it('should display post place title when set', async () => {
+    const ID = 'post-place-title';
+    const TITLE = 'POST PLACE TITLE';
+    await render({
+      component: {
+        required: true,
+        simplified: false,
+        id: ID,
+        textResourceBindings: {
+          postPlaceTitle: TITLE,
+        },
+      },
+    });
+    expect(screen.getByTestId(`label-address_post_place_${ID}`)).toHaveTextContent(TITLE);
+  });
+
+  it('should display house number title when set', async () => {
+    const ID = 'house-number-title';
+    const TITLE = 'HOUSE NUMBER TITLE';
+    await render({
+      component: {
+        required: true,
+        simplified: false,
+        id: ID,
+        textResourceBindings: {
+          houseNumberTitle: TITLE,
+        },
+      },
+    });
+    expect(screen.getByTestId(`label-address_house_number_${ID}`)).toHaveTextContent(TITLE);
+  });
+
+  it('should display default title when title is not set', async () => {
+    await render({
+      component: {
+        required: true,
+        simplified: false,
+        id: 'address-title',
+      },
+    });
+    expect(screen.getByTestId('label-address_address_address-title')).toHaveTextContent('Gateadresse');
+  });
 });

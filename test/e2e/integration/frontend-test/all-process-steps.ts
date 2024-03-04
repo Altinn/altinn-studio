@@ -298,7 +298,9 @@ const knownDataModels: { [key: string]: any } = {
     Radioknapp: '1',
     BegrunnelseFrivillig: '1',
     Adresse: {
+      CareOf: null,
       Gateadresse_æøå: null,
+      HouseNumber: null,
       Postnr: null,
       Poststed: null,
       Kommune: null,

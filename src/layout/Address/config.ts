@@ -14,8 +14,36 @@ export const Config = new CG.component({
   .addTextResource(
     new CG.trb({
       name: 'title',
-      title: 'Title from Summary',
-      description: 'Title of the component (currently only used when referenced from a Summary component)',
+      title: 'Title',
+      description: 'Title of the component',
+    }),
+  )
+  .addTextResource(
+    new CG.trb({
+      name: 'careOfTitle',
+      title: 'Care Of Title',
+      description: 'Title for care-of',
+    }),
+  )
+  .addTextResource(
+    new CG.trb({
+      name: 'zipCodeTitle',
+      title: 'Zip Code Title',
+      description: 'Title for the zip code',
+    }),
+  )
+  .addTextResource(
+    new CG.trb({
+      name: 'postPlaceTitle',
+      title: 'Post place Title',
+      description: 'Title for post place',
+    }),
+  )
+  .addTextResource(
+    new CG.trb({
+      name: 'houseNumberTitle',
+      title: 'House number Title',
+      description: 'Title for house number',
     }),
   )
   .addDataModelBinding(
