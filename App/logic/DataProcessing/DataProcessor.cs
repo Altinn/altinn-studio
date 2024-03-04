@@ -12,12 +12,12 @@ namespace Altinn.App.logic.DataProcessing
 {
     public class DataProcessor : IDataProcessor
     {
-        public Task ProcessDataRead(Instance instance, Guid? dataId, object data)
+        public Task ProcessDataRead(Instance instance, Guid? dataId, object data, string? language)
         {
             return Task.CompletedTask;
         }
 
-        public Task ProcessDataWrite(Instance instance, Guid? dataId, object data, object? previous)
+        public Task ProcessDataWrite(Instance instance, Guid? dataId, object data, object? previous, string? language)
         {
  
             if (data.GetType() == typeof(NestedGroup))
@@ -134,7 +134,7 @@ namespace Altinn.App.logic.DataProcessing
                 }
 
                 // Look at Group2, and increment the counter when encountering a new row without a row number
-                if (model.Endringsmeldinggrp9786.Gruppe2 != null)
+                if (model.Endringsmeldinggrp9786 != null && model.Endringsmeldinggrp9786.Gruppe2 != null)
                 {
                     foreach (var row in model.Endringsmeldinggrp9786.Gruppe2.Where(row => row.Teller is null or 0))
                     {
@@ -142,6 +142,24 @@ namespace Altinn.App.logic.DataProcessing
                         row.Teller = model.Group2Teller;
                     }
                 }
+
+                if (model.Pets != null)
+                {
+                    foreach (var row in model.Pets)
+                    {
+                        if (row.UniqueId == null)
+                        {
+                            // Generate a new unique id for each row. This is used when referencing the row from
+                            // the checkbox group below the group, and is not deleted when the instance ends (as opposed
+                            // to the internal row id).
+                            row.UniqueId = Guid.NewGuid().ToString();
+                        }
+
+                        // This makes sure the panel is not shown even when all pets are deleted
+                        model.ForceShowPets = true;
+                    }
+                }
+                model.NumPets = model.Pets?.Count ?? 0;
             }
 
             if (data.GetType() == typeof(Skjema))

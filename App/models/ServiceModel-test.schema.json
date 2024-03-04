@@ -460,6 +460,9 @@
             "Postnr": {
               "type": "string"
             },
+            "CareOf": {
+              "type": "string"
+            },
             "Poststed": {
               "type": "string"
             },
@@ -467,6 +470,9 @@
               "type": "string"
             },
             "KommunerMetadata": {
+              "type": "string"
+            },
+            "HouseNumber": {
               "type": "string"
             }
           },

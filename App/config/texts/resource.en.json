@@ -387,6 +387,65 @@
           "dataSource": "dataModel.datalist"
         }
       ]
-    }
+    },
+    {
+      "id": "repeating3",
+      "value": "Pets"
+    },
+    { "id": "Pets.GeneratePanel.Title", "value": "Sad! There's no animals here" },
+    { "id": "Pets.GeneratePanel.Description", "value": "We can check the pet register or the farm animal register for you." },
+    { "id": "Pets.GenerateButton", "value": "Fetch my pets (5 + 1)" },
+    { "id": "Pets.GenerateWholeFarmButton", "value": "Fetch my farm animals (250!)" },
+    { "id": "Pets.ForceShowButton", "value": "Add manually" },
+    { "id": "Pets.ResetButton", "value": "Clear my pets" },
+    { "id": "Pets.Validation.DuplicatePet", "value": "You cannot have two or more animals with the same name and species." },
+    { "id": "Pets.Title", "value": "My pets" },
+    { "id": "Pets.AddButton", "value": "Add pet" },
+    { "id": "Pets.Species", "value": "Species" },
+    { "id": "Pets.Name", "value": "Name" },
+    { "id": "Pets.Age", "value": "Age" },
+    { "id": "Pets.HiddenTitle", "value": "Hide pets" },
+    { "id": "Pets.HiddenDescription", "value": "Choose pets to hide from the table above" },
+    { "id": "Pets.SortOrder", "value": "Sort my pets" },
+    { "id": "Pets.SortOrderButton", "value": "Sort now" },
+    {
+      "id": "PetName",
+      "value": "{0} named {1} (age {2})",
+      "variables": [
+        {
+          "key": "Pets.Species",
+          "dataSource": "dataModel.nested-group",
+          "defaultValue": "???"
+        },
+        {
+          "key": "Pets.Name",
+          "dataSource": "dataModel.nested-group",
+          "defaultValue": "???"
+        },
+        {
+          "key": "Pets.Age",
+          "dataSource": "dataModel.nested-group",
+          "defaultValue": "?"
+        }
+      ]
+    },
+    { "id": "Species.Dog", "value": "Dog" },
+    { "id": "Species.Cat", "value": "Cat" },
+    { "id": "Species.Fish", "value": "Fish" },
+    { "id": "Species.Bird", "value": "Bird" },
+    { "id": "Species.Rabbit", "value": "Rabbit" },
+    { "id": "Species.Hamster", "value": "Hamster" },
+    { "id": "Species.Sheep", "value": "Sheep" },
+    { "id": "Species.Cow", "value": "Cow" },
+    { "id": "Species.Snake", "value": "Snake" },
+    { "id": "Species.Spider", "value": "Spider" },
+    { "id": "Species.TyrannosaurusRex", "value": "Tyrannosaurus Rex" },
+    { "id": "Species.Other", "value": "Other" },
+    { "id": "PetsSortOrder.AscSpecies", "value": "Species (A-Z)" },
+    { "id": "PetsSortOrder.DescSpecies", "value": "Species (Z-A)" },
+    { "id": "PetsSortOrder.AscName", "value": "Name (A-Z)" },
+    { "id": "PetsSortOrder.DescName", "value": "Name (Z-A)" },
+    { "id": "PetsSortOrder.AscAge", "value": "Age (1-9)" },
+    { "id": "PetsSortOrder.DescAge", "value": "Age (9-1)" }
   ]
 }

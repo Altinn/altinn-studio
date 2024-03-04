@@ -457,14 +457,20 @@
         "id": "adresse",
         "type": "Address",
         "textResourceBindings": {
-          "title": "Adresse"
+          "title": "Adresse",
+          "careOfTitle": "Care Of",
+          "zipCodeTitle": "Zip Code",
+          "postPlaceTitle": "Post Place",
+          "houseNumberTitle": "House Number"
         },
         "dataModelBindings": {
           "address": "Adresse.Gateadresse_æøå",
           "zipCode": "Adresse.Postnr",
-          "postPlace": "Adresse.Poststed"
+          "postPlace": "Adresse.Poststed",
+          "careOf": "Adresse.CareOf",
+          "houseNumber": "Adresse.HouseNumber"
         },
-        "simplified": true,
+        "simplified": false,
         "readOnly": false,
         "required": false
       },
