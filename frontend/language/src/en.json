@@ -1074,7 +1074,7 @@
   "ux_editor.modal_properties_code_list_read_more": "\"<0 href=\\\"{{optionsDocs}}\\\" >Read more about code lists</0>\",",
   "ux_editor.modal_properties_component_change_id": "Component ID",
   "ux_editor.modal_properties_component_id_not_unique_error": "The component ID must be unique",
-  "ux_editor.modal_properties_component_id_not_valid": "The component ID can only consist of English letters, numbers, and hyphens.",
+  "ux_editor.modal_properties_component_id_not_valid": "The component ID can only contain letters, digits and hyphens.",
   "ux_editor.modal_properties_custom_code_list_id": "Custom code list ID",
   "ux_editor.modal_properties_data_model_helper": "Link to data model",
   "ux_editor.modal_properties_description": "Description:",
