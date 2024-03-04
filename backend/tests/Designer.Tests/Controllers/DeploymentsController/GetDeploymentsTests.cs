@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -55,20 +56,19 @@ public class GetDeployments : DisagnerEndpointsTestsBase<GetDeployments>, IClass
         // Act
         HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
         string responseString = await res.Content.ReadAsStringAsync();
-        SearchResults<DeploymentEntity> searchResult = JsonSerializer.Deserialize<SearchResults<DeploymentEntity>>(responseString, JsonSerializerOptions);
-        IEnumerable<DeploymentEntity> actual = searchResult.Results;
+        Deployment actual = JsonSerializer.Deserialize<Deployment>(responseString, JsonSerializerOptions);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
-        Assert.Equal(8, actual.Count());
-        Assert.DoesNotContain(actual, r => r.Build.Status == BuildStatus.InProgress);
+        Assert.Equal(8, actual.PipelineDeploymentList.Count);
+        Assert.Equal(2, actual.KubernetesDeploymentList.Count);
         _deploymentServiceMock.Verify(p => p.UpdateAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         _deploymentServiceMock.Verify(r => r.GetAsync(org, app, It.IsAny<DocumentQueryModel>()), Times.Once);
     }
 
     private List<DeploymentEntity> GetPipelineDeployments(string filename)
     {
-        string path = Path.Combine(UnitTestsFolder, "..", "..", "..", "_TestData", "Deployments", "PipelineDeployemnts", filename);
+        string path = Path.Combine(UnitTestsFolder, "..", "..", "..", "_TestData", "Deployments", "PipelineDeployments", filename);
         if (!File.Exists(path))
         {
             return null;
