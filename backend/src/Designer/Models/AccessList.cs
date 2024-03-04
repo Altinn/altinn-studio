@@ -1,6 +1,5 @@
 ﻿#nullable enable
 
-using System;
 using System.Collections.Generic;
 using Altinn.Studio.Designer.Models.Dto;
 
