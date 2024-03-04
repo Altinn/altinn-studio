@@ -14,14 +14,14 @@
         "type": "NavigationBar"
       },
       {
-        "id": "reasonCheckboxes",
+        "id": "colorsCheckboxes",
         "type": "Checkboxes",
         "textResourceBindings": {
-          "title": "BegrunnelseValgNavn"
+          "title": "ChooseColor"
         },
         "dataModelBindings": {
-          "simpleBinding": "Radioknapp",
-          "label": "ReasonLabels"
+          "simpleBinding": "Colors",
+          "label": "ColorsLabels"
         },
         "sortOrder": "asc",
         "optionsId": "colors",
@@ -30,13 +30,13 @@
         "preselectedOptionIndex": 0
       },
       {
-        "id": "reasonLabelsVerify",
+        "id": "ColorsLabelsVerify",
         "type": "Input",
         "textResourceBindings": {
           "title": "Du valgte:"
         },
         "dataModelBindings": {
-          "simpleBinding": "ReasonLabelsVerify"
+          "simpleBinding": "ColorsLabelsVerify"
         },
         "required": false,
         "readOnly": true,

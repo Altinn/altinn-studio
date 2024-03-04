@@ -9,16 +9,22 @@
     "Radioknapp": {
       "type": "string"
     },
+    "Color": {
+      "type": "string"
+    },
+    "Colors": {
+      "type": "string"
+    },
     "ReasonLabel": {
       "type": "string"
     },
-    "ReasonLabels": {
+    "ColorsLabels": {
       "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "ReasonLabelsVerify": {
+    "ColorsLabelsVerify": {
       "type": "string"
     },
     "BegrunnelseFrivillig": {
@@ -425,7 +431,10 @@
         "ReasonLabel": {
           "type": "string"
         },
-        "ReasonLabelsVerify": {
+        "ColorsLabelsVerify": {
+          "type": "string"
+        },
+        "Colors": {
           "type": "string"
         },
         "Radioknapp": {

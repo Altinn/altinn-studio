@@ -166,12 +166,12 @@ namespace Altinn.App.logic.DataProcessing
             {
                 Skjema model = (Skjema)data;
 
-                if (model.ReasonLabels == null)
+                if (model.ColorsLabels == null)
                 {
-                    model.ReasonLabelsVerify = null;
+                    model.ColorsLabelsVerify = null;
                 }
                 
-                if (model.ReasonLabels?.Count  > 0)
+                if (model.ColorsLabels?.Count  > 0)
                 {
                     /*
                      This converts saved labels from checkboxes from string[] to string
@@ -179,8 +179,8 @@ namespace Altinn.App.logic.DataProcessing
                      been saved when we run cypress tests.
                      */
                     var json = JsonConvert.SerializeObject(model, Formatting.Indented);
-                    var stringToSave = string.Join(",", model.ReasonLabels);
-                    model.ReasonLabelsVerify = stringToSave;
+                    var stringToSave = string.Join(",", model.ColorsLabels);
+                    model.ColorsLabelsVerify = stringToSave;
                 }
                 
                 if (model?.NyttNavngrp9313?.NyttNavngrp9314?.PersonFornavnNyttdatadef34758?.value == "TriggerCalculation")

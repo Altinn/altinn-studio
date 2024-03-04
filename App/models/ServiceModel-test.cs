@@ -62,20 +62,25 @@ namespace Altinn.App.Models
         [JsonPropertyName("Radioknapp")]
         public string? Radioknapp { get; set; }
         
-        [XmlElement("ReasonLabelsVerify")]
-        [JsonProperty("ReasonLabelsVerify")]
-        [JsonPropertyName("ReasonLabelsVerify")]
-        public string? ReasonLabelsVerify { get; set; }
+        [XmlElement("ColorsLabelsVerify")]
+        [JsonProperty("ColorsLabelsVerify")]
+        [JsonPropertyName("ColorsLabelsVerify")]
+        public string? ColorsLabelsVerify { get; set; }
+        
+        [XmlElement("Colors")]
+        [JsonProperty("Colors")]
+        [JsonPropertyName("Colors")]
+        public string? Colors { get; set; }
         
         [XmlElement("ReasonLabel")]
         [JsonProperty("ReasonLabel")]
         [JsonPropertyName("ReasonLabel")]
         public string? ReasonLabel { get; set; }
         
-        [XmlElement("ReasonLabels")]
-        [JsonProperty("ReasonLabels")]
-        [JsonPropertyName("ReasonLabels")]
-        public List<string>? ReasonLabels { get; set; }
+        [XmlElement("ColorsLabels")]
+        [JsonProperty("ColorsLabels")]
+        [JsonPropertyName("ColorsLabels")]
+        public List<string>? ColorsLabels { get; set; }
         
         [XmlElement("BegrunnelseFrivillig")]
         [JsonProperty("BegrunnelseFrivillig")]
