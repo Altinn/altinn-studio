@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type MutableRefObject } from 'react';
 import { render, screen } from '@testing-library/react';
 import { StudioSectionHeader, type StudioSectionHeaderProps } from './StudioSectionHeader';
 
@@ -35,7 +35,13 @@ describe('StudioSectionHeader', () => {
   });
 });
 
-const renderStudioSectionHeader = (props: Partial<StudioSectionHeaderProps> = {}) => {
+const renderStudioSectionHeader = (
+  props: Partial<
+    StudioSectionHeaderProps & {
+      ref?: ((instance: HTMLDivElement | null) => void) | MutableRefObject<HTMLDivElement | null>;
+    }
+  > = {},
+) => {
   const defaultProps: StudioSectionHeaderProps = {
     heading: {
       text: '',
