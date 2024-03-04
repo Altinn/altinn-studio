@@ -69,7 +69,7 @@ describe('AppEnvironments', () => {
 
     expect(screen.getByRole('heading', { name: envName })).toBeInTheDocument();
     expect(
-      screen.getByText(textMock('app_deployment.kubernetes_deployment.status.none')),
+      screen.getByText(textMock('app_deployment.kubernetes_deployment.status.unavailable')),
     ).toBeInTheDocument();
   });
 });

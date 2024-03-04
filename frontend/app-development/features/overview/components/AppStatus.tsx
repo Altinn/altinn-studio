@@ -26,7 +26,7 @@ export const AppStatus = ({ kubernetesDeployment, envName, envType, urlToApp }: 
     });
   };
 
-  if (!kubernetesDeployment) {
+  if (!kubernetesDeployment?.status) {
     return (
       <DeploymentStatusInfo
         envType={envType}
@@ -42,23 +42,21 @@ export const AppStatus = ({ kubernetesDeployment, envName, envType, urlToApp }: 
     );
   }
 
-  if (!kubernetesDeployment?.status) {
-    return (
-      <DeploymentStatusInfo
-        envType={envType}
-        envName={envName}
-        severity='info'
-        content={t('app_deployment.kubernetes_deployment.status.none')}
-        footer={
-          <Trans i18nKey='overview.go_to_publish'>
-            <a href={publishPath(org, app)} />
-          </Trans>
-        }
-      />
-    );
-  }
-
   switch (kubernetesDeployment.status) {
+    case KubernetesDeploymentStatus.none:
+      return (
+        <DeploymentStatusInfo
+          envType={envType}
+          envName={envName}
+          severity='info'
+          content={t('app_deployment.kubernetes_deployment.status.none')}
+          footer={
+            <Trans i18nKey='overview.go_to_publish'>
+              <a href={publishPath(org, app)} />
+            </Trans>
+          }
+        />
+      );
     case KubernetesDeploymentStatus.completed:
       return (
         <DeploymentStatusInfo

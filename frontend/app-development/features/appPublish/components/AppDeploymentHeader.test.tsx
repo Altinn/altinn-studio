@@ -98,9 +98,13 @@ describe('AppDeploymentHeader', () => {
     ).toBeInTheDocument();
   });
 
-  it('shows alert when KubernetesDeploymentStatus is not available', async () => {
+  it('shows alert when KubernetesDeploymentStatus is none as no app is deployed', async () => {
     render({
-      kubernetesDeployment,
+      kubernetesDeployment: {
+        ...kubernetesDeployment,
+        status: KubernetesDeploymentStatus.none,
+        statusDate: '',
+      },
     });
 
     expect(
