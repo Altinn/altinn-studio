@@ -1,8 +1,15 @@
-import React, { ChangeEvent } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 import { TextResourceEditor } from '../../../TextResource/TextResourceEditor';
-import { StudioDeleteButton, StudioTextfield } from '@studio/components';
+import {
+  StudioButton,
+  StudioDeleteButton,
+  StudioPropertyButton,
+  StudioTextfield,
+} from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { Option } from 'app-shared/types/Option';
+import { XMarkIcon } from '@navikt/aksel-icons';
+import { TextResource } from '../../../TextResource/TextResource';
 
 export type EditOptionProps = {
   legend: string;
@@ -11,7 +18,27 @@ export type EditOptionProps = {
   onDelete: () => void;
 };
 
-export const EditOption = ({ onChange, option, legend, onDelete }: EditOptionProps) => {
+export const EditOption = (props: EditOptionProps) => {
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const open = () => setIsOpen(true);
+  const close = () => setIsOpen(false);
+
+  return isOpen ? (
+    <OpenOption {...props} onClose={close} />
+  ) : (
+    <ClosedOption {...props} onOpen={open} />
+  );
+};
+
+type ClosedOptionProps = EditOptionProps & { onOpen: () => void };
+
+const ClosedOption = ({ legend, onOpen, option }: ClosedOptionProps) => {
+  return <StudioPropertyButton property={legend} onClick={onOpen} value={option.value} />;
+};
+
+type OpenOptionProps = EditOptionProps & { onClose: () => void };
+
+const OpenOption = ({ legend, onChange, option, onDelete, onClose }: OpenOptionProps) => {
   const { t } = useTranslation();
 
   const handleValueChange = (event: ChangeEvent<HTMLInputElement>) =>
@@ -23,6 +50,7 @@ export const EditOption = ({ onChange, option, legend, onDelete }: EditOptionPro
   return (
     <fieldset>
       <legend>{legend}</legend>
+      <StudioButton icon={<XMarkIcon />} onClick={onClose} size='small' variant='secondary' />
       <StudioDeleteButton onDelete={onDelete} />
       <StudioTextfield
         label={t('general.value')}
@@ -30,10 +58,7 @@ export const EditOption = ({ onChange, option, legend, onDelete }: EditOptionPro
         placeholder={t('general.value')}
         value={option.value.toString()}
       />
-      <TextResourceEditor
-        onReferenceChange={handleTextReferenceChange}
-        textResourceId={option.label}
-      />
+      <TextResource onReferenceChange={handleTextReferenceChange} textResourceId={option.label} />
     </fieldset>
   );
 };
