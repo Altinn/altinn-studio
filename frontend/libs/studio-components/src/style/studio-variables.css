@@ -5,4 +5,5 @@
   --studio-treeitem-vertical-line-colour-root: #000;
   --studio-treeitem-vertical-line-colour: var(--fds-semantic-border-divider-default);
   --studio-treeitem-vertical-line-width: 2px;
+  --studio-expression-spacing: var(--fds-spacing-3);
 }

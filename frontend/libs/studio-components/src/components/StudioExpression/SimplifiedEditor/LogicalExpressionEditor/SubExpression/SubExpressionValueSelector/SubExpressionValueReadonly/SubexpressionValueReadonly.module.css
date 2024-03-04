@@ -1,0 +1,7 @@
+.binding {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  gap: var(--fds-spacing-1);
+  justify-content: flex-start;
+}
