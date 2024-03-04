@@ -38,8 +38,8 @@ const waitForData = async () => {
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
-const render = async (props: Partial<IGenericEditComponent> = {}) => {
-  const allProps: IGenericEditComponent = {
+const render = async (props: Partial<IGenericEditComponent<ComponentType.Image>> = {}) => {
+  const allProps: IGenericEditComponent<ComponentType.Image> = {
     component: componentData,
     handleComponentChange: jest.fn(),
     ...props,

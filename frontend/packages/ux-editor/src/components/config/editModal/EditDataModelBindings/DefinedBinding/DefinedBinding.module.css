@@ -1,0 +1,5 @@
+.selectedOption {
+  align-items: center;
+  display: flex;
+  gap: var(--fds-spacing-1);
+}

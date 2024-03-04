@@ -10,7 +10,7 @@ import userEvent from '@testing-library/user-event';
 
 // Test data:
 const component: FormAddressComponent = {
-  type: ComponentType.AddressComponent,
+  type: ComponentType.Address,
   dataModelBindings: {
     test: 'test',
   },
@@ -19,7 +19,7 @@ const component: FormAddressComponent = {
   itemType: 'COMPONENT',
 };
 const handleComponentChange = jest.fn();
-const defaultProps: IGenericEditComponent = {
+const defaultProps: IGenericEditComponent<ComponentType.Address> = {
   component,
   handleComponentChange,
 };
@@ -49,7 +49,7 @@ const waitForData = async () => {
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
-const render = async (props?: Partial<IGenericEditComponent>) => {
+const render = async (props?: Partial<IGenericEditComponent<ComponentType.Address>>) => {
   await waitForData();
 
   return renderWithMockStore()(<AddressComponent {...defaultProps} {...props} />);

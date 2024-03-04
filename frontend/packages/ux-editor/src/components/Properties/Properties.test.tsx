@@ -10,25 +10,31 @@ import { renderWithProviders } from '../../testing/mocks';
 
 // Test data:
 const textText = 'Tekst';
+const dataModelBindingsText = 'Datamodellknytninger';
 const contentText = 'Innhold';
 const dynamicsText = 'Dynamikk';
 const calculationsText = 'Beregninger';
 const texts = {
   'right_menu.text': textText,
+  'right_menu.dataModelBindings': dataModelBindingsText,
   'right_menu.content': contentText,
   'right_menu.dynamics': dynamicsText,
   'right_menu.calculations': calculationsText,
 };
 
 const textTestId = 'text';
+const DataModelBindingsTestId = 'dataModelBindings';
 const editFormComponentTestId = 'content';
-const conditionalRenderingTestId = 'conditional-rendering';
+const conditionalRenderingTestId = 'conditionalRendering';
 const expressionsTestId = 'expressions';
 const calculationsTestId = 'calculations';
 
 // Mocks:
 jest.mock('./Text', () => ({
   Text: () => <div data-testid={textTestId} />,
+}));
+jest.mock('./DataModelBindings', () => ({
+  DataModelBindings: () => <div data-testid={DataModelBindingsTestId} />,
 }));
 jest.mock('../config/EditFormComponent', () => ({
   EditFormComponent: () => <div data-testid={editFormComponentTestId} />,
@@ -45,6 +51,10 @@ jest.mock('./Calculations', () => ({
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 describe('Properties', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('Text', () => {
     it('Toggles text when clicked', async () => {
       const user = userEvent.setup();
@@ -61,6 +71,17 @@ describe('Properties', () => {
       rerender(getComponent({ formItemId: 'test' }));
       const button = screen.queryByRole('button', { name: textText });
       await waitFor(() => expect(button).toHaveAttribute('aria-expanded', 'true'));
+    });
+  });
+  describe('DataModelBindings', () => {
+    it('Toggles dataModelBindings when clicked', async () => {
+      const user = userEvent.setup();
+      renderProperties();
+      const button = screen.queryByRole('button', { name: dataModelBindingsText });
+      await act(() => user.click(button));
+      expect(button).toHaveAttribute('aria-expanded', 'true');
+      await act(() => user.click(button));
+      expect(button).toHaveAttribute('aria-expanded', 'false');
     });
   });
   describe('Default config', () => {
@@ -81,13 +102,34 @@ describe('Properties', () => {
       });
       expect(heading).toBeInTheDocument();
 
+      const editComponentIdButton = screen.getByRole('button', { name: /ID/i });
+      expect(editComponentIdButton).toBeInTheDocument();
+      await act(() => user.click(editComponentIdButton));
       const textbox = screen.getByRole('textbox', {
         name: 'ux_editor.modal_properties_component_change_id',
       });
 
-      await act(() => user.type(textbox, '2'));
+      const validId = 'valid-id';
+      await act(() => user.type(textbox, validId));
+      await act(() => user.click(document.body));
       expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalledTimes(1);
       expect(formItemContextProviderMock.debounceSave).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not invoke handleUpdate when the id is invalid', async () => {
+      const user = userEvent.setup();
+      renderProperties({ formItem: component1Mock, formItemId: component1IdMock });
+      await act(() => user.click(screen.getByRole('button', { name: `ID: ${component1Mock.id}` })));
+
+      const invalidId = 'invalidId-01';
+      await act(() =>
+        user.type(
+          screen.getByLabelText('ux_editor.modal_properties_component_change_id'),
+          invalidId,
+        ),
+      );
+
+      expect(formItemContextProviderMock.handleUpdate).not.toHaveBeenCalled();
     });
   });
 
@@ -159,10 +201,12 @@ describe('Properties', () => {
     const formIdMock = 'test-id';
     renderProperties({ formItemId: formIdMock });
     expect(screen.getByText(textText)).toBeInTheDocument();
+    expect(screen.getByText(dataModelBindingsText)).toBeInTheDocument();
     expect(screen.getByText(contentText)).toBeInTheDocument();
     expect(screen.getByText(dynamicsText)).toBeInTheDocument();
     expect(screen.getByText(calculationsText)).toBeInTheDocument();
     expect(screen.getByTestId(textTestId)).toBeInTheDocument();
+    expect(screen.getByTestId(DataModelBindingsTestId)).toBeInTheDocument();
     expect(screen.getByTestId(editFormComponentTestId)).toBeInTheDocument();
     expect(screen.getByTestId(expressionsTestId)).toBeInTheDocument();
     expect(screen.getByTestId(calculationsTestId)).toBeInTheDocument();

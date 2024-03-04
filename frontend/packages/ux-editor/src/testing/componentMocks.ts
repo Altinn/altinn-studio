@@ -85,9 +85,9 @@ const buttonComponent: FormComponent<ComponentType.Button> = {
   type: ComponentType.Button,
   onClickAction: jest.fn(),
 };
-const addressComponent: FormComponent<ComponentType.AddressComponent> = {
+const addressComponent: FormComponent<ComponentType.Address> = {
   ...commonProps,
-  type: ComponentType.AddressComponent,
+  type: ComponentType.Address,
   simplified: true,
 };
 const navigationBarComponent: FormComponent<ComponentType.NavigationBar> = {
@@ -148,7 +148,7 @@ const repeatingGroupContainer: FormContainer<ComponentType.RepeatingGroup> = {
 export const componentMocks = {
   [ComponentType.AccordionGroup]: accordionGroupContainer,
   [ComponentType.Accordion]: accordionContainer,
-  [ComponentType.AddressComponent]: addressComponent,
+  [ComponentType.Address]: addressComponent,
   [ComponentType.AttachmentList]: attachmentListComponent,
   [ComponentType.ButtonGroup]: buttonGroupContainer,
   [ComponentType.Button]: buttonComponent,
