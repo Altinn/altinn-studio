@@ -1,0 +1,9 @@
+.viewModeIconsContainer {
+  display: flex;
+  align-items: center;
+  color: var(--fds-semantic-text-neutral-default);
+}
+
+.editIcon {
+  margin-left: auto;
+}

@@ -13,7 +13,7 @@ import { FormField } from '../../../FormField';
 export const FileUploadComponent = ({
   component,
   handleComponentChange,
-}: IGenericEditComponent) => {
+}: IGenericEditComponent<ComponentType.FileUpload | ComponentType.FileUploadWithTag>) => {
   const t = useText();
 
   const fileUploaderComponent = component as FormFileUploaderComponent;

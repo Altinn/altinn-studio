@@ -4,11 +4,15 @@ import classes from './AddressComponent.module.css';
 import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { AddressKeys, getTextResourceByAddressKey } from '../../../../utils/component';
-import { EditDataModelBindings } from '../../editModal/EditDataModelBindings';
+import { EditDataModelBindings } from '../../editModal/EditDataModelBindings/EditDataModelBindings';
 import type { FormAddressComponent } from '../../../../types/FormComponent';
 import { FormField } from '../../../FormField';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
-export const AddressComponent = ({ component, handleComponentChange }: IGenericEditComponent) => {
+export const AddressComponent = ({
+  component,
+  handleComponentChange,
+}: IGenericEditComponent<ComponentType.Address>) => {
   const t = useText();
 
   const handleToggleAddressSimple = (isChecked: boolean) => {

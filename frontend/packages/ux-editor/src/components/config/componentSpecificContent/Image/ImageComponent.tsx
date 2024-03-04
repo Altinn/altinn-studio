@@ -1,16 +1,17 @@
 import React from 'react';
-import { LegacySelect, Textfield } from '@digdir/design-system-react';
-import { Fieldset } from '@digdir/design-system-react';
+import { LegacySelect, Textfield, Fieldset } from '@digdir/design-system-react';
+
 import classes from './ImageComponent.module.css';
 import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
 export const ImageComponent = ({
   component,
   handleComponentChange,
   layoutName,
-}: IGenericEditComponent) => {
+}: IGenericEditComponent<ComponentType.Image>) => {
   const t = useText();
   const alignOptions = [
     {

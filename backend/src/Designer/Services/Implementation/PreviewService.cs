@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using LibGit2Sharp;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -75,6 +77,29 @@ public class PreviewService : IPreviewService
         return null;
     }
 
+    public async Task<List<string>> GetTasksForAllLayoutSets(string org, string app, string developer, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+        try
+        {
+            LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+            List<string> tasks = new();
+            if (layoutSets?.Sets is { Count: > 0 })
+            {
+                foreach (LayoutSetConfig layoutSet in layoutSets.Sets.Where(ls => !tasks.Contains(ls.Tasks[0])))
+                {
+                    tasks.Add(layoutSet.Tasks[0]);
+                }
+            }
+            return tasks;
+        }
+        catch (NotFoundException)
+        {
+            return null;
+        }
+    }
+
     /// <summary>
     /// Gets the task connected to the current layout set name in the layout sets file
     /// </summary>
@@ -84,7 +109,7 @@ public class PreviewService : IPreviewService
     /// <param name="layoutSetName">LayoutSetName to get dataType for</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    private async Task<string> GetTaskForLayoutSetName(string org, string app, string developer, string layoutSetName, CancellationToken cancellationToken = default)
+    public async Task<string> GetTaskForLayoutSetName(string org, string app, string developer, string layoutSetName, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);

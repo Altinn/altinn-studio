@@ -27,7 +27,7 @@ namespace Designer.Tests.Controllers.RepositorySettingsController
             await CopyRepositoryForTest(org, repo, developer, targetRepository);
 
             string requestUrl = VersionPrefix(org, targetRepository);
-            const string requestBody = @"{""repoType"": ""Datamodels"", ""datamodelling.preference"": ""JsonSchema""}";
+            const string requestBody = """{"repoType": "Datamodels", "datamodelling.preference": "JsonSchema"}""";
 
             using var payload = new StringContent(requestBody, Encoding.UTF8, MediaTypeNames.Application.Json);
 

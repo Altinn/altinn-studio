@@ -18,18 +18,18 @@ public class FileSyncHandlerExecutor : IFileSyncHandlerExecutor
 
     public async Task ExecuteWithExceptionHandling(AltinnRepoEditingContext editingContext, string errorCode, string sourcePath, Func<Task> handlerFunction)
     {
+        var source = new Source(Path.GetFileName(sourcePath), sourcePath);
         try
         {
             await handlerFunction();
+            SyncSuccess success = new(source);
+            await _hubContext.Clients.Group(editingContext.Developer).FileSyncSuccess(success);
         }
         catch (Exception e)
         {
             SyncError error = new(
                 errorCode,
-                new ErrorSource(
-                    Path.GetFileName(sourcePath),
-                    sourcePath
-                ),
+                source,
                 e.Message
             );
 

@@ -8,8 +8,7 @@ export type SupportedFeatureFlags =
   | 'componentConfigBeta'
   | 'configureLayoutSet'
   | 'shouldOverrideAppLibCheck'
-  | 'resourceAccessLists'
-  | 'shouldOverrideAppFrontendCheck';
+  | 'resourceAccessLists';
 
 /*
  * Please add all the features that you want to be toggle on by default here.

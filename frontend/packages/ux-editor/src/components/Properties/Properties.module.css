@@ -2,3 +2,8 @@
   background: var(--fds-semantic-surface-neutral-subtle);
   flex: var(--properties-width-fraction);
 }
+
+.datamodelBindings {
+  --vertical-padding: calc(var(--fds-spacing-5) - var(--studio-property-button-vertical-spacing));
+  padding: var(--vertical-padding) 0;
+}

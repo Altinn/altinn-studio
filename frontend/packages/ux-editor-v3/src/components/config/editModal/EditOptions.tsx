@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { IOption } from '../../../types/global';
-import { Fieldset, Radio, Textfield } from '@digdir/design-system-react';
+import { Fieldset, Radio, Textfield, ErrorMessage } from '@digdir/design-system-react';
 import classes from './EditOptions.module.css';
 import type { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';
@@ -12,7 +12,7 @@ import type {
   FormCheckboxesComponent,
   FormRadioButtonsComponent,
 } from '../../../types/FormComponent';
-import { ErrorMessage } from '@digdir/design-system-react';
+
 import { FormField } from '../../FormField';
 import { StudioButton } from '@studio/components';
 

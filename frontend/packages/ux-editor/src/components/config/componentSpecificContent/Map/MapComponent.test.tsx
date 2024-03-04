@@ -7,6 +7,7 @@ import { appDataMock } from '../../../../testing/stateMocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
 import type { IGenericEditComponent } from '../../componentConfig';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
 const texts: Record<string, string> = {
   'validation_errors.required': 'Feltet er påkrevd!',
@@ -35,7 +36,7 @@ const waitForData = async () => {
 const renderMapComponent = async ({
   component = {} as any,
   handleComponentChange = handleComponentChangeMock,
-}: Partial<IGenericEditComponent>) => {
+}: Partial<IGenericEditComponent<ComponentType.Map>>) => {
   await waitForData();
 
   renderWithMockStore({

@@ -1,76 +1,65 @@
-import React, { useContext, useState } from 'react';
-import type { Expression, SubExpression, ExpressionProperty } from '../../../../types/Expressions';
-import {
-  convertExternalExpressionToInternal,
-  convertAndAddExpressionToComponent,
-  removeSubExpression,
-  deleteExpressionFromPropertyOnComponent,
-  getExternalExpressionOnComponentProperty,
-} from '../../../../utils/expressionsUtils';
-import type { FormComponent } from '../../../../types/FormComponent';
-import type { FormContainer } from '../../../../types/FormContainer';
-import { FormItemContext } from '../../../../containers/FormItemContext';
-import { ExpressionPreview } from './ExpressionPreview';
-import { ExpressionEditMode } from './ExpressionEditMode';
+import type { ReactNode } from 'react';
+import React, { useMemo } from 'react';
+import { getComponentIds, getDataModelElementNames } from '../../../../utils/expressionsUtils';
+import type { Expression, DataLookupOptions } from '@studio/components';
+import { DataLookupFuncName, StudioDeleteButton } from '@studio/components';
+import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useAppContext } from '../../../../hooks/useAppContext';
+import { useDatamodelMetadataQuery } from '../../../../hooks/queries/useDatamodelMetadataQuery';
+import { Paragraph } from '@digdir/design-system-react';
+import classes from './ExpressionContent.module.css';
+import { useText } from '../../../../hooks';
+import { Expression as ExpressionWithTexts } from 'app-shared/components/Expression';
 
 export interface ExpressionContentProps {
-  property: ExpressionProperty;
-  defaultEditMode: boolean;
-  onDeleteExpression: (property: ExpressionProperty) => void;
+  expression: Expression;
+  onChange: (expression: Expression) => void;
+  onDelete: () => void;
+  heading: ReactNode;
 }
 
 export const ExpressionContent = ({
-  property,
-  defaultEditMode,
-  onDeleteExpression,
+  expression,
+  onChange,
+  onDelete,
+  heading,
 }: ExpressionContentProps) => {
-  const { formItemId, formItem, handleUpdate, handleSave } = useContext(FormItemContext);
-  const externalExpression = getExternalExpressionOnComponentProperty(formItem, property);
-  const defaultExpression = externalExpression
-    ? convertExternalExpressionToInternal(property, externalExpression)
-    : { property };
-  const [expression, setExpression] = useState<Expression>(defaultExpression);
-  const [editMode, setEditMode] = useState<boolean>(defaultEditMode);
+  const t = useText();
+  const { org, app } = useStudioUrlParams();
+  const { selectedLayoutSet } = useAppContext();
+  const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedLayoutSet);
+  const { data: datamodelMetadata } = useDatamodelMetadataQuery(org, app);
 
-  const updateAndSaveLayout = async (updatedComponent: FormComponent | FormContainer) => {
-    handleUpdate(updatedComponent);
-    await handleSave(formItemId, updatedComponent);
-  };
+  const dataLookupOptions: DataLookupOptions = useMemo(
+    () => ({
+      [DataLookupFuncName.Component]: getComponentIds(formLayoutsData),
+      [DataLookupFuncName.DataModel]: getDataModelElementNames(datamodelMetadata),
+    }),
+    [formLayoutsData, datamodelMetadata],
+  );
 
-  const saveExpression = async (exp: Expression) => {
-    const updatedComponent = convertAndAddExpressionToComponent(formItem, exp);
-    await updateAndSaveLayout(updatedComponent);
-  };
-
-  const deleteExpression = async (exp: Expression) => {
-    const updatedComponent = deleteExpressionFromPropertyOnComponent(formItem, exp.property);
-    await updateAndSaveLayout(updatedComponent);
-    onDeleteExpression(exp.property);
-  };
-
-  const deleteSubExpression = async (subExpression: SubExpression) => {
-    const newExpression: Expression = removeSubExpression(expression, subExpression);
-    const updatedComponent = convertAndAddExpressionToComponent(formItem, newExpression);
-    await updateAndSaveLayout(updatedComponent);
-    setExpression(newExpression);
-  };
-
-  return editMode ? (
-    <ExpressionEditMode
-      expression={expression}
-      componentName={formItemId}
-      onSetEditMode={setEditMode}
-      onDeleteExpression={deleteExpression}
-      onDeleteSubExpression={deleteSubExpression}
-      onSaveExpression={saveExpression}
-      onSetExpression={setExpression}
-    />
-  ) : (
-    <ExpressionPreview
-      expression={expression}
-      componentName={formItemId}
-      onSetEditMode={setEditMode}
-      onDeleteExpression={deleteExpression}
-    />
+  return (
+    <fieldset className={classes.expressionContent}>
+      <legend className={classes.legend}>
+        <Paragraph className={classes.legendContent} size='small'>
+          {heading}
+        </Paragraph>
+      </legend>
+      <StudioDeleteButton
+        className={classes.deleteButton}
+        confirmMessage={t('right_menu.expressions_delete_confirm')}
+        onDelete={onDelete}
+        size='small'
+        title={t('right_menu.expression_delete')}
+      />
+      <div className={classes.expressionWrapper}>
+        <ExpressionWithTexts
+          expression={expression}
+          onChange={onChange}
+          dataLookupOptions={dataLookupOptions}
+        />
+      </div>
+    </fieldset>
   );
 };
