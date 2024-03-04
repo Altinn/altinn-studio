@@ -17,11 +17,7 @@ const StudioPropertyButton = forwardRef<HTMLButtonElement, StudioPropertyButtonP
 
     const icon = hasValue || givenIcon ? givenIcon : <PlusCircleIcon />;
 
-    const className = cn(
-      classes.propertyButton,
-      hasValue ? classes.withValue : classes.withoutValue,
-      givenClass,
-    );
+    const className = cn(classes.propertyButton, hasValue && classes.withValue, givenClass);
 
     return (
       <StudioButton
