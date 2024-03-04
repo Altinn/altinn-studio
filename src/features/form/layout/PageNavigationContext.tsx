@@ -71,8 +71,8 @@ export const useHiddenPages = () => {
 export const useReturnToView = () => {
   const ctx = useLaxCtx();
   if (ctx === ContextNotProvided) {
-    return undefined;
+    return {};
   }
 
-  return ctx.returnToView;
+  return { returnToView: ctx.returnToView, setReturnToView: ctx.setReturnToView };
 };

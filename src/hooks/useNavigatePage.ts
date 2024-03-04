@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useLocation, useMatch, useNavigate } from 'react-router-dom';
-import type { NavigateOptions } from 'react-router-dom';
+import type { NavigateFunction, NavigateOptions } from 'react-router-dom';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { useHiddenPages } from 'src/features/form/layout/PageNavigationContext';
+import { useHiddenPages, useReturnToView } from 'src/features/form/layout/PageNavigationContext';
 import { useLaxLayoutSettings, usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxProcessData, useTaskType } from 'src/features/instance/ProcessContext';
@@ -56,7 +56,6 @@ export const useOrder = () => {
 };
 
 export const useNavigatePage = () => {
-  const navigate = useNavigate();
   const isStatelessApp = useIsStatelessApp();
   const currentTaskId = useLaxProcessData()?.currentTask?.elementId;
   const processTasks = useLaxProcessData()?.processTasks;
@@ -72,6 +71,20 @@ export const useNavigatePage = () => {
   const currentPageIndex = order?.indexOf(currentPageId) ?? -1;
   const nextPageIndex = currentPageIndex !== -1 ? currentPageIndex + 1 : -1;
   const previousPageIndex = currentPageIndex !== -1 ? currentPageIndex - 1 : -1;
+
+  /**
+   * Navigation function for react-router-dom
+   * Make sure to clear returnToView on navigation
+   */
+  const { setReturnToView } = useReturnToView();
+  const _navigate = useNavigate();
+  const navigate = useCallback(
+    (...args: Parameters<NavigateFunction>) => {
+      setReturnToView && setReturnToView(undefined);
+      return _navigate(...args);
+    },
+    [_navigate, setReturnToView],
+  ) as NavigateFunction;
 
   const isValidPageId = useCallback(
     (pageId: string) => {

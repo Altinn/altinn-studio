@@ -26,7 +26,7 @@ const expandIconStyle = { transform: 'rotate(45deg)' };
 export const NavBar = ({ type }: INavBarProps) => {
   const { langAsString } = useLanguage();
   const { navigateToPage, previous } = useNavigatePage();
-  const returnToView = useReturnToView();
+  const { returnToView } = useReturnToView();
   const party = useCurrentParty();
   const { expandedWidth, toggleExpandedWidth } = useUiConfigContext();
   const { hideCloseButton, showLanguageSelector, showExpandWidthButton } = usePageSettings();

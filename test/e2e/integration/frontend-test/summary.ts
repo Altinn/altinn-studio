@@ -572,6 +572,67 @@ describe('Summary', () => {
       });
     }
   });
+
+  it('backToSummary should disappear when navigating away from the current page', () => {
+    cy.goto('changename');
+
+    cy.get(appFrontend.changeOfName.newLastName).type('Hansen');
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
+    cy.get(appFrontend.nextButton).should('be.visible');
+    cy.get(appFrontend.backToSummaryButton).should('not.exist');
+    // Get some validation messages
+    cy.gotoNavPage('grid');
+    cy.get(appFrontend.sendinButton).click();
+
+    /**
+     * test() should return true if backToSummary should be gone, and false if it should still be visible
+     */
+    function testNavigationMethod(test: () => boolean) {
+      cy.gotoNavPage('summary');
+      cy.get('[data-componentid="summary3"] button').click();
+      cy.navPage('form').should('have.attr', 'aria-current', 'page');
+      cy.get(appFrontend.backToSummaryButton).should('be.visible');
+      cy.get(appFrontend.nextButton).should('not.exist');
+
+      if (test()) {
+        cy.get(appFrontend.nextButton).should('be.visible');
+        cy.get(appFrontend.backToSummaryButton).should('not.exist');
+      } else {
+        cy.get(appFrontend.backToSummaryButton).should('be.visible');
+        cy.get(appFrontend.nextButton).should('not.exist');
+      }
+    }
+
+    // Navigation bare should clear backToSummary
+    testNavigationMethod(() => {
+      cy.gotoNavPage('summary');
+      return true;
+    });
+
+    // Error report on the same page should not clear backToSummary
+    testNavigationMethod(() => {
+      cy.get(appFrontend.errorReport).find(`li:contains("${texts.requiredFieldFromBackend}")`).find('button').click();
+      cy.get(appFrontend.changeOfName.newFirstName).should('be.focused');
+      return false;
+    });
+
+    // Clicking backToSummary should clear it
+    testNavigationMethod(() => {
+      cy.get(appFrontend.backToSummaryButton).click();
+      cy.navPage('summary').should('have.attr', 'aria-current', 'page');
+      return true;
+    });
+
+    // Error report to different page shoud clear backToSummary
+    cy.gotoNavPage('summary');
+    cy.get('[data-testid="summary-fordeling-bolig"] button').click();
+    cy.navPage('grid').should('have.attr', 'aria-current', 'page');
+    cy.get(appFrontend.errorReport).find(`li:contains("${texts.requiredFieldFromBackend}")`).find('button').click();
+    cy.navPage('form').should('have.attr', 'aria-current', 'page');
+    cy.get(appFrontend.changeOfName.newFirstName).should('be.focused');
+    cy.get(appFrontend.nextButton).should('be.visible');
+    cy.get(appFrontend.backToSummaryButton).should('not.exist');
+  });
 });
 
 /**

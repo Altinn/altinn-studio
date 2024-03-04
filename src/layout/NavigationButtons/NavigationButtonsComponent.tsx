@@ -15,7 +15,7 @@ export type INavigationButtons = PropsFromGenericComponent<'NavigationButtons'>;
 export function NavigationButtonsComponent({ node }: INavigationButtons) {
   const { id, showBackButton, textResourceBindings, validateOnNext, validateOnPrevious } = node.item;
   const { navigateToPage, next, previous, maybeSaveOnPageChange } = useNavigatePage();
-  const { returnToView, setReturnToView } = usePageNavigationContext();
+  const { returnToView } = usePageNavigationContext();
 
   const refPrev = React.useRef<HTMLButtonElement>(null);
   const refNext = React.useRef<HTMLButtonElement>(null);
@@ -97,7 +97,6 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
       }
     }
 
-    setReturnToView(undefined);
     navigateToPage(goToView, { skipAutoSave: true });
   };
 
