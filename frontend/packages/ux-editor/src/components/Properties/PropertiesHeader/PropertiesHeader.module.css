@@ -18,8 +18,6 @@
 }
 
 .content {
-  padding-inline: var(--fds-spacing-3);
-  padding-block: var(--fds-spacing-2);
   background-color: var(--fds-semantic-surface-neutral-default);
   display: flex;
   flex-direction: column;
