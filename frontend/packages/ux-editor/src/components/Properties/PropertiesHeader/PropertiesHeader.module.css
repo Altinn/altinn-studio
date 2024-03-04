@@ -1,22 +1,3 @@
-.header {
-  display: flex;
-  justify-content: space-between;
-  padding-inline: var(--fds-spacing-3);
-  padding-block: var(--fds-spacing-2);
-  background-color: var(--fds-semantic-surface-neutral-selected);
-}
-
-.iconAndTextWrapper {
-  display: flex;
-  align-items: center;
-  gap: var(--fds-spacing-2);
-}
-
-.divider {
-  margin: 0;
-  padding: 0;
-}
-
 .content {
   background-color: var(--fds-semantic-surface-neutral-default);
   display: flex;
