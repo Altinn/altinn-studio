@@ -36,7 +36,6 @@ type SelectionComponentFull = SelectionComponent & {
 };
 
 type FileUploadComponentBase = {
-  description: string;
   hasCustomFileEndings: boolean;
   maxFileSizeInMB: number;
   displayMode: string;
