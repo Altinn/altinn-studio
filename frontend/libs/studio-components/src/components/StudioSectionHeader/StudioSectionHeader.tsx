@@ -15,6 +15,7 @@ export type StudioSectionHeaderProps = {
     title: string;
   };
 } & HTMLAttributes<HTMLDivElement>;
+
 const StudioSectionHeader = forwardRef<HTMLDivElement, StudioSectionHeaderProps>(
   (
     { heading, helpText, icon, className: givenClassName, ...rest }: StudioSectionHeaderProps,
