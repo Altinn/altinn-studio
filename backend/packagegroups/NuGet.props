@@ -48,7 +48,7 @@
     <PackageReference Update="xunit" Version="2.7.0" />
     <PackageReference Update="xunit.runner.visualstudio" Version="2.5.7" />
     <PackageReference Update="coverlet.collector" Version="6.0.1" />
-    <PackageReference Update="Basic.Reference.Assemblies" Version="1.4.5" />
+    <PackageReference Update="Basic.Reference.Assemblies" Version="1.5.0" />
     <PackageReference Update="Fare" Version="2.2.1" />
     <PackageReference Update="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
     <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />

@@ -1877,9 +1877,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@emotion/react@npm:11.11.3":
-  version: 11.11.3
-  resolution: "@emotion/react@npm:11.11.3"
+"@emotion/react@npm:11.11.4":
+  version: 11.11.4
+  resolution: "@emotion/react@npm:11.11.4"
   dependencies:
     "@babel/runtime": "npm:^7.18.3"
     "@emotion/babel-plugin": "npm:^11.11.0"
@@ -1894,7 +1894,7 @@ __metadata:
   peerDependenciesMeta:
     "@types/react":
       optional: true
-  checksum: 10/f7b98557b7d5236296dda48c2fc8a6cde4af7399758496e9f710f85a80c7d66fee1830966caabd7b237601bfdaca4e1add8c681d1ae4cc3d497fe88958d541c4
+  checksum: 10/e7da3a1ddc1d72a4179010bdfd17423c13b1a77bf83a8b18271e919fd382d08c62dc2313ed5347acfd1ef85bb1bae8932597647a986e8a1ea1462552716cd495
   languageName: node
   linkType: hard
 
@@ -3260,13 +3260,13 @@ __metadata:
   linkType: hard
 
 "@playwright/test@npm:^1.41.1":
-  version: 1.41.2
-  resolution: "@playwright/test@npm:1.41.2"
+  version: 1.42.1
+  resolution: "@playwright/test@npm:1.42.1"
   dependencies:
-    playwright: "npm:1.41.2"
+    playwright: "npm:1.42.1"
   bin:
     playwright: cli.js
-  checksum: 10/e87405987fa024f75acc223c47fcb2da0a66b2fa0cd9a583ca5b02aac12be353d0c262bf6a22b9bc40550c86c8b7629e70cd27f508ec370d9c92bb72f74581e7
+  checksum: 10/5bd7f1c77963cacc6f44cf4c1ef46f9ad41e79a3e6f34eb81398afaa09b1b08a4cbe0f7064f03c71c094414d1c4507d6183b61c63aa4b6a93846d386f7c651a2
   languageName: node
   linkType: hard
 
@@ -3706,10 +3706,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@remix-run/router@npm:1.15.1":
-  version: 1.15.1
-  resolution: "@remix-run/router@npm:1.15.1"
-  checksum: 10/d262285d155f80779894ee1d9ef07e35421986ba2546378dfe0e3b09397ce71becb6a4677e9efcd4155e2bd3f9f7f7ecbc110cd99bacee6dd7d3e5ce51b7caa8
+"@remix-run/router@npm:1.15.2":
+  version: 1.15.2
+  resolution: "@remix-run/router@npm:1.15.2"
+  checksum: 10/2a2c9c062228130d0383328de2757301e878fc268a72f813b60b8463bb7ed2c1fa4018072883af8096982a4b2741ec6eb349587cd7f95acfdf09588d93adea67
   languageName: node
   linkType: hard
 
@@ -4613,11 +4613,11 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:*, @types/node@npm:^20.10.5":
-  version: 20.11.22
-  resolution: "@types/node@npm:20.11.22"
+  version: 20.11.24
+  resolution: "@types/node@npm:20.11.24"
   dependencies:
     undici-types: "npm:~5.26.4"
-  checksum: 10/855058a4328c0c88bd0616b2fcfedc6504ca08c3e5304674dc2e6485147d7f523d0ff591e002c765a1ec761b26fc0934599d694a2749634e9244ba3bf02de703
+  checksum: 10/7f34bfae5f9b98b9910230af4b4c52dc7fb2d1e96fdebfbc3d7576f8ab3d100076f193f9469add9e7418b455294155e7e6a028498cc5e98f9d49349875a459cf
   languageName: node
   linkType: hard
 
@@ -4733,14 +4733,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:18.2.58":
-  version: 18.2.58
-  resolution: "@types/react@npm:18.2.58"
+"@types/react@npm:18.2.61":
+  version: 18.2.61
+  resolution: "@types/react@npm:18.2.61"
   dependencies:
     "@types/prop-types": "npm:*"
     "@types/scheduler": "npm:*"
     csstype: "npm:^3.0.2"
-  checksum: 10/ec5e1a7d8acc55551efec7a3d63441d24c7e94b66bf8039944541a8408048668e51b7b4b0b6e8303cdea271b7c6da242cdc7bb8ca501eedf822956edbdbfc67e
+  checksum: 10/74c2920ccca83fc51190ed4eda1066fa6a644197839dd37765fcce93cbd50b7a52b75815ce0083bb95195f886c80b57745314dd49ecbf235fa93d753ae2260bc
   languageName: node
   linkType: hard
 
@@ -5484,7 +5484,7 @@ __metadata:
     "@altinn/figma-design-tokens": "npm:6.0.1"
     "@digdir/design-system-react": "npm:0.51.1"
     "@digdir/design-system-tokens": "npm:0.13.0"
-    "@emotion/react": "npm:11.11.3"
+    "@emotion/react": "npm:11.11.4"
     "@emotion/styled": "npm:11.11.0"
     "@microsoft/applicationinsights-react-js": "npm:17.1.0"
     "@microsoft/applicationinsights-web": "npm:3.1.0"
@@ -5504,7 +5504,7 @@ __metadata:
     "@types/css-modules": "npm:1.0.5"
     "@types/jest": "npm:29.5.12"
     "@types/lodash-es": "npm:4.17.12"
-    "@types/react": "npm:18.2.58"
+    "@types/react": "npm:18.2.61"
     "@types/react-dom": "npm:18.2.19"
     "@types/react-redux": "npm:7.1.33"
     "@types/redux-mock-store": "npm:1.0.6"
@@ -5532,13 +5532,13 @@ __metadata:
     jest-fail-on-console: "npm:3.1.2"
     jest-junit: "npm:16.0.0"
     lint-staged: "npm:15.2.2"
-    mini-css-extract-plugin: "npm:2.8.0"
+    mini-css-extract-plugin: "npm:2.8.1"
     prettier: "npm:3.2.5"
     react: "npm:18.2.0"
     react-dom: "npm:18.2.0"
-    react-error-boundary: "npm:4.0.12"
+    react-error-boundary: "npm:4.0.13"
     react-i18next: "npm:13.5.0"
-    react-router-dom: "npm:6.22.1"
+    react-router-dom: "npm:6.22.2"
     react-toastify: "npm:9.1.3"
     redux-mock-store: "npm:1.5.4"
     redux-saga: "npm:1.3.0"
@@ -5667,7 +5667,7 @@ __metadata:
     react-dom: "npm:18.2.0"
     react-i18next: "npm:13.5.0"
     react-redux: "npm:8.1.3"
-    react-router-dom: "npm:6.22.1"
+    react-router-dom: "npm:6.22.2"
     redux: "npm:4.2.1"
     redux-saga: "npm:1.3.0"
     reselect: "npm:4.1.8"
@@ -5689,7 +5689,7 @@ __metadata:
     react: "npm:18.2.0"
     react-dom: "npm:18.2.0"
     react-redux: "npm:8.1.3"
-    react-router-dom: "npm:6.22.1"
+    react-router-dom: "npm:6.22.2"
     typescript: "npm:5.3.3"
     webpack: "npm:5.90.3"
     webpack-dev-server: "npm:4.15.1"
@@ -5702,7 +5702,7 @@ __metadata:
   dependencies:
     "@mui/material": "npm:5.15.11"
     "@reduxjs/toolkit": "npm:1.9.7"
-    "@types/react": "npm:18.2.58"
+    "@types/react": "npm:18.2.61"
     axios: "npm:1.6.7"
     classnames: "npm:2.5.1"
     jest: "npm:29.7.0"
@@ -5713,7 +5713,7 @@ __metadata:
     react-dnd-html5-backend: "npm:16.0.1"
     react-dom: "npm:18.2.0"
     react-redux: "npm:8.1.3"
-    react-router-dom: "npm:6.22.1"
+    react-router-dom: "npm:6.22.2"
     react-select: "npm:5.8.0"
     redux-saga: "npm:1.3.0"
     typescript: "npm:5.3.3"
@@ -6093,7 +6093,7 @@ __metadata:
   dependencies:
     axios: "npm:1.6.7"
     cors: "npm:2.8.5"
-    express: "npm:4.18.2"
+    express: "npm:4.18.3"
     morgan: "npm:1.10.0"
     nodemon: "npm:3.1.0"
     p-queue: "npm:7.4.1"
@@ -7555,7 +7555,7 @@ __metadata:
     jest: "npm:29.7.0"
     react: "npm:18.2.0"
     react-dom: "npm:18.2.0"
-    react-router-dom: "npm:6.22.1"
+    react-router-dom: "npm:6.22.2"
     react-use: "npm:17.5.0"
     typescript: "npm:5.3.3"
     webpack: "npm:5.90.3"
@@ -8979,7 +8979,46 @@ __metadata:
   languageName: node
   linkType: hard
 
-"express@npm:4.18.2, express@npm:^4.17.3":
+"express@npm:4.18.3":
+  version: 4.18.3
+  resolution: "express@npm:4.18.3"
+  dependencies:
+    accepts: "npm:~1.3.8"
+    array-flatten: "npm:1.1.1"
+    body-parser: "npm:1.20.2"
+    content-disposition: "npm:0.5.4"
+    content-type: "npm:~1.0.4"
+    cookie: "npm:0.5.0"
+    cookie-signature: "npm:1.0.6"
+    debug: "npm:2.6.9"
+    depd: "npm:2.0.0"
+    encodeurl: "npm:~1.0.2"
+    escape-html: "npm:~1.0.3"
+    etag: "npm:~1.8.1"
+    finalhandler: "npm:1.2.0"
+    fresh: "npm:0.5.2"
+    http-errors: "npm:2.0.0"
+    merge-descriptors: "npm:1.0.1"
+    methods: "npm:~1.1.2"
+    on-finished: "npm:2.4.1"
+    parseurl: "npm:~1.3.3"
+    path-to-regexp: "npm:0.1.7"
+    proxy-addr: "npm:~2.0.7"
+    qs: "npm:6.11.0"
+    range-parser: "npm:~1.2.1"
+    safe-buffer: "npm:5.2.1"
+    send: "npm:0.18.0"
+    serve-static: "npm:1.15.0"
+    setprototypeof: "npm:1.2.0"
+    statuses: "npm:2.0.1"
+    type-is: "npm:~1.6.18"
+    utils-merge: "npm:1.0.1"
+    vary: "npm:~1.1.2"
+  checksum: 10/0bf4656d0020cdc477aec884c6245dceea78992f6c747c899c87dbb0598474658d4130a29c80f02c99d1f0d6ebef706e7131c70c5454c3e07aba761c5bd3d627
+  languageName: node
+  linkType: hard
+
+"express@npm:^4.17.3":
   version: 4.18.2
   resolution: "express@npm:4.18.2"
   dependencies:
@@ -12295,15 +12334,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mini-css-extract-plugin@npm:2.8.0":
-  version: 2.8.0
-  resolution: "mini-css-extract-plugin@npm:2.8.0"
+"mini-css-extract-plugin@npm:2.8.1":
+  version: 2.8.1
+  resolution: "mini-css-extract-plugin@npm:2.8.1"
   dependencies:
     schema-utils: "npm:^4.0.0"
     tapable: "npm:^2.2.1"
   peerDependencies:
     webpack: ^5.0.0
-  checksum: 10/38166b717682d9e8bd4c1426e1b6463d85c1853fb82c0bd9607c1cbeb070db0feb226acd54364633aeaa832f55230e171599936d85d010626c6414597ba0e1ae
+  checksum: 10/e00f6d19ad1be94701db8e5f126bdf8a9f4739cd8e8eb68690254aac4699c49c872a1ca761461d7d0c37a933f823df5f87674688fe0d568e00e7c0e9d6e5c798
   languageName: node
   linkType: hard
 
@@ -13326,12 +13365,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-core@npm:1.41.2":
-  version: 1.41.2
-  resolution: "playwright-core@npm:1.41.2"
+"playwright-core@npm:1.42.1":
+  version: 1.42.1
+  resolution: "playwright-core@npm:1.42.1"
   bin:
     playwright-core: cli.js
-  checksum: 10/77ff881ebb9cc0654edd00c5ff202f5f61aee7a5318e1f12a82e30a3636de21e8b5982fae6138e5bb90115ae509c15a640cf85b10b3e2daebb2bb286da54fd4c
+  checksum: 10/6a71d2e2aa5b054d6e83836f09e139a0ff4de3aa9b6aebe0e03de3ab828c735d23a20a60fafcee91c1658da490cc390f05af463325ac842beaff58a173f7ad9e
   languageName: node
   linkType: hard
 
@@ -13347,18 +13386,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"playwright@npm:1.41.2":
-  version: 1.41.2
-  resolution: "playwright@npm:1.41.2"
+"playwright@npm:1.42.1":
+  version: 1.42.1
+  resolution: "playwright@npm:1.42.1"
   dependencies:
     fsevents: "npm:2.3.2"
-    playwright-core: "npm:1.41.2"
+    playwright-core: "npm:1.42.1"
   dependenciesMeta:
     fsevents:
       optional: true
   bin:
     playwright: cli.js
-  checksum: 10/272399f622dc2df90fbef147b9b1cfab5d7a78cc364bdfa98d2bf08faa9894346f58629fe4fef41b108ca2cb203b3970d7886b7f392cb0399c75b521478e2920
+  checksum: 10/1f866a6820e19feaaeb12cd87bfa93299d6d72e1287413098c5ae0349c7e7953eb0a303bdfbb99c12173a3493e6fdb642f89a166cfcfd8295254a520abf6eb7f
   languageName: node
   linkType: hard
 
@@ -14134,14 +14173,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-error-boundary@npm:4.0.12":
-  version: 4.0.12
-  resolution: "react-error-boundary@npm:4.0.12"
+"react-error-boundary@npm:4.0.13":
+  version: 4.0.13
+  resolution: "react-error-boundary@npm:4.0.13"
   dependencies:
     "@babel/runtime": "npm:^7.12.5"
   peerDependencies:
     react: ">=16.13.1"
-  checksum: 10/ba59f885eae3c3786548086c6c2088a9f511080c4052e778017959e9e0b6461892efdcf58fcfc2b3a6bc3e79e17cf842fc8ccdc6d82698c51c2ccab12c8c0b85
+  checksum: 10/28fdf498a58621e21d93978c61719c52455bc00b778080259c5830fe003736153469ebc84f243d7989567b1196e25648c7592f7c8e47de47fcd7d12b875879b9
   languageName: node
   linkType: hard
 
@@ -14310,27 +14349,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router-dom@npm:6.22.1":
-  version: 6.22.1
-  resolution: "react-router-dom@npm:6.22.1"
+"react-router-dom@npm:6.22.2":
+  version: 6.22.2
+  resolution: "react-router-dom@npm:6.22.2"
   dependencies:
-    "@remix-run/router": "npm:1.15.1"
-    react-router: "npm:6.22.1"
+    "@remix-run/router": "npm:1.15.2"
+    react-router: "npm:6.22.2"
   peerDependencies:
     react: ">=16.8"
     react-dom: ">=16.8"
-  checksum: 10/73ab964083bb407773a5c4ca61249ed6b0a1b47fa58c39afca08a361eb25b349be2bcbaf6d89e112b020f6e55e40e62689c9fe2beae524030ce5ccede3c7d9e3
+  checksum: 10/1469ea32fd5b35d44909c8e64a778620e990b43a1c6f4d5989630e769a9956e0057a54771ccde2e434a9aff7591c02752dcfe0678a1868d4e53411cec7ecf7a8
   languageName: node
   linkType: hard
 
-"react-router@npm:6.22.1":
-  version: 6.22.1
-  resolution: "react-router@npm:6.22.1"
+"react-router@npm:6.22.2":
+  version: 6.22.2
+  resolution: "react-router@npm:6.22.2"
   dependencies:
-    "@remix-run/router": "npm:1.15.1"
+    "@remix-run/router": "npm:1.15.2"
   peerDependencies:
     react: ">=16.8"
-  checksum: 10/f6e814b8e3005f16a5fb0e831f0e4352076cde65ab25448d56dba87a43fd3e102f55f9b366bdf1fbd8136fc1dc141bcec8d6b85d45f309e89180fb50f173744d
+  checksum: 10/744c9c3d3b6f3d031ef8c34d86f16075f96d4487584f2a526f722bc5b05c5879fc5056236b824472530fc5aad0ecf6eef88d2848d5b1a32aab9849bda3a5c839
   languageName: node
   linkType: hard
 
@@ -14850,7 +14889,7 @@ __metadata:
     jest: "npm:29.7.0"
     react: "npm:18.2.0"
     react-dom: "npm:18.2.0"
-    react-router-dom: "npm:6.22.1"
+    react-router-dom: "npm:6.22.2"
     react-use: "npm:17.5.0"
     typescript: "npm:5.3.3"
     webpack: "npm:5.90.3"
