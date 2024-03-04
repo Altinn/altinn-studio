@@ -97,4 +97,22 @@ describe('AppDeploymentHeader', () => {
       screen.getByText(textMock('app_deployment.kubernetes_deployment.status.failing')),
     ).toBeInTheDocument();
   });
+
+  it('shows alert when KubernetesDeploymentStatus is not available', async () => {
+    render({
+      kubernetesDeployment,
+    });
+
+    expect(
+      screen.getByText(textMock('app_deployment.kubernetes_deployment.status.none')),
+    ).toBeInTheDocument();
+  });
+
+  it('shows alert when KubernetesDeploymentStatus is unavailable', async () => {
+    render();
+
+    expect(
+      screen.getByText(textMock('app_deployment.kubernetes_deployment.status.unavailable')),
+    ).toBeInTheDocument();
+  });
 });

@@ -55,6 +55,7 @@
   "app_deployment.kubernetes_deployment.status.failing": "Oppdateringen tar lengre tid enn forventet...",
   "app_deployment.kubernetes_deployment.status.none": "Applikasjonen er ikke publisert i miljøet.",
   "app_deployment.kubernetes_deployment.status.progressing": "Applikasjonen oppdateres i miljøet...",
+  "app_deployment.kubernetes_deployment.status.unavailable": "Statusen til applikasjonen er midlertidig utilgjengelig.",
   "app_deployment.last_published": "Sist publisert {{lastPublishedDate}}.",
   "app_deployment.missing_rights": "Du har ikke rettigheter til å starte en deploy til {{envName}}-miljøet. Tilgang kan delegeres av eiere i {{orgName}}.",
   "app_deployment.no_env_1": "For å opprette miljøer, slik at du kan teste og produksjonssette må du ta kontakt med <0 href=\"mailto:tjenesteeier@altinn.no\">Altinn servicedesk</0>. Det er viktig at du oppgir organisasjonnavn og hvilke miljøer du ønsker tilgang til.",

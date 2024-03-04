@@ -2,11 +2,10 @@ import React from 'react';
 import classes from './AppStatus.module.css';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { Trans, useTranslation } from 'react-i18next';
-import { Alert, Heading, Paragraph, Spinner } from '@digdir/design-system-react';
+import { Alert, Heading, Paragraph, Spinner, Link } from '@digdir/design-system-react';
 import { formatDateDDMMYY, formatTimeHHmm, isDateWithinSeconds } from 'app-shared/pure/date-format';
 import { publishPath } from 'app-shared/api/paths';
 import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
-import { Link } from '@digdir/design-system-react';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 
 export type AppStatusProps = {
@@ -26,6 +25,22 @@ export const AppStatus = ({ kubernetesDeployment, envName, envType, urlToApp }: 
       time: formatTimeHHmm(dateAsString),
     });
   };
+
+  if (!kubernetesDeployment) {
+    return (
+      <DeploymentStatusInfo
+        envType={envType}
+        envName={envName}
+        severity='warning'
+        content={t('app_deployment.kubernetes_deployment.status.unavailable')}
+        footer={
+          <Trans i18nKey='overview.go_to_publish'>
+            <a href={publishPath(org, app)} />
+          </Trans>
+        }
+      />
+    );
+  }
 
   if (!kubernetesDeployment?.status) {
     return (

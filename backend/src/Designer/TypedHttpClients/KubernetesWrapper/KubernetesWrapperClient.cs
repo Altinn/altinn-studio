@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 
@@ -11,10 +13,13 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
 {
     private const string PATH_TO_AZURE_ENV = "/kuberneteswrapper/api/v1/deployments";
     private readonly HttpClient _client;
+    private readonly ILogger<DeploymentService> _logger;
 
-    public KubernetesWrapperClient(HttpClient httpClient)
+    public KubernetesWrapperClient(HttpClient httpClient,
+            ILogger<DeploymentService> logger)
     {
         _client = httpClient;
+        _logger = logger;
     }
 
     public async Task<KubernetesDeployment> GetDeploymentAsync(string org, string app, EnvironmentModel env)
@@ -31,13 +36,15 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
             using HttpResponseMessage response = await _client.GetAsync(pathToAzureEnv);
             response.EnsureSuccessStatusCode();
             List<KubernetesDeployment> deployments = await response.Content.ReadAsAsync<List<KubernetesDeployment>>();
-            KubernetesDeployment deployment = deployments.FirstOrDefault();
+            KubernetesDeployment deployment = deployments.FirstOrDefault() ?? new KubernetesDeployment();
             deployment.EnvName = env.Name;
             return deployment;
         }
         catch (Exception e)
         {
-            throw new KubernetesWrapperResponseException("Kubernetes wrapper not reachable", e);
+            _logger.LogError(e, "Kubernetes wrapper not reachable. Make sure the requested environment, {EnvName}, exists", env.Hostname);
         }
+
+        return null;
     }
 }

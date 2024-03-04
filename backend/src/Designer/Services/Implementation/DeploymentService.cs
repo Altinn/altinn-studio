@@ -86,24 +86,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// TODO: https://github.com/Altinn/altinn-studio/issues/11377
         public async Task<Deployment> GetAsync(string org, string app, DocumentQueryModel query)
         {
-            Deployment deployment = new() { KubernetesDeploymentList = new List<KubernetesDeployment>() };
+            Deployment deployment = new() { KubernetesDeploymentList = [] };
 
             List<DeploymentEntity> deploymentEntities = (await _deploymentRepository.Get(org, app, query)).ToList();
 
             IEnumerable<EnvironmentModel> environments = await _environmentsService.GetOrganizationEnvironments(org);
-            IList<string> environmentNames = environments.Select(environment => environment.Name).ToList();
+            List<string> environmentNames = environments.Select(environment => environment.Name).ToList();
             deployment.PipelineDeploymentList = deploymentEntities.Where(item => environmentNames.Contains(item.EnvName)).ToList();
 
             foreach (EnvironmentModel env in environments)
             {
-                try
+                KubernetesDeployment kubernetesDeployment = await _kubernetesWrapperClient.GetDeploymentAsync(org, app, env);
+                if (kubernetesDeployment != null)
                 {
-                    KubernetesDeployment kubernetesDeployment = await _kubernetesWrapperClient.GetDeploymentAsync(org, app, env);
                     deployment.KubernetesDeploymentList.Add(kubernetesDeployment);
-                }
-                catch (KubernetesWrapperResponseException)
-                {
-                    _logger.LogInformation("Make sure the requested environment, {EnvName}, exists", env.Hostname);
                 }
             }
 

@@ -28,6 +28,17 @@ export const AppDeploymentHeader = ({
     });
   };
 
+  if (!kubernetesDeployment) {
+    return (
+      <DeploymentStatusInfo
+        envType={envType}
+        envName={envName}
+        severity='warning'
+        content={t('app_deployment.kubernetes_deployment.status.unavailable')}
+      />
+    );
+  }
+
   if (!kubernetesDeployment?.status) {
     return (
       <DeploymentStatusInfo
