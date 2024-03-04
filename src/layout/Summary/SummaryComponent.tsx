@@ -52,7 +52,7 @@ export function SummaryComponent({ summaryNode, overrides, ref }: ISummaryCompon
       return;
     }
 
-    await navigateTo(targetNode, true);
+    navigateTo(targetNode, true);
     setReturnToView(currentPageId);
   };
 

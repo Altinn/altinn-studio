@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo } from 'react';
-import { useLocation, useMatch, useNavigate } from 'react-router-dom';
-import type { NavigateFunction, NavigateOptions } from 'react-router-dom';
+import { useLocation, useMatch, useNavigate as useRouterNavigate } from 'react-router-dom';
+import type { NavigateOptions } from 'react-router-dom';
 
 import { create } from 'zustand';
 
@@ -47,16 +47,27 @@ export const useNavigationParams = () => {
 
 const emptyArray: never[] = [];
 
-const useNavigateWithEffect = () => {
-  const navigate = useNavigate();
+/**
+ * Navigation function for react-router-dom
+ * Makes sure to clear returnToView on navigation
+ * Takes an optional callback
+ */
+const useNavigate = () => {
+  const navigate = useRouterNavigate();
   const storeCallback = useNavigationEffectStore((state) => state.storeCallback);
+  const { setReturnToView } = useReturnToView();
 
   return useCallback(
-    (path: string, cb: Callback, options?: NavigateOptions) => {
-      storeCallback(cb);
+    (path: string, options?: NavigateOptions, cb?: Callback) => {
+      if (setReturnToView) {
+        setReturnToView(undefined);
+      }
+      if (cb) {
+        storeCallback(cb);
+      }
       navigate(path, options);
     },
-    [navigate, storeCallback],
+    [navigate, setReturnToView, storeCallback],
   );
 };
 
@@ -74,7 +85,7 @@ export const useNavigatePage = () => {
   const currentTaskId = useLaxProcessData()?.currentTask?.elementId;
   const processTasks = useLaxProcessData()?.processTasks;
   const lastTaskId = processTasks?.slice(-1)[0]?.elementId;
-  const navigateWithEffect = useNavigateWithEffect();
+  const navigate = useNavigate();
 
   const { partyId, instanceGuid, taskId, pageKey, queryKeys } = useNavigationParams();
   const { autoSaveBehavior } = usePageSettings();
@@ -86,20 +97,6 @@ export const useNavigatePage = () => {
   const currentPageIndex = order?.indexOf(currentPageId) ?? -1;
   const nextPageIndex = currentPageIndex !== -1 ? currentPageIndex + 1 : -1;
   const previousPageIndex = currentPageIndex !== -1 ? currentPageIndex - 1 : -1;
-
-  /**
-   * Navigation function for react-router-dom
-   * Make sure to clear returnToView on navigation
-   */
-  const { setReturnToView } = useReturnToView();
-  const _navigate = useNavigate();
-  const navigate = useCallback(
-    (...args: Parameters<NavigateFunction>) => {
-      setReturnToView && setReturnToView(undefined);
-      return _navigate(...args);
-    },
-    [_navigate, setReturnToView],
-  ) as NavigateFunction;
 
   const isValidPageId = useCallback(
     (pageId: string) => {
@@ -151,19 +148,9 @@ export const useNavigatePage = () => {
       }
 
       const url = `/instance/${partyId}/${instanceGuid}/${taskId}/${page}${queryKeys}`;
-      navigateWithEffect(url, () => focusMainContent(options), { replace });
+      navigate(url, { replace }, () => focusMainContent(options));
     },
-    [
-      instanceGuid,
-      isStatelessApp,
-      maybeSaveOnPageChange,
-      navigate,
-      order,
-      partyId,
-      queryKeys,
-      taskId,
-      navigateWithEffect,
-    ],
+    [instanceGuid, isStatelessApp, maybeSaveOnPageChange, navigate, order, partyId, queryKeys, taskId],
   );
 
   const navigateToTask = useCallback(
@@ -172,9 +159,9 @@ export const useNavigatePage = () => {
         return;
       }
       const url = `/instance/${partyId}/${instanceGuid}/${newTaskId ?? lastTaskId}${queryKeys}`;
-      navigateWithEffect(url, () => focusMainContent(options), options);
+      navigate(url, options, () => focusMainContent(options));
     },
-    [partyId, instanceGuid, lastTaskId, queryKeys, navigateWithEffect, taskId],
+    [taskId, partyId, instanceGuid, lastTaskId, queryKeys, navigate],
   );
 
   const isCurrentTask = useMemo(() => {
