@@ -14,7 +14,7 @@ import { componentSchemaMocks } from '../../../testing/componentSchemaMocks';
 const mockHandleComponentUpdate = jest.fn();
 
 const defaultProps: PropertiesHeaderProps = {
-  form: component1Mock,
+  formItem: component1Mock,
   handleComponentUpdate: mockHandleComponentUpdate,
 };
 const user = userEvent.setup();
@@ -85,7 +85,7 @@ describe('PropertiesHeader', () => {
   });
 });
 const renderPropertiesHeader = (props: Partial<PropertiesHeaderProps> = {}) => {
-  const componentType = props.form ? props.form.type : defaultProps.form.type;
+  const componentType = props.formItem ? props.formItem.type : defaultProps.formItem.type;
   queryClientMock.setQueryData(
     [QueryKey.FormComponent, componentType],
     componentSchemaMocks[componentType],

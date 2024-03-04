@@ -17,6 +17,8 @@ import { TextEntry } from './TextEntry';
 import { Variables } from './Variables';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { StudioButton } from '@studio/components';
+import {useLayoutNamesQuery} from "./hooks/useLayoutNamesQuery";
+import {useStudioUrlParams} from "app-shared/hooks/useStudioUrlParams";
 
 export interface TextRowProps {
   idExists: (textResourceId: string) => boolean;
@@ -41,13 +43,15 @@ export const TextRow = ({
   selectedLanguages,
   showButton = true,
 }: TextRowProps) => {
+  const { org, app } = useStudioUrlParams();
   const [textIdValue, setTextIdValue] = useState(textId);
   const [textIdEditOpen, setTextIdEditOpen] = useState(false);
   const [textVariables] = useState(variables);
   const [keyError, setKeyError] = useState('');
   const { t } = useTranslation();
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
-
+  const { data: layoutNames, isPending: layoutNamesPending } = useLayoutNamesQuery(org, app);
+  
   const handleTextIdChange = (newTextId: string): void => {
     const error = validateNewTextId(newTextId);
 
@@ -139,7 +143,7 @@ export const TextRow = ({
               <span>{textIdValue}</span>
             </div>
           )}
-          {showButton && (
+          {showButton && !layoutNamesPending && !layoutNames.includes(textId) && (
             <StudioButton
               aria-label={t('text_editor.toggle_edit_mode', { textKey: textIdValue })}
               icon={<PencilIcon />}

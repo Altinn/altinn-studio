@@ -44,7 +44,7 @@ import {
   userCurrentPath,
   userStarredListPath,
   widgetSettingsPath,
-  resourceAccessListsPath,
+  resourceAccessListsPath, layoutNamesPath,
 } from './paths';
 import type { AppDeploymentsResponse, AppReleasesResponse, DatamodelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
@@ -88,6 +88,7 @@ export const getFormLayouts = (owner: string, app: string, layoutSetName: string
 export const getFormLayoutsV3 = (owner: string, app: string, layoutSetName: string) => get<FormLayoutsResponseV3>(formLayoutsPath(owner, app, layoutSetName));
 export const getFrontEndSettings = (owner: string, app: string) => get<IFrontEndSettings>(frontEndSettingsPath(owner, app));
 export const getInstanceIdForPreview = (owner: string, app: string) => get<string>(instanceIdForPreviewPath(owner, app));
+export const getLayoutNames = (owner: string, app: string) => get<string[]>(layoutNamesPath(owner, app));
 export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
 export const getNewsList = (language: 'nb' | 'en') => get<NewsList>(newsListUrl(language));
 export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));

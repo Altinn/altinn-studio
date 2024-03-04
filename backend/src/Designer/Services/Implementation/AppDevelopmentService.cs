@@ -149,7 +149,30 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await altinnAppGitRepository.SaveLayoutSettings(null, layoutSettings);
         }
+        
+        /// <inheritdoc />
+        public async Task<string[]> GetLayoutNames(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
+                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
+            if (appUsesLayoutSets)
+            {
+                string[] layoutNames = [];
+                LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+                foreach (LayoutSetConfig layoutSetConfig in layoutSets.Sets)
+                {
+                    string[] layoutNamesForSet = altinnAppGitRepository.GetLayoutNames(layoutSetConfig.Id);
+                    layoutNames = layoutNames.Concat(layoutNamesForSet).ToArray();
+                }
+                return layoutNames;
+            }
 
+            return altinnAppGitRepository.GetLayoutNames(null);
+        }
+        
         /// <inheritdoc />
         public async Task<ModelMetadata> GetModelMetadata(AltinnRepoEditingContext altinnRepoEditingContext,
             string layoutSetName, CancellationToken cancellationToken = default)
@@ -197,6 +220,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return layoutSets?.Sets?.Find(set => set.Id == layoutSetName)?.Tasks[0];
         }
 
+        /// <inheritdoc />
         public async Task<LayoutSets> GetLayoutSets(AltinnRepoEditingContext altinnRepoEditingContext,
             CancellationToken cancellationToken = default)
         {

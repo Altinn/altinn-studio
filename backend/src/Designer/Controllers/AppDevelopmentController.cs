@@ -260,6 +260,24 @@ namespace Altinn.Studio.Designer.Controllers
                 return BadRequest(exception);
             }
         }
+        
+        /// <summary>
+        /// Get all names of layouts across layoutSets
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
+        /// <returns>The layout-sets.json</returns>
+        [HttpGet]
+        [UseSystemTextJson]
+        [Route("layout-names")]
+        public async Task<IActionResult> GetLayoutNames(string org, string app, CancellationToken cancellationToken)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+            string[] layoutNames = await _appDevelopmentService.GetLayoutNames(editingContext, cancellationToken);
+            return Ok(layoutNames);
+        }
 
         /// <summary>
         /// Return JSON presentation of the model

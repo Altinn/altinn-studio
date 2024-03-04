@@ -9,20 +9,21 @@ import { Dynamics } from './Dynamics';
 import { PropertiesHeader } from './PropertiesHeader';
 import { EditFormComponent } from '../config/EditFormComponent';
 import { DataModelBindings } from './DataModelBindings';
+import {PageConfigPanel} from "./PageConfigPanel";
 
 export const Properties = () => {
   const { t } = useTranslation();
-  const { formItemId: formId, formItem: form, handleUpdate, debounceSave } = useFormItemContext();
-  const formIdRef = React.useRef(formId);
+  const { formItemId, formItem, handleUpdate, debounceSave } = useFormItemContext();
+  const formIdRef = React.useRef(formItemId);
 
   const [openList, setOpenList] = React.useState<string[]>([]);
 
   useEffect(() => {
-    if (formIdRef.current !== formId) {
-      formIdRef.current = formId;
-      if (formId && openList.length === 0) setOpenList(['text']);
+    if (formIdRef.current !== formItemId) {
+      formIdRef.current = formItemId;
+      if (formItemId && openList.length === 0) setOpenList(['text']);
     }
-  }, [formId, openList.length]);
+  }, [formItemId, openList.length]);
 
   const toggleOpen = (id: string) => {
     if (openList.includes(id)) {
@@ -34,22 +35,22 @@ export const Properties = () => {
 
   return (
     <div className={classes.root}>
-      {form && (
-        <PropertiesHeader
-          form={form}
-          handleComponentUpdate={async (updatedComponent) => {
-            handleUpdate(updatedComponent);
-            debounceSave(formId, updatedComponent);
-          }}
-        />
-      )}
+      {!formItemId ? <PageConfigPanel/> :
+          <>
+          <PropertiesHeader
+              formItem={formItem}
+              handleComponentUpdate={async (updatedComponent) => {
+                handleUpdate(updatedComponent);
+                debounceSave(formItemId, updatedComponent);
+              }}
+          />
       <Accordion color='subtle'>
         <Accordion.Item open={openList.includes('text')}>
           <Accordion.Header onHeaderClick={() => toggleOpen('text')}>
             {t('right_menu.text')}
           </Accordion.Header>
           <Accordion.Content className={classes.texts}>
-            {formId ? <Text /> : t('right_menu.content_empty')}
+            <Text />
           </Accordion.Content>
         </Accordion.Item>
         <Accordion.Item open={openList.includes('datamodel')}>
@@ -57,7 +58,7 @@ export const Properties = () => {
             {t('right_menu.dataModelBindings')}
           </Accordion.Header>
           <Accordion.Content className={classes.datamodelBindings}>
-            {formId ? <DataModelBindings /> : t('right_menu.content_empty')}
+            <DataModelBindings />
           </Accordion.Content>
         </Accordion.Item>
         <Accordion.Item open={openList.includes('content')}>
@@ -65,18 +66,14 @@ export const Properties = () => {
             {t('right_menu.content')}
           </Accordion.Header>
           <Accordion.Content>
-            {formId ? (
-              <EditFormComponent
-                editFormId={formId}
-                component={form}
+            <EditFormComponent
+                editFormId={formItemId}
+                component={formItem}
                 handleComponentUpdate={async (updatedComponent) => {
                   handleUpdate(updatedComponent);
-                  debounceSave(formId, updatedComponent);
+                  debounceSave(formItemId, updatedComponent);
                 }}
               />
-            ) : (
-              t('right_menu.content_empty')
-            )}
           </Accordion.Content>
         </Accordion.Item>
         <Accordion.Item open={openList.includes('dynamics')}>
@@ -84,7 +81,7 @@ export const Properties = () => {
             {t('right_menu.dynamics')}
           </Accordion.Header>
           <Accordion.Content>
-            {formId ? <Dynamics /> : t('right_menu.content_empty')}
+            <Dynamics />
           </Accordion.Content>
         </Accordion.Item>
         <Accordion.Item open={openList.includes('calculations')}>
@@ -96,6 +93,7 @@ export const Properties = () => {
           </Accordion.Content>
         </Accordion.Item>
       </Accordion>
+          </>}
     </div>
   );
 };

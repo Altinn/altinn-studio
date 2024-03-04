@@ -15,8 +15,8 @@ import {
   LegacyTableHeader,
   LegacyTableRow,
 } from '@digdir/design-system-react';
-import { APP_NAME } from 'app-shared/constants';
 import { useTranslation } from 'react-i18next';
+import {APP_NAME} from "app-shared/constants";
 
 export type TextListProps = {
   resourceRows: TextTableRow[];

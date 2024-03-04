@@ -12,7 +12,7 @@ export interface ExternalFormLayout {
 
 export interface ExternalData {
   layout: ExternalComponent[];
-  hidden?: boolean;
+  hidden?: any;
   [key: string]: any;
 }
 

@@ -4,6 +4,7 @@ import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { FormComponent } from './FormComponent';
 import type { FormContainer } from './FormContainer';
+import type { BooleanExpression } from '@studio/components';
 import type React from 'react';
 
 export interface IFormDesignerNameSpace<T1> {
@@ -27,7 +28,7 @@ export interface IInternalLayout {
   components: IFormDesignerComponents;
   containers: IFormDesignerContainers;
   order: IFormLayoutOrder;
-  hidden?: any;
+  hidden?: BooleanExpression;
   customRootProperties: KeyValuePairs;
   customDataProperties: KeyValuePairs;
 }
