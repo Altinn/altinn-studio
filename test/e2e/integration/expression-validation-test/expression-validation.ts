@@ -57,8 +57,7 @@ describe('Expression validation', () => {
     cy.get(appFrontend.receipt.container).should('be.visible');
   });
 
-  // TODO: Enable this again when the bug is fixed
-  it.skip('should ignore hidden fields', () => {
+  it('should ignore hidden fields', () => {
     cy.findByRole('textbox', { name: /alder/i }).type('16');
     cy.findByRole('textbox', { name: /e-post/i }).type('test@test.test');
     cy.findByRole('textbox', { name: /telefonnummer/i }).type('45612378');
@@ -156,8 +155,7 @@ describe('Expression validation', () => {
     cy.get(appFrontend.receipt.container).should('be.visible');
   });
 
-  // TODO: Enable this again when the bug is fixed
-  it.skip('should work with hiddenRow', () => {
+  it('should work with hiddenRow', () => {
     // Ability to save group row with errors
     cy.interceptLayout('skjema', (c) => {
       if (c.type === 'RepeatingGroup') {
