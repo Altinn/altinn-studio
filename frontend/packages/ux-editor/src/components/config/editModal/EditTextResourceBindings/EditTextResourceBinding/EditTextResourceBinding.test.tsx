@@ -9,10 +9,10 @@ import {
   textLanguagesMock,
 } from '../../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../../hooks/queries/useLayoutSchemaQuery';
-import type { ITextResource } from 'app-shared/types/global';
+import type { ITextResource, ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
+
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import type { FormComponent } from '../../../../../types/FormComponent';
 

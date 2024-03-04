@@ -1,13 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { IOption } from '../../../types/global';
-import { Heading, HelpText, Paragraph, Switch } from '@digdir/design-system-react';
+import {
+  Fieldset,
+  Heading,
+  HelpText,
+  Paragraph,
+  Switch,
+  Textfield,
+  ErrorMessage,
+} from '@digdir/design-system-react';
 import classes from './EditOptions.module.css';
 import type { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useComponentErrorMessage } from '../../../hooks';
 import { addOptionToComponent, generateRandomOption } from '../../../utils/component';
-import { ErrorMessage } from '@digdir/design-system-react';
+
 import { FormField } from '../../FormField';
 import { StudioButton } from '@studio/components';
 import type { ComponentType } from 'app-shared/types/ComponentType';

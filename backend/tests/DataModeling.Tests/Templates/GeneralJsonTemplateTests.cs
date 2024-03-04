@@ -3,7 +3,6 @@ using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Templates;
 using Altinn.Studio.DataModeling.Utils;
 using FluentAssertions;
-using Json.Pointer;
 using Json.Schema;
 using Xunit;
 

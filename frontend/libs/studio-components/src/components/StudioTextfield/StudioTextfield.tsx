@@ -1,6 +1,6 @@
-import { Textfield } from '@digdir/design-system-react';
 import React, { forwardRef } from 'react';
-import type { SharedTextInputProps } from '../../types/SharedTextInputProps';
+import { Textfield } from '@digdir/design-system-react';
+import { type SharedTextInputProps } from '../../types/SharedTextInputProps';
 import { useTextInputProps } from '../../hooks/useTextInputProps';
 
 export type StudioTextfieldProps = SharedTextInputProps<HTMLInputElement>;

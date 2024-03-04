@@ -3,6 +3,11 @@
   flex: var(--properties-width-fraction);
 }
 
+.datamodelBindings {
+  --vertical-padding: calc(var(--fds-spacing-5) - var(--studio-property-button-vertical-spacing));
+  padding: var(--vertical-padding) 0;
+}
+
 .texts {
   background-color: white;
   padding: calc(var(--fds-spacing-5) - 1em / 2) 0;

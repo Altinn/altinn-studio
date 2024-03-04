@@ -8,8 +8,9 @@ import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@studio/icons';
 import { findDuplicateValues } from './utils';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { removeEmptyStrings, removeItemByIndex, replaceByIndex } from 'app-shared/utils/arrayUtils';
+import { removeEmptyStrings } from 'app-shared/utils/arrayUtils';
 import { StudioButton } from '@studio/components';
+import { ArrayUtils } from '@studio/pure-functions';
 
 export type EnumListProps = {
   schemaNode: FieldNode;
@@ -26,12 +27,12 @@ export const EnumList = ({ schemaNode }: EnumListProps): JSX.Element => {
   const [duplicateValues, setDuplicateValues] = useState<string[]>(null);
 
   const handleChange = (index: number, newEnum: string) => {
-    const newEnumList = replaceByIndex(enumList, index, newEnum);
+    const newEnumList = ArrayUtils.replaceByIndex(enumList, index, newEnum);
     update(newEnumList);
   };
 
   const handleDelete = (index: number) => {
-    const newEnumList = removeItemByIndex(enumList, index);
+    const newEnumList = ArrayUtils.removeItemByIndex(enumList, index);
     update(newEnumList);
   };
 

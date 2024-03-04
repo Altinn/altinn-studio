@@ -1,28 +1,23 @@
-import React, { forwardRef, ReactNode } from 'react';
-import { StudioButton, StudioButtonProps } from '../StudioButton';
+import type { ReactNode } from 'react';
+import React, { forwardRef } from 'react';
+import type { StudioButtonProps } from '../StudioButton';
+import { StudioButton } from '../StudioButton';
 import classes from './StudioPropertyButton.module.css';
 import { PlusCircleIcon, PencilIcon } from '@studio/icons';
 import cn from 'classnames';
 
 export type StudioPropertyButtonProps = {
   property: string;
-  value: ReactNode;
+  value?: ReactNode;
 } & Omit<StudioButtonProps, 'children' | 'value'>;
 
-export const StudioPropertyButton = forwardRef<HTMLButtonElement, StudioPropertyButtonProps>(
-  (
-    { property, value, icon: givenIcon, className: givenClass, ...rest }: StudioButtonProps,
-    ref,
-  ) => {
+const StudioPropertyButton = forwardRef<HTMLButtonElement, StudioPropertyButtonProps>(
+  ({ property, value, icon: givenIcon, className: givenClass, ...rest }, ref) => {
     const hasValue = !!value;
 
     const icon = hasValue || givenIcon ? givenIcon : <PlusCircleIcon />;
 
-    const className = cn(
-      classes.propertyButton,
-      hasValue ? classes.withValue : classes.withoutValue,
-      givenClass,
-    );
+    const className = cn(classes.propertyButton, hasValue && classes.withValue, givenClass);
 
     return (
       <StudioButton
@@ -49,3 +44,7 @@ export const StudioPropertyButton = forwardRef<HTMLButtonElement, StudioProperty
     );
   },
 );
+
+StudioPropertyButton.displayName = 'StudioPropertyButton';
+
+export { StudioPropertyButton };

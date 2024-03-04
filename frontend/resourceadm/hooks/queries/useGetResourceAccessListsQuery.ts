@@ -21,7 +21,7 @@ export const useGetResourceAccessListsQuery = (
   const { getResourceAccessLists } = useServicesContext();
 
   return useInfiniteQuery({
-    queryKey: [QueryKey.ResourceAccessLists, resourceId, env],
+    queryKey: [QueryKey.ResourceAccessLists, env, resourceId],
     queryFn: ({ pageParam }) => getResourceAccessLists(org, resourceId, env, pageParam),
     initialPageParam: 0,
     getNextPageParam: (lastPage) => lastPage.nextPage,

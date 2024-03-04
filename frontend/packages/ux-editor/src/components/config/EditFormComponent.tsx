@@ -1,7 +1,7 @@
 import React from 'react';
 import type { EditSettings, IGenericEditComponent } from './componentConfig';
-import { configComponents } from './componentConfig';
-import { componentSpecificEditConfig } from './componentConfig';
+import { configComponents, componentSpecificEditConfig } from './componentConfig';
+
 import { ComponentSpecificContent } from './componentSpecificContent';
 import { Switch, Fieldset } from '@digdir/design-system-react';
 import classes from './EditFormComponent.module.css';
@@ -20,11 +20,12 @@ import { FormField } from 'app-shared/components/FormField';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';
 import type { FormItem } from '../../types/FormItem';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
-export interface IEditFormComponentProps {
+export interface IEditFormComponentProps<T extends ComponentType = ComponentType> {
   editFormId: string;
-  component: FormItem;
-  handleComponentUpdate: (component: FormItem) => void;
+  component: FormItem<T>;
+  handleComponentUpdate: (component: FormItem<T>) => void;
 }
 
 export const EditFormComponent = ({

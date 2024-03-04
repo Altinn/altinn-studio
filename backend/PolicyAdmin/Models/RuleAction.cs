@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Altinn.Studio.PolicyAdmin.Models
+﻿namespace Altinn.Studio.PolicyAdmin.Models
 {
     public class RuleAction
     {

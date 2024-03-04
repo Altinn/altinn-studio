@@ -1,5 +1,7 @@
-import React, { RefObject } from 'react';
-import { StudioPropertyButton, StudioPropertyButtonProps } from './StudioPropertyButton';
+import type { RefObject } from 'react';
+import React from 'react';
+import type { StudioPropertyButtonProps } from './StudioPropertyButton';
+import { StudioPropertyButton } from './StudioPropertyButton';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 

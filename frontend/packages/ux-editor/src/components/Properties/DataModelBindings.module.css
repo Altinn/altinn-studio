@@ -1,6 +1,9 @@
 .container {
   display: grid;
-  gap: 1rem;
+}
+
+.switch {
+  padding-left: var(--fds-spacing-5);
 }
 
 .dataModelBindings {

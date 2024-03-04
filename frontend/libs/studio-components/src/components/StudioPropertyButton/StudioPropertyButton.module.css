@@ -1,13 +1,9 @@
 .propertyButton {
   border-radius: 0;
   display: flex;
-  padding: 0 var(--fds-spacing-5);
+  padding: var(--studio-property-button-vertical-spacing) var(--fds-spacing-5);
   justify-content: flex-start;
   overflow: hidden;
-}
-
-.propertyButton.withValue {
-  height: 4em;
 }
 
 .propertyButton.withValue .content {
@@ -40,8 +36,4 @@
 .propertyButton:hover .editIconWrapper,
 .propertyButton:focus .editIconWrapper {
   display: inline-block;
-}
-
-.propertyButton.withoutValue {
-  height: 3em;
 }
