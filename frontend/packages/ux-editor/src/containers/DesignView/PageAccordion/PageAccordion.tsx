@@ -82,7 +82,7 @@ export const PageAccordion = ({
             title={t('general.delete_item', { item: pageName })}
             variant='tertiary'
             size='small'
-            disabled={true}
+            disabled={isPending}
           />
         </div>
       </div>
