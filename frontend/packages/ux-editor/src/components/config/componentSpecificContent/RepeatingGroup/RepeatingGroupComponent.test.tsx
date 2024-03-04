@@ -14,6 +14,8 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { formDesignerMock } from '../../../../testing/stateMocks';
 import type { IFormLayouts } from '../../../../types/global';
+import type { FormContainer } from '../../../../types/FormContainer';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
 // Test data:
 const org = 'org';
@@ -29,10 +31,13 @@ const user = userEvent.setup();
 
 const render = async () => {
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
+  const container: FormContainer<ComponentType.RepeatingGroup> = {
+    ...(layoutMock.containers[container2IdMock] as FormContainer<ComponentType.RepeatingGroup>),
+  };
   renderWithMockStore()(
     <RepeatingGroupComponent
       editFormId={container2IdMock}
-      component={{ ...layoutMock.containers[container2IdMock] }}
+      component={container}
       handleComponentUpdate={handleComponentUpdateMock}
     />,
   );

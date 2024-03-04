@@ -3761,6 +3761,7 @@ __metadata:
     react-dom: "npm:^18.2.0"
     ts-jest: "npm:^29.1.1"
     typescript: "npm:^5.2.2"
+    uuid: "npm:9.0.1"
   languageName: unknown
   linkType: soft
 
