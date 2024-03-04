@@ -72,10 +72,15 @@ namespace Altinn.App.Models
         [JsonPropertyName("Colors")]
         public string? Colors { get; set; }
         
-        [XmlElement("ReasonLabel")]
-        [JsonProperty("ReasonLabel")]
-        [JsonPropertyName("ReasonLabel")]
-        public string? ReasonLabel { get; set; }
+        [XmlElement("Food")]
+        [JsonProperty("Food")]
+        [JsonPropertyName("Food")]
+        public string? Food { get; set; }
+        
+        [XmlElement("FoodLabel")]
+        [JsonProperty("FoodLabel")]
+        [JsonPropertyName("FoodLabel")]
+        public string? FoodLabel { get; set; }
         
         [XmlElement("ColorsLabels")]
         [JsonProperty("ColorsLabels")]

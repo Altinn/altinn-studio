@@ -12,7 +12,10 @@
     "Colors": {
       "type": "string"
     },
-    "ReasonLabel": {
+    "Food": {
+      "type": "string"
+    },
+    "FoodLabel": {
       "type": "string"
     },
     "ColorsLabels": {
@@ -425,7 +428,10 @@
         "Begrunnelse-grp-9317": {
           "$ref": "#/definitions/Begrunnelse-grp-9317"
         },
-        "ReasonLabel": {
+        "Food": {
+          "type": "string"
+        },
+        "FoodLabel": {
           "type": "string"
         },
         "ColorsLabelsVerify": {

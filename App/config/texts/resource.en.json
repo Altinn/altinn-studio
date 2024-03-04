@@ -379,6 +379,47 @@
     },
 
     {
+      "id": "foods.grape",
+      "value": "Grape"
+    },
+    {
+      "id": "foods.blueberry",
+      "value": "Blueberry"
+    },
+    {
+      "id": "foods.spinach",
+      "value": "Spinach"
+    },
+    {
+      "id": "foods.tomato",
+      "value": "Tomato"
+    },
+    {
+      "id": "foods.banana",
+      "value": "Banana"
+    },
+    {
+      "id": "foods.carrot",
+      "value": "Carrot"
+    },
+    {
+      "id": "foods.corn",
+      "value": "Corn"
+    },
+    {
+      "id": "foods.strawberry",
+      "value": "Strawberry"
+    },
+    {
+      "id": "foods.cauliflower",
+      "value": "Cauliflower"
+    },
+    {
+      "id": "foods.watermelon",
+      "value": "Watermelon"
+    },
+
+    {
       "id": "customConfirm.body",
       "value": "Dette er en egendefinert bekreftelsesside. For å se den innebyggede, må dette fjernes fra layout-sets.json, men det gjøres bl.a. automatisk i Cypress-testene. PS: Her kan du også gå tilbake! Prøv den råkule knappen til venstre.<br><br>Og forresten, på forrige side valgte du {0}.",
       "variables": [
@@ -462,6 +503,7 @@
     { "id": "PetsSortOrder.DescName", "value": "Name (Z-A)" },
     { "id": "PetsSortOrder.AscAge", "value": "Age (1-9)" },
     { "id": "PetsSortOrder.DescAge", "value": "Age (9-1)" },
-    { "id": "ChooseColor", "value": "Pick a color" }
+    { "id": "ChooseFood", "value": "Pick your favourite meal" },
+    { "id": "ChooseColors", "value": "Pick some colors" }
   ]
 }

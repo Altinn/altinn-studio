@@ -9,13 +9,13 @@
     "Radioknapp": {
       "type": "string"
     },
-    "Color": {
+    "Food": {
       "type": "string"
     },
     "Colors": {
       "type": "string"
     },
-    "ReasonLabel": {
+    "FoodLabel": {
       "type": "string"
     },
     "ColorsLabels": {
@@ -428,13 +428,16 @@
         "Begrunnelse-grp-9317": {
           "$ref": "#/definitions/Begrunnelse-grp-9317"
         },
-        "ReasonLabel": {
+        "Food": {
           "type": "string"
         },
-        "ColorsLabelsVerify": {
+        "FoodLabel": {
           "type": "string"
         },
         "Colors": {
+          "type": "string"
+        },
+        "ColorsLabelsVerify": {
           "type": "string"
         },
         "Radioknapp": {

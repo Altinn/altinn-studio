@@ -1,0 +1,12 @@
+[
+  { "label": "foods.grape", "value": "1" },
+  { "label": "foods.blueberry", "value": "2" },
+  { "label": "foods.spinach", "value": "3" },
+  { "label": "foods.tomato", "value": "4" },
+  { "label": "foods.banana", "value": "5" },
+  { "label": "foods.carrot", "value": "6" },
+  { "label": "foods.corn", "value": "7" },
+  { "label": "foods.strawberry", "value": "8" },
+  { "label": "foods.cauliflower", "value": "9" },
+  { "label": "foods.watermelon", "value": "10" }
+]

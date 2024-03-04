@@ -400,6 +400,46 @@
     },
 
     {
+      "id": "foods.grape",
+      "value": "Druer"
+    },
+    {
+      "id": "foods.blueberry",
+      "value": "Blåbær"
+    },
+    {
+      "id": "foods.spinach",
+      "value": "Spinat"
+    },
+    {
+      "id": "foods.tomato",
+      "value": "Tomat"
+    },
+    {
+      "id": "foods.banana",
+      "value": "Banan"
+    },
+    {
+      "id": "foods.carrot",
+      "value": "Gulrot"
+    },
+    {
+      "id": "foods.corn",
+      "value": "Mais"
+    },
+    {
+      "id": "foods.strawberry",
+      "value": "Jordbær"
+    },
+    {
+      "id": "foods.cauliflower",
+      "value": "Blomkål"
+    },
+    {
+      "id": "foods.watermelon",
+      "value": "Vannmelon"
+    },
+    {
       "id": "TestCustomButtonInput.title",
       "value": "Her kan man skrive input"
     },
@@ -491,6 +531,7 @@
     { "id": "PetsSortOrder.DescName", "value": "Navn (Å-A)" },
     { "id": "PetsSortOrder.AscAge", "value": "Alder (1-9)" },
     { "id": "PetsSortOrder.DescAge", "value": "Alder (9-1)" },
-    { "id": "ChooseColor", "value": "Velg en farge" }
+    { "id": "ChooseFood", "value": "Velg din favorittrett" },
+    { "id": "ChooseColors", "value": "Velg noen farger" }
   ]
 }

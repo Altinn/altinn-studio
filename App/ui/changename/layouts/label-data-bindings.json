@@ -10,14 +10,14 @@
     ],
     "layout": [
       {
-        "id": "numericFieldNavBar",
+        "id": "labelDataBindingsNavBar",
         "type": "NavigationBar"
       },
       {
         "id": "colorsCheckboxes",
         "type": "Checkboxes",
         "textResourceBindings": {
-          "title": "ChooseColor"
+          "title": "ChooseColors"
         },
         "dataModelBindings": {
           "simpleBinding": "Colors",
@@ -26,8 +26,7 @@
         "sortOrder": "asc",
         "optionsId": "colors",
         "required": true,
-        "readOnly": false,
-        "preselectedOptionIndex": 0
+        "readOnly": false
       },
       {
         "id": "ColorsLabelsVerify",
@@ -37,6 +36,36 @@
         },
         "dataModelBindings": {
           "simpleBinding": "ColorsLabelsVerify"
+        },
+        "required": false,
+        "readOnly": true,
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "choose-food",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "ChooseFood"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Food",
+          "label": "FoodLabel"
+        },
+        "sortOrder": "asc",
+        "optionsId": "foods",
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "colorLabel",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Du valgte:"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "FoodLabel"
         },
         "required": false,
         "readOnly": true,
