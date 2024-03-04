@@ -51,7 +51,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             Deployment deployment = await _deploymentService.GetAsync(org, app, query);
 
-            List<DeploymentEntity> laggingDeployments = deployment.PipelineDeploymentList.Where(d => d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.Value.AddMinutes(5) < DateTime.UtcNow).ToList();
+            List<DeploymentEntity> laggingDeployments = deployment.PipelineDeploymentList.Where(d => d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.HasValue && d.Build.Started.Value.AddMinutes(5) < DateTime.UtcNow).ToList();
             foreach (DeploymentEntity laggingDeployment in laggingDeployments)
             {
                 await _deploymentService.UpdateAsync(laggingDeployment.Build.Id, laggingDeployment.Org);
