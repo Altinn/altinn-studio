@@ -1,3 +1,4 @@
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using Altinn.App.Core.Configuration;
@@ -29,6 +30,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
         private readonly HttpClient _client;
         private readonly IPDP _pdp;
         private readonly ILogger _logger;
+        private const string ForwardedForHeaderName = "x-forwarded-for";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AuthorizationClient"/> class
@@ -52,6 +54,12 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
             _pdp = pdp;
             _logger = logger;
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiAuthorizationEndpoint);
+
+            if (!httpClient.DefaultRequestHeaders.Contains(ForwardedForHeaderName))
+            {
+                string? clientIpAddress = _httpContextAccessor?.HttpContext?.Request?.Headers?[ForwardedForHeaderName];
+                httpClient.DefaultRequestHeaders.Add(ForwardedForHeaderName, clientIpAddress);
+            }
             httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _client = httpClient;

@@ -88,14 +88,14 @@
             "AttributeId": "urn:altinn:partyid",
             "Value": "1337",
             "Issuer": "LOCAL AUTHORITY",
-            "DataType": "#integer",
+            "DataType": "string",
             "IncludeInResult": false
           },
           {
             "AttributeId": "urn:altinn:authlevel",
             "Value": "3",
             "Issuer": "LOCAL AUTHORITY",
-            "DataType": "#integer",
+            "DataType": "string",
             "IncludeInResult": false
           }
         ]

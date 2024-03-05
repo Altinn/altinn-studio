@@ -1,4 +1,3 @@
-#nullable disable
 using System.Security.Claims;
 using System.Text.Json;
 using Altinn.App.Core.Helpers;
@@ -6,11 +5,19 @@ using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Altinn.App.Core.Tests.Helpers;
 
 public class MultiDecisionHelperTests
 {
+    private readonly ITestOutputHelper _output;
+
+    public MultiDecisionHelperTests(ITestOutputHelper output)
+    {
+        _output = output;
+    }
+
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
         WriteIndented = true
@@ -244,14 +251,19 @@ public class MultiDecisionHelperTests
         return JsonSerializer.Serialize(request, SerializerOptions);
     }
 
-    private static void CompareWithOrUpdateGoldenFile(string testId, XacmlJsonRequestRoot xacmlJsonRequestRoot)
+    private void CompareWithOrUpdateGoldenFile(string testId, XacmlJsonRequestRoot xacmlJsonRequestRoot)
     {
         bool updateGoldeFiles = Environment.GetEnvironmentVariable("UpdateGoldenFiles") == "true";
         string goldenFilePath = Path.Join("Helpers", "TestData", "MultiDecisionHelper", testId + ".golden.json");
         string xacmlJsonRequestRootAsString = XacmlJsonRequestRootToString(xacmlJsonRequestRoot);
         if (updateGoldeFiles)
         {
-            File.WriteAllText(goldenFilePath, xacmlJsonRequestRootAsString);
+            File.WriteAllText(Path.Join("..", "..", "..", goldenFilePath), xacmlJsonRequestRootAsString);
+        }
+        else
+        {
+            _output.WriteLine("To update golden files, run with environment variable value UpdateGoldenFiles=true");
+            _output.WriteLine("Golden file path: " + new FileInfo(goldenFilePath)?.FullName);
         }
 
         string goldenFileContent = File.ReadAllText(goldenFilePath);
