@@ -190,10 +190,7 @@ export const TextResource = ({
                   aria-label={t(getTextKeyForButton('delete', generateIdOptions?.textResourceKey))}
                   className={classes.button}
                   color='second'
-                  disabled={
-                    !handleRemoveTextResource ||
-                    !(!!textResourceId || shouldDisplayFeature('componentConfigBeta'))
-                  }
+                  disabled={!handleRemoveTextResource || !textResourceId}
                   icon={<TrashIcon />}
                   onClick={() => setIsConfirmDeleteDialogOpen(true)}
                   title={t(getTextKeyForButton('delete', generateIdOptions?.textResourceKey))}

@@ -237,8 +237,7 @@ describe('TextResource', () => {
     expect(screen.getByRole('button', { name: textMock('general.delete') })).toBeEnabled();
   });
 
-  it('Renders delete button as enabled when handleRemoveTextResource is given and componentConfigBeta feature flag is enabled', async () => {
-    addFeatureFlagToLocalStorage('componentConfigBeta');
+  it('Renders delete button as enabled when handleRemoveTextResource is given', async () => {
     await render({ textResourceId: 'test', handleRemoveTextResource: jest.fn() });
     expect(screen.getByRole('button', { name: textMock('general.delete') })).toBeEnabled();
   });
