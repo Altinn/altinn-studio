@@ -3,17 +3,16 @@ import { DeployDropdown } from './DeployDropdown';
 import { useCreateDeploymentMutation } from '../../../hooks/mutations';
 import { Trans, useTranslation } from 'react-i18next';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import type { ImageOption } from './ImageOption';
 import { toast } from 'react-toastify';
 import { Alert, Link } from '@digdir/design-system-react';
+import { useDeployPermissionsQuery } from 'app-development/hooks/queries';
 
 export interface AppDeploymentActionsProps {
   appDeployedVersion: string;
   lastBuildId: string;
   inProgress: boolean;
-  deployPermission: boolean;
   envName: string;
-  imageOptions: ImageOption[];
+  envType: string;
   orgName: string;
 }
 
@@ -21,22 +20,32 @@ export const AppDeploymentActions = ({
   appDeployedVersion,
   lastBuildId,
   inProgress,
-  deployPermission,
   envName,
-  imageOptions,
+  envType,
   orgName,
 }: AppDeploymentActionsProps) => {
   const [selectedImageTag, setSelectedImageTag] = useState(null);
   const { t } = useTranslation();
 
   const { org, app } = useStudioUrlParams();
+  const { data: permissions, isPending: permissionsIsPending } = useDeployPermissionsQuery(
+    org,
+    app,
+  );
   const { data, mutate, isPending } = useCreateDeploymentMutation(org, app, {
     hideDefaultError: true,
   });
 
+  const deployPermission =
+    permissions.findIndex((e) => e.toLowerCase() === envName.toLowerCase()) > -1;
+
   if (!deployPermission) {
+    const isProduction = envType.toLowerCase() === 'production';
+    const envTitle = isProduction
+      ? t(`general.production_environment_alt`).toLowerCase()
+      : `${t('general.test_environment_alt').toLowerCase()} ${envName?.toUpperCase()}`;
     return (
-      <Alert severity='info'>{t('app_deployment.missing_rights', { envName, orgName })}</Alert>
+      <Alert severity='info'>{t('app_deployment.missing_rights', { envTitle, orgName })}</Alert>
     );
   }
 
@@ -67,15 +76,12 @@ export const AppDeploymentActions = ({
   const deployIsPending = isPending || (!!data?.build?.id && data?.build?.id !== lastBuildId);
   const deployInProgress = deployIsPending || inProgress;
 
-  if (!imageOptions.length) return null;
-
   return (
     <DeployDropdown
       appDeployedVersion={appDeployedVersion}
       disabled={deployInProgress}
       isPending={deployIsPending}
       selectedImageTag={selectedImageTag}
-      imageOptions={imageOptions}
       setSelectedImageTag={setSelectedImageTag}
       startDeploy={startDeploy}
     />

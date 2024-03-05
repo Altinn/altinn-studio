@@ -4,51 +4,53 @@ import { useOrgListQuery } from 'app-development/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { Alert } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { AppEnvironments } from './AppEnvironments';
-import { AppLogs } from './AppLogs';
 import { StudioSpinner } from '@studio/components';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { RepoOwnedByPersonInfo } from './RepoOwnedByPersonInfo';
+import { NoEnvironmentsAlert } from './NoEnvironmentsAlert';
+import { AppDeployments } from './AppDeployments';
 
 type AppProps = Pick<HTMLAttributes<HTMLDivElement>, 'className'>;
 
 export const App = ({ className }: AppProps) => {
   const { org, app } = useStudioUrlParams();
+
   const {
     data: orgs,
-    isPending: isPendingOrgs,
+    isPending: isOrgsPending,
     isError: isOrgsError,
   } = useOrgListQuery({ hideDefaultError: true });
 
   const { data: repository } = useRepoMetadataQuery(org, app);
-  const selectedOrg = orgs?.orgs[org];
-  const hasEnvironments = selectedOrg?.environments?.length > 0;
+  const selectedOrg = orgs?.[org];
+  const hasNoEnvironments = !(selectedOrg?.environments?.length ?? 0);
 
   const { t } = useTranslation();
 
-  if (isPendingOrgs) {
+  if (isOrgsPending) {
     return <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.app_loading')} />;
   }
 
   if (isOrgsError) return <Alert severity='danger'>{t('overview.app_error')}</Alert>;
 
   // If repo-owner is an organisation
-  const repoOwnerIsOrg = orgs && Object.keys(orgs.orgs).includes(repository?.owner.login);
+  const repoOwnerIsOrg = orgs && Object.keys(orgs).includes(repository?.owner.login);
 
-  return repoOwnerIsOrg ? (
-    <>
+  if (!repoOwnerIsOrg) {
+    return (
       <section className={className}>
-        <AppEnvironments />
+        <RepoOwnedByPersonInfo />
       </section>
-      {hasEnvironments && (
-        <section className={className}>
-          <AppLogs />
-        </section>
-      )}
-    </>
-  ) : (
-    <section className={className}>
-      <RepoOwnedByPersonInfo />
-    </section>
-  );
+    );
+  }
+
+  if (hasNoEnvironments) {
+    return (
+      <section className={className}>
+        <NoEnvironmentsAlert />
+      </section>
+    );
+  }
+
+  return <AppDeployments className={className} />;
 };

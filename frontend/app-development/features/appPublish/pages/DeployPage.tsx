@@ -12,7 +12,7 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 export function DeployPage() {
   const { org, app } = useStudioUrlParams();
   const { t } = useTranslation();
-  const { data: orgs = { orgs: {} }, isPending: isOrgsPending } = useOrgListQuery();
+  const { data: orgs, isPending: isOrgsPending } = useOrgListQuery();
   const { data: permissions, isPending: isPermissionsPending } = useDeployPermissionsQuery(
     org,
     app,
@@ -31,7 +31,7 @@ export function DeployPage() {
   }
 
   // If org isn't listed, or doesn't have any environments
-  if (!orgs.orgs[org] || !orgs.orgs[org].environments || !orgs.orgs[org].environments.length) {
+  if (!orgs[org] || !orgs[org].environments || !orgs[org].environments.length) {
     return (
       <InfoCard headerText={t('app_deployment.no_env_title')} shadow={true}>
         <div>

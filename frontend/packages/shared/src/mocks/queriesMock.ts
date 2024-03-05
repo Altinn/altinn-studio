@@ -12,7 +12,7 @@ import type {
 import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { Organization } from 'app-shared/types/Organization';
-import type { OrgsState } from 'app-shared/types/OrgsState';
+import type { OrgList } from 'app-shared/types/OrgList';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
 import type { Repository, User } from 'app-shared/types/Repository';
 import type {
@@ -56,7 +56,7 @@ import {
   datamodelMetadataResponse,
   layoutSets,
   newsList,
-  orgsState,
+  orgList,
   policy,
   repoStatus,
   repository,
@@ -104,7 +104,7 @@ export const queriesMock: ServicesContextProps = {
   getNewsList: jest.fn().mockImplementation(() => Promise.resolve<NewsList>(newsList)),
   getNumberFormatSchema: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
-  getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgsState>(orgsState)),
+  getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgList>(orgList)),
   getOrganizations: jest.fn().mockImplementation(() => Promise.resolve<Organization[]>([])),
   getRepoInitialCommit: jest.fn().mockImplementation(() => Promise.resolve<Commit>(commit)),
   getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),

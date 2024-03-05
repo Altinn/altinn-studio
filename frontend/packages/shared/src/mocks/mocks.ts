@@ -8,7 +8,7 @@ import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { NewsList } from 'app-shared/types/api/NewsList';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
 import type { Commit } from 'app-shared/types/Commit';
-import type { OrgsState } from 'app-shared/types/OrgsState';
+import type { OrgList } from 'app-shared/types/OrgList';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
@@ -18,15 +18,38 @@ import type { Policy } from '@altinn/policy-editor';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { Resource, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
 import type { AppVersion } from 'app-shared/types/AppVersion';
+import type { Build } from 'app-shared/types/Build';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import type { Organization } from 'app-shared/types/Organization';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import type { AppDeployment } from 'app-shared/types/api/AppDeployment';
+import type { AppRelease } from 'app-shared/types/AppRelease';
+
+export const build: Build = {
+  id: '',
+  status: BuildStatus.none,
+  result: BuildResult.none,
+  started: '',
+  finished: '',
+};
 
 export const appReleasesResponse: AppReleasesResponse = {
   results: [],
+};
+
+export const appRelease: AppRelease = {
+  id: '',
+  tagName: '',
+  name: '',
+  body: '',
+  app: '',
+  org: '',
+  targetCommitish: '',
+  createdBy: '',
+  created: '',
+  build,
 };
 
 export const appVersion: AppVersion = {
@@ -60,13 +83,7 @@ export const pipelineDeployment: PipelineDeployment = {
   envName: '',
   createdBy: '',
   created: '',
-  build: {
-    id: '',
-    status: BuildStatus.none,
-    result: BuildResult.none,
-    started: '',
-    finished: '',
-  },
+  build,
 };
 
 export const kubernetesDeployment: KubernetesDeployment = {
@@ -93,7 +110,7 @@ export const newsList: NewsList = {
   news: [],
 };
 
-export const orgsState: OrgsState = {
+export const orgList: OrgList = {
   orgs: {},
 };
 

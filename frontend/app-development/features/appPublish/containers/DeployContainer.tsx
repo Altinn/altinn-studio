@@ -1,67 +1,47 @@
 import React, { useMemo } from 'react';
 import classes from './DeployContainer.module.css';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
-import { BuildResult } from 'app-shared/types/Build';
 import {
   useOrgListQuery,
   useEnvironmentsQuery,
-  useDeployPermissionsQuery,
-  useAppReleasesQuery,
   useAppDeploymentsQuery,
 } from '../../../hooks/queries';
-import { formatDateTime } from 'app-shared/pure/date-format';
 import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import type { ImageOption } from '../components/ImageOption';
 import { AppDeployment } from '../components/AppDeployment';
 import { getAppLink } from 'app-shared/ext-urls';
+import { useTranslation } from 'react-i18next';
+import { Alert } from '@digdir/design-system-react';
 
 export const DeployContainer = () => {
   const { org, app } = useStudioUrlParams();
+  const { t } = useTranslation();
 
-  const { data: appDeployment, isPending: isDeploysPending } = useAppDeploymentsQuery(org, app);
-
-  const { data: environmentList = [], isPending: isEnvPending } = useEnvironmentsQuery();
-  const { data: releases = [], isPending: isReleasesPending } = useAppReleasesQuery(org, app);
-  const { data: orgs = { orgs: {} }, isPending: isOrgsPending } = useOrgListQuery();
-  const { data: permissions, isPending: isPermissionsPending } = useDeployPermissionsQuery(
-    org,
-    app,
-  );
-
-  const isPending =
-    isReleasesPending || isOrgsPending || isPermissionsPending || isEnvPending || isDeploysPending;
+  const {
+    data: environmentList = [],
+    isPending: environmentListIsPending,
+    isError: environmentListIsError,
+  } = useEnvironmentsQuery({ hideDefaultError: true });
+  const {
+    data: orgs,
+    isPending: orgsIsPending,
+    isError: orgsIsError,
+  } = useOrgListQuery({ hideDefaultError: true });
+  const {
+    data: appDeployment,
+    isPending: appDeploymentIsPending,
+    isError: appDeploymentIsError,
+  } = useAppDeploymentsQuery(org, app, { hideDefaultError: true });
 
   const orgName: string = useMemo(() => {
     let name = '';
-    if (orgs.orgs && orgs.orgs[org]) {
-      name = orgs.orgs[org].name.nb;
+    if (orgs && orgs[org]) {
+      name = orgs[org].name.nb;
     }
     return name;
   }, [org, orgs]);
 
-  const deployEnvironments: DeployEnvironment[] = useMemo(
-    () =>
-      orgs?.orgs[org]?.environments
-        .map((envName: string) =>
-          environmentList.find((env: DeployEnvironment) => env.name === envName),
-        )
-        .filter((element: any) => element != null),
-    [orgs, org, environmentList],
-  );
-
-  const imageOptions: ImageOption[] = useMemo(
-    () =>
-      releases
-        .filter((image) => image.build.result === BuildResult.succeeded)
-        .map((image) => ({
-          value: image.tagName,
-          label: `Version ${image.tagName} (${formatDateTime(image.created)})`,
-        })),
-    [releases],
-  );
-
-  if (isPending) {
+  if (environmentListIsPending || orgsIsPending || appDeploymentIsPending) {
     return (
       <div className={classes.deployContainer}>
         <AltinnContentLoader width={900} height={320}>
@@ -74,9 +54,17 @@ export const DeployContainer = () => {
     );
   }
 
+  if (environmentListIsError || orgsIsError || appDeploymentIsError)
+    return <Alert severity='danger'>{t('app_deployment.error')}</Alert>;
+
+  const selectedOrg = orgs?.[org];
+  const orgEnvironmentList: DeployEnvironment[] = environmentList.filter((env: DeployEnvironment) =>
+    selectedOrg.environments.some((envName) => envName.toLowerCase() === env.name.toLowerCase()),
+  );
+
   return (
     <div className={classes.deployContainer}>
-      {deployEnvironments.map((env: DeployEnvironment, index: number) => {
+      {orgEnvironmentList.map((env: DeployEnvironment, index: number) => {
         const pipelineDeploymentList = appDeployment.pipelineDeploymentList.filter(
           (item) => item.envName.toLowerCase() === env.name.toLowerCase(),
         );
@@ -89,12 +77,8 @@ export const DeployContainer = () => {
             envName={env.name}
             envType={env.type}
             urlToApp={getAppLink(env.appPrefix, env.hostname, org, app)}
-            imageOptions={imageOptions}
             pipelineDeploymentList={pipelineDeploymentList}
             kubernetesDeployment={kubernetesDeployment}
-            deployPermission={
-              permissions.findIndex((e) => e.toLowerCase() === env.name.toLowerCase()) > -1
-            }
             orgName={orgName}
           />
         );

@@ -1,36 +1,20 @@
 import React from 'react';
 import classes from './AppLogs.module.css';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppDeploymentsQuery, useEnvironmentsQuery } from 'app-development/hooks/queries';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner } from '@studio/components';
 import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
-import { Alert, Heading } from '@digdir/design-system-react';
+import { Heading } from '@digdir/design-system-react';
 import { formatDateDDMMYY, formatTimeHHmm } from 'app-shared/pure/date-format';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import { BuildResult } from 'app-shared/types/Build';
+import type { AppDeployment } from 'app-shared/types/api/AppDeployment';
 
-export const AppLogs = () => {
-  const { org, app } = useStudioUrlParams();
+export interface AppLogs {
+  orgEnvironmentList: DeployEnvironment[];
+  appDeployment: AppDeployment;
+}
+
+export const AppLogs = ({ orgEnvironmentList, appDeployment }: AppLogs) => {
   const { t } = useTranslation();
-
-  const {
-    data: appDeployment,
-    isPending: isPendingDeploys,
-    isError: deploysHasError,
-  } = useAppDeploymentsQuery(org, app, { hideDefaultError: true });
-
-  const {
-    data: environmentList = [],
-    isPending: envIsPending,
-    isError: envIsError,
-  } = useEnvironmentsQuery({ hideDefaultError: true });
-
-  if (isPendingDeploys || envIsPending)
-    return <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.loading_app_logs')} />;
-
-  if (deploysHasError || envIsError)
-    return <Alert severity='danger'>{t('overview.app_logs_error')}</Alert>;
 
   const succeededPipelineDeploymentList = appDeployment.pipelineDeploymentList.filter(
     (pipelineDeployment: PipelineDeployment) =>
@@ -54,16 +38,22 @@ export const AppLogs = () => {
       <ul className={classes.logs}>
         {hasSucceededDeployments ? (
           succeededPipelineDeploymentList.map((pipelineDeployment: PipelineDeployment) => {
-            const environmentType = environmentList
-              .find((env: DeployEnvironment) => env.name === pipelineDeployment.envName)
+            const environmentType = orgEnvironmentList
+              .find(
+                (env: DeployEnvironment) =>
+                  env.name.toLowerCase() === pipelineDeployment.envName.toLowerCase(),
+              )
               ?.type.toLowerCase();
+            const isProduction = environmentType.toLowerCase() === 'production';
+            const envTitle = isProduction
+              ? t(`general.production_environment_alt`)
+              : `${t('general.test_environment_alt')} ${pipelineDeployment.envName?.toUpperCase()}`;
             return (
               <li key={pipelineDeployment.build.id}>
                 <div className={classes.logTitle}>
                   {t('overview.app_logs_title', {
                     tagName: pipelineDeployment.tagName,
-                    environment: t(`general.${environmentType}`),
-                    envName: pipelineDeployment.envName?.toUpperCase() || '',
+                    envTitle,
                   })}
                 </div>
                 <div>

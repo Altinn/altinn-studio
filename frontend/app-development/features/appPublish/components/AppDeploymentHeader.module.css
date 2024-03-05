@@ -17,10 +17,6 @@
   visibility: hidden;
 } */
 
-.heading {
-  text-transform: uppercase;
-}
-
 .loadingSpinner {
   display: flex;
   align-items: center;

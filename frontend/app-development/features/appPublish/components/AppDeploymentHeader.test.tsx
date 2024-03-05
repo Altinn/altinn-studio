@@ -84,20 +84,6 @@ describe('AppDeploymentHeader', () => {
     ).toBeInTheDocument();
   });
 
-  it('shows alert when KubernetesDeploymentStatus is progressing but taking longer than expected', async () => {
-    render({
-      kubernetesDeployment: {
-        ...kubernetesDeployment,
-        status: KubernetesDeploymentStatus.progressing,
-        statusDate: '',
-      },
-    });
-
-    expect(
-      screen.getByText(textMock('app_deployment.kubernetes_deployment.status.failing')),
-    ).toBeInTheDocument();
-  });
-
   it('shows alert when KubernetesDeploymentStatus is none as no app is deployed', async () => {
     render({
       kubernetesDeployment: {

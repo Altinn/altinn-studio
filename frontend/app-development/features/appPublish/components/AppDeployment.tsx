@@ -4,7 +4,6 @@ import classes from './AppDeployment.module.css';
 import { AppDeploymentHeader } from './AppDeploymentHeader';
 import { AppDeploymentActions } from './AppDeploymentActions';
 import { AppDeploymentList } from './AppDeploymentList';
-import type { ImageOption } from './ImageOption';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { BuildResult } from 'app-shared/types/Build';
@@ -15,18 +14,14 @@ export interface AppDeploymentProps {
   envName: string;
   envType: string;
   urlToApp?: string;
-  deployPermission: boolean;
   orgName: string;
-  imageOptions: ImageOption[];
 }
 
 export const AppDeployment = ({
   pipelineDeploymentList,
   kubernetesDeployment,
-  deployPermission,
   envName,
   envType,
-  imageOptions,
   urlToApp,
   orgName,
 }: AppDeploymentProps) => {
@@ -45,12 +40,15 @@ export const AppDeployment = ({
           appDeployedVersion={kubernetesDeployment?.version}
           lastBuildId={pipelineDeploymentList[0]?.build?.id}
           inProgress={pipelineDeploymentList.some((item) => item.build.result === BuildResult.none)}
-          deployPermission={deployPermission}
           envName={envName}
-          imageOptions={imageOptions}
+          envType={envType}
           orgName={orgName}
         />
-        <AppDeploymentList envName={envName} pipelineDeploymentList={pipelineDeploymentList} />
+        <AppDeploymentList
+          envName={envName}
+          envType={envType}
+          pipelineDeploymentList={pipelineDeploymentList}
+        />
       </div>
     </div>
   );

@@ -26,6 +26,7 @@ const pipelineDeployment = {
 
 const defaultProps: AppDeploymentListProps = {
   envName: 'test',
+  envType: 'test',
   pipelineDeploymentList: [],
 };
 
@@ -41,7 +42,7 @@ describe('AppDeploymentList', () => {
     expect(
       screen.getByText(
         textMock('app_deployment.table.deployed_version_history_empty', {
-          envName: defaultProps.envName,
+          envTitle: '[mockedtext(general.test_environment_alt)] TEST',
         }),
       ),
     ).toBeInTheDocument();

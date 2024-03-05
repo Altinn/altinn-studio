@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './AppDeploymentList.module.css';
 import { Heading, Link, Table } from '@digdir/design-system-react';
-import { formatDateTime, isDateWithinDays, isDateWithinSeconds } from 'app-shared/pure/date-format';
+import { formatDateTime, isDateWithinDays } from 'app-shared/pure/date-format';
 import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 
@@ -18,12 +18,22 @@ import { getAzureDevopsBuildResultUrl } from 'app-development/utils/urlHelper';
 
 export interface AppDeploymentListProps {
   envName: string;
+  envType: string;
   pipelineDeploymentList: PipelineDeployment[];
   kubernetesDeployment?: KubernetesDeployment;
 }
 
-export const AppDeploymentList = ({ pipelineDeploymentList, envName }: AppDeploymentListProps) => {
+export const AppDeploymentList = ({
+  envName,
+  envType,
+  pipelineDeploymentList,
+}: AppDeploymentListProps) => {
   const { t } = useTranslation();
+
+  const isProduction = envType.toLowerCase() === 'production';
+  const envTitle = isProduction
+    ? t(`general.production_environment_alt`).toLowerCase()
+    : `${t('general.test_environment_alt').toLowerCase()} ${envName?.toUpperCase()}`;
 
   const getIcon = (buildResult: BuildResult) => {
     switch (buildResult) {
@@ -51,7 +61,7 @@ export const AppDeploymentList = ({ pipelineDeploymentList, envName }: AppDeploy
         return (
           <StudioSpinner
             size='small'
-            spinnerTitle={t('app_deployment.pipeline_deployment.build_result.none')}
+            spinnerTitle=''
             showSpinnerTitle={false}
             className={classes.loadingSpinner}
           />
@@ -79,12 +89,12 @@ export const AppDeploymentList = ({ pipelineDeploymentList, envName }: AppDeploy
     <div className={classes.container}>
       {pipelineDeploymentList.length === 0 ? (
         <span id={`deploy-history-for-${envName.toLowerCase()}-unavailable`}>
-          {t('app_deployment.table.deployed_version_history_empty', { envName })}
+          {t('app_deployment.table.deployed_version_history_empty', { envTitle })}
         </span>
       ) : (
         <div>
           <Heading level={4} size='xxsmall' className={classes.heading}>
-            {t('app_deployment.table.deployed_version_history', { envName })}
+            {t('app_deployment.table.deployed_version_history', { envTitle })}
           </Heading>
           <div className={classes.tableWrapper} id={`deploy-history-table-${envName}`}>
             <Table size='small' stickyHeader className={classes.table}>
@@ -112,20 +122,14 @@ export const AppDeploymentList = ({ pipelineDeploymentList, envName }: AppDeploy
               </Table.Head>
               <Table.Body>
                 {pipelineDeploymentList.map((deploy: PipelineDeployment) => {
-                  const isFailing =
-                    deploy.build.result === BuildResult.none &&
-                    !isDateWithinSeconds(deploy.build.started, 60);
                   return (
-                    <Table.Row
-                      key={deploy.build.id}
-                      className={isFailing ? classes.failing : getClassName(deploy.build.result)}
-                    >
+                    <Table.Row key={deploy.build.id} className={getClassName(deploy.build.result)}>
                       <Table.Cell className={classNames(classes.tableCell, classes.tableIconCell)}>
                         {getIcon(deploy.build.result)}
                       </Table.Cell>
                       <Table.Cell className={classes.tableCell}>
                         {t(
-                          `app_deployment.pipeline_deployment.build_result.${isFailing ? 'failing' : deploy.build.result}`,
+                          `app_deployment.pipeline_deployment.build_result.${deploy.build.result}`,
                         )}
                       </Table.Cell>
                       <Table.Cell className={classes.tableCell}>{deploy.tagName}</Table.Cell>
@@ -140,7 +144,7 @@ export const AppDeploymentList = ({ pipelineDeploymentList, envName }: AppDeploy
                             target='_newTab'
                             rel='noopener noreferrer'
                           >
-                            {t('app_deployment.table.build_log')}
+                            {t('app_deployment.see_log')}
                           </Link>
                         )}
                       </Table.Cell>

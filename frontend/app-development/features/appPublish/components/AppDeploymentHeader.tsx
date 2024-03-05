@@ -4,7 +4,7 @@ import { Alert, Heading, Link, Paragraph, Spinner } from '@digdir/design-system-
 import { Trans, useTranslation } from 'react-i18next';
 import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
-import { formatDateDDMMYY, formatTimeHHmm, isDateWithinSeconds } from 'app-shared/pure/date-format';
+import { formatDateDDMMYY, formatTimeHHmm } from 'app-shared/pure/date-format';
 
 export interface AppDeploymentHeaderProps {
   kubernetesDeployment?: KubernetesDeployment;
@@ -31,8 +31,8 @@ export const AppDeploymentHeader = ({
   if (!kubernetesDeployment?.status) {
     return (
       <DeploymentStatusInfo
-        envType={envType}
         envName={envName}
+        envType={envType}
         severity='warning'
         content={t('app_deployment.kubernetes_deployment.status.unavailable')}
       />
@@ -43,8 +43,8 @@ export const AppDeploymentHeader = ({
     case KubernetesDeploymentStatus.none:
       return (
         <DeploymentStatusInfo
-          envType={envType}
           envName={envName}
+          envType={envType}
           severity='info'
           content={t('app_deployment.kubernetes_deployment.status.none')}
         />
@@ -52,8 +52,8 @@ export const AppDeploymentHeader = ({
     case KubernetesDeploymentStatus.completed:
       return (
         <DeploymentStatusInfo
-          envType={envType}
           envName={envName}
+          envType={envType}
           severity='success'
           content={
             <Trans
@@ -79,35 +79,17 @@ export const AppDeploymentHeader = ({
     case KubernetesDeploymentStatus.failed:
       return (
         <DeploymentStatusInfo
-          envType={envType}
           envName={envName}
+          envType={envType}
           severity='warning'
           content={t('app_deployment.kubernetes_deployment.status.failed')}
         />
       );
     default:
-      const isFailing =
-        kubernetesDeployment.status === KubernetesDeploymentStatus.progressing &&
-        !isDateWithinSeconds(kubernetesDeployment.statusDate, 60);
-      if (isFailing) {
-        return (
-          <DeploymentStatusInfo
-            envType={envType}
-            envName={envName}
-            severity='warning'
-            content={
-              <span className={classes.loadingSpinner}>
-                <Spinner variant='interaction' title='' size='xsmall' />
-                {t('app_deployment.kubernetes_deployment.status.failing')}
-              </span>
-            }
-          />
-        );
-      }
       return (
         <DeploymentStatusInfo
-          envType={envType}
           envName={envName}
+          envType={envType}
           severity='info'
           content={
             <span className={classes.loadingSpinner}>
@@ -121,27 +103,26 @@ export const AppDeploymentHeader = ({
 };
 
 type DeploymentStatusInfoProps = {
-  envType: string;
   envName: string;
+  envType: string;
   severity: 'success' | 'warning' | 'info' | 'danger';
   content: string | React.ReactNode;
   footer?: string | JSX.Element;
 };
 const DeploymentStatusInfo = ({
-  envType,
   envName,
+  envType,
   severity,
   content,
   footer,
 }: DeploymentStatusInfoProps) => {
   const { t } = useTranslation();
   const isProduction = envType.toLowerCase() === 'production';
-  const headingText = isProduction ? t('general.production') : envName;
-
+  const envTitle = isProduction ? t('general.production') : envName.toUpperCase();
   return (
     <Alert severity={severity} className={classes.alert}>
-      <Heading spacing level={2} size='xsmall' className={classes.heading}>
-        {headingText}
+      <Heading spacing level={2} size='xsmall'>
+        {envTitle}
       </Heading>
       <Paragraph size='small' spacing={!!footer}>
         {content}

@@ -3,7 +3,7 @@ import classes from './AppStatus.module.css';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { Trans, useTranslation } from 'react-i18next';
 import { Alert, Heading, Paragraph, Spinner, Link } from '@digdir/design-system-react';
-import { formatDateDDMMYY, formatTimeHHmm, isDateWithinSeconds } from 'app-shared/pure/date-format';
+import { formatDateDDMMYY, formatTimeHHmm } from 'app-shared/pure/date-format';
 import { publishPath } from 'app-shared/api/paths';
 import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
@@ -29,8 +29,8 @@ export const AppStatus = ({ kubernetesDeployment, envName, envType, urlToApp }: 
   if (!kubernetesDeployment?.status) {
     return (
       <DeploymentStatusInfo
-        envType={envType}
         envName={envName}
+        envType={envType}
         severity='warning'
         content={t('app_deployment.kubernetes_deployment.status.unavailable')}
         footer={
@@ -46,8 +46,8 @@ export const AppStatus = ({ kubernetesDeployment, envName, envType, urlToApp }: 
     case KubernetesDeploymentStatus.none:
       return (
         <DeploymentStatusInfo
-          envType={envType}
           envName={envName}
+          envType={envType}
           severity='info'
           content={t('app_deployment.kubernetes_deployment.status.none')}
           footer={
@@ -60,8 +60,8 @@ export const AppStatus = ({ kubernetesDeployment, envName, envType, urlToApp }: 
     case KubernetesDeploymentStatus.completed:
       return (
         <DeploymentStatusInfo
-          envType={envType}
           envName={envName}
+          envType={envType}
           severity='success'
           content={
             <Trans
@@ -87,8 +87,8 @@ export const AppStatus = ({ kubernetesDeployment, envName, envType, urlToApp }: 
     case KubernetesDeploymentStatus.failed:
       return (
         <DeploymentStatusInfo
-          envType={envType}
           envName={envName}
+          envType={envType}
           severity='danger'
           content={t('app_deployment.kubernetes_deployment.status.failed')}
           footer={
@@ -99,33 +99,10 @@ export const AppStatus = ({ kubernetesDeployment, envName, envType, urlToApp }: 
         />
       );
     default:
-      const isFailing =
-        kubernetesDeployment.status === KubernetesDeploymentStatus.progressing &&
-        !isDateWithinSeconds(kubernetesDeployment.statusDate, 60);
-      if (isFailing) {
-        return (
-          <DeploymentStatusInfo
-            envType={envType}
-            envName={envName}
-            severity='warning'
-            content={
-              <span className={classes.loadingSpinner}>
-                <Spinner variant='interaction' title='' size='xsmall' />
-                {t('app_deployment.kubernetes_deployment.status.failing')}
-              </span>
-            }
-            footer={
-              <Trans i18nKey='overview.go_to_publish'>
-                <a href={publishPath(org, app)} />
-              </Trans>
-            }
-          />
-        );
-      }
       return (
         <DeploymentStatusInfo
-          envType={envType}
           envName={envName}
+          envType={envType}
           severity='info'
           content={
             <span className={classes.loadingSpinner}>
@@ -144,27 +121,26 @@ export const AppStatus = ({ kubernetesDeployment, envName, envType, urlToApp }: 
 };
 
 type DeploymentStatusInfoProps = {
-  envType: string;
   envName: string;
+  envType: string;
   severity: 'success' | 'warning' | 'info' | 'danger';
   content: string | React.ReactNode;
   footer: string | JSX.Element;
 };
 const DeploymentStatusInfo = ({
-  envType,
   envName,
+  envType,
   severity,
   content,
   footer,
 }: DeploymentStatusInfoProps) => {
   const { t } = useTranslation();
   const isProduction = envType.toLowerCase() === 'production';
-  const headingText = isProduction ? t('general.production') : envName;
-
+  const envTitle = isProduction ? t('general.production') : envName.toUpperCase();
   return (
     <Alert severity={severity} className={classes.alert}>
-      <Heading spacing level={2} size='xsmall' className={classes.heading}>
-        {headingText}
+      <Heading spacing level={2} size='xsmall'>
+        {envTitle}
       </Heading>
       <Paragraph spacing size='small'>
         {content}

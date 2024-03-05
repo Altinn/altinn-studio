@@ -55,14 +55,14 @@ import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsRespon
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { ILayoutSettings, ITextResourcesWithLanguage, IFrontEndSettings } from 'app-shared/types/global';
 import type { Organization } from 'app-shared/types/Organization';
-import type { OrgsState } from 'app-shared/types/OrgsState';
+import type { OrgList } from 'app-shared/types/OrgList';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
 import type { Repository, User } from 'app-shared/types/Repository';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 
 import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
-import { componentSchemaUrl, expressionSchemaUrl, layoutSchemaUrl, newsListUrl, numberFormatSchemaUrl, orgsListUrl } from '../cdn-paths';
+import { componentSchemaUrl, expressionSchemaUrl, layoutSchemaUrl, newsListUrl, numberFormatSchemaUrl, orgListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { PolicyAction, Policy, PolicySubject } from '@altinn/policy-editor';
 import type { BrregPartySearchResult, BrregSubPartySearchResult, AccessList, Resource, ResourceListItem, ResourceVersionStatus, Validation, AccessListsResponse } from 'app-shared/types/ResourceAdm';
@@ -97,7 +97,7 @@ export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(lay
 export const getNewsList = (language: 'nb' | 'en') => get<NewsList>(newsListUrl(language));
 export const getNumberFormatSchema = () => get<string[]>(numberFormatSchemaUrl());
 export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));
-export const getOrgList = () => get<OrgsState>(orgsListUrl());
+export const getOrgList = () => get<OrgList>(orgListUrl());
 export const getOrganizations = () => get<Organization[]>(orgsListPath());
 export const getRepoInitialCommit = (owner: string, app: string) => get<Commit>(repoInitialCommitPath(owner, app));
 export const getRepoMetadata = (owner: string, app: string) => get<Repository>(repoMetaPath(owner, app));
