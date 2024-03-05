@@ -149,7 +149,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await altinnAppGitRepository.SaveLayoutSettings(null, layoutSettings);
         }
-        
+
         /// <inheritdoc />
         public async Task<string[]> GetLayoutNames(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default)
         {

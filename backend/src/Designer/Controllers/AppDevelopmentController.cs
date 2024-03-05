@@ -260,7 +260,7 @@ namespace Altinn.Studio.Designer.Controllers
                 return BadRequest(exception);
             }
         }
-        
+
         /// <summary>
         /// Get all names of layouts across layoutSets
         /// </summary>
