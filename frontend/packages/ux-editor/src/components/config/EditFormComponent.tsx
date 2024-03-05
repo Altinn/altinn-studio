@@ -28,6 +28,11 @@ export interface IEditFormComponentProps<T extends ComponentType = ComponentType
   handleComponentUpdate: (component: FormItem<T>) => void;
 }
 
+// ToDO:
+// 1. remove toggleShowBetaFunc
+// 2. remove componentConfigBeta from featureToggleUtils
+// 3. .....
+
 export const EditFormComponent = ({
   editFormId,
   component,
@@ -35,9 +40,9 @@ export const EditFormComponent = ({
 }: IEditFormComponentProps) => {
   const selectedLayout = useSelector(selectedLayoutNameSelector);
   const { t } = useTranslation();
-  const [showComponentConfigBeta, setShowComponentConfigBeta] = React.useState<boolean>(
+  /*   const [showComponentConfigBeta, setShowComponentConfigBeta] = React.useState<boolean>(
     shouldDisplayFeature('componentConfigBeta'),
-  );
+  ); */
   const formItemConfig = formItemConfigs[component.type];
 
   const { data: schema, isPending } = useComponentSchemaQuery(component.type);
@@ -60,7 +65,7 @@ export const EditFormComponent = ({
     return componentSpecificEditConfig[component.type];
   };
 
-  const toggleShowBetaFunc = (event: React.ChangeEvent<HTMLInputElement>) => {
+  /*   const toggleShowBetaFunc = (event: React.ChangeEvent<HTMLInputElement>) => {
     setShowComponentConfigBeta(event.target.checked);
     // Ensure choice of feature toggling is persisted in local storage
     if (event.target.checked) {
@@ -68,7 +73,7 @@ export const EditFormComponent = ({
     } else {
       removeFeatureFlagFromLocalStorage('componentConfigBeta');
     }
-  };
+  }; */
 
   const isUnknownInternalComponent: boolean = !formItemConfig;
   if (isUnknownInternalComponent) {
@@ -77,10 +82,10 @@ export const EditFormComponent = ({
 
   return (
     <Fieldset className={classes.root} legend=''>
-      <FormField
+      {/*   <FormField
         id={component.id}
-        value={showComponentConfigBeta || false}
-        onChange={toggleShowBetaFunc}
+        value={undefined}
+        onChange={undefined}
         propertyPath={formItemConfig.propertyPath}
         componentType={component.type}
         helpText={t('ux_editor.edit_component.show_beta_func_help_text')}
@@ -89,14 +94,14 @@ export const EditFormComponent = ({
             {t('ux_editor.edit_component.show_beta_func')}
           </Switch>
         )}
-      />
-      {showComponentConfigBeta && isPending && (
+      /> */}
+      {isPending && (
         <StudioSpinner
           showSpinnerTitle
           spinnerTitle={t('ux_editor.edit_component.loading_schema')}
         />
       )}
-      {showComponentConfigBeta && !isPending && (
+      {!isPending && (
         <FormComponentConfig
           schema={schema}
           component={component}
@@ -104,16 +109,15 @@ export const EditFormComponent = ({
           handleComponentUpdate={handleComponentUpdate}
         />
       )}
-      {!showComponentConfigBeta && (
-        <>
-          {renderFromComponentSpecificDefinition(getConfigDefinitionForComponent())}
-          <ComponentSpecificContent
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-            layoutName={selectedLayout}
-          />
-        </>
-      )}
+
+      <>
+        {renderFromComponentSpecificDefinition(getConfigDefinitionForComponent())}
+        <ComponentSpecificContent
+          component={component}
+          handleComponentChange={handleComponentUpdate}
+          layoutName={selectedLayout}
+        />
+      </>
     </Fieldset>
   );
 };
