@@ -107,7 +107,7 @@ export const getPropertyValue = <T extends ComponentType>(
   property: FormItemProperty<T>,
 ): Expression => {
   const { key, subKey } = property;
-  if (subKey) {
+  if (subKey && formItem[key]) {
     return formItem[key][subKey] as BooleanExpression | undefined;
   }
   return formItem[key] as BooleanExpression | undefined;

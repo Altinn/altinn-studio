@@ -224,8 +224,23 @@ describe('utils', () => {
         pageIndex: null,
         type: ComponentType.Input,
       };
+      const repeatingGroupWithoutEditProp: FormContainer<ComponentType.RepeatingGroup> = {
+        id: 'repeatingGroup',
+        itemType: 'CONTAINER',
+        type: ComponentType.RepeatingGroup,
+      };
       const hiddenProp: FormItemProperty<ComponentType.Input> = { key: 'hidden' };
+      const addButtonProp: FormItemProperty<ComponentType.RepeatingGroup> = {
+        key: 'edit',
+        subKey: 'addButton',
+      };
       expect(getPropertyValue<ComponentType.Input>(inputComponent, hiddenProp)).toBeUndefined();
+      expect(
+        getPropertyValue<ComponentType.RepeatingGroup>(
+          repeatingGroupWithoutEditProp,
+          addButtonProp,
+        ),
+      ).toBeUndefined();
     });
   });
 });

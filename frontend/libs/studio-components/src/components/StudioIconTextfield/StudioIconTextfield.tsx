@@ -13,13 +13,13 @@ export const StudioIconTextfield = forwardRef<HTMLDivElement, StudioIconTextfiel
     { icon, className: givenClassName, ...rest }: StudioIconTextfieldProps,
     ref,
   ): React.ReactElement => {
-    const className = cn(givenClassName, classes.textfield);
+    const className = cn(givenClassName, classes.container);
     return (
-      <div className={classes.container} ref={ref}>
+      <div className={className} ref={ref}>
         <div aria-hidden className={classes.prefixIcon}>
           {icon}
         </div>
-        <StudioTextfield {...rest} className={className} />
+        <StudioTextfield {...rest} className={classes.textfield} />
       </div>
     );
   },

@@ -162,7 +162,6 @@ export const formItemConfigs: FormItemConfigs = {
     name: ComponentType.FileUpload,
     itemType: LayoutItemType.Component,
     defaultProperties: {
-      description: '',
       displayMode: 'list',
       hasCustomFileEndings: false,
       maxFileSizeInMB: 25,
@@ -176,7 +175,6 @@ export const formItemConfigs: FormItemConfigs = {
     name: ComponentType.FileUploadWithTag,
     itemType: LayoutItemType.Component,
     defaultProperties: {
-      description: '',
       displayMode: 'list',
       hasCustomFileEndings: false,
       maxFileSizeInMB: 25,
