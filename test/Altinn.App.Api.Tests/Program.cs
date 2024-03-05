@@ -1,4 +1,5 @@
 ﻿using Altinn.App.Api.Extensions;
+using Altinn.App.Api.Helpers;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Api.Tests.Mocks.Authentication;
@@ -20,6 +21,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Models;
 
 // This file should be as close to the Program.cs file in the app template
 // as possible to ensure we test the configuration of the dependency injection
@@ -48,6 +50,12 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
 {
     services.AddAltinnAppControllersWithViews();
     services.AddAltinnAppServices(config, builder.Environment);
+    // Add Swagger support (Swashbuckle)
+    services.AddSwaggerGen(c =>
+    {
+        c.SwaggerDoc("v1", new OpenApiInfo { Title = "Altinn App Api", Version = "v1" });
+        StartupHelper.IncludeXmlComments(c.IncludeXmlComments);
+    });
 }
 
 void ConfigureMockServices(IServiceCollection services, ConfigurationManager configuration)
@@ -73,6 +81,15 @@ void ConfigureMockServices(IServiceCollection services, ConfigurationManager con
 
 void Configure()
 {
+    app.UseSwagger(o => o.RouteTemplate = "/swagger/{documentName}/swagger.{json|yaml}");
+
+    // Enable middleware to serve generated Swagger as a JSON endpoint.
+    // This is used for testing, and don't use the appId prefix used in real apps
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint($"/swagger/v1/swagger.json", "Altinn App API");
+        c.RoutePrefix = "/swagger";
+    });
     app.UseAltinnAppCommonConfiguration();
 }
 
