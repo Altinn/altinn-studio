@@ -6,7 +6,11 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "$schema": true,
+    "$schema": {
+      "type": "string",
+      "title": "Schema",
+      "description": "The schema that this file adheres to"
+    },
     "footer": {
       "title": "The footer",
       "description": "Array of components to be presented in the footer.",

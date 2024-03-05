@@ -6,6 +6,11 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
+    "$schema": {
+      "type": "string",
+      "title": "Schema",
+      "description": "The schema that this file adheres to"
+    },
     "validations": {
       "type": "object",
       "patternProperties": {

@@ -671,6 +671,7 @@ const common = {
   IPagesSettings: () => new CG.obj().extends(CG.common('GlobalPageSettings')).extends(CG.common('IPagesBaseSettings')),
   ILayoutSettings: () =>
     new CG.obj(
+      new CG.prop('$schema', new CG.str().optional()),
       new CG.prop('pages', CG.common('IPagesSettings')),
       new CG.prop('components', CG.common('IComponentsSettings').optional()),
     )
@@ -680,6 +681,7 @@ const common = {
   // Layout sets:
   ILayoutSets: () =>
     new CG.obj(
+      new CG.prop('$schema', new CG.str().optional()),
       new CG.prop(
         'sets',
         new CG.arr(CG.common('ILayoutSet'))
