@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { EditDataModelBindings } from '../config/editModal/EditDataModelBindings/EditDataModelBindings';
 import { StudioSpinner } from '@studio/components';
@@ -21,6 +21,12 @@ export const DataModelBindings = (): React.JSX.Element => {
   const [multipleAttachments, setMultipleAttachments] = useState<boolean>(false);
   const t = useText();
 
+  useEffect(() => {
+    if (formItem.dataModelBindings?.list !== undefined) {
+      setMultipleAttachments(true);
+    }
+  }, [formItem.dataModelBindings?.list]);
+
   if (!schema) {
     return <StudioSpinner spinnerTitle={t('general.loading')} />;
   }
@@ -41,12 +47,13 @@ export const DataModelBindings = (): React.JSX.Element => {
   }
 
   const handleMultipleAttachmentsSwitch = () => {
-    setMultipleAttachments(!multipleAttachments);
+    const updatedValue = !multipleAttachments;
+    setMultipleAttachments(updatedValue);
     const updatedComponent = {
       ...formItem,
       dataModelBindings: {
-        simpleBinding: !multipleAttachments ? '' : undefined,
-        list: multipleAttachments ? '' : undefined,
+        simpleBinding: !updatedValue ? '' : undefined,
+        list: updatedValue ? '' : undefined,
       },
     };
     handleUpdate(

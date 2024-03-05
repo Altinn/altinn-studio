@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { DataModelBindings } from './DataModelBindings';
 import { FormItemContext } from '../../containers/FormItemContext';
 import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
@@ -115,6 +115,92 @@ describe('DataModelBindings', () => {
       expect(datamodelButton).toBeInTheDocument();
     });
   });
+
+  it('should render multiple attachments switch when component is a file upload component', () => {
+    render({
+      props: {
+        formItem: componentMocks[ComponentType.FileUpload],
+        formItemId: componentMocks[ComponentType.FileUpload].id,
+      },
+    });
+
+    const switchComponent = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
+    });
+    expect(switchComponent).toBeInTheDocument();
+  });
+});
+
+it('should call handleUpdate and debounceSave when changing multiple attachments switch to simple binding', async () => {
+  const handleUpdate = jest.fn();
+  const debounceSave = jest.fn();
+  render({
+    props: {
+      formItem: {
+        ...componentMocks[ComponentType.FileUpload],
+        dataModelBindings: {
+          list: 'someDataModelField',
+        },
+      },
+      formItemId: componentMocks[ComponentType.FileUpload].id,
+      handleUpdate,
+      debounceSave,
+    },
+  });
+
+  expect(
+    screen.getByText(textMock('ux_editor.modal_properties_data_model_label.list')),
+  ).toBeInTheDocument();
+
+  const switchComponent = screen.getByRole('checkbox', {
+    name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
+  });
+  await waitFor(() => switchComponent.click());
+
+  const expectedUpdatedComponent = {
+    ...componentMocks[ComponentType.FileUpload],
+    dataModelBindings: {
+      simpleBinding: '',
+      list: undefined,
+    },
+  };
+  expect(handleUpdate).toHaveBeenCalledWith(expectedUpdatedComponent);
+  expect(debounceSave).toHaveBeenCalled();
+});
+
+it('should call handleUpdate and debounceSave when changing multiple attachments switch to list binding', async () => {
+  const handleUpdate = jest.fn();
+  const debounceSave = jest.fn();
+  render({
+    props: {
+      formItem: {
+        ...componentMocks[ComponentType.FileUpload],
+        dataModelBindings: {
+          simpleBinding: 'someDataModelField',
+        },
+      },
+      formItemId: componentMocks[ComponentType.FileUpload].id,
+      handleUpdate,
+      debounceSave,
+    },
+  });
+
+  expect(screen.getByText(textMock('ux_editor.component_title.FileUpload'))).toBeInTheDocument();
+
+  const switchComponent = screen.getByRole('checkbox', {
+    name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
+  });
+  await waitFor(() => switchComponent.click());
+
+  const expectedUpdatedComponent = {
+    ...componentMocks[ComponentType.FileUpload],
+    dataModelBindings: {
+      simpleBinding: undefined,
+      list: '',
+    },
+  };
+  expect(handleUpdate).toHaveBeenCalledWith(expectedUpdatedComponent);
+  expect(debounceSave).toHaveBeenCalled();
 });
 
 const defaultProps = {
