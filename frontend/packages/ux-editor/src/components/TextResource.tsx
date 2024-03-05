@@ -26,7 +26,6 @@ import type { ITextResource } from 'app-shared/types/global';
 
 import { AltinnConfirmDialog } from 'app-shared/components/AltinnConfirmDialog';
 import { useTranslation } from 'react-i18next';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { StudioButton } from '@studio/components';
 
 export interface TextResourceProps {
