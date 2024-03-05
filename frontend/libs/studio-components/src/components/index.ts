@@ -14,6 +14,8 @@ export * from './StudioModal';
 export * from './StudioNotFoundPage';
 export * from './StudioPageSpinner';
 export * from './StudioPropertyButton';
+export * from './StudioPropertyFieldset';
+export * from './StudioPropertyListWrapper';
 export * from './StudioSectionHeader';
 export * from './StudioSpinner';
 export * from './StudioTextarea';

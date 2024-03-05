@@ -1,15 +1,27 @@
-import React, { ChangeEvent, useState } from 'react';
-import { TextResourceEditor } from '../../../TextResource/TextResourceEditor';
+import type { ChangeEvent } from 'react';
+import React, { useState } from 'react';
 import {
   StudioButton,
   StudioDeleteButton,
   StudioPropertyButton,
+  StudioPropertyFieldset,
+  StudioPropertyListWrapper,
   StudioTextfield,
 } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { Option } from 'app-shared/types/Option';
+import type { Option } from 'app-shared/types/Option';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { TextResource } from '../../../TextResource/TextResource';
+import {
+  deleteDescription,
+  deleteHelpText,
+  setDescription,
+  setHelpText,
+  setLabel,
+  setValue,
+} from './utils';
+import classes from './EditOption.module.css';
+import { OptionValue } from './OptionValue';
 
 export type EditOptionProps = {
   legend: string;
@@ -32,9 +44,13 @@ export const EditOption = (props: EditOptionProps) => {
 
 type ClosedOptionProps = EditOptionProps & { onOpen: () => void };
 
-const ClosedOption = ({ legend, onOpen, option }: ClosedOptionProps) => {
-  return <StudioPropertyButton property={legend} onClick={onOpen} value={option.value} />;
-};
+const ClosedOption = ({ legend, onOpen, option }: ClosedOptionProps) => (
+  <StudioPropertyButton
+    onClick={onOpen}
+    property={legend}
+    value={<OptionValue option={option} />}
+  />
+);
 
 type OpenOptionProps = EditOptionProps & { onClose: () => void };
 
@@ -42,23 +58,74 @@ const OpenOption = ({ legend, onChange, option, onDelete, onClose }: OpenOptionP
   const { t } = useTranslation();
 
   const handleValueChange = (event: ChangeEvent<HTMLInputElement>) =>
-    onChange({ ...option, value: event.target.value });
+    onChange(setValue(option, event.target.value));
 
-  const handleTextReferenceChange = (textResourceId: string) =>
-    onChange({ ...option, label: textResourceId });
+  const handleLabelChange = (textResourceId: string) => onChange(setLabel(option, textResourceId));
+
+  const handleDescriptionChange = (textResourceId: string) =>
+    onChange(setDescription(option, textResourceId));
+
+  const handleHelpTextChange = (textResourceId: string) =>
+    onChange(setHelpText(option, textResourceId));
+
+  const handleDeleteDescription = () => onChange(deleteDescription(option));
+  const handleDeleteHelpText = () => onChange(deleteHelpText(option));
 
   return (
-    <fieldset>
-      <legend>{legend}</legend>
-      <StudioButton icon={<XMarkIcon />} onClick={onClose} size='small' variant='secondary' />
-      <StudioDeleteButton onDelete={onDelete} />
+    <StudioPropertyFieldset
+      legend={legend}
+      menubar={<OptionMenu onClose={onClose} onDelete={onDelete} />}
+    >
       <StudioTextfield
+        className={classes.valueField}
         label={t('general.value')}
         onChange={handleValueChange}
         placeholder={t('general.value')}
         value={option.value.toString()}
       />
-      <TextResource onReferenceChange={handleTextReferenceChange} textResourceId={option.label} />
-    </fieldset>
+      <StudioPropertyListWrapper className={classes.textResources}>
+        <TextResource
+          compact
+          label={t('ux_editor.options_text_label')}
+          handleIdChange={handleLabelChange}
+          textResourceId={option.label}
+        />
+        <TextResource
+          compact
+          handleIdChange={handleDescriptionChange}
+          handleRemoveTextResource={handleDeleteDescription}
+          label={t('ux_editor.options_text_description')}
+          textResourceId={option.description}
+        />
+        <TextResource
+          compact
+          handleIdChange={handleHelpTextChange}
+          handleRemoveTextResource={handleDeleteHelpText}
+          label={t('ux_editor.options_text_help_text')}
+          textResourceId={option.helpText}
+        />
+      </StudioPropertyListWrapper>
+    </StudioPropertyFieldset>
+  );
+};
+
+type OptionMenuProps = {
+  onClose: () => void;
+  onDelete: () => void;
+};
+
+const OptionMenu = ({ onClose, onDelete }: OptionMenuProps) => {
+  const { t } = useTranslation();
+  return (
+    <>
+      <StudioButton
+        icon={<XMarkIcon />}
+        onClick={onClose}
+        size='small'
+        title={t('general.close')}
+        variant='secondary'
+      />
+      <StudioDeleteButton onDelete={onDelete} title={t('general.delete')} />
+    </>
   );
 };

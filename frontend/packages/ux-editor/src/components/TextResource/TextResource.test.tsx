@@ -1,21 +1,16 @@
 import React from 'react';
 import userEvent from '@testing-library/user-event';
-import type { ITextResource, ITextResourcesWithLanguage } from 'app-shared/types/global';
-import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import type { ITextResource, ITextResources } from 'app-shared/types/global';
+import { createQueryClientMock, queryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { TextResourceProps } from './TextResource';
 import { TextResource } from './TextResource';
-import {
-  renderHookWithMockStore,
-  renderWithMockStore,
-  textLanguagesMock,
-} from '../../testing/mocks';
-import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
-import { act, screen, waitFor } from '@testing-library/react';
+import { renderWithProviders } from '../../testing/mocks';
+import { act, screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
-import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 const user = userEvent.setup();
 
@@ -23,7 +18,8 @@ const user = userEvent.setup();
 const org = 'org';
 const app = 'app';
 const handleIdChange = jest.fn();
-const defaultProps: TextResourceProps = { handleIdChange };
+const handleRemoveTextResource = jest.fn();
+const defaultProps: TextResourceProps = { handleIdChange, handleRemoveTextResource };
 
 const textResources: ITextResource[] = [
   { id: '1', value: 'Text 1' },
@@ -38,117 +34,78 @@ describe('TextResource', () => {
     typedLocalStorage.removeItem('featureFlags');
   });
 
-  it('Renders add button when no resource id is given', async () => {
-    await render();
-    expect(screen.getByLabelText(textMock('general.add'))).toBeInTheDocument();
+  it('Renders a button with the given label when no resource id is given', () => {
+    const label = 'Lorem ipsum';
+    renderTextResource({ label });
+    expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
   });
 
-  it('Calls handleIdChange and dispatches correct actions when add button is clicked', async () => {
-    const { store } = await render();
-    await act(() => user.click(screen.getByLabelText(textMock('general.add'))));
+  it('Calls handleIdChange when the button is clicked', async () => {
+    const label = 'Lorem ipsum';
+    renderTextResource({ label });
+    await act(() => user.click(screen.getByRole('button', { name: label })));
     expect(handleIdChange).toHaveBeenCalledTimes(1);
-    const actions = store.getActions();
-    expect(actions).toHaveLength(1);
-    expect(actions[0].type).toBe('textResources/setCurrentEditId');
   });
 
-  it('Calls handleIdChange and dispatches correct actions with expected id when add button is clicked', async () => {
-    const { store } = await render({
+  it('Opens the text resource fieldset when the text resource button is clicked', async () => {
+    const label = 'Lorem ipsum';
+    renderTextResource({ label });
+    await act(() => user.click(screen.getByRole('button', { name: label })));
+    expect(screen.getByRole('group', { name: label })).toBeInTheDocument();
+  });
+
+  it('Calls handleIdChange with expected id when add button is clicked', async () => {
+    const label = 'Title';
+    renderTextResource({
+      label,
       generateIdOptions: {
         componentId: 'test-id',
         layoutId: 'Page1',
         textResourceKey: 'title',
       },
     });
-    const addButton = screen.getByRole('button', {
-      name: textMock('ux_editor.text_resource_binding_add_title'),
-    });
+    const addButton = screen.getByRole('button', { name: label });
     await act(() => user.click(addButton));
     expect(handleIdChange).toHaveBeenCalledTimes(1);
     expect(handleIdChange).toHaveBeenCalledWith('Page1.test-id.title');
-    const actions = store.getActions();
-    expect(actions).toHaveLength(1);
-    expect(actions[0].type).toBe('textResources/setCurrentEditId');
   });
 
-  it('Renders placeholder text when no resource id is given', async () => {
-    const placeholder = 'Legg til tekst her';
-    await render({ placeholder });
-    expect(screen.getByText(placeholder)).toBeInTheDocument();
-  });
-
-  it('Renders placeholder text when resource with given id is empty', async () => {
-    const placeholder = 'Legg til tekst her';
-    const textResourceId = 'some-id';
-    const textResource: ITextResource = { id: textResourceId, value: '' };
-    await render({ placeholder, textResourceId }, [textResource]);
-    expect(screen.getByText(placeholder)).toBeInTheDocument();
-  });
-
-  it('Renders placeholder text when resource with given id does not exist', async () => {
-    const placeholder = 'Legg til tekst her';
-    const textResourceId = 'some-id';
-    await render({ placeholder, textResourceId });
-    expect(screen.getByText(placeholder)).toBeInTheDocument();
-  });
-
-  it('Renders value of resource with given id', async () => {
+  it('Renders value of resource with given id', () => {
     const textResourceId = 'some-id';
     const value = 'Lorem ipsum dolor sit amet';
     const textResource: ITextResource = { id: textResourceId, value };
-    await render({ textResourceId }, [textResource]);
+    renderTextResource({ textResourceId }, [textResource]);
     expect(screen.getByText(value)).toBeInTheDocument();
   });
 
-  it('Does not render placeholder text when resource with given id has a value', async () => {
-    const placeholder = 'Legg til tekst her';
-    const textResourceId = 'some-id';
-    const textResource: ITextResource = { id: textResourceId, value: 'Lipsum' };
-    await render({ placeholder, textResourceId }, [textResource]);
-    expect(screen.queryByText(placeholder)).not.toBeInTheDocument();
-  });
-
-  it('Renders edit button when valid resource id is given', async () => {
+  it('Renders button with value when valid resource id is given', () => {
+    const label = 'Title';
     const textResourceId = 'some-id';
     const value = 'Lorem ipsum dolor sit amet';
     const textResource: ITextResource = { id: textResourceId, value };
-    await render({ textResourceId }, [textResource]);
-    expect(screen.getByLabelText(textMock('general.edit'))).toBeInTheDocument();
+    renderTextResource({ label, textResourceId }, [textResource]);
+    const button = screen.getByRole('button', { name: label });
+    expect(button).toHaveTextContent(value);
   });
 
-  it('Dispatches correct action and does not call handleIdChange when edit button is clicked', async () => {
+  it('Does not call handleIdChange when the button is clicked and there is already a binding', async () => {
+    const label = 'Title';
     const textResourceId = 'some-id';
     const value = 'Lorem ipsum dolor sit amet';
     const textResource: ITextResource = { id: textResourceId, value };
-    const { store } = await render({ textResourceId }, [textResource]);
-    await act(() => user.click(screen.getByLabelText(textMock('general.edit'))));
-    expect(handleIdChange).toHaveBeenCalledTimes(0);
-    const actions = store.getActions();
-    expect(actions).toHaveLength(1);
-    expect(actions[0].type).toBe('textResources/setCurrentEditId');
-    expect(actions[0].payload).toBe(textResourceId);
+    renderTextResource({ label, textResourceId }, [textResource]);
+    await act(() => user.click(screen.getByRole('button', { name: label })));
+    expect(handleIdChange).not.toHaveBeenCalled();
   });
 
-  it('Renders label if given', async () => {
-    const label = 'Lorem ipsum';
-    await render({ label });
-    expect(screen.getByText(label)).toBeInTheDocument();
-  });
-
-  it('Renders description if given', async () => {
-    const description = 'Lorem ipsum dolor sit amet.';
-    await render({ description });
-    expect(screen.getByText(description)).toBeInTheDocument();
-  });
-
-  it('Does not render search section by default', async () => {
-    await render();
+  it('Does not render search section by default', () => {
+    renderTextResource();
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
 
   it('Renders search section when search button is clicked', async () => {
     await renderAndOpenSearchSection();
-    await expect(screen.getByRole('combobox')).toBeInTheDocument();
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
 
   it('Renders correct number of options in search section', async () => {
@@ -187,93 +144,91 @@ describe('TextResource', () => {
     expect(handleIdChange).toHaveBeenCalledWith(undefined);
   });
 
-  it('Closes search section when close button is clicked', async () => {
-    await renderAndOpenSearchSection();
-    await act(() =>
-      user.click(screen.getByLabelText(textMock('ux_editor.search_text_resources_close'))),
-    );
-    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
-  });
-
-  it('Renders confirm dialog when delete button is clicked', async () => {
-    await render({ textResourceId: 'test', handleRemoveTextResource: jest.fn() });
+  it('Calls handleRemoveTextResourceBinding when the user clicks the delete button and confirms', async () => {
+    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    const label = 'Test';
+    renderTextResource({ label, textResourceId: 'test' });
+    await act(() => user.click(screen.getByRole('button', { name: label })));
     await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(
-      screen.getByText(textMock('ux_editor.text_resource_bindings.delete_confirm')),
-    ).toBeInTheDocument();
-  });
-
-  it('Calls handleRemoveTextResourceBinding is called when confirm delete button is clicked', async () => {
-    const handleRemoveTextResource = jest.fn();
-    await render({ handleRemoveTextResource, textResourceId: 'test' });
-    await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
-    await act(() =>
-      user.click(
-        screen.getByRole('button', {
-          name: textMock('ux_editor.text_resource_bindings.delete_confirm'),
-        }),
-      ),
-    );
     expect(handleRemoveTextResource).toHaveBeenCalledTimes(1);
   });
 
-  it('Does not call handleRemoveTextResourceBinding is called when cancel delete button is clicked', async () => {
-    const handleRemoveTextResource = jest.fn();
-    await render({ handleRemoveTextResource, textResourceId: 'test' });
+  it('Does not call handleRemoveTextResourceBinding when the user cancels the deletion', async () => {
+    jest.spyOn(window, 'confirm').mockReturnValue(false);
+    const label = 'Test';
+    renderTextResource({ label, textResourceId: 'test' });
+    await act(() => user.click(screen.getByRole('button', { name: label })));
     await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
-    await act(() => user.click(screen.getByRole('button', { name: textMock('general.cancel') })));
     expect(handleRemoveTextResource).not.toHaveBeenCalled();
   });
 
   it('Renders delete button as disabled when no handleRemoveTextResource is given', async () => {
-    await render();
+    const label = 'Test';
+    renderTextResource({ label, handleRemoveTextResource: undefined });
+    await act(() => user.click(screen.getByRole('button', { name: label })));
     expect(screen.getByRole('button', { name: textMock('general.delete') })).toBeDisabled();
   });
 
-  it('Renders delete button as disabled when handleRemoveTextResource is given, but no resource id is given', async () => {
-    await render({ handleRemoveTextResource: jest.fn() });
-    expect(screen.getByRole('button', { name: textMock('general.delete') })).toBeDisabled();
+  it('Closes the text resource fieldset when the close button is clicked', async () => {
+    const label = 'Test';
+    renderTextResource({ label });
+    await act(() => user.click(screen.getByRole('button', { name: label })));
+    await act(() => user.click(screen.getByRole('button', { name: textMock('general.close') })));
+    expect(screen.queryByRole('group', { name: label })).not.toBeInTheDocument();
   });
 
-  it('Renders delete button as enabled when handleRemoveTextResource and resource id is given', async () => {
-    await render({ textResourceId: 'test', handleRemoveTextResource: jest.fn() });
-    expect(screen.getByRole('button', { name: textMock('general.delete') })).toBeEnabled();
+  it('Displays textbox with given value', async () => {
+    const label = 'Test';
+    const textResourceId = textResources[0].id;
+    renderTextResource({ label, textResourceId }, textResources);
+    await act(() => user.click(screen.getByRole('button', { name: label })));
+    const textboxLabel = textMock('ux_editor.text_resource_binding_text');
+    const textbox = screen.getByRole('textbox', { name: textboxLabel });
+    expect(textbox).toHaveValue(textResources[0].value);
   });
 
-  it('Renders delete button as enabled when handleRemoveTextResource is given and componentConfigBeta feature flag is enabled', async () => {
-    addFeatureFlagToLocalStorage('componentConfigBeta');
-    await render({ textResourceId: 'test', handleRemoveTextResource: jest.fn() });
-    expect(screen.getByRole('button', { name: textMock('general.delete') })).toBeEnabled();
+  it('Mutates text resource when value is changed', async () => {
+    const label = 'Test';
+    const textResourceId = textResources[0].id;
+    const upsertTextResources = jest.fn();
+    renderTextResource({ label, textResourceId }, textResources, { upsertTextResources });
+    await act(() => user.click(screen.getByRole('button', { name: label })));
+    const textboxLabel = textMock('ux_editor.text_resource_binding_text');
+    const textbox = screen.getByRole('textbox', { name: textboxLabel });
+    await act(() => user.type(textbox, 'a'));
+    await act(() => user.tab());
+    expect(upsertTextResources).toHaveBeenCalledTimes(1);
+    expect(upsertTextResources).toHaveBeenCalledWith(org, app, DEFAULT_LANGUAGE, {
+      [textResourceId]: textResources[0].value + 'a',
+    });
   });
 });
 
 const renderAndOpenSearchSection = async () => {
-  await render(undefined, textResources);
-  await act(() => user.click(screen.getByLabelText(textMock('general.search'))));
+  const label = 'Test';
+  const textResourceId = textResources[0].id;
+  renderTextResource({ label, textResourceId }, textResources);
+  const textResourceButton = screen.getByRole('button', { name: label });
+  await act(() => user.click(textResourceButton));
+  const searchTab = screen.getByRole('tab', {
+    name: textMock('ux_editor.text_resource_binding_search'),
+  });
+  await act(() => user.click(searchTab));
 };
 
-const waitForData = async (resources: ITextResource[]) => {
-  const { result } = renderHookWithMockStore(
-    {},
-    {
-      getTextResources: jest.fn().mockImplementation(() =>
-        Promise.resolve<ITextResourcesWithLanguage>({
-          language: DEFAULT_LANGUAGE,
-          resources,
-        }),
-      ),
-      getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
-    },
-  )(() => useTextResourcesQuery(org, app)).renderHookResult;
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
-    .renderHookResult.result;
-  await waitFor(() => expect(result.current.isSuccess).toBe(true));
-  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
-};
+const renderTextResource = (
+  props: Partial<TextResourceProps> = {},
+  resources: ITextResource[] = [],
+  queries: Partial<ServicesContextProps> = {},
+) => {
+  const queryClient = createQueryClientMock();
+  const textResourcesList: ITextResources = {
+    [DEFAULT_LANGUAGE]: resources,
+  };
+  queryClient.setQueryData([QueryKey.TextResources, org, app], textResourcesList);
 
-const render = async (props: Partial<TextResourceProps> = {}, resources: ITextResource[] = []) => {
-  await waitForData(resources);
-
-  return renderWithMockStore()(<TextResource {...defaultProps} {...props} />);
+  return renderWithProviders(<TextResource {...defaultProps} {...props} />, {
+    queryClient,
+    queries,
+  });
 };

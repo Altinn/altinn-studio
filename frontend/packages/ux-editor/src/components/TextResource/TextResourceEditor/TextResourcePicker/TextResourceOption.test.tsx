@@ -1,9 +1,9 @@
 import React from 'react';
 import type { ITextResource } from 'app-shared/types/global';
-import type { TextResourceOptionProps } from './TextResourcePicker';
-import { TextResourceOption } from './TextResourcePicker';
+import type { TextResourceOptionProps } from './TextResourceOption';
+import { TextResourceOption } from './TextResourceOption';
 import { render as renderRtl, screen } from '@testing-library/react';
-import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
+import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
 
 // Test data:
 const id = 'testid';

@@ -11,6 +11,11 @@ const defaultProps: StudioPropertyButtonProps = {
   property,
 };
 
+// Mocks:
+jest.mock('./StudioPropertyButton.module.css', () => ({
+  compact: 'compact',
+}));
+
 describe('StudioPropertyButton', () => {
   it('Renders a button with the property name', () => {
     renderButton();
@@ -49,6 +54,11 @@ describe('StudioPropertyButton', () => {
     renderButton({ onClick });
     await act(() => user.click(screen.getByRole('button')));
     expect(onClick).toHaveBeenCalled();
+  });
+
+  it('Renders a compact button when the compact prop is true', () => {
+    renderButton({ compact: true });
+    expect(screen.getByRole('button')).toHaveClass('compact');
   });
 });
 

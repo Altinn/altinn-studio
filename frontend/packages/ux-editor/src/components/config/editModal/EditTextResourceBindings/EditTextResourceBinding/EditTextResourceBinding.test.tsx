@@ -38,6 +38,10 @@ describe('EditTextResourceBindings component', () => {
       id: 'test-text',
       value: 'This is a test',
     },
+    {
+      id: 'test-text-2',
+      value: 'This is another test',
+    },
   ];
 
   test('that it renders', async () => {
@@ -54,7 +58,8 @@ describe('EditTextResourceBindings component', () => {
       handleComponentChange,
       textKey: 'does-not-exist',
     });
-    await act(() => user.click(screen.getByLabelText(textMock('general.add'))));
+    const button = screen.getByRole('button', { name: textMock('ux_editor.modal_text') });
+    await act(() => user.click(button));
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
   });
 
@@ -62,45 +67,37 @@ describe('EditTextResourceBindings component', () => {
     const handleComponentChange = jest.fn();
     await renderEditTextResourceBindingsComponent({
       handleComponentChange,
-      textKey: 'does-not-exist',
     });
-
-    // Click search button
-    await act(() => user.click(screen.getByLabelText(textMock('general.search'))));
-
-    // Select with existing texts should be shown
+    const button = screen.getByRole('button', { name: textMock('ux_editor.modal_text') });
+    await act(() => user.click(button));
+    const searchTabLabel = textMock('ux_editor.text_resource_binding_search');
+    const searchTab = screen.getByRole('tab', { name: searchTabLabel });
+    await act(() => user.click(searchTab));
     const select = screen.getByRole('combobox');
-    expect(select).toBeInTheDocument();
     await act(() => user.click(select));
-
-    // Select text from available options
-    await act(() => user.click(screen.getByRole('option', { name: textResources[0].id })));
+    await act(() => user.click(screen.getByRole('option', { name: textResources[1].id })));
 
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...mockComponent,
       textResourceBindings: {
         ...mockComponent.textResourceBindings,
-        'does-not-exist': 'test-text',
+        test: textResources[1].id,
       },
     });
   });
 
   test('That handleComponentChange and removeTextResourceBinding are called when confirm delete textResourceBinding button is clicked', async () => {
+    jest.spyOn(window, 'confirm').mockReturnValue(true);
     const handleComponentChange = jest.fn();
     const removeTextResourceBinding = jest.fn();
     await renderEditTextResourceBindingsComponent({
       handleComponentChange,
       removeTextResourceBinding,
     });
+    const button = screen.getByRole('button', { name: textMock('ux_editor.modal_text') });
+    await act(() => user.click(button));
     await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
-    await act(() =>
-      user.click(
-        screen.getByRole('button', {
-          name: textMock('ux_editor.text_resource_bindings.delete_confirm'),
-        }),
-      ),
-    );
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...mockComponent,

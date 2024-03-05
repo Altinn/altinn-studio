@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Tabs } from '@digdir/design-system-react';
 import { TextResourceValueEditor } from './TextResourceValueEditor';
 import { TextResourcePicker } from './TextResourcePicker';
+import classes from './TextResourceEditor.module.css';
+import { useTranslation } from 'react-i18next';
 
 export interface TextResourceProps {
   onReferenceChange: (id: string) => void;
@@ -15,14 +17,19 @@ enum TextResourceTab {
 
 export const TextResourceEditor = ({ onReferenceChange, textResourceId }: TextResourceProps) => {
   const [tab, setTab] = useState<string>(TextResourceTab.Type);
+  const { t } = useTranslation();
 
   return (
-    <Tabs size='small' value={tab} onChange={setTab}>
+    <Tabs size='small' value={tab} onChange={setTab} className={classes.root}>
       <Tabs.List>
-        <Tabs.Tab value={TextResourceTab.Type}>Skriv tekst</Tabs.Tab>
-        <Tabs.Tab value={TextResourceTab.Search}>Søk</Tabs.Tab>
+        <Tabs.Tab value={TextResourceTab.Type}>
+          {t('ux_editor.text_resource_binding_write')}
+        </Tabs.Tab>
+        <Tabs.Tab value={TextResourceTab.Search}>
+          {t('ux_editor.text_resource_binding_search')}
+        </Tabs.Tab>
       </Tabs.List>
-      <Tabs.Content value={TextResourceTab.Type}>
+      <Tabs.Content value={TextResourceTab.Type} className={classes.tabContent}>
         <TextResourceValueEditor
           onReferenceChange={onReferenceChange}
           textResourceId={textResourceId}

@@ -9,15 +9,34 @@ import cn from 'classnames';
 export type StudioPropertyButtonProps = {
   property: string;
   value?: ReactNode;
+  compact?: boolean;
+  withoutNegativeMargin?: boolean;
 } & Omit<StudioButtonProps, 'children' | 'value'>;
 
 const StudioPropertyButton = forwardRef<HTMLButtonElement, StudioPropertyButtonProps>(
-  ({ property, value, icon: givenIcon, className: givenClass, ...rest }, ref) => {
+  (
+    {
+      className: givenClass,
+      compact,
+      icon: givenIcon,
+      property,
+      value,
+      withoutNegativeMargin,
+      ...rest
+    },
+    ref,
+  ) => {
     const hasValue = !!value;
 
     const icon = hasValue || givenIcon ? givenIcon : <PlusCircleIcon />;
 
-    const className = cn(classes.propertyButton, hasValue && classes.withValue, givenClass);
+    const className = cn(
+      classes.propertyButton,
+      hasValue && classes.withValue,
+      compact && classes.compact,
+      withoutNegativeMargin && classes.withoutNegativeMargin,
+      givenClass,
+    );
 
     return (
       <StudioButton

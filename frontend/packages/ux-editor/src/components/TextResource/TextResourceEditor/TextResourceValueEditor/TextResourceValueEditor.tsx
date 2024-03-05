@@ -1,10 +1,13 @@
-import React, { ChangeEvent, useCallback, useEffect, useState } from 'react';
-import { StudioTextarea } from '@studio/components';
+import type { ChangeEvent } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { StudioCodeFragment, StudioTextarea } from '@studio/components';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useUpsertTextResourcesMutation } from 'app-shared/hooks/mutations';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { ITextResource, ITextResources } from 'app-shared/types/global';
+import type { ITextResource, ITextResources } from 'app-shared/types/global';
+import classes from './TextResourceValueEditor.module.css';
+import { Trans, useTranslation } from 'react-i18next';
 
 export type TextResourceValueEditorProps = {
   textResourceId: string;
@@ -28,6 +31,7 @@ export const TextResourceValueEditor = ({
   const { mutate } = useUpsertTextResourcesMutation(org, app);
   const value = getTextResourceValue(textResources, textResourceId);
   const [valueState, setValueState] = useState<string>(value);
+  const { t } = useTranslation();
 
   useEffect(() => {
     setValueState(value);
@@ -35,18 +39,26 @@ export const TextResourceValueEditor = ({
 
   const handleChange = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>) => {
-      const { value } = event.target;
-      const textResource: ITextResource = { id: textResourceId, value };
-      const textResources: ITextResource[] = [textResource];
-      mutate({ language, textResources });
+      const textResource: ITextResource = { id: textResourceId, value: event.target.value };
+      mutate({ language, textResources: [textResource] });
     },
-    [textResourceId, onReferenceChange, mutate],
+    [textResourceId, mutate],
   );
 
   return (
-    <>
-      <StudioTextarea label='Tekst' onBlur={handleChange} value={valueState} />
-      ID: {textResourceId}
-    </>
+    <div className={classes.root}>
+      <StudioTextarea
+        label={t('ux_editor.text_resource_binding_text')}
+        onBlur={handleChange}
+        value={valueState}
+      />
+      <div className={classes.id}>
+        <Trans
+          i18nKey='ux_editor.text_resource_binding_id'
+          values={{ id: textResourceId }}
+          components={[<StudioCodeFragment key='0' />]}
+        />
+      </div>
+    </div>
   );
 };

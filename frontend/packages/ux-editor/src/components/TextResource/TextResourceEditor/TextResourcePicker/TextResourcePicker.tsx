@@ -1,16 +1,16 @@
-import { LegacySelect, LegacySingleSelectOption } from '@digdir/design-system-react';
+import type { LegacySingleSelectOption } from '@digdir/design-system-react';
+import { LegacySelect } from '@digdir/design-system-react';
 import React from 'react';
 import { prepend } from 'app-shared/utils/arrayUtils';
 import type { ITextResource } from 'app-shared/types/global';
-import { useText, useTextResourcesSelector } from '../../hooks';
+import { useTextResourcesSelector } from '../../../../hooks';
 import {
   allTextResourceIdsWithTextSelector,
   textResourceByLanguageAndIdSelector,
-} from '../../selectors/textResourceSelectors';
+} from '../../../../selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useTranslation } from 'react-i18next';
-import classes from './TextResource.module.css';
-import cn from 'classnames';
+import { TextResourceOption } from './TextResourceOption';
 
 export type TextResourcePickerProps = {
   textResourceId?: string;
@@ -47,21 +47,5 @@ export const TextResourcePicker = ({
       options={searchOptions}
       value={textResource?.id ?? ''}
     />
-  );
-};
-
-export interface TextResourceOptionProps {
-  textResource: ITextResource;
-}
-
-export const TextResourceOption = ({ textResource }: TextResourceOptionProps) => {
-  const t = useText();
-  return (
-    <span className={classes.textOption}>
-      <span className={classes.textOptionId}>{textResource.id}</span>
-      <span className={cn(classes.textOptionValue, !textResource.value && classes.empty)}>
-        {textResource.value || t('ux_editor.no_text')}
-      </span>
-    </span>
   );
 };

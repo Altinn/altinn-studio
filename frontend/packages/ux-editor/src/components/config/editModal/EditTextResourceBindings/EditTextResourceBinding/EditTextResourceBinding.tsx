@@ -20,8 +20,6 @@ export const EditTextResourceBinding = ({
   removeTextResourceBinding,
   textKey,
   labelKey,
-  descriptionKey,
-  placeholderKey,
 }: EditTextResourceBindingProps) => {
   const { t } = useTranslation();
   const selectedLayout = useSelector(
@@ -49,8 +47,6 @@ export const EditTextResourceBinding = ({
       handleIdChange={handleTextResourceIdChange}
       handleRemoveTextResource={handleRemoveTextResourceBinding}
       label={t(labelKey)}
-      description={t(descriptionKey)}
-      placeholder={t(placeholderKey)}
       textResourceId={
         component.textResourceBindings ? component.textResourceBindings[textKey] : undefined
       }

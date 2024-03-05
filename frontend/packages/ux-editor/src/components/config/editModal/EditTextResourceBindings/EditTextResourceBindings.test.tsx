@@ -77,7 +77,7 @@ describe('EditTextResourceBindings component', () => {
     expect(searchTextButton).not.toBeInTheDocument();
   });
 
-  test('that it renders empty text resource bindings if component has no text resource bindings', async () => {
+  test('that it renders text resource binding buttons if component has no text resource bindings', async () => {
     const textResourceBindingKeys = ['title', 'description', 'help'];
     await renderEditTextResourceBindingsComponent({
       textResourceBindingKeys,
@@ -85,9 +85,8 @@ describe('EditTextResourceBindings component', () => {
     });
 
     textResourceBindingKeys.forEach((key) => {
-      expect(
-        screen.getByText(textMock(`ux_editor.modal_properties_textResourceBindings_${key}_add`)),
-      ).toBeInTheDocument();
+      const buttonLabel = textMock(`ux_editor.modal_properties_textResourceBindings_${key}`);
+      screen.getByRole('button', { name: buttonLabel });
     });
   });
 
