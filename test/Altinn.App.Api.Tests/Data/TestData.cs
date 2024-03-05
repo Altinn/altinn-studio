@@ -1,6 +1,9 @@
 ﻿using Altinn.App.Api.Tests.Mocks;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Altinn.App.Core.Models;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Api.Tests.Data;
 
@@ -180,5 +183,19 @@ public static class TestData
                 Directory.Delete(path, true);
             }
         }
+    }
+
+    private static JsonSerializerOptions JsonSerializerOptions => new(JsonSerializerDefaults.Web)
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
+        Converters = { new JsonStringEnumConverter() }
+    };
+
+    public static async Task<Instance> GetInstance(string org, string app, int instanceOwnerPartyId, Guid instanceGuid)
+    {
+        var path = GetInstancePath(org, app, instanceOwnerPartyId, instanceGuid);
+        var instanceJson = await File.ReadAllTextAsync(path);
+        return JsonSerializer.Deserialize<Instance>(instanceJson, JsonSerializerOptions)!;
     }
 }

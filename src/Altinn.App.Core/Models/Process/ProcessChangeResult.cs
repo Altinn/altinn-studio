@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Altinn.App.Core.Models.Process
 {
     /// <summary>
@@ -8,20 +10,22 @@ namespace Altinn.App.Core.Models.Process
         /// <summary>
         /// Gets or sets a value indicating whether the process change was successful
         /// </summary>
-        public bool Success { get; set; }
+        [MemberNotNullWhen(true, nameof(ProcessStateChange))]
+        [MemberNotNullWhen(false, nameof(ErrorMessage), nameof(ErrorType))]
+        public bool Success { get; init; }
         /// <summary>
         /// Gets or sets the error message if the process change was not successful
         /// </summary>
-        public string? ErrorMessage { get; set; }
+        public string? ErrorMessage { get; init; }
         /// <summary>
         /// Gets or sets the error type if the process change was not successful
         /// </summary>
-        public ProcessErrorType? ErrorType { get; set; }
+        public ProcessErrorType? ErrorType { get; init; }
 
         /// <summary>
         /// Gets or sets the process state change if the process change was successful
         /// </summary>
-        public ProcessStateChange? ProcessStateChange { get; set; }
+        public ProcessStateChange? ProcessStateChange { get; init; }
     }
 
     /// <summary>
