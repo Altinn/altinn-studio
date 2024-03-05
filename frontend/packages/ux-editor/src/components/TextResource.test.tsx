@@ -11,7 +11,6 @@ import { textMock } from '../../../../testing/mocks/i18nMock';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
-import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
 
 const user = userEvent.setup();
 
