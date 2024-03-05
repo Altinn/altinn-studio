@@ -281,7 +281,6 @@ describe('EditDataModelBindings', () => {
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...defaultComponent,
       dataModelBindings: { simpleBinding: '' },
-      required: false,
       timeStamp: undefined,
     });
   });

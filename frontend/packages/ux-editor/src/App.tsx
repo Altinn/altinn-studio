@@ -12,8 +12,6 @@ import { useLayoutSetsQuery } from './hooks/queries/useLayoutSetsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from './hooks/useAppContext';
 import { FormItemContextProvider } from './containers/FormItemContext';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { UnsupportedVersionMessage } from './components/UnsupportedVersionMessage';
 
 /**
  * This is the main React component responsible for controlling
@@ -77,12 +75,6 @@ export function App() {
       setSelectedLayoutSet(layoutSets.sets[0].id);
     }
   }, [setSelectedLayoutSet, selectedLayoutSet, layoutSets, app]);
-
-  if (!shouldDisplayFeature('shouldOverrideAppFrontendCheck')) {
-    return (
-      <UnsupportedVersionMessage version='V4' closestSupportedVersion='V3' category='too-new' />
-    );
-  }
 
   if (componentHasError) {
     const mappedError = mapErrorToDisplayError();
