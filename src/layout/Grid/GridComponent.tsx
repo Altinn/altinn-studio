@@ -51,7 +51,7 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
           <Caption
             className={cn({ [css.captionFullWidth]: shouldHaveFullWidth })}
             title={<Lang id={title} />}
-            description={<Lang id={description} />}
+            description={description && <Lang id={description} />}
             helpText={help}
             labelSettings={labelSettings}
           />
