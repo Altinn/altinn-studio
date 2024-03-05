@@ -44,7 +44,8 @@ import {
   userCurrentPath,
   userStarredListPath,
   widgetSettingsPath,
-  resourceAccessListsPath, layoutNamesPath,
+  resourceAccessListsPath,
+  layoutNamesPath,
 } from './paths';
 import type { AppDeploymentsResponse, AppReleasesResponse, DatamodelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';

@@ -9,7 +9,7 @@ import { Dynamics } from './Dynamics';
 import { PropertiesHeader } from './PropertiesHeader';
 import { EditFormComponent } from '../config/EditFormComponent';
 import { DataModelBindings } from './DataModelBindings';
-import {PageConfigPanel} from "./PageConfigPanel";
+import { PageConfigPanel } from './PageConfigPanel';
 
 export const Properties = () => {
   const { t } = useTranslation();
@@ -35,65 +35,69 @@ export const Properties = () => {
 
   return (
     <div className={classes.root}>
-      {!formItemId ? <PageConfigPanel/> :
-          <>
+      {!formItemId ? (
+        <PageConfigPanel />
+      ) : (
+        <>
           <PropertiesHeader
-              formItem={formItem}
-              handleComponentUpdate={async (updatedComponent) => {
-                handleUpdate(updatedComponent);
-                debounceSave(formItemId, updatedComponent);
-              }}
+            formItem={formItem}
+            handleComponentUpdate={async (updatedComponent) => {
+              handleUpdate(updatedComponent);
+              debounceSave(formItemId, updatedComponent);
+            }}
           />
-      <Accordion color='subtle'>
-        <Accordion.Item open={openList.includes('text')}>
-          <Accordion.Header onHeaderClick={() => toggleOpen('text')}>
-            {t('right_menu.text')}
-          </Accordion.Header>
-          <Accordion.Content className={classes.texts}>
-            <Text />
-          </Accordion.Content>
-        </Accordion.Item>
-        <Accordion.Item open={openList.includes('datamodel')}>
-          <Accordion.Header onHeaderClick={() => toggleOpen('datamodel')}>
-            {t('right_menu.dataModelBindings')}
-          </Accordion.Header>
-          <Accordion.Content className={classes.datamodelBindings}>
-            <DataModelBindings />
-          </Accordion.Content>
-        </Accordion.Item>
-        <Accordion.Item open={openList.includes('content')}>
-          <Accordion.Header onHeaderClick={() => toggleOpen('content')}>
-            {t('right_menu.content')}
-          </Accordion.Header>
-          <Accordion.Content>
-            <EditFormComponent
-                editFormId={formItemId}
-                component={formItem}
-                handleComponentUpdate={async (updatedComponent) => {
-                  handleUpdate(updatedComponent);
-                  debounceSave(formItemId, updatedComponent);
-                }}
-              />
-          </Accordion.Content>
-        </Accordion.Item>
-        <Accordion.Item open={openList.includes('dynamics')}>
-          <Accordion.Header onHeaderClick={() => toggleOpen('dynamics')}>
-            {t('right_menu.dynamics')}
-          </Accordion.Header>
-          <Accordion.Content>
-            <Dynamics />
-          </Accordion.Content>
-        </Accordion.Item>
-        <Accordion.Item open={openList.includes('calculations')}>
-          <Accordion.Header onHeaderClick={(e) => toggleOpen('calculations')}>
-            {t('right_menu.calculations')}
-          </Accordion.Header>
-          <Accordion.Content>
-            <Calculations />
-          </Accordion.Content>
-        </Accordion.Item>
-      </Accordion>
-          </>}
+          <Accordion color='subtle'>
+            <Accordion.Item open={openList.includes('text')}>
+              <Accordion.Header onHeaderClick={() => toggleOpen('text')}>
+                {t('right_menu.text')}
+              </Accordion.Header>
+              <Accordion.Content className={classes.texts}>
+                <Text />
+              </Accordion.Content>
+            </Accordion.Item>
+            <Accordion.Item open={openList.includes('datamodel')}>
+              <Accordion.Header onHeaderClick={() => toggleOpen('datamodel')}>
+                {t('right_menu.dataModelBindings')}
+              </Accordion.Header>
+              <Accordion.Content className={classes.datamodelBindings}>
+                <DataModelBindings />
+              </Accordion.Content>
+            </Accordion.Item>
+            <Accordion.Item open={openList.includes('content')}>
+              <Accordion.Header onHeaderClick={() => toggleOpen('content')}>
+                {t('right_menu.content')}
+              </Accordion.Header>
+              <Accordion.Content>
+                <EditFormComponent
+                  editFormId={formItemId}
+                  component={formItem}
+                  handleComponentUpdate={async (updatedComponent) => {
+                    handleUpdate(updatedComponent);
+                    debounceSave(formItemId, updatedComponent);
+                  }}
+                />
+              </Accordion.Content>
+            </Accordion.Item>
+            <Accordion.Item open={openList.includes('dynamics')}>
+              <Accordion.Header onHeaderClick={() => toggleOpen('dynamics')}>
+                {t('right_menu.dynamics')}
+              </Accordion.Header>
+              <Accordion.Content>
+                <Dynamics />
+              </Accordion.Content>
+            </Accordion.Item>
+            <Accordion.Item open={openList.includes('calculations')}>
+              <Accordion.Header onHeaderClick={(e) => toggleOpen('calculations')}>
+                {t('right_menu.calculations')}
+              </Accordion.Header>
+              <Accordion.Content>
+                <Calculations />
+              </Accordion.Content>
+            </Accordion.Item>
+          </Accordion>
+        </>
+      )}
+>>>>>>> 6697b755d (linting)
     </div>
   );
 };

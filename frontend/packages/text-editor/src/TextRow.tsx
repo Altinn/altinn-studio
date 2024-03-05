@@ -17,8 +17,8 @@ import { TextEntry } from './TextEntry';
 import { Variables } from './Variables';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { StudioButton } from '@studio/components';
-import {useLayoutNamesQuery} from "./hooks/useLayoutNamesQuery";
-import {useStudioUrlParams} from "app-shared/hooks/useStudioUrlParams";
+import { useLayoutNamesQuery } from './hooks/useLayoutNamesQuery';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface TextRowProps {
   idExists: (textResourceId: string) => boolean;
@@ -51,7 +51,7 @@ export const TextRow = ({
   const { t } = useTranslation();
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
   const { data: layoutNames, isPending: layoutNamesPending } = useLayoutNamesQuery(org, app);
-  
+
   const handleTextIdChange = (newTextId: string): void => {
     const error = validateNewTextId(newTextId);
 

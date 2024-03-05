@@ -15,7 +15,6 @@ import {
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useTranslation } from 'react-i18next';
 
-
 export const TextEditor = () => {
   const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
