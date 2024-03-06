@@ -8,7 +8,7 @@ import { EditDataModelBindings } from '../../editModal/EditDataModelBindings/Edi
 import type { FormAddressComponent } from '../../../../types/FormComponent';
 import { FormField } from '../../../FormField';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { StudioPropertyListWrapper } from '@studio/components';
+import { StudioProperty } from '@studio/components';
 
 export const AddressComponent = ({
   component,
@@ -46,7 +46,7 @@ export const AddressComponent = ({
         )}
       />
 
-      <StudioPropertyListWrapper>
+      <StudioProperty.Group>
         {Object.keys(AddressKeys).map((value: AddressKeys, index) => {
           const simple: boolean = (component as FormAddressComponent).simplified;
           if (simple && (value === AddressKeys.careOf || value === AddressKeys.houseNumber)) {
@@ -66,7 +66,7 @@ export const AddressComponent = ({
             />
           );
         })}
-      </StudioPropertyListWrapper>
+      </StudioProperty.Group>
     </Fieldset>
   );
 };

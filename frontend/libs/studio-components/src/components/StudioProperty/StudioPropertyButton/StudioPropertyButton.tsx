@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import React, { forwardRef } from 'react';
-import type { StudioButtonProps } from '../StudioButton';
-import { StudioButton } from '../StudioButton';
+import type { StudioButtonProps } from '../../StudioButton';
+import { StudioButton } from '../../StudioButton';
 import classes from './StudioPropertyButton.module.css';
 import { PlusCircleIcon, PencilIcon } from '@studio/icons';
 import cn from 'classnames';
@@ -64,6 +64,6 @@ const StudioPropertyButton = forwardRef<HTMLButtonElement, StudioPropertyButtonP
   },
 );
 
-StudioPropertyButton.displayName = 'StudioPropertyButton';
+StudioPropertyButton.displayName = 'StudioProperty.Button';
 
 export { StudioPropertyButton };

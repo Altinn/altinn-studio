@@ -24,6 +24,6 @@ const StudioPropertyFieldset = forwardRef<HTMLFieldSetElement, StudioPropertyFie
   },
 );
 
-StudioPropertyFieldset.displayName = 'StudioPropertyFieldset';
+StudioPropertyFieldset.displayName = 'StudioProperty.Fieldset';
 
 export { StudioPropertyFieldset };

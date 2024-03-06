@@ -2,12 +2,7 @@ import React, { useState } from 'react';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import { generateTextResourceId } from '../../utils/generateId';
 import { TextResourceEditor } from './TextResourceEditor';
-import {
-  StudioButton,
-  StudioDeleteButton,
-  StudioPropertyButton,
-  StudioPropertyFieldset,
-} from '@studio/components';
+import { StudioButton, StudioDeleteButton, StudioProperty } from '@studio/components';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { TextResourceValue } from './TextResourceValue';
 import { useTranslation } from 'react-i18next';
@@ -96,7 +91,7 @@ const TextResourceFieldset = ({
   };
 
   return (
-    <StudioPropertyFieldset
+    <StudioProperty.Fieldset
       compact={compact}
       legend={legend}
       menubar={
@@ -119,7 +114,7 @@ const TextResourceFieldset = ({
       }
     >
       <TextResourceEditor textResourceId={textResourceId} onReferenceChange={onReferenceChange} />
-    </StudioPropertyFieldset>
+    </StudioProperty.Fieldset>
   );
 };
 
@@ -137,5 +132,7 @@ const TextResourceButton = ({
   textResourceId,
 }: TextResourceButtonProps) => {
   const value = textResourceId ? <TextResourceValue id={textResourceId} /> : null;
-  return <StudioPropertyButton compact={compact} onClick={onOpen} property={label} value={value} />;
+  return (
+    <StudioProperty.Button compact={compact} onClick={onOpen} property={label} value={value} />
+  );
 };

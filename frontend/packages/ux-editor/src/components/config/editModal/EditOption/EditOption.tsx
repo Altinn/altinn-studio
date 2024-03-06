@@ -3,9 +3,7 @@ import React, { useState } from 'react';
 import {
   StudioButton,
   StudioDeleteButton,
-  StudioPropertyButton,
-  StudioPropertyFieldset,
-  StudioPropertyListWrapper,
+  StudioProperty,
   StudioTextfield,
 } from '@studio/components';
 import { useTranslation } from 'react-i18next';
@@ -45,7 +43,7 @@ export const EditOption = (props: EditOptionProps) => {
 type ClosedOptionProps = EditOptionProps & { onOpen: () => void };
 
 const ClosedOption = ({ legend, onOpen, option }: ClosedOptionProps) => (
-  <StudioPropertyButton
+  <StudioProperty.Button
     onClick={onOpen}
     property={legend}
     value={<OptionValue option={option} />}
@@ -72,7 +70,7 @@ const OpenOption = ({ legend, onChange, option, onDelete, onClose }: OpenOptionP
   const handleDeleteHelpText = () => onChange(deleteHelpText(option));
 
   return (
-    <StudioPropertyFieldset
+    <StudioProperty.Fieldset
       legend={legend}
       menubar={<OptionMenu onClose={onClose} onDelete={onDelete} />}
     >
@@ -83,7 +81,7 @@ const OpenOption = ({ legend, onChange, option, onDelete, onClose }: OpenOptionP
         placeholder={t('general.value')}
         value={option.value.toString()}
       />
-      <StudioPropertyListWrapper className={classes.textResources}>
+      <StudioProperty.Group className={classes.textResources}>
         <TextResource
           compact
           label={t('ux_editor.options_text_label')}
@@ -104,8 +102,8 @@ const OpenOption = ({ legend, onChange, option, onDelete, onClose }: OpenOptionP
           label={t('ux_editor.options_text_help_text')}
           textResourceId={option.helpText}
         />
-      </StudioPropertyListWrapper>
-    </StudioPropertyFieldset>
+      </StudioProperty.Group>
+    </StudioProperty.Fieldset>
   );
 };
 

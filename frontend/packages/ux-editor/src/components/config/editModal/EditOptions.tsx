@@ -7,7 +7,7 @@ import { EditCodeList } from './EditCodeList';
 import { useComponentErrorMessage } from '../../../hooks';
 import { addOptionToComponent, generateRandomOption } from '../../../utils/component';
 
-import { StudioPropertyButton, StudioPropertyListWrapper } from '@studio/components';
+import { StudioProperty } from '@studio/components';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { EditOption } from './EditOption';
 import { ArrayUtils } from '@studio/pure-functions';
@@ -123,7 +123,7 @@ export function EditOptions<T extends SelectionComponentType>({
       )}
 
       {selectedOptionsType === SelectedOptionsType.Manual && (
-        <StudioPropertyListWrapper>
+        <StudioProperty.Group>
           {component.options?.map((option, index) => {
             const removeItem = () => handleRemoveOption(index);
             const key = `${option.value}-${index}`; // Figure out a way to remove index from key.
@@ -142,12 +142,12 @@ export function EditOptions<T extends SelectionComponentType>({
               />
             );
           })}
-          <StudioPropertyButton
+          <StudioProperty.Button
             disabled={component.options?.some(({ label }) => !label)}
             onClick={handleAddOption}
             property={t('ux_editor.modal_new_option')}
           />
-        </StudioPropertyListWrapper>
+        </StudioProperty.Group>
       )}
       {errorMessage && (
         <ErrorMessage className={classes.errorMessage} size='small'>

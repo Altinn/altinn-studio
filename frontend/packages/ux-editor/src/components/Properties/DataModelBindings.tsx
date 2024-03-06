@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { EditDataModelBindings } from '../config/editModal/EditDataModelBindings/EditDataModelBindings';
-import { StudioPropertyListWrapper, StudioSpinner } from '@studio/components';
+import { StudioProperty, StudioSpinner } from '@studio/components';
 import { Alert, Switch } from '@digdir/design-system-react';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { useFormItemContext } from '../../containers/FormItemContext';
@@ -68,7 +68,7 @@ export const DataModelBindings = (): React.JSX.Element => {
             {t('ux_editor.modal_properties_data_model_link_multiple_attachments')}
           </Switch>
         )}
-        <StudioPropertyListWrapper>
+        <StudioProperty.Group>
           {Object.keys(dataModelBindingsProperties).map((propertyKey: string) => {
             return (
               <div
@@ -91,7 +91,7 @@ export const DataModelBindings = (): React.JSX.Element => {
               </div>
             );
           })}
-        </StudioPropertyListWrapper>
+        </StudioProperty.Group>
       </div>
     )
   );

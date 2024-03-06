@@ -1,13 +1,13 @@
 import type { HTMLAttributes } from 'react';
 import React, { forwardRef } from 'react';
 import cn from 'classnames';
-import classes from './StudioPropertyListWrapper.module.css';
+import classes from './StudioPropertyGroup.module.css';
 
-export type StudioPropertyListWrapperProps = HTMLAttributes<HTMLDivElement> & {
+export type StudioPropertyGroupProps = HTMLAttributes<HTMLDivElement> & {
   withoutNegativeMargin?: boolean;
 };
 
-const StudioPropertyListWrapper = forwardRef<HTMLDivElement, StudioPropertyListWrapperProps>(
+const StudioPropertyGroup = forwardRef<HTMLDivElement, StudioPropertyGroupProps>(
   ({ className: givenClass, children, ...rest }, ref) => {
     const className = cn(givenClass, classes.listWrapper);
     return (
@@ -18,6 +18,6 @@ const StudioPropertyListWrapper = forwardRef<HTMLDivElement, StudioPropertyListW
   },
 );
 
-StudioPropertyListWrapper.displayName = 'StudioPropertyListWrapper';
+StudioPropertyGroup.displayName = 'StudioProperty.Group';
 
-export { StudioPropertyListWrapper };
+export { StudioPropertyGroup };

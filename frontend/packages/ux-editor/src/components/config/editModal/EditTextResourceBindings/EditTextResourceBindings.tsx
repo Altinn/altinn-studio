@@ -2,7 +2,7 @@ import React from 'react';
 import { EditTextResourceBinding } from './EditTextResourceBinding/EditTextResourceBinding';
 import type { FormContainer } from '../../../../types/FormContainer';
 import type { FormComponent } from '../../../../types/FormComponent';
-import { StudioPropertyListWrapper } from '@studio/components';
+import { StudioProperty } from '@studio/components';
 
 export interface EditTextResourceBindingBase {
   editFormId?: string;
@@ -21,7 +21,7 @@ export const EditTextResourceBindings = ({
   textResourceBindingKeys,
 }: EditTextResourceBindingsProps) => {
   return (
-    <StudioPropertyListWrapper>
+    <StudioProperty.Group>
       {textResourceBindingKeys.map((key: string) => (
         <EditTextResourceBinding
           key={key}
@@ -32,6 +32,6 @@ export const EditTextResourceBindings = ({
           placeholderKey={`ux_editor.modal_properties_textResourceBindings_${key}_add` as any}
         />
       ))}
-    </StudioPropertyListWrapper>
+    </StudioProperty.Group>
   );
 };
