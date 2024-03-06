@@ -135,6 +135,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     {
                         Id = "ref-data-as-pdf",
                         AllowedContentTypes = new List<string>() { "application/pdf" },
+                    },
+                    new()
+                    {
+                        Id = "model",
+                        AllowedContentTypes = new List<string>() { "application/xml" },
+                        AppLogic = new ApplicationLogic()
+                        {
+                            AutoCreate = true,
+                            ClassRef = "Altinn.App.Models.model.model",
+                            AllowAnonymousOnStateless = false,
+                            AutoDeleteOnProcessEnd = false
+                        },
+                        TaskId = "Task_1",
+                        MaxCount = 1,
+                        MinCount = 1,
+                        EnablePdfCreation = true,
+                        EnableFileScan = false,
+                        ValidationErrorOnPendingFileScan = false
                     }
                 },
                 PartyTypesAllowed = new PartyTypesAllowed()
