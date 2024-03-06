@@ -88,6 +88,12 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             classBuilder.AppendLine(Indent() + "public class " + parentElement.TypeName);
             classBuilder.AppendLine(Indent() + "{");
 
+
+            if (ShouldWriteAltinnRowId(parentElement, serviceMetadata.Elements.Values.ToList()))
+            {
+                WriteAltinnRowId(classBuilder);
+            }
+
             int elementOrder = 0;
 
             foreach (ElementMetadata element in serviceMetadata.Elements.Select(e => e.Value).Where(ele => ele.ParentElement == parentElement.ID))
@@ -445,6 +451,26 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             classBuilder.AppendLine(Indent(2) + $"public bool ShouldSerialize{propName}()");
             classBuilder.AppendLine(Indent(2) + "{");
             classBuilder.AppendLine(Indent(3) + $"return {propName}.HasValue;");
+            classBuilder.AppendLine(Indent(2) + "}");
+            classBuilder.AppendLine();
+        }
+
+        private bool ShouldWriteAltinnRowId(ElementMetadata element, List<ElementMetadata> allElements) =>
+            allElements.Any(e =>
+                e.TypeName == element.TypeName && e.MaxOccurs > 1);
+
+        private void WriteAltinnRowId(StringBuilder classBuilder)
+        {
+            classBuilder.AppendLine(Indent(2) + "[XmlAttribute(\"altinnRowId\")]");
+            classBuilder.AppendLine(Indent(2) + "[JsonPropertyName(\"altinnRowId\")]");
+            classBuilder.AppendLine(Indent(2) +
+                                    "[System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]");
+            classBuilder.AppendLine(Indent(2) + "[Newtonsoft.Json.JsonIgnore]");
+            classBuilder.AppendLine(Indent(2) + "public Guid AltinnRowId { get; set; }");
+            classBuilder.AppendLine("");
+            classBuilder.AppendLine(Indent(2) + "public bool ShouldSerializeAltinnRowId()");
+            classBuilder.AppendLine(Indent(2) + "{");
+            classBuilder.AppendLine(Indent(3) + "return AltinnRowId != default;");
             classBuilder.AppendLine(Indent(2) + "}");
             classBuilder.AppendLine();
         }
