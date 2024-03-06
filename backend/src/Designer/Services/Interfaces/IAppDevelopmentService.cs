@@ -72,9 +72,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Returns the <see cref="ModelMetadata"/> for an app.
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-        /// <param name="layoutSetName">Name of current layoutSet in ux-editor that edited layout belongs to</param>
+        /// <param name="layoutSetName">Name of layoutSet to fetch corresponding model metadata for</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        /// <returns>The service metadata for an app.</returns>
+        /// <returns>The model metadata for a given layout set.</returns>
         public Task<JsonNode> GetModelMetadata(
             AltinnRepoEditingContext altinnRepoEditingContext, [CanBeNull] string layoutSetName,
             CancellationToken cancellationToken = default);

@@ -24,6 +24,7 @@ namespace Altinn.Studio.DataModeling.Metamodel
         /// Gets or sets the ID of the element
         /// </summary>
         [JsonProperty(PropertyName = "id")]
+        [JsonPropertyName("id")]
         public string ID { get; set; }
 
         /// <summary>

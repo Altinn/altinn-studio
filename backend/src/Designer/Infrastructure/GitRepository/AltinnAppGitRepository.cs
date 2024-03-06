@@ -135,10 +135,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Saves the model metadata model for the application (a JSON where the model hierarchy is flatten,
-        /// in order to easier generate the C# class) to disk.
+        /// Gets the model metadata content based on model name. If no model metadata found for the model name an empty model metadata is returned.
         /// </summary>
-        /// <param name="modelName">The name of the model. </param>
+        /// <param name="modelName">The model metadata as string</param>
         public async Task<string> GetModelMetadata(string modelName)
         {
             string modelMetadataFileName = GetPathToModelMetadata(modelName);
