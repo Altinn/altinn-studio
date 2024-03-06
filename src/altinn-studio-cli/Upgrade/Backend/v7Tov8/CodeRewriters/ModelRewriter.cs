@@ -28,15 +28,15 @@ public class ModelRewriter : CSharpSyntaxRewriter
                 public Guid AltinnRowId { get; set; }
             """)!.WithTrailingTrivia(SyntaxFactory.LineFeed, SyntaxFactory.LineFeed);
 
-            var altinnRowIdSpecified = SyntaxFactory.ParseMemberDeclaration("""
-                public bool AltinnRowIdSpecified()
+            var altinnRowIdShouldSerialize = SyntaxFactory.ParseMemberDeclaration("""
+                public bool ShouldSerializeAltinnRowId()
                 {
                     return AltinnRowId != default;
                 }
             """)!.WithTrailingTrivia(SyntaxFactory.LineFeed, SyntaxFactory.LineFeed);
 
 
-            node = node.WithMembers(node.Members.InsertRange(0, [altinnRowIdProperty, altinnRowIdSpecified]));
+            node = node.WithMembers(node.Members.InsertRange(0, [altinnRowIdProperty, altinnRowIdShouldSerialize]));
         }
 
         return base.VisitClassDeclaration(node);
