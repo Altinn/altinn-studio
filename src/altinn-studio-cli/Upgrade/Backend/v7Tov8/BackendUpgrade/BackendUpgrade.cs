@@ -211,7 +211,7 @@ public class BackendUpgrade
                 await File.WriteAllTextAsync(sourceTree.FilePath, dataProcessorSource.ToFullString());
             }
 
-            if (sourceTree.FilePath.Contains("/models/"))
+            if (sourceTree.FilePath.Contains("/models/", StringComparison.InvariantCultureIgnoreCase) || sourceTree.FilePath.Contains("\\models\\", StringComparison.InvariantCultureIgnoreCase))
             {
                 // Find all classes that are used in a List
                 var classNamesInList = dataProcessorSource
