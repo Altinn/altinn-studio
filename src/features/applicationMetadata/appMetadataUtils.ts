@@ -1,5 +1,6 @@
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { ContextNotProvided } from 'src/core/contexts/context';
+import { useLaxApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { useLaxLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 import { getLayoutSetForDataElement } from 'src/utils/layout';
 import type { IApplicationMetadata, ShowTypes } from 'src/features/applicationMetadata/index';
@@ -32,8 +33,13 @@ export function getDataTypeByLayoutSetId({ layoutSetId, layoutSets, appMetaData 
 }
 
 export function useDataTypeByLayoutSetId(layoutSetId: string | undefined) {
-  const layoutSets = useLayoutSets();
-  const application = useApplicationMetadata();
+  const layoutSets = useLaxLayoutSets();
+  const application = useLaxApplicationMetadata();
+
+  if (layoutSets === ContextNotProvided || application === ContextNotProvided) {
+    return undefined;
+  }
+
   return getDataTypeByLayoutSetId({ layoutSetId, layoutSets, appMetaData: application });
 }
 

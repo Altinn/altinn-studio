@@ -1,6 +1,5 @@
 import type { ILayoutSets } from 'src/layout/common.generated';
 import type { ILikertFilter } from 'src/layout/Likert/config.generated';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
 interface SplitKey {
@@ -86,14 +85,14 @@ export function hasRequiredFields(page: LayoutPage): boolean {
  */
 export function extractBottomButtons(page: LayoutPage) {
   const all = [...page.children()];
-  const toMainLayout: LayoutNode[] = [];
-  const toErrorReport: LayoutNode[] = [];
+  const toMainLayout: string[] = [];
+  const toErrorReport: string[] = [];
   for (const node of all.reverse()) {
     const isButtonLike = node.isType('ButtonGroup') || (node.def.canRenderInButtonGroup() && !node.isType('Custom'));
     if (isButtonLike && toMainLayout.length === 0) {
-      toErrorReport.push(node);
+      toErrorReport.push(node.item.id);
     } else {
-      toMainLayout.push(node);
+      toMainLayout.push(node.item.id);
     }
   }
 

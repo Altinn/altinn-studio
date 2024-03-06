@@ -28,11 +28,11 @@ describe('Expressions', () => {
     const logSpy = jest.spyOn(console, 'log').mockImplementation();
     const options = {
       dataSources: {
-        formData: {},
+        formDataSelector: () => null,
         applicationSettings: {},
         hiddenFields: new Set<string>(),
         instanceDataSources: {},
-      } as ContextDataSources,
+      } as unknown as ContextDataSources,
       node: new NodeNotFoundWithoutContext('test'),
     };
 
@@ -80,13 +80,13 @@ describe('Expressions', () => {
   describe('formatDate', () => {
     it('should be able to format a date when the selected language is norwegian', () => {
       const dataSources = {
-        formData: {},
+        formDataSelector: () => null,
         applicationSettings: {},
         hiddenFields: new Set<string>(),
         instanceDataSources: {},
         langToolsRef: { current: {} },
         currentLanguage: 'nb',
-      } as ContextDataSources;
+      } as unknown as ContextDataSources;
       const node = new NodeNotFoundWithoutContext('test');
 
       const result = evalExpr(['formatDate', '2023-10-26T13:12:38.069Z'], node, dataSources);
@@ -95,13 +95,13 @@ describe('Expressions', () => {
 
     it('should be able to format a date when the selected language is english', () => {
       const dataSources = {
-        formData: {},
+        formDataSelector: () => null,
         applicationSettings: {},
         hiddenFields: new Set<string>(),
         instanceDataSources: {},
         langToolsRef: { current: {} },
         currentLanguage: 'en',
-      } as ContextDataSources;
+      } as unknown as ContextDataSources;
       const node = new NodeNotFoundWithoutContext('test');
 
       const result = evalExpr(['formatDate', '2023-10-26T13:12:38.069Z'], node, dataSources);
@@ -110,12 +110,12 @@ describe('Expressions', () => {
 
     it('should be able to specify a custom format in which the date should be formatted', () => {
       const dataSources = {
-        formData: {},
+        formDataSelector: () => null,
         applicationSettings: {},
         hiddenFields: new Set<string>(),
         instanceDataSources: {},
         langToolsRef: { current: {} },
-      } as ContextDataSources;
+      } as unknown as ContextDataSources;
       const node = new NodeNotFoundWithoutContext('test');
 
       const result = evalExpr(['formatDate', '2023-10-26T13:12:38.069Z', 'dd.MM'], node, dataSources);

@@ -4,14 +4,14 @@ import type { HierarchyDataSources } from 'src/layout/layout';
 
 export function getHierarchyDataSourcesMock(): HierarchyDataSources {
   return {
-    formData: {},
+    formDataSelector: () => null,
     attachments: {},
     layoutSettings: { pages: { order: [] } },
-    pageNavigationConfig: { hidden: [], hiddenExpr: {} },
-    options: {},
+    pageNavigationConfig: { isHiddenPage: () => false, hiddenExpr: {} },
+    options: () => [],
     applicationSettings: getApplicationSettingsMock(),
     instanceDataSources: {} as any,
-    hiddenFields: new Set(),
+    isHidden: () => false,
     authContext: null,
     devToolsIsOpen: false,
     devToolsHiddenComponents: 'hide',

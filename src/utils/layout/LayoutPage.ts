@@ -156,4 +156,22 @@ export class LayoutPage implements LayoutObject {
 
     return !order.includes(myKey);
   }
+
+  /**
+   * This will look through references to the existing node object and replace them with the new node object.
+   */
+  public replaceNode(existingNode: LayoutNode, newNode: LayoutNode) {
+    const idxDirect = this.directChildren.indexOf(existingNode);
+    if (idxDirect === -1) {
+      // If the node is not a direct child, we would have to replace it in the parent node references, which
+      // depends on component type internal (generated) types. This is not supported at the moment.
+      return;
+    }
+
+    this.directChildren[idxDirect] = newNode;
+    const idxAll = this.allChildren.indexOf(existingNode);
+    if (idxAll !== -1) {
+      this.allChildren[idxAll] = newNode;
+    }
+  }
 }

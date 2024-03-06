@@ -1,5 +1,3 @@
-import dot from 'dot-object';
-
 import { splitDashedKey } from 'src/utils/formLayout';
 import type { IConditionalRenderingRule, IConditionalRenderingRules } from 'src/features/form/dynamics';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -62,13 +60,13 @@ function runConditionalRenderingRule(
 ) {
   const functionToRun = rule.selectedFunction;
   const inputKeys = Object.keys(rule.inputParams);
-  const formData = node?.getDataSources().formData || {};
+  const formDataSelector = node?.getDataSources().formDataSelector ?? (() => null);
 
   const inputObj = {} as Record<string, string | number | boolean | null>;
   for (const key of inputKeys) {
     const param = rule.inputParams[key].replace(/{\d+}/g, '');
     const transposed = node?.transposeDataModel(param) ?? param;
-    const value = dot.pick(transposed, formData);
+    const value = formDataSelector(transposed);
 
     if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
       inputObj[key] = value;

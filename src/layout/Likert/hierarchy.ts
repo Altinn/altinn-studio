@@ -1,5 +1,3 @@
-import dot from 'dot-object';
-
 import { MissingRowIdException } from 'src/features/formData/MissingRowIdException';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { getLikertStartStopIndex } from 'src/utils/formLayout';
@@ -53,9 +51,15 @@ export class LikertHierarchyGenerator extends ComponentHierarchyGenerator<'Liker
       const item = props.item as CompLikertExternal;
       const me = ctx.generator.makeNode(props);
       const rows: HLikertRows = [];
+
+      // Only fetch the row ID (and by extension the number of rows) so that we only re-generate the hierarchy
+      // when the number for rows and/or the row IDs change, not the other data within it.
       const formData = item.dataModelBindings?.questions
-        ? dot.pick(item.dataModelBindings.questions, ctx.generator.dataSources.formData)
+        ? ctx.generator.dataSources.formDataSelector(item.dataModelBindings.questions, (rows) =>
+            Array.isArray(rows) ? rows.map((row) => ({ [ALTINN_ROW_ID]: row[ALTINN_ROW_ID] })) : [],
+          )
         : undefined;
+
       const lastIndex = formData && Array.isArray(formData) ? formData.length - 1 : -1;
 
       const { startIndex, stopIndex } = getLikertStartStopIndex(lastIndex, props.item.filter);
@@ -67,7 +71,7 @@ export class LikertHierarchyGenerator extends ComponentHierarchyGenerator<'Liker
 
         const itemProps = structuredClone(prototype);
 
-        const uuid = formData[rowIndex][ALTINN_ROW_ID];
+        const uuid = formData && formData[rowIndex][ALTINN_ROW_ID];
         if (typeof uuid !== 'string' || !uuid.length) {
           const path = `${item.dataModelBindings.questions}[${rowIndex}]`;
           throw new MissingRowIdException(path);

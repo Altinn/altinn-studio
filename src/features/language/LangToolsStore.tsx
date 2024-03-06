@@ -1,6 +1,7 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
+import { useStateDeepEqual } from 'src/hooks/useStateDeepEqual';
 import type { LangDataSources } from 'src/features/language/LangDataSourcesProvider';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 
@@ -16,7 +17,7 @@ const { Provider, useCtx } = createContext<Context>({
 });
 
 export function LangToolsStoreProvider({ children }: React.PropsWithChildren) {
-  const [dataSources, setDataSources] = useState<LangDataSources | undefined>(undefined);
+  const [dataSources, setDataSources] = useStateDeepEqual<LangDataSources | undefined>(undefined);
   const latestRef = useRef<IUseLanguage>();
 
   return (

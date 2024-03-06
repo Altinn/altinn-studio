@@ -138,39 +138,22 @@ describe('Group', () => {
     init();
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
 
-    // add row to main group
-    cy.get(appFrontend.group.addNewItem).click();
-    cy.get(appFrontend.group.currentValue).type('1');
-    cy.get(appFrontend.group.newValue).type('1');
-    cy.get(appFrontend.group.saveMainGroup).clickAndGone();
+    const rowsToAdd = [1, 2, 3];
+    for (const idx in rowsToAdd) {
+      cy.get(appFrontend.group.addNewItem).click();
+      cy.get(appFrontend.group.currentValue).type(`${rowsToAdd[idx]}`);
+      cy.get(appFrontend.group.newValue).type(`${rowsToAdd[idx]}`);
+      cy.get(appFrontend.group.saveMainGroup).clickAndGone();
 
-    // assert error message to exist
-    cy.get(appFrontend.nextButton).click();
-    cy.get(appFrontend.fieldValidation('mainGroup')).should('have.text', texts.minCountError);
+      if (parseInt(idx) < rowsToAdd.length - 1) {
+        cy.get(appFrontend.nextButton).click();
+        cy.get(appFrontend.fieldValidation('mainGroup')).should('have.text', texts.minCountError);
+      } else {
+        cy.get(appFrontend.fieldValidation('mainGroup')).should('not.exist');
+      }
+    }
 
-    // add row to main group
-    cy.get(appFrontend.group.addNewItem).click();
-    cy.get(appFrontend.group.currentValue).type('1');
-    cy.get(appFrontend.group.newValue).type('1');
-    cy.get(appFrontend.group.saveMainGroup).clickAndGone();
-
-    // assert error message to exist
-    cy.get(appFrontend.nextButton).click();
-    cy.get(appFrontend.fieldValidation('mainGroup')).should('have.text', texts.minCountError);
-
-    // add row to main group
-    cy.get(appFrontend.group.addNewItem).click();
-    cy.get(appFrontend.group.currentValue).type('1');
-    cy.get(appFrontend.group.newValue).type('1');
-    cy.get(appFrontend.group.saveMainGroup).clickAndGone();
-
-    // assert error message to not exist
-    cy.get(appFrontend.fieldValidation('mainGroup')).should('not.exist');
-
-    // remove row from main group
     cy.get(appFrontend.group.mainGroup).find(appFrontend.group.delete).first().click();
-
-    // assert error message to exist
     cy.get(appFrontend.nextButton).click();
     cy.get(appFrontend.fieldValidation('mainGroup')).should('have.text', texts.minCountError);
   });

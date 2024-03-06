@@ -3,6 +3,7 @@ import React, { useMemo } from 'react';
 import { Grid } from '@material-ui/core';
 import classNames from 'classnames';
 
+import { ContextNotProvided } from 'src/core/contexts/context';
 import { useLayoutValidationForNode } from 'src/features/devtools/layoutValidation/useLayoutValidation';
 import { NavigationResult, useFinishNodeNavigation } from 'src/features/form/layout/NavigateToNode';
 import { Lang } from 'src/features/language/Lang';
@@ -16,6 +17,7 @@ import { GenericComponentDescription, GenericComponentLabel } from 'src/layout/G
 import { shouldComponentRenderLabel } from 'src/layout/index';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import { gridBreakpoints, pageBreakStyles } from 'src/utils/formComponentUtils';
+import { useIsHiddenComponent, useNode } from 'src/utils/layout/NodesContext';
 import type { IGridStyling } from 'src/layout/common.generated';
 import type { GenericComponentOverrideDisplay, IFormComponentContext } from 'src/layout/FormComponentContext';
 import type { PropsFromGenericComponent } from 'src/layout/index';
@@ -29,13 +31,27 @@ export interface IGenericComponentProps<Type extends CompTypes> {
   overrideDisplay?: GenericComponentOverrideDisplay;
 }
 
+/**
+ * Lazily renders a component referenced by a component ID. This is useful when you want to optimize rendering
+ * (for example in Form.tsx) where it's important that a component does not re-render when other nodes in the
+ * node hierarchy have been re-created.
+ */
+export function GenericComponentById({ id }: { id: string }) {
+  const node = useNode(id);
+  if (!node) {
+    throw new Error(`Node with id ${id} not found`);
+  }
+
+  return <GenericComponent node={node} />;
+}
+
 export function GenericComponent<Type extends CompTypes = CompTypes>({
   node,
   overrideItemProps,
   overrideDisplay,
 }: IGenericComponentProps<Type>) {
   const layoutErrors = useLayoutValidationForNode(node);
-  if (layoutErrors?.length !== undefined && layoutErrors?.length > 0) {
+  if (layoutErrors !== ContextNotProvided && layoutErrors?.length !== undefined && layoutErrors?.length > 0) {
     return (
       <ErrorList
         node={node}
@@ -71,6 +87,7 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
   const containerDivRef = React.useRef<HTMLDivElement | null>(null);
   const validations = useUnifiedValidationsForNode(node);
   const isValid = !hasValidationErrors(validations);
+  const isHidden = useIsHiddenComponent();
 
   // If maxLength is set in both schema and component, don't display the schema error message
   const maxLength = 'maxLength' in node.item && node.item.maxLength;
@@ -123,7 +140,7 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
     return NavigationResult.SuccessfulWithFocus;
   });
 
-  if (node.isHidden()) {
+  if (isHidden(node.item.id) || (node.item.baseComponentId && isHidden(node.item.baseComponentId))) {
     return null;
   }
 

@@ -6,7 +6,8 @@ import type { IAttachments } from 'src/features/attachments';
 import type { EvalExprOptions } from 'src/features/expressions/index';
 import type { ExprConfig, Expression, ExprPositionalArgs } from 'src/features/expressions/types';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
-import type { AllOptionsMap } from 'src/features/options/useAllOptions';
+import type { useAllOptionsSelector } from 'src/features/options/useAllOptions';
+import type { FormDataSelector } from 'src/layout';
 import type { ILayoutSettings } from 'src/layout/common.generated';
 import type { IHiddenLayoutsExternal } from 'src/types';
 import type { IApplicationSettings, IAuthContext, IInstanceDataSources } from 'src/types/shared';
@@ -16,20 +17,20 @@ import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 export type PageNavigationConfig = {
   currentView?: string;
   order?: string[];
-  hidden: string[];
+  isHiddenPage: (pageKey: string) => boolean;
   hiddenExpr: IHiddenLayoutsExternal;
 };
 
 export interface ContextDataSources {
   instanceDataSources: IInstanceDataSources | null;
   applicationSettings: IApplicationSettings | null;
-  formData: object;
+  formDataSelector: FormDataSelector;
   attachments: IAttachments;
   layoutSettings: ILayoutSettings;
   pageNavigationConfig: PageNavigationConfig;
-  options: AllOptionsMap;
+  options: ReturnType<typeof useAllOptionsSelector>;
   authContext: Partial<IAuthContext> | null;
-  hiddenFields: Set<string>;
+  isHidden: (nodeId: string) => boolean;
   langToolsRef: {
     // We pass langTools as a ref, because it itself re-renders a lot, and we don't want to
     // re-create the hierarchy every time language stuff changes.

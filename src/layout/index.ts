@@ -1,9 +1,7 @@
 import type { MutableRefObject } from 'react';
 
 import { ComponentConfigs } from 'src/layout/components.generated';
-import type { IAttachments } from 'src/features/attachments';
-import type { IUseLanguage } from 'src/features/language/useLanguage';
-import type { AllOptionsMap } from 'src/features/options/useAllOptions';
+import type { DisplayData } from 'src/features/displayData';
 import type { BaseValidation, ComponentValidation, ValidationDataSources } from 'src/features/validation';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
 import type { CompInternal, CompRendersLabel, CompTypes } from 'src/layout/layout';
@@ -89,22 +87,12 @@ export interface ValidationFilter {
   getValidationFilter: (node: LayoutNode) => ValidationFilterFunction | null;
 }
 
+export type FormDataSelector = (path: string, postProcessor?: (data: unknown) => unknown) => unknown;
+
 export function implementsValidationFilter<Type extends CompTypes>(
   component: AnyComponent<Type>,
 ): component is typeof component & ValidationFilter {
   return 'getValidationFilter' in component;
-}
-
-export interface DisplayDataProps {
-  attachments: IAttachments;
-  options: AllOptionsMap;
-  langTools: IUseLanguage;
-  currentLanguage: string;
-}
-
-export interface DisplayData<Type extends CompTypes> {
-  getDisplayData(node: LayoutNode<Type>, displayDataProps: DisplayDataProps): string;
-  useDisplayData(node: LayoutNode<Type>): string;
 }
 
 export function implementsDisplayData<Type extends CompTypes>(

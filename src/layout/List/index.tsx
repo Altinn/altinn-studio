@@ -9,6 +9,7 @@ import { ListComponent } from 'src/layout/List/ListComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { getFieldNameKey } from 'src/utils/formComponentUtils';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
+import type { DisplayDataProps } from 'src/features/displayData';
 import type { ComponentValidation, ValidationDataSources } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
@@ -21,8 +22,8 @@ export class List extends ListDef {
     },
   );
 
-  getDisplayData(node: LayoutNode<'List'>): string {
-    const formData = node.getFormData();
+  getDisplayData(node: LayoutNode<'List'>, { formDataSelector }: DisplayDataProps): string {
+    const formData = node.getFormData(formDataSelector);
     const dmBindings = node.item.dataModelBindings;
     for (const [key, binding] of Object.entries(dmBindings || {})) {
       if (binding == node.item.bindingToShowInSummary) {

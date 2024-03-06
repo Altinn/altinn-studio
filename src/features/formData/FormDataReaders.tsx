@@ -4,12 +4,8 @@ import type { PropsWithChildren } from 'react';
 import dot from 'dot-object';
 
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
-import { Loader } from 'src/core/loading/Loader';
-import { useDataTypeByLayoutSetId } from 'src/features/applicationMetadata/appMetadataUtils';
 import { useAvailableDataModels } from 'src/features/datamodel/useAvailableDataModels';
 import { useDataModelUrl } from 'src/features/datamodel/useBindingSchema';
-import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSetId';
-import { FD } from 'src/features/formData/FormDataWrite';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useNavigationParams } from 'src/hooks/useNavigatePage';
@@ -18,7 +14,7 @@ type ReaderMap = { [name: string]: DataModelReader };
 
 interface Context {
   readers: DataModelReaders;
-  updateModel: (newModel: DataModelReader, isDefault?: boolean) => void;
+  updateModel: (newModel: DataModelReader) => void;
   availableModels: string[];
   reset: () => void;
 }
@@ -71,18 +67,9 @@ export class DataModelReaders {
   protected onAccessingNewDataModel?: AccessingCallback;
   protected locallyAddedReaders: ReaderMap = {};
 
-  constructor(
-    protected readonly readers: ReaderMap,
-    protected readonly defaultModel: string,
-  ) {}
+  constructor(protected readonly readers: ReaderMap) {}
 
-  getDefaultName(): string {
-    return this.defaultModel;
-  }
-
-  getReader(dataModelName: string): DataModelReader {
-    const name = dataModelName === 'default' ? this.defaultModel : dataModelName;
-
+  getReader(name: string): DataModelReader {
     if (this.locallyAddedReaders[name]) {
       return this.locallyAddedReaders[name];
     }
@@ -108,46 +95,15 @@ export class DataModelReaders {
 }
 
 /**
- * This provider gives us a reader for the current data model.
- * It should only be provided somewhere inside a FormDataWriteProvider when rendering a form.
- */
-export function FormDataReaderProvider({ children }: PropsWithChildren) {
-  const layoutSetId = useCurrentLayoutSetId();
-  const currentDataType = useDataTypeByLayoutSetId(layoutSetId);
-  const currentModel = FD.useDebounced();
-  const { updateModel, readers } = useCtx();
-
-  const readerMemo = useMemo(() => {
-    if (!currentDataType) {
-      return undefined;
-    }
-    return new DataModelReader(currentDataType, currentModel, 'loaded');
-  }, [currentDataType, currentModel]);
-
-  useEffect(() => {
-    if (readerMemo) {
-      return updateModel(readerMemo, true);
-    }
-  }, [readerMemo, updateModel]);
-
-  if (!currentDataType || readers.getDefaultName() !== currentDataType) {
-    return <Loader reason={'formDataReader'} />;
-  }
-
-  return <>{children}</>;
-}
-
-/**
  * This globally available provider will fetch any data model, if possible, and provide readers for them.
  * This provider can live anywhere as long as it can get the application metadata. You also have to make sure
  * to render FormDataReadersProvider somewhere inside if rendering in a form, and render DataModelFetcher.
  */
 export function GlobalFormDataReadersProvider({ children }: PropsWithChildren) {
   const availableModels = useAvailableDataModels().map((dm) => dm.id);
-  const [defaultModelName, setDefaultModelName] = useState<string>('default');
   const [readerMap, setReaderMap] = useState<{ [name: string]: DataModelReader }>({});
 
-  const updateModel = useCallback((newModel: DataModelReader, isDefault: boolean = false) => {
+  const updateModel = useCallback((newModel: DataModelReader) => {
     setReaderMap((all) => {
       const existingModel = all[newModel.getName()];
       if (existingModel && !existingModel.isLoading() && newModel.isLoading()) {
@@ -165,13 +121,10 @@ export function GlobalFormDataReadersProvider({ children }: PropsWithChildren) {
         [newModel.getName()]: newModel,
       };
     });
-    if (isDefault) {
-      setDefaultModelName(newModel.getName());
-    }
   }, []);
 
   const readers = useMemo(() => {
-    const readers = new DataModelReaders(readerMap, defaultModelName);
+    const readers = new DataModelReaders(readerMap);
     readers.setOnAccessingNewDataModel((reader) => {
       // This may happen while components are rendering, so we need to defer the state update. The DataModelReaders
       // instance may choose to generate a new Reader when a new data model is accessed. We have to feed this back
@@ -180,7 +133,7 @@ export function GlobalFormDataReadersProvider({ children }: PropsWithChildren) {
     });
 
     return readers;
-  }, [defaultModelName, readerMap, updateModel]);
+  }, [readerMap, updateModel]);
 
   const reset = useCallback(() => {
     setReaderMap({});
@@ -274,7 +227,7 @@ function SpecificDataModelFetcher({ reader, isAvailable }: { reader: DataModelRe
   return null;
 }
 
-const nullReaders = new DataModelReaders({}, 'default');
+const nullReaders = new DataModelReaders({});
 export const useDataModelReaders = () => {
   const ctx = useLaxCtx();
   if (ctx === ContextNotProvided) {

@@ -27,6 +27,7 @@ import type {
   ExprValToActual,
   FuncDef,
 } from 'src/features/expressions/types';
+import type { FormDataSelector } from 'src/layout';
 import type { CompGroupExternal } from 'src/layout/Group/config.generated';
 import type { CompExternal } from 'src/layout/layout';
 import type { CompLikertExternal } from 'src/layout/Likert/config.generated';
@@ -342,12 +343,12 @@ const authContextKeys: { [key in keyof IAuthContext]: true } = {
   reject: true,
 };
 
-function pickSimpleValue(path: string | undefined | null, formData: object) {
+function pickSimpleValue(path: string | undefined | null, selector: FormDataSelector) {
   if (!path) {
     return null;
   }
 
-  const value = dot.pick(path, formData);
+  const value = selector(path);
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
     return value;
   }
@@ -526,7 +527,7 @@ export const ExprFunctions = {
           return null;
         }
 
-        return pickSimpleValue(simpleBinding, this.dataSources.formData);
+        return pickSimpleValue(simpleBinding, this.dataSources.formDataSelector);
       }
 
       // Expressions can technically be used without having all the layouts available, which might lead to unexpected
@@ -551,12 +552,12 @@ export const ExprFunctions = {
       const maybeNode = this.failWithoutNode();
       if (maybeNode instanceof BaseLayoutNode) {
         const newPath = maybeNode?.transposeDataModel(path);
-        return pickSimpleValue(newPath, this.dataSources.formData);
+        return pickSimpleValue(newPath, this.dataSources.formDataSelector);
       }
 
       // No need to transpose the data model according to the location inside a repeating group when the context is
       // a LayoutPage (i.e., when we're resolving an expression directly on the layout definition).
-      return pickSimpleValue(path, this.dataSources.formData);
+      return pickSimpleValue(path, this.dataSources.formDataSelector);
     },
     args: [ExprVal.String] as const,
     returns: ExprVal.Any,
@@ -585,9 +586,10 @@ export const ExprFunctions = {
 
       return component.def.getDisplayData(component as any, {
         attachments: this.dataSources.attachments,
-        options: this.dataSources.options,
+        optionsSelector: this.dataSources.options,
         langTools: this.dataSources.langToolsRef.current,
         currentLanguage: this.dataSources.currentLanguage,
+        formDataSelector: this.dataSources.formDataSelector,
       });
     },
     args: [ExprVal.String] as const,

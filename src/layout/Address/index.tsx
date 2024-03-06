@@ -8,6 +8,7 @@ import { AddressComponent } from 'src/layout/Address/AddressComponent';
 import { AddressDef } from 'src/layout/Address/config.def.generated';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
+import type { DisplayDataProps } from 'src/features/displayData';
 import type { ComponentValidation, ValidationDataSources } from 'src/features/validation';
 import type { PropsFromGenericComponent, ValidateComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
@@ -20,8 +21,8 @@ export class Address extends AddressDef implements ValidateComponent {
     },
   );
 
-  getDisplayData(node: LayoutNode<'Address'>): string {
-    const data = node.getFormData();
+  getDisplayData(node: LayoutNode<'Address'>, { formDataSelector }: DisplayDataProps): string {
+    const data = node.getFormData(formDataSelector);
     return Object.values(data).join(' ');
   }
 

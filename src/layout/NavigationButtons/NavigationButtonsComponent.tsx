@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
 
-import { usePageNavigationContext } from 'src/features/form/layout/PageNavigationContext';
+import { useReturnToView } from 'src/features/form/layout/PageNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
@@ -15,7 +15,7 @@ export type INavigationButtons = PropsFromGenericComponent<'NavigationButtons'>;
 export function NavigationButtonsComponent({ node }: INavigationButtons) {
   const { id, showBackButton, textResourceBindings, validateOnNext, validateOnPrevious } = node.item;
   const { navigateToPage, next, previous, maybeSaveOnPageChange } = useNavigatePage();
-  const { returnToView } = usePageNavigationContext();
+  const returnToView = useReturnToView();
 
   const refPrev = React.useRef<HTMLButtonElement>(null);
   const refNext = React.useRef<HTMLButtonElement>(null);

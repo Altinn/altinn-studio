@@ -6,7 +6,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
 import { useGetOptionsQuery } from 'src/features/options/useGetOptionsQuery';
 import { useSourceOptions } from 'src/hooks/useSourceOptions';
-import { duplicateOptionFilter } from 'src/utils/options';
+import { filterDuplicateOptions } from 'src/utils/options';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type {
@@ -131,7 +131,7 @@ export function useGetOptions<T extends ValueType>(props: Props<T>): OptionsResu
     }
 
     if (draft && removeDuplicates) {
-      draft = draft.filter(duplicateOptionFilter);
+      draft = filterDuplicateOptions(draft);
     }
     if (draft && sortOrder) {
       draft = [...draft].sort(compareOptionAlphabetically(langAsString, sortOrder, selectedLanguage));

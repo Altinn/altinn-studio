@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useRef } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 import type { QueryKey, UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
@@ -20,22 +20,19 @@ export function useQueryWithStaleData<
     initialData?: () => undefined;
   },
 ): UseQueryResult<TData, TError> {
-  const [lastResponse, setLastResponse] = useState<TData | undefined>(undefined);
-
+  const lastResponseRef = useRef<TData | undefined>(undefined);
   const utils = useQuery<TQueryFnData, TError, TData, TQueryKey>(options);
 
-  useEffect(() => {
-    if (utils.data) {
-      setLastResponse(utils.data);
-    }
-  }, [utils.data]);
-
-  if (utils.isLoading && lastResponse) {
+  if (utils.isLoading && lastResponseRef.current) {
     return {
       ...utils,
-      data: lastResponse,
+      data: lastResponseRef.current,
       isLoading: false,
     } as unknown as UseQueryResult<TData, TError>;
+  }
+
+  if (utils.data) {
+    lastResponseRef.current = utils.data;
   }
 
   return utils;

@@ -7,7 +7,8 @@ import { LikertItemDef } from 'src/layout/LikertItem/config.def.generated';
 import { LikertItemComponent } from 'src/layout/LikertItem/LikertItemComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { DisplayDataProps, PropsFromGenericComponent } from 'src/layout';
+import type { DisplayDataProps } from 'src/features/displayData';
+import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindingsLikertInternal } from 'src/layout/common.generated';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -28,13 +29,16 @@ export class LikertItem extends LikertItemDef {
     return props.node.item.layout === LayoutStyle.Table || props.overrideItemProps?.layout === LayoutStyle.Table;
   }
 
-  getDisplayData(node: LayoutNode<'LikertItem'>, { langTools, options }: DisplayDataProps): string {
+  getDisplayData(
+    node: LayoutNode<'LikertItem'>,
+    { langTools, optionsSelector, formDataSelector }: DisplayDataProps,
+  ): string {
     if (!node.item.dataModelBindings?.simpleBinding) {
       return '';
     }
 
-    const value = String(node.getFormData().simpleBinding ?? '');
-    const optionList = options[node.item.id] || [];
+    const value = String(node.getFormData(formDataSelector).simpleBinding ?? '');
+    const optionList = optionsSelector(node.item.id);
     return getSelectedValueToText(value, langTools, optionList) || '';
   }
 

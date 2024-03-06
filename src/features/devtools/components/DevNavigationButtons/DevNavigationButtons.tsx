@@ -5,7 +5,7 @@ import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/DevNavigationButtons/DevNavigationButtons.module.css';
 import { useIsInFormContext } from 'src/features/form/FormContext';
-import { usePageNavigationContext } from 'src/features/form/layout/PageNavigationContext';
+import { useIsHiddenPage } from 'src/features/form/layout/PageNavigationContext';
 import { useLayoutSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { useNodes } from 'src/utils/layout/NodesContext';
@@ -21,7 +21,7 @@ export function DevNavigationButtons() {
 
 const InnerDevNavigationButtons = () => {
   const { navigateToPage, currentPageId } = useNavigatePage();
-  const { hidden } = usePageNavigationContext();
+  const isHiddenPage = useIsHiddenPage();
   const orderWithHidden = useLayoutSettings().pages.order;
   const ctx = useNodes();
   const order = orderWithHidden ?? [];
@@ -32,11 +32,11 @@ const InnerDevNavigationButtons = () => {
   }
 
   function isHidden(page: string) {
-    return hidden.includes(page) || !orderWithHidden.includes(page);
+    return isHiddenPage(page) || !orderWithHidden.includes(page);
   }
 
   function hiddenText(page: string) {
-    if (hidden.includes(page)) {
+    if (isHiddenPage(page)) {
       return 'Denne siden er skjult for brukeren (via dynamikk)';
     } else if (!orderWithHidden.includes(page)) {
       return 'Denne siden er ikke med i siderekkefølgen';

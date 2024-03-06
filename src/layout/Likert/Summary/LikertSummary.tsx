@@ -3,6 +3,7 @@ import React from 'react';
 import cn from 'classnames';
 
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
+import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
@@ -28,6 +29,7 @@ export function LikertSummary({ onChangeClick, changeText, summaryNode, targetNo
   const excludedChildren = summaryNode.item.excludedChildren;
   const display = overrides?.display || summaryNode.item.display;
   const { lang, langAsString } = useLanguage();
+  const formDataSelector = FD.useDebouncedSelector();
 
   const inExcludedChildren = (n: LayoutNode) =>
     excludedChildren &&
@@ -119,6 +121,7 @@ export function LikertSummary({ onChangeClick, changeText, summaryNode, targetNo
                       targetNode={child as any}
                       summaryNode={summaryNode}
                       overrides={{}}
+                      formDataSelector={formDataSelector}
                     />
                   );
                 });

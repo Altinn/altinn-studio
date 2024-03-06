@@ -3,6 +3,7 @@ import type { Expression, ExprValToActual } from 'src/features/expressions/types
 import type { TextReference, ValidLangParam } from 'src/features/language/useLanguage';
 import type { Visibility } from 'src/features/validation/visibility/visibilityUtils';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 
 export enum FrontendValidationSource {
   EmptyField = '__empty_field__',
@@ -53,16 +54,31 @@ export type ValidationCategoryKey = Exclude<ValidationMaskKeys, ValidationMaskCo
 /*  A value of 0 represents a validation to be shown immediately */
 export type ValidationCategory = (typeof ValidationMask)[ValidationCategoryKey] | 0;
 
+export type WaitForValidation = (forceSave?: boolean) => Promise<void>;
+
 export type ValidationContext = {
   state: ValidationState;
-  validating: () => Promise<(lastBackendValidations: BackendValidationIssueGroups | undefined) => boolean>;
+  validating: WaitForValidation;
   visibility: Visibility;
+
+  /**
+   * Set the visibility for a node
+   */
   setNodeVisibility: (nodes: LayoutNode[], newVisibility: number, rowIndex?: number) => void;
-  showAllErrors: boolean;
+
+  /**
+   * This is a last resort to show all errors, to prevent unknown error
+   * if this is ever visible, there is probably something wrong in the app.
+   */
   setShowAllErrors: (showAllErrors: boolean) => void;
+  showAllErrors: boolean;
+
   setAttachmentVisibility: (attachmentId: string, node: LayoutNode, newVisibility: number) => void;
+
+  /**
+   * Properly remove visibility for a row when it is deleted
+   */
   removeRowVisibilityOnDelete: (node: LayoutNode<'RepeatingGroup'>, rowIndex: number) => void;
-  backendValidationsProcessedLast: BackendValidationIssueGroups | undefined;
 };
 
 export type ValidationState = {
@@ -143,12 +159,13 @@ export type NodeValidation<Severity extends ValidationSeverity = ValidationSever
 };
 
 /**
- * Contains all of the necessary elements from the redux store to run frontend validations.
+ * Contains all the necessary elements from the store to run frontend validations.
  */
 export type ValidationDataSources = {
   currentLanguage: string;
   formData: object;
   attachments: IAttachments;
+  nodes: LayoutPages;
 };
 
 /**

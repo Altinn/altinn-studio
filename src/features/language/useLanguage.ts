@@ -1,7 +1,11 @@
 import { Children, isValidElement, useMemo } from 'react';
 import type { JSX, ReactNode } from 'react';
 
+import { ContextNotProvided } from 'src/core/contexts/context';
+import { useDataTypeByLayoutSetId } from 'src/features/applicationMetadata/appMetadataUtils';
+import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSetId';
 import { DataModelReaders } from 'src/features/formData/FormDataReaders';
+import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
 import { useLangToolsDataSources } from 'src/features/language/LangToolsStore';
 import { getLanguageFromCode } from 'src/language/languages';
@@ -13,6 +17,7 @@ import { smartLowerCaseFirst } from 'src/utils/formComponentUtils';
 import type { useDataModelReaders } from 'src/features/formData/FormDataReaders';
 import type { TextResourceMap } from 'src/features/language/textResources';
 import type { FixedLanguageList } from 'src/language/languages';
+import type { FormDataSelector } from 'src/layout';
 import type { IApplicationSettings, IInstanceDataSources, ILanguage, IVariable } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -51,6 +56,8 @@ export interface TextResourceVariablesDataSources {
   instanceDataSources: IInstanceDataSources | null;
   dataModelPath?: string;
   dataModels: ReturnType<typeof useDataModelReaders>;
+  currentDataModelName: string | undefined;
+  currentDataModel: FormDataSelector | typeof ContextNotProvided;
 }
 
 /**
@@ -87,6 +94,9 @@ export function useLanguage(node?: LayoutNode) {
 
 export function useLanguageWithForcedNode(node: LayoutNode | undefined) {
   const { textResources, language, selectedLanguage, ...dataSources } = useLangToolsDataSources() || {};
+  const layoutSetId = useCurrentLayoutSetId();
+  const currentDataModelName = useDataTypeByLayoutSetId(layoutSetId);
+  const currentDataModel = FD.useLaxDebouncedSelector();
 
   return useMemo(() => {
     if (!textResources || !language || !selectedLanguage) {
@@ -94,10 +104,12 @@ export function useLanguageWithForcedNode(node: LayoutNode | undefined) {
     }
 
     return staticUseLanguage(textResources, language, selectedLanguage, {
-      ...(dataSources as Omit<TextResourceVariablesDataSources, 'node'>),
+      ...(dataSources as Omit<TextResourceVariablesDataSources, 'node' | 'currentDataModel' | 'currentDataModelName'>),
       node,
+      currentDataModel,
+      currentDataModelName,
     });
-  }, [dataSources, language, node, selectedLanguage, textResources]);
+  }, [currentDataModel, currentDataModelName, dataSources, language, node, selectedLanguage, textResources]);
 }
 
 interface ILanguageState {
@@ -123,7 +135,9 @@ export function staticUseLanguageForTests({
       instanceOwnerPartyId: '12345',
       instanceOwnerPartyType: 'person',
     },
-    dataModels: new DataModelReaders({}, 'default'),
+    dataModels: new DataModelReaders({}),
+    currentDataModelName: undefined,
+    currentDataModel: () => null,
     applicationSettings: {},
     node: undefined,
   },
@@ -274,7 +288,15 @@ function getTextResourceByKey(
 }
 
 function replaceVariables(text: string, variables: IVariable[], dataSources: TextResourceVariablesDataSources) {
-  const { node, dataModels, instanceDataSources, applicationSettings, dataModelPath } = dataSources;
+  const {
+    node,
+    dataModels,
+    instanceDataSources,
+    applicationSettings,
+    dataModelPath,
+    currentDataModelName,
+    currentDataModel,
+  } = dataSources;
   let out = text;
   for (const idx in variables) {
     const variable = variables[idx];
@@ -287,19 +309,32 @@ function replaceVariables(text: string, variables: IVariable[], dataSources: Tex
         ? transposeDataBinding({ subject: cleanPath, currentLocation: dataModelPath })
         : node?.transposeDataModel(cleanPath) || value;
       if (transposedPath) {
-        const dataModel = dataModels.getReader(dataModelName);
-        const stringValue = dataModel.getAsString(transposedPath);
+        // If the data model is the current one, look up there
+        const modelReader =
+          dataModelName === 'default' || dataModelName === currentDataModelName
+            ? undefined
+            : dataModels.getReader(dataModelName);
+        const readValue = modelReader
+          ? modelReader.getAsString(transposedPath)
+          : currentDataModel === ContextNotProvided
+            ? undefined
+            : currentDataModel(transposedPath);
+        const stringValue =
+          typeof readValue === 'string' || typeof readValue === 'number' || typeof readValue === 'boolean'
+            ? readValue.toString()
+            : undefined;
         const hasDefaultValue = variable.defaultValue !== undefined && variable.defaultValue !== null;
+
         if (stringValue !== undefined) {
           value = stringValue;
-        } else if (dataModel.isLoading()) {
+        } else if (modelReader && modelReader.isLoading()) {
           value = '...'; // TODO: Use a loading indicator, or at least let this value be configurable
         } else if (dataModelName === 'default' && !hasDefaultValue) {
           window.logWarnOnce(
             `A text resource variable with key '${variable.key}' did not exist in the default data model. ` +
               `You should provide a specific data model name instead, and/or set a defaultValue.`,
           );
-        } else if (dataModel.hasError() && !hasDefaultValue) {
+        } else if (modelReader && modelReader.hasError() && !hasDefaultValue) {
           window.logWarnOnce(
             `A text resource variable with key '${variable.key}' did not exist in the data model '${dataModelName}'. ` +
               `You may want to set a defaultValue to prevent the full key from being presented to the user.`,

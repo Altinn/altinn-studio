@@ -1,15 +1,22 @@
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import type { DependencyList } from 'react';
 
 import deepEqual from 'fast-deep-equal';
 
 export function useStateDeepEqual<T>(initialValue: T) {
   const [state, setState] = useState(initialValue);
-  const updateState = (newState: T) => {
-    if (!deepEqual(state, newState)) {
-      setState(newState);
-    }
-  };
+  const stateRef = useRef(initialValue);
+  const updateState = useCallback(
+    (next: T | ((prevState: T) => T)) => {
+      const prevState = stateRef.current;
+      const newState = typeof next === 'function' ? (next as (prevState: T) => T)(prevState) : next;
+      if (!deepEqual(prevState, newState)) {
+        stateRef.current = newState;
+        setState(newState);
+      }
+    },
+    [stateRef],
+  );
 
   return [state, updateState] as const;
 }
@@ -25,6 +32,9 @@ export function useMemoDeepEqual<T>(produceValue: () => T, deps: DependencyList)
       lastState.current = newState;
     }
     return lastState.current;
+
+    // Make sure you don't put produceValue in the deps array, as it will cause the memo to always recompute
+    // when given a new function reference.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [...deps, produceValue]);
+  }, [...deps]);
 }

@@ -1,7 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { createContext } from 'src/core/contexts/context';
+import { createStore } from 'zustand';
+
+import { ContextNotProvided } from 'src/core/contexts/context';
+import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { useCurrentDataModelSchema } from 'src/features/datamodel/DataModelSchemaProvider';
 import { dotNotationToPointer } from 'src/features/datamodel/notations';
 import { lookupBindingInSchema } from 'src/features/datamodel/SimpleSchemaTraversal';
@@ -104,35 +107,65 @@ function useDataModelBindingsValidation(props: LayoutValidationProps) {
   }, [layoutSetId, schema, dataType, nodes, logErrors]);
 }
 
-const { Provider, useCtx } = createContext<LayoutValidationErrors | undefined>({
+interface Context {
+  errors: LayoutValidationErrors | undefined;
+  update: (
+    dataModelBindingsValidations: LayoutValidationErrors,
+    layoutSchemaValidations: LayoutValidationErrors | undefined,
+  ) => void;
+}
+
+function initialCreateStore() {
+  return createStore<Context>((set) => ({
+    errors: undefined,
+    update: (dataModelBindingsValidations, layoutSchemaValidations) => {
+      if (!layoutSchemaValidations) {
+        return set({ errors: undefined });
+      }
+      return set({ errors: mergeValidationErrors(dataModelBindingsValidations, layoutSchemaValidations) });
+    },
+  }));
+}
+
+const { Provider, useLaxSelector, useSelector } = createZustandContext({
   name: 'LayoutValidation',
-  required: false,
-  default: undefined,
+  required: true,
+  initialCreateStore,
 });
 
-export const useLayoutValidation = () => useCtx();
+export const useLayoutValidation = () => {
+  const out = useLaxSelector((state) => state.errors);
+  return out === ContextNotProvided ? undefined : out;
+};
+
 export const useLayoutValidationForPage = () => {
-  const ctx = useLayoutValidation();
   const layoutSetId = useCurrentLayoutSetId() || 'default';
   const currentView = useCurrentView();
 
-  if (!currentView) {
-    return;
-  }
-
-  return ctx?.[layoutSetId]?.[currentView];
+  return useLaxSelector((state) => {
+    const layoutSet = state.errors?.[layoutSetId];
+    return layoutSet && currentView ? layoutSet[currentView] : undefined;
+  });
 };
 
 export const useLayoutValidationForNode = (node: LayoutNode) => {
   const componentId = node.item.baseComponentId || node.item.id;
   const pageName = node.top.top.myKey;
   const layoutSetId = useCurrentLayoutSetId() || 'default';
-  const ctx = useLayoutValidation();
 
-  return ctx?.[layoutSetId]?.[pageName]?.[componentId];
+  return useLaxSelector((state) => state.errors?.[layoutSetId]?.[pageName]?.[componentId]);
 };
 
 export function LayoutValidationProvider({ children }: PropsWithChildren) {
+  return (
+    <Provider>
+      <Generator />
+      {children}
+    </Provider>
+  );
+}
+
+export function Generator() {
   const isDev = useIsDev();
   const panelOpen = useDevToolsStore((s) => s.isOpen);
   const enabled = isDev || panelOpen;
@@ -140,10 +173,11 @@ export function LayoutValidationProvider({ children }: PropsWithChildren) {
   const layoutSchemaValidations = useLayoutSchemaValidation(enabled);
   const dataModelBindingsValidations = useDataModelBindingsValidation({ logErrors: true });
 
-  if (!layoutSchemaValidations) {
-    return <Provider value={undefined}>{children}</Provider>;
-  }
+  const update = useSelector((state) => state.update);
 
-  const value = mergeValidationErrors(dataModelBindingsValidations, layoutSchemaValidations);
-  return <Provider value={value}>{children}</Provider>;
+  useEffect(() => {
+    update(dataModelBindingsValidations, layoutSchemaValidations);
+  }, [update, dataModelBindingsValidations, layoutSchemaValidations]);
+
+  return null;
 }

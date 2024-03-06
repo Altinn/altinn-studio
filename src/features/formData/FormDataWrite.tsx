@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { useMutation } from '@tanstack/react-query';
+import { useIsMutating, useMutation } from '@tanstack/react-query';
 import dot from 'dot-object';
 import deepEqual from 'fast-deep-equal';
 
@@ -14,25 +14,20 @@ import { useRuleConnections } from 'src/features/form/dynamics/DynamicsContext';
 import { useFormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import { createFormDataWriteStore } from 'src/features/formData/FormDataWriteStateMachine';
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
-import { useAsRef, useAsRefFromLaxSelector } from 'src/hooks/useAsRef';
+import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import { useIsStatelessApp } from 'src/utils/useIsStatelessApp';
 import type { SchemaLookupTool } from 'src/features/datamodel/DataModelSchemaProvider';
 import type { IRuleConnections } from 'src/features/form/dynamics';
 import type { FormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
-import type { FDSaveResult, FormDataContext } from 'src/features/formData/FormDataWriteStateMachine';
+import type { FDSaveFinished, FDSaveResult, FormDataContext } from 'src/features/formData/FormDataWriteStateMachine';
 import type { BackendValidationIssueGroups } from 'src/features/validation';
+import type { FormDataSelector } from 'src/layout';
 import type { IMapping } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
 
 export type FDLeafValue = string | number | boolean | null | undefined;
 export type FDValue = FDLeafValue | object | FDValue[];
-
-interface MutationArg {
-  dataModelUrl: string;
-  next: object;
-  prev: object;
-}
 
 interface FormDataContextInitialProps {
   url: string;
@@ -43,7 +38,19 @@ interface FormDataContextInitialProps {
   schemaLookup: SchemaLookupTool;
 }
 
-const { Provider, useSelector, useMemoSelector, useLaxSelector, useLaxStore } = createZustandContext({
+const {
+  Provider,
+  useSelector,
+  useMemoSelector,
+  useSelectorAsRef,
+  useLaxMemoSelector,
+  useLaxSelectorAsRef,
+  useLaxDelayedMemoSelectorFactory,
+  useDelayedMemoSelectorFactory,
+  useLaxSelector,
+  useLaxStore,
+  useStore,
+} = createZustandContext({
   name: 'FormDataWrite',
   required: true,
   initialCreateStore: ({
@@ -57,30 +64,69 @@ const { Provider, useSelector, useMemoSelector, useLaxSelector, useLaxStore } = 
     createFormDataWriteStore(url, initialData, autoSaving, proxies, ruleConnections, schemaLookup),
 });
 
-const useFormDataSaveMutation = (ctx: FormDataContext) => {
+function useFormDataSaveMutation() {
   const { doPatchFormData, doPostStatelessFormData } = useAppMutations();
-  const { saveStarted, saveFinished } = ctx;
+  const dataModelUrl = useSelector((s) => s.controlState.saveUrl);
+  const saveFinished = useSelector((s) => s.saveFinished);
+  const cancelSave = useSelector((s) => s.cancelSave);
   const isStateless = useIsStatelessApp();
+  const debounce = useSelector((s) => s.debounce);
+  const waitFor = useWaitForState<{ prev: object; next: object }, FormDataContext>(useStore());
+  const useIsSavingRef = useAsRef(useIsSaving());
 
   return useMutation({
-    mutationKey: ['saveFormData'],
-    mutationFn: async (arg: MutationArg) => {
-      const { dataModelUrl, next, prev } = arg;
-      saveStarted();
+    mutationKey: ['saveFormData', dataModelUrl],
+    mutationFn: async (): Promise<FDSaveFinished | undefined> => {
+      if (useIsSavingRef.current) {
+        return;
+      }
+
+      // While we could get the next model from a ref, we want to make sure we get the latest model after debounce
+      // at the moment we're saving. This is especially important when automatically saving (and debouncing) when
+      // navigating away from the form context.
+      debounce();
+      const { next, prev } = await waitFor((state, setReturnValue) => {
+        if (state.debouncedCurrentData === state.currentData) {
+          setReturnValue({ next: state.debouncedCurrentData, prev: state.lastSavedData });
+          return true;
+        }
+        return false;
+      });
+
+      if (deepEqual(prev, next)) {
+        return;
+      }
+
       if (isStateless) {
         const newDataModel = await doPostStatelessFormData(dataModelUrl, next);
-        saveFinished({ newDataModel, savedData: next, validationIssues: undefined });
+        return { newDataModel, savedData: next, validationIssues: undefined };
       } else {
         const patch = createPatch({ prev, next });
+        if (patch.length === 0) {
+          return;
+        }
+
         const result = await doPatchFormData(dataModelUrl, {
           patch,
           ignoredValidators: [],
         });
-        saveFinished({ ...result, patch, savedData: next });
+        return { ...result, patch, savedData: next };
       }
     },
+    onError: () => {
+      cancelSave();
+    },
+    onSuccess: (result) => {
+      result && saveFinished(result);
+      !result && cancelSave();
+    },
   });
-};
+}
+
+function useIsSaving() {
+  const dataModelUrl = useLaxSelector((s) => s.controlState.saveUrl);
+  return useIsMutating(['saveFormData', dataModelUrl === ContextNotProvided ? '__never__' : dataModelUrl]) > 0;
+}
 
 interface FormDataWriterProps extends PropsWithChildren {
   url: string;
@@ -102,59 +148,34 @@ export function FormDataWriteProvider({ url, initialData, autoSaving, children }
       ruleConnections={ruleConnections}
       schemaLookup={schemaLookup}
     >
-      <FormDataEffects url={url} />
+      <FormDataEffects />
       {children}
     </Provider>
   );
 }
 
-function FormDataEffects({ url }: { url: string }) {
+function FormDataEffects() {
   const state = useSelector((s) => s);
   const {
     currentData,
     debouncedCurrentData,
     lastSavedData,
     controlState,
-    cancelSave,
     invalidCurrentData,
     invalidDebouncedCurrentData,
   } = state;
-  const { debounceTimeout, autoSaving, manualSaveRequested, lockedBy, isSaving } = controlState;
-  const { mutate, error } = useFormDataSaveMutation(state);
+  const { debounceTimeout, autoSaving, manualSaveRequested, lockedBy } = controlState;
+  const { mutate: performSave, error } = useFormDataSaveMutation();
+  const isSaving = useIsSaving();
   const debounce = useDebounceImmediately();
   const hasUnsavedChanges = useHasUnsavedChanges();
-
-  // This component re-renders on every keystroke in a form field. We don't want to save on every keystroke, nor
-  // create a new performSave function after every save, so we use a ref to make sure the performSave function
-  // and the unmount effect always have the latest values.
-  const currentDataRef = useAsRef(currentData);
-  const lastSavedDataRef = useAsRef(lastSavedData);
-  const isSavingRef = useAsRef(isSaving);
+  const hasUnsavedChangesRef = useHasUnsavedChangesRef();
 
   // If errors occur, we want to throw them so that the user can see them, and they
   // can be handled by the error boundary.
   if (error) {
     throw error;
   }
-
-  const performSave = useCallback(
-    (dataToSave: object) => {
-      if (isSavingRef.current) {
-        return;
-      }
-      if (deepEqual(dataToSave, lastSavedDataRef.current)) {
-        cancelSave();
-        return;
-      }
-
-      mutate({
-        dataModelUrl: url,
-        next: dataToSave,
-        prev: lastSavedDataRef.current,
-      });
-    },
-    [cancelSave, isSavingRef, lastSavedDataRef, mutate, url],
-  );
 
   // Debounce the data model when the user stops typing. This has the effect of triggering the useEffect below,
   // saving the data model to the backend. Freezing can also be triggered manually, when a manual save is requested.
@@ -168,27 +189,14 @@ function FormDataEffects({ url }: { url: string }) {
     return () => clearTimeout(timer);
   }, [debounce, currentData, debouncedCurrentData, debounceTimeout, invalidCurrentData, invalidDebouncedCurrentData]);
 
-  // Save the data model when the data has been frozen to debouncedCurrentData and is different from the saved data
-  useEffect(() => {
-    const isDebounced = currentData === debouncedCurrentData;
-    if (isDebounced && !isSaving && !lockedBy && (autoSaving || manualSaveRequested)) {
-      const hasUnsavedDebouncedChanges =
-        debouncedCurrentData !== lastSavedData && !deepEqual(debouncedCurrentData, lastSavedData);
+  // Save the data model when the data has been frozen/debounced, and we're ready
+  const needsToSave = lastSavedData !== debouncedCurrentData;
+  const canSaveNow = !isSaving && !lockedBy;
+  const shouldSave = (needsToSave && canSaveNow && autoSaving) || manualSaveRequested;
 
-      if (hasUnsavedDebouncedChanges) {
-        performSave(debouncedCurrentData);
-      }
-    }
-  }, [
-    autoSaving,
-    currentData,
-    debouncedCurrentData,
-    isSaving,
-    lastSavedData,
-    lockedBy,
-    manualSaveRequested,
-    performSave,
-  ]);
+  useEffect(() => {
+    shouldSave && performSave();
+  }, [performSave, shouldSave]);
 
   // Marking the document as having unsaved changes. The data attribute is used in tests, while the beforeunload
   // event is used to warn the user when they try to navigate away from the page with unsaved changes.
@@ -207,11 +215,11 @@ function FormDataEffects({ url }: { url: string }) {
   // to trigger when the user is typing, which is not what we want.
   useEffect(
     () => () => {
-      if (hasUnsavedChanges) {
-        performSave(currentDataRef.current);
+      if (hasUnsavedChangesRef.current) {
+        performSave();
       }
     },
-    [currentDataRef, hasUnsavedChanges, performSave],
+    [hasUnsavedChangesRef, performSave],
   );
 
   // Sets the debounced data in the window object, so that Cypress tests can access it.
@@ -227,7 +235,7 @@ function FormDataEffects({ url }: { url: string }) {
 const useRequestManualSave = () => {
   const requestSave = useLaxSelector((s) => s.requestManualSave);
   return useCallback(
-    (setTo?: boolean) => {
+    (setTo = true) => {
       if (requestSave !== ContextNotProvided) {
         requestSave(setTo);
       }
@@ -245,33 +253,34 @@ const useDebounceImmediately = () => {
   }, [debounce]);
 };
 
-const useHasUnsavedChanges = () => {
-  const result = useLaxSelector((state) => {
-    if (state.controlState.isSaving) {
-      return true;
-    }
-    if (state.currentData !== state.lastSavedData) {
-      return true;
-    }
-    return state.debouncedCurrentData !== state.lastSavedData;
-  });
+function hasUnsavedChanges(state: FormDataContext) {
+  if (state.currentData !== state.lastSavedData) {
+    return true;
+  }
+  return state.debouncedCurrentData !== state.lastSavedData;
+}
 
+const useHasUnsavedChanges = () => {
+  const isSaving = useIsSaving();
+  const result = useLaxMemoSelector((state) => hasUnsavedChanges(state));
   if (result === ContextNotProvided) {
     return false;
   }
-  return result;
+  return result || isSaving;
 };
 
-type FromRef<T> = T extends React.MutableRefObject<infer U> ? U : T;
+const useHasUnsavedChangesRef = () => {
+  const isSaving = useIsSaving();
+  return useLaxSelectorAsRef((state) => hasUnsavedChanges(state) || isSaving);
+};
+
 const useWaitForSave = () => {
   const requestSave = useRequestManualSave();
   const url = useLaxSelector((s) => s.controlState.saveUrl);
-  const ref = useAsRefFromLaxSelector(useLaxStore(), (s) => ({
-    isSaving: s.controlState.isSaving,
-    validation: s.validationIssues,
-  }));
-  const hasUnsavedChangesRef = useAsRef(useHasUnsavedChanges());
-  const waitFor = useWaitForState<BackendValidationIssueGroups | undefined, FromRef<typeof ref>>(ref);
+  const waitFor = useWaitForState<
+    BackendValidationIssueGroups | undefined,
+    FormDataContext | typeof ContextNotProvided
+  >(useLaxStore());
 
   return useCallback(
     async (requestManualSave = false): Promise<BackendValidationIssueGroups | undefined> => {
@@ -288,15 +297,16 @@ const useWaitForSave = () => {
           setReturnValue(undefined);
           return true;
         }
-        if (!hasUnsavedChangesRef.current && !state.isSaving) {
-          setReturnValue(state.validation);
-          return true;
+
+        if (hasUnsavedChanges(state)) {
+          return false;
         }
 
-        return false;
+        setReturnValue(state.validationIssues);
+        return true;
       });
     },
-    [hasUnsavedChangesRef, requestSave, url, waitFor],
+    [requestSave, url, waitFor],
   );
 };
 
@@ -304,11 +314,35 @@ const emptyObject: any = {};
 
 export const FD = {
   /**
+   * Gives you a selector function that can be used to look up paths in the data model. This is similar to
+   * useDebounced(), but it will only re-render the component if the value at the path(s) you selected actually
+   * changes. This is useful if you want to avoid re-rendering when the form data changes, but you still want to
+   * pretend to have the full data model available to look up values from.
+   */
+  useDebouncedSelector(): FormDataSelector {
+    return useDelayedMemoSelectorFactory({
+      selector: (path: string) => (state) => dot.pick(path, state.debouncedCurrentData),
+      makeCacheKey: (path: string) => path,
+    });
+  },
+
+  /**
    * This will return the form data as a deep object, just like the server sends it to us (and the way we send it back).
    * This will always give you the debounced data, which may or may not be saved to the backend yet.
    */
   useDebounced(): object {
     return useSelector((v) => v.debouncedCurrentData);
+  },
+
+  /**
+   * This is the same as useDebouncedSelector(), but will return ContextNotProvided immediately if the context
+   * provider is not present.
+   */
+  useLaxDebouncedSelector(): FormDataSelector | typeof ContextNotProvided {
+    return useLaxDelayedMemoSelectorFactory({
+      selector: (path: string) => (state) => dot.pick(path, state.debouncedCurrentData),
+      makeCacheKey: (path: string) => path,
+    });
   },
 
   /**
@@ -445,17 +479,15 @@ export const FD = {
   useLocking(lockId: string) {
     const rawLock = useSelector((s) => s.lock);
     const rawUnlock = useSelector((s) => s.unlock);
-    const requestSave = useRequestManualSave();
 
     const lockedBy = useSelector((s) => s.controlState.lockedBy);
-    const lockedByRef = useAsRef(lockedBy);
+    const lockedByRef = useSelectorAsRef((s) => s.controlState.lockedBy);
     const isLocked = lockedBy !== undefined;
     const isLockedRef = useAsRef(isLocked);
     const isLockedByMe = lockedBy === lockId;
     const isLockedByMeRef = useAsRef(isLockedByMe);
 
-    const hasUnsavedChanges = useHasUnsavedChanges();
-    const hasUnsavedChangesRef = useAsRef(hasUnsavedChanges);
+    const hasUnsavedChangesRef = useHasUnsavedChangesRef();
     const waitForSave = useWaitForSave();
 
     const lock = useCallback(async () => {
@@ -469,13 +501,12 @@ export const FD = {
       }
 
       if (hasUnsavedChangesRef.current) {
-        requestSave();
-        await waitForSave();
+        await waitForSave(true);
       }
 
       rawLock(lockId);
       return true;
-    }, [hasUnsavedChangesRef, isLockedByMeRef, isLockedRef, lockId, lockedByRef, rawLock, requestSave, waitForSave]);
+    }, [hasUnsavedChangesRef, isLockedByMeRef, isLockedRef, lockId, lockedByRef, rawLock, waitForSave]);
 
     const unlock = useCallback(
       (saveResult?: FDSaveResult) => {
@@ -492,7 +523,7 @@ export const FD = {
         rawUnlock(saveResult);
         return true;
       },
-      [isLockedRef, isLockedByMeRef, lockId, lockedByRef, rawUnlock],
+      [isLockedByMeRef, isLockedRef, lockId, lockedByRef, rawUnlock],
     );
 
     return { lock, unlock, isLocked, lockedBy, isLockedByMe };
@@ -509,6 +540,11 @@ export const FD = {
    * This will work (and return immediately) even if there is no FormDataWriteProvider in the tree.
    */
   useWaitForSave,
+
+  /**
+   * Returns a function you can use to request a manual save of the form data.
+   */
+  useRequestManualSave,
 
   /**
    * Returns true if the form data has unsaved changes

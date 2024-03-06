@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
 
-import { useImmer } from 'use-immer';
+import { original } from 'immer';
 
 import { type IAttachments, isAttachmentUploaded, type UploadedAttachment } from 'src/features/attachments';
 import { useAttachments } from 'src/features/attachments/AttachmentsContext';
 import { ValidationMask, type ValidationState } from 'src/features/validation';
-import { getValidationsForNode } from 'src/features/validation/utils';
+import { getInitialMaskFromNode, getValidationsForNode } from 'src/features/validation/utils';
 import {
   addVisibilityForAttachment,
   addVisibilityForNode,
@@ -22,18 +22,15 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 /**
  * Manages the visibility state of validations on components
  */
-export function useVisibility(validations: ValidationState) {
+export function useVisibility(
+  validations: ValidationState,
+  setVisibility: (updater: (draft: Visibility) => void) => void,
+) {
   const layoutPages = useNodes();
   const nodesRef = useAsRef(layoutPages);
   const lastNodes = useRef<LayoutNode[]>([]);
   const currentAttachments = useAttachments();
   const lastAttachments = useRef<IAttachments<UploadedAttachment>>({});
-
-  const [visibility, setVisibility] = useImmer<Visibility>({
-    mask: 0,
-    children: {},
-    items: [],
-  });
 
   /**
    * Add and remove visibility as nodes are added and removed
@@ -41,8 +38,8 @@ export function useVisibility(validations: ValidationState) {
   useEffect(() => {
     const newNodes = layoutPages.allNodes();
     const prevNodes = lastNodes.current;
-    const addedNodes = newNodes.filter((n) => !prevNodes.find((pn) => pn.item.id === n.item.id));
-    const removedNodes = prevNodes.filter((pn) => !newNodes.find((n) => pn.item.id === n.item.id));
+
+    const { addedNodes, removedNodes } = getNodeChanges(prevNodes, newNodes);
 
     lastNodes.current = newNodes;
 
@@ -68,9 +65,21 @@ export function useVisibility(validations: ValidationState) {
           ValidationMask.AllIncludingBackend,
         ).reduce((mask, validation) => mask | validation.category, 0);
 
-        const currentVisibilityMask = getVisibilityForNode(node, state);
+        // Checking the current(state) is much cheaper than checking the draft, so its worth
+        // potentially doing it twice to not make unnecessary updates
+        const fasterState = original(state) ?? state;
+        const currentVisibilityMask = getVisibilityForNode(node, fasterState);
+        const newVisibilityMask = currentVisibilityMask & currentValidationMask;
 
-        setVisibilityForNode(node, state, currentValidationMask & currentVisibilityMask);
+        // Updating is a bit expensive, so only do it if the mask is different
+        // We need to OR with the initial mask for comparison as this always happens when the
+        // mask is updated, otherwise there could be false positives
+        const initialMask = getInitialMaskFromNode(node);
+        if ((newVisibilityMask | initialMask) === currentVisibilityMask) {
+          continue;
+        }
+
+        setVisibilityForNode(node, state, newVisibilityMask);
       }
     });
   }, [nodesRef, setVisibility, validations]);
@@ -107,10 +116,14 @@ export function useVisibility(validations: ValidationState) {
     }
 
     const nodes = nodesRef.current.allNodes();
+    const nodeMap = new Map<string, LayoutNode>();
+    for (const node of nodes) {
+      nodeMap.set(node.item.id, node);
+    }
 
     setVisibility((state) => {
       removedAttachments.forEach(({ attachmentId, nodeId }) => {
-        const node = nodes.find((n) => n.item.id === nodeId);
+        const node = nodeMap.get(nodeId);
         if (!node) {
           return;
         }
@@ -118,7 +131,7 @@ export function useVisibility(validations: ValidationState) {
       });
 
       addedAttachments.forEach(({ attachmentId, nodeId }) => {
-        const node = nodes.find((n) => n.item.id === nodeId);
+        const node = nodeMap.get(nodeId);
         if (!node) {
           return;
         }
@@ -126,6 +139,32 @@ export function useVisibility(validations: ValidationState) {
       });
     });
   }, [currentAttachments, nodesRef, setVisibility]);
+}
 
-  return { visibility, setVisibility };
+function getNodeChanges(prevNodes: LayoutNode[], newNodes: LayoutNode[]) {
+  const newNodeIds = new Set<string>();
+  for (const node of newNodes) {
+    newNodeIds.add(node.item.id);
+  }
+
+  const prevNodeIds = new Set<string>();
+  const removedNodes: LayoutNode[] = [];
+  for (const node of prevNodes) {
+    prevNodeIds.add(node.item.id);
+
+    if (newNodeIds.has(node.item.id)) {
+      continue;
+    }
+    removedNodes.push(node);
+  }
+
+  const addedNodes: LayoutNode[] = [];
+  for (const node of newNodes) {
+    if (prevNodeIds.has(node.item.id)) {
+      continue;
+    }
+    addedNodes.push(node);
+  }
+
+  return { addedNodes, removedNodes };
 }

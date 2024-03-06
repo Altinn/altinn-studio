@@ -10,12 +10,12 @@ import { useAttachmentDeletionInRepGroups } from 'src/features/attachments/useAt
 import { FD } from 'src/features/formData/FormDataWrite';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useOnGroupCloseValidation } from 'src/features/validation/callbacks/onGroupCloseValidation';
-import { useOnDeleteGroupRow } from 'src/features/validation/validationContext';
+import { Validation } from 'src/features/validation/validationContext';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import { OpenByDefaultProvider } from 'src/layout/RepeatingGroup/OpenByDefaultProvider';
 import type { CompRepeatingGroupInternal, HRepGroupRow } from 'src/layout/RepeatingGroup/config.generated';
-import type { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import type { BaseLayoutNode, LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface Store {
   editingAll: boolean;
@@ -236,9 +236,9 @@ function useExtendedRepeatingGroupState(node: BaseLayoutNode<CompRepeatingGroupI
   const appendToList = FD.useAppendToList();
   const removeFromList = FD.useRemoveFromListCallback();
   const onBeforeRowDeletion = useAttachmentDeletionInRepGroups(node);
-  const onDeleteGroupRow = useOnDeleteGroupRow();
+  const onDeleteGroupRow = Validation.useOnDeleteGroupRow();
   const onGroupCloseValidation = useOnGroupCloseValidation();
-  const waitForNode = useWaitForState(nodeRef);
+  const waitForNode = useWaitForState<undefined, LayoutNode<'RepeatingGroup'>>(nodeRef);
   const nodeState = produceStateFromNode(node);
   const nodeStateRef = useAsRef(nodeState);
   const [isFirstRender, setIsFirstRender] = useState(true);

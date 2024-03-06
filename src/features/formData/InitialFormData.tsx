@@ -5,7 +5,6 @@ import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { useCurrentDataModelUrl } from 'src/features/datamodel/useBindingSchema';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
-import { FormDataReaderProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
@@ -44,7 +43,7 @@ export function InitialFormDataProvider({ children }: PropsWithChildren) {
       initialData={data}
       autoSaving={!autoSaveBehaviour || autoSaveBehaviour === 'onChangeFormData'}
     >
-      <FormDataReaderProvider>{children}</FormDataReaderProvider>
+      {children}
     </FormDataWriteProvider>
   );
 }

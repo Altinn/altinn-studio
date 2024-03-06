@@ -5,7 +5,7 @@ import cn from 'classnames';
 
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
 import { useNavigateToNode } from 'src/features/form/layout/NavigateToNode';
-import { usePageNavigationContext } from 'src/features/form/layout/PageNavigationContext';
+import { useSetReturnToView } from 'src/features/form/layout/PageNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
@@ -28,10 +28,9 @@ export interface ISummaryComponent {
     largeGroup?: boolean;
     display?: SummaryDisplayProperties;
   };
-  ref?: React.Ref<HTMLDivElement>;
 }
 
-export function SummaryComponent({ summaryNode, overrides, ref }: ISummaryComponent) {
+function _SummaryComponent({ summaryNode, overrides }: ISummaryComponent, ref: React.Ref<HTMLDivElement>) {
   const { id, grid } = summaryNode.item;
   const display = overrides?.display || summaryNode.item.display;
   const { langAsString } = useLanguage();
@@ -46,14 +45,14 @@ export function SummaryComponent({ summaryNode, overrides, ref }: ISummaryCompon
   const errors = validationsOfSeverity(validations, 'error');
 
   const navigateTo = useNavigateToNode();
-  const { setReturnToView } = usePageNavigationContext();
+  const setReturnToView = useSetReturnToView();
   const onChangeClick = async () => {
     if (!targetView) {
       return;
     }
 
     navigateTo(targetNode, true);
-    setReturnToView(currentPageId);
+    setReturnToView?.(currentPageId);
   };
 
   if (!targetNode || !targetItem || targetNode.isHidden() || targetItem.type === 'Summary') {
@@ -138,3 +137,5 @@ export function SummaryComponent({ summaryNode, overrides, ref }: ISummaryCompon
     </Grid>
   );
 }
+
+export const SummaryComponent = React.forwardRef(_SummaryComponent);

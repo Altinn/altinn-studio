@@ -9,15 +9,31 @@ import { ProcessTaskType } from 'src/types';
 interface LoaderProps {
   reason: string; // The reason is used by developers to identify the reason for the loader
   details?: string;
+  renderPresentation?: boolean;
 }
 
-export const Loader = ({ reason, details }: LoaderProps) => (
-  <PresentationComponent
-    header={<Lang id='instantiate.starting' />}
-    type={ProcessTaskType.Unknown}
-    renderNavBar={false}
-    runNavigationEffect={false}
-  >
+export const Loader = ({ reason, details, renderPresentation = true }: LoaderProps) => {
+  if (renderPresentation) {
+    return (
+      <PresentationComponent
+        header={<Lang id='instantiate.starting' />}
+        type={ProcessTaskType.Unknown}
+        renderNavBar={false}
+        runNavigationEffect={false}
+      >
+        <AltinnContentLoader
+          width='100%'
+          height='400'
+          reason={reason}
+          details={details}
+        >
+          <AltinnContentIconFormData />
+        </AltinnContentLoader>
+      </PresentationComponent>
+    );
+  }
+
+  return (
     <AltinnContentLoader
       width='100%'
       height='400'
@@ -26,5 +42,5 @@ export const Loader = ({ reason, details }: LoaderProps) => (
     >
       <AltinnContentIconFormData />
     </AltinnContentLoader>
-  </PresentationComponent>
-);
+  );
+};

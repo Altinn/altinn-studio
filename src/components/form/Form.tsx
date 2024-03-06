@@ -1,12 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 
 import Grid from '@material-ui/core/Grid';
+import deepEqual from 'fast-deep-equal';
 
 import classes from 'src/components/form/Form.module.css';
 import { MessageBanner } from 'src/components/form/MessageBanner';
 import { ErrorReport } from 'src/components/message/ErrorReport';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
+import { Loader } from 'src/core/loading/Loader';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useExpandedWidthLayouts } from 'src/features/form/layout/LayoutsContext';
 import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
@@ -15,15 +17,29 @@ import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettings
 import { FrontendValidationSource } from 'src/features/validation';
 import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
 import { useCurrentView, useNavigatePage } from 'src/hooks/useNavigatePage';
-import { GenericComponent } from 'src/layout/GenericComponent';
+import { GenericComponentById } from 'src/layout/GenericComponent';
 import { extractBottomButtons, hasRequiredFields } from 'src/utils/formLayout';
-import { useNodes } from 'src/utils/layout/NodesContext';
+import { useNodesMemoSelector } from 'src/utils/layout/NodesContext';
+
+interface FormState {
+  hasRequired: boolean;
+  requiredFieldsMissing: boolean;
+  mainIds: string[] | undefined;
+  errorReportIds: string[];
+}
 
 export function Form() {
   const currentPageId = useCurrentView();
   const { isValidPageId, navigateToPage } = useNavigatePage();
-  const nodes = useNodes();
-  const page = currentPageId && nodes?.all?.()?.[currentPageId];
+
+  const [formState, setFormState] = useState<FormState>({
+    hasRequired: false,
+    requiredFieldsMissing: false,
+    mainIds: undefined,
+    errorReportIds: [],
+  });
+  const { hasRequired, requiredFieldsMissing, mainIds, errorReportIds } = formState;
+
   useRedirectToStoredPage();
   useSetExpandedWidth();
 
@@ -36,26 +52,26 @@ export function Form() {
     return false;
   });
 
-  const { formErrors, taskErrors } = useTaskErrors();
-  const hasErrors = Boolean(formErrors.length) || Boolean(taskErrors.length);
-  const requiredFieldsMissing = formErrors.some(
-    (error) => error.source === FrontendValidationSource.EmptyField && error.pageKey === currentPageId,
-  );
-
-  const [mainNodes, errorReportNodes] = React.useMemo(() => {
-    if (!page) {
-      return [[], []];
-    }
-    return hasErrors ? extractBottomButtons(page) : [page.children(), []];
-  }, [page, hasErrors]);
-
   if (!currentPageId || !isValidPageId(currentPageId)) {
     return <FormFirstPage />;
   }
 
+  if (mainIds === undefined) {
+    return (
+      <>
+        <ErrorProcessing setFormState={setFormState} />
+        <Loader
+          reason='form-ids'
+          renderPresentation={false}
+        />
+      </>
+    );
+  }
+
   return (
     <>
-      {page && hasRequiredFields(page) && (
+      <ErrorProcessing setFormState={setFormState} />
+      {hasRequired && (
         <MessageBanner
           error={requiredFieldsMissing}
           messageKey={'form_filler.required_description'}
@@ -66,10 +82,10 @@ export function Form() {
         spacing={3}
         alignItems='flex-start'
       >
-        {mainNodes?.map((n) => (
-          <GenericComponent
-            key={n.item.id}
-            node={n}
+        {mainIds.map((id) => (
+          <GenericComponentById
+            key={id}
+            id={id}
           />
         ))}
         <Grid
@@ -78,7 +94,7 @@ export function Form() {
           aria-live='polite'
           className={classes.errorReport}
         >
-          <ErrorReport nodes={errorReportNodes} />
+          <ErrorReport renderIds={errorReportIds} />
         </Grid>
       </Grid>
       <ReadyForPrint />
@@ -138,4 +154,63 @@ function useSetExpandedWidth() {
     }
     setExpandedWidth(defaultExpandedWidth);
   }, [currentPageId, expandedPagesFromLayout, expandedWidthFromSettings, setExpandedWidth]);
+}
+
+const emptyArray = [];
+interface ErrorProcessingProps {
+  setFormState: React.Dispatch<React.SetStateAction<FormState>>;
+}
+
+/**
+ * Instead of re-rendering the entire Form component when any of this changes, we just report the
+ * state to the parent component.
+ */
+function ErrorProcessing({ setFormState }: ErrorProcessingProps) {
+  const currentPageId = useCurrentView();
+  const topLevelNodeIds = useNodesMemoSelector(
+    (nodes) =>
+      nodes
+        .findLayout(currentPageId)
+        ?.children()
+        .map((n) => n.item.id) || emptyArray,
+  );
+  const hasRequired = useNodesMemoSelector((nodes) => {
+    const page = nodes.findLayout(currentPageId);
+    return page ? hasRequiredFields(page) : false;
+  });
+
+  const { formErrors, taskErrors } = useTaskErrors();
+  const hasErrors = Boolean(formErrors.length) || Boolean(taskErrors.length);
+  const [mainIds, errorReportIds] = useNodesMemoSelector((nodes) => {
+    const page = nodes.findLayout(currentPageId);
+    if (!hasErrors || !page) {
+      return [topLevelNodeIds, []];
+    }
+    return extractBottomButtons(page);
+  });
+  const requiredFieldsMissing = formErrors.some(
+    (error) => error.source === FrontendValidationSource.EmptyField && error.pageKey === currentPageId,
+  );
+
+  useEffect(() => {
+    setFormState((prevState) => {
+      if (
+        prevState.hasRequired === hasRequired &&
+        prevState.requiredFieldsMissing === requiredFieldsMissing &&
+        deepEqual(mainIds, prevState.mainIds) &&
+        deepEqual(errorReportIds, prevState.errorReportIds)
+      ) {
+        return prevState;
+      }
+
+      return {
+        hasRequired,
+        requiredFieldsMissing,
+        mainIds,
+        errorReportIds,
+      };
+    });
+  }, [setFormState, hasRequired, requiredFieldsMissing, mainIds, errorReportIds]);
+
+  return null;
 }

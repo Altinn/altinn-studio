@@ -1,6 +1,10 @@
 import React, { useEffect } from 'react';
+import type { PropsWithChildren } from 'react';
 
-import { createContext } from 'src/core/contexts/context';
+import { createStore } from 'zustand';
+
+import { createZustandContext } from 'src/core/contexts/zustandContext';
+import { Loader } from 'src/core/loading/Loader';
 import {
   runExpressionRules,
   runExpressionsForLayouts,
@@ -8,7 +12,7 @@ import {
 } from 'src/features/form/dynamics/conditionalRenderingSagas';
 import { useDynamics } from 'src/features/form/dynamics/DynamicsContext';
 import { useHiddenLayoutsExpressions } from 'src/features/form/layout/LayoutsContext';
-import { usePageNavigationContext } from 'src/features/form/layout/PageNavigationContext';
+import { useHiddenPages, useSetHiddenPages } from 'src/features/form/layout/PageNavigationContext';
 import { runConditionalRenderingRules } from 'src/utils/conditionalRendering';
 import { _private, useExpressionDataSources } from 'src/utils/layout/hierarchy';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
@@ -16,27 +20,66 @@ import type { LayoutNodeFromObj } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 
-const NodesCtx = createContext<LayoutPages>({
-  name: 'Nodes',
-  required: true,
-});
+interface NodesContext {
+  nodes: LayoutPages | undefined;
+  hiddenComponents: Set<string>;
+  setNodes: (nodes: LayoutPages) => void;
+  setHiddenComponents: (mutator: (hidden: Set<string>) => Set<string>) => void;
+}
 
-const HiddenComponentsCtx = createContext<Set<string>>({
-  name: 'HiddenComponents',
-  required: true,
-});
+function initialCreateStore() {
+  return createStore<NodesContext>((set) => ({
+    nodes: undefined,
+    setNodes: (nodes: LayoutPages) => set({ nodes }),
+    hiddenComponents: new Set(),
+    setHiddenComponents: (mutator: (currentlyHidden: Set<string>) => Set<string>) =>
+      set((state) => ({ hiddenComponents: mutator(state.hiddenComponents) })),
+  }));
+}
 
-export const NodesProvider = (props: React.PropsWithChildren) => {
-  const [hidden, setHidden] = React.useState<Set<string>>(new Set());
-  const resolvedNodes = _private.useResolvedExpressions(hidden);
-  useLegacyHiddenComponents(resolvedNodes, hidden, setHidden);
+const { Provider, useSelector, useMemoSelector, useSelectorAsRef, useLaxSelectorAsRef, useDelayedMemoSelectorFactory } =
+  createZustandContext({
+    name: 'Nodes',
+    required: true,
+    initialCreateStore,
+  });
 
-  return (
-    <HiddenComponentsCtx.Provider value={hidden}>
-      <NodesCtx.Provider value={resolvedNodes}>{props.children}</NodesCtx.Provider>
-    </HiddenComponentsCtx.Provider>
-  );
-};
+export const NodesProvider = (props: React.PropsWithChildren) => (
+  <Provider>
+    <InnerNodesProvider />
+    <InnerHiddenComponentsProvider />
+    <BlockUntilLoaded>{props.children}</BlockUntilLoaded>
+  </Provider>
+);
+
+function InnerNodesProvider() {
+  const isHidden = useIsHiddenComponent();
+  const resolvedNodes = _private.useResolvedExpressions(isHidden);
+  const setNodes = useSelector((state) => state.setNodes);
+
+  useEffect(() => {
+    setNodes(resolvedNodes);
+  }, [setNodes, resolvedNodes]);
+
+  return null;
+}
+
+function InnerHiddenComponentsProvider() {
+  const setHidden = useSelector((state) => state.setHiddenComponents);
+  const resolvedNodes = useSelector((state) => state.nodes);
+
+  useLegacyHiddenComponents(resolvedNodes, setHidden);
+
+  return null;
+}
+
+function BlockUntilLoaded({ children }: PropsWithChildren) {
+  const hasNodes = useMemoSelector((state) => !!state.nodes);
+  if (!hasNodes) {
+    return <Loader reason='nodes' />;
+  }
+  return <>{children}</>;
+}
 
 /**
  * Use the expression context. This will return a LayoutPages object containing the full tree of resolved
@@ -45,9 +88,21 @@ export const NodesProvider = (props: React.PropsWithChildren) => {
  *
  * Usually, if you're looking for a specific component/node, useResolvedNode() is better.
  */
-export const useNodes = () => NodesCtx.useCtx();
+export const useNode = (id: string) => useSelector((s) => s.nodes?.findById(id));
+export const useNodes = () => useSelector((s) => s.nodes!);
+export const useNodesAsRef = () => useSelectorAsRef((s) => s.nodes!);
+export const useNodesAsLaxRef = () => useLaxSelectorAsRef((s) => s.nodes!);
 
-export const useHiddenComponents = () => HiddenComponentsCtx.useCtx();
+export function useNodesMemoSelector<U>(selector: (s: LayoutPages) => U) {
+  return useMemoSelector((state) => selector(state.nodes!));
+}
+
+export function useIsHiddenComponent() {
+  return useDelayedMemoSelectorFactory({
+    selector: (nodeId: string) => (state) => state.hiddenComponents.has(nodeId),
+    makeCacheKey: (nodeId) => nodeId,
+  });
+}
 
 /**
  * Given a selector, get a LayoutNode object
@@ -87,13 +142,14 @@ export function useResolvedNode<T>(selector: string | undefined | T | LayoutNode
  */
 function useLegacyHiddenComponents(
   resolvedNodes: LayoutPages | undefined,
-  hidden: Set<string>,
   setHidden: React.Dispatch<React.SetStateAction<Set<string>>>,
 ) {
   const rules = useDynamics()?.conditionalRendering ?? null;
-  const dataSources = useExpressionDataSources(hidden);
+  const isHidden = useIsHiddenComponent();
+  const dataSources = useExpressionDataSources(isHidden);
   const hiddenExpr = useHiddenLayoutsExpressions();
-  const { setHiddenPages, hidden: hiddenPages } = usePageNavigationContext();
+  const hiddenPages = useHiddenPages();
+  const setHiddenPages = useSetHiddenPages();
 
   useEffect(() => {
     if (!resolvedNodes) {
@@ -104,7 +160,7 @@ function useLegacyHiddenComponents(
     const futureHiddenLayouts = runExpressionsForLayouts(resolvedNodes, hiddenExpr, dataSources);
 
     if (shouldUpdate(currentHiddenLayouts, futureHiddenLayouts)) {
-      setHiddenPages([...futureHiddenLayouts.values()]);
+      setHiddenPages?.(futureHiddenLayouts);
     }
 
     let futureHiddenFields: Set<string>;
@@ -128,7 +184,7 @@ function useLegacyHiddenComponents(
 
     setHidden((currentlyHidden) => {
       if (shouldUpdate(currentlyHidden, futureHiddenFields)) {
-        return new Set([...futureHiddenFields.values()]);
+        return futureHiddenFields;
       }
       return currentlyHidden;
     });

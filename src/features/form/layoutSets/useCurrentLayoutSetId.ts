@@ -1,12 +1,17 @@
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { ContextNotProvided } from 'src/core/contexts/context';
+import { useLaxApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { getLayoutSetIdForApplication } from 'src/features/applicationMetadata/appMetadataUtils';
-import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { useLaxLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 
 export function useCurrentLayoutSetId() {
-  const application = useApplicationMetadata();
-  const layoutSets = useLayoutSets();
+  const application = useLaxApplicationMetadata();
+  const layoutSets = useLaxLayoutSets();
   const taskId = useProcessTaskId();
+
+  if (application === ContextNotProvided || layoutSets === ContextNotProvided) {
+    return undefined;
+  }
 
   return getLayoutSetIdForApplication({ application, layoutSets, taskId });
 }

@@ -6,7 +6,7 @@ import type { IFrameComponentProps } from 'src/layout/IFrame/IFrameComponent';
 
 export class IFrame extends IFrameDef {
   render = forwardRef<HTMLElement, IFrameComponentProps>(
-    function LayoutComponentIFrameRender(props): JSX.Element | null {
+    function LayoutComponentIFrameRender(props, _): JSX.Element | null {
       return <IFrameComponent {...props} />;
     },
   );

@@ -1,10 +1,13 @@
+import { ContextNotProvided } from 'src/core/contexts/context';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { useNodes } from 'src/utils/layout/NodesContext';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
+import type { FormDataSelector } from 'src/layout';
 import type { IData, IDataType } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
@@ -29,6 +32,7 @@ function mapAttachments(
   nodes: LayoutPages,
   application: IApplicationMetadata,
   currentTask: string | undefined,
+  formDataSelector: FormDataSelector | typeof ContextNotProvided,
 ): SimpleAttachments {
   const attachments: SimpleAttachments = {};
   const dataTypeMap: { [key: string]: IDataType | undefined } = {};
@@ -72,31 +76,31 @@ function mapAttachments(
     // If there are multiple matching nodes, we need to find the one that has formData matching the attachment ID.
     let found = false;
     for (const node of matchingNodes) {
-      const formData = node.getFormData();
-      const simpleBinding = 'simpleBinding' in formData ? formData.simpleBinding : undefined;
-      const listBinding = 'list' in formData ? formData.list : undefined;
+      const bindings = node.item.dataModelBindings;
+      const simpleBinding = bindings && 'simpleBinding' in bindings ? bindings.simpleBinding : undefined;
+      const listBinding = bindings && 'list' in bindings ? bindings.list : undefined;
+      const simpleValue =
+        simpleBinding && formDataSelector !== ContextNotProvided ? formDataSelector(simpleBinding) : undefined;
+      const listValue =
+        listBinding && formDataSelector !== ContextNotProvided ? formDataSelector(listBinding) : undefined;
+
       const nodeIsInRepeatingGroup = node
         .parents()
         .some((parent) => parent instanceof BaseLayoutNode && parent.isType('RepeatingGroup'));
 
-      if (simpleBinding && simpleBinding === data.id) {
+      if (simpleValue && simpleValue === data.id) {
         addAttachment(attachments, node, data);
         found = true;
         break;
       }
 
-      if (listBinding && Array.isArray(listBinding) && listBinding.some((binding) => binding === data.id)) {
+      if (listValue && Array.isArray(listValue) && listValue.some((binding) => binding === data.id)) {
         addAttachment(attachments, node, data);
         found = true;
         break;
       }
 
-      if (
-        !('simpleBinding' in formData) &&
-        !('list' in formData) &&
-        !nodeIsInRepeatingGroup &&
-        matchingNodes.length === 1
-      ) {
+      if (!simpleBinding && !listBinding && !nodeIsInRepeatingGroup && matchingNodes.length === 1) {
         // We can safely assume the attachment belongs to this node.
         addAttachment(attachments, node, data);
         found = true;
@@ -127,12 +131,13 @@ export function useMappedAttachments() {
   const currentTask = useLaxProcessData()?.currentTask?.elementId;
   const data = useLaxInstanceData()?.data;
   const nodes = useNodes();
+  const formDataSelector = FD.useLaxDebouncedSelector();
 
   return useMemoDeepEqual(() => {
     if (data && nodes && application) {
-      return mapAttachments(data, nodes, application, currentTask);
+      return mapAttachments(data, nodes, application, currentTask, formDataSelector);
     }
 
     return undefined;
-  }, [data, nodes, application, currentTask]);
+  }, [data, nodes, application, currentTask, formDataSelector]);
 }

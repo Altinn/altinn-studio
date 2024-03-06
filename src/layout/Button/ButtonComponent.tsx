@@ -1,11 +1,10 @@
 import React from 'react';
 
-import { usePageNavigationContext } from 'src/features/form/layout/PageNavigationContext';
+import { useSetReturnToView } from 'src/features/form/layout/PageNavigationContext';
 import { useLaxProcessData, useTaskTypeFromBackend } from 'src/features/instance/ProcessContext';
 import { useProcessNavigation } from 'src/features/instance/ProcessNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
 import { getComponentFromMode } from 'src/layout/Button/getComponentFromMode';
 import { SubmitButton } from 'src/layout/Button/SubmitButton';
 import { ProcessTaskType } from 'src/types';
@@ -26,9 +25,7 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
   const currentTaskType = useTaskTypeFromBackend();
   const { actions, write } = useLaxProcessData()?.currentTask || {};
   const { next, canSubmit, busyWithId, attachmentsPending } = useProcessNavigation() || {};
-  const { setReturnToView } = usePageNavigationContext() || {};
-
-  const onFormSubmitValidation = useOnFormSubmitValidation();
+  const setReturnToView = useSetReturnToView();
 
   const disabled =
     !canSubmit ||
@@ -57,14 +54,11 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
     if (disabled) {
       return;
     }
-    const hasErrors = await onFormSubmitValidation(node.top.top.collection);
-    if (!hasErrors) {
-      setReturnToView(undefined);
-      if (currentTaskType === ProcessTaskType.Data) {
-        next({ nodeId: node.item.id });
-      } else if (currentTaskType === ProcessTaskType.Confirm) {
-        next({ nodeId: node.item.id, action: 'confirm' });
-      }
+    setReturnToView?.(undefined);
+    if (currentTaskType === ProcessTaskType.Data) {
+      next({ nodeId: node.item.id });
+    } else if (currentTaskType === ProcessTaskType.Confirm) {
+      next({ nodeId: node.item.id, action: 'confirm' });
     }
   };
   return (

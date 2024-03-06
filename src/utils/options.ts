@@ -1,14 +1,17 @@
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 
-export function duplicateOptionFilter(
-  currentOption: IOptionInternal,
-  currentIndex: number,
-  options: IOptionInternal[],
-): boolean {
-  for (let i = 0; i < currentIndex; i++) {
-    if (currentOption.value === options[i].value) {
-      return false;
+/**
+ * Fast method for removing duplicate option values
+ */
+export function filterDuplicateOptions(options: IOptionInternal[]): IOptionInternal[] {
+  const seen = new Set<string>();
+  const out: IOptionInternal[] = [];
+  let j = 0;
+  for (let i = 0; i < options.length; i++) {
+    if (!seen.has(options[i].value)) {
+      seen.add(options[i].value);
+      out[j++] = options[i];
     }
   }
-  return true;
+  return out;
 }

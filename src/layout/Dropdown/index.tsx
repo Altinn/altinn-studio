@@ -6,7 +6,8 @@ import { DropdownDef } from 'src/layout/Dropdown/config.def.generated';
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { DisplayDataProps, PropsFromGenericComponent } from 'src/layout';
+import type { DisplayDataProps } from 'src/features/displayData';
+import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -17,13 +18,16 @@ export class Dropdown extends DropdownDef {
     },
   );
 
-  getDisplayData(node: LayoutNode<'Dropdown'>, { langTools, options }: DisplayDataProps): string {
+  getDisplayData(
+    node: LayoutNode<'Dropdown'>,
+    { langTools, optionsSelector, formDataSelector }: DisplayDataProps,
+  ): string {
     if (!node.item.dataModelBindings?.simpleBinding) {
       return '';
     }
 
-    const value = String(node.getFormData().simpleBinding ?? '');
-    const optionList = options[node.item.id] || [];
+    const value = String(node.getFormData(formDataSelector).simpleBinding ?? '');
+    const optionList = optionsSelector(node.item.id);
     return getSelectedValueToText(value, langTools, optionList) || '';
   }
 

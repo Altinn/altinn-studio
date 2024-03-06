@@ -5,7 +5,7 @@ import type { NavigateOptions } from 'react-router-dom';
 import { create } from 'zustand';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { useHiddenPages, useReturnToView } from 'src/features/form/layout/PageNavigationContext';
+import { useHiddenPages, useSetReturnToView } from 'src/features/form/layout/PageNavigationContext';
 import { useLaxLayoutSettings, usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxProcessData, useTaskType } from 'src/features/instance/ProcessContext';
@@ -55,7 +55,7 @@ const emptyArray: never[] = [];
 const useNavigate = () => {
   const navigate = useRouterNavigate();
   const storeCallback = useNavigationEffectStore((state) => state.storeCallback);
-  const { setReturnToView } = useReturnToView();
+  const setReturnToView = useSetReturnToView();
 
   return useCallback(
     (path: string, options?: NavigateOptions, cb?: Callback) => {
@@ -75,8 +75,7 @@ export const useCurrentView = () => useNavigationParams().pageKey;
 export const useOrder = () => {
   const maybeLayoutSettings = useLaxLayoutSettings();
   const orderWithHidden = maybeLayoutSettings === ContextNotProvided ? emptyArray : maybeLayoutSettings.pages.order;
-  const hidden = useHiddenPages();
-  const hiddenPages = useMemo(() => new Set(hidden), [hidden]);
+  const hiddenPages = useHiddenPages();
   return useMemo(() => orderWithHidden?.filter((page) => !hiddenPages.has(page)), [orderWithHidden, hiddenPages]);
 };
 
@@ -120,12 +119,12 @@ export const useNavigatePage = () => {
     }
   }, [isStatelessApp, order, navigate, currentPageId, isValidPageId, queryKeys]);
 
-  const waitForSave = FD.useWaitForSave();
+  const requestManualSave = FD.useRequestManualSave();
   const maybeSaveOnPageChange = useCallback(() => {
     if (autoSaveBehavior === 'onChangePage') {
-      waitForSave(true).then();
+      requestManualSave();
     }
-  }, [autoSaveBehavior, waitForSave]);
+  }, [autoSaveBehavior, requestManualSave]);
 
   const navigateToPage = useCallback(
     async (page?: string, options?: NavigateToPageOptions) => {

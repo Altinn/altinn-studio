@@ -1,9 +1,7 @@
-import dot from 'dot-object';
-
 import { getLayoutComponentObject } from 'src/layout';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
-import type { CompClassMap } from 'src/layout';
+import type { CompClassMap, FormDataSelector } from 'src/layout';
 import type { CompCategory } from 'src/layout/common';
 import type { ComponentTypeConfigs } from 'src/layout/components.generated';
 import type {
@@ -34,12 +32,13 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
 {
   public readonly itemWithExpressions: Item;
   public readonly def: CompClassMap[Type];
+  public hiddenCache: { [key: number]: boolean | undefined } = {};
 
   public constructor(
     public item: Item,
     public parent: ParentNode,
     public top: LayoutPage,
-    private readonly dataSources: HierarchyDataSources,
+    public dataSources: HierarchyDataSources,
     public readonly rowIndex?: number,
     public readonly rowId?: string,
   ) {
@@ -161,16 +160,26 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
   public isHidden(options: IsHiddenOptions = {}): boolean {
     const { respectLegacy = true, respectDevTools = true, respectTracks = false } = options;
 
-    const hiddenList = respectLegacy ? this.dataSources.hiddenFields : new Set();
+    // Bit field containing the flags
+    const cacheKey = (respectLegacy ? 1 : 0) | (respectDevTools ? 2 : 0) | (respectTracks ? 4 : 0);
+
+    if (this.hiddenCache[cacheKey] !== undefined) {
+      return this.hiddenCache[cacheKey] as boolean;
+    }
+
+    const isHidden = respectLegacy ? this.dataSources.isHidden : () => false;
     if (respectDevTools && this.dataSources.devToolsIsOpen && this.dataSources.devToolsHiddenComponents !== 'hide') {
+      this.hiddenCache[cacheKey] = false;
       return false;
     }
 
-    if (this.item.baseComponentId && hiddenList.has(this.item.baseComponentId)) {
+    if (this.item.baseComponentId && isHidden(this.item.baseComponentId)) {
+      this.hiddenCache[cacheKey] = true;
       return true;
     }
 
-    if (this.item.hidden === true || hiddenList.has(this.item.id)) {
+    if (this.item.hidden === true || isHidden(this.item.id)) {
+      this.hiddenCache[cacheKey] = true;
       return true;
     }
 
@@ -181,6 +190,7 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
     ) {
       const isHiddenRow = this.parent.item.rows[this.rowIndex]?.groupExpressions?.hiddenRow;
       if (isHiddenRow) {
+        this.hiddenCache[cacheKey] = true;
         return true;
       }
 
@@ -201,6 +211,7 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
       }
 
       if (hiddenImplicitly) {
+        this.hiddenCache[cacheKey] = true;
         return true;
       }
     }
@@ -210,10 +221,13 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
       this.parent instanceof LayoutPage &&
       this.parent.isHiddenViaTracks(this.dataSources.layoutSettings, this.dataSources.pageNavigationConfig)
     ) {
+      this.hiddenCache[cacheKey] = true;
       return true;
     }
 
-    return this.parent instanceof BaseLayoutNode && this.parent.isHidden(options);
+    const hiddenByParent = this.parent instanceof BaseLayoutNode && this.parent.isHidden(options);
+    this.hiddenCache[cacheKey] = hiddenByParent;
+    return hiddenByParent;
   }
 
   private firstDataModelBinding() {
@@ -262,16 +276,15 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
   /**
    * Gets the current form data for this component
    */
-  public getFormData(): IComponentFormData<Type> {
+  public getFormData(formDataSelector: FormDataSelector): IComponentFormData<Type> {
     if (!('dataModelBindings' in this.item) || !this.item.dataModelBindings) {
       return {} as IComponentFormData<Type>;
     }
 
-    const fullFormData = this.dataSources.formData;
     const formDataObj: { [key: string]: any } = {};
     for (const key of Object.keys(this.item.dataModelBindings)) {
       const binding = this.item.dataModelBindings[key];
-      const data = dot.pick(binding, fullFormData);
+      const data = formDataSelector(binding);
 
       if (key === 'list') {
         formDataObj[key] = data ?? [];

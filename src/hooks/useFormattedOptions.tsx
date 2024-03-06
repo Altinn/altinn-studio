@@ -21,12 +21,14 @@ export function useFormattedOptions(options: IOptionInternal[] | undefined, incl
     () =>
       options?.map((option) => {
         const label = langAsString(option.label ?? option.value);
+        const description = option.description && langAsString(option.description);
 
         const formattedOption = {
           label,
           formattedLabel: (
             <SelectOptionItem
-              option={option}
+              label={label}
+              description={description}
               listHasDescription={listHasDescription}
             />
           ),
@@ -39,6 +41,6 @@ export function useFormattedOptions(options: IOptionInternal[] | undefined, incl
 
         return formattedOption;
       }) ?? [],
-    [options, listHasDescription, includeDeleteLabel, langAsString],
+    [options, langAsString, listHasDescription, includeDeleteLabel],
   );
 }

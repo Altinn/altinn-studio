@@ -3,7 +3,6 @@ import { useMemo } from 'react';
 import { useAttachments } from 'src/features/attachments/AttachmentsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useAsRef } from 'src/hooks/useAsRef';
 import { implementsAnyValidation, implementsValidateComponent, implementsValidateEmptyField } from 'src/layout';
 import { useNodes } from 'src/utils/layout/NodesContext';
 import type { ComponentValidations, ValidationDataSources } from 'src/features/validation';
@@ -15,10 +14,9 @@ const __default__ = {};
  */
 export function useNodeValidation(): ComponentValidations {
   const validationDataSources = useValidationDataSources();
-  const nodesRef = useAsRef(useNodes());
 
   return useMemo(() => {
-    const nodes = nodesRef.current.allNodes();
+    const nodes = validationDataSources.nodes.allNodes();
     const nodesToValidate = nodes.filter(
       (node) => implementsAnyValidation(node.def) && !('renderAsSummary' in node.item && node.item.renderAsSummary),
     );
@@ -63,7 +61,7 @@ export function useNodeValidation(): ComponentValidations {
       }
     }
     return validations;
-  }, [nodesRef, validationDataSources]);
+  }, [validationDataSources]);
 }
 
 /**
@@ -73,13 +71,15 @@ export function useValidationDataSources(): ValidationDataSources {
   const formData = FD.useDebounced();
   const attachments = useAttachments();
   const currentLanguage = useCurrentLanguage();
+  const nodes = useNodes();
 
   return useMemo(
     () => ({
       formData,
       attachments,
       currentLanguage,
+      nodes,
     }),
-    [attachments, currentLanguage, formData],
+    [attachments, currentLanguage, formData, nodes],
   );
 }

@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react';
+import dot from 'dot-object';
 import fs from 'node:fs';
 
 import { getHierarchyDataSourcesMock } from 'src/__mocks__/getHierarchyDataSourcesMock';
@@ -65,10 +66,10 @@ describe('Expression validation shared tests', () => {
 
     const dataSources: HierarchyDataSources = {
       ...getHierarchyDataSourcesMock(),
-      formData,
+      formDataSelector: (path) => dot.pick(path, formData),
       instanceDataSources: buildInstanceDataSources(),
       authContext: buildAuthContext(undefined),
-      hiddenFields,
+      isHidden: (nodeId: string) => hiddenFields.has(nodeId),
       langToolsRef: { current: langTools },
     };
 

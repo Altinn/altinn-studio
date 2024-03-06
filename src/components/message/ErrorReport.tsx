@@ -8,13 +8,12 @@ import classes from 'src/components/message/ErrorReport.module.css';
 import { useNavigateToNode } from 'src/features/form/layout/NavigateToNode';
 import { Lang } from 'src/features/language/Lang';
 import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
-import { GenericComponent } from 'src/layout/GenericComponent';
-import { useNodes } from 'src/utils/layout/NodesContext';
+import { GenericComponentById } from 'src/layout/GenericComponent';
+import { useNodesAsRef } from 'src/utils/layout/NodesContext';
 import type { NodeValidation } from 'src/features/validation';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IErrorReportProps {
-  nodes: LayoutNode[];
+  renderIds: string[];
 }
 
 const ArrowForwardSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16px" style="position: relative; top: 2px">
@@ -22,8 +21,8 @@ const ArrowForwardSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24
 </svg>`;
 const listStyleImg = `url("data:image/svg+xml,${encodeURIComponent(ArrowForwardSvg)}")`;
 
-export const ErrorReport = ({ nodes }: IErrorReportProps) => {
-  const allNodes = useNodes();
+export const ErrorReport = ({ renderIds }: IErrorReportProps) => {
+  const allNodesRef = useNodesAsRef();
   const { formErrors, taskErrors } = useTaskErrors();
   const hasErrors = Boolean(formErrors.length) || Boolean(taskErrors.length);
   const navigateTo = useNavigateToNode();
@@ -37,7 +36,7 @@ export const ErrorReport = ({ nodes }: IErrorReportProps) => {
       return;
     }
     ev.preventDefault();
-    const componentNode = allNodes?.findById(error.componentId);
+    const componentNode = allNodesRef.current.findById(error.componentId);
     if (!componentNode || componentNode.isHidden()) {
       // No point in trying to focus on a hidden component
       return;
@@ -89,17 +88,17 @@ export const ErrorReport = ({ nodes }: IErrorReportProps) => {
                       <Lang
                         id={error.message.key}
                         params={error.message.params}
-                        node={allNodes?.findById(error.componentId)}
+                        node={allNodesRef.current.findById(error.componentId)}
                       />
                     </button>
                   </li>
                 ))}
               </ul>
             </Grid>
-            {nodes.map((n) => (
-              <GenericComponent
-                key={n.item.id}
-                node={n}
+            {renderIds.map((id) => (
+              <GenericComponentById
+                key={id}
+                id={id}
               />
             ))}
           </Grid>

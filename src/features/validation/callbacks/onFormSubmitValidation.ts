@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 
 import { ValidationMask } from '..';
 
+import { ContextNotProvided } from 'src/core/contexts/context';
 import {
   getValidationsForNode,
   getVisibilityMask,
@@ -9,11 +10,9 @@ import {
   selectValidations,
   shouldValidateNode,
 } from 'src/features/validation/utils';
-import { useValidationContext } from 'src/features/validation/validationContext';
-import { useAsRef } from 'src/hooks/useAsRef';
+import { Validation } from 'src/features/validation/validationContext';
 import { useEffectEvent } from 'src/hooks/useEffectEvent';
-import { useWaitForState } from 'src/hooks/useWaitForState';
-import type { LayoutPages } from 'src/utils/layout/LayoutPages';
+import { useNodesAsLaxRef } from 'src/utils/layout/NodesContext';
 
 /**
  * Checks for any validation errors before submitting the form.
@@ -23,16 +22,27 @@ import type { LayoutPages } from 'src/utils/layout/LayoutPages';
  * If there are no backend errors, it shows any backend errors that cannot be mapped to a visible node. Including task errors.
  */
 export function useOnFormSubmitValidation() {
-  const setNodeVisibility = useValidationContext().setNodeVisibility;
-  const state = useValidationContext().state;
-  const validating = useValidationContext().validating;
-  const setShowAllErrors = useValidationContext().setShowAllErrors;
-  const lastBackendValidations = useValidationContext().backendValidationsProcessedLast;
-  const lastBackendValidationsRef = useAsRef(lastBackendValidations);
-  const waitForBackendValidations = useWaitForState(lastBackendValidationsRef);
+  const nodes = useNodesAsLaxRef();
+  const validation = Validation.useLaxRef();
 
   /* Ensures the callback will have the latest state */
-  const callback = useEffectEvent((layoutPages: LayoutPages): boolean => {
+  const callback = useEffectEvent((): boolean => {
+    const layoutPages = nodes.current;
+
+    if (layoutPages === ContextNotProvided) {
+      // If the nodes are not provided, we cannot validate them
+      return false;
+    }
+
+    if (validation.current === ContextNotProvided) {
+      // If the validation context is not provided, we cannot validate
+      return false;
+    }
+
+    const setNodeVisibility = validation.current.setNodeVisibility;
+    const state = validation.current.state;
+    const setShowAllErrors = validation.current.setShowAllErrors;
+
     /*
      * First: check and show any frontend errors
      */
@@ -76,12 +86,13 @@ export function useOnFormSubmitValidation() {
     return false;
   });
 
-  return useCallback(
-    async (layoutPages: LayoutPages) => {
-      const localWait = await validating();
-      await waitForBackendValidations(localWait);
-      return callback(layoutPages);
-    },
-    [callback, validating, waitForBackendValidations],
-  );
+  return useCallback(async () => {
+    if (validation.current === ContextNotProvided) {
+      // If the validation context is not provided, we cannot validate
+      return false;
+    }
+
+    await validation.current.validating();
+    return callback();
+  }, [callback, validation]);
 }

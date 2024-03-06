@@ -515,7 +515,12 @@ describe('FormData', () => {
       expect(queries.fetchFormData).toHaveBeenCalledTimes(1);
       await user.click(screen.getByRole('button', { name: 'Navigate to a different page' }));
       await screen.findByText('something different');
+
+      // We have to resolve the save operation, as otherwise 'hasUnsavedChanges' will be 'true' when we navigate back
+      // as otherwise it would still be working on saving the form data (and form data is marked as unsaved until the
+      // save operation is finished).
       expect(mutations.doPostStatelessFormData.mock).toHaveBeenCalledTimes(1);
+      mutations.doPostStatelessFormData.resolve();
 
       await user.click(screen.getByRole('button', { name: 'Navigate back' }));
       await screen.findByTestId('obj2.prop1');

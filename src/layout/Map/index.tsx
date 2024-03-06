@@ -5,6 +5,7 @@ import { MapDef } from 'src/layout/Map/config.def.generated';
 import { MapComponent } from 'src/layout/Map/MapComponent';
 import { MapComponentSummary } from 'src/layout/Map/MapComponentSummary';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
+import type { DisplayDataProps } from 'src/features/displayData';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -16,12 +17,12 @@ export class Map extends MapDef {
     },
   );
 
-  getDisplayData(node: LayoutNode<'Map'>): string {
+  getDisplayData(node: LayoutNode<'Map'>, { formDataSelector }: DisplayDataProps): string {
     if (!node.item.dataModelBindings?.simpleBinding) {
       return '';
     }
 
-    return node.getFormData().simpleBinding ?? '';
+    return node.getFormData(formDataSelector).simpleBinding ?? '';
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'Map'>): JSX.Element | null {

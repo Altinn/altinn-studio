@@ -1,3 +1,5 @@
+import dot from 'dot-object';
+
 import { getHierarchyDataSourcesMock } from 'src/__mocks__/getHierarchyDataSourcesMock';
 import { evalExpr } from 'src/features/expressions';
 import { NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
@@ -72,10 +74,11 @@ describe('Expressions shared function tests', () => {
           return;
         }
 
+        const hidden = new Set<string>();
         const options: AllOptionsMap = {};
         const dataSources: HierarchyDataSources = {
           ...getHierarchyDataSourcesMock(),
-          formData: dataModel ?? {},
+          formDataSelector: (path) => dot.pick(path, dataModel ?? {}),
           attachments: convertInstanceDataToAttachments(instanceDataElements),
           instanceDataSources: buildInstanceDataSources(instance),
           applicationSettings: frontendSettings || ({} as IApplicationSettings),
@@ -86,7 +89,8 @@ describe('Expressions shared function tests', () => {
             }),
           },
           currentLanguage: profileSettings?.language || 'nb',
-          options,
+          options: (nodeId) => options[nodeId] || [],
+          isHidden: (nodeId: string) => hidden.has(nodeId),
         };
 
         const _layouts = convertLayouts(layouts);
@@ -119,7 +123,7 @@ describe('Expressions shared function tests', () => {
 
             for (const node of layout.flat(true)) {
               if (node.isHidden()) {
-                dataSources.hiddenFields.add(node.item.id);
+                hidden.add(node.item.id);
               }
             }
             if (layouts && layouts[layoutKey].data.hidden) {
@@ -127,10 +131,15 @@ describe('Expressions shared function tests', () => {
               const isHidden = evalExpr(hiddenExpr, layout, dataSources);
               if (isHidden) {
                 for (const hiddenComponent of layout.flat(true)) {
-                  dataSources.hiddenFields.add(hiddenComponent.item.id);
+                  hidden.add(hiddenComponent.item.id);
                 }
               }
             }
+          }
+
+          // We've manipulated internal state, so we need to reset the cache for hidden to work again
+          for (const n of rootCollection.allNodes()) {
+            n.hiddenCache = {};
           }
 
           const expr = asExpression(expression) as Expression;
@@ -175,7 +184,7 @@ describe('Expressions shared context tests', () => {
       ({ layouts, dataModel, instanceDataElements, instance, frontendSettings, permissions, expectedContexts }) => {
         const dataSources: HierarchyDataSources = {
           ...getHierarchyDataSourcesMock(),
-          formData: dataModel ?? {},
+          formDataSelector: (path) => dot.pick(path, dataModel ?? {}),
           attachments: convertInstanceDataToAttachments(instanceDataElements),
           instanceDataSources: buildInstanceDataSources(instance),
           applicationSettings: frontendSettings || ({} as IApplicationSettings),

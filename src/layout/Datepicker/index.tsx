@@ -10,9 +10,9 @@ import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { getDateConstraint, getDateFormat } from 'src/utils/dateHelpers';
 import { formatISOString } from 'src/utils/formatDate';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
+import type { DisplayDataProps } from 'src/features/displayData';
 import type { BaseValidation, ComponentValidation, ValidationDataSources } from 'src/features/validation';
 import type {
-  DisplayDataProps,
   PropsFromGenericComponent,
   ValidateComponent,
   ValidationFilter,
@@ -28,13 +28,13 @@ export class Datepicker extends DatepickerDef implements ValidateComponent, Vali
     },
   );
 
-  getDisplayData(node: LayoutNode<'Datepicker'>, { currentLanguage }: DisplayDataProps): string {
+  getDisplayData(node: LayoutNode<'Datepicker'>, { currentLanguage, formDataSelector }: DisplayDataProps): string {
     if (!node.item.dataModelBindings?.simpleBinding) {
       return '';
     }
 
     const dateFormat = getDateFormat(node.item.format, currentLanguage);
-    const data = node.getFormData().simpleBinding ?? '';
+    const data = node.getFormData(formDataSelector).simpleBinding ?? '';
     return formatISOString(data, dateFormat) ?? data;
   }
 

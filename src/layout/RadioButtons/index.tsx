@@ -6,7 +6,8 @@ import { RadioButtonsDef } from 'src/layout/RadioButtons/config.def.generated';
 import { RadioButtonContainerComponent } from 'src/layout/RadioButtons/RadioButtonsContainerComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { DisplayDataProps, PropsFromGenericComponent } from 'src/layout';
+import type { DisplayDataProps } from 'src/features/displayData';
+import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -17,9 +18,12 @@ export class RadioButtons extends RadioButtonsDef {
     },
   );
 
-  getDisplayData(node: LayoutNode<'RadioButtons'>, { langTools, options }: DisplayDataProps): string {
-    const value = String(node.getFormData().simpleBinding ?? '');
-    const optionList = options[node.item.id] || [];
+  getDisplayData(
+    node: LayoutNode<'RadioButtons'>,
+    { langTools, optionsSelector, formDataSelector }: DisplayDataProps,
+  ): string {
+    const value = String(node.getFormData(formDataSelector).simpleBinding ?? '');
+    const optionList = optionsSelector(node.item.id);
     return getSelectedValueToText(value, langTools, optionList) || '';
   }
 

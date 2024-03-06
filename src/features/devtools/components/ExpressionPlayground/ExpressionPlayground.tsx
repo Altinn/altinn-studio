@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 
 import { Checkbox, Fieldset, LegacySelect, Tabs } from '@digdir/design-system-react';
 import cn from 'classnames';
@@ -12,7 +12,7 @@ import { ExprVal } from 'src/features/expressions/types';
 import { asExpression } from 'src/features/expressions/validation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { useExpressionDataSources } from 'src/utils/layout/hierarchy';
-import { useHiddenComponents, useNodes } from 'src/utils/layout/NodesContext';
+import { useIsHiddenComponent, useNodes } from 'src/utils/layout/NodesContext';
 import type { ExprConfig, Expression, ExprFunction } from 'src/features/expressions/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
@@ -48,8 +48,15 @@ export const ExpressionPlayground = () => {
   const nodes = useNodes();
   const { currentPageId } = useNavigatePage();
 
-  const hidden = useHiddenComponents();
-  const dataSources = useExpressionDataSources(hidden);
+  const isHidden = useIsHiddenComponent();
+  const _dataSources = useExpressionDataSources(isHidden);
+  const dataSources = useMemo(
+    () => ({
+      ..._dataSources,
+      formDataSelector: (path: string) => _dataSources.formDataSelector(path),
+    }),
+    [_dataSources],
+  );
 
   const setOutputWithHistory = useCallback(
     (newValue: string, isError: boolean): boolean => {

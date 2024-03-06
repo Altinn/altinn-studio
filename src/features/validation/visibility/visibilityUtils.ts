@@ -1,6 +1,7 @@
 import { getInitialMaskFromNode } from 'src/features/validation/utils';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
+import type { ValidationVisibilitySelector } from 'src/features/validation/validationContext';
 import type { CompRepeatingGroupInternal } from 'src/layout/RepeatingGroup/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -151,29 +152,42 @@ export function onBeforeRowDelete(
   groupVisibility?.items.splice(rowIndex, 1);
 }
 
-function getVisibilityFromPath(path: PathItem[], state: Visibility): Visibility | undefined {
-  let currentVisibility: Visibility = state;
-  for (const key of path) {
-    const nextVisibility = getChildVisibility(currentVisibility, key);
-
-    if (!nextVisibility) {
-      return undefined;
+function getVisibilityFromPath(
+  path: PathItem[],
+  lookupIn: Visibility | ValidationVisibilitySelector,
+): Visibility | undefined {
+  const findFromRoot = (root: Visibility) => {
+    let found = root;
+    for (const key of path) {
+      const nextVisibility = getChildVisibility(found, key);
+      if (!nextVisibility) {
+        return undefined;
+      }
+      found = nextVisibility;
     }
-    currentVisibility = nextVisibility;
+    return found;
+  };
+
+  if (typeof lookupIn === 'function') {
+    return lookupIn(path.join('|'), findFromRoot);
   }
-  return currentVisibility;
+  return findFromRoot(lookupIn);
 }
 
-export function getVisibilityForNode(node: LayoutNode, state: Visibility): number {
+export function getVisibilityForNode(node: LayoutNode, lookupIn: Visibility | ValidationVisibilitySelector): number {
   const path = getPathFromRoot(node);
-  const visibility = getVisibilityFromPath(path, state);
+  const visibility = getVisibilityFromPath(path, lookupIn);
   return visibility?.mask ?? 0;
 }
 
-export function getResolvedVisibilityForAttachment(attachmentId: string, node: LayoutNode, state: Visibility): number {
-  let mask = getVisibilityForNode(node, state);
+export function getResolvedVisibilityForAttachment(
+  attachmentId: string,
+  node: LayoutNode,
+  selector: ValidationVisibilitySelector,
+): number {
+  let mask = getVisibilityForNode(node, selector);
   const path = getPathFromRoot(node);
-  const nodeVisibility = getVisibilityFromPath(path, state);
+  const nodeVisibility = getVisibilityFromPath(path, selector);
   if (!nodeVisibility) {
     return mask;
   }
@@ -202,6 +216,7 @@ export function setVisibilityForNode(
     return;
   }
 
+  // Always keep showValidations categories visible
   const initialMask = getInitialMaskFromNode(node);
 
   visibility.mask = mask | initialMask;

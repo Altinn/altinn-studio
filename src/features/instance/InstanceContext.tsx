@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { useQuery } from '@tanstack/react-query';
@@ -10,8 +10,10 @@ import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { ProcessProvider } from 'src/features/instance/ProcessContext';
 import { useInstantiation } from 'src/features/instantiate/InstantiationContext';
+import { useStateDeepEqual } from 'src/hooks/useStateDeepEqual';
+import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
 import { maybeAuthenticationRedirect } from 'src/utils/maybeAuthenticationRedirect';
-import type { IInstance } from 'src/types/shared';
+import type { IInstance, IInstanceDataSources } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 export interface InstanceContext {
@@ -22,6 +24,7 @@ export interface InstanceContext {
 
   // Data
   data: IInstance | undefined;
+  dataSources: IInstanceDataSources | null;
 
   // Fetching/query states
   isFetching: boolean;
@@ -80,23 +83,27 @@ const InnerInstanceProvider = ({
   instanceGuid: string;
 }) => {
   const [forceFetching, setForceFetching] = useState(false);
-  const [data, setData] = useState<IInstance | undefined>(undefined);
+  const [data, setData] = useStateDeepEqual<IInstance | undefined>(undefined);
   const [error, setError] = useState<AxiosError | undefined>(undefined);
+  const dataSources = useMemo(() => buildInstanceDataSources(data), [data]);
 
   const instantiation = useInstantiation();
 
   const fetchEnabled = forceFetching || !instantiation.lastResult;
   const fetchQuery = useGetInstanceDataQuery(fetchEnabled, partyId, instanceGuid);
 
-  const changeData: ChangeInstanceData = useCallback((callback) => {
-    setData((prev) => {
-      const next = callback(prev);
-      if (next) {
-        return next;
-      }
-      return prev;
-    });
-  }, []);
+  const changeData: ChangeInstanceData = useCallback(
+    (callback) => {
+      setData((prev) => {
+        const next = callback(prev);
+        if (next) {
+          return next;
+        }
+        return prev;
+      });
+    },
+    [setData],
+  );
 
   // Update data
   useEffect(() => {
@@ -125,6 +132,7 @@ const InnerInstanceProvider = ({
     <Provider
       value={{
         data,
+        dataSources,
         isFetching: fetchQuery.isFetching,
         error,
         changeData,
@@ -151,6 +159,7 @@ const InnerInstanceProvider = ({
 
 export const useLaxInstance = () => useCtx();
 export const useLaxInstanceData = () => useLaxInstance()?.data;
+export const useLaxInstanceDataSources = () => useLaxInstance()?.dataSources ?? null;
 export const useHasInstance = () => useHasProvider();
 
 export const useStrictInstance = () => {

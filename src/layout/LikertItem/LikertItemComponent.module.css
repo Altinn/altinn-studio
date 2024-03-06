@@ -6,7 +6,9 @@
 TODO(1779): Remove these styles after going through all the different Table styles in
 Altinn, and making sure they are consistent. */
 .likertTable {
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.12), 0 2px 2px rgba(0, 0, 0, 0.12);
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.12),
+    0 2px 2px rgba(0, 0, 0, 0.12);
 }
 
 .likertTable th {

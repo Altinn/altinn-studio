@@ -1,29 +1,23 @@
 import React from 'react';
 
 import classes from 'src/components/form/SelectOptionItem.module.css';
-import { useLanguage } from 'src/features/language/useLanguage';
-import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 
 type ISelectOptionItemProps = {
-  option: IOptionInternal;
+  label: string;
   listHasDescription: boolean;
+  description?: string;
 };
 
-export function SelectOptionItem({ option, listHasDescription }: ISelectOptionItemProps) {
-  const { langAsString } = useLanguage();
-  if (option.description) {
+export function SelectOptionItem({ label, listHasDescription, description }: ISelectOptionItemProps) {
+  if (description) {
     return (
       <>
-        <span className={classes.optionLabelSemiBold}>{langAsString(option.label ?? option.value)}</span>
+        <span className={classes.optionLabelSemiBold}>{label}</span>
         <br />
-        <span>{langAsString(option.description)}</span>
+        <span>{description}</span>
       </>
     );
   } else {
-    return (
-      <span className={listHasDescription ? classes.optionLabelSemiBold : ''}>
-        {langAsString(option.label ?? option.value)}
-      </span>
-    );
+    return <span className={listHasDescription ? classes.optionLabelSemiBold : ''}>{label}</span>;
   }
 }

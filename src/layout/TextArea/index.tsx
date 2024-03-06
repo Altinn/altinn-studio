@@ -5,6 +5,7 @@ import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { TextAreaDef } from 'src/layout/TextArea/config.def.generated';
 import { TextAreaComponent } from 'src/layout/TextArea/TextAreaComponent';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
+import type { DisplayDataProps } from 'src/features/displayData';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -16,12 +17,12 @@ export class TextArea extends TextAreaDef {
     },
   );
 
-  getDisplayData(node: LayoutNode<'TextArea'>): string {
+  getDisplayData(node: LayoutNode<'TextArea'>, { formDataSelector }: DisplayDataProps): string {
     if (!node.item.dataModelBindings?.simpleBinding) {
       return '';
     }
 
-    return node.getFormData().simpleBinding ?? '';
+    return node.getFormData(formDataSelector).simpleBinding ?? '';
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'TextArea'>): JSX.Element | null {

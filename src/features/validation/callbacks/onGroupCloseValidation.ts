@@ -1,10 +1,8 @@
 import { useCallback } from 'react';
 
 import { getValidationsForNode, getVisibilityMask, shouldValidateNode } from 'src/features/validation/utils';
-import { useValidationContext } from 'src/features/validation/validationContext';
-import { useAsRef } from 'src/hooks/useAsRef';
+import { Validation } from 'src/features/validation/validationContext';
 import { useEffectEvent } from 'src/hooks/useEffectEvent';
-import { useWaitForState } from 'src/hooks/useWaitForState';
 import type { AllowedValidationMasks } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -13,12 +11,9 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
  * If there are errors, the visibility is set, and will return true, indicating that the row should not be closed.
  */
 export function useOnGroupCloseValidation() {
-  const setNodeVisibility = useValidationContext().setNodeVisibility;
-  const state = useValidationContext().state;
-  const validating = useValidationContext().validating;
-  const lastBackendValidations = useValidationContext().backendValidationsProcessedLast;
-  const lastBackendValidationsRef = useAsRef(lastBackendValidations);
-  const waitForBackendValidations = useWaitForState(lastBackendValidationsRef);
+  const setNodeVisibility = Validation.useSetNodeVisibility();
+  const selector = Validation.useSelector();
+  const validating = Validation.useValidating();
 
   /* Ensures the callback will have the latest state */
   const callback = useEffectEvent((node: LayoutNode, rowUuid: string, masks: AllowedValidationMasks): boolean => {
@@ -28,7 +23,7 @@ export function useOnGroupCloseValidation() {
       .flat(true, { onlyInRowUuid: rowUuid })
       .filter((n) => n.item.id !== node.item.id) // Exclude self, only check children
       .filter(shouldValidateNode)
-      .filter((n) => getValidationsForNode(n, state, mask, 'error').length > 0);
+      .filter((n) => getValidationsForNode(n, selector, mask, 'error').length > 0);
 
     if (nodesWithErrors.length > 0) {
       setNodeVisibility(nodesWithErrors, mask);
@@ -40,10 +35,9 @@ export function useOnGroupCloseValidation() {
 
   return useCallback(
     async (node: LayoutNode, rowUuid: string, masks: AllowedValidationMasks) => {
-      const localWait = await validating();
-      await waitForBackendValidations(localWait);
+      await validating();
       return callback(node, rowUuid, masks);
     },
-    [callback, validating, waitForBackendValidations],
+    [callback, validating],
   );
 }
