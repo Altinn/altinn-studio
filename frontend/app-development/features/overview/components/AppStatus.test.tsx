@@ -41,7 +41,7 @@ describe('AppStatus', () => {
       envType: 'test',
     });
 
-    expect(screen.getByText('tt02')).toBeInTheDocument();
+    expect(screen.getByText('TT02')).toBeInTheDocument();
   });
 
   it('shows alert when KubernetesDeploymentStatus is completed', async () => {

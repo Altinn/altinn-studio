@@ -9,8 +9,6 @@ import { renderWithMockStore } from 'app-development/test/mocks';
 import type { AppRelease } from 'app-shared/types/AppRelease';
 import { BuildResult } from 'app-shared/types/Build';
 import { appRelease } from 'app-shared/mocks/mocks';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import type { QueryClient } from '@tanstack/react-query';
 
 const defaultProps: DeployDropdownProps = {
   appDeployedVersion: '',
@@ -75,7 +73,6 @@ describe('DeployDropdown', () => {
             }),
           ),
         },
-        createQueryClientMock(),
       );
       await waitForElementToBeRemoved(() =>
         screen.queryByTitle(textMock('app_deployment.releases.loading')),
@@ -88,6 +85,9 @@ describe('DeployDropdown', () => {
       const user = userEvent.setup();
 
       render();
+      await waitForElementToBeRemoved(() =>
+        screen.queryByTitle(textMock('app_deployment.releases.loading')),
+      );
 
       const select = screen.getByLabelText(textMock('app_deployment.choose_version'));
       await act(() => user.click(select));
@@ -98,6 +98,9 @@ describe('DeployDropdown', () => {
 
     it('selects default image option', async () => {
       render({ selectedImageTag: imageOptions[0].value });
+      await waitForElementToBeRemoved(() =>
+        screen.queryByTitle(textMock('app_deployment.releases.loading')),
+      );
 
       expect(screen.getByRole('combobox')).toHaveValue(imageOptions[0].label);
     });
@@ -106,6 +109,9 @@ describe('DeployDropdown', () => {
       const user = userEvent.setup();
 
       render();
+      await waitForElementToBeRemoved(() =>
+        screen.queryByTitle(textMock('app_deployment.releases.loading')),
+      );
 
       const select = screen.getByLabelText(textMock('app_deployment.choose_version'));
       await act(() => user.click(select));
@@ -120,6 +126,9 @@ describe('DeployDropdown', () => {
 
     it('shows a loding spinner when mutation is pending', async () => {
       render({ isPending: true });
+      await waitForElementToBeRemoved(() =>
+        screen.queryByTitle(textMock('app_deployment.releases.loading')),
+      );
 
       const deployButton = screen.getByRole('button', {
         name: textMock('app_deployment.btn_deploy_new_version'),
@@ -129,6 +138,9 @@ describe('DeployDropdown', () => {
 
     it('disables both dropdown and button when deploy is not possible', async () => {
       render({ disabled: true });
+      await waitForElementToBeRemoved(() =>
+        screen.queryByTitle(textMock('app_deployment.releases.loading')),
+      );
 
       expect(screen.getByLabelText(textMock('app_deployment.choose_version'))).toBeDisabled();
 
@@ -146,6 +158,9 @@ describe('DeployDropdown', () => {
       const user = userEvent.setup();
 
       render();
+      await waitForElementToBeRemoved(() =>
+        screen.queryByTitle(textMock('app_deployment.releases.loading')),
+      );
 
       const deployButton = screen.getByRole('button', {
         name: textMock('app_deployment.btn_deploy_new_version'),
@@ -175,6 +190,9 @@ describe('DeployDropdown', () => {
       render({
         appDeployedVersion: '1',
       });
+      await waitForElementToBeRemoved(() =>
+        screen.queryByTitle(textMock('app_deployment.releases.loading')),
+      );
 
       const deployButton = screen.getByRole('button', {
         name: textMock('app_deployment.btn_deploy_new_version'),
@@ -203,6 +221,9 @@ describe('DeployDropdown', () => {
       const user = userEvent.setup();
 
       render();
+      await waitForElementToBeRemoved(() =>
+        screen.queryByTitle(textMock('app_deployment.releases.loading')),
+      );
 
       const deployButton = screen.getByRole('button', {
         name: textMock('app_deployment.btn_deploy_new_version'),
@@ -220,6 +241,9 @@ describe('DeployDropdown', () => {
       const user = userEvent.setup();
 
       render();
+      await waitForElementToBeRemoved(() =>
+        screen.queryByTitle(textMock('app_deployment.releases.loading')),
+      );
 
       const deployButton = screen.getByRole('button', {
         name: textMock('app_deployment.btn_deploy_new_version'),
@@ -237,6 +261,9 @@ describe('DeployDropdown', () => {
       const user = userEvent.setup();
 
       render();
+      await waitForElementToBeRemoved(() =>
+        screen.queryByTitle(textMock('app_deployment.releases.loading')),
+      );
 
       const deployButton = screen.getByRole('button', {
         name: textMock('app_deployment.btn_deploy_new_version'),
@@ -251,11 +278,7 @@ describe('DeployDropdown', () => {
   });
 });
 
-const render = (
-  props?: Partial<DeployDropdownProps>,
-  queries?: Partial<ServicesContextProps>,
-  queryClient?: QueryClient,
-) => {
+const render = (props?: Partial<DeployDropdownProps>, queries?: Partial<ServicesContextProps>) => {
   return renderWithMockStore(
     {},
     {
@@ -266,6 +289,5 @@ const render = (
       ),
       ...queries,
     },
-    queryClient,
   )(<DeployDropdown {...defaultProps} {...props} />);
 };

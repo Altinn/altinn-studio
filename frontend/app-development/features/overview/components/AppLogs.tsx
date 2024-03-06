@@ -8,12 +8,12 @@ import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment
 import { BuildResult } from 'app-shared/types/Build';
 import type { AppDeployment } from 'app-shared/types/api/AppDeployment';
 
-export interface AppLogs {
+export interface AppLogsProps {
   orgEnvironmentList: DeployEnvironment[];
   appDeployment: AppDeployment;
 }
 
-export const AppLogs = ({ orgEnvironmentList, appDeployment }: AppLogs) => {
+export const AppLogs = ({ orgEnvironmentList, appDeployment }: AppLogsProps) => {
   const { t } = useTranslation();
 
   const succeededPipelineDeploymentList = appDeployment.pipelineDeploymentList.filter(

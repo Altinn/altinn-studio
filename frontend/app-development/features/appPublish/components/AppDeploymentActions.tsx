@@ -6,6 +6,7 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { toast } from 'react-toastify';
 import { Alert, Link } from '@digdir/design-system-react';
 import { useDeployPermissionsQuery } from 'app-development/hooks/queries';
+import { StudioSpinner } from '@studio/components';
 
 export interface AppDeploymentActionsProps {
   appDeployedVersion: string;
@@ -35,6 +36,15 @@ export const AppDeploymentActions = ({
   const { data, mutate, isPending } = useCreateDeploymentMutation(org, app, {
     hideDefaultError: true,
   });
+
+  if (permissionsIsPending) {
+    return (
+      <StudioSpinner
+        showSpinnerTitle={false}
+        spinnerTitle={t('app_deployment.permission_checking')}
+      />
+    );
+  }
 
   const deployPermission =
     permissions.findIndex((e) => e.toLowerCase() === envName.toLowerCase()) > -1;

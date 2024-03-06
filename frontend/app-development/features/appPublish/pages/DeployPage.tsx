@@ -21,7 +21,7 @@ export function DeployPage() {
   if (isOrgsPending || isPermissionsPending) {
     return (
       <div style={{ height: 'calc(100% - 111px)' }}>
-        <AltinnContentLoader width={1200} height={600}>
+        <AltinnContentLoader width={1200} height={600} title={t('app_deployment.loading_env_list')}>
           <rect x='862' y='3' rx='0' ry='0' width='300' height='600' />
           <rect x='1' y='1' rx='0' ry='0' width='800' height='200' />
           <rect x='1' y='220' rx='0' ry='0' width='800' height='200' />

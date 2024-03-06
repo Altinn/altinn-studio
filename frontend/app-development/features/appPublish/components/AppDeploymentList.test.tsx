@@ -42,7 +42,7 @@ describe('AppDeploymentList', () => {
     expect(
       screen.getByText(
         textMock('app_deployment.table.deployed_version_history_empty', {
-          envTitle: '[mockedtext(general.test_environment_alt)] TEST',
+          envTitle: `${textMock('general.test_environment_alt').toLowerCase()} TEST`,
         }),
       ),
     ).toBeInTheDocument();
@@ -62,6 +62,38 @@ describe('AppDeploymentList', () => {
     ).toBeInTheDocument();
     expect(screen.getByText(`${textMock('app_deployment.table.build_log')}`)).toBeInTheDocument();
     expect(screen.getByText(pipelineDeployment.createdBy)).toBeInTheDocument();
+  });
+
+  it('renders title when environment is production', async () => {
+    render({
+      pipelineDeploymentList: [pipelineDeployment],
+      envName: 'production',
+      envType: 'production',
+    });
+
+    expect(
+      screen.getByText(
+        textMock('app_deployment.table.deployed_version_history', {
+          envTitle: textMock('general.production_environment_alt').toLowerCase(),
+        }),
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('renders title when environment is not production', async () => {
+    render({
+      pipelineDeploymentList: [pipelineDeployment],
+      envName: 'tt02',
+      envType: 'test',
+    });
+
+    expect(
+      screen.getByText(
+        textMock('app_deployment.table.deployed_version_history', {
+          envTitle: `${textMock('general.test_environment_alt').toLowerCase()} TT02`,
+        }),
+      ),
+    ).toBeInTheDocument();
   });
 
   it('renders when deployment is in progress', () => {
