@@ -78,7 +78,6 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve<AppReleasesResponse>(appReleasesResponse)),
   getAppVersion: jest.fn().mockImplementation(() => Promise.resolve<AppVersion>(appVersion)),
   getBranchStatus: jest.fn().mockImplementation(() => Promise.resolve<BranchStatus>(branchStatus)),
-  getComponentSchema: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getComponentsCommonDefsSchema: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getDatamodel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   getDatamodelMetadata: jest
