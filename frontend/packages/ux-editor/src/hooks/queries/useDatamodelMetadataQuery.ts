@@ -15,9 +15,11 @@ export const useDatamodelMetadataQuery = (
     queryFn: () =>
       getDatamodelMetadata(org, app, layoutSetName).then((res) => {
         const dataModelFields: DatamodelFieldElement[] = [];
-        Object.keys(res.elements).forEach((dataModelField) => {
+        const elements = res.elements || res.Elements; // Hack because we don't know if the response is upper or lower cased
+        console.log(elements);
+        Object.keys(elements).forEach((dataModelField) => {
           if (dataModelField) {
-            dataModelFields.push(res.elements[dataModelField]);
+            dataModelFields.push(elements[dataModelField]);
           }
         });
         return dataModelFields;
