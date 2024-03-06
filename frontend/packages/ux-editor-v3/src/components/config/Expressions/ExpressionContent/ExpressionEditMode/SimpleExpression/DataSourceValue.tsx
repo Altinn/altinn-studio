@@ -34,7 +34,7 @@ export const DataSourceValue = ({
   const { org, app } = useStudioUrlParams();
   const { selectedLayoutSet } = useAppContext();
   // TODO: Show spinner when isLoading
-  const datamodelQuery = useDatamodelMetadataQuery(org, app);
+  const datamodelQuery = useDatamodelMetadataQuery(org, app, selectedLayoutSet);
   const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedLayoutSet);
   const t = useText();
 

@@ -4,12 +4,16 @@ using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.App.Core.Models;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using JetBrains.Annotations;
 using Microsoft.AspNetCore.Http;
 using NuGet.Versioning;
+using LayoutSets = Altinn.Studio.Designer.Models.LayoutSets;
+using PlatformStorageModels = Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -140,6 +144,42 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             await altinnAppGitRepository.SaveLayoutSettings(null, layoutSettings);
+        }
+
+        /// <inheritdoc />
+        public async Task<JsonNode> GetModelMetadata(AltinnRepoEditingContext altinnRepoEditingContext,
+            string layoutSetName, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
+                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            ApplicationMetadata applicationMetadata =
+                await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
+            // get task_id since we might not maintain dataType ref in layout-sets-file
+            string taskId = await GetTaskIdBasedOnLayoutSet(altinnRepoEditingContext, layoutSetName, cancellationToken);
+            string modelName = GetModelName(applicationMetadata, taskId);
+            string fileContent = await altinnAppGitRepository.GetModelMetadata(modelName);
+            return JsonNode.Parse(fileContent);
+        }
+
+        private string GetModelName(ApplicationMetadata applicationMetadata, [CanBeNull] string taskId)
+        {
+            PlatformStorageModels.DataType data = applicationMetadata.DataTypes
+                .FirstOrDefault(data => data.AppLogic != null && DoesDataTaskMatchTaskId(data, taskId) && !string.IsNullOrEmpty(data.AppLogic.ClassRef));
+
+            return data?.Id ?? string.Empty;
+        }
+
+        private bool DoesDataTaskMatchTaskId(PlatformStorageModels.DataType data, [CanBeNull] string taskId)
+        {
+            return string.IsNullOrEmpty(taskId) || data.TaskId == taskId;
+        }
+
+        private async Task<string> GetTaskIdBasedOnLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName, CancellationToken cancellationToken = default)
+        {
+            LayoutSets layoutSets = await GetLayoutSets(altinnRepoEditingContext, cancellationToken);
+            return layoutSets?.Sets?.Find(set => set.Id == layoutSetName)?.Tasks[0];
         }
 
         public async Task<LayoutSets> GetLayoutSets(AltinnRepoEditingContext altinnRepoEditingContext,
