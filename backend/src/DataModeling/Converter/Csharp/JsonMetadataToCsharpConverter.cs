@@ -88,6 +88,12 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             classBuilder.AppendLine(Indent() + "public class " + parentElement.TypeName);
             classBuilder.AppendLine(Indent() + "{");
 
+
+            if (ShouldWriteAltinnRowId(parentElement, serviceMetadata.Elements.Values.ToList()))
+            {
+                WriteAltinnRowId(classBuilder);
+            }
+
             int elementOrder = 0;
 
             foreach (ElementMetadata element in serviceMetadata.Elements.Select(e => e.Value).Where(ele => ele.ParentElement == parentElement.ID))
@@ -106,11 +112,6 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 {
                     ParseAttributeProperty(element, classBuilder, required);
                 }
-            }
-
-            if(ShouldAddAltinnRowId(parentElement, serviceMetadata.Elements.Values.ToList()))
-            {
-                AddAltinnRowId(classBuilder);
             }
 
             classBuilder.AppendLine(Indent() + "}");
@@ -454,11 +455,11 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             classBuilder.AppendLine();
         }
 
-        private bool ShouldAddAltinnRowId(ElementMetadata element, List<ElementMetadata> allElements) =>
+        private bool ShouldWriteAltinnRowId(ElementMetadata element, List<ElementMetadata> allElements) =>
             allElements.Any(e =>
                 e.TypeName == element.TypeName && e.MaxOccurs > 1);
 
-        private void AddAltinnRowId(StringBuilder classBuilder)
+        private void WriteAltinnRowId(StringBuilder classBuilder)
         {
             classBuilder.AppendLine(Indent(2) + "[XmlAttribute(\"altinnRowId\")]");
             classBuilder.AppendLine(Indent(2) + "[JsonPropertyName(\"altinnRowId\")]");
@@ -471,6 +472,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             classBuilder.AppendLine(Indent(2) + "{");
             classBuilder.AppendLine(Indent(3) + "return AltinnRowId != default;");
             classBuilder.AppendLine(Indent(2) + "}");
+            classBuilder.AppendLine();
         }
     }
 }
