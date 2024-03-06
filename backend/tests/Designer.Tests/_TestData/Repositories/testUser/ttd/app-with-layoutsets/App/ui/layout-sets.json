@@ -13,6 +13,13 @@
             "tasks": [
                 "Task_2"
             ]
+        },
+        {
+            "id": "layoutSet3",
+            "dataType": null,
+            "tasks": [
+                "Task_3"
+            ]
         }
     ]
 }

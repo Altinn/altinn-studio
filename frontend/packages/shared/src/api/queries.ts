@@ -79,7 +79,7 @@ export const getBranchStatus = (owner: string, app: string, branch: string) => g
 export const getComponentSchema = (component: string) => get<string[]>(componentSchemaUrl(component));
 export const getComponentsCommonDefsSchema = () => get<string[]>(componentSchemaUrl('common-defs'));
 export const getDatamodel = (owner: string, app: string, modelPath: string) => get<JsonSchema>(datamodelPath(owner, app, modelPath));
-export const getDatamodelMetadata = (owner: string, app: string) => get<DatamodelMetadataResponse>(datamodelMetadataPath(owner, app));
+export const getDatamodelMetadata = (owner: string, app: string, layoutSetName: string) => get<DatamodelMetadataResponse>(datamodelMetadataPath(owner, app, layoutSetName));
 export const getDatamodelsJson = (owner: string, app: string) => get<DatamodelMetadataJson[]>(datamodelsPath(owner, app));
 export const getDatamodelsXsd = (owner: string, app: string) => get<DatamodelMetadataXsd[]>(datamodelsXsdPath(owner, app));
 export const getDeployPermissions = (owner: string, app: string) => get<string[]>(deployPermissionsPath(owner, app));

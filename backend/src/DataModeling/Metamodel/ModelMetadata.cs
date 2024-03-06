@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.DataModeling.Metamodel
@@ -41,6 +42,7 @@ namespace Altinn.Studio.DataModeling.Metamodel
         /// Gets or sets all elements for the service (<see cref="ElementMetadata"/>)
         /// </summary>
         [JsonProperty(PropertyName = "elements")]
+        [JsonPropertyName("elements")]
         public Dictionary<string, ElementMetadata> Elements { get; set; } = new Dictionary<string, ElementMetadata>();
     }
 }

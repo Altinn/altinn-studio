@@ -261,6 +261,24 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Return JSON presentation of the model
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="layoutSetName">Name of current layoutSet in ux-editor that edited layout belongs to</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>The model as JSON</returns>
+        [HttpGet]
+        [UseSystemTextJson]
+        [Route("model-metadata")]
+        public async Task<IActionResult> GetModelMetadata(string org, string app, [FromQuery] string layoutSetName, CancellationToken cancellationToken)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            JsonNode modelMetadata = await _appDevelopmentService.GetModelMetadata(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), layoutSetName, cancellationToken);
+            return Ok(modelMetadata);
+        }
+
+        /// <summary>
         /// Get all layoutsets in the layout-set.json file
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>

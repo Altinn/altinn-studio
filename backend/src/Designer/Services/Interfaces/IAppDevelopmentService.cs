@@ -2,7 +2,9 @@ using System.Collections.Generic;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Models;
+using JetBrains.Annotations;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
 {
@@ -65,6 +67,18 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="layoutSetName">Name of layoutset. Is null of app does not use layoutset</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         public Task SaveLayoutSettings(AltinnRepoEditingContext altinnRepoEditingContext, JsonNode layoutSettings, string layoutSetName, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Returns the <see cref="ModelMetadata"/> for an app.
+        /// </summary>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+        /// <param name="layoutSetName">Name of layoutSet to fetch corresponding model metadata for</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>The model metadata for a given layout set.</returns>
+        public Task<JsonNode> GetModelMetadata(
+            AltinnRepoEditingContext altinnRepoEditingContext, [CanBeNull] string layoutSetName,
+            CancellationToken cancellationToken = default);
+
 
         /// <summary>
         /// Gets an array of all layoutsets for layout-sets.json. If no sets returns null.
