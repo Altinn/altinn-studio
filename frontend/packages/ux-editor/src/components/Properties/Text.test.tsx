@@ -9,10 +9,7 @@ import {
   container1IdMock,
   layoutMock,
 } from '../../testing/layoutMock';
-import type { IAppDataState } from '../../features/appData/appDataReducers';
-import type { ITextResourcesState } from '../../features/appData/textResources/textResourcesSlice';
 import { renderWithMockStore } from '../../testing/mocks';
-import { appDataMock, textResourcesMock } from '../../testing/stateMocks';
 import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -83,23 +80,6 @@ describe('TextTab', () => {
       expect(screen.getByText(labelTextValue)).toBeInTheDocument();
       expect(screen.getByText(addButtonTextValue)).toBeInTheDocument();
     });
-
-    it('should render editable field in nb when a text is in editMode', () => {
-      render({
-        props: {
-          ...props,
-          formItem: {
-            ...layoutMock.containers[container1IdMock],
-            textResourceBindings: { title: labelTextId, add_button: addButtonTextId },
-          },
-        },
-        editId: labelTextId,
-      });
-
-      expect(screen.getByText(textMock('ux_editor.edit_text_resource'))).toBeInTheDocument();
-      const labelTextField = screen.getByRole('textbox', { name: textMock('language.nb') });
-      expect(labelTextField).toBeInTheDocument();
-    });
   });
 
   describe('when editing a component', () => {
@@ -133,23 +113,6 @@ describe('TextTab', () => {
       });
       expect(screen.getByText(labelTextValue)).toBeInTheDocument();
       expect(screen.getByText(descriptionTextValue)).toBeInTheDocument();
-    });
-
-    it('should render editable field in nb when a text is in editMode', () => {
-      render({
-        props: {
-          ...props,
-          formItem: {
-            ...layoutMock.components[component1IdMock],
-            textResourceBindings: { title: labelTextId, description: descriptionTextId },
-          },
-        },
-        editId: labelTextId,
-      });
-
-      expect(screen.getByText(textMock('ux_editor.edit_text_resource'))).toBeInTheDocument();
-      const labelTextField = screen.getByRole('textbox', { name: textMock('language.nb') });
-      expect(labelTextField).toBeInTheDocument();
     });
 
     it('should not render options section if component schema does not have options/optionsId property', () => {
@@ -221,16 +184,8 @@ const render = ({ props = {}, editId }: { props: Partial<FormItemContext>; editI
     componentSchemaMocks[props.formItem.type],
   );
   queryClientMock.setQueryData([QueryKey.TextResources, org, app], textResources);
-  const textResourcesState: ITextResourcesState = {
-    ...textResourcesMock,
-    currentEditId: editId,
-  };
-  const appData: IAppDataState = {
-    ...appDataMock,
-    textResources: textResourcesState,
-  };
 
-  return renderWithMockStore({ appData })(
+  return renderWithMockStore()(
     <FormItemContext.Provider
       value={{
         ...formItemContextProviderMock,

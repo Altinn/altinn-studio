@@ -1,0 +1,184 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "schema.json",
+    "type": "object",
+    "@xsdNamespaces": {
+        "xsd": "http://www.w3.org/2001/XMLSchema"
+    },
+    "@xsdSchemaAttributes": {
+        "AttributeFormDefault": "Unqualified",
+        "ElementFormDefault": "Qualified",
+        "BlockDefault": "None",
+        "FinalDefault": "None"
+    },
+    "@xsdRootElement": "InnflytterSkjema",
+    "oneOf": [
+        {
+            "$ref": "#/$defs/Skjema"
+        }
+    ],
+    "$defs": {
+        "Skjema": {
+            "properties": {
+                "Innflytter": {
+                    "$ref": "#/$defs/Innflytter",
+                    "@xsdMinOccurs": 1,
+                    "@xsdMaxOccurs": "1"
+                }
+            },
+            "required": [
+                "Innflytter"
+            ]
+        },
+        "Innflytter": {
+            "properties": {
+                "Fornavn": {
+                    "@xsdType": "string",
+                    "type": "string",
+                    "@xsdMinOccurs": 1,
+                    "@xsdMaxOccurs": "1"
+                },
+                "Etternavn": {
+                    "@xsdType": "string",
+                    "type": "string",
+                    "@xsdMinOccurs": 1,
+                    "@xsdMaxOccurs": "1"
+                },
+                "Mellomnavn": {
+                    "@xsdType": "string",
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "@xsdMinOccurs": 0,
+                    "@xsdMaxOccurs": "1"
+                },
+                "Alder": {
+                    "@xsdType": "integer",
+                    "type": [
+                        "integer",
+                        "null"
+                    ],
+                    "@xsdMinOccurs": 0,
+                    "@xsdMaxOccurs": "1"
+                },
+                "Arbeidsinformasjon": {
+                    "$ref": "#/$defs/Arbeidsinformasjon",
+                    "@xsdMinOccurs": 1,
+                    "@xsdMaxOccurs": "1"
+                },
+                "KanBrukeSkjema": {
+                    "@xsdType": "boolean",
+                    "type": [
+                        "boolean",
+                        "null"
+                    ],
+                    "@xsdMinOccurs": 1,
+                    "@xsdMaxOccurs": "1"
+                },
+                "TidligereBosteder": {
+                    "minItems": 1,
+                    "maxItems": 10,
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/Adresse"
+                    },
+                    "@xsdMinOccurs": 1,
+                    "@xsdMaxOccurs": "10"
+                },
+                "Adresse": {
+                    "$ref": "#/$defs/Adresse",
+                    "@xsdMinOccurs": 1,
+                    "@xsdMaxOccurs": "1"
+                },
+                "Kontaktinformasjon": {
+                    "$ref": "#/$defs/Kontaktinformasjon",
+                    "@xsdMinOccurs": 1,
+                    "@xsdMaxOccurs": "1"
+                }
+            },
+            "required": [
+                "Fornavn",
+                "Etternavn",
+                "Arbeidsinformasjon",
+                "KanBrukeSkjema",
+                "TidligereBosteder",
+                "Adresse",
+                "Kontaktinformasjon"
+            ]
+        },
+        "Adresse": {
+            "properties": {
+                "Gateadresse": {
+                    "@xsdType": "string",
+                    "type": "string",
+                    "@xsdMinOccurs": 1,
+                    "@xsdMaxOccurs": "1"
+                },
+                "Postnr": {
+                    "@xsdType": "string",
+                    "type": "string",
+                    "@xsdMinOccurs": 1,
+                    "@xsdMaxOccurs": "1"
+                },
+                "Poststed": {
+                    "@xsdType": "string",
+                    "type": "string",
+                    "@xsdMinOccurs": 1,
+                    "@xsdMaxOccurs": "1"
+                }
+            },
+            "required": [
+                "Gateadresse",
+                "Postnr",
+                "Poststed"
+            ]
+        },
+        "Kontaktinformasjon": {
+            "properties": {
+                "Telefonnummer": {
+                    "@xsdType": "string",
+                    "type": "string",
+                    "@xsdMinOccurs": 1,
+                    "@xsdMaxOccurs": "1"
+                },
+                "Epost": {
+                    "@xsdType": "string",
+                    "type": "string",
+                    "@xsdMinOccurs": 1,
+                    "@xsdMaxOccurs": "1"
+                }
+            },
+            "required": [
+                "Telefonnummer",
+                "Epost"
+            ]
+        },
+        "Arbeidsinformasjon": {
+            "properties": {
+                "Sektor": {
+                    "@xsdType": "string",
+                    "type": "string",
+                    "@xsdMinOccurs": 1,
+                    "@xsdMaxOccurs": "1"
+                },
+                "Bransje": {
+                    "@xsdType": "string",
+                    "type": "string",
+                    "@xsdMinOccurs": 0,
+                    "@xsdMaxOccurs": "1"
+                },
+                "AarIArbeidslivet": {
+                    "@xsdType": "string",
+                    "type": "string",
+                    "@xsdMinOccurs": 1,
+                    "@xsdMaxOccurs": "1"
+                }
+            },
+            "required": [
+                "Sektor",
+                "AarIArbeidslivet"
+            ]
+        }
+    }
+}

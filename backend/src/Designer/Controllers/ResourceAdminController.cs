@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
@@ -46,6 +47,82 @@ namespace Altinn.Studio.Designer.Controllers
             _orgService = orgService;
             _resourceRegistrySettings = resourceRegistryEnvironment.Value;
             _resourceRegistry = resourceRegistry;
+        }
+
+        [HttpPost]
+        [Route("designer/api/{org}/resources/accesslist/")]
+        public async Task<ActionResult<AccessList>> CreateAccessList(string org, string env, [FromBody] AccessList accessList)
+        {
+            AccessList newAccessList = await _resourceRegistry.CreateAccessList(org, env, accessList);
+            return Created($"designer/api/{org}/resources/accesslist/{newAccessList.Identifier}", newAccessList);
+        }
+
+        [HttpGet]
+        [Route("designer/api/{org}/resources/accesslist/")]
+        public async Task<ActionResult<PagedAccessListResponse>> GetAccessLists(string org, string env, int page)
+        {
+            return await _resourceRegistry.GetAccessLists(org, env, page);
+        }
+
+        [HttpGet]
+        [Route("designer/api/{org}/resources/accesslist/{identifier}")]
+        public async Task<ActionResult<AccessList>> GetAccessList(string org, string identifier, string env)
+        {
+            return await _resourceRegistry.GetAccessList(org, identifier, env);
+        }
+
+        [HttpDelete]
+        [Route("designer/api/{org}/resources/accesslist/{identifier}")]
+        public async Task<ActionResult> DeleteAccessList(string org, string identifier, string env)
+        {
+            HttpStatusCode statusCode = await _resourceRegistry.DeleteAccessList(org, identifier, env);
+            return new StatusCodeResult(((int)statusCode));
+        }
+
+        [HttpPut]
+        [Route("designer/api/{org}/resources/accesslist/{identifier}")]
+        public async Task<ActionResult<AccessList>> UpdateAccessList(string org, string identifier, string env, [FromBody] AccessList accessList)
+        {
+            return await _resourceRegistry.UpdateAccessList(org, identifier, env, accessList);
+        }
+
+        [HttpPost]
+        [Route("designer/api/{org}/resources/accesslist/{identifier}/members/{memberOrgNr}")]
+        public async Task<ActionResult> AddAccessListMember(string org, string identifier, string memberOrgNr, string env)
+        {
+            HttpStatusCode statusCode = await _resourceRegistry.AddAccessListMember(org, identifier, memberOrgNr, env);
+            return new StatusCodeResult(((int)statusCode));
+        }
+
+        [HttpDelete]
+        [Route("designer/api/{org}/resources/accesslist/{identifier}/members/{memberOrgNr}")]
+        public async Task<ActionResult> RemoveAccessListMember(string org, string identifier, string memberOrgNr, string env)
+        {
+            HttpStatusCode statusCode = await _resourceRegistry.RemoveAccessListMember(org, identifier, memberOrgNr, env);
+            return new StatusCodeResult(((int)statusCode));
+        }
+
+        [HttpGet]
+        [Route("designer/api/{org}/resources/{id}/accesslists/")]
+        public async Task<ActionResult<PagedAccessListResponse>> GetResourceAccessLists(string org, string id, string env, int page)
+        {
+            return await _resourceRegistry.GetResourceAccessLists(org, id, env, page);
+        }
+
+        [HttpPost]
+        [Route("designer/api/{org}/resources/{id}/accesslists/{listId}")]
+        public async Task<ActionResult<ResourceAccessList>> AddResourceAccessList(string org, string id, string listId, string env)
+        {
+            HttpStatusCode statusCode = await _resourceRegistry.AddResourceAccessList(org, id, listId, env);
+            return new StatusCodeResult(((int)statusCode));
+        }
+
+        [HttpDelete]
+        [Route("designer/api/{org}/resources/{id}/accesslists/{listId}")]
+        public async Task<ActionResult> RemoveResourceAccessList(string org, string id, string listId, string env)
+        {
+            HttpStatusCode statusCode = await _resourceRegistry.RemoveResourceAccessList(org, id, listId, env);
+            return new StatusCodeResult(((int)statusCode));
         }
 
         [HttpGet]

@@ -10,6 +10,7 @@ import { LinkIcon } from '@studio/icons';
 import { StudioButton } from '@studio/components';
 import classes from './EditDataModelBindings.module.css';
 import { InputActionWrapper } from 'app-shared/components/InputActionWrapper';
+import { useAppContext } from '../../../hooks/useAppContext';
 
 export interface EditDataModelBindingsProps extends IGenericEditComponent {
   renderOptions?: {
@@ -28,7 +29,8 @@ export const EditDataModelBindings = ({
   helpText,
 }: EditDataModelBindingsProps) => {
   const { org, app } = useStudioUrlParams();
-  const { data } = useDatamodelMetadataQuery(org, app);
+  const { selectedLayoutSet } = useAppContext();
+  const { data } = useDatamodelMetadataQuery(org, app, selectedLayoutSet);
   const t = useText();
 
   const handleDataModelChange = (selectedDataModelElement: string, key = 'simpleBinding') => {
