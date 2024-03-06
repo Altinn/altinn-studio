@@ -33,12 +33,14 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
       });
     };
 
-    const eventBus: any = modelerInstance.get('eventBus');
-    const events = ['element.click'];
+    const eventBus: BpmnModeler = modelerInstance.get('eventBus');
+    const events: string[] = ['element.click'];
 
     events.forEach((event) => {
-      eventBus.on(event, (e: any) => {
-        const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
+      eventBus.on(event, (event: any) => {
+        if (!event) return;
+
+        const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(event.element?.businessObject);
         setBpmnDetails(bpmnDetails);
       });
     });

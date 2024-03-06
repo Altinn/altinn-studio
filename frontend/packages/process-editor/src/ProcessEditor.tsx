@@ -3,8 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import { PageLoading } from './components/PageLoading';
 import { Canvas } from './components/Canvas';
-import { BpmnContextProvider } from './contexts/BpmnContext';
+import { BpmnContextProvider, useBpmnContext } from './contexts/BpmnContext';
 import { ConfigPanel } from './components/ConfigPanel';
+import { ConfigViewerPanel } from './components/ConfigViewerPanel';
 
 import classes from './ProcessEditor.module.css';
 
@@ -31,11 +32,19 @@ export const ProcessEditor = ({
 
   return (
     <BpmnContextProvider bpmnXml={bpmnXml} appLibVersion={appLibVersion}>
-      <div className={classes.container}>
-        <Canvas onSave={onSave} />
-        <ConfigPanel />
-      </div>
+      <BPMNCanvas onSave={onSave} />
     </BpmnContextProvider>
+  );
+};
+
+type BPMNCanvasProps = Pick<ProcessEditorProps, 'onSave'>;
+const BPMNCanvas = ({ onSave }: BPMNCanvasProps): React.ReactElement | null => {
+  const { isEditAllowed } = useBpmnContext();
+  return (
+    <div className={classes.container}>
+      <Canvas onSave={onSave} />
+      {!isEditAllowed ? <ConfigPanel /> : <ConfigViewerPanel />}
+    </div>
   );
 };
 

@@ -1,0 +1,22 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  gap: var(--fds-spacing-2);
+  padding: var(--fds-spacing-2) var(--fds-spacing-3);
+}
+
+.innerContainer {
+  display: flex;
+  gap: var(--fds-spacing-1);
+}
+
+.label {
+  font-weight: 700;
+}
+
+.iconLabelContainer {
+  display: flex;
+  align-items: center;
+}

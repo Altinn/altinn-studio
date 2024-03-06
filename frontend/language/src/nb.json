@@ -745,7 +745,7 @@
   "process_editor.configuration_panel_id_label": "ID:",
   "process_editor.configuration_panel_missing_task": "Oppgave",
   "process_editor.configuration_panel_name_label": "Navn: ",
-  "process_editor.configuration_panel_no_task": "Velg et element i prosessen for å se detaljer.",
+  "process_editor.configuration_panel_no_task": "Velg en oppgave i diagrammet til venstre for å se detaljer om valgt oppgave.",
   "process_editor.configuration_panel_signing_task": "Oppgave: Signering",
   "process_editor.fetch_bpmn_error_message": "Kunne ikke laste inn BPMN for denne appen. Prøv igjen senere.",
   "process_editor.fetch_bpmn_error_title": "En feil oppstod ved innlasting av BPMN",

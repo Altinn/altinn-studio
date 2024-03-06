@@ -6,6 +6,7 @@ export * from './StudioCodeFragment';
 export * from './StudioDecimalInput';
 export * from './StudioDeleteButton';
 export * from './StudioDropdownMenu';
+export * from './StudioDisplayTile';
 export * from './StudioExpression';
 export * from './StudioGridSelector';
 export * from './StudioIconTextfield';
