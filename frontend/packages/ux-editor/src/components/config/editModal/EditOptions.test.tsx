@@ -31,11 +31,29 @@ describe('EditOptions', () => {
     ).toBeInTheDocument();
   });
 
-  it('should show code list input by default when neither options nor optionId are set', async () => {
+  it('should show code list input by default when neither options nor optionId are set', () => {
     renderEditOptions();
     expect(
       screen.getByText(textMock('ux_editor.modal_properties_custom_code_list_id')),
     ).toBeInTheDocument();
+  });
+
+  it('should not show error message when code list input is enabled', async () => {
+    renderEditOptions();
+    screen.getByText(textMock('ux_editor.modal_properties_custom_code_list_id'));
+    expect(
+      screen.queryByText(textMock('ux_editor.radios_error_NoOptions')),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should show error message when manual options are enabled by switch', async () => {
+    renderEditOptions();
+    expect(
+      screen.queryByText(textMock('ux_editor.checkboxes_error_noOptions')),
+    ).not.toBeInTheDocument();
+    const switchElement = screen.getByRole('checkbox');
+    await act(() => switchElement.click());
+    screen.getByText(textMock('ux_editor.radios_error_NoOptions'));
   });
 
   it('should show manual input when component has options defined', async () => {
