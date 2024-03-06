@@ -1,5 +1,6 @@
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
@@ -9,27 +10,27 @@ namespace Altinn.App.Core.Implementation;
 /// <summary>
 /// Default handling of instance events
 /// </summary>
-public class DefaultAppEvents: IAppEvents
+public class DefaultAppEvents : IAppEvents
 {
     private readonly ILogger<DefaultAppEvents> _logger;
     private readonly IAppMetadata _appMetadata;
-    private readonly IInstance _instanceClient;
-    private readonly IData _dataClient;
+    private readonly IInstanceClient _instanceClient;
+    private readonly IDataClient _dataClient;
 
     /// <summary>
     /// Constructor with services from DI
     /// </summary>
     public DefaultAppEvents(
-        ILogger<DefaultAppEvents> logger, 
-        IAppMetadata appMetadata, 
-        IInstance instanceClient,
-        IData dataClient)
+        ILogger<DefaultAppEvents> logger,
+        IAppMetadata appMetadata,
+        IInstanceClient instanceClient,
+        IDataClient dataClient)
     {
         _logger = logger;
         _appMetadata = appMetadata;
         _instanceClient = instanceClient;
         _dataClient = dataClient;
-        
+
     }
 
     /// <inheritdoc />
@@ -45,7 +46,7 @@ public class DefaultAppEvents: IAppEvents
 
         _logger.LogInformation("OnEndProcess for {Id}, endEvent: {EndEvent}", instance.Id, endEvent);
     }
-    
+
     private async Task AutoDeleteDataElements(Instance instance)
     {
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
@@ -55,7 +56,7 @@ public class DefaultAppEvents: IAppEvents
         {
             return;
         }
-        
+
         instance = await _instanceClient.GetInstance(instance);
         List<DataElement> elementsToDelete = instance.Data.Where(e => typesToDelete.Contains(e.DataType)).ToList();
 

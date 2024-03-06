@@ -9,13 +9,38 @@ using Microsoft.Extensions.DependencyInjection;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
+using FluentAssertions;
+using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers
 {
     public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
     {
-        public DataControllerTests(WebApplicationFactory<Program> factory) : base(factory)
+        public DataControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper) : base(factory, outputHelper)
         {
+        }
+
+        [Fact]
+        public async Task PutDataElement_MissingDataType_ReturnsBadRequest()
+        {
+            // Setup test data
+            string org = "tdd";
+            string app = "contributer-restriction";
+            int instanceOwnerPartyId = 1337;
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            HttpClient client = GetRootedClient(org, app);
+            string token = PrincipalUtil.GetOrgToken("nav", "160694123");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            TestData.DeleteInstance(org, app, instanceOwnerPartyId, guid);
+            TestData.PrepareInstance(org, app, instanceOwnerPartyId, guid);
+
+
+            using var content = new StringContent("{}", System.Text.Encoding.UTF8, "application/json"); // empty valid json
+            var response = await client.PostAsync($"/{org}/{app}/instances/{instanceOwnerPartyId}/{guid}/data", content);
+            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            responseContent.Should().Contain("dataType");
         }
 
         [Fact]
@@ -54,7 +79,7 @@ namespace Altinn.App.Api.Tests.Controllers
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         }
-        
+
         [Fact]
         public async Task CreateDataElement_ZeroBytes_BinaryPdf_AnalyserShouldReturnBadRequest()
         {
@@ -68,7 +93,7 @@ namespace Altinn.App.Api.Tests.Controllers
             string org = "tdd";
             string app = "contributer-restriction";
             HttpClient client = GetRootedClient(org, app);
- 
+
             Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
             TestData.DeleteInstance(org, app, 1337, guid);
             TestData.PrepareInstance(org, app, 1337, guid);
@@ -90,7 +115,8 @@ namespace Altinn.App.Api.Tests.Controllers
             TestData.DeleteInstanceAndData(org, app, 1337, guid);
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.Equal("Invalid data provided. Error: The file is zero bytes.",response.Content.ReadAsStringAsync().Result);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            Assert.Equal("Invalid data provided. Error: The file is zero bytes.", responseContent);
         }
 
         [Fact]

@@ -46,7 +46,7 @@ public class EformidlingStatusCheckEventHandlerTests
         var eFormidlingClientMock = new Mock<IEFormidlingClient>();
         var httpClientFactoryMock = new Mock<IHttpClientFactory>();
         var eFormidlingLoggerMock = new Mock<ILogger<EformidlingStatusCheckEventHandler>>();
-        
+
         var httpClientMock = new Mock<HttpClient>();
         var maskinportenServiceLoggerMock = new Mock<ILogger<MaskinportenService>>();
         var tokenCacheProviderMock = new Mock<ITokenCacheProvider>();
@@ -54,7 +54,7 @@ public class EformidlingStatusCheckEventHandlerTests
 
         var maskinportenSettingsMock = new Mock<IOptions<MaskinportenSettings>>();
         var x509CertificateProviderMock = new Mock<IX509CertificateProvider>();
-        IOptions <Core.Configuration.PlatformSettings> platformSettingsMock = Options.Create(new Altinn.App.Core.Configuration.PlatformSettings()
+        IOptions<Core.Configuration.PlatformSettings> platformSettingsMock = Options.Create(new Altinn.App.Core.Configuration.PlatformSettings()
         {
             ApiEventsEndpoint = "http://localhost:5101/events/api/v1/",
             SubscriptionKey = "key"
@@ -70,7 +70,7 @@ public class EformidlingStatusCheckEventHandlerTests
             x509CertificateProviderMock.Object,
             platformSettingsMock,
             generalSettingsMock.Object
-            );
+        );
         return eventHandler;
     }
 }

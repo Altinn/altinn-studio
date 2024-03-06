@@ -1,7 +1,5 @@
-using System;
-
+#nullable disable
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Api.Infrastructure.Filters
 {

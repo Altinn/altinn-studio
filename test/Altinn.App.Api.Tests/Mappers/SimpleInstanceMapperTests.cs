@@ -29,16 +29,16 @@ public class SimpleInstanceMapperTests
             new SimpleInstance { Id = "1", LastChanged = DateTime.Today, LastChangedBy = "User1" },
             new SimpleInstance { Id = "2", LastChanged = DateTime.Today, LastChangedBy = "User2" }
         };
-        
+
         // Act
         var simpleInstances =
             SimpleInstanceMapper.MapInstanceListToSimpleInstanceList(instances, userDictionary);
-        
+
         // Assert
         Assert.Equal(expected.Count, simpleInstances.Count);
         simpleInstances.Should().BeEquivalentTo(expected);
     }
-    
+
     [Fact]
     public void MapInstanceListToSimpleInstanceList_Empty_LastChangedBy_When_Not_In_UserDict_Or_Unset()
     {
@@ -58,11 +58,11 @@ public class SimpleInstanceMapperTests
             new SimpleInstance { Id = "1", LastChanged = DateTime.Today, LastChangedBy = "" },
             new SimpleInstance { Id = "2", LastChanged = DateTime.Today, LastChangedBy = "" }
         };
-        
+
         // Act
         var simpleInstances =
             SimpleInstanceMapper.MapInstanceListToSimpleInstanceList(instances, userDictionary);
-        
+
         // Assert
         Assert.Equal(expected.Count, simpleInstances.Count);
         simpleInstances.Should().BeEquivalentTo(expected);

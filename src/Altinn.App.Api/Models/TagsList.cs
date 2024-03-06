@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+#nullable disable
 using System.Text.Json.Serialization;
 
 namespace Altinn.App.Api.Models

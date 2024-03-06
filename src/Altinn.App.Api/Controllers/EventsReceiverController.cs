@@ -1,4 +1,4 @@
-﻿using System;
+﻿#nullable disable
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.App.Core.Configuration;
@@ -26,8 +26,8 @@ namespace Altinn.App.Api.Controllers
         /// Initializes a new instance of the <see cref="EventsReceiverController"/> class.
         /// </summary>
         public EventsReceiverController(
-            IEventHandlerResolver eventHandlerResolver, 
-            ILogger<EventsReceiverController> logger, 
+            IEventHandlerResolver eventHandlerResolver,
+            ILogger<EventsReceiverController> logger,
             IOptions<PlatformSettings> options,
             IEventSecretCodeProvider secretCodeProvider)
         {

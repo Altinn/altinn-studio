@@ -1,6 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+#nullable disable
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Features.Options.Altinn2Provider;
@@ -143,7 +141,7 @@ namespace Altinn.App.PlatformServices.Tests.Options.Altinn2Provider
         public void Altinn2OptionsTests_Altinn2MetadataClientNotRegistered()
         {
             var services = new ServiceCollection();
-            
+
             services.AddAltinn2CodeList(
                 id: "OnlyNorway",
                 transform: (code) => new() { Value = code.Code, Label = code.Value1 },

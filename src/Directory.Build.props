@@ -7,10 +7,10 @@
   </ItemGroup>
   <PropertyGroup>
     <RepoRoot>$([System.IO.Directory]::GetParent($(MSBuildThisFileDirectory)).Parent.FullName)</RepoRoot>
-    <MinVerDefaultPreReleasePhase>preview</MinVerDefaultPreReleasePhase>
+    <MinVerDefaultPreReleaseIdentifiers>preview.0</MinVerDefaultPreReleaseIdentifiers>
     <MinVerTagPrefix>v</MinVerTagPrefix>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <LangVersion>10.0</LangVersion>
+    <LangVersion>12</LangVersion>
   </PropertyGroup>
   
   <Target Name="AssemblyVersionTarget" AfterTargets="MinVer" Condition="'$(MinVerVersion)'!='' AND '$(BuildNumber)' != ''">

@@ -8,20 +8,16 @@ namespace Altinn.App.Core.Configuration
     /// </summary>
     public class AppSettings
     {
-        /// <summary>
-        /// Constant for the location of resource files
-        /// </summary>
-        public const string RESOURCE_FOLDER_NAME = "Resources/";
-
-        /// <summary>
-        /// Constant for the location of service metadata file
-        /// </summary>
-        public const string METADATA_FILENAME = "metadata.json";
 
         /// <summary>
         /// Constant for the location of json schema file
         /// </summary>
         public const string JSON_SCHEMA_FILENAME = "schema.json";
+
+        /// <summary>
+        /// Constant for the location of validation configuration file
+        /// </summary>
+        public const string VALIDATION_CONFIG_FILENAME = "validation.json";
 
         /// <summary>
         /// The app configuration baseUrl where files are stored in the container
@@ -83,7 +79,7 @@ namespace Altinn.App.Core.Configuration
         /// </summary>
         public string LayoutSetsFileName { get; set; } = "layout-sets.json";
 
-                /// <summary>
+        /// <summary>
         /// Gets or sets the name of the layout setting file name
         /// </summary>
         public string FooterFileName { get; set; } = "footer.json";
@@ -94,14 +90,14 @@ namespace Altinn.App.Core.Configuration
         public string RuleConfigurationJSONFileName { get; set; } = "RuleConfiguration.json";
 
         /// <summary>
-        /// Gets or sets The ServiceMetadata file name
+        /// Gets or sets The JSON schema file name
         /// </summary>
-        public string ServiceMetadataFileName { get; set; } = METADATA_FILENAME;
+        public string JsonSchemaFileName { get; set; } = JSON_SCHEMA_FILENAME;
 
         /// <summary>
         /// Gets or sets The JSON schema file name
         /// </summary>
-        public string JsonSchemaFileName { get; set; } = JSON_SCHEMA_FILENAME;
+        public string ValidationConfigurationFileName { get; set; } = VALIDATION_CONFIG_FILENAME;
 
         /// <summary>
         /// Gets or sets the filename for application meta data
@@ -164,27 +160,6 @@ namespace Altinn.App.Core.Configuration
         public bool DisableCsrfCheck { get; set; }
 
         /// <summary>
-        /// Gets the styles config element
-        /// </summary>
-        public string GetStylesConfig()
-        {
-            StylesConfig stylesConfig = new StylesConfig();
-            stylesConfig.InternalStyles.Add(RuntimeCssFileName);
-            stylesConfig.ExternalStyles.Add(DefaultBootstrapUrl);
-
-            return JsonConvert.SerializeObject(stylesConfig);
-        }
-
-        /// <summary>
-        /// Get Resource Folder name
-        /// </summary>
-        /// <returns>The resource folder</returns>
-        public string GetResourceFolder()
-        {
-            return RESOURCE_FOLDER_NAME;
-        }
-
-        /// <summary>
         /// Cache lifetime for app resources
         /// </summary>
         public int CacheResourceLifeTimeInSeconds { get; set; } = 3600;
@@ -214,8 +189,18 @@ namespace Altinn.App.Core.Configuration
         public string AppVersion { get; set; }
 
         /// <summary>
-        /// Enable the preview functionality to load layout in backend and remove data from hidden components before validation and task completion
+        /// Enable the functionality to load layout in backend and remove data from hidden components before task completion
         /// </summary>
-        public bool RemoveHiddenDataPreview { get; set; } = false;
+        public bool RemoveHiddenData { get; set; } = false;
+
+        /// <summary>
+        /// Enable the functionality to load layout in backend and validate required fields as defined in the layout
+        /// </summary>
+        public bool RequiredValidation { get; set; } = false;
+
+        /// <summary>
+        /// Enable the functionality to run expression validation in backend
+        /// </summary>
+        public bool ExpressionValidation { get; set; } = false;
     }
 }

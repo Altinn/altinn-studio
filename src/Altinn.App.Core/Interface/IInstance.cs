@@ -7,6 +7,7 @@ namespace Altinn.App.Core.Interface
     /// <summary>
     /// Interface for handling form data related operations
     /// </summary>
+    [Obsolete(message: "Use Altinn.App.Core.Internal.Instances.IInstanceClient instead", error: true)]
     public interface IInstance
     {
         /// <summary>
@@ -105,7 +106,7 @@ namespace Altinn.App.Core.Interface
         async Task<Instance> UpdateDataValues(Instance instance, Dictionary<string, string?> dataValues)
         {
             var id = new InstanceIdentifier(instance);
-            return await UpdateDataValues(id.InstanceOwnerPartyId, id.InstanceGuid, new DataValues{Values = dataValues});
+            return await UpdateDataValues(id.InstanceOwnerPartyId, id.InstanceGuid, new DataValues { Values = dataValues });
         }
 
         /// <summary>
@@ -120,7 +121,7 @@ namespace Altinn.App.Core.Interface
         /// <returns>Returns the updated instance.</returns>
         async Task<Instance> UpdateDataValue(Instance instance, string key, string? value)
         {
-            return await UpdateDataValues(instance, new Dictionary<string, string?>{{key, value}});
+            return await UpdateDataValues(instance, new Dictionary<string, string?> { { key, value } });
         }
 
         /// <summary>

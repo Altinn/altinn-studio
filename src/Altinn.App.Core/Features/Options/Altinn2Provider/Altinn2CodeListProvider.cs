@@ -1,5 +1,3 @@
-#nullable enable
-
 using Altinn.App.Core.Models;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -41,7 +39,7 @@ namespace Altinn.App.Core.Features.Options.Altinn2Provider
         private readonly IMemoryCache _cache;
 
         /// <inheritdoc />
-        public string Id { get;  private set; }
+        public string Id { get; private set; }
 
         /// <summary>
         /// <see cref="CommonOptionProviderServiceCollectionExtensions.AddAltinn2CodeList" />
@@ -60,7 +58,7 @@ namespace Altinn.App.Core.Features.Options.Altinn2Provider
         /// <summary>
         /// Utility method if you need the raw codelist for dataprocessinghandler
         /// </summary>
-        public async Task<MetadataCodelistResponse> GetRawAltinn2CodelistAsync(string language)
+        public async Task<MetadataCodelistResponse> GetRawAltinn2CodelistAsync(string? language)
         {
             var langCode = language switch
             {
@@ -79,7 +77,7 @@ namespace Altinn.App.Core.Features.Options.Altinn2Provider
         }
 
         /// <inheritdoc/>
-        public async Task<AppOptions> GetAppOptionsAsync(string language, Dictionary<string, string> keyValuePairs)
+        public async Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)
         {
             var codelist = await GetRawAltinn2CodelistAsync(language);
 

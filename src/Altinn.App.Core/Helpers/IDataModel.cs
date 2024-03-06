@@ -27,6 +27,11 @@ public interface IDataModelAccessor
     int? GetModelDataCount(string key, ReadOnlySpan<int> indicies = default);
 
     /// <summary>
+    /// Get all of the resoved keys (including all possible indexes) from a data model key
+    /// </summary>
+    string[] GetResolvedKeys(string key);
+
+    /// <summary>
     /// Return a full dataModelBiding from a context aware binding by adding indicies
     /// </summary>
     /// <example>

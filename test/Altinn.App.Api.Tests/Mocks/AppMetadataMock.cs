@@ -134,7 +134,7 @@ namespace App.IntegrationTests.Mocks.Services
 
         private static string GetMetadataPath()
         {
-            var uri = new Uri(typeof(InstanceMockSI).Assembly.Location);
+            var uri = new Uri(typeof(InstanceClientMockSi).Assembly.Location);
             string unitTestFolder = Path.GetDirectoryName(uri.LocalPath) ?? throw new Exception($"Unable to locate path {uri.LocalPath}");
 
             return Path.Combine(unitTestFolder, @"../../../Data/Metadata");

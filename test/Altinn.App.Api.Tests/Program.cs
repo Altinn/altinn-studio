@@ -1,16 +1,21 @@
 ﻿using Altinn.App.Api.Extensions;
+using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Api.Tests.Mocks.Authentication;
 using Altinn.App.Api.Tests.Mocks.Event;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Auth;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
+using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Profile;
+using Altinn.App.Core.Internal.Registers;
 using AltinnCore.Authentication.JwtCookie;
 using App.IntegrationTests.Mocks.Services;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -22,7 +27,16 @@ using Microsoft.Extensions.Options;
 // External interfaces like Platform related services, Authenication, Authorization
 // external api's etc. should be mocked.
 
-WebApplicationBuilder builder = WebApplication.CreateBuilder(new WebApplicationOptions() { ApplicationName = "Altinn.App.Api.Tests" });
+WebApplicationBuilder builder = WebApplication.CreateBuilder(
+    new WebApplicationOptions()
+    {
+        ApplicationName = "Altinn.App.Api.Tests",
+        WebRootPath = Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributer-restriction")
+    });
+
+builder.Configuration.AddJsonFile(Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributer-restriction", "appsettings.json"));
+builder.Configuration.GetSection("MetricsSettings:Enabled").Value = "false";
+
 ConfigureServices(builder.Services, builder.Configuration);
 ConfigureMockServices(builder.Services, builder.Configuration);
 
@@ -40,8 +54,8 @@ void ConfigureMockServices(IServiceCollection services, ConfigurationManager con
 {
     PlatformSettings platformSettings = new PlatformSettings() { ApiAuthorizationEndpoint = "http://localhost:5101/authorization/api/v1/" };
     services.AddSingleton<IOptions<PlatformSettings>>(Options.Create(platformSettings));
-    services.AddTransient<IAuthorization, AuthorizationMock>();
-    services.AddTransient<IInstance, InstanceMockSI>();
+    services.AddTransient<IAuthorizationClient, AuthorizationMock>();
+    services.AddTransient<IInstanceClient, InstanceClientMockSi>();
     services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepWithPDPAuthorizationMockSI>();
     services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
@@ -50,30 +64,19 @@ void ConfigureMockServices(IServiceCollection services, ConfigurationManager con
     services.AddTransient<IEventHandler, DummyFailureEventHandler>();
     services.AddTransient<IEventHandler, DummySuccessEventHandler>();
     services.AddTransient<IAppMetadata, AppMetadataMock>();
-    services.AddTransient<IData, DataClientMock>();
+    services.AddTransient<IDataClient, DataClientMock>();
+    services.AddTransient<IAltinnPartyClient, AltinnPartyClientMock>();
+    services.AddTransient<IProfileClient, ProfileClientMock>();
+    services.AddTransient<IInstanceEventClient, InstanceEventClientMock>();
+    services.AddTransient<IAppModel, AppModelMock>();
 }
 
 void Configure()
 {
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseDeveloperExceptionPage();
-    }
-
-    app.UseDefaultSecurityHeaders();
-    app.UseRouting();
-    app.UseStaticFiles();
-    app.UseAuthentication();
-    app.UseAuthorization();
-
-    app.UseEndpoints(endpoints =>
-    {
-        endpoints.MapControllers();
-    });
-    app.UseHealthChecks("/health");
+    app.UseAltinnAppCommonConfiguration();
 }
 
 // This "hack" (documentet by Microsoft) is done to
 // make the Program class public and available for
 // integration tests.
-public partial class Program {}
+public partial class Program { }

@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.Utils;
@@ -16,6 +17,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
     /// <summary>
     /// A client forretrieving text resources from Altinn Platform.
     /// </summary>
+    [Obsolete("Use IAppResources.GetTexts() instead")]
     public class TextClient : IText
     {
         private readonly ILogger _logger;
@@ -58,9 +60,9 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         }
 
         /// <inheritdoc />
-        public async Task<TextResource> GetText(string org, string app, string language)
+        public async Task<TextResource?> GetText(string org, string app, string language)
         {
-            TextResource textResource = null;
+            TextResource? textResource = null;
             string cacheKey = $"{org}-{app}-{language.ToLower()}";
 
             if (!_memoryCache.TryGetValue(cacheKey, out textResource))
@@ -72,7 +74,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
                 HttpResponseMessage response = await _client.GetAsync(token, url);
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    textResource = await response.Content.ReadAsAsync<TextResource>();
+                    textResource = await JsonSerializerPermissive.DeserializeAsync<TextResource>(response.Content);
                     _memoryCache.Set(cacheKey, textResource, cacheEntryOptions);
                 }
                 else

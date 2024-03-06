@@ -1,18 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0</TargetFrameworks>
+    <TargetFramework>net8.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
 
     <RootNamespace>Altinn.App.Core.Tests</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <NoWarn>$(NoWarn);CS1591;CS0618</NoWarn>
+    <!--
+      CS1591: Don't warn for missing XML doc
+      CS0618: This is a test project, so we usually continue testing [Obsolete] apis
+    -->
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="Implementation\AppBaseTests.cs" />
     <Content Include="LayoutExpressions/**/*.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
     <Watch Include="LayoutExpressions/**/*.json" />
+    <Content Include="Features/Validators/**/*.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
+    <Watch Include="Features/Validators/**/*.json" />
     <Content Include="Models/**/*.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
     <Watch Include="Models/**/*.json" />
     <Watch Include="**/*.cs" />
@@ -28,6 +38,7 @@
     <Content Update="Implementation\TestData\AppProcess\process.bpmn">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="secrets.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
   </ItemGroup>
 
   <ItemGroup>
@@ -61,7 +72,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Helpers\TestData\simple-gateway.bpmn">
+    <Content Include="Helpers\TestData\**">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Infrastructure\Clients\Authorization\TestData\**">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Internal\Pdf\TestData\**">
@@ -71,6 +85,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Internal\App\TestData\**">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Features\Action\TestData\**">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Implementation\TestData\**">
@@ -88,13 +105,13 @@
     <EmbeddedResource Include="Internal\Pdf\TestData\example.pdf" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="LayoutExpressions\CommonTests\exclusive-tests\functions\" />
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <CodeAnalysisRuleSet>..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);1591</NoWarn>
-  </PropertyGroup>
 
 </Project>

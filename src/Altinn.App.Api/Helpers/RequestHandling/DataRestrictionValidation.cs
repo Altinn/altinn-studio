@@ -1,4 +1,3 @@
-#nullable enable
 using System.Net.Http.Headers;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Extensions;
@@ -31,7 +30,7 @@ namespace Altinn.App.Api.Helpers.RequestHandling
                     Severity = ValidationIssueSeverity.Error,
                     Description = $"{errorBaseMessage} The request must include a Content-Disposition header"
                 });
-                
+
                 return (false, errors);
             }
 
@@ -132,7 +131,7 @@ namespace Altinn.App.Api.Helpers.RequestHandling
         {
             ContentDispositionHeaderValue contentDisposition = ContentDispositionHeaderValue.Parse(headerValues);
             string? filename = contentDisposition.FileNameStar ?? contentDisposition.FileName;
-            
+
             // We actively remove quotes because we don't want them replaced with '_'.
             // Quotes around filename in Content-Disposition is valid, but not as part of the filename.
             filename = filename?.Trim('\"').AsFileName(false);

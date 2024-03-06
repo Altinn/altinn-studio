@@ -1,12 +1,11 @@
-﻿#nullable enable
-
-using Altinn.Platform.Register.Models;
+﻿using Altinn.Platform.Register.Models;
 
 namespace Altinn.App.Core.Interface
 {
     /// <summary>
     /// Describes the required methods for an implementation of a person repository client.
     /// </summary>
+    [Obsolete(message: "Use Altinn.App.Core.Internal.Registers.IPersonClient instead", error: true)]
     public interface IPersonRetriever
     {
         /// <summary>

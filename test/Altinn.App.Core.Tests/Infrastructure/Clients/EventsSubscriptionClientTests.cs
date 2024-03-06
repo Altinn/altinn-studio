@@ -1,8 +1,6 @@
-﻿using System.Net;
-using System.Net.Http;
+﻿#nullable disable
+using System.Net;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Infrastructure.Clients.Events;
 using Altinn.App.Core.Internal.Events;
@@ -12,11 +10,19 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Altinn.App.PlatformServices.Tests.Infrastructure.Clients
 {
     public class EventsSubscriptionClientTests
     {
+        private readonly ITestOutputHelper _testOutputHelper;
+
+        public EventsSubscriptionClientTests(ITestOutputHelper testOutputHelper)
+        {
+            _testOutputHelper = testOutputHelper;
+        }
+
         [Fact]
         public async Task AddSubscription_ShouldReturnOk()
         {

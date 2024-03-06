@@ -1,12 +1,11 @@
-﻿#nullable enable
-
-namespace Altinn.App.Core.Interface
+﻿namespace Altinn.App.Core.Interface
 {
     /// <summary>
     /// Defines the methods required for an implementation of a user JSON Web Token provider.
     /// The provider is used by client implementations that needs the user token in requests 
     /// against other systems.
     /// </summary>
+    [Obsolete(message: "Use Altinn.App.Core.Internal.Auth.IUserTokenProvider instead", error: true)]
     public interface IUserTokenProvider
     {
         /// <summary>

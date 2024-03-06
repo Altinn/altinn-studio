@@ -5,8 +5,7 @@
       {
         "id": "firstField",
         "type": "Summary",
-        "componentRef": "gruppe1",
-        "pageRef": "FirstPage"
+        "componentRef": "gruppe1"
       }
     ]
   }

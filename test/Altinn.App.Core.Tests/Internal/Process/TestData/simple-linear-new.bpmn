@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions id="Definitions_1eqx4ru" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" 
+xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" 
+xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" 
+xmlns:di="http://www.omg.org/spec/DD/20100524/DI" 
+targetNamespace="http://bpmn.io/schema/bpmn" 
+xmlns:altinn="http://altinn.no">
+  <bpmn:process id="Process_1rq9ej8" isExecutable="false">
+    <bpmn:startEvent id="StartEvent">
+      <bpmn:outgoing>Flow1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow1" sourceRef="StartEvent" targetRef="Task1" />
+    <bpmn:task id="Task1" name="Utfylling">
+      <bpmn:incoming>Flow1</bpmn:incoming>
+      <bpmn:outgoing>Flow2</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:properties>
+          <altinn:taskType>data</altinn:taskType>
+          <altinn:actions>
+            <altinn:action>submit</altinn:action>
+          </altinn:actions>
+        </altinn:properties>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow2" sourceRef="Task1" targetRef="Task2" />
+    <bpmn:task id="Task2" name="Bekreft skjemadata">
+      <bpmn:incoming>Flow2</bpmn:incoming>
+      <bpmn:outgoing>Flow3</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:properties>
+          <altinn:actions>
+            <altinn:action>confirm</altinn:action>
+            <altinn:action>reject</altinn:action>
+          </altinn:actions>
+          <altinn:taskType>confirmation</altinn:taskType>
+        </altinn:properties>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow3" sourceRef="Task2" targetRef="EndEvent" />
+    <bpmn:endEvent id="EndEvent">
+      <bpmn:incoming>Flow3</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
+</bpmn:definitions>

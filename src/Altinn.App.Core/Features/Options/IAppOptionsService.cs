@@ -14,7 +14,7 @@ namespace Altinn.App.Core.Features.Options
         /// <param name="language">The language code requested.</param>
         /// <param name="keyValuePairs">Optional list of key/value pairs to use for filtering and further lookup.</param>
         /// <returns>The list of options</returns>
-        Task<AppOptions> GetOptionsAsync(string optionId, string language, Dictionary<string, string> keyValuePairs);
+        Task<AppOptions> GetOptionsAsync(string optionId, string? language, Dictionary<string, string> keyValuePairs);
 
         /// <summary>
         /// Get the list of instance specific options for a specific options list based on the <see cref="InstanceIdentifier"/>
@@ -26,6 +26,6 @@ namespace Altinn.App.Core.Features.Options
         /// <param name="language">The language code requested.</param>
         /// <param name="keyValuePairs">Optional list of key/value pairs to use for filtering and further lookup.</param>
         /// <returns>The list of options</returns>
-        Task<AppOptions> GetOptionsAsync(InstanceIdentifier instanceIdentifier, string optionId, string language, Dictionary<string, string> keyValuePairs);
+        Task<AppOptions> GetOptionsAsync(InstanceIdentifier instanceIdentifier, string optionId, string? language, Dictionary<string, string> keyValuePairs);
     }
 }

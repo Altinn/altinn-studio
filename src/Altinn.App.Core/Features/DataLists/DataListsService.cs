@@ -25,13 +25,13 @@ namespace Altinn.App.Core.Features.DataLists
         }
 
         /// <inheritdoc/>
-        public async Task<DataList> GetDataListAsync(string dataListId, string language, Dictionary<string, string> keyValuePairs)
+        public async Task<DataList> GetDataListAsync(string dataListId, string? language, Dictionary<string, string> keyValuePairs)
         {
             return await _dataListsFactory.GetDataListProvider(dataListId).GetDataListAsync(language, keyValuePairs);
         }
 
         /// <inheritdoc />
-        public async Task<DataList> GetDataListAsync(InstanceIdentifier instanceIdentifier, string dataListId, string language, Dictionary<string, string> keyValuePairs)
+        public async Task<DataList> GetDataListAsync(InstanceIdentifier instanceIdentifier, string dataListId, string? language, Dictionary<string, string> keyValuePairs)
         {
             return await _instanceDataListsFactory.GetDataListProvider(dataListId).GetInstanceDataListAsync(instanceIdentifier, language, keyValuePairs);
         }

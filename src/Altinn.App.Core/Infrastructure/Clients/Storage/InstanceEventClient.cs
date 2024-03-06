@@ -4,7 +4,7 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.Platform.Storage.Interface.Models;
 
 using AltinnCore.Authentication.Utils;
@@ -18,7 +18,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
     /// <summary>
     /// A client for handling actions on instance events in Altinn Platform.
     /// </summary>
-    public class InstanceEventClient : IInstanceEvent
+    public class InstanceEventClient : IInstanceEventClient
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;

@@ -7,6 +7,7 @@ namespace Altinn.App.Core.Interface
     /// <summary>
     /// Interface for execution functionality
     /// </summary>
+    [Obsolete(message: "Use Altinn.App.Core.Internal.App.IAppResources instead", error: true)]
     public interface IAppResources
     {
         /// <summary>

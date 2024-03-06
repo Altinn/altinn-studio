@@ -1,5 +1,4 @@
-using System;
-using System.IO;
+#nullable disable
 using System.Reflection;
 using Newtonsoft.Json.Linq;
 
@@ -14,7 +13,7 @@ public static class StartupHelper
     /// Delegate for swagger funciton
     /// </summary>
     public delegate void SwaggerIncludeXmlComments(string filepath, bool a);
-    
+
     /// <summary>
     /// Includes comments in swagger based on XML comment files 
     /// </summary>
@@ -43,6 +42,6 @@ public static class StartupHelper
     {
         string appMetaDataString = File.ReadAllText("config/applicationmetadata.json");
         JObject appMetadataJObject = JObject.Parse(appMetaDataString);
-        return appMetadataJObject.SelectToken("id").Value<string>();
+        return appMetadataJObject.SelectToken("id")?.Value<string>() ?? throw new Exception("config/applicationmetadata.json does not contain an \"id\" property");
     }
 }

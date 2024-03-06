@@ -11,15 +11,18 @@ public interface IDataProcessor
     /// Is called to run custom calculation events defined by app developer when data is read from app
     /// </summary>
     /// <param name="instance">Instance that data belongs to</param>
-    /// <param name="dataId">Data id for the  data</param>
+    /// <param name="dataId">Data id for the  data (nullable if stateless)</param>
     /// <param name="data">The data to perform calculations on</param>
-    public Task<bool> ProcessDataRead(Instance instance, Guid? dataId, object data);
-    
+    /// <param name="language">The currently selected language of the user (if available)</param>
+    public Task ProcessDataRead(Instance instance, Guid? dataId, object data, string? language);
+
     /// <summary>
     /// Is called to run custom calculation events defined by app developer when data is written to app
     /// </summary>
     /// <param name="instance">Instance that data belongs to</param>
-    /// <param name="dataId">Data id for the  data</param>
+    /// <param name="dataId">Data id for the  data (nullable if stateless)</param>
     /// <param name="data">The data to perform calculations on</param>
-    public Task<bool> ProcessDataWrite(Instance instance, Guid? dataId, object data);
+    /// <param name="previousData">The previous data model (for running comparisons)</param>
+    /// <param name="language">The currently selected language of the user (if available)</param>
+    public Task ProcessDataWrite(Instance instance, Guid? dataId, object data, object? previousData, string? language);
 }

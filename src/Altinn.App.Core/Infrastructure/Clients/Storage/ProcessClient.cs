@@ -3,7 +3,7 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.Process;
 using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
@@ -16,11 +16,10 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
     /// <summary>
     /// The app implementation of the process service.
     /// </summary>
-    public class ProcessClient : IProcess
+    public class ProcessClient : IProcessClient
     {
         private readonly AppSettings _appSettings;
         private readonly ILogger<ProcessClient> _logger;
-        private readonly IInstanceEvent _instanceEventClient;
         private readonly HttpClient _client;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
@@ -30,13 +29,11 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         public ProcessClient(
             IOptions<PlatformSettings> platformSettings,
             IOptions<AppSettings> appSettings,
-            IInstanceEvent instanceEventClient,
             ILogger<ProcessClient> logger,
             IHttpContextAccessor httpContextAccessor,
             HttpClient httpClient)
         {
             _appSettings = appSettings.Value;
-            _instanceEventClient = instanceEventClient;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiStorageEndpoint);
@@ -49,7 +46,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         /// <inheritdoc/>
         public Stream GetProcessDefinition()
         {
-            string bpmnFilePath = _appSettings.AppBasePath + _appSettings.ConfigurationFolder + _appSettings.ProcessFolder + _appSettings.ProcessFileName;
+            string bpmnFilePath = Path.Join(_appSettings.AppBasePath, _appSettings.ConfigurationFolder, _appSettings.ProcessFolder, _appSettings.ProcessFileName);
 
             try
             {
@@ -81,19 +78,6 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             }
 
             throw await PlatformHttpException.CreateAsync(response);
-        }
-
-        /// <inheritdoc />
-        public async Task DispatchProcessEventsToStorage(Instance instance, List<InstanceEvent> events)
-        {
-            string org = instance.Org;
-            string app = instance.AppId.Split("/")[1];
-
-            foreach (InstanceEvent instanceEvent in events)
-            {
-                instanceEvent.InstanceId = instance.Id;
-                await _instanceEventClient.SaveInstanceEvent(instanceEvent, org, app);
-            }
         }
     }
 }

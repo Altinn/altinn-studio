@@ -1,18 +1,21 @@
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Claims;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Internal.Auth;
+using Altinn.App.Core.Models;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Common.PEP.Helpers;
+using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Register.Models;
-
+using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.Utils;
-
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-
 using Newtonsoft.Json;
 
 namespace Altinn.App.Core.Infrastructure.Clients.Authorization
@@ -20,11 +23,12 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
     /// <summary>
     /// Client for handling authorization actions in Altinn Platform.
     /// </summary>
-    public class AuthorizationClient : IAuthorization
+    public class AuthorizationClient : IAuthorizationClient
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;
         private readonly HttpClient _client;
+        private readonly IPDP _pdp;
         private readonly ILogger _logger;
         private const string ForwardedForHeaderName = "x-forwarded-for";
 
@@ -35,16 +39,19 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
         /// <param name="httpContextAccessor">the http context accessor.</param>
         /// <param name="httpClient">A Http client from the HttpClientFactory.</param>
         /// <param name="settings">The application settings.</param>
+        /// <param name="pdp"></param>
         /// <param name="logger">the handler for logger service</param>
         public AuthorizationClient(
             IOptions<PlatformSettings> platformSettings,
             IHttpContextAccessor httpContextAccessor,
             HttpClient httpClient,
             IOptionsMonitor<AppSettings> settings,
+            IPDP pdp,
             ILogger<AuthorizationClient> logger)
         {
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;
+            _pdp = pdp;
             _logger = logger;
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiAuthorizationEndpoint);
 
@@ -104,5 +111,40 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
 
             return result;
         }
+
+        /// <inheritdoc />
+        public async Task<bool> AuthorizeAction(AppIdentifier appIdentifier, InstanceIdentifier instanceIdentifier, ClaimsPrincipal user, string action, string? taskId = null)
+        {
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(appIdentifier.Org, appIdentifier.App, user, action, instanceIdentifier.InstanceOwnerPartyId, instanceIdentifier.InstanceGuid, taskId);
+            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+            if (response?.Response == null)
+            {
+                _logger.LogWarning("Failed to get decision from pdp: {SerializeObject}", JsonConvert.SerializeObject(request));
+                return false;
+            }
+
+            bool authorized = DecisionHelper.ValidatePdpDecision(response.Response, user);
+            return authorized;
+        }
+
+        /// <inheritdoc />
+        public async Task<Dictionary<string, bool>> AuthorizeActions(Instance instance, ClaimsPrincipal user, List<string> actions)
+        {
+            XacmlJsonRequestRoot request = MultiDecisionHelper.CreateMultiDecisionRequest(user, instance, actions);
+            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+            if (response?.Response == null)
+            {
+                _logger.LogWarning("Failed to get decision from pdp: {SerializeObject}", JsonConvert.SerializeObject(request));
+                return new Dictionary<string, bool>();
+            }
+            Dictionary<string, bool> actionsResult = new Dictionary<string, bool>();
+            foreach (var action in actions)
+            {
+                actionsResult.Add(action, false);
+            }
+            return MultiDecisionHelper.ValidatePdpMultiDecision(actionsResult, response.Response, user);
+        }
+
+
     }
 }

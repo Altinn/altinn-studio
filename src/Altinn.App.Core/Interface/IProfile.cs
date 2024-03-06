@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Interface
     /// <summary>
     /// Interface for profile functionality
     /// </summary>
+    [Obsolete(message: "Use Altinn.App.Core.Internal.Profile.IProfileClient instead", error: true)]
     public interface IProfile
     {
         /// <summary>

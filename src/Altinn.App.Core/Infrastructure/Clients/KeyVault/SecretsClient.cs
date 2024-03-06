@@ -1,4 +1,4 @@
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.Secrets;
 using AltinnCore.Authentication.Constants;
 
 using Microsoft.Azure.KeyVault;
@@ -12,7 +12,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.KeyVault
     /// <summary>
     /// Class that handles integration with Azure Key Vault
     /// </summary>
-    public class SecretsClient : ISecrets
+    public class SecretsClient : ISecretsClient
     {
         private readonly string _vaultUri;
         private readonly AzureServiceTokenProvider _azureServiceTokenProvider;

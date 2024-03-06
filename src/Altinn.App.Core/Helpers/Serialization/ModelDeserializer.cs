@@ -1,13 +1,9 @@
-using System;
-using System.IO;
 using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json;
 using System.Xml;
 using System.Xml.Serialization;
 
 using Microsoft.Extensions.Logging;
-
-using Newtonsoft.Json;
 
 namespace Altinn.App.Core.Helpers.Serialization
 {
@@ -16,6 +12,8 @@ namespace Altinn.App.Core.Helpers.Serialization
     /// </summary>
     public class ModelDeserializer
     {
+        private static readonly JsonSerializerOptions JSON_SERIALIZER_OPTIONS = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+
         private readonly ILogger _logger;
         private readonly Type _modelType;
 
@@ -41,13 +39,13 @@ namespace Altinn.App.Core.Helpers.Serialization
         /// <param name="stream">The data stream to deserialize.</param>
         /// <param name="contentType">The content type of the stream.</param>
         /// <returns>An instance of the initialized type if deserializing succeed.</returns>
-        public async Task<object?> DeserializeAsync(Stream stream, string contentType)
+        public async Task<object?> DeserializeAsync(Stream stream, string? contentType)
         {
             Error = null;
 
             if (contentType == null)
             {
-                Error = $"Unknown content type {contentType}. Cannot read the data.";
+                Error = $"Unknown content type \"null\". Cannot read the data.";
                 return null;
             }
 
@@ -73,9 +71,9 @@ namespace Altinn.App.Core.Helpers.Serialization
             {
                 using StreamReader reader = new StreamReader(stream, Encoding.UTF8);
                 string content = await reader.ReadToEndAsync();
-                return JsonConvert.DeserializeObject(content, _modelType)!;
+                return JsonSerializer.Deserialize(content, _modelType, JSON_SERIALIZER_OPTIONS)!;
             }
-            catch (JsonReaderException jsonReaderException)
+            catch (JsonException jsonReaderException)
             {
                 Error = jsonReaderException.Message;
                 return null;

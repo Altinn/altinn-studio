@@ -6,6 +6,7 @@ namespace Altinn.App.Core.Interface
     /// <summary>
     /// Interface for secrets service
     /// </summary>
+    [Obsolete(message: "Use Altinn.App.Core.Internal.Secrets.ISecretsClient instead", error: true)]
     public interface ISecrets
     {
         /// <summary>

@@ -12,13 +12,13 @@ namespace Altinn.App.Core.Features.DataLists
     /// ListIttems is set to null and not an empty list for the controller to be able to differensiate
     /// between option provider found, but with no values and no option provider found ie. returns 404.
     /// </summary>
-    public class NullInstanceDataListProvider: IInstanceDataListProvider
+    public class NullInstanceDataListProvider : IInstanceDataListProvider
     {
         /// <inheritdoc/>
         public string Id => string.Empty;
 
         /// <inheritdoc/>
-        public Task<DataList> GetInstanceDataListAsync(InstanceIdentifier instanceIdentifier, string language, Dictionary<string, string> keyValuePairs)
+        public Task<DataList> GetInstanceDataListAsync(InstanceIdentifier instanceIdentifier, string? language, Dictionary<string, string> keyValuePairs)
         {
             return Task.FromResult(new DataList() { ListItems = null });
         }

@@ -1,3 +1,4 @@
+#nullable disable
 using System.Diagnostics.CodeAnalysis;
 
 using Altinn.App.Core.Extensions;

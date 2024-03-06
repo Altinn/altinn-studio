@@ -6,7 +6,7 @@ namespace Altinn.App.Core.Features.Options
     public class DefaultAppOptionsProvider : IAppOptionsProvider
     {
         private readonly IAppOptionsFileHandler _appOptionsFileHandler;
-        
+
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultAppOptionsProvider"/> class.
         /// </summary>
@@ -24,7 +24,7 @@ namespace Altinn.App.Core.Features.Options
         public string Id { get; internal set; } = "default";
 
         /// <inheritdoc/>
-        public async Task<AppOptions> GetAppOptionsAsync(string language, Dictionary<string, string> keyValuePairs)
+        public async Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)
         {
             // This will get static options if it exists
             var appOptions = new AppOptions

@@ -1,5 +1,3 @@
-#nullable enable
-
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -30,7 +28,7 @@ namespace Altinn.App.Api.Controllers
         }
 
         /// <summary>
-        /// Get the application metadata
+        /// Get the application metadata https://altinncdn.no/schemas/json/application/application-metadata.schema.v1.json
         ///
         /// If org and app does not match, this returns a 409 Conflict response
         /// </summary>

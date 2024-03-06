@@ -13,5 +13,5 @@ public interface IProcessTaskStart
     /// <param name="taskId">The taskId</param>
     /// <param name="instance">The instance</param>
     /// <param name="prefill">Prefill data</param>
-    public Task Start(string taskId, Instance instance, Dictionary<string, string> prefill);   
+    public Task Start(string taskId, Instance instance, Dictionary<string, string> prefill);
 }

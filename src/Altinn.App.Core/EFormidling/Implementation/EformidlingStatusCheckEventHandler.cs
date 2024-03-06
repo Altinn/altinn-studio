@@ -8,19 +8,15 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Maskinporten;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Models;
 using Altinn.Common.EFormidlingClient;
 using Altinn.Common.EFormidlingClient.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using AltinnCore.Authentication.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using System;
 using System.Net;
 using System.Net.Http.Headers;
-using System.Runtime;
 using System.Security.Cryptography.X509Certificates;
 
 namespace Altinn.App.Core.EFormidling.Implementation
@@ -140,7 +136,7 @@ namespace Altinn.App.Core.EFormidling.Implementation
         /// a logged on user/org.
         private async Task<Instance> AddCompleteConfirmation(InstanceIdentifier instanceIdentifier)
         {
-            string url = $"instances/{instanceIdentifier.InstanceOwnerPartyId}/{instanceIdentifier.InstanceGuid}/complete";            
+            string url = $"instances/{instanceIdentifier.InstanceOwnerPartyId}/{instanceIdentifier.InstanceGuid}/complete";
 
             TokenResponse altinnToken = await GetOrganizationToken();
 

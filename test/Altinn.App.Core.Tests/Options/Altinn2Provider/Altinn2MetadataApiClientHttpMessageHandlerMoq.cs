@@ -1,9 +1,4 @@
-#nullable enable
-using System;
 using System.Net;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Altinn.App.PlatformServices.Tests.Options.Altinn2Provider
 {

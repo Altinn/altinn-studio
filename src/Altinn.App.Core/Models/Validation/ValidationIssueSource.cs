@@ -1,4 +1,3 @@
-
 namespace Altinn.App.Core.Models.Validation
 {
     /// <summary>
@@ -25,5 +24,10 @@ namespace Altinn.App.Core.Models.Validation
         /// Required field validation
         /// </summary>
         public static readonly string Custom = nameof(Custom);
+
+        /// <summary>
+        /// Expression validation
+        /// </summary>
+        public static readonly string Expression = nameof(Expression);
     }
 }

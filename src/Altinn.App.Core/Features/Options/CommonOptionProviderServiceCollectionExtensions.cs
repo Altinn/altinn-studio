@@ -1,4 +1,3 @@
-#nullable enable
 using Altinn.App.Core.Features.Options.Altinn2Provider;
 using Altinn.App.Core.Models;
 using Microsoft.Extensions.Caching.Memory;

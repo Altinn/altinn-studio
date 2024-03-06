@@ -33,7 +33,7 @@ namespace Altinn.App.Core.Models
         /// Initializes a new instance of the <see cref="InstanceIdentifier"/> class.
         /// </summary>
         /// <param name="instance">Is the instance you want to get an idenifier from</param>
-        public InstanceIdentifier(Instance instance) : this(instance.Id) {}
+        public InstanceIdentifier(Instance instance) : this(instance.Id) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceIdentifier"/> class. For instances without OwnerPartyId and InstanceId, ex: Stateless applications.
@@ -88,7 +88,7 @@ namespace Altinn.App.Core.Models
             {
                 throw new ArgumentNullException(nameof(InstanceGuid), "No instance id available for instance");
             }
-            
+
             return $"{InstanceOwnerPartyId}/{InstanceGuid}";
         }
 

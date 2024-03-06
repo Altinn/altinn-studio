@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿#nullable disable
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Enums;
@@ -58,7 +57,7 @@ namespace Altinn.App.Api.Models
                 _dataElements.Add(dataElementFileScanResult);
 
                 RecalculateAggregatedStatus();
-            }            
+            }
         }
 
         private void RecalculateAggregatedStatus()

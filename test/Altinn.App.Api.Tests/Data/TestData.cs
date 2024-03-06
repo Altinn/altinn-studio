@@ -1,5 +1,9 @@
 ﻿using Altinn.App.Api.Tests.Mocks;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Altinn.App.Core.Models;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Api.Tests.Data;
 
@@ -19,8 +23,8 @@ public static class TestData
         return Path.Combine(testDataDirectory, "apps", org, app);
     }
 
-    public static string GetAppSpecificTestdataDirectory(string org, string app) 
-    { 
+    public static string GetAppSpecificTestdataDirectory(string org, string app)
+    {
         var appDirectory = GetApplicationDirectory(org, app);
         return Path.Join(appDirectory, "_testdata_");
     }
@@ -46,7 +50,31 @@ public static class TestData
     public static string GetDataDirectory(string org, string app, int instanceOwnerId, Guid instanceGuid)
     {
         string instancesDirectory = GetInstancesDirectory();
-        return Path.Combine(instancesDirectory, org, app, instanceOwnerId.ToString(), instanceGuid.ToString()) + Path.DirectorySeparatorChar;
+
+        return Path.Join(instancesDirectory, org, app, instanceOwnerId.ToString(), instanceGuid.ToString()) +
+               Path.DirectorySeparatorChar;
+
+    }
+
+    public static (string org, string app) GetInstanceOrgApp(InstanceIdentifier identifier)
+    {
+        string instancesDirectory = GetInstancesDirectory();
+        var instanceOwner = identifier.InstanceOwnerPartyId.ToString();
+        var instanceId = identifier.InstanceGuid.ToString();
+
+        foreach (var org in Directory.GetDirectories(instancesDirectory))
+        {
+            foreach (var app in Directory.GetDirectories(org))
+            {
+                var path = Path.Join(app, instanceOwner, instanceId);
+                if (Directory.Exists(path))
+                {
+                    return (Path.GetFileName(org), Path.GetFileName(app));
+                }
+            }
+        }
+
+        throw new DirectoryNotFoundException($"No instance found for instanceOwnerId {instanceOwner} and instanceGuid {instanceId}");
     }
 
     public static string GetDataElementPath(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
@@ -64,13 +92,25 @@ public static class TestData
     public static string GetTestDataRolesFolder(int userId, int resourcePartyId)
     {
         string testDataDirectory = GetTestDataRootDirectory();
-        return Path.Combine(testDataDirectory, @"authorization/Roles/User_" + userId, "party_" + resourcePartyId, "roles.json");
+        return Path.Combine(testDataDirectory, "authorization", "roles", "User_" + userId, "party_" + resourcePartyId, "roles.json");
     }
 
     public static string GetAltinnAppsPolicyPath(string org, string app)
     {
         string testDataDirectory = GetTestDataRootDirectory();
         return Path.Combine(testDataDirectory, "apps", org, app, "config", "authorization") + Path.DirectorySeparatorChar;
+    }
+
+    public static string GetAltinnProfilePath()
+    {
+        string testDataDirectory = GetTestDataRootDirectory();
+        return Path.Combine(testDataDirectory, "Register", "Party");
+    }
+
+    public static string GetRegisterProfilePath()
+    {
+        string testDataDirectory = GetTestDataRootDirectory();
+        return Path.Combine(testDataDirectory, "Profile", "User");
     }
 
     public static void DeleteInstance(string org, string app, int instanceOwnerId, Guid instanceGuid)
@@ -143,5 +183,19 @@ public static class TestData
                 Directory.Delete(path, true);
             }
         }
+    }
+
+    private static JsonSerializerOptions JsonSerializerOptions => new(JsonSerializerDefaults.Web)
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
+        Converters = { new JsonStringEnumConverter() }
+    };
+
+    public static async Task<Instance> GetInstance(string org, string app, int instanceOwnerPartyId, Guid instanceGuid)
+    {
+        var path = GetInstancePath(org, app, instanceOwnerPartyId, instanceGuid);
+        var instanceJson = await File.ReadAllTextAsync(path);
+        return JsonSerializer.Deserialize<Instance>(instanceJson, JsonSerializerOptions)!;
     }
 }

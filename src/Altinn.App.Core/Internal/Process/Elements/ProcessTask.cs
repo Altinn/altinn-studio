@@ -6,13 +6,13 @@ namespace Altinn.App.Core.Internal.Process.Elements
     /// <summary>
     /// Class representing the task of a process
     /// </summary>
-    public class ProcessTask: ProcessElement
+    public class ProcessTask : ProcessElement
     {
         /// <summary>
-        /// Gets or sets the outgoing id of a task
+        /// Defines the extension elements
         /// </summary>
-        [XmlAttribute("tasktype", Namespace = "http://altinn.no")]
-        public string? TaskType { get; set; }
+        [XmlElement("extensionElements")]
+        public ExtensionElements? ExtensionElements { get; set; }
 
         /// <summary>
         /// String representation of process element type

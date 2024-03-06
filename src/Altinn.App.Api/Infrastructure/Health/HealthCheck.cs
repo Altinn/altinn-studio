@@ -1,5 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
+﻿#nullable disable
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Altinn.App.Api.Infrastructure.Health

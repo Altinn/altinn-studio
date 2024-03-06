@@ -1,6 +1,6 @@
+#nullable disable
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Implementation;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -67,7 +67,7 @@ public class AppResourcesSITests
         actual.Should().NotBeNull();
         actual.Should().BeEquivalentTo(expected);
     }
-    
+
     [Fact]
     public void GetApplication_handles_onEntry_null()
     {

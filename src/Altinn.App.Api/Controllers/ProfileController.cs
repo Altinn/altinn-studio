@@ -1,11 +1,7 @@
-using System;
-using System.Threading.Tasks;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.Profile;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Api.Controllers
 {
@@ -17,17 +13,15 @@ namespace Altinn.App.Api.Controllers
     [ApiController]
     public class ProfileController : Controller
     {
-        private readonly IProfile _profileClient;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IProfileClient _profileClient;
         private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProfileController"/> class
         /// </summary>
-        public ProfileController(IProfile profileClient, IHttpContextAccessor httpContextAccessor, ILogger<ProfileController> logger)
+        public ProfileController(IProfileClient profileClient, ILogger<ProfileController> logger)
         {
             _profileClient = profileClient;
-            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
         }
 
@@ -39,7 +33,7 @@ namespace Altinn.App.Api.Controllers
         [HttpGet("user")]
         public async Task<ActionResult> GetUser()
         {
-            int userId = AuthenticationHelper.GetUserId(_httpContextAccessor.HttpContext);
+            int userId = AuthenticationHelper.GetUserId(HttpContext);
             if (userId == 0)
             {
                 return BadRequest("The userId is not proviced in the context.");
@@ -58,7 +52,7 @@ namespace Altinn.App.Api.Controllers
             }
             catch (Exception e)
             {
-                return StatusCode(500, e.Message); 
+                return StatusCode(500, e.Message);
             }
         }
     }

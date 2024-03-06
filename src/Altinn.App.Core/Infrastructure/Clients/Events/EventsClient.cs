@@ -5,8 +5,8 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Storage.Interface.Models;
@@ -19,9 +19,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
     /// <summary>
     /// A client for handling actions on events in Altinn Platform.
     /// </summary>
-    public class EventsClient : IEvents
+    public class EventsClient : IEventsClient
     {
-        private readonly PlatformSettings _platformSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;
         private readonly GeneralSettings _generalSettings;
@@ -48,7 +47,6 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
             IOptionsMonitor<AppSettings> settings,
             IOptions<GeneralSettings> generalSettings)
         {
-            _platformSettings = platformSettings.Value;
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;
             _generalSettings = generalSettings.Value;

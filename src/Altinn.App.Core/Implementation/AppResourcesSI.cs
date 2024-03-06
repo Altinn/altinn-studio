@@ -2,7 +2,6 @@ using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
@@ -51,31 +50,6 @@ namespace Altinn.App.Core.Implementation
             _logger = logger;
         }
 
-        /// <inheritdoc/>
-        public byte[] GetAppResource(string org, string app, string resource)
-        {
-            byte[] fileContent;
-
-            if (resource == _settings.RuleHandlerFileName)
-            {
-                fileContent = ReadFileContentsFromLegalPath(_settings.AppBasePath + _settings.UiFolder, resource);
-            }
-            else if (resource == _settings.FormLayoutJSONFileName)
-            {
-                fileContent = ReadFileContentsFromLegalPath(_settings.AppBasePath + _settings.UiFolder, resource);
-            }
-            else if (resource == _settings.RuleConfigurationJSONFileName)
-            {
-                fileContent = ReadFileContentsFromLegalPath(_settings.AppBasePath + _settings.UiFolder, resource);
-            }
-            else
-            {
-                fileContent = ReadFileContentsFromLegalPath(_settings.AppBasePath + _settings.GetResourceFolder(), resource);
-            }
-
-            return fileContent;
-        }
-
         /// <inheritdoc />
         public byte[] GetText(string org, string app, string textResource)
         {
@@ -120,7 +94,7 @@ namespace Altinn.App.Core.Implementation
                         Show = applicationMetadata.OnEntry.Show
                     };
                 }
-                
+
                 return application;
             }
             catch (AggregateException ex)
@@ -158,26 +132,6 @@ namespace Altinn.App.Core.Implementation
         }
 
         /// <inheritdoc/>
-        public string GetModelMetaDataJSON(string org, string app)
-        {
-            Application applicationMetadata = GetApplication();
-
-            string dataTypeId = string.Empty;
-            foreach (DataType data in applicationMetadata.DataTypes)
-            {
-                if (data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef))
-                {
-                    dataTypeId = data.Id;
-                }
-            }
-
-            string filename = _settings.AppBasePath + _settings.ModelsFolder + dataTypeId + "." + _settings.ServiceMetadataFileName;
-            string filedata = File.ReadAllText(filename, Encoding.UTF8);
-
-            return filedata;
-        }
-
-        /// <inheritdoc/>
         public string GetModelJsonSchema(string modelId)
         {
             string legalPath = $"{_settings.AppBasePath}{_settings.ModelsFolder}";
@@ -187,32 +141,6 @@ namespace Altinn.App.Core.Implementation
             string filedata = File.ReadAllText(filename, Encoding.UTF8);
 
             return filedata;
-        }
-
-        /// <inheritdoc/>
-        public byte[]? GetRuntimeResource(string resource)
-        {
-            byte[]? fileContent = null;
-            string path;
-            if (resource == _settings.RuntimeAppFileName)
-            {
-                path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "js", "react", _settings.RuntimeAppFileName);
-            }
-            else if (resource == _settings.ServiceStylesConfigFileName)
-            {
-                return Encoding.UTF8.GetBytes(_settings.GetStylesConfig());
-            }
-            else
-            {
-                path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "css", "react", _settings.RuntimeCssFileName);
-            }
-
-            if (File.Exists(path))
-            {
-                fileContent = File.ReadAllBytes(path);
-            }
-
-            return fileContent;
         }
 
         /// <inheritdoc />
@@ -460,6 +388,22 @@ namespace Altinn.App.Core.Implementation
             if (File.Exists(filename))
             {
                 filedata = await File.ReadAllTextAsync(filename, Encoding.UTF8);
+            }
+
+            return filedata;
+        }
+
+        /// <inheritdoc />
+        public string? GetValidationConfiguration(string modelId)
+        {
+            string legalPath = $"{_settings.AppBasePath}{_settings.ModelsFolder}";
+            string filename = $"{legalPath}{modelId}.{_settings.ValidationConfigurationFileName}";
+            PathHelper.EnsureLegalPath(legalPath, filename);
+
+            string? filedata = null;
+            if (File.Exists(filename))
+            {
+                filedata = File.ReadAllText(filename, Encoding.UTF8);
             }
 
             return filedata;

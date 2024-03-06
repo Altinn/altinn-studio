@@ -1,9 +1,7 @@
-using System.Collections.Generic;
+#nullable disable
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Expressions;
-using Altinn.App.Core.Models.Validation;
 using FluentAssertions;
 using Xunit;
 

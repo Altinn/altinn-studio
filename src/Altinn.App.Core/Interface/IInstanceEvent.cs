@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Interface
     /// <summary>
     /// Interface for handling instance event related operations
     /// </summary>
+    [Obsolete(message: "Use Altinn.App.Core.Internal.Instances.IInstanceEventClient instead", error: true)]
     public interface IInstanceEvent
     {
         /// <summary>

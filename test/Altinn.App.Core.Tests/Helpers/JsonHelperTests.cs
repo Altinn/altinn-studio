@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
@@ -23,12 +21,12 @@ public class JsonHelperTests
         var logger = new Mock<ILogger>().Object;
         var guid = Guid.Empty;
         var dataProcessorMock = new Mock<IDataProcessor>();
-        Func<Instance, Guid, object, Task<bool>> dataProcessWrite = (instance, guid, model) => Task.FromResult(processDataWriteImpl((TModel)model));
+        Func<Instance, Guid, object, object?, string?, Task<bool>> dataProcessWrite = (instance, guid, model, previousModel, language) => Task.FromResult(processDataWriteImpl((TModel)model));
         dataProcessorMock
-            .Setup((d) => d.ProcessDataWrite(It.IsAny<Instance>(), It.IsAny<Guid>(), It.IsAny<object>()))
+            .Setup((d) => d.ProcessDataWrite(It.IsAny<Instance>(), It.IsAny<Guid>(), It.IsAny<object>(), It.IsAny<object?>(), null))
             .Returns(dataProcessWrite);
 
-        return await JsonHelper.ProcessDataWriteWithDiff(instance, guid, model, dataProcessorMock.Object, logger);
+        return await JsonHelper.ProcessDataWriteWithDiff(instance, guid, model, language: null, new IDataProcessor[] { dataProcessorMock.Object }, logger);
     }
 
     public class TestModel
@@ -84,8 +82,7 @@ public class JsonHelperTests
             return true;
         });
 
-        // Might be null in the future
-        diff.Should().BeEmpty();
+        diff.Should().BeNull();
     }
 
     [Fact]

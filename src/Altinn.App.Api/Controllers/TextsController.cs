@@ -1,5 +1,4 @@
-using System.Threading.Tasks;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Mvc;
@@ -38,7 +37,7 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Provided language {language} is invalid. Language code should consists of two characters.");
             }
 
-            TextResource textResource = await _appResources.GetTexts(org, app, language);
+            TextResource? textResource = await _appResources.GetTexts(org, app, language);
 
             if (textResource == null && language != "nb")
             {

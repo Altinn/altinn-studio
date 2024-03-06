@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+#nullable disable
 using Altinn.App.Core.Features.Pdf;
 using Altinn.App.Core.Models;
 using Altinn.App.PlatformServices.Tests.Implementation.TestResources;
@@ -35,12 +35,12 @@ public class NullPdfFormatterTests
                 }
             }
         };
-        
+
         var nullPdfFormatter = new NullPdfFormatter();
-        
+
         // Act
         var result = await nullPdfFormatter.FormatPdf(layoutSettings, new DummyModel());
-        
+
         // Assert
         result.Should().BeEquivalentTo(layoutSettings);
     }

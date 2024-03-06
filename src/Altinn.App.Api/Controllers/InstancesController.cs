@@ -1,8 +1,5 @@
-#nullable enable
-
 using System.Net;
 using System.Text;
-
 using Altinn.App.Api.Helpers.RequestHandling;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Mappers;
@@ -13,10 +10,17 @@ using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Events;
+using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Prefill;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Profile;
+using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
@@ -25,12 +29,10 @@ using Altinn.Common.PEP.Models;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
-
 using Newtonsoft.Json;
 
 namespace Altinn.App.Api.Controllers
@@ -48,11 +50,11 @@ namespace Altinn.App.Api.Controllers
     {
         private readonly ILogger<InstancesController> _logger;
 
-        private readonly IInstance _instanceClient;
-        private readonly IData _dataClient;
-        private readonly IRegister _registerClient;
-        private readonly IEvents _eventsService;
-        private readonly IProfile _profileClientClient;
+        private readonly IInstanceClient _instanceClient;
+        private readonly IDataClient _dataClient;
+        private readonly IAltinnPartyClient _altinnPartyClientClient;
+        private readonly IEventsClient _eventsClient;
+        private readonly IProfileClient _profileClient;
 
         private readonly IAppMetadata _appMetadata;
         private readonly IAppModel _appModel;
@@ -60,8 +62,9 @@ namespace Altinn.App.Api.Controllers
         private readonly IInstantiationValidator _instantiationValidator;
         private readonly IPDP _pdp;
         private readonly IPrefill _prefillService;
-        private readonly IProcessEngine _processEngine;
         private readonly AppSettings _appSettings;
+        private readonly IProcessEngine _processEngine;
+        private readonly IOrganizationClient _orgClient;
 
         private const long RequestSizeLimit = 2000 * 1024 * 1024;
 
@@ -70,34 +73,36 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         public InstancesController(
             ILogger<InstancesController> logger,
-            IRegister registerClient,
-            IInstance instanceClient,
-            IData dataClient,
+            IAltinnPartyClient altinnPartyClientClient,
+            IInstanceClient instanceClient,
+            IDataClient dataClient,
             IAppMetadata appMetadata,
             IAppModel appModel,
             IInstantiationProcessor instantiationProcessor,
             IInstantiationValidator instantiationValidator,
             IPDP pdp,
-            IEvents eventsService,
+            IEventsClient eventsClient,
             IOptions<AppSettings> appSettings,
             IPrefill prefillService,
-            IProfile profileClient,
-            IProcessEngine processEngine)
+            IProfileClient profileClient,
+            IProcessEngine processEngine,
+            IOrganizationClient orgClient)
         {
             _logger = logger;
             _instanceClient = instanceClient;
             _dataClient = dataClient;
             _appMetadata = appMetadata;
-            _registerClient = registerClient;
+            _altinnPartyClientClient = altinnPartyClientClient;
             _appModel = appModel;
             _instantiationProcessor = instantiationProcessor;
             _instantiationValidator = instantiationValidator;
             _pdp = pdp;
-            _eventsService = eventsService;
+            _eventsClient = eventsClient;
             _appSettings = appSettings.Value;
             _prefillService = prefillService;
-            _profileClientClient = profileClient;
+            _profileClient = profileClient;
             _processEngine = processEngine;
+            _orgClient = orgClient;
         }
 
         /// <summary>
@@ -208,16 +213,17 @@ namespace Altinn.App.Api.Controllers
             }
             else
             {
+                // create minimum instance template
                 instanceTemplate = new Instance
                 {
-                    InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.Value.ToString() }
+                    InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId!.Value.ToString() }
                 };
             }
 
             ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
 
             RequestPartValidator requestValidator = new RequestPartValidator(application);
-            string multipartError = requestValidator.ValidateParts(parsedRequest.Parts);
+            string? multipartError = requestValidator.ValidateParts(parsedRequest.Parts);
 
             if (!string.IsNullOrEmpty(multipartError))
             {
@@ -227,7 +233,7 @@ namespace Altinn.App.Api.Controllers
             Party party;
             try
             {
-                party = await LookupParty(instanceTemplate.InstanceOwner);
+                party = await LookupParty(instanceTemplate.InstanceOwner) ?? throw new Exception("Unknown party");
                 instanceTemplate.InstanceOwner = InstantiationHelper.PartyToInstanceOwner(party);
             }
             catch (Exception partyLookupException)
@@ -267,12 +273,24 @@ namespace Altinn.App.Api.Controllers
 
             Instance instance;
             instanceTemplate.Process = null;
-            ProcessChangeContext processChangeContext = new ProcessChangeContext(instanceTemplate, User);
+            ProcessStateChange? change = null;
+
             try
             {
-                // start process
-                processChangeContext.DontUpdateProcessAndDispatchEvents = true;
-                processChangeContext = await _processEngine.StartProcess(processChangeContext);
+                // start process and goto next task
+                ProcessStartRequest processStartRequest = new ProcessStartRequest
+                {
+                    Instance = instanceTemplate,
+                    User = User,
+                    Dryrun = true
+                };
+                var result = await _processEngine.StartProcess(processStartRequest);
+                if (!result.Success)
+                {
+                    return Conflict(result.ErrorMessage);
+                }
+
+                change = result.ProcessStateChange;
 
                 // create the instance
                 instance = await _instanceClient.CreateInstance(org, app, instanceTemplate);
@@ -290,9 +308,14 @@ namespace Altinn.App.Api.Controllers
                 instance = await _instanceClient.GetInstance(app, org, int.Parse(instance.InstanceOwner.PartyId), Guid.Parse(instance.Id.Split("/")[1]));
 
                 // notify app and store events
-                processChangeContext.Instance = instance;
-                processChangeContext.DontUpdateProcessAndDispatchEvents = false;
-                await _processEngine.StartTask(processChangeContext);
+                var request = new ProcessStartRequest()
+                {
+                    Instance = instance,
+                    User = User,
+                    Dryrun = false,
+                };
+                _logger.LogInformation("Events sent to process engine: {Events}", change?.Events);
+                await _processEngine.UpdateInstanceAndRerunEvents(request, change?.Events);
             }
             catch (Exception exception)
             {
@@ -353,7 +376,7 @@ namespace Altinn.App.Api.Controllers
             Party party;
             try
             {
-                party = await LookupParty(instansiationInstance.InstanceOwner);
+                party = await LookupParty(instansiationInstance.InstanceOwner) ?? throw new Exception("Unknown party");
                 instansiationInstance.InstanceOwner = InstantiationHelper.PartyToInstanceOwner(party);
             }
             catch (Exception partyLookupException)
@@ -404,15 +427,21 @@ namespace Altinn.App.Api.Controllers
             }
 
             Instance instance;
+            ProcessChangeResult processResult;
             try
             {
+                // start process and goto next task
                 instanceTemplate.Process = null;
 
-                // start process
-                ProcessChangeContext processChangeContext = new ProcessChangeContext(instanceTemplate, User);
-                processChangeContext.Prefill = instansiationInstance.Prefill;
-                processChangeContext.DontUpdateProcessAndDispatchEvents = true;
-                processChangeContext = await _processEngine.StartProcess(processChangeContext);
+                var request = new ProcessStartRequest()
+                {
+                    Instance = instanceTemplate,
+                    User = User,
+                    Dryrun = true,
+                    Prefill = instansiationInstance.Prefill
+                };
+
+                processResult = await _processEngine.StartProcess(request);
 
                 Instance? source = null;
 
@@ -438,16 +467,21 @@ namespace Altinn.App.Api.Controllers
 
                 instance = await _instanceClient.CreateInstance(org, app, instanceTemplate);
 
-                if (copySourceInstance)
+                if (copySourceInstance && source is not null)
                 {
                     await CopyDataFromSourceInstance(application, instance, source);
                 }
 
                 instance = await _instanceClient.GetInstance(instance);
 
-                processChangeContext.Instance = instance;
-                processChangeContext.DontUpdateProcessAndDispatchEvents = false;
-                await _processEngine.StartTask(processChangeContext);
+                var updateRequest = new ProcessStartRequest()
+                {
+                    Instance = instance,
+                    User = User,
+                    Dryrun = false,
+                    Prefill = instansiationInstance.Prefill
+                };
+                await _processEngine.UpdateInstanceAndRerunEvents(updateRequest, processResult.ProcessStateChange?.Events);
             }
             catch (Exception exception)
             {
@@ -536,11 +570,13 @@ namespace Altinn.App.Api.Controllers
                 return StatusCode((int)HttpStatusCode.Forbidden, validationResult);
             }
 
-            ProcessChangeContext processChangeContext = new(targetInstance, User)
+            ProcessStartRequest processStartRequest = new()
             {
-                DontUpdateProcessAndDispatchEvents = true
+                Instance = targetInstance,
+                User = User,
+                Dryrun = true
             };
-            processChangeContext = await _processEngine.StartProcess(processChangeContext);
+            var startResult = await _processEngine.StartProcess(processStartRequest);
 
             targetInstance = await _instanceClient.CreateInstance(org, app, targetInstance);
 
@@ -548,9 +584,13 @@ namespace Altinn.App.Api.Controllers
 
             targetInstance = await _instanceClient.GetInstance(targetInstance);
 
-            processChangeContext.Instance = targetInstance;
-            processChangeContext.DontUpdateProcessAndDispatchEvents = false;
-            await _processEngine.StartTask(processChangeContext);
+            ProcessStartRequest rerunRequest = new()
+            {
+                Instance = targetInstance,
+                Dryrun = false,
+                User = User
+            };
+            await _processEngine.UpdateInstanceAndRerunEvents(rerunRequest, startResult.ProcessStateChange?.Events);
 
             await RegisterEvent("app.instance.created", targetInstance);
 
@@ -705,7 +745,7 @@ namespace Altinn.App.Api.Controllers
             {
                 if (lastChangedBy?.Length == 9)
                 {
-                    Organization? organization = await _registerClient.ER.GetOrganization(lastChangedBy);
+                    Organization? organization = await _orgClient.GetOrganization(lastChangedBy);
                     if (organization is not null && !string.IsNullOrEmpty(organization.Name))
                     {
                         userAndOrgLookup.Add(lastChangedBy, organization.Name);
@@ -713,7 +753,7 @@ namespace Altinn.App.Api.Controllers
                 }
                 else if (int.TryParse(lastChangedBy, out int lastChangedByInt))
                 {
-                    UserProfile? user = await _profileClientClient.GetUserProfile(lastChangedByInt);
+                    UserProfile? user = await _profileClient.GetUserProfile(lastChangedByInt);
                     if (user is not null && user.Party is not null && !string.IsNullOrEmpty(user.Party.Name))
                     {
                         userAndOrgLookup.Add(lastChangedBy, user.Party.Name);
@@ -804,6 +844,8 @@ namespace Altinn.App.Api.Controllers
 
                     await _instantiationProcessor.DataCreation(targetInstance, data, null);
 
+                    ObjectUtils.InitializeAltinnRowId(data);
+
                     await _dataClient.InsertFormData(
                         data,
                         Guid.Parse(targetInstance.Id.Split("/")[1]),
@@ -859,13 +901,13 @@ namespace Altinn.App.Api.Controllers
             return enforcementResult;
         }
 
-        private async Task<Party> LookupParty(InstanceOwner instanceOwner)
+        private async Task<Party?> LookupParty(InstanceOwner instanceOwner)
         {
             if (instanceOwner.PartyId != null)
             {
                 try
                 {
-                    return await _registerClient.GetParty(int.Parse(instanceOwner.PartyId));
+                    return await _altinnPartyClientClient.GetParty(int.Parse(instanceOwner.PartyId));
                 }
                 catch (Exception e) when (e is not ServiceException)
                 {
@@ -882,12 +924,12 @@ namespace Altinn.App.Api.Controllers
                     if (!string.IsNullOrEmpty(instanceOwner.PersonNumber))
                     {
                         lookupNumber = "personNumber";
-                        return await _registerClient.LookupParty(new PartyLookup { Ssn = instanceOwner.PersonNumber });
+                        return await _altinnPartyClientClient.LookupParty(new PartyLookup { Ssn = instanceOwner.PersonNumber });
                     }
                     else if (!string.IsNullOrEmpty(instanceOwner.OrganisationNumber))
                     {
                         lookupNumber = "organisationNumber";
-                        return await _registerClient.LookupParty(new PartyLookup { OrgNo = instanceOwner.OrganisationNumber });
+                        return await _altinnPartyClientClient.LookupParty(new PartyLookup { OrgNo = instanceOwner.OrganisationNumber });
                     }
                     else
                     {
@@ -916,7 +958,7 @@ namespace Altinn.App.Api.Controllers
                 DataElement dataElement;
                 if (dataType?.AppLogic?.ClassRef != null)
                 {
-                    _logger.LogInformation($"Storing part {part.Name}");
+                    _logger.LogInformation("Storing part {partName}", part.Name);
 
                     Type type;
                     try
@@ -931,14 +973,16 @@ namespace Altinn.App.Api.Controllers
                     ModelDeserializer deserializer = new ModelDeserializer(_logger, type);
                     object? data = await deserializer.DeserializeAsync(part.Stream, part.ContentType);
 
-                    if (!string.IsNullOrEmpty(deserializer.Error))
+                    if (!string.IsNullOrEmpty(deserializer.Error) || data is null)
                     {
                         throw new InvalidOperationException(deserializer.Error);
                     }
 
-                    await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, part.Name, data);
+                    await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, part.Name!, data);
 
                     await _instantiationProcessor.DataCreation(instance, data, null);
+
+                    ObjectUtils.InitializeAltinnRowId(data);
 
                     dataElement = await _dataClient.InsertFormData(
                         data,
@@ -947,11 +991,11 @@ namespace Altinn.App.Api.Controllers
                         org,
                         app,
                         instanceOwnerIdAsInt,
-                        part.Name);
+                        part.Name!);
                 }
                 else
                 {
-                    dataElement = await _dataClient.InsertBinaryData(instance.Id, part.Name, part.ContentType, part.FileName, part.Stream);
+                    dataElement = await _dataClient.InsertBinaryData(instance.Id, part.Name!, part.ContentType, part.FileName, part.Stream);
                 }
 
                 if (dataElement == null)
@@ -1000,7 +1044,7 @@ namespace Altinn.App.Api.Controllers
             {
                 try
                 {
-                    await _eventsService.AddEvent(eventType, instance);
+                    await _eventsClient.AddEvent(eventType, instance);
                 }
                 catch (Exception exception)
                 {

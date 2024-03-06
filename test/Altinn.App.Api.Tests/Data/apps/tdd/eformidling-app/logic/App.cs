@@ -31,7 +31,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidling
                 throw new ArgumentException($"Could not find type {classRef}");
             }
 
-            object? appInstance =  Activator.CreateInstance(appType);
+            object? appInstance = Activator.CreateInstance(appType);
             return appInstance ?? throw new ArgumentException($"Could not create instance of {classRef}");
         }
 

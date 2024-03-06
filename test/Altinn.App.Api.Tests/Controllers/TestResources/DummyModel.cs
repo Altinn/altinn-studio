@@ -1,7 +1,7 @@
 namespace Altinn.App.Api.Tests.Controllers.TestResources;
 
 public class DummyModel
-{ 
+{
     public string Name { get; set; }
     public int Age { get; set; }
 
@@ -22,5 +22,10 @@ public class DummyModel
         }
 
         return this.Name == dummy.Name && this.Age == dummy.Age;
+    }
+
+    public override int GetHashCode()
+    {
+        throw new NotImplementedException();
     }
 }

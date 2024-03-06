@@ -1,3 +1,4 @@
+#nullable disable
 using System.Net;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;

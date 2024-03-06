@@ -1,8 +1,6 @@
-using System.Text.Json;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers.DataModel;
-using Altinn.App.Core.Models.Layout;
+using Altinn.App.Core.Internal.App;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Options;
 
@@ -29,9 +27,9 @@ public class LayoutEvaluatorStateInitializer
     /// <summary>
     /// Initialize LayoutEvaluatorState with given Instance, data object and layoutSetId
     /// </summary>
-    public Task<LayoutEvaluatorState> Init(Instance instance, object data, string? layoutSetId)
+    public virtual Task<LayoutEvaluatorState> Init(Instance instance, object data, string? layoutSetId, string? gatewayAction = null)
     {
         var layouts = _appResources.GetLayoutModel(layoutSetId);
-        return Task.FromResult(new LayoutEvaluatorState(new DataModel(data), layouts, _frontEndSettings, instance));
+        return Task.FromResult(new LayoutEvaluatorState(new DataModel(data), layouts, _frontEndSettings, instance, gatewayAction));
     }
 }

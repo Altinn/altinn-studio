@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Reflection;
 using System.Text.Json;
 using Altinn.App.Core.Models.Layout.Components;
@@ -75,7 +73,6 @@ public class PageComponentConverterTestModel
     public JsonElement Layout { get; set; }
 
     public HierarchyTestModel[]? ExpectedHierarchy { get; set; }
-
 }
 
 public class HierarchyTestModel

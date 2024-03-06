@@ -6,13 +6,12 @@ namespace Altinn.App.Core.Helpers
     /// <summary>
     /// Exception that is thrown by service implementation. 
     /// </summary>
-    [Serializable]
     public class ServiceException : Exception
     {
         /// <summary>
         /// The proposed return http status code.
         /// </summary>
-        public HttpStatusCode StatusCode { get;  }
+        public HttpStatusCode StatusCode { get; }
 
         /// <summary>
         /// Add a proposed http status return code and message.
@@ -33,13 +32,6 @@ namespace Altinn.App.Core.Helpers
         public ServiceException(HttpStatusCode statusCode, string message, Exception innerException) : base(message, innerException)
         {
             StatusCode = statusCode;
-        }
-
-        /// <summary>
-        /// Set serialization info.
-        /// </summary>
-        protected ServiceException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
         }
     }
 }

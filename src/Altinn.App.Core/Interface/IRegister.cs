@@ -5,18 +5,9 @@ namespace Altinn.App.Core.Interface
     /// <summary>
     /// Interface for register functionality
     /// </summary>
+    [Obsolete(message: "Use Altinn.App.Core.Internal.Registers.IAltinnPartyClient instead", error: true)]
     public interface IRegister
     {
-        /// <summary>
-        /// The access to dsf methods through register
-        /// </summary>
-        IDSF DSF { get; }
-
-        /// <summary>
-        /// The access to er methods through register
-        /// </summary>
-        IER ER { get; }
-
         /// <summary>
         /// Returns party information
         /// </summary>

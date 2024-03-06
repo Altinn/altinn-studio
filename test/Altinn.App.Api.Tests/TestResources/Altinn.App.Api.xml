@@ -103,7 +103,7 @@
                 Exposes API endpoints related to authentication.
             </summary>
         </member>
-        <member name="M:Altinn.App.Api.Controllers.AuthenticationController.#ctor(Altinn.App.Core.Interface.IAuthentication,Microsoft.Extensions.Options.IOptions{Altinn.App.Core.Configuration.GeneralSettings})">
+        <member name="M:Altinn.App.Api.Controllers.AuthenticationController.#ctor(Altinn.App.Core.Interface.IAuthenticationClient,Microsoft.Extensions.Options.IOptions{Altinn.App.Core.Configuration.GeneralSettings})">
             <summary>
                 Initializes a new instance of the <see cref="T:Altinn.App.Api.Controllers.AuthenticationController"/> class
             </summary>
@@ -125,7 +125,7 @@
                 Exposes API endpoints related to authorization
             </summary>
         </member>
-        <member name="M:Altinn.App.Api.Controllers.AuthorizationController.#ctor(Altinn.App.Core.Interface.IAuthorization,Altinn.App.Core.Interface.IProfile,Altinn.App.Core.Interface.IRegister,Microsoft.Extensions.Options.IOptions{Altinn.App.Core.Configuration.GeneralSettings})">
+        <member name="M:Altinn.App.Api.Controllers.AuthorizationController.#ctor(Altinn.App.Core.Interface.IAuthorizationClient,Altinn.App.Core.Interface.IProfileClient,Altinn.App.Core.Interface.IAltinnPartyClient,Microsoft.Extensions.Options.IOptions{Altinn.App.Core.Configuration.GeneralSettings})">
             <summary>
                 Initializes a new instance of the <see cref="T:Altinn.App.Api.Controllers.AuthorizationController"/> class
             </summary>
@@ -149,7 +149,7 @@
                 The data controller handles creation, update, validation and calculation of data elements.
             </summary>
         </member>
-        <member name="M:Altinn.App.Api.Controllers.DataController.#ctor(Microsoft.Extensions.Logging.ILogger{Altinn.App.Api.Controllers.DataController},Altinn.App.Core.Interface.IInstance,Altinn.App.Core.Interface.IInstantiation,Altinn.App.Core.Interface.IData,Altinn.App.Core.Interface.IDataProcessor,Altinn.App.Core.Interface.IAppModel,Altinn.App.Core.Interface.IAppResources,Altinn.App.Core.Interface.IPrefill)">
+        <member name="M:Altinn.App.Api.Controllers.DataController.#ctor(Microsoft.Extensions.Logging.ILogger{Altinn.App.Api.Controllers.DataController},Altinn.App.Core.Interface.IInstanceClient,Altinn.App.Core.Interface.IInstantiation,Altinn.App.Core.Interface.IDataClient,Altinn.App.Core.Interface.IDataProcessor,Altinn.App.Core.Interface.IAppModel,Altinn.App.Core.Interface.IAppResources,Altinn.App.Core.Interface.IPrefill)">
             <summary>
                 The data controller is responsible for adding business logic to the data elements.
             </summary>
@@ -222,7 +222,7 @@
                 This controller class provides action methods for endpoints related to the tags resource on data elements.
             </summary>
         </member>
-        <member name="M:Altinn.App.Api.Controllers.DataTagsController.#ctor(Altinn.App.Core.Interface.IInstance,Altinn.App.Core.Interface.IData)">
+        <member name="M:Altinn.App.Api.Controllers.DataTagsController.#ctor(Altinn.App.Core.Interface.IInstanceClient,Altinn.App.Core.Interface.IDataClient)">
             <summary>
                 Initialize a new instance of <see cref="T:Altinn.App.Api.Controllers.DataTagsController"/> with the given services.
             </summary>
@@ -309,7 +309,7 @@
                 You can create a new instance (POST), update it (PUT) and retrieve a specific instance (GET).
             </summary>
         </member>
-        <member name="M:Altinn.App.Api.Controllers.InstancesController.#ctor(Microsoft.Extensions.Logging.ILogger{Altinn.App.Api.Controllers.InstancesController},Altinn.App.Core.Interface.IRegister,Altinn.App.Core.Interface.IInstance,Altinn.App.Core.Interface.IData,Altinn.App.Core.Interface.IAppResources,Altinn.App.Core.Interface.IAppModel,Altinn.App.Core.Interface.IInstantiation,Altinn.Common.PEP.Interfaces.IPDP,Altinn.App.Core.Interface.IEvents,Microsoft.Extensions.Options.IOptions{Altinn.App.Core.Configuration.AppSettings},Altinn.App.Core.Interface.IPrefill,Altinn.App.Core.Interface.IProfile,Altinn.App.Core.Interface.IProcessEngine)">
+        <member name="M:Altinn.App.Api.Controllers.InstancesController.#ctor(Microsoft.Extensions.Logging.ILogger{Altinn.App.Api.Controllers.InstancesController},Altinn.App.Core.Interface.IAltinnPartyClient,Altinn.App.Core.Interface.IInstanceClient,Altinn.App.Core.Interface.IDataClient,Altinn.App.Core.Interface.IAppResources,Altinn.App.Core.Interface.IAppModel,Altinn.App.Core.Interface.IInstantiation,Altinn.Common.PEP.Interfaces.IPDP,Altinn.App.Core.Interface.IEventsClient,Microsoft.Extensions.Options.IOptions{Altinn.App.Core.Configuration.AppSettings},Altinn.App.Core.Interface.IPrefill,Altinn.App.Core.Interface.IProfileClient,Altinn.App.Core.Interface.IProcessEngine)">
             <summary>
                 Initializes a new instance of the <see cref="T:Altinn.App.Api.Controllers.InstancesController"/> class
             </summary>
@@ -455,7 +455,7 @@
                 Handles party related operations
             </summary>
         </member>
-        <member name="M:Altinn.App.Api.Controllers.PartiesController.#ctor(Altinn.App.Core.Interface.IAuthorization,Altinn.App.Core.Interface.IProfile,Altinn.App.Core.Interface.IRegister,Microsoft.Extensions.Options.IOptions{Altinn.App.Core.Configuration.GeneralSettings},Altinn.App.Core.Interface.IAppResources)">
+        <member name="M:Altinn.App.Api.Controllers.PartiesController.#ctor(Altinn.App.Core.Interface.IAuthorizationClient,Altinn.App.Core.Interface.IProfileClient,Altinn.App.Core.Interface.IAltinnPartyClient,Microsoft.Extensions.Options.IOptions{Altinn.App.Core.Configuration.GeneralSettings},Altinn.App.Core.Interface.IAppResources)">
             <summary>
                 Initializes a new instance of the <see cref="T:Altinn.App.Api.Controllers.PartiesController"/> class
             </summary>
@@ -489,7 +489,7 @@
                 Controller for setting and moving process flow of an instance.
             </summary>
         </member>
-        <member name="M:Altinn.App.Api.Controllers.ProcessController.#ctor(Microsoft.Extensions.Logging.ILogger{Altinn.App.Api.Controllers.ProcessController},Altinn.App.Core.Interface.IInstance,Altinn.App.Core.Interface.IProcess,Altinn.App.Core.Features.Validation.IValidation,Altinn.Common.PEP.Interfaces.IPDP,Altinn.App.Core.Interface.IProcessEngine)">
+        <member name="M:Altinn.App.Api.Controllers.ProcessController.#ctor(Microsoft.Extensions.Logging.ILogger{Altinn.App.Api.Controllers.ProcessController},Altinn.App.Core.Interface.IInstanceClient,Altinn.App.Core.Interface.IProcessClient,Altinn.App.Core.Features.Validation.IValidation,Altinn.Common.PEP.Interfaces.IPDP,Altinn.App.Core.Interface.IProcessEngine)">
             <summary>
                 Initializes a new instance of the <see cref="T:Altinn.App.Api.Controllers.ProcessController"/>
             </summary>
@@ -560,7 +560,7 @@
                 Controller that exposes profile
             </summary>
         </member>
-        <member name="M:Altinn.App.Api.Controllers.ProfileController.#ctor(Altinn.App.Core.Interface.IProfile,Microsoft.AspNetCore.Http.IHttpContextAccessor,Microsoft.Extensions.Logging.ILogger{Altinn.App.Api.Controllers.ProfileController})">
+        <member name="M:Altinn.App.Api.Controllers.ProfileController.#ctor(Altinn.App.Core.Interface.IProfileClient,Microsoft.AspNetCore.Http.IHttpContextAccessor,Microsoft.Extensions.Logging.ILogger{Altinn.App.Api.Controllers.ProfileController})">
             <summary>
                 Initializes a new instance of the <see cref="T:Altinn.App.Api.Controllers.ProfileController"/> class
             </summary>
@@ -702,7 +702,7 @@
                 The stateless data controller handles creation and calculation of data elements not related to an instance.
             </summary>
         </member>
-        <member name="M:Altinn.App.Api.Controllers.StatelessDataController.#ctor(Microsoft.Extensions.Logging.ILogger{Altinn.App.Api.Controllers.DataController},Altinn.App.Core.Interface.IAppModel,Altinn.App.Core.Interface.IAppResources,Altinn.App.Core.Interface.IDataProcessor,Altinn.App.Core.Interface.IPrefill,Altinn.App.Core.Interface.IRegister,Altinn.Common.PEP.Interfaces.IPDP)">
+        <member name="M:Altinn.App.Api.Controllers.StatelessDataController.#ctor(Microsoft.Extensions.Logging.ILogger{Altinn.App.Api.Controllers.DataController},Altinn.App.Core.Interface.IAppModel,Altinn.App.Core.Interface.IAppResources,Altinn.App.Core.Interface.IDataProcessor,Altinn.App.Core.Interface.IPrefill,Altinn.App.Core.Interface.IAltinnPartyClient,Altinn.Common.PEP.Interfaces.IPDP)">
             <summary>
                 The stateless data controller is responsible for creating and updating stateles data elements.
             </summary>
@@ -783,7 +783,7 @@
                 Represents all actions related to validation of data and instances
             </summary>
         </member>
-        <member name="M:Altinn.App.Api.Controllers.ValidateController.#ctor(Altinn.App.Core.Interface.IInstance,Altinn.App.Core.Features.Validation.IValidation,Altinn.App.Core.Interface.IAppResources)">
+        <member name="M:Altinn.App.Api.Controllers.ValidateController.#ctor(Altinn.App.Core.Interface.IInstanceClient,Altinn.App.Core.Features.Validation.IValidation,Altinn.App.Core.Interface.IAppResources)">
             <summary>
                 Initialises a new instance of the <see cref="T:Altinn.App.Api.Controllers.ValidateController"/> class
             </summary>

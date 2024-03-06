@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Interface
     /// <summary>
     /// Interface for the entity registry (ER: Enhetsregisteret)
     /// </summary>
+    [Obsolete(message: "Use Altinn.App.Core.Internal.Registers.IOrganizationClient instead", error: true)]
     public interface IER
     {
         /// <summary>

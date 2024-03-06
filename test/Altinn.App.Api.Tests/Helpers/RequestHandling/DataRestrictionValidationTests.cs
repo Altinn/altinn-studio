@@ -36,7 +36,7 @@ public class DataRestrictionValidationTests
         (bool valid, List<ValidationIssue> errors) = DataRestrictionValidation.CompliesWithDataRestrictions(httpContext.Request, dataType);
         valid.Should().BeFalse();
         errors.Should().NotBeNull();
-        errors.Should().BeOfType(typeof(List<ValidationIssue>));        
+        errors.Should().BeOfType(typeof(List<ValidationIssue>));
         errors.FirstOrDefault()!.Description.Should().BeEquivalentTo("Invalid data provided. Error: Binary attachment exceeds limit of 1048576");
     }
 

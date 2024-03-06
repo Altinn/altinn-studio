@@ -4,10 +4,10 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Internal.AppModel;
 
 /// <inheritdoc />
-public class DefaultAppModel: IAppModel
+public class DefaultAppModel : IAppModel
 {
     private readonly ILogger<DefaultAppModel> _logger;
-    
+
     /// <summary>
     /// Create with services from Dependency Injcection
     /// </summary>
@@ -15,7 +15,7 @@ public class DefaultAppModel: IAppModel
     {
         _logger = logger;
     }
-    
+
     /// <inheritdoc />
     public object Create(string classRef)
     {

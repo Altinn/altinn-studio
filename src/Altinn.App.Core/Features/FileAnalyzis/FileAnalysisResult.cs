@@ -35,10 +35,10 @@ namespace Altinn.App.Core.Features.FileAnalysis
         /// The mime type
         /// </summary>
         public string? MimeType { get; set; }
-        
+
         /// <summary>
-        /// Key/Value pairs contaning fining from the analysis.
+        /// Key/Value pairs containing findings from the analysis.
         /// </summary>
-        public IDictionary<string, string> Metadata { get; private set; } = new Dictionary<string, string>();        
+        public IDictionary<string, string> Metadata { get; private set; } = new Dictionary<string, string>();
     }
 }

@@ -12,13 +12,23 @@ xmlns:altinn="http://altinn.no">
       <bpmn:outgoing>Flow1</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:sequenceFlow id="Flow1" sourceRef="StartEvent" targetRef="Task1" />
-    <bpmn:task id="Task1" name="Utfylling" altinn:tasktype="data">
+    <bpmn:task id="Task1" name="Utfylling">
       <bpmn:incoming>Flow1</bpmn:incoming>
       <bpmn:outgoing>Flow2</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:properties>
+          <altinn:taskType>data</altinn:taskType>
+        </altinn:properties>
+      </bpmn:extensionElements>
     </bpmn:task>
     <bpmn:sequenceFlow id="Flow2" sourceRef="Task1" targetRef="Task2" />
-    <bpmn:task id="Task2" name="Bekreft skjemadata" altinn:tasktype="confirmation">
+    <bpmn:task id="Task2" name="Bekreft skjemadata">
       <bpmn:incoming>Flow2</bpmn:incoming>
+      <bpmn:extensionElements>
+        <altinn:properties>
+          <altinn:taskType>confirmation</altinn:taskType>
+        </altinn:properties>
+      </bpmn:extensionElements>
     </bpmn:task>
   </bpmn:process>
 </bpmn:definitions>

@@ -1,13 +1,14 @@
 using System.Collections;
 using Altinn.App.Api.Controllers;
-using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
+using FluentAssertions;
 using Moq;
 using Xunit;
 
@@ -122,7 +123,6 @@ public class TestScenariosData : IEnumerable<object[]>
                 new ValidationIssue
                 {
                     Code = ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask,
-                    InstanceId = "0fc98a23-fe31-4ef5-8fb9-dd3f479354ef",
                     Severity = ValidationIssueSeverity.Warning,
                     DataElementId = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd",
                     Description = AppTextHelper.GetAppText(
@@ -220,7 +220,7 @@ public class ValidationControllerValidateDataTests
         {
             var result = await validateController.ValidateData(org, app, instanceOwnerId, testScenario.InstanceId,
                 testScenario.DataGuid);
-            Assert.IsType(testScenario.ExpectedResult, result);
+            result.Should().BeOfType(testScenario.ExpectedResult);
         }
         else
         {
@@ -234,18 +234,18 @@ public class ValidationControllerValidateDataTests
     private static ValidateController SetupController(string app, string org, int instanceOwnerId,
         ValidateDataTestScenario testScenario)
     {
-        (Mock<IInstance> instanceMock, Mock<IAppMetadata> appResourceMock, Mock<IValidation> validationMock) =
+        (Mock<IInstanceClient> instanceMock, Mock<IAppMetadata> appResourceMock, Mock<IValidationService> validationMock) =
             SetupMocks(app, org, instanceOwnerId, testScenario);
 
         return new ValidateController(instanceMock.Object, validationMock.Object, appResourceMock.Object);
     }
 
-    private static (Mock<IInstance>, Mock<IAppMetadata>, Mock<IValidation>) SetupMocks(string app, string org,
+    private static (Mock<IInstanceClient>, Mock<IAppMetadata>, Mock<IValidationService>) SetupMocks(string app, string org,
         int instanceOwnerId, ValidateDataTestScenario testScenario)
     {
-        var instanceMock = new Mock<IInstance>();
+        var instanceMock = new Mock<IInstanceClient>();
         var appMetadataMock = new Mock<IAppMetadata>();
-        var validationMock = new Mock<IValidation>();
+        var validationMock = new Mock<IValidationService>();
         if (testScenario.ReceivedInstance != null)
         {
             instanceMock.Setup(i => i.GetInstance(app, org, instanceOwnerId, testScenario.InstanceId))
@@ -261,8 +261,9 @@ public class ValidationControllerValidateDataTests
         {
             validationMock.Setup(v => v.ValidateDataElement(
                     testScenario.ReceivedInstance,
+                    testScenario.ReceivedInstance.Data.First(),
                     testScenario.ReceivedApplication.DataTypes.First(),
-                    testScenario.ReceivedInstance.Data.First()))
+                    null))
                 .Returns(Task.FromResult<List<ValidationIssue>>(testScenario.ReceivedValidationIssues));
         }
 

@@ -1,3 +1,4 @@
+#nullable disable
 using Altinn.App.Core.Helpers;
 using FluentAssertions;
 using Xunit;
@@ -13,7 +14,7 @@ public class RemoveBomExtentionsTests
 
         withBom.RemoveBom().ToArray().Should().HaveCount(withBom.Length - 3);
     }
-    
+
     [Fact]
     public void TestNotRemoveBom()
     {

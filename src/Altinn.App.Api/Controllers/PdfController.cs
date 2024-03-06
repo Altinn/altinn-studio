@@ -1,9 +1,10 @@
-#nullable enable
-
 using System.Text.Json;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -16,14 +17,16 @@ namespace Altinn.App.Api.Controllers
     /// </summary>
     [Authorize]
     [ApiController]
-    [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid}/pdf")]
     public class PdfController : ControllerBase
     {
-        private readonly IInstance _instanceClient;
+        private readonly IInstanceClient _instanceClient;
+#pragma warning disable CS0618 // Type or member is obsolete
         private readonly IPdfFormatter _pdfFormatter;
         private readonly IAppResources _resources;
         private readonly IAppModel _appModel;
-        private readonly IData _dataClient;
+        private readonly IDataClient _dataClient;
+        private readonly IWebHostEnvironment _env;
+        private readonly IPdfService _pdfService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PdfController"/> class.
@@ -33,25 +36,59 @@ namespace Altinn.App.Api.Controllers
         /// <param name="resources">The app resource service</param>
         /// <param name="appModel">The app model service</param>
         /// <param name="dataClient">The data client</param>
+        /// <param name="env">The environment</param>
+        /// <param name="pdfService">The PDF service</param>
         public PdfController(
-            IInstance instanceClient,
+            IInstanceClient instanceClient,
+#pragma warning disable CS0618 // Type or member is obsolete
             IPdfFormatter pdfFormatter,
             IAppResources resources,
             IAppModel appModel,
-            IData dataClient)
+            IDataClient dataClient,
+            IWebHostEnvironment env,
+            IPdfService pdfService)
         {
             _instanceClient = instanceClient;
             _pdfFormatter = pdfFormatter;
             _resources = resources;
             _appModel = appModel;
             _dataClient = dataClient;
+            _env = env;
+            _pdfService = pdfService;
+        }
+
+        /// <summary>
+        /// Generate a preview of the PDF for the current task
+        /// </summary>
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [HttpGet("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/pdf/preview")]
+        public async Task<ActionResult> GetPdfPreview(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] int instanceOwnerPartyId,
+            [FromRoute] Guid instanceGuid)
+        {
+            if (_env.IsProduction())
+            {
+                return NotFound();
+            }
+
+            var instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            string? taskId = instance.Process?.CurrentTask?.ElementId;
+            if (instance == null || taskId == null)
+            {
+                return NotFound("Did not find instance or task");
+            }
+
+            Stream pdfContent = await _pdfService.GeneratePdf(instance, taskId, CancellationToken.None);
+            return new FileStreamResult(pdfContent, "application/pdf");
         }
 
         /// <summary>
         /// Get the pdf formatting
         /// </summary>
         /// <returns>The lists of pages/components to exclude from PDF</returns>
-        [HttpGet("format")]
+        [HttpGet("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid}/pdf/format")]
         public async Task<ActionResult> GetPdfFormat(
             [FromRoute] string org,
             [FromRoute] string app,

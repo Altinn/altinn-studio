@@ -1,11 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Tests.Controllers.TestResources;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.PageOrder;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Models;
 using FluentAssertions;
@@ -84,17 +80,17 @@ public class StatelessPagesControllerTests
             appResourcesMock.Object,
             pageOrderMock.Object
         );
-        
+
         // Act
         var response = await controller.GetPageOrder(org, app, layoutSetId, currentpage, null, formdata);
-        
+
         // Assert
         response.Result.Should().BeOfType<BadRequestObjectResult>();
         appResourcesMock.VerifyNoOtherCalls();
         pageOrderMock.VerifyNoOtherCalls();
         appModelMock.VerifyNoOtherCalls();
     }
-    
+
     [Fact]
     public async Task GetPageOrder_Returns_BadRequest_when_datatype_empty()
     {
@@ -107,10 +103,10 @@ public class StatelessPagesControllerTests
             appResourcesMock.Object,
             pageOrderMock.Object
         );
-        
+
         // Act
         var response = await controller.GetPageOrder(org, app, layoutSetId, currentpage, string.Empty, formdata);
-        
+
         // Assert
         response.Result.Should().BeOfType<BadRequestObjectResult>();
         appResourcesMock.VerifyNoOtherCalls();

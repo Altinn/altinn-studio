@@ -1,5 +1,5 @@
-#nullable enable
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
 using Altinn.App.Core.Configuration;
@@ -46,13 +46,16 @@ public class ExpressionTestCaseRoot
     public LayoutModel ComponentModel { get; set; } = default!;
 
     [JsonPropertyName("dataModel")]
-    public JsonElement? DataModel { get; set; }
+    public JsonObject? DataModel { get; set; }
 
     [JsonPropertyName("frontendSettings")]
     public FrontEndSettings? FrontEndSettings { get; set; }
 
     [JsonPropertyName("instance")]
     public Instance? Instance { get; set; }
+
+    [JsonPropertyName("gatewayAction")]
+    public string? GatewayAction { get; set; }
 
     public override string ToString()
     {

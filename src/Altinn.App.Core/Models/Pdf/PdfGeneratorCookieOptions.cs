@@ -8,7 +8,7 @@ internal class PdfGeneratorCookieOptions
     /// <summary>
     /// The name of the cookie.
     /// </summary>
-    public string Name { get; } = "AltinnStudioRuntime";
+    public string Name { get; set; } = "AltinnStudioRuntime";
 
     /// <summary>
     /// The cookie content.

@@ -107,35 +107,6 @@ namespace Altinn.App.Core.Helpers
             return ProcessSequenceFlowType.CompleteCurrentMoveToNext;
         }
 
-        /// <summary>
-        ///  Called before a process task is ended. App can do extra validation logic and add validation issues to collection which will be returned by the controller.
-        /// </summary>
-        /// <param name="instance">The instance to be ended.</param>
-        /// <param name="validationIssues">The collection of validation issues.</param> 
-        /// <returns>true task can be ended, false otherwise</returns>
-        public static async Task<bool> CanEndProcessTask(Instance instance, List<ValidationIssue> validationIssues)
-        {
-            // check if the task is validated
-            if (instance.Process?.CurrentTask?.Validated != null)
-            {
-                ValidationStatus validationStatus = instance.Process.CurrentTask.Validated;
-
-                if (validationStatus.CanCompleteTask)
-                {
-                    return true;
-                }
-            }
-            else
-            {
-                if (validationIssues.Count == 0)
-                {
-                    return true;
-                }
-            }
-
-            return await Task.FromResult(false);
-        }
-
         private static ProcessError Conflict(string text)
         {
             return new ProcessError

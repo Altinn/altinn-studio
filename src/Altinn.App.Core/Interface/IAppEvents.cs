@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Interface;
 /// <summary>
 /// Interface for implementing a receiver handling instance events.
 /// </summary>
+[Obsolete(message: "Use Altinn.App.Core.Internal.App.IAppEvents instead", error: true)]
 public interface IAppEvents
 {
     /// <summary>
@@ -14,7 +15,7 @@ public interface IAppEvents
     /// <param name="instance">Instance data</param>
     /// <returns></returns>
     public Task OnStartAppEvent(string startEvent, Instance instance);
-    
+
     /// <summary>
     /// Is called when the process for an instance is ended.
     /// </summary>

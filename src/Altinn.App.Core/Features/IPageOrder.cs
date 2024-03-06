@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Features
     /// <summary>
     /// Interface for page order handling in stateful apps
     /// </summary>
+    [Obsolete("IPageOrder does not work with frontend version 4")]
     public interface IPageOrder
     {
         /// <summary>

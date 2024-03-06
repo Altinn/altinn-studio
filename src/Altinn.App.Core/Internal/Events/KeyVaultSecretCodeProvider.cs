@@ -1,4 +1,4 @@
-﻿using Altinn.App.Core.Interface;
+﻿using Altinn.App.Core.Internal.Secrets;
 
 namespace Altinn.App.Core.Internal.Events
 {
@@ -8,7 +8,7 @@ namespace Altinn.App.Core.Internal.Events
     /// </summary>
     public class KeyVaultEventSecretCodeProvider : IEventSecretCodeProvider
     {
-        private readonly ISecrets _keyVaultClient;
+        private readonly ISecretsClient _keyVaultClient;
         private string _secretCode = string.Empty;
 
         /// <summary>
@@ -16,7 +16,7 @@ namespace Altinn.App.Core.Internal.Events
         /// This 
         /// </summary>
         /// <param name="keyVaultClient"></param>
-        public KeyVaultEventSecretCodeProvider(ISecrets keyVaultClient)
+        public KeyVaultEventSecretCodeProvider(ISecretsClient keyVaultClient)
         {
             _keyVaultClient = keyVaultClient;
         }

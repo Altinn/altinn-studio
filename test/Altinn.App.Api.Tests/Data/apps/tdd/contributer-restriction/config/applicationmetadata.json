@@ -16,7 +16,7 @@
       "maxCount": 1,
       "appLogic": {
         "autoCreate": true,
-        "ClassRef": "App.IntegrationTests.Mocks.Apps.tdd.custom_validation.Skjema"
+        "ClassRef": "Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema"
       },
       "taskId": "Task_1"
     },

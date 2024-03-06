@@ -2,8 +2,9 @@ using System.Net.Http.Headers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Register.Models;
@@ -17,7 +18,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
     /// <summary>
     /// A client for retrieving ER data from Altinn Platform.
     /// </summary>
-    public class RegisterERClient : IER
+    public class RegisterERClient : IOrganizationClient
     {
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -42,7 +43,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
             IHttpContextAccessor httpContextAccessor,
             IOptionsMonitor<AppSettings> settings,
             HttpClient httpClient,
-            IAccessTokenGenerator accessTokenGenerator, 
+            IAccessTokenGenerator accessTokenGenerator,
             IAppMetadata appMetadata)
         {
             _logger = logger;
@@ -69,7 +70,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                organization = await response.Content.ReadAsAsync<Organization>();
+                organization = await JsonSerializerPermissive.DeserializeAsync<Organization>(response.Content);
             }
             else
             {

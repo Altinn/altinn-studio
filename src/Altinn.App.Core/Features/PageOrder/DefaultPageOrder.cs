@@ -1,4 +1,4 @@
-﻿using Altinn.App.Core.Interface;
+﻿using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 
 namespace Altinn.App.Core.Features.PageOrder
@@ -6,6 +6,7 @@ namespace Altinn.App.Core.Features.PageOrder
     /// <summary>
     /// Interface for page order handling in stateless apps
     /// </summary>
+    [Obsolete("IPageOrder does not work with frontend version 4")]
     public class DefaultPageOrder : IPageOrder
     {
         private readonly IAppResources _resources;

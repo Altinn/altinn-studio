@@ -105,4 +105,12 @@ public enum ExpressionFunction
     /// Return true if the single argument evaluate to false, otherwise return false
     /// </summary>
     not,
+    /// <summary>
+    /// Returns a positional argument
+    /// </summary>
+    argv,
+    /// <summary>
+    /// Get the action performed in task prior to bpmn gateway
+    /// </summary>
+    gatewayAction,
 }

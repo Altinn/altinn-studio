@@ -11,7 +11,7 @@ internal static class RemoveBomExtentions
         {
             return bytes.AsSpan().Slice(_utf8bom.Length);
         }
-        
+
         return bytes;
     }
 }

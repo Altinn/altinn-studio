@@ -1,10 +1,10 @@
+#nullable disable
 using Altinn.App.Core.Configuration;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Api.Controllers
-{    
+{
     /// <summary>
     /// To handle authentication related operations
     /// </summary>

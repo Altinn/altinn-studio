@@ -1,8 +1,6 @@
-#nullable enable
 using System.Text.Json;
 using System.Web;
 using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;

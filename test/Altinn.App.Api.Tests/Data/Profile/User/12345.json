@@ -1,0 +1,13 @@
+{
+  "UserId": 12345,
+  "UserName": "OlaNordmann",
+  "PhoneNumber": "12345678",
+  "Email": "test@test.com",
+  "PartyId": 512345,
+  "Party": {},
+  "UserType": 0,
+  "ProfileSettingPreference": {
+    "Language": "nb",
+    "doNotPromptForParty": true
+  }
+}

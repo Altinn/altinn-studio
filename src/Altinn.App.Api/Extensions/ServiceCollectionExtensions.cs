@@ -1,23 +1,19 @@
-﻿using System;
-using Altinn.App.Api.Controllers;
+﻿using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Infrastructure.Health;
 using Altinn.App.Api.Infrastructure.Telemetry;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Extensions;
 using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
 using AltinnCore.Authentication.JwtCookie;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
 using Microsoft.FeatureManagement;
 using Microsoft.IdentityModel.Tokens;
+using Prometheus;
 
 namespace Altinn.App.Api.Extensions
 {
@@ -74,6 +70,7 @@ namespace Altinn.App.Api.Extensions
             services.AddHttpClient<AuthorizationApiClient>();
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddMetricsServer(config);
         }
 
         private static void AddApplicationInsights(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
@@ -159,6 +156,16 @@ namespace Altinn.App.Api.Extensions
             });
 
             services.TryAddSingleton<ValidateAntiforgeryTokenIfAuthCookieAuthorizationFilter>();
+        }
+
+        private static void AddMetricsServer(this IServiceCollection services, IConfiguration config)
+        {
+            var metricsSettings = config.GetSection("MetricsSettings").Get<MetricsSettings>() ?? new MetricsSettings();
+            if (metricsSettings.Enabled)
+            {
+                ushort port = metricsSettings.Port;
+                services.AddMetricServer(options => { options.Port = port; });
+            }
         }
     }
 }

@@ -20,13 +20,13 @@ namespace Altinn.App.Core.Features.Options
         }
 
         /// <inheritdoc/>
-        public async Task<AppOptions> GetOptionsAsync(string optionId, string language, Dictionary<string, string> keyValuePairs)
+        public async Task<AppOptions> GetOptionsAsync(string optionId, string? language, Dictionary<string, string> keyValuePairs)
         {
             return await _appOpptionsFactory.GetOptionsProvider(optionId).GetAppOptionsAsync(language, keyValuePairs);
         }
 
         /// <inheritdoc/>
-        public async Task<AppOptions> GetOptionsAsync(InstanceIdentifier instanceIdentifier, string optionId, string language, Dictionary<string, string> keyValuePairs)
+        public async Task<AppOptions> GetOptionsAsync(InstanceIdentifier instanceIdentifier, string optionId, string? language, Dictionary<string, string> keyValuePairs)
         {
             return await _instanceAppOptionsFactory.GetOptionsProvider(optionId).GetInstanceAppOptionsAsync(instanceIdentifier, language, keyValuePairs);
         }

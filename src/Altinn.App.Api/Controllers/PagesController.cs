@@ -1,13 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+#nullable disable
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 using Newtonsoft.Json;
 
@@ -19,6 +16,7 @@ namespace Altinn.App.Api.Controllers
     [Authorize]
     [ApiController]
     [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/pages")]
+    [Obsolete("IPageOrder does not work with frontend version 4")]
     public class PagesController : ControllerBase
     {
         private readonly IAppModel _appModel;
@@ -35,8 +33,8 @@ namespace Altinn.App.Api.Controllers
         /// <param name="pageOrder">The page order service</param>
         public PagesController(
             IAppModel appModel,
-            IAppResources resources, 
-            IPageOrder pageOrder, 
+            IAppResources resources,
+            IPageOrder pageOrder,
             ILogger<PagesController> logger)
         {
             _appModel = appModel;

@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿#nullable disable
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -17,6 +16,7 @@ namespace Altinn.App.Api.Controllers
     [ApiController]
     [Route("{org}/{app}/v1/pages")]
     [AllowAnonymous]
+    [Obsolete("IPageOrder does not work with frontend version 4")]
     public class StatelessPagesController : ControllerBase
     {
         private readonly IAppModel _appModel;
@@ -30,8 +30,8 @@ namespace Altinn.App.Api.Controllers
         /// <param name="resources">The app resource service</param>
         /// <param name="pageOrder">The page order service</param>
         public StatelessPagesController(
-            IAppModel appModel, 
-            IAppResources resources, 
+            IAppModel appModel,
+            IAppResources resources,
             IPageOrder pageOrder)
         {
             _appModel = appModel;

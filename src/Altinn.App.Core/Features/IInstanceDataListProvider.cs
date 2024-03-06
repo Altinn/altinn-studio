@@ -26,6 +26,6 @@ namespace Altinn.App.Core.Features
         /// <param name="keyValuePairs">Key/value pairs to control what options to get.
         /// When called from the data lists controller this will be the querystring key/value pairs.</param>
         /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
-        Task<DataList> GetInstanceDataListAsync(InstanceIdentifier instanceIdentifier, string language, Dictionary<string, string> keyValuePairs);
+        Task<DataList> GetInstanceDataListAsync(InstanceIdentifier instanceIdentifier, string? language, Dictionary<string, string> keyValuePairs);
     }
 }

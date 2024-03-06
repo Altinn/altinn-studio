@@ -1,14 +1,14 @@
-#nullable enable
 using System.Net;
 
 using Altinn.App.Api.Infrastructure.Filters;
-using Altinn.App.Api.Mappers;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Prefill;
+using Altinn.App.Core.Internal.Registers;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
@@ -32,9 +32,9 @@ namespace Altinn.App.Api.Controllers
         private readonly ILogger<DataController> _logger;
         private readonly IAppModel _appModel;
         private readonly IAppResources _appResourcesService;
-        private readonly IDataProcessor _dataProcessor;
+        private readonly IEnumerable<IDataProcessor> _dataProcessors;
         private readonly IPrefill _prefillService;
-        private readonly IRegister _registerClient;
+        private readonly IAltinnPartyClient _altinnPartyClientClient;
         private readonly IPDP _pdp;
 
         private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
@@ -44,23 +44,23 @@ namespace Altinn.App.Api.Controllers
         private const string OrgPrefix = "org";
 
         /// <summary>
-        /// The stateless data controller is responsible for creating and updating stateles data elements.
+        /// The stateless data controller is responsible for creating and updating stateless data elements.
         /// </summary>
         public StatelessDataController(
             ILogger<DataController> logger,
             IAppModel appModel,
             IAppResources appResourcesService,
-            IDataProcessor dataProcessor,
             IPrefill prefillService,
-            IRegister registerClient,
-            IPDP pdp)
+            IAltinnPartyClient altinnPartyClientClient,
+            IPDP pdp,
+            IEnumerable<IDataProcessor> dataProcessors)
         {
             _logger = logger;
             _appModel = appModel;
             _appResourcesService = appResourcesService;
-            _dataProcessor = dataProcessor;
+            _dataProcessors = dataProcessors;
             _prefillService = prefillService;
-            _registerClient = registerClient;
+            _altinnPartyClientClient = altinnPartyClientClient;
             _pdp = pdp;
         }
 
@@ -71,6 +71,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="app">application identifier which is unique within an organisation</param>
         /// <param name="dataType">The data type id</param>
         /// <param name="partyFromHeader">The party that should be represented with  prefix "partyId:", "person:" or "org:" (eg: "partyId:123")</param>
+        /// <param name="language">Currently selected language by the user (if available)</param>
         /// <returns>Return a new instance of the data object including prefill and initial calculations</returns>
         [Authorize]
         [HttpGet]
@@ -82,7 +83,8 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] string org,
             [FromRoute] string app,
             [FromQuery] string dataType,
-            [FromHeader(Name = "party")] string partyFromHeader)
+            [FromHeader(Name = "party")] string partyFromHeader,
+            [FromQuery] string? language = null)
         {
             if (string.IsNullOrEmpty(dataType))
             {
@@ -114,16 +116,29 @@ namespace Altinn.App.Api.Controllers
             // runs prefill from repo configuration if config exists
             await _prefillService.PrefillDataModel(owner.PartyId, dataType, appModel);
 
-            Instance virutalInstance = new Instance() { InstanceOwner = owner };
-            await _dataProcessor.ProcessDataRead(virutalInstance, null, appModel);
+            Instance virtualInstance = new Instance() { InstanceOwner = owner };
+            await ProcessAllDataRead(virtualInstance, appModel, language);
 
             return Ok(appModel);
+        }
+
+        private async Task ProcessAllDataRead(Instance virtualInstance, object appModel, string? language)
+        {
+            foreach (var dataProcessor in _dataProcessors)
+            {
+                _logger.LogInformation(
+                    "ProcessDataRead for {modelType} using {dataProcesor}",
+                    appModel.GetType().Name,
+                    dataProcessor.GetType().Name);
+                await dataProcessor.ProcessDataRead(virtualInstance, null, appModel, language);
+            }
         }
 
         /// <summary>
         /// Create a new data object of the defined data type
         /// </summary>
         /// <param name="dataType">The data type id</param>
+        /// <param name="language">The language selected by the user.</param>
         /// <returns>Return a new instance of the data object including prefill and initial calculations</returns>
         [AllowAnonymous]
         [HttpGet]
@@ -132,7 +147,9 @@ namespace Altinn.App.Api.Controllers
         [ProducesResponseType(typeof(DataElement), 200)]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         [Route("anonymous")]
-        public async Task<ActionResult> GetAnonymous([FromQuery] string dataType)
+        public async Task<ActionResult> GetAnonymous(
+            [FromQuery] string dataType,
+            [FromQuery] string? language = null)
         {
             if (string.IsNullOrEmpty(dataType))
             {
@@ -147,10 +164,8 @@ namespace Altinn.App.Api.Controllers
             }
 
             object appModel = _appModel.Create(classRef);
-
-            var virutalInstance = new Instance();
-
-            await _dataProcessor.ProcessDataRead(virutalInstance, null, appModel);
+            var virtualInstance = new Instance();
+            await ProcessAllDataRead(virtualInstance, appModel, language);
 
             return Ok(appModel);
         }
@@ -158,10 +173,11 @@ namespace Altinn.App.Api.Controllers
         /// <summary>
         /// Create a new data object of the defined data type
         /// </summary>
-        /// <param name="org">unique identfier of the organisation responsible for the app</param>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
         /// <param name="dataType">The data type id</param>
         /// <param name="partyFromHeader">The party that should be represented with  prefix "partyId:", "person:" or "org:" (eg: "partyId:123")</param>
+        /// <param name="language">The language selected by the user.</param>
         /// <returns>Return a new instance of the data object including prefill and initial calculations</returns>
         [Authorize]
         [HttpPost]
@@ -173,7 +189,8 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] string org,
             [FromRoute] string app,
             [FromQuery] string dataType,
-            [FromHeader(Name = "party")] string partyFromHeader)
+            [FromHeader(Name = "party")] string partyFromHeader,
+            [FromQuery] string? language = null)
         {
             if (string.IsNullOrEmpty(dataType))
             {
@@ -204,7 +221,7 @@ namespace Altinn.App.Api.Controllers
             ModelDeserializer deserializer = new ModelDeserializer(_logger, _appModel.GetModelType(classRef));
             object? appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
 
-            if (!string.IsNullOrEmpty(deserializer.Error))
+            if (!string.IsNullOrEmpty(deserializer.Error) || appModel is null)
             {
                 return BadRequest(deserializer.Error);
             }
@@ -212,8 +229,8 @@ namespace Altinn.App.Api.Controllers
             // runs prefill from repo configuration if config exists
             await _prefillService.PrefillDataModel(owner.PartyId, dataType, appModel);
 
-            Instance virutalInstance = new Instance() { InstanceOwner = owner };
-            await _dataProcessor.ProcessDataRead(virutalInstance, null, appModel);
+            Instance virtualInstance = new Instance() { InstanceOwner = owner };
+            await ProcessAllDataRead(virtualInstance, appModel, language);
 
             return Ok(appModel);
         }
@@ -222,6 +239,7 @@ namespace Altinn.App.Api.Controllers
         /// Create a new data object of the defined data type
         /// </summary>
         /// <param name="dataType">The data type id</param>
+        /// <param name="language">The language selected by the user.</param>
         /// <returns>Return a new instance of the data object including prefill and initial calculations</returns>
         [AllowAnonymous]
         [HttpPost]
@@ -230,7 +248,9 @@ namespace Altinn.App.Api.Controllers
         [ProducesResponseType(typeof(DataElement), 200)]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         [Route("anonymous")]
-        public async Task<ActionResult> PostAnonymous([FromQuery] string dataType)
+        public async Task<ActionResult> PostAnonymous(
+            [FromQuery] string dataType,
+            [FromQuery] string? language = null)
         {
             if (string.IsNullOrEmpty(dataType))
             {
@@ -247,23 +267,23 @@ namespace Altinn.App.Api.Controllers
             ModelDeserializer deserializer = new ModelDeserializer(_logger, _appModel.GetModelType(classRef));
             object? appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
 
-            if (!string.IsNullOrEmpty(deserializer.Error))
+            if (!string.IsNullOrEmpty(deserializer.Error) || appModel is null)
             {
                 return BadRequest(deserializer.Error);
             }
 
-            Instance virutalInstance = new Instance();
-            await _dataProcessor.ProcessDataRead(virutalInstance, null, appModel);
+            Instance virtualInstance = new Instance();
+            await ProcessAllDataRead(virtualInstance, appModel, language);
 
             return Ok(appModel);
         }
 
-        private async Task<InstanceOwner?> GetInstanceOwner(string partyFromHeader)
+        private async Task<InstanceOwner?> GetInstanceOwner(string? partyFromHeader)
         {
             // Use the party id of the logged in user, if no party id is given in the header
-            // Not sure if this is really used anywhere. It doesn't seem usefull, as you'd
+            // Not sure if this is really used anywhere. It doesn't seem useful, as you'd
             // always want to create an instance based on the selected party, not the person
-            // you happend to log in as.
+            // you happened to log in as.
             if (partyFromHeader is null)
             {
                 var partyId = Request.HttpContext.User.GetPartyIdAsInt();
@@ -272,7 +292,7 @@ namespace Altinn.App.Api.Controllers
                     return null;
                 }
 
-                var partyFromUser = await _registerClient.GetParty(partyId.Value);
+                var partyFromUser = await _altinnPartyClientClient.GetParty(partyId.Value);
                 if (partyFromUser is null)
                 {
                     return null;
@@ -292,11 +312,11 @@ namespace Altinn.App.Api.Controllers
             var idPrefix = headerParts[0].ToLowerInvariant();
             var party = idPrefix switch
             {
-                PartyPrefix => await _registerClient.GetParty(int.TryParse(id, out var partyId) ? partyId : 0),
+                PartyPrefix => await _altinnPartyClientClient.GetParty(int.TryParse(id, out var partyId) ? partyId : 0),
 
                 // Frontend seems to only use partyId, not orgnr or ssn.
-                PersonPrefix => await _registerClient.LookupParty(new PartyLookup { Ssn = id }),
-                OrgPrefix => await _registerClient.LookupParty(new PartyLookup { OrgNo = id }),
+                PersonPrefix => await _altinnPartyClientClient.LookupParty(new PartyLookup { Ssn = id }),
+                OrgPrefix => await _altinnPartyClientClient.LookupParty(new PartyLookup { OrgNo = id }),
                 _ => null,
             };
 

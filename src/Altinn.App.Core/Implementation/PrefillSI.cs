@@ -1,6 +1,9 @@
 using System.Reflection;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Prefill;
+using Altinn.App.Core.Internal.Profile;
+using Altinn.App.Core.Internal.Registers;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 
@@ -15,9 +18,9 @@ namespace Altinn.App.Core.Implementation
     public class PrefillSI : IPrefill
     {
         private readonly ILogger _logger;
-        private readonly IProfile _profileClient;
+        private readonly IProfileClient _profileClient;
         private readonly IAppResources _appResourcesService;
-        private readonly IRegister _registerClient;
+        private readonly IAltinnPartyClient _altinnPartyClientClient;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private static readonly string ER_KEY = "ER";
         private static readonly string DSF_KEY = "DSF";
@@ -31,19 +34,19 @@ namespace Altinn.App.Core.Implementation
         /// <param name="logger">The logger</param>
         /// <param name="profileClient">The profile client</param>
         /// <param name="appResourcesService">The app's resource service</param>
-        /// <param name="registerClient">The register client</param>
+        /// <param name="altinnPartyClientClient">The register client</param>
         /// <param name="httpContextAccessor">A service with access to the http context.</param>
         public PrefillSI(
             ILogger<PrefillSI> logger,
-            IProfile profileClient,
+            IProfileClient profileClient,
             IAppResources appResourcesService,
-            IRegister registerClient,
+            IAltinnPartyClient altinnPartyClientClient,
             IHttpContextAccessor httpContextAccessor)
         {
             _logger = logger;
             _profileClient = profileClient;
             _appResourcesService = appResourcesService;
-            _registerClient = registerClient;
+            _altinnPartyClientClient = altinnPartyClientClient;
             _httpContextAccessor = httpContextAccessor;
         }
 
@@ -75,7 +78,7 @@ namespace Altinn.App.Core.Implementation
                 allowOverwrite = allowOverwriteToken.ToObject<bool>();
             }
 
-            Party party = await _registerClient.GetParty(int.Parse(partyId));
+            Party party = await _altinnPartyClientClient.GetParty(int.Parse(partyId));
             if (party == null)
             {
                 string errorMessage = $"Could find party for partyId: {partyId}";

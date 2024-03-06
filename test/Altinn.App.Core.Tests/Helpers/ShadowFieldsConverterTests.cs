@@ -1,4 +1,3 @@
-#nullable enable
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -54,7 +53,7 @@ public class ShadowFieldsConverterTests
             },
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };
-        
+
         // Check that serialization with modifier removes shadow fields from result
         string serializedData = JsonSerializer.Serialize(data, options);
         Assert.DoesNotContain("AltinnSF_", serializedData);

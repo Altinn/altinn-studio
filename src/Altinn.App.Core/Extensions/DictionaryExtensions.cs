@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Net;
+using System.Text;
 
 namespace Altinn.App.Core.Extensions
 {
@@ -8,9 +9,9 @@ namespace Altinn.App.Core.Extensions
     public static class DictionaryExtensions
     {
         /// <summary>
-        /// Converts a dictionary to a name value string on the form key1=value1,key2=value2
+        /// Converts a dictionary to a name value string on the form key1=value1,key2=value2 url encoding both key and value.
         /// </summary>
-        public static string ToNameValueString(this Dictionary<string, string> parameters, char separator)
+        public static string ToUrlEncodedNameValueString(this Dictionary<string, string?>? parameters, char separator)
         {
             if (parameters == null)
             {
@@ -24,8 +25,12 @@ namespace Altinn.App.Core.Extensions
                 {
                     builder.Append(separator);
                 }
-                builder.Append(param.Key + "=" + param.Value);
+
+                builder.Append(WebUtility.UrlEncode(param.Key));
+                builder.Append('=');
+                builder.Append(WebUtility.UrlEncode(param.Value));
             }
+
             return builder.ToString();
         }
     }

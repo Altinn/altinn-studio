@@ -1,4 +1,3 @@
-#nullable enable
 using System.Collections.Generic;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Process;
@@ -12,86 +11,6 @@ namespace Altinn.App.PlatformServices.Tests.Helpers;
 
 public class ProcessHelperTests
 {
-    [Fact]
-    public void CanEndProcessTask_returns_true_when_task_is_validated_even_with_validationIssues()
-    {
-        // Arrange
-        var instance = new Instance()
-        {
-            Process = new ProcessState()
-            {
-                CurrentTask = new ProcessElementInfo()
-                {
-                    Validated = new ValidationStatus()
-                    {
-                        CanCompleteTask = true
-                    }
-                }
-            }
-        };
-        var validationIssues = new List<ValidationIssue>()
-        {
-            new ValidationIssue()
-            {
-                Severity = ValidationIssueSeverity.Error
-            }
-        };
-
-        // Act and Assert
-        ProcessHelper.CanEndProcessTask(instance, validationIssues).Result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void CanEndProcessTask_returns_true_when_no_validationIssues()
-    {
-        // Arrange
-        var instance = new Instance();
-        var validationIssues = new List<ValidationIssue>();
-
-        // Act and Assert
-        ProcessHelper.CanEndProcessTask(instance, validationIssues).Result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void CanEndProcessTask_returns_false_when_task_is_validated_false_even_with_no_validationIssues()
-    {
-        // Arrange
-        var instance = new Instance()
-        {
-            Process = new ProcessState()
-            {
-                CurrentTask = new ProcessElementInfo()
-                {
-                    Validated = new ValidationStatus()
-                    {
-                        CanCompleteTask = false
-                    }
-                }
-            }
-        };
-        var validationIssues = new List<ValidationIssue>();
-
-        // Act and Assert
-        ProcessHelper.CanEndProcessTask(instance, validationIssues).Result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void CanEndProcessTask_returns_false_when_task_is_not_validated_with_validationIssues()
-    {
-        // Arrange
-        var instance = new Instance();
-        var validationIssues = new List<ValidationIssue>()
-        {
-            new ValidationIssue()
-            {
-                Severity = ValidationIssueSeverity.Error
-            }
-        };
-
-        // Act and Assert
-        ProcessHelper.CanEndProcessTask(instance, validationIssues).Result.Should().BeFalse();
-    }
-
     [Fact]
     public void GetValidStartEventOrError_returns_start_event_and_no_error_when_null_proposed_and_one_StartEvent()
     {
@@ -234,7 +153,7 @@ public class ProcessHelperTests
         };
         ProcessHelper.GetSequenceFlowType(sequenceFlows).Should().Be(ProcessSequenceFlowType.AbandonCurrentReturnToNext);
     }
-    
+
     [Fact]
     public void GetSequenceFlowType_returns_second_flow_type_if_FlowType_Not_Defined_on_first_flow()
     {
@@ -256,7 +175,7 @@ public class ProcessHelperTests
         };
         ProcessHelper.GetSequenceFlowType(sequenceFlows).Should().Be(ProcessSequenceFlowType.AbandonCurrentReturnToNext);
     }
-    
+
     [Fact]
     public void GetSequenceFlowType_returns_CompleteCurrentMoveToNext_if_FlowType_Not_Defined()
     {
@@ -277,7 +196,7 @@ public class ProcessHelperTests
         };
         ProcessHelper.GetSequenceFlowType(sequenceFlows).Should().Be(ProcessSequenceFlowType.CompleteCurrentMoveToNext);
     }
-    
+
     [Fact]
     public void GetSequenceFlowType_returns_CompleteCurrentMoveToNext_if_Unknown_FlowTypes()
     {

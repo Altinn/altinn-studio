@@ -131,11 +131,11 @@
           "options": [
             {
               "label": "Ja",
-              "value": "ja"
+              "value": true
             },
             {
               "label": "Nei",
-              "value": "nei"
+              "value": false
             }
           ],
           "grid": {

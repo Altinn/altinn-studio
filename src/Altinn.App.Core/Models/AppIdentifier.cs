@@ -62,7 +62,7 @@ namespace Altinn.App.Core.Models
         /// <summary>
         /// Get an AppIdentifier from an Instance.AppID
         /// </summary>
-        public AppIdentifier(Instance instance) : this(instance.AppId) {}
+        public AppIdentifier(Instance instance) : this(instance.AppId) { }
 
 
         /// <summary>
@@ -126,7 +126,7 @@ namespace Altinn.App.Core.Models
             Uri uri = new(url, UriKind.Absolute);
 
             // Remove the first slash as this will only result in an empty first segment when splitting.
-            string[] segments = uri.PathAndQuery[1..].Split("/"); 
+            string[] segments = uri.PathAndQuery[1..].Split("/");
 
             if (segments.Length < 2)
             {

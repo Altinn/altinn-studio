@@ -25,7 +25,7 @@ public class DefaultEFormidlingReceivers : IEFormidlingReceivers
     public async Task<List<Receiver>> GetEFormidlingReceivers(Instance instance)
     {
         await Task.CompletedTask;
-        
+
         Identifier identifier = new Identifier
         {
             // 0192 prefix for all Norwegian organisations.
