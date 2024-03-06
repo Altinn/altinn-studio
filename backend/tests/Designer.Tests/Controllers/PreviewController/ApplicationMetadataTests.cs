@@ -71,7 +71,7 @@ namespace Designer.Tests.Controllers.PreviewController
 
             string responseBody = await response.Content.ReadAsStringAsync();
             ApplicationMetadata expectedApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(expectedApplicationMetadataString, SerializerOptions);
-            expectedApplicationMetadata.AltinnNugetVersion = "8.0.0.102";
+            expectedApplicationMetadata.AltinnNugetVersion = "8.0.0.0";
             string expectedJson = JsonSerializer.Serialize(expectedApplicationMetadata, SerializerOptions);
             JsonUtils.DeepEquals(expectedJson, responseBody).Should().BeTrue();
         }
