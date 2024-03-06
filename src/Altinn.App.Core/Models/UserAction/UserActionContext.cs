@@ -14,7 +14,7 @@ public class UserActionContext
     /// <param name="userId">The user performing the action</param>
     /// <param name="buttonId">The id of the button that triggered the action (optional)</param>
     /// <param name="actionMetadata"></param>
-    public UserActionContext(Instance instance, int userId, string? buttonId = null, Dictionary<string, string>? actionMetadata = null)
+    public UserActionContext(Instance instance, int? userId, string? buttonId = null, Dictionary<string, string>? actionMetadata = null)
     {
         Instance = instance;
         UserId = userId;
@@ -30,7 +30,7 @@ public class UserActionContext
     /// <summary>
     /// The user performing the action
     /// </summary>
-    public int UserId { get; }
+    public int? UserId { get; }
 
     /// <summary>
     /// The id of the button that triggered the action (optional)

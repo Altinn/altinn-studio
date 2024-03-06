@@ -6,6 +6,7 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Models.Process;
+using Altinn.App.Core.Models.UserAction;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Enums;
@@ -36,7 +37,7 @@ public class ProcessEngineTest : IDisposable
     [Fact]
     public async Task StartProcess_returns_unsuccessful_when_process_already_started()
     {
-        IProcessEngine processEngine = GetProcessEngine();
+        ProcessEngine processEngine = GetProcessEngine();
         Instance instance = new Instance() { Process = new ProcessState() { CurrentTask = new ProcessElementInfo() { ElementId = "Task_1" } } };
         ProcessStartRequest processStartRequest = new ProcessStartRequest() { Instance = instance };
         ProcessChangeResult result = await processEngine.StartProcess(processStartRequest);
@@ -50,7 +51,7 @@ public class ProcessEngineTest : IDisposable
     {
         Mock<IProcessReader> processReaderMock = new();
         processReaderMock.Setup(r => r.GetStartEventIds()).Returns(new List<string>() { "StartEvent_1" });
-        IProcessEngine processEngine = GetProcessEngine(processReaderMock);
+        ProcessEngine processEngine = GetProcessEngine(processReaderMock);
         Instance instance = new Instance();
         ProcessStartRequest processStartRequest = new ProcessStartRequest() { Instance = instance, StartEventId = "NotTheStartEventYouAreLookingFor" };
         ProcessChangeResult result = await processEngine.StartProcess(processStartRequest);
@@ -63,7 +64,7 @@ public class ProcessEngineTest : IDisposable
     [Fact]
     public async Task StartProcess_starts_process_and_moves_to_first_task_without_event_dispatch_when_dryrun()
     {
-        IProcessEngine processEngine = GetProcessEngine();
+        ProcessEngine processEngine = GetProcessEngine();
         Instance instance = new Instance()
         {
             InstanceOwner = new InstanceOwner()
@@ -90,7 +91,7 @@ public class ProcessEngineTest : IDisposable
     [Fact]
     public async Task StartProcess_starts_process_and_moves_to_first_task()
     {
-        IProcessEngine processEngine = GetProcessEngine();
+        ProcessEngine processEngine = GetProcessEngine();
         Instance instance = new Instance()
         {
             InstanceOwner = new InstanceOwner()
@@ -194,7 +195,7 @@ public class ProcessEngineTest : IDisposable
     [Fact]
     public async Task StartProcess_starts_process_and_moves_to_first_task_with_prefill()
     {
-        IProcessEngine processEngine = GetProcessEngine();
+        ProcessEngine processEngine = GetProcessEngine();
         Instance instance = new Instance()
         {
             InstanceOwner = new InstanceOwner()
@@ -299,7 +300,7 @@ public class ProcessEngineTest : IDisposable
     [Fact]
     public async Task Next_returns_unsuccessful_when_process_null()
     {
-        IProcessEngine processEngine = GetProcessEngine();
+        ProcessEngine processEngine = GetProcessEngine();
         Instance instance = new Instance() { Process = null };
         ProcessNextRequest processNextRequest = new ProcessNextRequest() { Instance = instance };
         ProcessChangeResult result = await processEngine.Next(processNextRequest);
@@ -311,13 +312,71 @@ public class ProcessEngineTest : IDisposable
     [Fact]
     public async Task Next_returns_unsuccessful_when_process_currenttask_null()
     {
-        IProcessEngine processEngine = GetProcessEngine();
+        ProcessEngine processEngine = GetProcessEngine();
         Instance instance = new Instance() { Process = new ProcessState() { CurrentTask = null } };
         ProcessNextRequest processNextRequest = new ProcessNextRequest() { Instance = instance };
         ProcessChangeResult result = await processEngine.Next(processNextRequest);
         result.Success.Should().BeFalse();
         result.ErrorMessage.Should().Be("Instance does not have current task information!");
         result.ErrorType.Should().Be(ProcessErrorType.Conflict);
+    }
+
+    [Fact]
+    public async Task Next_returns_unsuccessful_unauthorized_when_action_handler_returns_errortype_Unauthorized()
+    {
+        var expectedInstance = new Instance()
+        {
+            InstanceOwner = new InstanceOwner()
+            {
+                PartyId = "1337"
+            },
+            Process = new ProcessState()
+            {
+                CurrentTask = null,
+                StartEvent = "StartEvent_1",
+                EndEvent = "EndEvent_1"
+            }
+        };
+        Mock<IUserAction> userActionMock = new Mock<IUserAction>(MockBehavior.Strict);
+        userActionMock.Setup(u => u.Id).Returns("sign");
+        userActionMock.Setup(u => u.HandleAction(It.IsAny<UserActionContext>())).ReturnsAsync(UserActionResult.FailureResult(
+            error: new ActionError()
+            {
+                Code = "NoUserId",
+                Message = "User id is missing in token"
+            },
+            errorType: ProcessErrorType.Unauthorized));
+        ProcessEngine processEngine = GetProcessEngine(null, expectedInstance, [userActionMock.Object]);
+        Instance instance = new Instance()
+        {
+            InstanceOwner = new()
+            {
+                PartyId = "1337"
+            },
+            Process = new ProcessState()
+            {
+                StartEvent = "StartEvent_1",
+                CurrentTask = new()
+                {
+                    ElementId = "Task_2",
+                    AltinnTaskType = "confirmation",
+                    Flow = 3,
+                    Validated = new()
+                    {
+                        CanCompleteTask = true
+                    }
+                }
+            }
+        };
+        ClaimsPrincipal user = new(new ClaimsIdentity(new List<Claim>()
+        {
+            new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
+        }));
+        ProcessNextRequest processNextRequest = new ProcessNextRequest() { Instance = instance, User = user, Action = "sign" };
+        ProcessChangeResult result = await processEngine.Next(processNextRequest);
+        result.Success.Should().BeFalse();
+        result.ErrorMessage.Should().Be($"Action handler for action sign failed!");
+        result.ErrorType.Should().Be(ProcessErrorType.Unauthorized);
     }
 
     [Fact]
@@ -342,7 +401,7 @@ public class ProcessEngineTest : IDisposable
                 StartEvent = "StartEvent_1"
             }
         };
-        IProcessEngine processEngine = GetProcessEngine(null, expectedInstance);
+        ProcessEngine processEngine = GetProcessEngine(null, expectedInstance);
         Instance instance = new Instance()
         {
             InstanceOwner = new()
@@ -467,7 +526,7 @@ public class ProcessEngineTest : IDisposable
                 StartEvent = "StartEvent_1"
             }
         };
-        IProcessEngine processEngine = GetProcessEngine(null, expectedInstance);
+        ProcessEngine processEngine = GetProcessEngine(null, expectedInstance);
         Instance instance = new Instance()
         {
             InstanceOwner = new()
@@ -586,7 +645,7 @@ public class ProcessEngineTest : IDisposable
                 EndEvent = "EndEvent_1"
             }
         };
-        IProcessEngine processEngine = GetProcessEngine(null, expectedInstance);
+        ProcessEngine processEngine = GetProcessEngine(null, expectedInstance);
         Instance instance = new Instance()
         {
             InstanceOwner = new()
@@ -777,7 +836,7 @@ public class ProcessEngineTest : IDisposable
                 }
             }
         };
-        IProcessEngine processEngine = GetProcessEngine(null, updatedInstance);
+        ProcessEngine processEngine = GetProcessEngine(null, updatedInstance);
         ProcessStartRequest processStartRequest = new ProcessStartRequest()
         {
             Instance = instance,
@@ -791,7 +850,7 @@ public class ProcessEngineTest : IDisposable
         result.Should().Be(updatedInstance);
     }
 
-    private IProcessEngine GetProcessEngine(Mock<IProcessReader>? processReaderMock = null, Instance? updatedInstance = null)
+    private ProcessEngine GetProcessEngine(Mock<IProcessReader>? processReaderMock = null, Instance? updatedInstance = null, List<IUserAction>? userActions = null)
     {
         if (processReaderMock == null)
         {
@@ -869,7 +928,7 @@ public class ProcessEngineTest : IDisposable
             _profileMock.Object,
             _processNavigatorMock.Object,
             _processEventDispatcherMock.Object,
-            new UserActionService(new List<IUserAction>()));
+            new UserActionService(userActions ?? []));
     }
 
     public void Dispose()
@@ -908,7 +967,7 @@ public class ProcessEngineTest : IDisposable
         return JsonCompare(expected, actual);
     }
 
-    public static bool JsonCompare(object expected, object actual)
+    public static bool JsonCompare(object? expected, object? actual)
     {
         if (ReferenceEquals(expected, actual))
         {

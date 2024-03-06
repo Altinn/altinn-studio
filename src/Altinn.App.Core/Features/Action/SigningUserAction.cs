@@ -4,6 +4,7 @@ using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Sign;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.UserAction;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
@@ -44,6 +45,16 @@ public class SigningUserAction : IUserAction
     /// <exception cref="Altinn.App.Core.Internal.App.ApplicationConfigException"></exception>
     public async Task<UserActionResult> HandleAction(UserActionContext context)
     {
+        if (context.UserId == null)
+        {
+            return UserActionResult.FailureResult(
+                error: new ActionError()
+                {
+                    Code = "NoUserId",
+                    Message = "User id is missing in token"
+                },
+                errorType: ProcessErrorType.Unauthorized);
+        }
         if (_processReader.GetFlowElement(context.Instance.Process.CurrentTask.ElementId) is ProcessTask currentTask)
         {
             _logger.LogInformation("Signing action handler invoked for instance {Id}. In task: {CurrentTaskId}", context.Instance.Id, currentTask.Id);
@@ -51,7 +62,7 @@ public class SigningUserAction : IUserAction
             var connectedDataElements = GetDataElementSignatures(context.Instance.Data, dataTypes);
             if (connectedDataElements.Count > 0 && currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration?.SignatureDataType != null)
             {
-                SignatureContext signatureContext = new SignatureContext(new InstanceIdentifier(context.Instance), currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration?.SignatureDataType!, await GetSignee(context.UserId), connectedDataElements);
+                SignatureContext signatureContext = new SignatureContext(new InstanceIdentifier(context.Instance), currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration?.SignatureDataType!, await GetSignee(context.UserId.Value), connectedDataElements);
                 await _signClient.SignDataElements(signatureContext);
                 return UserActionResult.SuccessResult();
             }

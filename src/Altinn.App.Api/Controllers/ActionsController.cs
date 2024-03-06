@@ -8,6 +8,7 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.UserAction;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
@@ -71,6 +72,8 @@ public class ActionsController : ControllerBase
     [Authorize]
     [ProducesResponseType(typeof(UserActionResponse), 200)]
     [ProducesResponseType(typeof(ProblemDetails), 400)]
+    [ProducesResponseType(409)]
+    [ProducesResponseType(500)]
     [ProducesResponseType(401)]
     public async Task<ActionResult<UserActionResponse>> Perform(
         [FromRoute] string org,
@@ -134,11 +137,19 @@ public class ActionsController : ControllerBase
 
         if (!result.Success)
         {
-            return new BadRequestObjectResult(new UserActionResponse()
-            {
-                ClientActions = result.ClientActions,
-                Error = result.Error
-            });
+            return StatusCode(
+                statusCode: result.ErrorType switch
+                {
+                    ProcessErrorType.Conflict => 409,
+                    ProcessErrorType.Unauthorized => 401,
+                    ProcessErrorType.BadRequest => 400,
+                    _ => 500
+                },
+                value: new UserActionResponse()
+                {
+                    ClientActions = result.ClientActions,
+                    Error = result.Error
+                });
         }
 
         if (result.UpdatedDataModels is { Count: > 0 })

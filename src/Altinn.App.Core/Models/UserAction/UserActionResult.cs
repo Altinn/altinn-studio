@@ -1,4 +1,6 @@
 
+using Altinn.App.Core.Models.Process;
+
 namespace Altinn.App.Core.Models.UserAction;
 
 /// <summary>
@@ -9,7 +11,7 @@ public class UserActionResult
     /// <summary>
     /// Gets or sets a value indicating whether the user action was a success
     /// </summary>
-    public bool Success { get; set; }
+    public bool Success { get; init; }
 
     /// <summary>
     /// Gets or sets a dictionary of updated data models. Key should be elementId and value should be the updated data model
@@ -25,6 +27,11 @@ public class UserActionResult
     /// Validation issues that should be displayed to the user
     /// </summary>
     public ActionError? Error { get; set; }
+
+    /// <summary>
+    /// Error type to return when the user action was not successful
+    /// </summary>
+    public ProcessErrorType ErrorType { get; set; }
 
     /// <summary>
     /// Creates a success result
@@ -44,16 +51,15 @@ public class UserActionResult
     /// <summary>
     /// Creates a failure result
     /// </summary>
-    /// <param name="error"></param>
-    /// <param name="clientActions"></param>
     /// <returns></returns>
-    public static UserActionResult FailureResult(ActionError error, List<ClientAction>? clientActions = null)
+    public static UserActionResult FailureResult(ActionError error, List<ClientAction>? clientActions = null, ProcessErrorType errorType = ProcessErrorType.Internal)
     {
         return new UserActionResult
         {
             Success = false,
             ClientActions = clientActions,
-            Error = error
+            Error = error,
+            ErrorType = errorType
         };
     }
 

@@ -122,18 +122,10 @@ public class ProcessEngine : IProcessEngine
         }
 
         int? userId = request.User.GetUserIdAsInt();
-        if (userId == null)
-        {
-            return new ProcessChangeResult()
-            {
-                Success = false,
-                ErrorMessage = $"User does not have a valid user id!",
-                ErrorType = ProcessErrorType.Conflict
-            };
-        }
 
         var actionHandler = _userActionService.GetActionHandler(request.Action);
-        var actionResult = actionHandler is null ? UserActionResult.SuccessResult() : await actionHandler.HandleAction(new UserActionContext(request.Instance, userId.Value));
+
+        var actionResult = actionHandler is null ? UserActionResult.SuccessResult() : await actionHandler.HandleAction(new UserActionContext(request.Instance, userId));
 
         if (!actionResult.Success)
         {
@@ -141,7 +133,7 @@ public class ProcessEngine : IProcessEngine
             {
                 Success = false,
                 ErrorMessage = $"Action handler for action {request.Action} failed!",
-                ErrorType = ProcessErrorType.Internal
+                ErrorType = actionResult.ErrorType
             };
         }
 
