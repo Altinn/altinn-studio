@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import classes from './MigrationPage.module.css';
-import { useValidatePolicyQuery, useValidateResourceQuery } from '../../hooks/queries';
+import {
+  useResourcePolicyPublishStatusQuery,
+  useValidatePolicyQuery,
+  useValidateResourceQuery,
+} from '../../hooks/queries';
 import { MigrationStep } from '../../components/MigrationStep';
 import {
   Textfield,
@@ -15,11 +19,8 @@ import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import { useTranslation } from 'react-i18next';
 import { useUrlParams } from '../../hooks/useSelectedContext';
 import { StudioButton } from '@studio/components';
-
-const envOptions = [
-  { value: 'Testmiljø TT-02', label: 'Testmiljø TT-02' },
-  { value: 'Produksjonsmiljø', label: 'Produksjonsmiljø' },
-];
+import type { EnvId } from '../../utils/resourceUtils/resourceUtils';
+import { getAvailableEnvironments } from '../../utils/resourceUtils/resourceUtils';
 
 type MigrationPageProps = {
   navigateToPageWithError: (page: NavigationBarPage) => void;
@@ -50,23 +51,33 @@ export const MigrationPage = ({
   );
   const { data: validateResourceData, isPending: validateResourceLoading } =
     useValidateResourceQuery(selectedContext, repo, resourceId);
-
-  // TODO - API call. Issue: #10715
-  const deployOK = false;
+  const { isPending: isLoadingPublishStatus, data: publishStatusData } =
+    useResourcePolicyPublishStatusQuery(selectedContext, repo, resourceId);
 
   // TODO - This might be a saved value from backend. Issue: #10715
   const initialDate = new Date().toISOString().split('T')[0];
   const [migrationDate, setMigrationDate] = useState(initialDate);
   const [migrationTime, setMigrationTime] = useState('00:00');
-  const [selectedEnv, setSelectedEnv] = useState('');
+  const [selectedEnv, setSelectedEnv] = useState<EnvId | null>(null);
   const [numDelegationsA2, setNumDelegationsA2] = useState<number>(undefined);
   const [numDelegationsA3, setNumDelegationsA3] = useState<number>(undefined);
+
+  const envPublishStatus = getAvailableEnvironments(selectedContext).map((env) => {
+    const isPublishedInEnv = publishStatusData?.publishedVersions.some(
+      (version) => version.environment === env.id && version.version,
+    );
+    return {
+      ...env,
+      isResourcePublished: isPublishedInEnv,
+    };
+  });
+  const deployOK = envPublishStatus.some((x) => x.isResourcePublished);
 
   /**
    * Display the content on the page
    */
   const displayContent = () => {
-    if (isValidatePolicyPending || validateResourceLoading) {
+    if (isValidatePolicyPending || validateResourceLoading || isLoadingPublishStatus) {
       return (
         <div>
           <Spinner size='xlarge' variant='interaction' title='Laster inn migreringsstatus' />
@@ -79,8 +90,8 @@ export const MigrationPage = ({
           {t('resourceadm.migration_header')}
         </Heading>
         <div className={classes.contentWrapper}>
-          <div className={classes.introWrapper}>
-            <Paragraph size='small'>{t('resourceadm.migration_ingress')} </Paragraph>
+          <Paragraph size='small'>
+            {t('resourceadm.migration_ingress')}
             <Link
               href='https://docs.altinn.studio/authorization/modules/resourceregistry/'
               rel='noopener noreferrer'
@@ -88,69 +99,69 @@ export const MigrationPage = ({
             >
               {t('resourceadm.migration_help_link')}
             </Link>
-          </div>
+          </Paragraph>
           <MigrationStep
             title={t('resourceadm.migration_step_about_resource_header')}
             text={
               validateResourceData.status === 200
-                ? t('resourceadm.migration_ready_for_migration')
-                : t('resourceadm.migration_step_about_resource_errors', {
-                    validationErrors: validateResourceData.errors.length,
-                  })
+                ? 'resourceadm.migration_ready_for_migration'
+                : 'resourceadm.migration_step_about_resource_errors'
             }
+            translationValues={{ validationErrors: validateResourceData.errors.length }}
+            onNavigateToPageWithError={() => navigateToPageWithError('about')}
             isSuccess={validateResourceData.status === 200}
-            onNavigateToPageWithError={navigateToPageWithError}
-            page='about'
           />
           <MigrationStep
             title={t('resourceadm.migration_step_access_rules_header')}
             text={
               validatePolicyData === undefined
-                ? t('resourceadm.migration_no_access_rules')
+                ? 'resourceadm.migration_no_access_rules'
                 : validatePolicyData.status === 200
-                  ? t('resourceadm.migration_access_rules_ready_for_migration')
-                  : t('resourceadm.migration_step_access_rules_errors', {
-                      validationErrors: validatePolicyData.errors.length,
-                    })
+                  ? 'resourceadm.migration_access_rules_ready_for_migration'
+                  : 'resourceadm.migration_step_access_rules_errors'
             }
-            isSuccess={validatePolicyData?.status === 200 ?? false}
-            onNavigateToPageWithError={navigateToPageWithError}
-            page='policy'
+            translationValues={{ validationErrors: validatePolicyData.errors.length }}
+            onNavigateToPageWithError={() => navigateToPageWithError('policy')}
+            isSuccess={validatePolicyData.status === 200}
           />
           <MigrationStep
             title={t('resourceadm.migration_step_publish_header')}
             text={
               deployOK
-                ? t('resourceadm.migration_publish_success')
-                : t('resourceadm.migration_publish_warning')
+                ? 'resourceadm.migration_publish_success'
+                : 'resourceadm.migration_publish_warning'
             }
+            translationValues={{
+              publishedEnvs: envPublishStatus
+                .filter((env) => env.isResourcePublished)
+                .map((env) => t(env.label))
+                .join(', '),
+            }}
             isSuccess={deployOK}
-            onNavigateToPageWithError={navigateToPageWithError}
-            page='deploy'
+            onNavigateToPageWithError={() => navigateToPageWithError('deploy')}
           />
           <div className={classes.contentDivider} />
           <Label size='medium' spacing htmlFor='selectEnvDropdown'>
             {t('resourceadm.migration_select_environment_header')}
           </Label>
           <Paragraph size='small'>{t('resourceadm.migration_select_environment_body')}</Paragraph>
-          <div className={classes.selectEnv}>
-            <Radio.Group
-              hideLegend
-              onChange={setSelectedEnv}
-              value={selectedEnv}
-              legend={t('resourceadm.migration_select_environment_header')}
-              description={t('resourceadm.migration_select_environment_body')}
-            >
-              {envOptions.map((env) => {
-                return (
-                  <Radio key={env.value} value={env.value}>
-                    {env.label}
-                  </Radio>
-                );
-              })}
-            </Radio.Group>
-          </div>
-          {selectedEnv !== '' && (
+          <Radio.Group
+            hideLegend
+            onChange={(newEnv: EnvId) => setSelectedEnv(newEnv)}
+            value={selectedEnv}
+            legend={t('resourceadm.migration_select_environment_header')}
+            description={t('resourceadm.migration_select_environment_body')}
+          >
+            {envPublishStatus.map((env) => {
+              const isPublishedInEnv = env.isResourcePublished;
+              return (
+                <Radio key={env.id} value={env.label} readOnly={!isPublishedInEnv}>
+                  {`${t(env.label)} ${!isPublishedInEnv ? t('resourceadm.migration_environment_not_published') : ''}`}
+                </Radio>
+              );
+            })}
+          </Radio.Group>
+          {selectedEnv && (
             <>
               <Label asChild size='medium' spacing>
                 <p>{t('resourceadm.migration_select_migration_time_header')}</p>

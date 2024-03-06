@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import classes from './ResourcePage.module.css';
@@ -45,13 +45,10 @@ export const ResourcePage = (): React.JSX.Element => {
   const navigate = useNavigate();
 
   const { pageType, resourceId, selectedContext, repo, env, accessListId } = useUrlParams();
-
-  const [currentPage, setCurrentPage] = useState<NavigationBarPage>(pageType as NavigationBarPage);
+  const currentPage = pageType as NavigationBarPage;
 
   // Stores the temporary next page
   const [nextPage, setNextPage] = useState<NavigationBarPage>('about');
-
-  const [hasMergeConflict, setHasMergeConflict] = useState(false);
 
   // Handle the state of resource and policy errors
   const [showResourceErrors, setShowResourceErrors] = useState(false);
@@ -86,23 +83,6 @@ export const ResourcePage = (): React.JSX.Element => {
 
   // Mutation function for editing a resource
   const { mutate: editResource } = useEditResourceMutation(selectedContext, repo, resourceId);
-
-  /**
-   * If repostatus is not undefined, set the flags for if the repo has merge
-   * conflict and if the repo is in sync
-   */
-  useEffect(() => {
-    if (repoStatus) {
-      setHasMergeConflict(repoStatus.hasMergeConflict);
-    }
-  }, [repoStatus]);
-
-  /**
-   * Check if the pageType parameter has changed and update the currentPage
-   */
-  useEffect(() => {
-    setCurrentPage(pageType as NavigationBarPage);
-  }, [pageType]);
 
   /**
    * Navigates to the selected page
@@ -150,7 +130,6 @@ export const ResourcePage = (): React.JSX.Element => {
    * @param newPage the page to navigate to
    */
   const handleNavigation = (newPage: NavigationBarPage) => {
-    setCurrentPage(newPage);
     setPolicyErrorModalOpen(false);
     setResourceErrorModalOpen(false);
     refetch();
@@ -169,7 +148,9 @@ export const ResourcePage = (): React.JSX.Element => {
       await refetchValidateResource();
       setShowResourceErrors(true);
     }
-    if (page === 'policy') setShowPolicyErrors(true);
+    if (page === 'policy') {
+      setShowPolicyErrors(true);
+    }
     handleNavigation(page);
   };
 
@@ -187,6 +168,7 @@ export const ResourcePage = (): React.JSX.Element => {
   const policyPageId = 'policy';
   const deployPageId = 'deploy';
   const migrationPageId = 'migration';
+  const accessListsPageId = 'accesslists';
 
   const leftNavigationTabs: LeftNavigationTab[] = [
     createNavigationTab(
@@ -227,11 +209,7 @@ export const ResourcePage = (): React.JSX.Element => {
    * @returns the tabs to display in the LeftNavigationBar
    */
   const getTabs = (): LeftNavigationTab[] => {
-    if (isMigrateEnabled() && !leftNavigationTabs.includes(migrationTab)) {
-      return [...leftNavigationTabs, migrationTab];
-    } else {
-      return leftNavigationTabs;
-    }
+    return isMigrateEnabled() ? [...leftNavigationTabs, migrationTab] : leftNavigationTabs;
   };
 
   /**
@@ -249,9 +227,11 @@ export const ResourcePage = (): React.JSX.Element => {
         <LeftNavigationBar
           upperTab='backButton'
           tabs={getTabs()}
-          backLink={`${getResourceDashboardURL(selectedContext, repo)}`}
+          backLink={getResourceDashboardURL(selectedContext, repo)}
           backLinkText={t('resourceadm.left_nav_bar_back')}
-          selectedTab={currentPage}
+          selectedTab={
+            currentPage === migrationPageId && !isMigrateEnabled() ? aboutPageId : currentPage
+          }
         />
       </div>
       {resourcePending ? (
@@ -264,7 +244,7 @@ export const ResourcePage = (): React.JSX.Element => {
         </div>
       ) : (
         <div className={classes.resourcePageWrapper}>
-          {currentPage === 'about' && (
+          {currentPage === aboutPageId && (
             <AboutResourcePage
               showAllErrors={showResourceErrors}
               resourceData={resourceData}
@@ -272,10 +252,10 @@ export const ResourcePage = (): React.JSX.Element => {
               id='page-content-about'
             />
           )}
-          {currentPage === 'policy' && (
+          {currentPage === policyPageId && (
             <PolicyEditorPage showAllErrors={showPolicyErrors} id='page-content-policy' />
           )}
-          {currentPage === 'deploy' && (
+          {currentPage === deployPageId && (
             <DeployResourcePage
               navigateToPageWithError={navigateToPageWithError}
               resourceVersionText={resourceData?.version ?? ''}
@@ -288,17 +268,18 @@ export const ResourcePage = (): React.JSX.Element => {
               id='page-content-deploy'
             />
           )}
-          {currentPage === 'migration' && isMigrateEnabled() && (
+          {currentPage === migrationPageId && isMigrateEnabled() && (
             <MigrationPage
               navigateToPageWithError={navigateToPageWithError}
               id='page-content-migration'
             />
           )}
-          {currentPage === 'accesslists' && env && !accessListId && (
+          {currentPage === accessListsPageId && env && !accessListId && (
             <ResourceAccessLists env={env} resourceData={resourceData} />
           )}
-          {currentPage === 'accesslists' && env && accessList && (
+          {currentPage === accessListsPageId && env && accessList && (
             <AccessListDetail
+              key={accessList.identifier}
               org={selectedContext}
               env={env}
               list={accessList}
@@ -312,9 +293,9 @@ export const ResourcePage = (): React.JSX.Element => {
           )}
         </div>
       )}
-      {hasMergeConflict && (
+      {repoStatus?.hasMergeConflict && (
         <MergeConflictModal
-          isOpen={hasMergeConflict}
+          isOpen={repoStatus.hasMergeConflict}
           handleSolveMerge={refetch}
           org={selectedContext}
           repo={repo}
@@ -323,9 +304,7 @@ export const ResourcePage = (): React.JSX.Element => {
       {policyErrorModalOpen && (
         <NavigationModal
           isOpen={policyErrorModalOpen}
-          onClose={() => {
-            setPolicyErrorModalOpen(false);
-          }}
+          onClose={() => setPolicyErrorModalOpen(false)}
           onNavigate={() => handleNavigation(nextPage)}
           title={t('resourceadm.resource_navigation_modal_title_policy')}
         />
@@ -333,9 +312,7 @@ export const ResourcePage = (): React.JSX.Element => {
       {resourceErrorModalOpen && (
         <NavigationModal
           isOpen={resourceErrorModalOpen}
-          onClose={() => {
-            setResourceErrorModalOpen(false);
-          }}
+          onClose={() => setResourceErrorModalOpen(false)}
           onNavigate={() => handleNavigation(nextPage)}
           title={t('resourceadm.resource_navigation_modal_title_resource')}
         />

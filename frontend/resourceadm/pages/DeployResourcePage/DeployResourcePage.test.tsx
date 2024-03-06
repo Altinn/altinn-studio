@@ -35,6 +35,11 @@ const mockValidatePolicyData3: Validation = {
   errors: ['policyerror.missingpolicy'],
 };
 
+const mockValidatePolicyData4: Validation = {
+  status: 500,
+  errors: ['policyerror.missingpolicy'],
+};
+
 const mockValidateResourceData2: Validation = { status: 400, errors: ['resource.title'] };
 
 const mockResourceVersionText: string = '2';
@@ -122,26 +127,8 @@ describe('DeployResourcePage', () => {
     );
     expect(statusCardTitle).toBeInTheDocument();
 
-    const errorMessage = textMock('resourceadm.deploy_status_card_error_resource_page', {
-      num: mockValidateResourceData2.errors.length,
-    });
+    const errorMessage = textMock('resourceadm.deploy_status_card_error_resource_page');
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
-  });
-
-  it('calls "navigateToPageWithError" when navigating to resource page with errors', async () => {
-    const user = userEvent.setup();
-    await resolveAndWaitForSpinnerToDisappear({
-      getValidateResource: () => Promise.resolve(mockValidateResourceData2),
-    });
-
-    const linkButton = screen.getByRole('button', {
-      name: textMock('resourceadm.about_resource_title'),
-    });
-    expect(linkButton).toBeInTheDocument();
-
-    await act(() => user.click(linkButton));
-    expect(mockNavigateToPageWithError).toHaveBeenCalledTimes(1);
-    expect(mockNavigateToPageWithError).toHaveBeenCalledWith('about');
   });
 
   it('renders status card with missing policy error when policy validation fails with missing policy', async () => {
@@ -158,6 +145,20 @@ describe('DeployResourcePage', () => {
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
   });
 
+  it('renders status card with default policy error when policy validation fails with server error', async () => {
+    await resolveAndWaitForSpinnerToDisappear({
+      getValidatePolicy: () => Promise.resolve(mockValidatePolicyData4),
+    });
+
+    const statusCardTitle = screen.getByText(
+      textMock('resourceadm.deploy_status_card_error_title'),
+    );
+    expect(statusCardTitle).toBeInTheDocument();
+
+    const errorMessage = textMock('resourceadm.deploy_status_card_error_policy_page_default');
+    expect(screen.getByText(errorMessage)).toBeInTheDocument();
+  });
+
   it('renders status card with policy errors when policy validation fails', async () => {
     await resolveAndWaitForSpinnerToDisappear({
       getValidatePolicy: () => Promise.resolve(mockValidatePolicyData2),
@@ -168,26 +169,8 @@ describe('DeployResourcePage', () => {
     );
     expect(statusCardTitle).toBeInTheDocument();
 
-    const errorMessage = textMock('resourceadm.deploy_status_card_error_policy_page', {
-      num: mockValidatePolicyData2.errors.length,
-    });
+    const errorMessage = textMock('resourceadm.deploy_status_card_error_policy_page');
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
-  });
-
-  it('calls "navigateToPageWithError" when navigating to policy page with errors', async () => {
-    const user = userEvent.setup();
-    await resolveAndWaitForSpinnerToDisappear({
-      getValidatePolicy: () => Promise.resolve(mockValidatePolicyData2),
-    });
-
-    const linkButton = screen.getByRole('button', {
-      name: textMock('resourceadm.policy_editor_title'),
-    });
-    expect(linkButton).toBeInTheDocument();
-
-    await act(() => user.click(linkButton));
-    expect(mockNavigateToPageWithError).toHaveBeenCalledTimes(1);
-    expect(mockNavigateToPageWithError).toHaveBeenCalledWith('policy');
   });
 
   it('renders status card with repo not in sync errors when repo is behind or ahead of master', async () => {
