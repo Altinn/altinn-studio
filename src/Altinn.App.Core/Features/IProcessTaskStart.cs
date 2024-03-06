@@ -12,6 +12,6 @@ public interface IProcessTaskStart
     /// </summary>
     /// <param name="taskId">The taskId</param>
     /// <param name="instance">The instance</param>
-    /// <param name="prefill">Prefill data</param>
-    public Task Start(string taskId, Instance instance, Dictionary<string, string> prefill);
+    /// <param name="prefill">Prefill data. Only specified for simple initialization. See POST {org}/{app}/instances/create endpoint</param>
+    public Task Start(string taskId, Instance instance, Dictionary<string, string>? prefill);
 }
