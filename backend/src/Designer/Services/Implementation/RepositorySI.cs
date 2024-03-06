@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -25,6 +24,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 using PlatformStorageModels = Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -282,8 +282,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 await _applicationMetadataService.CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
                 await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, serviceConfig.RepositoryName, developer);
-                await _appDevelopmentService.SaveFormLayout(editingContext, null, InitialLayout, GetInitialLayout());
-                await _appDevelopmentService.SaveLayoutSettings(editingContext, GetInitialLayoutSettings(InitialLayout), null);
                 await CreateRepositorySettings(org, serviceConfig.RepositoryName, developer);
 
                 CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
@@ -292,34 +290,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return repository;
-        }
-
-        private static JsonNode GetInitialLayout()
-        {
-            var layout = new JsonObject
-            {
-                ["$schema"] = AltinnAppGitRepository.LayoutSchemaUrl,
-                ["data"] = new JsonObject
-                {
-                    ["layout"] = new JsonArray()
-                }
-            };
-            return layout;
-        }
-
-        private static JsonNode GetInitialLayoutSettings(string initialLayout)
-        {
-
-            var layoutSettings = new JsonObject
-            {
-                ["$schema"] = AltinnAppGitRepository.LayoutSettingsSchemaUrl,
-                ["pages"] = new JsonObject
-                {
-                    ["order"] = new JsonArray { initialLayout }
-                }
-            };
-
-            return layoutSettings;
         }
 
         private async Task CreateRepositorySettings(string org, string repository, string developer)
@@ -427,6 +397,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             // Create the app deployment folder
             Directory.CreateDirectory(targetPath);
 
+            var files = Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories);
+
             // Create all of the directories
             foreach (string dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
             {
@@ -496,7 +468,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             foreach (FileSystemObject resourceFile in resourceFiles)
             {
                 string jsonString = File.ReadAllText($"{repopath}/{resourceFile.Path}");
-                ServiceResource serviceResource = System.Text.Json.JsonSerializer.Deserialize<ServiceResource>(jsonString, _serializerOptions);
+                ServiceResource serviceResource = JsonSerializer.Deserialize<ServiceResource>(jsonString, _serializerOptions);
 
                 if (serviceResource != null)
                 {
@@ -518,11 +490,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 foreach (FileSystemObject resourceFile in resourceFiles)
                 {
                     string jsonString = File.ReadAllText($"{repopath}/{resourceFile.Path}");
-                    ServiceResource serviceResource = System.Text.Json.JsonSerializer.Deserialize<ServiceResource>(jsonString, _serializerOptions);
+                    ServiceResource serviceResource = JsonSerializer.Deserialize<ServiceResource>(jsonString, _serializerOptions);
 
                     if (serviceResource != null && serviceResource.Identifier == updatedResource.Identifier)
                     {
-                        string updatedResourceString = System.Text.Json.JsonSerializer.Serialize(updatedResource, _serializerOptions);
+                        string updatedResourceString = JsonSerializer.Serialize(updatedResource, _serializerOptions);
                         File.WriteAllText($"{repopath}/{resourceFile.Path}", updatedResourceString);
                         return new StatusCodeResult(201);
                     }
@@ -545,7 +517,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
                     string fullPathOfNewResource = Path.Combine(repopath, newResource.Identifier.AsFileName(), string.Format("{0}_resource.json", newResource.Identifier));
-                    string newResourceJson = System.Text.Json.JsonSerializer.Serialize(newResource, _serializerOptions);
+                    string newResourceJson = JsonSerializer.Serialize(newResource, _serializerOptions);
                     Directory.CreateDirectory(Path.Combine(repopath, newResource.Identifier.AsFileName()));
                     File.WriteAllText(fullPathOfNewResource, newResourceJson);
 
