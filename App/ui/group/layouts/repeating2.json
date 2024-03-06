@@ -136,8 +136,7 @@
           "tableTitle": "Kilde"
         },
         "dataModelBindings": {
-          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.source",
-          "label": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.source"
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.source"
         },
         "optionsId": "list",
         "required": false,
