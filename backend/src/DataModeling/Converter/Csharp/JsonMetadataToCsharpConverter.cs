@@ -108,6 +108,11 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 }
             }
 
+            if(ShouldAddAltinnRowId(parentElement, serviceMetadata.Elements.Values.ToList()))
+            {
+                AddAltinnRowId(classBuilder);
+            }
+
             classBuilder.AppendLine(Indent() + "}");
 
             if (!classes.ContainsKey(parentElement.TypeName))
@@ -447,6 +452,25 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             classBuilder.AppendLine(Indent(3) + $"return {propName}.HasValue;");
             classBuilder.AppendLine(Indent(2) + "}");
             classBuilder.AppendLine();
+        }
+
+        private bool ShouldAddAltinnRowId(ElementMetadata element, List<ElementMetadata> allElements) =>
+            allElements.Any(e =>
+                e.TypeName == element.TypeName && e.MaxOccurs > 1);
+
+        private void AddAltinnRowId(StringBuilder classBuilder)
+        {
+            classBuilder.AppendLine(Indent(2) + "[XmlAttribute(\"altinnRowId\")]");
+            classBuilder.AppendLine(Indent(2) + "[JsonPropertyName(\"altinnRowId\")]");
+            classBuilder.AppendLine(Indent(2) +
+                                    "[System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]");
+            classBuilder.AppendLine(Indent(2) + "[Newtonsoft.Json.JsonIgnore]");
+            classBuilder.AppendLine(Indent(2) + "public Guid AltinnRowId { get; set; }");
+            classBuilder.AppendLine("");
+            classBuilder.AppendLine(Indent(2) + "public bool ShouldSerializeAltinnRowId()");
+            classBuilder.AppendLine(Indent(2) + "{");
+            classBuilder.AppendLine(Indent(3) + "return AltinnRowId != default;");
+            classBuilder.AppendLine(Indent(2) + "}");
         }
     }
 }
