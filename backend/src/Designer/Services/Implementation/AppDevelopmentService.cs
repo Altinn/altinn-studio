@@ -172,7 +172,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             return altinnAppGitRepository.GetLayoutNames(null);
         }
-        
+
         /// <inheritdoc />
         public async Task<ModelMetadata> GetModelMetadata(AltinnRepoEditingContext altinnRepoEditingContext,
             string layoutSetName, CancellationToken cancellationToken = default)
