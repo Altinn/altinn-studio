@@ -43,7 +43,7 @@ public class PutDatamodel_CsharpNamespaceTests : DisagnerEndpointsTestsBase<PutD
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         // get the csharp model from repo
         string csharpModel = TestDataHelper.GetFileFromRepo(org, targetRepo, developer, expectedModelPath);
-        csharpModel.Should().Contain($"namespace {expectedNamespace}\n{{");
+        csharpModel.Should().Contain($"namespace {expectedNamespace}{System.Environment.NewLine}{{");
 
         string applicationMetadataContent = TestDataHelper.GetFileFromRepo(org, targetRepo, developer, "App/config/applicationmetadata.json");
         var applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataContent, JsonSerializerOptions);
