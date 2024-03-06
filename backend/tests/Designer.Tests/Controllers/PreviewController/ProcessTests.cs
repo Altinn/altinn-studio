@@ -59,6 +59,11 @@ namespace Designer.Tests.Controllers.PreviewController
                 {
                     ElementId = "Task_2",
                     AltinnTaskType = "data"
+                },
+                new AppProcessTaskTypeInfo
+                {
+                    ElementId = "Task_3",
+                    AltinnTaskType = "data"
                 }
             };
             Assert.Equal("data", processState.CurrentTask.AltinnTaskType);

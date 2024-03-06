@@ -7,12 +7,13 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 export const useDatamodelMetadataQuery = (
   org: string,
   app: string,
+  layoutSetName: string,
 ): UseQueryResult<DatamodelFieldElement[]> => {
   const { getDatamodelMetadata } = useServicesContext();
   return useQuery<DatamodelFieldElement[]>({
-    queryKey: [QueryKey.DatamodelMetadata, org, app],
+    queryKey: [QueryKey.DatamodelMetadata, org, app, layoutSetName],
     queryFn: () =>
-      getDatamodelMetadata(org, app).then((res) => {
+      getDatamodelMetadata(org, app, layoutSetName).then((res) => {
         const dataModelFields: DatamodelFieldElement[] = [];
         Object.keys(res.elements).forEach((dataModelField) => {
           if (dataModelField) {

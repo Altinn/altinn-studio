@@ -24,7 +24,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using PlatformStorageModels = Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -117,22 +116,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.DockerIgnoreFileName);
             UpdateAuthorizationPolicyFile(serviceMetadata.Org, serviceMetadata.RepositoryName);
             return true;
-        }
-
-        /// <inheritdoc />
-        public async Task<ModelMetadata> GetModelMetadata(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            string modelName = await GetModelName(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo);
-            string filename = _settings.GetMetadataPath(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer) + $"{modelName}.metadata.json";
-
-            if (File.Exists(filename))
-            {
-                string filedata = await File.ReadAllTextAsync(filename, Encoding.UTF8, cancellationToken);
-                return JsonConvert.DeserializeObject<ModelMetadata>(filedata);
-            }
-
-            return JsonConvert.DeserializeObject<ModelMetadata>("{ }");
         }
 
         #endregion
@@ -670,27 +653,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             };
 
             return fso;
-        }
-
-        private async Task<string> GetModelName(string org, string app)
-        {
-            ApplicationMetadata application = await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
-            string dataTypeId = string.Empty;
-
-            if (application == null)
-            {
-                return dataTypeId;
-            }
-
-            foreach (PlatformStorageModels.DataType data in application.DataTypes)
-            {
-                if (data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef))
-                {
-                    dataTypeId = data.Id;
-                }
-            }
-
-            return dataTypeId;
         }
 
         /// <inheritdoc/>
