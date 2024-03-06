@@ -1,6 +1,5 @@
 import React from 'react';
 import { LegacySelect, Textfield, Fieldset } from '@digdir/design-system-react';
-
 import classes from './ImageComponent.module.css';
 import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
@@ -38,13 +37,6 @@ export const ImageComponent = ({
     handleComponentChange(updatedComponent);
   };
 
-  const handleWidthChange = (width: any) => {
-    const updatedComponent = { ...component };
-    updatedComponent.image.width = width;
-
-    handleComponentChange(updatedComponent);
-  };
-
   const handleSourceChange = (src: any) => {
     const updatedComponent = { ...component };
     updatedComponent.image.src = src;
@@ -73,22 +65,6 @@ export const ImageComponent = ({
       />
 
       <div className={classes.widthAndPlacement}>
-        <FormField
-          id={component.id}
-          className={classes.widthContainer}
-          label={t('ux_editor.modal_properties_image_width_label')}
-          onChange={handleWidthChange}
-          value={component.image?.width || ''}
-          propertyPath={`${component.propertyPath}/properties/image/properties/width`}
-          renderField={({ fieldProps }) => (
-            <Textfield
-              {...fieldProps}
-              name={`image_width-input-${component.id}`}
-              onChange={(e) => fieldProps.onChange(e.target.value, e)}
-            />
-          )}
-        />
-
         <FormField
           id={component.id}
           className={classes.placementContainer}
