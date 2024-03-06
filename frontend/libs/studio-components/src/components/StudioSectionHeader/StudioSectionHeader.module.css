@@ -1,7 +1,9 @@
 .container {
   display: flex;
   justify-content: space-between;
-  height: max-content;
+  min-height: 47px;
+  box-sizing: border-box;
+  max-height: max-content;
   gap: var(--fds-spacing-2);
   padding: var(--fds-spacing-2) var(--fds-spacing-3);
   background-color: var(--fds-semantic-surface-neutral-selected);

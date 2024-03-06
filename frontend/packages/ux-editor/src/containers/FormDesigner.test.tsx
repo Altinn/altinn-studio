@@ -3,16 +3,24 @@ import { screen, waitFor } from '@testing-library/react';
 import {
   formLayoutSettingsMock,
   renderHookWithMockStore,
-  renderWithMockStore,
+  renderWithProviders,
 } from '../testing/mocks';
 import { FormDesigner } from './FormDesigner';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { useWidgetsQuery } from '../hooks/queries/useWidgetsQuery';
 import ruleHandlerMock from '../testing/ruleHandlerMock';
+import type { ITextResources } from 'app-shared/types/global';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 // Test data:
 const org = 'org';
 const app = 'app';
+
+const defaultTexts: ITextResources = {
+  [DEFAULT_LANGUAGE]: [],
+};
 
 const render = () => {
   const queries = {
@@ -26,7 +34,8 @@ const render = () => {
     selectedLayout: 'test-layout',
     selectedLayoutSet: 'test-layout-set',
   };
-  return renderWithMockStore({}, queries)(<FormDesigner {...props} />);
+  queryClientMock.setQueryData([QueryKey.TextResources, org, app], defaultTexts);
+  return renderWithProviders(<FormDesigner {...props} />, { queries });
 };
 
 const waitForData = async () => {

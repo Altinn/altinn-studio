@@ -39,9 +39,7 @@ export const PropertiesHeader = ({
         }}
       />
       <div className={classes.content}>
-        <div className={classes.contentRow}>
-          <EditComponentIdRow component={formItem} handleComponentUpdate={handleComponentUpdate} />
-        </div>
+        <EditComponentIdRow component={formItem} handleComponentUpdate={handleComponentUpdate} />
       </div>
     </>
   );

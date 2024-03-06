@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Calculations } from './Calculations';
 import { Text } from './Text';
 import { useTranslation } from 'react-i18next';
@@ -14,16 +14,8 @@ import { PageConfigPanel } from './PageConfigPanel';
 export const Properties = () => {
   const { t } = useTranslation();
   const { formItemId, formItem, handleUpdate, debounceSave } = useFormItemContext();
-  const formIdRef = React.useRef(formItemId);
 
   const [openList, setOpenList] = React.useState<string[]>([]);
-
-  useEffect(() => {
-    if (formIdRef.current !== formItemId) {
-      formIdRef.current = formItemId;
-      if (formItemId && openList.length === 0) setOpenList(['text']);
-    }
-  }, [formItemId, openList.length]);
 
   const toggleOpen = (id: string) => {
     if (openList.includes(id)) {
@@ -35,7 +27,7 @@ export const Properties = () => {
 
   return (
     <div className={classes.root}>
-      {!formItemId ? (
+      {!formItem ? (
         <PageConfigPanel />
       ) : (
         <>

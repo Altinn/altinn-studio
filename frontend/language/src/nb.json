@@ -1802,6 +1802,7 @@
   "ux_editor.modal_properties_textResourceBindings_leftColumnHeader_add": "Legg til tekst for overskrift i venstre kolonne",
   "ux_editor.modal_properties_textResourceBindings_next": "Tekst på neste-knapp",
   "ux_editor.modal_properties_textResourceBindings_next_add": "Legg til tekst på neste-knapp",
+  "ux_editor.modal_properties_textResourceBindings_page_id": "Side-ID",
   "ux_editor.modal_properties_textResourceBindings_page_name": "Visningsnavn for side",
   "ux_editor.modal_properties_textResourceBindings_page_name_add": "Legg til visningsnavn for side",
   "ux_editor.modal_properties_textResourceBindings_questionDescriptions": "Beskrivelser av spørsmål",

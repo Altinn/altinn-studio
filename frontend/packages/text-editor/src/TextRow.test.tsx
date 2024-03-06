@@ -6,6 +6,9 @@ import { screen, render as rtlRender, waitFor, act } from '@testing-library/reac
 import { textMock } from '../../../testing/mocks/i18nMock';
 import type { TextTableRowEntry } from './types';
 import { Table, TableBody } from '@digdir/design-system-react';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const textKey: string = 'key1';
 
@@ -29,13 +32,14 @@ describe('TextRow', () => {
       selectedLanguages: ['nb', 'en', 'nn'],
       ...props,
     };
-
     rtlRender(
-      <Table>
-        <TableBody>
-          <TextRow {...allProps} />
-        </TableBody>
-      </Table>,
+      <ServicesContextProvider {...queriesMock} client={queryClientMock}>
+        <Table>
+          <TableBody>
+            <TextRow {...allProps} />
+          </TableBody>
+        </Table>
+      </ServicesContextProvider>,
     );
   };
 

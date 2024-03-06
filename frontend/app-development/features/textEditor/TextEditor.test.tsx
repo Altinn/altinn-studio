@@ -8,6 +8,8 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import userEvent from '@testing-library/user-event';
 import * as testids from '../../../testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 // Test data
 const org = 'test-org';
@@ -44,7 +46,7 @@ describe('TextEditor', () => {
 
   it('renders the component', async () => {
     await render();
-
+    await waitForElementToBeRemoved(() => screen.queryByText(textMock('text_editor.loading_page')));
     expect(screen.getByText(testTextResourceKey)).toBeInTheDocument();
     expect(screen.getByText(testTextResourceValue)).toBeInTheDocument();
   });
@@ -93,8 +95,8 @@ describe('TextEditor', () => {
   });
 
   it('updates text id when editing text id', async () => {
+    queryClientMock.setQueryData([QueryKey.LayoutNames, org, app], []);
     const user = userEvent.setup();
-
     await render();
 
     const editButton = screen.getByRole('button', {
@@ -182,7 +184,8 @@ describe('TextEditor', () => {
 });
 
 const render = async (queries: Partial<ServicesContextProps> = {}) => {
-  const view = renderWithProviders(<TextEditor />, {
+  return renderWithProviders(<TextEditor />, {
+    queryClient: queryClientMock,
     queries: {
       getTextResources,
       getTextLanguages,
@@ -190,8 +193,4 @@ const render = async (queries: Partial<ServicesContextProps> = {}) => {
     },
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
   });
-
-  await waitForElementToBeRemoved(() => screen.queryByText(textMock('text_editor.loading_page')));
-
-  return view;
 };
