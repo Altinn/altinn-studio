@@ -44,7 +44,7 @@ export const DeployContainer = () => {
   if (environmentListIsPending || orgsIsPending || appDeploymentIsPending) {
     return (
       <div className={classes.deployContainer}>
-        <AltinnContentLoader width={900} height={320} title={t('app_deployment.loading_env_list')}>
+        <AltinnContentLoader width={900} height={320} title={t('app_deployment.loading')}>
           <rect x='60' y='13' rx='0' ry='0' width='650' height='76' />
           <rect x='60' y='110' rx='0' ry='0' width='333' height='44' />
           <rect x='60' y='171' rx='0' ry='0' width='202' height='41' />

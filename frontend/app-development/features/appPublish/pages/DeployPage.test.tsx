@@ -9,7 +9,16 @@ describe('DeployPage', () => {
   it('renders a spinner while loading', () => {
     render();
 
-    expect(screen.getByTitle(textMock('app_deployment.loading_env_list'))).toBeInTheDocument();
+    expect(screen.getByTitle(textMock('app_deployment.loading'))).toBeInTheDocument();
+  });
+
+  it('renders an error message if an error occurs while loading data', async () => {
+    render({
+      getOrgList: jest.fn().mockImplementation(() => Promise.reject()),
+    });
+    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('app_deployment.loading')));
+
+    expect(screen.getByText(textMock('app_deployment.error'))).toBeInTheDocument();
   });
 
   it('renders no environments message if no org environments', async () => {
@@ -22,9 +31,7 @@ describe('DeployPage', () => {
         ),
       getDeployPermissions: jest.fn().mockImplementation(() => Promise.resolve([])),
     });
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('app_deployment.loading_env_list')),
-    );
+    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('app_deployment.loading')));
 
     expect(screen.getByText(textMock('app_deployment.no_env_title'))).toBeInTheDocument();
     expect(screen.getByText(textMock('app_deployment.no_env_1'))).toBeInTheDocument();
@@ -42,9 +49,7 @@ describe('DeployPage', () => {
         ),
       getDeployPermissions: jest.fn().mockImplementation(() => Promise.resolve([])),
     });
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('app_deployment.loading_env_list')),
-    );
+    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('app_deployment.loading')));
 
     expect(screen.getByText(textMock('app_deployment.no_team'))).toBeInTheDocument();
     expect(screen.getByText(textMock('app_deployment.no_team_info'))).toBeInTheDocument();
@@ -61,9 +66,7 @@ describe('DeployPage', () => {
         ),
       getDeployPermissions: jest.fn().mockImplementation(() => Promise.resolve([envName])),
     });
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('app_deployment.loading_env_list')),
-    );
+    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('app_deployment.loading')));
 
     expect(screen.getByText(textMock('app_release.release_title'))).toBeInTheDocument();
   });

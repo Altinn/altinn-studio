@@ -21,17 +21,22 @@ export const App = ({ className }: AppProps) => {
     isError: isOrgsError,
   } = useOrgListQuery({ hideDefaultError: true });
 
-  const { data: repository } = useRepoMetadataQuery(org, app);
+  const {
+    data: repository,
+    isPending: repositoryIsPending,
+    isError: repositoryIsError,
+  } = useRepoMetadataQuery(org, app, { hideDefaultError: true });
   const selectedOrg = orgs?.[org];
   const hasNoEnvironments = !(selectedOrg?.environments?.length ?? 0);
 
   const { t } = useTranslation();
 
-  if (isOrgsPending) {
+  if (isOrgsPending || repositoryIsPending) {
     return <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.app_loading')} />;
   }
 
-  if (isOrgsError) return <Alert severity='danger'>{t('overview.app_error')}</Alert>;
+  if (isOrgsError || repositoryIsError)
+    return <Alert severity='danger'>{t('overview.app_error')}</Alert>;
 
   // If repo-owner is an organisation
   const repoOwnerIsOrg = orgs && Object.keys(orgs).includes(repository?.owner.login);

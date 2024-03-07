@@ -57,10 +57,24 @@ describe('DeployDropdown', () => {
   describe('Dropdown', () => {
     afterEach(jest.clearAllMocks);
 
-    it('renders a spinner while loading', () => {
+    it('renders a spinner while loading data', () => {
       render();
 
-      expect(screen.getByTitle(textMock('app_deployment.releases.loading'))).toBeInTheDocument();
+      expect(screen.getByTitle(textMock('app_deployment.releases_loading'))).toBeInTheDocument();
+    });
+
+    it('renders an error message if an error occurs while loading data', async () => {
+      render(
+        {},
+        {
+          getAppReleases: jest.fn().mockImplementation(() => Promise.reject()),
+        },
+      );
+      await waitForElementToBeRemoved(() =>
+        screen.queryByTitle(textMock('app_deployment.releases_loading')),
+      );
+
+      expect(screen.getByText(textMock('app_deployment.releases_error'))).toBeInTheDocument();
     });
 
     it('does not render when image options are empty', async () => {
@@ -75,7 +89,7 @@ describe('DeployDropdown', () => {
         },
       );
       await waitForElementToBeRemoved(() =>
-        screen.queryByTitle(textMock('app_deployment.releases.loading')),
+        screen.queryByTitle(textMock('app_deployment.releases_loading')),
       );
 
       expect(screen.queryByText(textMock('app_deployment.choose_version'))).not.toBeInTheDocument();
@@ -86,7 +100,7 @@ describe('DeployDropdown', () => {
 
       render();
       await waitForElementToBeRemoved(() =>
-        screen.queryByTitle(textMock('app_deployment.releases.loading')),
+        screen.queryByTitle(textMock('app_deployment.releases_loading')),
       );
 
       const select = screen.getByLabelText(textMock('app_deployment.choose_version'));
@@ -99,7 +113,7 @@ describe('DeployDropdown', () => {
     it('selects default image option', async () => {
       render({ selectedImageTag: imageOptions[0].value });
       await waitForElementToBeRemoved(() =>
-        screen.queryByTitle(textMock('app_deployment.releases.loading')),
+        screen.queryByTitle(textMock('app_deployment.releases_loading')),
       );
 
       expect(screen.getByRole('combobox')).toHaveValue(imageOptions[0].label);
@@ -110,7 +124,7 @@ describe('DeployDropdown', () => {
 
       render();
       await waitForElementToBeRemoved(() =>
-        screen.queryByTitle(textMock('app_deployment.releases.loading')),
+        screen.queryByTitle(textMock('app_deployment.releases_loading')),
       );
 
       const select = screen.getByLabelText(textMock('app_deployment.choose_version'));
@@ -127,7 +141,7 @@ describe('DeployDropdown', () => {
     it('shows a loding spinner when mutation is pending', async () => {
       render({ isPending: true });
       await waitForElementToBeRemoved(() =>
-        screen.queryByTitle(textMock('app_deployment.releases.loading')),
+        screen.queryByTitle(textMock('app_deployment.releases_loading')),
       );
 
       const deployButton = screen.getByRole('button', {
@@ -139,7 +153,7 @@ describe('DeployDropdown', () => {
     it('disables both dropdown and button when deploy is not possible', async () => {
       render({ disabled: true });
       await waitForElementToBeRemoved(() =>
-        screen.queryByTitle(textMock('app_deployment.releases.loading')),
+        screen.queryByTitle(textMock('app_deployment.releases_loading')),
       );
 
       expect(screen.getByLabelText(textMock('app_deployment.choose_version'))).toBeDisabled();
@@ -159,7 +173,7 @@ describe('DeployDropdown', () => {
 
       render();
       await waitForElementToBeRemoved(() =>
-        screen.queryByTitle(textMock('app_deployment.releases.loading')),
+        screen.queryByTitle(textMock('app_deployment.releases_loading')),
       );
 
       const deployButton = screen.getByRole('button', {
@@ -191,7 +205,7 @@ describe('DeployDropdown', () => {
         appDeployedVersion: '1',
       });
       await waitForElementToBeRemoved(() =>
-        screen.queryByTitle(textMock('app_deployment.releases.loading')),
+        screen.queryByTitle(textMock('app_deployment.releases_loading')),
       );
 
       const deployButton = screen.getByRole('button', {
@@ -222,7 +236,7 @@ describe('DeployDropdown', () => {
 
       render();
       await waitForElementToBeRemoved(() =>
-        screen.queryByTitle(textMock('app_deployment.releases.loading')),
+        screen.queryByTitle(textMock('app_deployment.releases_loading')),
       );
 
       const deployButton = screen.getByRole('button', {
@@ -242,7 +256,7 @@ describe('DeployDropdown', () => {
 
       render();
       await waitForElementToBeRemoved(() =>
-        screen.queryByTitle(textMock('app_deployment.releases.loading')),
+        screen.queryByTitle(textMock('app_deployment.releases_loading')),
       );
 
       const deployButton = screen.getByRole('button', {
@@ -262,7 +276,7 @@ describe('DeployDropdown', () => {
 
       render();
       await waitForElementToBeRemoved(() =>
-        screen.queryByTitle(textMock('app_deployment.releases.loading')),
+        screen.queryByTitle(textMock('app_deployment.releases_loading')),
       );
 
       const deployButton = screen.getByRole('button', {

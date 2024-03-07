@@ -8,27 +8,30 @@ import { Trans, useTranslation } from 'react-i18next';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
 import { useInvalidator } from '../../../hooks/useInvalidator';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { Alert } from '@digdir/design-system-react';
 
 export function DeployPage() {
   const { org, app } = useStudioUrlParams();
   const { t } = useTranslation();
-  const { data: orgs, isPending: isOrgsPending } = useOrgListQuery();
-  const { data: permissions, isPending: isPermissionsPending } = useDeployPermissionsQuery(
-    org,
-    app,
-  );
+  const { data: orgs, isPending: orgsIsPending, isError: orgsIsError } = useOrgListQuery();
+  const {
+    data: permissions,
+    isPending: permissionsIsPending,
+    isError: permissionsIsError,
+  } = useDeployPermissionsQuery(org, app);
   useInvalidator();
-  if (isOrgsPending || isPermissionsPending) {
+  if (orgsIsPending || permissionsIsPending) {
     return (
-      <div style={{ height: 'calc(100% - 111px)' }}>
-        <AltinnContentLoader width={1200} height={600} title={t('app_deployment.loading_env_list')}>
-          <rect x='862' y='3' rx='0' ry='0' width='300' height='600' />
-          <rect x='1' y='1' rx='0' ry='0' width='800' height='200' />
-          <rect x='1' y='220' rx='0' ry='0' width='800' height='200' />
-        </AltinnContentLoader>
-      </div>
+      <AltinnContentLoader width={1200} height={600} title={t('app_deployment.loading')}>
+        <rect x='862' y='3' rx='0' ry='0' width='300' height='600' />
+        <rect x='1' y='1' rx='0' ry='0' width='800' height='200' />
+        <rect x='1' y='220' rx='0' ry='0' width='800' height='200' />
+      </AltinnContentLoader>
     );
   }
+
+  if (orgsIsError || permissionsIsError)
+    return <Alert severity='danger'>{t('app_deployment.error')}</Alert>;
 
   // If org isn't listed, or doesn't have any environments
   if (!orgs[org] || !orgs[org].environments || !orgs[org].environments.length) {
@@ -57,7 +60,7 @@ export function DeployPage() {
   }
 
   return (
-    <div className={classes.container} style={{ height: 'calc(100% - 111px)' }}>
+    <div className={classes.container}>
       <DeployContainer />
       <ReleaseContainer />
     </div>

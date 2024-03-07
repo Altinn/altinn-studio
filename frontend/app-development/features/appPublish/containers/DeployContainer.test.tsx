@@ -11,16 +11,14 @@ describe('DeployContainer', () => {
   it('renders a spinner while loading data', () => {
     render();
 
-    expect(screen.getByTitle(textMock('app_deployment.loading_env_list'))).toBeInTheDocument();
+    expect(screen.getByTitle(textMock('app_deployment.loading'))).toBeInTheDocument();
   });
 
   it('renders an error message if an error occurs while loading data', async () => {
     render({
       getEnvironments: jest.fn().mockImplementation(() => Promise.reject()),
     });
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('app_deployment.loading_env_list')),
-    );
+    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('app_deployment.loading')));
 
     expect(screen.getByText(textMock('app_deployment.error'))).toBeInTheDocument();
   });
@@ -49,9 +47,7 @@ describe('DeployContainer', () => {
         }),
       ),
     });
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('app_deployment.loading_env_list')),
-    );
+    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('app_deployment.loading')));
 
     expect(screen.getByText(envName.toUpperCase())).toBeInTheDocument();
   });

@@ -71,10 +71,24 @@ const render = (
   )(<AppDeploymentActions {...defaultProps} {...props} />);
 };
 describe('AppDeploymentActions', () => {
-  it('renders a spinner while loading', () => {
+  it('renders a spinner while loading data', () => {
     render();
 
     expect(screen.getByTitle(textMock('app_deployment.permission_checking'))).toBeInTheDocument();
+  });
+
+  it('renders an error message if an error occurs while loading data', async () => {
+    render(
+      {},
+      {
+        getDeployPermissions: jest.fn().mockImplementation(() => Promise.reject()),
+      },
+    );
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('app_deployment.permission_checking')),
+    );
+
+    expect(screen.getByText(textMock('app_deployment.permission_error'))).toBeInTheDocument();
   });
 
   it('should render missing rights message if deployPermission is false', async () => {
@@ -98,7 +112,7 @@ describe('AppDeploymentActions', () => {
       screen.queryByTitle(textMock('app_deployment.permission_checking')),
     );
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('app_deployment.releases.loading')),
+      screen.queryByTitle(textMock('app_deployment.releases_loading')),
     );
 
     expect(screen.getByLabelText(textMock('app_deployment.choose_version'))).toBeInTheDocument();
@@ -115,7 +129,7 @@ describe('AppDeploymentActions', () => {
       screen.queryByTitle(textMock('app_deployment.permission_checking')),
     );
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('app_deployment.releases.loading')),
+      screen.queryByTitle(textMock('app_deployment.releases_loading')),
     );
 
     const select = screen.getByLabelText(textMock('app_deployment.choose_version'));

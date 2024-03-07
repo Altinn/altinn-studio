@@ -29,10 +29,11 @@ export const AppDeploymentActions = ({
   const { t } = useTranslation();
 
   const { org, app } = useStudioUrlParams();
-  const { data: permissions, isPending: permissionsIsPending } = useDeployPermissionsQuery(
-    org,
-    app,
-  );
+  const {
+    data: permissions,
+    isPending: permissionsIsPending,
+    isError: permissionsIsError,
+  } = useDeployPermissionsQuery(org, app, { hideDefaultError: true });
   const { data, mutate, isPending } = useCreateDeploymentMutation(org, app, {
     hideDefaultError: true,
   });
@@ -45,6 +46,9 @@ export const AppDeploymentActions = ({
       />
     );
   }
+
+  if (permissionsIsError)
+    return <Alert severity='danger'>{t('app_deployment.permission_error')}</Alert>;
 
   const deployPermission =
     permissions.findIndex((e) => e.toLowerCase() === envName.toLowerCase()) > -1;

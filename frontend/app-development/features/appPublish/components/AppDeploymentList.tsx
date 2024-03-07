@@ -138,14 +138,16 @@ export const AppDeploymentList = ({
                       </Table.Cell>
                       <Table.Cell className={classes.tableCell}>{deploy.createdBy}</Table.Cell>
                       <Table.Cell className={classes.tableCell}>
-                        {isDateWithinDays(deploy.build.started, 30) && (
+                        {isDateWithinDays(deploy.build.started, 30) ? (
                           <Link
                             href={getAzureDevopsBuildResultUrl(deploy.build.id)}
                             target='_newTab'
                             rel='noopener noreferrer'
                           >
-                            {t('app_deployment.see_log')}
+                            {t('app_deployment.table.build_log_active_link')}
                           </Link>
+                        ) : (
+                          t('app_deployment.table.build_log_expired_link')
                         )}
                       </Table.Cell>
                     </Table.Row>
