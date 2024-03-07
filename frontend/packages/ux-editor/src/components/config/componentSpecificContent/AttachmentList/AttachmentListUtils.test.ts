@@ -5,10 +5,11 @@ import {
   getTasks,
 } from './AttachmentListUtils';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import type { convertAttachmentsToBackendArgs } from './AttachmentListUtils';
-import type { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
+import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 
-type ConvertAttachmentsToBackendTestArgs = convertAttachmentsToBackendArgs & {
+type ConvertAttachmentsToBackendTestArgs = {
+  selectedDataTypes: string[];
+  availableAttachments: string[];
   expected: string[];
 };
 const useCasesDesc = ['current task and pdf', 'all tasks and pdf', 'current task', 'all tasks'];
@@ -17,38 +18,37 @@ describe('Convert to external format: attachmentsToExternalFormat', () => {
   describe('convert all attachments: allToExternalFormat', () => {
     const useCasesAllAttachments: ConvertAttachmentsToBackendTestArgs[] = [
       {
-        includeAllAttachments: true,
-        includePdf: true,
-        onlyCurrentTask: true,
-        selectedAttachments: [],
+        selectedDataTypes: [
+          'attachment1',
+          'attachment2',
+          reservedDataTypes.currentTask,
+          reservedDataTypes.refDataAsPdf,
+        ],
+        availableAttachments: ['attachment1', 'attachment2'],
         expected: [reservedDataTypes.includeAll, reservedDataTypes.currentTask],
       },
       {
-        includeAllAttachments: true,
-        includePdf: true,
-        onlyCurrentTask: false,
-        selectedAttachments: [],
+        selectedDataTypes: ['attachment1', 'attachment2', reservedDataTypes.refDataAsPdf],
+        availableAttachments: ['attachment1', 'attachment2'],
         expected: [reservedDataTypes.includeAll],
       },
       {
-        includeAllAttachments: true,
-        includePdf: false,
-        onlyCurrentTask: true,
-        selectedAttachments: [],
+        selectedDataTypes: ['attachment1', 'attachment2', reservedDataTypes.currentTask],
+        availableAttachments: ['attachment1', 'attachment2'],
         expected: [reservedDataTypes.currentTask],
       },
       {
-        includeAllAttachments: true,
-        includePdf: false,
-        onlyCurrentTask: false,
-        selectedAttachments: [],
+        selectedDataTypes: ['attachment1', 'attachment2'],
+        availableAttachments: ['attachment1', 'attachment2'],
         expected: [],
       },
     ];
 
     useCasesAllAttachments.forEach((useCase, index) => {
-      it(`should convert all attachments to backend with ${useCasesDesc[index]}`, () => {
-        expect(attachmentsToExternalFormat(useCase)).toEqual(useCase.expected);
+      it(`should convert to external format with all attachments and ${useCasesDesc[index]}`, () => {
+        expect(
+          attachmentsToExternalFormat(useCase.selectedDataTypes, useCase.availableAttachments),
+        ).toEqual(useCase.expected);
       });
     });
   });
@@ -56,38 +56,26 @@ describe('Convert to external format: attachmentsToExternalFormat', () => {
   describe('convert some attachments: someToExternalFormat', () => {
     const useCasesSomeAttachments: ConvertAttachmentsToBackendTestArgs[] = [
       {
-        includeAllAttachments: false,
-        includePdf: true,
-        onlyCurrentTask: true,
-        selectedAttachments: ['attachment1'],
+        selectedDataTypes: [
+          'attachment1',
+          reservedDataTypes.currentTask,
+          reservedDataTypes.refDataAsPdf,
+        ],
+        availableAttachments: ['attachment1', 'attachment2'],
         expected: ['attachment1', reservedDataTypes.refDataAsPdf, reservedDataTypes.currentTask],
       },
       {
-        includeAllAttachments: false,
-        includePdf: true,
-        onlyCurrentTask: false,
-        selectedAttachments: ['attachment1'],
-        expected: ['attachment1', reservedDataTypes.refDataAsPdf],
-      },
-      {
-        includeAllAttachments: false,
-        includePdf: false,
-        onlyCurrentTask: true,
-        selectedAttachments: ['attachment1'],
-        expected: ['attachment1', reservedDataTypes.currentTask],
-      },
-      {
-        includeAllAttachments: false,
-        includePdf: false,
-        onlyCurrentTask: false,
-        selectedAttachments: ['attachment1'],
+        selectedDataTypes: ['attachment1'],
+        availableAttachments: ['attachment1', 'attachment2'],
         expected: ['attachment1'],
       },
     ];
 
     useCasesSomeAttachments.forEach((useCase, index) => {
-      it(`should convert some attachments to backend with ${useCasesDesc[index]}`, () => {
-        expect(attachmentsToExternalFormat(useCase)).toEqual(useCase.expected);
+      it(`should convert to external format with some attachments and ${useCasesDesc[index]}`, () => {
+        expect(
+          attachmentsToExternalFormat(useCase.selectedDataTypes, useCase.availableAttachments),
+        ).toEqual(useCase.expected);
       });
     });
   });
@@ -167,7 +155,44 @@ describe('Convert to internal format: dataToInternalFormat', () => {
     ];
 
     useCasesAllDataTypes.forEach((useCase, index) => {
-      it(`should convert to correct internal format when all attachments and ${useCasesDesc[index]} `, () => {
+      it(`should convert to internal format with all attachments and ${useCasesDesc[index]} `, () => {
+        const tasks = getTasks(
+          layoutSets,
+          currentLayoutSet,
+          useCase.dataTypeIds.includes(reservedDataTypes.currentTask),
+        );
+
+        expect(dataToInternalFormat(tasks, appMetaData, useCase.dataTypeIds)).toEqual(
+          useCase.expected,
+        );
+      });
+    });
+  });
+
+  describe('convert some attachments: dataToInternalFormat', () => {
+    const useCasesSomeDataTypes = [
+      {
+        dataTypeIds: ['attachment2', reservedDataTypes.refDataAsPdf, reservedDataTypes.currentTask],
+        expected: {
+          availableAttachments: ['attachment2'],
+          selectedDataTypes: [
+            'attachment2',
+            reservedDataTypes.refDataAsPdf,
+            reservedDataTypes.currentTask,
+          ],
+        },
+      },
+      {
+        dataTypeIds: ['attachment1'],
+        expected: {
+          availableAttachments: ['attachment1', 'attachment2'],
+          selectedDataTypes: ['attachment1'],
+        },
+      },
+    ];
+
+    useCasesSomeDataTypes.forEach((useCase, index) => {
+      it(`should convert to internal format with some attachments and ${useCasesDesc[index]}`, () => {
         const tasks = getTasks(
           layoutSets,
           currentLayoutSet,
