@@ -177,7 +177,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             // fallback to first model if no task_id is provided (no layoutsets)
             if (taskId == null)
             {
-                return applicationMetadata.DataTypes.FirstOrDefault(data => data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef))?.Id ?? string.Empty;
+                return applicationMetadata.DataTypes.FirstOrDefault(data => data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef) && !string.IsNullOrEmpty(data.TaskId))?.Id ?? string.Empty;
             }
 
             PlatformStorageModels.DataType data = applicationMetadata.DataTypes

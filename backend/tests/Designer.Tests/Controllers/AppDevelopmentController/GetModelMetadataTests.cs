@@ -22,8 +22,8 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         }
 
         [Theory]
-        [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet3", "TestData/Model/Metadata/HvemErHvem.json")]
-        [InlineData("ttd", "app-without-layoutsets", "testUser", null, "TestData/Model/Metadata/HvemErHvem.json")]
+        [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "TestData/Model/Metadata/datamodel.json")]
+        [InlineData("ttd", "app-without-layoutset", "testUser", null, "TestData/Model/Metadata/datamodel.json")]
         public async Task GetModelMetadata_Should_Return_ModelMetadata(string org, string app, string developer, string layoutSetName, string expectedModelMetadataPath)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
@@ -45,8 +45,8 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet3")]
-        [InlineData("ttd", "app-without-layoutsets", "testUser", null)]
-        public async Task GetModelMetadata_Should_Return_Empty_Model_When_No_ModelMetadata_Exists(string org, string app, string developer, string layoutSetName)
+        [InlineData("ttd", "app-without-layoutsets-mismatch-modelname", "testUser", null)]
+        public async Task GetModelMetadata_Should_Return_404_When_No_Corresponding_Datamodel_Exists(string org, string app, string developer, string layoutSetName)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -55,12 +55,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
-
-            string responseContent = await response.Content.ReadAsStringAsync();
-            string expectedResponse = JsonConvert
-                .SerializeObject(JsonConvert.DeserializeObject<ModelMetadata>("{}"));
-            responseContent.Should().Be(expectedResponse);
+            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
         private async Task<string> AddModelMetadataToRepo(string createdFolderPath, string expectedModelMetadataPath)
