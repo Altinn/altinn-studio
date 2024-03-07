@@ -47,7 +47,7 @@ export const AttachmentListComponent = ({
   return (
     <AttachmentListInternalFormat
       handleOutGoingData={handleOutGoingData}
-      internalFormat={internalDataFormat}
+      internalDataFormat={internalDataFormat}
     />
   );
 };

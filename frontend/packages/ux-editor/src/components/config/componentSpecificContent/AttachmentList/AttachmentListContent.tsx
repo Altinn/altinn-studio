@@ -11,7 +11,7 @@ type IAttachmentListContent = {
   handleOutGoingData: (selectedDataTypes: string[], availableAttachments: string[]) => void;
 };
 
-export const AttachmentListCombobox = ({
+export const AttachmentListContent = ({
   availableAttachments,
   currentSelectedDataTypes,
   setCurrentSelectedDataTypes,
