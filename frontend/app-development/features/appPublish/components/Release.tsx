@@ -1,5 +1,5 @@
 import React from 'react';
-import classes from './AppRelease.module.css';
+import classes from './Release.module.css';
 import { formatDateTime } from 'app-shared/pure/date-format';
 import { getReleaseBuildPipelineLink } from '../../../utils/urlHelper';
 import { gitCommitPath } from 'app-shared/api/paths';
@@ -10,11 +10,11 @@ import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import type { AppRelease } from 'app-shared/types/AppRelease';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
-interface IAppReleaseComponent {
+interface IReleaseComponent {
   release: AppRelease;
 }
 
-export function AppRelease(props: IAppReleaseComponent) {
+export function Release(props: IReleaseComponent) {
   const { release } = props;
 
   const { t } = useTranslation();

@@ -8,14 +8,14 @@ import {
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { Alert } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { AppEnvironments } from './AppEnvironments';
-import { AppLogs } from './AppLogs';
+import { DeploymentStatusList } from './DeploymentStatusList';
+import { DeploymentList } from './DeploymentList';
 import { StudioSpinner } from '@studio/components';
 import type { Environment } from 'app-shared/types/Environment';
 
-type AppProps = Pick<HTMLAttributes<HTMLDivElement>, 'className'>;
+type DeploymentContainerProps = Pick<HTMLAttributes<HTMLDivElement>, 'className'>;
 
-export const AppDeployments = ({ className }: AppProps) => {
+export const DeploymentContainer = ({ className }: DeploymentContainerProps) => {
   const { org, app } = useStudioUrlParams();
   const { t } = useTranslation();
 
@@ -49,10 +49,16 @@ export const AppDeployments = ({ className }: AppProps) => {
   return (
     <>
       <section className={className}>
-        <AppEnvironments orgEnvironmentList={orgEnvironmentList} appDeployment={appDeployment} />
+        <DeploymentStatusList
+          orgEnvironmentList={orgEnvironmentList}
+          kubernetesDeploymentList={appDeployment?.kubernetesDeploymentList}
+        />
       </section>
       <section className={className}>
-        <AppLogs orgEnvironmentList={orgEnvironmentList} appDeployment={appDeployment} />
+        <DeploymentList
+          orgEnvironmentList={orgEnvironmentList}
+          pipelineDeploymentList={appDeployment?.pipelineDeploymentList}
+        />
       </section>
     </>
   );

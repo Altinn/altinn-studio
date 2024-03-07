@@ -1,6 +1,6 @@
 import React from 'react';
-import type { AppDeploymentActionsProps } from './AppDeploymentActions';
-import { AppDeploymentActions } from './AppDeploymentActions';
+import type { DeployProps } from './Deploy';
+import { Deploy } from './Deploy';
 import { act, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithMockStore } from 'app-development/test/mocks';
@@ -10,7 +10,7 @@ import type { AppRelease } from 'app-shared/types/AppRelease';
 import { appRelease } from 'app-shared/mocks/mocks';
 import { BuildResult } from 'app-shared/types/Build';
 
-const defaultProps: AppDeploymentActionsProps = {
+const defaultProps: DeployProps = {
   appDeployedVersion: 'test',
   lastBuildId: '',
   inProgress: false,
@@ -53,10 +53,7 @@ const imageOptions = [
   },
 ];
 
-const render = (
-  props?: Partial<AppDeploymentActionsProps>,
-  queries?: Partial<ServicesContextProps>,
-) => {
+const render = (props?: Partial<DeployProps>, queries?: Partial<ServicesContextProps>) => {
   return renderWithMockStore(
     {},
     {
@@ -68,9 +65,9 @@ const render = (
       ),
       ...queries,
     },
-  )(<AppDeploymentActions {...defaultProps} {...props} />);
+  )(<Deploy {...defaultProps} {...props} />);
 };
-describe('AppDeploymentActions', () => {
+describe('DeploymentActions', () => {
   it('renders a spinner while loading data', () => {
     render();
 

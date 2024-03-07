@@ -8,7 +8,7 @@ import { Alert, Link } from '@digdir/design-system-react';
 import { useDeployPermissionsQuery } from 'app-development/hooks/queries';
 import { StudioSpinner } from '@studio/components';
 
-export interface AppDeploymentActionsProps {
+export interface DeployProps {
   appDeployedVersion: string;
   lastBuildId: string;
   inProgress: boolean;
@@ -17,14 +17,14 @@ export interface AppDeploymentActionsProps {
   orgName: string;
 }
 
-export const AppDeploymentActions = ({
+export const Deploy = ({
   appDeployedVersion,
   lastBuildId,
   inProgress,
   envName,
   isProduction,
   orgName,
-}: AppDeploymentActionsProps) => {
+}: DeployProps) => {
   const [selectedImageTag, setSelectedImageTag] = useState(null);
   const { t } = useTranslation();
 

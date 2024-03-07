@@ -1,22 +1,24 @@
 import React from 'react';
-import classes from './AppLogs.module.css';
+import classes from './DeploymentList.module.css';
 import { useTranslation } from 'react-i18next';
 import type { Environment } from 'app-shared/types/Environment';
 import { Heading } from '@digdir/design-system-react';
 import { formatDateDDMMYY, formatTimeHHmm } from 'app-shared/pure/date-format';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import { BuildResult } from 'app-shared/types/Build';
-import type { AppDeployment } from 'app-shared/types/api/AppDeployment';
 
-export interface AppLogsProps {
+export interface DeploymentListProps {
   orgEnvironmentList: Environment[];
-  appDeployment: AppDeployment;
+  pipelineDeploymentList: PipelineDeployment[];
 }
 
-export const AppLogs = ({ orgEnvironmentList, appDeployment }: AppLogsProps) => {
+export const DeploymentList = ({
+  orgEnvironmentList,
+  pipelineDeploymentList,
+}: DeploymentListProps) => {
   const { t } = useTranslation();
 
-  const succeededPipelineDeploymentList = appDeployment.pipelineDeploymentList.filter(
+  const succeededPipelineDeploymentList = pipelineDeploymentList.filter(
     (pipelineDeployment: PipelineDeployment) =>
       pipelineDeployment.build.result === BuildResult.succeeded &&
       pipelineDeployment.build.finished !== null,
@@ -31,7 +33,7 @@ export const AppLogs = ({ orgEnvironmentList, appDeployment }: AppLogsProps) => 
   };
 
   return (
-    <div className={classes.appLogs}>
+    <div className={classes.container}>
       <Heading level={2} size='xxsmall' className={classes.appLogsTitle}>
         {t('overview.activity')}
       </Heading>

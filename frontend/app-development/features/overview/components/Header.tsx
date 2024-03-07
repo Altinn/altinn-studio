@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { StudioSpinner } from '@studio/components';
 
-export const AppHeader = () => {
+export const Header = () => {
   const { org, app } = useStudioUrlParams();
 
   const {

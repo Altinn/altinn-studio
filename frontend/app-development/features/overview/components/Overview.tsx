@@ -6,8 +6,8 @@ import { Documentation } from './Documentation';
 import { Navigation } from './Navigation';
 import { News } from './News';
 import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
-import { App } from './App';
-import { AppHeader } from './AppHeader';
+import { Deployments } from './Deployments';
+import { Header } from './Header';
 
 export const Overview = () => {
   const { t } = useTranslation();
@@ -17,12 +17,12 @@ export const Overview = () => {
       <main className={classes.container}>
         {/* According to https://developer.mozilla.org/en-US/docs/Web/HTML/Element/header, the role of <header> should implicitly be "generic" when it is a descendant of <main>, but Testing Library still interprets it as "banner". */}
         <header className={classes.header} role='generic'>
-          <AppHeader />
+          <Header />
         </header>
         <div className={classes.panel}>
           <div className={classes.content}>
             <div className={classes.main}>
-              <App className={classes.mainSection} />
+              <Deployments className={classes.mainSection} />
               <section className={classes.mainSection}>
                 <Navigation />
               </section>

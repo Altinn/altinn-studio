@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
-import { AppDeployments } from './AppDeployments';
+import { DeploymentContainer } from './DeploymentContainer';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
 import { textMock } from '../../../../testing/mocks/i18nMock';
@@ -11,13 +11,13 @@ const org = 'org';
 const app = 'app';
 
 const render = (queries = {}) => {
-  return renderWithProviders(<AppDeployments />, {
+  return renderWithProviders(<DeploymentContainer />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
     queries,
   });
 };
 
-describe('AppDeployments', () => {
+describe('DeploymentContainer', () => {
   it('shows loading spinner when loading required data', () => {
     render();
 

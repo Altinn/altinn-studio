@@ -1,27 +1,30 @@
 import React from 'react';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import type { Environment } from 'app-shared/types/Environment';
-import { AppStatus } from './AppStatus';
-import classes from './AppEnvironments.module.css';
+import { DeploymentStatus } from './DeploymentStatus';
+import classes from './DeploymentStatusList.module.css';
 import { getAppLink } from 'app-shared/ext-urls';
-import type { AppDeployment } from 'app-shared/types/api/AppDeployment';
+import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 
-export interface AppEnvironmentsProps {
+export interface DeploymentStatusListProps {
   orgEnvironmentList: Environment[];
-  appDeployment: AppDeployment;
+  kubernetesDeploymentList: KubernetesDeployment[];
 }
 
-export const AppEnvironments = ({ orgEnvironmentList, appDeployment }: AppEnvironmentsProps) => {
+export const DeploymentStatusList = ({
+  orgEnvironmentList,
+  kubernetesDeploymentList,
+}: DeploymentStatusListProps) => {
   const { org, app } = useStudioUrlParams();
 
   return (
-    <div className={classes.appEnvironments}>
+    <div className={classes.container}>
       {orgEnvironmentList.map((orgEnvironment: Environment) => {
-        const kubernetesDeployment = appDeployment.kubernetesDeploymentList.find(
+        const kubernetesDeployment = kubernetesDeploymentList.find(
           (item) => item.envName.toLowerCase() === orgEnvironment.name.toLowerCase(),
         );
         return (
-          <AppStatus
+          <DeploymentStatus
             key={orgEnvironment.name}
             kubernetesDeployment={kubernetesDeployment}
             envName={orgEnvironment.name}

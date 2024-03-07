@@ -8,11 +8,11 @@ import { StudioSpinner } from '@studio/components';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { RepoOwnedByPersonInfo } from './RepoOwnedByPersonInfo';
 import { NoEnvironmentsAlert } from './NoEnvironmentsAlert';
-import { AppDeployments } from './AppDeployments';
+import { DeploymentContainer } from './DeploymentContainer';
 
-type AppProps = Pick<HTMLAttributes<HTMLDivElement>, 'className'>;
+type DeploymentsProps = Pick<HTMLAttributes<HTMLDivElement>, 'className'>;
 
-export const App = ({ className }: AppProps) => {
+export const Deployments = ({ className }: DeploymentsProps) => {
   const { org, app } = useStudioUrlParams();
 
   const {
@@ -57,5 +57,5 @@ export const App = ({ className }: AppProps) => {
     );
   }
 
-  return <AppDeployments className={className} />;
+  return <DeploymentContainer className={className} />;
 };

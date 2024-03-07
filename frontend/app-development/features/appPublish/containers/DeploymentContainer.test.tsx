@@ -1,13 +1,13 @@
 import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
-import { DeployContainer } from './DeployContainer';
+import { DeploymentContainer } from './DeploymentContainer';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from 'app-development/test/mocks';
 import { environment } from 'app-shared/mocks/mocks';
-import type { AppDeployment } from 'app-shared/types/api/AppDeployment';
+import type { DeploymentResponse } from 'app-shared/types/api/DeploymentResponse';
 
-describe('DeployContainer', () => {
+describe('DeploymentContainer', () => {
   it('renders a spinner while loading data', () => {
     render();
 
@@ -41,7 +41,7 @@ describe('DeployContainer', () => {
           Promise.resolve({ orgs: { [org]: { name: { nb: org }, environments: [envName] } } }),
         ),
       getDeployments: jest.fn().mockImplementation(() =>
-        Promise.resolve<AppDeployment>({
+        Promise.resolve<DeploymentResponse>({
           pipelineDeploymentList: [],
           kubernetesDeploymentList: [],
         }),
@@ -54,5 +54,5 @@ describe('DeployContainer', () => {
 });
 
 const render = (queries?: Partial<ServicesContextProps>) => {
-  return renderWithMockStore({}, queries)(<DeployContainer />);
+  return renderWithMockStore({}, queries)(<DeploymentContainer />);
 };

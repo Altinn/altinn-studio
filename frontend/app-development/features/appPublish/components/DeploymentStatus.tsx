@@ -1,27 +1,24 @@
 import React from 'react';
-import classes from './AppStatus.module.css';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import classes from './DeploymentStatus.module.css';
+import { Alert, Heading, Link, Paragraph, Spinner } from '@digdir/design-system-react';
 import { Trans, useTranslation } from 'react-i18next';
-import { Alert, Heading, Paragraph, Spinner, Link } from '@digdir/design-system-react';
-import { formatDateDDMMYY, formatTimeHHmm } from 'app-shared/pure/date-format';
-import { publishPath } from 'app-shared/api/paths';
 import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
+import { formatDateDDMMYY, formatTimeHHmm } from 'app-shared/pure/date-format';
 
-export type AppStatusProps = {
+export interface DeploymentStatusProps {
   kubernetesDeployment?: KubernetesDeployment;
   envName: string;
   isProduction: boolean;
   urlToApp?: string;
-};
+}
 
-export const AppStatus = ({
+export const DeploymentStatus = ({
   kubernetesDeployment,
   envName,
   isProduction,
   urlToApp,
-}: AppStatusProps) => {
-  const { org, app } = useStudioUrlParams();
+}: DeploymentStatusProps) => {
   const { t } = useTranslation();
 
   const formatDateTime = (dateAsString: string): string => {
@@ -38,11 +35,6 @@ export const AppStatus = ({
         isProduction={isProduction}
         severity='warning'
         content={t('app_deployment.kubernetes_deployment.status.unavailable')}
-        footer={
-          <Trans i18nKey='overview.go_to_publish'>
-            <a href={publishPath(org, app)} />
-          </Trans>
-        }
       />
     );
   }
@@ -55,11 +47,6 @@ export const AppStatus = ({
           isProduction={isProduction}
           severity='info'
           content={t('app_deployment.kubernetes_deployment.status.none')}
-          footer={
-            <Trans i18nKey='overview.go_to_publish'>
-              <a href={publishPath(org, app)} />
-            </Trans>
-          }
         />
       );
     case KubernetesDeploymentStatus.completed:
@@ -94,13 +81,8 @@ export const AppStatus = ({
         <DeploymentStatusInfo
           envName={envName}
           isProduction={isProduction}
-          severity='danger'
+          severity='warning'
           content={t('app_deployment.kubernetes_deployment.status.failed')}
-          footer={
-            <Trans i18nKey='overview.go_to_publish'>
-              <a href={publishPath(org, app)} />
-            </Trans>
-          }
         />
       );
     default:
@@ -115,11 +97,6 @@ export const AppStatus = ({
               {t('app_deployment.kubernetes_deployment.status.progressing')}
             </span>
           }
-          footer={
-            <Trans i18nKey='overview.go_to_publish'>
-              <a href={publishPath(org, app)} />
-            </Trans>
-          }
         />
       );
   }
@@ -130,7 +107,7 @@ type DeploymentStatusInfoProps = {
   isProduction: boolean;
   severity: 'success' | 'warning' | 'info' | 'danger';
   content: string | React.ReactNode;
-  footer: string | JSX.Element;
+  footer?: string | JSX.Element;
 };
 const DeploymentStatusInfo = ({
   envName,
@@ -146,10 +123,10 @@ const DeploymentStatusInfo = ({
       <Heading spacing level={2} size='xsmall'>
         {envTitle}
       </Heading>
-      <Paragraph spacing size='small'>
+      <Paragraph size='small' spacing={!!footer}>
         {content}
       </Paragraph>
-      <Paragraph size='xsmall'>{footer}</Paragraph>
+      {footer && <Paragraph size='xsmall'>{footer}</Paragraph>}
     </Alert>
   );
 };

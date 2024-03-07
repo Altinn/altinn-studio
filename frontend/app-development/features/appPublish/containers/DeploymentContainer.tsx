@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import classes from './DeployContainer.module.css';
+import classes from './DeploymentContainer.module.css';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
 import {
   useOrgListQuery,
@@ -8,12 +8,12 @@ import {
 } from '../../../hooks/queries';
 import type { Environment } from 'app-shared/types/Environment';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { AppDeployment } from '../components/AppDeployment';
+import { Deployment } from '../components/Deployment';
 import { getAppLink } from 'app-shared/ext-urls';
 import { useTranslation } from 'react-i18next';
 import { Alert } from '@digdir/design-system-react';
 
-export const DeployContainer = () => {
+export const DeploymentContainer = () => {
   const { org, app } = useStudioUrlParams();
   const { t } = useTranslation();
 
@@ -72,7 +72,7 @@ export const DeployContainer = () => {
           (item) => item.envName.toLowerCase() === env.name.toLowerCase(),
         );
         return (
-          <AppDeployment
+          <Deployment
             key={index}
             envName={env.name}
             isProduction={env.type.toLowerCase() === 'production'}

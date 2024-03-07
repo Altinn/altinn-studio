@@ -1,28 +1,28 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-import type { AppStatusProps } from './AppStatus';
-import { AppStatus } from './AppStatus';
+import type { DeploymentStatusProps } from './DeploymentStatus';
+import { DeploymentStatus } from './DeploymentStatus';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { kubernetesDeployment } from 'app-shared/mocks/mocks';
-import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
+import { KubernetesDeploymentStatus as KubernetesDeploymentStatusEnum } from 'app-shared/types/api/KubernetesDeploymentStatus';
 
 // Test data
 const org = 'ttd';
 const app = 'test-ttd';
-const defaultProps: AppStatusProps = {
+const defaultProps: DeploymentStatusProps = {
   envName: 'tt02',
   isProduction: false,
 };
 
-const render = (props: Partial<AppStatusProps> = {}) => {
-  return renderWithProviders(<AppStatus {...defaultProps} {...props} />, {
-    startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
+const render = (props: Partial<DeploymentStatusProps> = {}) => {
+  return renderWithProviders(<DeploymentStatus {...defaultProps} {...props} />, {
+    startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/deploy`,
   });
 };
 
-describe('AppStatus', () => {
+describe('DeploymentStatus', () => {
   it('shows production when environment is production', async () => {
     render({
       envName: 'production',
@@ -45,7 +45,7 @@ describe('AppStatus', () => {
     render({
       kubernetesDeployment: {
         ...kubernetesDeployment,
-        status: KubernetesDeploymentStatus.completed,
+        status: KubernetesDeploymentStatusEnum.completed,
       },
     });
 
@@ -58,7 +58,7 @@ describe('AppStatus', () => {
     render({
       kubernetesDeployment: {
         ...kubernetesDeployment,
-        status: KubernetesDeploymentStatus.failed,
+        status: KubernetesDeploymentStatusEnum.failed,
       },
     });
 
@@ -71,7 +71,7 @@ describe('AppStatus', () => {
     render({
       kubernetesDeployment: {
         ...kubernetesDeployment,
-        status: KubernetesDeploymentStatus.progressing,
+        status: KubernetesDeploymentStatusEnum.progressing,
         statusDate: new Date().toString(),
       },
     });
@@ -85,7 +85,7 @@ describe('AppStatus', () => {
     render({
       kubernetesDeployment: {
         ...kubernetesDeployment,
-        status: KubernetesDeploymentStatus.none,
+        status: KubernetesDeploymentStatusEnum.none,
         statusDate: '',
       },
     });

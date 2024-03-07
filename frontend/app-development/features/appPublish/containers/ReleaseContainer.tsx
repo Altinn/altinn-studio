@@ -5,7 +5,7 @@ import type { KeyboardEvent, MouseEvent } from 'react';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import { LegacyPopover } from '@digdir/design-system-react';
 import { CreateRelease } from '../components/CreateRelease';
-import { AppRelease } from '../components/AppRelease';
+import { Release } from '../components/Release';
 import { UploadIcon, CheckmarkIcon, XMarkOctagonFillIcon } from '@studio/icons';
 import { gitCommitPath } from 'app-shared/api/paths';
 import { useMediaQuery, StudioButton, StudioSpinner } from '@studio/components';
@@ -232,7 +232,7 @@ export function ReleaseContainer() {
       <div>
         {!!releases.length &&
           releases.map((release: AppReleaseType, index: number) => (
-            <AppRelease key={index} release={release} />
+            <Release key={index} release={release} />
           ))}
       </div>
     </div>

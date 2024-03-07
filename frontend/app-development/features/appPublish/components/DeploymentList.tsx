@@ -1,5 +1,5 @@
 import React from 'react';
-import classes from './AppDeploymentList.module.css';
+import classes from './DeploymentList.module.css';
 import { Heading, Link, Table } from '@digdir/design-system-react';
 import { formatDateTime, isDateWithinDays } from 'app-shared/pure/date-format';
 import { useTranslation } from 'react-i18next';
@@ -16,18 +16,18 @@ import {
 import { StudioSpinner } from '@studio/components';
 import { getAzureDevopsBuildResultUrl } from 'app-development/utils/urlHelper';
 
-export interface AppDeploymentListProps {
+export interface DeploymentListProps {
   envName: string;
   isProduction: boolean;
   pipelineDeploymentList: PipelineDeployment[];
   kubernetesDeployment?: KubernetesDeployment;
 }
 
-export const AppDeploymentList = ({
+export const DeploymentList = ({
   envName,
   isProduction,
   pipelineDeploymentList,
-}: AppDeploymentListProps) => {
+}: DeploymentListProps) => {
   const { t } = useTranslation();
 
   const envTitle = isProduction

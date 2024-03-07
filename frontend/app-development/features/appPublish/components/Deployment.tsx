@@ -1,14 +1,14 @@
 import React from 'react';
-import classes from './AppDeployment.module.css';
+import classes from './Deployment.module.css';
 
-import { AppDeploymentHeader } from './AppDeploymentHeader';
-import { AppDeploymentActions } from './AppDeploymentActions';
-import { AppDeploymentList } from './AppDeploymentList';
+import { DeploymentStatus } from './DeploymentStatus';
+import { Deploy } from './Deploy';
+import { DeploymentList } from './DeploymentList';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { BuildResult } from 'app-shared/types/Build';
 
-export interface AppDeploymentProps {
+export interface DeploymentProps {
   pipelineDeploymentList: PipelineDeployment[];
   kubernetesDeployment: KubernetesDeployment;
   envName: string;
@@ -17,18 +17,18 @@ export interface AppDeploymentProps {
   orgName: string;
 }
 
-export const AppDeployment = ({
+export const Deployment = ({
   pipelineDeploymentList,
   kubernetesDeployment,
   envName,
   isProduction,
   urlToApp,
   orgName,
-}: AppDeploymentProps) => {
+}: DeploymentProps) => {
   return (
     <div className={classes.container}>
       <div className={classes.header}>
-        <AppDeploymentHeader
+        <DeploymentStatus
           kubernetesDeployment={kubernetesDeployment}
           envName={envName}
           isProduction={isProduction}
@@ -36,7 +36,7 @@ export const AppDeployment = ({
         />
       </div>
       <div className={classes.content}>
-        <AppDeploymentActions
+        <Deploy
           appDeployedVersion={kubernetesDeployment?.version}
           lastBuildId={pipelineDeploymentList[0]?.build?.id}
           inProgress={pipelineDeploymentList.some((item) => item.build.result === BuildResult.none)}
@@ -44,7 +44,7 @@ export const AppDeployment = ({
           isProduction={isProduction}
           orgName={orgName}
         />
-        <AppDeploymentList
+        <DeploymentList
           envName={envName}
           isProduction={isProduction}
           pipelineDeploymentList={pipelineDeploymentList}

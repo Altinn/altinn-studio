@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './DeployPage.module.css';
-import { DeployContainer } from '../containers/DeployContainer';
+import { DeploymentContainer } from '../containers/DeploymentContainer';
 import { InfoCard } from '../components/InfoCard';
 import { ReleaseContainer } from '../containers/ReleaseContainer';
 import { useDeployPermissionsQuery, useOrgListQuery } from '../../../hooks/queries';
@@ -61,7 +61,7 @@ export function DeployPage() {
 
   return (
     <div className={classes.container}>
-      <DeployContainer />
+      <DeploymentContainer />
       <ReleaseContainer />
     </div>
   );
