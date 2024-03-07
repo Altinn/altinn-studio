@@ -1,22 +1,17 @@
 import {
-  attachmentsToExternalFormat,
+  dataExternalFormat,
   reservedDataTypes,
-  dataToInternalFormat,
+  dataInternalFormat,
   getTasks,
 } from './AttachmentListUtils';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 
-type ConvertAttachmentsToBackendTestArgs = {
-  selectedDataTypes: string[];
-  availableAttachments: string[];
-  expected: string[];
-};
 const useCasesDesc = ['current task and pdf', 'all tasks and pdf', 'current task', 'all tasks'];
 
-describe('Convert to external format: attachmentsToExternalFormat', () => {
-  describe('convert all attachments: allToExternalFormat', () => {
-    const useCasesAllAttachments: ConvertAttachmentsToBackendTestArgs[] = [
+describe('Convert to external format: dataExternalFormat', () => {
+  describe('convert all data', () => {
+    const useCasesAllAttachments = [
       {
         selectedDataTypes: [
           'attachment1',
@@ -46,15 +41,15 @@ describe('Convert to external format: attachmentsToExternalFormat', () => {
 
     useCasesAllAttachments.forEach((useCase, index) => {
       it(`should convert to external format with all attachments and ${useCasesDesc[index]}`, () => {
-        expect(
-          attachmentsToExternalFormat(useCase.selectedDataTypes, useCase.availableAttachments),
-        ).toEqual(useCase.expected);
+        expect(dataExternalFormat(useCase.selectedDataTypes, useCase.availableAttachments)).toEqual(
+          useCase.expected,
+        );
       });
     });
   });
 
-  describe('convert some attachments: someToExternalFormat', () => {
-    const useCasesSomeAttachments: ConvertAttachmentsToBackendTestArgs[] = [
+  describe('convert some data', () => {
+    const useCasesSomeAttachments = [
       {
         selectedDataTypes: [
           'attachment1',
@@ -62,7 +57,7 @@ describe('Convert to external format: attachmentsToExternalFormat', () => {
           reservedDataTypes.refDataAsPdf,
         ],
         availableAttachments: ['attachment1', 'attachment2'],
-        expected: ['attachment1', reservedDataTypes.refDataAsPdf, reservedDataTypes.currentTask],
+        expected: ['attachment1', reservedDataTypes.currentTask, reservedDataTypes.refDataAsPdf],
       },
       {
         selectedDataTypes: ['attachment1'],
@@ -73,15 +68,15 @@ describe('Convert to external format: attachmentsToExternalFormat', () => {
 
     useCasesSomeAttachments.forEach((useCase, index) => {
       it(`should convert to external format with some attachments and ${useCasesDesc[index]}`, () => {
-        expect(
-          attachmentsToExternalFormat(useCase.selectedDataTypes, useCase.availableAttachments),
-        ).toEqual(useCase.expected);
+        expect(dataExternalFormat(useCase.selectedDataTypes, useCase.availableAttachments)).toEqual(
+          useCase.expected,
+        );
       });
     });
   });
 });
 
-describe('Convert to internal format: dataToInternalFormat', () => {
+describe('Convert to internal format: dataInternalFormat', () => {
   const appMetaData: Partial<ApplicationMetadata['dataTypes']> = [
     { id: 'attachment0', taskId: 'Task_1', appLogic: {} },
     { id: 'attachment1', taskId: 'Task_1' },
@@ -104,7 +99,7 @@ describe('Convert to internal format: dataToInternalFormat', () => {
   };
   const currentLayoutSet = 'layoutSetId2';
 
-  describe('convert all attachments: dataToInternalFormat', () => {
+  describe('convert all data', () => {
     const useCasesAllDataTypes = [
       {
         dataTypeIds: [reservedDataTypes.includeAll, reservedDataTypes.currentTask],
@@ -162,14 +157,14 @@ describe('Convert to internal format: dataToInternalFormat', () => {
           useCase.dataTypeIds.includes(reservedDataTypes.currentTask),
         );
 
-        expect(dataToInternalFormat(tasks, appMetaData, useCase.dataTypeIds)).toEqual(
+        expect(dataInternalFormat(tasks, appMetaData, useCase.dataTypeIds)).toEqual(
           useCase.expected,
         );
       });
     });
   });
 
-  describe('convert some attachments: dataToInternalFormat', () => {
+  describe('convert some data', () => {
     const useCasesSomeDataTypes = [
       {
         dataTypeIds: ['attachment2', reservedDataTypes.refDataAsPdf, reservedDataTypes.currentTask],
@@ -199,7 +194,7 @@ describe('Convert to internal format: dataToInternalFormat', () => {
           useCase.dataTypeIds.includes(reservedDataTypes.currentTask),
         );
 
-        expect(dataToInternalFormat(tasks, appMetaData, useCase.dataTypeIds)).toEqual(
+        expect(dataInternalFormat(tasks, appMetaData, useCase.dataTypeIds)).toEqual(
           useCase.expected,
         );
       });
