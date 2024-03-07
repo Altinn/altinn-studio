@@ -155,7 +155,7 @@ test('That it is possible to add a new text, edit the id, and add a new language
   await giteaPage.verifyGiteaPage();
   await giteaPage.clickOnAppFilesButton();
   await giteaPage.clickOnUiFilesButton();
-  await giteaPage.clickOnLayoutsFilesButton();
+  await giteaPage.clickOnLayoutSetsFolder();
   await giteaPage.clickOnLayoutJsonFile(PAGE_1);
 
   await giteaPage.verifyThatComponentIdIsVisible(COMPONENT_ID);
