@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Switch } from '@digdir/design-system-react';
-import { AttachmentListCombobox } from './AttachmentListContent';
+import { AttachmentListContent } from './AttachmentListContent';
 import { useTranslation } from 'react-i18next';
 import { ArrayUtils } from '@studio/pure-functions';
 import { reservedDataTypes } from './AttachmentListUtils';
@@ -62,7 +62,7 @@ export const AttachmentListInternalFormat = (props: AttachmentListInternalFormat
       <Switch onChange={(e) => onChangePdf(e.target.checked)} size='small' checked={includePdf}>
         {t('ux_editor.component_properties.select_pdf')}
       </Switch>
-      <AttachmentListCombobox
+      <AttachmentListContent
         availableAttachments={availableAttachments}
         currentSelectedDataTypes={currentSelectedDataTypes}
         setCurrentSelectedDataTypes={setCurrentSelectedDataTypes}
