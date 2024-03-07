@@ -142,9 +142,8 @@ export const useAttachmentsFor = (node: LayoutNode<'FileUploadWithTag' | 'FileUp
 export const useHasPendingAttachments = () => {
   const out = useLaxMemoSelector((store) => {
     const { attachments } = store;
-    return Object.values(attachments).some(
-      (fileUploader) =>
-        fileUploader?.some((attachment) => !attachment.uploaded || attachment.updating || attachment.deleting),
+    return Object.values(attachments).some((fileUploader) =>
+      fileUploader?.some((attachment) => !attachment.uploaded || attachment.updating || attachment.deleting),
     );
   });
 

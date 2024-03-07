@@ -34,7 +34,8 @@ export const useNavigationParams = () => {
   const instanceGuid =
     pageKeyMatch?.params.instanceGuid ?? taskIdMatch?.params.instanceGuid ?? instanceMatch?.params.instanceGuid;
   const taskId = pageKeyMatch?.params.taskId ?? taskIdMatch?.params.taskId;
-  const pageKey = pageKeyMatch?.params.pageKey ?? statelessMatch?.params.pageKey;
+  const _pageKey = pageKeyMatch?.params.pageKey ?? statelessMatch?.params.pageKey;
+  const pageKey = _pageKey === undefined ? undefined : decodeURIComponent(_pageKey);
 
   return {
     partyId,
@@ -98,7 +99,9 @@ export const useNavigatePage = () => {
   const previousPageIndex = currentPageIndex !== -1 ? currentPageIndex - 1 : -1;
 
   const isValidPageId = useCallback(
-    (pageId: string) => {
+    (_pageId: string) => {
+      // The page ID may be URL encoded already, if we got this from react-router.
+      const pageId = decodeURIComponent(_pageId);
       if (taskType !== ProcessTaskType.Data) {
         return false;
       }
