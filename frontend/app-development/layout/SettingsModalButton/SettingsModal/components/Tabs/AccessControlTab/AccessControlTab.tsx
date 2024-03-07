@@ -3,7 +3,7 @@ import React from 'react';
 import classes from './AccessControlTab.module.css';
 import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
-import { Checkbox, ErrorMessage, Paragraph } from '@digdir/design-system-react';
+import { Checkbox, ErrorMessage, HelpText, Paragraph } from '@digdir/design-system-react';
 import type { PartyTypesAllowed } from 'app-shared/types/ApplicationMetadata';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
 import {
@@ -73,7 +73,7 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
         const currentPartyTypesAllowed = appMetadata?.partyTypesAllowed ?? initialPartyTypes;
         return (
           <Checkbox.Group
-            legend={t('settings_modal.access_control_tab_checkbox_legend')}
+            legend={t('settings_modal.access_control_tab_checkbox_legend_label')}
             size='small'
             onChange={(newValues: string[]) => handleChange(newValues, currentPartyTypesAllowed)}
             value={Object.keys(currentPartyTypesAllowed).filter(
@@ -92,7 +92,10 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
 
   return (
     <TabContent>
-      <TabHeader text={t('settings_modal.access_control_tab_heading')} />
+      <div className={classes.tabHeaderContent}>
+        <TabHeader text={t('settings_modal.access_control_tab_heading')} />
+        <HelpText title={''}>{t('settings_modal.access_control_tab_help_text_heading')}</HelpText>
+      </div>
       {displayContent()}
     </TabContent>
   );
