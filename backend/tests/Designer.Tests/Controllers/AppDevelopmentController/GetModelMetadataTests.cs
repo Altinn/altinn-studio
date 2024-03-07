@@ -23,7 +23,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "TestData/Model/Metadata/datamodel.json")]
-        [InlineData("ttd", "app-without-layoutset", "testUser", null, "TestData/Model/Metadata/datamodel.json")]
+        [InlineData("ttd", "app-without-layoutsets", "testUser", null, "TestData/Model/Metadata/datamodel.json")]
         public async Task GetModelMetadata_Should_Return_ModelMetadata(string org, string app, string developer, string layoutSetName, string expectedModelMetadataPath)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
