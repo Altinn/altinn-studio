@@ -13,7 +13,7 @@ export interface AppDeploymentActionsProps {
   lastBuildId: string;
   inProgress: boolean;
   envName: string;
-  envType: string;
+  isProduction: boolean;
   orgName: string;
 }
 
@@ -22,7 +22,7 @@ export const AppDeploymentActions = ({
   lastBuildId,
   inProgress,
   envName,
-  envType,
+  isProduction,
   orgName,
 }: AppDeploymentActionsProps) => {
   const [selectedImageTag, setSelectedImageTag] = useState(null);
@@ -54,7 +54,6 @@ export const AppDeploymentActions = ({
     permissions.findIndex((e) => e.toLowerCase() === envName.toLowerCase()) > -1;
 
   if (!deployPermission) {
-    const isProduction = envType.toLowerCase() === 'production';
     const envTitle = isProduction
       ? t(`general.production_environment_alt`).toLowerCase()
       : `${t('general.test_environment_alt').toLowerCase()} ${envName?.toUpperCase()}`;

@@ -18,19 +18,18 @@ import { getAzureDevopsBuildResultUrl } from 'app-development/utils/urlHelper';
 
 export interface AppDeploymentListProps {
   envName: string;
-  envType: string;
+  isProduction: boolean;
   pipelineDeploymentList: PipelineDeployment[];
   kubernetesDeployment?: KubernetesDeployment;
 }
 
 export const AppDeploymentList = ({
   envName,
-  envType,
+  isProduction,
   pipelineDeploymentList,
 }: AppDeploymentListProps) => {
   const { t } = useTranslation();
 
-  const isProduction = envType.toLowerCase() === 'production';
   const envTitle = isProduction
     ? t(`general.production_environment_alt`).toLowerCase()
     : `${t('general.test_environment_alt').toLowerCase()} ${envName?.toUpperCase()}`;

@@ -9,14 +9,14 @@ import { formatDateDDMMYY, formatTimeHHmm } from 'app-shared/pure/date-format';
 export interface AppDeploymentHeaderProps {
   kubernetesDeployment?: KubernetesDeployment;
   envName: string;
-  envType: string;
+  isProduction: boolean;
   urlToApp?: string;
 }
 
 export const AppDeploymentHeader = ({
   kubernetesDeployment,
   envName,
-  envType,
+  isProduction,
   urlToApp,
 }: AppDeploymentHeaderProps) => {
   const { t } = useTranslation();
@@ -32,7 +32,7 @@ export const AppDeploymentHeader = ({
     return (
       <DeploymentStatusInfo
         envName={envName}
-        envType={envType}
+        isProduction={isProduction}
         severity='warning'
         content={t('app_deployment.kubernetes_deployment.status.unavailable')}
       />
@@ -44,7 +44,7 @@ export const AppDeploymentHeader = ({
       return (
         <DeploymentStatusInfo
           envName={envName}
-          envType={envType}
+          isProduction={isProduction}
           severity='info'
           content={t('app_deployment.kubernetes_deployment.status.none')}
         />
@@ -53,7 +53,7 @@ export const AppDeploymentHeader = ({
       return (
         <DeploymentStatusInfo
           envName={envName}
-          envType={envType}
+          isProduction={isProduction}
           severity='success'
           content={
             <Trans
@@ -80,7 +80,7 @@ export const AppDeploymentHeader = ({
       return (
         <DeploymentStatusInfo
           envName={envName}
-          envType={envType}
+          isProduction={isProduction}
           severity='warning'
           content={t('app_deployment.kubernetes_deployment.status.failed')}
         />
@@ -89,7 +89,7 @@ export const AppDeploymentHeader = ({
       return (
         <DeploymentStatusInfo
           envName={envName}
-          envType={envType}
+          isProduction={isProduction}
           severity='info'
           content={
             <span className={classes.loadingSpinner}>
@@ -104,20 +104,19 @@ export const AppDeploymentHeader = ({
 
 type DeploymentStatusInfoProps = {
   envName: string;
-  envType: string;
+  isProduction: boolean;
   severity: 'success' | 'warning' | 'info' | 'danger';
   content: string | React.ReactNode;
   footer?: string | JSX.Element;
 };
 const DeploymentStatusInfo = ({
   envName,
-  envType,
+  isProduction,
   severity,
   content,
   footer,
 }: DeploymentStatusInfoProps) => {
   const { t } = useTranslation();
-  const isProduction = envType.toLowerCase() === 'production';
   const envTitle = isProduction ? t('general.production') : envName.toUpperCase();
   return (
     <Alert severity={severity} className={classes.alert}>

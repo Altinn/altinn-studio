@@ -12,7 +12,7 @@ export interface AppDeploymentProps {
   pipelineDeploymentList: PipelineDeployment[];
   kubernetesDeployment: KubernetesDeployment;
   envName: string;
-  envType: string;
+  isProduction: boolean;
   urlToApp?: string;
   orgName: string;
 }
@@ -21,7 +21,7 @@ export const AppDeployment = ({
   pipelineDeploymentList,
   kubernetesDeployment,
   envName,
-  envType,
+  isProduction,
   urlToApp,
   orgName,
 }: AppDeploymentProps) => {
@@ -31,7 +31,7 @@ export const AppDeployment = ({
         <AppDeploymentHeader
           kubernetesDeployment={kubernetesDeployment}
           envName={envName}
-          envType={envType}
+          isProduction={isProduction}
           urlToApp={urlToApp}
         />
       </div>
@@ -41,12 +41,12 @@ export const AppDeployment = ({
           lastBuildId={pipelineDeploymentList[0]?.build?.id}
           inProgress={pipelineDeploymentList.some((item) => item.build.result === BuildResult.none)}
           envName={envName}
-          envType={envType}
+          isProduction={isProduction}
           orgName={orgName}
         />
         <AppDeploymentList
           envName={envName}
-          envType={envType}
+          isProduction={isProduction}
           pipelineDeploymentList={pipelineDeploymentList}
         />
       </div>

@@ -12,12 +12,12 @@ import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeplo
 const org = 'ttd';
 const app = 'test-ttd';
 const envName = 'tt02';
-const envType = 'test';
+const isProduction = false;
 
 const render = (props: Partial<AppStatusProps> = {}) => {
   const allProps: AppStatusProps = {
     envName,
-    envType,
+    isProduction,
     ...props,
   };
   return renderWithProviders(<AppStatus {...allProps} />, {
@@ -29,7 +29,7 @@ describe('AppStatus', () => {
   it('shows production when environment is production', async () => {
     render({
       envName: 'production',
-      envType: 'production',
+      isProduction: true,
     });
 
     expect(screen.getByText(textMock('general.production'))).toBeInTheDocument();
@@ -38,7 +38,7 @@ describe('AppStatus', () => {
   it('shows environment name when environment is not production', async () => {
     render({
       envName: 'tt02',
-      envType: 'test',
+      isProduction: false,
     });
 
     expect(screen.getByText('TT02')).toBeInTheDocument();

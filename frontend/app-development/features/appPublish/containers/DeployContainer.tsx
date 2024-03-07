@@ -75,7 +75,7 @@ export const DeployContainer = () => {
           <AppDeployment
             key={index}
             envName={env.name}
-            envType={env.type}
+            isProduction={env.type.toLowerCase() === 'production'}
             urlToApp={getAppLink(env.appPrefix, env.hostname, org, app)}
             pipelineDeploymentList={pipelineDeploymentList}
             kubernetesDeployment={kubernetesDeployment}

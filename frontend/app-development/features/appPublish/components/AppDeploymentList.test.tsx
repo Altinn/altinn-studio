@@ -26,7 +26,7 @@ const pipelineDeployment = {
 
 const defaultProps: AppDeploymentListProps = {
   envName: 'test',
-  envType: 'test',
+  isProduction: false,
   pipelineDeploymentList: [],
 };
 
@@ -68,7 +68,7 @@ describe('AppDeploymentList', () => {
     render({
       pipelineDeploymentList: [pipelineDeployment],
       envName: 'production',
-      envType: 'production',
+      isProduction: true,
     });
 
     expect(
@@ -84,7 +84,7 @@ describe('AppDeploymentList', () => {
     render({
       pipelineDeploymentList: [pipelineDeployment],
       envName: 'tt02',
-      envType: 'test',
+      isProduction: false,
     });
 
     expect(

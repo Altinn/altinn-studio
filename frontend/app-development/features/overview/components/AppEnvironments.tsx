@@ -25,7 +25,7 @@ export const AppEnvironments = ({ orgEnvironmentList, appDeployment }: AppEnviro
             key={orgEnvironment.name}
             kubernetesDeployment={kubernetesDeployment}
             envName={orgEnvironment.name}
-            envType={orgEnvironment.type}
+            isProduction={orgEnvironment.type.toLowerCase() === 'production'}
             urlToApp={getAppLink(orgEnvironment.appPrefix, orgEnvironment.hostname, org, app)}
           />
         );

@@ -15,7 +15,7 @@ const defaultProps: AppDeploymentActionsProps = {
   lastBuildId: '',
   inProgress: false,
   envName: 'tt02',
-  envType: 'test',
+  isProduction: false,
   orgName: 'test',
 };
 
@@ -91,8 +91,8 @@ describe('AppDeploymentActions', () => {
     expect(screen.getByText(textMock('app_deployment.permission_error'))).toBeInTheDocument();
   });
 
-  it('should render missing rights message if deployPermission is false', async () => {
-    render({ envName: 'production', envType: 'production' });
+  it('should render missing rights message if deployPermission is false and environment is production', async () => {
+    render({ envName: 'production', isProduction: true });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('app_deployment.permission_checking')),
     );
@@ -100,6 +100,22 @@ describe('AppDeploymentActions', () => {
       screen.getByText(
         textMock('app_deployment.missing_rights', {
           envTitle: textMock('general.production_environment_alt').toLowerCase(),
+          orgName: defaultProps.orgName,
+        }),
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('should render missing rights message if deployPermission is false and environment is not production', async () => {
+    const envName = 'at22';
+    render({ envName, isProduction: false });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('app_deployment.permission_checking')),
+    );
+    expect(
+      screen.getByText(
+        textMock('app_deployment.missing_rights', {
+          envTitle: `${textMock('general.test_environment_alt').toLowerCase()} ${envName?.toUpperCase()}`,
           orgName: defaultProps.orgName,
         }),
       ),
