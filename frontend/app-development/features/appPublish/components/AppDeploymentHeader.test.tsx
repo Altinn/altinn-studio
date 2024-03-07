@@ -11,16 +11,13 @@ import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeplo
 // Test data
 const org = 'ttd';
 const app = 'test-ttd';
-const envName = 'tt02';
-const isProduction = false;
+const defaultProps: AppDeploymentHeaderProps = {
+  envName: 'tt02',
+  isProduction: false,
+};
 
 const render = (props: Partial<AppDeploymentHeaderProps> = {}) => {
-  const allProps: AppDeploymentHeaderProps = {
-    envName,
-    isProduction,
-    ...props,
-  };
-  return renderWithProviders(<AppDeploymentHeader {...allProps} />, {
+  return renderWithProviders(<AppDeploymentHeader {...defaultProps} {...props} />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/deploy`,
   });
 };
