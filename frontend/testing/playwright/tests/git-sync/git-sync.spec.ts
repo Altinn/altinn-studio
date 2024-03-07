@@ -47,7 +47,7 @@ test('That new changes are pushed to gitea and are visible on Gitea after they h
   await goToGiteaAndNavigateToUiLayoutFiles(header, giteaPage);
   await giteaPage.verifyThatTheNewPageIsNotPresent(newPageName);
 
-  const nPagesInGitea: number = 4; // 4 because of: Gitea -> App -> ui -> layouts
+  const nPagesInGitea: number = 5; // 4 because of: Gitea -> App -> ui -> layoutSets -> layouts
   await giteaPage.goBackNPages(nPagesInGitea);
   await uiEditorPage.verifyUiEditorPage(newPageName);
   await header.clickOnUploadLocalChangesButton();
@@ -107,7 +107,8 @@ const goToGiteaAndNavigateToUiLayoutFiles = async (header: Header, giteaPage: Gi
   await giteaPage.verifyGiteaPage();
   await giteaPage.clickOnAppFilesButton();
   await giteaPage.clickOnUiFilesButton();
-  await giteaPage.clickOnLayoutsFilesButton();
+  await giteaPage.clickOnLayoutSetsFolder();
+  await giteaPage.clickOnLayoutsFilesFolder();
 };
 
 const makeUiEditorChangesAndOpenLocalChangesModal = async (
