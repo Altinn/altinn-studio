@@ -66,8 +66,10 @@ const render = async ({
   label = undefined,
   handleComponentChange = jest.fn(),
 } = {}) => {
-  queryClientMock.setQueryData([QueryKey.DatamodelMetadata, 'org', 'app'], dataModelMetadata);
-
+  queryClientMock.setQueryData(
+    [QueryKey.DatamodelMetadata, 'org', 'app', 'test-layout-set'],
+    dataModelMetadata,
+  );
   renderWithProviders(
     <SelectDataModelComponent
       label={textMock(`ux_editor.component_title.${componentType}`)}
