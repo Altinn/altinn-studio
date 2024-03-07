@@ -80,7 +80,7 @@ jobs:
             --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT'
         "
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: logs
@@ -132,7 +132,7 @@ jobs:
               --env environment=tt02'
         "
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: redux-state-history
