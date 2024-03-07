@@ -15,8 +15,12 @@ export const useDatamodelMetadataQuery = (
     queryFn: () =>
       getDatamodelMetadata(org, app, layoutSetName).then((res) => {
         const dataModelFields: DatamodelFieldElement[] = [];
-        const elements = res.elements || res.Elements; // Hack because we don't know if the response is upper or lower cased
-        console.log(elements);
+
+        // Hack because we don't know if the response is upper or lower cased. Should be reverted once
+        // https://github.com/Altinn/altinn-studio/pull/12457 is ready, this should fix the issue in the API.
+        const response = res as unknown as any;
+        const elements = response.elements || response.Elements; // End of hack.
+
         Object.keys(elements).forEach((dataModelField) => {
           if (dataModelField) {
             dataModelFields.push(elements[dataModelField]);
