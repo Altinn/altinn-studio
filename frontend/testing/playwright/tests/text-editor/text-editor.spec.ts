@@ -61,8 +61,9 @@ test('That it is possible to create a text at the ux-editor page, and that the t
 
   await uiEditorPage.deleteOldComponentId();
   await uiEditorPage.writeNewComponentId(COMPONENT_ID);
-  await uiEditorPage.clickOnAddLabelText();
+  await uiEditorPage.waitForXAmountOfMilliseconds(1000); // Wait for the API call to be done
 
+  await uiEditorPage.clickOnAddLabelText();
   await uiEditorPage.writeLabelTextInTextarea(INPUT_COMPONENT_LABEL);
   await uiEditorPage.clickOnSaveNewLabelName();
   await uiEditorPage.waitForTreeItemToGetNewLabel(INPUT_COMPONENT_LABEL);
@@ -156,12 +157,13 @@ test('That it is possible to add a new text, edit the id, and add a new language
   await giteaPage.clickOnAppFilesButton();
   await giteaPage.clickOnUiFilesButton();
   await giteaPage.clickOnLayoutSetsFolder();
+  await giteaPage.clickOnLayoutsFilesFolder();
   await giteaPage.clickOnLayoutJsonFile(PAGE_1);
 
   await giteaPage.verifyThatComponentIdIsVisible(COMPONENT_ID);
   await giteaPage.verifyThatTextResourceBindingsTitleIsVisible(UPDATED_TEXT_KEY);
 
-  await giteaPage.goBackNPages(3); // ui -> layout -> page1.json
+  await giteaPage.goBackNPages(4); // ui -> layoutSet -> layouts -> page1.json
   await giteaPage.clickOnConfigFilesButton();
   await giteaPage.clickOnTextFilesButton();
   await giteaPage.verifyThatResourceJsonFileIsVisible(LanguageCode.Nb);

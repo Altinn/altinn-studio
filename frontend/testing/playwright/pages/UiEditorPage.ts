@@ -129,14 +129,6 @@ export class UiEditorPage extends BasePage {
     await expect(textTreeItem).toBeVisible();
   }
 
-  public async getBetaConfigSwitchValue(): Promise<boolean> {
-    return await this.page
-      .getByRole('checkbox', {
-        name: this.textMock('ux_editor.edit_component.show_beta_func'),
-      })
-      .isChecked();
-  }
-
   public async clickOnAddLabelText(): Promise<void> {
     await this.page
       .getByRole('button', {
@@ -235,6 +227,7 @@ export class UiEditorPage extends BasePage {
   }
 
   public async deleteOldComponentId(): Promise<void> {
+    await this.page.getByRole('button', { name: /ID:/ }).click();
     await this.page
       .getByLabel(this.textMock('ux_editor.modal_properties_component_change_id'))
       .clear();
@@ -244,6 +237,10 @@ export class UiEditorPage extends BasePage {
     await this.page
       .getByLabel(this.textMock('ux_editor.modal_properties_component_change_id'))
       .fill(newId);
+
+    await this.page
+      .getByLabel(this.textMock('ux_editor.modal_properties_component_change_id'))
+      .blur();
   }
 
   public async verifyThatTextKeyIsVisible(textKey: string): Promise<void> {
