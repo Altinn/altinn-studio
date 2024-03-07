@@ -4,7 +4,7 @@ import { DeployContainer } from './DeployContainer';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from 'app-development/test/mocks';
-import { deployEnvironment } from 'app-shared/mocks/mocks';
+import { environment } from 'app-shared/mocks/mocks';
 import type { AppDeployment } from 'app-shared/types/api/AppDeployment';
 
 describe('DeployContainer', () => {
@@ -30,7 +30,7 @@ describe('DeployContainer', () => {
       getEnvironments: jest.fn().mockImplementation(() =>
         Promise.resolve([
           {
-            ...deployEnvironment,
+            ...environment,
             name: envName,
           },
         ]),

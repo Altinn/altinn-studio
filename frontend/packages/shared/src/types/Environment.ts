@@ -1,4 +1,4 @@
-export interface DeployEnvironment {
+export interface Environment {
   appsUrl: string;
   platformUrl: string;
   hostname: string;

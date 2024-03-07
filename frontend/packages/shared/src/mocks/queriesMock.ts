@@ -9,7 +9,7 @@ import type {
   DatamodelMetadataJson,
   DatamodelMetadataXsd,
 } from 'app-shared/types/DatamodelMetadata';
-import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
+import type { Environment } from 'app-shared/types/Environment';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { Organization } from 'app-shared/types/Organization';
 import type { OrgList } from 'app-shared/types/OrgList';
@@ -90,7 +90,7 @@ export const queriesMock: ServicesContextProps = {
   getDatamodelsXsd: jest.fn().mockImplementation(() => Promise.resolve<DatamodelMetadataXsd[]>([])),
   getDeployPermissions: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getDeployments: jest.fn().mockImplementation(() => Promise.resolve<AppDeployment>(appDeployment)),
-  getEnvironments: jest.fn().mockImplementation(() => Promise.resolve<DeployEnvironment[]>([])),
+  getEnvironments: jest.fn().mockImplementation(() => Promise.resolve<Environment[]>([])),
   getFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponse>({})),
   getFormLayoutsV3: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponseV3>({})),

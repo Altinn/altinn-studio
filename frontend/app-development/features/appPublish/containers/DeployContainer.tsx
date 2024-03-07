@@ -6,7 +6,7 @@ import {
   useEnvironmentsQuery,
   useAppDeploymentsQuery,
 } from '../../../hooks/queries';
-import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
+import type { Environment } from 'app-shared/types/Environment';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { AppDeployment } from '../components/AppDeployment';
 import { getAppLink } from 'app-shared/ext-urls';
@@ -58,13 +58,13 @@ export const DeployContainer = () => {
     return <Alert severity='danger'>{t('app_deployment.error')}</Alert>;
 
   const selectedOrg = orgs?.[org];
-  const orgEnvironmentList: DeployEnvironment[] = environmentList.filter((env: DeployEnvironment) =>
+  const orgEnvironmentList: Environment[] = environmentList.filter((env: Environment) =>
     selectedOrg.environments.some((envName) => envName.toLowerCase() === env.name.toLowerCase()),
   );
 
   return (
     <div className={classes.deployContainer}>
-      {orgEnvironmentList.map((env: DeployEnvironment, index: number) => {
+      {orgEnvironmentList.map((env: Environment, index: number) => {
         const pipelineDeploymentList = appDeployment.pipelineDeploymentList.filter(
           (item) => item.envName.toLowerCase() === env.name.toLowerCase(),
         );

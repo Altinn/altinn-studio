@@ -1,13 +1,13 @@
 import React from 'react';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
+import type { Environment } from 'app-shared/types/Environment';
 import { AppStatus } from './AppStatus';
 import classes from './AppEnvironments.module.css';
 import { getAppLink } from 'app-shared/ext-urls';
 import type { AppDeployment } from 'app-shared/types/api/AppDeployment';
 
 export interface AppEnvironmentsProps {
-  orgEnvironmentList: DeployEnvironment[];
+  orgEnvironmentList: Environment[];
   appDeployment: AppDeployment;
 }
 
@@ -16,7 +16,7 @@ export const AppEnvironments = ({ orgEnvironmentList, appDeployment }: AppEnviro
 
   return (
     <div className={classes.appEnvironments}>
-      {orgEnvironmentList.map((orgEnvironment: DeployEnvironment) => {
+      {orgEnvironmentList.map((orgEnvironment: Environment) => {
         const kubernetesDeployment = appDeployment.kubernetesDeploymentList.find(
           (item) => item.envName.toLowerCase() === orgEnvironment.name.toLowerCase(),
         );

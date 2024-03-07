@@ -5,11 +5,7 @@ import { AppLogs } from './AppLogs';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
 import { textMock } from '../../../../testing/mocks/i18nMock';
-import {
-  pipelineDeployment,
-  deployEnvironment,
-  kubernetesDeployment,
-} from 'app-shared/mocks/mocks';
+import { pipelineDeployment, environment, kubernetesDeployment } from 'app-shared/mocks/mocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { BuildResult } from 'app-shared/types/Build';
 
@@ -20,12 +16,12 @@ const app = 'test-ttd';
 const defaultProps: AppLogsProps = {
   orgEnvironmentList: [
     {
-      ...deployEnvironment,
+      ...environment,
       name: 'production',
       type: 'production',
     },
     {
-      ...deployEnvironment,
+      ...environment,
       name: 'tt02',
       type: 'test',
     },

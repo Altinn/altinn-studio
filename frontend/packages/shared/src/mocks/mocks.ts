@@ -21,7 +21,7 @@ import type { AppVersion } from 'app-shared/types/AppVersion';
 import type { Build } from 'app-shared/types/Build';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
-import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
+import type { Environment } from 'app-shared/types/Environment';
 import type { Organization } from 'app-shared/types/Organization';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import type { AppDeployment } from 'app-shared/types/api/AppDeployment';
@@ -92,7 +92,7 @@ export const kubernetesDeployment: KubernetesDeployment = {
   version: '',
 };
 
-export const deployEnvironment: DeployEnvironment = {
+export const environment: Environment = {
   appsUrl: '',
   platformUrl: '',
   hostname: '',

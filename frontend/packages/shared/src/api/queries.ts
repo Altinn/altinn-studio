@@ -50,7 +50,7 @@ import type { AppReleasesResponse, DatamodelMetadataResponse, SearchRepoFilterPa
 import type { AppDeployment } from 'app-shared/types/api/AppDeployment';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
 import type { DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
-import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
+import type { Environment } from 'app-shared/types/Environment';
 import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { ILayoutSettings, ITextResourcesWithLanguage, IFrontEndSettings } from 'app-shared/types/global';
@@ -83,7 +83,7 @@ export const getDatamodelsJson = (owner: string, app: string) => get<DatamodelMe
 export const getDatamodelsXsd = (owner: string, app: string) => get<DatamodelMetadataXsd[]>(datamodelsXsdPath(owner, app));
 export const getDeployPermissions = (owner: string, app: string) => get<string[]>(deployPermissionsPath(owner, app));
 export const getDeployments = (owner: string, app: string) => get<AppDeployment>(deploymentsPath(owner, app, 'Descending'));
-export const getEnvironments = () => get<DeployEnvironment[]>(envConfigPath());
+export const getEnvironments = () => get<Environment[]>(envConfigPath());
 export const getFormLayoutSettings = (owner: string, app: string, layoutSetName: string) => get<ILayoutSettings>(layoutSettingsPath(owner, app, layoutSetName));
 export const getFormLayouts = (owner: string, app: string, layoutSetName: string) => get<FormLayoutsResponse>(formLayoutsPath(owner, app, layoutSetName));
 export const getFormLayoutsV3 = (owner: string, app: string, layoutSetName: string) => get<FormLayoutsResponseV3>(formLayoutsPath(owner, app, layoutSetName));

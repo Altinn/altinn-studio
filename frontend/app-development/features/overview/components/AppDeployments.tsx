@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { AppEnvironments } from './AppEnvironments';
 import { AppLogs } from './AppLogs';
 import { StudioSpinner } from '@studio/components';
-import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
+import type { Environment } from 'app-shared/types/Environment';
 
 type AppProps = Pick<HTMLAttributes<HTMLDivElement>, 'className'>;
 
@@ -42,7 +42,7 @@ export const AppDeployments = ({ className }: AppProps) => {
     return <Alert severity='danger'>{t('overview.app_error')}</Alert>;
 
   const selectedOrg = orgs?.[org];
-  const orgEnvironmentList: DeployEnvironment[] = environmentList.filter((env: DeployEnvironment) =>
+  const orgEnvironmentList: Environment[] = environmentList.filter((env: Environment) =>
     selectedOrg.environments.some((envName) => envName.toLowerCase() === env.name.toLowerCase()),
   );
 
