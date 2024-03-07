@@ -164,7 +164,6 @@ function testInstanceData() {
                 knownModel,
               );
             }
-
             expect(dataModel).to.deep.equal(knownModel);
           });
         }
@@ -307,6 +306,11 @@ const knownDataModels: { [key: string]: any } = {
       KommunerMetadata: 'language=nb,id=131,variant=,date=ANY_DATE,level=,parentCode=',
     },
     ChooseExtraPages: null,
+    Colors: null,
+    ColorsLabels: [],
+    ColorsLabelsVerify: null,
+    Food: null,
+    FoodLabel: null,
     Numeric: null,
     GridData: {
       TotalGjeld: 1000000,

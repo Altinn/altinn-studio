@@ -101,6 +101,30 @@ function isSameRow(left: any, right: any): boolean {
  */
 function compareArrays({ prev, next, current, hasCurrent, patch, path }: CompareProps<any[]>) {
   const diff = getPatch(prev, next, isSameRow);
+  const allNextValuesIsString = next.length > 0 && next.every((item) => typeof item === 'string');
+  if (allNextValuesIsString) {
+    if (next.length > 0) {
+      if (!current) {
+        patch.push({
+          op: 'test',
+          path: pointer(path),
+          value: prev,
+        });
+      }
+      patch.push({
+        op: 'replace',
+        path: pointer(path),
+        value: next,
+      });
+    } else {
+      patch.push({
+        op: 'remove',
+        path: pointer(path),
+      });
+    }
+    return;
+  }
+
   const localPatch: JsonPatch = [];
   const arrayAfterChanges = [...prev];
   for (const part of diff) {

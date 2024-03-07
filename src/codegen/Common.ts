@@ -137,6 +137,7 @@ const common = {
   IDataModelBindingsOptionsSimple: () =>
     new CG.obj(
       new CG.prop('simpleBinding', new CG.str()),
+      new CG.prop('label', new CG.str().optional()),
       new CG.prop(
         'metadata',
         new CG.str()

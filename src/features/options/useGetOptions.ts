@@ -20,6 +20,21 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type ValueType = 'single' | 'multi';
 
+const getLabelsForActiveOptions = (selectedOptions: string[], allOptions: IOptionInternal[]): string[] =>
+  allOptions.filter((option) => selectedOptions.includes(option.value)).map((option) => option.label);
+
+const usePrevious = (value: any) => {
+  const ref = useRef();
+  useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+};
+const useHasChanged = (val: any) => {
+  const prevVal = usePrevious(val);
+  return prevVal !== val;
+};
+
 interface Props<T extends ValueType> {
   valueType: T;
 
@@ -188,6 +203,35 @@ export function useGetOptions<T extends ValueType>(props: Props<T>): OptionsResu
     }
     return (value ? value.split(',') : []) as CurrentValueAsString<T>;
   }, [value, valueType]);
+
+  const translatedLabels = useMemo(
+    () =>
+      getLabelsForActiveOptions(
+        Array.isArray(currentStringy) ? currentStringy : [currentStringy],
+        calculatedOptions || [],
+      ).map((label) => langAsString(label)),
+
+    [calculatedOptions, currentStringy, langAsString],
+  );
+
+  const labelsHaveChanged = useHasChanged(translatedLabels.join(','));
+
+  useEffect(() => {
+    if (!(dataModelBindings as IDataModelBindingsOptionsSimple)?.label) {
+      return;
+    }
+
+    if (!labelsHaveChanged) {
+      return;
+    }
+
+    if (valueType === 'single') {
+      const labelToSet = translatedLabels?.length > 0 ? translatedLabels[0] : undefined;
+      setValue('label' as any, labelToSet);
+    } else {
+      setValue('label' as any, translatedLabels);
+    }
+  }, [translatedLabels, labelsHaveChanged, dataModelBindings, setValue, valueType]);
 
   const setData = useMemo(() => {
     if (valueType === 'single') {

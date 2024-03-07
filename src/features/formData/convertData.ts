@@ -5,7 +5,7 @@ interface ReturnType {
   error: boolean;
 }
 
-type Value = string | number | boolean | null;
+type Value = string | number | boolean | null | string[];
 const AllValidTypes = ['string', 'number', 'integer', 'boolean', 'null'] as const;
 type ValidTypes = (typeof AllValidTypes)[number];
 
@@ -17,6 +17,10 @@ export function convertData(value: Value, schema: JSONSchema7 | undefined): Retu
     // Assume it's a string if we don't have a binding. This is not likely to happen as long as components aren't
     // even rendered when their data model bindings fail.
     return { newValue: String(value), error: false };
+  }
+
+  if (Array.isArray(value)) {
+    return { newValue: value, error: false };
   }
 
   try {

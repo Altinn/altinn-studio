@@ -1,4 +1,5 @@
 import texts from 'test/e2e/fixtures/texts.json';
+import { changeToLang } from 'test/e2e/integration/frontend-test/formatting';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
 import type { CompOrGroupExternal } from 'src/layout/layout';
@@ -26,6 +27,31 @@ describe('Dynamics', () => {
       })
       .check();
     cy.get(appFrontend.changeOfName.reasons).should('be.visible');
+  });
+
+  it('Should save the labels of multiple chosen options', () => {
+    cy.goto('changename');
+    cy.get(appFrontend.changeOfName.newFirstName).type('123');
+    cy.get('#choose-extra').findByText('Label Databindings').click();
+    cy.gotoNavPage('label-data-bindings');
+
+    cy.findByRole('checkbox', { name: 'Blå' }).click();
+    cy.findByRole('checkbox', { name: 'Grønn' }).click();
+    cy.get('#ColorsLabelsVerify').should('have.value', 'Blå,Grønn');
+    changeToLang('en');
+    cy.get('#ColorsLabelsVerify').should('have.value', 'Blue,Green');
+  });
+
+  it('Should save the label of a chosen option', () => {
+    cy.goto('changename');
+    cy.get(appFrontend.changeOfName.newFirstName).type('123');
+    cy.get('#choose-extra').findByText('Label Databindings').click();
+    cy.gotoNavPage('label-data-bindings');
+
+    cy.findByRole('radio', { name: 'Gulrot' }).click();
+    cy.get('#colorLabel').should('have.value', 'Gulrot');
+    changeToLang('en');
+    cy.get('#colorLabel').should('have.value', 'Carrot');
   });
 
   it('Remove validation message when field disappears', () => {

@@ -308,8 +308,7 @@ describe('createPatch', () => {
       next: { a: ['foo', 'bar2', 'baz', 'qux'] },
       expectedPatch: [
         { op: 'test', path: '/a', value: ['foo', 'bar', 'baz', 'qux'] },
-        { op: 'remove', path: '/a/1' },
-        { op: 'add', path: '/a/1', value: 'bar2' },
+        { op: 'replace', path: '/a', value: ['foo', 'bar2', 'baz', 'qux'] },
       ],
     });
   });

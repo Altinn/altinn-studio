@@ -4,6 +4,14 @@ import type { IInputFormatting } from 'src/layout/Input/config.generated';
 
 const appFrontend = new AppFrontend();
 
+export const changeToLang = (option: 'en' | 'nb') => {
+  cy.findByRole('combobox', { name: option === 'en' ? 'Språk' : 'Language' }).click();
+  cy.findByRole('option', { name: option === 'en' ? 'Engelsk' : 'Norwegian bokmål' }).click();
+
+  // Verify that the language has changed
+  cy.findByRole('combobox', { name: option === 'en' ? 'Language' : 'Språk' }).should('be.visible');
+};
+
 describe('Formatting', () => {
   it('Number formatting', () => {
     cy.goto('changename');
@@ -27,14 +35,6 @@ describe('Formatting', () => {
     cy.get(appFrontend.group.newValue).type('-2');
     cy.get(appFrontend.group.newValue).should('not.contain.value', '-').and('have.css', 'text-align', 'right');
   });
-
-  const changeToLang = (option: 'en' | 'nb') => {
-    cy.findByRole('combobox', { name: option === 'en' ? 'Språk' : 'Language' }).click();
-    cy.findByRole('option', { name: option === 'en' ? 'Engelsk' : 'Norwegian bokmål' }).click();
-
-    // Verify that the language has changed
-    cy.findByRole('combobox', { name: option === 'en' ? 'Language' : 'Språk' }).should('be.visible');
-  };
 
   it('Dynamic number formatting', () => {
     cy.goto('group');
