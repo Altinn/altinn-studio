@@ -30,6 +30,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// Constructor
         /// </summary>
         /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
+        /// <param name="schemaModelService">ISchemaModelService</param>
         public AppDevelopmentService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ISchemaModelService schemaModelService)
         {
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
@@ -162,6 +163,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             // get task_id since we might not maintain dataType ref in layout-sets-file
             string taskId = await GetTaskIdBasedOnLayoutSet(altinnRepoEditingContext, layoutSetName, cancellationToken);
             string modelName = GetModelName(applicationMetadata, taskId);
+            if (string.IsNullOrEmpty(modelName))
+            {
+                return new ModelMetadata();
+            }
             string modelPath = $"App/models/{modelName}.schema.json";
             ModelMetadata modelMetadata = await _schemaModelService.GenerateModelMetadataFromJsonSchema(altinnRepoEditingContext, modelPath, cancellationToken);
             return modelMetadata;
@@ -169,6 +174,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private string GetModelName(ApplicationMetadata applicationMetadata, [CanBeNull] string taskId)
         {
+            // fallback to first model if no task_id is provided (no layoutsets)
+            if (taskId == null)
+            {
+                return applicationMetadata.DataTypes.FirstOrDefault(data => data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef))?.Id ?? string.Empty;
+            }
+
             PlatformStorageModels.DataType data = applicationMetadata.DataTypes
                 .FirstOrDefault(data => data.AppLogic != null && DoesDataTaskMatchTaskId(data, taskId) && !string.IsNullOrEmpty(data.AppLogic.ClassRef));
 
