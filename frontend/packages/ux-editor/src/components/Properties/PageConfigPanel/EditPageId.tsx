@@ -25,7 +25,7 @@ export const EditPageId = ({ layoutName }: EditPageIdProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const t = useText();
 
-  const layoutOrder = formLayoutSettings?.pages.order;
+  const layoutOrder = formLayoutSettings?.pages?.order;
 
   const handleSaveNewName = (newName: string) => {
     if (newName === layoutName) return;
