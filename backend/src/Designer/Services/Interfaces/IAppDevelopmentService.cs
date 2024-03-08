@@ -108,7 +108,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <param name="layoutSet">Config for the new layoutset</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        public Task AddLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, LayoutSetConfig layoutSet, CancellationToken cancellationToken = default);
+        public Task<LayoutSets> AddLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, LayoutSetConfig layoutSet, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets the rule handler for a specific organization, application, developer, and layout set name.

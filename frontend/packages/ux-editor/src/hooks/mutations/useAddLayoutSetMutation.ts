@@ -2,25 +2,22 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useAppContext } from '../useAppContext';
+import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 
-export interface ConfigureLayoutSetMutationArgs {
-  layoutSetName: string;
-}
-
-export const useConfigureLayoutSetMutation = (org: string, app: string) => {
-  const { configureLayoutSet } = useServicesContext();
+export const useAddLayoutSetMutation = (org: string, app: string) => {
+  const { addLayoutSet } = useServicesContext();
   const { setSelectedLayoutSet } = useAppContext();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ layoutSetName }: ConfigureLayoutSetMutationArgs) =>
-      configureLayoutSet(org, app, layoutSetName).then((layoutSets) => ({
-        layoutSetName,
+    mutationFn: (layoutSetConfig: LayoutSetConfig) =>
+      addLayoutSet(org, app, layoutSetConfig).then((layoutSets) => ({
+        layoutSetConfig,
         layoutSets,
       })),
 
-    onSuccess: ({ layoutSetName, layoutSets }) => {
-      setSelectedLayoutSet(layoutSetName);
+    onSuccess: ({ layoutSetConfig, layoutSets }) => {
+      setSelectedLayoutSet(layoutSetConfig.id);
       queryClient.setQueryData([QueryKey.LayoutSets, org, app], () => layoutSets);
     },
   });

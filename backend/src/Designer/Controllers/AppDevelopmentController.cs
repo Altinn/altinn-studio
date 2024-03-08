@@ -327,44 +327,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Create a layout-set.json file
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="layoutSetName">Name of initial layout set</param>
-        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        /// <returns>The layout-sets.json</returns>
-        [HttpPost]
-        [UseSystemTextJson]
-        [Route("layout-sets")]
-        public async Task<IActionResult> ConfigureLayoutSet(string org, string app, [FromQuery] string layoutSetName, CancellationToken cancellationToken)
-        {
-            try
-            {
-                bool isValidLayoutSetName = string.IsNullOrEmpty(layoutSetName) ||
-                                            Regex.IsMatch(layoutSetName, _layoutSetNameRegEx);
-                if (!isValidLayoutSetName)
-                {
-                    return BadRequest("LayoutSetName is not valid");
-                }
-
-                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                LayoutSets layoutSets = await _appDevelopmentService.ConfigureLayoutSet(editingContext, layoutSetName, cancellationToken);
-                return Ok(layoutSets);
-            }
-            catch (BadHttpRequestException exception)
-            {
-                return BadRequest(exception.Message);
-            }
-            catch (FileNotFoundException exception)
-            {
-                return NotFound(exception.Message);
-            }
-        }
-
-        /// <summary>
-        /// Add a layoutset to the layout-sets.json file
+        /// Add a layout set to the layout-sets.json file
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -378,8 +341,8 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                await _appDevelopmentService.AddLayoutSet(editingContext, layoutSet, cancellationToken);
-                return Ok();
+                LayoutSets layoutSets = await _appDevelopmentService.AddLayoutSet(editingContext, layoutSet, cancellationToken);
+                return Ok(layoutSets);
             }
             catch (FileNotFoundException exception)
             {

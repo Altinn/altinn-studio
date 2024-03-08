@@ -7,7 +7,6 @@ import {
   formLayoutNamePath,
   formLayoutPath,
   layoutSetsPath,
-  layoutSetPath,
   layoutSettingsPath,
   releasesPath,
   repoCommitPath,
@@ -44,7 +43,7 @@ import type { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePay
 import type { CreateRepoCommitPayload } from 'app-shared/types/api/CreateRepoCommitPayload';
 import type { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 import type { ExternalFormLayoutV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
-import type { LayoutSetConfig, LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import type { ILayoutSettings, ITextResourcesObjectFormat } from 'app-shared/types/global';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import type { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
@@ -68,7 +67,6 @@ export const addLayoutSet = (org: string, app: string, payload: LayoutSetConfig)
 export const addRepo = (repoToAdd: AddRepoParams) => post<Repository>(`${createRepoPath()}${buildQueryParams(repoToAdd)}`);
 export const addXsdFromRepo = (org: string, app: string, modelPath: string) => post<JsonSchema>(datamodelAddXsdFromRepoPath(org, app, modelPath));
 export const commitAndPushChanges = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPushPath(org, app), payload, { headers });
-export const configureLayoutSet = (org: string, app: string, layoutSetName: string) => post<LayoutSets>(layoutSetPath(org, app, layoutSetName));
 export const copyApp = (org: string, app: string, repoName: string) => post(copyAppPath(org, app, repoName));
 export const createDatamodel = (org: string, app: string, payload: CreateDatamodelPayload) => post<JsonSchema, CreateDatamodelPayload>(createDatamodelPath(org, app), payload);
 export const createDeployment = (org: string, app: string, payload: CreateDeploymentPayload) => post<void, CreateDeploymentPayload>(deploymentsPath(org, app), payload);

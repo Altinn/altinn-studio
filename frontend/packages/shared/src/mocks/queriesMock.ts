@@ -170,7 +170,6 @@ export const queriesMock: ServicesContextProps = {
   commitAndPushChanges: jest
     .fn()
     .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
-  configureLayoutSet: jest.fn().mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets)),
   copyApp: jest.fn().mockImplementation(() => Promise.resolve()),
   createDatamodel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   createDeployment: jest.fn().mockImplementation(() => Promise.resolve()),

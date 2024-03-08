@@ -258,7 +258,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return layoutSets;
         }
 
-        public async Task AddLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, LayoutSetConfig layoutSet,
+        public async Task<LayoutSets> AddLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, LayoutSetConfig layoutSet,
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -271,7 +271,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
                 layoutSets.Sets.Add(layoutSet);
                 await altinnAppGitRepository.SaveLayoutSetsFile(layoutSets);
-                return;
+                return layoutSets;
             }
 
             throw new FileNotFoundException("No layout set found for this app");
