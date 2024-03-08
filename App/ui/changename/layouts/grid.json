@@ -267,6 +267,7 @@
         "dataModelBindings": {
           "simpleBinding": "GridData.TotalProsent"
         },
+        "showValidations": [],
         "textResourceBindings": {
           "title": "Utregnet totalprosent"
         },
@@ -473,4 +474,3 @@
     ]
   }
 }
-
