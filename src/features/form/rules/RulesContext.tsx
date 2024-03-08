@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
@@ -21,11 +20,14 @@ const useRulesQuery = () => {
   const utils = useQuery({
     queryKey: ['fetchRules', layoutSetId],
     queryFn: () => fetchRuleHandler(layoutSetId),
-    onError: (error: AxiosError) => {
-      clearExistingRules();
-      window.logError('Fetching RuleHandler failed:\n', error);
-    },
   });
+
+  useEffect(() => {
+    if (utils.error) {
+      clearExistingRules();
+      window.logError('Fetching RuleHandler failed:\n', utils.error);
+    }
+  }, [utils.error]);
 
   useEffect(() => {
     clearExistingRules();

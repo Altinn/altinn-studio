@@ -42,7 +42,7 @@ export const VersionSwitcher = () => {
     document.close();
   };
 
-  if (isVersionsLoading || isHtmlLoading) {
+  if (isVersionsLoading || isHtmlLoading || !versions) {
     return <Spinner title={'Laster...'} />;
   }
 

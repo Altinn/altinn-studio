@@ -13,7 +13,11 @@ export function useLayoutSchemaValidation(enabled: boolean): LayoutValidationErr
   const layoutSetId = useCurrentLayoutSetId() || 'default';
 
   const { fetchLayoutSchema } = useAppQueries();
-  const { data: layoutSchema, isSuccess } = useQuery(['fetchLayoutSchema'], () => fetchLayoutSchema(), { enabled });
+  const { data: layoutSchema, isSuccess } = useQuery({
+    enabled,
+    queryKey: ['fetchLayoutSchema'],
+    queryFn: () => fetchLayoutSchema(),
+  });
 
   const validator = useMemo(() => {
     if (isSuccess && layoutSchema) {

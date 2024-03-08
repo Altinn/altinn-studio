@@ -37,7 +37,7 @@ export function useBackendValidation({ enabled = true }: UseBackendValidationPro
   const currentLanguage = useCurrentLanguage();
 
   const { data: initialValidations } = useQuery({
-    cacheTime: 0,
+    gcTime: 0,
     queryKey: ['validation', instanceId, currentDataElementId],
     enabled,
     queryFn: () =>

@@ -1,5 +1,6 @@
+import { useEffect } from 'react';
+
 import { useQuery } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
@@ -15,13 +16,16 @@ function useDynamicsQuery() {
     throw new Error('No layoutSet id found');
   }
 
-  return useQuery({
+  const utils = useQuery({
     queryKey: ['fetchDynamics', layoutSetId],
     queryFn: async () => (await fetchDynamics(layoutSetId))?.data || null,
-    onError: (error: AxiosError) => {
-      window.logError('Fetching dynamics failed:\n', error);
-    },
   });
+
+  useEffect(() => {
+    utils.error && window.logError('Fetching dynamics failed:\n', utils.error);
+  }, [utils.error]);
+
+  return utils;
 }
 
 const { Provider, useCtx, useLaxCtx } = delayedContext(() =>

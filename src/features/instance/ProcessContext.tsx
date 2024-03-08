@@ -32,13 +32,16 @@ export const useHasProcessProvider = () => useHasProvider();
 function useProcessQuery(instanceId: string) {
   const { fetchProcessState } = useAppQueries();
 
-  return useQuery<IProcess, HttpClientError>({
+  const utils = useQuery<IProcess, HttpClientError>({
     queryKey: ['fetchProcessState', instanceId],
     queryFn: () => fetchProcessState(instanceId),
-    onError: (error) => {
-      window.logError('Fetching process state failed:\n', error);
-    },
   });
+
+  useEffect(() => {
+    utils.error && window.logError('Fetching process state failed:\n', utils.error);
+  }, [utils.error]);
+
+  return utils;
 }
 
 export function ProcessProvider({ children, instance }: React.PropsWithChildren<{ instance: IInstance }>) {

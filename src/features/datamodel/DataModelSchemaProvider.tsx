@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 import { useQuery } from '@tanstack/react-query';
 import type { JSONSchema7 } from 'json-schema';
 
@@ -10,7 +12,6 @@ import { lookupBindingInSchema } from 'src/features/datamodel/SimpleSchemaTraver
 import { useCurrentDataModelName, useCurrentDataModelType } from 'src/features/datamodel/useBindingSchema';
 import { getRootElementPath } from 'src/utils/schemaUtils';
 import type { SchemaLookupResult } from 'src/features/datamodel/SimpleSchemaTraversal';
-import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 const useDataModelSchemaQuery = () => {
   const { fetchDataModelSchema } = useAppQueries();
@@ -22,19 +23,16 @@ const useDataModelSchemaQuery = () => {
     enabled,
     queryKey: ['fetchDataModelSchemas', dataModelName],
     queryFn: () => fetchDataModelSchema(dataModelName!),
-    onError: (error: HttpClientError) => {
-      if (error.status === 404) {
-        window.logWarn('Data model schema not found:\n', error);
-      } else {
-        window.logError('Data model schema request failed:\n', error);
-      }
-    },
     select: (schema) => {
       const rootElementPath = getRootElementPath(schema, dataType);
       const lookupTool = new SchemaLookupTool(schema, rootElementPath);
       return { schema, lookupTool };
     },
   });
+
+  useEffect(() => {
+    utils.error && window.logError('Fetching data model schema failed:\n', utils.error);
+  }, [utils.error]);
 
   return { ...utils, enabled };
 };

@@ -1,7 +1,8 @@
+import { useEffect } from 'react';
+
 import { useQuery } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
-import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 const __default__ = '';
 
@@ -14,14 +15,15 @@ const __default__ = '';
 export const usePostPlaceQuery = (zipCode: string | undefined, enabled: boolean) => {
   const { fetchPostPlace } = useAppQueries();
   const _enabled = enabled && Boolean(zipCode?.length) && zipCode !== __default__ && zipCode !== '0';
-  const { data, isFetching } = useQuery({
+  const { data, isFetching, error } = useQuery({
     enabled: _enabled,
     queryKey: ['fetchPostPlace', zipCode],
     queryFn: () => fetchPostPlace(zipCode!),
-    onError: (error: HttpClientError) => {
-      window.logError(`Fetching post place for zip code ${zipCode} failed:\n`, error);
-    },
   });
+
+  useEffect(() => {
+    error && window.logError(`Fetching post place for zip code ${zipCode} failed:\n`, error);
+  }, [error, zipCode]);
 
   if (isFetching) {
     return null;

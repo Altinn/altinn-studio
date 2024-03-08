@@ -24,16 +24,6 @@ describe('organisms/AltinnAppHeader', () => {
     name: 'Bedrift',
   } as IParty;
 
-  const selfIdentifiedUser = {
-    isDeleted: false,
-    name: 'uidp_brxzt8pt992',
-    onlyHierarchyElementWithNoAccess: false,
-    orgNumber: '',
-    partyId: '52057791',
-    partyTypeName: 3,
-    ssn: '',
-  } as IParty;
-
   const headerBackgroundColor = 'blue';
 
   interface IRenderComponentProps {

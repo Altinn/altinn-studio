@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 import { useQuery } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
@@ -13,7 +15,6 @@ import { useNavigationParams } from 'src/hooks/useNavigatePage';
 import type { ExprObjConfig, ExprVal } from 'src/features/expressions/types';
 import type { ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { IExpandedWidthLayouts, IHiddenLayoutsExternal } from 'src/types';
-import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 export interface LayoutContextValue {
   layouts: ILayouts;
@@ -27,16 +28,19 @@ function useLayoutQuery() {
   const process = useLaxProcessData();
   const currentLayoutSetId = useLayoutSetId();
 
-  return useQuery({
+  const utils = useQuery({
     // Waiting to fetch layouts until we have an instance, if we're supposed to have one
     // We don't want to fetch form layouts for a process step which we are currently not on
     enabled: hasInstance ? !!process : true,
     queryKey: ['formLayouts', currentLayoutSetId],
     queryFn: async () => processLayouts(await fetchLayouts(currentLayoutSetId!)),
-    onError: (error: HttpClientError) => {
-      window.logError('Fetching form layout failed:\n', error);
-    },
   });
+
+  useEffect(() => {
+    utils.error && window.logError('Fetching form layout failed:\n', utils.error);
+  }, [utils.error]);
+
+  return utils;
 }
 const { Provider, useCtx } = delayedContext(() =>
   createQueryContext({

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
@@ -8,7 +8,6 @@ import { createContext } from 'src/core/contexts/context';
 import { useApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 import { getEnvironmentLoginUrl } from 'src/utils/urls/appUrlHelper';
-import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 const ONE_MINUTE_IN_MILLISECONDS = 60000;
 const TEN_MINUTE_IN_MILLISECONDS = ONE_MINUTE_IN_MILLISECONDS * 10;
@@ -19,21 +18,26 @@ const redirectToLogin = (appOidcProvider: string | null): void => {
 
 const useRefreshJwtTokenQuery = (appOidcProvider: string | null | undefined, allowAnonymous: boolean | undefined) => {
   const { fetchRefreshJwtToken } = useAppQueries();
-  return useQuery({
+  const utils = useQuery({
     enabled: allowAnonymous === false, // Only refresh token at page load if allowAnonymous === false
     refetchOnWindowFocus: true,
     refetchInterval: TEN_MINUTE_IN_MILLISECONDS, // Refresh token every 10 minutes only if the tab is focused
 
     queryKey: ['refreshJwtToken'],
     queryFn: fetchRefreshJwtToken,
-    onError: (error: HttpClientError) => {
+  });
+
+  useEffect(() => {
+    if (utils.error) {
       try {
         redirectToLogin(appOidcProvider || null);
       } catch {
-        console.error(error);
+        console.error(utils.error);
       }
-    },
-  });
+    }
+  }, [appOidcProvider, utils.error]);
+
+  return utils;
 };
 
 const { Provider } = createContext<undefined>({

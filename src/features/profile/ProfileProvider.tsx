@@ -8,7 +8,6 @@ import { createQueryContext } from 'src/core/contexts/queryContext';
 import { useSetCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useAllowAnonymousIs } from 'src/features/stateless/getAllowAnonymous';
 import type { IProfile } from 'src/types/shared';
-import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 const useProfileQuery = () => {
   const enabled = useShouldFetchProfile();
@@ -19,10 +18,11 @@ const useProfileQuery = () => {
     enabled,
     queryKey: ['fetchUserProfile'],
     queryFn: () => fetchUserProfile(),
-    onError: (error: HttpClientError) => {
-      window.logError('Fetching user profile failed:\n', error);
-    },
   });
+
+  useEffect(() => {
+    utils.error && window.logError('Fetching user profile failed:\n', utils.error);
+  }, [utils.error]);
 
   useEffect(() => {
     if (utils.data) {

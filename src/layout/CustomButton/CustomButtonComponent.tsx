@@ -171,7 +171,7 @@ export const CustomButtonComponent = ({ node }: Props) => {
   const isPermittedToPerformActions = actions
     .filter((action) => action.type === 'ServerAction')
     .reduce((acc, action) => acc && isAuthorized(action.id), true);
-  const disabled = !isPermittedToPerformActions || mutation.isLoading;
+  const disabled = !isPermittedToPerformActions || mutation.isPending;
 
   const onClick = async () => {
     if (disabled) {
@@ -196,7 +196,7 @@ export const CustomButtonComponent = ({ node }: Props) => {
       onClick={onClick}
       color={color}
       variant={variant}
-      aria-busy={mutation.isLoading}
+      aria-busy={mutation.isPending}
     >
       <Lang id={textResourceBindings?.title} />
     </Button>

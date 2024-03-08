@@ -125,7 +125,11 @@ function useFormDataSaveMutation() {
 
 function useIsSaving() {
   const dataModelUrl = useLaxSelector((s) => s.controlState.saveUrl);
-  return useIsMutating(['saveFormData', dataModelUrl === ContextNotProvided ? '__never__' : dataModelUrl]) > 0;
+  return (
+    useIsMutating({
+      mutationKey: ['saveFormData', dataModelUrl === ContextNotProvided ? '__never__' : dataModelUrl],
+    }) > 0
+  );
 }
 
 interface FormDataWriterProps extends PropsWithChildren {

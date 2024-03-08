@@ -1,5 +1,6 @@
+import { useEffect } from 'react';
+
 import { useQuery } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
@@ -17,10 +18,11 @@ const useCustomValidationConfigQuery = () => {
     enabled,
     queryKey: ['fetchCustomValidationConfig', dataTypeId],
     queryFn: () => fetchCustomValidationConfig(dataTypeId!),
-    onError: (error: AxiosError) => {
-      window.logError('Fetching validation configuration failed:\n', error);
-    },
   });
+
+  useEffect(() => {
+    utils.error && window.logError('Fetching validation configuration failed:\n', utils.error);
+  }, [utils.error]);
 
   return {
     ...utils,

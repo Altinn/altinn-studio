@@ -1,24 +1,24 @@
+import { useEffect } from 'react';
+
 import { useQuery } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { isAxiosError } from 'src/utils/isAxiosError';
-import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 const useApplicationSettingsQuery = () => {
   const { fetchApplicationSettings } = useAppQueries();
-  return useQuery({
+  const utils = useQuery({
     queryKey: ['fetchApplicationSettings'],
     queryFn: fetchApplicationSettings,
-    onError: (error: HttpClientError) => {
-      if (error.status === 404) {
-        window.logWarn('Application settings not found:\n', error);
-      } else {
-        window.logError('Fetching application settings failed:\n', error);
-      }
-    },
   });
+
+  useEffect(() => {
+    utils.error && window.logError('Fetching application settings failed:\n', utils.error);
+  }, [utils.error]);
+
+  return utils;
 };
 
 const { Provider, useCtx, useLaxCtx } = delayedContext(() =>

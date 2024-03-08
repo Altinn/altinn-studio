@@ -82,7 +82,7 @@ export function InstantiationProvider({ children }: React.PropsWithChildren) {
     <Provider
       value={{
         instantiate: (node, instanceOwnerPartyId) => {
-          if (instantiate.data || instantiate.isLoading || instantiate.error || isInstantiatingRef.current) {
+          if (instantiate.data || instantiate.isPending || instantiate.error || isInstantiatingRef.current) {
             return;
           }
           isInstantiatingRef.current = true;
@@ -90,7 +90,7 @@ export function InstantiationProvider({ children }: React.PropsWithChildren) {
           instantiate.mutate(instanceOwnerPartyId);
         },
         instantiateWithPrefill: (node, value) => {
-          if (instantiateWithPrefill.data || instantiateWithPrefill.isLoading || instantiateWithPrefill.error) {
+          if (instantiateWithPrefill.data || instantiateWithPrefill.isPending || instantiateWithPrefill.error) {
             return;
           }
           isInstantiatingRef.current = true;
@@ -100,7 +100,7 @@ export function InstantiationProvider({ children }: React.PropsWithChildren) {
 
         busyWithId,
         error: instantiate.error || instantiateWithPrefill.error,
-        isLoading: instantiate.isLoading || instantiateWithPrefill.isLoading,
+        isLoading: instantiate.isPending || instantiateWithPrefill.isPending,
         lastResult: instantiate.data ?? instantiateWithPrefill.data,
       }}
     >

@@ -1,4 +1,4 @@
-import type { AxiosError } from 'axios';
+import { useEffect } from 'react';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
@@ -9,6 +9,7 @@ import { resourcesAsMap } from 'src/features/language/textResources/resourcesAsM
 import { useProfile } from 'src/features/profile/ProfileProvider';
 import { useAllowAnonymousIs } from 'src/features/stateless/getAllowAnonymous';
 import type { ITextResourceResult, TextResourceMap } from 'src/features/language/textResources/index';
+import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 const convertResult = (result: ITextResourceResult): TextResourceMap => {
   const { resources } = result;
@@ -24,17 +25,20 @@ const useTextResourcesQuery = () => {
   const isAnonymous = useAllowAnonymousIs(true);
   const enabled = isAnonymous || profile !== undefined;
 
-  return {
-    ...useQueryWithStaleData({
+  const utils = {
+    ...useQueryWithStaleData<ITextResourceResult, HttpClientError>({
       enabled,
       queryKey: ['fetchTextResources', selectedLanguage],
       queryFn: () => fetchTextResources(selectedLanguage),
-      onError: (error: AxiosError) => {
-        window.logError('Fetching text resources failed:\n', error);
-      },
     }),
     enabled,
   };
+
+  useEffect(() => {
+    utils.error && window.logError('Fetching text resources failed:\n', utils.error);
+  }, [utils.error]);
+
+  return utils;
 };
 
 const { Provider, useCtx, useHasProvider } = delayedContext(() =>

@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 import { useQuery } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 
@@ -6,7 +8,6 @@ import { useCurrentDataModelGuid } from 'src/features/datamodel/useBindingSchema
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxInstance } from 'src/features/instance/InstanceContext';
 import type { IPdfFormat } from 'src/features/pdf/types';
-import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 export const usePdfFormatQuery = (enabled: boolean): UseQueryResult<IPdfFormat> => {
   const { fetchPdfFormat } = useAppQueries();
@@ -16,10 +17,15 @@ export const usePdfFormatQuery = (enabled: boolean): UseQueryResult<IPdfFormat> 
   const dataGuid = useCurrentDataModelGuid();
 
   const ready = typeof dataGuid === 'string';
-  return useQuery(['fetchPdfFormat', instanceId, dataGuid, formData], () => fetchPdfFormat(instanceId!, dataGuid!), {
+  const utils = useQuery({
     enabled: enabled && ready,
-    onError: (error: HttpClientError) => {
-      window.logError('Fetching PDF format failed:\n', error);
-    },
+    queryKey: ['fetchPdfFormat', instanceId, dataGuid, formData],
+    queryFn: () => fetchPdfFormat(instanceId!, dataGuid!),
   });
+
+  useEffect(() => {
+    utils.error && window.logError('Fetching PDF format failed:\n', utils.error);
+  }, [utils.error]);
+
+  return utils;
 };

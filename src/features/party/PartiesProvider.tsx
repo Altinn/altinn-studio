@@ -23,10 +23,11 @@ const usePartiesQuery = () => {
     enabled,
     queryKey: ['fetchUseParties'],
     queryFn: () => fetchParties(),
-    onError: (error: HttpClientError) => {
-      window.logError('Fetching parties failed:\n', error);
-    },
   });
+
+  useEffect(() => {
+    utils.error && window.logError('Fetching parties failed:\n', utils.error);
+  }, [utils.error]);
 
   return {
     ...utils,
@@ -36,14 +37,17 @@ const usePartiesQuery = () => {
 
 const useCurrentPartyQuery = (enabled: boolean) => {
   const { fetchCurrentParty } = useAppQueries();
-  return useQuery({
+  const utils = useQuery({
     enabled,
     queryKey: ['fetchUseCurrentParty'],
     queryFn: () => fetchCurrentParty(),
-    onError: (error: HttpClientError) => {
-      window.logError('Fetching current party failed:\n', error);
-    },
   });
+
+  useEffect(() => {
+    utils.error && window.logError('Fetching current party failed:\n', utils.error);
+  }, [utils.error]);
+
+  return utils;
 };
 
 const useSetCurrentPartyMutation = () => {

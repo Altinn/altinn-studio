@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
@@ -8,13 +8,12 @@ import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
 import { useCurrentParty } from 'src/features/party/PartiesProvider';
-import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 const useActiveInstancesQuery = () => {
   const { fetchActiveInstances } = useAppQueries();
   const currentParty = useCurrentParty();
 
-  return useQuery({
+  const utils = useQuery({
     queryKey: ['getActiveInstances', currentParty?.partyId],
     queryFn: async () => {
       const simpleInstances = await fetchActiveInstances(currentParty?.partyId ?? '');
@@ -24,10 +23,13 @@ const useActiveInstancesQuery = () => {
 
       return simpleInstances;
     },
-    onError: (error: HttpClientError) => {
-      window.logErrorOnce('Failed to find any active instances:\n', error);
-    },
   });
+
+  useEffect(() => {
+    utils.error && window.logError('Fetching active instances failed:\n', utils.error);
+  }, [utils.error]);
+
+  return utils;
 };
 
 const { Provider, useCtx } = delayedContext(() =>

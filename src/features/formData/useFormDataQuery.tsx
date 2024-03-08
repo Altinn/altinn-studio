@@ -1,12 +1,14 @@
+import { useEffect } from 'react';
+
 import { useQuery } from '@tanstack/react-query';
 import type { AxiosRequestConfig } from 'axios';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useCurrentParty } from 'src/features/party/PartiesProvider';
+import { isAxiosError } from 'src/utils/isAxiosError';
 import { maybeAuthenticationRedirect } from 'src/utils/maybeAuthenticationRedirect';
 import { useIsStatelessApp } from 'src/utils/useIsStatelessApp';
-import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 export function useFormDataQuery(url: string | undefined) {
   const currentPartyId = useCurrentParty()?.partyId;
@@ -33,24 +35,29 @@ export function useFormDataQuery(url: string | undefined) {
   const urlPath = url ? new URL(url).pathname : undefined;
   const enabled = url !== undefined;
   const { fetchFormData } = useAppQueries();
-  return useQuery({
+  const utils = useQuery({
     // Form data is only fetched to initially populate the context, after that we keep the state internally
     // and push it back to the server.
-    cacheTime: 0,
+    gcTime: 0,
     retry: false,
 
     queryKey: ['fetchFormData', urlPath, currentTaskId],
     queryFn: async () => await fetchFormData(url!, options),
     enabled,
-    onError: async (error: HttpClientError) => {
-      if (error.message?.includes('403')) {
+  });
+
+  useEffect(() => {
+    if (utils.error && isAxiosError(utils.error)) {
+      if (utils.error.message?.includes('403')) {
         // This renders the <MissingRolesError /> component in the provider
         window.logInfo('Current party is missing roles');
       } else {
-        window.logError('Fetching form data failed:\n', error);
+        window.logError('Fetching form data failed:\n', utils.error);
       }
 
-      await maybeAuthenticationRedirect(error);
-    },
-  });
+      maybeAuthenticationRedirect(utils.error).then();
+    }
+  }, [utils.error]);
+
+  return utils;
 }

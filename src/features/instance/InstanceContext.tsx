@@ -12,9 +12,8 @@ import { ProcessProvider } from 'src/features/instance/ProcessContext';
 import { useInstantiation } from 'src/features/instantiate/InstantiationContext';
 import { useStateDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
-import { maybeAuthenticationRedirect } from 'src/utils/maybeAuthenticationRedirect';
+import { isAxiosError } from 'src/utils/isAxiosError';
 import type { IInstance, IInstanceDataSources } from 'src/types/shared';
-import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 export interface InstanceContext {
   // Instance identifiers
@@ -45,15 +44,17 @@ const { Provider, useCtx, useHasProvider } = createContext<InstanceContext | und
 
 function useGetInstanceDataQuery(enabled: boolean, partyId: string, instanceGuid: string) {
   const { fetchInstanceData } = useAppQueries();
-  return useQuery({
+  const utils = useQuery({
     queryKey: ['fetchInstanceData', partyId, instanceGuid],
     queryFn: () => fetchInstanceData(partyId, instanceGuid),
     enabled,
-    onError: async (error: HttpClientError) => {
-      await maybeAuthenticationRedirect(error);
-      window.logError('Fetching instance data failed:\n', error);
-    },
   });
+
+  useEffect(() => {
+    utils.error && window.logError('Fetching instance data failed:\n', utils.error);
+  }, [utils.error]);
+
+  return utils;
 }
 
 export const InstanceProvider = ({ children }: { children: React.ReactNode }) => {
@@ -116,7 +117,7 @@ const InnerInstanceProvider = ({
 
   // Update error states
   useEffect(() => {
-    fetchQuery.error && setError(fetchQuery.error);
+    fetchQuery.error && isAxiosError(fetchQuery.error) && setError(fetchQuery.error);
     instantiation.error && setError(instantiation.error);
   }, [fetchQuery.error, instantiation.error]);
 

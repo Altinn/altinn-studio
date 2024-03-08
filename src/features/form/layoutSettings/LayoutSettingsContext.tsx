@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 import { useQuery } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
@@ -7,7 +9,6 @@ import { createQueryContext } from 'src/core/contexts/queryContext';
 import { useLayoutSetId } from 'src/features/form/layout/LayoutsContext';
 import { useLaxLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import type { GlobalPageSettings, ILayoutSets, ILayoutSettings, IPagesBaseSettings } from 'src/layout/common.generated';
-import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 function useLayoutSettingsQuery() {
   const { fetchLayoutSettings } = useAppQueries();
@@ -17,13 +18,16 @@ function useLayoutSettingsQuery() {
     throw new Error('No layoutSet id found');
   }
 
-  return useQuery({
+  const utils = useQuery({
     queryKey: ['layoutSettings', layoutSetId],
     queryFn: () => fetchLayoutSettings(layoutSetId),
-    onError: (error: HttpClientError) => {
-      window.logError('Fetching layout settings failed:\n', error);
-    },
   });
+
+  useEffect(() => {
+    utils.error && window.logError('Fetching layout settings failed:\n', utils.error);
+  }, [utils.error]);
+
+  return utils;
 }
 
 const { Provider, useCtx, useLaxCtx } = delayedContext(() =>
