@@ -47,7 +47,6 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("check-release-build-status")]
         public async Task<IActionResult> CheckReleaseStatus([FromBody] AzureDevOpsWebHookEventModel model)
         {
-            _logger.LogInformation("CheckReleaseStatus: " + model?.Resource?.BuildNumber + ", " + model?.Resource?.ResourceOwner);
             _logger.LogInformation("checkreleasebuildstatus was with BuildNumber {BuildNumber} and ResourceOwner {ResourceOwner}", model?.Resource?.BuildNumber, model?.Resource?.ResourceOwner);
             await _releaseService.UpdateAsync(model?.Resource?.BuildNumber, model?.Resource?.ResourceOwner);
             return Ok();

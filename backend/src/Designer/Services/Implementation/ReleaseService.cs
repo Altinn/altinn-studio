@@ -14,7 +14,6 @@ using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Rest.TransientFaultHandling;
-using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -100,8 +99,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             BuildEntity buildEntity = await _azureDevOpsBuildClient.Get(buildNumber);
             ReleaseEntity release = new() { Build = buildEntity };
-
-            _logger.LogInformation("UpdateAsync: " + JsonConvert.SerializeObject(buildEntity));
 
             releaseEntity.Build.Status = release.Build.Status;
             releaseEntity.Build.Result = release.Build.Result;
