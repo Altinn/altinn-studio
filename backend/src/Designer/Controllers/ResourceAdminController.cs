@@ -266,7 +266,11 @@ namespace Altinn.Studio.Designer.Controllers
             string repository = string.Format("{0}-resources", org);
             ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(serviceCode, serviceEdition, environment.ToLower());
             resource.Identifier = resourceId;
-            _repository.AddServiceResource(org, resource);
+            StatusCodeResult statusCodeResult = _repository.AddServiceResource(org, resource);
+            if (statusCodeResult.StatusCode != (int)HttpStatusCode.Created)
+            {
+                return statusCodeResult;
+            }
             XacmlPolicy policy = await _resourceRegistry.GetXacmlPolicy(serviceCode, serviceEdition, resource.Identifier, environment.ToLower());
             await _repository.SavePolicy(org, repository, resource.Identifier, policy);
             return Ok(resource);
