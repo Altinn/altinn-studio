@@ -188,6 +188,8 @@ namespace Altinn.Studio.Designer.Repository
                 using NpgsqlConnection conn = new NpgsqlConnection(_connectionString);
                 await conn.OpenAsync();
 
+                _logger.LogInformation("Update: " + JsonConvert.SerializeObject(releaseEntity));
+
                 NpgsqlCommand pgcom = new NpgsqlCommand(updateReleaseBuildSql, conn);
                 pgcom.Parameters.AddWithValue("_org", releaseEntity.Org);
                 pgcom.Parameters.AddWithValue("_buildid", releaseEntity.Build.Id);
