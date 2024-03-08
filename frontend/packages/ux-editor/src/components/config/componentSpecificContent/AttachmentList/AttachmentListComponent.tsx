@@ -48,6 +48,9 @@ export const AttachmentListComponent = ({
     <AttachmentListInternalFormat
       handleOutGoingData={handleOutGoingData}
       internalDataFormat={internalDataFormat}
+      layoutSets={layoutSets}
+      selectedLayoutSet={selectedLayoutSet}
+      appMetadata={appMetadata}
     />
   );
 };

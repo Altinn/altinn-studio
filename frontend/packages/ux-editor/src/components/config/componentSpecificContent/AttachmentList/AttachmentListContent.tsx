@@ -7,26 +7,22 @@ import { ArrayUtils } from '@studio/pure-functions';
 
 type IAttachmentListContent = {
   availableAttachments: string[];
-  currentSelectedDataTypes: string[];
-  setCurrentSelectedDataTypes: (selectedDataTypes: string[]) => void;
+  selectedDataTypes: string[];
+  setSelectedDataTypes: (selectedDataTypes: string[]) => void;
   handleOutGoingData: (selectedDataTypes: string[], availableAttachments: string[]) => void;
 };
 
 export const AttachmentListContent = ({
   availableAttachments,
-  currentSelectedDataTypes,
-  setCurrentSelectedDataTypes,
+  selectedDataTypes,
+  setSelectedDataTypes,
   handleOutGoingData,
 }: IAttachmentListContent) => {
   const { t } = useTranslation();
 
-  const selectedAttachments = ArrayUtils.intersection(
-    currentSelectedDataTypes,
-    availableAttachments,
-  );
-
+  const selectedAttachments = ArrayUtils.intersection(selectedDataTypes, availableAttachments);
   const selectedReservedDataTypes = ArrayUtils.intersection(
-    currentSelectedDataTypes,
+    selectedDataTypes,
     availableAttachments,
     false,
   );
@@ -35,7 +31,7 @@ export const AttachmentListContent = ({
     const updatedSelectedDataTypes = [
       ...new Set([...selectedReservedDataTypes, ...(isChecked ? availableAttachments : [])]),
     ];
-    setCurrentSelectedDataTypes(updatedSelectedDataTypes);
+    setSelectedDataTypes(updatedSelectedDataTypes);
 
     handleOutGoingData(updatedSelectedDataTypes, availableAttachments);
   };
@@ -44,7 +40,7 @@ export const AttachmentListContent = ({
     const updatedSelectedDataTypes = [
       ...new Set([...updatedSelection, ...selectedReservedDataTypes]),
     ];
-    setCurrentSelectedDataTypes(updatedSelectedDataTypes);
+    setSelectedDataTypes(updatedSelectedDataTypes);
 
     handleOutGoingData(updatedSelectedDataTypes, availableAttachments);
   };
@@ -56,7 +52,6 @@ export const AttachmentListContent = ({
       </Label>
       <Checkbox
         size='small'
-        // checked={!noneSelected && selectedAttachments.length === attachments.length}
         checked={selectedAttachments.length === availableAttachments.length}
         indeterminate={
           selectedAttachments.length > 0 && selectedAttachments.length < availableAttachments.length
@@ -74,7 +69,7 @@ export const AttachmentListContent = ({
         value={selectedAttachments}
         onValueChange={handleComboboxChange}
         error={
-          !selectionIsValid(currentSelectedDataTypes) &&
+          !selectionIsValid(selectedDataTypes) &&
           t('ux_editor.component_title.AttachmentList_error')
         }
       >

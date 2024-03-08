@@ -3,7 +3,9 @@ import { Switch } from '@digdir/design-system-react';
 import { AttachmentListContent } from './AttachmentListContent';
 import { useTranslation } from 'react-i18next';
 import { ArrayUtils } from '@studio/pure-functions';
-import { reservedDataTypes } from './AttachmentListUtils';
+import { currentTasks, getAvailableAttachments, reservedDataTypes } from './AttachmentListUtils';
+import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 
 type AttachmentListInternalFormatProps = {
   handleOutGoingData: (selectedDataTypes: string[], availableAttachments: string[]) => void;
@@ -11,15 +13,19 @@ type AttachmentListInternalFormatProps = {
     availableAttachments: string[];
     selectedDataTypes: string[];
   };
+  layoutSets: LayoutSets;
+  selectedLayoutSet: string;
+  appMetadata: ApplicationMetadata;
 };
 
 export const AttachmentListInternalFormat = (props: AttachmentListInternalFormatProps) => {
-  const { handleOutGoingData, internalDataFormat } = props;
-  const { selectedDataTypes, availableAttachments } = internalDataFormat;
+  const { handleOutGoingData, internalDataFormat, layoutSets, selectedLayoutSet, appMetadata } =
+    props;
+  const { availableAttachments } = internalDataFormat;
   const { t } = useTranslation();
-  const [currentSelectedDataTypes, setCurrentSelectedDataTypes] =
-    useState<string[]>(selectedDataTypes);
-
+  const [selectedDataTypes, setSelectedDataTypes] = useState<string[]>(
+    internalDataFormat.selectedDataTypes,
+  );
   const includePdf = selectedDataTypes.includes(reservedDataTypes.refDataAsPdf);
   const currentTask = selectedDataTypes.includes(reservedDataTypes.currentTask);
 
@@ -29,29 +35,41 @@ export const AttachmentListInternalFormat = (props: AttachmentListInternalFormat
       reservedDataTypes.refDataAsPdf,
       isChecked,
     );
-    setCurrentSelectedDataTypes(updatedSelection);
 
+    setSelectedDataTypes(updatedSelection);
     handleOutGoingData(updatedSelection, availableAttachments);
   };
 
   const onChangeTask = (isChecked: boolean) => {
-    const updatedSelection = toggleItemInArray(
-      selectedDataTypes,
-      reservedDataTypes.currentTask,
-      isChecked,
-    );
-    setCurrentSelectedDataTypes(updatedSelection);
+    let updatedSelection: string[];
 
-    // let updatedSelectedAttachments: string[];
-    // if (isChecked) {
-    //   const updatedTasks = currentTasks(layoutSets, selectedLayoutSet);
-    //   const updatedAttachments = getAttachments(updatedTasks, appMetadata);
-    //   updatedSelectedAttachments = comboboxSelectedAttachments.filter((attachment) =>
-    //     updatedAttachments.includes(attachment),
-    //   );
-    // }
+    if (isChecked) {
+      const selectedAttachments = ArrayUtils.intersection(selectedDataTypes, availableAttachments);
+      const availableAttachmentsCurrentTask = getAvailableAttachments(
+        currentTasks(layoutSets, selectedLayoutSet),
+        appMetadata.dataTypes,
+      );
+      const selectedAttachmentsCurrentTask = ArrayUtils.intersection(
+        selectedAttachments,
+        availableAttachmentsCurrentTask,
+      );
+      selectedAttachmentsCurrentTask.push(reservedDataTypes.currentTask);
 
-    handleOutGoingData(updatedSelection, availableAttachments);
+      if (includePdf) {
+        selectedAttachmentsCurrentTask.push(reservedDataTypes.refDataAsPdf);
+      }
+
+      updatedSelection = selectedAttachmentsCurrentTask;
+    } else {
+      updatedSelection = toggleItemInArray(
+        selectedDataTypes,
+        reservedDataTypes.currentTask,
+        isChecked,
+      );
+    }
+
+    setSelectedDataTypes(updatedSelection);
+    handleOutGoingData(updatedSelection, updatedSelection);
   };
 
   return (
@@ -64,8 +82,8 @@ export const AttachmentListInternalFormat = (props: AttachmentListInternalFormat
       </Switch>
       <AttachmentListContent
         availableAttachments={availableAttachments}
-        currentSelectedDataTypes={currentSelectedDataTypes}
-        setCurrentSelectedDataTypes={setCurrentSelectedDataTypes}
+        selectedDataTypes={selectedDataTypes}
+        setSelectedDataTypes={setSelectedDataTypes}
         handleOutGoingData={handleOutGoingData}
       />
     </>

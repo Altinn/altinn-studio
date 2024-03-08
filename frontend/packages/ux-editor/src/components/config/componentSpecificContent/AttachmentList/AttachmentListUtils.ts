@@ -53,7 +53,7 @@ export const dataInternalFormat = (
   };
 };
 
-const getAvailableAttachments = (
+export const getAvailableAttachments = (
   tasks: string[],
   availableDataTypes: Partial<ApplicationMetadata['dataTypes']>,
 ): string[] => {
@@ -111,7 +111,7 @@ export const getTasks = (
     : sampleTasks(layoutSets, selectedLayoutSet);
 };
 
-const currentTasks = (layoutSets: LayoutSets, selectedLayoutSet: string): string[] =>
+export const currentTasks = (layoutSets: LayoutSets, selectedLayoutSet: string): string[] =>
   layoutSets.sets.find((layoutSet) => layoutSet.id === selectedLayoutSet).tasks;
 
 const sampleTasks = (layoutSets: LayoutSets, selectedLayoutSet: string): string[] => {
