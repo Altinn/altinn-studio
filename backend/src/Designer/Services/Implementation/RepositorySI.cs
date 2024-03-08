@@ -489,7 +489,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new StatusCodeResult(403);
         }
 
-        public ActionResult AddServiceResource(string org, ServiceResource newResource)
+        public StatusCodeResult AddServiceResource(string org, ServiceResource newResource)
         {
             try
             {
@@ -497,7 +497,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 if (!CheckIfResourceFileAlreadyExists(newResource.Identifier, org, repository))
                 {
                     string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                    string fullPathOfNewResource = Path.Combine(repopath, newResource.Identifier.AsFileName(), string.Format("{0}_resource.json", newResource.Identifier));
+                    string fullPathOfNewResource = Path.Combine(repopath, newResource.Identifier.AsFileName(), GetResourceFileName(newResource.Identifier));
                     string newResourceJson = System.Text.Json.JsonSerializer.Serialize(newResource, _serializerOptions);
                     Directory.CreateDirectory(Path.Combine(repopath, newResource.Identifier.AsFileName()));
                     File.WriteAllText(fullPathOfNewResource, newResourceJson);
@@ -518,14 +518,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public bool CheckIfResourceFileAlreadyExists(string identifier, string org, string repository)
         {
             List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository);
-            foreach (var _ in from FileSystemObject resourceFile in resourceFiles
-                              where resourceFile.Name.Contains(identifier)
-                              select new { })
-            {
-                return true;
-            }
-
-            return false;
+            return resourceFiles.Any(resourceFile => resourceFile.Name.ToLower().Equals(GetResourceFileName(identifier).ToLower()));
         }
 
         public ServiceResource GetServiceResourceById(string org, string repository, string identifier)
@@ -616,6 +609,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return resourceFiles;
+        }
+
+        private string GetResourceFileName(string identifier)
+        {
+            return string.Format("{0}_resource.json", identifier);
         }
 
         private FileSystemObject GetFileSystemObjectForFile(string path)
