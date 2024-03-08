@@ -1,5 +1,5 @@
 {
-  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
   "data": {
     "layout": [
       {
@@ -75,7 +75,9 @@
         },
         "readOnly": false,
         "showValidations": ["AllExceptRequired"],
-        "labelSettings": { "optionalIndicator": false },
+        "labelSettings": {
+          "optionalIndicator": false
+        },
         "grid": {
           "labelGrid": {
             "md": 6
@@ -380,7 +382,11 @@
         },
         "required": false,
         "readOnly": false,
-        "formatting": { "number": { "format": "+47 ### ## ###" } },
+        "formatting": {
+          "number": {
+            "format": "+47 ### ## ###"
+          }
+        },
         "grid": {
           "md": 6
         }
@@ -405,7 +411,9 @@
         "optionsId": "list",
         "required": false,
         "readOnly": false,
-        "labelSettings": { "optionalIndicator": false },
+        "labelSettings": {
+          "optionalIndicator": false
+        },
         "grid": {
           "md": 4
         },
@@ -424,7 +432,9 @@
         "required": false,
         "readOnly": false,
         "secure": false,
-        "labelSettings": { "optionalIndicator": false },
+        "labelSettings": {
+          "optionalIndicator": false
+        },
         "grid": {
           "md": 4
         },
@@ -445,7 +455,9 @@
         "required": false,
         "readOnly": false,
         "secure": true,
-        "labelSettings": { "optionalIndicator": false },
+        "labelSettings": {
+          "optionalIndicator": false
+        },
         "grid": {
           "md": 4
         },
@@ -789,3 +801,4 @@
     ]
   }
 }
+

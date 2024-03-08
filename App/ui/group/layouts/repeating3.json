@@ -1,5 +1,5 @@
-﻿{
-  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
   "data": {
     "expandedWidth": true,
     "layout": [
@@ -37,7 +37,10 @@
           "title": "Pets.ForceShowButton"
         },
         "actions": [
-          { "type": "ServerAction", "id": "generatePets" }
+          {
+            "type": "ServerAction",
+            "id": "generatePets"
+          }
         ],
         "buttonStyle": "secondary"
       },
@@ -48,7 +51,10 @@
           "title": "Pets.GenerateButton"
         },
         "actions": [
-          { "type": "ServerAction", "id": "generatePets" }
+          {
+            "type": "ServerAction",
+            "id": "generatePets"
+          }
         ],
         "buttonStyle": "primary"
       },
@@ -59,14 +65,23 @@
           "title": "Pets.GenerateWholeFarmButton"
         },
         "actions": [
-          { "type": "ServerAction", "id": "generatePets" }
+          {
+            "type": "ServerAction",
+            "id": "generatePets"
+          }
         ],
         "buttonStyle": "primary"
       },
       {
         "id": "pets",
         "type": "RepeatingGroup",
-        "children": ["pet-species", "pet-name", "pet-age", "futureSortOrder-inside", "sortOrderButton-inside"],
+        "children": [
+          "pet-species",
+          "pet-name",
+          "pet-age",
+          "futureSortOrder-inside",
+          "sortOrderButton-inside"
+        ],
         "dataModelBindings": {
           "group": "Pets"
         },
@@ -168,7 +183,10 @@
           "xs": 3
         },
         "actions": [
-          { "type": "ServerAction", "id": "sortPets" }
+          {
+            "type": "ServerAction",
+            "id": "sortPets"
+          }
         ],
         "buttonStyle": "secondary"
       },
@@ -214,7 +232,10 @@
           "xs": 3
         },
         "actions": [
-          { "type": "ServerAction", "id": "sortPets" }
+          {
+            "type": "ServerAction",
+            "id": "sortPets"
+          }
         ],
         "buttonStyle": "secondary",
         "hidden": ["not", ["dataModel", "ForceShowPets"]]
@@ -231,7 +252,10 @@
           "title": "Pets.ResetButton"
         },
         "actions": [
-          { "type": "ServerAction", "id": "generatePets" }
+          {
+            "type": "ServerAction",
+            "id": "generatePets"
+          }
         ],
         "buttonStyle": "secondary",
         "hidden": ["not", ["dataModel", "ForceShowPets"]]
@@ -252,3 +276,4 @@
     ]
   }
 }
+

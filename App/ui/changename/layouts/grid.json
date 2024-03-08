@@ -1,5 +1,5 @@
 {
-  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
   "data": {
     "layout": [
       {
@@ -37,8 +37,14 @@
           "title": "Har du kredittkort?"
         },
         "options": [
-          { "label": "Ja", "value": "ja" },
-          { "label": "Nei", "value": "nei" }
+          {
+            "label": "Ja",
+            "value": "ja"
+          },
+          {
+            "label": "Nei",
+            "value": "nei"
+          }
         ],
         "grid": {
           "md": 4
@@ -65,38 +71,66 @@
                   }
                 }
               },
-              { "text": "Fordeling" },
+              {
+                "text": "Fordeling"
+              },
               {
                 "text": "Beløp",
                 "columnOptions": {
                   "width": "25%"
                 }
               },
-              { "text": "Innhentet og verifisert" }
+              {
+                "text": "Innhentet og verifisert"
+              }
             ]
           },
           {
             "cells": [
-              { "text": "laan-bolig" },
-              { "component": "fordeling-bolig" },
-              { "component": "belop-bolig" },
-              { "component": "innhentet-bolig" }
+              {
+                "text": "laan-bolig"
+              },
+              {
+                "component": "fordeling-bolig"
+              },
+              {
+                "component": "belop-bolig"
+              },
+              {
+                "component": "innhentet-bolig"
+              }
             ]
           },
           {
             "cells": [
-              { "text": "laan-studie" },
-              { "component": "fordeling-studie" },
-              { "component": "belop-studie" },
-              { "component": "innhentet-studie" }
+              {
+                "text": "laan-studie"
+              },
+              {
+                "component": "fordeling-studie"
+              },
+              {
+                "component": "belop-studie"
+              },
+              {
+                "component": "innhentet-studie"
+              }
             ]
           },
           {
             "cells": [
-              { "text": "laan-kredittkort" },
-              { "component": "fordeling-kredittkort" },
-              { "component": "belop-kredittkort" },
-              { "component": "innhentet-kredittkort" }
+              {
+                "text": "laan-kredittkort"
+              },
+              {
+                "component": "fordeling-kredittkort"
+              },
+              {
+                "component": "belop-kredittkort"
+              },
+              {
+                "component": "innhentet-kredittkort"
+              }
             ]
           },
           {
@@ -106,7 +140,9 @@
                 "text": "SUM",
                 "alignText": "right"
               },
-              { "component": "fordeling-total" },
+              {
+                "component": "fordeling-total"
+              },
               {},
               {}
             ]
@@ -232,7 +268,12 @@
         "textResourceBindings": {
           "title": "Er fordelingen av boliglånsgjeld verifisert?"
         },
-        "options": [{ "label": "Ja", "value": "ja" }]
+        "options": [
+          {
+            "label": "Ja",
+            "value": "ja"
+          }
+        ]
       },
       {
         "id": "innhentet-studie",
@@ -244,9 +285,18 @@
           "title": "Er fordelingen av studielånsgjeld verifisert?"
         },
         "options": [
-          { "label": "Ja", "value": "ja" },
-          { "label": "Nei", "value": "nei" },
-          { "label": "Kanskje", "value": "kanskje" }
+          {
+            "label": "Ja",
+            "value": "ja"
+          },
+          {
+            "label": "Nei",
+            "value": "nei"
+          },
+          {
+            "label": "Kanskje",
+            "value": "kanskje"
+          }
         ]
       },
       {
@@ -258,7 +308,12 @@
         "textResourceBindings": {
           "title": "Er fordelingen av kredittkortgjeld verifisert?"
         },
-        "options": [{ "label": "Ja", "value": "ja" }],
+        "options": [
+          {
+            "label": "Ja",
+            "value": "ja"
+          }
+        ],
         "hidden": ["equals", ["component", "has-credit-card"], "nei"]
       },
       {
@@ -289,8 +344,14 @@
           "title": "Vis alle komponentene i Grid?"
         },
         "options": [
-          { "label": "Ja", "value": "ja" },
-          { "label": "Nei", "value": "nei" }
+          {
+            "label": "Ja",
+            "value": "ja"
+          },
+          {
+            "label": "Nei",
+            "value": "nei"
+          }
         ]
       },
       {
@@ -300,66 +361,113 @@
         "rows": [
           {
             "header": true,
-            "cells": [{ "text": "Komponenttype" }, { "text": "Eksempel" }]
-          },
-          {
             "cells": [
-              { "text": "Button" },
-              { "component": "grid-example-button" }
+              {
+                "text": "Komponenttype"
+              },
+              {
+                "text": "Eksempel"
+              }
             ]
           },
           {
             "cells": [
-              { "text": "PrintButton" },
-              { "component": "grid-example-print-button" }
+              {
+                "text": "Button"
+              },
+              {
+                "component": "grid-example-button"
+              }
             ]
           },
           {
             "cells": [
-              { "text": "InstantiationButton" },
-              { "component": "grid-example-instantiation-button" }
+              {
+                "text": "PrintButton"
+              },
+              {
+                "component": "grid-example-print-button"
+              }
             ]
           },
           {
             "cells": [
-              { "text": "Header" },
-              { "component": "grid-example-header" }
+              {
+                "text": "InstantiationButton"
+              },
+              {
+                "component": "grid-example-instantiation-button"
+              }
             ]
           },
           {
             "cells": [
-              { "text": "Paragraph" },
-              { "component": "grid-example-paragraph" }
+              {
+                "text": "Header"
+              },
+              {
+                "component": "grid-example-header"
+              }
             ]
           },
           {
             "cells": [
-              { "text": "Image" },
-              { "component": "grid-example-image" }
+              {
+                "text": "Paragraph"
+              },
+              {
+                "component": "grid-example-paragraph"
+              }
             ]
           },
           {
             "cells": [
-              { "text": "Datepicker" },
-              { "component": "grid-example-datepicker" }
+              {
+                "text": "Image"
+              },
+              {
+                "component": "grid-example-image"
+              }
             ]
           },
           {
             "cells": [
-              { "text": "Dropdown" },
-              { "component": "grid-example-dropdown" }
+              {
+                "text": "Datepicker"
+              },
+              {
+                "component": "grid-example-datepicker"
+              }
             ]
           },
           {
             "cells": [
-              { "text": "MultipleSelect" },
-              { "component": "grid-example-multiple-select" }
+              {
+                "text": "Dropdown"
+              },
+              {
+                "component": "grid-example-dropdown"
+              }
             ]
           },
           {
             "cells": [
-              { "text": "TextArea" },
-              { "component": "grid-example-text-area" }
+              {
+                "text": "MultipleSelect"
+              },
+              {
+                "component": "grid-example-multiple-select"
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "text": "TextArea"
+              },
+              {
+                "component": "grid-example-text-area"
+              }
             ]
           }
         ]
@@ -473,3 +581,4 @@
     ]
   }
 }
+
