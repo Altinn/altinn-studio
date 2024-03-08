@@ -7,12 +7,20 @@ using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
 using FluentAssertions;
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.Services;
 
 public class AppDevelopmentServiceTest : IDisposable
 {
+
+    private readonly Mock<ISchemaModelService> _schemaModelServiceMock;
+
+    public AppDevelopmentServiceTest()
+    {
+        _schemaModelServiceMock = new Mock<ISchemaModelService>();
+    }
 
     public string CreatedTestRepoPath { get; set; }
 
@@ -25,7 +33,7 @@ public class AppDevelopmentServiceTest : IDisposable
         string targetRepository = TestDataHelper.GenerateTestRepoName();
 
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        IAppDevelopmentService appDevelopmentService = new AppDevelopmentService(altinnGitRepositoryFactory);
+        IAppDevelopmentService appDevelopmentService = new AppDevelopmentService(altinnGitRepositoryFactory, _schemaModelServiceMock.Object);
         CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
         var layoutSettings = await appDevelopmentService.GetLayoutSettings(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer), null);
 
@@ -53,7 +61,7 @@ public class AppDevelopmentServiceTest : IDisposable
         }}";
 
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        IAppDevelopmentService appDevelopmentService = new AppDevelopmentService(altinnGitRepositoryFactory);
+        IAppDevelopmentService appDevelopmentService = new AppDevelopmentService(altinnGitRepositoryFactory, _schemaModelServiceMock.Object);
         CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
 
         var layoutSettingsUpdated = JsonNode.Parse(jsonSettingsUpdatedString);
@@ -75,7 +83,7 @@ public class AppDevelopmentServiceTest : IDisposable
         string targetRepository = TestDataHelper.GenerateTestRepoName();
 
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        IAppDevelopmentService appDevelopmentService = new AppDevelopmentService(altinnGitRepositoryFactory);
+        IAppDevelopmentService appDevelopmentService = new AppDevelopmentService(altinnGitRepositoryFactory, _schemaModelServiceMock.Object);
         CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
         var layoutSettings = await appDevelopmentService.GetLayoutSettings(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer), layoutSetName);
 
@@ -93,7 +101,7 @@ public class AppDevelopmentServiceTest : IDisposable
         string targetRepository = TestDataHelper.GenerateTestRepoName();
 
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-        IAppDevelopmentService appDevelopmentService = new AppDevelopmentService(altinnGitRepositoryFactory);
+        IAppDevelopmentService appDevelopmentService = new AppDevelopmentService(altinnGitRepositoryFactory, _schemaModelServiceMock.Object);
         CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
         var layoutSettings = await appDevelopmentService.GetLayoutSettings(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer), layoutSetName);
 
