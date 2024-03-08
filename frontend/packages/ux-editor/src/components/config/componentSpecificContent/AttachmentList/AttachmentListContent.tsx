@@ -2,7 +2,8 @@ import React from 'react';
 import { Combobox, Label, Checkbox } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import classes from './AttachmentListContent.module.css';
-import { validateSelection } from './AttachmentListUtils';
+import { selectionIsValid } from './AttachmentListUtils';
+import { ArrayUtils } from '@studio/pure-functions';
 
 type IAttachmentListContent = {
   availableAttachments: string[];
@@ -18,13 +19,21 @@ export const AttachmentListContent = ({
   handleOutGoingData,
 }: IAttachmentListContent) => {
   const { t } = useTranslation();
-  const selectedAttachments = currentSelectedDataTypes.filter(
-    (dataType) => !availableAttachments.includes(dataType),
+
+  const selectedAttachments = ArrayUtils.intersection(
+    currentSelectedDataTypes,
+    availableAttachments,
+  );
+
+  const selectedReservedDataTypes = ArrayUtils.intersection(
+    currentSelectedDataTypes,
+    availableAttachments,
+    false,
   );
 
   const handleCheckboxChange = (isChecked: boolean) => {
     const updatedSelectedDataTypes = [
-      ...new Set([...currentSelectedDataTypes, ...(isChecked ? availableAttachments : [])]),
+      ...new Set([...selectedReservedDataTypes, ...(isChecked ? availableAttachments : [])]),
     ];
     setCurrentSelectedDataTypes(updatedSelectedDataTypes);
 
@@ -33,7 +42,7 @@ export const AttachmentListContent = ({
 
   const handleComboboxChange = (updatedSelection: string[]) => {
     const updatedSelectedDataTypes = [
-      ...new Set([...updatedSelection, ...currentSelectedDataTypes]),
+      ...new Set([...updatedSelection, ...selectedReservedDataTypes]),
     ];
     setCurrentSelectedDataTypes(updatedSelectedDataTypes);
 
@@ -52,7 +61,7 @@ export const AttachmentListContent = ({
         indeterminate={
           selectedAttachments.length > 0 && selectedAttachments.length < availableAttachments.length
         }
-        value='Alle Vedlegg'
+        value={t('ux_editor.component_properties.select_all_attachments')}
         onChange={(e) => handleCheckboxChange(e.target.checked)}
       >
         {t('ux_editor.component_properties.select_all_attachments')}
@@ -65,7 +74,7 @@ export const AttachmentListContent = ({
         value={selectedAttachments}
         onValueChange={handleComboboxChange}
         error={
-          !validateSelection(currentSelectedDataTypes) &&
+          !selectionIsValid(currentSelectedDataTypes) &&
           t('ux_editor.component_title.AttachmentList_error')
         }
       >

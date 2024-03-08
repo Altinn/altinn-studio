@@ -12,8 +12,10 @@ export const dataExternalFormat = (
   selectedDataTypes: string[],
   availableAttachments: string[],
 ): string[] => {
-  const selectedAttachments = selectedDataTypes.filter(
-    (dataType) => !Object.values(reservedDataTypes).includes(dataType),
+  const selectedAttachments = ArrayUtils.intersection(
+    selectedDataTypes,
+    Object.values(reservedDataTypes),
+    false,
   );
 
   const includeAllAttachments = selectedAttachments.length === availableAttachments.length;
@@ -68,8 +70,10 @@ const getAvailableAttachments = (
 };
 
 const getSelectedDataTypes = (dataTypeIds: string[], attachments: string[]): string[] => {
-  const dataTypeIdsWithoutReserved = dataTypeIds.filter(
-    (dataType) => !Object.values(reservedDataTypes).includes(dataType),
+  const dataTypeIdsWithoutReserved = ArrayUtils.intersection(
+    dataTypeIds,
+    Object.values(reservedDataTypes),
+    false,
   );
   const includeCurrentTask = dataTypeIds.includes(reservedDataTypes.currentTask);
   const includeAllAttachments =
