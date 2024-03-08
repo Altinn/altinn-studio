@@ -267,7 +267,7 @@ namespace Altinn.Studio.Designer.Controllers
             ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(serviceCode, serviceEdition, environment.ToLower());
             resource.Identifier = resourceId;
             _repository.AddServiceResource(org, resource);
-                        XacmlPolicy policy = await _resourceRegistry.GetXacmlPolicy(serviceCode, serviceEdition, resource.Identifier, environment.ToLower());
+            XacmlPolicy policy = await _resourceRegistry.GetXacmlPolicy(serviceCode, serviceEdition, resource.Identifier, environment.ToLower());
             await _repository.SavePolicy(org, repository, resource.Identifier, policy);
             return Ok(resource);
         }
