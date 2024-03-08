@@ -138,14 +138,23 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             var metamodelConverter = new JsonSchemaToMetamodelConverter(jsonSchemaConverterStrategy.GetAnalyzer());
             ModelMetadata modelMetadata = metamodelConverter.Convert(jsonContent);
-            string serializedModelMetadata = SerializeModelMetadata(modelMetadata);
-            await altinnAppGitRepository.SaveModelMetadata(serializedModelMetadata, schemaName);
 
             string fullTypeName = await UpdateCSharpClasses(altinnAppGitRepository, modelMetadata, schemaName);
 
             await UpdateApplicationMetadata(altinnAppGitRepository, schemaName, fullTypeName);
 
             return jsonContent;
+        }
+
+        public async Task<ModelMetadata> GenerateModelMetadataFromJsonSchema(AltinnRepoEditingContext altinnRepoEditingContext, string relativeFilePath, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            var jsonContent = await altinnAppGitRepository.ReadTextByRelativePathAsync(relativeFilePath, cancellationToken);
+            var jsonSchema = Json.Schema.JsonSchema.FromText(jsonContent);
+            var jsonSchemaConverterStrategy = JsonSchemaConverterStrategyFactory.SelectStrategy(jsonSchema);
+            var metamodelConverter = new JsonSchemaToMetamodelConverter(jsonSchemaConverterStrategy.GetAnalyzer());
+            return metamodelConverter.Convert(jsonContent);
         }
 
         /// <summary>
@@ -416,9 +425,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             var jsonSchemaConverterStrategy = JsonSchemaConverterStrategyFactory.SelectStrategy(jsonSchema);
             var metamodelConverter = new JsonSchemaToMetamodelConverter(jsonSchemaConverterStrategy.GetAnalyzer());
             var modelMetadata = metamodelConverter.Convert(jsonContent);
-            var serializedModelMetadata = SerializeModelMetadata(modelMetadata);
-
-            await altinnAppGitRepository.SaveModelMetadata(serializedModelMetadata, schemaName);
 
             string fullTypeName = await UpdateCSharpClasses(altinnAppGitRepository, modelMetadata, schemaName);
 

@@ -54,7 +54,7 @@ export function DefaultToolbar() {
               defaultOpen={key === CollapsableMenus.Components}
               className={classes.accordionItem}
             >
-              <Accordion.Header className={classes.accordionHeader}>
+              <Accordion.Header className={classes.accordionHeader} level={3}>
                 {getCollapsableMenuTitleByType(key, t)}
               </Accordion.Header>
               <Accordion.Content className={classes.accordionContent}>
