@@ -3,6 +3,7 @@ import {
   reservedDataTypes,
   dataInternalFormat,
   getTasks,
+  selectionIsValid,
 } from './AttachmentListUtils';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
@@ -199,5 +200,27 @@ describe('Convert to internal format: dataInternalFormat', () => {
         );
       });
     });
+  });
+});
+
+describe('validateSelection', () => {
+  it('should return false when no selection', () => {
+    expect(selectionIsValid([])).toBeFalsy();
+  });
+
+  it('should return true when there is a selection', () => {
+    expect(selectionIsValid(['attachment1'])).toBeTruthy();
+  });
+
+  it('should return true when there is a selection and current task', () => {
+    expect(selectionIsValid(['attachment1', reservedDataTypes.currentTask])).toBeTruthy();
+  });
+
+  it('should return false when there is only current task', () => {
+    expect(selectionIsValid([reservedDataTypes.currentTask])).toBeFalsy();
+  });
+
+  it('should return true when there is only pdf', () => {
+    expect(selectionIsValid([reservedDataTypes.refDataAsPdf])).toBeTruthy;
   });
 });

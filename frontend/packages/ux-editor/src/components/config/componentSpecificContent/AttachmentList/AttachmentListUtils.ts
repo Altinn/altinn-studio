@@ -1,5 +1,6 @@
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import { ArrayUtils } from '@studio/pure-functions';
 
 export const reservedDataTypes = {
   includeAll: 'include-all',
@@ -120,9 +121,11 @@ const sampleTasks = (layoutSets: LayoutSets, selectedLayoutSet: string): string[
   return tasks;
 };
 
-export const validateSelection = (selectedDataTypes: string[]): boolean => {
-  return (
-    selectedDataTypes.length > 0 ||
-    (selectedDataTypes.length === 1 && !selectedDataTypes.includes(reservedDataTypes.currentTask))
+export const selectionIsValid = (selectedDataTypes: string[]): boolean => {
+  const validSelection = ArrayUtils.removeItemByValue(
+    selectedDataTypes,
+    reservedDataTypes.currentTask,
   );
+
+  return validSelection.length > 0;
 };

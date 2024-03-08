@@ -10,7 +10,7 @@ import {
   dataExternalFormat,
   getTasks,
   dataInternalFormat,
-  validateSelection,
+  selectionIsValid,
 } from './AttachmentListUtils';
 import { AttachmentListInternalFormat } from './AttachmentListInternalFormat';
 
@@ -34,7 +34,7 @@ export const AttachmentListComponent = ({
   const internalDataFormat = dataInternalFormat(tasks, appMetadata.dataTypes, dataTypeIds);
 
   const handleOutGoingData = (selectedDataTypes: string[], availableAttachments: string[]) => {
-    if (!validateSelection(selectedDataTypes)) return;
+    if (!selectionIsValid(selectedDataTypes)) return;
 
     const resultingSelection = dataExternalFormat(selectedDataTypes, availableAttachments);
 
