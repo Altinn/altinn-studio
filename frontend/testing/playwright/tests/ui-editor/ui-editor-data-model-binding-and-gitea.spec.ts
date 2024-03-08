@@ -1,5 +1,5 @@
-import { expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 import { test } from '../../extenders/testExtend';
 import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
@@ -57,8 +57,9 @@ test('That it is possible to add a data model binding, and that the files are up
   await uiEditorPage.waitForComponentTreeItemToBeVisibleInDroppableList(ComponentType.Input);
   await addNewLabelToTreeItemComponent(uiEditorPage, newInputLabel);
 
-  await uiEditorPage.clickOnAddDataModelButton();
-  await uiEditorPage.clickOnDataModelBindingsCombobox();
+  await uiEditorPage.clickOnComponentDataModelBindingConfigAccordion();
+  await uiEditorPage.clickOnAddDataModelButton(ComponentType.Input);
+  await uiEditorPage.clickOnDataModelBindingsCombobox(ComponentType.Input);
   await uiEditorPage.verifyThatThereAreNoOptionsInTheDataModelList();
 
   await header.clickOnThreeDotsMenu();
@@ -66,7 +67,7 @@ test('That it is possible to add a data model binding, and that the files are up
 
   await navigateInToLayoutJsonFile(giteaPage, pageName);
   await giteaPage.verifyThatDataModelBindingsAreNotPresent();
-  await giteaPage.goBackNPages(5); // 5 because of: Gitea -> App -> ui -> layouts -> page1.json
+  await giteaPage.goBackNPages(6); // 5 because of: Gitea -> App -> ui -> layoutsSet -> layouts -> page1.json
 
   await uiEditorPage.verifyUiEditorPage(pageName);
 
@@ -88,9 +89,10 @@ test('That it is possible to add a data model binding, and that the files are up
   await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, pageName);
   await uiEditorPage.clickOnTreeItem(newInputLabel);
 
-  await uiEditorPage.clickOnAddDataModelButton();
-  await uiEditorPage.clickOnDataModelBindingsCombobox();
-  await uiEditorPage.verifyThatThereAreOptionsInTheDataModelList();
+  await uiEditorPage.clickOnComponentDataModelBindingConfigAccordion();
+  await uiEditorPage.clickOnAddDataModelButton(ComponentType.Input);
+  await uiEditorPage.clickOnDataModelBindingsCombobox(ComponentType.Input);
+  await uiEditorPage.verifyThatThereAreOptionsInTheDataModelList(ComponentType.Input);
 
   const dataModelBindingName = 'property1';
   await uiEditorPage.clickOnDataModelPropertyOption(dataModelBindingName);
@@ -112,7 +114,8 @@ const navigateInToLayoutJsonFile = async (giteaPage: GiteaPage, layoutName: stri
   await giteaPage.verifyGiteaPage();
   await giteaPage.clickOnAppFilesButton();
   await giteaPage.clickOnUiFilesButton();
-  await giteaPage.clickOnLayoutsFilesButton();
+  await giteaPage.clickOnLayoutSetsFolder();
+  await giteaPage.clickOnLayoutsFilesFolder();
   await giteaPage.clickOnLayoutJsonFile(layoutName);
 };
 

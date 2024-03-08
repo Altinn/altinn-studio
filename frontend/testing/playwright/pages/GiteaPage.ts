@@ -7,6 +7,7 @@ import type { Page } from '@playwright/test';
 const giteaPageTexts: Record<string, string> = {
   app: 'App',
   ui: 'ui',
+  layoutSetFolderName: 'form',
   layouts: 'layouts',
   dataModelBindings: 'dataModelBindings',
   config: 'config',
@@ -34,7 +35,11 @@ export class GiteaPage extends BasePage {
     await this.page.getByRole('link', { name: giteaPageTexts['ui'], exact: true }).click();
   }
 
-  public async clickOnLayoutsFilesButton(): Promise<void> {
+  public async clickOnLayoutSetsFolder(): Promise<void> {
+    await this.page.getByRole('link', { name: giteaPageTexts['layoutSetFolderName'] }).click();
+  }
+
+  public async clickOnLayoutsFilesFolder(): Promise<void> {
     await this.page.getByRole('link', { name: giteaPageTexts['layouts'] }).click();
   }
 
