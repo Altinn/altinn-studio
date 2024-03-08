@@ -70,7 +70,7 @@ namespace Designer.Tests.Services
                 It.IsAny<int>())).ReturnsAsync(GetBuild());
 
             _deploymentRepository.Setup(r => r.Create(
-                It.IsAny<DeploymentEntity>())).ReturnsAsync(GetPipelineDeployments("createdDeployment.json").First());
+                It.IsAny<DeploymentEntity>())).ReturnsAsync(GetDeployments("createdDeployment.json").First());
 
             DeploymentService deploymentService = new(
                 GetAzureDevOpsSettings(),
@@ -110,7 +110,7 @@ namespace Designer.Tests.Services
             // Arrange
             var environments = GetEnvironments("environments.json");
             _environementsService.Setup(e => e.GetOrganizationEnvironments(org)).ReturnsAsync(environments);
-            var pipelineDeployments = GetPipelineDeployments("completed.json");
+            var pipelineDeployments = GetDeployments("completedDeployments.json");
             _deploymentRepository.Setup(r => r.Get(org, app, It.IsAny<DocumentQueryModel>()))
                 .ReturnsAsync(pipelineDeployments);
 
@@ -139,7 +139,7 @@ namespace Designer.Tests.Services
             // Arrange
             _deploymentRepository.Setup(r => r.Get(
                 It.IsAny<string>(),
-                It.IsAny<string>())).ReturnsAsync(GetPipelineDeployments("createdDeployment.json").First());
+                It.IsAny<string>())).ReturnsAsync(GetDeployments("createdDeployment.json").First());
 
             _deploymentRepository.Setup(r => r.Update(
                 It.IsAny<DeploymentEntity>())).Returns(Task.CompletedTask);
@@ -158,7 +158,7 @@ namespace Designer.Tests.Services
                 .ReturnsAsync(GetReleases("createdRelease.json").First().Build);
 
             // Act
-            await deploymentService.UpdateAsync(GetPipelineDeployments("createdDeployment.json").First().Build.Id, "ttd");
+            await deploymentService.UpdateAsync(GetDeployments("createdDeployment.json").First().Build.Id, "ttd");
 
             // Assert
             _deploymentRepository.Verify(r => r.Get(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
@@ -197,11 +197,11 @@ namespace Designer.Tests.Services
             return null;
         }
 
-        private static List<DeploymentEntity> GetPipelineDeployments(string filename)
+        private static List<DeploymentEntity> GetDeployments(string filename)
         {
             string unitTestFolder =
                 Path.GetDirectoryName(new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath);
-            string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Deployments", "PipelineDeployments", filename);
+            string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Deployments", filename);
             if (!File.Exists(path))
             {
                 return null;

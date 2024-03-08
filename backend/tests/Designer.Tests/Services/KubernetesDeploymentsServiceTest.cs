@@ -40,7 +40,7 @@ namespace Designer.Tests.Services
             // Arrange
             var environments = GetEnvironments("environments.json");
             _environementsService.Setup(e => e.GetOrganizationEnvironments(org)).ReturnsAsync(environments);
-            var kubernetesDeployments = GetKubernetesDeployments("completed.json");
+            var kubernetesDeployments = GetKubernetesDeployments("completedDeployments.json");
             foreach (EnvironmentModel environment in environments)
             {
                 _kubernetesWrapperClient.Setup(req => req.GetDeploymentAsync(org, app, It.Is<EnvironmentModel>(env => env.Name == environment.Name)))
@@ -82,7 +82,7 @@ namespace Designer.Tests.Services
         {
             string unitTestFolder =
                 Path.GetDirectoryName(new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath);
-            string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Deployments", "KubernetesDeployments", filename);
+            string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "KubernetesDeployments", filename);
             if (!File.Exists(path))
             {
                 return null;

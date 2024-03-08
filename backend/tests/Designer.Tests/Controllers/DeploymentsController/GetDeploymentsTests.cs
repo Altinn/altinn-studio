@@ -44,8 +44,8 @@ public class GetDeployments : DisagnerEndpointsTestsBase<GetDeployments>, IClass
     {
         // Arrange
         string uri = $"{VersionPrefix(org, app)}?sortDirection=Descending";
-        List<DeploymentEntity> completedDeployments = GetPipelineDeployments("completed.json");
-        List<KubernetesDeployment> kubernetesDeployments = GetKubernetesDeployments("completed.json");
+        List<DeploymentEntity> completedDeployments = GetDeploymentsList("completedDeployments.json");
+        List<KubernetesDeployment> kubernetesDeployments = GetKubernetesDeploymentsList("completedDeployments.json");
 
         _deploymentServiceMock
             .Setup(rs => rs.GetAsync(org, app, It.IsAny<DocumentQueryModel>()))
@@ -70,9 +70,9 @@ public class GetDeployments : DisagnerEndpointsTestsBase<GetDeployments>, IClass
         _deploymentServiceMock.Verify(r => r.GetAsync(org, app, It.IsAny<DocumentQueryModel>()), Times.Once);
     }
 
-    private List<DeploymentEntity> GetPipelineDeployments(string filename)
+    private List<DeploymentEntity> GetDeploymentsList(string filename)
     {
-        string path = Path.Combine(UnitTestsFolder, "..", "..", "..", "_TestData", "Deployments", "PipelineDeployments", filename);
+        string path = Path.Combine(UnitTestsFolder, "..", "..", "..", "_TestData", "Deployments", filename);
         if (!File.Exists(path))
         {
             return null;
@@ -82,9 +82,9 @@ public class GetDeployments : DisagnerEndpointsTestsBase<GetDeployments>, IClass
         return JsonSerializer.Deserialize<List<DeploymentEntity>>(deployments, JsonSerializerOptions);
     }
 
-    private List<KubernetesDeployment> GetKubernetesDeployments(string filename)
+    private List<KubernetesDeployment> GetKubernetesDeploymentsList(string filename)
     {
-        string path = Path.Combine(UnitTestsFolder, "..", "..", "..", "_TestData", "Deployments", "KubernetesDeployments", filename);
+        string path = Path.Combine(UnitTestsFolder, "..", "..", "..", "_TestData", "KubernetesDeployments", filename);
         if (!File.Exists(path))
         {
             return null;
