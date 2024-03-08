@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using Altinn.Studio.Designer.Repository.Models;
-using Altinn.Studio.Designer.Services.Models;
+using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 
 namespace Altinn.Studio.Designer.Models
 {
     /// <summary>
-    /// Deployment
+    /// Deployment response
     /// </summary>
     public class DeploymentResponse
     {

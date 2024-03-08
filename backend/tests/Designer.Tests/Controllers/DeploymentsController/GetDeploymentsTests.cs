@@ -1,16 +1,14 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Models;
-using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
+using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Designer.Tests.Controllers.ApiTests;
@@ -25,6 +23,7 @@ namespace Designer.Tests.Controllers.DeploymentsController;
 public class GetDeployments : DisagnerEndpointsTestsBase<GetDeployments>, IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<IDeploymentService> _deploymentServiceMock = new Mock<IDeploymentService>();
+    private readonly Mock<IKubernetesDeploymentsService> _kubernetesDeploymentsMock = new Mock<IKubernetesDeploymentsService>();
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/deployments";
     public GetDeployments(WebApplicationFactory<Program> factory) : base(factory)
     {
@@ -36,6 +35,7 @@ public class GetDeployments : DisagnerEndpointsTestsBase<GetDeployments>, IClass
             c.RepositoryLocation = TestRepositoriesLocation);
         services.AddSingleton<IGitea, IGiteaMock>();
         services.AddSingleton(_ => _deploymentServiceMock.Object);
+        services.AddSingleton(_ => _kubernetesDeploymentsMock.Object);
     }
 
     [Theory]
@@ -44,19 +44,23 @@ public class GetDeployments : DisagnerEndpointsTestsBase<GetDeployments>, IClass
     {
         // Arrange
         string uri = $"{VersionPrefix(org, app)}?sortDirection=Descending";
-        List<DeploymentEntity> pipelineDeployments = GetPipelineDeployments("completed.json");
+        List<DeploymentEntity> completedDeployments = GetPipelineDeployments("completed.json");
         List<KubernetesDeployment> kubernetesDeployments = GetKubernetesDeployments("completed.json");
 
         _deploymentServiceMock
             .Setup(rs => rs.GetAsync(org, app, It.IsAny<DocumentQueryModel>()))
-            .ReturnsAsync(new Deployment { PipelineDeploymentList = pipelineDeployments, KubernetesDeploymentList = kubernetesDeployments });
+            .ReturnsAsync(new SearchResults<DeploymentEntity> { Results = completedDeployments });
+
+        _kubernetesDeploymentsMock
+            .Setup(rs => rs.GetAsync(org, app))
+            .ReturnsAsync(kubernetesDeployments);
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
         // Act
         HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
         string responseString = await res.Content.ReadAsStringAsync();
-        Deployment actual = JsonSerializer.Deserialize<Deployment>(responseString, JsonSerializerOptions);
+        DeploymentResponse actual = JsonSerializer.Deserialize<DeploymentResponse>(responseString, JsonSerializerOptions);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);

@@ -1,6 +1,4 @@
-using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
-
-namespace Altinn.Studio.Designer.Services.Models
+namespace Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper
 {
     public class KubernetesDeployment
     {

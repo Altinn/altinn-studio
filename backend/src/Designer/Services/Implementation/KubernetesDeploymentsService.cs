@@ -11,7 +11,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// <summary>
     /// Implementation of the business logic
     /// </summary>
-    public class KubernetesWrapperService : IKubernetesWrapperService
+    public class KubernetesDeploymentsService : IKubernetesDeploymentsService
     {
         private readonly IEnvironmentsService _environmentsService;
         private readonly IKubernetesWrapperClient _kubernetesWrapperClient;
@@ -20,7 +20,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <summary>
         /// Constructor
         /// </summary>
-        public KubernetesWrapperService(
+        public KubernetesDeploymentsService(
             IEnvironmentsService environmentsService,
             IKubernetesWrapperClient kubernetesWrapperClient,
             ILogger<DeploymentService> logger)

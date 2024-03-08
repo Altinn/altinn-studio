@@ -13,8 +13,8 @@ using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
-using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.ViewModels.Request;
+using Altinn.Studio.Designer.ViewModels.Response;
 using AltinnCore.Authentication.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -33,7 +33,6 @@ namespace Designer.Tests.Services
         private readonly Mock<IApplicationInformationService> _applicationInformationService;
         private readonly Mock<IEnvironmentsService> _environementsService;
         private readonly Mock<IAzureDevOpsBuildClient> _azureDevOpsBuildClient;
-        private readonly Mock<IKubernetesWrapperClient> _kubernetesWrapperClient;
 
         public DeploymentServiceTest()
         {
@@ -47,9 +46,6 @@ namespace Designer.Tests.Services
             _environementsService.Setup(req => req.GetEnvironments())
                 .ReturnsAsync(GetEnvironments("environments.json"));
             _applicationInformationService = new Mock<IApplicationInformationService>();
-            _kubernetesWrapperClient = new Mock<IKubernetesWrapperClient>();
-            _kubernetesWrapperClient.Setup(req => req.GetDeploymentAsync("ttd", It.IsAny<string>(), It.IsAny<EnvironmentModel>()))
-                .ReturnsAsync(new KubernetesDeployment());
         }
 
         [Fact]
@@ -83,7 +79,6 @@ namespace Designer.Tests.Services
                 _deploymentRepository.Object,
                 _releaseRepository.Object,
                 _environementsService.Object,
-                _kubernetesWrapperClient.Object,
                 _applicationInformationService.Object,
                 _deploymentLogger.Object);
 
@@ -118,12 +113,6 @@ namespace Designer.Tests.Services
             var pipelineDeployments = GetPipelineDeployments("completed.json");
             _deploymentRepository.Setup(r => r.Get(org, app, It.IsAny<DocumentQueryModel>()))
                 .ReturnsAsync(pipelineDeployments);
-            var kubernetesDeployments = GetKubernetesDeployments("completed.json");
-            foreach (EnvironmentModel environment in environments)
-            {
-                _kubernetesWrapperClient.Setup(req => req.GetDeploymentAsync(org, app, It.Is<EnvironmentModel>(env => env.Name == environment.Name)))
-                    .ReturnsAsync(kubernetesDeployments.FirstOrDefault(deployment => deployment.EnvName == environment.Name) ?? new KubernetesDeployment { EnvName = environment.Name });
-            }
 
             DeploymentService deploymentService = new(
                 GetAzureDevOpsSettings(),
@@ -132,17 +121,15 @@ namespace Designer.Tests.Services
                 _deploymentRepository.Object,
                 _releaseRepository.Object,
                 _environementsService.Object,
-                _kubernetesWrapperClient.Object,
                 _applicationInformationService.Object,
                 _deploymentLogger.Object);
 
             // Act
-            Deployment deployment =
+            SearchResults<DeploymentEntity> results =
                 await deploymentService.GetAsync(org, app, new DocumentQueryModel());
 
             // Assert
-            Assert.Equal(8, deployment.PipelineDeploymentList.Count);
-            Assert.Equal(4, deployment.KubernetesDeploymentList.Count);
+            Assert.Equal(8, results.Results.Count());
             _deploymentRepository.Verify(r => r.Get(org, app, It.IsAny<DocumentQueryModel>()), Times.Once);
         }
 
@@ -164,7 +151,6 @@ namespace Designer.Tests.Services
                 _deploymentRepository.Object,
                 _releaseRepository.Object,
                 _environementsService.Object,
-                _kubernetesWrapperClient.Object,
                 _applicationInformationService.Object,
                 _deploymentLogger.Object);
 
@@ -223,20 +209,6 @@ namespace Designer.Tests.Services
 
             string deployments = File.ReadAllText(path);
             return JsonConvert.DeserializeObject<List<DeploymentEntity>>(deployments);
-        }
-
-        private static List<KubernetesDeployment> GetKubernetesDeployments(string filename)
-        {
-            string unitTestFolder =
-                Path.GetDirectoryName(new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath);
-            string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Deployments", "KubernetesDeployments", filename);
-            if (!File.Exists(path))
-            {
-                return null;
-            }
-
-            string deployments = File.ReadAllText(path);
-            return JsonConvert.DeserializeObject<List<KubernetesDeployment>>(deployments);
         }
 
         private static List<EnvironmentModel> GetEnvironments(string filename)

@@ -8,8 +8,8 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
+using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;
@@ -28,19 +28,19 @@ namespace Altinn.Studio.Designer.Controllers
     {
         private readonly IDeploymentService _deploymentService;
         private readonly IGitea _giteaService;
-        private readonly IKubernetesWrapperService _kubernetesWrapperService;
+        private readonly IKubernetesDeploymentsService _kubernetesDeploymentsService;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="deploymentService">IDeploymentService</param>
         /// <param name="giteaService">IGiteaService</param>
-        /// <param name="kubernetesWrapperService">IKubernetesWrapperService</param>
-        public DeploymentsController(IDeploymentService deploymentService, IGitea giteaService, IKubernetesWrapperService kubernetesWrapperService)
+        /// <param name="kubernetesDeploymentsService">IKubernetesDeploymentsService</param>
+        public DeploymentsController(IDeploymentService deploymentService, IGitea giteaService, IKubernetesDeploymentsService kubernetesDeploymentsService)
         {
             _deploymentService = deploymentService;
             _giteaService = giteaService;
-            _kubernetesWrapperService = kubernetesWrapperService;
+            _kubernetesDeploymentsService = kubernetesDeploymentsService;
         }
 
         /// <summary>
@@ -62,9 +62,10 @@ namespace Altinn.Studio.Designer.Controllers
                 await _deploymentService.UpdateAsync(laggingDeployment.Build.Id, laggingDeployment.Org);
             }
 
-            List<KubernetesDeployment> kubernetesDeploymentList = await _kubernetesWrapperService.GetAsync(org, app);
+            List<KubernetesDeployment> kubernetesDeploymentList = await _kubernetesDeploymentsService.GetAsync(org, app);
 
-            return new DeploymentResponse {
+            return new DeploymentResponse
+            {
                 PipelineDeploymentList = deployments.Results.ToList(),
                 KubernetesDeploymentList = kubernetesDeploymentList,
             };

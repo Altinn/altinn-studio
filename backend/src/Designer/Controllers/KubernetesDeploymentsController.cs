@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Models;
+using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,18 +14,18 @@ namespace Altinn.Studio.Designer.Controllers
     [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/kubernetes")]
-    public class KubernetesWrapperController : ControllerBase
+    [Route("/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/kubernetesDeployments")]
+    public class KubernetesDeploymentsController : ControllerBase
     {
-        private readonly IKubernetesWrapperService _kubernetesWrapperService;
+        private readonly IKubernetesDeploymentsService _kubernetesDeploymentsService;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="kubernetesWrapperService">IKubernetesWrapperService</param>
-        public KubernetesWrapperController(IKubernetesWrapperService kubernetesWrapperService)
+        /// <param name="kubernetesDeploymentsService">IKubernetesDeploymentsService</param>
+        public KubernetesDeploymentsController(IKubernetesDeploymentsService kubernetesDeploymentsService)
         {
-            _kubernetesWrapperService = kubernetesWrapperService;
+            _kubernetesDeploymentsService = kubernetesDeploymentsService;
         }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace Altinn.Studio.Designer.Controllers
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
         public async Task<List<KubernetesDeployment>> Get(string org, string app)
         {
-            return await _kubernetesWrapperService.GetAsync(org, app);
+            return await _kubernetesDeploymentsService.GetAsync(org, app);
         }
     }
 }
