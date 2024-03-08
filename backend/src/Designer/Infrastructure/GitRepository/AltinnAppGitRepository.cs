@@ -724,6 +724,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <summary>
         /// Gets the options list with the provided id.
         /// <param name="optionsListId">The id of the options list to fetch.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The options list as a string.</returns>
         /// </summary>
         public async Task<string> GetOptions(string optionsListId, CancellationToken cancellationToken = default)
