@@ -1,6 +1,5 @@
 import {
   areItemsUnique,
-  arrayIntersection,
   generateUniqueStringWithNumber,
   insertArrayElementAtPos,
   mapByKey,
@@ -78,15 +77,6 @@ describe('arrayUtils', () => {
     it('Swaps two elements in an array', () => {
       const arr: string[] = ['a', 'b', 'c', 'd', 'e', 'f'];
       expect(swapArrayElements(arr, 'a', 'b')).toEqual(['b', 'a', 'c', 'd', 'e', 'f']);
-    });
-  });
-
-  describe('arrayIntersection', () => {
-    it('Returns intersection of two arrays', () => {
-      expect(arrayIntersection([1, 2, 3], [3, '4', 5])).toStrictEqual([3]);
-      expect(arrayIntersection([1, 2, 3], [4, '4', 5])).toStrictEqual([]);
-      expect(arrayIntersection([1, 2, 3], [3, '4', 2])).toStrictEqual([2, 3]);
-      expect(arrayIntersection([1, 2, 3], [1, 2, 3])).toStrictEqual([1, 2, 3]);
     });
   });
 

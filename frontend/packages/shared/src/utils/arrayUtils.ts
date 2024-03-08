@@ -66,14 +66,6 @@ export const insertArrayElementAtPos = <T>(array: T[], item: T, targetPos: numbe
 };
 
 /**
- * Returns an array of which the elements are present in both given arrays.
- * @param arrA First array.
- * @param arrB Second array.
- * @returns Array of which the elements are present in both given arrays.
- */
-export const arrayIntersection = <T>(arrA: T[], arrB: T[]) => arrA.filter((x) => arrB.includes(x));
-
-/**
  * Maps an array of objects by a given key.
  * @param array The array of objects.
  * @param key The key to map by.

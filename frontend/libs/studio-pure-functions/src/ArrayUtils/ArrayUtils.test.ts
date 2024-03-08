@@ -56,4 +56,13 @@ describe('ArrayUtils', () => {
       expect(ArrayUtils.last([])).toBeUndefined();
     });
   });
+
+  describe('ArrayUtils.intersection', () => {
+    it('Returns intersection of two arrays', () => {
+      expect(ArrayUtils.intersection([1, 2, 3], [3, '4', 5])).toStrictEqual([3]);
+      expect(ArrayUtils.intersection([1, 2, 3], [4, '4', 5])).toStrictEqual([]);
+      expect(ArrayUtils.intersection([1, 2, 3], [3, '4', 2])).toStrictEqual([2, 3]);
+      expect(ArrayUtils.intersection([1, 2, 3], [1, 2, 3])).toStrictEqual([1, 2, 3]);
+    });
+  });
 });
