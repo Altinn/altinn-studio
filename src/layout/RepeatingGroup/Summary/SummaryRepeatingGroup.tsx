@@ -35,7 +35,7 @@ export function SummaryRepeatingGroup({
 }: ISummaryRepeatingGroup) {
   const excludedChildren = summaryNode.item.excludedChildren;
   const display = overrides?.display || summaryNode.item.display;
-  const { langAsString } = useLanguage();
+  const { langAsString } = useLanguage(targetNode);
   const formDataSelector = FD.useDebouncedSelector();
 
   const inExcludedChildren = (n: LayoutNode) =>
@@ -103,7 +103,10 @@ export function SummaryRepeatingGroup({
           <span
             className={cn(classes.label, groupHasErrors && !display?.hideValidationMessages && classes.labelWithError)}
           >
-            <Lang id={summaryTitleTrb ?? titleTrb} />
+            <Lang
+              id={summaryTitleTrb ?? titleTrb}
+              node={targetNode}
+            />
           </span>
 
           {!display?.hideChangeButton ? (
