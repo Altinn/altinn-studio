@@ -36,12 +36,7 @@
         "textResourceBindings": {
           "title": "Pets.ForceShowButton"
         },
-        "actions": [
-          {
-            "type": "ServerAction",
-            "id": "generatePets"
-          }
-        ],
+        "actions": [{ "type": "ServerAction", "id": "generatePets" }],
         "buttonStyle": "secondary"
       },
       {
@@ -50,12 +45,7 @@
         "textResourceBindings": {
           "title": "Pets.GenerateButton"
         },
-        "actions": [
-          {
-            "type": "ServerAction",
-            "id": "generatePets"
-          }
-        ],
+        "actions": [{ "type": "ServerAction", "id": "generatePets" }],
         "buttonStyle": "primary"
       },
       {
@@ -64,12 +54,7 @@
         "textResourceBindings": {
           "title": "Pets.GenerateWholeFarmButton"
         },
-        "actions": [
-          {
-            "type": "ServerAction",
-            "id": "generatePets"
-          }
-        ],
+        "actions": [{ "type": "ServerAction", "id": "generatePets" }],
         "buttonStyle": "primary"
       },
       {
@@ -182,12 +167,7 @@
         "grid": {
           "xs": 3
         },
-        "actions": [
-          {
-            "type": "ServerAction",
-            "id": "sortPets"
-          }
-        ],
+        "actions": [{ "type": "ServerAction", "id": "sortPets" }],
         "buttonStyle": "secondary"
       },
       {
@@ -231,12 +211,7 @@
         "grid": {
           "xs": 3
         },
-        "actions": [
-          {
-            "type": "ServerAction",
-            "id": "sortPets"
-          }
-        ],
+        "actions": [{ "type": "ServerAction", "id": "sortPets" }],
         "buttonStyle": "secondary",
         "hidden": ["not", ["dataModel", "ForceShowPets"]]
       },
@@ -251,12 +226,7 @@
         "textResourceBindings": {
           "title": "Pets.ResetButton"
         },
-        "actions": [
-          {
-            "type": "ServerAction",
-            "id": "generatePets"
-          }
-        ],
+        "actions": [{ "type": "ServerAction", "id": "generatePets" }],
         "buttonStyle": "secondary",
         "hidden": ["not", ["dataModel", "ForceShowPets"]]
       },

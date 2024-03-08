@@ -61,26 +61,16 @@
             "header": true,
             "cells": [
               {},
-              {
-                "text": "Alle endringer"
-              },
-              {
-                "text": "Disse endringene"
-              }
+              { "text": "Alle endringer" },
+              { "text": "Disse endringene" }
             ]
           },
           {
             "readOnly": true,
             "cells": [
-              {
-                "text": "SUM"
-              },
-              {
-                "component": "sum-all"
-              },
-              {
-                "component": "sum-above-limit"
-              }
+              { "text": "SUM" },
+              { "component": "sum-all" },
+              { "component": "sum-above-limit" }
             ]
           }
         ]
@@ -99,9 +89,7 @@
           "dataModel",
           "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
         ],
-        "labelSettings": {
-          "optionalIndicator": false
-        },
+        "labelSettings": { "optionalIndicator": false },
         "grid": {
           "md": 6
         },
@@ -153,9 +141,7 @@
         "optionsId": "list",
         "required": false,
         "readOnly": false,
-        "labelSettings": {
-          "optionalIndicator": false
-        },
+        "labelSettings": { "optionalIndicator": false },
         "grid": {
           "md": 6
         },

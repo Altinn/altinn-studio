@@ -158,9 +158,7 @@
           "dataModel",
           "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"
         ],
-        "labelSettings": {
-          "optionalIndicator": false
-        },
+        "labelSettings": { "optionalIndicator": false },
         "grid": {
           "md": 6
         },
@@ -276,9 +274,7 @@
         "optionsId": "list",
         "required": false,
         "readOnly": false,
-        "labelSettings": {
-          "optionalIndicator": false
-        },
+        "labelSettings": { "optionalIndicator": false },
         "grid": {
           "md": 6
         },
@@ -297,9 +293,7 @@
         "required": false,
         "readOnly": false,
         "secure": false,
-        "labelSettings": {
-          "optionalIndicator": false
-        },
+        "labelSettings": { "optionalIndicator": false },
         "grid": {
           "md": 6
         },
@@ -346,24 +340,10 @@
         "rowsAfter": [
           {
             "header": true,
-            "cells": [
-              {
-                "text": "Annen informasjon"
-              },
-              {},
-              {},
-              {}
-            ]
+            "cells": [{ "text": "Annen informasjon" }, {}, {}, {}]
           },
           {
-            "cells": [
-              {
-                "text": "nested.isParentPrefill"
-              },
-              {},
-              {},
-              {}
-            ]
+            "cells": [{ "text": "nested.isParentPrefill" }, {}, {}, {}]
           }
         ]
       },
@@ -379,9 +359,7 @@
         "optionsId": "list",
         "required": false,
         "readOnly": false,
-        "labelSettings": {
-          "optionalIndicator": false
-        },
+        "labelSettings": { "optionalIndicator": false },
         "grid": {
           "md": 6
         },
@@ -400,9 +378,7 @@
         "required": false,
         "readOnly": false,
         "secure": false,
-        "labelSettings": {
-          "optionalIndicator": false
-        },
+        "labelSettings": { "optionalIndicator": false },
         "grid": {
           "md": 6
         },
@@ -465,9 +441,7 @@
         },
         "required": false,
         "readOnly": false,
-        "labelSettings": {
-          "optionalIndicator": false
-        },
+        "labelSettings": { "optionalIndicator": false },
         "showValidations": ["AllExceptRequired"]
       },
       {

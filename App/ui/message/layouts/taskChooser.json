@@ -13,22 +13,10 @@
           "simpleBinding": "GwTargetTask"
         },
         "options": [
-          {
-            "label": "Endring av navn (Task_2)",
-            "value": "Task_2"
-          },
-          {
-            "label": "Repeterende grupper (Task_3)",
-            "value": "Task_3"
-          },
-          {
-            "label": "Likert (Task_4)",
-            "value": "Task_4"
-          },
-          {
-            "label": "List (Task_5)",
-            "value": "Task_5"
-          }
+          { "label": "Endring av navn (Task_2)", "value": "Task_2" },
+          { "label": "Repeterende grupper (Task_3)", "value": "Task_3" },
+          { "label": "Likert (Task_4)", "value": "Task_4" },
+          { "label": "List (Task_5)", "value": "Task_5" }
         ]
       },
       {

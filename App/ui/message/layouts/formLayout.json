@@ -99,9 +99,7 @@
           {
             "type": "ClientAction",
             "id": "navigateToPage",
-            "metadata": {
-              "page": "taskChooser"
-            }
+            "metadata": { "page": "taskChooser" }
           }
         ],
         "buttonStyle": "secondary"
