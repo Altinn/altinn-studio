@@ -14,6 +14,8 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { formDesignerMock } from '../../../../testing/stateMocks';
 import type { IFormLayouts } from '../../../../types/global';
+import type { FormContainer } from '../../../../types/FormContainer';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
 // Test data:
 const org = 'org';
@@ -29,10 +31,13 @@ const user = userEvent.setup();
 
 const render = async () => {
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
+  const container: FormContainer<ComponentType.RepeatingGroup> = {
+    ...(layoutMock.containers[container2IdMock] as FormContainer<ComponentType.RepeatingGroup>),
+  };
   renderWithMockStore()(
     <RepeatingGroupComponent
       editFormId={container2IdMock}
-      component={{ ...layoutMock.containers[container2IdMock] }}
+      component={container}
       handleComponentUpdate={handleComponentUpdateMock}
     />,
   );
@@ -53,31 +58,6 @@ describe('RepeatingGroupComponent', () => {
     await act(() => user.click(firstCheckbox));
 
     expect(handleComponentUpdateMock).toHaveBeenCalled();
-  });
-
-  it('should call handleComponentUpdate with data model binding when changed', async () => {
-    const dataBindingNameMock = 'element';
-    const maxCountMock = 2;
-    queryClientMock.setQueryData(
-      [QueryKey.DatamodelMetadata, org, app],
-      [{ dataBindingName: dataBindingNameMock, maxOccurs: maxCountMock }],
-    );
-    await render();
-
-    const dataModelSelect = screen.getByRole('combobox', {
-      name: textMock('ux_editor.modal_properties_data_model_helper'),
-    });
-    expect(dataModelSelect).toBeInTheDocument();
-    await act(() => user.click(dataModelSelect));
-    const dataModelOption = screen.getByRole('option', { name: dataBindingNameMock });
-    await act(() => user.click(dataModelOption));
-
-    expect(handleComponentUpdateMock).toHaveBeenCalled();
-    expect(handleComponentUpdateMock).toHaveBeenCalledWith({
-      ...layoutMock.containers[container2IdMock],
-      maxCount: maxCountMock,
-      dataModelBindings: { group: dataBindingNameMock },
-    });
   });
 
   it('handleComponentUpdate is called with "tableHeaders: undefined" when #headers equals #items', async () => {

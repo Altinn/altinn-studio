@@ -7,11 +7,11 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
@@ -135,6 +135,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     {
                         Id = "ref-data-as-pdf",
                         AllowedContentTypes = new List<string>() { "application/pdf" },
+                    },
+                    new()
+                    {
+                        Id = "model",
+                        AllowedContentTypes = new List<string>() { "application/xml" },
+                        AppLogic = new ApplicationLogic()
+                        {
+                            AutoCreate = true,
+                            ClassRef = "Altinn.App.Models.model.model",
+                            AllowAnonymousOnStateless = false,
+                            AutoDeleteOnProcessEnd = false
+                        },
+                        TaskId = "Task_1",
+                        MaxCount = 1,
+                        MinCount = 1,
+                        EnablePdfCreation = true,
+                        EnableFileScan = false,
+                        ValidationErrorOnPendingFileScan = false
                     }
                 },
                 PartyTypesAllowed = new PartyTypesAllowed()

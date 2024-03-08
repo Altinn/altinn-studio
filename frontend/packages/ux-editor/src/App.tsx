@@ -11,9 +11,7 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResources
 import { useLayoutSetsQuery } from './hooks/queries/useLayoutSetsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from './hooks/useAppContext';
-import { FormContextProvider } from './containers/FormContext';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { UnsupportedVersionMessage } from './components/UnsupportedVersionMessage';
+import { FormItemContextProvider } from './containers/FormItemContext';
 
 /**
  * This is the main React component responsible for controlling
@@ -29,7 +27,7 @@ export function App() {
   const { data: layoutSets, isSuccess: areLayoutSetsFetched } = useLayoutSetsQuery(org, app);
   const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
   const { isSuccess: isDatamodelFetched, isError: dataModelFetchedError } =
-    useDatamodelMetadataQuery(org, app);
+    useDatamodelMetadataQuery(org, app, selectedLayoutSet);
   const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
 
   useEffect(() => {
@@ -78,12 +76,6 @@ export function App() {
     }
   }, [setSelectedLayoutSet, selectedLayoutSet, layoutSets, app]);
 
-  if (!shouldDisplayFeature('shouldOverrideAppFrontendCheck')) {
-    return (
-      <UnsupportedVersionMessage version='V4' closestSupportedVersion='V3' category='too-new' />
-    );
-  }
-
   if (componentHasError) {
     const mappedError = mapErrorToDisplayError();
     return <ErrorPage title={mappedError.title} message={mappedError.message} />;
@@ -91,10 +83,10 @@ export function App() {
 
   if (componentIsReady) {
     return (
-      <FormContextProvider>
+      <FormItemContextProvider>
         <FormDesigner selectedLayout={selectedLayout} selectedLayoutSet={selectedLayoutSet} />
-      </FormContextProvider>
+      </FormItemContextProvider>
     );
   }
-  return <StudioPageSpinner />;
+  return <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('ux_editor.loading_page')} />;
 }

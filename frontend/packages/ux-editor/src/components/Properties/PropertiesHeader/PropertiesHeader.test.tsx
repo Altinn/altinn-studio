@@ -1,18 +1,20 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import { PropertiesHeader, type PropertiesHeaderProps } from './PropertiesHeader';
-import { FormContext } from '../../../containers/FormContext';
+import { FormItemContext } from '../../../containers/FormItemContext';
 import userEvent from '@testing-library/user-event';
-import { formContextProviderMock } from '../../../testing/formContextMocks';
-import { component1Mock, component1IdMock } from '../../../testing/layoutMock';
+import { formItemContextProviderMock } from '../../../testing/formItemContextMocks';
+import { component1Mock } from '../../../testing/layoutMock';
 import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { componentSchemaMocks } from '../../../testing/componentSchemaMocks';
 
 const mockHandleComponentUpdate = jest.fn();
 
 const defaultProps: PropertiesHeaderProps = {
   form: component1Mock,
-  formId: component1IdMock,
   handleComponentUpdate: mockHandleComponentUpdate,
 };
 const user = userEvent.setup();
@@ -21,7 +23,7 @@ describe('PropertiesHeader', () => {
   afterEach(jest.clearAllMocks);
 
   it('renders the header name for the component', () => {
-    renderProperties({ form: component1Mock, formId: component1IdMock });
+    renderPropertiesHeader();
 
     const heading = screen.getByRole('heading', {
       name: textMock(`ux_editor.component_title.${component1Mock.type}`),
@@ -31,7 +33,7 @@ describe('PropertiesHeader', () => {
   });
 
   it('displays the help text when the help text button is clicked', async () => {
-    renderProperties({ form: component1Mock, formId: component1IdMock });
+    renderPropertiesHeader();
 
     const helpTextButton = screen.getByRole('button', {
       name: textMock('ux_editor.component_help_text_general_title'),
@@ -48,41 +50,53 @@ describe('PropertiesHeader', () => {
     ).toBeInTheDocument();
   });
 
-  it('calls "handleComponentUpdate" when the id changes', async () => {
-    renderProperties({ form: component1Mock, formId: component1IdMock });
+  it('should invoke "handleComponentUpdate" when id field blurs', async () => {
+    renderPropertiesHeader();
 
-    const textBox = screen.getByRole('textbox', {
-      name: textMock('ux_editor.modal_properties_component_change_id'),
-    });
+    const editComponentIdButton = screen.getByRole('button', { name: 'ID: Component-1' });
+    await act(() => user.click(editComponentIdButton));
 
-    await act(() => user.type(textBox, '2'));
+    const inputField = screen.getByLabelText(
+      textMock('ux_editor.modal_properties_component_change_id'),
+    );
+    await act(() => user.type(inputField, 'someNewId'));
+    fireEvent.blur(inputField);
+
     expect(mockHandleComponentUpdate).toHaveBeenCalledTimes(1);
   });
 
-  it('should display an error when containerId is invalid', async () => {
-    await renderProperties({ form: component1Mock, formId: component1IdMock });
+  it('should not invoke "handleComponentUpdateMock" when input field has error', async () => {
+    renderPropertiesHeader();
 
-    const containerIdInput = screen.getByRole('textbox', {
-      name: textMock('ux_editor.modal_properties_component_change_id'),
-    });
+    const editComponentIdButton = screen.getByRole('button', { name: 'ID: Component-1' });
+    await act(() => user.click(editComponentIdButton));
 
-    await act(() => user.type(containerIdInput, 'test@'));
-    expect(
-      screen.getByText(textMock('ux_editor.modal_properties_component_id_not_valid')),
-    ).toBeInTheDocument();
-    expect(mockHandleComponentUpdate).toHaveBeenCalledTimes(5);
+    const containerIdInput = screen.getByLabelText(
+      textMock('ux_editor.modal_properties_component_change_id'),
+    );
+
+    const invalidId = 'test@';
+    await act(() => user.type(containerIdInput, invalidId));
+    fireEvent.blur(containerIdInput);
+
+    expect(screen.getByText(textMock('ux_editor.modal_properties_component_id_not_valid')));
+    expect(containerIdInput).toHaveAttribute('aria-invalid', 'true');
+    expect(mockHandleComponentUpdate).toHaveBeenCalledTimes(0);
   });
 });
-
-const renderProperties = (formContextProps: Partial<FormContext> = {}) => {
+const renderPropertiesHeader = (props: Partial<PropertiesHeaderProps> = {}) => {
+  const componentType = props.form ? props.form.type : defaultProps.form.type;
+  queryClientMock.setQueryData(
+    [QueryKey.FormComponent, componentType],
+    componentSchemaMocks[componentType],
+  );
   return renderWithProviders(
-    <FormContext.Provider
+    <FormItemContext.Provider
       value={{
-        ...formContextProviderMock,
-        ...formContextProps,
+        ...formItemContextProviderMock,
       }}
     >
-      <PropertiesHeader {...defaultProps} />
-    </FormContext.Provider>,
+      <PropertiesHeader {...defaultProps} {...props} />
+    </FormItemContext.Provider>,
   );
 };

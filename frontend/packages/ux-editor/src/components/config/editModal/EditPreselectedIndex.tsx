@@ -9,7 +9,9 @@ import type {
 } from '../../../types/FormComponent';
 import { FormField } from '../../FormField';
 
-export function EditPreselectedIndex({ component, handleComponentChange }: IGenericEditComponent) {
+export function EditPreselectedIndex<
+  T extends ComponentType.Checkboxes | ComponentType.RadioButtons | ComponentType.Dropdown,
+>({ component, handleComponentChange }: IGenericEditComponent<T>) {
   const t = useText();
 
   const handlePreselectedOptionChange = (preselectedOptionIndex: number) => {

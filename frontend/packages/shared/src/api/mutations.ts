@@ -1,4 +1,4 @@
-import { del, get, post, put, patch } from 'app-shared/utils/networking';
+import { del, get, post, put } from 'app-shared/utils/networking';
 import {
   appMetadataAttachmentPath,
   copyAppPath,
@@ -32,7 +32,7 @@ import {
   importResourceFromAltinn2Path,
   processEditorPath,
   accessListPath,
-  accessListsPath,
+  createAccessListsPath,
   accessListMemberPath,
   resourceAccessListPath,
 } from 'app-shared/api/paths';
@@ -52,7 +52,7 @@ import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { CreateDatamodelPayload } from 'app-shared/types/api/CreateDatamodelPayload';
 import type { Policy } from '@altinn/policy-editor';
-import type { NewResource, AccessList, Resource, JsonPatch } from 'app-shared/types/ResourceAdm';
+import type { NewResource, AccessList, Resource } from 'app-shared/types/ResourceAdm';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Repository } from 'app-shared/types/Repository';
@@ -101,8 +101,8 @@ export const upsertTextResources = (org: string, app: string, language: string, 
 // Resourceadm
 export const createResource = (org: string, payload: NewResource) => post(resourceCreatePath(org), payload);
 export const importResourceFromAltinn2 = (org: string, environment: string, code: string, edition: string, payload: string) => post<Resource>(importResourceFromAltinn2Path(org, environment, code, edition), JSON.stringify(payload), { headers: { 'Content-Type': 'application/json' } });
-export const createAccessList = (org: string, environment: string, payload: Partial<AccessList>) => post<AccessList>(accessListsPath(org, environment), payload);
-export const updateAccessList = (org: string, listId: string, environment: string, payload: JsonPatch[]) => patch<AccessList>(accessListPath(org, listId, environment), payload);
+export const createAccessList = (org: string, environment: string, payload: Partial<AccessList>) => post<AccessList>(createAccessListsPath(org, environment), payload);
+export const updateAccessList = (org: string, listId: string, environment: string, payload: AccessList) => put<AccessList>(accessListPath(org, listId, environment), payload);
 export const deleteAccessList = (org: string, listId: string, environment: string) => del(accessListPath(org, listId, environment));
 export const addAccessListMember = (org: string, listId: string, orgnr: string, environment: string) => post(accessListMemberPath(org, listId, orgnr, environment));
 export const removeAccessListMember = (org: string, listId: string, orgnr: string, environment: string) => del(accessListMemberPath(org, listId, orgnr, environment));

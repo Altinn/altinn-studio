@@ -14,10 +14,10 @@ import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { Organization } from 'app-shared/types/Organization';
 import type { OrgsState } from 'app-shared/types/OrgsState';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
-import type { Repository } from 'app-shared/types/Repository';
+import type { Repository, User } from 'app-shared/types/Repository';
 import type {
   AccessList,
-  AccessListResourceLink,
+  AccessListsResponse,
   BrregPartySearchResult,
   BrregSubPartySearchResult,
   Resource,
@@ -26,7 +26,7 @@ import type {
   Validation,
 } from 'app-shared/types/ResourceAdm';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
-import type { User } from 'app-shared/types/Repository';
+
 import type {
   AppDeploymentsResponse,
   AppReleasesResponse,
@@ -78,8 +78,6 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve<AppReleasesResponse>(appReleasesResponse)),
   getAppVersion: jest.fn().mockImplementation(() => Promise.resolve<AppVersion>(appVersion)),
   getBranchStatus: jest.fn().mockImplementation(() => Promise.resolve<BranchStatus>(branchStatus)),
-  getComponentSchema: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
-  getComponentsCommonDefsSchema: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getDatamodel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   getDatamodelMetadata: jest
     .fn()
@@ -95,16 +93,13 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<AppDeploymentsResponse>(appDeploymentsResponse)),
   getEnvironments: jest.fn().mockImplementation(() => Promise.resolve<DeployEnvironment[]>([])),
-  getExpressionSchema: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponse>({})),
   getFormLayoutsV3: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponseV3>({})),
   getFrontEndSettings: jest.fn().mockImplementation(() => Promise.resolve<IFrontEndSettings>({})),
   getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
-  getLayoutSchema: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets)),
   getNewsList: jest.fn().mockImplementation(() => Promise.resolve<NewsList>(newsList)),
-  getNumberFormatSchema: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgsState>(orgsState)),
   getOrganizations: jest.fn().mockImplementation(() => Promise.resolve<Organization[]>([])),
@@ -150,11 +145,13 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve<ResourceVersionStatus>(resourceVersionStatus)),
   getValidatePolicy: jest.fn().mockImplementation(() => Promise.resolve<Validation>(validation)),
   getValidateResource: jest.fn().mockImplementation(() => Promise.resolve<Validation>(validation)),
-  getAccessLists: jest.fn().mockImplementation(() => Promise.resolve<AccessList[]>([])),
+  getAccessLists: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<AccessListsResponse>({ data: [] })),
   getAccessList: jest.fn().mockImplementation(() => Promise.resolve<AccessList>(null)),
   getResourceAccessLists: jest
     .fn()
-    .mockImplementation(() => Promise.resolve<AccessListResourceLink[]>([])),
+    .mockImplementation(() => Promise.resolve<AccessListsResponse>({ data: [] })),
   getParties: jest.fn().mockImplementation(() => Promise.resolve<BrregPartySearchResult>(null)),
   getSubParties: jest
     .fn()

@@ -48,9 +48,10 @@ describe('AccessListDetail', () => {
     await act(() => user.type(nameField, ' change'));
     await act(() => nameField.blur());
 
-    expect(updateAccessListMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, [
-      { op: 'replace', path: '/name', value: 'Test-list change' },
-    ]);
+    expect(updateAccessListMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, {
+      ...defaultProps.list,
+      name: 'Test-list change',
+    });
   });
 
   it('should call service to update description', async () => {
@@ -63,9 +64,10 @@ describe('AccessListDetail', () => {
     await act(() => user.type(descriptionField, ' change'));
     await act(() => descriptionField.blur());
 
-    expect(updateAccessListMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, [
-      { op: 'replace', path: '/description', value: 'This is a description change' },
-    ]);
+    expect(updateAccessListMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, {
+      ...defaultProps.list,
+      description: 'This is a description change',
+    });
   });
 
   it('should call service to remove description', async () => {
@@ -78,9 +80,10 @@ describe('AccessListDetail', () => {
     await act(() => user.clear(descriptionField));
     await act(() => descriptionField.blur());
 
-    expect(updateAccessListMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, [
-      { op: 'remove', path: '/description' },
-    ]);
+    expect(updateAccessListMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, {
+      ...defaultProps.list,
+      description: '',
+    });
   });
 
   it('should navigate back after list is deleted', async () => {

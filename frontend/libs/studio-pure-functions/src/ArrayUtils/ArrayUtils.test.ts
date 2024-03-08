@@ -72,4 +72,31 @@ describe('ArrayUtils', () => {
       expect(ArrayUtils.intersection([1, 2, 3], [1, 2, 3], false)).toStrictEqual([]);
     });
   });
+
+  describe('replaceByIndex', () => {
+    it('Replaces element in array with new value', () => {
+      const array1 = ['0', '1', '2'];
+      expect(ArrayUtils.replaceByIndex(array1, 0, '1')).toEqual(['1', '1', '2']);
+
+      const array2 = [0, 1, 2];
+      expect(ArrayUtils.replaceByIndex(array2, 1, 2)).toEqual([0, 2, 2]);
+
+      const array3 = [true, false, true];
+      expect(ArrayUtils.replaceByIndex(array3, 2, false)).toEqual([true, false, false]);
+    });
+
+    it('Returns initial array if index is invalid', () => {
+      const array = [0, 1, 2];
+      expect(ArrayUtils.replaceByIndex(array, 4, 2)).toEqual(array);
+    });
+  });
+
+  describe('removeItemByIndex', () => {
+    it('Deletes item from array by value', () => {
+      expect(ArrayUtils.removeItemByIndex([1, 2, 3], 1)).toEqual([1, 3]);
+      expect(ArrayUtils.removeItemByIndex(['a', 'b', 'c'], 1)).toEqual(['a', 'c']);
+      expect(ArrayUtils.removeItemByIndex(['a', 'b', 'c'], 3)).toEqual(['a', 'b', 'c']);
+      expect(ArrayUtils.removeItemByIndex([], 1)).toEqual([]);
+    });
+  });
 });

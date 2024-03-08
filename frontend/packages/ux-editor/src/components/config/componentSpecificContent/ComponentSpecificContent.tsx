@@ -7,6 +7,7 @@ import type { IGenericEditComponent } from '../componentConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { MapComponent } from './Map';
 import { AttachmentListComponent } from './AttachmentList';
+import { RepeatingGroupComponent } from './RepeatingGroup';
 
 export function ComponentSpecificContent({
   component,
@@ -14,7 +15,7 @@ export function ComponentSpecificContent({
   layoutName,
 }: IGenericEditComponent) {
   switch (component.type) {
-    case ComponentType.AddressComponent:
+    case ComponentType.Address:
       return (
         <AddressComponent
           component={component}
@@ -50,11 +51,22 @@ export function ComponentSpecificContent({
     case ComponentType.Map: {
       return <MapComponent component={component} handleComponentChange={handleComponentChange} />;
     }
+
     case ComponentType.AttachmentList: {
       return (
         <AttachmentListComponent
           component={component}
           handleComponentChange={handleComponentChange}
+        />
+      );
+    }
+
+    case ComponentType.RepeatingGroup: {
+      return (
+        <RepeatingGroupComponent
+          editFormId={component.id}
+          component={component}
+          handleComponentUpdate={handleComponentChange}
         />
       );
     }

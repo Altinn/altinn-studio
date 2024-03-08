@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
@@ -145,6 +144,16 @@ namespace Altinn.App.Models
     [JsonPropertyName("DL_TYPE_DT")]
     public string DL_TYPE_DT { get; set; }
 
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId()
+    {
+      return AltinnRowId != default;
+    }
   }
 
   public class DOKBESKRIV
@@ -159,6 +168,16 @@ namespace Altinn.App.Models
     [JsonPropertyName("DB_TITTEL")]
     public string DB_TITTEL { get; set; }
 
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId()
+    {
+      return AltinnRowId != default;
+    }
   }
 
   public class DOKVERSJON
@@ -178,6 +197,16 @@ namespace Altinn.App.Models
     [JsonPropertyName("VE_FILREF")]
     public string VE_FILREF { get; set; }
 
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId()
+    {
+      return AltinnRowId != default;
+    }
   }
 
   public class FlatData
@@ -307,6 +336,16 @@ namespace Altinn.App.Models
     [JsonPropertyName("bhgEllerSfo")]
     public string bhgEllerSfo { get; set; }
 
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId()
+    {
+      return AltinnRowId != default;
+    }
   }
 
   public class Skattegrunnlag
@@ -323,6 +362,16 @@ namespace Altinn.App.Models
     [Required]
     public decimal? beloep { get; set; }
 
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId()
+    {
+      return AltinnRowId != default;
+    }
   }
 
   public class AppLogikk

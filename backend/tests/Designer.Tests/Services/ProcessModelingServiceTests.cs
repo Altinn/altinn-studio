@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Xml.Serialization;
-using Altinn.App.Core.Internal.Process.Elements;
-using Altinn.Studio.Designer.Factories;
-using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Designer.Tests.Utils;
 using FluentAssertions;
 using Moq;
 using NuGet.Versioning;

@@ -8,10 +8,11 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.App.Core.Models;
+using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
@@ -134,17 +135,18 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Get the Json Schema file representing the application model to disk.
+        /// Gets the model metadata content based on model name. If no model metadata found for the model name an empty model metadata is returned.
         /// </summary>
-        /// <param name="modelName">The name of the model without extensions. This will be used as filename.</param>
-        /// <returns>A string containing content of the json schema.</returns>
-        [Obsolete("Generic method GetJsonSchema is deprecated. Use a dedicated one instead.")]
-        public async Task<string> GetJsonSchema(string modelName)
+        /// <param name="modelName">The model metadata as string</param>
+        public async Task<string> GetModelMetadata(string modelName)
         {
-            string relativeFilePath = GetRelativeModelFilePath(modelName);
-            string jsonSchemaContent = await ReadTextByRelativePathAsync(relativeFilePath);
-
-            return jsonSchemaContent;
+            string modelMetadataFileName = GetPathToModelMetadata(modelName);
+            if (!FileExistsByRelativePath(modelMetadataFileName))
+            {
+                ModelMetadata emptyModel = JsonSerializer.Deserialize<ModelMetadata>("{}");
+                return JsonSerializer.Serialize(emptyModel);
+            }
+            return await ReadTextByRelativePathAsync(modelMetadataFileName);
         }
 
         /// <summary>
@@ -155,7 +157,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="modelName">The name of the model. </param>
         public async Task SaveModelMetadata(string modelMetadata, string modelName)
         {
-            string modelMetadataRelativeFilePath = Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.metadata.json");
+            string modelMetadataRelativeFilePath = GetPathToModelMetadata(modelName);
             await WriteTextByRelativePathAsync(modelMetadataRelativeFilePath, modelMetadata, true);
         }
 
@@ -166,8 +168,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="modelName">The name of the model, will be used as filename.</param>
         public async Task SaveCSharpClasses(string csharpClasses, string modelName)
         {
-            string modelMetadataRelativeFilePath = Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.cs");
-            await WriteTextByRelativePathAsync(modelMetadataRelativeFilePath, csharpClasses, true);
+            string csharpModelRelativeFilePath = Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.cs");
+            await WriteTextByRelativePathAsync(csharpModelRelativeFilePath, csharpClasses, true);
         }
 
         /// <summary>
@@ -178,7 +180,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <returns>A string containing the relative path to the file saved.</returns>
         public override async Task<string> SaveJsonSchema(string jsonSchema, string modelName)
         {
-            string relativeFilePath = GetRelativeModelFilePath(modelName);
+            string relativeFilePath = GetPathToModelJsonSchema(modelName);
             await WriteTextByRelativePathAsync(relativeFilePath, jsonSchema, true);
 
             return relativeFilePath;
@@ -722,6 +724,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <summary>
         /// Gets the options list with the provided id.
         /// <param name="optionsListId">The id of the options list to fetch.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The options list as a string.</returns>
         /// </summary>
         public async Task<string> GetOptions(string optionsListId, CancellationToken cancellationToken = default)
@@ -798,13 +801,18 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Gets the relative path to a model.
+        /// Gets the relative path to a json schema model.
         /// </summary>
         /// <param name="modelName">The name of the model without extensions.</param>
         /// <returns>A string with the relative path to the model file, including file extension. </returns>
-        private string GetRelativeModelFilePath(string modelName)
+        private string GetPathToModelJsonSchema(string modelName)
         {
             return Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.schema.json");
+        }
+
+        private string GetPathToModelMetadata(string modelName)
+        {
+            return Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.metadata.json");
         }
 
         private static string GetPathToTexts()

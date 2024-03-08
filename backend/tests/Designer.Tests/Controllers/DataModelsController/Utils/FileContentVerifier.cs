@@ -1,9 +1,6 @@
 ﻿using System.IO;
 using FluentAssertions;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using SharedResources.Tests;
-using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController.Utils
 {

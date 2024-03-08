@@ -81,8 +81,8 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: FingerButtonIcon,
   },
-  [ComponentType.AddressComponent]: {
-    name: ComponentType.AddressComponent,
+  [ComponentType.Address]: {
+    name: ComponentType.Address,
     itemType: LayoutItemType.Component,
     defaultProperties: {
       simplified: true,
@@ -162,7 +162,6 @@ export const formItemConfigs: FormItemConfigs = {
     name: ComponentType.FileUpload,
     itemType: LayoutItemType.Component,
     defaultProperties: {
-      description: '',
       displayMode: 'list',
       hasCustomFileEndings: false,
       maxFileSizeInMB: 25,
@@ -176,7 +175,6 @@ export const formItemConfigs: FormItemConfigs = {
     name: ComponentType.FileUploadWithTag,
     itemType: LayoutItemType.Component,
     defaultProperties: {
-      description: '',
       displayMode: 'list',
       hasCustomFileEndings: false,
       maxFileSizeInMB: 25,
@@ -382,7 +380,7 @@ export const formItemConfigs: FormItemConfigs = {
 };
 
 export const advancedItems: FormItemConfigs[ComponentType][] = [
-  formItemConfigs[ComponentType.AddressComponent],
+  formItemConfigs[ComponentType.Address],
   formItemConfigs[ComponentType.AttachmentList],
   formItemConfigs[ComponentType.Group],
   formItemConfigs[ComponentType.Grid],

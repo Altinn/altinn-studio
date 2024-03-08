@@ -1,16 +1,15 @@
 import React from 'react';
 import type { EditSettings, IGenericEditComponent } from './componentConfig';
-import { configComponents } from './componentConfig';
-import { componentSpecificEditConfig } from './componentConfig';
+import { configComponents, componentSpecificEditConfig } from './componentConfig';
+
 import { ComponentSpecificContent } from './componentSpecificContent';
-import { Switch, Fieldset, Heading } from '@digdir/design-system-react';
+import { Switch, Fieldset } from '@digdir/design-system-react';
 import classes from './EditFormComponent.module.css';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { StudioSpinner } from '@studio/components';
 import { FormComponentConfig } from './FormComponentConfig';
 import { useSelector } from 'react-redux';
-import { getComponentTitleByComponentType } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
 import {
   addFeatureFlagToLocalStorage,
@@ -20,14 +19,13 @@ import {
 import { FormField } from 'app-shared/components/FormField';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';
-import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../types/FormItem';
-import { RepeatingGroupComponent } from './componentSpecificContent/RepeatingGroup';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
-export interface IEditFormComponentProps {
+export interface IEditFormComponentProps<T extends ComponentType = ComponentType> {
   editFormId: string;
-  component: FormItem;
-  handleComponentUpdate: (component: FormItem) => void;
+  component: FormItem<T>;
+  handleComponentUpdate: (component: FormItem<T>) => void;
 }
 
 export const EditFormComponent = ({
@@ -92,26 +90,19 @@ export const EditFormComponent = ({
           </Switch>
         )}
       />
-      <Heading level={2} size='xsmall'>
-        {getComponentTitleByComponentType(component.type, t)} ({component.type})
-      </Heading>
-      {showComponentConfigBeta && isPending && <StudioSpinner spinnerText={t('general.loading')} />}
+      {showComponentConfigBeta && isPending && (
+        <StudioSpinner
+          showSpinnerTitle
+          spinnerTitle={t('ux_editor.edit_component.loading_schema')}
+        />
+      )}
       {showComponentConfigBeta && !isPending && (
-        <>
-          {component.type === ComponentType.RepeatingGroup && (
-            <RepeatingGroupComponent
-              editFormId={editFormId}
-              component={component}
-              handleComponentUpdate={handleComponentUpdate}
-            />
-          )}
-          <FormComponentConfig
-            schema={schema}
-            component={component}
-            editFormId={editFormId}
-            handleComponentUpdate={handleComponentUpdate}
-          />
-        </>
+        <FormComponentConfig
+          schema={schema}
+          component={component}
+          editFormId={editFormId}
+          handleComponentUpdate={handleComponentUpdate}
+        />
       )}
       {!showComponentConfigBeta && (
         <>

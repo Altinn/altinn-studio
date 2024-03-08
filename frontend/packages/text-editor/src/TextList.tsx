@@ -4,9 +4,10 @@ import type {
   TextResourceEntryDeletion,
   TextResourceIdMutation,
   UpsertTextResourceMutation,
+  TextTableRow,
 } from './types';
 import { filterFunction, getLangName } from './utils';
-import type { TextTableRow } from './types';
+
 import {
   LegacyTable,
   LegacyTableBody,
@@ -15,6 +16,7 @@ import {
   LegacyTableRow,
 } from '@digdir/design-system-react';
 import { APP_NAME } from 'app-shared/constants';
+import { useTranslation } from 'react-i18next';
 
 export type TextListProps = {
   resourceRows: TextTableRow[];
@@ -30,6 +32,8 @@ export const TextList = ({
   selectedLanguages,
   ...rest
 }: TextListProps) => {
+  const { t } = useTranslation();
+
   const textIds = useMemo(() => resourceRows.map((row) => row.textKey), [resourceRows]);
   const idExists = (textId: string): boolean => textIds.includes(textId);
   const getTableHeaderCellId = (language: string): string => `header-lang${language}`;
@@ -47,8 +51,8 @@ export const TextList = ({
               {getLangName({ code: language })}
             </LegacyTableCell>
           ))}
-          <LegacyTableCell>Tekstnøkkel</LegacyTableCell>
-          <LegacyTableCell>Variabler</LegacyTableCell>
+          <LegacyTableCell>{t('text_editor.table_header_text_key')}</LegacyTableCell>
+          <LegacyTableCell>{t('text_editor.table_header_variables')}</LegacyTableCell>
         </LegacyTableRow>
       </LegacyTableHeader>
       <LegacyTableBody>

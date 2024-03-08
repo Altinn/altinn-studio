@@ -2,12 +2,9 @@ import React, { useState } from 'react';
 import classes from './ResourcePageInputs.module.css';
 import { Radio } from '@digdir/design-system-react';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
+import { ResourceFieldHeader } from './ResourceFieldHeader';
 
 type ResourceRadioGroupProps = {
-  /**
-   * Flag for if the component has spacing at the top
-   */
-  spacingTop?: boolean;
   /**
    * The label of the dropdown
    */
@@ -43,13 +40,16 @@ type ResourceRadioGroupProps = {
    * The error text to be shown
    */
   errorText?: string;
+  /**
+   * Whether this field is required or not
+   */
+  required?: boolean;
 };
 
 /**
  * @component
  *    Displays a dropdown component used on the about resource page
  *
- * @property {boolean}[spacingTop] - Flag for if the component has spacing at the top
  * @property {string}[label] - The label of the dropdown
  * @property {string}[description] - The description of the dropdown
  * @property {string}[value] - The value selected
@@ -58,11 +58,11 @@ type ResourceRadioGroupProps = {
  * @property {boolean}[hasError] - If the dropdown has an error
  * @property {function}[onChange] - Function to be executed on change
  * @property {string}[errorText] - The error text to be shown
+ * @property {boolean}[required] - Whether this field is required or not
  *
  * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceRadioGroup = ({
-  spacingTop = false,
   label,
   description,
   value,
@@ -71,36 +71,35 @@ export const ResourceRadioGroup = ({
   onFocus,
   onChange,
   errorText,
+  required,
 }: ResourceRadioGroupProps): React.JSX.Element => {
   const [selected, setSelected] = useState(value);
 
   const error = hasError && (selected === null || selected === undefined);
 
   return (
-    <>
-      {spacingTop && <div className={classes.divider} />}
-      <div className={classes.inputWrapper}>
-        <Radio.Group
-          size='small'
-          onChange={(val: string) => {
-            setSelected(val);
-            onChange(val);
-          }}
-          value={selected}
-          legend={label}
-          description={description}
-          onFocus={onFocus}
-          error={error ? <InputFieldErrorMessage message={errorText} /> : undefined}
-        >
-          {options.map((opt) => {
-            return (
-              <Radio key={opt.value} value={opt.value}>
-                {opt.label}
-              </Radio>
-            );
-          })}
-        </Radio.Group>
-      </div>
-    </>
+    <div className={classes.inputWrapper}>
+      <Radio.Group
+        size='small'
+        onChange={(val: string) => {
+          setSelected(val);
+          onChange(val);
+        }}
+        value={selected}
+        legend={<ResourceFieldHeader label={label} required={required} />}
+        description={description}
+        onFocus={onFocus}
+        error={error ? <InputFieldErrorMessage message={errorText} /> : undefined}
+        required={required}
+      >
+        {options.map((opt) => {
+          return (
+            <Radio key={opt.value} value={opt.value}>
+              {opt.label}
+            </Radio>
+          );
+        })}
+      </Radio.Group>
+    </div>
   );
 };

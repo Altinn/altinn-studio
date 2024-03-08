@@ -24,7 +24,7 @@ const component: FormFileUploaderComponent = {
   dataModelBindings: {},
 };
 const handleComponentChange = jest.fn();
-const defaultProps: IGenericEditComponent = {
+const defaultProps: IGenericEditComponent<ComponentType.FileUpload> = {
   component,
   handleComponentChange,
 };
@@ -144,7 +144,7 @@ const waitForData = async () => {
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
-const render = async (props?: Partial<IGenericEditComponent>) => {
+const render = async (props?: Partial<IGenericEditComponent<ComponentType.FileUpload>>) => {
   await waitForData();
 
   return renderWithMockStore()(<FileUploadComponent {...defaultProps} {...props} />);

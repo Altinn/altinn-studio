@@ -8,10 +8,8 @@ import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors'
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 import { useLayoutSetsQuery } from '../../hooks/queries/useLayoutSetsQuery';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
-import { ConfigureLayoutSetPanel } from './ConfigureLayoutSetPanel';
-import { Accordion } from '@digdir/design-system-react';
+
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import classes from './Elements.module.css';
 import { useAppContext } from '../../hooks/useAppContext';
 
@@ -30,35 +28,19 @@ export const Elements = () => {
 
   return (
     <div className={classes.root}>
-      {shouldDisplayFeature('configureLayoutSet') && layoutSetNames ? (
-        <ConfigureLayoutSetPanel />
+      {layoutSetNames && <LayoutSetsContainer />}
+      <Heading size='xxsmall' className={classes.componentsHeader}>
+        {t('left_menu.components')}
+      </Heading>
+      {hideComponents ? (
+        <Paragraph className={classes.noPageSelected} size='small'>
+          {t('left_menu.no_components_selected')}
+        </Paragraph>
+      ) : receiptName === selectedLayout ? (
+        <ConfPageToolbar />
       ) : (
-        <LayoutSetsContainer />
+        <DefaultToolbar />
       )}
-      <Accordion color='subtle'>
-        {shouldDisplayFeature('configureLayoutSet') && (
-          <Accordion.Item defaultOpen={layoutSetNames?.length > 0}>
-            <Accordion.Header>{t('left_menu.layout_sets')}</Accordion.Header>
-            <Accordion.Content>
-              {layoutSetNames ? <LayoutSetsContainer /> : <ConfigureLayoutSetPanel />}
-            </Accordion.Content>
-          </Accordion.Item>
-        )}
-      </Accordion>
-      <div className={classes.componentsList}>
-        <Heading size='xxsmall' className={classes.componentsHeader}>
-          {t('left_menu.components')}
-        </Heading>
-        {hideComponents ? (
-          <Paragraph className={classes.noPageSelected} size='small'>
-            {t('left_menu.no_components_selected')}
-          </Paragraph>
-        ) : receiptName === selectedLayout ? (
-          <ConfPageToolbar />
-        ) : (
-          <DefaultToolbar />
-        )}
-      </div>
     </div>
   );
 };

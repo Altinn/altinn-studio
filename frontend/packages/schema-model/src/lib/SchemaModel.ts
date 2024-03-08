@@ -439,10 +439,9 @@ export class SchemaModel {
   }
 
   public deleteNode(pointer: string): SchemaModel {
-    if (pointer === ROOT_POINTER) {
-      throw new Error('It is not possible to delete the root node.');
-    }
-
+    if (pointer === ROOT_POINTER) throw new Error('It is not possible to delete the root node.');
+    if (this.hasReferringNodes(pointer))
+      throw new Error('Cannot delete a definition that is in use.');
     return this.deleteNodeWithChildrenRecursively(pointer);
   }
 

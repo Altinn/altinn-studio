@@ -41,4 +41,16 @@ export class ArrayUtils {
   public static intersection = <T>(arrA: T[], arrB: T[], include: boolean = true): T[] => {
     return arrA.filter((x) => (include ? arrB.includes(x) : !arrB.includes(x)));
   };
+
+  /** Replaces an element in an array with a new value */
+  public static replaceByIndex = <T>(array: T[], index: number, newValue: T): T[] => {
+    if (index < 0 || index >= array.length) return array;
+    const newArray = [...array];
+    newArray[index] = newValue;
+    return newArray;
+  };
+
+  /** Removes the item with the given index from teh given array. */
+  public static removeItemByIndex = <T>(array: T[], indexToRemove: number): T[] =>
+    array.filter((_, index) => index !== indexToRemove);
 }

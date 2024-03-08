@@ -97,12 +97,7 @@ export const RightMenu = ({
           </div>
         </Fieldset>
       </div>
-      <div className={classes.RightMenu__verticalContent}>
-        <div className={classes['LangEditor__title-sm']}>
-          {t('schema_editor.language_add_language')}
-        </div>
-        <LangSelector onAddLang={addLanguage} options={addLangOptions} />
-      </div>
+      <LangSelector onAddLang={addLanguage} options={addLangOptions} />
     </aside>
   );
 };

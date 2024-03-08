@@ -64,7 +64,7 @@ export const ResourcesRepoList = ({
         })}
       </Heading>
       {isLoadingResourceList ? (
-        <StudioSpinner spinnerText={t('general.loading')} />
+        <StudioSpinner showSpinnerTitle spinnerTitle={t('dashboard.loading_resource_list')} />
       ) : (
         <div data-testid='resource-table-wrapper'>
           <Link href={`${RESOURCEADM_BASENAME}${getResourceDashboardURL(selectedContext, repo)}`}>

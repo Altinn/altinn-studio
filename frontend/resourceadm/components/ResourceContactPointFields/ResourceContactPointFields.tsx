@@ -31,6 +31,10 @@ export type ResourceContactPointFieldsProps = {
    * If the error should be shown
    */
   showErrors: boolean;
+  /**
+   * Whether this field is required or not
+   */
+  required?: boolean;
 };
 
 /**
@@ -42,6 +46,7 @@ export type ResourceContactPointFieldsProps = {
  * @property {function}[onContactPointsChanged] - Function to be executed when contact points are changed
  * @property {function}[onFocus] - Function to be executed when the field is focused
  * @property {boolean}[showErrors] - If the error should be shown
+ * @property {boolean}[required] - Whether this field is required or not
  *
  * @returns {React.JSX.Element} - The rendered component
  */
@@ -50,6 +55,7 @@ export const ResourceContactPointFields = ({
   onContactPointsChanged,
   onFocus,
   showErrors,
+  required,
 }: ResourceContactPointFieldsProps): React.JSX.Element => {
   return (
     <FieldsetWrapper<ResourceContactPoint>
@@ -73,6 +79,7 @@ export const ResourceContactPointFields = ({
             onLeaveTextFields={onChange}
             onFocus={onFocus}
             showErrors={showErrors}
+            required={required}
           />
         );
       }}

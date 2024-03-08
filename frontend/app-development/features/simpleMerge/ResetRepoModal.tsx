@@ -3,11 +3,11 @@ import classes from './RepoModal.module.css';
 import { StudioButton, StudioSpinner } from '@studio/components';
 import { Textfield } from '@digdir/design-system-react';
 import { Popover } from '@mui/material';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
 import * as testids from '../../../testing/testids';
 import { toast } from 'react-toastify';
-import { Trans } from 'react-i18next';
+
 import { useQueryClient } from '@tanstack/react-query';
 
 export interface IResetRepoModalProps {
@@ -90,7 +90,12 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
             autoFocus
             onKeyUp={handleOnKeypressEnter}
           />
-          {repoResetMutation.isPending && <StudioSpinner />}
+          {repoResetMutation.isPending && (
+            <StudioSpinner
+              showSpinnerTitle={false}
+              spinnerTitle={t('overview.reset_repo_loading')}
+            />
+          )}
           {!repoResetMutation.isPending && (
             <div className={classes.buttonContainer}>
               <StudioButton

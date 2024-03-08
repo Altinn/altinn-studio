@@ -63,7 +63,8 @@ export const AppStatus = ({ envName, envType }: AppStatusProps) => {
     });
   };
 
-  if (isPendingDeploys) return <StudioSpinner />;
+  if (isPendingDeploys)
+    return <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.loading_deploys')} />;
 
   if (deploysAreError)
     return (

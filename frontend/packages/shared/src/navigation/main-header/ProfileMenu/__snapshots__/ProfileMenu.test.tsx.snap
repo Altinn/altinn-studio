@@ -3,7 +3,7 @@
 exports[`ProfileMenu should match snapshot 1`] = `
 <button
   aria-haspopup="true"
-  class="fds-button-button-b39e9b36 fds-utility-focusable-dc80d2cb fds-button-medium-b39e9b36 fds-button-tertiary-b39e9b36 fds-button-inverted-b39e9b36"
+  class="fds-button-button-c7ee1cc4 fds-utility-focusable-7600d88a fds-button-medium-c7ee1cc4 fds-button-tertiary-c7ee1cc4 fds-button-inverted-c7ee1cc4"
   data-testid="profileButton"
   type="button"
 >
@@ -18,7 +18,7 @@ exports[`ProfileMenu should match snapshot 1`] = `
 exports[`ProfileMenu should match snapshot with logout text 1`] = `
 <button
   aria-haspopup="true"
-  class="fds-button-button-b39e9b36 fds-utility-focusable-dc80d2cb fds-button-medium-b39e9b36 fds-button-tertiary-b39e9b36 fds-button-inverted-b39e9b36"
+  class="fds-button-button-c7ee1cc4 fds-utility-focusable-7600d88a fds-button-medium-c7ee1cc4 fds-button-tertiary-c7ee1cc4 fds-button-inverted-c7ee1cc4"
   data-testid="profileButton"
   type="button"
 >

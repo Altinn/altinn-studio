@@ -48,6 +48,7 @@ export const DeleteModal = ({ isOpen, onClose, app, org }: DeleteModalProps): JS
           </Heading>
         </div>
       }
+      closeButtonLabel={t('local_changes.modal_close_delete_modal')}
     >
       <div className={classes.contentWrapper}>
         <Paragraph size='small' spacing>
@@ -64,7 +65,10 @@ export const DeleteModal = ({ isOpen, onClose, app, org }: DeleteModalProps): JS
         />
         <div className={classes.buttonWrapper}>
           {isPendingDeleteLocalChanges ? (
-            <StudioSpinner />
+            <StudioSpinner
+              showSpinnerTitle={false}
+              spinnerTitle={t('local_changes.modal_loading_delete_local_changes')}
+            />
           ) : (
             <>
               <StudioButton

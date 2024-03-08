@@ -1,7 +1,7 @@
 import React from 'react';
 import type { EditSettings, IGenericEditComponent } from './componentConfig';
-import { configComponents } from './componentConfig';
-import { componentSpecificEditConfig } from './componentConfig';
+import { configComponents, componentSpecificEditConfig } from './componentConfig';
+
 import { ComponentSpecificContent } from './componentSpecificContent';
 import { Switch, Fieldset, Heading } from '@digdir/design-system-react';
 import classes from './EditFormComponent.module.css';
@@ -95,7 +95,12 @@ export const EditFormComponent = ({
       <Heading level={2} size='xsmall'>
         {getComponentTitleByComponentType(component.type, t)} ({component.type})
       </Heading>
-      {showComponentConfigBeta && isPending && <StudioSpinner spinnerText={t('general.loading')} />}
+      {showComponentConfigBeta && isPending && (
+        <StudioSpinner
+          showSpinnerTitle
+          spinnerTitle={t('ux_editor.edit_component.loading_schema')}
+        />
+      )}
       {showComponentConfigBeta && !isPending && (
         <FormComponentConfig
           schema={isPending ? {} : schema}

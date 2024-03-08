@@ -31,6 +31,7 @@ export const ruleHandlerPath = (org, app, layoutSetName) => `${basePath}/${org}/
 export const widgetSettingsPath = (org, app) => `${basePath}/${org}/${app}/app-development/widget-settings`; // Get
 export const optionListIdsPath = (org, app) => `${basePath}/${org}/${app}/app-development/option-list-ids`; // Get
 export const ruleConfigPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/rule-config?${s({ layoutSetName })}`; // Get, Post
+export const datamodelMetadataPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/model-metadata?${s({ layoutSetName })}`; // Get
 export const layoutSetPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/layout-sets?${s({ layoutSetName })}`; // Put, Post
 export const layoutSetsPath = (org, app) => `${basePath}/${org}/${app}/app-development/layout-sets`; // Get
 export const layoutSettingsPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/layout-settings?${s({ layoutSetName })}`; // Get, Post
@@ -56,9 +57,6 @@ export const userLogoutAfterPath = () => `/Home/Logout`;
 
 // Languages - new text-format
 export const languagesPath = (org, app) => `${basePath}/${org}/${app}/languages`; // Get
-
-// Model
-export const datamodelMetadataPath = (org, app) => `${basePath}/${org}/${app}/model/metadata`; // Get
 
 // Organizations
 export const orgsListPath = () => `${basePath}/orgs`; // Get
@@ -137,10 +135,11 @@ export const resourceValidateResourcePath = (org, repo, id) => `${basePath}/${or
 export const publishResourcePath = (org, repo, id, env) => `${basePath}/${org}/resources/publish/${repo}/${id}?env=${env}`; // Get
 export const altinn2LinkServicesPath = (org, env) => `${basePath}/${org}/resources/altinn2linkservices/${env}`; // Get
 export const importResourceFromAltinn2Path = (org, env, serviceCode, serviceEdition) => `${basePath}/${org}/resources/importresource/${serviceCode}/${serviceEdition}/${env}`; // Post
-export const accessListsPath = (org, env) => `${basePath}/${org}/resources/accesslist/?env=${env}`; // Get, Post
+export const accessListsPath = (org, env, page) => `${basePath}/${org}/resources/accesslist/?env=${env}&page=${page}`; // Get
+export const createAccessListsPath = (org, env) => `${basePath}/${org}/resources/accesslist/?env=${env}`; //  Post
 export const accessListPath = (org, listId, env) => `${basePath}/${org}/resources/accesslist/${listId}?env=${env}`; // Get, Patch, Delete
 export const accessListMemberPath = (org, listId, orgnr, env) => `${basePath}/${org}/resources/accesslist/${listId}/members/${orgnr}?env=${env}`; // Post, Delete
-export const resourceAccessListsPath = (org, resourceId, env) => `${basePath}/${org}/resources/${resourceId}/accesslists/?env=${env}`; // Get
+export const resourceAccessListsPath = (org, resourceId, env, page) => `${basePath}/${org}/resources/${resourceId}/accesslists/?env=${env}&page=${page}`; // Get
 export const resourceAccessListPath = (org, resourceId, listId, env) => `${basePath}/${org}/resources/${resourceId}/accesslists/${listId}?env=${env}`; // Post, Delete, Patch
 
 // Process Editor

@@ -8,12 +8,12 @@ import { CreateReleaseComponent } from '../components/createAppReleaseComponent'
 import { ReleaseComponent } from '../components/appReleaseComponent';
 import { UploadIcon, CheckmarkIcon, XMarkOctagonFillIcon } from '@studio/icons';
 import { gitCommitPath } from 'app-shared/api/paths';
-import { useMediaQuery } from '@studio/components';
+import { useMediaQuery, StudioButton, StudioSpinner } from '@studio/components';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { Trans, useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { StudioButton, StudioSpinner } from '@studio/components';
+
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
@@ -63,7 +63,10 @@ export function ReleaseContainer() {
       return (
         <div style={{ padding: '2rem' }}>
           <div>
-            <StudioSpinner />
+            <StudioSpinner
+              showSpinnerTitle={false}
+              spinnerTitle={t('app_create_release.loading')}
+            />
           </div>
           <div style={{ padding: '1.2rem' }}>{t('app_create_release.check_status')}</div>
         </div>

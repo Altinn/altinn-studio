@@ -77,6 +77,11 @@ namespace Altinn.Studio.Designer.Configuration
         public string ResourceRegistryUrl { get; set; }
 
         /// <summary>
+        /// The Url used for calling the access list services of resourceregistry
+        /// </summary>
+        public string ResourceRegistryAccessListUrl { get; set; }
+
+        /// <summary>
         /// The environment-specific baseUrl
         /// </summary>
         public string ResourceRegistryEnvBaseUrl { get; set; }

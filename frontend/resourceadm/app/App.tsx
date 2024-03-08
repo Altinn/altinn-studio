@@ -77,5 +77,5 @@ export const App = (): React.JSX.Element => {
       </div>
     );
   }
-  return <StudioPageSpinner />;
+  return <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('resourceadm.loading_app')} />;
 };

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>Altinn.Studio.Designer</AssemblyName>
     <Company>Altinn</Company>
@@ -11,8 +11,6 @@
     <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
     <UserSecretsId>c958e7e5-da9b-411d-8ee0-70bcfe1f64ed</UserSecretsId>
     <RootNamespace>Altinn.Studio.Designer</RootNamespace>
-    <!-- SonarCloud needs this -->
-    <ProjectGuid>{6D0AC0E2-5A9A-4804-AA89-48000067AEB0}</ProjectGuid>
     <InvariantGlobalization>false</InvariantGlobalization>
     <Configurations>Release;Debug</Configurations>
   </PropertyGroup>
@@ -82,11 +80,18 @@
     <Watch Remove="Exceptions\HttpStatusException.cs" />
     <Watch Remove="Helpers\OrgUtil.cs" />
     <Watch Remove="Helpers\ResourceAdminHelper.cs" />
+    <Watch Remove="Models\AccessList.cs" />
+    <Watch Remove="Models\AccessListMember.cs" />
     <Watch Remove="Models\AvailableService.cs" />
+    <Watch Remove="Models\BrregPartyResultSet.cs" />
     <Watch Remove="Models\ConceptSchema.cs" />
     <Watch Remove="Models\ContactPoint.cs" />
+    <Watch Remove="Models\CreateAccessListModel.cs" />
     <Watch Remove="Models\DataTheme.cs" />
     <Watch Remove="Models\DataThemesContainer.cs" />
+    <Watch Remove="Models\Dto\AccessListInfoDtoPaginated.cs" />
+    <Watch Remove="Models\Dto\AccessListMember.cs" />
+    <Watch Remove="Models\Dto\AccessListResourceConnection.cs" />
     <Watch Remove="Models\EuroVocTerm.cs" />
     <Watch Remove="Models\EuroVocTerms.cs" />
     <Watch Remove="Models\GiteaCommit.cs" />
@@ -102,10 +107,13 @@
     <Watch Remove="Models\LosTerms.cs" />
     <Watch Remove="Models\Org.cs" />
     <Watch Remove="Models\OrgList.cs" />
+    <Watch Remove="Models\PagedAccessListResponse.cs" />
+    <Watch Remove="Models\ResourceAccessList.cs" />
     <Watch Remove="Models\ResourcePartyType.cs" />
     <Watch Remove="Models\ResourceReference.cs" />
     <Watch Remove="Models\ResourceVersionInfo.cs" />
     <Watch Remove="Models\ServiceResource.cs" />
+    <Watch Remove="Models\UpsertAccessListResourceConnectionDto.cs" />
     <Watch Remove="RepositoryClient\Client\PolicyOptionsClient.cs" />
     <Watch Remove="RepositoryClient\Model\CommitAffectedFile.cs" />
     <Watch Remove="RepositoryClient\Model\ContentsResponse.cs" />

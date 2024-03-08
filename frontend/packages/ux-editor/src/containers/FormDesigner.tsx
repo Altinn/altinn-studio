@@ -4,7 +4,7 @@ import { Properties } from '../components/Properties';
 import { DesignView } from './DesignView';
 import classes from './FormDesigner.module.css';
 import { Elements } from '../components/Elements';
-import { useFormContext } from './FormContext';
+import { useFormItemContext } from './FormItemContext';
 import { useText } from '../hooks';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
@@ -61,7 +61,7 @@ export const FormDesigner = ({
     selectedLayoutSet,
   );
   const [searchParams] = useSearchParams();
-  const { handleEdit } = useFormContext();
+  const { handleEdit } = useFormItemContext();
 
   const layoutPagesOrder = formLayoutSettings?.pages.order;
 
@@ -156,5 +156,7 @@ export const FormDesigner = ({
       </DragAndDropTree.Provider>
     );
   }
-  return <StudioPageSpinner />;
+  return (
+    <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('ux_editor.loading_form_layout')} />
+  );
 };
