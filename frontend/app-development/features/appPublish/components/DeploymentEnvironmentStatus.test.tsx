@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-import type { DeploymentStatusProps } from './DeploymentStatus';
-import { DeploymentStatus } from './DeploymentStatus';
+import type { DeploymentEnvironmentStatusProps } from './DeploymentEnvironmentStatus';
+import { DeploymentEnvironmentStatus } from './DeploymentEnvironmentStatus';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
 import { textMock } from '../../../../testing/mocks/i18nMock';
@@ -11,18 +11,18 @@ import { KubernetesDeploymentStatus as KubernetesDeploymentStatusEnum } from 'ap
 // Test data
 const org = 'ttd';
 const app = 'test-ttd';
-const defaultProps: DeploymentStatusProps = {
+const defaultProps: DeploymentEnvironmentStatusProps = {
   envName: 'tt02',
   isProduction: false,
 };
 
-const render = (props: Partial<DeploymentStatusProps> = {}) => {
-  return renderWithProviders(<DeploymentStatus {...defaultProps} {...props} />, {
+const render = (props: Partial<DeploymentEnvironmentStatusProps> = {}) => {
+  return renderWithProviders(<DeploymentEnvironmentStatus {...defaultProps} {...props} />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/deploy`,
   });
 };
 
-describe('DeploymentStatus', () => {
+describe('DeploymentEnvironmentStatus', () => {
   it('shows production when environment is production', async () => {
     render({
       envName: 'production',

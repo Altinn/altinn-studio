@@ -31,11 +31,32 @@ export const DeploymentStatus = ({
     });
   };
 
+  const DeploymentStatusAlert = ({
+    severity,
+    content,
+    footer,
+  }: {
+    severity: 'success' | 'warning' | 'info' | 'danger';
+    content: string | React.ReactNode;
+    footer: string | JSX.Element;
+  }) => {
+    const envTitle = isProduction ? t('general.production') : envName.toUpperCase();
+    return (
+      <Alert severity={severity} className={classes.alert}>
+        <Heading spacing level={2} size='xsmall'>
+          {envTitle}
+        </Heading>
+        <Paragraph spacing size='small'>
+          {content}
+        </Paragraph>
+        <Paragraph size='xsmall'>{footer}</Paragraph>
+      </Alert>
+    );
+  };
+
   if (!kubernetesDeployment) {
     return (
-      <DeploymentStatusInfo
-        envName={envName}
-        isProduction={isProduction}
+      <DeploymentStatusAlert
         severity='warning'
         content={t('app_deployment.kubernetes_deployment.status.none')}
         footer={
@@ -49,9 +70,7 @@ export const DeploymentStatus = ({
 
   if (!kubernetesDeployment?.status) {
     return (
-      <DeploymentStatusInfo
-        envName={envName}
-        isProduction={isProduction}
+      <DeploymentStatusAlert
         severity='warning'
         content={t('app_deployment.kubernetes_deployment.status.unavailable')}
         footer={
@@ -66,9 +85,7 @@ export const DeploymentStatus = ({
   switch (kubernetesDeployment.status) {
     case KubernetesDeploymentStatus.completed:
       return (
-        <DeploymentStatusInfo
-          envName={envName}
-          isProduction={isProduction}
+        <DeploymentStatusAlert
           severity='success'
           content={
             <Trans
@@ -93,9 +110,7 @@ export const DeploymentStatus = ({
       );
     case KubernetesDeploymentStatus.failed:
       return (
-        <DeploymentStatusInfo
-          envName={envName}
-          isProduction={isProduction}
+        <DeploymentStatusAlert
           severity='danger'
           content={t('app_deployment.kubernetes_deployment.status.failed')}
           footer={
@@ -107,9 +122,7 @@ export const DeploymentStatus = ({
       );
     default:
       return (
-        <DeploymentStatusInfo
-          envName={envName}
-          isProduction={isProduction}
+        <DeploymentStatusAlert
           severity='info'
           content={
             <span className={classes.loadingSpinner}>
@@ -125,33 +138,4 @@ export const DeploymentStatus = ({
         />
       );
   }
-};
-
-type DeploymentStatusInfoProps = {
-  envName: string;
-  isProduction: boolean;
-  severity: 'success' | 'warning' | 'info' | 'danger';
-  content: string | React.ReactNode;
-  footer: string | JSX.Element;
-};
-const DeploymentStatusInfo = ({
-  envName,
-  isProduction,
-  severity,
-  content,
-  footer,
-}: DeploymentStatusInfoProps) => {
-  const { t } = useTranslation();
-  const envTitle = isProduction ? t('general.production') : envName.toUpperCase();
-  return (
-    <Alert severity={severity} className={classes.alert}>
-      <Heading spacing level={2} size='xsmall'>
-        {envTitle}
-      </Heading>
-      <Paragraph spacing size='small'>
-        {content}
-      </Paragraph>
-      <Paragraph size='xsmall'>{footer}</Paragraph>
-    </Alert>
-  );
 };

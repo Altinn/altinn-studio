@@ -9,7 +9,7 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { Alert } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { DeploymentStatusList } from './DeploymentStatusList';
-import { DeploymentList } from './DeploymentList';
+import { DeploymentLogList } from './DeploymentLogList';
 import { StudioSpinner } from '@studio/components';
 import type { Environment } from 'app-shared/types/Environment';
 
@@ -36,10 +36,12 @@ export const DeploymentContainer = ({ className }: DeploymentContainerProps) => 
   } = useAppDeploymentsQuery(org, app, { hideDefaultError: true });
 
   if (environmentListIsPending || orgsIsPending || appDeploymentIsPending)
-    return <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.app_loading')} />;
+    return (
+      <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.deployments_loading')} />
+    );
 
   if (environmentListIsError || orgsIsError || appDeploymentIsError)
-    return <Alert severity='danger'>{t('overview.app_error')}</Alert>;
+    return <Alert severity='danger'>{t('overview.deployments_error')}</Alert>;
 
   const selectedOrg = orgs?.[org];
   const orgEnvironmentList: Environment[] = environmentList.filter((env: Environment) =>
@@ -55,7 +57,7 @@ export const DeploymentContainer = ({ className }: DeploymentContainerProps) => 
         />
       </section>
       <section className={className}>
-        <DeploymentList
+        <DeploymentLogList
           orgEnvironmentList={orgEnvironmentList}
           pipelineDeploymentList={appDeployment?.pipelineDeploymentList}
         />

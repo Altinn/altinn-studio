@@ -37,7 +37,7 @@ describe('Overview', () => {
     expect(await screen.findByText(textMock('overview.fetch_title_error_message')));
   });
 
-  it('should display AppLogs if environments exist', async () => {
+  it('should display DeploymentLogList if environments exist', async () => {
     render({
       getOrgList: jest.fn().mockImplementation(() =>
         Promise.resolve({
@@ -63,7 +63,7 @@ describe('Overview', () => {
     ).toBeInTheDocument();
   });
 
-  it('should not display AppLogs if environments do not exist for repo owned by org', async () => {
+  it('should not display DeploymentLogList if environments do not exist for repo owned by org', async () => {
     render({
       getRepoMetadata: jest.fn().mockImplementation(() =>
         Promise.resolve({

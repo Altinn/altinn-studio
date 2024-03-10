@@ -52,7 +52,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>List of Pipeline deployments and Kubernete deployments</returns>
         [HttpGet]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
-        public async Task<DeploymentResponse> Get(string org, string app, [FromQuery] DocumentQueryModel query)
+        public async Task<DeploymentsResponse> Get(string org, string app, [FromQuery] DocumentQueryModel query)
         {
             SearchResults<DeploymentEntity> deployments = await _deploymentService.GetAsync(org, app, query);
 
@@ -64,7 +64,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             List<KubernetesDeployment> kubernetesDeploymentList = await _kubernetesDeploymentsService.GetAsync(org, app);
 
-            return new DeploymentResponse
+            return new DeploymentsResponse
             {
                 PipelineDeploymentList = deployments.Results.ToList(),
                 KubernetesDeploymentList = kubernetesDeploymentList,

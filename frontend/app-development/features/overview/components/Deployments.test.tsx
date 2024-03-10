@@ -21,16 +21,18 @@ describe('Deployments', () => {
   it('shows loading spinner when loading required data', () => {
     render();
 
-    expect(screen.getByText(textMock('overview.app_loading'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('overview.deployments_loading'))).toBeInTheDocument();
   });
 
   it('shows an error message if an error occurs while loading data', async () => {
     render({
       getOrgList: jest.fn().mockImplementation(() => Promise.reject()),
     });
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('overview.app_loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('overview.deployments_loading')),
+    );
 
-    expect(screen.getByText(textMock('overview.app_error'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('overview.deployments_error'))).toBeInTheDocument();
   });
 
   it('shows private repo message', async () => {
@@ -52,7 +54,9 @@ describe('Deployments', () => {
         }),
       ),
     });
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('overview.app_loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('overview.deployments_loading')),
+    );
 
     expect(screen.getByText(textMock('app_deployment.private_app_owner'))).toBeInTheDocument();
     expect(screen.getByText(textMock('app_deployment.private_app_owner_info'))).toBeInTheDocument();
@@ -83,7 +87,9 @@ describe('Deployments', () => {
         }),
       ),
     });
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('overview.app_loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('overview.deployments_loading')),
+    );
 
     expect(screen.getByText(textMock('app_deployment.no_env_title'))).toBeInTheDocument();
     expect(screen.getByText(textMock('app_deployment.no_env_1'))).toBeInTheDocument();
@@ -111,7 +117,9 @@ describe('Deployments', () => {
         }),
       ),
     });
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('overview.app_loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('overview.deployments_loading')),
+    );
 
     expect(screen.getByText(textMock('overview.activity'))).toBeInTheDocument();
   });

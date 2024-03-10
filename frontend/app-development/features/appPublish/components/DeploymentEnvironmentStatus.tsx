@@ -1,24 +1,24 @@
 import React from 'react';
-import classes from './DeploymentStatus.module.css';
+import classes from './DeploymentEnvironmentStatus.module.css';
 import { Alert, Heading, Link, Paragraph, Spinner } from '@digdir/design-system-react';
 import { Trans, useTranslation } from 'react-i18next';
 import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { formatDateDDMMYY, formatTimeHHmm } from 'app-shared/pure/date-format';
 
-export interface DeploymentStatusProps {
+export interface DeploymentEnvironmentStatusProps {
   kubernetesDeployment?: KubernetesDeployment;
   envName: string;
   isProduction: boolean;
   urlToApp?: string;
 }
 
-export const DeploymentStatus = ({
+export const DeploymentEnvironmentStatus = ({
   kubernetesDeployment,
   envName,
   isProduction,
   urlToApp,
-}: DeploymentStatusProps) => {
+}: DeploymentEnvironmentStatusProps) => {
   const { t } = useTranslation();
 
   const formatDateTime = (dateAsString: string): string => {
@@ -28,11 +28,32 @@ export const DeploymentStatus = ({
     });
   };
 
+  const DeploymentStatusAlert = ({
+    severity,
+    content,
+    footer,
+  }: {
+    severity: 'success' | 'warning' | 'info' | 'danger';
+    content: string | React.ReactNode;
+    footer?: string | JSX.Element;
+  }) => {
+    const envTitle = isProduction ? t('general.production') : envName.toUpperCase();
+    return (
+      <Alert severity={severity} className={classes.alert}>
+        <Heading spacing level={2} size='xsmall'>
+          {envTitle}
+        </Heading>
+        <Paragraph size='small' spacing={!!footer}>
+          {content}
+        </Paragraph>
+        {footer && <Paragraph size='xsmall'>{footer}</Paragraph>}
+      </Alert>
+    );
+  };
+
   if (!kubernetesDeployment) {
     return (
-      <DeploymentStatusInfo
-        envName={envName}
-        isProduction={isProduction}
+      <DeploymentStatusAlert
         severity='warning'
         content={t('app_deployment.kubernetes_deployment.status.none')}
       />
@@ -41,9 +62,7 @@ export const DeploymentStatus = ({
 
   if (!kubernetesDeployment?.status) {
     return (
-      <DeploymentStatusInfo
-        envName={envName}
-        isProduction={isProduction}
+      <DeploymentStatusAlert
         severity='warning'
         content={t('app_deployment.kubernetes_deployment.status.unavailable')}
       />
@@ -53,9 +72,7 @@ export const DeploymentStatus = ({
   switch (kubernetesDeployment.status) {
     case KubernetesDeploymentStatus.completed:
       return (
-        <DeploymentStatusInfo
-          envName={envName}
-          isProduction={isProduction}
+        <DeploymentStatusAlert
           severity='success'
           content={
             <Trans
@@ -80,18 +97,14 @@ export const DeploymentStatus = ({
       );
     case KubernetesDeploymentStatus.failed:
       return (
-        <DeploymentStatusInfo
-          envName={envName}
-          isProduction={isProduction}
+        <DeploymentStatusAlert
           severity='warning'
           content={t('app_deployment.kubernetes_deployment.status.failed')}
         />
       );
     default:
       return (
-        <DeploymentStatusInfo
-          envName={envName}
-          isProduction={isProduction}
+        <DeploymentStatusAlert
           severity='info'
           content={
             <span className={classes.loadingSpinner}>
@@ -102,33 +115,4 @@ export const DeploymentStatus = ({
         />
       );
   }
-};
-
-type DeploymentStatusInfoProps = {
-  envName: string;
-  isProduction: boolean;
-  severity: 'success' | 'warning' | 'info' | 'danger';
-  content: string | React.ReactNode;
-  footer?: string | JSX.Element;
-};
-const DeploymentStatusInfo = ({
-  envName,
-  isProduction,
-  severity,
-  content,
-  footer,
-}: DeploymentStatusInfoProps) => {
-  const { t } = useTranslation();
-  const envTitle = isProduction ? t('general.production') : envName.toUpperCase();
-  return (
-    <Alert severity={severity} className={classes.alert}>
-      <Heading spacing level={2} size='xsmall'>
-        {envTitle}
-      </Heading>
-      <Paragraph size='small' spacing={!!footer}>
-        {content}
-      </Paragraph>
-      {footer && <Paragraph size='xsmall'>{footer}</Paragraph>}
-    </Alert>
-  );
 };

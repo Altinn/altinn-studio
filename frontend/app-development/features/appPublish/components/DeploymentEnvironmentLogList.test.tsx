@@ -1,6 +1,6 @@
 import React from 'react';
-import type { DeploymentListProps } from './DeploymentList';
-import { DeploymentList } from './DeploymentList';
+import type { DeploymentEnvironmentLogListProps } from './DeploymentEnvironmentLogList';
+import { DeploymentEnvironmentLogList } from './DeploymentEnvironmentLogList';
 import { screen } from '@testing-library/react';
 import { renderWithMockStore } from 'app-development/test/mocks';
 import { textMock } from '../../../../testing/mocks/i18nMock';
@@ -24,16 +24,22 @@ const pipelineDeployment = {
   },
 };
 
-const defaultProps: DeploymentListProps = {
+const defaultProps: DeploymentEnvironmentLogListProps = {
   envName: 'test',
   isProduction: false,
   pipelineDeploymentList: [],
 };
 
-const render = (props?: Partial<DeploymentListProps>, queries?: Partial<ServicesContextProps>) => {
-  return renderWithMockStore({}, queries)(<DeploymentList {...defaultProps} {...props} />);
+const render = (
+  props?: Partial<DeploymentEnvironmentLogListProps>,
+  queries?: Partial<ServicesContextProps>,
+) => {
+  return renderWithMockStore(
+    {},
+    queries,
+  )(<DeploymentEnvironmentLogList {...defaultProps} {...props} />);
 };
-describe('DeploymentList', () => {
+describe('DeploymentEnvironmentLogList', () => {
   it('renders with no history', () => {
     render();
     expect(

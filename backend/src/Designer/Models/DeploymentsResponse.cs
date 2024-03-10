@@ -5,9 +5,9 @@ using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 namespace Altinn.Studio.Designer.Models
 {
     /// <summary>
-    /// Deployment response
+    /// Deployments response
     /// </summary>
-    public class DeploymentResponse
+    public class DeploymentsResponse
     {
         public List<DeploymentEntity> PipelineDeploymentList { get; set; }
 

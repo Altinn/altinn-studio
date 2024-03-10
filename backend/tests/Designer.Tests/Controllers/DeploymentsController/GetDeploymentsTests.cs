@@ -60,7 +60,7 @@ public class GetDeployments : DisagnerEndpointsTestsBase<GetDeployments>, IClass
         // Act
         HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
         string responseString = await res.Content.ReadAsStringAsync();
-        DeploymentResponse actual = JsonSerializer.Deserialize<DeploymentResponse>(responseString, JsonSerializerOptions);
+        DeploymentsResponse actual = JsonSerializer.Deserialize<DeploymentsResponse>(responseString, JsonSerializerOptions);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);

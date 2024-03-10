@@ -1,14 +1,14 @@
 import React from 'react';
-import classes from './Deployment.module.css';
+import classes from './DeploymentEnvironment.module.css';
 
-import { DeploymentStatus } from './DeploymentStatus';
+import { DeploymentEnvironmentStatus } from './DeploymentEnvironmentStatus';
 import { Deploy } from './Deploy';
-import { DeploymentList } from './DeploymentList';
+import { DeploymentEnvironmentLogList } from './DeploymentEnvironmentLogList';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { BuildResult } from 'app-shared/types/Build';
 
-export interface DeploymentProps {
+export interface DeploymentEnvironmentProps {
   pipelineDeploymentList: PipelineDeployment[];
   kubernetesDeployment: KubernetesDeployment;
   envName: string;
@@ -17,18 +17,18 @@ export interface DeploymentProps {
   orgName: string;
 }
 
-export const Deployment = ({
+export const DeploymentEnvironment = ({
   pipelineDeploymentList,
   kubernetesDeployment,
   envName,
   isProduction,
   urlToApp,
   orgName,
-}: DeploymentProps) => {
+}: DeploymentEnvironmentProps) => {
   return (
     <div className={classes.container}>
       <div className={classes.header}>
-        <DeploymentStatus
+        <DeploymentEnvironmentStatus
           kubernetesDeployment={kubernetesDeployment}
           envName={envName}
           isProduction={isProduction}
@@ -44,7 +44,7 @@ export const Deployment = ({
           isProduction={isProduction}
           orgName={orgName}
         />
-        <DeploymentList
+        <DeploymentEnvironmentLogList
           envName={envName}
           isProduction={isProduction}
           pipelineDeploymentList={pipelineDeploymentList}

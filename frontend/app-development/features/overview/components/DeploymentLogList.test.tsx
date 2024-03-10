@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-import type { DeploymentListProps } from './DeploymentList';
-import { DeploymentList } from './DeploymentList';
+import type { DeploymentLogListProps } from './DeploymentLogList';
+import { DeploymentLogList } from './DeploymentLogList';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
 import { textMock } from '../../../../testing/mocks/i18nMock';
@@ -13,7 +13,7 @@ import { BuildResult } from 'app-shared/types/Build';
 const org = 'ttd';
 const app = 'test-ttd';
 
-const defaultProps: DeploymentListProps = {
+const defaultProps: DeploymentLogListProps = {
   orgEnvironmentList: [
     {
       ...environment,
@@ -53,16 +53,16 @@ const defaultProps: DeploymentListProps = {
 };
 
 const render = (
-  props: Partial<DeploymentListProps> = {},
+  props: Partial<DeploymentLogListProps> = {},
   queries: Partial<ServicesContextProps> = {},
 ) => {
-  return renderWithProviders(<DeploymentList {...defaultProps} {...props} />, {
+  return renderWithProviders(<DeploymentLogList {...defaultProps} {...props} />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
     queries,
   });
 };
 
-describe('DeploymentList', () => {
+describe('DeploymentLogList', () => {
   it('shows list of deployments', async () => {
     render();
 
@@ -71,7 +71,7 @@ describe('DeploymentList', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        textMock('overview.app_logs_title', {
+        textMock('overview.deployment_log_list_title', {
           tagName: '2',
           envTitle: textMock('general.production_environment_alt'),
         }),
@@ -79,7 +79,7 @@ describe('DeploymentList', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        textMock('overview.app_logs_title', {
+        textMock('overview.deployment_log_list_title', {
           tagName: '1',
           envTitle: `${textMock('general.test_environment_alt')} TT02`,
         }),

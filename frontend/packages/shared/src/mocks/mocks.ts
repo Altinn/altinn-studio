@@ -24,7 +24,7 @@ import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment
 import type { Environment } from 'app-shared/types/Environment';
 import type { Organization } from 'app-shared/types/Organization';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
-import type { DeploymentResponse } from 'app-shared/types/api/DeploymentResponse';
+import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { AppRelease } from 'app-shared/types/AppRelease';
 
 export const build: Build = {
@@ -70,7 +70,7 @@ export const datamodelMetadataResponse: DatamodelMetadataResponse = {
   elements: {},
 };
 
-export const deploymentResponse: DeploymentResponse = {
+export const deploymentsResponse: DeploymentsResponse = {
   pipelineDeploymentList: [],
   kubernetesDeploymentList: [],
 };

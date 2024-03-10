@@ -32,11 +32,13 @@ export const Deployments = ({ className }: DeploymentsProps) => {
   const { t } = useTranslation();
 
   if (isOrgsPending || repositoryIsPending) {
-    return <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.app_loading')} />;
+    return (
+      <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.deployments_loading')} />
+    );
   }
 
   if (isOrgsError || repositoryIsError)
-    return <Alert severity='danger'>{t('overview.app_error')}</Alert>;
+    return <Alert severity='danger'>{t('overview.deployments_error')}</Alert>;
 
   // If repo-owner is an organisation
   const repoOwnerIsOrg = orgs && Object.keys(orgs).includes(repository?.owner.login);

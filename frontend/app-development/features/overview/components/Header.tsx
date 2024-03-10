@@ -19,9 +19,7 @@ export const Header = () => {
   const { t } = useTranslation();
 
   if (isPending) {
-    return (
-      <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.app_title_loading')} />
-    );
+    return <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.header_loading')} />;
   }
 
   if (isError) {

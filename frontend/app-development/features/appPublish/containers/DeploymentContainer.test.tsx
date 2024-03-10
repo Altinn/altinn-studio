@@ -5,7 +5,7 @@ import { textMock } from '../../../../testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from 'app-development/test/mocks';
 import { environment } from 'app-shared/mocks/mocks';
-import type { DeploymentResponse } from 'app-shared/types/api/DeploymentResponse';
+import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 
 describe('DeploymentContainer', () => {
   it('renders a spinner while loading data', () => {
@@ -41,7 +41,7 @@ describe('DeploymentContainer', () => {
           Promise.resolve({ orgs: { [org]: { name: { nb: org }, environments: [envName] } } }),
         ),
       getDeployments: jest.fn().mockImplementation(() =>
-        Promise.resolve<DeploymentResponse>({
+        Promise.resolve<DeploymentsResponse>({
           pipelineDeploymentList: [],
           kubernetesDeploymentList: [],
         }),

@@ -46,7 +46,7 @@ import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import type { Policy, PolicyAction, PolicySubject } from 'packages/policy-editor';
 import {
   appConfig,
-  deploymentResponse,
+  deploymentsResponse,
   appVersion,
   appReleasesResponse,
   applicationMetadata,
@@ -69,7 +69,7 @@ import {
   validation,
 } from './mocks';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
-import type { DeploymentResponse } from 'app-shared/types/api/DeploymentResponse';
+import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
@@ -91,7 +91,7 @@ export const queriesMock: ServicesContextProps = {
   getDeployPermissions: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getDeployments: jest
     .fn()
-    .mockImplementation(() => Promise.resolve<DeploymentResponse>(deploymentResponse)),
+    .mockImplementation(() => Promise.resolve<DeploymentsResponse>(deploymentsResponse)),
   getEnvironments: jest.fn().mockImplementation(() => Promise.resolve<Environment[]>([])),
   getFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponse>({})),

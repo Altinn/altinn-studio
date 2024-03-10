@@ -8,7 +8,7 @@ import {
 } from '../../../hooks/queries';
 import type { Environment } from 'app-shared/types/Environment';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { Deployment } from '../components/Deployment';
+import { DeploymentEnvironment } from '../components/DeploymentEnvironment';
 import { getAppLink } from 'app-shared/ext-urls';
 import { useTranslation } from 'react-i18next';
 import { Alert } from '@digdir/design-system-react';
@@ -78,7 +78,7 @@ export const DeploymentContainer = () => {
           (item) => item.envName.toLowerCase() === env.name.toLowerCase(),
         );
         return (
-          <Deployment
+          <DeploymentEnvironment
             key={index}
             envName={env.name}
             isProduction={env.type.toLowerCase() === 'production'}
