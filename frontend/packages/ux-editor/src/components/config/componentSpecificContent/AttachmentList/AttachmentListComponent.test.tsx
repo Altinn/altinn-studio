@@ -4,8 +4,9 @@ import type { IGenericEditComponent } from '../../componentConfig';
 import { renderWithMockStore } from '../../../../testing/mocks';
 import { AttachmentListComponent } from './AttachmentListComponent';
 import React from 'react';
-import { screen, act } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+// import { screen, act } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+// import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
@@ -13,7 +14,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import type { DataTypeElement } from 'app-shared/types/ApplicationMetadata';
 import { reservedDataTypes } from './AttachmentListUtils';
 
-const user = userEvent.setup();
+// const user = userEvent.setup();
 const org = 'org';
 const app = 'app';
 
