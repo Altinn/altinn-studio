@@ -81,14 +81,8 @@ describe('DeploymentStatus', () => {
     ).toBeInTheDocument();
   });
 
-  it('shows alert when KubernetesDeploymentStatus is none as no app is deployed', async () => {
-    render({
-      kubernetesDeployment: {
-        ...kubernetesDeployment,
-        status: KubernetesDeploymentStatusEnum.none,
-        statusDate: '',
-      },
-    });
+  it('shows alert when no app is deployed', async () => {
+    render();
 
     expect(
       screen.getByText(textMock('app_deployment.kubernetes_deployment.status.none')),
@@ -96,7 +90,13 @@ describe('DeploymentStatus', () => {
   });
 
   it('shows alert when KubernetesDeploymentStatus is unavailable', async () => {
-    render();
+    render({
+      kubernetesDeployment: {
+        ...kubernetesDeployment,
+        status: null,
+        statusDate: '',
+      },
+    });
 
     expect(
       screen.getByText(textMock('app_deployment.kubernetes_deployment.status.unavailable')),

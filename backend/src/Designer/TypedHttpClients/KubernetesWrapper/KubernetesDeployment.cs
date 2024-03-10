@@ -2,8 +2,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper
 {
     public class KubernetesDeployment
     {
-        public string EnvName { get; set; }
-
         public string Release { get; set; }
 
         public string Version { get; set; }
@@ -18,5 +16,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper
         /// Gets or sets the status date of the deployment.
         /// </summary>
         public string StatusDate { get; set; }
+
+        public string EnvName { get; set; }
     }
 }

@@ -3,3 +3,7 @@
   overflow-y: scroll;
   flex-grow: 1;
 }
+
+.alert {
+  margin: var(--fds-spacing-6);
+}

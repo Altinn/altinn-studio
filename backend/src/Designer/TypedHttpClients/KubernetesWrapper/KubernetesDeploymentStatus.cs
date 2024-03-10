@@ -10,11 +10,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper
     public enum KubernetesDeploymentStatus
     {
         /// <summary>
-        /// Represents a non-existing deployment.
-        /// </summary>
-        None,
-
-        /// <summary>
         /// Represents a progressing deployment.
         /// <see href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#progressing-deployment"/>
         /// </summary>

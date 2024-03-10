@@ -31,9 +31,7 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
             using HttpResponseMessage response = await _client.GetAsync(pathToAzureEnv);
             response.EnsureSuccessStatusCode();
             List<KubernetesDeployment> deployments = await response.Content.ReadAsAsync<List<KubernetesDeployment>>();
-            KubernetesDeployment deployment = deployments.FirstOrDefault() ?? new KubernetesDeployment { Status = KubernetesDeploymentStatus.None };
-            deployment.EnvName = env.Name;
-            return deployment;
+            return deployments.FirstOrDefault();
         }
         catch (Exception e)
         {

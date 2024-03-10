@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './DeploymentList.module.css';
-import { Heading, Link, Table } from '@digdir/design-system-react';
+import { Alert, Heading, Link, Table } from '@digdir/design-system-react';
 import { formatDateTime, isDateWithinDays } from 'app-shared/pure/date-format';
 import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
@@ -87,9 +87,9 @@ export const DeploymentList = ({
   return (
     <div className={classes.container}>
       {pipelineDeploymentList.length === 0 ? (
-        <span id={`deploy-history-for-${envName.toLowerCase()}-unavailable`}>
+        <Alert severity='info' id={`deploy-history-for-${envName.toLowerCase()}-unavailable`}>
           {t('app_deployment.table.deployed_version_history_empty', { envTitle })}
-        </span>
+        </Alert>
       ) : (
         <div>
           <Heading level={4} size='xxsmall' className={classes.heading}>

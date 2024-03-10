@@ -77,7 +77,7 @@ describe('DeployDropdown', () => {
       expect(screen.getByText(textMock('app_deployment.releases_error'))).toBeInTheDocument();
     });
 
-    it('does not render when image options are empty', async () => {
+    it('render no image options message when image options are empty', async () => {
       render(
         {},
         {
@@ -92,7 +92,7 @@ describe('DeployDropdown', () => {
         screen.queryByTitle(textMock('app_deployment.releases_loading')),
       );
 
-      expect(screen.queryByText(textMock('app_deployment.choose_version'))).not.toBeInTheDocument();
+      expect(screen.getByText(textMock('app_deployment.no_versions'))).toBeInTheDocument();
     });
 
     it('renders image options', async () => {

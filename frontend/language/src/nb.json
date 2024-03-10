@@ -64,6 +64,7 @@
   "app_deployment.no_env_title": "Din organisasjon har ikke test- og produksjonsmiljø",
   "app_deployment.no_team": "Du tilhører ikke noe team i organisasjonen din.",
   "app_deployment.no_team_info": "For å få tilgang til å deploye applikasjonen din til et miljø er du nødt til å være lagt til i et team som har deploy rettigheter til det spesifikke miljøet.",
+  "app_deployment.no_versions": "Det er ingen versjoner å deploye",
   "app_deployment.permission_checking": "Sjekker om du har tilgang til å legge ut appen",
   "app_deployment.permission_error": "Kunne ikke sjekke om du har tilgang til å legge ut appen. Last siden på nytt for å prøve igjen.",
   "app_deployment.pipeline_deployment.build_result.canceled": "Vi opplever en feil og har derfor stoppet din deploy.",

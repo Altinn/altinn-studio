@@ -31,7 +31,11 @@ export function DeployPage() {
   }
 
   if (orgsIsError || permissionsIsError)
-    return <Alert severity='danger'>{t('app_deployment.error')}</Alert>;
+    return (
+      <Alert severity='danger' className={classes.alert}>
+        {t('app_deployment.error')}
+      </Alert>
+    );
 
   // If org isn't listed, or doesn't have any environments
   if (!orgs[org] || !orgs[org].environments || !orgs[org].environments.length) {

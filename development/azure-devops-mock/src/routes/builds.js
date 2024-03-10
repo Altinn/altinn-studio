@@ -81,6 +81,7 @@ export const kubernetesWrapperRoute = async (req, res) => {
     {
       version: '2405',
       release: 'autodeploy-v3',
+      status: 'None',
     },
   ];
   deploys.forEach((deploy) => {

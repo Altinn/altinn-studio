@@ -55,7 +55,13 @@ export const DeploymentContainer = () => {
   }
 
   if (environmentListIsError || orgsIsError || appDeploymentIsError)
-    return <Alert severity='danger'>{t('app_deployment.error')}</Alert>;
+    return (
+      <div className={classes.deployContainer}>
+        <Alert severity='danger' className={classes.alert}>
+          {t('app_deployment.error')}
+        </Alert>
+      </div>
+    );
 
   const selectedOrg = orgs?.[org];
   const orgEnvironmentList: Environment[] = environmentList.filter((env: Environment) =>

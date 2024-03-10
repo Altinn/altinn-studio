@@ -28,6 +28,17 @@ export const DeploymentStatus = ({
     });
   };
 
+  if (!kubernetesDeployment) {
+    return (
+      <DeploymentStatusInfo
+        envName={envName}
+        isProduction={isProduction}
+        severity='warning'
+        content={t('app_deployment.kubernetes_deployment.status.none')}
+      />
+    );
+  }
+
   if (!kubernetesDeployment?.status) {
     return (
       <DeploymentStatusInfo
@@ -40,15 +51,6 @@ export const DeploymentStatus = ({
   }
 
   switch (kubernetesDeployment.status) {
-    case KubernetesDeploymentStatus.none:
-      return (
-        <DeploymentStatusInfo
-          envName={envName}
-          isProduction={isProduction}
-          severity='info'
-          content={t('app_deployment.kubernetes_deployment.status.none')}
-        />
-      );
     case KubernetesDeploymentStatus.completed:
       return (
         <DeploymentStatusInfo

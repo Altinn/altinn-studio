@@ -51,7 +51,7 @@ export const DeployDropdown = ({
       label: `Version ${image.tagName} (${formatDateTime(image.created)})`,
     }));
 
-  if (!imageOptions.length) return null;
+  if (!imageOptions.length) return <Alert severity='info'>{t('app_deployment.no_versions')}</Alert>;
 
   return (
     <div className={classes.deployDropDown}>

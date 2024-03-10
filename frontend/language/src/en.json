@@ -42,6 +42,7 @@
   "app_deployment.no_env_title": "Your organization has not ordered access to test- and production environments.",
   "app_deployment.no_team": "You do not belong to any team in your organisation.",
   "app_deployment.no_team_info": "In order to get access to deploy your application to an environment you need to be added to a team that has deploy access to that specific environment.",
+  "app_deployment.no_versions": "You do not have any versions to deploy",
   "app_deployment.table.build_log": "Build log",
   "app_release.earlier_releases": "Earlier builds of your application",
   "app_release.release_build_log": "Buildlog",
