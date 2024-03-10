@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
@@ -36,7 +35,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             List<KubernetesDeployment> kubernetesDeploymentList = [];
 
             IEnumerable<EnvironmentModel> environments = await _environmentsService.GetOrganizationEnvironments(org);
-            List<string> environmentNames = environments.Select(environment => environment.Name).ToList();
 
             foreach (EnvironmentModel env in environments)
             {
