@@ -1,9 +1,17 @@
 import type { ReactNode } from 'react';
-import React from 'react';
+import React, { useState } from 'react';
 import classes from './AccessControlTab.module.css';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
-import { Checkbox, ErrorMessage, HelpText, Paragraph } from '@digdir/design-system-react';
+import {
+  Checkbox,
+  ErrorMessage,
+  HelpText,
+  Link,
+  Paragraph,
+  Popover,
+  Table,
+} from '@digdir/design-system-react';
 import type { PartyTypesAllowed } from 'app-shared/types/ApplicationMetadata';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
 import {
@@ -14,6 +22,12 @@ import { useAppMetadataQuery } from 'app-development/hooks/queries';
 import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';
 import { TabContent } from '../../TabContent';
+
+enum CheckboxState {
+  Checked = 'checked',
+  Indeterminate = 'indeterminate',
+  Unchecked = 'unchecked',
+}
 
 export type AccessControlTabProps = {
   org: string;
@@ -31,6 +45,8 @@ export type AccessControlTabProps = {
  */
 export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode => {
   const { t } = useTranslation();
+  const [checkedCheckboxes, setCheckedCheckboxes] = useState<string[]>([]);
+  const [isPopoverOpened, setIsPopoverOpened] = useState<boolean>(false);
 
   const {
     status: appMetadataStatus,
@@ -49,13 +65,34 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
     updateAppMetadataMutation({ ...appMetadata, partyTypesAllowed: newPartyTypesAllowed });
   };
 
-  const displayCheckboxes = () => {
-    return getPartyTypesAllowedOptions().map((option) => (
-      <Checkbox value={option.value} key={option.value} size='small'>
-        {t(option.label)}
-      </Checkbox>
-    ));
+  const isAnyCheckboxChecked = checkedCheckboxes.length > 0;
+
+  const areAllCheckboxesChecked = checkedCheckboxes.length === getPartyTypesAllowedOptions().length;
+
+  const tableHeaderCheckboxState = isAnyCheckboxChecked
+    ? areAllCheckboxesChecked
+      ? CheckboxState.Checked
+      : CheckboxState.Indeterminate
+    : CheckboxState.Unchecked;
+
+  const handleTableHeaderCheckboxChange = () => {
+    if (tableHeaderCheckboxState === CheckboxState.Checked) setCheckedCheckboxes([]);
+    else setCheckedCheckboxes(getPartyTypesAllowedOptions().map((option) => option.value));
   };
+
+  const handleCheckboxChange = (value: string) => {
+    const updatedCheckboxes = checkedCheckboxes.includes(value)
+      ? checkedCheckboxes.filter((checkbox) => checkbox !== value)
+      : [...checkedCheckboxes, value];
+
+    if (checkedCheckboxes.length === 1 && updatedCheckboxes.length === 0) {
+      setIsPopoverOpened(true);
+      return;
+    }
+    setCheckedCheckboxes(updatedCheckboxes);
+  };
+
+  const handlePopoverClose = () => setIsPopoverOpened(false);
 
   const displayContent = () => {
     switch (appMetadataStatus) {
@@ -71,20 +108,70 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
       }
       case 'success': {
         const currentPartyTypesAllowed = appMetadata?.partyTypesAllowed ?? initialPartyTypes;
+
         return (
-          <Checkbox.Group
-            legend={t('settings_modal.access_control_tab_checkbox_legend_label')}
-            size='small'
-            onChange={(newValues: string[]) => handleChange(newValues, currentPartyTypesAllowed)}
-            value={Object.keys(currentPartyTypesAllowed).filter(
-              (key) => currentPartyTypesAllowed[key],
-            )}
-          >
-            <Paragraph asChild size='small' short className={classes.checkboxParagraph}>
-              <span>{t('settings_modal.access_control_tab_checkbox_description')}</span>
-            </Paragraph>
-            {displayCheckboxes()}
-          </Checkbox.Group>
+          <>
+            <Checkbox.Group
+              legend={t('settings_modal.access_control_tab_checkbox_legend_label')}
+              size='small'
+              onChange={(newValues: string[]) => handleChange(newValues, currentPartyTypesAllowed)}
+              value={Object.keys(currentPartyTypesAllowed).filter(
+                (key) => currentPartyTypesAllowed[key],
+              )}
+            >
+              <Paragraph asChild size='small' short>
+                <span>{t('settings_modal.access_control_tab_checkbox_description')}</span>
+              </Paragraph>
+            </Checkbox.Group>
+
+            <Table className={classes.tableContent}>
+              <Table.Head>
+                <Table.Row>
+                  <Table.HeaderCell className={classes.header}>
+                    <Checkbox
+                      indeterminate={tableHeaderCheckboxState === CheckboxState.Indeterminate}
+                      checked={tableHeaderCheckboxState === CheckboxState.Checked}
+                      onChange={handleTableHeaderCheckboxChange}
+                      size='small'
+                      value='all'
+                    />
+                  </Table.HeaderCell>
+                  <Table.HeaderCell className={classes.header}>
+                    {t('settings_modal.access_control_tab_option_all_type_partner')}
+                  </Table.HeaderCell>
+                </Table.Row>
+              </Table.Head>
+
+              <Table.Body>
+                {getPartyTypesAllowedOptions().map((option) => (
+                  <Table.Row key={option.value}>
+                    <Table.Cell className={classes.checkboxContent}>
+                      <Popover
+                        open={isPopoverOpened}
+                        onClose={handlePopoverClose}
+                        variant='info'
+                        placement='top-start'
+                      >
+                        <Checkbox
+                          onChange={() => handleCheckboxChange(option.value)}
+                          size='small'
+                          value={option.value}
+                          checked={checkedCheckboxes.includes(option.value)}
+                        />
+
+                        <Popover.Content>
+                          {t(
+                            'settings_modal.access_control_tab_option_choose_type_popover_message',
+                          )}
+                        </Popover.Content>
+                      </Popover>
+                    </Table.Cell>
+                    <Table.Cell>{t(option.label)}</Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table>
+          </>
         );
       }
     }
@@ -97,6 +184,14 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
         <HelpText title={''}>{t('settings_modal.access_control_tab_help_text_heading')}</HelpText>
       </div>
       {displayContent()}
+      <span className={classes.docsLinkText}>
+        {t('settings_modal.access_control_tab_option_access_control_docs_link_text')}
+      </span>
+      <div className={classes.docsLink}>
+        <Trans i18nKey={'settings_modal.access_control_tab_option_access_control_docs_link'}>
+          <Link>documantation</Link>
+        </Trans>
+      </div>
     </TabContent>
   );
 };

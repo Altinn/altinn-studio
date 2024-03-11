@@ -1,9 +1,27 @@
-.checkboxParagraph {
-  margin-left: 0.5rem;
-}
-
 .tabHeaderContent {
   display: flex;
   align-items: center;
   gap: var(--fds-spacing-2);
+}
+
+.tableContent {
+  width: 100%;
+  margin-top: var(--fds-spacing-3);
+}
+
+.header {
+  background-color: #f4f5f6;
+}
+
+.checkboxContent {
+  width: 3rem;
+}
+
+.docsLinkText {
+  margin-top: var(--fds-spacing-10);
+  display: flex;
+  align-items: center;
+}
+.docsLink {
+  margin-top: var(--fds-spacing-3);
 }
