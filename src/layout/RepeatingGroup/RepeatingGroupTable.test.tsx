@@ -46,6 +46,7 @@ describe('RepeatingGroupTable', () => {
       dataModelBindings: {
         simpleBinding: 'some-group.prop1',
       },
+      showValidations: [],
       textResourceBindings: {
         title: 'Title1',
       },
@@ -58,6 +59,7 @@ describe('RepeatingGroupTable', () => {
       dataModelBindings: {
         simpleBinding: 'some-group.prop2',
       },
+      showValidations: [],
       textResourceBindings: {
         title: 'Title2',
       },
@@ -70,6 +72,7 @@ describe('RepeatingGroupTable', () => {
       dataModelBindings: {
         simpleBinding: 'some-group.prop3',
       },
+      showValidations: [],
       textResourceBindings: {
         title: 'Title3',
       },
@@ -82,6 +85,7 @@ describe('RepeatingGroupTable', () => {
       dataModelBindings: {
         simpleBinding: 'some-group.checkboxBinding',
       },
+      showValidations: [],
       textResourceBindings: {
         title: 'Title4',
       },

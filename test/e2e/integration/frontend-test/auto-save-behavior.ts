@@ -88,7 +88,7 @@ describe('Auto save behavior', () => {
         }
         if (component.id === 'newFirstName') {
           // TODO(Validation): Once it is possible to treat custom validations as required, this can be removed.
-          (component as CompInputExternal).showValidations = undefined;
+          (component as CompInputExternal).showValidations = [];
         }
       });
 
@@ -114,7 +114,7 @@ describe('Auto save behavior', () => {
       cy.get(appFrontend.changeOfName.dateOfEffect).siblings().findByRole('button').click();
       cy.get(mui.selectedDate).click();
 
-      cy.get(appFrontend.nextButton).clickAndGone();
+      cy.get(appFrontend.nextButton).click();
       cy.wait('@saveFormData').then(() => {
         expect(formDataReqCounter).to.be.eq(1);
       });

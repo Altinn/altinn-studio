@@ -41,6 +41,7 @@ async function render({ container, numRows = 3, validationIssues = [] }: IRender
       dataModelBindings: {
         simpleBinding: 'Group.prop1',
       },
+      showValidations: [],
       textResourceBindings: {
         title: 'Title1',
       },
@@ -53,6 +54,7 @@ async function render({ container, numRows = 3, validationIssues = [] }: IRender
       dataModelBindings: {
         simpleBinding: 'Group.prop2',
       },
+      showValidations: [],
       textResourceBindings: {
         title: 'Title2',
       },
@@ -65,6 +67,7 @@ async function render({ container, numRows = 3, validationIssues = [] }: IRender
       dataModelBindings: {
         simpleBinding: 'Group.prop3',
       },
+      showValidations: [],
       textResourceBindings: {
         title: 'Title3',
       },
@@ -77,6 +80,7 @@ async function render({ container, numRows = 3, validationIssues = [] }: IRender
       dataModelBindings: {
         simpleBinding: 'Group.checkboxBinding',
       },
+      showValidations: [],
       textResourceBindings: {
         title: 'Title4',
       },

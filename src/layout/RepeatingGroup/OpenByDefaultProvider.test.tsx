@@ -92,6 +92,7 @@ describe('openByDefault', () => {
         dataModelBindings: {
           simpleBinding: 'MyGroup.name',
         },
+        showValidations: [],
       },
     ];
 

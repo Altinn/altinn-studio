@@ -162,7 +162,7 @@ describe('Group', () => {
     const layoutMutator = (component: CompExternal) => {
       // Remove component triggers and set required
       if (['currentValue', 'newValue'].includes(component.id) && component.type === 'Input') {
-        component.showValidations = undefined;
+        component.showValidations = [];
         component.required = true;
       }
     };

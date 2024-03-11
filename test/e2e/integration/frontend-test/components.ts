@@ -53,7 +53,7 @@ describe('UI Components', () => {
     cy.interceptLayout('changename', (component) => {
       if (component.id === 'newFirstName') {
         // TODO(Validation): Once it is possible to treat custom validations as required, this can be removed.
-        (component as CompInputExternal).showValidations = undefined;
+        (component as CompInputExternal).showValidations = [];
       }
     });
     cy.goto('changename');
@@ -94,7 +94,7 @@ describe('UI Components', () => {
     cy.interceptLayout('changename', (component) => {
       if (component.id === 'newFirstName') {
         // TODO(Validation): Once it is possible to treat custom validations as required, this can be removed.
-        (component as CompInputExternal).showValidations = undefined;
+        (component as CompInputExternal).showValidations = [];
       }
     });
     cy.goto('changename');

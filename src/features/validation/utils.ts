@@ -175,11 +175,16 @@ export function getValidationsForNode(
   return validationMessages;
 }
 
+/**
+ * Gets the initial validation mask for a component using its showValidations property
+ * If the value is not set, it will default to all validations except required
+ */
 export function getInitialMaskFromNode(node: LayoutNode | LayoutPage): number {
-  if ('showValidations' in node.item) {
-    return getVisibilityMask(node.item.showValidations);
+  // If not set, null, or undefined, default to all validations except required
+  if (!('showValidations' in node.item) || node.item.showValidations == null) {
+    return ValidationMask.AllExceptRequired;
   }
-  return 0;
+  return getVisibilityMask(node.item.showValidations);
 }
 
 export function getVisibilityMask(maskKeys?: ValidationMaskKeys[]): number {
