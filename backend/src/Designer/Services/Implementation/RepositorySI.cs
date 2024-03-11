@@ -37,7 +37,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private const string InitialLayout = "Side1";
 
         private readonly string _resourceIdentifierRegex = "^[a-z0-9_æøå-]*$";
-
+        
         private readonly ServiceRepositorySettings _settings;
         private readonly GeneralSettings _generalSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -265,7 +265,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 CreateServiceMetadata(metadata);
                 await _applicationMetadataService.CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
                 await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
-                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, serviceConfig.RepositoryName, developer);
                 await CreateRepositorySettings(org, serviceConfig.RepositoryName, developer);
 
                 CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };

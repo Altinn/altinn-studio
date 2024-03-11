@@ -95,14 +95,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         public Task<LayoutSets> GetLayoutSets(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Creates a layout-sets.json file
-        /// </summary>
-        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-        /// <param name="layoutSetName">The name of the layout set.</param>
-        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        public Task<LayoutSets> ConfigureLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName, CancellationToken cancellationToken = default);
-
-        /// <summary>
         /// Adds a config for an additional layoutset to the layout-set.json
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>

@@ -51,11 +51,15 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         private static string ProcessDefinitionFilePath => Path.Combine(PROCESS_DEFINITION_FOLDER_PATH, PROCESS_DEFINITION_FILENAME);
 
-        public const string LayoutSettingsSchemaUrl = "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
+        private const string LayoutSettingsSchemaUrl = "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
 
-        public const string LayoutSchemaUrl = "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json";
+        private const string LayoutSchemaUrl = "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json";
 
         private const string TextResourceFileNamePattern = "resource.??.json";
+
+        public string InitialLayoutFilename = "Side1.json";
+
+        public JsonNode InitialLayout = new JsonObject { ["$schema"] = LayoutSchemaUrl, ["data"] = new JsonObject { ["layout"] = new JsonArray([]) } };
 
         private static readonly JsonSerializerOptions _jsonOptions = new()
         {

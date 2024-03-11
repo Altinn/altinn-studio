@@ -239,25 +239,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return null;
         }
 
-        public async Task<LayoutSets> ConfigureLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext,
-            string layoutSetName, CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            AltinnAppGitRepository altinnAppGitRepository =
-                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
-                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-            bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
-            if (appUsesLayoutSets)
-            {
-                throw new BadHttpRequestException("Layout sets are already configured for this app");
-            }
-
-            altinnAppGitRepository.MoveLayoutsToInitialLayoutSet(layoutSetName);
-            altinnAppGitRepository.MoveOtherUiFilesToLayoutSet(layoutSetName);
-            LayoutSets layoutSets = await altinnAppGitRepository.CreateLayoutSetFile(layoutSetName);
-            return layoutSets;
-        }
-
         public async Task<LayoutSets> AddLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, LayoutSetConfig layoutSet,
             CancellationToken cancellationToken = default)
         {
@@ -270,6 +251,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
                 layoutSets.Sets.Add(layoutSet);
+                await altinnAppGitRepository.SaveLayout(layoutSet.Id, altinnAppGitRepository.InitialLayoutFilename,
+                    altinnAppGitRepository.InitialLayout);
                 await altinnAppGitRepository.SaveLayoutSetsFile(layoutSets);
                 return layoutSets;
             }
