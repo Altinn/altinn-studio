@@ -79,17 +79,6 @@ export const getAvailableEnvironments = (org: string): Environment[] => {
 };
 
 /**
- * Converts the resource type key to the correct displayable string
- *
- * @param resourceType the resourcetype to convert
- *
- * @returns the string to display
- */
-export const convertResourceTypeToDisplayString = (resourceType: ResourceTypeOption): string => {
-  return resourceTypeMap[resourceType];
-};
-
-/**
  * Maps the language key to the text
  */
 export const mapLanguageKeyToLanguageText = (
