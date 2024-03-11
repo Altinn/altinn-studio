@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ArrayUtils } from '@studio/pure-functions';
 import { currentTasks, getAvailableAttachments, reservedDataTypes } from './AttachmentListUtils';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import type { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
 
 type AttachmentListInternalFormatProps = {
   handleOutGoingData: (selectedDataTypes: string[], availableAttachments: string[]) => void;
@@ -44,22 +44,14 @@ export const AttachmentListInternalFormat = (props: AttachmentListInternalFormat
     let updatedSelection: string[];
 
     if (isChecked) {
-      const selectedAttachments = ArrayUtils.intersection(selectedDataTypes, availableAttachments);
-      const availableAttachmentsCurrentTask = getAvailableAttachments(
-        currentTasks(layoutSets, selectedLayoutSet),
+      updatedSelection = getAvailableSelectedDataTypes(
+        layoutSets,
+        selectedLayoutSet,
         appMetadata.dataTypes,
+        selectedDataTypes,
+        availableAttachments,
+        includePdf,
       );
-      const selectedAttachmentsCurrentTask = ArrayUtils.intersection(
-        selectedAttachments,
-        availableAttachmentsCurrentTask,
-      );
-      selectedAttachmentsCurrentTask.push(reservedDataTypes.currentTask);
-
-      if (includePdf) {
-        selectedAttachmentsCurrentTask.push(reservedDataTypes.refDataAsPdf);
-      }
-
-      updatedSelection = selectedAttachmentsCurrentTask;
     } else {
       updatedSelection = toggleItemInArray(
         selectedDataTypes,
@@ -92,3 +84,25 @@ export const AttachmentListInternalFormat = (props: AttachmentListInternalFormat
 
 const toggleItemInArray = (array: string[], item: string, add: boolean): string[] =>
   add ? array.concat(item) : ArrayUtils.removeItemByValue(array, item);
+
+const getAvailableSelectedDataTypes = (
+  layoutSets: LayoutSets,
+  selectedLayoutSet: string,
+  availableDataTypes: DataTypeElement[],
+  selectedDataTypes: string[],
+  availableAttachments: string[],
+  includePdf: boolean,
+): string[] => {
+  const selectedAttachments = ArrayUtils.intersection(selectedDataTypes, availableAttachments);
+  const currentTaskAttachments = getAvailableAttachments(
+    currentTasks(layoutSets, selectedLayoutSet),
+    availableDataTypes,
+  );
+
+  const updatedSelected = ArrayUtils.intersection(selectedAttachments, currentTaskAttachments);
+
+  updatedSelected.push(reservedDataTypes.currentTask);
+  if (includePdf) updatedSelected.push(reservedDataTypes.refDataAsPdf);
+
+  return updatedSelected;
+};

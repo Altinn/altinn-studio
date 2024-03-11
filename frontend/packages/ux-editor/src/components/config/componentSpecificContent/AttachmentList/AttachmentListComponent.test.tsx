@@ -242,12 +242,4 @@ describe('AttachmentListComponent', () => {
     );
     expect(errorMessage).toBeInTheDocument();
   });
-
-  // it('handleOutGoingData should return selectedDataTypes when it is valid', async () => {
-
-  //   const selectedDataTypes = ['test1', 'test2'];
-  //   const availableAttachments = ['test1', 'test2', 'test3'];
-  //   const result = handleOutGoingData(selectedDataTypes, availableAttachments);
-  //   expect(result).toEqual(selectedDataTypes);
-  // }
 });
