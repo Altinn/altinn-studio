@@ -21,11 +21,8 @@ import {
 } from '../../hooks/queries';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useTranslation, Trans } from 'react-i18next';
-import { usePublishResourceMutation } from '../../hooks/mutations';
-import { toast } from 'react-toastify';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { useUrlParams } from '../../hooks/useSelectedContext';
-import type { EnvId, EnvType } from '../../utils/resourceUtils/resourceUtils';
 import { getAvailableEnvironments } from '../../utils/resourceUtils/resourceUtils';
 
 export type DeployResourcePageProps = {
@@ -58,8 +55,6 @@ export const DeployResourcePage = ({
 
   const [newVersionText, setNewVersionText] = useState(resourceVersionText);
 
-  const [envPublishedTo, setEnvPublishedTo] = useState(null);
-
   // Queries to get metadata
   const { data: repoStatus } = useRepoStatusQuery(selectedContext, repo);
   const {
@@ -77,24 +72,6 @@ export const DeployResourcePage = ({
     data: validateResourceData,
     error: validateResourceError,
   } = useValidateResourceQuery(selectedContext, repo, resourceId);
-
-  // Query function fo rpublishing a resource
-  const { mutate: publishResource, isPending: publisingResourcePending } =
-    usePublishResourceMutation(selectedContext, repo, resourceId);
-
-  const handlePublish = (env: EnvId) => {
-    setEnvPublishedTo(env);
-    publishResource(env, {
-      onSuccess: () => {
-        toast.success(t('resourceadm.resource_published_success'));
-        setEnvPublishedTo(null);
-      },
-      onError: (data) => {
-        console.log(data);
-        setEnvPublishedTo(null);
-      },
-    });
-  };
 
   const isLocalRepoInSync =
     repoStatus &&
@@ -194,30 +171,16 @@ export const DeployResourcePage = ({
    *
    * @returns a boolean for if it is possible
    */
-  const isDeployPossible = (type: EnvType, envVersion: string): boolean => {
+  const isDeployPossible = (envVersion: string): boolean => {
     const policyError = validatePolicyData === undefined || validatePolicyData.status === 400;
+    const canDeploy =
+      validateResourceData.status === 200 &&
+      !policyError &&
+      isLocalRepoInSync &&
+      resourceVersionText !== '' &&
+      envVersion !== resourceVersionText;
 
-    if (
-      type === 'test' &&
-      validateResourceData.status === 200 &&
-      !policyError &&
-      isLocalRepoInSync &&
-      resourceVersionText !== '' &&
-      envVersion !== resourceVersionText
-    ) {
-      return true;
-    }
-    if (
-      type === 'prod' &&
-      validateResourceData.status === 200 &&
-      !policyError &&
-      isLocalRepoInSync &&
-      resourceVersionText !== '' &&
-      envVersion !== resourceVersionText
-    ) {
-      return true;
-    }
-    return false;
+    return canDeploy;
   };
 
   /**
@@ -285,14 +248,12 @@ export const DeployResourcePage = ({
                   return (
                     <ResourceDeployEnvCard
                       key={env.id}
-                      isDeployPossible={isDeployPossible(env.envType, versionString)}
-                      envName={t(env.label)}
+                      isDeployPossible={isDeployPossible(versionString)}
+                      env={env}
                       currentEnvVersion={versionString}
                       newEnvVersion={
                         resourceVersionText !== versionString ? resourceVersionText : undefined
                       }
-                      onClick={() => handlePublish(env.id)}
-                      loading={publisingResourcePending && envPublishedTo === env.id}
                     />
                   );
                 })}

@@ -7,8 +7,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import type { QueryClient, UseMutationResult } from '@tanstack/react-query';
-import { usePublishResourceMutation } from '../../hooks/mutations';
+import type { QueryClient } from '@tanstack/react-query';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
 import type { Validation } from 'app-shared/types/ResourceAdm';
 import userEvent from '@testing-library/user-event';
@@ -53,15 +52,6 @@ jest.mock('react-router-dom', () => ({
     selectedContext: mockSelectedContext,
   }),
 }));
-
-jest.mock('../../hooks/mutations/usePublishResourceMutation');
-const publishResource = jest.fn();
-const mockPublishResource = usePublishResourceMutation as jest.MockedFunction<
-  typeof usePublishResourceMutation
->;
-mockPublishResource.mockReturnValue({
-  mutate: publishResource,
-} as unknown as UseMutationResult<void, Error, string, unknown>);
 
 const defaultProps: DeployResourcePageProps = {
   navigateToPageWithError: mockNavigateToPageWithError,
@@ -308,38 +298,6 @@ describe('DeployResourcePage', () => {
 
     expect(tt02Button).toBeDisabled();
     expect(prodButton).toBeDisabled();
-  });
-
-  it('calls "handlePublish" when publishing a resource to tt02', async () => {
-    const user = userEvent.setup();
-    await resolveAndWaitForSpinnerToDisappear();
-
-    const tt02 = textMock('resourceadm.deploy_test_env');
-
-    const tt02Button = screen.getByRole('button', {
-      name: textMock('resourceadm.deploy_card_publish', { env: tt02 }),
-    });
-
-    expect(tt02Button).not.toBeDisabled();
-
-    await act(() => user.click(tt02Button));
-    expect(publishResource).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls "handlePublish" when publishing a resource to prod', async () => {
-    const user = userEvent.setup();
-    await resolveAndWaitForSpinnerToDisappear();
-
-    const prod = textMock('resourceadm.deploy_prod_env');
-
-    const prodButton = screen.getByRole('button', {
-      name: textMock('resourceadm.deploy_card_publish', { env: prod }),
-    });
-
-    expect(prodButton).not.toBeDisabled();
-
-    await act(() => user.click(prodButton));
-    expect(publishResource).toHaveBeenCalledTimes(1);
   });
 });
 

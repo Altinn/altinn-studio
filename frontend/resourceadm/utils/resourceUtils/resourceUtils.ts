@@ -43,13 +43,12 @@ export const availableForTypeMap: Record<ResourceAvailableForTypeOption, string>
 
 export type EnvId = 'tt02' | 'prod' | 'at22' | 'at23';
 export type EnvType = 'test' | 'prod';
-export const getAvailableEnvironments = (
-  org: string,
-): {
+export type Environment = {
   id: EnvId;
   label: string;
   envType: EnvType;
-}[] => {
+};
+export const getAvailableEnvironments = (org: string): Environment[] => {
   const availableEnvs = [
     {
       id: 'tt02' as EnvId,
