@@ -37,7 +37,8 @@ describe('useAddLayoutMutation', () => {
       layoutName,
       selectedLayoutSet,
       {
-        $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
+        $schema:
+          'https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json',
         data: {
           layout: [expect.objectContaining({ type: ComponentType.NavigationButtons })],
           hidden: undefined,
@@ -66,7 +67,8 @@ describe('useAddLayoutMutation', () => {
       formLayoutSettingsMock.receiptLayoutName,
       selectedLayoutSet,
       {
-        $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
+        $schema:
+          'https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json',
         data: {
           layout: [],
           hidden: undefined,

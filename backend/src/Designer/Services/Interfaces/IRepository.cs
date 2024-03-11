@@ -1,8 +1,6 @@
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
-using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -14,14 +12,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
     /// </summary>
     public interface IRepository
     {
-        /// <summary>
-        /// Returns the <see cref="ModelMetadata"/> for an app.
-        /// </summary>
-        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        /// <returns>The service metadata for an app.</returns>
-        Task<ModelMetadata> GetModelMetadata(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default);
-
         /// <summary>
         /// Deletes the resource for a given language id
         /// </summary>

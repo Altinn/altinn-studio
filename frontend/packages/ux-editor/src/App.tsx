@@ -27,7 +27,7 @@ export function App() {
   const { data: layoutSets, isSuccess: areLayoutSetsFetched } = useLayoutSetsQuery(org, app);
   const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
   const { isSuccess: isDatamodelFetched, isError: dataModelFetchedError } =
-    useDatamodelMetadataQuery(org, app);
+    useDatamodelMetadataQuery(org, app, selectedLayoutSet);
   const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
 
   useEffect(() => {

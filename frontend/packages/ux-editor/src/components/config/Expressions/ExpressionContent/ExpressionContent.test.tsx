@@ -71,7 +71,7 @@ const renderExpressionContent = (props: Partial<ExpressionContentProps> = {}) =>
 
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
-  queryClient.setQueryData([QueryKey.DatamodelMetadata, org, app], []);
+  queryClient.setQueryData([QueryKey.DatamodelMetadata, org, app, layoutSetName], []);
 
   return renderWithProviders(<ExpressionContent {...defaultProps} {...props} />, {
     appContextProps,

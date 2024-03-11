@@ -6,7 +6,7 @@ import {
 import { createEmptyLayout } from '../../utils/formLayoutUtils';
 import type { ExternalFormLayoutV3 } from 'app-shared/types/api';
 import type { IInternalLayout } from '../../types/global';
-import { layoutSchemaUrl } from 'app-shared/cdn-paths';
+import { layoutSchemaUrlV3 } from 'app-shared/cdn-paths';
 
 describe('externalLayoutToInternal', () => {
   it('Converts an external layout to an internal layout', () => {
@@ -23,7 +23,7 @@ describe('externalLayoutToInternal', () => {
     const customProperty1 = 'test1';
     const customProperty2 = 'test2';
     const externalLayout: ExternalFormLayoutV3 = {
-      $schema: layoutSchemaUrl(),
+      $schema: layoutSchemaUrlV3(),
       data: null,
       customProperty1,
       customProperty2,
@@ -45,7 +45,7 @@ describe('externalLayoutToInternal', () => {
     const dataCustomProperty1 = 'test3';
     const dataCustomProperty2 = 'test4';
     const externalLayout: ExternalFormLayoutV3 = {
-      $schema: layoutSchemaUrl(),
+      $schema: layoutSchemaUrlV3(),
       data: {
         layout: null,
         dataCustomProperty1,
