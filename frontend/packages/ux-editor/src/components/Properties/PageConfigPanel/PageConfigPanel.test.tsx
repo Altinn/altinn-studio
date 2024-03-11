@@ -1,5 +1,6 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../testing/mocks';
 import { PageConfigPanel } from './PageConfigPanel';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -49,6 +50,31 @@ describe('PageConfigPanel', () => {
     renderPageConfigPanel(newSelectedPage);
     screen.getByRole('button', { name: textMock('right_menu.text') });
     screen.getByRole('button', { name: textMock('right_menu.dynamics') });
+  });
+
+  it.each(['right_menu.text', 'right_menu.dynamics'])(
+    'opens accordion with textKey, %s, when clicked',
+    async (accordionTextKey: string) => {
+      const user = userEvent.setup();
+      const newSelectedPage = 'newSelectedPage';
+      renderPageConfigPanel(newSelectedPage);
+      const accordion = screen.getByRole('button', { name: textMock(accordionTextKey) });
+      expect(accordion).toHaveAttribute('aria-expanded', 'false');
+      await act(() => user.click(accordion));
+      expect(accordion).toHaveAttribute('aria-expanded', 'true');
+    },
+  );
+
+  it('opens and closes text accordion when double clicked', async () => {
+    const user = userEvent.setup();
+    const newSelectedPage = 'newSelectedPage';
+    renderPageConfigPanel(newSelectedPage);
+    const textAccordion = screen.getByRole('button', { name: textMock('right_menu.text') });
+    expect(textAccordion).toHaveAttribute('aria-expanded', 'false');
+    await act(() => user.click(textAccordion));
+    expect(textAccordion).toHaveAttribute('aria-expanded', 'true');
+    await act(() => user.click(textAccordion));
+    expect(textAccordion).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('render textValue instead of page ID if page ID exists in the text resources', () => {

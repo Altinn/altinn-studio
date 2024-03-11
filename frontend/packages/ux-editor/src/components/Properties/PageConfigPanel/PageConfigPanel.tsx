@@ -9,15 +9,12 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { DEFAULT_LANGUAGE, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { HiddenExpressionOnLayout } from './HiddenExpressionOnLayout';
 import { selectedLayoutNameSelector } from '../../../selectors/formLayoutSelectors';
-import { getCurrentEditId } from '../../../selectors/textResourceSelectors';
-import { TextResourceEdit } from '../../TextResourceEdit';
-import { TextResource } from '../../TextResource';
+import { TextResource } from '../../TextResource/TextResource';
 import { EditPageId } from './EditPageId';
 
 export const PageConfigPanel = () => {
   const { app, org } = useStudioUrlParams();
   const layoutName = useSelector(selectedLayoutNameSelector);
-  const editId = useSelector(getCurrentEditId);
   const { data: textResources } = useTextResourcesQuery(org, app);
   const [openList, setOpenList] = useState<string[]>([]);
   const t = useText();
@@ -58,16 +55,11 @@ export const PageConfigPanel = () => {
                 {t('right_menu.text')}
               </Accordion.Header>
               <Accordion.Content>
-                {editId ? (
-                  <TextResourceEdit />
-                ) : (
-                  <TextResource
-                    handleIdChange={() => {}}
-                    label={t('ux_editor.modal_properties_textResourceBindings_page_name')}
-                    placeholder={t('ux_editor.modal_properties_textResourceBindings_page_name_add')}
-                    textResourceId={layoutName}
-                  />
-                )}
+                <TextResource
+                  handleIdChange={() => {}}
+                  label={t('ux_editor.modal_properties_textResourceBindings_page_name')}
+                  textResourceId={layoutName}
+                />
               </Accordion.Content>
             </Accordion.Item>
             <Accordion.Item open={openList.includes('dynamics')}>

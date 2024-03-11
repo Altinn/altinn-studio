@@ -42,6 +42,34 @@ describe('HiddenExpressionOnLayout', () => {
     screen.getByRole('group', { name: textMock('expression.subExpression', { number: 1 }) });
   });
 
+  it('calls saveLayout when expression is changed from default', async () => {
+    const user = userEvent.setup();
+    renderHiddenExpressionOnLayout();
+    const addSubExpressionButton = screen.getByRole('button', {
+      name: textMock('expression.addSubexpression'),
+    });
+    await act(() => user.click(addSubExpressionButton));
+    await waitFor(() => expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1));
+  });
+
+  it('calls saveLayout when existing expression is changed', async () => {
+    const user = userEvent.setup();
+    const expression: BooleanExpression = [GeneralRelationOperator.Equals, 1, 2];
+    renderHiddenExpressionOnLayout({
+      ...defaultLayouts,
+      [layout1NameMock]: { ...layoutMock, hidden: expression },
+    });
+    const editExpressionButton = screen.getByRole('button', {
+      name: textMock('general.edit'),
+    });
+    await act(() => user.click(editExpressionButton));
+    const saveExpressionButton = screen.getByRole('button', {
+      name: textMock('expression.saveAndClose'),
+    });
+    await act(() => user.click(saveExpressionButton));
+    await waitFor(() => expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1));
+  });
+
   it('calls saveLayout when expression is deleted', async () => {
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
     const user = userEvent.setup();

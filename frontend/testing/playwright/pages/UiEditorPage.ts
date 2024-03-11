@@ -34,6 +34,13 @@ export class UiEditorPage extends BasePage {
     await this.page.getByRole('button', { name: pageName, exact: true }).click();
   }
 
+  public async clickOnComponentTextConfigAccordion(): Promise<void> {
+    await this.page
+      .getByLabel(this.textMock('right_menu.text_label'))
+      .getByRole('button', { name: this.textMock('right_menu.text') })
+      .click();
+  }
+
   public async clickOnComponentDataModelBindingConfigAccordion(): Promise<void> {
     await this.page
       .getByRole('button', { name: this.textMock('right_menu.dataModelBindings') })

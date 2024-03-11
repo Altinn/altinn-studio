@@ -40,7 +40,10 @@ export const Properties = () => {
           />
           <Accordion color='subtle'>
             <Accordion.Item open={openList.includes('text')}>
-              <Accordion.Header onHeaderClick={() => toggleOpen('text')}>
+              <Accordion.Header
+                aria-label={t('right_menu.text_label')}
+                onHeaderClick={() => toggleOpen('text')}
+              >
                 {t('right_menu.text')}
               </Accordion.Header>
               <Accordion.Content className={classes.texts}>
@@ -89,7 +92,6 @@ export const Properties = () => {
           </Accordion>
         </>
       )}
->>>>>>> 6697b755d (linting)
     </div>
   );
 };
