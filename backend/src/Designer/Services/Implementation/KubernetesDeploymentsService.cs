@@ -39,6 +39,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             foreach (EnvironmentModel env in environments)
             {
                 KubernetesDeployment kubernetesDeployment;
+
                 try
                 {
                     kubernetesDeployment = await _kubernetesWrapperClient.GetDeploymentAsync(org, app, env);
@@ -46,13 +47,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 catch (KubernetesWrapperResponseException e)
                 {
                     kubernetesDeployment = new KubernetesDeployment();
-
                     _logger.LogError(e, "Make sure the requested environment, {EnvName}, exists", env.Hostname);
                 }
 
-                kubernetesDeployment.EnvName = env.Name;
-
-                kubernetesDeploymentList.Add(kubernetesDeployment);
+                if (kubernetesDeployment != null)
+                {
+                    kubernetesDeployment.EnvName = env.Name;
+                    kubernetesDeploymentList.Add(kubernetesDeployment);
+                }
             }
 
             return kubernetesDeploymentList;
