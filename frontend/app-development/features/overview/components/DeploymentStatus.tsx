@@ -57,7 +57,7 @@ export const DeploymentStatus = ({
   if (!kubernetesDeployment) {
     return (
       <DeploymentStatusAlert
-        severity='warning'
+        severity='info'
         content={t('app_deployment.kubernetes_deployment.status.none')}
         footer={
           <Trans i18nKey='overview.go_to_publish'>
