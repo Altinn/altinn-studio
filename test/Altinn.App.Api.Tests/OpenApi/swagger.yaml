@@ -1,0 +1,3417 @@
+openapi: 3.0.1
+info:
+  title: Altinn App Api
+  version: v1
+paths:
+  '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/actions':
+    post:
+      tags:
+        - Actions
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: language
+          in: query
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserActionRequest'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/UserActionRequest'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/UserActionRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/UserActionResponse'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserActionResponse'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/UserActionResponse'
+        '400':
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '401':
+          description: Unauthorized
+  '/{org}/{app}/api/v1/applicationlanguages':
+    get:
+      tags:
+        - ApplicationLanguage
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApplicationLanguage'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApplicationLanguage'
+            text/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApplicationLanguage'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApplicationLanguage'
+            text/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApplicationLanguage'
+        '404':
+          description: Not Found
+  '/{org}/{app}/api/v1/applicationmetadata':
+    get:
+      tags:
+        - ApplicationMetadata
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: checkOrgApp
+          in: query
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/api/v1/meta/authorizationpolicy':
+    get:
+      tags:
+        - ApplicationMetadata
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/api/v1/meta/process':
+    get:
+      tags:
+        - ApplicationMetadata
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/api/v1/applicationsettings':
+    get:
+      tags:
+        - ApplicationSettings
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/api/Authentication/keepAlive':
+    get:
+      tags:
+        - Authentication
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/api/Authentication/invalidatecookie':
+    put:
+      tags:
+        - Authentication
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/api/authorization/parties/current':
+    get:
+      tags:
+        - Authorization
+      parameters:
+        - name: returnPartyObject
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data':
+    post:
+      tags:
+        - Data
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: dataType
+          in: query
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Created
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+  '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}':
+    get:
+      tags:
+        - Data
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: dataGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: includeRowId
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - name: language
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    put:
+      tags:
+        - Data
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: dataGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: language
+          in: query
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Created
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/CalculationResult'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalculationResult'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/CalculationResult'
+    patch:
+      tags:
+        - Data
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: dataGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: language
+          in: query
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataPatchRequest'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/DataPatchRequest'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/DataPatchRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/DataPatchResponse'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataPatchResponse'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/DataPatchResponse'
+        '409':
+          description: Conflict
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Client Error
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+    delete:
+      tags:
+        - Data
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: dataGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/api/datalists/{id}':
+    get:
+      tags:
+        - DataLists
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: queryParams
+          in: query
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+        - name: language
+          in: query
+          schema:
+            type: string
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/datalists/{id}':
+    get:
+      tags:
+        - DataLists
+      parameters:
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: queryParams
+          in: query
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+        - name: language
+          in: query
+          schema:
+            type: string
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+        '404':
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/tags':
+    get:
+      tags:
+        - DataTags
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: dataGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagsList'
+    post:
+      tags:
+        - DataTags
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: dataGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagsList'
+  '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/tags/{tag}':
+    delete:
+      tags:
+        - DataTags
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: dataGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: tag
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No Content
+  '/{org}/{app}/api/v1/eventsreceiver':
+    post:
+      tags:
+        - EventsReceiver
+      parameters:
+        - name: code
+          in: query
+          schema:
+            type: string
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CloudEvent'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/CloudEvent'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/CloudEvent'
+      responses:
+        '200':
+          description: Success
+        '425':
+          description: Client Error
+        '500':
+          description: Server Error
+        '401':
+          description: Unauthorized
+  '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/filescanresult':
+    get:
+      tags:
+        - FileScan
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/InstanceFileScanResult'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstanceFileScanResult'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/InstanceFileScanResult'
+        '404':
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  '/{org}/{app}':
+    get:
+      tags:
+        - Home
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: dontChooseReportee
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}':
+    get:
+      tags:
+        - Instances
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Instance'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+    delete:
+      tags:
+        - Instances
+      parameters:
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: hard
+          in: query
+          schema:
+            type: boolean
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Instance'
+  '/{org}/{app}/instances':
+    post:
+      tags:
+        - Instances
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: query
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Instance'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  '/{org}/{app}/instances/create':
+    post:
+      tags:
+        - Instances
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InstansiationInstance'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/InstansiationInstance'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/InstansiationInstance'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Instance'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/complete':
+    post:
+      tags:
+        - Instances
+      parameters:
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Instance'
+  '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/substatus':
+    put:
+      tags:
+        - Instances
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Substatus'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/Substatus'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/Substatus'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/Substatus'
+          text/xml:
+            schema:
+              $ref: '#/components/schemas/Substatus'
+          application/*+xml:
+            schema:
+              $ref: '#/components/schemas/Substatus'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Instance'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  '/{org}/{app}/instances/{instanceOwnerPartyId}/active':
+    get:
+      tags:
+        - Instances
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SimpleInstance'
+  '/{org}/{app}/api/options/{optionsId}':
+    get:
+      tags:
+        - Options
+      parameters:
+        - name: optionsId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: queryParams
+          in: query
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+        - name: language
+          in: query
+          schema:
+            type: string
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/options/{optionsId}':
+    get:
+      tags:
+        - Options
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: optionsId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: language
+          in: query
+          schema:
+            type: string
+        - name: queryParams
+          in: query
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+      responses:
+        '200':
+          description: Success
+        '404':
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/pages/order':
+    post:
+      tags:
+        - Pages
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: layoutSetId
+          in: query
+          schema:
+            type: string
+        - name: currentPage
+          in: query
+          schema:
+            type: string
+        - name: dataTypeId
+          in: query
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema: { }
+          text/json:
+            schema: { }
+          application/*+json:
+            schema: { }
+          application/xml:
+            schema: { }
+          text/xml:
+            schema: { }
+          application/*+xml:
+            schema: { }
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: array
+                items:
+                  type: string
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+            text/json:
+              schema:
+                type: array
+                items:
+                  type: string
+            application/xml:
+              schema:
+                type: array
+                items:
+                  type: string
+            text/xml:
+              schema:
+                type: array
+                items:
+                  type: string
+      deprecated: true
+  '/{org}/{app}/api/v1/parties':
+    get:
+      tags:
+        - Parties
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: allowedToInstantiateFilter
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/api/v1/parties/validateInstantiation':
+    post:
+      tags:
+        - Parties
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: partyId
+          in: query
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/api/v1/parties/{partyId}':
+    put:
+      tags:
+        - Parties
+      parameters:
+        - name: partyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/pdf/format':
+    get:
+      tags:
+        - Pdf
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: dataGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process':
+    get:
+      tags:
+        - Process
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/AppProcessState'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppProcessState'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/AppProcessState'
+        '404':
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/start':
+    post:
+      tags:
+        - Process
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: startEvent
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/AppProcessState'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppProcessState'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/AppProcessState'
+        '404':
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Conflict
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/next':
+    get:
+      tags:
+        - Process
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: array
+                items:
+                  type: string
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+            text/json:
+              schema:
+                type: array
+                items:
+                  type: string
+            application/xml:
+              schema:
+                type: array
+                items:
+                  type: string
+            text/xml:
+              schema:
+                type: array
+                items:
+                  type: string
+        '409':
+          description: Conflict
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+      deprecated: true
+    put:
+      tags:
+        - Process
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: elementId
+          in: query
+          schema:
+            type: string
+        - name: language
+          in: query
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcessNext'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/ProcessNext'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/ProcessNext'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/ProcessNext'
+          text/xml:
+            schema:
+              $ref: '#/components/schemas/ProcessNext'
+          application/*+xml:
+            schema:
+              $ref: '#/components/schemas/ProcessNext'
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/AppProcessState'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppProcessState'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/AppProcessState'
+        '404':
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Conflict
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/completeProcess':
+    put:
+      tags:
+        - Process
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: language
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/AppProcessState'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppProcessState'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/AppProcessState'
+        '404':
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Conflict
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/history':
+    get:
+      tags:
+        - Process
+      parameters:
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/api/v1/profile/user':
+    get:
+      tags:
+        - Profile
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/api/v1/redirect':
+    get:
+      tags:
+        - Redirect
+      parameters:
+        - name: url
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: string
+            text/json:
+              schema:
+                type: string
+            application/xml:
+              schema:
+                type: string
+            text/xml:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  '/{org}/{app}/api/jsonschema/{id}':
+    get:
+      tags:
+        - Resource
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/api/layouts':
+    get:
+      tags:
+        - Resource
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/api/layouts/{id}':
+    get:
+      tags:
+        - Resource
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/api/layoutsettings':
+    get:
+      tags:
+        - Resource
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/api/layoutsettings/{id}':
+    get:
+      tags:
+        - Resource
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/api/layoutsets':
+    get:
+      tags:
+        - Resource
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/api/rulehandler/{id}':
+    get:
+      tags:
+        - Resource
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/api/ruleconfiguration/{id}':
+    get:
+      tags:
+        - Resource
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/api/v1/footer':
+    get:
+      tags:
+        - Resource
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/api/validationconfig/{id}':
+    get:
+      tags:
+        - Resource
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/v1/data':
+    get:
+      tags:
+        - StatelessData
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: dataType
+          in: query
+          schema:
+            type: string
+        - name: party
+          in: header
+          schema:
+            type: string
+        - name: language
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+    post:
+      tags:
+        - StatelessData
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: dataType
+          in: query
+          schema:
+            type: string
+        - name: party
+          in: header
+          schema:
+            type: string
+        - name: language
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+  '/{org}/{app}/v1/data/anonymous':
+    get:
+      tags:
+        - StatelessData
+      parameters:
+        - name: dataType
+          in: query
+          schema:
+            type: string
+        - name: language
+          in: query
+          schema:
+            type: string
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+    post:
+      tags:
+        - StatelessData
+      parameters:
+        - name: dataType
+          in: query
+          schema:
+            type: string
+        - name: language
+          in: query
+          schema:
+            type: string
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/DataElement'
+  '/{org}/{app}/v1/pages/order':
+    post:
+      tags:
+        - StatelessPages
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: layoutSetId
+          in: query
+          schema:
+            type: string
+        - name: currentPage
+          in: query
+          schema:
+            type: string
+        - name: dataTypeId
+          in: query
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema: { }
+          text/json:
+            schema: { }
+          application/*+json:
+            schema: { }
+          application/xml:
+            schema: { }
+          text/xml:
+            schema: { }
+          application/*+xml:
+            schema: { }
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: array
+                items:
+                  type: string
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+            text/json:
+              schema:
+                type: array
+                items:
+                  type: string
+            application/xml:
+              schema:
+                type: array
+                items:
+                  type: string
+            text/xml:
+              schema:
+                type: array
+                items:
+                  type: string
+      deprecated: true
+  '/{org}/{app}/api/v1/texts/{language}':
+    get:
+      tags:
+        - Texts
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: language
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/TextResource'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextResource'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/TextResource'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/TextResource'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/TextResource'
+  '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/validate':
+    get:
+      tags:
+        - Validate
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: language
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  '/{org}/{app}/instances/{instanceOwnerId}/{instanceId}/data/{dataGuid}/validate':
+    get:
+      tags:
+        - Validate
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: dataGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: language
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+components:
+  schemas:
+    ActionError:
+      type: object
+      properties:
+        code:
+          type: string
+          nullable: true
+        message:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+          nullable: true
+      additionalProperties: false
+    ActionType:
+      enum:
+        - 0
+        - 1
+      type: integer
+      format: int32
+    AppProcessElementInfo:
+      type: object
+      properties:
+        flow:
+          type: integer
+          format: int32
+          nullable: true
+        started:
+          type: string
+          format: date-time
+          nullable: true
+        elementId:
+          type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        altinnTaskType:
+          type: string
+          nullable: true
+        ended:
+          type: string
+          format: date-time
+          nullable: true
+        validated:
+          $ref: '#/components/schemas/ValidationStatus'
+        flowType:
+          type: string
+          nullable: true
+        actions:
+          type: object
+          additionalProperties:
+            type: boolean
+            nullable: true
+          nullable: true
+        userActions:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserAction'
+          nullable: true
+        read:
+          type: boolean
+        write:
+          type: boolean
+      additionalProperties: false
+    AppProcessState:
+      type: object
+      properties:
+        started:
+          type: string
+          format: date-time
+          nullable: true
+        startEvent:
+          type: string
+          nullable: true
+        currentTask:
+          $ref: '#/components/schemas/AppProcessElementInfo'
+        ended:
+          type: string
+          format: date-time
+          nullable: true
+        endEvent:
+          type: string
+          nullable: true
+        processTasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppProcessTaskTypeInfo'
+          nullable: true
+      additionalProperties: false
+    AppProcessTaskTypeInfo:
+      type: object
+      properties:
+        altinnTaskType:
+          type: string
+          nullable: true
+        elementId:
+          type: string
+          nullable: true
+      additionalProperties: false
+    ApplicationLanguage:
+      type: object
+      properties:
+        language:
+          type: string
+          nullable: true
+      additionalProperties: false
+    CalculationResult:
+      type: object
+      properties:
+        created:
+          type: string
+          format: date-time
+          nullable: true
+        createdBy:
+          type: string
+          nullable: true
+        lastChanged:
+          type: string
+          format: date-time
+          nullable: true
+        lastChangedBy:
+          type: string
+          nullable: true
+        id:
+          type: string
+          nullable: true
+        instanceGuid:
+          type: string
+          nullable: true
+        dataType:
+          type: string
+          nullable: true
+        filename:
+          type: string
+          nullable: true
+        contentType:
+          type: string
+          nullable: true
+        blobStoragePath:
+          type: string
+          nullable: true
+        selfLinks:
+          $ref: '#/components/schemas/ResourceLinks'
+        size:
+          type: integer
+          format: int64
+        contentHash:
+          type: string
+          nullable: true
+        locked:
+          type: boolean
+        refs:
+          type: array
+          items:
+            type: string
+            format: uuid
+          nullable: true
+        isRead:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+          nullable: true
+        deleteStatus:
+          $ref: '#/components/schemas/DeleteStatus'
+        fileScanResult:
+          $ref: '#/components/schemas/FileScanResult'
+        references:
+          type: array
+          items:
+            $ref: '#/components/schemas/Reference'
+          nullable: true
+        changedFields:
+          type: object
+          additionalProperties:
+            nullable: true
+          nullable: true
+      additionalProperties: false
+    ClientAction:
+      type: object
+      properties:
+        id:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: { }
+          nullable: true
+      additionalProperties: false
+    CloudEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          nullable: true
+        source:
+          type: string
+          format: uri
+          nullable: true
+        specversion:
+          type: string
+          nullable: true
+        type:
+          type: string
+          nullable: true
+        subject:
+          type: string
+          nullable: true
+        time:
+          type: string
+          format: date-time
+        alternativesubject:
+          type: string
+          nullable: true
+        data:
+          nullable: true
+        dataschema:
+          type: string
+          format: uri
+          nullable: true
+        contenttype:
+          $ref: '#/components/schemas/ContentType'
+      additionalProperties: false
+    CompleteConfirmation:
+      type: object
+      properties:
+        stakeholderId:
+          type: string
+          nullable: true
+        confirmedOn:
+          type: string
+          format: date-time
+      additionalProperties: false
+    ContentType:
+      type: object
+      properties:
+        boundary:
+          type: string
+          nullable: true
+        charSet:
+          type: string
+          nullable: true
+        mediaType:
+          type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        parameters:
+          type: array
+          items: { }
+          nullable: true
+          readOnly: true
+      additionalProperties: false
+    DataElement:
+      type: object
+      properties:
+        created:
+          type: string
+          format: date-time
+          nullable: true
+        createdBy:
+          type: string
+          nullable: true
+        lastChanged:
+          type: string
+          format: date-time
+          nullable: true
+        lastChangedBy:
+          type: string
+          nullable: true
+        id:
+          type: string
+          nullable: true
+        instanceGuid:
+          type: string
+          nullable: true
+        dataType:
+          type: string
+          nullable: true
+        filename:
+          type: string
+          nullable: true
+        contentType:
+          type: string
+          nullable: true
+        blobStoragePath:
+          type: string
+          nullable: true
+        selfLinks:
+          $ref: '#/components/schemas/ResourceLinks'
+        size:
+          type: integer
+          format: int64
+        contentHash:
+          type: string
+          nullable: true
+        locked:
+          type: boolean
+        refs:
+          type: array
+          items:
+            type: string
+            format: uuid
+          nullable: true
+        isRead:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+          nullable: true
+        deleteStatus:
+          $ref: '#/components/schemas/DeleteStatus'
+        fileScanResult:
+          $ref: '#/components/schemas/FileScanResult'
+        references:
+          type: array
+          items:
+            $ref: '#/components/schemas/Reference'
+          nullable: true
+      additionalProperties: false
+    DataElementFileScanResult:
+      type: object
+      properties:
+        id:
+          type: string
+          nullable: true
+        fileScanResult:
+          $ref: '#/components/schemas/FileScanResult'
+      additionalProperties: false
+    DataPatchRequest:
+      type: object
+      properties:
+        patch:
+          $ref: '#/components/schemas/JsonPatch'
+        ignoredValidators:
+          type: array
+          items:
+            type: string
+          nullable: true
+      additionalProperties: false
+    DataPatchResponse:
+      type: object
+      properties:
+        validationIssues:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: '#/components/schemas/ValidationIssue'
+          nullable: true
+        newDataModel:
+          nullable: true
+      additionalProperties: false
+    DeleteStatus:
+      type: object
+      properties:
+        isHardDeleted:
+          type: boolean
+        hardDeleted:
+          type: string
+          format: date-time
+          nullable: true
+      additionalProperties: false
+    FileScanResult:
+      enum:
+        - NotApplicable
+        - Pending
+        - Clean
+        - Infected
+      type: string
+    Instance:
+      type: object
+      properties:
+        created:
+          type: string
+          format: date-time
+          nullable: true
+        createdBy:
+          type: string
+          nullable: true
+        lastChanged:
+          type: string
+          format: date-time
+          nullable: true
+        lastChangedBy:
+          type: string
+          nullable: true
+        id:
+          type: string
+          nullable: true
+        instanceOwner:
+          $ref: '#/components/schemas/InstanceOwner'
+        appId:
+          type: string
+          nullable: true
+        org:
+          type: string
+          nullable: true
+        selfLinks:
+          $ref: '#/components/schemas/ResourceLinks'
+        dueBefore:
+          type: string
+          format: date-time
+          nullable: true
+        visibleAfter:
+          type: string
+          format: date-time
+          nullable: true
+        process:
+          $ref: '#/components/schemas/ProcessState'
+        status:
+          $ref: '#/components/schemas/InstanceStatus'
+        completeConfirmations:
+          type: array
+          items:
+            $ref: '#/components/schemas/CompleteConfirmation'
+          nullable: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataElement'
+          nullable: true
+        presentationTexts:
+          type: object
+          additionalProperties:
+            type: string
+            nullable: true
+          nullable: true
+        dataValues:
+          type: object
+          additionalProperties:
+            type: string
+            nullable: true
+          nullable: true
+      additionalProperties: false
+    InstanceFileScanResult:
+      type: object
+      properties:
+        id:
+          type: string
+          nullable: true
+          readOnly: true
+        fileScanResult:
+          $ref: '#/components/schemas/FileScanResult'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataElementFileScanResult'
+          nullable: true
+          readOnly: true
+      additionalProperties: false
+    InstanceOwner:
+      type: object
+      properties:
+        partyId:
+          type: string
+          nullable: true
+        personNumber:
+          type: string
+          nullable: true
+        organisationNumber:
+          type: string
+          nullable: true
+        username:
+          type: string
+          nullable: true
+      additionalProperties: false
+    InstanceStatus:
+      type: object
+      properties:
+        isArchived:
+          type: boolean
+        archived:
+          type: string
+          format: date-time
+          nullable: true
+        isSoftDeleted:
+          type: boolean
+        softDeleted:
+          type: string
+          format: date-time
+          nullable: true
+        isHardDeleted:
+          type: boolean
+        hardDeleted:
+          type: string
+          format: date-time
+          nullable: true
+        readStatus:
+          $ref: '#/components/schemas/ReadStatus'
+        substatus:
+          $ref: '#/components/schemas/Substatus'
+      additionalProperties: false
+    InstansiationInstance:
+      type: object
+      properties:
+        instanceOwner:
+          $ref: '#/components/schemas/InstanceOwner'
+        dueBefore:
+          type: string
+          format: date-time
+          nullable: true
+        visibleAfter:
+          type: string
+          format: date-time
+          nullable: true
+        prefill:
+          type: object
+          additionalProperties:
+            type: string
+            nullable: true
+          nullable: true
+        sourceInstanceId:
+          type: string
+          nullable: true
+      additionalProperties: false
+    JsonNode:
+      type: object
+      properties:
+        options:
+          $ref: '#/components/schemas/JsonNodeOptions'
+        parent:
+          $ref: '#/components/schemas/JsonNode'
+        root:
+          $ref: '#/components/schemas/JsonNode'
+      additionalProperties: false
+    JsonNodeOptions:
+      type: object
+      properties:
+        propertyNameCaseInsensitive:
+          type: boolean
+      additionalProperties: false
+    JsonPatch:
+      type: object
+      properties:
+        operations:
+          type: array
+          items:
+            $ref: '#/components/schemas/PatchOperation'
+          nullable: true
+      additionalProperties: false
+    JsonPointer:
+      type: object
+      properties:
+        segments:
+          type: array
+          items:
+            $ref: '#/components/schemas/PointerSegment'
+          nullable: true
+          readOnly: true
+      additionalProperties: false
+    OperationType:
+      enum:
+        - Unknown
+        - add
+        - remove
+        - replace
+        - move
+        - copy
+        - test
+      type: string
+    PatchOperation:
+      type: object
+      properties:
+        op:
+          $ref: '#/components/schemas/OperationType'
+        from:
+          $ref: '#/components/schemas/JsonPointer'
+        path:
+          $ref: '#/components/schemas/JsonPointer'
+        value:
+          $ref: '#/components/schemas/JsonNode'
+      additionalProperties: false
+    PointerSegment:
+      type: object
+      properties:
+        value:
+          type: string
+          nullable: true
+          readOnly: true
+      additionalProperties: false
+    ProblemDetails:
+      type: object
+      properties:
+        type:
+          type: string
+          nullable: true
+        title:
+          type: string
+          nullable: true
+        status:
+          type: integer
+          format: int32
+          nullable: true
+        detail:
+          type: string
+          nullable: true
+        instance:
+          type: string
+          nullable: true
+      additionalProperties: { }
+    ProcessElementInfo:
+      type: object
+      properties:
+        flow:
+          type: integer
+          format: int32
+          nullable: true
+        started:
+          type: string
+          format: date-time
+          nullable: true
+        elementId:
+          type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        altinnTaskType:
+          type: string
+          nullable: true
+        ended:
+          type: string
+          format: date-time
+          nullable: true
+        validated:
+          $ref: '#/components/schemas/ValidationStatus'
+        flowType:
+          type: string
+          nullable: true
+      additionalProperties: false
+    ProcessNext:
+      type: object
+      properties:
+        action:
+          type: string
+          nullable: true
+      additionalProperties: false
+    ProcessState:
+      type: object
+      properties:
+        started:
+          type: string
+          format: date-time
+          nullable: true
+        startEvent:
+          type: string
+          nullable: true
+        currentTask:
+          $ref: '#/components/schemas/ProcessElementInfo'
+        ended:
+          type: string
+          format: date-time
+          nullable: true
+        endEvent:
+          type: string
+          nullable: true
+      additionalProperties: false
+    ReadStatus:
+      enum:
+        - 0
+        - 1
+        - 2
+      type: integer
+      format: int32
+    Reference:
+      type: object
+      properties:
+        value:
+          type: string
+          nullable: true
+        relation:
+          $ref: '#/components/schemas/RelationType'
+        valueType:
+          $ref: '#/components/schemas/ReferenceType'
+      additionalProperties: false
+    ReferenceType:
+      enum:
+        - DataElement
+        - Task
+      type: string
+    RelationType:
+      enum:
+        - GeneratedFrom
+      type: string
+    ResourceLinks:
+      type: object
+      properties:
+        apps:
+          type: string
+          nullable: true
+        platform:
+          type: string
+          nullable: true
+      additionalProperties: false
+    SimpleInstance:
+      type: object
+      properties:
+        id:
+          type: string
+          nullable: true
+        presentationTexts:
+          type: object
+          additionalProperties:
+            type: string
+          nullable: true
+        dueBefore:
+          type: string
+          format: date-time
+          nullable: true
+        lastChanged:
+          type: string
+          format: date-time
+          nullable: true
+        lastChangedBy:
+          type: string
+          nullable: true
+      additionalProperties: false
+    Substatus:
+      type: object
+      properties:
+        label:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+      additionalProperties: false
+    TagsList:
+      type: object
+      properties:
+        tags:
+          type: array
+          items:
+            type: string
+          nullable: true
+      additionalProperties: false
+    TextResource:
+      type: object
+      properties:
+        id:
+          type: string
+          nullable: true
+        org:
+          type: string
+          nullable: true
+        language:
+          type: string
+          nullable: true
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/TextResourceElement'
+          nullable: true
+      additionalProperties: false
+    TextResourceElement:
+      type: object
+      properties:
+        id:
+          type: string
+          nullable: true
+        value:
+          type: string
+          nullable: true
+        variables:
+          type: array
+          items:
+            $ref: '#/components/schemas/TextResourceVariable'
+          nullable: true
+      additionalProperties: false
+    TextResourceVariable:
+      type: object
+      properties:
+        key:
+          type: string
+          nullable: true
+        dataSource:
+          type: string
+          nullable: true
+        defaultValue:
+          type: string
+          nullable: true
+      additionalProperties: false
+    UserAction:
+      type: object
+      properties:
+        id:
+          type: string
+          nullable: true
+        authorized:
+          type: boolean
+        type:
+          $ref: '#/components/schemas/ActionType'
+      additionalProperties: false
+    UserActionRequest:
+      type: object
+      properties:
+        action:
+          type: string
+          nullable: true
+        buttonId:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+          nullable: true
+        ignoredValidators:
+          type: array
+          items:
+            type: string
+          nullable: true
+      additionalProperties: false
+    UserActionResponse:
+      type: object
+      properties:
+        updatedDataModels:
+          type: object
+          additionalProperties: { }
+          nullable: true
+        updatedValidationIssues:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties:
+              type: array
+              items:
+                $ref: '#/components/schemas/ValidationIssue'
+            nullable: true
+          nullable: true
+        clientActions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClientAction'
+          nullable: true
+        error:
+          $ref: '#/components/schemas/ActionError'
+      additionalProperties: false
+    ValidationIssue:
+      type: object
+      properties:
+        severity:
+          $ref: '#/components/schemas/ValidationIssueSeverity'
+        dataElementId:
+          type: string
+          nullable: true
+        field:
+          type: string
+          nullable: true
+        code:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        source:
+          type: string
+          nullable: true
+        customTextKey:
+          type: string
+          nullable: true
+        customTextParams:
+          type: array
+          items:
+            type: string
+          nullable: true
+      additionalProperties: false
+    ValidationIssueSeverity:
+      enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+      type: integer
+      format: int32
+    ValidationStatus:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          nullable: true
+        canCompleteTask:
+          type: boolean
+      additionalProperties: false
