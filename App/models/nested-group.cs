@@ -22,7 +22,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("hideRowValue")]
     [JsonProperty("hideRowValue")]
-    public int hideRowValue {get; set;} = 99999999;
+    public int hideRowValue {get; set;}
 
     [XmlAttribute("sumAll")]
     [JsonProperty("sumAll")]

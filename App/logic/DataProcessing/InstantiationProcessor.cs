@@ -41,6 +41,12 @@ namespace Altinn.App.logic.DataProcessing
                 }
             }
 
+            if (data.GetType() == typeof(NestedGroup))
+            {
+                NestedGroup model = (NestedGroup)data;
+                model.hideRowValue = 99999999;
+            }
+
             if (data.GetType() == typeof(LikertSurvey))
             {
                 var survey = data as LikertSurvey;
