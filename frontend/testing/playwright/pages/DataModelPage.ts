@@ -19,9 +19,7 @@ export class DataModelPage extends BasePage {
   }
 
   public async clickOnCreateNewDataModelButton(): Promise<void> {
-    await this.page
-      .getByRole('button', { name: this.textMock('app_data_modelling.landing_dialog_create') })
-      .click();
+    await this.page.getByRole('button', { name: this.textMock('general.create_new') }).click();
   }
 
   public async typeDataModelName(name: string): Promise<void> {
