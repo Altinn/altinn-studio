@@ -5,6 +5,7 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useLayoutSetsQuery } from '../../../../hooks/queries/useLayoutSetsQuery';
 import { useAppContext } from '../../../../hooks/useAppContext';
 import type { ComponentType } from 'app-shared/types/ComponentType';
+import { useTranslation } from 'react-i18next';
 import {
   reservedDataTypes,
   dataExternalFormat,
@@ -13,6 +14,7 @@ import {
   selectionIsValid,
 } from './AttachmentListUtils';
 import { AttachmentListInternalFormat } from './AttachmentListInternalFormat';
+import { StudioSpinner } from '@studio/components';
 
 export const AttachmentListComponent = ({
   component,
@@ -21,12 +23,14 @@ export const AttachmentListComponent = ({
   const { dataTypeIds = [] } = component || {};
   const currentTask = dataTypeIds.includes(reservedDataTypes.currentTask);
 
+  const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
   const { data: appMetadata, isPending: appMetadataPending } = useAppMetadataQuery(org, app);
   const { selectedLayoutSet } = useAppContext();
 
-  if (appMetadataPending) return null;
+  if (appMetadataPending)
+    return <StudioSpinner spinnerTitle={t('ux_editor.component_properties.loading')} />;
 
   const tasks: string[] =
     layoutSets && selectedLayoutSet ? getTasks(layoutSets, selectedLayoutSet, currentTask) : [];

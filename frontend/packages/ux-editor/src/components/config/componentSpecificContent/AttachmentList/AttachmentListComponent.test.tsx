@@ -12,7 +12,6 @@ import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { DataTypeElement } from 'app-shared/types/ApplicationMetadata';
 import { reservedDataTypes } from './AttachmentListUtils';
-// import { handleOutGoingData } from './AttachmentListComponent';
 
 const user = userEvent.setup();
 const org = 'org';
@@ -65,10 +64,13 @@ const render = async (
   selectedLayoutSet: string = undefined,
   layoutSets: LayoutSets = defaultLayoutSets,
   dataTypes: DataTypeElement[] = defaultDataTypes,
+  isDataFetched: boolean = true,
 ) => {
   const client = createQueryClientMock();
-  client.setQueryData([QueryKey.LayoutSets, org, app], layoutSets);
-  client.setQueryData([QueryKey.AppMetadata, org, app], { dataTypes });
+  if (isDataFetched) {
+    client.setQueryData([QueryKey.LayoutSets, org, app], layoutSets);
+    client.setQueryData([QueryKey.AppMetadata, org, app], { dataTypes });
+  }
   return renderWithMockStore({}, {}, client, {
     selectedLayoutSet,
   })(<AttachmentListComponent {...defaultProps} {...props} />);
@@ -79,6 +81,13 @@ describe('AttachmentListComponent', () => {
     jest.clearAllMocks();
   });
 
+  it('should render spinner when appMetadata is pending', async () => {
+    await render({}, undefined, defaultLayoutSets, defaultDataTypes, false);
+
+    const spinnerText = screen.getByText(textMock('ux_editor.component_properties.loading'));
+    expect(spinnerText).toBeInTheDocument();
+  });
+
   it('should render AttachmentList component', async () => {
     await render();
     expect(screen.getByRole('combobox')).toBeInTheDocument();
@@ -87,6 +96,14 @@ describe('AttachmentListComponent', () => {
         name: textMock('ux_editor.component_properties.current_task'),
       }),
     ).toBeInTheDocument();
+  });
+
+  it('should display all attachments selected as default when dataTypeIds is undefined', async () => {
+    await render();
+    const selectAllCheckbox = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.select_all_attachments'),
+    });
+    expect(selectAllCheckbox).toBeChecked();
   });
 
   it('should save to backend when toggle of pdf', async () => {

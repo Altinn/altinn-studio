@@ -1522,6 +1522,7 @@
   "ux_editor.component_properties.largeGroup": "Stor gruppevisning/gruppe i gruppe",
   "ux_editor.component_properties.layers": "Kartlag",
   "ux_editor.component_properties.layout": "Visning",
+  "ux_editor.component_properties.loading": "Laster inn",
   "ux_editor.component_properties.mapping": "Mapping",
   "ux_editor.component_properties.maxCount": "Maks antall repetisjoner",
   "ux_editor.component_properties.maxDate": "Seneste dato",
