@@ -146,7 +146,7 @@ export const useNavigatePage = () => {
       }
 
       if (isStatelessApp) {
-        return navigate(`/${page}${queryKeys}`, { replace });
+        return navigate(`/${page}${queryKeys}`, { replace }, () => focusMainContent(options));
       }
 
       const url = `/instance/${partyId}/${instanceGuid}/${taskId}/${page}${queryKeys}`;
@@ -156,12 +156,13 @@ export const useNavigatePage = () => {
   );
 
   const navigateToTask = useCallback(
-    (newTaskId?: string, options?: NavigateOptions) => {
+    (newTaskId?: string, options?: NavigateOptions & { runEffect?: boolean }) => {
+      const { runEffect = true } = options ?? {};
       if (newTaskId === taskId) {
         return;
       }
       const url = `/instance/${partyId}/${instanceGuid}/${newTaskId ?? lastTaskId}${queryKeys}`;
-      navigate(url, options, () => focusMainContent(options));
+      navigate(url, options, runEffect ? () => focusMainContent(options) : undefined);
     },
     [taskId, partyId, instanceGuid, lastTaskId, queryKeys, navigate],
   );
@@ -285,7 +286,7 @@ export const useNavigatePage = () => {
   };
 };
 
-function focusMainContent(options?: NavigateToPageOptions) {
+export function focusMainContent(options?: NavigateToPageOptions) {
   if (options?.shouldFocusComponent !== true) {
     document.getElementById('main-content')?.focus({ preventScroll: true });
   }

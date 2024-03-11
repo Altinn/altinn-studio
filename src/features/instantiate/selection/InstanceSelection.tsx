@@ -18,6 +18,7 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useCurrentParty } from 'src/features/party/PartiesProvider';
 import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
+import { focusMainContent, useNavigationEffectStore } from 'src/hooks/useNavigatePage';
 import { ProcessTaskType } from 'src/types';
 import { getInstanceUiUrl } from 'src/utils/urls/appUrlHelper';
 import type { ISimpleInstance } from 'src/types';
@@ -52,6 +53,7 @@ function InstanceSelection() {
   const rowsPerPageOptions = instanceSelectionOptions?.rowsPerPageOptions ?? [10, 25, 50];
   const instantiate = useInstantiation().instantiate;
   const currentParty = useCurrentParty();
+  const storeCallback = useNavigationEffectStore((state) => state.storeCallback);
 
   const doesIndexExist = (selectedIndex: number | undefined): selectedIndex is number =>
     selectedIndex !== undefined && rowsPerPageOptions.length - 1 >= selectedIndex && selectedIndex >= 0;
@@ -84,37 +86,43 @@ function InstanceSelection() {
         className={classes.table}
       >
         <Table.Body>
-          {paginatedInstances.map((instance) => (
-            <Table.Row key={instance.id}>
-              <Table.Cell className={classes.mobileTableCell}>
-                <div>
-                  <b>{langAsString('instance_selection.last_changed')}:</b>
-                  <br />
-                  <span>{getDateDisplayString(instance.lastChanged)}</span>
-                </div>
-                <div>
-                  <b>{langAsString('instance_selection.changed_by')}:</b>
-                  <br />
-                  <span>{instance.lastChangedBy}</span>
-                </div>
-              </Table.Cell>
-              <Table.Cell>
-                <div className={classes.tableButtonWrapper}>
-                  <Button
-                    variant='tertiary'
-                    size='small'
-                    color='second'
-                    icon={true}
-                    onClick={(ev) => openInstance(instance.id, ev)}
-                    onMouseDown={(ev) => openInstance(instance.id, ev)}
-                    aria-label={`${langAsString('instance_selection.continue')}`}
-                  >
-                    <EditIcon />
-                  </Button>
-                </div>
-              </Table.Cell>
-            </Table.Row>
-          ))}
+          {paginatedInstances.map((instance) => {
+            const handleOpenInstance = (ev) => {
+              storeCallback(focusMainContent);
+              openInstance(instance.id, ev);
+            };
+            return (
+              <Table.Row key={instance.id}>
+                <Table.Cell className={classes.mobileTableCell}>
+                  <div>
+                    <b>{langAsString('instance_selection.last_changed')}:</b>
+                    <br />
+                    <span>{getDateDisplayString(instance.lastChanged)}</span>
+                  </div>
+                  <div>
+                    <b>{langAsString('instance_selection.changed_by')}:</b>
+                    <br />
+                    <span>{instance.lastChangedBy}</span>
+                  </div>
+                </Table.Cell>
+                <Table.Cell>
+                  <div className={classes.tableButtonWrapper}>
+                    <Button
+                      variant='tertiary'
+                      size='small'
+                      color='second'
+                      icon={true}
+                      onClick={handleOpenInstance}
+                      onMouseDown={handleOpenInstance}
+                      aria-label={`${langAsString('instance_selection.continue')}`}
+                    >
+                      <EditIcon />
+                    </Button>
+                  </div>
+                </Table.Cell>
+              </Table.Row>
+            );
+          })}
         </Table.Body>
         {instances.length > rowsPerPageOptions[0] && (
           <tfoot>
@@ -169,7 +177,10 @@ function InstanceSelection() {
                     variant='tertiary'
                     size='small'
                     color='second'
-                    onClick={(ev) => openInstance(instance.id, ev)}
+                    onClick={(ev) => {
+                      storeCallback(focusMainContent);
+                      openInstance(instance.id, ev);
+                    }}
                   >
                     <Lang id={'instance_selection.continue'} />
                     {<EditIcon title={langAsString('instance_selection.continue')} />}
@@ -228,6 +239,7 @@ function InstanceSelection() {
           <Button
             onClick={() => {
               if (currentParty) {
+                storeCallback(focusMainContent);
                 instantiate(undefined, currentParty.partyId);
               }
             }}

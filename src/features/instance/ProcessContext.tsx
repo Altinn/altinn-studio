@@ -68,7 +68,7 @@ export function ProcessProvider({ children, instance }: React.PropsWithChildren<
         navigateToTask(TaskKeys.ProcessEnd);
       }
     } else if (elementId && elementId !== taskId) {
-      navigateToTask(elementId, { replace: true });
+      navigateToTask(elementId, { replace: true, runEffect: taskId !== undefined });
     }
     /**
      * We only want to run this effect when the query data changes.
