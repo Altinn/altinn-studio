@@ -30,7 +30,16 @@ export const DevToolsStore = createStore<Store>((set) => ({
   actions: {
     open: () => set({ isOpen: true }),
     close: () => set({ isOpen: false }),
-    setActiveTab: (tabName: DevToolsTab) => set({ activeTab: tabName }),
+    setActiveTab: (tabName: DevToolsTab) =>
+      set({
+        activeTab: tabName,
+        layoutInspector: { selectedComponentId: undefined },
+        nodeInspector: { selectedNodeId: undefined },
+      }),
+    focusLayoutInspector: (componentId: string) =>
+      set({ activeTab: DevToolsTab.Layout, layoutInspector: { selectedComponentId: componentId } }),
+    focusNodeInspector: (nodeId: string) =>
+      set({ activeTab: DevToolsTab.Components, nodeInspector: { selectedNodeId: nodeId } }),
     setPdfPreview: (preview: boolean) => set({ pdfPreview: preview }),
     setShowHiddenComponents: (value: DevToolsHiddenComponents) => set({ hiddenComponents: value }),
     exprPlaygroundSetExpression: (expression: string | undefined) =>

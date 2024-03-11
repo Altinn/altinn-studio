@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import React, { useEffect } from 'react';
+import React from 'react';
 
 import { Button } from '@digdir/design-system-react';
 import { Close } from '@navikt/ds-icons';
@@ -9,22 +9,15 @@ import { NodeHierarchy } from 'src/features/devtools/components/NodeInspector/No
 import { NodeInspectorContextProvider } from 'src/features/devtools/components/NodeInspector/NodeInspectorContext';
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
-import { DevToolsTab } from 'src/features/devtools/data/types';
 import { useNodes } from 'src/utils/layout/NodesContext';
 
 export const NodeInspector = () => {
   const pages = useNodes();
   const currentPage = pages?.current();
-  const currentPageKey = currentPage?.top.myKey;
   const selectedId = useDevToolsStore((state) => state.nodeInspector.selectedNodeId);
   const selectedNode = selectedId ? currentPage?.findById(selectedId) : undefined;
   const setSelected = useDevToolsStore((state) => state.actions.nodeInspectorSet);
-  const setSelectedInLayoutInspector = useDevToolsStore((state) => state.actions.layoutInspectorSet);
-  const setActiveTab = useDevToolsStore((state) => state.actions.setActiveTab);
-
-  useEffect(() => {
-    setSelected(undefined);
-  }, [setSelected, currentPageKey]);
+  const focusLayoutInspector = useDevToolsStore((state) => state.actions.focusLayoutInspector);
 
   return (
     <SplitView
@@ -47,8 +40,7 @@ export const NodeInspector = () => {
                 href='#'
                 onClick={(e) => {
                   e.preventDefault();
-                  setSelectedInLayoutInspector(selectedNode?.item.baseComponentId || selectedNode?.item.id);
-                  setActiveTab(DevToolsTab.Layout);
+                  focusLayoutInspector(selectedNode?.item.baseComponentId || selectedNode?.item.id);
                 }}
               >
                 Rediger konfigurasjonen i Layout-fanen

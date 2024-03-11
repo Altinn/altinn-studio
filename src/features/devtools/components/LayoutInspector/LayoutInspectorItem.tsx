@@ -29,7 +29,7 @@ export const LayoutInspectorItem = ({ component, onClick, selected, hasErrors }:
       <span className={classes.componentType}>{component.type}</span>
       <span className={classes.componentId}>{component.id}</span>
       {hasErrors && (
-        <span className={classes.errorIcon}>
+        <span className={classes.listIcon}>
           <ExclamationmarkTriangleIcon className={classes.error} />
         </span>
       )}

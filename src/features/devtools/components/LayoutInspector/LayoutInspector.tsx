@@ -8,7 +8,6 @@ import classes from 'src/features/devtools/components/LayoutInspector/LayoutInsp
 import { LayoutInspectorItem } from 'src/features/devtools/components/LayoutInspector/LayoutInspectorItem';
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
-import { DevToolsTab } from 'src/features/devtools/data/types';
 import { useLayoutValidationForPage } from 'src/features/devtools/layoutValidation/useLayoutValidation';
 import { useLayouts, useLayoutSetId } from 'src/features/form/layout/LayoutsContext';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
@@ -19,8 +18,6 @@ import type { LayoutContextValue } from 'src/features/form/layout/LayoutsContext
 export const LayoutInspector = () => {
   const selectedComponent = useDevToolsStore((state) => state.layoutInspector.selectedComponentId);
   const setSelectedComponent = useDevToolsStore((state) => state.actions.layoutInspectorSet);
-  const setNodeInspectorSelectedNodeId = useDevToolsStore((state) => state.actions.nodeInspectorSet);
-  const setActiveTab = useDevToolsStore((state) => state.actions.setActiveTab);
   const currentView = useCurrentView();
   const layouts = useLayouts();
   const currentLayoutSetId = useLayoutSetId();
@@ -28,6 +25,7 @@ export const LayoutInspector = () => {
   const [propertiesHaveChanged, setPropertiesHaveChanged] = useState(false);
   const [error, setError] = useState<boolean>(false);
   const nodes = useNodes();
+  const focusNodeInspector = useDevToolsStore((state) => state.actions.focusNodeInspector);
 
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
@@ -42,10 +40,6 @@ export const LayoutInspector = () => {
   const currentLayout = currentView ? layouts?.[currentView] : undefined;
   const matchingNodes = selectedComponent ? nodes?.findAllById(selectedComponent) || [] : [];
   const validationErrorsForPage = useLayoutValidationForPage() || {};
-
-  useEffect(() => {
-    setSelectedComponent(undefined);
-  }, [setSelectedComponent, currentView]);
 
   useEffect(() => {
     if (selectedComponent) {
@@ -96,8 +90,7 @@ export const LayoutInspector = () => {
         href='#'
         onClick={(e) => {
           e.preventDefault();
-          setNodeInspectorSelectedNodeId(nodeId);
-          setActiveTab(DevToolsTab.Components);
+          focusNodeInspector(nodeId);
         }}
       >
         Utforsk {nodeId} i komponenter-fanen
