@@ -251,8 +251,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
                 layoutSets.Sets.Add(layoutSet);
-                await altinnAppGitRepository.SaveLayout(layoutSet.Id, altinnAppGitRepository.InitialLayoutFilename,
+                await altinnAppGitRepository.SaveLayout(layoutSet.Id, AltinnAppGitRepository.InitialLayoutFilename,
                     altinnAppGitRepository.InitialLayout);
+                await altinnAppGitRepository.SaveLayoutSettings(layoutSet.Id,
+                    altinnAppGitRepository.InitialLayoutSettings);
                 await altinnAppGitRepository.SaveLayoutSetsFile(layoutSets);
                 return layoutSets;
             }

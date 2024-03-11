@@ -57,10 +57,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         private const string TextResourceFileNamePattern = "resource.??.json";
 
-        public string InitialLayoutFilename = "Side1.json";
+        public static string InitialLayoutFilename = "Side1.json";
 
         public JsonNode InitialLayout = new JsonObject { ["$schema"] = LayoutSchemaUrl, ["data"] = new JsonObject { ["layout"] = new JsonArray([]) } };
 
+        public JsonNode InitialLayoutSettings = new JsonObject { ["$schema"] = LayoutSettingsSchemaUrl, ["pages"] = new JsonObject { ["order"] = new JsonArray([InitialLayoutFilename]) } };
+        
         private static readonly JsonSerializerOptions _jsonOptions = new()
         {
             WriteIndented = true,
@@ -518,15 +520,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 Directory.CreateDirectory(layoutSetPath);
             }
             string[] layoutNames = MakePageOrder(GetLayoutNames(layoutSetName));
-
-            string defaultSettings = $@"{{
-            ""schema"": ""{LayoutSettingsSchemaUrl}"",
-            ""pages"": {{
-                ""order"": {JsonSerializer.Serialize(layoutNames)}
-                }}
-            }}";
-
-            var layoutSettings = JsonNode.Parse(defaultSettings);
+            JsonNode layoutSettings = InitialLayoutSettings;
+            JsonArray layoutNamesArray = new JsonArray();
+            foreach (string name in layoutNames)
+            {
+                layoutNamesArray.Add(name);
+            }
+            layoutSettings["pages"]["order"] = layoutNamesArray;
             await SaveLayoutSettings(layoutSetName, layoutSettings);
         }
 
@@ -686,26 +686,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 return JsonSerializer.Serialize(fixedRuleConfig);
             }
             return ruleConfigData;
-        }
-
-        public async Task<LayoutSets> CreateLayoutSetFile(string layoutSetName)
-        {
-            LayoutSets layoutSets = new()
-            {
-                Sets = new List<LayoutSetConfig>
-                {
-                    new()
-                    {
-                        Id = layoutSetName,
-                        DataType = null, // TODO: Add name of datamodel - but what if it does not exist?
-                        Tasks = new List<string> { "Task_1" }
-                    }
-                }
-            };
-            string layoutSetsString = JsonSerializer.Serialize(layoutSets, _jsonOptions);
-            string pathToLayOutSets = Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUT_SETS_FILENAME);
-            await WriteTextByRelativePathAsync(pathToLayOutSets, layoutSetsString);
-            return layoutSets;
         }
 
         /// <summary>
