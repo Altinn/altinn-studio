@@ -11,9 +11,14 @@ import { useConfirmationDialogOnPageLeave } from 'app-shared/hooks/useConfirmati
 import { BPMNViewer } from './BPMNViewer';
 import { BPMNEditor } from './BPMNEditor';
 import { CanvasActionMenu } from './CanvasActionMenu';
+import type { BpmnDetails } from '../../types/BpmnDetails';
+import { ArrayUtils } from '@studio/pure-functions';
 
 export type CanvasProps = {
-  onSave: (bpmnXml: string) => void;
+  onSave: (
+    bpmnXml: string,
+    dataTasksChanged?: { added?: BpmnDetails[]; removed?: BpmnDetails[] },
+  ) => void;
 };
 
 /**
@@ -26,12 +31,16 @@ export type CanvasProps = {
  * @returns {JSX.Element} - The rendered component
  */
 export const Canvas = ({ onSave }: CanvasProps): JSX.Element => {
-  const { getUpdatedXml, isEditAllowed, numberOfUnsavedChanges } = useBpmnContext();
+  const { getUpdatedXml, isEditAllowed, numberOfUnsavedChanges, dataTasksAdded, dataTasksRemoved } =
+    useBpmnContext();
 
   const { t } = useTranslation();
 
   const handleOnSave = async (): Promise<void> => {
-    onSave(await getUpdatedXml());
+    onSave(await getUpdatedXml(), {
+      added: ArrayUtils.getNonEmptyArrayOrUndefined(dataTasksAdded),
+      removed: ArrayUtils.getNonEmptyArrayOrUndefined(dataTasksRemoved),
+    });
   };
 
   useConfirmationDialogOnPageLeave(
