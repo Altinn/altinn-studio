@@ -4,17 +4,17 @@ import type { IGenericEditComponent } from '../../componentConfig';
 import { renderWithMockStore } from '../../../../testing/mocks';
 import { AttachmentListComponent } from './AttachmentListComponent';
 import React from 'react';
-// import { screen, act } from '@testing-library/react';
-import { screen } from '@testing-library/react';
-// import userEvent from '@testing-library/user-event';
+import { screen, act } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { DataTypeElement } from 'app-shared/types/ApplicationMetadata';
 import { reservedDataTypes } from './AttachmentListUtils';
+// import { handleOutGoingData } from './AttachmentListComponent';
 
-// const user = userEvent.setup();
+const user = userEvent.setup();
 const org = 'org';
 const app = 'app';
 
@@ -75,6 +75,10 @@ const render = async (
 };
 
 describe('AttachmentListComponent', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should render AttachmentList component', async () => {
     await render();
     expect(screen.getByRole('combobox')).toBeInTheDocument();
@@ -171,29 +175,114 @@ describe('AttachmentListComponent', () => {
   //     expect(screen.getByText('test4')).toBeInTheDocument();
   //   });
 
-  //   it('should include pdf if the switch is set to true', async () => {
-  //     handleComponentChange.mockClear();
-  //     await render(
-  //       {
-  //         component: {
-  //           ...defaultComponent,
-  //           dataTypeIds: ['test3', 'test4'],
-  //         },
-  //       },
-  //       'layoutSetId3',
-  //     );
-  //     expect(handleComponentChange).toHaveBeenCalledTimes(1);
-  //     handleComponentChange.mockClear();
-  //     const includePdfCheckbox = screen.getByRole('checkbox', {
-  //       name: textMock('ux_editor.component_properties.select_pdf'),
-  //     });
+  it('should save to backend when toggle of pdf', async () => {
+    await render(
+      {
+        component: {
+          ...defaultComponent,
+          dataTypeIds: ['test3', 'test4'],
+        },
+      },
+      'layoutSetId3',
+    );
 
-  //     await act(() => user.click(includePdfCheckbox));
-  //     expect(handleComponentChange).toHaveBeenCalledWith({
-  //       ...defaultComponent,
-  //       dataTypeIds: ['test3', 'test4', reservedDataTypes.refDataAsPdf],
-  //     });
-  //   });
+    // Todo: Remove these 2 lines after fixing combobox onChangeValue trigger on initial render, https://github.com/digdir/designsystemet/issues/1640
+    expect(handleComponentChange).toHaveBeenCalledTimes(1);
+    handleComponentChange.mockClear();
+
+    const includePdfCheckbox = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.select_pdf'),
+    });
+
+    await act(() => user.click(includePdfCheckbox));
+    expect(includePdfCheckbox).toBeChecked();
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...defaultComponent,
+      dataTypeIds: ['test3', 'test4', reservedDataTypes.refDataAsPdf],
+    });
+    expect(handleComponentChange).toHaveBeenCalledTimes(1);
+
+    await act(() => user.click(includePdfCheckbox));
+    expect(includePdfCheckbox).not.toBeChecked();
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...defaultComponent,
+      dataTypeIds: ['test3', 'test4'],
+    });
+    expect(handleComponentChange).toHaveBeenCalledTimes(2);
+  });
+
+  it('should save to backend when toggle of current task and output is valid', async () => {
+    await render(
+      {
+        component: {
+          ...defaultComponent,
+          dataTypeIds: ['test3', 'test4', reservedDataTypes.refDataAsPdf],
+        },
+      },
+      'layoutSetId3',
+    );
+
+    // Todo: Remove these 2 lines after fixing combobox onChangeValue trigger on initial render, https://github.com/digdir/designsystemet/issues/1640
+    expect(handleComponentChange).toHaveBeenCalledTimes(1);
+    handleComponentChange.mockClear();
+
+    const currentTaskCheckbox = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.current_task'),
+    });
+
+    await act(() => user.click(currentTaskCheckbox));
+    expect(currentTaskCheckbox).toBeChecked();
+
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...defaultComponent,
+      dataTypeIds: ['test4', reservedDataTypes.currentTask, reservedDataTypes.refDataAsPdf],
+    });
+    // Combobox is also triggered, because current task is set to true and makes the combobox to trigger onChangeValue because of filter update
+    expect(handleComponentChange).toHaveBeenCalledTimes(2);
+
+    await act(() => user.click(currentTaskCheckbox));
+    expect(currentTaskCheckbox).not.toBeChecked();
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...defaultComponent,
+      dataTypeIds: ['test4', reservedDataTypes.refDataAsPdf],
+    });
+    expect(handleComponentChange).toHaveBeenCalledTimes(3);
+  });
+
+  it('should not save to backend when current task is set to true and output is invalid (no selected attachments)', async () => {
+    await render(
+      {
+        component: {
+          ...defaultComponent,
+          dataTypeIds: ['test3'],
+        },
+      },
+      'layoutSetId3',
+    );
+
+    // Todo: Remove these 2 lines after fixing combobox onChangeValue trigger on initial render, https://github.com/digdir/designsystemet/issues/1640
+    expect(handleComponentChange).toHaveBeenCalledTimes(1);
+    handleComponentChange.mockClear();
+
+    const currentTaskCheckbox = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.current_task'),
+    });
+
+    await act(() => user.click(currentTaskCheckbox));
+    expect(currentTaskCheckbox).toBeChecked();
+
+    expect(handleComponentChange).not.toHaveBeenCalled();
+  });
+
+  // it('handleOutGoingData should return selectedDataTypes when it is valid', async () => {
+
+  //   const selectedDataTypes = ['test1', 'test2'];
+  //   const availableAttachments = ['test1', 'test2', 'test3'];
+  //   const result = handleOutGoingData(selectedDataTypes, availableAttachments);
+  //   expect(result).toEqual(selectedDataTypes);
+  // }
+
+  // Todo: Remove these 2 lines after fixing combobox onChangeValue trigger on initial render,
 
   //   it('should display all data types when in the last process task, except for data type with appLogic', async () => {
   //     await render({}, 'layoutSetId3');
