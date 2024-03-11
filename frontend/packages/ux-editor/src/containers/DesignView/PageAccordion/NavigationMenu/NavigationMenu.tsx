@@ -59,7 +59,6 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
         icon={<MenuElipsisVerticalIcon />}
         onClick={() => setDropdownOpen((v) => !v)}
         aria-haspopup='menu'
-        aria-expanded={dropdownOpen}
         variant='tertiary'
         title={t('general.options')}
         size='small'

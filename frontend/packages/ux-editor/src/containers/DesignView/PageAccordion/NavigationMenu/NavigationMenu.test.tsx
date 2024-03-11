@@ -77,6 +77,26 @@ describe('NavigationMenu', () => {
     expect(elementInMenuAfterClose).not.toBeInTheDocument();
   });
 
+  it('should close the menu when clicking outside the menu', async () => {
+    const user = userEvent.setup();
+    await render();
+
+    const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
+    await act(() => user.click(menuButtons[0]));
+
+    const elementInMenu = screen.getByRole('menuitem', {
+      name: textMock('ux_editor.page_menu_up'),
+    });
+    expect(elementInMenu).toBeInTheDocument();
+
+    await act(() => user.click(document.body));
+
+    const elementInMenuAfterClose = screen.queryByRole('menuitem', {
+      name: textMock('ux_editor.page_menu_up'),
+    });
+    expect(elementInMenuAfterClose).not.toBeInTheDocument();
+  });
+
   it('hides the up and down button when page is receipt', async () => {
     const user = userEvent.setup();
     await render({ pageIsReceipt: true });
