@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { Spinner } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
+import type { BpmnDetails } from '@altinn/process-editor/src/types/BpmnDetails';
 
 export const ProcessEditor = () => {
   const { t } = useTranslation();
@@ -18,7 +19,10 @@ export const ProcessEditor = () => {
 
   const bpmnMutation = useBpmnMutation(org, app);
 
-  const saveBpmnXml = async (xml: string): Promise<void> => {
+  const saveBpmnXml = async (
+    xml: string,
+    dataTasksChanged?: { added?: BpmnDetails[]; removed?: BpmnDetails[] },
+  ): Promise<void> => {
     await bpmnMutation.mutateAsync(
       { bpmnXml: xml },
       {

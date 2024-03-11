@@ -13,7 +13,14 @@ type UseBpmnViewerResult = {
 };
 
 export const useBpmnEditor = (): UseBpmnViewerResult => {
-  const { bpmnXml, modelerRef, setNumberOfUnsavedChanges, setBpmnDetails } = useBpmnContext();
+  const {
+    bpmnXml,
+    modelerRef,
+    setNumberOfUnsavedChanges,
+    setDataTasksAdded,
+    setDataTasksRemoved,
+    setBpmnDetails,
+  } = useBpmnContext();
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const { getModeler } = useBpmnModeler();
 
@@ -33,6 +40,18 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
       });
     };
 
+    const initializeChangesStatus = () => {
+      modelerInstance.on('shape.add', (e: any) => {
+        const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
+        setDataTasksAdded((prevDataTasksAdded) => [...prevDataTasksAdded, bpmnDetails]);
+      });
+
+      modelerInstance.on('shape.remove', (e: any) => {
+        const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
+        setDataTasksRemoved((prevDataTasksRemoved) => [...prevDataTasksRemoved, bpmnDetails]);
+      });
+    };
+
     const eventBus: any = modelerInstance.get('eventBus');
     const events = ['element.click'];
 
@@ -48,6 +67,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
         await modelerInstance.importXML(bpmnXml);
         const canvas: any = modelerInstance.get('canvas');
         canvas.zoom('fit-viewport');
+        setDataTasksAdded([]); // Reset the dataTasksAdded state when the editor is initialized
       } catch (exception) {
         console.log('An error occurred while rendering the viewer:', exception);
       }
@@ -55,7 +75,8 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
 
     initializeEditor();
     initializeUnsavedChangesCount();
-  }, [bpmnXml, modelerRef, setBpmnDetails, setNumberOfUnsavedChanges]);
+    initializeChangesStatus();
+  }, [bpmnXml, modelerRef, setBpmnDetails, setNumberOfUnsavedChanges, setDataTasksAdded]);
 
   return { canvasRef, modelerRef };
 };
