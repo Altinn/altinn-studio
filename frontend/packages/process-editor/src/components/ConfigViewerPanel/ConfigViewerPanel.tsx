@@ -40,11 +40,11 @@ export const ConfigViewerPanelContent = (): React.ReactElement => {
       <div>
         <StudioDisplayTile
           icon={<KeyVerticalIcon fontSize='1.2rem' />}
-          label={t('process_editor.configuration_panel_id_label')}
+          label={t('process_editor.configuration_view_panel_id_label')}
           value={bpmnDetails.id}
         />
         <StudioDisplayTile
-          label={t('process_editor.configuration_panel_name_label')}
+          label={t('process_editor.configuration_view_panel_name_label')}
           value={bpmnDetails.name}
         />
       </div>

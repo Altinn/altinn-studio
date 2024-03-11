@@ -19,7 +19,7 @@ export const ProcessEditor = ({
   bpmnXml,
   onSave,
   appLibVersion,
-}: ProcessEditorProps): JSX.Element => {
+}: ProcessEditorProps): React.ReactElement => {
   const { t } = useTranslation();
 
   if (bpmnXml === undefined) {
@@ -43,12 +43,12 @@ const BPMNCanvas = ({ onSave }: BPMNCanvasProps): React.ReactElement | null => {
   return (
     <div className={classes.container}>
       <Canvas onSave={onSave} />
-      {!isEditAllowed ? <ConfigPanel /> : <ConfigViewerPanel />}
+      {isEditAllowed ? <ConfigPanel /> : <ConfigViewerPanel />}
     </div>
   );
 };
 
-const NoBpmnFoundAlert = (): JSX.Element => {
+const NoBpmnFoundAlert = (): React.ReactElement => {
   const { t } = useTranslation();
   return (
     <Alert severity='danger' style={{ height: 'min-content' }}>
