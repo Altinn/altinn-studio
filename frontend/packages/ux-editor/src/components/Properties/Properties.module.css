@@ -8,6 +8,6 @@
 }
 
 .texts {
-  background-color: white;
+  background-color: var(--fds-surface-neutral-default)
   padding: var(--fds-spacing-5) 0;
 }
