@@ -133,8 +133,8 @@ export function EditOptions<T extends SelectionComponentType>({
         >
           <Paragraph>{t('ux_editor.properties_panel.options.use_code_list_label')}</Paragraph>
         </Switch>
-        <HelpText title='Bruk kodeliste'>
-          {t('ux_editor.properties_panel.options.use_code_list_helptext')}
+        <HelpText title={t('ux_editor.properties_panel.options.use_code_list_helpText')}>
+          {t('ux_editor.properties_panel.options.use_code_list_helpText')}
         </HelpText>
       </div>
       {selectedOptionsType === SelectedOptionsType.CodeList && (
@@ -219,7 +219,9 @@ export function EditOptions<T extends SelectionComponentType>({
           </StudioButton>
         </div>
       )}
-      {errorMessage && <ErrorMessage size='small'>{errorMessage}</ErrorMessage>}
+      {selectedOptionsType !== SelectedOptionsType.CodeList && errorMessage && (
+        <ErrorMessage size='small'>{errorMessage}</ErrorMessage>
+      )}
     </>
   );
 }
