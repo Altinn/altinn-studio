@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StudioToggleableTextfieldSchema, type SchemaValidationError } from '@studio/components';
 import { KeyVerticalIcon } from '@navikt/aksel-icons';
 import classes from './EditComponentIdRow.module.css';
-import { idExists } from '../../../../utils/formLayoutUtils';
+import { idExists } from '../../../../utils/formLayoutsUtils';
 import { useTranslation } from 'react-i18next';
 import type { FormItem } from '../../../../types/FormItem';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
@@ -19,7 +19,6 @@ export const EditComponentIdRow = ({
   handleComponentUpdate,
 }: EditComponentIdRowProps) => {
   const formLayouts = useFormLayouts();
-
   const { t } = useTranslation();
   const [{ data: layoutSchema }, , { data: expressionSchema }, { data: numberFormatSchema }] =
     useLayoutSchemaQuery();
