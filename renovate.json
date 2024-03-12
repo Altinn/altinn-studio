@@ -3,5 +3,6 @@
   "extends": [
     "local>Altinn/renovate-config"
   ],
-  "labels": ["dependency"]
+  "labels": ["dependency"],
+  "baseBranches": ["main", "v7"]
 }
