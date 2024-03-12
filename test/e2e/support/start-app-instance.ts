@@ -8,7 +8,7 @@ import Response = Cypress.Response;
 function login(user: CyUser) {
   cy.clearCookies();
 
-  if (Cypress.env('environment') === 'local') {
+  if (Cypress.env('type') === 'localtest') {
     const { localPartyId } = cyUserCredentials[user];
 
     const formData = new FormData();
@@ -50,7 +50,7 @@ Cypress.Commands.add('startAppInstance', (appName, options) => {
   }
 
   // You can override the host we load css/js from, using multiple methods:
-  //   1. Start Cypress with --env environment=<local|tt02>,host=<host>
+  //   1. Start Cypress with --env environment=<docker|podman|tt02>,host=<host>
   //   2. Set CYPRESS_HOST=<host> in your .env file
   // This is useful, for example if you want to run a Cypress test locally in the background while working on
   // other things. Build the app-frontend with `yarn build` and serve it with `yarn serve 8081`, then run
@@ -77,7 +77,7 @@ Cypress.Commands.add('startAppInstance', (appName, options) => {
     },
   };
 
-  // Run this using --env environment=<local|tt02>,responseFuzzing=on to simulate an unreliable network. This might
+  // Run this using --env environment=<docker|podman|tt02>,responseFuzzing=on to simulate an unreliable network. This might
   // help us find bugs (usually race conditions) that only occur requests/responses arrive out of order.
   if (Cypress.env('responseFuzzing') === 'on') {
     const [min, max] = [10, 1000];
@@ -137,7 +137,7 @@ Cypress.Commands.add('startAppInstance', (appName, options) => {
 });
 
 export function getTargetUrl(appName: string) {
-  return Cypress.env('environment') === 'local'
+  return Cypress.env('type') === 'localtest'
     ? `${Cypress.config('baseUrl')}/ttd/${appName}`
     : `https://ttd.apps.${Cypress.config('baseUrl')?.slice(8)}/ttd/${appName}`;
 }

@@ -59,12 +59,15 @@ function fillOutChangeName() {
 }
 
 function fillOutGroup() {
-  const mkFile = (fileName) => ({
-    fileName,
-    mimeType: 'application/pdf',
-    lastModified: Date.now(),
-    contents: Cypress.Buffer.from('hello world'),
-  });
+  const mkFile = (fileName: string) => {
+    cy.log(`Making new file: ${fileName}`);
+    return {
+      fileName,
+      mimeType: 'application/pdf',
+      lastModified: Date.now(),
+      contents: Cypress.Buffer.from('hello world'),
+    };
+  };
 
   cy.get(appFrontend.nextButton).click();
   cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
@@ -74,13 +77,16 @@ function fillOutGroup() {
   cy.get(appFrontend.group.row(0).uploadSingle.dropZone).selectFile(mkFile('attachment-in-single.pdf'), {
     force: true,
   });
+  cy.get(appFrontend.group.row(0).uploadSingle.attachments(0).name).should('have.text', 'attachment-in-single.pdf');
   cy.get(appFrontend.group.row(0).uploadMulti.dropZone).selectFile(mkFile('attachment-in-multi1.pdf'), {
     force: true,
   });
+  cy.get(appFrontend.group.row(0).uploadMulti.attachments(0).name).should('have.text', 'attachment-in-multi1.pdf');
   cy.get(appFrontend.group.row(0).uploadMulti.addMoreBtn).click();
   cy.get(appFrontend.group.row(0).uploadMulti.dropZone).selectFile(mkFile('attachment-in-multi2.pdf'), {
     force: true,
   });
+  cy.get(appFrontend.group.row(0).uploadMulti.attachments(1).name).should('have.text', 'attachment-in-multi2.pdf');
   cy.get(appFrontend.group.row(0).nestedGroup.row(0).editBtn).click();
   cy.get(appFrontend.group.row(0).nestedGroup.row(0).uploadTagMulti.dropZone).selectFile(
     mkFile('attachment-in-nested.pdf'),

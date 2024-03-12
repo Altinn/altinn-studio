@@ -142,7 +142,7 @@ function testInstanceData() {
     const maybeInstanceId = getInstanceIdRegExp().exec(url);
     const instanceId = maybeInstanceId ? maybeInstanceId[1] : 'instance-id-not-found';
 
-    const host = Cypress.env('environment') === 'local' ? urlParsed.origin : 'https://ttd.apps.tt02.altinn.no';
+    const host = Cypress.env('type') === 'localtest' ? urlParsed.origin : 'https://ttd.apps.tt02.altinn.no';
     const instanceUrl = [host, urlParsed.pathname, `/instances/`, instanceId].join('');
 
     cy.request({ url: instanceUrl }).then((response) => {
@@ -151,7 +151,7 @@ function testInstanceData() {
         if (dataElement.contentType === 'application/xml') {
           const dataModelUrlParsed = new URL(dataElement.selfLinks!.apps);
           const dataModelUrl =
-            Cypress.env('environment') === 'local' ? dataModelUrlParsed.pathname : dataElement.selfLinks!.apps;
+            Cypress.env('type') === 'localtest' ? dataModelUrlParsed.pathname : dataElement.selfLinks!.apps;
           cy.request({
             url: dataModelUrl,
           }).then((response) => {

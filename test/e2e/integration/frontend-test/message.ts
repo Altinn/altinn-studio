@@ -32,7 +32,7 @@ describe('Message', () => {
       });
     cy.url().then((url) => {
       const instantiateUrl =
-        Cypress.env('environment') === 'local'
+        Cypress.env('type') === 'localtest'
           ? 'http://local.altinn.cloud/ttd/frontend-test'
           : 'https://ttd.apps.tt02.altinn.no/ttd/frontend-test/';
       const maybeInstanceId = instanceIdExpr.exec(url);

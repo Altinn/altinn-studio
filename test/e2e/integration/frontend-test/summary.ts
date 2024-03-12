@@ -184,27 +184,24 @@ describe('Summary', () => {
 
     cy.fillOut('group');
 
-    cy.get(appFrontend.group.mainGroupSummaryContent)
-      .should('have.length', 1)
-      .first()
-      .children(mui.gridItem)
-      .should('have.length', 7)
-      .then((item) => {
-        cy.wrap(item).find('button').should('have.length', 7);
-        cy.wrap(item).eq(2).should('contain.text', 'attachment-in-single.pdf');
-        cy.wrap(item).eq(3).should('contain.text', 'attachment-in-multi1.pdf');
-        cy.wrap(item).eq(3).should('contain.text', 'attachment-in-multi2.pdf');
-        cy.wrap(item).eq(4).should('contain.text', 'attachment-in-nested.pdf');
-        cy.wrap(item).eq(4).should('contain.text', 'automation');
-        cy.wrap(item).eq(4).should('contain.text', texts.nestedOptionsToggle);
-        cy.wrap(item).eq(4).should('not.contain.text', texts.nestedOptions);
-        cy.wrap(item).eq(4).should('contain.text', 'hvor fikk du vite om skjemaet? : Annet');
-        cy.wrap(item).eq(4).should('contain.text', 'Referanse : Test');
-        cy.wrap(item).eq(5).should('contain.text', 'Digitaliseringsdirektoratet');
-        cy.wrap(item).eq(6).should('contain.text', 'Sophie Salt');
+    cy.get(appFrontend.group.mainGroupSummaryContent).should('have.length', 1);
+    const groupElements = () => cy.get(appFrontend.group.mainGroupSummaryContent).first().children(mui.gridItem);
 
-        cy.wrap(item).eq(4).find('button').first().should('contain.text', texts.change);
-      });
+    groupElements().should('have.length', 7);
+    groupElements().find('button').should('have.length', 7);
+
+    groupElements().eq(2).should('contain.text', 'attachment-in-single.pdf');
+    groupElements().eq(3).should('contain.text', 'attachment-in-multi1.pdf');
+    groupElements().eq(3).should('contain.text', 'attachment-in-multi2.pdf');
+    groupElements().eq(4).should('contain.text', 'attachment-in-nested.pdf');
+    groupElements().eq(4).should('contain.text', 'automation');
+    groupElements().eq(4).should('contain.text', texts.nestedOptionsToggle);
+    groupElements().eq(4).should('not.contain.text', texts.nestedOptions);
+    groupElements().eq(4).should('contain.text', 'hvor fikk du vite om skjemaet? : Annet');
+    groupElements().eq(4).should('contain.text', 'Referanse : Test');
+    groupElements().eq(5).should('contain.text', 'Digitaliseringsdirektoratet');
+    groupElements().eq(6).should('contain.text', 'Sophie Salt');
+    groupElements().eq(4).find('button').first().should('contain.text', texts.change);
 
     // Go back to the repeating group in order to set nested options
     cy.get(appFrontend.group.mainGroupSummaryContent)
@@ -222,16 +219,11 @@ describe('Summary', () => {
     cy.get(appFrontend.group.row(0).nestedGroup.row(0).nestedOptions[2]).check();
     cy.get(appFrontend.backToSummaryButton).click();
 
-    cy.get(appFrontend.group.mainGroupSummaryContent)
-      .should('have.length', 1)
-      .first()
-      .children(mui.gridItem)
-      .should('have.length', 7)
-      .then((item) => {
-        cy.wrap(item).eq(4).should('contain.text', texts.nestedOptionsToggle);
-        cy.wrap(item).eq(4).should('contain.text', texts.nestedOptions);
-        cy.wrap(item).eq(4).should('contain.text', `${texts.nestedOption2}, ${texts.nestedOption3}`);
-      });
+    cy.get(appFrontend.group.mainGroupSummaryContent).should('have.length', 1);
+    groupElements().should('have.length', 7);
+    groupElements().eq(4).should('contain.text', texts.nestedOptionsToggle);
+    groupElements().eq(4).should('contain.text', texts.nestedOptions);
+    groupElements().eq(4).should('contain.text', `${texts.nestedOption2}, ${texts.nestedOption3}`);
 
     cy.gotoNavPage('prefill');
     cy.get(appFrontend.group.prefill.liten).check();

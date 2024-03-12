@@ -3,6 +3,8 @@
   "baseUrl": "https://tt02.altinn.no",
   "frontendUrl": "http://localhost:8080",
   "env": {
+    "type": "production-like",
+
     "defaultFullName": "RISHAUG JULIUS",
     "defaultFirstName": "JULIUS",
     "defaultUserName": "testuserexternal",

@@ -3,6 +3,8 @@
   "baseUrl": "http://local.altinn.cloud",
   "frontendUrl": "http://localhost:8080",
   "env": {
+    "type": "localtest",
+
     "defaultFullName": "Ola Nordmann",
     "defaultFirstName": "Ola",
     "defaultPartyId": "12345.512345",

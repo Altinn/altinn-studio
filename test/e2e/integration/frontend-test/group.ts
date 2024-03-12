@@ -582,6 +582,10 @@ describe('Group', () => {
     cy.get(appFrontend.group.prefill.enorm).check();
     cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
+
+    // Make sure the new row is added last, and that the last few things we did has been saved
+    // (and thus that the new rows have been received from the backend)
+    cy.waitUntilSaved();
     cy.get(appFrontend.group.addNewItem).click();
 
     cy.get('#group-mainGroup table th').eq(0).should('have.text', 'currentValue tableTitle');
@@ -752,6 +756,7 @@ describe('Group', () => {
     cy.gotoNavPage('prefill');
     cy.get('#prefill-enabled').findByRole('radio', { name: 'Nei' }).click();
     cy.get(appFrontend.group.prefill.middels).check();
+    cy.waitUntilSaved();
 
     cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', 1);

@@ -581,9 +581,11 @@ describe('Validation', () => {
     cy.fillOut('changename');
 
     cy.get(appFrontend.grid.bolig.percent).numberFormatClear();
-    cy.get(appFrontend.grid.studie.percent).numberFormatClear();
+
     cy.get(appFrontend.grid.kredittkort.percent).numberFormatClear();
     cy.get(appFrontend.grid.kredittkort.percent).type('44');
+
+    cy.get(appFrontend.grid.studie.percent).numberFormatClear();
     cy.get(appFrontend.grid.studie.percent).type('56');
 
     // When filling out the credit card field with 44%, there is a special validation that triggers and is added to
@@ -592,6 +594,7 @@ describe('Validation', () => {
     // the dreaded 'unknown error' message to appear.
     cy.get(appFrontend.sendinButton).click();
     cy.get(appFrontend.errorReport).should('contain.text', 'Valideringsmelding på felt som aldri vises');
+    cy.navPage('grid').should('have.attr', 'aria-current', 'page');
   });
 
   it('Submitting should be rejected if validation fails on field hidden using expression', () => {
