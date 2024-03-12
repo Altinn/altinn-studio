@@ -22,7 +22,7 @@ import { StudioButton } from '@studio/components';
 import type { EnvId } from '../../utils/resourceUtils/resourceUtils';
 import { getAvailableEnvironments } from '../../utils/resourceUtils/resourceUtils';
 
-type MigrationPageProps = {
+export type MigrationPageProps = {
   navigateToPageWithError: (page: NavigationBarPage) => void;
   id: string;
 };
