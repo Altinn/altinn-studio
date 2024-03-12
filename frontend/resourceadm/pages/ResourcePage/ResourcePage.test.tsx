@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { ResourcePage } from './ResourcePage';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
@@ -30,9 +30,11 @@ const mockResource2: Resource = {
 };
 
 const mockSelectedContext: string = 'test';
+const mockedNavigate = jest.fn();
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockedNavigate,
   useParams: jest.fn().mockImplementation(() => {
     return {
       pageType: 'about',
@@ -147,6 +149,35 @@ describe('ResourcePage', () => {
         level: 1,
       }),
     ).toBeInTheDocument();
+  });
+
+  it('should navigate to policy page when resource has no errors', async () => {
+    const user = userEvent.setup();
+    const getResource = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<Resource>(mockResource1));
+    const getValidateResource = jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        status: 200,
+        errors: {},
+      }),
+    );
+
+    renderResourcePage({ getResource, getValidateResource });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
+    );
+
+    const policyButton = screen.getByRole('tab', {
+      name: textMock('resourceadm.left_nav_bar_policy'),
+    });
+    await act(() => user.click(policyButton));
+
+    await waitFor(() =>
+      expect(mockedNavigate).toHaveBeenCalledWith(
+        `/${mockSelectedContext}/${mockSelectedContext}-resources/resource/${mockResource1.identifier}/policy`,
+      ),
+    );
   });
 
   it('opens navigation modal when policy has errors when navigating from policy to about page', async () => {
