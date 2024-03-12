@@ -75,7 +75,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="layoutSetName">Name of layoutSet to fetch corresponding model metadata for</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The model metadata for a given layout set.</returns>
-        public Task<JsonNode> GetModelMetadata(
+        public Task<ModelMetadata> GetModelMetadata(
             AltinnRepoEditingContext altinnRepoEditingContext, [CanBeNull] string layoutSetName,
             CancellationToken cancellationToken = default);
 

@@ -152,12 +152,10 @@ public class PutDatamodelTests : DisagnerEndpointsTestsBase<PutDatamodelTests>, 
         var metamodelLocation = Path.Combine(location, $"{modelName}.metadata.json");
 
         Assert.True(File.Exists(xsdSchemaLocation));
-        Assert.True(File.Exists(metamodelLocation));
         Assert.True(File.Exists(jsonSchemaLocation));
 
         await VerifyXsdFileContent(xsdSchemaLocation);
         FileContentVerifier.VerifyJsonFileContent(jsonSchemaLocation, MinimumValidJsonSchema);
-        VerifyMetadataContent(metamodelLocation);
     }
 
     private static async Task VerifyXsdFileContent(string path)

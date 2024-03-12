@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using System.Xml;
 using Altinn.Authorization.ABAC.Utils;
@@ -264,8 +263,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 await _applicationMetadataService.CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
                 await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, serviceConfig.RepositoryName, developer);
-                await _appDevelopmentService.SaveFormLayout(editingContext, null, InitialLayout, GetInitialLayout());
-                await _appDevelopmentService.SaveLayoutSettings(editingContext, GetInitialLayoutSettings(InitialLayout), null);
                 await CreateRepositorySettings(org, serviceConfig.RepositoryName, developer);
 
                 CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
@@ -274,34 +271,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return repository;
-        }
-
-        private static JsonNode GetInitialLayout()
-        {
-            var layout = new JsonObject
-            {
-                ["$schema"] = AltinnAppGitRepository.LayoutSchemaUrl,
-                ["data"] = new JsonObject
-                {
-                    ["layout"] = new JsonArray()
-                }
-            };
-            return layout;
-        }
-
-        private static JsonNode GetInitialLayoutSettings(string initialLayout)
-        {
-
-            var layoutSettings = new JsonObject
-            {
-                ["$schema"] = AltinnAppGitRepository.LayoutSettingsSchemaUrl,
-                ["pages"] = new JsonObject
-                {
-                    ["order"] = new JsonArray { initialLayout }
-                }
-            };
-
-            return layoutSettings;
         }
 
         private async Task CreateRepositorySettings(string org, string repository, string developer)
@@ -408,6 +377,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             // Create the app deployment folder
             Directory.CreateDirectory(targetPath);
+
+            var files = Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories);
 
             // Create all of the directories
             foreach (string dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))

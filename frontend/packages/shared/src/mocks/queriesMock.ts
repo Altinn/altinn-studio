@@ -78,8 +78,6 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve<AppReleasesResponse>(appReleasesResponse)),
   getAppVersion: jest.fn().mockImplementation(() => Promise.resolve<AppVersion>(appVersion)),
   getBranchStatus: jest.fn().mockImplementation(() => Promise.resolve<BranchStatus>(branchStatus)),
-  getComponentSchema: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
-  getComponentsCommonDefsSchema: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getDatamodel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   getDatamodelMetadata: jest
     .fn()
@@ -95,16 +93,13 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<AppDeploymentsResponse>(appDeploymentsResponse)),
   getEnvironments: jest.fn().mockImplementation(() => Promise.resolve<DeployEnvironment[]>([])),
-  getExpressionSchema: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponse>({})),
   getFormLayoutsV3: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponseV3>({})),
   getFrontEndSettings: jest.fn().mockImplementation(() => Promise.resolve<IFrontEndSettings>({})),
   getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
-  getLayoutSchema: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets)),
   getNewsList: jest.fn().mockImplementation(() => Promise.resolve<NewsList>(newsList)),
-  getNumberFormatSchema: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgsState>(orgsState)),
   getOrganizations: jest.fn().mockImplementation(() => Promise.resolve<Organization[]>([])),

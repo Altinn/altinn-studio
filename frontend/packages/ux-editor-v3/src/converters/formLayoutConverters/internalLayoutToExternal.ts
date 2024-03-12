@@ -1,6 +1,6 @@
 import type { IInternalLayout } from '../../types/global';
 import type { ExternalComponentV3, ExternalFormLayoutV3 } from 'app-shared/types/api';
-import { layoutSchemaUrl } from 'app-shared/cdn-paths';
+import { layoutSchemaUrlV3 } from 'app-shared/cdn-paths';
 import type { ExternalContainerComponent } from '../../types/ExternalContainerComponent';
 import { internalContainerComponentToExternal } from '../containerComponentConverters';
 import type { FormContainer } from '../../types/FormContainer';
@@ -13,7 +13,7 @@ import type { FormComponent } from '../../types/FormComponent';
 export const internalLayoutToExternal = (
   internalLayout: IInternalLayout,
 ): ExternalFormLayoutV3 => ({
-  $schema: layoutSchemaUrl(),
+  $schema: layoutSchemaUrlV3(),
   data: {
     layout: generateExternalComponents(internalLayout),
     ...internalLayout.customDataProperties,

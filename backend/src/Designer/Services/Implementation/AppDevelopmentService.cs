@@ -5,6 +5,7 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Models;
+using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
@@ -23,14 +24,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
     public class AppDevelopmentService : IAppDevelopmentService
     {
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
+        private readonly ISchemaModelService _schemaModelService;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
-        public AppDevelopmentService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
+        /// <param name="schemaModelService">ISchemaModelService</param>
+        public AppDevelopmentService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ISchemaModelService schemaModelService)
         {
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
+            _schemaModelService = schemaModelService;
         }
 
         /// <inheritdoc />
@@ -147,7 +151,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<JsonNode> GetModelMetadata(AltinnRepoEditingContext altinnRepoEditingContext,
+        public async Task<ModelMetadata> GetModelMetadata(AltinnRepoEditingContext altinnRepoEditingContext,
             string layoutSetName, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -159,12 +163,23 @@ namespace Altinn.Studio.Designer.Services.Implementation
             // get task_id since we might not maintain dataType ref in layout-sets-file
             string taskId = await GetTaskIdBasedOnLayoutSet(altinnRepoEditingContext, layoutSetName, cancellationToken);
             string modelName = GetModelName(applicationMetadata, taskId);
-            string fileContent = await altinnAppGitRepository.GetModelMetadata(modelName);
-            return JsonNode.Parse(fileContent);
+            if (string.IsNullOrEmpty(modelName))
+            {
+                return new ModelMetadata();
+            }
+            string modelPath = $"App/models/{modelName}.schema.json";
+            ModelMetadata modelMetadata = await _schemaModelService.GenerateModelMetadataFromJsonSchema(altinnRepoEditingContext, modelPath, cancellationToken);
+            return modelMetadata;
         }
 
         private string GetModelName(ApplicationMetadata applicationMetadata, [CanBeNull] string taskId)
         {
+            // fallback to first model if no task_id is provided (no layoutsets)
+            if (taskId == null)
+            {
+                return applicationMetadata.DataTypes.FirstOrDefault(data => data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef) && !string.IsNullOrEmpty(data.TaskId))?.Id ?? string.Empty;
+            }
+
             PlatformStorageModels.DataType data = applicationMetadata.DataTypes
                 .FirstOrDefault(data => data.AppLogic != null && DoesDataTaskMatchTaskId(data, taskId) && !string.IsNullOrEmpty(data.AppLogic.ClassRef));
 
