@@ -129,24 +129,25 @@ export class UiEditorPage extends BasePage {
     await expect(textTreeItem).toBeVisible();
   }
 
-  public async clickOnAddLabelText(): Promise<void> {
+  public async clickOnTitleTextButton(): Promise<void> {
     await this.page
       .getByRole('button', {
-        name: this.textMock('ux_editor.text_resource_binding_add_title'),
+        name: this.textMock('ux_editor.modal_properties_textResourceBindings_title'),
+        exact: true,
       })
       .click();
   }
 
-  public async clickOnEditLabelText(): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock('ux_editor.text_resource_binding_edit_title'),
-      })
-      .click();
+  public async writeTitleTextInTextarea(text: string): Promise<void> {
+    await this.getTitleTextFieldset()
+      .getByRole('textbox', { name: this.textMock('ux_editor.text_resource_binding_text') })
+      .fill(text);
   }
 
-  public async writeLabelTextInTextarea(text: string): Promise<void> {
-    await this.page.getByLabel(this.textMock('language.nb')).fill(text);
+  private getTitleTextFieldset(): Locator {
+    return this.page.getByRole('group', {
+      name: this.textMock('ux_editor.modal_properties_textResourceBindings_title'),
+    });
   }
 
   public async clickOnSaveNewLabelName(): Promise<void> {
