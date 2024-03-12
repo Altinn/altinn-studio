@@ -33,9 +33,25 @@ module.exports = {
         use: ['@svgr/webpack'],
       },
       {
+        test: /(?<!\.module)\.css$/,
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader,
+          },
+          {
+            loader: 'css-loader',
+            options: {
+              url: false,
+            },
+          },
+        ],
+      },
+      {
         test: /\.module\.css$/,
         use: [
-          'style-loader',
+          {
+            loader: MiniCssExtractPlugin.loader,
+          },
           {
             loader: 'css-loader',
             options: {
@@ -48,20 +64,6 @@ module.exports = {
               modules: {
                 localIdentName: '[name]__[local]--[hash:base64:5]',
               },
-            },
-          },
-        ],
-      },
-      {
-        test: /(?<!\.module)\.css$/,
-        use: [
-          {
-            loader: MiniCssExtractPlugin.loader,
-          },
-          {
-            loader: 'css-loader',
-            options: {
-              url: false,
             },
           },
         ],
