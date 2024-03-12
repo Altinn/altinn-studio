@@ -2,6 +2,30 @@
   "language": "nb",
   "resources": [
     {
+      "id": "Side1.Input-aWlSF3.title",
+      "value": "Tekstfelt"
+    },
+    {
+      "id": "Side1.Input-bhWSyO.title",
+      "value": "Tekstfelt"
+    },
+    {
+      "id": "Side1.Header-vzkx0K.title",
+      "value": "Datamodell 2"
+    },
+    {
+      "id": "Side1.Header-GPW9rL.title",
+      "value": "Datamodell 1"
+    },
+    {
+      "id": "Side1.Group-ckaPcK.title",
+      "value": "Datamodell 2"
+    },
+    {
+      "id": "Side1.Group-WMXCGL.title",
+      "value": "Datamodell 1"
+    },
+    {
       "id": "appName",
       "value": "multiple-datamodels-test"
     }

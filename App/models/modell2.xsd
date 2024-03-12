@@ -5,12 +5,10 @@
       <xsd:attribute name="rootNode" fixed="" />
     </xs:documentation>
   </xs:annotation>
-  <xs:element name="model">
+  <xs:element name="modell2">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="property1" type="xs:string" />
-        <xs:element name="property2" type="xs:string" />
-        <xs:element minOccurs="0" name="property3" type="xs:string" />
+        <xs:element name="tekstfelt" type="xs:string" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

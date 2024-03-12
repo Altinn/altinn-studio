@@ -1,7 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "http://altinn-repositories:3000/bjosttveit/v4-data/App/models/model.schema.json",
-  "type": "object",
+  "$id": "http://altinn-repositories:3000/ttd/multiple-datamodels-test/App/models/modell2.schema.json",
   "info": {
     "rootNode": ""
   },
@@ -16,20 +15,15 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
-  "@xsdRootElement": "model",
-  "properties": {
-    "property1": {
-      "type": "string"
-    },
-    "property2": {
-      "type": "string"
-    },
-    "property3": {
-      "type": "string"
-    }
-  },
+  "@xsdRootElement": "modell2",
+  "type": "object",
   "required": [
-    "property1",
-    "property2"
-  ]
+    "tekstfelt"
+  ],
+  "properties": {
+    "tekstfelt": {
+      "type": "string",
+      "maxLength": 10
+    }
+  }
 }

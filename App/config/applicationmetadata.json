@@ -19,17 +19,36 @@
       "enabledFileValidators": []
     },
     {
-      "id": "model",
+      "id": "modell1",
       "allowedContentTypes": [
         "application/xml"
       ],
       "appLogic": {
         "autoCreate": true,
-        "classRef": "Altinn.App.Models.model.model",
+        "classRef": "Altinn.App.Models.modell1.modell1",
         "allowAnonymousOnStateless": false,
         "autoDeleteOnProcessEnd": false
       },
       "taskId": "Task_1",
+      "maxCount": 1,
+      "minCount": 1,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "modell2",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.modell2.modell2",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false
+      },
       "maxCount": 1,
       "minCount": 1,
       "enablePdfCreation": true,
