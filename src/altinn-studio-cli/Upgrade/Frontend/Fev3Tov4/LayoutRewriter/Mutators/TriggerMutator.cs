@@ -9,12 +9,6 @@ namespace Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.LayoutRewriter.Mutators;
 /// </summary>
 class TriggerMutator : ILayoutMutator
 {
-    private readonly bool preserveDefaultTriggers;
-
-    public TriggerMutator(bool preserveDefaultTriggers) {
-        this.preserveDefaultTriggers = preserveDefaultTriggers;
-    }
-
     public override IMutationResult Mutate(
         JsonObject component,
         Dictionary<string, JsonObject> componentLookup
@@ -30,33 +24,31 @@ class TriggerMutator : ILayoutMutator
             return new ErrorResult() { Message = "Unable to parse component type" };
         }
 
-        // TODO: Do we need to add standard validations to all components? Like options based components?
         var formComponentTypes = new List<string>() {"Address", "Checkboxes", "Custom", "Datepicker", "Dropdown", "FileUpload", "FileUploadWithTag", "Grid", "Input", "Likert", "List", "Map", "MultipleSelect", "RadioButtons", "TextArea"};
-
         if (formComponentTypes.Contains(type))
         {
+            // "showValidations": ["AllExceptRequired"] is now default in v4, so no additional changes are needed.
             if (component.TryGetPropertyValue("triggers", out var triggersNode))
             {
                 component.Remove("triggers");
+            }
 
-                if (
-                    triggersNode is JsonArray triggersArray
-                    && triggersArray
-                        .Where(x => x is JsonValue && x.GetValueKind() == JsonValueKind.String)
-                        .Select(x => x?.GetValue<string>())
-                        is var triggers
-                    && triggers.Contains("validation")
-                )
-                {
-                    component.Add("showValidations", JsonNode.Parse(@"[""AllExceptRequired""]"));
-                    return new ReplaceResult() { Component = component };
-                }
-            }
-            if (this.preserveDefaultTriggers)
+            // Removing redundant "showValidations": ["AllExceptRequired"] from previous upgrade runs.
+            if (
+                component.TryGetPropertyValue("showValidations", out var showValidationsNode)
+                && showValidationsNode is JsonArray showValidationsArray
+                && showValidationsArray
+                    .Where(x => x is JsonValue && x.GetValueKind() == JsonValueKind.String)
+                    .Select(x => x?.GetValue<string>())
+                    is var showValidationsValues
+                && showValidationsValues.Count() == 1
+                && showValidationsValues.Contains("AllExceptRequired")
+            )
             {
-                component.Add("showValidations", JsonNode.Parse(@"[""Schema"", ""Component""]"));
-                return new ReplaceResult() { Component = component };
+                component.Remove("showValidations");
             }
+
+            return new ReplaceResult() { Component = component };
         }
 
         if (type == "RepeatingGroup") 

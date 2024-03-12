@@ -39,7 +39,6 @@ class FrontendUpgrade
         var skipLayoutSetUpgradeOption = new Option<bool>(name: "--skip-layout-set-upgrade", description: "Skip layout set upgrade", getDefaultValue: () => false);
         var skipSettingsUpgradeOption = new Option<bool>(name: "--skip-settings-upgrade", description: "Skip layout settings upgrade", getDefaultValue: () => false);
         var skipLayoutUpgradeOption = new Option<bool>(name: "--skip-layout-upgrade", description: "Skip layout files upgrade", getDefaultValue: () => false);
-        var preserveDefaultTriggersOption = new Option<bool>(name: "--preserve-default-triggers", description: "Preserve default schema and component validation triggers", getDefaultValue: () => false);
         var convertGroupTitlesOption = new Option<bool>(name: "--convert-group-titles", description: "Convert 'title' in repeating groups to 'summaryTitle'", getDefaultValue: () => false);
         var skipSchemaRefUpgradeOption = new Option<bool>(name: "--skip-schema-ref-upgrade", description: "Skip schema reference upgrade", getDefaultValue: () => false);
         var skipFooterUpgradeOption = new Option<bool>(name: "--skip-footer-upgrade", description: "Skip footer upgrade", getDefaultValue: () => false);
@@ -60,7 +59,6 @@ class FrontendUpgrade
             skipLayoutSetUpgradeOption,
             skipSettingsUpgradeOption,
             skipLayoutUpgradeOption,
-            preserveDefaultTriggersOption,
             convertGroupTitlesOption,
             skipSchemaRefUpgradeOption,
             skipFooterUpgradeOption,
@@ -85,7 +83,6 @@ class FrontendUpgrade
                 var skipChecks = context.ParseResult.GetValueForOption(skipChecksOption)!;
                 var layoutSetName = context.ParseResult.GetValueForOption(layoutSetNameOption)!;
                 var receiptLayoutSetName = context.ParseResult.GetValueForOption(receiptLayoutSetNameOption)!;
-                var preserveDefaultTriggers = context.ParseResult.GetValueForOption(preserveDefaultTriggersOption)!;
                 var convertGroupTitles = context.ParseResult.GetValueForOption(convertGroupTitlesOption)!;
                 var targetVersion = context.ParseResult.GetValueForOption(targetVersionOption)!;
 
@@ -143,7 +140,7 @@ class FrontendUpgrade
                 if (!skipLayoutUpgrade && returnCode == 0)
                 {
 
-                    returnCode = await LayoutUpgrade(uiFolder, preserveDefaultTriggers, convertGroupTitles);
+                    returnCode = await LayoutUpgrade(uiFolder, convertGroupTitles);
                 }
 
                 if (!skipFooterUpgrade && returnCode == 0)
@@ -283,7 +280,7 @@ class FrontendUpgrade
         return 0;
     }
 
-    private static async Task<int> LayoutUpgrade(string uiFolder, bool preserveDefaultTriggers, bool convertGroupTitles)
+    private static async Task<int> LayoutUpgrade(string uiFolder, bool convertGroupTitles)
     {
         if (!Directory.Exists(uiFolder))
         {
@@ -297,8 +294,7 @@ class FrontendUpgrade
             return 1;
         }
 
-
-        var rewriter = new LayoutUpgrader(uiFolder, preserveDefaultTriggers, convertGroupTitles);
+        var rewriter = new LayoutUpgrader(uiFolder, convertGroupTitles);
         rewriter.Upgrade();
         await rewriter.Write();
 
