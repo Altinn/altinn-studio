@@ -35,7 +35,8 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
     const [resourceIdExists, setResourceIdExists] = useState(false);
 
     // Mutation function to create new resource
-    const { mutate: createNewResource } = useCreateResourceMutation(selectedContext);
+    const { mutate: createNewResource, isPending: isCreatingResource } =
+      useCreateResourceMutation(selectedContext);
 
     /**
      * Creates a new resource in backend, and navigates if success
@@ -71,6 +72,10 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
       setResourceIdExists(false);
     };
 
+    const isCreateButtonDisabled = (): boolean => {
+      return id.length === 0 || title.length === 0 || isCreatingResource;
+    };
+
     return (
       <Modal ref={ref} onClose={handleClose}>
         <Modal.Header>{t('resourceadm.dashboard_create_modal_title')}</Modal.Header>
@@ -95,11 +100,9 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
         </Modal.Content>
         <Modal.Footer>
           <StudioButton
-            onClick={() =>
-              !(id.length === 0 || title.length === 0) ? handleCreateNewResource() : undefined
-            }
+            onClick={() => (isCreateButtonDisabled() ? undefined : handleCreateNewResource())}
             color='first'
-            aria-disabled={id.length === 0 || title.length === 0}
+            aria-disabled={isCreateButtonDisabled()}
             size='small'
           >
             {t('resourceadm.dashboard_create_modal_create_button')}

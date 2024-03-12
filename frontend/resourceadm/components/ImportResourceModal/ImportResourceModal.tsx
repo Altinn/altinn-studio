@@ -52,7 +52,7 @@ export const ImportResourceModal = ({
   const [id, setId] = useState('');
   const [resourceIdExists, setResourceIdExists] = useState(false);
 
-  const { mutate: importResourceFromAltinn2Mutation } =
+  const { mutate: importResourceFromAltinn2Mutation, isPending: isImportingResource } =
     useImportResourceFromAltinn2Mutation(selectedContext);
 
   /**
@@ -147,7 +147,7 @@ export const ImportResourceModal = ({
           onClick={handleImportResource}
           color='first'
           size='small'
-          disabled={!selectedEnv || !selectedService || !id}
+          disabled={!selectedEnv || !selectedService || !id || isImportingResource}
         >
           {t('resourceadm.dashboard_import_modal_import_button')}
         </StudioButton>
