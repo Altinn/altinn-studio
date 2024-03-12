@@ -58,7 +58,7 @@ export const MigrationPage = ({
   const initialDate = new Date().toISOString().split('T')[0];
   const [migrationDate, setMigrationDate] = useState(initialDate);
   const [migrationTime, setMigrationTime] = useState('00:00');
-  const [selectedEnv, setSelectedEnv] = useState<EnvId | null>(null);
+  const [selectedEnv, setSelectedEnv] = useState<EnvId | '-'>('-');
   const [numDelegationsA2, setNumDelegationsA2] = useState<number>(undefined);
   const [numDelegationsA3, setNumDelegationsA3] = useState<number>(undefined);
 
