@@ -149,7 +149,7 @@ export function EditOptions<T extends SelectionComponentType>({
           />
         </StudioProperty.Group>
       )}
-      {errorMessage && (
+      {selectedOptionsType !== SelectedOptionsType.CodeList && errorMessage && (
         <ErrorMessage className={classes.errorMessage} size='small'>
           {errorMessage}
         </ErrorMessage>
