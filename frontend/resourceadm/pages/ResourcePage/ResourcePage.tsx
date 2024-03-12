@@ -304,7 +304,9 @@ export const ResourcePage = (): React.JSX.Element => {
       {policyErrorModalOpen && (
         <NavigationModal
           isOpen={policyErrorModalOpen}
-          onClose={() => setPolicyErrorModalOpen(false)}
+          onClose={() => {
+            setPolicyErrorModalOpen(false);
+          }}
           onNavigate={() => handleNavigation(nextPage)}
           title={t('resourceadm.resource_navigation_modal_title_policy')}
         />
@@ -312,7 +314,9 @@ export const ResourcePage = (): React.JSX.Element => {
       {resourceErrorModalOpen && (
         <NavigationModal
           isOpen={resourceErrorModalOpen}
-          onClose={() => setResourceErrorModalOpen(false)}
+          onClose={() => {
+            setResourceErrorModalOpen(false);
+          }}
           onNavigate={() => handleNavigation(nextPage)}
           title={t('resourceadm.resource_navigation_modal_title_resource')}
         />
