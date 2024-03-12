@@ -6,7 +6,7 @@ import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import type { Resource } from 'app-shared/types/ResourceAdm';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useParams } from 'react-router-dom';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
@@ -33,10 +33,12 @@ const mockSelectedContext: string = 'test';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
-  useParams: () => ({
-    pageType: 'about',
-    resourceId: mockResource1.identifier,
-    selectedContext: mockSelectedContext,
+  useParams: jest.fn().mockImplementation(() => {
+    return {
+      pageType: 'about',
+      resourceId: mockResource1.identifier,
+      selectedContext: mockSelectedContext,
+    };
   }),
 }));
 
@@ -115,7 +117,7 @@ describe('ResourcePage', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('opens navigation modal when resource has errors', async () => {
+  it('opens navigation modal when resource has errors when navigating from about to policy page', async () => {
     const user = userEvent.setup();
     const getResource = jest
       .fn()
@@ -142,6 +144,36 @@ describe('ResourcePage', () => {
     expect(
       screen.getByRole('heading', {
         name: textMock('resourceadm.resource_navigation_modal_title_resource'),
+        level: 1,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('opens navigation modal when policy has errors when navigating from policy to about page', async () => {
+    const user = userEvent.setup();
+    const getResource = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<Resource>(mockResource2));
+    const getValidatePolicy = jest.fn().mockImplementation(() => Promise.reject(null));
+    (useParams as jest.Mock).mockReturnValue({
+      pageType: 'policy',
+      resourceId: mockResource1.identifier,
+      selectedContext: mockSelectedContext,
+    });
+
+    renderResourcePage({ getResource, getValidatePolicy });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
+    );
+
+    const aboutButton = screen.getByRole('tab', {
+      name: textMock('resourceadm.left_nav_bar_about'),
+    });
+    await act(() => user.click(aboutButton));
+
+    expect(
+      screen.getByRole('heading', {
+        name: textMock('resourceadm.resource_navigation_modal_title_policy'),
         level: 1,
       }),
     ).toBeInTheDocument();
