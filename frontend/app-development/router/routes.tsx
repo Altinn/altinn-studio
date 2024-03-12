@@ -38,7 +38,7 @@ const UiEditor = () => {
   const { org, app } = useStudioUrlParams();
   const { data: version } = useAppVersionQuery(org, app);
   if (!version) return null;
-  return isLatestFrontendVersion(version) ? <UiEditorLatest /> : <UiEditorLatest />;
+  return isLatestFrontendVersion(version) ? <UiEditorLatest /> : <UiEditorV3 />;
 };
 
 export const routerRoutes: RouterRoute[] = [

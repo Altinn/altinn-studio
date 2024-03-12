@@ -5,11 +5,15 @@ import { useBpmnContext } from '../../contexts/BpmnContext';
 import { ConfigIcon } from '../ConfigPanel/ConfigContent/ConfigIcon';
 import { getConfigTitleHelpTextKey, getConfigTitleKey } from '../../utils/configPanelUtils';
 import { useTranslation } from 'react-i18next';
-import { Paragraph } from '@digdir/design-system-react';
-import classes from '../ConfigPanel/ConfigPanel.module.css';
+import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
+import { ConfigSurface } from '../ConfigSurface/ConfigSurface';
 
 export const ConfigViewerPanel = (): React.ReactElement => {
-  return <div className={classes.configPanel}>{<ConfigViewerPanelContent />}</div>;
+  return (
+    <ConfigSurface>
+      <ConfigViewerPanelContent />
+    </ConfigSurface>
+  );
 };
 
 export const ConfigViewerPanelContent = (): React.ReactElement => {
@@ -53,5 +57,15 @@ export const ConfigViewerPanelContent = (): React.ReactElement => {
 };
 
 const ChooseElementToViewAlert = (): React.ReactElement => {
-  return <Paragraph>Choose element to view property details for</Paragraph>;
+  const { t } = useTranslation();
+  return (
+    <Alert>
+      <Heading level={3} size='xxsmall' spacing>
+        {t('process_editor.configuration_view_panel_no_task')}
+      </Heading>
+      <Paragraph size='small'>
+        {t('process_editor.configuration_view_panel_please_choose_task')}
+      </Paragraph>
+    </Alert>
+  );
 };
