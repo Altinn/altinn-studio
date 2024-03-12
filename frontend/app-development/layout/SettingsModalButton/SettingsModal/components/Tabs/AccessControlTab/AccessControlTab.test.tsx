@@ -12,10 +12,10 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient, UseMutationResult } from '@tanstack/react-query';
-import userEvent from '@testing-library/user-event';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { mockAppMetadata } from '../../../mocks/applicationMetadataMock';
+import userEvent from '@testing-library/user-event';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
@@ -38,6 +38,25 @@ const defaultProps: AccessControlTabProps = {
 
 describe('AccessControlTab', () => {
   afterEach(jest.clearAllMocks);
+
+  it('renders the header', async () => {
+    render();
+    const header = screen.getByRole('heading', {
+      name: textMock('settings_modal.access_control_tab_heading'),
+    });
+    expect(header).toBeInTheDocument();
+  });
+
+  it('renders the columnheader', async () => {
+    render();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('settings_modal.loading_content')),
+    );
+    const columnHeader = screen.getByRole('columnheader', {
+      name: textMock('settings_modal.access_control_tab_option_all_type_partner'),
+    });
+    expect(columnHeader).toBeInTheDocument();
+  });
 
   it('initially displays the spinner when loading data', () => {
     render();
@@ -63,7 +82,35 @@ describe('AccessControlTab', () => {
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
   });
 
-  it('should render all checkboxes as unchecked when applicationMetadata des not contain partyTypes allowed', async () => {
+  it('should render all checkboxes', async () => {
+    getAppMetadata.mockImplementation(() => Promise.resolve(mockAppMetadata));
+    render();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('settings_modal.loading_content')),
+    );
+
+    const bankruptcyEstateCheckbox = screen.getByRole('row', {
+      name: textMock('settings_modal.access_control_tab_option_bankruptcy_estate'),
+    });
+    expect(bankruptcyEstateCheckbox).toBeInTheDocument();
+
+    const organisationCheckbox = screen.getByRole('row', {
+      name: textMock('settings_modal.access_control_tab_option_organisation'),
+    });
+    expect(organisationCheckbox).toBeInTheDocument();
+
+    const personCheckbox = screen.getByRole('row', {
+      name: textMock('settings_modal.access_control_tab_option_person'),
+    });
+    expect(personCheckbox).toBeInTheDocument();
+
+    const subUnitCheckbox = screen.getByRole('row', {
+      name: textMock('settings_modal.access_control_tab_option_sub_unit'),
+    });
+    expect(subUnitCheckbox).toBeInTheDocument();
+  });
+
+  it('should render all checkboxes as unchecked when applicationMetadata does not contain partyTypes allowed', async () => {
     getAppMetadata.mockImplementation(() =>
       Promise.resolve({ ...mockAppMetadata, partyTypesAllowed: null }),
     );
@@ -72,40 +119,71 @@ describe('AccessControlTab', () => {
       screen.queryByTitle(textMock('settings_modal.loading_content')),
     );
 
-    const checkboxes = screen.queryAllByRole('checkbox');
-    expect(checkboxes).toHaveLength(4);
-    checkboxes.forEach((c) => expect(c).not.toBeChecked());
-  });
-
-  it('should render all checkboxes with the correct values based on the party types allowed', async () => {
-    await resolveAndWaitForSpinnerToDisappear();
-
-    const bankruptcyEstateCheckbox = screen.getByRole('checkbox', {
+    const bankruptcyEstateCheckbox = screen.getByRole('row', {
       name: textMock('settings_modal.access_control_tab_option_bankruptcy_estate'),
     });
-    expect(bankruptcyEstateCheckbox).toBeChecked();
+    expect(bankruptcyEstateCheckbox).not.toBeChecked();
 
-    const organisationCheckbox = screen.getByRole('checkbox', {
+    const organisationCheckbox = screen.getByRole('row', {
       name: textMock('settings_modal.access_control_tab_option_organisation'),
     });
     expect(organisationCheckbox).not.toBeChecked();
 
-    const personCheckbox = screen.getByRole('checkbox', {
+    const personCheckbox = screen.getByRole('row', {
       name: textMock('settings_modal.access_control_tab_option_person'),
     });
     expect(personCheckbox).not.toBeChecked();
 
-    const subUnitCheckbox = screen.getByRole('checkbox', {
+    const subUnitCheckbox = screen.getByRole('row', {
       name: textMock('settings_modal.access_control_tab_option_sub_unit'),
     });
     expect(subUnitCheckbox).not.toBeChecked();
+  });
+
+  it('should render all checkboxes labels with the correct values based on the party types allowed', async () => {
+    getAppMetadata.mockImplementation(() =>
+      Promise.resolve({
+        ...mockAppMetadata,
+        partyTypesAllowed: {
+          bankruptcyEstate: true,
+          organisation: true,
+          person: true,
+          subUnit: true,
+        },
+      }),
+    );
+
+    render();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('settings_modal.loading_content')),
+    );
+
+    const bankruptcyEstateCheckbox = screen.getByRole('row', {
+      name: textMock('settings_modal.access_control_tab_option_bankruptcy_estate'),
+    });
+    expect(bankruptcyEstateCheckbox).toBeInTheDocument();
+
+    const organisationCheckbox = screen.getByRole('row', {
+      name: textMock('settings_modal.access_control_tab_option_organisation'),
+    });
+    expect(organisationCheckbox).toBeInTheDocument();
+
+    const personCheckbox = screen.getByRole('row', {
+      name: textMock('settings_modal.access_control_tab_option_person'),
+    });
+    expect(personCheckbox).toBeInTheDocument();
+
+    const subUnitCheckbox = screen.getByRole('row', {
+      name: textMock('settings_modal.access_control_tab_option_sub_unit'),
+    });
+    expect(subUnitCheckbox).toBeInTheDocument();
   });
 
   it('handles checkbox changes', async () => {
     const user = userEvent.setup();
     await resolveAndWaitForSpinnerToDisappear();
 
-    const organisationCheckboxBefore = screen.getByRole('checkbox', {
+    const organisationCheckboxBefore = screen.getByRole('row', {
       name: textMock('settings_modal.access_control_tab_option_organisation'),
     });
     expect(organisationCheckboxBefore).not.toBeChecked();
@@ -122,6 +200,18 @@ describe('AccessControlTab', () => {
         subUnit: false,
       },
     });
+  });
+
+  it('renders the documentation link with the correct text', async () => {
+    render();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('settings_modal.loading_content')),
+    );
+
+    const documentationLink = screen.getByText(
+      textMock('settings_modal.access_control_tab_option_access_control_docs_link_text'),
+    );
+    expect(documentationLink).toBeInTheDocument();
   });
 });
 

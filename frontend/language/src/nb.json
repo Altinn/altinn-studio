@@ -1299,7 +1299,7 @@
   "settings_modal.access_control_tab_option_access_control_docs_link_text": "Velg eller lag andre tilleggskontroller:",
   "settings_modal.access_control_tab_option_all_type_partner": "Alle typer",
   "settings_modal.access_control_tab_option_bankruptcy_estate": "Konkursbo",
-  "settings_modal.access_control_tab_option_choose_type_popover_message": "Du må minst velge en type",
+  "settings_modal.access_control_tab_option_choose_type_modal_message": "Du kan ikke fjerne den siste avmerkerking. Det må minst være velge en type part som er valgt",
   "settings_modal.access_control_tab_option_organisation": "Hovedenhet(virksomhet)",
   "settings_modal.access_control_tab_option_person": "Privatperson",
   "settings_modal.access_control_tab_option_sub_unit": "Underenhet(datterseleskap)",

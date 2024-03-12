@@ -1,15 +1,16 @@
 import type { ReactNode } from 'react';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import classes from './AccessControlTab.module.css';
 import { Trans, useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
 import {
+  Button,
   Checkbox,
   ErrorMessage,
   HelpText,
   Link,
+  Modal,
   Paragraph,
-  Popover,
   Table,
 } from '@digdir/design-system-react';
 import type { PartyTypesAllowed } from 'app-shared/types/ApplicationMetadata';
@@ -46,7 +47,7 @@ export type AccessControlTabProps = {
 export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode => {
   const { t } = useTranslation();
   const [checkedCheckboxes, setCheckedCheckboxes] = useState<string[]>([]);
-  const [isPopoverOpened, setIsPopoverOpened] = useState<boolean>(false);
+  const modalRef = useRef<HTMLDialogElement>(null);
 
   const {
     status: appMetadataStatus,
@@ -84,15 +85,28 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
     const updatedCheckboxes = checkedCheckboxes.includes(value)
       ? checkedCheckboxes.filter((checkbox) => checkbox !== value)
       : [...checkedCheckboxes, value];
-
-    if (checkedCheckboxes.length === 1 && updatedCheckboxes.length === 0) {
-      setIsPopoverOpened(true);
+    if (updatedCheckboxes.length === 0 && checkedCheckboxes.length === 1) {
+      modalRef.current?.showModal();
       return;
     }
     setCheckedCheckboxes(updatedCheckboxes);
   };
 
-  const handlePopoverClose = () => setIsPopoverOpened(false);
+  const renderModal = () => {
+    return (
+      <Modal ref={modalRef}>
+        <Modal.Header />
+        <Modal.Content>
+          {t('settings_modal.access_control_tab_option_choose_type_modal_message')}
+        </Modal.Content>
+        <Modal.Footer>
+          <Button variant='secondary' onClick={() => modalRef.current?.close()}>
+            {t('general.close')}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    );
+  };
 
   const displayContent = () => {
     switch (appMetadataStatus) {
@@ -146,25 +160,13 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
                 {getPartyTypesAllowedOptions().map((option) => (
                   <Table.Row key={option.value}>
                     <Table.Cell className={classes.checkboxContent}>
-                      <Popover
-                        open={isPopoverOpened}
-                        onClose={handlePopoverClose}
-                        variant='info'
-                        placement='top-start'
-                      >
-                        <Checkbox
-                          onChange={() => handleCheckboxChange(option.value)}
-                          size='small'
-                          value={option.value}
-                          checked={checkedCheckboxes.includes(option.value)}
-                        />
-
-                        <Popover.Content>
-                          {t(
-                            'settings_modal.access_control_tab_option_choose_type_popover_message',
-                          )}
-                        </Popover.Content>
-                      </Popover>
+                      <Checkbox
+                        onChange={() => handleCheckboxChange(option.value)}
+                        size='small'
+                        value={option.value}
+                        checked={checkedCheckboxes.includes(option.value)}
+                      />
+                      {renderModal()}
                     </Table.Cell>
                     <Table.Cell>{t(option.label)}</Table.Cell>
                   </Table.Row>
