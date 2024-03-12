@@ -3,10 +3,10 @@ import { StudioToggleableTextfieldSchema, type SchemaValidationError } from '@st
 import { KeyVerticalIcon } from '@navikt/aksel-icons';
 import classes from './EditComponentIdRow.module.css';
 import { idExists } from '../../../../utils/formLayoutUtils';
-import { useSelectedFormLayout } from '../../../../hooks';
 import { useTranslation } from 'react-i18next';
 import type { FormItem } from '../../../../types/FormItem';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
+import { useFormLayouts } from '../../../../hooks/useFormLayoutsSelector';
 
 export interface EditComponentIdRowProps {
   handleComponentUpdate: (component: FormItem) => void;
@@ -18,7 +18,7 @@ export const EditComponentIdRow = ({
   component,
   handleComponentUpdate,
 }: EditComponentIdRowProps) => {
-  const { components, containers } = useSelectedFormLayout();
+  const formLayouts = useFormLayouts();
 
   const { t } = useTranslation();
   const [{ data: layoutSchema }, , { data: expressionSchema }, { data: numberFormatSchema }] =
@@ -39,7 +39,7 @@ export const EditComponentIdRow = ({
     if (value?.length === 0) {
       return t('validation_errors.required');
     }
-    if (value !== component.id && idExists(value, components, containers)) {
+    if (value !== component.id && idExists(value, formLayouts)) {
       return t('ux_editor.modal_properties_component_id_not_unique_error');
     }
     return '';

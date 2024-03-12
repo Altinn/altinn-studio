@@ -1,6 +1,5 @@
 import type {
-  IFormDesignerComponents,
-  IFormDesignerContainers,
+  IFormLayouts,
   IInternalLayout,
   InternalLayoutComponents,
   InternalLayoutData,
@@ -27,15 +26,17 @@ export const mapComponentToToolbarElement = <T extends ComponentType>(
   type: c.name,
 });
 
-export function idExists(
-  id: string,
-  components: IFormDesignerComponents,
-  containers: IFormDesignerContainers,
-): boolean {
-  return (
-    Object.keys(containers || {}).findIndex((key) => key.toUpperCase() === id.toUpperCase()) > -1 ||
-    Object.keys(components || {}).findIndex((key) => key.toUpperCase() === id.toUpperCase()) > -1
-  );
+export function idExists(id: string, formLayouts: IFormLayouts): boolean {
+  return Object.values(formLayouts).some((layout) => {
+    return (
+      Object.keys(layout.containers || {}).findIndex(
+        (key) => key.toUpperCase() === id.toUpperCase(),
+      ) > -1 ||
+      Object.keys(layout.components || {}).findIndex(
+        (key) => key.toUpperCase() === id.toUpperCase(),
+      ) > -1
+    );
+  });
 }
 
 /**
