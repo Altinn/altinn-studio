@@ -167,4 +167,92 @@ public class ObjectUtilsTests
         test.Child.Child.Children.Should().ContainSingle().Which.AltinnRowId.Should().Be(Guid.Empty);
         test.Child.Child.Children.Should().ContainSingle().Which.Child!.AltinnRowId.Should().Be(Guid.Empty);
     }
+
+    [Fact]
+    public void TestRemoveAltinnRowIdWithNulls()
+    {
+        var test = new TestClass()
+        {
+            AltinnRowId = Guid.NewGuid(),
+            Child = new()
+            {
+                AltinnRowId = Guid.NewGuid(),
+                Child = new()
+                {
+                    AltinnRowId = Guid.NewGuid(),
+                    Children = new()
+                    {
+                        new TestClass()
+                        {
+                            AltinnRowId = Guid.NewGuid(),
+                            Child = new()
+                            {
+                                AltinnRowId = Guid.NewGuid()
+                            }
+                        },
+                        null!,
+                    }
+                }
+            }
+        };
+        test.AltinnRowId.Should().NotBe(Guid.Empty);
+        test.Child.AltinnRowId.Should().NotBe(Guid.Empty);
+        test.Child.Child.AltinnRowId.Should().NotBe(Guid.Empty);
+        var childArray = test.Child.Child.Children.Should().HaveCount(2).And;
+        childArray.ContainSingle(d => d != null).Which.AltinnRowId.Should().NotBe(Guid.Empty);
+        childArray.ContainSingle(d => d == null);
+
+        ObjectUtils.RemoveAltinnRowId(test);
+
+        test.AltinnRowId.Should().Be(Guid.Empty);
+        test.Child.AltinnRowId.Should().Be(Guid.Empty);
+        test.Child.Child.AltinnRowId.Should().Be(Guid.Empty);
+        childArray = test.Child.Child.Children.Should().HaveCount(2).And;
+        childArray.ContainSingle(d => d != null).Which.AltinnRowId.Should().Be(Guid.Empty);
+        childArray.ContainSingle(d => d == null);
+    }
+
+    [Fact]
+    public void TestInitializeRowIdWithNulls()
+    {
+        var test = new TestClass()
+        {
+            AltinnRowId = Guid.Empty,
+            Child = new()
+            {
+                AltinnRowId = Guid.Empty,
+                Child = new()
+                {
+                    AltinnRowId = Guid.Empty,
+                    Children = new()
+                    {
+                        new TestClass()
+                        {
+                            AltinnRowId = Guid.Empty,
+                            Child = new()
+                            {
+                                AltinnRowId = Guid.Empty
+                            }
+                        },
+                        null!,
+                    }
+                }
+            }
+        };
+        test.AltinnRowId.Should().Be(Guid.Empty);
+        test.Child.AltinnRowId.Should().Be(Guid.Empty);
+        test.Child.Child.AltinnRowId.Should().Be(Guid.Empty);
+        var childArray = test.Child.Child.Children.Should().HaveCount(2).And;
+        childArray.ContainSingle(d => d != null).Which.AltinnRowId.Should().Be(Guid.Empty);
+        childArray.ContainSingle(d => d == null);
+
+        ObjectUtils.InitializeAltinnRowId(test);
+
+        test.AltinnRowId.Should().NotBe(Guid.Empty);
+        test.Child.AltinnRowId.Should().NotBe(Guid.Empty);
+        test.Child.Child.AltinnRowId.Should().NotBe(Guid.Empty);
+        childArray = test.Child.Child.Children.Should().HaveCount(2).And;
+        childArray.ContainSingle(d => d != null).Which.AltinnRowId.Should().NotBe(Guid.Empty);
+        childArray.ContainSingle(d => d == null);
+    }
 }

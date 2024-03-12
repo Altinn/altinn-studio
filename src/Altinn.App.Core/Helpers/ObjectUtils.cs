@@ -42,7 +42,10 @@ public static class ObjectUtils
                     foreach (var item in (IList)value)
                     {
                         // Recurse into values of a list
-                        InitializeAltinnRowId(item);
+                        if (item is not null)
+                        {
+                            InitializeAltinnRowId(item);
+                        }
                     }
                 }
             }
@@ -70,6 +73,8 @@ public static class ObjectUtils
     /// </summary>
     public static void RemoveAltinnRowId(object model)
     {
+        ArgumentNullException.ThrowIfNull(model);
+
         foreach (var prop in model.GetType().GetProperties())
         {
             // Handle guid fields named "AltinnRowId"
@@ -86,7 +91,10 @@ public static class ObjectUtils
                     foreach (var item in (IList)value)
                     {
                         // Recurse into values of a list
-                        RemoveAltinnRowId(item);
+                        if (item is not null)
+                        {
+                            RemoveAltinnRowId(item);
+                        }
                     }
                 }
             }
