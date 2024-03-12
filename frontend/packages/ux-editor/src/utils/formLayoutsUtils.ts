@@ -118,13 +118,15 @@ export const firstAvailableLayout = (deletedLayoutName: string, layoutPagesOrder
  */
 export function idExists(id: string, formLayouts: IFormLayouts): boolean {
   return Object.values(formLayouts).some((layout) => {
-    return (
+    const idMatchesContainers =
       Object.keys(layout.containers || {}).findIndex(
         (key) => key.toUpperCase() === id.toUpperCase(),
-      ) > -1 ||
+      ) > -1;
+    const idMatchesComponents =
       Object.keys(layout.components || {}).findIndex(
         (key) => key.toUpperCase() === id.toUpperCase(),
-      ) > -1
-    );
+      ) > -1;
+
+    return idMatchesContainers || idMatchesComponents;
   });
 }
