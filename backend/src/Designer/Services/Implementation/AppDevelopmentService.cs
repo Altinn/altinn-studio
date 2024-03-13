@@ -239,28 +239,41 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return null;
         }
 
-        public async Task<LayoutSets> AddLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, LayoutSetConfig layoutSet,
-            CancellationToken cancellationToken = default)
+        public async Task<LayoutSets> UpdateLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetId,
+            LayoutSetConfig layoutSet, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             AltinnAppGitRepository altinnAppGitRepository =
                 _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
                     altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-            bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
-            if (appUsesLayoutSets)
+            if (altinnAppGitRepository.AppUsesLayoutSets())
             {
                 LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
-                layoutSets.Sets.Add(layoutSet);
-                await altinnAppGitRepository.SaveLayout(layoutSet.Id, AltinnAppGitRepository.InitialLayoutFilename,
-                    altinnAppGitRepository.InitialLayout);
-                await altinnAppGitRepository.SaveLayoutSettings(layoutSet.Id,
-                    altinnAppGitRepository.InitialLayoutSettings);
+                LayoutSetConfig layoutSetToReplace = layoutSets.Sets.Find(set => set.Id == layoutSetId);
+                if (layoutSetToReplace is null)
+                {
+                    layoutSets.Sets.Add(layoutSet);
+                    await altinnAppGitRepository.SaveLayout(layoutSet.Id, AltinnAppGitRepository.InitialLayoutFileName,
+                        altinnAppGitRepository.InitialLayout);
+                    await altinnAppGitRepository.SaveLayoutSettings(layoutSet.Id,
+                        altinnAppGitRepository.InitialLayoutSettings);
+                }
+                else
+                {
+                    int indexOfLayoutSetToReplace = layoutSets.Sets.IndexOf(layoutSetToReplace);
+                    layoutSets.Sets[indexOfLayoutSetToReplace] = layoutSet;
+                    if (layoutSet.Id != layoutSetId)
+                    {
+                        altinnAppGitRepository.ChangeLayoutSetFolderName(layoutSetId, layoutSet.Id);
+                    }
+                }
                 await altinnAppGitRepository.SaveLayoutSetsFile(layoutSets);
                 return layoutSets;
             }
 
             throw new FileNotFoundException("No layout set found for this app");
         }
+
 
         /// <inheritdoc />
         public async Task<string> GetRuleHandler(AltinnRepoEditingContext altinnRepoEditingContext,

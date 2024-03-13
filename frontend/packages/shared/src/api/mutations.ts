@@ -6,7 +6,6 @@ import {
   deploymentsPath,
   formLayoutNamePath,
   formLayoutPath,
-  layoutSetsPath,
   layoutSettingsPath,
   releasesPath,
   repoCommitPath,
@@ -34,6 +33,7 @@ import {
   createAccessListsPath,
   accessListMemberPath,
   resourceAccessListPath,
+  layoutSetPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -63,7 +63,7 @@ const headers = {
 
 export const addAppAttachmentMetadata = (org: string, app: string, payload: ApplicationAttachmentMetadata) => post<void, ApplicationAttachmentMetadata>(appMetadataAttachmentPath(org, app), payload);
 export const addLanguageCode = (org: string, app: string, language: string, payload: AddLanguagePayload) => post<void, AddLanguagePayload>(textResourcesPath(org, app, language), payload);
-export const addLayoutSet = (org: string, app: string, payload: LayoutSetConfig) => put(layoutSetsPath(org, app), payload);
+export const updateLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string, payload: LayoutSetConfig) => put(layoutSetPath(org, app, layoutSetIdToUpdate), payload);
 export const addRepo = (repoToAdd: AddRepoParams) => post<Repository>(`${createRepoPath()}${buildQueryParams(repoToAdd)}`);
 export const addXsdFromRepo = (org: string, app: string, modelPath: string) => post<JsonSchema>(datamodelAddXsdFromRepoPath(org, app, modelPath));
 export const commitAndPushChanges = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPushPath(org, app), payload, { headers });

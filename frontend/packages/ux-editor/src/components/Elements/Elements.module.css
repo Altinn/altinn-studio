@@ -1,5 +1,4 @@
 .root {
-  background: var(--fds-semantic-surface-neutral-subtle);
   flex: var(--elements-width-fraction);
 }
 
@@ -20,4 +19,12 @@
 
 .noPageSelected {
   padding-inline: var(--fds-spacing-3);
+}
+
+.customReceipt {
+  background-color: #b2eccc;
+}
+
+.defaultBackground {
+  background-color: #284e6a;
 }

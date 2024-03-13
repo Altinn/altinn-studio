@@ -327,21 +327,23 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Add a layout set to the layout-sets.json file
+        /// Update an existing layout set with a new set
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="layoutSetIdToUpdate">The id of a new set or the set to replace</param>
         /// <param name="layoutSet">The config needed for the layout set to be added to layout-sets.json</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         [HttpPut]
+        [UseSystemTextJson]
         [Route("layout-sets")]
-        public async Task<ActionResult> AddLayoutSet(string org, string app, [FromQuery] LayoutSetConfig layoutSet, CancellationToken cancellationToken)
+        public async Task<ActionResult> UpdateLayoutSet(string org, string app, [FromQuery] string layoutSetIdToUpdate, [FromBody] LayoutSetConfig layoutSet, CancellationToken cancellationToken)
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                LayoutSets layoutSets = await _appDevelopmentService.AddLayoutSet(editingContext, layoutSet, cancellationToken);
+                LayoutSets layoutSets = await _appDevelopmentService.UpdateLayoutSet(editingContext, layoutSetIdToUpdate, layoutSet, cancellationToken);
                 return Ok(layoutSets);
             }
             catch (FileNotFoundException exception)
