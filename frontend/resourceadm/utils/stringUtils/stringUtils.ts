@@ -7,3 +7,7 @@
 export const formatIdString = (s: string): string => {
   return s.replace(/[^A-Za-z0-9-_.!~*'()%]+/g, '-').toLowerCase();
 };
+
+export const isAppPrefix = (s: string): boolean => {
+  return s.substring(0, 4) === 'app_';
+};
