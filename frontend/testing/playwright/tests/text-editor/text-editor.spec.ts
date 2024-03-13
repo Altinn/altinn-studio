@@ -63,8 +63,8 @@ test('That it is possible to create a text at the ux-editor page, and that the t
   await uiEditorPage.writeNewComponentId(COMPONENT_ID);
   await uiEditorPage.waitForXAmountOfMilliseconds(1000); // Wait for the API call to be done
 
-  await uiEditorPage.clickOnAddLabelText();
-  await uiEditorPage.writeLabelTextInTextarea(INPUT_COMPONENT_LABEL);
+  await uiEditorPage.clickOnTitleTextButton();
+  await uiEditorPage.writeTitleTextInTextarea(INPUT_COMPONENT_LABEL);
   await uiEditorPage.clickOnSaveNewLabelName();
   await uiEditorPage.waitForTreeItemToGetNewLabel(INPUT_COMPONENT_LABEL);
 
@@ -97,7 +97,7 @@ test('That it is possible to edit a textkey, and that the key is updated on the 
   await navigateToUiEditorAndVerifyPage(header, uiEditorPage);
 
   await uiEditorPage.clickOnTreeItem(INPUT_COMPONENT_LABEL);
-  await uiEditorPage.clickOnEditLabelText();
+  await uiEditorPage.clickOnTitleTextButton();
   await uiEditorPage.verifyThatTextKeyIsVisible(UPDATED_TEXT_KEY);
   await uiEditorPage.verifyThatTextKeyIsHidden(INITIAL_TEXT_KEY);
 });
@@ -143,7 +143,7 @@ test('That it is possible to add a new text, edit the id, and add a new language
 
   await navigateToUiEditorAndVerifyPage(header, uiEditorPage);
   await uiEditorPage.clickOnTreeItem(INPUT_COMPONENT_LABEL);
-  await uiEditorPage.clickOnEditLabelText();
+  await uiEditorPage.clickOnTitleTextButton();
   await uiEditorPage.verifyThatTextareaIsVisible(LanguageCode.En);
 
   await header.clickOnUploadLocalChangesButton();

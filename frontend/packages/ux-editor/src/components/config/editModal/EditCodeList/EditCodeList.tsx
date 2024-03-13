@@ -32,7 +32,7 @@ export function EditCodeList<
   }, [optionListIds]);
 
   return (
-    <div>
+    <div className={classes.root}>
       {isPending ? (
         <StudioSpinner
           showSpinnerTitle={false}

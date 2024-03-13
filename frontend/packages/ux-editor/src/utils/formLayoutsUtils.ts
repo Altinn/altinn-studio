@@ -109,3 +109,24 @@ export const firstAvailableLayout = (deletedLayoutName: string, layoutPagesOrder
 
   return DEFAULT_SELECTED_LAYOUT_NAME;
 };
+
+/**
+ * Checks if a layout-set with the given id exists in the given list of layouts
+ * @param id The id of the component/container to check for
+ * @param formLayouts The list of layouts to check
+ * @returns True if the id exists in any of the layouts, false otherwise
+ */
+export function idExists(id: string, formLayouts: IFormLayouts): boolean {
+  return Object.values(formLayouts).some((layout) => {
+    const idMatchesContainers =
+      Object.keys(layout.containers || {}).findIndex(
+        (key) => key.toUpperCase() === id.toUpperCase(),
+      ) > -1;
+    const idMatchesComponents =
+      Object.keys(layout.components || {}).findIndex(
+        (key) => key.toUpperCase() === id.toUpperCase(),
+      ) > -1;
+
+    return idMatchesContainers || idMatchesComponents;
+  });
+}
