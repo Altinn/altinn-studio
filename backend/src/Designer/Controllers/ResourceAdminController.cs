@@ -253,7 +253,7 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpPost]
         [Route("designer/api/{org}/resources/addresource")]
-        public async Task<ActionResult<ServiceResource>> AddResource(string org, [FromBody] ServiceResource resource)
+        public async Task<StatusCodeResult> AddResource(string org, [FromBody] ServiceResource resource)
         {
             resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
             return _repository.AddServiceResource(org, resource);
@@ -266,7 +266,11 @@ namespace Altinn.Studio.Designer.Controllers
             string repository = string.Format("{0}-resources", org);
             ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(serviceCode, serviceEdition, environment.ToLower());
             resource.Identifier = resourceId;
-            _repository.AddServiceResource(org, resource);
+            StatusCodeResult statusCodeResult = _repository.AddServiceResource(org, resource);
+            if (statusCodeResult.StatusCode != (int)HttpStatusCode.Created)
+            {
+                return statusCodeResult;
+            }
             XacmlPolicy policy = await _resourceRegistry.GetXacmlPolicy(serviceCode, serviceEdition, resource.Identifier, environment.ToLower());
             await _repository.SavePolicy(org, repository, resource.Identifier, policy);
             return Ok(resource);
