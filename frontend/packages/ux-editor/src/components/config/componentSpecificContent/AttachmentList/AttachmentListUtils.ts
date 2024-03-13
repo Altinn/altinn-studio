@@ -8,7 +8,7 @@ export const reservedDataTypes = {
   refDataAsPdf: 'ref-data-as-pdf',
 };
 
-export const dataExternalFormat = (
+export const convertInternalToExternalFormat = (
   selectedDataTypes: string[],
   availableAttachments: string[],
 ): string[] => {
@@ -27,10 +27,10 @@ export const dataExternalFormat = (
   const includeCurrentTask = selectedDataTypes.includes(reservedDataTypes.currentTask);
   const includePdf = selectedDataTypes.includes(reservedDataTypes.refDataAsPdf);
 
-  return allDataExternalFormat(includePdf, includeCurrentTask);
+  return convertAllData(includePdf, includeCurrentTask);
 };
 
-const allDataExternalFormat = (includePdf: boolean, onlyCurrentTask: boolean): string[] => {
+const convertAllData = (includePdf: boolean, onlyCurrentTask: boolean): string[] => {
   const allAttachments: string[] = includePdf ? [reservedDataTypes.includeAll] : [];
 
   if (onlyCurrentTask) {
@@ -39,7 +39,7 @@ const allDataExternalFormat = (includePdf: boolean, onlyCurrentTask: boolean): s
   return allAttachments;
 };
 
-export const dataInternalFormat = (
+export const convertExternalToInternalFormat = (
   tasks: string[],
   availableDataTypes: Partial<ApplicationMetadata['dataTypes']>,
   dataTypeIds: string[],

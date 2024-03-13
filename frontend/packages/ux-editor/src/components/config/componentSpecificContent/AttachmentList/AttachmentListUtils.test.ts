@@ -1,7 +1,7 @@
 import {
-  dataExternalFormat,
+  convertInternalToExternalFormat,
   reservedDataTypes,
-  dataInternalFormat,
+  convertExternalToInternalFormat,
   getTasks,
   selectionIsValid,
 } from './AttachmentListUtils';
@@ -42,9 +42,9 @@ describe('Convert to external format: dataExternalFormat', () => {
 
     useCasesAllAttachments.forEach((useCase, index) => {
       it(`should convert to external format with all attachments and ${useCasesDesc[index]}`, () => {
-        expect(dataExternalFormat(useCase.selectedDataTypes, useCase.availableAttachments)).toEqual(
-          useCase.expected,
-        );
+        expect(
+          convertInternalToExternalFormat(useCase.selectedDataTypes, useCase.availableAttachments),
+        ).toEqual(useCase.expected);
       });
     });
   });
@@ -69,9 +69,9 @@ describe('Convert to external format: dataExternalFormat', () => {
 
     useCasesSomeAttachments.forEach((useCase, index) => {
       it(`should convert to external format with some attachments and ${useCasesDesc[index]}`, () => {
-        expect(dataExternalFormat(useCase.selectedDataTypes, useCase.availableAttachments)).toEqual(
-          useCase.expected,
-        );
+        expect(
+          convertInternalToExternalFormat(useCase.selectedDataTypes, useCase.availableAttachments),
+        ).toEqual(useCase.expected);
       });
     });
   });
@@ -158,7 +158,7 @@ describe('Convert to internal format: dataInternalFormat', () => {
           useCase.dataTypeIds.includes(reservedDataTypes.currentTask),
         );
 
-        expect(dataInternalFormat(tasks, appMetaData, useCase.dataTypeIds)).toEqual(
+        expect(convertExternalToInternalFormat(tasks, appMetaData, useCase.dataTypeIds)).toEqual(
           useCase.expected,
         );
       });
@@ -195,7 +195,7 @@ describe('Convert to internal format: dataInternalFormat', () => {
           useCase.dataTypeIds.includes(reservedDataTypes.currentTask),
         );
 
-        expect(dataInternalFormat(tasks, appMetaData, useCase.dataTypeIds)).toEqual(
+        expect(convertExternalToInternalFormat(tasks, appMetaData, useCase.dataTypeIds)).toEqual(
           useCase.expected,
         );
       });

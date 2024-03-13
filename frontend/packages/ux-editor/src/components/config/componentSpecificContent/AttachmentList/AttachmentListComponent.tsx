@@ -8,9 +8,9 @@ import type { ComponentType } from 'app-shared/types/ComponentType';
 import { useTranslation } from 'react-i18next';
 import {
   reservedDataTypes,
-  dataExternalFormat,
+  convertInternalToExternalFormat,
   getTasks,
-  dataInternalFormat,
+  convertExternalToInternalFormat,
   selectionIsValid,
 } from './AttachmentListUtils';
 import { AttachmentListInternalFormat } from './AttachmentListInternalFormat';
@@ -35,12 +35,19 @@ export const AttachmentListComponent = ({
   const tasks: string[] =
     layoutSets && selectedLayoutSet ? getTasks(layoutSets, selectedLayoutSet, currentTask) : [];
 
-  const internalDataFormat = dataInternalFormat(tasks, appMetadata.dataTypes, dataTypeIds);
+  const internalDataFormat = convertExternalToInternalFormat(
+    tasks,
+    appMetadata.dataTypes,
+    dataTypeIds,
+  );
 
   const handleOutGoingData = (selectedDataTypes: string[], availableAttachments: string[]) => {
     if (!selectionIsValid(selectedDataTypes)) return;
 
-    const resultingSelection = dataExternalFormat(selectedDataTypes, availableAttachments);
+    const resultingSelection = convertInternalToExternalFormat(
+      selectedDataTypes,
+      availableAttachments,
+    );
 
     handleComponentChange({
       ...component,
