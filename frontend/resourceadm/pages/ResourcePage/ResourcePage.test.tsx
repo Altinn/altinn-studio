@@ -11,6 +11,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import type { RepoStatus } from 'app-shared/types/RepoStatus';
 
 const mockResource1: Resource = {
   identifier: 'r1',
@@ -117,6 +118,41 @@ describe('ResourcePage', () => {
     expect(
       screen.queryByRole('tab', { name: textMock('resourceadm.left_nav_bar_migrate') }),
     ).not.toBeInTheDocument();
+  });
+
+  it('navigates to migration page clicking the migration tab', async () => {
+    const user = userEvent.setup();
+    const getResource = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<Resource>(mockResource1));
+
+    renderResourcePage({ getResource });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
+    );
+
+    const migrationTab = screen.getByRole('tab', {
+      name: textMock('resourceadm.left_nav_bar_migration'),
+    });
+    await act(() => user.click(migrationTab));
+    expect(mockedNavigate).toHaveBeenCalledWith(
+      `/${mockSelectedContext}/${mockSelectedContext}-resources/resource/${mockResource1.identifier}/migration`,
+    );
+  });
+
+  it('should show merge conflict modal if repo has merge conflict', async () => {
+    const getRepoStatus = jest.fn().mockImplementation(() =>
+      Promise.resolve<RepoStatus>({
+        aheadBy: 1,
+        behindBy: 1,
+        contentStatus: [],
+        hasMergeConflict: true,
+        repositoryStatus: 'conflict',
+      }),
+    );
+    renderResourcePage({ getRepoStatus });
+
+    await screen.findByText(textMock('merge_conflict.headline'));
   });
 
   it('should navigate to policy page from modal when resource has errors', async () => {
