@@ -4,6 +4,10 @@
 }
 
 .datamodelBindings {
-  --vertical-padding: calc(var(--fds-spacing-5) - var(--studio-property-button-vertical-spacing));
-  padding: var(--vertical-padding) 0;
+  padding: var(--fds-spacing-5) 0;
+}
+
+.texts {
+  background-color: var(--fds-semantic-surface-neutral-default);
+  padding: var(--fds-spacing-5) 0;
 }
