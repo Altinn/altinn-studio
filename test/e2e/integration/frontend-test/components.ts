@@ -104,6 +104,12 @@ describe('UI Components', () => {
       force: true,
     });
     cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).should('be.visible');
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.uploadWithTag.uploadZone)).should('not.exist');
+    cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).click();
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.uploadWithTag.uploadZone)).should(
+      'contain.text',
+      'Du må velge file type',
+    );
     cy.dsSelect(appFrontend.changeOfName.uploadWithTag.tagsDropDown, 'Adresse');
     cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).click();
     cy.wait('@saveTags');
@@ -174,6 +180,29 @@ describe('UI Components', () => {
       cy.get(appFrontend.changeOfName.popOverDeleteButton).click();
       cy.get(shouldExist).should('not.exist');
     }
+  });
+
+  it('minNumberOfAttachments should validate like required', () => {
+    cy.interceptLayout('changename', (component) => {
+      if (component.type === 'FileUpload' || component.type === 'FileUploadWithTag') {
+        component.minNumberOfAttachments = 1;
+      }
+    });
+    cy.goto('changename');
+    cy.get(appFrontend.changeOfName.newFirstName).type('Per');
+    cy.get(appFrontend.errorReport).should('not.exist');
+    cy.gotoNavPage('grid');
+    cy.get(appFrontend.sendinButton).click();
+    cy.get(appFrontend.errorReport).should('contain.text', 'For å fortsette må du laste opp 1 vedlegg');
+    cy.gotoNavPage('form');
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.upload)).should(
+      'contain.text',
+      'For å fortsette må du laste opp 1 vedlegg',
+    );
+    cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.uploadWithTag.uploadZone)).should(
+      'contain.text',
+      'For å fortsette må du laste opp 1 vedlegg',
+    );
   });
 
   it('is possible to navigate between pages using navigation bar', () => {

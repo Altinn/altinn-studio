@@ -12,7 +12,7 @@ export function useOnAttachmentSave() {
 
   return useCallback(
     (node: LayoutNode, attachmentId: string) => {
-      const mask = getVisibilityMask(['Component']);
+      const mask = getVisibilityMask(['All']);
       setAttachmentVisibility(attachmentId, node, mask);
     },
     [setAttachmentVisibility],

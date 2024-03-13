@@ -1,6 +1,5 @@
 import { ValidationMask } from 'src/features/validation';
 import { implementsValidationFilter } from 'src/layout';
-import type { IAttachments, UploadedAttachment } from 'src/features/attachments';
 import type {
   BaseValidation,
   ComponentValidation,
@@ -14,7 +13,6 @@ import type {
 } from 'src/features/validation';
 import type { ValidationSelector } from 'src/features/validation/validationContext';
 import type { ValidationFilterFunction } from 'src/layout';
-import type { CompInternal } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
@@ -196,24 +194,4 @@ export function getVisibilityMask(maskKeys?: ValidationMaskKeys[]): number {
     mask |= ValidationMask[maskKey];
   }
   return mask;
-}
-
-export function attachmentsValid(
-  attachments: IAttachments,
-  component: CompInternal<'FileUpload' | 'FileUploadWithTag'>,
-): boolean {
-  if (component.minNumberOfAttachments === 0) {
-    return true;
-  }
-
-  const attachmentsForComponent = attachments[component.id];
-  if (!attachmentsForComponent) {
-    return false;
-  }
-
-  return attachmentsForComponent.length >= component.minNumberOfAttachments;
-}
-
-export function attachmentIsMissingTag(attachment: UploadedAttachment): boolean {
-  return attachment.data.tags === undefined || attachment.data.tags.length === 0;
 }
