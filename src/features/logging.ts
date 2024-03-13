@@ -38,9 +38,14 @@ export function parseErrorArgs(args: any[]): string {
   return args
     .map((arg) => {
       if (isAxiosError(arg)) {
-        return `Message: ${arg.message}\nRequest: ${arg.config?.method?.toUpperCase()} '${
-          arg.config?.url
-        }'\nResponse: ${arg.response?.data}`;
+        const message = arg.message;
+        const method = arg.config?.method?.toUpperCase();
+        const url = arg.config?.url;
+        const data = arg.response?.data;
+        const stringData = typeof data === 'object' ? JSON.stringify(data) : String(data);
+        return `Message: ${message}\nRequest: ${method ?? '<method not found>'} '${
+          url ?? '<url not found>'
+        }'\nResponse: ${stringData}`;
       }
       if (arg instanceof Error) {
         return `${arg.name}: ${arg.message}`;
