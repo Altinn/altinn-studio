@@ -177,6 +177,20 @@ describe('DeployResourcePage', () => {
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
   });
 
+  it('renders status card errors when repo status could not be found', async () => {
+    await resolveAndWaitForSpinnerToDisappear({
+      getRepoStatus: () => Promise.reject(),
+    });
+
+    const statusCardTitle = screen.getByText(
+      textMock('resourceadm.deploy_status_card_error_title'),
+    );
+    expect(statusCardTitle).toBeInTheDocument();
+
+    const errorMessage = textMock('resourceadm.deploy_status_card_error_repo');
+    expect(screen.getByText(errorMessage)).toBeInTheDocument();
+  });
+
   it('renders status card with missing version number error when version number is missing', async () => {
     await resolveAndWaitForSpinnerToDisappear({}, { resourceVersionText: '' });
 
