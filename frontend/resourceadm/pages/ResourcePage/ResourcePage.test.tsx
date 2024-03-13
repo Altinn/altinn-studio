@@ -119,7 +119,7 @@ describe('ResourcePage', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('opens navigation modal when resource has errors when navigating from about to policy page', async () => {
+  it('should navigate to policy page from modal when resource has errors', async () => {
     const user = userEvent.setup();
     const getResource = jest
       .fn()
@@ -149,6 +149,14 @@ describe('ResourcePage', () => {
         level: 1,
       }),
     ).toBeInTheDocument();
+
+    const navigateButton = screen.getByRole('button', {
+      name: textMock('resourceadm.resource_navigation_modal_button_move_on'),
+    });
+    await act(() => user.click(navigateButton));
+    expect(mockedNavigate).toHaveBeenCalledWith(
+      `/${mockSelectedContext}/${mockSelectedContext}-resources/resource/${mockResource1.identifier}/policy`,
+    );
   });
 
   it('should navigate to policy page when resource has no errors', async () => {
