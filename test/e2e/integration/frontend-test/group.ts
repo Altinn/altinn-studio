@@ -138,6 +138,9 @@ describe('Group', () => {
     init();
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
 
+    cy.get(appFrontend.group.mainGroup).should('be.visible');
+    cy.get(appFrontend.fieldValidation('mainGroup')).should('not.exist');
+
     const rowsToAdd = [1, 2, 3];
     for (const idx in rowsToAdd) {
       cy.get(appFrontend.group.addNewItem).click();

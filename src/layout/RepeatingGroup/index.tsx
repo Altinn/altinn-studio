@@ -78,16 +78,15 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
       (row) => row && !row.groupExpressions?.hiddenRow,
     ).length;
 
-    const repeatingGroupMinCountValid = repeatingGroupMinCount <= repeatingGroupVisibleRows;
-
-    // if not valid, return appropriate error message
-    if (!repeatingGroupMinCountValid) {
+    // Validate minCount
+    if (repeatingGroupVisibleRows < repeatingGroupMinCount) {
       validations.push({
         message: { key: 'validation_errors.minItems', params: [repeatingGroupMinCount] },
         severity: 'error',
         componentId: node.item.id,
         source: FrontendValidationSource.Component,
-        category: ValidationMask.Component,
+        // Treat visibility of minCount the same as required to prevent showing an error immediately
+        category: ValidationMask.Required,
       });
     }
 
