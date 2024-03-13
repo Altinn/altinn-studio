@@ -8,7 +8,7 @@ namespace Altinn.App.Core.Models
         /// <summary>
         /// Gets or sets the list of options. Null indicates that no options are found
         /// </summary>
-        public List<AppOption>? Options { get; set; }
+        public required List<AppOption>? Options { get; set; }
 
         /// <summary>
         /// Gets or sets the parameters used to generate the options.
