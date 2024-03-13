@@ -308,13 +308,13 @@ describe('formLayoutsUtils', () => {
     const formLayouts: IFormLayouts = {
       [layoutId]: {
         components: { [navButtonsId]: componentMocks[ComponentType.NavigationButtons] },
-        containers: {},
+        containers: undefined,
         order: { [BASE_CONTAINER_ID]: [navButtonsId] },
         customRootProperties: {},
         customDataProperties: {},
       },
       [layoutId2]: {
-        components: {},
+        components: undefined,
         containers: {
           [groupId]: groupComponent,
         },
