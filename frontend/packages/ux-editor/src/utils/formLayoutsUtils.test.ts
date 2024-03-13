@@ -325,12 +325,12 @@ describe('formLayoutsUtils', () => {
     };
 
     it('returns true when a container has the same id', () => {
-      const exists = idExists('group1', formLayouts);
+      const exists = idExists(groupId, formLayouts);
       expect(exists).toBe(true);
     });
 
     it('returns true if when a component has the same id', () => {
-      const exists = idExists('navButtons', formLayouts);
+      const exists = idExists(navButtonsId, formLayouts);
       expect(exists).toBe(true);
     });
 
