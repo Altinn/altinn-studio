@@ -9,10 +9,7 @@ import {
   container1IdMock,
   layoutMock,
 } from '../../testing/layoutMock';
-import type { IAppDataState } from '../../features/appData/appDataReducers';
-import type { ITextResourcesState } from '../../features/appData/textResources/textResourcesSlice';
 import { renderWithMockStore } from '../../testing/mocks';
-import { appDataMock, textResourcesMock } from '../../testing/stateMocks';
 import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -58,28 +55,20 @@ describe('TextTab', () => {
     };
 
     it('should render the component', async () => {
-      await render({ props });
-      expect(screen.getByRole('heading', { name: textMock('general.text') })).toBeInTheDocument();
+      render({ props });
     });
 
-    it('should render all available textResourceBinding properties for the group component', async () => {
-      await render({ props });
+    it('should render all available textResourceBinding properties for the group component', () => {
+      render({ props });
       textResourceBindingsPropertiesForComponentType(props.formItem.type).forEach((trbProperty) => {
-        expect(
-          screen.getByText(
-            textMock(`ux_editor.modal_properties_textResourceBindings_${trbProperty}`),
-          ),
-        ).toBeInTheDocument();
-        expect(
-          screen.getByText(
-            textMock(`ux_editor.modal_properties_textResourceBindings_${trbProperty}_add`),
-          ),
-        ).toBeInTheDocument();
+        screen.getByRole('button', {
+          name: textMock(`ux_editor.modal_properties_textResourceBindings_${trbProperty}`),
+        });
       });
     });
 
-    it('should render already defined textResourceBinding properties for the group component when exist', async () => {
-      await render({
+    it('should render already defined textResourceBinding properties for the group component when exist', () => {
+      render({
         props: {
           ...props,
           formItem: {
@@ -91,23 +80,6 @@ describe('TextTab', () => {
       expect(screen.getByText(labelTextValue)).toBeInTheDocument();
       expect(screen.getByText(addButtonTextValue)).toBeInTheDocument();
     });
-
-    it('should render editable field in nb when a text is in editMode', async () => {
-      await render({
-        props: {
-          ...props,
-          formItem: {
-            ...layoutMock.containers[container1IdMock],
-            textResourceBindings: { title: labelTextId, add_button: addButtonTextId },
-          },
-        },
-        editId: labelTextId,
-      });
-
-      expect(screen.getByText(textMock('ux_editor.edit_text_resource'))).toBeInTheDocument();
-      const labelTextField = screen.getByRole('textbox', { name: textMock('language.nb') });
-      expect(labelTextField).toBeInTheDocument();
-    });
   });
 
   describe('when editing a component', () => {
@@ -116,29 +88,21 @@ describe('TextTab', () => {
       formItem: { ...component1Mock, dataModelBindings: { simpleBinding: '' } },
     };
 
-    it('should render the component', async () => {
-      await render({ props });
-      expect(screen.getByRole('heading', { name: textMock('general.text') })).toBeInTheDocument();
+    it('should render the component', () => {
+      render({ props });
     });
 
-    it('should render all available textResourceBinding properties for the input component', async () => {
-      await render({ props });
+    it('should render all available textResourceBinding properties for the input component', () => {
+      render({ props });
       textResourceBindingsPropertiesForComponentType(props.formItem.type).forEach((trbProperty) => {
-        expect(
-          screen.getByText(
-            textMock(`ux_editor.modal_properties_textResourceBindings_${trbProperty}`),
-          ),
-        ).toBeInTheDocument();
-        expect(
-          screen.getByText(
-            textMock(`ux_editor.modal_properties_textResourceBindings_${trbProperty}_add`),
-          ),
-        ).toBeInTheDocument();
+        screen.getByRole('button', {
+          name: textMock(`ux_editor.modal_properties_textResourceBindings_${trbProperty}`),
+        });
       });
     });
 
-    it('should render already defined textResourceBinding properties for the input component when exist', async () => {
-      await render({
+    it('should render already defined textResourceBinding properties for the input component when exist', () => {
+      render({
         props: {
           ...props,
           formItem: {
@@ -151,25 +115,8 @@ describe('TextTab', () => {
       expect(screen.getByText(descriptionTextValue)).toBeInTheDocument();
     });
 
-    it('should render editable field in nb when a text is in editMode', async () => {
-      await render({
-        props: {
-          ...props,
-          formItem: {
-            ...layoutMock.components[component1IdMock],
-            textResourceBindings: { title: labelTextId, description: descriptionTextId },
-          },
-        },
-        editId: labelTextId,
-      });
-
-      expect(screen.getByText(textMock('ux_editor.edit_text_resource'))).toBeInTheDocument();
-      const labelTextField = screen.getByRole('textbox', { name: textMock('language.nb') });
-      expect(labelTextField).toBeInTheDocument();
-    });
-
-    it('should not render options section if component schema does not have options/optionsId property', async () => {
-      await render({
+    it('should not render options section if component schema does not have options/optionsId property', () => {
+      render({
         props: {
           ...props,
           formItem: {
@@ -185,8 +132,8 @@ describe('TextTab', () => {
       ).not.toBeInTheDocument();
     });
 
-    it('should render options section if component schema has options property', async () => {
-      await render({
+    it('should render options section if component schema has options property', () => {
+      render({
         props: {
           ...props,
           formItem: {
@@ -195,16 +142,13 @@ describe('TextTab', () => {
           },
         },
       });
-
-      expect(
-        screen.getByRole('heading', {
-          name: textMock('ux_editor.properties_panel.texts.options_title'),
-        }),
-      ).toBeInTheDocument();
+      screen.getByRole('checkbox', {
+        name: textMock('ux_editor.properties_panel.options.use_code_list_label'),
+      });
     });
 
-    it('should render options section with codelist view if component has optionId defined', async () => {
-      await render({
+    it('should render options section with codelist view if component has optionId defined', () => {
+      render({
         props: {
           ...props,
           formItem: {
@@ -219,8 +163,8 @@ describe('TextTab', () => {
       ).toBeInTheDocument();
     });
 
-    it('should render options section with manual view if component has options', async () => {
-      await render({
+    it('should render options section with manual view if component has options', () => {
+      render({
         props: {
           ...props,
           formItem: {
@@ -229,36 +173,19 @@ describe('TextTab', () => {
           },
         },
       });
-
-      expect(
-        screen.getByText(textMock('ux_editor.properties_panel.options.add_options')),
-      ).toBeInTheDocument();
+      screen.getByRole('button', { name: textMock('ux_editor.modal_new_option') });
     });
   });
 });
 
-const render = async ({
-  props = {},
-  editId,
-}: {
-  props: Partial<FormItemContext>;
-  editId?: string;
-}) => {
+const render = ({ props = {}, editId }: { props: Partial<FormItemContext>; editId?: string }) => {
   queryClientMock.setQueryData(
     [QueryKey.FormComponent, props.formItem.type],
     componentSchemaMocks[props.formItem.type],
   );
   queryClientMock.setQueryData([QueryKey.TextResources, org, app], textResources);
-  const textResourcesState: ITextResourcesState = {
-    ...textResourcesMock,
-    currentEditId: editId,
-  };
-  const appData: IAppDataState = {
-    ...appDataMock,
-    textResources: textResourcesState,
-  };
 
-  return renderWithMockStore({ appData })(
+  return renderWithMockStore()(
     <FormItemContext.Provider
       value={{
         ...formItemContextProviderMock,

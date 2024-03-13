@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { EditDataModelBindings } from '../config/editModal/EditDataModelBindings/EditDataModelBindings';
-import { StudioSpinner } from '@studio/components';
+import { StudioProperty, StudioSpinner } from '@studio/components';
 import { Alert, Switch } from '@digdir/design-system-react';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { useFormItemContext } from '../../containers/FormItemContext';
@@ -84,28 +84,30 @@ export const DataModelBindings = (): React.JSX.Element => {
             {t('ux_editor.modal_properties_data_model_link_multiple_attachments')}
           </Switch>
         )}
-        {Object.keys(dataModelBindingsProperties).map((propertyKey: string) => {
-          return (
-            <div
-              className={classes.dataModelBindings}
-              key={`${formItem.id}-datamodel-${propertyKey}`}
-            >
-              <EditDataModelBindings
-                component={formItem}
-                handleComponentChange={async (updatedComponent) => {
-                  handleUpdate(updatedComponent);
-                  debounceSave(formItemId, updatedComponent);
-                }}
-                editFormId={formItemId}
-                helpText={dataModelBindingsProperties[propertyKey]?.description}
-                renderOptions={{
-                  key: propertyKey,
-                  label: propertyKey !== 'simpleBinding' ? propertyKey : undefined,
-                }}
-              />
-            </div>
-          );
-        })}
+        <StudioProperty.Group>
+          {Object.keys(dataModelBindingsProperties).map((propertyKey: string) => {
+            return (
+              <div
+                className={classes.dataModelBindings}
+                key={`${formItem.id}-datamodel-${propertyKey}`}
+              >
+                <EditDataModelBindings
+                  component={formItem}
+                  handleComponentChange={async (updatedComponent) => {
+                    handleUpdate(updatedComponent);
+                    debounceSave(formItemId, updatedComponent);
+                  }}
+                  editFormId={formItemId}
+                  helpText={dataModelBindingsProperties[propertyKey]?.description}
+                  renderOptions={{
+                    key: propertyKey,
+                    label: propertyKey !== 'simpleBinding' ? propertyKey : undefined,
+                  }}
+                />
+              </div>
+            );
+          })}
+        </StudioProperty.Group>
       </div>
     )
   );
