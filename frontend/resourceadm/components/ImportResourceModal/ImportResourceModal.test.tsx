@@ -71,6 +71,19 @@ describe('ImportResourceModal', () => {
     );
   });
 
+  it('should not import resource if some information is missing', async () => {
+    const user = userEvent.setup();
+    const importResourceFromAltinn2 = jest.fn();
+    renderImportResourceModal({ importResourceFromAltinn2 });
+
+    const importButton = screen.getByRole('button', {
+      name: textMock('resourceadm.dashboard_import_modal_import_button'),
+    });
+
+    await act(() => user.click(importButton));
+    expect(importResourceFromAltinn2).not.toHaveBeenCalled();
+  });
+
   it('should clear service field when environment is changed', async () => {
     const user = userEvent.setup();
     renderImportResourceModal();
