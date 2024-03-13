@@ -103,7 +103,7 @@ export const ResourcePage = (): React.JSX.Element => {
   useDebounce(
     () => {
       // do not save resource if it is not changed (for example after first load)
-      if (JSON.stringify(resourceData) !== JSON.stringify(loadedResourceData)) {
+      if (resourceData && JSON.stringify(resourceData) !== JSON.stringify(loadedResourceData)) {
         editResource(resourceData);
         refetchRepoStatus();
       }
