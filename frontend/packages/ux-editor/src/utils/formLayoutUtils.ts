@@ -1,6 +1,4 @@
 import type {
-  IFormDesignerComponents,
-  IFormDesignerContainers,
   IInternalLayout,
   InternalLayoutComponents,
   InternalLayoutData,
@@ -26,17 +24,6 @@ export const mapComponentToToolbarElement = <T extends ComponentType>(
   icon: c.icon,
   type: c.name,
 });
-
-export function idExists(
-  id: string,
-  components: IFormDesignerComponents,
-  containers: IFormDesignerContainers,
-): boolean {
-  return (
-    Object.keys(containers || {}).findIndex((key) => key.toUpperCase() === id.toUpperCase()) > -1 ||
-    Object.keys(components || {}).findIndex((key) => key.toUpperCase() === id.toUpperCase()) > -1
-  );
-}
 
 /**
  * Checks if a layout has navigation buttons.
