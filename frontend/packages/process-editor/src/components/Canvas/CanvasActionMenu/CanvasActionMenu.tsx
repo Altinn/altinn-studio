@@ -32,7 +32,7 @@ export const CanvasActionMenu = ({ onSave }: CanvasActionMenuProps): ReactNode =
         </Paragraph>
       )}
       {isEditAllowed && (
-        <StudioButton onClick={onSave} color='success'>
+        <StudioButton onClick={onSave} color='success' disabled={numberOfUnsavedChanges === 0}>
           {t('process_editor.save')}
         </StudioButton>
       )}
