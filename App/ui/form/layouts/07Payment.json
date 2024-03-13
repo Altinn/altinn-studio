@@ -10,7 +10,7 @@
         "id": "next-button",
         "type": "Button",
         "textResourceBindings": {
-          "title": "Neste"
+          "title": "Til betaling"
         }
       }
     ]
