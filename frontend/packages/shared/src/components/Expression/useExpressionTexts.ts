@@ -83,7 +83,7 @@ export const useExpressionTexts = (): ExpressionTexts => {
     saveAndClose: t('expression.saveAndClose'),
     secondOperand: t('expression.secondOperand'),
     simplified: t('expression.simplified'),
-    subexpression: (index: number) => t('expression.subExpression', { number: index + 1 }),
+    subexpression: (index: number) => t('expression.subexpression', { number: index + 1 }),
     transformToLogical: t('expression.transformToLogical'),
     true: t('expression.true'),
     value: t('expression.value'),

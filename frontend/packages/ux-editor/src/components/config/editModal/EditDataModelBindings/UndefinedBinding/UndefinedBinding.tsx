@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioPropertyButton } from '@studio/components';
+import { StudioProperty } from '@studio/components';
 import { LinkIcon } from '@studio/icons';
 
 export type UndefinedBindingProps = {
@@ -8,5 +8,5 @@ export type UndefinedBindingProps = {
 };
 
 export const UndefinedBinding = ({ onClick, label }: UndefinedBindingProps) => (
-  <StudioPropertyButton icon={<LinkIcon />} onClick={onClick} property={label} />
+  <StudioProperty.Button icon={<LinkIcon />} onClick={onClick} property={label} />
 );
