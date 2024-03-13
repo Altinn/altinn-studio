@@ -1,0 +1,229 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "navbar4",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "trademarkhologram",
+        "type": "Card",
+        "color": "subtle",
+        "textResourceBindings": {
+          "title": "hologramTrademark",
+          "altText": "test altText",
+          "body": "hologramInfo"
+        },
+        "edit": {
+          "position": "top"
+        },
+        "media": {
+          "src": {
+            "nb": "wwwroot/Logosymbol_holografisk_2.mp4"
+          }
+        },
+        "grid": {
+          "xs": 12,
+          "md": 4
+        }
+      },
+      {
+        "id": "trademarkSound",
+        "type": "Card",
+        "color": "subtle",
+        "textResourceBindings": {
+          "title": "soundTrademark",
+          "altText": "test altText",
+          "body": "soundInfo"
+        },
+        "edit": {
+          "position": "top",
+          "height": "500px"
+        },
+        "media": {
+          "src": {
+            "nb": "wwwroot/patentstyret_LOGO_m_R.mp3"
+          }
+        },
+        "grid": {
+          "xs": 12,
+          "md": 4
+        }
+      },
+      {
+        "id": "trademarkLogo",
+        "type": "Card",
+        "color": "subtle",
+        "textResourceBindings": {
+          "title": "figure",
+          "body": "trademarkLogoInfo"
+        },
+        "edit": {
+          "position": "top",
+          "height": "500px"
+        },
+        "image": {
+          "src": {
+            "nb": "wwwroot/Varemerke_logosymbol.jpg"
+          },
+          "width": "100%",
+          "align": "center"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 4
+        }
+      },
+      {
+        "id": "trademarkThreeDimensional",
+        "type": "Card",
+        "color": "subtle",
+        "textResourceBindings": {
+          "title": "threeDimensionalTrademark",
+          "body": "threeDimensionalInfo"
+        },
+        "edit": {
+          "position": "top",
+          "height": "500px"
+        },
+        "image": {
+          "src": {
+            "nb": "wwwroot/Tredimensjonalt-merke.png"
+          },
+          "width": "100%",
+          "align": "center"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 4
+        }
+      },
+      {
+        "id": "trademarkWord",
+        "type": "Card",
+        "color": "subtle",
+        "textResourceBindings": {
+          "title": "word",
+          "altText": "test altText",
+          "body": "trademarkWordInfo"
+        },
+        "edit": {
+          "position": "top",
+          "height": "500px"
+        },
+        "image": {
+          "src": {
+            "nb": "wwwroot/Varemerke_ordmerke.jpg"
+          },
+          "width": "100%",
+          "align": "center"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 4
+        }
+      },
+      {
+        "id": "trademarkFigure",
+        "type": "Card",
+        "color": "subtle",
+        "textResourceBindings": {
+          "title": "figureTrademark",
+          "body": "trademarkFigureInfo"
+        },
+        "edit": {
+          "position": "top",
+          "height": "500px"
+        },
+        "image": {
+          "src": {
+            "nb": "wwwroot/Varemerke_kombinert.jpg"
+          },
+          "width": "100%",
+          "align": "center"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 4
+        }
+      },
+      {
+        "id": "chooseTrademark",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "chooseTrademark"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Trademark.TrademarkType"
+        },
+        "optionsId": "trademarks"
+      },
+      {
+        "id": "trademarkTextInfo",
+        "type": "Accordion",
+        "textResourceBindings": {
+          "title": "trademarkTextInfo"
+        },
+        "children": [
+          "trademarkTextDescription"
+        ]
+      },
+      {
+        "id": "trademarkTextDescription",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "trademarkTextDescription"
+        }
+      },
+      {
+        "id": "trademarkText",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "trademarkText"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Trademark.TrademarkText"
+        }
+      },
+      {
+        "id": "trademarkDetails",
+        "type": "TextArea",
+        "textResourceBindings": {
+          "title": "trademarkDetails"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Trademark.TrademarkDetails"
+        }
+      },
+      {
+        "id": "trademarkAttachments",
+        "type": "FileUpload",
+        "textResourceBindings": {
+          "title": "trademarkAttachments"
+        },
+        "maxFileSizeInMB": 10,
+        "maxNumberOfAttachments": 1,
+        "minNumberOfAttachments": 0,
+        "required": false,
+        "displayMode": "list",
+        "hasCustomFileEndings": true,
+        "validFileEndings": ".jpeg, .jpg, .png"
+      },
+      {
+        "id": "navButtons4",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "next": "next"
+        },
+        "showBackButton": true,
+        "validateOnNext": {
+          "page": "current",
+          "show": [
+            "All"
+          ]
+        }
+      }
+    ]
+  }
+}

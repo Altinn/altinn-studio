@@ -1,15 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <AssemblyName>Altinn.Application</AssemblyName>
+    <AssemblyName>Altinn</AssemblyName>
     <RootNamespace>Altinn.App</RootNamespace>
+    <AppLibProjectFolder>/Users/magnusrm/repos/app-lib-dotnet</AppLibProjectFolder>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Api" Version="8.0.0">
-      <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
-    </PackageReference>
-    <PackageReference Include="Altinn.App.Core" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
+  <ProjectReference Include="/Users/magnusrm/repos/app-lib-dotnet/src/Altinn.App.Api/Altinn.App.Api.csproj">
+    <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
+  </ProjectReference>
+    <ProjectReference Include="/Users/magnusrm/repos/app-lib-dotnet/src/Altinn.App.Core/Altinn.App.Core.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="6.0.0" />
+    <PackageReference Include="PsA3Forms" Version="2.7.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
   <ItemGroup>

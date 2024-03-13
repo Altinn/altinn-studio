@@ -4,8 +4,9 @@
     {
       "id": "form",
       "dataType": "model",
-      "tasks": ["Task_1"]
+      "tasks": [
+        "Task_1"
+      ]
     }
-  ],
-  "uiSettings": {}
+  ]
 }

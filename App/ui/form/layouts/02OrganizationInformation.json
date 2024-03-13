@@ -1,0 +1,186 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "navbar2",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "CompanyHeader",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "CompanyHeader"
+        },
+        "size": "h2"
+      },
+      {
+        "id": "CompanyDescription",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "CompanyDescription"
+        }
+      },
+      {
+        "id": "CompanyInformation",
+        "type": "RepeatingGroup",
+        "children": [
+          "CompanyNumber",
+          "CompanyName",
+          "CompanyFirstName",
+          "CompanyLastName",
+          "CompanyAddress",
+          "CompanyPostalCode",
+          "CompanyPostalCity",
+          "CompanyCountry",
+          "clientNumber"
+        ],
+        "dataModelBindings": {
+          "group": "Company.CompanyProperties"
+        },
+        "edit": {
+          "openByDefault": "first"
+        },
+        "maxCount": 99
+      },
+      {
+        "id": "CompanyNumber",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "CompanyNumber"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Company.CompanyProperties.CompanyNumber"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 6
+        }
+      },
+      {
+        "id": "CompanyName",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "CompanyName"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Company.CompanyProperties.CompanyName"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 6
+        }
+      },
+      {
+        "id": "CompanyFirstName",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "CompanyFirstName"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Company.CompanyProperties.FirstName"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 6
+        }
+      },
+      {
+        "id": "CompanyLastName",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "CompanyLastName"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Company.CompanyProperties.LastName"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 6
+        }
+      },
+      {
+        "id": "CompanyAddress",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "CompanyAddress"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Company.CompanyProperties.StreetAddress"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 6
+        }
+      },
+      {
+        "id": "CompanyPostalCode",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "CompanyPostalCode"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Company.CompanyProperties.ZipCode"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 3
+        }
+      },
+      {
+        "id": "CompanyPostalCity",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "CompanyPostalCity"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Company.CompanyProperties.City"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 3
+        }
+      },
+      {
+        "id": "CompanyCountry",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "CompanyCountry"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Company.CompanyProperties.Country"
+        },
+        "optionsId": "countries",
+        "grid": {
+          "xs": 12,
+          "md": 6
+        }
+      },
+      {
+        "id": "clientNumber",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "clientNumber"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Company.CompanyProperties.ClientNumber"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 12,
+          "innerGrid": {
+            "md": 6
+          }
+        }
+      },
+      {
+        "id": "navButtons2",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "next": "next"
+        },
+        "showBackButton": true
+      }
+    ]
+  }
+}

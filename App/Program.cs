@@ -1,15 +1,28 @@
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
+using Altinn.App.Core;
+using Altinn.App.Core.Features;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using PsA3Forms.Clients;
+using PsA3Forms.DTOs;
+using Altinn.App.logic;
+using Altinn.App.Core.Features.Payment;
+using Altinn.App.Custom.Payment;
+
 
 void RegisterCustomAppServices(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
 {
     // Register your apps custom service implementations here.
+    services.AddTransient<IAppOptionsProvider, CountryAppOptionsProvider>();
+    services.AddHttpClient<ICountryClient, CountryClient>();
+    services.AddTransient<TrademarkSearchResultDTO, TrademarkSearchResultDTO>();
+    services.AddTransient<IDataProcessor, DataProcessor>();
+    services.AddNetsPaymentServices(config); //Hvis vi vil ha mer out-of-the-box-uten-kode løsning så kan denne alltid addes som en del av library sin setup.
+    services.AddTransient<IOrderDetailsCalculator, OrderDetailsCalculator>(); //Vi kunne hatt en standardimplementasjon av denne i library som leser en fastpris fra et bestemt sted.
 }
 
 // ###########################################################################
@@ -52,8 +65,7 @@ void ConfigureWebHostBuilder(IWebHostBuilder builder)
 }
 
 void Configure()
-    {
-    string applicationId = StartupHelper.GetApplicationId();
+    {string applicationId = StartupHelper.GetApplicationId();
     if (!string.IsNullOrEmpty(applicationId))
     {
         app.UseSwagger(o => o.RouteTemplate = applicationId + "/swagger/{documentName}/swagger.json");

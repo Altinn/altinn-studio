@@ -1,0 +1,46 @@
+[
+    {
+      "value": "word",
+      "label": "word"
+    },
+    {
+        "value": "figureTrademark",
+        "label": "figureTrademark"
+    },
+    {
+        "value": "figure",
+        "label": "figure"
+    },
+    {
+        "value": "threedimensionalTrademark",
+        "label": "threeDimensionalTrademark"
+    },
+    {
+        "value": "hologramTrademark",
+        "label": "hologramTrademark"
+    },
+    {
+        "value": "soundTrademark",
+        "label": "soundTrademark"
+    },
+    {
+        "value": "patternTrademark",
+        "label": "patternTrademark"
+    },
+    {
+        "value": "placementTrademark",
+        "label": "placementTrademark"
+    },
+    {
+        "value": "multimediaTrademark",
+        "label": "muliMediaTrademark"
+    },
+    {
+        "value": "colorTrademark",
+        "label": "colorTrademark"
+    },
+    {
+        "value": "otherTrademark",
+        "label": "otherTrademark"
+    }
+]
