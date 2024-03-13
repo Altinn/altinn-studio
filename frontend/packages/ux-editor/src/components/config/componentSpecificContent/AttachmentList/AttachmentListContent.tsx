@@ -2,7 +2,6 @@ import React from 'react';
 import { Combobox, Label, Checkbox } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import classes from './AttachmentListContent.module.css';
-import { selectionIsValid } from './AttachmentListUtils';
 import { ArrayUtils } from '@studio/pure-functions';
 
 type IAttachmentListContent = {
@@ -68,10 +67,6 @@ export const AttachmentListContent = ({
         size='small'
         value={selectedAttachments}
         onValueChange={handleComboboxChange}
-        error={
-          !selectionIsValid(selectedDataTypes) &&
-          t('ux_editor.component_title.AttachmentList_error')
-        }
       >
         {availableAttachments?.map((attachment) => {
           return (

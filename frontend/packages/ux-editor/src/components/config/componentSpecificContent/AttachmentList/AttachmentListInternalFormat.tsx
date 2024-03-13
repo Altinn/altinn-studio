@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
-import { Switch } from '@digdir/design-system-react';
+import { Fieldset, Switch } from '@digdir/design-system-react';
 import { AttachmentListContent } from './AttachmentListContent';
 import { useTranslation } from 'react-i18next';
 import { ArrayUtils } from '@studio/pure-functions';
-import { currentTasks, getAvailableAttachments, reservedDataTypes } from './AttachmentListUtils';
+import {
+  currentTasks,
+  getAvailableAttachments,
+  reservedDataTypes,
+  selectionIsValid,
+} from './AttachmentListUtils';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
 
@@ -65,7 +70,12 @@ export const AttachmentListInternalFormat = (props: AttachmentListInternalFormat
   };
 
   return (
-    <>
+    <Fieldset
+      legend={t('ux_editor.component_title.AttachmentList_legend')}
+      error={
+        !selectionIsValid(selectedDataTypes) && t('ux_editor.component_title.AttachmentList_error')
+      }
+    >
       <Switch onChange={(e) => onChangeTask(e.target.checked)} size='small' checked={currentTask}>
         {t('ux_editor.component_properties.current_task')}
       </Switch>
@@ -78,7 +88,7 @@ export const AttachmentListInternalFormat = (props: AttachmentListInternalFormat
         setSelectedDataTypes={setSelectedDataTypes}
         handleOutGoingData={handleOutGoingData}
       />
-    </>
+    </Fieldset>
   );
 };
 
