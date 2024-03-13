@@ -3,6 +3,7 @@ import {
   act,
   render as rtlRender,
   screen,
+  waitFor,
   waitForElementToBeRemoved,
 } from '@testing-library/react';
 import type { AccessControlTabProps } from './AccessControlTab';
@@ -19,6 +20,8 @@ import userEvent from '@testing-library/user-event';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
+
+/* const CheckboxState = 'checked' || 'indeterminate' || 'unchecked'; */
 
 jest.mock('../../../../../../hooks/mutations/useAppMetadataMutation');
 const updateAppMetadataMutation = jest.fn();
@@ -47,7 +50,7 @@ describe('AccessControlTab', () => {
     expect(header).toBeInTheDocument();
   });
 
-  it('renders the columnheader', async () => {
+  it('renders the column header for (Alle typer)', async () => {
     render();
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('settings_modal.loading_content')),
@@ -56,6 +59,33 @@ describe('AccessControlTab', () => {
       name: textMock('settings_modal.access_control_tab_option_all_type_partner'),
     });
     expect(columnHeader).toBeInTheDocument();
+  });
+
+  it('handles table header checkbox changes', async () => {
+    const user = userEvent.setup();
+    await resolveAndWaitForSpinnerToDisappear();
+    render();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('settings_modal.loading_content')),
+    );
+
+    const columnHeader = screen.getAllByRole('row', {
+      name: textMock('settings_modal.access_control_tab_option_all_type_partner'),
+    });
+
+    await act(() => user.click(columnHeader[0]));
+
+    expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1);
+
+    expect(updateAppMetadataMutation).toHaveBeenCalledWith({
+      ...mockAppMetadata,
+      partyTypesAllowed: {
+        bankruptcyEstate: true,
+        organisation: true,
+        person: false,
+        subUnit: false,
+      },
+    });
   });
 
   it('initially displays the spinner when loading data', () => {
@@ -177,29 +207,6 @@ describe('AccessControlTab', () => {
       name: textMock('settings_modal.access_control_tab_option_sub_unit'),
     });
     expect(subUnitCheckbox).toBeInTheDocument();
-  });
-
-  it('handles checkbox changes', async () => {
-    const user = userEvent.setup();
-    await resolveAndWaitForSpinnerToDisappear();
-
-    const organisationCheckboxBefore = screen.getByRole('row', {
-      name: textMock('settings_modal.access_control_tab_option_organisation'),
-    });
-    expect(organisationCheckboxBefore).not.toBeChecked();
-
-    await act(() => user.click(organisationCheckboxBefore));
-
-    expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1);
-    expect(updateAppMetadataMutation).toHaveBeenCalledWith({
-      ...mockAppMetadata,
-      partyTypesAllowed: {
-        bankruptcyEstate: true,
-        organisation: true,
-        person: false,
-        subUnit: false,
-      },
-    });
   });
 
   it('renders the documentation link with the correct text', async () => {

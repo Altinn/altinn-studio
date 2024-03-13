@@ -57,7 +57,20 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
 
   const { mutate: updateAppMetadataMutation } = useAppMetadataMutation(org, app);
 
-  const handleChange = (newPartyTypes: string[], currentPartyTypesAllowed: PartyTypesAllowed) => {
+  const handleChange = (
+    newPartyTypes: string[],
+    currentPartyTypesAllowed: PartyTypesAllowed,
+    value: string,
+  ) => {
+    const updatedCheckboxes = checkedCheckboxes.includes(value)
+      ? checkedCheckboxes.filter((checkbox) => checkbox !== value)
+      : [...checkedCheckboxes, value];
+    if (updatedCheckboxes.length === 0 && checkedCheckboxes.length === 1) {
+      modalRef.current?.showModal();
+      return;
+    }
+    setCheckedCheckboxes(updatedCheckboxes);
+
     const newPartyTypesAllowed = { ...currentPartyTypesAllowed };
 
     Object.keys(currentPartyTypesAllowed).forEach((key) => {
@@ -77,21 +90,13 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
     : CheckboxState.Unchecked;
 
   const handleTableHeaderCheckboxChange = () => {
-    if (tableHeaderCheckboxState === CheckboxState.Checked) setCheckedCheckboxes([]);
-    else setCheckedCheckboxes(getPartyTypesAllowedOptions().map((option) => option.value));
-  };
-
-  const handleCheckboxChange = (value: string) => {
-    const updatedCheckboxes = checkedCheckboxes.includes(value)
-      ? checkedCheckboxes.filter((checkbox) => checkbox !== value)
-      : [...checkedCheckboxes, value];
-    if (updatedCheckboxes.length === 0 && checkedCheckboxes.length === 1) {
-      modalRef.current?.showModal();
-      return;
+    if (tableHeaderCheckboxState === CheckboxState.Checked) {
+      setCheckedCheckboxes([]);
+    } else {
+      const updatedCheckboxes = getPartyTypesAllowedOptions().map((option) => option.value);
+      setCheckedCheckboxes(updatedCheckboxes);
     }
-    setCheckedCheckboxes(updatedCheckboxes);
   };
-
   const renderModal = () => {
     return (
       <Modal ref={modalRef}>
@@ -125,18 +130,14 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
 
         return (
           <>
-            <Checkbox.Group
-              legend={t('settings_modal.access_control_tab_checkbox_legend_label')}
-              size='small'
-              onChange={(newValues: string[]) => handleChange(newValues, currentPartyTypesAllowed)}
-              value={Object.keys(currentPartyTypesAllowed).filter(
-                (key) => currentPartyTypesAllowed[key],
-              )}
-            >
-              <Paragraph asChild size='small' short>
+            <Paragraph size='medium'>
+              <>
+                <TabHeader
+                  text={t('settings_modal.access_control_tab_checkbox_legend_label')}
+                ></TabHeader>
                 <span>{t('settings_modal.access_control_tab_checkbox_description')}</span>
-              </Paragraph>
-            </Checkbox.Group>
+              </>
+            </Paragraph>
 
             <Table className={classes.tableContent}>
               <Table.Head>
@@ -157,11 +158,14 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
               </Table.Head>
 
               <Table.Body>
-                {getPartyTypesAllowedOptions().map((option) => (
+                {getPartyTypesAllowedOptions().map((option, key) => (
                   <Table.Row key={option.value}>
                     <Table.Cell className={classes.checkboxContent}>
                       <Checkbox
-                        onChange={() => handleCheckboxChange(option.value)}
+                        key={key}
+                        onChange={() =>
+                          handleChange(checkedCheckboxes, currentPartyTypesAllowed, option.value)
+                        }
                         size='small'
                         value={option.value}
                         checked={checkedCheckboxes.includes(option.value)}
