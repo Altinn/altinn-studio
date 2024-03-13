@@ -1,12 +1,11 @@
 import React from 'react';
 import classes from './ConfigContent.module.css';
 import { useTranslation } from 'react-i18next';
-import { Divider, Heading, HelpText, Paragraph } from '@digdir/design-system-react';
-import { ConfigIcon } from './ConfigIcon';
+import { StudioSectionHeader } from '@studio/components';
 import { ConfigDetailsRow } from './ConfigDetailsRow';
 import { getConfigTitleKey, getConfigTitleHelpTextKey } from '../../../utils/configPanelUtils';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
-import { ConfigSectionWrapper } from './ConfigSectionWrapper';
+import { ConfigIcon } from './ConfigIcon';
 
 export const ConfigContent = (): JSX.Element => {
   const { t } = useTranslation();
@@ -18,24 +17,18 @@ export const ConfigContent = (): JSX.Element => {
 
   return (
     <>
-      <div className={classes.headerWrapper}>
-        <div className={classes.headerTextAndIconWrapper}>
-          <ConfigIcon taskType={bpmnDetails.taskType} />
-          <Heading level={2} size='xsmall'>
-            {configTitle}
-          </Heading>
-        </div>
-        {configHeaderHelpText && (
-          <HelpText
-            size='medium'
-            title={t('process_editor.configuration_panel_header_help_text_title')}
-          >
-            <Paragraph size='small'>{configHeaderHelpText}</Paragraph>
-          </HelpText>
-        )}
-      </div>
-      <Divider />
-      <ConfigSectionWrapper>
+      <StudioSectionHeader
+        icon={<ConfigIcon taskType={bpmnDetails.taskType} />}
+        heading={{
+          text: configTitle,
+          level: 2,
+        }}
+        helpText={{
+          text: configHeaderHelpText,
+          title: t('process_editor.configuration_panel_header_help_text_title'),
+        }}
+      />
+      <div className={classes.configSectionWrapper}>
         <ConfigDetailsRow
           title={t('process_editor.configuration_panel_id_label')}
           text={bpmnDetails.id}
@@ -44,7 +37,7 @@ export const ConfigContent = (): JSX.Element => {
           title={t('process_editor.configuration_panel_name_label')}
           text={bpmnDetails.name}
         />
-      </ConfigSectionWrapper>
+      </div>
     </>
   );
 };

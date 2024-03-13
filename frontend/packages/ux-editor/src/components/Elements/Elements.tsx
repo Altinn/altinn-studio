@@ -9,7 +9,6 @@ import { LayoutSetsContainer } from './LayoutSetsContainer';
 
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import classes from './Elements.module.css';
-import cn from 'classnames';
 import { useAppContext } from '../../hooks/useAppContext';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/mutations/useCustomReceiptLayoutSetName';
 
@@ -24,14 +23,7 @@ export const Elements = () => {
   const t = useText();
 
   return (
-    <div
-      className={cn(
-        classes.root,
-        existingCustomReceiptName === selectedLayoutSet
-          ? classes.customReceipt
-          : classes.defaultBackground,
-      )}
-    >
+    <div className={classes.root}>
       <LayoutSetsContainer />
       <Heading size='xxsmall' className={classes.componentsHeader}>
         {t('left_menu.components')}

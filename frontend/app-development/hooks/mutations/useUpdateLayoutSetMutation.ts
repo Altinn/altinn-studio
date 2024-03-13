@@ -10,7 +10,7 @@ export const useUpdateLayoutSetMutation = (org: string, app: string) => {
   const [_, setSelectedLayoutSet] = useLocalStorage<string>('layoutSet/' + app, null);
 
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       layoutSetIdToUpdate,
       layoutSetConfig,
     }: {

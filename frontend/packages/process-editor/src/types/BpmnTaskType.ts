@@ -1,1 +1,1 @@
-export type BpmnTaskType = 'data' | 'confirmation' | 'feedback' | 'signing';
+export type BpmnTaskType = 'data' | 'confirmation' | 'feedback' | 'signing' | 'endEvent';

@@ -8,7 +8,6 @@ import { ConfigPanel } from './components/ConfigPanel';
 
 import classes from './ProcessEditor.module.css';
 import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
-import { CustomReceipt } from './components/ConfigPanel/CustomReceipt/CustomReceipt';
 
 export type ProcessEditorProps = {
   bpmnXml: string | undefined | null;
@@ -39,13 +38,10 @@ export const ProcessEditor = ({
     <BpmnContextProvider bpmnXml={bpmnXml} appLibVersion={appLibVersion}>
       <div className={classes.container}>
         <Canvas onSave={onSave} />
-        <div className={classes.config}>
-          <ConfigPanel />
-          <CustomReceipt
-            existingCustomReceiptName={existingCustomReceipt}
-            onUpdateLayoutSet={onUpdateLayoutSet}
-          />
-        </div>
+        <ConfigPanel
+          existingCustomReceiptName={existingCustomReceipt}
+          onUpdateLayoutSet={onUpdateLayoutSet}
+        />
       </div>
     </BpmnContextProvider>
   );

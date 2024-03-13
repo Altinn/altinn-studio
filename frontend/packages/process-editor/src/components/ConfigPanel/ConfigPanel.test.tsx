@@ -6,6 +6,7 @@ import type { BpmnContextProps } from '../../contexts/BpmnContext';
 import { BpmnContext } from '../../contexts/BpmnContext';
 import type { BpmnDetails } from '../../types/BpmnDetails';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
+import * as FeautreToggleUtils from 'app-shared/utils/featureToggleUtils';
 
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 const mockAppLibVersion8: string = '8.0.3';
@@ -32,20 +33,24 @@ const mockBpmnContextValue: BpmnContextProps = {
   setBpmnDetails: jest.fn(),
 };
 
+jest.mock('app-shared/utils/featureToggleUtils', () => ({
+  shouldDisplayFeature: jest.fn().mockReturnValue(false),
+}));
+
 describe('ConfigPanel', () => {
   afterEach(jest.clearAllMocks);
 
   it('should render without crashing', () => {
     render({ appLibVersion: mockAppLibVersion7, bpmnDetails: null, isEditAllowed: false });
     expect(
-      screen.getByText(textMock('process_editor.configuration_panel_no_task')),
+      screen.getByText(textMock('process_editor.configuration_panel_no_diagram')),
     ).toBeInTheDocument();
   });
 
-  it('should display the message about selecting a task when bpmnDetails is "null"', () => {
+  it('should display the message about missing diagram when bpmnDetails is "null"', () => {
     render({ bpmnDetails: null });
     expect(
-      screen.getByText(textMock('process_editor.configuration_panel_no_task')),
+      screen.getByText(textMock('process_editor.configuration_panel_no_diagram')),
     ).toBeInTheDocument();
   });
 
@@ -74,6 +79,14 @@ describe('ConfigPanel', () => {
     render({ bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.EndEvent } });
     expect(
       screen.getByText(textMock('process_editor.configuration_panel_element_not_supported')),
+    ).toBeInTheDocument();
+  });
+
+  it('should display the details about the end event when bpmnDetails.type is "EndEvent" and customizeEndEvent feature flag is enabled', () => {
+    jest.spyOn(FeautreToggleUtils, 'shouldDisplayFeature').mockReturnValue(true);
+    render({ bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.EndEvent } });
+    expect(
+      screen.getByText(textMock('process_editor.configuration_panel_end_event')),
     ).toBeInTheDocument();
   });
 
@@ -137,7 +150,7 @@ describe('ConfigPanel', () => {
 const render = (rootContextProps: Partial<BpmnContextProps> = {}) => {
   return rtlRender(
     <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
-      <ConfigPanel />
+      <ConfigPanel existingCustomReceiptName={undefined} onUpdateLayoutSet={jest.fn()} />
     </BpmnContext.Provider>,
   );
 };

@@ -1,0 +1,8 @@
+.container {
+  padding: 10px;
+  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
+}
+
+.endEvent {
+  background-color: #b2eccc;
+}
