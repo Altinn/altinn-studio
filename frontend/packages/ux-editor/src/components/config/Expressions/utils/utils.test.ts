@@ -237,6 +237,7 @@ describe('utils', () => {
         id: 'repeatingGroup',
         itemType: 'CONTAINER',
         type: ComponentType.RepeatingGroup,
+        dataModelBindings: { group: '' },
       };
       const hiddenProp: FormItemProperty<ComponentType.Input> = { key: 'hidden' };
       const addButtonProp: FormItemProperty<ComponentType.RepeatingGroup> = {
