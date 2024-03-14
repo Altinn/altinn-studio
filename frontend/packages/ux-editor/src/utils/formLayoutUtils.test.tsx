@@ -527,27 +527,22 @@ describe('formLayoutUtils', () => {
 
   describe('isItemChildOfContainer', () => {
     it('Returns true if the item is a child of the given container type', () => {
-      expect(
-        isItemChildOfContainer(mockInternal, paragraphInGroupComponent, ComponentType.Group),
-      ).toBe(true);
+      const result = isItemChildOfContainer(mockInternal, paragraphInGroupId, ComponentType.Group);
+      expect(result).toBe(true);
     });
 
     it('Returns true if the item is a child of any container when containerType is not specified', () => {
-      expect(isItemChildOfContainer(mockInternal, paragraphInGroupComponent)).toBe(true);
+      expect(isItemChildOfContainer(mockInternal, paragraphInGroupId)).toBe(true);
     });
 
     it('Returns false if the item is not a child of the given container type', () => {
       expect(
-        isItemChildOfContainer(
-          mockInternal,
-          paragraphInGroupComponent,
-          ComponentType.AccordionGroup,
-        ),
+        isItemChildOfContainer(mockInternal, paragraphInGroupId, ComponentType.AccordionGroup),
       ).toBe(false);
     });
 
     it('Returns false if the item is not a child of any container when containerType is not specified', () => {
-      expect(isItemChildOfContainer(mockInternal, paragraphComponent)).toBe(false);
+      expect(isItemChildOfContainer(mockInternal, paragraphId)).toBe(false);
     });
   });
 

@@ -54,7 +54,7 @@ export const DataModelBindings = (): React.JSX.Element => {
       <div className={classes.container}>
         {(formItem.type === ComponentType.FileUploadWithTag ||
           formItem.type === ComponentType.FileUpload) &&
-          isItemChildOfContainer(layout, formItem, ComponentType.RepeatingGroup) && (
+          isItemChildOfContainer(layout, formItem.id, ComponentType.RepeatingGroup) && (
             <Alert severity='warning'>
               {t('ux_editor.modal_properties_data_model_restrictions_attachment_components')}
             </Alert>
