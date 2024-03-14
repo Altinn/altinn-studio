@@ -31,13 +31,7 @@ export const ConfigPanel = ({
   const [showEndEventConfig] = React.useState<boolean>(shouldDisplayFeature('customizeEndEvent'));
 
   const displayContent = () => {
-    if (bpmnDetails === null) {
-      return (
-        <Paragraph className={classes.configPanelParagraph} size='small'>
-          {t('process_editor.configuration_panel_no_diagram')}
-        </Paragraph>
-      );
-    } else if (bpmnDetails.type === BpmnTypeEnum.Process) {
+    if (bpmnDetails === null || bpmnDetails.type === BpmnTypeEnum.Process) {
       return (
         <Paragraph className={classes.configPanelParagraph} size='small'>
           {t('process_editor.configuration_panel_no_task')}

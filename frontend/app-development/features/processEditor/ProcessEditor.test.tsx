@@ -1,0 +1,47 @@
+import React from 'react';
+import { screen } from '@testing-library/react';
+import { ProcessEditor } from './ProcessEditor';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { renderWithProviders } from '../../test/testUtils';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import type { AppVersion } from 'app-shared/types/AppVersion';
+import { textMock } from '../../../testing/mocks/i18nMock';
+import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
+
+jest.mock('app-shared/hooks/useConfirmationDialogOnPageLeave', () => ({
+  useConfirmationDialogOnPageLeave: jest.fn(),
+}));
+
+describe('ProcessEditor', () => {
+  it('renders spinner when appLibVersion is not fetched', () => {
+    render();
+    screen.getByText(textMock('process_editor.loading'));
+  });
+
+  it('renders processEditor with "noBpmnFound" error message when appLibVersion is fetched but no bpmn is found', () => {
+    const queryClientMock = createQueryClientMock();
+    queryClientMock.setQueryData([QueryKey.AppVersion, org, app], appDefaultResponse);
+    render({ queryClient: queryClientMock });
+    screen.getByRole('heading', { name: textMock('process_editor.fetch_bpmn_error_title') });
+  });
+
+  it('renders processEditor with "No task selected" message in config panel when appLibVersion is fetched but no bpmnDetails are found', () => {
+    const queryClientMock = createQueryClientMock();
+    queryClientMock.setQueryData([QueryKey.AppVersion, org, app], appDefaultResponse);
+    render({ bpmnFile: 'mockBpmn', queryClient: queryClientMock });
+    screen.getByText(textMock('process_editor.configuration_panel_no_task'));
+  });
+});
+
+// test data
+const org = 'org';
+const app = 'app';
+const appDefaultResponse: AppVersion = { backendVersion: '8', frontendVersion: '4' };
+
+const render = ({ bpmnFile = null, queryClient = createQueryClientMock() } = {}) => {
+  queryClient.setQueryData([QueryKey.FetchBpmn, org, app], bpmnFile);
+  return renderWithProviders(<ProcessEditor />, {
+    queryClient,
+    startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
+  });
+};

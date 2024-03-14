@@ -43,14 +43,14 @@ describe('ConfigPanel', () => {
   it('should render without crashing', () => {
     render({ appLibVersion: mockAppLibVersion7, bpmnDetails: null, isEditAllowed: false });
     expect(
-      screen.getByText(textMock('process_editor.configuration_panel_no_diagram')),
+      screen.getByText(textMock('process_editor.configuration_panel_no_task')),
     ).toBeInTheDocument();
   });
 
-  it('should display the message about missing diagram when bpmnDetails is "null"', () => {
+  it('should display the message about selecting a task when bpmnDetails is "null"', () => {
     render({ bpmnDetails: null });
     expect(
-      screen.getByText(textMock('process_editor.configuration_panel_no_diagram')),
+      screen.getByText(textMock('process_editor.configuration_panel_no_task')),
     ).toBeInTheDocument();
   });
 
