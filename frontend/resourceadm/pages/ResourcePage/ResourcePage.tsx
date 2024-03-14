@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDebounce } from 'react-use';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import classes from './ResourcePage.module.css';
 import { PolicyEditorPage } from '../PolicyEditorPage';
@@ -99,18 +98,6 @@ export const ResourcePage = (): React.JSX.Element => {
       setResourceData(loadedResourceData);
     }
   }, [loadedResourceData, resourceData]);
-
-  useDebounce(
-    () => {
-      // do not save resource if it is not changed (for example after first load)
-      if (resourceData && JSON.stringify(resourceData) !== JSON.stringify(loadedResourceData)) {
-        editResource(resourceData);
-        refetchRepoStatus();
-      }
-    },
-    500,
-    [JSON.stringify(resourceData)],
-  );
 
   /**
    * If repostatus is not undefined, set the flags for if the repo has merge
@@ -265,6 +252,7 @@ export const ResourcePage = (): React.JSX.Element => {
   const handleSaveResource = (r: Resource) => {
     if (JSON.stringify(r) !== JSON.stringify(resourceData)) {
       setResourceData(r);
+      editResource(r);
     }
   };
 
