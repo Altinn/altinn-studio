@@ -6065,7 +6065,7 @@ __metadata:
     execa: "npm:8.0.1"
     fast-array-diff: "npm:^1.1.0"
     fast-json-patch: "npm:^3.1.1"
-    fork-ts-checker-notifier-webpack-plugin: "npm:7.0.0"
+    fork-ts-checker-notifier-webpack-plugin: "npm:9.0.0"
     fork-ts-checker-webpack-plugin: "npm:9.0.2"
     html-react-parser: "npm:5.1.8"
     http-server: "npm:^14.1.1"
@@ -10216,14 +10216,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fork-ts-checker-notifier-webpack-plugin@npm:7.0.0":
-  version: 7.0.0
-  resolution: "fork-ts-checker-notifier-webpack-plugin@npm:7.0.0"
+"fork-ts-checker-notifier-webpack-plugin@npm:9.0.0":
+  version: 9.0.0
+  resolution: "fork-ts-checker-notifier-webpack-plugin@npm:9.0.0"
   dependencies:
     node-notifier: "npm:^10.0.1"
   peerDependencies:
-    fork-ts-checker-webpack-plugin: ^8.0.0
-  checksum: 10c0/90caeb7e28bc6e19f7b4bf10da0f3d5e6259805c0aa9686bf1992936dcb64ec4cb0d8e690ea59675368c20c5b0783bc094c841663d744b9de2679419faa61962
+    fork-ts-checker-webpack-plugin: ^9.0.0
+  checksum: 10c0/58f876fb99a2dd1b24e0b0b7f53d547c13a6cf9176122ac73e781af5ee69f2e9d459fa4aa8a1e5ecc7f96222f4d21f0914c52ad1aa9e50dccb54019391cdce57
   languageName: node
   linkType: hard
 
