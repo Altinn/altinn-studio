@@ -40,13 +40,7 @@ public class CsharpNamespaceTests : DisagnerEndpointsTestsBase<CsharpNamespaceTe
         await CopyRepositoryForTest(org, repo, developer, targetRepository);
         string url = $"{VersionPrefix(org, targetRepository)}/upload";
 
-        await using var fileStream = SharedResourcesHelper.LoadTestData(xsdPath);
-        var formData = new MultipartFormDataContent();
-        var streamContent = new StreamContent(fileStream);
-        streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
-        formData.Add(streamContent, "file", Path.GetFileName(xsdPath));
-
-        using var response = await HttpClient.PostAsync(url, formData);
+        using var response = await UploadNewXsdSchema(xsdPath, url);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
         // get the csharp model from repo
@@ -155,7 +149,7 @@ public class CsharpNamespaceTests : DisagnerEndpointsTestsBase<CsharpNamespaceTe
     private async Task<HttpResponseMessage> UploadNewXsdSchema(string xsdPath, string url)
     {
         await using var fileStream = SharedResourcesHelper.LoadTestData(xsdPath);
-        var formData = new MultipartFormDataContent();
+        using var formData = new MultipartFormDataContent();
         using var streamContent = new StreamContent(fileStream);
         streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
         formData.Add(streamContent, "file", Path.GetFileName(xsdPath));
