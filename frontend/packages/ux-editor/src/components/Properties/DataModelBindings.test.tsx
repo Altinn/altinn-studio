@@ -72,7 +72,10 @@ describe('DataModelBindings', () => {
     (prop) => {
       render({
         props: {
-          formItem: componentMocks[ComponentType.Address],
+          formItem: {
+            ...componentMocks[ComponentType.Address],
+            dataModelBindings: { address: '', zipCode: '', postPlace: '' },
+          },
           formItemId: componentMocks[ComponentType.Address].id,
         },
       });
@@ -91,6 +94,8 @@ describe('DataModelBindings', () => {
           ...componentMocks[ComponentType.Address],
           dataModelBindings: {
             address: 'someAddressDataModelField',
+            postPlace: '',
+            zipCode: '',
             careOf: 'someCareOfDataModelField',
           },
         },
