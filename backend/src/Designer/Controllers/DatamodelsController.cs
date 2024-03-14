@@ -30,16 +30,18 @@ namespace Altinn.Studio.Designer.Controllers
     {
         private readonly ISchemaModelService _schemaModelService;
         private readonly IJsonSchemaValidator _jsonSchemaValidator;
+        private readonly IModelNameValidator _modelNameValidator;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DatamodelsController"/> class.
         /// </summary>
         /// <param name="schemaModelService">Interface for working with models.</param>
         /// <param name="jsonSchemaValidator">An <see cref="IJsonSchemaValidator"/>.</param>
-        public DatamodelsController(ISchemaModelService schemaModelService, IJsonSchemaValidator jsonSchemaValidator)
+        public DatamodelsController(ISchemaModelService schemaModelService, IJsonSchemaValidator jsonSchemaValidator, IModelNameValidator modelNameValidator)
         {
             _schemaModelService = schemaModelService;
             _jsonSchemaValidator = jsonSchemaValidator;
+            _modelNameValidator = modelNameValidator;
         }
 
         /// <summary>
@@ -157,6 +159,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("upload")]
         public async Task<IActionResult> AddXsd(string org, string repository, [FromForm(Name = "file")] IFormFile theFile, CancellationToken cancellationToken)
         {
+            Request.EnableBuffering();
             Guard.AssertArgumentNotNull(theFile, nameof(theFile));
 
             string fileName = GetFileNameFromUploadedFile(theFile);
@@ -165,6 +168,8 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+            var fileStream = theFile.OpenReadStream();
+            await _modelNameValidator.ValidateModelNameForNewXsdSchema(fileStream, fileName, editingContext);
             string jsonSchema = await _schemaModelService.BuildSchemaFromXsd(editingContext, fileName, theFile.OpenReadStream(), cancellationToken);
 
             return Created(Uri.EscapeDataString(fileName), jsonSchema);
