@@ -36,7 +36,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         // with automatic naming from frontend when adding new page
         private const string InitialLayout = "Side1";
 
-        private readonly string _resourceIdentifierRegex = "^[A-Za-z0-9_æøåØÆÅ-]*$";
+        private readonly string _resourceIdentifierRegex = "^[a-z0-9_æøå-]*$";
 
         private readonly ServiceRepositorySettings _settings;
         private readonly GeneralSettings _generalSettings;
