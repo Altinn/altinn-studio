@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using Altinn.Authorization.ABAC.Utils;
@@ -34,6 +35,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         // Using Norwegian name of initial page to be consistent
         // with automatic naming from frontend when adding new page
         private const string InitialLayout = "Side1";
+
+        private readonly string _resourceIdentifierRegex = "^[A-Za-z0-9_æøåØÆÅ-]*$";
 
         private readonly ServiceRepositorySettings _settings;
         private readonly GeneralSettings _generalSettings;
@@ -493,6 +496,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             try
             {
+                bool isResourceIdentifierValid = !string.IsNullOrEmpty(newResource.Identifier) && Regex.IsMatch(newResource.Identifier, _resourceIdentifierRegex) && !newResource.Identifier.StartsWith("app_");
+                if (!isResourceIdentifierValid)
+                {
+                    return new StatusCodeResult(400);
+                }
                 string repository = $"{org}-resources";
                 if (!CheckIfResourceFileAlreadyExists(newResource.Identifier, org, repository))
                 {
