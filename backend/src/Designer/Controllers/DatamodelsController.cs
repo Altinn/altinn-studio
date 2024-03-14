@@ -84,6 +84,7 @@ namespace Altinn.Studio.Designer.Controllers
             string content = payload.ToString();
 
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+
             await _schemaModelService.UpdateSchema(editingContext, modelPath, content, saveOnly, cancellationToken);
 
             return NoContent();
@@ -169,7 +170,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
             var fileStream = theFile.OpenReadStream();
-            await _modelNameValidator.ValidateModelNameForNewXsdSchema(fileStream, fileName, editingContext);
+            await _modelNameValidator.ValidateModelNameForNewXsdSchemaAsync(fileStream, fileName, editingContext);
             string jsonSchema = await _schemaModelService.BuildSchemaFromXsd(editingContext, fileName, theFile.OpenReadStream(), cancellationToken);
 
             return Created(Uri.EscapeDataString(fileName), jsonSchema);
@@ -194,6 +195,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+            await _modelNameValidator.ValidateModelNameForNewJsonSchemaAsync(createModel.ModelName, editingContext);
             var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(editingContext, createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible, cancellationToken);
 
             // Sets the location header and content-type manually instead of using CreatedAtAction

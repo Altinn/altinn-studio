@@ -12,6 +12,7 @@ using Altinn.App.Core.Models;
 using Altinn.Studio.DataModeling.Templates;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Filters.DataModeling;
+using Altinn.Studio.Designer.ViewModels.Request;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
@@ -22,24 +23,24 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class AddXsd_PutDatamodelCsharpNamespaceTests : DisagnerEndpointsTestsBase<AddXsd_PutDatamodelCsharpNamespaceTests>, IClassFixture<WebApplicationFactory<Program>>
+public class CsharpNamespaceTests : DisagnerEndpointsTestsBase<CsharpNamespaceTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
 
-    public AddXsd_PutDatamodelCsharpNamespaceTests(WebApplicationFactory<Program> factory) : base(factory)
+    public CsharpNamespaceTests(WebApplicationFactory<Program> factory) : base(factory)
     {
     }
 
     [Theory]
     [InlineData("Model/XmlSchema/Gitea/aal-vedlegg.xsd", "ttd", "empty-app", "testUser", "App/models/aal-vedlegg.cs", "Altinn.App.Models.vedlegg", "vedlegg", "Altinn.App.Models")]
     [InlineData("Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd", "ttd", "hvem-er-hvem", "testUser", "App/models/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.cs", "Altinn.App.Models", "HvemErHvem_M", "Altinn.App.Models.HvemErHvem_M")]
-    public async Task GivenApp_ShouldProduce_CorrectNamespace(string xsdPath, string org, string repo, string developer, string expectedModelPath, string expectedNamespace, string expectedTypeName, string notExpectedNamespace)
+    public async Task Given_XsdUploaded_ShouldProduce_CorrectNamespace(string xsdPath, string org, string repo, string developer, string expectedModelPath, string expectedNamespace, string expectedTypeName, string notExpectedNamespace)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, repo, developer, targetRepository);
         string url = $"{VersionPrefix(org, targetRepository)}/upload";
 
-        var fileStream = SharedResourcesHelper.LoadTestData(xsdPath);
+        await using var fileStream = SharedResourcesHelper.LoadTestData(xsdPath);
         var formData = new MultipartFormDataContent();
         var streamContent = new StreamContent(fileStream);
         streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
@@ -104,13 +105,13 @@ public class AddXsd_PutDatamodelCsharpNamespaceTests : DisagnerEndpointsTestsBas
     [Theory]
     [InlineData("App/models/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.schema.json", "ttd", "hvem-er-hvem", "testUser", "HvemErHvem_M", "App/models/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.cs", "Altinn.App.Models", "Altinn.App.Models.HvemErHvem_M")]
     [InlineData("App/models/newmodel.schema.json", "ttd", "empty-app", "testUser", "newmodel", "App/models/newmodel.cs", "Altinn.App.Models.newmodel", "Altinn.App.Models")]
-    public async Task GivenApp_ShouldProduce_CorrectNamespacePut(string modelPath, string org, string repo, string developer, string expectedModelName, string expectedModelPath, string expectedNamespace, string notExpectedNamespace)
+    public async Task Given_JsonSchemaSent_ShouldProduce_CorrectNamespacePut(string modelPath, string org, string repo, string developer, string expectedModelName, string expectedModelPath, string expectedNamespace, string notExpectedNamespace)
     {
         string targetRepo = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, repo, developer, targetRepo);
         string url = $"{VersionPrefix(org, targetRepo)}/datamodel?modelPath={modelPath}";
 
-        using var response = await UploadNewJsonSchema(modelPath, url);
+        using var response = await UploadNewJsonSchema(expectedModelName, url);
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         // get the csharp model from repo
         string csharpModel = TestDataHelper.GetFileFromRepo(org, targetRepo, developer, expectedModelPath);
@@ -126,9 +127,34 @@ public class AddXsd_PutDatamodelCsharpNamespaceTests : DisagnerEndpointsTestsBas
             $"{notExpectedNamespace}.{expectedModelName}");
     }
 
+
+    [Theory]
+    [InlineData("Model/XmlSchema/Gitea/krt-3221-42265.xsd", "ttd", "empty-app", "testUser", "KRT1011_M", DataModelingErrorCodes.ModelWithTheSameTypeNameExists)]
+    public async Task Given_RepoPreparedWithXsd_When_JsonSchemaCreated_WithSameModelName_ShouldReturn_422(
+        string xsdPath, string org, string repo, string developer, string modelName, string expectedErrorCode)
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, repo, developer, targetRepository);
+        string url = $"{VersionPrefix(org, targetRepository)}/upload";
+
+        using var setupResponse = await UploadNewXsdSchema(xsdPath, url);
+        Assert.Equal(HttpStatusCode.Created, setupResponse.StatusCode);
+
+        var response =
+            await GenerateNewJsonSchema(modelName, $"{VersionPrefix(org, targetRepository)}/new");
+        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
+
+        var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
+
+        problemDetails.Should().NotBeNull();
+
+        JsonElement errorCode = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
+        errorCode.ToString().Should().Be(expectedErrorCode);
+    }
+
     private async Task<HttpResponseMessage> UploadNewXsdSchema(string xsdPath, string url)
     {
-        var fileStream = SharedResourcesHelper.LoadTestData(xsdPath);
+        await using var fileStream = SharedResourcesHelper.LoadTestData(xsdPath);
         var formData = new MultipartFormDataContent();
         using var streamContent = new StreamContent(fileStream);
         streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
@@ -141,6 +167,20 @@ public class AddXsd_PutDatamodelCsharpNamespaceTests : DisagnerEndpointsTestsBas
         string schema = new GeneralJsonTemplate(new Uri("http://altinn-testschema.json"), modelName).GetJsonString();
         using var content = new StringContent(schema, Encoding.UTF8, MediaTypeNames.Application.Json);
         return await HttpClient.PutAsync(url, content);
+    }
+
+
+    private async Task<HttpResponseMessage> GenerateNewJsonSchema(string modelName, string url)
+    {
+        CreateModelViewModel createModel = new()
+        {
+            ModelName = modelName,
+            RelativeDirectory = "App/models",
+            Altinn2Compatible = false
+        };
+        string schema = JsonSerializer.Serialize(createModel, JsonSerializerOptions);
+        using var content = new StringContent(schema, Encoding.UTF8, MediaTypeNames.Application.Json);
+        return await HttpClient.PostAsync(url, content);
     }
 
 }
