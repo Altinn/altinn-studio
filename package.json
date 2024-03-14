@@ -70,7 +70,7 @@
     "@types/react-router-dom": "5.3.3",
     "@types/uuid": "9.0.8",
     "@typescript-eslint/eslint-plugin": "7.1.0",
-    "@typescript-eslint/parser": "6.21.0",
+    "@typescript-eslint/parser": "7.1.1",
     "axe-core": "4.8.4",
     "babel-jest": "29.7.0",
     "babel-loader": "9.1.3",
