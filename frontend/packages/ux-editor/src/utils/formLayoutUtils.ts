@@ -400,3 +400,10 @@ export const isItemChildOfContainer = (
   if (!containerOfItemId) return false;
   return containerType ? layout.containers[containerOfItemId].type === containerType : true;
 };
+
+export const idExistsInLayout = (id: string, layout: IInternalLayout): boolean => {
+  return (
+    Object.keys(layout.components || {}).some((key) => key.toUpperCase() === id.toUpperCase()) ||
+    Object.keys(layout.containers || {}).some((key) => key.toUpperCase() === id.toUpperCase())
+  );
+};
