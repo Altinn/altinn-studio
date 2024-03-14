@@ -105,7 +105,6 @@ export const ResourcePage = (): React.JSX.Element => {
       // do not save resource if it is not changed (for example after first load)
       if (resourceData && JSON.stringify(resourceData) !== JSON.stringify(loadedResourceData)) {
         editResource(resourceData);
-        refetchRepoStatus();
       }
     },
     500,
@@ -263,9 +262,7 @@ export const ResourcePage = (): React.JSX.Element => {
    * Saves the resource. The above useDebounce will detect the change, and call the mutate function to save data to the server
    */
   const handleSaveResource = (r: Resource) => {
-    if (JSON.stringify(r) !== JSON.stringify(resourceData)) {
-      setResourceData(r);
-    }
+    setResourceData(r);
   };
 
   return (
