@@ -64,16 +64,40 @@ describe('TextRow', () => {
     });
   });
 
-  test('renders a Button component with a PencilIcon when showButton is true', () => {
-    renderTextRow({ showButton: true });
+  test('renders button to edit text key when textKey is neither appName or layoutName', () => {
+    renderTextRow({ keyIsAppName: false, keyIsLayoutName: false });
     const button = screen.getByRole('button', {
       name: textMock('text_editor.toggle_edit_mode', { textKey }),
     });
     expect(button).toBeInTheDocument();
   });
 
-  test('Hide a Button component with a PencilIcon when showButton is false', () => {
-    renderTextRow({ showButton: false });
+  test('renders button to delete text when textKey is neither appName or layoutName', () => {
+    renderTextRow({ keyIsAppName: false, keyIsLayoutName: false });
+    const button = screen.getByRole('button', {
+      name: textMock('schema_editor.delete'),
+    });
+    expect(button).toBeInTheDocument();
+  });
+
+  test('Hide button to delete text when textKey is appName', () => {
+    renderTextRow({ keyIsAppName: true });
+    const button = screen.queryByRole('button', {
+      name: textMock('schema_editor.delete'),
+    });
+    expect(button).not.toBeInTheDocument();
+  });
+
+  test('Hide button to edit text key when textKey is appName', () => {
+    renderTextRow({ keyIsAppName: true });
+    const button = screen.queryByRole('button', {
+      name: textMock('text_editor.toggle_edit_mode', { textKey }),
+    });
+    expect(button).not.toBeInTheDocument();
+  });
+
+  test('Hide button to edit text key when textKey is layoutName', () => {
+    renderTextRow({ keyIsLayoutName: true });
     const button = screen.queryByRole('button', {
       name: textMock('text_editor.toggle_edit_mode', { textKey }),
     });

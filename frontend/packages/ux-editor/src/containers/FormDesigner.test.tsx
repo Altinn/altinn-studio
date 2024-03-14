@@ -11,8 +11,8 @@ import { useWidgetsQuery } from '../hooks/queries/useWidgetsQuery';
 import ruleHandlerMock from '../testing/ruleHandlerMock';
 import type { ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 // Test data:
 const org = 'org';
@@ -23,6 +23,7 @@ const defaultTexts: ITextResources = {
 };
 
 const render = () => {
+  const queryClient = createQueryClientMock();
   const queries = {
     getFormLayoutSettings: jest
       .fn()
@@ -34,8 +35,8 @@ const render = () => {
     selectedLayout: 'test-layout',
     selectedLayoutSet: 'test-layout-set',
   };
-  queryClientMock.setQueryData([QueryKey.TextResources, org, app], defaultTexts);
-  return renderWithProviders(<FormDesigner {...props} />, { queries });
+  queryClient.setQueryData([QueryKey.TextResources, org, app], defaultTexts);
+  return renderWithProviders(<FormDesigner {...props} />, { queries, queryClient });
 };
 
 const waitForData = async () => {

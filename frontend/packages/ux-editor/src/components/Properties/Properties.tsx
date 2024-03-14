@@ -14,7 +14,6 @@ import { PageConfigPanel } from './PageConfigPanel';
 export const Properties = () => {
   const { t } = useTranslation();
   const { formItemId, formItem, handleUpdate, debounceSave } = useFormItemContext();
-
   const [openList, setOpenList] = React.useState<string[]>([]);
 
   const toggleOpen = (id: string) => {

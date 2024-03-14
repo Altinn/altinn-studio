@@ -48,7 +48,7 @@ export function App() {
   const componentIsReady =
     areWidgetsFetched && isDatamodelFetched && areTextResourcesFetched && areLayoutSetsFetched;
 
-  const componentHasError = areLayoutSetsFetched && (dataModelFetchedError || widgetFetchedError);
+  const componentHasError = dataModelFetchedError || widgetFetchedError;
 
   const mapErrorToDisplayError = (): { title: string; message: string } => {
     const defaultTitle = t('general.fetch_error_title');

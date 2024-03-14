@@ -1,41 +1,35 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useSelector } from 'react-redux';
 import { Accordion } from '@digdir/design-system-react';
 import { FileIcon } from '@navikt/aksel-icons';
 import { StudioSectionHeader } from '@studio/components';
-import { useText } from '../../../hooks';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useTextResourcesQuery } from 'app-shared/hooks/queries';
+import { useText, useTextResourcesSelector } from '../../../hooks';
 import { DEFAULT_LANGUAGE, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { HiddenExpressionOnLayout } from './HiddenExpressionOnLayout';
 import { selectedLayoutNameSelector } from '../../../selectors/formLayoutSelectors';
 import { TextResource } from '../../TextResource/TextResource';
 import { EditPageId } from './EditPageId';
+import { textResourceByLanguageAndIdSelector } from '../../../selectors/textResourceSelectors';
+import type { ITextResource } from 'app-shared/types/global';
 
 export const PageConfigPanel = () => {
-  const { app, org } = useStudioUrlParams();
   const layoutName = useSelector(selectedLayoutNameSelector);
-  const { data: textResources } = useTextResourcesQuery(org, app);
-  const [openList, setOpenList] = useState<string[]>([]);
   const t = useText();
 
   const layoutIsSelected = layoutName !== DEFAULT_SELECTED_LAYOUT_NAME && layoutName !== undefined;
 
-  const layoutNameFromTextResource = Object.values(textResources[DEFAULT_LANGUAGE] ?? []).find(
-    (textResource) => textResource.id === layoutName,
-  )?.value;
+  const layoutNameTextResourceSelector = textResourceByLanguageAndIdSelector(
+    DEFAULT_LANGUAGE,
+    layoutName,
+  );
+  const layoutNameTextResource = useTextResourcesSelector<ITextResource>(
+    layoutNameTextResourceSelector,
+  );
+  const layoutNameText = layoutNameTextResource?.value;
 
   const headingTitle = !layoutIsSelected
     ? t('right_menu.content_empty')
-    : layoutNameFromTextResource ?? layoutName;
-
-  const toggleOpen = (id: string) => {
-    if (openList.includes(id)) {
-      setOpenList(openList.filter((item) => item !== id));
-    } else {
-      setOpenList([...openList, id]);
-    }
-  };
+    : layoutNameText ?? layoutName;
 
   return (
     <>
@@ -50,10 +44,8 @@ export const PageConfigPanel = () => {
         <>
           <EditPageId layoutName={layoutName} />
           <Accordion color='subtle'>
-            <Accordion.Item open={openList.includes('text')}>
-              <Accordion.Header onHeaderClick={() => toggleOpen('text')}>
-                {t('right_menu.text')}
-              </Accordion.Header>
+            <Accordion.Item>
+              <Accordion.Header>{t('right_menu.text')}</Accordion.Header>
               <Accordion.Content>
                 <TextResource
                   handleIdChange={() => {}}
@@ -62,10 +54,8 @@ export const PageConfigPanel = () => {
                 />
               </Accordion.Content>
             </Accordion.Item>
-            <Accordion.Item open={openList.includes('dynamics')}>
-              <Accordion.Header onHeaderClick={() => toggleOpen('dynamics')}>
-                {t('right_menu.dynamics')}
-              </Accordion.Header>
+            <Accordion.Item>
+              <Accordion.Header>{t('right_menu.dynamics')}</Accordion.Header>
               <Accordion.Content>
                 <HiddenExpressionOnLayout />
               </Accordion.Content>

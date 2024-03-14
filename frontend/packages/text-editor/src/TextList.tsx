@@ -17,6 +17,8 @@ import {
 } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { APP_NAME } from 'app-shared/constants';
+import { useLayoutNamesQuery } from './hooks/useLayoutNamesQuery';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export type TextListProps = {
   resourceRows: TextTableRow[];
@@ -32,7 +34,9 @@ export const TextList = ({
   selectedLanguages,
   ...rest
 }: TextListProps) => {
+  const { org, app } = useStudioUrlParams();
   const { t } = useTranslation();
+  const { data: layoutNames, isPending: layoutNamesPending } = useLayoutNamesQuery(org, app);
 
   const textIds = useMemo(() => resourceRows.map((row) => row.textKey), [resourceRows]);
   const idExists = (textId: string): boolean => textIds.includes(textId);
@@ -66,7 +70,8 @@ export const TextList = ({
               textRowEntries={row.translations}
               variables={row.variables || []}
               selectedLanguages={selectedLanguages}
-              showButton={row.textKey !== APP_NAME}
+              keyIsAppName={row.textKey === APP_NAME}
+              keyIsLayoutName={!layoutNamesPending && layoutNames.includes(row.textKey)}
               {...rest}
             />
           ))}

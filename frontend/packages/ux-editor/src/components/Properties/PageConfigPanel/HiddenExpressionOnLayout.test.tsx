@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../testing/mocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -24,6 +24,7 @@ const defaultLayouts: IFormLayouts = {
 };
 
 describe('HiddenExpressionOnLayout', () => {
+  afterEach(() => jest.clearAllMocks());
   it('renders expression builder when layout has no expression set on hidden prop', () => {
     renderHiddenExpressionOnLayout();
     screen.getByRole('group', { name: textMock('right_menu.expressions_property_preview_hidden') });
@@ -39,7 +40,7 @@ describe('HiddenExpressionOnLayout', () => {
       [layout1NameMock]: { ...layoutMock, hidden: expression },
     });
     screen.getByRole('group', { name: textMock('right_menu.expressions_property_preview_hidden') });
-    screen.getByRole('group', { name: textMock('expression.subExpression', { number: 1 }) });
+    screen.getByRole('group', { name: textMock('expression.subexpression', { number: 1 }) });
   });
 
   it('calls saveLayout when expression is changed from default', async () => {
@@ -49,7 +50,7 @@ describe('HiddenExpressionOnLayout', () => {
       name: textMock('expression.addSubexpression'),
     });
     await act(() => user.click(addSubExpressionButton));
-    await waitFor(() => expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1));
+    expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
   });
 
   it('calls saveLayout when existing expression is changed', async () => {
@@ -67,7 +68,7 @@ describe('HiddenExpressionOnLayout', () => {
       name: textMock('expression.saveAndClose'),
     });
     await act(() => user.click(saveExpressionButton));
-    await waitFor(() => expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1));
+    expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
   });
 
   it('calls saveLayout when expression is deleted', async () => {
@@ -82,7 +83,7 @@ describe('HiddenExpressionOnLayout', () => {
       name: textMock('right_menu.expression_delete'),
     });
     await act(() => user.click(deleteExpressionButton));
-    await waitFor(() => expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1));
+    expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
   });
 });
 

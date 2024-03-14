@@ -17,8 +17,6 @@ import { TextEntry } from './TextEntry';
 import { Variables } from './Variables';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { StudioButton } from '@studio/components';
-import { useLayoutNamesQuery } from './hooks/useLayoutNamesQuery';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface TextRowProps {
   idExists: (textResourceId: string) => boolean;
@@ -29,7 +27,8 @@ export interface TextRowProps {
   upsertTextResource: (data: UpsertTextResourceMutation) => void;
   variables: TextResourceVariable[];
   selectedLanguages: string[];
-  showButton?: boolean;
+  keyIsAppName?: boolean;
+  keyIsLayoutName?: boolean;
 }
 
 export const TextRow = ({
@@ -41,16 +40,15 @@ export const TextRow = ({
   idExists,
   variables,
   selectedLanguages,
-  showButton = true,
+  keyIsAppName = false,
+  keyIsLayoutName = false,
 }: TextRowProps) => {
-  const { org, app } = useStudioUrlParams();
   const [textIdValue, setTextIdValue] = useState(textId);
   const [textIdEditOpen, setTextIdEditOpen] = useState(false);
   const [textVariables] = useState(variables);
   const [keyError, setKeyError] = useState('');
   const { t } = useTranslation();
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
-  const { data: layoutNames, isPending: layoutNamesPending } = useLayoutNamesQuery(org, app);
 
   const handleTextIdChange = (newTextId: string): void => {
     const error = validateNewTextId(newTextId);
@@ -82,7 +80,7 @@ export const TextRow = ({
   return (
     <TableRow>
       <TableCell>
-        {showButton && (
+        {!keyIsAppName && (
           <AltinnConfirmDialog
             open={isConfirmDeleteDialogOpen}
             confirmText={t('schema_editor.textRow-deletion-confirm')}
@@ -143,7 +141,7 @@ export const TextRow = ({
               <span>{textIdValue}</span>
             </div>
           )}
-          {showButton && !layoutNamesPending && !layoutNames.includes(textId) && (
+          {!keyIsLayoutName && !keyIsAppName && (
             <StudioButton
               aria-label={t('text_editor.toggle_edit_mode', { textKey: textIdValue })}
               icon={<PencilIcon />}

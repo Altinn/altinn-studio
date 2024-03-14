@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExpressionContent } from '../../config/Expressions/ExpressionContent';
+import { ExpressionContent } from '../../config/ExpressionContent';
 import type { Expression } from '@studio/components';
 import type { IInternalLayout } from '../../../types/global';
 import { deepCopy } from 'app-shared/pure';

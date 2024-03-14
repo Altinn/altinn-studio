@@ -6,12 +6,12 @@ import { deepCopy } from 'app-shared/pure';
 import { useUpdateLayoutNameMutation } from '../../../hooks/mutations/useUpdateLayoutNameMutation';
 import { StudioToggleableTextfield } from '@studio/components';
 import { useSearchParams } from 'react-router-dom';
-import type { TextResourceIdMutation } from '@altinn/text-editor/src/types';
 import { useTextIdMutation } from 'app-development/hooks/mutations';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from '../../../hooks/useAppContext';
 import { useText } from '../../../hooks';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
+import { Trans } from 'react-i18next';
 
 export interface EditPageIdProps {
   layoutName: string;
@@ -19,7 +19,7 @@ export interface EditPageIdProps {
 export const EditPageId = ({ layoutName }: EditPageIdProps) => {
   const { app, org } = useStudioUrlParams();
   const { selectedLayoutSet } = useAppContext();
-  const { mutate: textIdMutation } = useTextIdMutation(org, app);
+  const { mutate: mutateTextId } = useTextIdMutation(org, app);
   const { mutate: updateLayoutName } = useUpdateLayoutNameMutation(org, app, selectedLayoutSet);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -31,22 +31,14 @@ export const EditPageId = ({ layoutName }: EditPageIdProps) => {
     if (newName === layoutName) return;
     updateLayoutName({ oldName: layoutName, newName });
     setSearchParams({ ...deepCopy(searchParams), layout: newName });
-    updateTextId({ oldId: layoutName, newId: newName });
-  };
-
-  const updateTextId = ({ oldId, newId }: TextResourceIdMutation) => {
-    try {
-      textIdMutation([{ oldId, newId }]);
-    } catch (e: unknown) {
-      console.error('Renaming text-id failed:\n', e);
-    }
+    mutateTextId([{ oldId: layoutName, newId: newName }]);
   };
 
   return (
     <div className={classes.changePageId}>
       <StudioToggleableTextfield
         viewProps={{
-          children: `ID: ${layoutName}`,
+          children: <Trans i18nKey={'ux_editor.id_identifier'} values={{ item: layoutName }} />,
           variant: 'tertiary',
           fullWidth: true,
         }}
