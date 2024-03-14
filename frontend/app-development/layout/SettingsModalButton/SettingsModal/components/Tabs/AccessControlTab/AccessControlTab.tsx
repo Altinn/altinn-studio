@@ -130,13 +130,11 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
 
         return (
           <>
+            <TabHeader
+              text={t('settings_modal.access_control_tab_checkbox_legend_label')}
+            ></TabHeader>
             <Paragraph size='medium'>
-              <>
-                <TabHeader
-                  text={t('settings_modal.access_control_tab_checkbox_legend_label')}
-                ></TabHeader>
-                <span>{t('settings_modal.access_control_tab_checkbox_description')}</span>
-              </>
+              <span>{t('settings_modal.access_control_tab_checkbox_description')}</span>
             </Paragraph>
 
             <Table className={classes.tableContent}>
@@ -187,7 +185,9 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
     <TabContent>
       <div className={classes.tabHeaderContent}>
         <TabHeader text={t('settings_modal.access_control_tab_heading')} />
-        <HelpText title={''}>{t('settings_modal.access_control_tab_help_text_heading')}</HelpText>
+        <HelpText title={'helptext'}>
+          {t('settings_modal.access_control_tab_help_text_heading')}
+        </HelpText>
       </div>
       {displayContent()}
       <span className={classes.docsLinkText}>

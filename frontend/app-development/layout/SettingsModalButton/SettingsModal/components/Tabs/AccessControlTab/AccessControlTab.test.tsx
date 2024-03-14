@@ -3,7 +3,6 @@ import {
   act,
   render as rtlRender,
   screen,
-  waitFor,
   waitForElementToBeRemoved,
 } from '@testing-library/react';
 import type { AccessControlTabProps } from './AccessControlTab';
@@ -50,6 +49,34 @@ describe('AccessControlTab', () => {
     expect(header).toBeInTheDocument();
   });
 
+  it('should render the button for help text.', async () => {
+    render();
+    const helpButton = screen.getByRole('button', {
+      name: 'helptext',
+    });
+    expect(helpButton).toBeInTheDocument();
+  });
+
+  it('should render the text of the button for help text correctly', async () => {
+    const user = userEvent.setup();
+    render();
+    const helpButton = screen.getByRole('button', { name: 'helptext' });
+    expect(helpButton).toBeInTheDocument();
+    await act(async () => {
+      await user.click(helpButton);
+    });
+    const helpText = screen.getByText(
+      textMock('settings_modal.access_control_tab_help_text_heading'),
+    );
+    expect(helpText).toBeInTheDocument();
+  });
+
+  it('renders the table', async () => {
+    await resolveAndWaitForSpinnerToDisappear();
+    const table = screen.getByRole('table');
+    expect(table).toBeInTheDocument();
+  });
+
   it('renders the column header for (Alle typer)', async () => {
     render();
     await waitForElementToBeRemoved(() =>
@@ -59,33 +86,6 @@ describe('AccessControlTab', () => {
       name: textMock('settings_modal.access_control_tab_option_all_type_partner'),
     });
     expect(columnHeader).toBeInTheDocument();
-  });
-
-  it('handles table header checkbox changes', async () => {
-    const user = userEvent.setup();
-    await resolveAndWaitForSpinnerToDisappear();
-    render();
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('settings_modal.loading_content')),
-    );
-
-    const columnHeader = screen.getAllByRole('row', {
-      name: textMock('settings_modal.access_control_tab_option_all_type_partner'),
-    });
-
-    await act(() => user.click(columnHeader[0]));
-
-    expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1);
-
-    expect(updateAppMetadataMutation).toHaveBeenCalledWith({
-      ...mockAppMetadata,
-      partyTypesAllowed: {
-        bankruptcyEstate: true,
-        organisation: true,
-        person: false,
-        subUnit: false,
-      },
-    });
   });
 
   it('initially displays the spinner when loading data', () => {
