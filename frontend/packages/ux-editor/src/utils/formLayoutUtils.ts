@@ -400,3 +400,12 @@ export const isItemChildOfContainer = (
   if (!containerOfItemId) return false;
   return containerType ? layout.containers[containerOfItemId].type === containerType : true;
 };
+/**
+ * Checks if a component with the given id exists in the given layout.
+ * @param id The id of the component to check for.
+ * @param layout The layout to check.
+ * @returns True if the id exists in the layout, false otherwise.
+ */
+export const idExistsInLayout = (id: string, layout: IInternalLayout): boolean =>
+  Object.keys(layout.components || {}).some((key) => key.toUpperCase() === id.toUpperCase()) ||
+  Object.keys(layout.containers || {}).some((key) => key.toUpperCase() === id.toUpperCase());

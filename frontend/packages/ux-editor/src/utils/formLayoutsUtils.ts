@@ -3,6 +3,7 @@ import {
   addNavigationButtons,
   createEmptyLayout,
   hasNavigationButtons,
+  idExistsInLayout,
   removeComponentsByType,
 } from './formLayoutUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -117,16 +118,5 @@ export const firstAvailableLayout = (deletedLayoutName: string, layoutPagesOrder
  * @returns True if the id exists in any of the layouts, false otherwise
  */
 export function idExists(id: string, formLayouts: IFormLayouts): boolean {
-  return Object.values(formLayouts).some((layout) => {
-    const idMatchesContainers =
-      Object.keys(layout.containers || {}).findIndex(
-        (key) => key.toUpperCase() === id.toUpperCase(),
-      ) > -1;
-    const idMatchesComponents =
-      Object.keys(layout.components || {}).findIndex(
-        (key) => key.toUpperCase() === id.toUpperCase(),
-      ) > -1;
-
-    return idMatchesContainers || idMatchesComponents;
-  });
+  return Object.values(formLayouts).some((layout) => idExistsInLayout(id, layout));
 }
