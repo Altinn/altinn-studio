@@ -3,6 +3,7 @@ import {
   act,
   render as rtlRender,
   screen,
+  waitFor,
   waitForElementToBeRemoved,
 } from '@testing-library/react';
 import type { AccessControlTabProps } from './AccessControlTab';
@@ -19,8 +20,6 @@ import userEvent from '@testing-library/user-event';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
-
-/* const CheckboxState = 'checked' || 'indeterminate' || 'unchecked'; */
 
 jest.mock('../../../../../../hooks/mutations/useAppMetadataMutation');
 const updateAppMetadataMutation = jest.fn();
@@ -55,6 +54,20 @@ describe('AccessControlTab', () => {
       name: 'helptext',
     });
     expect(helpButton).toBeInTheDocument();
+  });
+
+  it('should update checkbox state for header checkbox', async () => {
+    const user = userEvent.setup();
+    await resolveAndWaitForSpinnerToDisappear();
+    render();
+    const headerCheckbox = screen.getByLabelText(
+      textMock('settings_modal.access_control_tab_option_all_type_partner'),
+    );
+    expect(headerCheckbox).not.toBeChecked();
+    await act(async () => {
+      await user.click(headerCheckbox);
+    });
+    expect(headerCheckbox).toBeChecked();
   });
 
   it('should render the text of the button for help text correctly', async () => {
@@ -149,40 +162,52 @@ describe('AccessControlTab', () => {
       screen.queryByTitle(textMock('settings_modal.loading_content')),
     );
 
-    const bankruptcyEstateCheckbox = screen.getByRole('row', {
-      name: textMock('settings_modal.access_control_tab_option_bankruptcy_estate'),
-    });
-    expect(bankruptcyEstateCheckbox).not.toBeChecked();
-
-    const organisationCheckbox = screen.getByRole('row', {
-      name: textMock('settings_modal.access_control_tab_option_organisation'),
-    });
-    expect(organisationCheckbox).not.toBeChecked();
-
-    const personCheckbox = screen.getByRole('row', {
-      name: textMock('settings_modal.access_control_tab_option_person'),
-    });
-    expect(personCheckbox).not.toBeChecked();
-
-    const subUnitCheckbox = screen.getByRole('row', {
-      name: textMock('settings_modal.access_control_tab_option_sub_unit'),
-    });
-    expect(subUnitCheckbox).not.toBeChecked();
+    const checkboxes = screen.queryAllByRole('checkbox');
+    expect(checkboxes).toHaveLength(5);
+    checkboxes.forEach((c) => expect(c).not.toBeChecked());
   });
 
-  it('should render all checkboxes labels with the correct values based on the party types allowed', async () => {
+  it("should set checkbox state for header checkbox to 'mixed(indetermind)' when some checkboxes are checked", async () => {
     getAppMetadata.mockImplementation(() =>
       Promise.resolve({
         ...mockAppMetadata,
-        partyTypesAllowed: {
-          bankruptcyEstate: true,
-          organisation: true,
-          person: true,
-          subUnit: true,
-        },
+        partyTypesAllowed: { ...mockAppMetadata.partyTypesAllowed },
       }),
     );
+    render();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('settings_modal.loading_content')),
+    );
 
+    const checkboxes = screen.queryAllByRole('checkbox');
+    await waitFor(async () => {
+      await userEvent.click(checkboxes[0]);
+      await userEvent.click(checkboxes[1]);
+      await userEvent.click(checkboxes[2]);
+    });
+    const headerCheckbox = screen.getByLabelText(
+      textMock('settings_modal.access_control_tab_option_all_type_partner'),
+    );
+    expect(headerCheckbox).toHaveAttribute('aria-checked', 'mixed');
+  });
+
+  it('should render all checkboxes as checked when applicationMetadata contains all partyTypes allowed', async () => {
+    getAppMetadata.mockImplementation(() =>
+      Promise.resolve({
+        ...mockAppMetadata,
+        partyTypesAllowed: { ...mockAppMetadata.partyTypesAllowed },
+      }),
+    );
+    render();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('settings_modal.loading_content')),
+    );
+    const checkboxes = screen.queryAllByRole('checkbox');
+    expect(checkboxes).toHaveLength(5);
+    checkboxes.forEach((c) => expect(c).toBeTruthy());
+  });
+
+  it('should render all checkboxes labels', async () => {
     render();
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('settings_modal.loading_content')),

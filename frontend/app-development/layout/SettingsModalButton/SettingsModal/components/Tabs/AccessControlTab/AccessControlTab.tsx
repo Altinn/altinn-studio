@@ -142,14 +142,16 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
                 <Table.Row>
                   <Table.HeaderCell className={classes.header}>
                     <Checkbox
+                      aria-label={t('settings_modal.access_control_tab_option_all_type_partner')}
                       indeterminate={tableHeaderCheckboxState === CheckboxState.Indeterminate}
                       checked={tableHeaderCheckboxState === CheckboxState.Checked}
                       onChange={handleTableHeaderCheckboxChange}
+                      aria-checked
                       size='small'
                       value='all'
                     />
                   </Table.HeaderCell>
-                  <Table.HeaderCell className={classes.header}>
+                  <Table.HeaderCell className={classes.header} aria-hidden>
                     {t('settings_modal.access_control_tab_option_all_type_partner')}
                   </Table.HeaderCell>
                 </Table.Row>
@@ -185,7 +187,7 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
     <TabContent>
       <div className={classes.tabHeaderContent}>
         <TabHeader text={t('settings_modal.access_control_tab_heading')} />
-        <HelpText title={'helptext'}>
+        <HelpText title={'helptext'} placement='top'>
           {t('settings_modal.access_control_tab_help_text_heading')}
         </HelpText>
       </div>
