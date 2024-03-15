@@ -893,6 +893,7 @@
   "resourceadm.dashboard_num_resources": "Alle ressurser ({{num}})",
   "resourceadm.dashboard_organizationdata_error_body": "Vi beklager, men en feil oppstod ved henting av organisasjoner som kreves for å kjøre applikasjonen.",
   "resourceadm.dashboard_organizationdata_error_header": "Feil oppstod ved innlasting av organisasjoner",
+  "resourceadm.dashboard_resource_id_cannot_be_app": "Ressurs id kan ikke starte med \"app_\".",
   "resourceadm.dashboard_resource_name_and_id_checkmark_icon": "Bruk ny ressurs-id",
   "resourceadm.dashboard_resource_name_and_id_delete_icon": "Slett ny ressurs-id",
   "resourceadm.dashboard_resource_name_and_id_error": "Ressurs med valgt id eksisterer allerede.",
