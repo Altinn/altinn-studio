@@ -247,7 +247,7 @@ export const ResourcePage = (): React.JSX.Element => {
   };
 
   /**
-   * Saves the resource. The above useDebounce will detect the change, and call the mutate function to save data to the server
+   * Saves the resource
    */
   const handleSaveResource = (r: Resource) => {
     if (JSON.stringify(r) !== JSON.stringify(resourceData)) {
