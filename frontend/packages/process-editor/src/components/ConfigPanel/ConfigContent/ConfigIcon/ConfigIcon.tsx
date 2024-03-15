@@ -19,6 +19,6 @@ export const ConfigIcon = ({ taskType }: ConfigIconProps): JSX.Element => {
     case 'signing':
       return <SignTaskIcon className={classes.icon} />;
     case 'endEvent':
-      return <ReceiptIcon fontSize='2rem' />;
+      return <ReceiptIcon className={classes.icon} />;
   }
 };

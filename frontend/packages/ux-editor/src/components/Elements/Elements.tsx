@@ -10,7 +10,7 @@ import { LayoutSetsContainer } from './LayoutSetsContainer';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import classes from './Elements.module.css';
 import { useAppContext } from '../../hooks/useAppContext';
-import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/mutations/useCustomReceiptLayoutSetName';
+import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 
 export const Elements = () => {
   const { org, app } = useStudioUrlParams();

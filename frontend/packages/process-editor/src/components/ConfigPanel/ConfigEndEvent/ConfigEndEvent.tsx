@@ -56,7 +56,7 @@ export const ConfigEndEvent = ({
             title: t('process_editor.configuration_panel_custom_receipt_add_button_title'),
             icon: <PencilWritingIcon />,
             value: existingCustomReceiptName,
-            onBlur: (event) => handleUpdateLayoutSet(existingCustomReceiptName, event.target.value),
+            onBlur: ({ target }) => handleUpdateLayoutSet(existingCustomReceiptName, target.value),
             size: 'small',
           }}
         />

@@ -1,4 +1,4 @@
-import { useLayoutSetsQuery } from '../../../../ux-editor/src/hooks/queries/useLayoutSetsQuery';
+import { useLayoutSetsQuery } from '../../../ux-editor/src/hooks/queries/useLayoutSetsQuery';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 
 export const useCustomReceiptLayoutSetName = (org: string, app: string): string | undefined => {

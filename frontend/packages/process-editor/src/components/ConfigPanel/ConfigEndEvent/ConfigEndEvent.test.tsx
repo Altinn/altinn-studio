@@ -37,7 +37,7 @@ describe('ConfigEndEvent', () => {
       textMock('process_editor.configuration_panel_custom_receipt_add_button_title'),
     );
     await act(() => user.type(inputField, customReceiptLayoutSetName));
-    act(() => inputField.blur());
+    await act(() => user.tab());
     expect(updateLayoutSetMock).toHaveBeenCalledTimes(1);
     expect(updateLayoutSetMock).toHaveBeenCalledWith(undefined, {
       id: customReceiptLayoutSetName,
@@ -63,7 +63,7 @@ describe('ConfigEndEvent', () => {
     );
     await act(() => user.clear(inputField));
     await act(() => user.type(inputField, newCustomReceiptLayoutSetName));
-    act(() => inputField.blur());
+    await act(() => user.tab());
     expect(updateLayoutSetMock).toHaveBeenCalledTimes(1);
     expect(updateLayoutSetMock).toHaveBeenCalledWith(existingCustomReceiptLayoutSetName, {
       id: newCustomReceiptLayoutSetName,
