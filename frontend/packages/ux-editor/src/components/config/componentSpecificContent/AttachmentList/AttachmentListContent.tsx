@@ -21,7 +21,6 @@ export const AttachmentListContent = ({
   const { attachmentsCurrentTasks, attachmentsAllTasks } = availableAttachments;
   const { selectedDataTypes, currentTask } = dataTypes;
   const currentAvailableAttachments = currentTask ? attachmentsCurrentTasks : attachmentsAllTasks;
-  console.log(currentAvailableAttachments, selectedDataTypes);
   const checkboxInIndeterminateState =
     selectedDataTypes.length > 0 && selectedDataTypes.length < currentAvailableAttachments.length;
 
