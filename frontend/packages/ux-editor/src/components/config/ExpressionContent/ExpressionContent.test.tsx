@@ -1,17 +1,17 @@
 import React from 'react';
 import { act, screen } from '@testing-library/react';
-import { parsableLogicalExpression } from '../../../../testing/expressionMocks';
-import { renderWithProviders } from '../../../../testing/mocks';
-import { formDesignerMock } from '../../../../testing/stateMocks';
-import type { IFormLayouts } from '../../../../types/global';
-import { layout1NameMock, layoutMock } from '../../../../testing/layoutMock';
+import { parsableLogicalExpression } from '../../../testing/expressionMocks';
+import { renderWithProviders } from '../../../testing/mocks';
+import { formDesignerMock } from '../../../testing/stateMocks';
+import type { IFormLayouts } from '../../../types/global';
+import { layout1NameMock, layoutMock } from '../../../testing/layoutMock';
 import type { ExpressionContentProps } from './ExpressionContent';
 import { ExpressionContent } from './ExpressionContent';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { AppContextProps } from '../../../../AppContext';
+import type { AppContextProps } from '../../../AppContext';
 import { LogicalTupleOperator } from '@studio/components';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 // Test data:

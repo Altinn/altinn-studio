@@ -1,15 +1,15 @@
 import type { ReactNode } from 'react';
 import React, { useMemo } from 'react';
-import { getComponentIds, getDataModelElementNames } from '../../../../utils/expressionsUtils';
+import { getComponentIds, getDataModelElementNames } from '../../../utils/expressionsUtils';
 import type { Expression, DataLookupOptions } from '@studio/components';
 import { DataLookupFuncName, StudioDeleteButton } from '@studio/components';
-import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
+import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from '../../../../hooks/useAppContext';
-import { useDatamodelMetadataQuery } from '../../../../hooks/queries/useDatamodelMetadataQuery';
+import { useAppContext } from '../../../hooks/useAppContext';
+import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
 import { Paragraph } from '@digdir/design-system-react';
 import classes from './ExpressionContent.module.css';
-import { useText } from '../../../../hooks';
+import { useText } from '../../../hooks';
 import { Expression as ExpressionWithTexts } from 'app-shared/components/Expression';
 
 export interface ExpressionContentProps {
