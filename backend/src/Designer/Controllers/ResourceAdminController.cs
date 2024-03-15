@@ -262,7 +262,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 semaphore.Release();
             }
-            
+
         }
 
         [HttpPost]
