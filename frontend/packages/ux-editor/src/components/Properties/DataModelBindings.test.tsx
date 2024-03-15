@@ -1,5 +1,6 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { DataModelBindings } from './DataModelBindings';
 import { FormItemContext } from '../../containers/FormItemContext';
 import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
@@ -12,6 +13,8 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../types/FormItem';
 import { componentMocks } from '../../testing/componentMocks';
 import { component3IdMock, component3Mock, layoutMock } from '../../testing/layoutMock';
+
+const user = userEvent.setup();
 
 describe('DataModelBindings', () => {
   afterEach(jest.clearAllMocks);
@@ -115,6 +118,105 @@ describe('DataModelBindings', () => {
         name: textMock(`ux_editor.modal_properties_data_model_label.${prop}`),
       });
       expect(datamodelButton).toBeInTheDocument();
+    });
+  });
+
+  it('should render multiple attachment switch when component is FileUpload', () => {
+    render({
+      props: {
+        formItem: componentMocks[ComponentType.FileUpload],
+        formItemId: componentMocks[ComponentType.FileUpload].id,
+      },
+    });
+
+    const switchElement = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
+    });
+    expect(switchElement).toBeInTheDocument();
+  });
+
+  it('should render multiple attachment switch when component is FileUploadWithTag', () => {
+    render({
+      props: {
+        formItem: componentMocks[ComponentType.FileUploadWithTag],
+        formItemId: componentMocks[ComponentType.FileUploadWithTag].id,
+      },
+    });
+
+    const switchElement = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
+    });
+    expect(switchElement).toBeInTheDocument();
+  });
+
+  it('should render multiple attachment switch as selected when list dataModelBinding is present', () => {
+    render({
+      props: {
+        formItem: {
+          ...componentMocks[ComponentType.FileUpload],
+          dataModelBindings: { list: 'someListDataModelField' },
+        },
+        formItemId: componentMocks[ComponentType.FileUpload].id,
+      },
+    });
+
+    const switchElement = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
+    });
+    expect(switchElement).toBeChecked();
+  });
+
+  it('should render multiple attachment switch as not selected when simpleBinding dataModelBinding is present', () => {
+    render({
+      props: {
+        formItem: {
+          ...componentMocks[ComponentType.FileUpload],
+          dataModelBindings: { simpleBinding: 'someSimpleDataModelField' },
+        },
+        formItemId: componentMocks[ComponentType.FileUpload].id,
+      },
+    });
+
+    const switchElement = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
+    });
+    expect(switchElement).not.toBeChecked();
+  });
+
+  it('should toggle multiple attachment switch when clicked', async () => {
+    render({
+      props: {
+        formItem: componentMocks[ComponentType.FileUpload],
+        formItemId: componentMocks[ComponentType.FileUpload].id,
+      },
+    });
+
+    const switchElement = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
+    });
+    expect(switchElement).not.toBeChecked();
+    await act(() => user.click(switchElement));
+    expect(switchElement).toBeChecked();
+  });
+
+  it('clicking multiple attachment switch should call handleUpdate', async () => {
+    const handleUpdate = jest.fn();
+    render({
+      props: {
+        formItem: componentMocks[ComponentType.FileUpload],
+        formItemId: componentMocks[ComponentType.FileUpload].id,
+        handleUpdate,
+      },
+    });
+
+    const switchElement = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
+    });
+    await act(() => user.click(switchElement));
+    expect(handleUpdate).toHaveBeenCalledTimes(1);
+    expect(handleUpdate).toHaveBeenCalledWith({
+      ...componentMocks[ComponentType.FileUpload],
+      dataModelBindings: { list: '' },
     });
   });
 });
