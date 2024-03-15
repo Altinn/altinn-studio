@@ -1,8 +1,13 @@
 import React from 'react';
 import classes from './ConfigIcon.module.css';
-import { ReceiptIcon } from '@navikt/aksel-icons';
 import type { BpmnTaskType } from '../../../../types/BpmnTaskType';
-import { ConfirmationTaskIcon, DataTaskIcon, FeedbackTaskIcon, SignTaskIcon } from '@studio/icons';
+import {
+  ConfirmationTaskIcon,
+  DataTaskIcon,
+  FeedbackTaskIcon,
+  ReceiptIcon,
+  SignTaskIcon,
+} from '@studio/icons';
 
 export type ConfigIconProps = {
   taskType: BpmnTaskType;
