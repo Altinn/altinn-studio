@@ -15,7 +15,7 @@ import {
 import type { AttachmentsFormat, InternalDataTypesFormat } from './AttachmentListUtils';
 import { AttachmentListInternalFormat } from './AttachmentListInternalFormat';
 import { StudioSpinner } from '@studio/components';
-import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import type { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
 export const AttachmentListComponent = ({
@@ -62,7 +62,11 @@ export const AttachmentListComponent = ({
   );
 };
 
-const getAvailableAttachments = (layoutSets, selectedLayoutSet, availableDataTypes) => {
+const getAvailableAttachments = (
+  layoutSets: LayoutSets,
+  selectedLayoutSet: string,
+  availableDataTypes: DataTypeElement[],
+): AttachmentsFormat => {
   const attachmentsCurrentTasks = getAttachments(
     currentTasks(layoutSets, selectedLayoutSet),
     availableDataTypes,
