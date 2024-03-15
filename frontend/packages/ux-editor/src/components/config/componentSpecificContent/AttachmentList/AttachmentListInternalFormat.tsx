@@ -35,11 +35,11 @@ export const AttachmentListInternalFormat = (props: AttachmentListInternalFormat
       currentTask: isChecked,
       selectedDataTypes: updatedSelectedDataTypes,
     }));
-    setDataTypes((prevDataTypes) => ({
-      ...prevDataTypes,
+    onChange({
+      ...dataTypes,
       currentTask: isChecked,
       selectedDataTypes: updatedSelectedDataTypes,
-    }));
+    });
   };
 
   return (
