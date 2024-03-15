@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './EditPageId.module.css';
 import { KeyVerticalIcon } from '@navikt/aksel-icons';
 import { getPageNameErrorKey } from '../../../utils/designViewUtils';
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils } from '@studio/pure-functions';
 import { useUpdateLayoutNameMutation } from '../../../hooks/mutations/useUpdateLayoutNameMutation';
 import { StudioToggleableTextfield } from '@studio/components';
 import { useSearchParams } from 'react-router-dom';
@@ -30,7 +30,7 @@ export const EditPageId = ({ layoutName }: EditPageIdProps) => {
   const handleSaveNewName = (newName: string) => {
     if (newName === layoutName) return;
     updateLayoutName({ oldName: layoutName, newName });
-    setSearchParams({ ...deepCopy(searchParams), layout: newName });
+    setSearchParams({ ...ObjectUtils.deepCopy(searchParams), layout: newName });
     mutateTextId([{ oldId: layoutName, newId: newName }]);
   };
 
