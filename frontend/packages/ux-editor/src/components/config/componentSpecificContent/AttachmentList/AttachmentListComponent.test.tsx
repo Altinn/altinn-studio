@@ -61,7 +61,7 @@ const defaultProps: IGenericEditComponent<ComponentType.AttachmentList> = {
 
 const render = async (
   props: Partial<IGenericEditComponent<ComponentType.AttachmentList>> = {},
-  selectedLayoutSet: string = undefined,
+  selectedLayoutSet: string = 'layoutSetId2',
   layoutSets: LayoutSets = defaultLayoutSets,
   dataTypes: DataTypeElement[] = defaultDataTypes,
   isDataFetched: boolean = true,
@@ -166,7 +166,7 @@ describe('AttachmentListComponent', () => {
 
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...defaultComponent,
-      dataTypeIds: ['test4', reservedDataTypes.currentTask, reservedDataTypes.refDataAsPdf],
+      dataTypeIds: ['test4', reservedDataTypes.refDataAsPdf, reservedDataTypes.currentTask],
     });
     // Combobox is also triggered, because current task is set to true and makes the combobox to trigger onChangeValue because of filter update
     expect(handleComponentChange).toHaveBeenCalledTimes(2);
