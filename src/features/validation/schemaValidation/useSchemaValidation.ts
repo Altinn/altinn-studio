@@ -3,9 +3,10 @@ import { useMemo } from 'react';
 import { useCurrentDataModelSchema } from 'src/features/datamodel/DataModelSchemaProvider';
 import { useCurrentDataModelType } from 'src/features/datamodel/useBindingSchema';
 import { FD } from 'src/features/formData/FormDataWrite';
-import { type FieldValidations, FrontendValidationSource, ValidationMask } from 'src/features/validation';
+import { type FieldValidations, FrontendValidationSource } from 'src/features/validation';
 import {
   createValidator,
+  getErrorCategory,
   getErrorParams,
   getErrorTextKey,
 } from 'src/features/validation/schemaValidation/schemaValidationUtils';
@@ -52,7 +53,9 @@ export function useSchemaValidation(): FieldValidations {
 
     for (const error of validator.errors || []) {
       /**
-       * Skip schema validation for empty fields and ignore required errors. Let component validation handle these.
+       * Skip schema validation for empty fields and ignore required errors.
+       * JSON schema required does not work too well for our use case. The expectation that a missing field should give an error is not necessarily true,
+       * since it will not work in nested objects if the parent is also missing.
        * Check if AVJ validation error is a oneOf error ("must match exactly one schema in oneOf").
        * We don't currently support oneOf validation.
        * These can be ignored, as there will be other, specific validation errors that actually
@@ -61,7 +64,7 @@ export function useSchemaValidation(): FieldValidations {
       if (
         error.data == null ||
         error.data === '' ||
-        error.keyword === 'required' || // TODO(Validation): Check if this can be filtered out later
+        error.keyword === 'required' ||
         error.keyword === 'oneOf' ||
         error.params?.type === 'null'
       ) {
@@ -86,6 +89,8 @@ export function useSchemaValidation(): FieldValidations {
             key: getErrorTextKey(error),
           };
 
+      const category = getErrorCategory(error);
+
       /**
        * Extract error parameters and add to message if available.
        */
@@ -107,7 +112,7 @@ export function useSchemaValidation(): FieldValidations {
         message,
         field,
         source: FrontendValidationSource.Schema,
-        category: ValidationMask.Schema,
+        category,
         severity: 'error',
       });
     }

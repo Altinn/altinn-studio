@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import type { PropsFromGenericComponent, ValidateComponent } from '..';
+import type { PropsFromGenericComponent, ValidateComponent, ValidationFilter, ValidationFilterFunction } from '..';
 
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { RepeatingGroupDef } from 'src/layout/RepeatingGroup/config.def.generated';
@@ -11,12 +11,12 @@ import { RepeatingGroupProvider } from 'src/layout/RepeatingGroup/RepeatingGroup
 import { RepeatingGroupsFocusProvider } from 'src/layout/RepeatingGroup/RepeatingGroupFocusContext';
 import { SummaryRepeatingGroup } from 'src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
-import type { ComponentValidation } from 'src/features/validation';
+import type { BaseValidation, ComponentValidation } from 'src/features/validation';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export class RepeatingGroup extends RepeatingGroupDef implements ValidateComponent {
+export class RepeatingGroup extends RepeatingGroupDef implements ValidateComponent, ValidationFilter {
   private _hierarchyGenerator = new GroupHierarchyGenerator();
 
   directRender(): boolean {
@@ -91,6 +91,22 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
     }
 
     return validations;
+  }
+
+  /**
+   * Repeating group has its own minCount property, so if set, we should filter out the minItems validation from schema.
+   */
+  private schemaMinItemsFilter(validation: BaseValidation): boolean {
+    return !(
+      validation.source === FrontendValidationSource.Schema && validation.message.key === 'validation_errors.minItems'
+    );
+  }
+
+  getValidationFilters(_node: LayoutNode<'RepeatingGroup'>): ValidationFilterFunction[] {
+    if ((_node.item.minCount ?? 0) > 0) {
+      return [this.schemaMinItemsFilter];
+    }
+    return [];
   }
 
   isDataModelBindingsRequired(): boolean {

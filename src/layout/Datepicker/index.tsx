@@ -103,14 +103,14 @@ export class Datepicker extends DatepickerDef implements ValidateComponent, Vali
    * Datepicker has a custom format validation which give a better error message than what the schema provides.
    * Filter out the schema format vaildation to avoid duplicate error messages.
    */
-  formatFilter(validation: BaseValidation): boolean {
+  private schemaFormatFilter(validation: BaseValidation): boolean {
     return !(
       validation.source === FrontendValidationSource.Schema && validation.message.key === 'validation_errors.pattern'
     );
   }
 
-  getValidationFilter(_node: LayoutNode): ValidationFilterFunction | null {
-    return this.formatFilter;
+  getValidationFilters(_node: LayoutNode): ValidationFilterFunction[] {
+    return [this.schemaFormatFilter];
   }
 
   validateDataModelBindings(ctx: LayoutValidationCtx<'Datepicker'>): string[] {

@@ -5,6 +5,9 @@ import addAdditionalFormats from 'ajv-formats-draft2019';
 import type { ErrorObject, Options } from 'ajv';
 import type { JSONSchema7 } from 'json-schema';
 
+import { ValidationMask } from 'src/features/validation';
+import type { ValidationCategory } from 'src/features/validation';
+
 /**
  * Create a new ajv validator for a given schema.
  */
@@ -159,4 +162,19 @@ export function getErrorParams(error: ErrorObject): string | null {
   }
   const errorParams = error.params[errorType.paramKey];
   return Array.isArray(errorParams) ? errorParams.join(', ') : errorParams;
+}
+
+/**
+ * Get the category of an error object.
+ * Validation types that act essentially like required should be treated as such
+ * so they do not give errors before the user has an opportunity to fill anything out.
+ */
+export function getErrorCategory(error: ErrorObject): ValidationCategory {
+  switch (error.keyword) {
+    case 'required':
+    case 'minItems':
+      return ValidationMask.Required;
+    default:
+      return ValidationMask.Schema;
+  }
 }

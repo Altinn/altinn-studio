@@ -121,7 +121,7 @@ export const LayoutInspector = () => {
       {selectedComponent && (
         <div className={classes.properties}>
           <div className={classes.header}>
-            <h3>Egenskaper</h3>
+            <h3>Konfigurasjon</h3>
             {validationErrorsForPage[selectedComponent] && validationErrorsForPage[selectedComponent].length > 0 && (
               <Alert
                 className={classes.errorAlert}
