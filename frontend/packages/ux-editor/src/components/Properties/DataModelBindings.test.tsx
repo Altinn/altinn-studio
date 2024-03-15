@@ -199,7 +199,7 @@ describe('DataModelBindings', () => {
     expect(switchElement).toBeChecked();
   });
 
-  it('clicking multiple attachment switch should call handleUpdate', async () => {
+  it('toggling ON multiple attachment switch should call handleUpdate with expected values', async () => {
     const handleUpdate = jest.fn();
     render({
       props: {
@@ -216,7 +216,31 @@ describe('DataModelBindings', () => {
     expect(handleUpdate).toHaveBeenCalledTimes(1);
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentMocks[ComponentType.FileUpload],
-      dataModelBindings: { list: '' },
+      dataModelBindings: { list: '', simpleBinding: undefined },
+    });
+  });
+
+  it('toggling OFF multiple attachment switch should call handleUpdate with expected values', async () => {
+    const handleUpdate = jest.fn();
+    render({
+      props: {
+        formItem: {
+          ...componentMocks[ComponentType.FileUpload],
+          dataModelBindings: { list: 'someListDataModelField' },
+        },
+        formItemId: componentMocks[ComponentType.FileUpload].id,
+        handleUpdate,
+      },
+    });
+
+    const switchElement = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
+    });
+    await act(() => user.click(switchElement));
+    expect(handleUpdate).toHaveBeenCalledTimes(1);
+    expect(handleUpdate).toHaveBeenCalledWith({
+      ...componentMocks[ComponentType.FileUpload],
+      dataModelBindings: { list: undefined, simpleBinding: '' },
     });
   });
 });
