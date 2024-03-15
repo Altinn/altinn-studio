@@ -97,6 +97,45 @@ describe('InputComponent', () => {
     expect(inputComponent).not.toHaveAttribute('aria-describedby');
   });
 
+  it('should apply correct formatting to phone numbers when rendered as component', async () => {
+    const typedValue = '44444444';
+    const formattedValue = '+47 444 44 444';
+    const { formDataMethods } = await render({
+      component: {
+        formatting: {
+          number: {
+            format: '+47 ### ## ###',
+          },
+        },
+      },
+    });
+    const inputComponent = screen.getByRole('textbox');
+    await userEvent.type(inputComponent, typedValue);
+    expect(inputComponent).toHaveValue(formattedValue);
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'some.field', newValue: typedValue });
+    expect(inputComponent).toHaveValue(formattedValue);
+  });
+
+  it('should allow decimal separators specified in allowedDecimalSeparators when typing', async () => {
+    const typedValue = '11.1';
+    const formattedValue = '11,1';
+    const { formDataMethods } = await render({
+      component: {
+        formatting: {
+          number: {
+            allowedDecimalSeparators: [',', '.'],
+            decimalSeparator: ',',
+          },
+        },
+      },
+    });
+    const inputComponent = screen.getByRole('textbox');
+    await userEvent.type(inputComponent, typedValue);
+    expect(inputComponent).toHaveValue(formattedValue);
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'some.field', newValue: typedValue });
+    expect(inputComponent).toHaveValue(formattedValue);
+  });
+
   const render = async ({ component, genericProps, ...rest }: Partial<RenderGenericComponentTestProps<'Input'>> = {}) =>
     await renderGenericComponentTest({
       type: 'Input',

@@ -1,7 +1,7 @@
 .rowReadOnly,
 .rowReadOnly td,
 .rowReadOnly th {
-  background-color: var(--component-input-read_only_info-color-background-default);
+  background-color: var(--fds-semantic-surface-neutral-subtle);
 }
 
 tr > .fullWidthCellFirst {

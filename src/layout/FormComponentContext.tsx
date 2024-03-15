@@ -7,6 +7,7 @@ export interface GenericComponentOverrideDisplay {
   renderLabel?: false;
   renderLegend?: false;
   renderedInTable?: true;
+  rowReadOnly?: boolean;
 }
 
 export interface IFormComponentContext {

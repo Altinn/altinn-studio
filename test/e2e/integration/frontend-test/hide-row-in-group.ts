@@ -52,8 +52,8 @@ it('should be possible to hide rows when "Endre fra" is greater or equals to [..
 
   // Make sure the sum row is correct
   cy.get('@lastRow').eq(0).should('contain.text', 'SUM');
-  cy.get('@lastRow').eq(1).find('input').should('have.value', 'NOK 9 045 621');
-  cy.get('@lastRow').eq(2).find('input').should('have.value', 'NOK 9 045 387');
+  cy.get('@lastRow').eq(1).find('p').should('have.text', 'NOK 9 045 621');
+  cy.get('@lastRow').eq(2).find('p').should('have.text', 'NOK 9 045 387');
 
   // Testing column order. The repeating group defines its children as "Endre fra", "Endre til", "Kilde", but the
   // column order is overridden to be "Kilde", "Endre fra", "Endre til".

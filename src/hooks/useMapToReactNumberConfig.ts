@@ -37,6 +37,5 @@ export const getMapToReactNumberConfig = (
     ...formatNumber(value, selectedLanguage, createOptions(formatting), position),
     ...formatting.number,
   };
-
   return { ...formatting, number: numberFormatResult };
 };

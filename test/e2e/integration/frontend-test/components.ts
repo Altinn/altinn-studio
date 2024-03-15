@@ -513,10 +513,9 @@ describe('UI Components', () => {
 
   interface TestNumber {
     number: string; // The number we type in
-    withTrailing?: string; // The number as it should appear in the string-formatted field, if different from the number we typed
+    withoutTrailing?: string; // The number as it should appear in the string-formatted field, if different from the number we typed
     withoutLeading?: string; // The number as it should appear in the string-formatted field, if different from the number we typed
     formatted: string; // The number as it should appear in the number-formatted field
-    formattedWhenEditing?: string; // The number as it should appear in the number-formatted field when editing, if different from the formatted number
     invalidFor: string[]; // Which types the number should be invalid for
   }
 
@@ -550,16 +549,14 @@ describe('UI Components', () => {
       { number: '123456789012.345', formatted: '123 456 789 012,345', invalidFor: ['int16', 'int32', 'int64'] },
       {
         number: '123.4560',
-        withTrailing: '123.456',
-        formatted: '123,456',
-        formattedWhenEditing: '123,4560',
+        withoutTrailing: '123.456',
+        formatted: '123,4560',
         invalidFor: ['int32', 'int16', 'int64'],
       },
       {
         number: '123.456000',
-        withTrailing: '123.456',
-        formatted: '123,456',
-        formattedWhenEditing: '123,456000',
+        withoutTrailing: '123.456',
+        formatted: '123,456000',
         invalidFor: ['int32', 'int16', 'int64'],
       },
       { number: '000123', withoutLeading: '123', formatted: '123', invalidFor: [] },
@@ -584,7 +581,7 @@ describe('UI Components', () => {
     cy.get('#int16AsString').should('have.value', '0');
     cy.get('#int16AsNumber').should('have.value', '0 stikk');
 
-    for (const { number, withTrailing, withoutLeading, formatted, formattedWhenEditing, invalidFor } of testNumbers) {
+    for (const { number, withoutTrailing, withoutLeading, formatted, invalidFor } of testNumbers) {
       for (const [type, value] of Object.entries(fields)) {
         const { targets, suffix } = value;
         const [asNumber, asString] = targets;
@@ -592,22 +589,16 @@ describe('UI Components', () => {
 
         // Type into the number-formatted field
         cy.get(asNumber).type(`{selectall}${number}`);
-        cy.get(asNumber).should('have.value', (formattedWhenEditing ?? formatted) + suffix);
+        cy.get(asNumber).should('have.value', formatted + suffix);
 
         // Test that the string-formatted field is updated correctly
         if (isValid) {
-          cy.get(asString).should('have.value', withTrailing ?? withoutLeading ?? number);
+          cy.get(asString).should('have.value', withoutTrailing ?? withoutLeading ?? number);
           cy.get(`[data-validation="${asNumber.substring(1)}"]`).should('not.exist');
         } else {
           // react-number-format removes leading zeroes for invalid numbers, but keeps trailing zeroes
           cy.get(asString).should('have.value', withoutLeading ?? number);
           cy.get(`[data-validation="${asNumber.substring(1)}"]`).should('contain.text', 'Feil format eller verdi');
-        }
-
-        if (formattedWhenEditing !== undefined && isValid) {
-          // react-number-format forgets about the edit once we blur the field, so leading/trailing zeroes are removed
-          cy.get(asNumber).blur();
-          cy.get(asNumber).should('have.value', formatted + suffix);
         }
       }
 

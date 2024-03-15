@@ -27,7 +27,6 @@ export const formatNumber = (
     prefix: undefined,
     suffix: undefined,
   };
-
   if (!options) {
     return defaultFormat;
   }
