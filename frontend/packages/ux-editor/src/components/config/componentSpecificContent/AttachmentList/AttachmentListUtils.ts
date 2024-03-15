@@ -60,17 +60,15 @@ type ConvertExternalToInternalFormat = {
 export const convertExternalToInternalFormat = ({
   availableAttachments,
   dataTypeIds,
-}: ConvertExternalToInternalFormat) => {
+}: ConvertExternalToInternalFormat): InternalDataTypesFormat => {
   const dataTypesWithoutReservedTypes = ArrayUtils.intersection(
     dataTypeIds,
     Object.values(reservedDataTypes),
     false,
   );
   const includeCurrentTask = dataTypeIds.includes(reservedDataTypes.currentTask);
-
   const currentAttachments = getCurrentAttachments(includeCurrentTask, availableAttachments);
-
-  const includeAllAttachments = isAllAttachmentsSelected(
+  const includeAllAttachments = isAllAttachmentsSelectedExternal(
     dataTypeIds,
     dataTypesWithoutReservedTypes,
     currentAttachments,
@@ -94,7 +92,7 @@ const isPdfSelected = (dataTypeIds: string[]): boolean =>
   dataTypeIds.includes(reservedDataTypes.refDataAsPdf) ||
   dataTypeIds.includes(reservedDataTypes.includeAll);
 
-const isAllAttachmentsSelected = (
+const isAllAttachmentsSelectedExternal = (
   dataTypeIds: string[],
   dataTypesWithoutReservedTypes: string[],
   attachments: string[],

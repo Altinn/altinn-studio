@@ -2,79 +2,50 @@ import React, { useState } from 'react';
 import { Fieldset, Switch } from '@digdir/design-system-react';
 import { AttachmentListContent } from './AttachmentListContent';
 import { useTranslation } from 'react-i18next';
+import { selectionIsValid } from './AttachmentListUtils';
 import { ArrayUtils } from '@studio/pure-functions';
-import {
-  currentTasks,
-  getAvailableAttachments,
-  reservedDataTypes,
-  selectionIsValid,
-} from './AttachmentListUtils';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import type { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
+import type { AttachmentsFormat, InternalDataTypesFormat } from './AttachmentListUtils';
 
 type AttachmentListInternalFormatProps = {
-  handleOutGoingData: (selectedDataTypes: string[], availableAttachments: string[]) => void;
-  internalDataFormat: {
-    availableAttachments: string[];
-    selectedDataTypes: string[];
-  };
-  layoutSets: LayoutSets;
-  selectedLayoutSet: string;
-  appMetadata: ApplicationMetadata;
+  onChange: (selectedDataTypes: InternalDataTypesFormat) => void;
+  availableAttachments: AttachmentsFormat;
+  internalDataFormat: InternalDataTypesFormat;
 };
 
 export const AttachmentListInternalFormat = (props: AttachmentListInternalFormatProps) => {
-  const { handleOutGoingData, internalDataFormat, layoutSets, selectedLayoutSet, appMetadata } =
-    props;
-  const { availableAttachments } = internalDataFormat;
+  const { onChange, availableAttachments, internalDataFormat } = props;
+  const [dataTypes, setDataTypes] = useState<InternalDataTypesFormat>(internalDataFormat);
   const { t } = useTranslation();
-  const [selectedDataTypes, setSelectedDataTypes] = useState<string[]>(
-    internalDataFormat.selectedDataTypes,
-  );
-  const includePdf = selectedDataTypes.includes(reservedDataTypes.refDataAsPdf);
-  const currentTask = selectedDataTypes.includes(reservedDataTypes.currentTask);
+  const { includePdf, currentTask } = dataTypes;
 
   const onChangePdf = (isChecked: boolean) => {
-    const updatedSelection = toggleItemInArray(
-      selectedDataTypes,
-      reservedDataTypes.refDataAsPdf,
-      isChecked,
-    );
-
-    setSelectedDataTypes(updatedSelection);
-    handleOutGoingData(updatedSelection, availableAttachments);
+    setDataTypes((prevDataTypes) => ({ ...prevDataTypes, includePdf: isChecked }));
+    onChange({ ...dataTypes, includePdf: isChecked });
   };
 
   const onChangeTask = (isChecked: boolean) => {
-    let updatedSelection: string[];
+    const updatedSelectedDataTypes = handleDataTypesWhenCurrentTaskChange(
+      isChecked,
+      dataTypes.selectedDataTypes,
+      availableAttachments.attachmentsCurrentTasks,
+    );
 
-    if (isChecked) {
-      updatedSelection = getAvailableSelectedDataTypes(
-        layoutSets,
-        selectedLayoutSet,
-        appMetadata.dataTypes,
-        selectedDataTypes,
-        availableAttachments,
-        includePdf,
-      );
-    } else {
-      updatedSelection = toggleItemInArray(
-        selectedDataTypes,
-        reservedDataTypes.currentTask,
-        isChecked,
-      );
-    }
-
-    setSelectedDataTypes(updatedSelection);
-    handleOutGoingData(updatedSelection, updatedSelection);
+    setDataTypes((prevDataTypes) => ({
+      ...prevDataTypes,
+      currentTask: isChecked,
+      selectedDataTypes: updatedSelectedDataTypes,
+    }));
+    setDataTypes((prevDataTypes) => ({
+      ...prevDataTypes,
+      currentTask: isChecked,
+      selectedDataTypes: updatedSelectedDataTypes,
+    }));
   };
 
   return (
     <Fieldset
       legend={t('ux_editor.component_title.AttachmentList_legend')}
-      error={
-        !selectionIsValid(selectedDataTypes) && t('ux_editor.component_title.AttachmentList_error')
-      }
+      error={!selectionIsValid(dataTypes) && t('ux_editor.component_title.AttachmentList_error')}
     >
       <Switch onChange={(e) => onChangeTask(e.target.checked)} size='small' checked={currentTask}>
         {t('ux_editor.component_properties.current_task')}
@@ -84,35 +55,20 @@ export const AttachmentListInternalFormat = (props: AttachmentListInternalFormat
       </Switch>
       <AttachmentListContent
         availableAttachments={availableAttachments}
-        selectedDataTypes={selectedDataTypes}
-        setSelectedDataTypes={setSelectedDataTypes}
-        handleOutGoingData={handleOutGoingData}
+        dataTypes={dataTypes}
+        setDataTypes={setDataTypes}
+        onChange={onChange}
       />
     </Fieldset>
   );
 };
 
-const toggleItemInArray = (array: string[], item: string, add: boolean): string[] =>
-  add ? array.concat(item) : ArrayUtils.removeItemByValue(array, item);
-
-const getAvailableSelectedDataTypes = (
-  layoutSets: LayoutSets,
-  selectedLayoutSet: string,
-  availableDataTypes: DataTypeElement[],
+const handleDataTypesWhenCurrentTaskChange = (
+  currentTask: boolean,
   selectedDataTypes: string[],
-  availableAttachments: string[],
-  includePdf: boolean,
-): string[] => {
-  const selectedAttachments = ArrayUtils.intersection(selectedDataTypes, availableAttachments);
-  const currentTaskAttachments = getAvailableAttachments(
-    currentTasks(layoutSets, selectedLayoutSet),
-    availableDataTypes,
-  );
-
-  const updatedSelected = ArrayUtils.intersection(selectedAttachments, currentTaskAttachments);
-
-  updatedSelected.push(reservedDataTypes.currentTask);
-  if (includePdf) updatedSelected.push(reservedDataTypes.refDataAsPdf);
-
-  return updatedSelected;
+  attachmentsCurrentTasks: string[],
+) => {
+  return currentTask
+    ? ArrayUtils.intersection(selectedDataTypes, attachmentsCurrentTasks)
+    : selectedDataTypes;
 };
