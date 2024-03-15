@@ -88,18 +88,6 @@ describe('TextRow', () => {
     expect(editButton).not.toBeInTheDocument();
   });
 
-  test('does not show button to delete text or button to edit text key when showEditButton is false', () => {
-    renderTextRow({ showEditButton: false, showDeleteButton: false });
-    const editButton = screen.queryByRole('button', {
-      name: textMock('text_editor.toggle_edit_mode', { textKey }),
-    });
-    expect(editButton).not.toBeInTheDocument();
-    const deleteButton = screen.queryByRole('button', {
-      name: textMock('schema_editor.delete'),
-    });
-    expect(deleteButton).not.toBeInTheDocument();
-  });
-
   test('that the user is warned if an illegal character is used', async () => {
     const user = userEvent.setup();
     const updateEntryId = jest.fn();

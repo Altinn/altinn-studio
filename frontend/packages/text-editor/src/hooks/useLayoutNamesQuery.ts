@@ -9,8 +9,6 @@ export const useLayoutNamesQuery = (owner, app): UseQueryResult<string[]> => {
   return useQuery<string[]>({
     queryKey: [QueryKey.LayoutNames, owner, app],
     queryFn: () =>
-      getLayoutNames(owner, app).then((layoutNames) =>
-        layoutNames.map((layoutName) => removeExtension(layoutName)),
-      ),
+      getLayoutNames(owner, app).then((layoutNames) => layoutNames.map(removeExtension)),
   });
 };
