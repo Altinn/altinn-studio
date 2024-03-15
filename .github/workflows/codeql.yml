@@ -19,8 +19,6 @@ jobs:
       actions: read
       contents: read
       security-events: write
-    if: |
-      github.event.pull_request.user.login != 'renovate[bot]'
     strategy:
       fail-fast: false
       matrix:
