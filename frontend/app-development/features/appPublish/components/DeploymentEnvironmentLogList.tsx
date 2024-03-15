@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './DeploymentEnvironmentLogList.module.css';
 import { Alert, Heading, Link, Table } from '@digdir/design-system-react';
-import { formatDateTime, isDateWithinDays } from 'app-shared/pure/date-format';
+import { DateUtils } from '@studio/pure-functions';
 import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 
@@ -133,11 +133,11 @@ export const DeploymentEnvironmentLogList = ({
                       </Table.Cell>
                       <Table.Cell className={classes.tableCell}>{deploy.tagName}</Table.Cell>
                       <Table.Cell className={classes.tableCell}>
-                        {deploy.build.finished && formatDateTime(deploy.build.finished)}
+                        {deploy.build.finished && DateUtils.formatDateTime(deploy.build.finished)}
                       </Table.Cell>
                       <Table.Cell className={classes.tableCell}>{deploy.createdBy}</Table.Cell>
                       <Table.Cell className={classes.tableCell}>
-                        {isDateWithinDays(deploy.build.started, 30) ? (
+                        {DateUtils.isDateWithinDays(deploy.build.started, 30) ? (
                           <Link
                             href={getAzureDevopsBuildResultUrl(deploy.build.id)}
                             target='_newTab'

@@ -3,7 +3,7 @@ import classes from './DeploymentStatus.module.css';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { Trans, useTranslation } from 'react-i18next';
 import { Alert, Heading, Paragraph, Spinner, Link } from '@digdir/design-system-react';
-import { formatDateDDMMYY, formatTimeHHmm } from 'app-shared/pure/date-format';
+import { DateUtils } from '@studio/pure-functions';
 import { publishPath } from 'app-shared/api/paths';
 import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
@@ -26,8 +26,8 @@ export const DeploymentStatus = ({
 
   const formatDateTime = (dateAsString: string): string => {
     return t('general.date_time_format', {
-      date: formatDateDDMMYY(dateAsString),
-      time: formatTimeHHmm(dateAsString),
+      date: DateUtils.formatDateDDMMYY(dateAsString),
+      time: DateUtils.formatTimeHHmm(dateAsString),
     });
   };
 

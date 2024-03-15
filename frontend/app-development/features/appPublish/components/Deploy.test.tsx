@@ -44,11 +44,17 @@ const appReleases: AppRelease[] = [
 
 const imageOptions = [
   {
-    label: `Version ${appReleases[0].tagName} (${created})`,
+    label: textMock('app_deployment.version_label', {
+      tagName: appReleases[0].tagName,
+      createdDateTime: created,
+    }),
     value: appReleases[0].tagName,
   },
   {
-    label: `Version ${appReleases[1].tagName} (${created})`,
+    label: textMock('app_deployment.version_label', {
+      tagName: appReleases[1].tagName,
+      createdDateTime: created,
+    }),
     value: appReleases[1].tagName,
   },
 ];

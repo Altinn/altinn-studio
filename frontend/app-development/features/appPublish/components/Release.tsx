@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './Release.module.css';
-import { formatDateTime } from 'app-shared/pure/date-format';
+import { DateUtils } from '@studio/pure-functions';
 import { getReleaseBuildPipelineLink } from '../../../utils/urlHelper';
 import { gitCommitPath } from 'app-shared/api/paths';
 import { useTranslation } from 'react-i18next';
@@ -55,7 +55,7 @@ export function Release(props: IReleaseComponent) {
     <div className={classes.releaseWrapper}>
       <div className={classes.releaseRow}>
         <div>{t('app_release.release_version') + ' ' + release.tagName}</div>
-        <time dateTime={release.created}>{formatDateTime(release.created)}</time>
+        <time dateTime={release.created}>{DateUtils.formatDateTime(release.created)}</time>
       </div>
       <div className={classes.releaseRow}>
         <div>

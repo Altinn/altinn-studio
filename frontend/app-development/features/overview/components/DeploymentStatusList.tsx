@@ -5,6 +5,7 @@ import { DeploymentStatus } from './DeploymentStatus';
 import classes from './DeploymentStatusList.module.css';
 import { getAppLink } from 'app-shared/ext-urls';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
+import { PROD_ENV_TYPE } from 'app-shared/constants';
 
 export interface DeploymentStatusListProps {
   orgEnvironmentList: Environment[];
@@ -28,7 +29,7 @@ export const DeploymentStatusList = ({
             key={orgEnvironment.name}
             kubernetesDeployment={kubernetesDeployment}
             envName={orgEnvironment.name}
-            isProduction={orgEnvironment.type.toLowerCase() === 'production'}
+            isProduction={orgEnvironment.type.toLowerCase() === PROD_ENV_TYPE}
             urlToApp={getAppLink(orgEnvironment.appPrefix, orgEnvironment.hostname, org, app)}
           />
         );

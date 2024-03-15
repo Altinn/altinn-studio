@@ -12,6 +12,7 @@ import { DeploymentEnvironment } from '../components/DeploymentEnvironment';
 import { getAppLink } from 'app-shared/ext-urls';
 import { useTranslation } from 'react-i18next';
 import { Alert } from '@digdir/design-system-react';
+import { PROD_ENV_TYPE } from 'app-shared/constants';
 
 export const DeploymentContainer = () => {
   const { org, app } = useStudioUrlParams();
@@ -81,7 +82,7 @@ export const DeploymentContainer = () => {
           <DeploymentEnvironment
             key={index}
             envName={env.name}
-            isProduction={env.type.toLowerCase() === 'production'}
+            isProduction={env.type.toLowerCase() === PROD_ENV_TYPE}
             urlToApp={getAppLink(env.appPrefix, env.hostname, org, app)}
             pipelineDeploymentList={pipelineDeploymentList}
             kubernetesDeployment={kubernetesDeployment}

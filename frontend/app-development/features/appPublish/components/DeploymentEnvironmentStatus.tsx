@@ -4,7 +4,7 @@ import { Alert, Heading, Link, Paragraph, Spinner } from '@digdir/design-system-
 import { Trans, useTranslation } from 'react-i18next';
 import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
-import { formatDateDDMMYY, formatTimeHHmm } from 'app-shared/pure/date-format';
+import { DateUtils } from '@studio/pure-functions';
 
 export interface DeploymentEnvironmentStatusProps {
   kubernetesDeployment?: KubernetesDeployment;
@@ -23,8 +23,8 @@ export const DeploymentEnvironmentStatus = ({
 
   const formatDateTime = (dateAsString: string): string => {
     return t('general.date_time_format', {
-      date: formatDateDDMMYY(dateAsString),
-      time: formatTimeHHmm(dateAsString),
+      date: DateUtils.formatDateDDMMYY(dateAsString),
+      time: DateUtils.formatTimeHHmm(dateAsString),
     });
   };
 

@@ -7,7 +7,7 @@ import type { ImageOption } from './ImageOption';
 import { useTranslation } from 'react-i18next';
 import { useAppReleasesQuery } from 'app-development/hooks/queries';
 import { BuildResult } from 'app-shared/types/Build';
-import { formatDateTime } from 'app-shared/pure/date-format';
+import { DateUtils } from '@studio/pure-functions';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface DeployDropdownProps {
@@ -48,7 +48,10 @@ export const DeployDropdown = ({
     .filter((image) => image.build.result === BuildResult.succeeded)
     .map((image) => ({
       value: image.tagName,
-      label: `Version ${image.tagName} (${formatDateTime(image.created)})`,
+      label: t('app_deployment.version_label', {
+        tagName: image.tagName,
+        createdDateTime: DateUtils.formatDateTime(image.created),
+      }),
     }));
 
   if (!imageOptions.length) return <Alert severity='info'>{t('app_deployment.no_versions')}</Alert>;

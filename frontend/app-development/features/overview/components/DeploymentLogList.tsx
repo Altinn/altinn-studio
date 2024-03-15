@@ -3,9 +3,10 @@ import classes from './DeploymentLogList.module.css';
 import { useTranslation } from 'react-i18next';
 import type { Environment } from 'app-shared/types/Environment';
 import { Heading } from '@digdir/design-system-react';
-import { formatDateDDMMYY, formatTimeHHmm } from 'app-shared/pure/date-format';
+import { DateUtils } from '@studio/pure-functions';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import { BuildResult } from 'app-shared/types/Build';
+import { PROD_ENV_TYPE } from 'app-shared/constants';
 
 export interface DeploymentLogListProps {
   orgEnvironmentList: Environment[];
@@ -27,8 +28,8 @@ export const DeploymentLogList = ({
 
   const formatDateTime = (dateAsString: string): string => {
     return t('general.date_time_format', {
-      date: formatDateDDMMYY(dateAsString),
-      time: formatTimeHHmm(dateAsString),
+      date: DateUtils.formatDateDDMMYY(dateAsString),
+      time: DateUtils.formatTimeHHmm(dateAsString),
     });
   };
 
@@ -46,7 +47,7 @@ export const DeploymentLogList = ({
                   env.name.toLowerCase() === pipelineDeployment.envName.toLowerCase(),
               )
               ?.type.toLowerCase();
-            const isProduction = environmentType.toLowerCase() === 'production';
+            const isProduction = environmentType.toLowerCase() === PROD_ENV_TYPE;
             const envTitle = isProduction
               ? t(`general.production_environment_alt`)
               : `${t('general.test_environment_alt')} ${pipelineDeployment.envName?.toUpperCase()}`;
