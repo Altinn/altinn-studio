@@ -124,8 +124,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">The organisation which owns the repository</param>
         /// <param name="newResource">The new resource that is to be added to the repository</param>
-        /// <returns></returns>
-        ActionResult AddServiceResource(string org, ServiceResource newResource);
+        /// <returns>Status code result of resource creation request: 201 if success, or 409 or 400 on error</returns>
+        StatusCodeResult AddServiceResource(string org, ServiceResource newResource);
 
         /// <summary>
         /// Checks a resource if it has a policy by checking if a policyfile exists in the same folder as the resourcefile.

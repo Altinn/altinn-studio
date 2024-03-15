@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using Altinn.Authorization.ABAC.Utils;
@@ -34,6 +35,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         // Using Norwegian name of initial page to be consistent
         // with automatic naming from frontend when adding new page
         private const string InitialLayout = "Side1";
+
+        private readonly string _resourceIdentifierRegex = "^[a-z0-9_æøå-]*$";
 
         private readonly ServiceRepositorySettings _settings;
         private readonly GeneralSettings _generalSettings;
@@ -489,15 +492,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new StatusCodeResult(403);
         }
 
-        public ActionResult AddServiceResource(string org, ServiceResource newResource)
+        public StatusCodeResult AddServiceResource(string org, ServiceResource newResource)
         {
             try
             {
+                bool isResourceIdentifierValid = !string.IsNullOrEmpty(newResource.Identifier) && Regex.IsMatch(newResource.Identifier, _resourceIdentifierRegex) && !newResource.Identifier.StartsWith("app_");
+                if (!isResourceIdentifierValid)
+                {
+                    return new StatusCodeResult(400);
+                }
                 string repository = $"{org}-resources";
                 if (!CheckIfResourceFileAlreadyExists(newResource.Identifier, org, repository))
                 {
                     string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                    string fullPathOfNewResource = Path.Combine(repopath, newResource.Identifier.AsFileName(), string.Format("{0}_resource.json", newResource.Identifier));
+                    string fullPathOfNewResource = Path.Combine(repopath, newResource.Identifier.AsFileName(), GetResourceFileName(newResource.Identifier));
                     string newResourceJson = System.Text.Json.JsonSerializer.Serialize(newResource, _serializerOptions);
                     Directory.CreateDirectory(Path.Combine(repopath, newResource.Identifier.AsFileName()));
                     File.WriteAllText(fullPathOfNewResource, newResourceJson);
@@ -518,14 +526,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public bool CheckIfResourceFileAlreadyExists(string identifier, string org, string repository)
         {
             List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository);
-            foreach (var _ in from FileSystemObject resourceFile in resourceFiles
-                              where resourceFile.Name.Contains(identifier)
-                              select new { })
-            {
-                return true;
-            }
-
-            return false;
+            return resourceFiles.Any(resourceFile => resourceFile.Name.ToLower().Equals(GetResourceFileName(identifier).ToLower()));
         }
 
         public ServiceResource GetServiceResourceById(string org, string repository, string identifier)
@@ -616,6 +617,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return resourceFiles;
+        }
+
+        private string GetResourceFileName(string identifier)
+        {
+            return string.Format("{0}_resource.json", identifier);
         }
 
         private FileSystemObject GetFileSystemObjectForFile(string path)

@@ -30,9 +30,24 @@ describe('StudioDeleteButton', () => {
     expect(onDelete).toHaveBeenCalledTimes(0);
   });
 
-  it('Calls the onClick callback when the user clicks the button', async () => {
+  it('Calls the onDelete callback when the user clicks the button and confirms', async () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    renderDeleteButton();
+    await act(() => user.click(getDeleteButton()));
+    expect(onDelete).toHaveBeenCalledTimes(1);
+  });
+
+  it('Calls the onDelete callback directly when no confirm message is set', async () => {
+    const user = userEvent.setup();
+    renderDeleteButton();
+    await act(() => user.click(getDeleteButton()));
+    expect(onDelete).toHaveBeenCalledTimes(1);
+  });
+
+  it('Calls the onClick callback when the user clicks, regardless of confirmation', async () => {
+    const user = userEvent.setup();
+    jest.spyOn(window, 'confirm').mockImplementation(() => false);
     const onClick = jest.fn();
     renderDeleteButton({ onClick });
     await act(() => user.click(getDeleteButton()));

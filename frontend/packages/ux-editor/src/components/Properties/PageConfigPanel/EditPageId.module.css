@@ -1,0 +1,7 @@
+.changePageId {
+  background-color: var(--fds-semantic-surface-neutral-default);
+}
+
+.idInput {
+  padding: var(--fds-spacing-5);
+}
