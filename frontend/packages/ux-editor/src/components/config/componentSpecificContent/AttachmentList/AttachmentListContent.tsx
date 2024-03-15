@@ -2,10 +2,10 @@ import React from 'react';
 import { Combobox, Label, Checkbox } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import classes from './AttachmentListContent.module.css';
-import type { AttachmentsFormat, InternalDataTypesFormat } from './AttachmentListUtils';
+import type { AvailableAttachementLists, InternalDataTypesFormat } from './types';
 
 type IAttachmentListContent = {
-  availableAttachments: AttachmentsFormat;
+  availableAttachments: AvailableAttachementLists;
   dataTypes: InternalDataTypesFormat;
   setDataTypes: (selectedDataTypes: InternalDataTypesFormat) => void;
   onChange: (selectedDataTypes: InternalDataTypesFormat) => void;

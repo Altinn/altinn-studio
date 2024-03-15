@@ -6,17 +6,14 @@ import { useLayoutSetsQuery } from '../../../../hooks/queries/useLayoutSetsQuery
 import { useAppContext } from '../../../../hooks/useAppContext';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { useTranslation } from 'react-i18next';
-import {
-  reservedDataTypes,
-  convertInternalToExternalFormat,
-  convertExternalToInternalFormat,
-  selectionIsValid,
-} from './AttachmentListUtils';
-import type { AttachmentsFormat, InternalDataTypesFormat } from './AttachmentListUtils';
+import { reservedDataTypes, selectionIsValid } from './attachmentListUtils';
 import { AttachmentListInternalFormat } from './AttachmentListInternalFormat';
 import { StudioSpinner } from '@studio/components';
 import type { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { AvailableAttachementLists, InternalDataTypesFormat } from './types';
+import { convertInternalToExternalFormat } from './convertToExternalFormat';
+import { convertExternalToInternalFormat } from './convertToInternalFormat';
 
 export const AttachmentListComponent = ({
   component,
@@ -33,7 +30,7 @@ export const AttachmentListComponent = ({
   if (appMetadataPending)
     return <StudioSpinner spinnerTitle={t('ux_editor.component_properties.loading')} />;
 
-  const availableAttachments: AttachmentsFormat = getAvailableAttachments(
+  const availableAttachments: AvailableAttachementLists = getAvailableAttachments(
     layoutSets,
     selectedLayoutSet,
     appMetadata.dataTypes,
@@ -42,10 +39,10 @@ export const AttachmentListComponent = ({
   const onChange = (selectedDataTypes: InternalDataTypesFormat) => {
     if (!selectionIsValid(selectedDataTypes)) return;
 
-    const resultingSelection = convertInternalToExternalFormat({
+    const resultingSelection = convertInternalToExternalFormat(
       availableAttachments,
-      dataTypeIds: selectedDataTypes,
-    });
+      selectedDataTypes,
+    );
 
     handleComponentChange({
       ...component,
@@ -57,7 +54,7 @@ export const AttachmentListComponent = ({
     <AttachmentListInternalFormat
       onChange={onChange}
       availableAttachments={availableAttachments}
-      internalDataFormat={convertExternalToInternalFormat({ availableAttachments, dataTypeIds })}
+      internalDataFormat={convertExternalToInternalFormat(availableAttachments, dataTypeIds)}
     />
   );
 };
@@ -66,7 +63,7 @@ const getAvailableAttachments = (
   layoutSets: LayoutSets,
   selectedLayoutSet: string,
   availableDataTypes: DataTypeElement[],
-): AttachmentsFormat => {
+): AvailableAttachementLists => {
   const attachmentsCurrentTasks = getAttachments(
     currentTasks(layoutSets, selectedLayoutSet),
     availableDataTypes,

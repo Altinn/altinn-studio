@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { Fieldset, Switch } from '@digdir/design-system-react';
 import { AttachmentListContent } from './AttachmentListContent';
 import { useTranslation } from 'react-i18next';
-import { selectionIsValid } from './AttachmentListUtils';
+import { selectionIsValid } from './attachmentListUtils';
 import { ArrayUtils } from '@studio/pure-functions';
-import type { AttachmentsFormat, InternalDataTypesFormat } from './AttachmentListUtils';
+import type { AvailableAttachementLists, InternalDataTypesFormat } from './types';
 
 type AttachmentListInternalFormatProps = {
   onChange: (selectedDataTypes: InternalDataTypesFormat) => void;
-  availableAttachments: AttachmentsFormat;
+  availableAttachments: AvailableAttachementLists;
   internalDataFormat: InternalDataTypesFormat;
 };
 
