@@ -64,44 +64,40 @@ describe('TextRow', () => {
     });
   });
 
-  test('renders button to edit text key when textKey is neither appName or layoutName', () => {
-    renderTextRow({ keyIsAppName: false, keyIsLayoutName: false });
-    const button = screen.getByRole('button', {
-      name: textMock('text_editor.toggle_edit_mode', { textKey }),
-    });
-    expect(button).toBeInTheDocument();
+  test('renders button to delete text and button to edit text key by default', () => {
+    renderTextRow();
+    screen.getByRole('button', { name: textMock('text_editor.toggle_edit_mode', { textKey }) });
+    screen.getByRole('button', { name: textMock('schema_editor.delete') });
   });
 
-  test('renders button to delete text when textKey is neither appName or layoutName', () => {
-    renderTextRow({ keyIsAppName: false, keyIsLayoutName: false });
-    const button = screen.getByRole('button', {
+  test('does not show button to delete text when showDeleteButton is false', () => {
+    renderTextRow({ showDeleteButton: false });
+    screen.getByRole('button', { name: textMock('text_editor.toggle_edit_mode', { textKey }) });
+    const deleteButton = screen.queryByRole('button', {
       name: textMock('schema_editor.delete'),
     });
-    expect(button).toBeInTheDocument();
+    expect(deleteButton).not.toBeInTheDocument();
   });
 
-  test('Hide button to delete text when textKey is appName', () => {
-    renderTextRow({ keyIsAppName: true });
-    const button = screen.queryByRole('button', {
+  test('does not show button to edit text key when showEditButton is false', () => {
+    renderTextRow({ showEditButton: false });
+    screen.getByRole('button', { name: textMock('schema_editor.delete') });
+    const editButton = screen.queryByRole('button', {
+      name: textMock('text_editor.toggle_edit_mode', { textKey }),
+    });
+    expect(editButton).not.toBeInTheDocument();
+  });
+
+  test('does not show button to delete text or button to edit text key when showEditButton is false', () => {
+    renderTextRow({ showEditButton: false, showDeleteButton: false });
+    const editButton = screen.queryByRole('button', {
+      name: textMock('text_editor.toggle_edit_mode', { textKey }),
+    });
+    expect(editButton).not.toBeInTheDocument();
+    const deleteButton = screen.queryByRole('button', {
       name: textMock('schema_editor.delete'),
     });
-    expect(button).not.toBeInTheDocument();
-  });
-
-  test('Hide button to edit text key when textKey is appName', () => {
-    renderTextRow({ keyIsAppName: true });
-    const button = screen.queryByRole('button', {
-      name: textMock('text_editor.toggle_edit_mode', { textKey }),
-    });
-    expect(button).not.toBeInTheDocument();
-  });
-
-  test('Hide button to edit text key when textKey is layoutName', () => {
-    renderTextRow({ keyIsLayoutName: true });
-    const button = screen.queryByRole('button', {
-      name: textMock('text_editor.toggle_edit_mode', { textKey }),
-    });
-    expect(button).not.toBeInTheDocument();
+    expect(deleteButton).not.toBeInTheDocument();
   });
 
   test('that the user is warned if an illegal character is used', async () => {

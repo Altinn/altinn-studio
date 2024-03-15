@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import { formLayoutSettingsMock, renderWithProviders } from '../../../testing/mocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -37,8 +37,8 @@ describe('EditPageId', () => {
     );
     await act(() => user.clear(editPageId));
     await act(() => user.type(editPageId, newPageName));
-    user.tab();
-    await waitFor(() => expect(updateFormLayoutName).toHaveBeenCalledTimes(1));
+    await act(() => user.tab());
+    expect(updateFormLayoutName).toHaveBeenCalledTimes(1);
     expect(updateFormLayoutName).toHaveBeenCalledWith(
       org,
       app,
@@ -64,8 +64,8 @@ describe('EditPageId', () => {
       textMock('ux_editor.modal_properties_textResourceBindings_page_id'),
     );
     await act(() => user.click(editPageId));
-    user.tab();
-    await waitFor(() => expect(updateFormLayoutName).toHaveBeenCalledTimes(0));
+    await act(() => user.tab());
+    expect(updateFormLayoutName).not.toHaveBeenCalled();
     expect(updateTextId).toHaveBeenCalledTimes(0);
   });
 

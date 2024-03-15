@@ -62,19 +62,23 @@ export const TextList = ({
       <LegacyTableBody>
         {resourceRows
           .filter((row) => filterFunction(row.textKey, row.translations, searchQuery))
-          .map((row) => (
-            <TextRow
-              key={`${row.translations[0].lang}.${row.textKey}`}
-              textId={row.textKey}
-              idExists={idExists}
-              textRowEntries={row.translations}
-              variables={row.variables || []}
-              selectedLanguages={selectedLanguages}
-              keyIsAppName={row.textKey === APP_NAME}
-              keyIsLayoutName={!layoutNamesPending && layoutNames.includes(row.textKey)}
-              {...rest}
-            />
-          ))}
+          .map((row) => {
+            const keyIsAppName = row.textKey === APP_NAME;
+            const keyIsLayoutName = !layoutNamesPending && layoutNames.includes(row.textKey);
+            return (
+              <TextRow
+                key={`${row.translations[0].lang}.${row.textKey}`}
+                textId={row.textKey}
+                idExists={idExists}
+                textRowEntries={row.translations}
+                variables={row.variables || []}
+                selectedLanguages={selectedLanguages}
+                showDeleteButton={!keyIsAppName}
+                showEditButton={!keyIsAppName && !keyIsLayoutName}
+                {...rest}
+              />
+            );
+          })}
       </LegacyTableBody>
     </LegacyTable>
   );
