@@ -4,12 +4,13 @@ import {
   convertExternalToInternalFormat,
   selectionIsValid,
 } from './AttachmentListUtils';
+import type { InternalDataTypesFormat } from './AttachmentListUtils';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 describe('Convert to external format: convertInternalToExternalFormat', () => {
   type TestCaseConvertToExternalFormat = {
     availableAttachments: {
-      attachmentsCurrentTask: string[];
+      attachmentsCurrentTasks: string[];
       attachmentsAllTasks: string[];
     };
     dataTypeIds: {
@@ -23,7 +24,7 @@ describe('Convert to external format: convertInternalToExternalFormat', () => {
   const testCasesDataTypes: KeyValuePairs<TestCaseConvertToExternalFormat> = {
     'all attachments and current task and pdf': {
       availableAttachments: {
-        attachmentsCurrentTask: ['attachment2'],
+        attachmentsCurrentTasks: ['attachment2'],
         attachmentsAllTasks: ['attachment1', 'attachment2'],
       },
       dataTypeIds: {
@@ -35,7 +36,7 @@ describe('Convert to external format: convertInternalToExternalFormat', () => {
     },
     'all attachments and all tasks and pdf': {
       availableAttachments: {
-        attachmentsCurrentTask: ['attachment2'],
+        attachmentsCurrentTasks: ['attachment2'],
         attachmentsAllTasks: ['attachment1', 'attachment2'],
       },
       dataTypeIds: {
@@ -47,7 +48,7 @@ describe('Convert to external format: convertInternalToExternalFormat', () => {
     },
     'all attachments and current task': {
       availableAttachments: {
-        attachmentsCurrentTask: ['attachment2'],
+        attachmentsCurrentTasks: ['attachment2'],
         attachmentsAllTasks: ['attachment1', 'attachment2'],
       },
       dataTypeIds: {
@@ -59,7 +60,7 @@ describe('Convert to external format: convertInternalToExternalFormat', () => {
     },
     'all attachments and all tasks': {
       availableAttachments: {
-        attachmentsCurrentTask: ['attachment1', 'attachment2'],
+        attachmentsCurrentTasks: ['attachment1', 'attachment2'],
         attachmentsAllTasks: ['attachment1', 'attachment2'],
       },
       dataTypeIds: {
@@ -71,8 +72,8 @@ describe('Convert to external format: convertInternalToExternalFormat', () => {
     },
     'some attachments and current task and pdf': {
       availableAttachments: {
-        attachmentsCurrentTask: ['attachment2'],
-        attachmentsAllTasks: ['attachment1', 'attachment2'],
+        attachmentsCurrentTasks: ['attachment2', 'attachment3'],
+        attachmentsAllTasks: ['attachment1', 'attachment2', 'attachment3'],
       },
       dataTypeIds: {
         currentTask: true,
@@ -81,13 +82,13 @@ describe('Convert to external format: convertInternalToExternalFormat', () => {
       },
       expectedResults: [
         'attachment2',
-        reservedDataTypes.currentTask,
         reservedDataTypes.refDataAsPdf,
+        reservedDataTypes.currentTask,
       ],
     },
     'some attachments and all tasks': {
       availableAttachments: {
-        attachmentsCurrentTask: ['attachment2'],
+        attachmentsCurrentTasks: ['attachment2'],
         attachmentsAllTasks: ['attachment1', 'attachment2'],
       },
       dataTypeIds: {
@@ -104,7 +105,10 @@ describe('Convert to external format: convertInternalToExternalFormat', () => {
   it.each(testCaseNames)('should convert to external format with %s', (testCaseName) => {
     const testCase = testCasesDataTypes[testCaseName];
     expect(
-      convertInternalToExternalFormat(testCase.availableAttachments, testCase.dataTypeIds),
+      convertInternalToExternalFormat({
+        availableAttachments: testCase.availableAttachments,
+        dataTypeIds: testCase.dataTypeIds,
+      }),
     ).toEqual(testCase.expectedResults);
   });
 });
@@ -112,7 +116,7 @@ describe('Convert to external format: convertInternalToExternalFormat', () => {
 describe('Convert to internal format: convertExternalToInternalFormat', () => {
   type TestCaseConvertInternalFormat = {
     availableAttachments: {
-      attachmentsCurrentTask: string[];
+      attachmentsCurrentTasks: string[];
       attachmentsAllTasks: string[];
     };
     dataTypeIds: string[];
@@ -127,7 +131,7 @@ describe('Convert to internal format: convertExternalToInternalFormat', () => {
     const testCasesAllDataTypes: KeyValuePairs<TestCaseConvertInternalFormat> = {
       'all attachments and current task and pdf': {
         availableAttachments: {
-          attachmentsCurrentTask: ['attachment2'],
+          attachmentsCurrentTasks: ['attachment2'],
           attachmentsAllTasks: ['attachment1', 'attachment2'],
         },
         dataTypeIds: [reservedDataTypes.includeAll, reservedDataTypes.currentTask],
@@ -139,7 +143,7 @@ describe('Convert to internal format: convertExternalToInternalFormat', () => {
       },
       'all attachments and all tasks and pdf': {
         availableAttachments: {
-          attachmentsCurrentTask: ['attachment2'],
+          attachmentsCurrentTasks: ['attachment2'],
           attachmentsAllTasks: ['attachment1', 'attachment2'],
         },
         dataTypeIds: [reservedDataTypes.includeAll],
@@ -151,7 +155,7 @@ describe('Convert to internal format: convertExternalToInternalFormat', () => {
       },
       'all attachments and current task': {
         availableAttachments: {
-          attachmentsCurrentTask: ['attachment2'],
+          attachmentsCurrentTasks: ['attachment2'],
           attachmentsAllTasks: ['attachment1', 'attachment2'],
         },
         dataTypeIds: [reservedDataTypes.currentTask],
@@ -163,7 +167,7 @@ describe('Convert to internal format: convertExternalToInternalFormat', () => {
       },
       'all attachments and all tasks': {
         availableAttachments: {
-          attachmentsCurrentTask: ['attachment2'],
+          attachmentsCurrentTasks: ['attachment2'],
           attachmentsAllTasks: ['attachment1', 'attachment2'],
         },
         dataTypeIds: [],
@@ -175,10 +179,10 @@ describe('Convert to internal format: convertExternalToInternalFormat', () => {
       },
       'some attachments and current task and pdf': {
         availableAttachments: {
-          attachmentsCurrentTask: ['attachment2'],
+          attachmentsCurrentTasks: ['attachment2'],
           attachmentsAllTasks: ['attachment1', 'attachment2'],
         },
-        dataTypeIds: [reservedDataTypes.refDataAsPdf, reservedDataTypes.currentTask],
+        dataTypeIds: ['attachment2', reservedDataTypes.refDataAsPdf, reservedDataTypes.currentTask],
         expectedResults: {
           currentTask: true,
           includePdf: true,
@@ -187,7 +191,7 @@ describe('Convert to internal format: convertExternalToInternalFormat', () => {
       },
       'all tasks and pdf': {
         availableAttachments: {
-          attachmentsCurrentTask: ['attachment1'],
+          attachmentsCurrentTasks: ['attachment1'],
           attachmentsAllTasks: ['attachment1', 'attachment2'],
         },
         dataTypeIds: ['attachment1', reservedDataTypes.refDataAsPdf],
@@ -205,7 +209,10 @@ describe('Convert to internal format: convertExternalToInternalFormat', () => {
     it.each(testCaseNames)('should convert to internal format with %s', (testCaseName) => {
       const testCase = testCasesAllDataTypes[testCaseName];
       expect(
-        convertExternalToInternalFormat(testCase.availableAttachments, testCase.dataTypeIds),
+        convertExternalToInternalFormat({
+          availableAttachments: testCase.availableAttachments,
+          dataTypeIds: testCase.dataTypeIds,
+        }),
       ).toEqual(testCase.expectedResults);
     });
   });
@@ -213,22 +220,47 @@ describe('Convert to internal format: convertExternalToInternalFormat', () => {
 
 describe('validateSelection', () => {
   it('should return false when no selection', () => {
-    expect(selectionIsValid([])).toBeFalsy();
+    const output: InternalDataTypesFormat = {
+      currentTask: false,
+      includePdf: false,
+      selectedDataTypes: [],
+    };
+    expect(selectionIsValid(output)).toBeFalsy();
   });
 
   it('should return true when there is a selection', () => {
-    expect(selectionIsValid(['attachment1'])).toBeTruthy();
+    const output: InternalDataTypesFormat = {
+      currentTask: false,
+      includePdf: false,
+      selectedDataTypes: ['attachment1'],
+    };
+    expect(selectionIsValid(output)).toBeTruthy();
   });
 
   it('should return true when there is a selection and current task', () => {
-    expect(selectionIsValid(['attachment1', reservedDataTypes.currentTask])).toBeTruthy();
+    const output: InternalDataTypesFormat = {
+      currentTask: true,
+      includePdf: false,
+      selectedDataTypes: ['attachment1'],
+    };
+    expect(selectionIsValid(output)).toBeTruthy();
   });
 
   it('should return false when there is only current task', () => {
-    expect(selectionIsValid([reservedDataTypes.currentTask])).toBeFalsy();
+    const output: InternalDataTypesFormat = {
+      currentTask: true,
+      includePdf: false,
+      selectedDataTypes: [],
+    };
+    expect(selectionIsValid(output)).toBeFalsy();
   });
 
   it('should return true when there is only pdf', () => {
-    expect(selectionIsValid([reservedDataTypes.refDataAsPdf])).toBeTruthy;
+    const output: InternalDataTypesFormat = {
+      currentTask: false,
+      includePdf: true,
+      selectedDataTypes: [],
+    };
+    expect(selectionIsValid(output)).toBeTruthy;
   });
 });

@@ -1,5 +1,3 @@
-import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { ArrayUtils } from '@studio/pure-functions';
 
 export const reservedDataTypes = {
@@ -8,128 +6,111 @@ export const reservedDataTypes = {
   refDataAsPdf: 'ref-data-as-pdf',
 };
 
-export const convertInternalToExternalFormat = (
+export type AttachmentsFormat = {
+  attachmentsCurrentTasks: string[];
+  attachmentsAllTasks: string[];
+};
+
+export type InternalDataTypesFormat = {
+  currentTask: boolean;
+  includePdf: boolean;
+  selectedDataTypes: string[];
+};
+
+export type ConvertInternalToExternalFormat = {
+  availableAttachments: AttachmentsFormat;
+  dataTypeIds: InternalDataTypesFormat;
+};
+
+export const convertInternalToExternalFormat = ({
+  availableAttachments,
+  dataTypeIds,
+}: ConvertInternalToExternalFormat): string[] => {
+  const { selectedDataTypes, includePdf, currentTask: includeCurrentTask } = dataTypeIds;
+
+  const currentAttachments = getCurrentAttachments(includeCurrentTask, availableAttachments);
+
+  const includeAllAttachments = selectedDataTypes.length === currentAttachments.length;
+
+  const dataTypeIdsExternalFormat = includeAllAttachments
+    ? convertAllAttachToExternalFormat(includePdf)
+    : convertSomeAttachToExternalFormat(selectedDataTypes, includePdf);
+
+  if (includeCurrentTask) {
+    dataTypeIdsExternalFormat.push(reservedDataTypes.currentTask);
+  }
+
+  return dataTypeIdsExternalFormat;
+};
+
+const convertAllAttachToExternalFormat = (includePdf: boolean): string[] =>
+  includePdf ? [reservedDataTypes.includeAll] : [];
+
+const convertSomeAttachToExternalFormat = (
   selectedDataTypes: string[],
-  availableAttachments: string[],
-): string[] => {
-  const selectedAttachments = ArrayUtils.intersection(
-    selectedDataTypes,
-    Object.values(reservedDataTypes),
-    false,
-  );
+  includePdf: boolean,
+): string[] =>
+  includePdf ? [...selectedDataTypes, reservedDataTypes.refDataAsPdf] : selectedDataTypes;
 
-  const includeAllAttachments = selectedAttachments.length === availableAttachments.length;
-
-  if (!includeAllAttachments) {
-    return selectedDataTypes;
-  }
-
-  const includeCurrentTask = selectedDataTypes.includes(reservedDataTypes.currentTask);
-  const includePdf = selectedDataTypes.includes(reservedDataTypes.refDataAsPdf);
-
-  return convertAllData(includePdf, includeCurrentTask);
+type ConvertExternalToInternalFormat = {
+  availableAttachments: AttachmentsFormat;
+  dataTypeIds: string[];
 };
 
-const convertAllData = (includePdf: boolean, onlyCurrentTask: boolean): string[] => {
-  const allAttachments: string[] = includePdf ? [reservedDataTypes.includeAll] : [];
-
-  if (onlyCurrentTask) {
-    allAttachments.push(reservedDataTypes.currentTask);
-  }
-  return allAttachments;
-};
-
-export const convertExternalToInternalFormat = (
-  tasks: string[],
-  availableDataTypes: Partial<ApplicationMetadata['dataTypes']>,
-  dataTypeIds: string[],
-) => {
-  const availableAttachments = getAvailableAttachments(tasks, availableDataTypes);
-  const selectedDataTypes = getSelectedDataTypes(dataTypeIds, availableAttachments);
-
-  return {
-    availableAttachments,
-    selectedDataTypes,
-  };
-};
-
-export const getAvailableAttachments = (
-  tasks: string[],
-  availableDataTypes: Partial<ApplicationMetadata['dataTypes']>,
-): string[] => {
-  const filteredAttachments = availableDataTypes.filter(
-    (dataType) =>
-      !Object.values(reservedDataTypes).includes(dataType.id) &&
-      !dataType.appLogic &&
-      tasks.some((task) => dataType.taskId === task),
-  );
-  const mappedAttachments = filteredAttachments?.map((dataType) => dataType.id);
-  const sortedAttachments = mappedAttachments.sort((a, b) => a.localeCompare(b));
-
-  return sortedAttachments;
-};
-
-const getSelectedDataTypes = (dataTypeIds: string[], attachments: string[]): string[] => {
-  const dataTypeIdsWithoutReserved = ArrayUtils.intersection(
+export const convertExternalToInternalFormat = ({
+  availableAttachments,
+  dataTypeIds,
+}: ConvertExternalToInternalFormat) => {
+  const dataTypesWithoutReservedTypes = ArrayUtils.intersection(
     dataTypeIds,
     Object.values(reservedDataTypes),
     false,
   );
   const includeCurrentTask = dataTypeIds.includes(reservedDataTypes.currentTask);
-  const includeAllAttachments =
-    dataTypeIds.includes(reservedDataTypes.includeAll) ||
-    dataTypeIdsWithoutReserved.length === attachments.length ||
-    dataTypeIds.length === 0 ||
-    (includeCurrentTask && dataTypeIds.length === 1);
 
-  if (!includeAllAttachments) {
-    return dataTypeIds;
-  }
+  const currentAttachments = getCurrentAttachments(includeCurrentTask, availableAttachments);
 
-  const includePdf =
-    dataTypeIds.includes(reservedDataTypes.refDataAsPdf) ||
-    dataTypeIds.includes(reservedDataTypes.includeAll);
-
-  const selectedDataTypes = attachments.slice();
-  if (includePdf) {
-    selectedDataTypes.push(reservedDataTypes.refDataAsPdf);
-  }
-  if (includeCurrentTask) {
-    selectedDataTypes.push(reservedDataTypes.currentTask);
-  }
-
-  return selectedDataTypes;
-};
-
-export const getTasks = (
-  layoutSets: LayoutSets,
-  selectedLayoutSet: string,
-  onlyCurrentTask: boolean,
-): string[] => {
-  return onlyCurrentTask
-    ? currentTasks(layoutSets, selectedLayoutSet)
-    : sampleTasks(layoutSets, selectedLayoutSet);
-};
-
-export const currentTasks = (layoutSets: LayoutSets, selectedLayoutSet: string): string[] =>
-  layoutSets.sets.find((layoutSet) => layoutSet.id === selectedLayoutSet).tasks;
-
-const sampleTasks = (layoutSets: LayoutSets, selectedLayoutSet: string): string[] => {
-  const tasks = [];
-  for (const layoutSet of layoutSets.sets) {
-    tasks.push(...layoutSet.tasks);
-    if (layoutSet.id === selectedLayoutSet) {
-      break;
-    }
-  }
-  return tasks;
-};
-
-export const selectionIsValid = (selectedDataTypes: string[]): boolean => {
-  const validSelection = ArrayUtils.removeItemByValue(
-    selectedDataTypes,
-    reservedDataTypes.currentTask,
+  const includeAllAttachments = isAllAttachmentsSelected(
+    dataTypeIds,
+    dataTypesWithoutReservedTypes,
+    currentAttachments,
+    includeCurrentTask,
   );
 
-  return validSelection.length > 0;
+  return {
+    includePdf: isPdfSelected(dataTypeIds),
+    currentTask: includeCurrentTask,
+    selectedDataTypes: includeAllAttachments ? currentAttachments : dataTypesWithoutReservedTypes,
+  };
+};
+
+const getCurrentAttachments = (
+  includeCurrentTask: boolean,
+  attachments: AttachmentsFormat,
+): string[] =>
+  includeCurrentTask ? attachments.attachmentsCurrentTasks : attachments.attachmentsAllTasks;
+
+const isPdfSelected = (dataTypeIds: string[]): boolean =>
+  dataTypeIds.includes(reservedDataTypes.refDataAsPdf) ||
+  dataTypeIds.includes(reservedDataTypes.includeAll);
+
+const isAllAttachmentsSelected = (
+  dataTypeIds: string[],
+  dataTypesWithoutReservedTypes: string[],
+  attachments: string[],
+  includeCurrentTask: boolean,
+): boolean => {
+  const allAttachmentsSelected = dataTypesWithoutReservedTypes.length === attachments.length;
+  const includesIncludeAll = dataTypeIds.includes(reservedDataTypes.includeAll);
+  const noAttachments = dataTypeIds.length === 0;
+  const onlyCurrentTask = includeCurrentTask && dataTypeIds.length === 1;
+
+  return includesIncludeAll || allAttachmentsSelected || noAttachments || onlyCurrentTask;
+};
+
+export const selectionIsValid = ({
+  includePdf,
+  selectedDataTypes,
+}: InternalDataTypesFormat): boolean => {
+  return includePdf || selectedDataTypes.length > 0;
 };
