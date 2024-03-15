@@ -92,11 +92,31 @@ public static class LinqExpressionHelpers
             case MemberExpression { Member: FieldInfo fieldInfo, Expression: { } memberExpression }:
                 var evaluatedMember = GetValueFromExpression(memberExpression);
                 return fieldInfo.GetValue(evaluatedMember);
+            // Support for evaluating the member expression on a property (recursively if needed)
+            case MemberExpression { Member: PropertyInfo propertyInfo, Expression: { } memberExpression }:
+                var evaluatedMember2 = GetValueFromExpression(memberExpression);
+                return propertyInfo.GetValue(evaluatedMember2);
+            // Support for evaluating binary expressions in indexers (eg: m=>m.Children[model.Children.Count + 1)
+            case BinaryExpression { Left: { } leftExpr, Right: { } rightExpr } be:
+                var left = GetValueFromExpression(leftExpr) as int? ?? throw new ArgumentException(
+                    $"Missing implementation for {be}.");
+                var right = GetValueFromExpression(rightExpr) as int? ?? throw new ArgumentException(
+                    $"Missing implementation for {be}.");
+                return be.NodeType switch
+                {
+                    ExpressionType.Add => left + right,
+                    ExpressionType.Subtract => left - right,
+                    ExpressionType.Divide => left / right,
+                    ExpressionType.Multiply => left * right,
+                    ExpressionType.Modulo => left % right,
+                    _ => throw new ArgumentException(
+                        $"Missing implementation for {be}.")
+                };
 
             // Currently we just error on unknown expressions
             default:
                 throw new ArgumentException(
-                    $"Invalid indexer expression {expression}. Failed reading {expression}");
+                    $"Missing implementation for {expression.GetType()} {expression}.");
         }
     }
 

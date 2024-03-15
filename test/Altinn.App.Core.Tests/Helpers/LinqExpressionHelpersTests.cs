@@ -76,4 +76,37 @@ public class LinqExpressionHelpersTests
             propertyName.Should().Be($"Children[{index}].age");
         }
     }
+
+    [Fact]
+    public void GetJsonPath_AritmeticExpression()
+    {
+        var list = new List<string>
+        {
+            "one",
+            "two"
+        };
+        var propertyName = LinqExpressionHelpers.GetJsonPath<MyModel, int?>(m => m.Children![list.Count - 1].Age);
+        propertyName.Should().Be("Children[1].age");
+    }
+
+    [Fact]
+    public void GetJsonPath_AritmeticExpressionOnRecursiveModel()
+    {
+        var model = new MyModel
+        {
+            Children = new()
+            {
+                new()
+                {
+                    Age = 3
+                },
+                new()
+                {
+                    Age = 4
+                }
+            }
+        };
+        var propertyName = LinqExpressionHelpers.GetJsonPath<MyModel, int?>(m => m.Children![model.Children.Count + 1].Age);
+        propertyName.Should().Be("Children[3].age");
+    }
 }
