@@ -17,7 +17,7 @@ import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
  * @returns {JSX.Element} - The rendered component
  */
 
-export interface CustomReceiptProps {
+export interface ConfigPanelProps {
   existingCustomReceiptName: string | undefined;
   onUpdateLayoutSet: (layoutSetIdToUpdate: string, layoutSetConfig: LayoutSetConfig) => void;
 }
@@ -25,7 +25,7 @@ export interface CustomReceiptProps {
 export const ConfigPanel = ({
   existingCustomReceiptName,
   onUpdateLayoutSet,
-}: CustomReceiptProps): JSX.Element => {
+}: ConfigPanelProps): JSX.Element => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
   const [showEndEventConfig] = React.useState<boolean>(shouldDisplayFeature('customizeEndEvent'));
