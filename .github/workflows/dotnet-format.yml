@@ -2,11 +2,13 @@ name: Verify dotnet format
 
 on:
   pull_request:
-    branches: [ "main", "v8" ]
+    branches: 
+      - "main"
 
 jobs:
-  build:
-
+  verify-no-changes:
+    if: |
+      github.event.pull_request.user.login != 'renovate[bot]'
     runs-on: ubuntu-latest
 
     steps:
