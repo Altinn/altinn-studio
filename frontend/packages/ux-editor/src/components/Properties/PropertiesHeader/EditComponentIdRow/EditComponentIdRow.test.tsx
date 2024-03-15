@@ -5,8 +5,21 @@ import { EditComponentIdRow, type EditComponentIdRowProps } from './EditComponen
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { formDesignerMock } from '../../../../testing/stateMocks';
+import type { IFormLayouts } from '../../../../types/global';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { layout1NameMock, layoutMock } from '../../../../testing/layoutMock';
 
-const studioRender = async (props: Partial<EditComponentIdRowProps>) => {
+const org = 'org';
+const app = 'app';
+const layoutSetName = formDesignerMock.layout.selectedLayoutSet;
+const layouts: IFormLayouts = {
+  [layout1NameMock]: layoutMock,
+};
+
+const studioRender = async (props: Partial<EditComponentIdRowProps> = {}) => {
+  queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
   return renderWithMockStore({})(
     <EditComponentIdRow
       component={{
@@ -27,14 +40,14 @@ describe('EditComponentIdRow', () => {
   });
 
   it('should render button ', async () => {
-    await studioRender({});
+    await studioRender();
     const testIdButton = screen.getByRole('button', { name: 'ID: test' });
     expect(testIdButton).toBeInTheDocument();
   });
 
   it('should render textField when the button is clicked', async () => {
     const user = userEvent.setup();
-    await studioRender({});
+    await studioRender();
     const testIdButton = screen.getByRole('button', { name: 'ID: test' });
     await act(() => user.click(testIdButton));
     const textField = screen.getByRole('textbox', {
@@ -45,7 +58,7 @@ describe('EditComponentIdRow', () => {
 
   it('should not render the textfield when changing from edit mode to view mode ', async () => {
     const user = userEvent.setup();
-    await studioRender({});
+    await studioRender();
     const testIdButton = screen.getByRole('button', { name: 'ID: test' });
     await act(() => user.click(testIdButton));
     const textField = screen.getByRole('textbox', {
@@ -71,7 +84,7 @@ describe('EditComponentIdRow', () => {
 
   it('should show error required error message when id is empty', async () => {
     const user = userEvent.setup();
-    await studioRender({});
+    await studioRender();
     const testIdButton = screen.getByRole('button', { name: 'ID: test' });
     await act(() => user.click(testIdButton));
     const textField = screen.getByRole('textbox', {
@@ -79,5 +92,20 @@ describe('EditComponentIdRow', () => {
     });
     await act(() => user.clear(textField));
     expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
+  });
+
+  it('should show error message when id is not unique', async () => {
+    const user = userEvent.setup();
+    await studioRender();
+    const testIdButton = screen.getByRole('button', { name: 'ID: test' });
+    await act(() => user.click(testIdButton));
+    const textField = screen.getByRole('textbox', {
+      name: textMock('ux_editor.modal_properties_component_change_id'),
+    });
+    await act(() => user.clear(textField));
+    await act(() => user.type(textField, 'fileUploadComponentIdMock'));
+    expect(
+      screen.getByText(textMock('ux_editor.modal_properties_component_id_not_unique_error')),
+    ).toBeInTheDocument();
   });
 });
