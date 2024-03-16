@@ -245,6 +245,34 @@ describe('AccessControlTab', () => {
     );
     expect(documentationLink).toBeInTheDocument();
   });
+
+  it('renders the modal when user tries to uncheck the last checked checkbox', async () => {
+    const user = userEvent.setup();
+    await resolveAndWaitForSpinnerToDisappear();
+    render();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await waitFor(async () => {
+      const checkboxes = screen.getAllByRole('checkbox');
+      expect(checkboxes).toHaveLength(5);
+      checkboxes.forEach((checkbox, index) => {
+        if (index < 4) {
+          user.click(checkbox);
+        }
+      });
+    });
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    const lastCheckbox = screen.getAllByRole('checkbox')[4];
+    await act(async () => {
+      await user.click(lastCheckbox);
+    });
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+    const modalMessage = screen.getByText(
+      textMock('settings_modal.access_control_tab_option_choose_type_modal_message'),
+    );
+    expect(modalMessage).toBeInTheDocument();
+  });
 });
 
 const resolveAndWaitForSpinnerToDisappear = async (props: Partial<AccessControlTabProps> = {}) => {
