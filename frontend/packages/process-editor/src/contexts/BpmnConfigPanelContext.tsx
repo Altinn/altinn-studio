@@ -13,11 +13,7 @@ type BpmnConfigPanelContextType = {
   resetForm: () => void;
 };
 
-const BpmnConfigPanelFormContext = createContext<BpmnConfigPanelContextType>({
-  metaDataForm: undefined,
-  resetForm: () => {},
-  setMetaDataForm: () => {},
-});
+const BpmnConfigPanelFormContext = createContext<BpmnConfigPanelContextType>(undefined);
 
 export type BpmnConfigPanelFormContextProviderProps = {
   children: React.ReactNode;
@@ -41,7 +37,7 @@ export const BpmnConfigPanelFormContextProvider = ({
 
 export const useBpmnConfigPanelFormContext = (): BpmnConfigPanelContextType => {
   const context = useContext(BpmnConfigPanelFormContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error(
       'useBpmnConfigPanelFormContext must be used within a BpmnConfigPanelContextProvider',
     );

@@ -13,7 +13,7 @@ describe('ConfigSurface', () => {
     expect(screen.getByRole('button', { name: 'My button' })).toBeInTheDocument();
   });
 
-  it('should support ..rest props', () => {
+  it('should support ...rest props', () => {
     render(
       <ConfigSurface className='test-class-name' data-testid='configSurface'>
         <button>My button</button>

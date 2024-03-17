@@ -6,6 +6,8 @@ import type { BpmnContextProps } from '../../contexts/BpmnContext';
 import { BpmnContext } from '../../contexts/BpmnContext';
 import type { BpmnDetails } from '../../types/BpmnDetails';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
+import { BpmnConfigPanelFormContextProvider } from '../../contexts/BpmnConfigPanelContext';
+import Modeler from 'bpmn-js/lib/Modeler';
 
 const mockBpmnDetails: BpmnDetails = {
   id: 'testId',
@@ -53,7 +55,10 @@ describe('ConfigPanel', () => {
   });
 
   it('should render ConfigPanel if task is supported', () => {
-    renderConfigPanel({ bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.Task } });
+    renderConfigPanel({
+      modelerRef: { current: '' as unknown as Modeler },
+      bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.Task },
+    });
     const editTaskIdButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_change_task_id'),
     });
@@ -64,7 +69,9 @@ describe('ConfigPanel', () => {
 const renderConfigPanel = (rootContextProps: Partial<BpmnContextProps> = {}) => {
   return render(
     <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
-      <ConfigPanel />
+      <BpmnConfigPanelFormContextProvider>
+        <ConfigPanel />
+      </BpmnConfigPanelFormContextProvider>
     </BpmnContext.Provider>,
   );
 };

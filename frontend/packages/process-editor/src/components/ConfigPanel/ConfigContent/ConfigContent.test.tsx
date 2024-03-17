@@ -9,6 +9,7 @@ import { BpmnTypeEnum } from '../../../enum/BpmnTypeEnum';
 import userEvent from '@testing-library/user-event';
 import type Modeler from 'bpmn-js/lib/Modeler';
 import { type BpmnTaskType } from '../../../types/BpmnTaskType';
+import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
 
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 const mockAppLibVersion8: string = '8.0.3';
@@ -115,7 +116,9 @@ describe('ConfigContent', () => {
 const renderConfigContent = (rootContextProps: Partial<BpmnContextProps> = {}) => {
   return render(
     <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
-      <ConfigContent />
+      <BpmnConfigPanelFormContextProvider>
+        <ConfigContent />
+      </BpmnConfigPanelFormContextProvider>
     </BpmnContext.Provider>,
   );
 };
