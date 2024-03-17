@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Altinn.App.Core.Models;
 using Altinn.Studio.DataModeling.Templates;
@@ -43,7 +44,7 @@ public class PutDatamodel_CsharpNamespaceTests : DisagnerEndpointsTestsBase<PutD
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         // get the csharp model from repo
         string csharpModel = TestDataHelper.GetFileFromRepo(org, targetRepo, developer, expectedModelPath);
-        csharpModel.Should().Contain($"namespace {expectedNamespace}{Environment.NewLine}{{");
+        Regex.Match(csharpModel, $"^namespace {expectedNamespace}$".Replace(".", "\\."), RegexOptions.Multiline).Success.Should().BeTrue();
 
         string applicationMetadataContent = TestDataHelper.GetFileFromRepo(org, targetRepo, developer, "App/config/applicationmetadata.json");
         var applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataContent, JsonSerializerOptions);

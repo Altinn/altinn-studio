@@ -15,7 +15,7 @@
     <!-- Do not upgrade this package unless extensively tested-->
     <PackageReference Update="LibGit2Sharp" Version="0.29.0" />
     <PackageReference Update="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
-    <PackageReference Update="Microsoft.ApplicationInsights.Kubernetes" Version="6.1.1" />
+    <PackageReference Update="Microsoft.ApplicationInsights.Kubernetes" Version="6.1.2" />
     <PackageReference Update="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
     <PackageReference Update="Microsoft.AspNetCore.DataProtection.AzureKeyVault" Version="3.1.24" />
     <PackageReference Update="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
@@ -33,7 +33,7 @@
     <PackageReference Update="Yuniql.AspNetCore" Version="1.2.25" />
     <PackageReference Update="Yuniql.PostgreSql" Version="1.3.15" />
     <PackageReference Update="Swashbuckle.AspNetCore" Version="6.5.0" />
-    <PackageReference Update="Polly" Version="8.3.0" />
+    <PackageReference Update="Polly" Version="8.3.1" />
     <PackageReference Update="Altinn.Authorization.ABAC" Version="0.0.8" />
     <PackageReference Update="Altinn.ApiClients.Maskinporten" Version="9.1.0" />
     <PackageReference Update="MediatR" Version="12.2.0" />
@@ -51,8 +51,8 @@
     <PackageReference Update="Basic.Reference.Assemblies" Version="1.5.0" />
     <PackageReference Update="Fare" Version="2.2.1" />
     <PackageReference Update="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
-    <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
-    <PackageReference Update="Microsoft.CodeAnalysis.Common" Version="4.8.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.9.2" />
+    <PackageReference Update="Microsoft.CodeAnalysis.Common" Version="4.9.2" />
     <PackageReference Update="Testcontainers" Version="3.7.0" />
     <PackageReference Update="Testcontainers.PostgreSql" Version="3.7.0" />
     <PackageReference Update="Microsoft.AspNetCore.SignalR.Client" Version="8.0.2" />

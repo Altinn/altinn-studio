@@ -8,6 +8,8 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import userEvent from '@testing-library/user-event';
 import * as testids from '../../../testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 // Test data
 const org = 'test-org';
@@ -43,8 +45,8 @@ describe('TextEditor', () => {
   afterEach(jest.clearAllMocks);
 
   it('renders the component', async () => {
-    await render();
-
+    renderTextEditor();
+    await waitForElementToBeRemoved(() => screen.queryByText(textMock('text_editor.loading_page')));
     expect(screen.getByText(testTextResourceKey)).toBeInTheDocument();
     expect(screen.getByText(testTextResourceValue)).toBeInTheDocument();
   });
@@ -52,7 +54,7 @@ describe('TextEditor', () => {
   it('updates search query when searching text', async () => {
     const user = userEvent.setup();
 
-    await render();
+    renderTextEditor();
 
     const search = '1';
     const searchInput = screen.getByTestId('text-editor-search-default');
@@ -64,7 +66,7 @@ describe('TextEditor', () => {
   it('adds new text resource when clicking add button', async () => {
     const user = userEvent.setup();
 
-    await render();
+    renderTextEditor();
 
     const addButton = screen.getByRole('button', { name: textMock('text_editor.new_text') });
     await act(() => user.click(addButton));
@@ -75,7 +77,7 @@ describe('TextEditor', () => {
   it('updates text resource when editing text', async () => {
     const user = userEvent.setup();
 
-    await render();
+    renderTextEditor();
 
     const textarea = screen.getByRole('textbox', {
       name: textMock('text_editor.table_row_input_label', {
@@ -93,9 +95,9 @@ describe('TextEditor', () => {
   });
 
   it('updates text id when editing text id', async () => {
+    queryClientMock.setQueryData([QueryKey.LayoutNames, org, app], []);
     const user = userEvent.setup();
-
-    await render();
+    renderTextEditor();
 
     const editButton = screen.getByRole('button', {
       name: textMock('text_editor.toggle_edit_mode', { textKey: testTextResourceKey }),
@@ -117,7 +119,7 @@ describe('TextEditor', () => {
   it('deletes text id when clicking delete button', async () => {
     const user = userEvent.setup();
 
-    await render();
+    renderTextEditor();
 
     const deleteButton = screen.getByRole('button', { name: textMock('schema_editor.delete') });
     act(() => deleteButton.click());
@@ -135,7 +137,7 @@ describe('TextEditor', () => {
   it('adds new language when clicking add button', async () => {
     const user = userEvent.setup();
 
-    await render();
+    renderTextEditor();
 
     const addBtn = screen.getByRole('button', {
       name: textMock('general.add'),
@@ -158,7 +160,7 @@ describe('TextEditor', () => {
   it('deletes a language when clicking delete button', async () => {
     const user = userEvent.setup();
 
-    await render();
+    renderTextEditor();
 
     const deleteButton = screen.getByTestId(testids.deleteButton('en'));
     await act(() => user.click(deleteButton));
@@ -181,8 +183,9 @@ describe('TextEditor', () => {
   });
 });
 
-const render = async (queries: Partial<ServicesContextProps> = {}) => {
-  const view = renderWithProviders(<TextEditor />, {
+const renderTextEditor = (queries: Partial<ServicesContextProps> = {}) => {
+  return renderWithProviders(<TextEditor />, {
+    queryClient: queryClientMock,
     queries: {
       getTextResources,
       getTextLanguages,
@@ -190,8 +193,4 @@ const render = async (queries: Partial<ServicesContextProps> = {}) => {
     },
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
   });
-
-  await waitForElementToBeRemoved(() => screen.queryByText(textMock('text_editor.loading_page')));
-
-  return view;
 };
