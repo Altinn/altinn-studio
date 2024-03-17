@@ -144,4 +144,6 @@ export const resourceAccessListPath = (org, resourceId, listId, env) => `${baseP
 
 // Process Editor
 export const processEditorPath = (org, repo) => `${basePath}/${org}/${repo}/process-modelling/process-definition`;
+export const processEditorPathPut = (org, repo) => `${basePath}/${org}/${repo}/process-modelling/process-definition-latest`;
+
 export const appLibVersionPath = (org, app) => `${basePath}/${org}/${app}/app-development/app-version`;

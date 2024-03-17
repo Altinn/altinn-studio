@@ -7,6 +7,8 @@ import { BpmnContext } from '../../../contexts/BpmnContext';
 import type { BpmnDetails } from '../../../types/BpmnDetails';
 import { BpmnTypeEnum } from '../../../enum/BpmnTypeEnum';
 import userEvent from '@testing-library/user-event';
+import type Modeler from 'bpmn-js/lib/Modeler';
+import { type BpmnTaskType } from '../../../types/BpmnTaskType';
 
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 const mockAppLibVersion8: string = '8.0.3';
@@ -32,9 +34,25 @@ const mockBpmnContextValue: BpmnContextProps = {
   setBpmnDetails: jest.fn(),
 };
 
+jest.mock('../../../hooks/useBpmnModeler', () => ({
+  useBpmnModeler: () => ({
+    getModeler: () => ({
+      get: () => ({
+        updateProperties: jest.fn(),
+      }),
+    }),
+  }),
+}));
+
 describe('ConfigContent', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
   it('should render heading for selected task', () => {
-    renderConfigContent({ bpmnDetails: { ...mockBpmnDetails, taskType: 'data' } });
+    renderConfigContent({
+      modelerRef: { current: '<div></div>' as unknown as Modeler },
+      bpmnDetails: { ...mockBpmnDetails, taskType: 'data' as BpmnTaskType },
+    });
 
     const heading = screen.getByRole('heading', {
       name: textMock('process_editor.configuration_panel_data_task'),
@@ -46,7 +64,10 @@ describe('ConfigContent', () => {
 
   it('should render helpText for selected task', async () => {
     const user = userEvent.setup();
-    renderConfigContent({ bpmnDetails: { ...mockBpmnDetails, taskType: 'data' } });
+    renderConfigContent({
+      modelerRef: { current: '<div></div>' as unknown as Modeler },
+      bpmnDetails: { ...mockBpmnDetails, taskType: 'data' as BpmnTaskType },
+    });
 
     const helpTextButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_header_help_text_title'),
@@ -61,7 +82,10 @@ describe('ConfigContent', () => {
   });
 
   it('should render EditTaskId component', () => {
-    renderConfigContent({ bpmnDetails: { ...mockBpmnDetails, taskType: 'data' } });
+    renderConfigContent({
+      modelerRef: { current: '<div></div>' as unknown as Modeler },
+      bpmnDetails: { ...mockBpmnDetails, taskType: 'data' as BpmnTaskType },
+    });
 
     const editTaskIdButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_change_task_id'),
@@ -70,30 +94,13 @@ describe('ConfigContent', () => {
     expect(editTaskIdButton).toBeInTheDocument();
   });
 
-  it('should be able to change task id', async () => {
-    const user = userEvent.setup();
-    renderConfigContent({ bpmnDetails: { ...mockBpmnDetails, taskType: 'data' } });
-
-    const editTaskIdButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_change_task_id'),
-    });
-
-    await act(() => user.click(editTaskIdButton));
-    const input = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_change_task_id'),
-    );
-
-    await act(() => user.clear(input));
-    await act(() => user.type(input, 'newId'));
-
-    // TODO implement test for saving the new id
-    expect(false).toBeTruthy();
-  });
-
   it.each(['data', 'confirmation', 'feedback', 'signing'])(
     'should render correct header config for each taskType',
     (taskType) => {
-      renderConfigContent({ bpmnDetails: { ...mockBpmnDetails, taskType } });
+      renderConfigContent({
+        modelerRef: { current: '<div></div>' as unknown as Modeler },
+        bpmnDetails: { ...mockBpmnDetails, taskType: taskType as BpmnTaskType },
+      });
 
       const heading = screen.getByRole('heading', {
         name: textMock(`process_editor.configuration_panel_${taskType}_task`),

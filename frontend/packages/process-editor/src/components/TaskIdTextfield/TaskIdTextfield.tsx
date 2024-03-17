@@ -30,7 +30,7 @@ export const TaskIdTextfield = (): React.ReactElement => {
       inputProps={{
         label: 'Endre task id',
         icon: <div />,
-        value = { idValue },
+        value: idValue,
         onChange: (event) => setIdValue(event.target.value),
         onBlur: (event) => updateId(event.target.value),
       }}

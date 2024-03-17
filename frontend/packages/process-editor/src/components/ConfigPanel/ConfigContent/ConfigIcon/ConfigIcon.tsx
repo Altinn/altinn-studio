@@ -7,7 +7,7 @@ export type ConfigIconProps = {
   taskType: BpmnTaskType;
 };
 
-export const ConfigIcon = ({ taskType }: ConfigIconProps): JSX.Element => {
+export const ConfigIcon = ({ taskType }: ConfigIconProps): React.ReactElement => {
   switch (taskType) {
     case 'data':
       return <DataTaskIcon className={classes.icon} />;

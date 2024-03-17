@@ -4,6 +4,11 @@ import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import { PageLoading } from './components/PageLoading';
 import { Canvas } from './components/Canvas';
 import { BpmnContextProvider, useBpmnContext } from './contexts/BpmnContext';
+import {
+  BpmnConfigPanelFormContextProvider,
+  type MetaDataForm,
+  useBpmnConfigPanelFormContext,
+} from './contexts/BpmnConfigPanelContext';
 import { ConfigPanel } from './components/ConfigPanel';
 import { ConfigViewerPanel } from './components/ConfigViewerPanel';
 
@@ -11,7 +16,7 @@ import classes from './ProcessEditor.module.css';
 
 export type ProcessEditorProps = {
   bpmnXml: string | undefined | null;
-  onSave: (bpmnXml: string) => void;
+  onSave: (bpmnXml: string, metaData?: MetaDataForm) => void;
   appLibVersion: string;
 };
 
@@ -32,7 +37,9 @@ export const ProcessEditor = ({
 
   return (
     <BpmnContextProvider bpmnXml={bpmnXml} appLibVersion={appLibVersion}>
-      <BPMNCanvas onSave={onSave} />
+      <BpmnConfigPanelFormContextProvider>
+        <BPMNCanvas onSave={onSave} />
+      </BpmnConfigPanelFormContextProvider>
     </BpmnContextProvider>
   );
 };
@@ -40,9 +47,17 @@ export const ProcessEditor = ({
 type BPMNCanvasProps = Pick<ProcessEditorProps, 'onSave'>;
 const BPMNCanvas = ({ onSave }: BPMNCanvasProps): React.ReactElement | null => {
   const { isEditAllowed } = useBpmnContext();
+  const { metaDataForm, resetForm } = useBpmnConfigPanelFormContext();
+
+  const handleSave = (bpmnXml: string): void => {
+    console.log({ metaDataForm });
+    onSave(bpmnXml, metaDataForm);
+    resetForm();
+  };
+
   return (
     <div className={classes.container}>
-      <Canvas onSave={onSave} />
+      <Canvas onSave={handleSave} />
       {isEditAllowed ? <ConfigPanel /> : <ConfigViewerPanel />}
     </div>
   );

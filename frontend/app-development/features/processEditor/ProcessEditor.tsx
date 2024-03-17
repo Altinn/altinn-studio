@@ -18,9 +18,13 @@ export const ProcessEditor = () => {
 
   const bpmnMutation = useBpmnMutation(org, app);
 
-  const saveBpmnXml = async (xml: string): Promise<void> => {
-    await bpmnMutation.mutateAsync(
-      { bpmnXml: xml },
+  const saveBpmnXml = async (xml: string, metaData: object): Promise<void> => {
+    const formData = new FormData();
+    formData.append('content', new Blob([xml]), 'process.bpmn');
+    formData.append('metadata', JSON.stringify(metaData));
+
+    bpmnMutation.mutate(
+      { form: formData },
       {
         onSuccess: () => {
           toast.success(t('process_editor.saved_successfully'));

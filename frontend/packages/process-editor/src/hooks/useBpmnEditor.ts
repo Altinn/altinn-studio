@@ -40,7 +40,10 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
       eventBus.on(event, (event: any) => {
         if (!event) return;
 
-        const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(event.element?.businessObject);
+        const bpmnDetails = {
+          ...getBpmnEditorDetailsFromBusinessObject(event.element?.businessObject),
+          element: event.element,
+        };
         setBpmnDetails(bpmnDetails);
       });
     });
