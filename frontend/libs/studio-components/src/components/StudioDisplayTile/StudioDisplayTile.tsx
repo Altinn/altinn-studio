@@ -23,7 +23,7 @@ const StudioDisplayTile = forwardRef<HTMLDivElement, StudioDisplayTileProps>(
           <div className={classes.iconLabelContainer}>
             {icon ?? null}
             <Paragraph size='small' className={classes.label}>
-              {label}{' '}
+              {label}
             </Paragraph>
           </div>
           <Paragraph size='small'>{value}</Paragraph>

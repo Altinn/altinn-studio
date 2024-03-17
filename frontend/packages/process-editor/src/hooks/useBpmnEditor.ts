@@ -60,6 +60,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
 
     initializeEditor();
     initializeUnsavedChangesCount();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bpmnXml, modelerRef, setBpmnDetails, setNumberOfUnsavedChanges]);
 
   return { canvasRef, modelerRef };

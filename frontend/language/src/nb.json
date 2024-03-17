@@ -771,7 +771,7 @@
   "process_editor.unsaved_changes_confirmation_message": "Du har ulagrede endringer. Vil du forlate siden uten å lagre?",
   "process_editor.view_mode": "Visningsmodus",
   "receipt.attachments": "Vedlegg",
-  "receipt.body": "Det er gjennomført en maskinell kontrolfl under utfylling, men vi tar forbehold om at det kan bli oppdaget feil under saksbehandlingen og at annen dokumentasjon kan være nødvendig. Vennligst oppgi referansenummer ved eventuelle henvendelser til etaten.",
+  "receipt.body": "Det er gjennomført en maskinell kontroll under utfylling, men vi tar forbehold om at det kan bli oppdaget feil under saksbehandlingen og at annen dokumentasjon kan være nødvendig. Vennligst oppgi referansenummer ved eventuelle henvendelser til etaten.",
   "receipt.create": "Opprett kvitteringsside",
   "receipt.date_sent": "Dato sendt",
   "receipt.receipt": "Kvittering",

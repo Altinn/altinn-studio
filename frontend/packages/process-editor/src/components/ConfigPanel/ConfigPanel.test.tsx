@@ -7,7 +7,7 @@ import { BpmnContext } from '../../contexts/BpmnContext';
 import type { BpmnDetails } from '../../types/BpmnDetails';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 import { BpmnConfigPanelFormContextProvider } from '../../contexts/BpmnConfigPanelContext';
-import Modeler from 'bpmn-js/lib/Modeler';
+import type Modeler from 'bpmn-js/lib/Modeler';
 
 const mockBpmnDetails: BpmnDetails = {
   id: 'testId',
