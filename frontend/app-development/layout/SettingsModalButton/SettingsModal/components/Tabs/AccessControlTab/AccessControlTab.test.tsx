@@ -40,6 +40,30 @@ const defaultProps: AccessControlTabProps = {
 describe('AccessControlTab', () => {
   afterEach(jest.clearAllMocks);
 
+  it('initially displays the spinner when loading data', () => {
+    render();
+
+    expect(screen.getByTitle(textMock('settings_modal.loading_content'))).toBeInTheDocument();
+  });
+
+  it('fetches appMetadata on mount', () => {
+    render();
+    expect(getAppMetadata).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows an error message if an error occured on the getAppMetadata query', async () => {
+    const errorMessage = 'error-message-test';
+    render({}, { getAppMetadata: () => Promise.reject({ message: errorMessage }) });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('settings_modal.loading_content')),
+    );
+
+    expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('general.error_message_with_colon'))).toBeInTheDocument();
+    expect(screen.getByText(errorMessage)).toBeInTheDocument();
+  });
+
   it('renders the header', async () => {
     render();
     const header = screen.getByRole('heading', {
@@ -54,20 +78,6 @@ describe('AccessControlTab', () => {
       name: 'helptext',
     });
     expect(helpButton).toBeInTheDocument();
-  });
-
-  it('should update checkbox state for header checkbox', async () => {
-    const user = userEvent.setup();
-    await resolveAndWaitForSpinnerToDisappear();
-    render();
-    const headerCheckbox = screen.getByLabelText(
-      textMock('settings_modal.access_control_tab_option_all_type_partner'),
-    );
-    expect(headerCheckbox).not.toBeChecked();
-    await act(async () => {
-      await user.click(headerCheckbox);
-    });
-    expect(headerCheckbox).toBeChecked();
   });
 
   it('should render the text of the button for help text correctly', async () => {
@@ -101,28 +111,22 @@ describe('AccessControlTab', () => {
     expect(columnHeader).toBeInTheDocument();
   });
 
-  it('initially displays the spinner when loading data', () => {
+  it('should update checkbox state for header checkbox', async () => {
+    const user = userEvent.setup();
+    await resolveAndWaitForSpinnerToDisappear();
     render();
-
-    expect(screen.getByTitle(textMock('settings_modal.loading_content'))).toBeInTheDocument();
-  });
-
-  it('fetches appMetadata on mount', () => {
-    render();
-    expect(getAppMetadata).toHaveBeenCalledTimes(1);
-  });
-
-  it('shows an error message if an error occured on the getAppMetadata query', async () => {
-    const errorMessage = 'error-message-test';
-    render({}, { getAppMetadata: () => Promise.reject({ message: errorMessage }) });
-
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('settings_modal.loading_content')),
+    const headerCheckbox = screen.getByLabelText(
+      textMock('settings_modal.access_control_tab_option_all_type_partner'),
     );
-
-    expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
-    expect(screen.getByText(textMock('general.error_message_with_colon'))).toBeInTheDocument();
-    expect(screen.getByText(errorMessage)).toBeInTheDocument();
+    expect(headerCheckbox).not.toBeChecked();
+    await act(async () => {
+      await user.click(headerCheckbox);
+    });
+    expect(headerCheckbox).toBeChecked();
+    await act(async () => {
+      await user.click(headerCheckbox);
+    });
+    expect(headerCheckbox).not.toBeChecked();
   });
 
   it('should render all checkboxes', async () => {
@@ -246,7 +250,7 @@ describe('AccessControlTab', () => {
     expect(documentationLink).toBeInTheDocument();
   });
 
-  it('renders the modal when user tries to uncheck the last checked checkbox', async () => {
+  it('renders the modal when user tries to uncheck the last checked checkbox, and close it when clicking on close button', async () => {
     const user = userEvent.setup();
     await resolveAndWaitForSpinnerToDisappear();
     render();
@@ -272,6 +276,12 @@ describe('AccessControlTab', () => {
       textMock('settings_modal.access_control_tab_option_choose_type_modal_message'),
     );
     expect(modalMessage).toBeInTheDocument();
+    const closeButton = screen.getByRole('button', { name: textMock('general.close') });
+    expect(closeButton).toBeInTheDocument();
+    await act(async () => {
+      await user.click(closeButton);
+    });
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });
 
