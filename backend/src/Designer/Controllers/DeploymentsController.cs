@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.ModelBinding.Constants;
@@ -87,11 +88,12 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Organisation</param>
         /// <param name="app">Application name</param>
         /// <param name="createDeployment">Release model</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>Created deployment</returns>
         [HttpPost]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
-        public async Task<ActionResult<DeploymentEntity>> Create(string org, string app, [FromBody] CreateDeploymentRequestViewModel createDeployment)
+        public async Task<ActionResult<DeploymentEntity>> Create(string org, string app, [FromBody] CreateDeploymentRequestViewModel createDeployment, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {

@@ -58,50 +58,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                     FileSystemObject populatedFile = await _giteaApiWrapper.GetFileAsync(org, app, textResourceFromRepo.Path, shortCommitId);
                     byte[] data = Convert.FromBase64String(populatedFile.Content);
-                    PlatformStorageModels.TextResource content;
 
                     try
                     {
-                        content = data.Deserialize<PlatformStorageModels.TextResource>();
+                        PlatformStorageModels.TextResource content = data.Deserialize<PlatformStorageModels.TextResource>();
+                        await _storageTextResourceClient.Upsert(org, app, content, envName);
                     }
                     catch (SerializationException e)
                     {
                         _logger.LogError($" // TextResourceService // UpdatedTextResourcesAsync // Error when trying to deserialize text resource file {org}/{app}/{textResourceFromRepo.Path} // Exception {e}");
-                        continue;
-                    }
-
-                    PlatformStorageModels.TextResource textResourceStorage = await GetTextResourceFromStorage(org, app, content.Language, envName);
-                    if (textResourceStorage == null)
-                    {
-                        await _storageTextResourceClient.Create(org, app, content, envName);
-                    }
-                    else
-                    {
-                        await _storageTextResourceClient.Update(org, app, content, envName);
+                        throw;
                     }
                 }
 
-            }
-        }
-
-        private async Task<PlatformStorageModels.TextResource> GetTextResourceFromStorage(string org, string app, string language, string envName)
-        {
-            try
-            {
-                return await _storageTextResourceClient.Get(org, app, language, envName);
-            }
-            catch (HttpRequestWithStatusException e)
-            {
-                /*
-                 * Special exception handling because we want to continue if the exception
-                 * was caused by a 404 (NOT FOUND) HTTP status code.
-                 */
-                if (e.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
-
-                throw;
             }
         }
 

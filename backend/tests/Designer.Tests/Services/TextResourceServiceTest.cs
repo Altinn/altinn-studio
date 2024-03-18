@@ -22,88 +22,27 @@ namespace Designer.Tests.Services
 {
     public class TextResourceServiceTest
     {
-        [Fact]
-        public async Task UpdateTextResourcesAsync_AllValidFiles_TwoTextResourcesAreCreatedInStorage()
-        {
-            // Arrange
-            HttpContext httpContext = GetHttpContextForTestUser("testUser");
-            Mock<IAltinnStorageTextResourceClient> storageClientMock = new Mock<IAltinnStorageTextResourceClient>();
-            storageClientMock.Setup(s => s.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<StorageInterface.TextResource>(), It.IsAny<string>()))
-                .Returns(Task.CompletedTask);
-            storageClientMock.Setup(s => s.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-              .Returns(Task.FromResult((StorageInterface.TextResource)null));
+         [Theory]
+         [InlineData("ttd", "apps-test",  "3e1099738e0d15490390a01c74b2abc16282d85f", 2)]
+         [InlineData("ttd", "apps-test",  "5e651c2b784571e481c90fbf26325ce336b634b8", 1)]
+         public async Task UpdateTextResourcesAsync_ShouldCreateResources(string org, string app, string commitId, int numberOfUpsertedResources)
+         {
+             // Arrange
+             Mock<IAltinnStorageTextResourceClient> storageClientMock = new();
+             storageClientMock.Setup(s => s.Upsert(org, app, It.IsAny<StorageInterface.TextResource>(), It.IsAny<string>()))
+                 .Returns(Task.CompletedTask);
 
-            TextResourceService sut = GetServiceForTest(storageClientMock);
+             TextResourceService sut = GetServiceForTest(storageClientMock);
 
-            // Act
-            await sut.UpdateTextResourcesAsync("ttd", "apps-test", "3e1099738e0d15490390a01c74b2abc16282d85f", null);
+             // Act
+             await sut.UpdateTextResourcesAsync(org, app, commitId, null);
 
-            // Assert
-            storageClientMock.Verify(
-                s =>
-                s.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<StorageInterface.TextResource>(), It.IsAny<string>()),
-                Times.Exactly(2));
-        }
-
-        [Fact]
-        public async Task UpdateTextResourcesAsync_InvalidFileName_SingleTextResourcesAreCreatedInStorage()
-        {
-            // Arrange
-            HttpContext httpContext = GetHttpContextForTestUser("testUser");
-            Mock<IAltinnStorageTextResourceClient> storageClientMock = new Mock<IAltinnStorageTextResourceClient>();
-            storageClientMock.Setup(s => s.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<StorageInterface.TextResource>(), It.IsAny<string>()))
-                .Returns(Task.CompletedTask);
-            storageClientMock.Setup(s => s.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-              .Returns(Task.FromResult((StorageInterface.TextResource)null));
-
-            TextResourceService sut = GetServiceForTest(storageClientMock);
-
-            // Act
-            await sut.UpdateTextResourcesAsync("ttd", "apps-test", "5e651c2b784571e481c90fbf26325ce336b634b8", null);
-
-            // Assert
-            storageClientMock.Verify(
-                s =>
-                s.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<StorageInterface.TextResource>(), It.IsAny<string>()),
-                Times.Once);
-        }
-
-        // TODO: Fix test
-        [Fact(Skip = "Test was unstabile before. It only passed due to async void fail in foreach method. Needs to be fixed.")]
-        public async Task UpdateTextResourcesAsync_InvalidTextResource_NoTextResourceIsCreatedInStorage()
-        {
-            // Arrange
-            HttpContext httpContext = GetHttpContextForTestUser("testUser");
-            Mock<IAltinnStorageTextResourceClient> storageClientMock = new Mock<IAltinnStorageTextResourceClient>();
-
-            storageClientMock.Setup(s => s.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-              .Returns(Task.FromResult((StorageInterface.TextResource)null));
-
-            TextResourceService sut = GetServiceForTest(storageClientMock);
-
-            // Act
-            await sut.UpdateTextResourcesAsync("ttd", "apps-test", "a69255710e6f1d1c59bef004dd36fff0c5dfd236", null);
-
-            // Assert
-            storageClientMock.Verify(
-                s =>
-                s.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<StorageInterface.TextResource>(), It.IsAny<string>()),
-                Times.Never);
-        }
-
-        private static HttpContext GetHttpContextForTestUser(string userName)
-        {
-            List<Claim> claims = new List<Claim>();
-            claims.Add(new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, "altinn.no"));
-            ClaimsIdentity identity = new ClaimsIdentity("TestUserLogin");
-            identity.AddClaims(claims);
-
-            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-            HttpContext c = new DefaultHttpContext();
-            c.Request.HttpContext.User = principal;
-
-            return c;
-        }
+             // Assert
+             storageClientMock.Verify(
+                 s =>
+                 s.Upsert(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<StorageInterface.TextResource>(), It.IsAny<string>()),
+                 Times.Exactly(numberOfUpsertedResources));
+         }
 
         private static TextResourceService GetServiceForTest(Mock<IAltinnStorageTextResourceClient> storageClientMock = null)
         {
