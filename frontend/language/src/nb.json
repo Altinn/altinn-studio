@@ -89,7 +89,7 @@
   "app_deployment.table.status": "Status",
   "app_deployment.table.version_col": "Versjon",
   "app_deployment.technical_error_1": "Huff da, vi opplever en teknisk feil og får derfor ikke deployet applikasjonen din. Gjør en ny deploy eller forsøk igjen senere. Dersom problemet vedvarer, <a>ta kontakt med oss</a>.",
-  "app_deployment.version_label": "Version {{tagName}} ({{createdDateTime}})",
+  "app_deployment.version_label": "Versjon {{tagName}} ({{createdDateTime}})",
   "app_release.earlier_releases": "Tidligere bygg av applikasjonen",
   "app_release.release_build_log": "Bygglogg",
   "app_release.release_header": "Tilgjengelige versjoner av applikasjonen",
