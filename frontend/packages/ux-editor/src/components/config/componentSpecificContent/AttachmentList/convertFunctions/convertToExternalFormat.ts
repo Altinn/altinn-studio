@@ -5,21 +5,29 @@ export const convertInternalToExternalFormat = (
   availableAttachments: AvailableAttachementLists,
   dataTypeIds: InternalDataTypesFormat,
 ): string[] => {
-  const { selectedDataTypes, includePdf, currentTask: includeCurrentTask } = dataTypeIds;
+  const { currentTask: includeCurrentTask } = dataTypeIds;
 
   const currentAttachments = getCurrentAttachments(includeCurrentTask, availableAttachments);
+  const selectedDataTypesExternalFormat = convertSelectedDataTypes(dataTypeIds, currentAttachments);
+
+  if (includeCurrentTask) {
+    selectedDataTypesExternalFormat.push(reservedDataTypes.currentTask);
+  }
+
+  return selectedDataTypesExternalFormat;
+};
+
+const convertSelectedDataTypes = (
+  dataTypeIds: InternalDataTypesFormat,
+  currentAttachments: string[],
+) => {
+  const { includePdf, selectedDataTypes } = dataTypeIds;
 
   const includeAllAttachments = selectedDataTypes.length === currentAttachments.length;
 
-  const dataTypeIdsExternalFormat = includeAllAttachments
+  return includeAllAttachments
     ? convertAllAttachToExternalFormat(includePdf)
     : convertSomeAttachToExternalFormat(selectedDataTypes, includePdf);
-
-  if (includeCurrentTask) {
-    dataTypeIdsExternalFormat.push(reservedDataTypes.currentTask);
-  }
-
-  return dataTypeIdsExternalFormat;
 };
 
 const convertAllAttachToExternalFormat = (includePdf: boolean): string[] =>
