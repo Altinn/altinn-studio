@@ -229,13 +229,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
 
             ApplicationMetadata applicationFromRepository = await GetApplicationMetadataFromSpecificReference(org, app, shortCommitId);
-            ApplicationMetadata application = await GetApplicationMetadataFromStorage(org, app, envName);
-            if (application == null)
-            {
-                await CreateApplicationMetadataInStorage(org, app, applicationFromRepository, envName, shortCommitId);
-                return;
-            }
-
             await UpdateApplicationMetadataInStorage(org, app, applicationFromRepository, envName, shortCommitId);
         }
 
@@ -281,40 +274,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return altinnAppGitRepository.ApplicationMetadataExists();
         }
 
-        private async Task<ApplicationMetadata> GetApplicationMetadataFromStorage(string org, string app, string envName)
-        {
-            try
-            {
-                return await _storageAppMetadataClient.GetApplicationMetadata(org, app, envName);
-            }
-            catch (HttpRequestWithStatusException e)
-            {
-                /*
-                 * Special exception handling because we want to continue if the exception
-                 * was caused by a 404 (NOT FOUND) HTTP status code.
-                 */
-                if (e.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
-
-                throw;
-            }
-        }
-
-        private async Task CreateApplicationMetadataInStorage(string org, string app, ApplicationMetadata applicationFromRepository, string envName, string shortCommitId)
+        private async Task UpdateApplicationMetadataInStorage(string org, string app, ApplicationMetadata applicationFromRepository, string envName, string shortCommitId)
         {
             applicationFromRepository.Id = $"{org}/{app}";
             applicationFromRepository.VersionId = shortCommitId;
 
-            await _storageAppMetadataClient.CreateApplicationMetadata(org, app, applicationFromRepository, envName);
-        }
-
-        private async Task UpdateApplicationMetadataInStorage(string org, string app, ApplicationMetadata applicationFromRepository, string envName, string shortCommitId)
-        {
-            applicationFromRepository.VersionId = shortCommitId;
-
-            await _storageAppMetadataClient.UpdateApplicationMetadata(org, app, applicationFromRepository, envName);
+            await _storageAppMetadataClient.UpsertApplicationMetadata(org, app, applicationFromRepository, envName);
         }
     }
 }
