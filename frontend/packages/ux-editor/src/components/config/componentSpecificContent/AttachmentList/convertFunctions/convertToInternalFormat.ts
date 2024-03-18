@@ -5,15 +5,11 @@ import { ArrayUtils } from '@studio/pure-functions';
 export const convertExternalToInternalFormat = (
   availableAttachments: AvailableAttachementLists,
   dataTypeIds: string[],
-): InternalDataTypesFormat => {
-  const convertedSelectedDataTypes = getSelectedDataTypes(dataTypeIds, availableAttachments);
-
-  return {
-    includePdf: isPdfSelected(dataTypeIds),
-    currentTask: isCurrentTaskSelected(dataTypeIds),
-    selectedDataTypes: convertedSelectedDataTypes,
-  };
-};
+): InternalDataTypesFormat => ({
+  includePdf: isPdfSelected(dataTypeIds),
+  currentTask: isCurrentTaskSelected(dataTypeIds),
+  selectedDataTypes: getSelectedDataTypes(dataTypeIds, availableAttachments),
+});
 
 const isPdfSelected = (dataTypeIds: string[]): boolean =>
   dataTypeIds.includes(reservedDataTypes.refDataAsPdf) ||
@@ -21,9 +17,6 @@ const isPdfSelected = (dataTypeIds: string[]): boolean =>
 
 const isCurrentTaskSelected = (dataTypeIds: string[]): boolean =>
   dataTypeIds.includes(reservedDataTypes.currentTask);
-
-const isIncludeAllSelected = (dataTypeIds: string[]): boolean =>
-  dataTypeIds.includes(reservedDataTypes.includeAll);
 
 const getSelectedDataTypes = (
   dataTypeIds: string[],
@@ -45,11 +38,9 @@ const shouldIncludeAllDataTypes = (
   dataTypeIds: string[],
   availableDataTypes: string[],
 ): boolean => {
-  const allDataTypesSelected =
-    removeReservedTypes(dataTypeIds).length === availableDataTypes.length;
-  const includesIncludeAll = isIncludeAllSelected(dataTypeIds);
-  const noAttachments = dataTypeIds.length === 0;
-  const onlyCurrentTask = isCurrentTaskSelected(dataTypeIds) && dataTypeIds.length === 1;
+  const selectedDataTypeIds = removeReservedTypes(dataTypeIds);
+  const allDataTypesSelected = selectedDataTypeIds.length === availableDataTypes.length;
+  const noAttachments = selectedDataTypeIds.length === 0;
 
-  return includesIncludeAll || allDataTypesSelected || noAttachments || onlyCurrentTask;
+  return allDataTypesSelected || noAttachments;
 };
