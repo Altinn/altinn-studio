@@ -69,6 +69,7 @@ describe('EditOption', () => {
     const fieldset = screen.getByRole('group', { name: legend });
     const textField = within(fieldset).getByRole('textbox', { name: textMock('general.value') });
     await act(() => user.type(textField, 'a'));
+    await act(() => user.click(document.body));
     expect(onChange).toHaveBeenCalledWith({ label, value: value + 'a' });
   });
 
