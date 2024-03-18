@@ -211,7 +211,7 @@ namespace LocalTest
             IWebHostEnvironment env,
             IOptions<LocalPlatformSettings> localPlatformSettings)
         {
-            if (env.IsDevelopment() || env.IsEnvironment("docker"))
+            if (env.IsDevelopment() || env.IsEnvironment("docker") || env.IsEnvironment("podman"))
             {
                 app.UseDeveloperExceptionPage();
 
