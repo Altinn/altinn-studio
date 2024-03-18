@@ -5,7 +5,7 @@ import cn from 'classnames';
 
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
 import { useNavigateToNode } from 'src/features/form/layout/NavigateToNode';
-import { useSetReturnToView } from 'src/features/form/layout/PageNavigationContext';
+import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
@@ -46,6 +46,7 @@ function _SummaryComponent({ summaryNode, overrides }: ISummaryComponent, ref: R
 
   const navigateTo = useNavigateToNode();
   const setReturnToView = useSetReturnToView();
+  const setNodeOfOrigin = useSetSummaryNodeOfOrigin();
   const onChangeClick = async () => {
     if (!targetView) {
       return;
@@ -53,6 +54,7 @@ function _SummaryComponent({ summaryNode, overrides }: ISummaryComponent, ref: R
 
     navigateTo(targetNode, true);
     setReturnToView?.(currentPageId);
+    setNodeOfOrigin?.(id);
   };
 
   if (!targetNode || !targetItem || targetNode.isHidden() || targetItem.type === 'Summary') {

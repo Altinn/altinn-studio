@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@digdir/design-system-react';
 import { Grid } from '@material-ui/core';
 
-import { useReturnToView } from 'src/features/form/layout/PageNavigationContext';
+import { useReturnToView, useSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
@@ -16,11 +16,15 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
   const { id, showBackButton, textResourceBindings, validateOnNext, validateOnPrevious } = node.item;
   const { navigateToPage, next, previous, maybeSaveOnPageChange } = useNavigatePage();
   const returnToView = useReturnToView();
+  const summaryNode = useSummaryNodeOfOrigin();
+
+  const returnToViewText =
+    summaryNode?.item?.textResourceBindings?.returnToSummaryButtonTitle ?? 'form_filler.back_to_summary';
 
   const refPrev = React.useRef<HTMLButtonElement>(null);
   const refNext = React.useRef<HTMLButtonElement>(null);
 
-  const nextTextKey = returnToView ? 'form_filler.back_to_summary' : textResourceBindings?.next || 'next';
+  const nextTextKey = returnToView ? returnToViewText : textResourceBindings?.next || 'next';
   const backTextKey = textResourceBindings?.back || 'back';
 
   const parentIsPage = node.parent instanceof LayoutPage;

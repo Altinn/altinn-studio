@@ -40,6 +40,14 @@ export const Config = new CG.component({
         .setDescription("Array of component IDs that should not be shown in a repeating group's summary"),
     ),
   )
+  .addTextResource(
+    new CG.trb({
+      name: 'returnToSummaryButtonTitle',
+      description:
+        'Used to specify the text on the NavigationButtons component that should be used after clicking "Change" on the summary component',
+      title: 'ReturnToSummaryButtonTitle',
+    }),
+  )
   .addProperty(
     new CG.prop(
       'display',

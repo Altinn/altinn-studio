@@ -5,7 +5,11 @@ import type { NavigateOptions } from 'react-router-dom';
 import { create } from 'zustand';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { useHiddenPages, useSetReturnToView } from 'src/features/form/layout/PageNavigationContext';
+import {
+  useHiddenPages,
+  useSetReturnToView,
+  useSetSummaryNodeOfOrigin,
+} from 'src/features/form/layout/PageNavigationContext';
 import { useLaxLayoutSettings, usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxProcessData, useTaskType } from 'src/features/instance/ProcessContext';
@@ -50,25 +54,25 @@ const emptyArray: never[] = [];
 
 /**
  * Navigation function for react-router-dom
- * Makes sure to clear returnToView on navigation
+ * Makes sure to clear returnToView and summaryNodeOfOrigin on navigation
  * Takes an optional callback
  */
 const useNavigate = () => {
   const navigate = useRouterNavigate();
   const storeCallback = useNavigationEffectStore((state) => state.storeCallback);
   const setReturnToView = useSetReturnToView();
+  const setSummaryNodeOfOrigin = useSetSummaryNodeOfOrigin();
 
   return useCallback(
     (path: string, options?: NavigateOptions, cb?: Callback) => {
-      if (setReturnToView) {
-        setReturnToView(undefined);
-      }
+      setReturnToView?.(undefined);
+      setSummaryNodeOfOrigin?.(undefined);
       if (cb) {
         storeCallback(cb);
       }
       navigate(path, options);
     },
-    [navigate, setReturnToView, storeCallback],
+    [navigate, setReturnToView, storeCallback, setSummaryNodeOfOrigin],
   );
 };
 

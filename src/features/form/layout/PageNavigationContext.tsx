@@ -6,7 +6,10 @@ import { ContextNotProvided } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { useHiddenLayoutsExpressions } from 'src/features/form/layout/LayoutsContext';
 import { useCurrentView, useOrder } from 'src/hooks/useNavigatePage';
+import { useResolvedNode } from 'src/utils/layout/NodesContext';
 import type { PageNavigationConfig } from 'src/features/expressions/ExprContext';
+import type { CompSummaryExternal } from 'src/layout/Summary/config.generated';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export type PageNavigationContext = {
   /**
@@ -21,6 +24,12 @@ export type PageNavigationContext = {
    */
   hidden: Set<string>;
   setHiddenPages: (hidden: Set<string>) => void;
+
+  /**
+   * Keeps track of which Summary component the user navigated from.
+   */
+  summaryNodeOfOrigin?: string;
+  setSummaryNodeOfOrigin: (componentOrigin?: string) => void;
 };
 
 function initialCreateStore() {
@@ -29,6 +38,8 @@ function initialCreateStore() {
     setReturnToView: (returnToView) => set({ returnToView }),
     hidden: new Set(),
     setHiddenPages: (hidden) => set({ hidden }),
+    summaryNodeOfOrigin: undefined,
+    setSummaryNodeOfOrigin: (summaryNodeOfOrigin) => set({ summaryNodeOfOrigin }),
   }));
 }
 
@@ -99,5 +110,16 @@ export const useReturnToView = () => {
 
 export const useSetReturnToView = () => {
   const func = useLaxSelector((ctx) => ctx.setReturnToView);
+  return func === ContextNotProvided ? undefined : func;
+};
+
+export const useSummaryNodeOfOrigin = (): LayoutNode<'Summary'> | undefined => {
+  const func = useLaxSelector((ctx) => ctx.summaryNodeOfOrigin);
+  const node = useResolvedNode<CompSummaryExternal>(func === ContextNotProvided ? undefined : func);
+  return func === ContextNotProvided ? undefined : node;
+};
+
+export const useSetSummaryNodeOfOrigin = () => {
+  const func = useLaxSelector((ctx) => ctx.setSummaryNodeOfOrigin);
   return func === ContextNotProvided ? undefined : func;
 };
