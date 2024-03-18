@@ -470,13 +470,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 string repository = string.Format("{0}-resources", org);
                 List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository);
                 string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                string resourceFileName = GetResourceFileName(updatedResource.Identifier);
 
                 foreach (FileSystemObject resourceFile in resourceFiles)
                 {
-                    string jsonString = File.ReadAllText($"{repopath}/{resourceFile.Path}");
-                    ServiceResource serviceResource = System.Text.Json.JsonSerializer.Deserialize<ServiceResource>(jsonString, _serializerOptions);
-
-                    if (serviceResource != null && serviceResource.Identifier == updatedResource.Identifier)
+                    if (resourceFile.Name == resourceFileName)
                     {
                         string updatedResourceString = System.Text.Json.JsonSerializer.Serialize(updatedResource, _serializerOptions);
                         File.WriteAllText($"{repopath}/{resourceFile.Path}", updatedResourceString);
@@ -568,21 +566,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return false;
-        }
-
-        public ListviewServiceResource AddLastChangedAndCreatedByIfMissingFromGitea(ListviewServiceResource serviceResource)
-        {
-            if (serviceResource.CreatedBy == null)
-            {
-                serviceResource.CreatedBy = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            }
-
-            if (serviceResource.LastChanged.Year.Equals(1))
-            {
-                serviceResource.LastChanged = DateTime.Now;
-            }
-
-            return serviceResource;
         }
 
         private List<FileSystemObject> GetResourceFiles(string org, string repository, string path = "")
