@@ -1,19 +1,6 @@
-.optionContainer {
-  margin-bottom: 2.4rem;
-  display: flex;
-  flex-direction: row;
-}
-
-.optionContentWrapper {
-  border: 0.1rem solid #bcc7cc;
-  padding: 1.2rem;
-  flex: 1;
-}
-
-.optionContent {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+.root {
+  margin-top: var(--fds-spacing-5);
+  border-top: 1px solid var(--fds-semantic-border-divider-default);
 }
 
 .codeListSwitchWrapper {
@@ -21,4 +8,9 @@
   flex-direction: row;
   align-items: center;
   gap: 8px;
+  margin: var(--fds-spacing-5);
+}
+
+.errorMessage {
+  margin: var(--fds-spacing-5) var(--fds-spacing-5) 0;
 }

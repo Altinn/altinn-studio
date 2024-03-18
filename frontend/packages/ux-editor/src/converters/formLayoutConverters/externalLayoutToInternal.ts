@@ -46,11 +46,11 @@ const getCustomRootProperties = (externalLayout: ExternalFormLayout) => {
 
 const convertExternalData = (externalData: ExternalData): InternalLayoutData => {
   const customDataProperties = getCustomDataProperties(externalData);
-  const { layout } = externalData;
+  const { layout, hidden } = externalData;
   const convertedComponents: InternalLayoutComponents = layout
     ? convertExternalComponentList(layout)
     : createEmptyComponentStructure();
-  return { ...convertedComponents, customDataProperties };
+  return { ...convertedComponents, hidden, customDataProperties };
 };
 
 const getCustomDataProperties = (externalData: ExternalData) => {
