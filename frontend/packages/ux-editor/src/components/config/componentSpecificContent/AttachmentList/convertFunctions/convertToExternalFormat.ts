@@ -1,5 +1,5 @@
-import { getCurrentAttachments, reservedDataTypes } from './attachmentListUtils';
-import type { AvailableAttachementLists, InternalDataTypesFormat } from './types';
+import { getCurrentAttachments, reservedDataTypes } from '../attachmentListUtils';
+import type { AvailableAttachementLists, InternalDataTypesFormat } from '../types';
 
 export const convertInternalToExternalFormat = (
   availableAttachments: AvailableAttachementLists,

@@ -12,8 +12,8 @@ import { StudioSpinner } from '@studio/components';
 import type { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { AvailableAttachementLists, InternalDataTypesFormat } from './types';
-import { convertInternalToExternalFormat } from './convertToExternalFormat';
-import { convertExternalToInternalFormat } from './convertToInternalFormat';
+import { convertInternalToExternalFormat } from './convertFunctions/convertToExternalFormat';
+import { convertExternalToInternalFormat } from './convertFunctions/convertToInternalFormat';
 
 export const AttachmentListComponent = ({
   component,
