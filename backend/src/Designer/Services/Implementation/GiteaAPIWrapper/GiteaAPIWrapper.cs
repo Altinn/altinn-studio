@@ -204,8 +204,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource)
         {
-            string localUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            GiteaUser localUser = await GetCachedUser(localUserName);
             ListviewServiceResource listviewResource = new ListviewServiceResource
             {
                 Identifier = serviceResource.Identifier,
@@ -244,6 +242,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             if (string.IsNullOrEmpty(listviewResource.CreatedBy))
             {
+                string localUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+                GiteaUser localUser = await GetCachedUser(localUserName);
                 listviewResource.CreatedBy = string.IsNullOrEmpty(localUser.FullName) ? localUserName : localUser.FullName;
             }
 
