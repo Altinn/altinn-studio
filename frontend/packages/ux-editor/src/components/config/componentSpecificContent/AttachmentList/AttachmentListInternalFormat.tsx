@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Fieldset, Switch } from '@digdir/design-system-react';
 import { AttachmentListContent } from './AttachmentListContent';
 import { useTranslation } from 'react-i18next';
-import { isSelectionValid } from './AttachmentListUtils';
+import { isSelectionValid } from './attachmentListUtils';
 import { ArrayUtils } from '@studio/pure-functions';
 import type { AvailableAttachementLists, InternalDataTypesFormat } from './types';
 

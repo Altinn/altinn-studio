@@ -11,7 +11,7 @@ import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { DataTypeElement } from 'app-shared/types/ApplicationMetadata';
-import { reservedDataTypes } from './AttachmentListUtils';
+import { reservedDataTypes } from './attachmentListUtils';
 
 const user = userEvent.setup();
 const org = 'org';

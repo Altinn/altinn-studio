@@ -6,7 +6,7 @@ import { useLayoutSetsQuery } from '../../../../hooks/queries/useLayoutSetsQuery
 import { useAppContext } from '../../../../hooks/useAppContext';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { useTranslation } from 'react-i18next';
-import { reservedDataTypes } from './AttachmentListUtils';
+import { reservedDataTypes } from './attachmentListUtils';
 import { AttachmentListInternalFormat } from './AttachmentListInternalFormat';
 import { StudioSpinner } from '@studio/components';
 import type { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
