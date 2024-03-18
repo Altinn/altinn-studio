@@ -10,8 +10,15 @@ declare global {
     org: string;
     featureToggles: IFeatureTogglesOptionalMap;
 
-    // Exported into the Window object so that we can interact with it from Cypress tests
+    // Exposes our global query client, which is used to cache data from API calls. This is exposed so that Cypress
+    // can inject data into the cache, and so that we can access the cache in tests. It is also used by Studio
+    // to invalidate/inject layout data the (Studio) user makes a change to the layout and wants to see the result
+    // in the app preview. We cannot simply remove/rename this without making sure the Studio team has a plan to
+    // replace that functionality with something else.
     queryClient: QueryClient;
+
+    // Useful tooling and state when running in Cypress. We need to update state here in order for Cypress to be able
+    // to read it in some tests.
     Cypress?: any; // Can be used to test if we are running in Cypress
     CypressState?: {
       attachments?: IAttachments;

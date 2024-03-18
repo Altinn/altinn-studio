@@ -8,78 +8,77 @@ These instructions will get you run the integration tests on altinn-app-frontend
 
 ### Install dependencies / prerequisites
 
-```cmd
-    yarn --immutable # only needed first time, or when dependencies are updated
-```
+This is only needed the first time, or when dependencies are updated:
 
-If you are running locally you need a copy of [app-localtest](https://github.com/Altinn/app-localtest). - Make sure you have followed instructions on [running apps locally](https://github.com/Altinn/app-localtest/blob/main/README.md).
+```cmd
+yarn --immutable
+```
 
 ### Running tests against a remote environment
 
 1. Start your local development server for `app-frontend-react`:
 
 ```cmd
-    yarn start
+yarn start
 ```
 
 2. Run the tests against a remote environment:
 
 ```cmd
-    yarn run cy:test:all -e environment=tt02
+npx cypress run --env environment=tt02 -s 'test/e2e/integration/*/*.ts'
 ```
-
-Other remote environments could also be used (see `e2e/config/*.json`).
 
 ### Running tests locally
 
-1. Clone the apps (
-   [ttd/frontend-test](https://dev.altinn.studio/repos/ttd/frontend-test),
-   [ttd/anonymous-stateless-app](https://dev.altinn.studio/repos/ttd/anonymous-stateless-app),
-   [ttd/stateless-app](https://dev.altinn.studio/repos/ttd/stateless-app),
-   [ttd/signing-test](https://dev.altinn.studio/repos/ttd/signing-test), and
-   [ttd/expression-validation-test](https://dev.altinn.studio/repos/ttd/expression-validation-test)
-   ) to be tested.
+1. Clone [app-localtest](https://github.com/Altinn/app-localtest) and follow the [instructions in the README](https://github.com/Altinn/app-localtest/blob/main/README.md) to start the local environment.
 
-2. Create (or update) `.env` file with the correct paths (see `template.env`)
+2. Clone one or more of the apps we've made automatic tests for:
 
-3. To start localtest, app frontend, and the app you configured above, run the command below.
-   (Skip to step 4 if the solutions are already running). The command will not finish, but it
-   will start the app-frontend server in development mode. This command may take some time,
-   depending on if LocalTest has been setup earlier or not, and if the docker cache is hit or not.
-   When the output of this command seems to have stopped, you can continue to the next step.
+- [ttd/frontend-test](https://dev.altinn.studio/repos/ttd/frontend-test)
+- [ttd/anonymous-stateless-app](https://dev.altinn.studio/repos/ttd/anonymous-stateless-app)
+- [ttd/stateless-app](https://dev.altinn.studio/repos/ttd/stateless-app)
+- [ttd/signing-test](https://dev.altinn.studio/repos/ttd/signing-test)
+- [ttd/expression-validation-test](https://dev.altinn.studio/repos/ttd/expression-validation-test)
+
+3. Start the app you want to test:
 
 ```cmd
-    yarn run cy:before:appfrontend
+cd <app-folder>/App
+dotnet run
 ```
 
-4. Start the tests for a given app from a new terminal:
+4. Start the tests for a given app:
+
+If you ran app-localtest with Docker:
 
 ```cmd
-    yarn run cy:test:frontend -e environment=local
+npx cypress run --env environment=docker -s 'test/e2e/integration/frontend-test/*.ts'
 ```
 
-or
+If you ran app-localtest with podman:
 
 ```cmd
-    yarn run cy:test:stateless -e environment=local
+npx cypress run --env environment=podman -s 'test/e2e/integration/frontend-test/*.ts'
 ```
 
-or
+5. Stop the running app (using `Ctrl+C` in the terminal where it's running) and
+   repeat step 3 and 4 for the next app you want to test.
+
+### Running a single test/opening the Cypress runner
+
+To run a single test case, open the Cypress runner using:
 
 ```cmd
-    yarn run cy:test:stateless-anonymous -e environment=local
+npx cypress open --env environment=<environment>
 ```
 
-or
+Then click on the test you want to run.
 
-```cmd
-    yarn run cy:test:signing -e environment=local
-```
+**Tip:** Most test files contain multiple test cases. You can run a single test case
+by adding `.only` to the `it` function in the test file. Be sure not to commit
+this change.
 
-### Running a single test
-
-To run a single test case open cypress runner using
-
-```cmd
-    yarn run cy:open -e environment=<environment>
+```diff
+- it('should do something', () => {
++ it.only('should do something', () => {
 ```

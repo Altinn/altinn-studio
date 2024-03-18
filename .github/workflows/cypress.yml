@@ -69,9 +69,10 @@ jobs:
           PERCY_PARALLEL_TOTAL: 3
           PERCY_PARALLEL_NONCE: ${{ github.run_id }}-${{ github.run_attempt }}
         run: "
-          yarn run cy:verify\n
+          npx cypress verify\n
           bash -c 'yarn serve 8080 >/dev/null &'\n
-          bash -c 'npx percy exec --parallel -- yarn run cy:test:all:headless
+          bash -c 'npx percy exec --parallel -- npx cypress run
+            --spec \'test/e2e/integration/*/*.ts\'
             --env environment=tt02
             --record
             --parallel
@@ -125,9 +126,10 @@ jobs:
 
       - name: Verify cypress and run tests
         run: "
-          yarn run cy:verify\n
+          npx cypress verify\n
           bash -c 'yarn serve 8080 >/dev/null &'\n
-          bash -c 'yarn run cy:test:all:headless
+          bash -c 'yarn run npx cypress run
+              --spec \'test/e2e/integration/*/*.ts\'
               --config watchForFileChanges=false
               --env environment=tt02'
         "
