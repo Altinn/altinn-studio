@@ -6,7 +6,7 @@ import { useLayoutSetsQuery } from '../../../../hooks/queries/useLayoutSetsQuery
 import { useAppContext } from '../../../../hooks/useAppContext';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { useTranslation } from 'react-i18next';
-import { reservedDataTypes, selectionIsValid } from './attachmentListUtils';
+import { reservedDataTypes } from './attachmentListUtils';
 import { AttachmentListInternalFormat } from './AttachmentListInternalFormat';
 import { StudioSpinner } from '@studio/components';
 import type { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
@@ -19,8 +19,6 @@ export const AttachmentListComponent = ({
   component,
   handleComponentChange,
 }: IGenericEditComponent<ComponentType.AttachmentList>) => {
-  const { dataTypeIds = [] } = component || {};
-
   const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
@@ -36,25 +34,26 @@ export const AttachmentListComponent = ({
     appMetadata.dataTypes,
   );
 
-  const onChange = (selectedDataTypes: InternalDataTypesFormat) => {
-    if (!selectionIsValid(selectedDataTypes)) return;
-
-    const resultingSelection = convertInternalToExternalFormat(
+  const handleChange = (internalDataFormat: InternalDataTypesFormat) => {
+    const externalDataFormat = convertInternalToExternalFormat(
       availableAttachments,
-      selectedDataTypes,
+      internalDataFormat,
     );
 
     handleComponentChange({
       ...component,
-      dataTypeIds: resultingSelection,
+      dataTypeIds: externalDataFormat,
     });
   };
 
+  const { dataTypeIds = [] } = component || {};
+  const internalDataFormat = convertExternalToInternalFormat(availableAttachments, dataTypeIds);
+
   return (
     <AttachmentListInternalFormat
-      onChange={onChange}
+      onChange={handleChange}
       availableAttachments={availableAttachments}
-      internalDataFormat={convertExternalToInternalFormat(availableAttachments, dataTypeIds)}
+      internalDataFormat={internalDataFormat}
     />
   );
 };
