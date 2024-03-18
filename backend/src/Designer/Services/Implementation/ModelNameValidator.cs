@@ -47,14 +47,7 @@ public class ModelNameValidator : IModelNameValidator
 
         // Try to go through conversion all the way.
         // This will enforce either all files are written to disk or none if there is an error.
-        using XmlReader xmlReader = XmlReader.Create(xsdSchema);
-        var xmlSchema = XmlSchema.Read(xmlReader, (_, _) => { });
-        xsdSchema.Seek(0, SeekOrigin.Begin);
-        var jsonSchema = _xmlSchemaToJsonSchemaConverter.Convert(xmlSchema);
-        var jsonSchemaConverterStrategy = JsonSchemaConverterStrategyFactory.SelectStrategy(jsonSchema);
-        var metamodelConverter = new JsonSchemaToMetamodelConverter(jsonSchemaConverterStrategy.GetAnalyzer());
-        var modelMetadata = metamodelConverter.Convert(SerializeJsonSchema(jsonSchema));
-        _modelMetadataToCsharpConverter.CreateModelFromMetadata(modelMetadata);
+        ModelMetadata modelMetadata = TestE2EConversion(xsdSchema);
 
 
         string modelName = modelMetadata.GetRootElement().TypeName;
@@ -76,6 +69,19 @@ public class ModelNameValidator : IModelNameValidator
         }
     }
 
+    private ModelMetadata TestE2EConversion(Stream xsdSchema)
+    {
+        using XmlReader xmlReader = XmlReader.Create(xsdSchema);
+        var xmlSchema = XmlSchema.Read(xmlReader, (_, _) => { });
+        xsdSchema.Seek(0, SeekOrigin.Begin);
+        var jsonSchema = _xmlSchemaToJsonSchemaConverter.Convert(xmlSchema);
+        var jsonSchemaConverterStrategy = JsonSchemaConverterStrategyFactory.SelectStrategy(jsonSchema);
+        var metamodelConverter = new JsonSchemaToMetamodelConverter(jsonSchemaConverterStrategy.GetAnalyzer());
+        var modelMetadata = metamodelConverter.Convert(SerializeJsonSchema(jsonSchema));
+        _modelMetadataToCsharpConverter.CreateModelFromMetadata(modelMetadata);
+        return modelMetadata;
+    }
+
     public async Task ValidateModelNameForNewJsonSchemaAsync(string modelName, AltinnRepoEditingContext altinnRepoEditingContext)
     {
         var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
@@ -95,7 +101,7 @@ public class ModelNameValidator : IModelNameValidator
         }
     }
 
-    public bool CheckIfAppAlreadyHasTypeName(ApplicationMetadata metadata, string modelName)
+    private bool CheckIfAppAlreadyHasTypeName(ApplicationMetadata metadata, string modelName)
     {
         return metadata.DataTypes.Any(d => d.AppLogic?.ClassRef == $"Altinn.App.Models.{modelName}"
                                            || d.AppLogic?.ClassRef == $"Altinn.App.Models.{modelName}.{modelName}");
