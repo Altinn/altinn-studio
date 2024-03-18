@@ -1,4 +1,4 @@
-import { selectionIsValid } from './attachmentListUtils';
+import { isSelectionValid } from './attachmentListUtils';
 import type { InternalDataTypesFormat } from './types';
 
 describe('validateSelection', () => {
@@ -8,7 +8,7 @@ describe('validateSelection', () => {
       includePdf: false,
       selectedDataTypes: [],
     };
-    expect(selectionIsValid(output)).toBeFalsy();
+    expect(isSelectionValid(output)).toBeFalsy();
   });
 
   it('should return true when there is a selection', () => {
@@ -17,7 +17,7 @@ describe('validateSelection', () => {
       includePdf: false,
       selectedDataTypes: ['attachment1'],
     };
-    expect(selectionIsValid(output)).toBeTruthy();
+    expect(isSelectionValid(output)).toBeTruthy();
   });
 
   it('should return true when there is a selection and current task', () => {
@@ -26,7 +26,7 @@ describe('validateSelection', () => {
       includePdf: false,
       selectedDataTypes: ['attachment1'],
     };
-    expect(selectionIsValid(output)).toBeTruthy();
+    expect(isSelectionValid(output)).toBeTruthy();
   });
 
   it('should return false when there is only current task', () => {
@@ -35,7 +35,7 @@ describe('validateSelection', () => {
       includePdf: false,
       selectedDataTypes: [],
     };
-    expect(selectionIsValid(output)).toBeFalsy();
+    expect(isSelectionValid(output)).toBeFalsy();
   });
 
   it('should return true when there is only pdf', () => {
@@ -44,6 +44,6 @@ describe('validateSelection', () => {
       includePdf: true,
       selectedDataTypes: [],
     };
-    expect(selectionIsValid(output)).toBeTruthy;
+    expect(isSelectionValid(output)).toBeTruthy;
   });
 });

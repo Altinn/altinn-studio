@@ -12,7 +12,7 @@ export const getCurrentAttachments = (
 ): string[] =>
   includeCurrentTask ? attachments.attachmentsCurrentTasks : attachments.attachmentsAllTasks;
 
-export const selectionIsValid = ({
+export const isSelectionValid = ({
   includePdf,
   selectedDataTypes,
 }: InternalDataTypesFormat): boolean => {
