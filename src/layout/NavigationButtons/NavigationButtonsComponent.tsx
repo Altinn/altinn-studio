@@ -16,21 +16,24 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
   const { id, showBackButton, textResourceBindings, validateOnNext, validateOnPrevious } = node.item;
   const { navigateToPage, next, previous, maybeSaveOnPageChange } = useNavigatePage();
   const returnToView = useReturnToView();
-  const summaryNode = useSummaryNodeOfOrigin();
+  const summaryItem = useSummaryNodeOfOrigin()?.item;
 
-  const returnToViewText =
-    summaryNode?.item?.textResourceBindings?.returnToSummaryButtonTitle ?? 'form_filler.back_to_summary';
+  const parentIsPage = node.parent instanceof LayoutPage;
 
   const refPrev = React.useRef<HTMLButtonElement>(null);
   const refNext = React.useRef<HTMLButtonElement>(null);
 
-  const nextTextKey = returnToView ? returnToViewText : textResourceBindings?.next || 'next';
+  const nextTextKey = textResourceBindings?.next || 'next';
   const backTextKey = textResourceBindings?.back || 'back';
-
-  const parentIsPage = node.parent instanceof LayoutPage;
+  const returnToViewText =
+    summaryItem?.textResourceBindings?.returnToSummaryButtonTitle ?? 'form_filler.back_to_summary';
 
   const disablePrevious = previous === undefined;
   const disableNext = next === undefined;
+
+  const showBackToSummaryButton = returnToView !== undefined;
+  const showNextButtonSummary = summaryItem?.display != null && summaryItem?.display?.nextButton === true;
+  const showNextButton = showBackToSummaryButton ? showNextButtonSummary : !disableNext;
 
   const onPageNavigationValidation = useOnPageNavigationValidation();
 
@@ -83,9 +86,8 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
     navigateToPage(previous, { skipAutoSave: true });
   };
 
-  const OnClickNext = async () => {
-    const goToView = returnToView || next;
-    if (!goToView || disableNext) {
+  const onClickNext = async () => {
+    if (!next || disableNext) {
       return;
     }
 
@@ -101,7 +103,16 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
       }
     }
 
-    navigateToPage(goToView, { skipAutoSave: true });
+    navigateToPage(next, { skipAutoSave: true });
+  };
+
+  const onClickBackToSummary = () => {
+    if (!returnToView) {
+      return;
+    }
+
+    maybeSaveOnPageChange();
+    navigateToPage(returnToView, { skipAutoSave: true });
   };
 
   return (
@@ -116,21 +127,30 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
             ref={refPrev}
             size='small'
             onClick={onClickPrevious}
-            disabled={disablePrevious}
           >
             <Lang id={backTextKey} />
           </Button>
         </Grid>
       )}
-      {!disableNext && (
+      {showNextButton && (
         <Grid item>
           <Button
             ref={refNext}
             size='small'
-            onClick={OnClickNext}
-            disabled={disableNext}
+            onClick={onClickNext}
           >
             <Lang id={nextTextKey} />
+          </Button>
+        </Grid>
+      )}
+      {showBackToSummaryButton && (
+        <Grid item>
+          <Button
+            ref={refNext}
+            size='small'
+            onClick={onClickBackToSummary}
+          >
+            <Lang id={returnToViewText} />
           </Button>
         </Grid>
       )}

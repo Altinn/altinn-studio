@@ -90,6 +90,13 @@ export const Config = new CG.component({
               'Set to true to hide the blue dashed border below the summary component. False by default.',
             ),
         ),
+        new CG.prop(
+          'nextButton',
+          new CG.bool()
+            .optional({ default: false })
+            .setTitle('Display the next button')
+            .setDescription('Set to to true display a "next" button as well as the return to summary button'),
+        ),
       )
         .exportAs('SummaryDisplayProperties')
         .optional()
