@@ -1,15 +1,15 @@
 import React from 'react';
-import { render as rtlRender, screen, act } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { CanvasActionMenuProps } from './CanvasActionMenu';
 import { CanvasActionMenu } from './CanvasActionMenu';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
-import { BpmnContextProvider } from '../../../contexts/BpmnContext';
+import type { BpmnContextProps } from '../../../contexts/BpmnContext';
+import { BpmnContext } from '../../../contexts/BpmnContext';
 
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 
 const mockAppLibVersion7: string = '7.0.0';
-const mockAppLibVersion8: string = '8.0.0';
 
 const mockOnSave = jest.fn();
 
@@ -17,12 +17,28 @@ const defaultProps: CanvasActionMenuProps = {
   onSave: mockOnSave,
 };
 
+const defaultContextProps: BpmnContextProps = {
+  bpmnXml: mockBPMNXML,
+  modelerRef: null,
+  numberOfUnsavedChanges: 0,
+  setNumberOfUnsavedChanges: () => {},
+  dataTasksAdded: [],
+  setDataTasksAdded: () => {},
+  dataTasksRemoved: [],
+  setDataTasksRemoved: () => {},
+  getUpdatedXml: async () => '',
+  isEditAllowed: true,
+  appLibVersion: mockAppLibVersion7,
+  bpmnDetails: null,
+  setBpmnDetails: () => {},
+};
+
 describe('CanvasActionMenu', () => {
   afterEach(jest.clearAllMocks);
 
-  it('hides the save button when the version is too old', async () => {
+  it('hides the save button when saving is not permitted', async () => {
     const user = userEvent.setup();
-    render(mockAppLibVersion7);
+    renderCanvasActionMenu({ isEditAllowed: false });
 
     // Fix to remove act error
     await act(() => user.tab());
@@ -31,21 +47,31 @@ describe('CanvasActionMenu', () => {
     expect(editButton).not.toBeInTheDocument();
   });
 
-  it('calls "onSave" when the user is in edit more and clicks save button', async () => {
+  it('calls "onSave" when the user is in edit mode and clicks save button', async () => {
     const user = userEvent.setup();
-    render();
+    const onSave = jest.fn();
+    renderCanvasActionMenu({ numberOfUnsavedChanges: 1 }, { onSave });
 
     const editButton = screen.getByRole('button', { name: textMock('process_editor.save') });
     await act(() => user.click(editButton));
 
-    expect(mockOnSave).toHaveBeenCalledTimes(1);
+    expect(onSave).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables the save button if number of unsaved changes is 0', () => {
+    renderCanvasActionMenu();
+    const editButton = screen.getByRole('button', { name: textMock('process_editor.save') });
+    expect(editButton).toBeDisabled();
   });
 });
 
-const render = (appLibVersion?: string) => {
-  return rtlRender(
-    <BpmnContextProvider bpmnXml={mockBPMNXML} appLibVersion={appLibVersion || mockAppLibVersion8}>
-      <CanvasActionMenu {...defaultProps} />
-    </BpmnContextProvider>,
+const renderCanvasActionMenu = (
+  contextProps?: Partial<BpmnContextProps>,
+  props?: Partial<CanvasActionMenuProps>,
+) => {
+  return render(
+    <BpmnContext.Provider value={{ ...defaultContextProps, ...contextProps }}>
+      <CanvasActionMenu {...defaultProps} {...props} />
+    </BpmnContext.Provider>,
   );
 };
