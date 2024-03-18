@@ -1,6 +1,6 @@
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { AvailableAttachementLists, InternalDataTypesFormat } from '../types';
-import { reservedDataTypes } from '../attachmentListUtils';
+import { reservedDataTypes } from '../AttachmentListUtils';
 import { convertInternalToExternalFormat } from './convertToExternalFormat';
 
 describe('Convert to external format: convertInternalToExternalFormat', () => {

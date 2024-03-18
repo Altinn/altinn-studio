@@ -1,4 +1,4 @@
-import { isSelectionValid } from './attachmentListUtils';
+import { isSelectionValid } from './AttachmentListUtils';
 import type { InternalDataTypesFormat } from './types';
 
 describe('validateSelection', () => {

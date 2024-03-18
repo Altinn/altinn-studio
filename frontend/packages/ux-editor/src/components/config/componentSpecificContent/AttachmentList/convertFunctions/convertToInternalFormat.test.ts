@@ -1,5 +1,5 @@
 import { convertExternalToInternalFormat } from './convertToInternalFormat';
-import { reservedDataTypes } from '../attachmentListUtils';
+import { reservedDataTypes } from '../AttachmentListUtils';
 import type { AvailableAttachementLists, InternalDataTypesFormat } from '../types';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 

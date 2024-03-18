@@ -1,4 +1,4 @@
-import { getCurrentAttachments, reservedDataTypes } from '../attachmentListUtils';
+import { getCurrentAttachments, reservedDataTypes } from '../AttachmentListUtils';
 import type { AvailableAttachementLists, InternalDataTypesFormat } from '../types';
 import { ArrayUtils } from '@studio/pure-functions';
 
