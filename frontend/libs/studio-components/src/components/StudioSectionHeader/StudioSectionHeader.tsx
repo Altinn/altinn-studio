@@ -10,7 +10,7 @@ export type StudioSectionHeaderProps = {
     text: string;
     level?: HeadingProps['level'];
   };
-  helpText: {
+  helpText?: {
     text: string;
     title: string;
   };
@@ -30,9 +30,11 @@ const StudioSectionHeader = forwardRef<HTMLDivElement, StudioSectionHeaderProps>
             {heading.text}
           </Heading>
         </div>
-        <HelpText size='medium' title={helpText.title}>
-          {helpText.text}
-        </HelpText>
+        {helpText && (
+          <HelpText size='medium' title={helpText.title}>
+            {helpText.text}
+          </HelpText>
+        )}
       </div>
     );
   },

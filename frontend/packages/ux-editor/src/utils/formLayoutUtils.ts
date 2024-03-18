@@ -388,18 +388,15 @@ export const hasMultiPageGroup = (layout: IInternalLayout): boolean =>
 
 export const isItemChildOfContainer = (
   layout: IInternalLayout,
-  item: FormItem,
+  itemId: string,
   containerType?: ContainerComponentType,
 ): boolean => {
-  const containerOfItemId = Object.keys(layout.order).find((containerId) => {
-    return (
-      containerId !== BASE_CONTAINER_ID &&
-      Object.values(layout.order[containerId]).includes(item.id)
-    );
-  });
-  if (!containerOfItemId) return false;
-  return containerType ? layout.containers[containerOfItemId].type === containerType : true;
+  const parentId = findParentId(layout, itemId);
+  if (parentId === BASE_CONTAINER_ID) return false;
+  const parent = getItem(layout, parentId);
+  return !containerType || parent.type === containerType;
 };
+
 /**
  * Checks if a component with the given id exists in the given layout.
  * @param id The id of the component to check for.
