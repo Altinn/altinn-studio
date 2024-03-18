@@ -73,11 +73,19 @@ const TextBox = ({ language, t, textResource, textResourceId }: TextBoxProps) =>
   const updateTextResource = (text: string) => {
     if (text === textResourceValue) return;
 
-    mutate({
-      language,
-      textResources: [{ id: textResourceId, value: text, variables: textResource?.variables }],
-    });
-    previewIframeRef.current?.contentWindow.location.reload();
+    mutate(
+      {
+        language,
+        textResources: [{ id: textResourceId, value: text, variables: textResource?.variables }],
+      },
+      {
+        onSuccess: () => {
+          previewIframeRef.current?.contentWindow?.queryClient.invalidateQueries({
+            queryKey: ['fetchTextResources', language],
+          });
+        },
+      },
+    );
   };
 
   const [value, setValue] = useState<string>(textResourceValue);

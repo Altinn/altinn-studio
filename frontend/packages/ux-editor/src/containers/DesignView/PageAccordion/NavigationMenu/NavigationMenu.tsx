@@ -29,7 +29,7 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
 
   const { org, app } = useStudioUrlParams();
 
-  const { selectedLayoutSet } = useAppContext();
+  const { selectedLayoutSet, previewIframeRef } = useAppContext();
   const invalidLayouts: string[] = useSelector(
     (state: IAppState) => state.formDesigner.layout.invalidLayouts,
   );
@@ -48,7 +48,16 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
 
   const moveLayout = (action: 'up' | 'down') => {
     if (action === 'up' || action === 'down') {
-      updateLayoutOrder({ layoutName: pageName, direction: action });
+      updateLayoutOrder(
+        { layoutName: pageName, direction: action },
+        {
+          onSuccess: () => {
+            previewIframeRef.current?.contentWindow?.queryClient.invalidateQueries({
+              queryKey: ['layoutSettings', selectedLayoutSet],
+            });
+          },
+        },
+      );
     }
     setDropdownOpen(false);
   };

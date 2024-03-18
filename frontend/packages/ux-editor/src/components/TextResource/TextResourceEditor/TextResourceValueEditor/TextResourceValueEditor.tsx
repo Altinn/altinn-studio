@@ -8,6 +8,7 @@ import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import classes from './TextResourceValueEditor.module.css';
 import { Trans, useTranslation } from 'react-i18next';
+import { useAppContext } from '../../../../hooks/useAppContext';
 
 export type TextResourceValueEditorProps = {
   textResourceId: string;
@@ -28,6 +29,7 @@ export const TextResourceValueEditor = ({
 }: TextResourceValueEditorProps) => {
   const { org, app } = useStudioUrlParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
+  const { previewIframeRef } = useAppContext();
   const { mutate } = useUpsertTextResourcesMutation(org, app);
   const value = getTextResourceValue(textResources, textResourceId);
   const [valueState, setValueState] = useState<string>(value);
@@ -40,9 +42,18 @@ export const TextResourceValueEditor = ({
   const handleChange = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>) => {
       const textResource: ITextResource = { id: textResourceId, value: event.target.value };
-      mutate({ language, textResources: [textResource] });
+      mutate(
+        { language, textResources: [textResource] },
+        {
+          onSuccess: () => {
+            previewIframeRef.current?.contentWindow?.queryClient.invalidateQueries({
+              queryKey: ['fetchTextResources', language],
+            });
+          },
+        },
+      );
     },
-    [textResourceId, mutate],
+    [textResourceId, mutate, previewIframeRef],
   );
 
   return (

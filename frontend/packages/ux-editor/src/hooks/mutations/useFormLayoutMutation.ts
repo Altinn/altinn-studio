@@ -32,7 +32,9 @@ export const useFormLayoutMutation = (
         });
       }
 
-      previewIframeRef.current?.contentWindow.location.reload();
+      previewIframeRef.current?.contentWindow?.queryClient.invalidateQueries({
+        queryKey: ['formLayouts', layoutSetName],
+      });
 
       queryClient.setQueryData(
         [QueryKey.FormLayouts, org, app, layoutSetName],
