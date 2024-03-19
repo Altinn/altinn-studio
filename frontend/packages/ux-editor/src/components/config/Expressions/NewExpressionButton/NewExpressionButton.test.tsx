@@ -24,11 +24,13 @@ describe('NewExpressionButton', () => {
       id: 'test',
       itemType: 'COMPONENT',
       type: ComponentType.Input,
+      dataModelBindings: { simpleBinding: 'some-path' },
     },
     'a repeating group': {
       id: 'test',
       itemType: 'CONTAINER',
       type: ComponentType.RepeatingGroup,
+      dataModelBindings: { group: 'some-path' },
       edit: {},
     },
   };
@@ -54,6 +56,7 @@ describe('NewExpressionButton', () => {
     const formItem: FormComponent<ComponentType.Input> = {
       id: 'mockId',
       type: ComponentType.Input,
+      dataModelBindings: { simpleBinding: 'some-path' },
       itemType: 'COMPONENT',
     };
     renderAddButton({ formItem, handleUpdate });
