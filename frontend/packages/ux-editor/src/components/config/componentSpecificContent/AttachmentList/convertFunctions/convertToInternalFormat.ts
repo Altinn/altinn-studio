@@ -1,4 +1,4 @@
-import { getCurrentAttachments, reservedDataTypes } from '../attachmentListUtils';
+import { extractCurrentAvailableAttachments, reservedDataTypes } from '../attachmentListUtils';
 import type { AvailableAttachementLists, InternalDataTypesFormat } from '../types';
 import { ArrayUtils } from '@studio/pure-functions';
 
@@ -22,7 +22,7 @@ const getSelectedDataTypes = (
   dataTypeIds: string[],
   availableAttachments: AvailableAttachementLists,
 ): string[] => {
-  const availableDataTypes = getCurrentAttachments(
+  const availableDataTypes = extractCurrentAvailableAttachments(
     isCurrentTaskSelected(dataTypeIds),
     availableAttachments,
   );
@@ -40,7 +40,9 @@ const shouldIncludeAllDataTypes = (
 ): boolean => {
   const selectedDataTypeIds = removeReservedTypes(dataTypeIds);
   const allDataTypesSelected = selectedDataTypeIds.length === availableDataTypes.length;
-  const noAttachments = selectedDataTypeIds.length === 0;
+  //In cases when reserved data types are the only ones selected or no attachments (except pdf), we should include all data types
+  const noAttachmentsAndNoPdf =
+    selectedDataTypeIds.length === 0 && !dataTypeIds.includes(reservedDataTypes.refDataAsPdf);
 
-  return allDataTypesSelected || noAttachments;
+  return allDataTypesSelected || noAttachmentsAndNoPdf;
 };

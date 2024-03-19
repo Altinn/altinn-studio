@@ -84,6 +84,18 @@ describe('Convert to internal format: convertExternalToInternalFormat', () => {
           selectedDataTypes: ['attachment1'],
         },
       },
+      'only pdf': {
+        availableAttachments: {
+          attachmentsCurrentTasks: ['attachment1'],
+          attachmentsAllTasks: ['attachment1', 'attachment2'],
+        },
+        dataTypeIds: [reservedDataTypes.refDataAsPdf],
+        expectedResult: {
+          currentTask: false,
+          includePdf: true,
+          selectedDataTypes: [],
+        },
+      },
     };
 
     const testCaseNames: (keyof typeof testCasesAllDataTypes)[] =
