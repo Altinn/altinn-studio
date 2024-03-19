@@ -12,6 +12,7 @@ using Altinn.App.Core.Features.Validation.Default;
 using Altinn.App.Core.Implementation;
 using Altinn.App.Core.Infrastructure.Clients.Authentication;
 using Altinn.App.Core.Infrastructure.Clients.Authorization;
+using Altinn.App.Core.Infrastructure.Clients.Email;
 using Altinn.App.Core.Infrastructure.Clients.Events;
 using Altinn.App.Core.Infrastructure.Clients.KeyVault;
 using Altinn.App.Core.Infrastructure.Clients.Pdf;
@@ -22,6 +23,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Email;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Instances;
@@ -60,6 +62,7 @@ using Altinn.App.Core.Internal.Process.Authorization;
 
 namespace Altinn.App.Core.Extensions
 {
+
     /// <summary>
     /// This class holds a collection of extension methods for the <see cref="IServiceCollection"/> interface.
     /// </summary>
@@ -105,7 +108,7 @@ namespace Altinn.App.Core.Extensions
 
         private static void AddApplicationIdentifier(IServiceCollection services)
         {
-            services.AddSingleton<AppIdentifier>(sp =>
+            services.AddSingleton(sp =>
             {
                 var appIdentifier = GetApplicationId();
                 return new AppIdentifier(appIdentifier);
@@ -156,8 +159,8 @@ namespace Altinn.App.Core.Extensions
             services.TryAddTransient<LayoutEvaluatorStateInitializer>();
             services.TryAddTransient<IPatchService, PatchService>();
             services.AddTransient<IDataService, DataService>();
-            services.Configure<Altinn.Common.PEP.Configuration.PepSettings>(configuration.GetSection("PEPSettings"));
-            services.Configure<Altinn.Common.PEP.Configuration.PlatformSettings>(configuration.GetSection("PlatformSettings"));
+            services.Configure<Common.PEP.Configuration.PepSettings>(configuration.GetSection("PEPSettings"));
+            services.Configure<Common.PEP.Configuration.PlatformSettings>(configuration.GetSection("PlatformSettings"));
             services.Configure<AccessTokenSettings>(configuration.GetSection("AccessTokenSettings"));
             services.Configure<FrontEndSettings>(configuration.GetSection(nameof(FrontEndSettings)));
             services.Configure<PdfGeneratorSettings>(configuration.GetSection(nameof(PdfGeneratorSettings)));
@@ -167,6 +170,7 @@ namespace Altinn.App.Core.Extensions
             AddPdfServices(services);
             AddSignatureServices(services);
             AddEventServices(services);
+            AddEmailServices(services);
             AddProcessServices(services);
             AddFileAnalyserServices(services);
             AddFileValidatorServices(services);
@@ -232,6 +236,11 @@ namespace Altinn.App.Core.Extensions
             {
                 services.AddHttpClient<IEventsSubscription, EventsSubscriptionClient>();
             }
+        }
+
+        private static void AddEmailServices(IServiceCollection services)
+        {
+            services.TryAddTransient<IEmailNotificationClient, EmailNotificationClient>();
         }
 
         private static void AddPdfServices(IServiceCollection services)

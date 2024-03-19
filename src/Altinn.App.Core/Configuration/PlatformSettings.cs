@@ -42,6 +42,11 @@ namespace Altinn.App.Core.Configuration
         public string ApiPdf2Endpoint { get; set; } = "http://localhost:5300/pdf";
 
         /// <summary>
+        /// Gets or sets the url for the Notification API endpoint.
+        /// </summary>
+        public string NotificationEndpoint { get; set; } = "http://localhost:5101/notifications";
+
+        /// <summary>
         /// Gets or sets the subscription key value to use in requests against the platform.
         /// A new subscription key is generated automatically every time an app is deployed to an environment. The new key is then automatically
         /// added to the environment for the app code during deploy. This will override the value stored in app settings.
