@@ -35,7 +35,7 @@ describe('ProcessEditor', () => {
 
   it('should display error toast if onWSMessageReceived emits with errorCode', () => {
     const mockOnWSMessageReceived = jest.fn();
-    useWebSocket.mockReturnValue({ onWSMessageReceived: mockOnWSMessageReceived });
+    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: mockOnWSMessageReceived });
     renderProcessEditor();
 
     const syncErrorMock: SyncError = {
