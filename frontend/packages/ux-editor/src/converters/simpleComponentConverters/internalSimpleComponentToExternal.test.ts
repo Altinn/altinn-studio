@@ -17,6 +17,7 @@ describe('internalGroupComponentToExternal', () => {
       pageIndex: null,
       propertyPath,
       type,
+      dataModelBindings: { simpleBinding: 'some-path' },
       customProperty,
     };
     const result = internalSimpleComponentToExternal(internalSimpleComponent);
@@ -24,6 +25,7 @@ describe('internalGroupComponentToExternal', () => {
       id,
       type,
       customProperty,
+      dataModelBindings: { simpleBinding: 'some-path' },
     });
   });
 });

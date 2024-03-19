@@ -11,7 +11,7 @@ import {
   getExpressionPropertiesBasedOnComponentType,
   Operator,
 } from '../types/Expressions';
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils } from '@studio/pure-functions';
 import type { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
 import type { IFormLayouts } from '../types/global';
 import { LayoutItemType } from '../types/global';
@@ -138,7 +138,7 @@ export function convertSubExpression(
   externalExpEl: any,
   isComparable: boolean,
 ): SubExpression {
-  const newInternalSubExp = deepCopy(internalSubExp);
+  const newInternalSubExp = ObjectUtils.deepCopy(internalSubExp);
   if (Array.isArray(externalExpEl)) {
     isComparable
       ? (newInternalSubExp.comparableDataSource = externalExpEl[0] as DataSource)
@@ -166,8 +166,8 @@ export const convertAndAddExpressionToComponent = (
   form,
   expression: Expression,
 ): FormComponent | FormContainer => {
-  const newForm = deepCopy(form);
-  let newExpression = deepCopy(expression);
+  const newForm = ObjectUtils.deepCopy(form);
+  let newExpression = ObjectUtils.deepCopy(expression);
   if (complexExpressionIsSet(newExpression.complexExpression)) {
     const parsedExpression = tryParseExpression(newExpression, newExpression.complexExpression);
     newExpression = { ...parsedExpression };
@@ -188,7 +188,7 @@ export const deleteExpressionFromPropertyOnComponent = (
   form,
   property: ExpressionProperty,
 ): FormComponent | FormContainer => {
-  const newForm = deepCopy(form);
+  const newForm = ObjectUtils.deepCopy(form);
   // TODO: What if the property was set to true or false before? Issue #10860
   delete newForm[property];
   return newForm;
@@ -211,7 +211,7 @@ export const addPropertyToExpression = (
   oldExpression: Expression,
   property: string,
 ): Expression => {
-  const newExpression = deepCopy(oldExpression);
+  const newExpression = ObjectUtils.deepCopy(oldExpression);
   if (property === 'default') {
     return newExpression;
   }
@@ -223,7 +223,7 @@ export const addFunctionToSubExpression = (
   oldSubExpression: SubExpression,
   func: string,
 ): SubExpression => {
-  const newSubExpression = deepCopy(oldSubExpression);
+  const newSubExpression = ObjectUtils.deepCopy(oldSubExpression);
   if (func === 'default') {
     delete newSubExpression.function;
     return newSubExpression;
@@ -236,7 +236,7 @@ export const addSubExpressionToExpression = (
   oldExpression: Expression,
   operator: Operator,
 ): Expression => {
-  const newExpression = deepCopy(oldExpression);
+  const newExpression = ObjectUtils.deepCopy(oldExpression);
   const newSubExpression: SubExpression = {};
   if (!newExpression.subExpressions) {
     newExpression.subExpressions = [newSubExpression];
@@ -253,7 +253,7 @@ export const updateOperatorOnExpression = (
   oldExpression: Expression,
   operator: Operator,
 ): Expression => {
-  const newExpression = deepCopy(oldExpression);
+  const newExpression = ObjectUtils.deepCopy(oldExpression);
   newExpression.operator = operator;
   return newExpression;
 };
@@ -263,7 +263,7 @@ export const updateSubExpressionOnExpression = (
   index: number,
   subExpression: SubExpression,
 ): Expression => {
-  const newExpression = deepCopy(oldExpression);
+  const newExpression = ObjectUtils.deepCopy(oldExpression);
   newExpression.subExpressions[index] = subExpression;
   return newExpression;
 };
@@ -272,7 +272,7 @@ export const updateComplexExpressionOnExpression = (
   oldExpression: Expression,
   complexExpression: any,
 ): Expression => {
-  const newExpression = deepCopy(oldExpression);
+  const newExpression = ObjectUtils.deepCopy(oldExpression);
   newExpression.complexExpression = complexExpression;
   return newExpression;
 };
@@ -281,7 +281,7 @@ export const removeSubExpression = (
   oldExpression: Expression,
   subExpression: SubExpression,
 ): Expression => {
-  const newExpression = deepCopy(oldExpression);
+  const newExpression = ObjectUtils.deepCopy(oldExpression);
   newExpression.subExpressions = oldExpression.subExpressions.filter(
     (expEl: SubExpression) => expEl !== subExpression,
   );
@@ -296,7 +296,7 @@ export const addDataSourceToSubExpression = (
   dataSource: string,
   isComparable: boolean,
 ): SubExpression => {
-  const newExpEl = deepCopy(expEl);
+  const newExpEl = ObjectUtils.deepCopy(expEl);
   if (dataSource === 'default') {
     isComparable ? delete newExpEl.comparableDataSource : delete newExpEl.dataSource;
     isComparable ? delete newExpEl.comparableValue : delete newExpEl.value;
@@ -323,7 +323,7 @@ export const addDataSourceValueToSubExpression = (
   dataSourceValue: string,
   isComparable: boolean,
 ): SubExpression => {
-  const newExpEl = deepCopy(expEl);
+  const newExpEl = ObjectUtils.deepCopy(expEl);
   // TODO: Remove check for 'NotImplementedYet' when applicationSettings can be retrieved. Issue #10856
   if (dataSourceValue === 'default' || dataSourceValue === 'NotImplementedYet') {
     isComparable ? delete newExpEl.comparableValue : delete newExpEl.value;
@@ -368,7 +368,7 @@ export const tryParseExpression = (
   complexExpression: any,
 ): Expression => {
   // TODO: Try format expression for better readability
-  const newExpression = deepCopy(oldExpression);
+  const newExpression = ObjectUtils.deepCopy(oldExpression);
   try {
     newExpression.complexExpression = JSON.parse(complexExpression as string);
   } catch (error) {
