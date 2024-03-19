@@ -1,1 +1,1 @@
-export { supportsProcessEditor, updateDataTaskTrackingLists } from './processEditorUtils';
+export { supportsProcessEditor } from './processEditorUtils';
