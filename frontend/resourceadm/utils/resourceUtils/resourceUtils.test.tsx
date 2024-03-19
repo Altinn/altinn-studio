@@ -3,9 +3,9 @@ import {
   getIsActiveTab,
   getMissingInputLanguageString,
   mapLanguageKeyToLanguageText,
-  mapKeywordStringToKeywordTypeArray,
   deepCompare,
-} from './resourceUtils';
+} from './';
+import { mapKeywordStringToKeywordTypeArray } from './resourceUtils';
 import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { TestFlaskIcon } from '@studio/icons';
 import React from 'react';
