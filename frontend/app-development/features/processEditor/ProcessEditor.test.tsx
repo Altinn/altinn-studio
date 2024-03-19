@@ -8,6 +8,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { RoutePaths } from '../../enums/RoutePaths';
+import { type SyncError } from './syncUtils';
 
 jest.mock('app-shared/hooks/useWebSocket', () => ({
   useWebSocket: jest.fn().mockReturnValue({ onWSMessageReceived: jest.fn() }),
@@ -31,12 +32,22 @@ describe('ProcessEditor', () => {
     });
   });
 
-  it('should call onWSMessageReceived with the correct parameters', () => {
-    const onWSMessageReceived = jest.fn();
-    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived });
+  it('should display error toast if onWSMessageReceived emits with errorCode', () => {
+    const mockOnWSMessageReceived = jest.fn();
+    useWebSocket.mockReturnValue({ onWSMessageReceived: mockOnWSMessageReceived });
     renderProcessEditor();
 
-    expect(onWSMessageReceived).toHaveBeenCalledTimes(1);
+    const syncErrorMock: SyncError = {
+      errorCode: 'applicationMetadataTaskIdSyncError',
+      source: {
+        name: '',
+        path: '',
+      },
+      details: '',
+    };
+
+    mockOnWSMessageReceived(syncErrorMock);
+    expect(mockOnWSMessageReceived).toHaveBeenCalledWith(syncErrorMock);
   });
 });
 
