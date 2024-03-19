@@ -28,12 +28,14 @@ const layouts: IFormLayouts = {
 const componentWithExpression: FormComponent<ComponentType.Input> = {
   id: 'some-id',
   type: ComponentType.Input,
+  dataModelBindings: { simpleBinding: 'some-path' },
   itemType: 'COMPONENT',
   hidden: parsableLogicalExpression,
 };
 const componentWithoutExpression: FormComponent<ComponentType.Input> = {
   id: 'some-id',
   type: ComponentType.Input,
+  dataModelBindings: { simpleBinding: 'some-path' },
   itemType: 'COMPONENT',
 };
 
@@ -66,6 +68,7 @@ describe('Expressions', () => {
     const componentWithMultipleExpressions: FormComponent = {
       id: 'some-id',
       type: ComponentType.Input,
+      dataModelBindings: { simpleBinding: 'some-path' },
       itemType: 'COMPONENT',
       hidden: parsableLogicalExpression,
       required: parsableLogicalExpression,
@@ -84,6 +87,7 @@ describe('Expressions', () => {
         id: 'some-id',
         itemType: 'CONTAINER',
         type: ComponentType.RepeatingGroup,
+        dataModelBindings: { group: 'some-path' },
         hidden: parsableLogicalExpression,
         edit: {
           addButton: parsableLogicalExpression,
@@ -152,6 +156,7 @@ describe('Expressions', () => {
       id: 'some-id',
       itemType: 'CONTAINER',
       type: ComponentType.RepeatingGroup,
+      dataModelBindings: { group: 'some-path' },
       edit: {
         multiPage: true,
       },

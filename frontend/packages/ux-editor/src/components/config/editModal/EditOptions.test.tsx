@@ -17,7 +17,7 @@ const mockComponent: FormComponent<ComponentType.RadioButtons> = {
   },
   maxLength: 10,
   itemType: 'COMPONENT',
-  dataModelBindings: {},
+  dataModelBindings: { simpleBinding: '' },
 };
 
 const renderEditOptions = <T extends ComponentType.Checkboxes | ComponentType.RadioButtons>({
