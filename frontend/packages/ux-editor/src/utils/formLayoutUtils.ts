@@ -392,7 +392,7 @@ export const isItemChildOfContainer = (
   containerType?: ContainerComponentType,
 ): boolean => {
   const parentId = findParentId(layout, itemId);
-  if (parentId === BASE_CONTAINER_ID) return false;
+  if (parentId === BASE_CONTAINER_ID || !parentId) return false;
   const parent = getItem(layout, parentId);
   return !containerType || parent.type === containerType;
 };
