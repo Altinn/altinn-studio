@@ -6,7 +6,7 @@ export const reservedDataTypes = {
   refDataAsPdf: 'ref-data-as-pdf',
 };
 
-export const getCurrentAttachments = (
+export const extractCurrentAvailableAttachments = (
   includeCurrentTask: boolean,
   attachments: AvailableAttachementLists,
 ): string[] =>

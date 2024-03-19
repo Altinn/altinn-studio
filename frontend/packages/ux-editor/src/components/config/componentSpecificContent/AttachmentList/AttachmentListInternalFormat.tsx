@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Fieldset, Switch } from '@digdir/design-system-react';
 import { AttachmentListContent } from './AttachmentListContent';
 import { useTranslation } from 'react-i18next';
-import { isSelectionValid } from './attachmentListUtils';
+import { extractCurrentAvailableAttachments, isSelectionValid } from './attachmentListUtils';
 import { ArrayUtils } from '@studio/pure-functions';
 import type { AvailableAttachementLists, InternalDataTypesFormat } from './types';
 
@@ -60,8 +60,8 @@ export const AttachmentListInternalFormat = ({
   };
 
   const currentAvailableAttachments = extractCurrentAvailableAttachments(
+    dataTypesState.currentTask,
     availableAttachments,
-    dataTypesState,
   );
   const { includePdf, currentTask, selectedDataTypes } = dataTypesState;
   return (
@@ -97,14 +97,4 @@ const getAllowedDataTypesOnCurrentTask = (
   attachmentsCurrentTasks: string[],
 ): string[] => {
   return ArrayUtils.intersection(selectedDataTypes, attachmentsCurrentTasks);
-};
-
-const extractCurrentAvailableAttachments = (
-  availableAttachments: AvailableAttachementLists,
-  internalDataFormat: InternalDataTypesFormat,
-): string[] => {
-  const { currentTask } = internalDataFormat;
-  return currentTask
-    ? availableAttachments.attachmentsCurrentTasks
-    : availableAttachments.attachmentsAllTasks;
 };

@@ -1,4 +1,4 @@
-import { getCurrentAttachments, reservedDataTypes } from '../attachmentListUtils';
+import { extractCurrentAvailableAttachments, reservedDataTypes } from '../attachmentListUtils';
 import type { AvailableAttachementLists, InternalDataTypesFormat } from '../types';
 
 export const convertInternalToExternalFormat = (
@@ -7,7 +7,10 @@ export const convertInternalToExternalFormat = (
 ): string[] => {
   const { currentTask: includeCurrentTask } = dataTypeIds;
 
-  const currentAttachments = getCurrentAttachments(includeCurrentTask, availableAttachments);
+  const currentAttachments = extractCurrentAvailableAttachments(
+    includeCurrentTask,
+    availableAttachments,
+  );
   const selectedDataTypesExternalFormat = convertSelectedDataTypes(dataTypeIds, currentAttachments);
 
   if (includeCurrentTask) {
