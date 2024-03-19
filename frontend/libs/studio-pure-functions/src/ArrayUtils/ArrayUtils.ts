@@ -33,7 +33,7 @@ export class ArrayUtils {
   public static removeItemByIndex = <T>(array: T[], indexToRemove: number): T[] =>
     array.filter((_, index) => index !== indexToRemove);
 
-  /** Returns the provided array if if has at least one item, otherwise returns undefined */
+  /** Returns the provided array if it has at least one item, otherwise returns undefined */
   public static getNonEmptyArrayOrUndefined = <T>(array: T[]): T[] | undefined =>
     array.length > 0 ? array : undefined;
 }
