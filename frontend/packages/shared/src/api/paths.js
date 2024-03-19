@@ -16,11 +16,7 @@ export const serviceConfigPath = (org, app) => `${basePath}/${org}/${app}/config
 
 // Datamodel
 export const createDatamodelPath = (org, app) => `${basePath}/${org}/${app}/datamodels/new`; // Post
-export const datamodelPath = (org, app, modelPath, saveOnly = false) =>
-  `${basePath}/${org}/${app}/datamodels/datamodel?${s({
-    modelPath,
-    saveOnly,
-  })}`; // Get, Put, Delete
+export const datamodelPath = (org, app, modelPath, saveOnly = false) => `${basePath}/${org}/${app}/datamodels/datamodel?${s({ modelPath, saveOnly })}`; // Get, Put, Delete
 export const datamodelsPath = (org, app) => `${basePath}/${org}/${app}/datamodels/all-json`; // Get
 export const datamodelsXsdPath = (org, app) => `${basePath}/${org}/${app}/datamodels/all-xsd`; // Get
 export const datamodelsUploadPath = (org, app) => `${basePath}/${org}/${app}/datamodels/upload`; // Post
@@ -84,11 +80,7 @@ export const envConfigPath = () => `${basePath}/environments`;
 export const abortmergePath = (org, app) => `${basePath}/repos/repo/${org}/${app}/abort-merge`;
 export const branchStatusPath = (org, app, branch) => `${basePath}/repos/repo/${org}/${app}/branches/branch?${s({ branch })}`; // Get
 export const cloneAppPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/clone`; // Get
-export const copyAppPath = (org, sourceRepository, targetRepository) =>
-  `${basePath}/repos/repo/${org}/copy-app?${s({
-    sourceRepository,
-    targetRepository,
-  })}`;
+export const copyAppPath = (org, sourceRepository, targetRepository) => `${basePath}/repos/repo/${org}/copy-app?${s({ sourceRepository, targetRepository })}`;
 export const createRepoPath = () => `${basePath}/repos/create-app`; // Post
 export const discardChangesPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/discard`; // Get
 export const discardFileChangesPath = (org, app, filename) => `${basePath}/repos/repo/${org}/${app}/discard/${filename}`; // Get
