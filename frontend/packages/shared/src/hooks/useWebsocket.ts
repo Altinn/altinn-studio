@@ -6,7 +6,7 @@ type UseWebSocketResult = {
 };
 
 type UseWebsocket = {
-  websocketUrl: string;
+  webSocketUrl: string;
   webSocketConnector: typeof WSConnector;
 };
 
