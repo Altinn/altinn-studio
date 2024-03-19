@@ -22,18 +22,18 @@ public class ProcessEngineMetricsDecoratorTests
     {
         // Arrange
         var processEngine = new Mock<IProcessEngine>();
-        processEngine.Setup(p => p.StartProcess(It.IsAny<ProcessStartRequest>())).ReturnsAsync(new ProcessChangeResult { Success = true });
+        processEngine.Setup(p => p.GenerateProcessStartEvents(It.IsAny<ProcessStartRequest>())).ReturnsAsync(new ProcessChangeResult { Success = true });
         var decorator = new ProcessEngineMetricsDecorator(processEngine.Object);
         (await ReadPrometheusMetricsToString()).Should().NotContain("altinn_app_process_start_count{result=\"success\"}");
 
-        var result = await decorator.StartProcess(new ProcessStartRequest());
+        var result = await decorator.GenerateProcessStartEvents(new ProcessStartRequest());
 
         (await ReadPrometheusMetricsToString()).Should().Contain("altinn_app_process_start_count{result=\"success\"} 1");
         result.Success.Should().BeTrue();
-        result = await decorator.StartProcess(new ProcessStartRequest());
+        result = await decorator.GenerateProcessStartEvents(new ProcessStartRequest());
         (await ReadPrometheusMetricsToString()).Should().Contain("altinn_app_process_start_count{result=\"success\"} 2");
         result.Success.Should().BeTrue();
-        processEngine.Verify(p => p.StartProcess(It.IsAny<ProcessStartRequest>()), Times.Exactly(2));
+        processEngine.Verify(p => p.GenerateProcessStartEvents(It.IsAny<ProcessStartRequest>()), Times.Exactly(2));
         processEngine.VerifyNoOtherCalls();
     }
 
@@ -42,18 +42,18 @@ public class ProcessEngineMetricsDecoratorTests
     {
         // Arrange
         var processEngine = new Mock<IProcessEngine>();
-        processEngine.Setup(p => p.StartProcess(It.IsAny<ProcessStartRequest>())).ReturnsAsync(new ProcessChangeResult { Success = false });
+        processEngine.Setup(p => p.GenerateProcessStartEvents(It.IsAny<ProcessStartRequest>())).ReturnsAsync(new ProcessChangeResult { Success = false });
         var decorator = new ProcessEngineMetricsDecorator(processEngine.Object);
         (await ReadPrometheusMetricsToString()).Should().NotContain("altinn_app_process_start_count{result=\"failure\"}");
 
-        var result = await decorator.StartProcess(new ProcessStartRequest());
+        var result = await decorator.GenerateProcessStartEvents(new ProcessStartRequest());
 
         (await ReadPrometheusMetricsToString()).Should().Contain("altinn_app_process_start_count{result=\"failure\"} 1");
         result.Success.Should().BeFalse();
-        result = await decorator.StartProcess(new ProcessStartRequest());
+        result = await decorator.GenerateProcessStartEvents(new ProcessStartRequest());
         (await ReadPrometheusMetricsToString()).Should().Contain("altinn_app_process_start_count{result=\"failure\"} 2");
         result.Success.Should().BeFalse();
-        processEngine.Verify(p => p.StartProcess(It.IsAny<ProcessStartRequest>()), Times.Exactly(2));
+        processEngine.Verify(p => p.GenerateProcessStartEvents(It.IsAny<ProcessStartRequest>()), Times.Exactly(2));
         processEngine.VerifyNoOtherCalls();
     }
 
@@ -288,13 +288,13 @@ public class ProcessEngineMetricsDecoratorTests
     {
         // Arrange
         var processEngine = new Mock<IProcessEngine>();
-        processEngine.Setup(p => p.UpdateInstanceAndRerunEvents(It.IsAny<ProcessStartRequest>(), It.IsAny<List<InstanceEvent>>())).ReturnsAsync(new Instance { });
+        processEngine.Setup(p => p.HandleEventsAndUpdateStorage(It.IsAny<Instance>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<List<InstanceEvent>>())).ReturnsAsync(new Instance { });
         var decorator = new ProcessEngineMetricsDecorator(processEngine.Object);
         (await ReadPrometheusMetricsToString()).Should().NotContain("altinn_app_process_start_count{result=\"success\"}");
 
-        await decorator.UpdateInstanceAndRerunEvents(new ProcessStartRequest(), new List<InstanceEvent>());
+        await decorator.HandleEventsAndUpdateStorage(It.IsAny<Instance>(), It.IsAny<Dictionary<string, string>>(), new List<InstanceEvent>());
 
-        processEngine.Verify(p => p.UpdateInstanceAndRerunEvents(It.IsAny<ProcessStartRequest>(), It.IsAny<List<InstanceEvent>>()), Times.Once);
+        processEngine.Verify(p => p.HandleEventsAndUpdateStorage(It.IsAny<Instance>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<List<InstanceEvent>>()), Times.Once);
         processEngine.VerifyNoOtherCalls();
     }
 

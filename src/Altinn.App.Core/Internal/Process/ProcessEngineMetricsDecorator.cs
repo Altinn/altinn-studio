@@ -25,9 +25,9 @@ public class ProcessEngineMetricsDecorator : IProcessEngine
     }
 
     /// <inheritdoc/>
-    public async Task<ProcessChangeResult> StartProcess(ProcessStartRequest processStartRequest)
+    public async Task<ProcessChangeResult> GenerateProcessStartEvents(ProcessStartRequest processStartRequest)
     {
-        var result = await _processEngine.StartProcess(processStartRequest);
+        var result = await _processEngine.GenerateProcessStartEvents(processStartRequest);
         ProcessTaskStartCounter.WithLabels(result.Success ? "success" : "failure").Inc();
         return result;
     }
@@ -49,8 +49,8 @@ public class ProcessEngineMetricsDecorator : IProcessEngine
     }
 
     /// <inheritdoc/>
-    public async Task<Instance> UpdateInstanceAndRerunEvents(ProcessStartRequest startRequest, List<InstanceEvent>? events)
+    public async Task<Instance> HandleEventsAndUpdateStorage(Instance instance, Dictionary<string, string>? prefill, List<InstanceEvent>? events)
     {
-        return await _processEngine.UpdateInstanceAndRerunEvents(startRequest, events);
+        return await _processEngine.HandleEventsAndUpdateStorage(instance, prefill, events);
     }
 }

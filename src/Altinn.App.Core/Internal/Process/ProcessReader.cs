@@ -1,5 +1,6 @@
 using System.Xml.Serialization;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.Elements.Base;
 
 namespace Altinn.App.Core.Internal.Process;
@@ -167,5 +168,18 @@ public class ProcessReader : IProcessReader
         flowElements.AddRange(GetExclusiveGateways());
         flowElements.AddRange(GetEndEvents());
         return flowElements;
+    }
+
+    /// <inheritdoc />
+    public AltinnTaskExtension? GetAltinnTaskExtension(string elementId)
+    {
+        ProcessElement? flowElement = GetFlowElement(elementId);
+
+        if (flowElement is ProcessTask processTask)
+        {
+            return processTask.ExtensionElements?.TaskExtension ?? throw new ProcessException("No AltinnTaskExtension found on task");
+        }
+
+        return null;
     }
 }

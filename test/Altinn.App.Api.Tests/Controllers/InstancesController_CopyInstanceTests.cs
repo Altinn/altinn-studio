@@ -360,9 +360,9 @@ public class InstancesController_CopyInstanceTests
         _instanceClient.Setup(i => i.CreateInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Instance>())).ReturnsAsync(instance);
         _instanceClient.Setup(i => i.GetInstance(It.IsAny<Instance>())).ReturnsAsync(instance);
         _instantiationValidator.Setup(v => v.Validate(It.IsAny<Instance>())).ReturnsAsync(instantiationValidationResult);
-        _processEngine.Setup(p => p.StartProcess(It.IsAny<ProcessStartRequest>()))
+        _processEngine.Setup(p => p.GenerateProcessStartEvents(It.IsAny<ProcessStartRequest>()))
             .ReturnsAsync(() => { return new ProcessChangeResult() { Success = true }; });
-        _processEngine.Setup(p => p.UpdateInstanceAndRerunEvents(It.IsAny<ProcessStartRequest>(), It.IsAny<List<InstanceEvent>>()));
+        _processEngine.Setup(p => p.HandleEventsAndUpdateStorage(It.IsAny<Instance>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<List<InstanceEvent>>()));
         _data.Setup(p => p.GetFormData(instanceGuid, It.IsAny<Type?>()!, Org, AppName, InstanceOwnerPartyId, dataGuid))
             .ReturnsAsync(new { test = "test" });
         _data.Setup(p => p.InsertFormData(It.IsAny<object>(), instanceGuid, It.IsAny<Type?>()!, Org, AppName, InstanceOwnerPartyId, dataTypeId))

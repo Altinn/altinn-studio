@@ -7,6 +7,7 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
+using DataElement = Altinn.Platform.Storage.Interface.Models.DataElement;
 
 
 namespace App.IntegrationTests.Mocks.Services
@@ -340,9 +341,9 @@ namespace App.IntegrationTests.Mocks.Services
         {
             // 🤬The signature does not take org/app,
             // but our test data is organized by org/app.
-            var (org, app) = TestData.GetInstanceOrgApp(instanceIdentifier);
-            var dataElement = GetDataElements(org, app, instanceIdentifier.InstanceOwnerPartyId, instanceIdentifier.InstanceGuid);
-            var element = dataElement.FirstOrDefault(d => d.Id == dataGuid.ToString());
+            (string org, string app) = TestData.GetInstanceOrgApp(instanceIdentifier);
+            List<DataElement> dataElement = GetDataElements(org, app, instanceIdentifier.InstanceOwnerPartyId, instanceIdentifier.InstanceGuid);
+            DataElement? element = dataElement.FirstOrDefault(d => d.Id == dataGuid.ToString());
             if (element is null)
             {
                 throw new Exception("Data element not found.");
@@ -354,7 +355,18 @@ namespace App.IntegrationTests.Mocks.Services
 
         public Task<DataElement> UnlockDataElement(InstanceIdentifier instanceIdentifier, Guid dataGuid)
         {
-            throw new NotImplementedException();
+            // 🤬The signature does not take org/app,
+            // but our test data is organized by org/app.
+            (string org, string app) = TestData.GetInstanceOrgApp(instanceIdentifier);
+            List<DataElement> dataElement = GetDataElements(org, app, instanceIdentifier.InstanceOwnerPartyId, instanceIdentifier.InstanceGuid);
+            DataElement? element = dataElement.FirstOrDefault(d => d.Id == dataGuid.ToString());
+            if (element is null)
+            {
+                throw new Exception("Data element not found.");
+            }
+            element.Locked = false;
+            WriteDataElementToFile(element, org, app, instanceIdentifier.InstanceOwnerPartyId);
+            return Task.FromResult(element);
         }
 
         private static void WriteDataElementToFile(DataElement dataElement, string org, string app, int instanceOwnerPartyId)

@@ -221,8 +221,7 @@ namespace Altinn.App.Api.Controllers
             }
 
             ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
-
-            RequestPartValidator requestValidator = new RequestPartValidator(application);
+            RequestPartValidator requestValidator = new(application);
             string? multipartError = requestValidator.ValidateParts(parsedRequest.Parts);
 
             if (!string.IsNullOrEmpty(multipartError))
@@ -250,7 +249,6 @@ namespace Altinn.App.Api.Controllers
             }
 
             EnforcementResult enforcementResult = await AuthorizeAction(org, app, party.PartyId, null, "instantiate");
-
             if (!enforcementResult.Authorized)
             {
                 return Forbidden(enforcementResult);
@@ -278,13 +276,13 @@ namespace Altinn.App.Api.Controllers
             try
             {
                 // start process and goto next task
-                ProcessStartRequest processStartRequest = new ProcessStartRequest
+                ProcessStartRequest processStartRequest = new()
                 {
                     Instance = instanceTemplate,
-                    User = User,
-                    Dryrun = true
+                    User = User
                 };
-                var result = await _processEngine.StartProcess(processStartRequest);
+
+                ProcessChangeResult result = await _processEngine.GenerateProcessStartEvents(processStartRequest);
                 if (!result.Success)
                 {
                     return Conflict(result.ErrorMessage);
@@ -308,14 +306,8 @@ namespace Altinn.App.Api.Controllers
                 instance = await _instanceClient.GetInstance(app, org, int.Parse(instance.InstanceOwner.PartyId), Guid.Parse(instance.Id.Split("/")[1]));
 
                 // notify app and store events
-                var request = new ProcessStartRequest()
-                {
-                    Instance = instance,
-                    User = User,
-                    Dryrun = false,
-                };
                 _logger.LogInformation("Events sent to process engine: {Events}", change?.Events);
-                await _processEngine.UpdateInstanceAndRerunEvents(request, change?.Events);
+                await _processEngine.HandleEventsAndUpdateStorage(instance, null, change?.Events);
             }
             catch (Exception exception)
             {
@@ -409,14 +401,14 @@ namespace Altinn.App.Api.Controllers
                 return StatusCode((int)HttpStatusCode.Forbidden, $"Party {party.PartyId} is not allowed to instantiate this application {org}/{app}");
             }
 
-            Instance instanceTemplate = new Instance()
+            Instance instanceTemplate = new()
             {
                 InstanceOwner = instansiationInstance.InstanceOwner,
                 VisibleAfter = instansiationInstance.VisibleAfter,
-                DueBefore = instansiationInstance.DueBefore
+                DueBefore = instansiationInstance.DueBefore,
+                Org = application.Org
             };
 
-            instanceTemplate.Org = application.Org;
             ConditionallySetReadStatus(instanceTemplate);
 
             // Run custom app logic to validate instantiation
@@ -437,11 +429,10 @@ namespace Altinn.App.Api.Controllers
                 {
                     Instance = instanceTemplate,
                     User = User,
-                    Dryrun = true,
                     Prefill = instansiationInstance.Prefill
                 };
 
-                processResult = await _processEngine.StartProcess(request);
+                processResult = await _processEngine.GenerateProcessStartEvents(request);
 
                 Instance? source = null;
 
@@ -473,15 +464,7 @@ namespace Altinn.App.Api.Controllers
                 }
 
                 instance = await _instanceClient.GetInstance(instance);
-
-                var updateRequest = new ProcessStartRequest()
-                {
-                    Instance = instance,
-                    User = User,
-                    Dryrun = false,
-                    Prefill = instansiationInstance.Prefill
-                };
-                await _processEngine.UpdateInstanceAndRerunEvents(updateRequest, processResult.ProcessStateChange?.Events);
+                await _processEngine.HandleEventsAndUpdateStorage(instance, instansiationInstance.Prefill, processResult.ProcessStateChange?.Events);
             }
             catch (Exception exception)
             {
@@ -573,10 +556,10 @@ namespace Altinn.App.Api.Controllers
             ProcessStartRequest processStartRequest = new()
             {
                 Instance = targetInstance,
-                User = User,
-                Dryrun = true
+                User = User
             };
-            var startResult = await _processEngine.StartProcess(processStartRequest);
+
+            ProcessChangeResult startResult = await _processEngine.GenerateProcessStartEvents(processStartRequest);
 
             targetInstance = await _instanceClient.CreateInstance(org, app, targetInstance);
 
@@ -584,13 +567,7 @@ namespace Altinn.App.Api.Controllers
 
             targetInstance = await _instanceClient.GetInstance(targetInstance);
 
-            ProcessStartRequest rerunRequest = new()
-            {
-                Instance = targetInstance,
-                Dryrun = false,
-                User = User
-            };
-            await _processEngine.UpdateInstanceAndRerunEvents(rerunRequest, startResult.ProcessStateChange?.Events);
+            await _processEngine.HandleEventsAndUpdateStorage(targetInstance, null, startResult.ProcessStateChange?.Events);
 
             await RegisterEvent("app.instance.created", targetInstance);
 

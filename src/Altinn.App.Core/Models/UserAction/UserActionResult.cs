@@ -1,7 +1,24 @@
-
 using Altinn.App.Core.Models.Process;
-
 namespace Altinn.App.Core.Models.UserAction;
+
+/// <summary>
+/// Represents the result of a user action
+/// </summary>
+public enum ResultType
+{
+    /// <summary>
+    /// The user action succeeded
+    /// </summary>
+    Success,
+    /// <summary>
+    /// The user action failed
+    /// </summary>
+    Failure,
+    /// <summary>
+    /// The client should redirect the user to a new url
+    /// </summary>
+    Redirect
+}
 
 /// <summary>
 /// Represents the result of a user action
@@ -11,7 +28,7 @@ public class UserActionResult
     /// <summary>
     /// Gets or sets a value indicating whether the user action was a success
     /// </summary>
-    public bool Success { get; init; }
+    public ResultType ResultType { get; init; }
 
     /// <summary>
     /// Gets or sets a dictionary of updated data models. Key should be elementId and value should be the updated data model
@@ -34,6 +51,10 @@ public class UserActionResult
     public ProcessErrorType ErrorType { get; set; }
 
     /// <summary>
+    /// If this is set, the client should redirect to this url
+    /// </summary>
+    public string? RedirectUrl { get; set; }
+    /// <summary>
     /// Creates a success result
     /// </summary>
     /// <param name="clientActions"></param>
@@ -42,7 +63,7 @@ public class UserActionResult
     {
         var userActionResult = new UserActionResult
         {
-            Success = true,
+            ResultType = ResultType.Success,
             ClientActions = clientActions
         };
         return userActionResult;
@@ -56,10 +77,24 @@ public class UserActionResult
     {
         return new UserActionResult
         {
-            Success = false,
+            ResultType = ResultType.Failure,
             ClientActions = clientActions,
             Error = error,
             ErrorType = errorType
+        };
+    }
+
+    /// <summary>
+    /// Creates a redirect result
+    /// </summary>
+    /// <param name="redirectUrl"></param>
+    /// <returns></returns>
+    public static UserActionResult RedirectResult(string redirectUrl)
+    {
+        return new UserActionResult
+        {
+            ResultType = ResultType.Redirect,
+            RedirectUrl = redirectUrl
         };
     }
 

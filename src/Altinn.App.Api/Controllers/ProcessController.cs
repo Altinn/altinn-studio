@@ -126,14 +126,15 @@ namespace Altinn.App.Api.Controllers
                 {
                     Instance = instance,
                     StartEventId = startEvent,
-                    User = User,
-                    Dryrun = false
+                    User = User
                 };
-                var result = await _processEngine.StartProcess(request);
+                ProcessChangeResult result = await _processEngine.GenerateProcessStartEvents(request);
                 if (!result.Success)
                 {
                     return Conflict(result.ErrorMessage);
                 }
+
+                await _processEngine.HandleEventsAndUpdateStorage(instance, null, result.ProcessStateChange?.Events);
 
                 AppProcessState appProcessState = await ConvertAndAuthorizeActions(instance, result.ProcessStateChange?.NewProcessState);
                 return Ok(appProcessState);

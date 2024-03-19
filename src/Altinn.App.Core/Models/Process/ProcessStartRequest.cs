@@ -24,8 +24,4 @@ public class ProcessStartRequest
     /// The start event id, only needed if multiple start events in process
     /// </summary>
     public string? StartEventId { get; set; }
-    /// <summary>
-    /// If set to true the instance is not updated and the events are not dispatched
-    /// </summary>
-    public bool Dryrun { get; set; }
 }
