@@ -29,7 +29,7 @@ export const TextResourceValueEditor = ({
 }: TextResourceValueEditorProps) => {
   const { org, app } = useStudioUrlParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
-  const { previewIframeRef } = useAppContext();
+  const { refetchTexts } = useAppContext();
   const { mutate } = useUpsertTextResourcesMutation(org, app);
   const value = getTextResourceValue(textResources, textResourceId);
   const [valueState, setValueState] = useState<string>(value);
@@ -45,15 +45,13 @@ export const TextResourceValueEditor = ({
       mutate(
         { language, textResources: [textResource] },
         {
-          onSuccess: () => {
-            previewIframeRef.current?.contentWindow?.queryClient.invalidateQueries({
-              queryKey: ['fetchTextResources', language],
-            });
+          onSuccess: async () => {
+            await refetchTexts(language);
           },
         },
       );
     },
-    [textResourceId, mutate, previewIframeRef],
+    [textResourceId, mutate, refetchTexts],
   );
 
   return (
