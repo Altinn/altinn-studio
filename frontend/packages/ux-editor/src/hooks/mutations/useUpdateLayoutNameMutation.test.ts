@@ -45,10 +45,9 @@ const renderAndWaitForData = async () => {
   const formLayoutsResult = renderHookWithMockStore()(() =>
     useFormLayoutsQuery(org, app, selectedLayoutSet),
   ).renderHookResult.result;
-  const settingsResult = renderHookWithMockStore(
-    {},
-    { getFormLayoutSettings },
-  )(() => useFormLayoutSettingsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const settingsResult = renderHookWithMockStore({ getFormLayoutSettings })(() =>
+    useFormLayoutSettingsQuery(org, app, selectedLayoutSet),
+  ).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 };

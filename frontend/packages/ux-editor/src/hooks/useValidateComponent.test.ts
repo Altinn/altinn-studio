@@ -149,6 +149,6 @@ const render = (component: FormComponent) => {
       .fn()
       .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
   };
-  return renderHookWithMockStore({}, queries)(() => useValidateComponent(component))
-    .renderHookResult.result.current;
+  return renderHookWithMockStore(queries)(() => useValidateComponent(component)).renderHookResult
+    .result.current;
 };

@@ -1,27 +1,14 @@
-import type { IAppState, IFormLayouts } from '../types/global';
-import { appStateMock, formDesignerMock } from '../testing/stateMocks';
+import type { IFormLayouts } from '../types/global';
 import {
   getAllLayoutComponents,
   getAllLayoutContainers,
   getFullLayoutOrder,
-  selectedLayoutNameSelector,
 } from './formLayoutSelectors';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
 // Test data:
 const layout1Name = 'Side1';
 const layout2Name = 'Side2';
-const selectedLayout = layout1Name;
-const appState: IAppState = {
-  ...appStateMock,
-  formDesigner: {
-    ...formDesignerMock,
-    layout: {
-      ...formDesignerMock.layout,
-      selectedLayout,
-    },
-  },
-};
 const container0Id = '42d928ea-57bc-4744-84d0-52d8ed80fd4d';
 const container1Id = '46c74255-82b2-41a3-8208-39e552547b3f';
 const container2Id = '990f0895-c7ad-4d69-81df-3cade0cbe574';
@@ -113,10 +100,6 @@ const formLayoutsData: IFormLayouts = {
 };
 
 describe('formLayoutSelectors', () => {
-  test('selectedLayoutNameSelector', () => {
-    expect(selectedLayoutNameSelector(appState)).toEqual(selectedLayout);
-  });
-
   test('getAllLayoutContainers', () => {
     expect(getAllLayoutContainers(formLayoutsData)).toEqual({
       [container0Id]: formLayoutsData[layout1Name].containers[container0Id],

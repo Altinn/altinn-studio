@@ -1,13 +1,11 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithMockStore } from '../../testing/mocks';
-import { appStateMock, formDesignerMock } from '../../testing/stateMocks';
 import { waitFor } from '@testing-library/react';
 import type { AddFormItemMutationArgs } from './useAddItemToLayoutMutation';
 import { useAddItemToLayoutMutation } from './useAddItemToLayoutMutation';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
-import type { IAppState } from '../../types/global';
 import { externalLayoutsMock, layoutSetsMock } from '../../testing/layoutMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
@@ -24,16 +22,6 @@ const defaultArgs: AddFormItemMutationArgs = {
   parentId: 'Container-1',
   index: 0,
 };
-
-const appStateMockCopy = (layoutSetName: string): Partial<IAppState> => ({
-  ...appStateMock,
-  formDesigner: {
-    layout: {
-      ...formDesignerMock.layout,
-      selectedLayoutSet: layoutSetName,
-    },
-  },
-});
 
 const applicationAttachmentMetaDataMock: ApplicationAttachmentMetadata = {
   id,
@@ -105,7 +93,6 @@ const renderAddItemToLayoutMutation = (layoutSetName?: string) => {
     [QueryKey.LayoutSets, org, app],
     layoutSetName ? layoutSetsMock : null,
   );
-  return renderHookWithMockStore(appStateMockCopy(layoutSetName))(() =>
-    useAddItemToLayoutMutation(org, app, layoutSetName),
-  ).renderHookResult;
+  return renderHookWithMockStore()(() => useAddItemToLayoutMutation(org, app, layoutSetName))
+    .renderHookResult;
 };

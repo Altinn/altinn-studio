@@ -192,6 +192,6 @@ describe('FormComponentConfig', () => {
       handleComponentUpdate: jest.fn(),
       hideUnsupported: false,
     };
-    return renderWithMockStore({}, queries)(<FormComponentConfig {...defaultProps} {...props} />);
+    return renderWithMockStore(queries)(<FormComponentConfig {...defaultProps} {...props} />);
   };
 });

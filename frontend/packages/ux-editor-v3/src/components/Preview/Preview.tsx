@@ -62,7 +62,6 @@ const NoSelectedPageMessage = () => {
 const PreviewFrame = () => {
   const { org, app } = useStudioUrlParams();
   const [viewportToSimulate, setViewportToSimulate] = useState<SupportedView>('desktop');
-  const { selectedLayoutSet } = useAppContext();
   const { t } = useTranslation();
   const { previewIframeRef } = useAppContext();
   const layoutName = useSelector(selectedLayoutNameSelector);
@@ -80,7 +79,7 @@ const PreviewFrame = () => {
             ref={previewIframeRef}
             className={cn(classes.iframe, classes[viewportToSimulate])}
             title={t('ux_editor.preview')}
-            src={previewPage(org, app, selectedLayoutSet)}
+            src={previewPage(org, app, layoutName)}
           />
         </div>
         <PreviewLimitationsInfo />

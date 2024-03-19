@@ -25,7 +25,7 @@ const textResources: ITextResources = {
 describe('useItemTitle', () => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
-  const { result } = renderHookWithMockStore({}, {}, queryClient)(useItemTitle).renderHookResult;
+  const { result } = renderHookWithMockStore({}, queryClient)(useItemTitle).renderHookResult;
 
   it('Returns the correct title when the item is a container', () => {
     const id = '1';

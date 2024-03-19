@@ -7,7 +7,6 @@ import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
-import { formDesignerMock } from '../../../testing/stateMocks';
 import type { IFormLayouts } from '../../../types/global';
 import { layout1NameMock, layoutMock } from '../../../testing/layoutMock';
 
@@ -70,19 +69,5 @@ const renderPageConfigPanel = (
   queryClientMock.setQueryData([QueryKey.TextResources, org, app], textResources);
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet], layouts);
   queryClientMock.setQueryData([QueryKey.DatamodelMetadata, org, app, layoutSet], []);
-  return renderWithProviders(<PageConfigPanel />, {
-    preloadedState: {
-      formDesigner: {
-        ...formDesignerMock,
-        layout: {
-          error: null,
-          saving: false,
-          unSavedChanges: false,
-          selectedLayoutSet: layoutSet,
-          selectedLayout: selectedLayoutName,
-          invalidLayouts: [],
-        },
-      },
-    },
-  });
+  return renderWithProviders(<PageConfigPanel />);
 };

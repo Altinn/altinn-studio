@@ -12,7 +12,6 @@ import {
 } from '../../../../testing/layoutMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { formDesignerMock } from '../../../../testing/stateMocks';
 import type { IFormLayouts } from '../../../../types/global';
 import type { FormContainer } from '../../../../types/FormContainer';
 import type { ComponentType } from 'app-shared/types/ComponentType';
@@ -20,7 +19,7 @@ import type { ComponentType } from 'app-shared/types/ComponentType';
 // Test data:
 const org = 'org';
 const app = 'app';
-const layoutSetName = formDesignerMock.layout.selectedLayoutSet;
+const layoutSetName = layout1NameMock;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };

@@ -58,8 +58,7 @@ type RenderUnknownReferencedItem = {
   queries?: Partial<ServicesContextProps>;
 };
 const renderUnknownReferencedItem = ({ props, queries = {} }: RenderUnknownReferencedItem) => {
-  return renderWithMockStore(
-    {},
-    { ...queries },
-  )(<UnknownReferencedItem id={props.id} layout={props.layout} />);
+  return renderWithMockStore({ ...queries })(
+    <UnknownReferencedItem id={props.id} layout={props.layout} />,
+  );
 };

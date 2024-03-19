@@ -1,7 +1,5 @@
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useDispatch } from 'react-redux';
-import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { IFormLayouts } from '../../types/global';
 import { deepCopy } from 'app-shared/pure';
@@ -20,7 +18,6 @@ export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetN
   const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, layoutSetName);
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
   const { refetchLayouts, refetchLayoutSettings } = useAppContext();
-  const dispatch = useDispatch();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ oldName, newName }: UpdateLayoutNameMutationArgs) =>
@@ -29,7 +26,13 @@ export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetN
         newName,
       })),
     onSuccess: async ({ oldName, newName }) => {
-      dispatch(FormLayoutActions.updateSelectedLayout(newName));
+      // if () {
+      //   setSelectedLayoutInLocalStorage(instanceId, pageName);
+      //   dispatch(FormLayoutActions.updateSelectedLayout(newName));
+      //   setSearchParams((prevParams) => ({ ...prevParams, layout: pageName }));
+      //   setOpenAccordion(pageName);
+      // }
+
       queryClient.setQueryData(
         [QueryKey.FormLayouts, org, app, layoutSetName],
         (oldLayouts: IFormLayouts) => {

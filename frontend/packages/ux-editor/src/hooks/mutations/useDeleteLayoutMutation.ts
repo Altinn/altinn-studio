@@ -1,7 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { useDispatch, useSelector } from 'react-redux';
-import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { IInternalLayout } from '../../types/global';
 import { deepCopy } from 'app-shared/pure';
@@ -9,27 +7,27 @@ import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuer
 import type { ILayoutSettings } from 'app-shared/types/global';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
-import { addOrRemoveNavigationButtons } from '../../utils/formLayoutsUtils';
+import { addOrRemoveNavigationButtons, firstAvailableLayout } from '../../utils/formLayoutsUtils';
 import type { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 import { useAddLayoutMutation } from './useAddLayoutMutation';
 import { useText } from '../useText';
-import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
 import { useAppContext } from '../../hooks/useAppContext';
+import { useSearchParams } from 'react-router-dom';
 
 export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName: string) => {
   const { deleteFormLayout, saveFormLayout } = useServicesContext();
 
   const { data: formLayouts } = useFormLayoutsQuery(org, app, layoutSetName);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, layoutSetName);
-  const { refetchLayouts, refetchLayoutSettings } = useAppContext();
+  const { selectedLayout, refetchLayouts, refetchLayoutSettings, reloadPreview } = useAppContext();
+  const [, setSearchParams] = useSearchParams();
 
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
   const addLayoutMutation = useAddLayoutMutation(org, app, layoutSetName);
-  const selectedLayout = useSelector(selectedLayoutNameSelector);
-  const dispatch = useDispatch();
   const t = useText();
   const queryClient = useQueryClient();
+  const layoutOrder = formLayoutSettings?.pages?.order;
 
   const saveLayout = async (updatedLayoutName: string, updatedLayout: IInternalLayout) => {
     const convertedLayout: ExternalFormLayout = internalLayoutToExternal(updatedLayout);
@@ -71,10 +69,15 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
       }
 
       queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], () => layouts);
-      dispatch(FormLayoutActions.deleteLayoutFulfilled({ layout: layoutName, pageOrder: order }));
 
-      await refetchLayouts();
-      await refetchLayoutSettings();
+      const layoutToSelect = firstAvailableLayout(layoutName, layoutOrder);
+      if (selectedLayout === layoutName) {
+        setSearchParams((prevParams) => ({ ...prevParams, layout: layoutToSelect }));
+      } else {
+        await refetchLayouts();
+        await refetchLayoutSettings();
+        reloadPreview(layoutToSelect);
+      }
     },
   });
 };

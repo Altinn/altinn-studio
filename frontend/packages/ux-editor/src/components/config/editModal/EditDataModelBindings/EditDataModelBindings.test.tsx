@@ -85,10 +85,7 @@ const render = ({
   handleComponentChange?: () => void;
   renderOptions?: { uniqueKey: string; key: string; label: string };
 }) => {
-  return renderWithMockStore(
-    {},
-    { getDatamodelMetadata },
-  )(
+  return renderWithMockStore({ getDatamodelMetadata })(
     <EditDataModelBindings
       handleComponentChange={handleComponentChange}
       component={component as FormItem}

@@ -1,7 +1,5 @@
 import { useFormLayoutsQuery } from './queries/useFormLayoutsQuery';
-import { useSelector } from 'react-redux';
 import type { IFormLayouts, IInternalLayout, IInternalLayoutWithName } from '../types/global';
-import { selectedLayoutNameSelector } from '../selectors/formLayoutSelectors';
 import { createEmptyLayout } from '../utils/formLayoutUtils';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from './useAppContext';
@@ -20,13 +18,13 @@ export const useFormLayout = (layoutName: string): IInternalLayout => {
 };
 
 export const useSelectedFormLayout = (): IInternalLayout => {
-  const layoutName = useSelector(selectedLayoutNameSelector);
-  return useFormLayout(layoutName);
+  const { selectedLayout } = useAppContext();
+  return useFormLayout(selectedLayout);
 };
 
 export const useSelectedFormLayoutWithName = (): IInternalLayoutWithName => {
   const layout = useSelectedFormLayout();
-  const layoutName = useSelector(selectedLayoutNameSelector);
+  const { selectedLayout: layoutName } = useAppContext();
   return {
     layout,
     layoutName,

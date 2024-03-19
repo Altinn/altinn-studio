@@ -103,9 +103,7 @@ describe('useFormLayoutMutation', () => {
 const renderAndMutate = (layout: IInternalLayout, appContext: Partial<AppContextProps> = {}) =>
   renderHookWithMockStore(
     {},
-    {},
     queryClientMock,
-    appContext,
   )(() =>
     useFormLayoutMutation(org, app, layoutName, selectedLayoutSet),
   ).renderHookResult.result.current.mutateAsync(layout);

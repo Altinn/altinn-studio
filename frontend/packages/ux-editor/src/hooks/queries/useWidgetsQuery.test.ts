@@ -44,10 +44,9 @@ describe('useWidgetsQuery', () => {
 });
 
 const render = async () => {
-  const { renderHookResult } = renderHookWithMockStore(
-    {},
-    { getWidgetSettings },
-  )(() => useWidgetsQuery(org, app));
+  const { renderHookResult } = renderHookWithMockStore({ getWidgetSettings })(() =>
+    useWidgetsQuery(org, app),
+  );
   await waitFor(() => expect(renderHookResult.result.current.isSuccess).toBe(true));
   return renderHookResult;
 };

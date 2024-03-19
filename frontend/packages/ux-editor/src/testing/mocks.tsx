@@ -1,10 +1,6 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import type { RenderOptions } from '@testing-library/react';
-import configureStore from 'redux-mock-store';
-import type { IAppState } from '../types/global';
-import { Provider } from 'react-redux';
-import type { PreloadedState } from '@reduxjs/toolkit';
 import { render, renderHook } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
@@ -12,15 +8,12 @@ import type { ILayoutSettings } from 'app-shared/types/global';
 import { BrowserRouter } from 'react-router-dom';
 import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewConnectionContext';
 import { layout1NameMock, layout2NameMock } from './layoutMock';
-import { appStateMock } from './stateMocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { QueryClient } from '@tanstack/react-query';
 import type { AppContextProps } from '../AppContext';
 import { AppContext } from '../AppContext';
 import { appContextMock } from './appContextMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import type { AppStore, RootState } from '../store';
-import { setupStore } from '../store';
 
 export const formLayoutSettingsMock: ILayoutSettings = {
   pages: {
@@ -37,30 +30,23 @@ type WrapperArgs = {
   appContextProps: Partial<AppContextProps>;
   queries: Partial<ServicesContextProps>;
   queryClient: QueryClient;
-  state: Partial<IAppState>;
-  storeCreator: ReturnType<typeof configureStore>;
 };
 
 const wrapper = ({
   appContextProps = {},
   queries = {},
   queryClient = queryClientMock,
-  state = {},
-  storeCreator,
 }: WrapperArgs) => {
-  const store = storeCreator({ ...appStateMock, ...state });
   const renderComponent = (component: ReactNode) => (
     <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
       <PreviewConnectionContextProvider>
-        <Provider store={store}>
-          <AppContext.Provider value={{ ...appContextMock, ...appContextProps }}>
-            <BrowserRouter>{component}</BrowserRouter>
-          </AppContext.Provider>
-        </Provider>
+        <AppContext.Provider value={{ ...appContextMock, ...appContextProps }}>
+          <BrowserRouter>{component}</BrowserRouter>
+        </AppContext.Provider>
       </PreviewConnectionContextProvider>
     </ServicesContextProvider>
   );
-  return { store, renderComponent };
+  return { renderComponent };
 };
 
 /**
@@ -69,51 +55,41 @@ const wrapper = ({
  */
 export const renderWithMockStore =
   (
-    state: Partial<IAppState> = {},
     queries: Partial<ServicesContextProps> = {},
     queryClient: QueryClient = queryClientMock,
     appContextProps: Partial<AppContextProps> = {},
   ) =>
   (component: ReactNode) => {
-    const storeCreator = configureStore();
-    const { renderComponent, store } = wrapper({
+    const { renderComponent } = wrapper({
       appContextProps,
       queries,
       queryClient,
-      state,
-      storeCreator,
     });
     const renderResult = render(renderComponent(component));
     const rerender = (rerenderedComponent) =>
       renderResult.rerender(renderComponent(rerenderedComponent));
-    return { renderResult: { ...renderResult, rerender }, store };
+    return { renderResult: { ...renderResult, rerender } };
   };
 
 export const renderHookWithMockStore =
   (
-    state: Partial<IAppState> = {},
     queries: Partial<ServicesContextProps> = {},
     queryClient: QueryClient = queryClientMock,
     appContextProps: Partial<AppContextProps> = {},
   ) =>
   (hook: () => any) => {
-    const storeCreator = configureStore();
-    const { renderComponent, store } = wrapper({
+    const { renderComponent } = wrapper({
       appContextProps,
       queries,
       queryClient,
-      state,
-      storeCreator,
     });
     const renderHookResult = renderHook(hook, {
       wrapper: ({ children }) => renderComponent(children),
     });
-    return { renderHookResult, store };
+    return { renderHookResult };
   };
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
-  preloadedState?: PreloadedState<RootState>;
-  store?: AppStore;
   queries?: Partial<ServicesContextProps>;
   queryClient?: QueryClient;
   appContextProps?: Partial<AppContextProps>;
@@ -122,10 +98,8 @@ interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
 export const renderWithProviders = (
   component: ReactNode,
   {
-    preloadedState = {},
     queries = {},
     queryClient = queryClientMock,
-    store = setupStore(preloadedState),
     appContextProps = {},
     ...renderOptions
   }: Partial<ExtendedRenderOptions> = {},
@@ -134,18 +108,15 @@ export const renderWithProviders = (
     return (
       <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
         <PreviewConnectionContextProvider>
-          <Provider store={store}>
-            <AppContext.Provider value={{ ...appContextMock, ...appContextProps }}>
-              <BrowserRouter>{children}</BrowserRouter>
-            </AppContext.Provider>
-          </Provider>
+          <AppContext.Provider value={{ ...appContextMock, ...appContextProps }}>
+            <BrowserRouter>{children}</BrowserRouter>
+          </AppContext.Provider>
         </PreviewConnectionContextProvider>
       </ServicesContextProvider>
     );
   }
 
   return {
-    store,
     ...render(component, {
       wrapper: Wrapper,
       ...renderOptions,

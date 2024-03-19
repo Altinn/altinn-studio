@@ -64,7 +64,7 @@ export const orgsListPath = () => `${basePath}/orgs`; // Get
 
 // Preview
 export const instanceIdForPreviewPath = (org, app) => `${basePath}/${org}/${app}/mock-instance-id`; // Get
-export const previewPage = (org, app, selectedLayoutSet) => `/app-specific-preview/${org}/${app}?${s({ selectedLayoutSet })}`;
+export const previewPage = (org, app, selectedLayout) => `/app-specific-preview/${org}/${app}#/instance/51001/f1e23d45-6789-1bcd-8c34-56789abcdef0/Task_1/${selectedLayout}`;
 
 // Preview - SignalR Hub
 export const previewSignalRHubSubPath = () => `/previewHub`;

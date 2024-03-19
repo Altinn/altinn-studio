@@ -5,13 +5,12 @@ import { App } from './App';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { appStateMock } from './testing/stateMocks';
 import type { AppContextProps } from './AppContext';
 import ruleHandlerMock from './testing/ruleHandlerMock';
-import { layoutSetsMock } from './testing/layoutMock';
+import { layoutSetsMock, layout1NameMock } from './testing/layoutMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
-const { selectedLayoutSet } = appStateMock.formDesigner.layout;
+const selectedLayoutSet = layout1NameMock;
 const mockQueries: Partial<ServicesContextProps> = {
   getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve('test')),
   getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),

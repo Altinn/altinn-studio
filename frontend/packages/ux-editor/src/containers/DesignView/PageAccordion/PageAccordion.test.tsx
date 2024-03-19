@@ -5,18 +5,17 @@ import type { PageAccordionProps } from './PageAccordion';
 import { PageAccordion } from './PageAccordion';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
-import { formDesignerMock } from '../../../testing/stateMocks';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import {
   formLayoutSettingsMock,
   renderHookWithMockStore,
   renderWithMockStore,
 } from '../../../testing/mocks';
-import { layout2NameMock } from '../../../testing/layoutMock';
+import { layout1NameMock, layout2NameMock } from '../../../testing/layoutMock';
 
 const mockOrg = 'org';
 const mockApp = 'app';
-const mockPageName1: string = formDesignerMock.layout.selectedLayout;
+const mockPageName1: string = layout1NameMock;
 const mockSelectedLayoutSet = 'test-layout-set';
 const mockPageName2 = layout2NameMock;
 
@@ -128,11 +127,9 @@ const waitForData = async () => {
   const getFormLayoutSettings = jest
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
-  const settingsResult = renderHookWithMockStore(
-    {},
-    { getFormLayoutSettings },
-  )(() => useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet)).renderHookResult
-    .result;
+  const settingsResult = renderHookWithMockStore({ getFormLayoutSettings })(() =>
+    useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet),
+  ).renderHookResult.result;
 
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 };

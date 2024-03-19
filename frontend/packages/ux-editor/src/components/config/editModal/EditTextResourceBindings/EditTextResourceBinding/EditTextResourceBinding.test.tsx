@@ -109,17 +109,14 @@ describe('EditTextResourceBindings component', () => {
   const waitForData = async () => {
     const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
       .renderHookResult.result;
-    const { result } = renderHookWithMockStore(
-      {},
-      {
-        getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
-        getTextResources: (_o, _a, lang) =>
-          Promise.resolve<ITextResourcesWithLanguage>({
-            language: lang,
-            resources: textResources,
-          }),
-      },
-    )(() => useTextResourcesQuery(org, app)).renderHookResult;
+    const { result } = renderHookWithMockStore({
+      getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
+      getTextResources: (_o, _a, lang) =>
+        Promise.resolve<ITextResourcesWithLanguage>({
+          language: lang,
+          resources: textResources,
+        }),
+    })(() => useTextResourcesQuery(org, app)).renderHookResult;
     await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
   };

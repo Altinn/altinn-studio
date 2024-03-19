@@ -6,14 +6,13 @@ import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { formDesignerMock } from '../../../../testing/stateMocks';
 import type { IFormLayouts } from '../../../../types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { layout1NameMock, layoutMock } from '../../../../testing/layoutMock';
 
 const org = 'org';
 const app = 'app';
-const layoutSetName = formDesignerMock.layout.selectedLayoutSet;
+const layoutSetName = layout1NameMock;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };

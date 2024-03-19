@@ -201,15 +201,12 @@ describe('FormComponent', () => {
 });
 
 const waitForData = async () => {
-  const { result: texts } = renderHookWithMockStore(
-    {},
-    {
-      getTextResources: jest
-        .fn()
-        .mockImplementation(() => Promise.resolve({ language: 'nb', resources: nbTextResources })),
-      getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
-    },
-  )(() => useTextResourcesQuery(org, app)).renderHookResult;
+  const { result: texts } = renderHookWithMockStore({
+    getTextResources: jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ language: 'nb', resources: nbTextResources })),
+    getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
+  })(() => useTextResourcesQuery(org, app)).renderHookResult;
   await waitFor(() => expect(texts.current.isSuccess).toBe(true));
 };
 

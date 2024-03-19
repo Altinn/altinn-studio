@@ -170,7 +170,6 @@ const render = (layout: IInternalLayout = layoutMock) => {
   queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
   return renderWithMockStore(
     {},
-    {},
     queryClient,
   )(
     <FormItemContext.Provider value={formItemContext}>

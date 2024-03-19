@@ -79,10 +79,7 @@ const render = async ({
 } = {}) => {
   await waitForData();
 
-  renderWithMockStore(
-    {},
-    queries,
-  )(
+  renderWithMockStore(queries)(
     <EditCodeList
       handleComponentChange={handleComponentChange}
       component={{

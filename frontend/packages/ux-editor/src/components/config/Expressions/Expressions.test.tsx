@@ -2,7 +2,6 @@ import React from 'react';
 import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../testing/mocks';
-import { formDesignerMock } from '../../../testing/stateMocks';
 import type { IFormLayouts } from '../../../types/global';
 import { layout1NameMock, layoutMock } from '../../../testing/layoutMock';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
@@ -21,7 +20,7 @@ import { LogicalTupleOperator } from '@studio/components';
 // Test data:
 const org = 'org';
 const app = 'app';
-const layoutSetName = formDesignerMock.layout.selectedLayoutSet;
+const layoutSetName = layout1NameMock;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };

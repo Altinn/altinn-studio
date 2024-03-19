@@ -102,7 +102,6 @@ const renderAndWaitForSuccess = async (
   queryClient = createQueryClientMock(),
 ) => {
   const { renderHookResult } = renderHookWithMockStore(
-    {},
     queries,
     queryClient,
   )(() => useRuleModelQuery(org, app, selectedLayoutSet));

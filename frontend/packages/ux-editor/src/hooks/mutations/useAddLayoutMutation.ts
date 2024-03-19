@@ -1,7 +1,5 @@
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
-import { useDispatch } from 'react-redux';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { deepCopy } from 'app-shared/pure';
 import { createEmptyLayout } from '../../utils/formLayoutUtils';
 import type { IInternalLayout } from '../../types/global';
@@ -13,7 +11,7 @@ import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuer
 import type { ILayoutSettings } from 'app-shared/types/global';
 import { addOrRemoveNavigationButtons } from '../../utils/formLayoutsUtils';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
-import { useAppContext } from '../../hooks/useAppContext';
+import { useSearchParams } from 'react-router-dom';
 
 export interface AddLayoutMutationArgs {
   layoutName: string;
@@ -25,9 +23,8 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
   const formLayoutsQuery = useFormLayoutsQuery(org, app, layoutSetName);
   const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, layoutSetName);
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
-  const dispatch = useDispatch();
   const queryClient = useQueryClient();
-  const { refetchLayouts, refetchLayoutSettings } = useAppContext();
+  const [, setSearchParams] = useSearchParams();
 
   const save = async (updatedLayoutName: string, updatedLayout: IInternalLayout) => {
     const convertedLayout: ExternalFormLayout = internalLayoutToExternal(updatedLayout);
@@ -61,17 +58,9 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
 
       await formLayoutSettingsMutation.mutateAsync(layoutSettings);
 
-      dispatch(
-        FormLayoutActions.addLayoutFulfilled({
-          layoutOrder: order,
-          receiptLayoutName: isReceiptPage ? layoutSettings.receiptLayoutName : undefined,
-        }),
-      );
-
       queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], () => newLayouts);
 
-      await refetchLayouts();
-      await refetchLayoutSettings();
+      setSearchParams((prevParams) => ({ ...prevParams, layout: layoutName }));
     },
   });
 };

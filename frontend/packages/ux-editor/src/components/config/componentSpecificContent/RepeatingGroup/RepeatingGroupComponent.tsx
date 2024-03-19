@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
 import classes from './RepeatingGroupComponent.module.css';
 import { Checkbox, LegacyFieldSet, LegacyTextField } from '@digdir/design-system-react';
 import { FormField } from '../../../FormField';
@@ -11,7 +10,6 @@ import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQue
 import type { ITextResource } from 'app-shared/types/global';
 import { textResourcesByLanguageSelector } from '../../../../selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { selectedLayoutNameSelector } from '../../../../selectors/formLayoutSelectors';
 import type { IEditFormComponentProps } from '../../EditFormComponent';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 
@@ -32,7 +30,7 @@ export const RepeatingGroupComponent = ({
 
   const [tableHeadersError, setTableHeadersError] = useState<string>(null);
 
-  const selectedLayout = useSelector(selectedLayoutNameSelector);
+  const { selectedLayout } = useAppContext();
   const layoutOrder = formLayouts?.[selectedLayout]?.order || {};
 
   const items = layoutOrder[component.id];

@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import React from 'react';
 import { Properties } from '../components/Properties';
 import { DesignView } from './DesignView';
 import classes from './FormDesigner.module.css';
@@ -27,10 +26,7 @@ import {
 } from '../utils/formLayoutUtils';
 import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
-import { useSearchParams } from 'react-router-dom';
-import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { Preview } from '../components/Preview';
-import { setSelectedLayoutInLocalStorage } from '../utils/localStorageUtils';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 
 export interface FormDesignerProps {
@@ -42,7 +38,6 @@ export const FormDesigner = ({
   selectedLayout,
   selectedLayoutSet,
 }: FormDesignerProps): JSX.Element => {
-  const dispatch = useDispatch();
   const { org, app } = useStudioUrlParams();
   const { data: instanceId } = useInstanceIdQuery(org, app);
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(
@@ -60,10 +55,7 @@ export const FormDesigner = ({
     selectedLayout,
     selectedLayoutSet,
   );
-  const [searchParams] = useSearchParams();
   const { handleEdit } = useFormItemContext();
-
-  const layoutPagesOrder = formLayoutSettings?.pages.order;
 
   const t = useText();
 
@@ -88,26 +80,6 @@ export const FormDesigner = ({
       return createErrorMessage(t('general.layout'));
     }
   };
-
-  /**
-   * Set the correct selected layout based on url parameters
-   */
-  useEffect(() => {
-    const searchParamsLayout = searchParams.get('layout');
-
-    const isValidLayout = (layoutName: string): boolean => {
-      const isExistingLayout = layoutPagesOrder?.includes(layoutName);
-      const isReceipt = formLayoutSettings?.receiptLayoutName === layoutName;
-      return isExistingLayout || isReceipt;
-    };
-
-    if (isValidLayout(searchParamsLayout)) {
-      dispatch(FormLayoutActions.updateSelectedLayout(searchParamsLayout));
-      setSelectedLayoutInLocalStorage(instanceId, searchParamsLayout);
-      dispatch(FormLayoutActions.updateSelectedLayout(searchParamsLayout));
-      return;
-    }
-  }, [dispatch, formLayoutSettings?.receiptLayoutName, instanceId, layoutPagesOrder, searchParams]);
 
   if (layoutFetchedError) {
     const mappedError = mapErrorToDisplayError();

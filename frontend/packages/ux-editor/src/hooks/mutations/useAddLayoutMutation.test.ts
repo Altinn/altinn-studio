@@ -85,14 +85,12 @@ const renderAndWaitForData = async () => {
   const getFormLayoutSettings = jest
     .fn()
     .mockImplementation(() => Promise.resolve<ILayoutSettings>(formLayoutSettingsMock));
-  const formLayoutsResult = renderHookWithMockStore(
-    {},
-    { getFormLayouts },
-  )(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
-  const settingsResult = renderHookWithMockStore(
-    {},
-    { getFormLayoutSettings },
-  )(() => useFormLayoutSettingsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const formLayoutsResult = renderHookWithMockStore({ getFormLayouts })(() =>
+    useFormLayoutsQuery(org, app, selectedLayoutSet),
+  ).renderHookResult.result;
+  const settingsResult = renderHookWithMockStore({ getFormLayoutSettings })(() =>
+    useFormLayoutSettingsQuery(org, app, selectedLayoutSet),
+  ).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 };

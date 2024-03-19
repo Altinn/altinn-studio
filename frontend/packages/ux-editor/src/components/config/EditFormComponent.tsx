@@ -5,11 +5,9 @@ import { configComponents, componentSpecificEditConfig } from './componentConfig
 import { ComponentSpecificContent } from './componentSpecificContent';
 import { Switch, Fieldset } from '@digdir/design-system-react';
 import classes from './EditFormComponent.module.css';
-import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { StudioSpinner } from '@studio/components';
 import { FormComponentConfig } from './FormComponentConfig';
-import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import {
   addFeatureFlagToLocalStorage,
@@ -21,6 +19,7 @@ import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';
 import type { FormItem } from '../../types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
+import { useAppContext } from '../../hooks/useAppContext';
 
 export interface IEditFormComponentProps<T extends ComponentType = ComponentType> {
   editFormId: string;
@@ -33,7 +32,7 @@ export const EditFormComponent = ({
   component,
   handleComponentUpdate,
 }: IEditFormComponentProps) => {
-  const selectedLayout = useSelector(selectedLayoutNameSelector);
+  const { selectedLayout } = useAppContext();
   const { t } = useTranslation();
   const [showComponentConfigBeta, setShowComponentConfigBeta] = React.useState<boolean>(
     shouldDisplayFeature('componentConfigBeta'),

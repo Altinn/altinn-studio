@@ -70,14 +70,12 @@ const renderAndWaitForData = async () => {
   const getRuleConfig = jest
     .fn()
     .mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfigMock));
-  const formLayoutsResult = renderHookWithMockStore(
-    {},
-    { getFormLayouts },
-  )(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
-  const ruleConfigResult = renderHookWithMockStore(
-    {},
-    { getRuleConfig },
-  )(() => useRuleConfigQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const formLayoutsResult = renderHookWithMockStore({ getFormLayouts })(() =>
+    useFormLayoutsQuery(org, app, selectedLayoutSet),
+  ).renderHookResult.result;
+  const ruleConfigResult = renderHookWithMockStore({ getRuleConfig })(() =>
+    useRuleConfigQuery(org, app, selectedLayoutSet),
+  ).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(ruleConfigResult.current.isSuccess).toBe(true));
 };

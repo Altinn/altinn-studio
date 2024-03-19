@@ -97,7 +97,6 @@ const render = async () => {
 
   return renderWithMockStore(
     {},
-    {},
     queryClient,
   )(
     <DragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>

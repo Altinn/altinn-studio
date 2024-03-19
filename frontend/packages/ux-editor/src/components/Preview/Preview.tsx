@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import classes from './Preview.module.css';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useSelector } from 'react-redux';
 import cn from 'classnames';
-import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../../hooks/useAppContext';
 import { useUpdate } from 'app-shared/hooks/useUpdate';
@@ -18,8 +16,8 @@ import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitations
 export const Preview = () => {
   const { t } = useTranslation();
   const [isPreviewHidden, setIsPreviewHidden] = useState<boolean>(false);
-  const layoutName = useSelector(selectedLayoutNameSelector);
-  const noPageSelected = layoutName === 'default' || layoutName === undefined;
+  const { selectedLayout } = useAppContext();
+  const noPageSelected = selectedLayout === 'default' || selectedLayout === undefined;
 
   const togglePreview = (): void => {
     setIsPreviewHidden((prev: boolean) => !prev);
@@ -62,14 +60,25 @@ const NoSelectedPageMessage = () => {
 const PreviewFrame = () => {
   const { org, app } = useStudioUrlParams();
   const [viewportToSimulate, setViewportToSimulate] = useState<SupportedView>('desktop');
-  const { selectedLayoutSet } = useAppContext();
+  const { previewIframeRef, refetchLayouts, refetchLayoutSettings, reloadPreview } =
+    useAppContext();
   const { t } = useTranslation();
-  const { previewIframeRef } = useAppContext();
-  const layoutName = useSelector(selectedLayoutNameSelector);
+  const { selectedLayout } = useAppContext();
 
   useUpdate(() => {
-    previewIframeRef.current?.contentWindow?.location.reload();
-  }, [layoutName, previewIframeRef]);
+    const reload = async () => {
+      await refetchLayouts();
+      await refetchLayoutSettings();
+      reloadPreview(selectedLayout);
+    };
+    reload();
+  }, [previewIframeRef, selectedLayout]);
+
+  useEffect(() => {
+    return () => {
+      previewIframeRef.current = null;
+    };
+  }, [previewIframeRef]);
 
   return (
     <div className={classes.root}>
@@ -80,7 +89,7 @@ const PreviewFrame = () => {
             ref={previewIframeRef}
             className={cn(classes.iframe, classes[viewportToSimulate])}
             title={t('ux_editor.preview')}
-            src={previewPage(org, app, selectedLayoutSet)}
+            src={previewPage(org, app, selectedLayout)}
           />
         </div>
         <PreviewLimitationsInfo />

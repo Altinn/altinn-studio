@@ -7,12 +7,10 @@ import React, {
   useEffect,
   useContext,
 } from 'react';
-import { useSelector } from 'react-redux';
 import type { FormContainer } from '../types/FormContainer';
 import type { FormComponent } from '../types/FormComponent';
 import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
 import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateFormComponentMutation';
-import { selectedLayoutNameSelector } from '../selectors/formLayoutSelectors';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { LayoutItemType } from '../types/global';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
@@ -55,7 +53,7 @@ export const FormItemContextProvider = ({
 }: FormItemContextProviderProps): React.JSX.Element => {
   const { org, app } = useStudioUrlParams();
   const { selectedLayoutSet } = useAppContext();
-  const selectedLayoutName = useSelector(selectedLayoutNameSelector);
+  const { selectedLayout: selectedLayoutName } = useAppContext();
   const prevSelectedLayoutSetNameRef = useRef(selectedLayoutSet);
   const prevSelectedLayoutNameRef = useRef(selectedLayoutName);
 

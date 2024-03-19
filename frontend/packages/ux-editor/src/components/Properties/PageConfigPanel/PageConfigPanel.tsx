@@ -1,19 +1,18 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
 import { Accordion } from '@digdir/design-system-react';
 import { FileIcon } from '@navikt/aksel-icons';
 import { StudioSectionHeader } from '@studio/components';
 import { useText, useTextResourcesSelector } from '../../../hooks';
 import { DEFAULT_LANGUAGE, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { HiddenExpressionOnLayout } from './HiddenExpressionOnLayout';
-import { selectedLayoutNameSelector } from '../../../selectors/formLayoutSelectors';
 import { TextResource } from '../../TextResource/TextResource';
 import { EditPageId } from './EditPageId';
 import { textResourceByLanguageAndIdSelector } from '../../../selectors/textResourceSelectors';
 import type { ITextResource } from 'app-shared/types/global';
+import { useAppContext } from '../../../hooks/useAppContext';
 
 export const PageConfigPanel = () => {
-  const layoutName = useSelector(selectedLayoutNameSelector);
+  const { selectedLayout: layoutName } = useAppContext();
   const t = useText();
 
   const layoutIsSelected = layoutName !== DEFAULT_SELECTED_LAYOUT_NAME && layoutName !== undefined;

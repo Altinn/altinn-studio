@@ -64,9 +64,8 @@ const renderAndWaitForData = async () => {
   const getFormLayouts = jest
     .fn()
     .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
-  const formLayoutsResult = renderHookWithMockStore(
-    {},
-    { getFormLayouts },
-  )(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const formLayoutsResult = renderHookWithMockStore({ getFormLayouts })(() =>
+    useFormLayoutsQuery(org, app, selectedLayoutSet),
+  ).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
 };

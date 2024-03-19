@@ -1,10 +1,9 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
 import { TextResource } from '../../../../TextResource/TextResource';
 import type { TranslationKey } from '@altinn-studio/language/type';
-import type { IAppState } from '../../../../../types/global';
 import { useTranslation } from 'react-i18next';
 import type { EditTextResourceBindingBase } from '../EditTextResourceBindings';
+import { useAppContext } from '../../../../../hooks/useAppContext';
 
 export interface EditTextResourceBindingProps extends EditTextResourceBindingBase {
   textKey: string;
@@ -22,9 +21,7 @@ export const EditTextResourceBinding = ({
   labelKey,
 }: EditTextResourceBindingProps) => {
   const { t } = useTranslation();
-  const selectedLayout = useSelector(
-    (state: IAppState) => state.formDesigner?.layout?.selectedLayout,
-  );
+  const { selectedLayout } = useAppContext();
 
   const handleTextResourceIdChange = (value: string) =>
     handleComponentChange({

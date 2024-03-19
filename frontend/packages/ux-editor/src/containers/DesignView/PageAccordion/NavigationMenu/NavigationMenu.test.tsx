@@ -10,12 +10,12 @@ import {
   renderHookWithMockStore,
   renderWithMockStore,
 } from '../../../../testing/mocks';
-import { formDesignerMock } from '../../../../testing/stateMocks';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
+import { layout1NameMock } from '../../../../testing/layoutMock';
 
 const mockOrg = 'org';
 const mockApp = 'app';
-const mockPageName1: string = formDesignerMock.layout.selectedLayout;
+const mockPageName1: string = layout1NameMock;
 const mockSelectedLayoutSet = 'test-layout-set';
 
 const mockSetSearchParams = jest.fn();
@@ -166,11 +166,9 @@ const waitForData = async () => {
   const getFormLayoutSettings = jest
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
-  const settingsResult = renderHookWithMockStore(
-    {},
-    { getFormLayoutSettings },
-  )(() => useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet)).renderHookResult
-    .result;
+  const settingsResult = renderHookWithMockStore({ getFormLayoutSettings })(() =>
+    useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet),
+  ).renderHookResult.result;
 
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 };

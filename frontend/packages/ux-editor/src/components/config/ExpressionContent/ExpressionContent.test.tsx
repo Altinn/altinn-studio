@@ -2,7 +2,6 @@ import React from 'react';
 import { act, screen } from '@testing-library/react';
 import { parsableLogicalExpression } from '../../../testing/expressionMocks';
 import { renderWithProviders } from '../../../testing/mocks';
-import { formDesignerMock } from '../../../testing/stateMocks';
 import type { IFormLayouts } from '../../../types/global';
 import { layout1NameMock, layoutMock } from '../../../testing/layoutMock';
 import type { ExpressionContentProps } from './ExpressionContent';
@@ -17,7 +16,7 @@ import userEvent from '@testing-library/user-event';
 // Test data:
 const org = 'org';
 const app = 'app';
-const layoutSetName = formDesignerMock.layout.selectedLayoutSet;
+const layoutSetName = layout1NameMock;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };

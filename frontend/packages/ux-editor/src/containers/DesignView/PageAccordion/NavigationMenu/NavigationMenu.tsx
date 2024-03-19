@@ -5,8 +5,6 @@ import { MenuElipsisVerticalIcon, ArrowUpIcon, ArrowDownIcon } from '@navikt/aks
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
 import { useUpdateLayoutOrderMutation } from '../../../../hooks/mutations/useUpdateLayoutOrderMutation';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useSelector } from 'react-redux';
-import type { IAppState } from '../../../../types/global';
 import { useAppContext } from '../../../../hooks/useAppContext';
 import { StudioButton } from '@studio/components';
 
@@ -29,10 +27,7 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
 
   const { org, app } = useStudioUrlParams();
 
-  const { selectedLayoutSet } = useAppContext();
-  const invalidLayouts: string[] = useSelector(
-    (state: IAppState) => state.formDesigner.layout.invalidLayouts,
-  );
+  const { selectedLayoutSet, invalidLayouts } = useAppContext();
   const invalid = invalidLayouts.includes(pageName);
 
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);

@@ -199,11 +199,9 @@ const waitForData = async () => {
   const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
     .renderHookResult.result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
-  const dataModelMetadataResult = renderHookWithMockStore(
-    {},
-    { getDatamodelMetadata },
-  )(() => useDatamodelMetadataQuery('test-org', 'test-app', 'test-layout-set')).renderHookResult
-    .result;
+  const dataModelMetadataResult = renderHookWithMockStore({ getDatamodelMetadata })(() =>
+    useDatamodelMetadataQuery('test-org', 'test-app', 'test-layout-set'),
+  ).renderHookResult.result;
   await waitFor(() => expect(dataModelMetadataResult.current.isSuccess).toBe(true));
 };
 
@@ -216,8 +214,5 @@ const defaultProps: IEditFormComponentProps = {
 const render = async (props: Partial<IEditFormComponentProps> = {}) => {
   await waitForData();
 
-  renderWithMockStore(
-    {},
-    { getDatamodelMetadata },
-  )(<EditFormComponent {...defaultProps} {...props} />);
+  renderWithMockStore({ getDatamodelMetadata })(<EditFormComponent {...defaultProps} {...props} />);
 };
