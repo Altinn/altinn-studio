@@ -11,7 +11,6 @@ using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
-using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Http;
@@ -31,7 +30,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly HttpContext _httpContext;
         private readonly IApplicationInformationService _applicationInformationService;
         private readonly IEnvironmentsService _environmentsService;
-        private readonly IKubernetesWrapperClient _kubernetesWrapperClient;
         private readonly ILogger<DeploymentService> _logger;
 
         /// <summary>
@@ -44,7 +42,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IDeploymentRepository deploymentRepository,
             IReleaseRepository releaseRepository,
             IEnvironmentsService environmentsService,
-            IKubernetesWrapperClient kubernetesWrapperClient,
             IApplicationInformationService applicationInformationService,
             ILogger<DeploymentService> logger)
         {
@@ -53,7 +50,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _releaseRepository = releaseRepository;
             _applicationInformationService = applicationInformationService;
             _environmentsService = environmentsService;
-            _kubernetesWrapperClient = kubernetesWrapperClient;
             _azureDevOpsSettings = azureDevOpsOptions;
             _httpContext = httpContextAccessor.HttpContext;
             _logger = logger;
@@ -89,32 +85,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             List<DeploymentEntity> deploymentEntities = (await _deploymentRepository.Get(org, app, query)).ToList();
 
-            var environments = await _environmentsService.GetOrganizationEnvironments(org);
-            foreach (EnvironmentModel env in environments)
-            {
-                try
-                {
-                    IList<Deployment> kubernetesDeploymentsInEnv =
-                        await _kubernetesWrapperClient.GetDeploymentsInEnvAsync(org, env);
+            IEnumerable<EnvironmentModel> environments = await _environmentsService.GetOrganizationEnvironments(org);
+            List<string> environmentNames = environments.Select(environment => environment.Name).ToList();
 
-                    var dbDeploymentEntitiesInEnv = deploymentEntities
-                        .Where(deployment => deployment.EnvName == env.Name)
-                        .ToList();
-
-                    foreach (var deployment in dbDeploymentEntitiesInEnv)
-                    {
-                        deployment.DeployedInEnv = kubernetesDeploymentsInEnv.Any(kubernetesDeployment =>
-                            kubernetesDeployment.Release == $"{deployment.Org}-{deployment.App}" &&
-                            kubernetesDeployment.Version == deployment.TagName);
-                    }
-                }
-                catch (KubernetesWrapperResponseException)
-                {
-                    _logger.LogInformation("Make sure the requested environment, {EnvName}, exists", env.Hostname);
-                }
-            }
-
-            return new SearchResults<DeploymentEntity> { Results = deploymentEntities };
+            return new SearchResults<DeploymentEntity> { Results = deploymentEntities.Where(item => environmentNames.Contains(item.EnvName)).ToList() };
         }
 
         /// <inheritdoc/>

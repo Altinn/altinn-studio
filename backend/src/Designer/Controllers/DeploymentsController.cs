@@ -4,13 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.ModelBinding.Constants;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
+using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -27,16 +28,19 @@ namespace Altinn.Studio.Designer.Controllers
     {
         private readonly IDeploymentService _deploymentService;
         private readonly IGitea _giteaService;
+        private readonly IKubernetesDeploymentsService _kubernetesDeploymentsService;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="deploymentService">IDeploymentService</param>
         /// <param name="giteaService">IGiteaService</param>
-        public DeploymentsController(IDeploymentService deploymentService, IGitea giteaService)
+        /// <param name="kubernetesDeploymentsService">IKubernetesDeploymentsService</param>
+        public DeploymentsController(IDeploymentService deploymentService, IGitea giteaService, IKubernetesDeploymentsService kubernetesDeploymentsService)
         {
             _deploymentService = deploymentService;
             _giteaService = giteaService;
+            _kubernetesDeploymentsService = kubernetesDeploymentsService;
         }
 
         /// <summary>
@@ -45,20 +49,26 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Organisation</param>
         /// <param name="app">Application name</param>
         /// <param name="query">Document query model</param>
-        /// <returns>SearchResults of type DeploymentEntity</returns>
+        /// <returns>List of Pipeline deployments and Kubernete deployments</returns>
         [HttpGet]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
-        public async Task<SearchResults<DeploymentEntity>> Get(string org, string app, [FromQuery] DocumentQueryModel query)
+        public async Task<DeploymentsResponse> Get(string org, string app, [FromQuery] DocumentQueryModel query)
         {
             SearchResults<DeploymentEntity> deployments = await _deploymentService.GetAsync(org, app, query);
-            List<DeploymentEntity> laggingDeployments = deployments.Results.Where(d => d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.Value.AddMinutes(5) < DateTime.UtcNow).ToList();
 
-            foreach (DeploymentEntity deployment in laggingDeployments)
+            List<DeploymentEntity> laggingDeployments = deployments.Results.Where(d => d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.HasValue && d.Build.Started.Value.AddMinutes(5) < DateTime.UtcNow).ToList();
+            foreach (DeploymentEntity laggingDeployment in laggingDeployments)
             {
-                await _deploymentService.UpdateAsync(deployment.Build.Id, deployment.Org);
+                await _deploymentService.UpdateAsync(laggingDeployment.Build.Id, laggingDeployment.Org);
             }
 
-            return deployments;
+            List<KubernetesDeployment> kubernetesDeploymentList = await _kubernetesDeploymentsService.GetAsync(org, app);
+
+            return new DeploymentsResponse
+            {
+                PipelineDeploymentList = deployments.Results.ToList(),
+                KubernetesDeploymentList = kubernetesDeploymentList,
+            };
         }
 
         /// <summary>
