@@ -11,7 +11,7 @@ type UseWebsocket = {
 };
 
 export const useWebsocket = ({
-  websocketUrl,
+  webSocketUrl,
   webSocketConnector,
 }: UseWebsocket): UseWebSocketResult => {
   const wsConnectionRef = useRef(null);
