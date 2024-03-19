@@ -29,7 +29,7 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
 
   const { org, app } = useStudioUrlParams();
 
-  const { selectedLayoutSet, refetchLayoutSettings } = useAppContext();
+  const { selectedLayoutSet } = useAppContext();
   const invalidLayouts: string[] = useSelector(
     (state: IAppState) => state.formDesigner.layout.invalidLayouts,
   );
@@ -48,14 +48,7 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
 
   const moveLayout = (action: 'up' | 'down') => {
     if (action === 'up' || action === 'down') {
-      updateLayoutOrder(
-        { layoutName: pageName, direction: action },
-        {
-          onSuccess: async () => {
-            await refetchLayoutSettings();
-          },
-        },
-      );
+      updateLayoutOrder({ layoutName: pageName, direction: action });
     }
     setDropdownOpen(false);
   };

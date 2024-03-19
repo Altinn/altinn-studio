@@ -32,12 +32,12 @@ export const useFormLayoutMutation = (
         });
       }
 
-      await refetchLayouts();
-
       queryClient.setQueryData(
         [QueryKey.FormLayouts, org, app, layoutSetName],
         (oldData: IFormLayouts) => ({ ...oldData, [layoutName]: savedLayout }),
       );
+
+      await refetchLayouts();
     },
   });
 };

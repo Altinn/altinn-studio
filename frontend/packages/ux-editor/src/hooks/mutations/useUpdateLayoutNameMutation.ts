@@ -8,6 +8,7 @@ import { deepCopy } from 'app-shared/pure';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import type { ILayoutSettings } from 'app-shared/types/global';
+import { useAppContext } from '../../hooks/useAppContext';
 
 export interface UpdateLayoutNameMutationArgs {
   oldName: string;
@@ -18,6 +19,7 @@ export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetN
   const { updateFormLayoutName } = useServicesContext();
   const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, layoutSetName);
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
+  const { refetchLayouts, refetchLayoutSettings } = useAppContext();
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
   return useMutation({
@@ -26,7 +28,7 @@ export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetN
         oldName,
         newName,
       })),
-    onSuccess: ({ oldName, newName }) => {
+    onSuccess: async ({ oldName, newName }) => {
       dispatch(FormLayoutActions.updateSelectedLayout(newName));
       queryClient.setQueryData(
         [QueryKey.FormLayouts, org, app, layoutSetName],
@@ -42,6 +44,9 @@ export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetN
       if (order.includes(oldName)) order[order.indexOf(oldName)] = newName;
       if (layoutSettings.receiptLayoutName === oldName) layoutSettings.receiptLayoutName = newName;
       formLayoutSettingsMutation.mutate(layoutSettings);
+
+      await refetchLayouts();
+      await refetchLayoutSettings();
     },
   });
 };

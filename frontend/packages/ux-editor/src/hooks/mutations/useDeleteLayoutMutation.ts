@@ -15,12 +15,14 @@ import { useAddLayoutMutation } from './useAddLayoutMutation';
 import { useText } from '../useText';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
+import { useAppContext } from '../../hooks/useAppContext';
 
 export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName: string) => {
   const { deleteFormLayout, saveFormLayout } = useServicesContext();
 
   const { data: formLayouts } = useFormLayoutsQuery(org, app, layoutSetName);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, layoutSetName);
+  const { refetchLayouts, refetchLayoutSettings } = useAppContext();
 
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
   const addLayoutMutation = useAddLayoutMutation(org, app, layoutSetName);
@@ -47,7 +49,7 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
       await deleteFormLayout(org, app, layoutName, layoutSetName);
       return { layoutName, layouts };
     },
-    onSuccess: ({ layoutName, layouts }) => {
+    onSuccess: async ({ layoutName, layouts }) => {
       const layoutSettings: ILayoutSettings = deepCopy(formLayoutSettings);
 
       const { order } = layoutSettings?.pages;
@@ -70,6 +72,9 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
 
       queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], () => layouts);
       dispatch(FormLayoutActions.deleteLayoutFulfilled({ layout: layoutName, pageOrder: order }));
+
+      await refetchLayouts();
+      await refetchLayoutSettings();
     },
   });
 };

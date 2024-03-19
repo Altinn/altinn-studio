@@ -45,7 +45,7 @@ export const PageAccordion = ({
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
-  const { selectedLayoutSet, refetchLayoutSettings } = useAppContext();
+  const { selectedLayoutSet } = useAppContext();
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedLayout = searchParams.get('layout');
 
@@ -56,25 +56,13 @@ export const PageAccordion = ({
 
   const handleConfirmDelete = useCallback(() => {
     if (confirm(t('ux_editor.page_delete_text'))) {
-      deleteLayout(pageName, {
-        onSuccess: async () => {
-          await refetchLayoutSettings();
-        },
-      });
+      deleteLayout(pageName);
       if (selectedLayout === pageName) {
         const layoutToSelect = firstAvailableLayout(pageName, layoutOrder);
         setSearchParams({ layout: layoutToSelect });
       }
     }
-  }, [
-    deleteLayout,
-    layoutOrder,
-    pageName,
-    refetchLayoutSettings,
-    selectedLayout,
-    setSearchParams,
-    t,
-  ]);
+  }, [deleteLayout, layoutOrder, pageName, selectedLayout, setSearchParams, t]);
 
   return (
     <Accordion.Item
