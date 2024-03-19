@@ -20,7 +20,7 @@ export const ProcessEditor = (): React.ReactElement => {
   const bpmnMutation = useBpmnMutation(org, app);
 
   const { onWSMessageReceived } = useWebsocket({
-    websocketUrl: processEditorWebSocketHub(),
+    webSocketUrl: processEditorWebSocketHub(),
     webSocketConnector: WSConnector,
   });
 
