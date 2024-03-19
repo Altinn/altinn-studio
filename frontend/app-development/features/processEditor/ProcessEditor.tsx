@@ -26,8 +26,9 @@ export const ProcessEditor = (): React.ReactElement => {
 
   onWSMessageReceived<SyncError | SyncSuccess>((message): void => {
     // Check if the message is a SyncError
+    console.log('melding', message);
     if ('errorCode' in message) {
-      toast(t(SyncUtils.getSyncErrorMessage(message)));
+      toast.error(t(SyncUtils.getSyncErrorMessage(message)));
       return;
     }
 
