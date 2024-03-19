@@ -57,7 +57,8 @@ export const ImportResourceModal = ({
     useImportResourceFromAltinn2Mutation(selectedContext);
 
   const idErrorMessage = getResourceIdentifierErrorMessage(id, resourceIdExists);
-  const hasValidValues = selectedEnv && selectedService && id && !idErrorMessage && !isImportingResource;
+  const hasValidValues =
+    selectedEnv && selectedService && id && !idErrorMessage && !isImportingResource;
   /**
    * Reset fields on close
    */
