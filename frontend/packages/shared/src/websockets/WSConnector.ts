@@ -1,4 +1,4 @@
-import { HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
+import { type HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
 
 export class WSConnector {
   private connection: HubConnection;
@@ -17,6 +17,10 @@ export class WSConnector {
     return WSConnector.instance;
   }
 
+  public onMessageReceived<T>(callback: (message: T) => void): void {
+    this.connection.on('ReceiveMessage', (message: T) => callback(message));
+  }
+
   private createConnection(webSocketUrl: string): void {
     this.connection = new HubConnectionBuilder()
       .withUrl(webSocketUrl)
@@ -25,6 +29,6 @@ export class WSConnector {
   }
 
   private startConnection(): void {
-    this.connection.start().catch((e) => console.log('Connection failed: ', e));
+    this.connection.start().catch((e) => console.error('Connection failed: ', e));
   }
 }

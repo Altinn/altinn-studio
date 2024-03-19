@@ -9,8 +9,8 @@ import { useTranslation } from 'react-i18next';
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
 import { processEditorWebSocketHub } from 'app-shared/api/paths';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
-import { useWebsocket } from 'app-shared/hooks/useWebsocket';
-import { type SyncSuccess, type SyncError, SyncUtils } from './SyncUtils';
+import { useWebSocket } from 'app-shared/hooks/useWebSocket';
+import { type SyncSuccess, type SyncError, SyncUtils } from './syncUtils';
 
 export const ProcessEditor = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -19,7 +19,7 @@ export const ProcessEditor = (): React.ReactElement => {
   const { data: appLibData, isLoading: appLibDataLoading } = useAppVersionQuery(org, app);
   const bpmnMutation = useBpmnMutation(org, app);
 
-  const { onWSMessageReceived } = useWebsocket({
+  const { onWSMessageReceived } = useWebSocket({
     webSocketUrl: processEditorWebSocketHub(),
     webSocketConnector: WSConnector,
   });

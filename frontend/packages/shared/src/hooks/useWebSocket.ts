@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { WSConnector } from 'app-shared/websockets/WSConnector';
+import { type WSConnector } from 'app-shared/websockets/WSConnector';
 
 type UseWebSocketResult = {
   onWSMessageReceived: <T>(callback: (value: T) => void) => void;
@@ -10,7 +10,7 @@ type UseWebsocket = {
   webSocketConnector: typeof WSConnector;
 };
 
-export const useWebsocket = ({
+export const useWebSocket = ({
   webSocketUrl,
   webSocketConnector,
 }: UseWebsocket): UseWebSocketResult => {
