@@ -1,3 +1,4 @@
+using Altinn.Studio.Designer.Filters.AppDevelopment;
 using Altinn.Studio.Designer.Filters.DataModeling;
 using Altinn.Studio.Designer.Filters.Git;
 using Altinn.Studio.Designer.Filters.IO;
@@ -21,6 +22,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddControllers()
                 .AddMvcOptions(options =>
                 {
+                    options.Filters.Add(typeof(AppDevelopmentExceptionFilterAttribute));
                     options.Filters.Add(typeof(DataModelingExceptionFilterAttribute));
                     options.Filters.Add(typeof(GitExceptionFilterAttribute));
                     options.Filters.Add(typeof(IoExceptionFilterAttribute));

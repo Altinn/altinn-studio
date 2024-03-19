@@ -421,8 +421,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <summary>
         /// Change name of layout set folder by moving the content to a new folder
         /// </summary>
-        public void ChangeLayoutSetFolderName(string oldLayoutSetName, string newLayoutSetName)
+        public void ChangeLayoutSetFolderName(string oldLayoutSetName, string newLayoutSetName, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (DirectoryExistsByRelativePath(GetPathToLayoutSet(newLayoutSetName)))
             {
                 throw new BadHttpRequestException("Suggested new layout set name already exist");

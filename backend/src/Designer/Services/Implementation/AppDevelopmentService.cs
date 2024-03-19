@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Models;
 using Altinn.Studio.DataModeling.Metamodel;
+using Altinn.Studio.Designer.Exceptions;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
@@ -251,6 +252,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 throw new FileNotFoundException("No layout set found for this app");
             }
             LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+            if (layoutSets.Sets.Exists(set => set.Id == newLayoutSet.Id))
+            {
+                throw new NonUniqueLayoutSetIdException($"Layout set name, {newLayoutSet.Id}, already exists.");
+            }
             LayoutSetConfig layoutSetToReplace = layoutSets.Sets.Find(set => set.Id == layoutSetToUpdateId);
             if (layoutSetToReplace is null)
             {
@@ -260,7 +265,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (newLayoutSet.Id != layoutSetToUpdateId)
             {
                 // Layout set name is updated which means layout set folder must be updated also
-                altinnAppGitRepository.ChangeLayoutSetFolderName(layoutSetToUpdateId, newLayoutSet.Id);
+                altinnAppGitRepository.ChangeLayoutSetFolderName(layoutSetToUpdateId, newLayoutSet.Id, cancellationToken);
             }
 
             return updatedLayoutSets;

@@ -19,7 +19,7 @@ public class AppDevelopmentServiceTest : IDisposable
 
     private readonly Mock<ISchemaModelService> _schemaModelServiceMock;
     private readonly IAppDevelopmentService _appDevelopmentService;
-    private AltinnGitRepositoryFactory _altinnGitRepositoryFactory;
+    private readonly AltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly string _org = "ttd";
     private readonly string _repository = "app-with-layoutsets";
     private readonly string _developer = "testUser";
