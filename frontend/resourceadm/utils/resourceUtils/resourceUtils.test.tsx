@@ -4,6 +4,7 @@ import {
   getMissingInputLanguageString,
   mapLanguageKeyToLanguageText,
   mapKeywordStringToKeywordTypeArray,
+  deepCompare,
 } from './resourceUtils';
 import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { TestFlaskIcon } from '@studio/icons';
@@ -136,5 +137,59 @@ describe('createNavigationTab', () => {
     const newTab = createNavigationTab(<TestFlaskIcon />, 'about', mockOnClick, 'about', mockTo);
 
     expect(newTab).toEqual(mockTab);
+  });
+});
+
+describe('deepCompare', () => {
+  it('should return true for equal objects', () => {
+    const obj1 = {
+      array: [
+        { a: 1, b: 2 },
+        { a: 11, b: 22 },
+      ],
+      text: 'text',
+      subObj: {
+        prop: null,
+        other: 'other',
+      },
+    };
+    const obj2 = {
+      subObj: {
+        other: 'other',
+        prop: null,
+      },
+      text: 'text',
+      array: [
+        { b: 2, a: 1 },
+        { b: 22, a: 11 },
+      ],
+    };
+    const areEqual = deepCompare(obj1, obj2);
+    expect(areEqual).toBeTruthy();
+  });
+
+  it('should return true for null objects', () => {
+    const areEqual = deepCompare(null, null);
+    expect(areEqual).toBeTruthy();
+  });
+
+  it('should return false when one object is null', () => {
+    const areEqual = deepCompare(null, {});
+    expect(areEqual).toBeFalsy();
+  });
+
+  it('should return false when objects are not equal', () => {
+    const areEqual = deepCompare({ a: 1 }, {});
+    expect(areEqual).toBeFalsy();
+  });
+
+  it('should return false when objects are not equal', () => {
+    const areEqual = deepCompare({ a: 1 }, {});
+    expect(areEqual).toBeFalsy();
+  });
+
+  it('should return false when comparing empty object with empty array', () => {
+    const areEqual = deepCompare([], {});
+    expect(areEqual).toBeFalsy();
   });
 });
