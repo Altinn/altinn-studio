@@ -11,7 +11,7 @@ import { RoutePaths } from '../../enums/RoutePaths';
 import { type SyncError } from './syncUtils';
 
 jest.mock('app-shared/hooks/useWebSocket', () => ({
-  useWebSocket: jest.fn().mockReturnValue({ onWSMessageReceived: jest.fn() }),
+  useWebSocket: jest.fn(),
 }));
 
 describe('ProcessEditor', () => {
@@ -19,6 +19,7 @@ describe('ProcessEditor', () => {
     jest.clearAllMocks();
   });
   it('should render the ProcessEditor component', () => {
+    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
     renderProcessEditor();
   });
 
