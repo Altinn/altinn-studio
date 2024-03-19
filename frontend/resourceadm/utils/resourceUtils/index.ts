@@ -3,4 +3,5 @@ export {
   getMissingInputLanguageString,
   getIsActiveTab,
   createNavigationTab,
+  getResourceIdentifierErrorMessage,
 } from './resourceUtils';

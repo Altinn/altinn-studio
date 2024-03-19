@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { Paragraph, Link } from '@digdir/design-system-react';
-import { ExpressionContent } from './ExpressionContent';
+import { ExpressionContent } from '../ExpressionContent';
 import classes from './Expressions.module.css';
 import { FormItemContext } from '../../../containers/FormItemContext';
 import { altinnDocsUrl } from 'app-shared/ext-urls';

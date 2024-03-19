@@ -48,6 +48,7 @@ describe('utils', () => {
         itemType: 'COMPONENT',
         pageIndex: null,
         type: ComponentType.Input,
+        dataModelBindings: { simpleBinding: 'some-path' },
         required: false,
       };
       const property: FormItemProperty<ComponentType.Input> = { key: 'hidden' };
@@ -63,6 +64,7 @@ describe('utils', () => {
         itemType: 'COMPONENT',
         pageIndex: null,
         type: ComponentType.Input,
+        dataModelBindings: { simpleBinding: 'some-path' },
         required: false,
       };
       const property: FormItemProperty<ComponentType.Input> = { key: 'required' };
@@ -81,6 +83,7 @@ describe('utils', () => {
         itemType: 'CONTAINER',
         pageIndex: null,
         type: ComponentType.RepeatingGroup,
+        dataModelBindings: { group: 'some-path' },
       };
       const property: FormItemProperty<ComponentType.RepeatingGroup> = {
         key: 'edit',
@@ -107,6 +110,7 @@ describe('utils', () => {
         itemType: 'COMPONENT',
         pageIndex: null,
         type: ComponentType.Input,
+        dataModelBindings: { simpleBinding: 'some-path' },
         required: [GeneralRelationOperator.Equals, 1, 1],
       };
       const property: FormItemProperty<ComponentType.Input> = { key: 'required' };
@@ -120,6 +124,7 @@ describe('utils', () => {
         itemType: 'CONTAINER',
         pageIndex: null,
         type: ComponentType.RepeatingGroup,
+        dataModelBindings: { group: 'some-path' },
         edit: {
           addButton: [GeneralRelationOperator.Equals, 1, 1],
           deleteButton: true,
@@ -143,6 +148,7 @@ describe('utils', () => {
         id: 'repeatingGroup',
         itemType: 'CONTAINER',
         type: ComponentType.RepeatingGroup,
+        dataModelBindings: { group: 'some-path' },
         hidden: true,
         edit: {
           addButton: null,
@@ -165,6 +171,7 @@ describe('utils', () => {
         id: 'repeatingGroup',
         itemType: 'CONTAINER',
         type: ComponentType.RepeatingGroup,
+        dataModelBindings: { group: 'some-path' },
         edit: {
           alertOnDelete: null,
           editButton: [GeneralRelationOperator.Equals, 1, 1],
@@ -191,6 +198,7 @@ describe('utils', () => {
         id: 'repeatingGroup',
         itemType: 'CONTAINER',
         type: ComponentType.RepeatingGroup,
+        dataModelBindings: { group: 'some-path' },
         hidden,
         edit: {
           addButton,
@@ -223,11 +231,13 @@ describe('utils', () => {
         itemType: 'COMPONENT',
         pageIndex: null,
         type: ComponentType.Input,
+        dataModelBindings: { simpleBinding: 'some-path' },
       };
       const repeatingGroupWithoutEditProp: FormContainer<ComponentType.RepeatingGroup> = {
         id: 'repeatingGroup',
         itemType: 'CONTAINER',
         type: ComponentType.RepeatingGroup,
+        dataModelBindings: { group: 'some-path' },
       };
       const hiddenProp: FormItemProperty<ComponentType.Input> = { key: 'hidden' };
       const addButtonProp: FormItemProperty<ComponentType.RepeatingGroup> = {

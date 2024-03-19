@@ -4,13 +4,9 @@ import { DropdownMenu } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon, ArrowUpIcon, ArrowDownIcon } from '@navikt/aksel-icons';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
 import { useUpdateLayoutOrderMutation } from '../../../../hooks/mutations/useUpdateLayoutOrderMutation';
-import { useUpdateLayoutNameMutation } from '../../../../hooks/mutations/useUpdateLayoutNameMutation';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useSelector } from 'react-redux';
 import type { IAppState } from '../../../../types/global';
-import { useSearchParams } from 'react-router-dom';
-import { InputPopover } from './InputPopover';
-import { deepCopy } from 'app-shared/pure';
 import { useAppContext } from '../../../../hooks/useAppContext';
 import { StudioButton } from '@studio/components';
 
@@ -41,14 +37,11 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
 
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
 
-  const layoutOrder = formLayoutSettings?.pages.order;
+  const layoutOrder = formLayoutSettings?.pages?.order;
   const disableUp = layoutOrder.indexOf(pageName) === 0;
   const disableDown = layoutOrder.indexOf(pageName) === layoutOrder.length - 1;
 
   const { mutate: updateLayoutOrder } = useUpdateLayoutOrderMutation(org, app, selectedLayoutSet);
-  const { mutate: updateLayoutName } = useUpdateLayoutNameMutation(org, app, selectedLayoutSet);
-
-  const [searchParams, setSearchParams] = useSearchParams();
 
   const settingsRef = useRef(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -60,18 +53,12 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
     setDropdownOpen(false);
   };
 
-  const handleSaveNewName = (newName: string) => {
-    updateLayoutName({ oldName: pageName, newName });
-    setSearchParams({ ...deepCopy(searchParams), layout: newName });
-  };
-
   return (
     <div>
       <StudioButton
         icon={<MenuElipsisVerticalIcon />}
         onClick={() => setDropdownOpen((v) => !v)}
         aria-haspopup='menu'
-        aria-expanded={dropdownOpen}
         variant='tertiary'
         title={t('general.options')}
         size='small'
@@ -106,13 +93,6 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
                 </DropdownMenu.Item>
               </>
             )}
-            <InputPopover
-              oldName={pageName}
-              disabled={invalid}
-              layoutOrder={layoutOrder}
-              saveNewName={handleSaveNewName}
-              onClose={() => setDropdownOpen(false)}
-            />
           </DropdownMenu.Group>
         </DropdownMenu.Content>
       </DropdownMenu>

@@ -10,7 +10,7 @@ import { useSelector } from 'react-redux';
 import type { IAppState } from '../../../../types/global';
 import { useSearchParams } from 'react-router-dom';
 import { InputPopover } from './InputPopover';
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils } from '@studio/pure-functions';
 import { useAppContext } from '../../../../hooks/useAppContext';
 import { StudioButton } from '@studio/components';
 
@@ -41,7 +41,7 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
 
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
 
-  const layoutOrder = formLayoutSettings?.pages.order;
+  const layoutOrder = formLayoutSettings?.pages?.order;
   const disableUp = layoutOrder.indexOf(pageName) === 0;
   const disableDown = layoutOrder.indexOf(pageName) === layoutOrder.length - 1;
 
@@ -62,7 +62,7 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
 
   const handleSaveNewName = (newName: string) => {
     updateLayoutName({ oldName: pageName, newName });
-    setSearchParams({ ...deepCopy(searchParams), layout: newName });
+    setSearchParams({ ...ObjectUtils.deepCopy(searchParams), layout: newName });
   };
 
   return (

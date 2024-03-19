@@ -77,52 +77,24 @@ describe('NavigationMenu', () => {
     expect(elementInMenuAfterClose).not.toBeInTheDocument();
   });
 
-  it('Calls updateFormLayoutName with new name when name is changed by the user', async () => {
+  it('should close the menu when clicking outside the menu', async () => {
     const user = userEvent.setup();
     await render();
+
     const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
     await act(() => user.click(menuButtons[0]));
-    await act(() =>
-      user.click(screen.getByRole('menuitem', { name: textMock('ux_editor.page_menu_edit') })),
-    );
 
-    const inputField = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
-    expect(inputField).toHaveValue(mockPageName1);
-
-    const newValue: string = `${mockPageName1}1`;
-
-    await act(() => user.type(inputField, '1'));
-
-    const saveButton = screen.getByRole('button', {
-      name: textMock('ux_editor.input_popover_save_button'),
+    const elementInMenu = screen.getByRole('menuitem', {
+      name: textMock('ux_editor.page_menu_up'),
     });
-    await act(() => user.click(saveButton));
+    expect(elementInMenu).toBeInTheDocument();
 
-    expect(queriesMock.updateFormLayoutName).toHaveBeenCalledTimes(1);
-    expect(queriesMock.updateFormLayoutName).toHaveBeenCalledWith(
-      mockOrg,
-      mockApp,
-      mockPageName1,
-      newValue,
-      mockSelectedLayoutSet,
-    );
-  });
+    await act(() => user.click(document.body));
 
-  it('should close the menu when clicking cancel in the edit name popover', async () => {
-    const user = userEvent.setup();
-    await render();
-    const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
-    await act(() => user.click(menuButtons[0]));
-    await act(() =>
-      user.click(screen.getByRole('menuitem', { name: textMock('ux_editor.page_menu_edit') })),
-    );
-    const cancelButton = screen.getByRole('button', {
-      name: textMock('general.cancel'),
+    const elementInMenuAfterClose = screen.queryByRole('menuitem', {
+      name: textMock('ux_editor.page_menu_up'),
     });
-    await act(() => user.click(cancelButton));
-
-    const inputFieldAfterClose = screen.queryByLabelText(textMock('ux_editor.input_popover_label'));
-    expect(inputFieldAfterClose).not.toBeInTheDocument();
+    expect(elementInMenuAfterClose).not.toBeInTheDocument();
   });
 
   it('hides the up and down button when page is receipt', async () => {
