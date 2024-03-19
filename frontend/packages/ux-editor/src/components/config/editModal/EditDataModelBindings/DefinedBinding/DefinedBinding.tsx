@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioProperty } from '@studio/components';
+import { StudioPropertyButton } from '@studio/components';
 import { LinkIcon } from '@studio/icons';
 import classes from './DefinedBinding.module.css';
 import { useTranslation } from 'react-i18next';
@@ -21,7 +21,7 @@ export const DefinedBinding = ({ onClick, label, selectedOption }: DefinedBindin
   );
 
   return (
-    <StudioProperty.Button
+    <StudioPropertyButton
       aria-label={title}
       onClick={onClick}
       property={label}

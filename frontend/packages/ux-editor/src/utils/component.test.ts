@@ -36,8 +36,8 @@ describe('Component utils', () => {
           [bindingKeyToChange]: resourceKeyToChange,
         },
         type: ComponentType.Input,
-        dataModelBindings: { simpleBinding: 'some-path' },
         itemType: 'COMPONENT',
+        dataModelBindings: {},
       };
       expect(changeTextResourceBinding(component, bindingKeyToChange, newResourceKey)).toEqual({
         ...component,
@@ -60,7 +60,7 @@ describe('Component utils', () => {
         },
         type: ComponentType.Input,
         itemType: 'COMPONENT',
-        dataModelBindings: { simpleBinding: 'some-path' },
+        dataModelBindings: {},
       };
       expect(
         changeTextResourceBinding(component, 'title', newResourceKey).textResourceBindings.title,
@@ -79,7 +79,7 @@ describe('Component utils', () => {
         },
         type: ComponentType.Input,
         itemType: 'COMPONENT',
-        dataModelBindings: { simpleBinding: 'some-path' },
+        dataModelBindings: {},
       };
       expect(
         changeTextResourceBinding(component, 'description', newResourceKey).textResourceBindings
@@ -104,7 +104,7 @@ describe('Component utils', () => {
         ],
         optionsId: null,
         itemType: 'COMPONENT',
-        dataModelBindings: { simpleBinding: 'some-path' },
+        dataModelBindings: {},
       };
       const newOption: IOption = {
         label: 'newTestLabel',
@@ -138,7 +138,7 @@ describe('Component utils', () => {
         ],
         optionsId: null,
         itemType: 'COMPONENT',
-        dataModelBindings: { simpleBinding: 'some-path' },
+        dataModelBindings: {},
       };
       const newLabel = 'newTestLabel';
       expect(
@@ -192,7 +192,7 @@ describe('Component utils', () => {
         id: 'test',
         type: ComponentType.Input,
         itemType: 'COMPONENT',
-        dataModelBindings: { simpleBinding: 'some-path' },
+        dataModelBindings: {},
       };
       const propertyKey = 'testProperty';
       const value = 'testValue';

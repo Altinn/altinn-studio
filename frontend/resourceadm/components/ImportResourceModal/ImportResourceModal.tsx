@@ -15,7 +15,6 @@ import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUrlParams } from '../../hooks/useSelectedContext';
 import { StudioButton } from '@studio/components';
 import { formatIdString } from '../../utils/stringUtils';
-import { getResourceIdentifierErrorMessage } from 'resourceadm/utils/resourceUtils';
 
 const environmentOptions = ['AT21', 'AT22', 'AT23', 'AT24', 'TT02', 'PROD'];
 
@@ -56,9 +55,6 @@ export const ImportResourceModal = ({
   const { mutate: importResourceFromAltinn2Mutation, isPending: isImportingResource } =
     useImportResourceFromAltinn2Mutation(selectedContext);
 
-  const idErrorMessage = getResourceIdentifierErrorMessage(id, resourceIdExists);
-  const hasValidValues =
-    selectedEnv && selectedService && id && !idErrorMessage && !isImportingResource;
   /**
    * Reset fields on close
    */
@@ -137,11 +133,10 @@ export const ImportResourceModal = ({
               <Textfield
                 label={t('resourceadm.dashboard_resource_name_and_id_resource_id')}
                 value={id}
-                onChange={(event) => {
-                  setResourceIdExists(false);
-                  setId(formatIdString(event.target.value));
-                }}
-                error={idErrorMessage ? t(idErrorMessage) : ''}
+                onChange={(event) => setId(formatIdString(event.target.value))}
+                error={
+                  resourceIdExists ? t('resourceadm.dashboard_resource_name_and_id_error') : ''
+                }
               />
             </div>
           )}
@@ -149,10 +144,10 @@ export const ImportResourceModal = ({
       )}
       <div className={classes.buttonWrapper}>
         <StudioButton
-          onClick={() => (hasValidValues ? handleImportResource() : undefined)}
+          onClick={handleImportResource}
           color='first'
           size='small'
-          aria-disabled={!hasValidValues}
+          disabled={!selectedEnv || !selectedService || !id || isImportingResource}
         >
           {t('resourceadm.dashboard_import_modal_import_button')}
         </StudioButton>

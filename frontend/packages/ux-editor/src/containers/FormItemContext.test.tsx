@@ -12,6 +12,7 @@ import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormContainer } from '../types/FormContainer';
 import type { FormComponent } from '../types/FormComponent';
+import type { IAppState } from '../types/global';
 
 jest.useFakeTimers({ advanceTimers: true });
 
@@ -94,7 +95,7 @@ describe('FormItemContext', () => {
       type: ComponentType.Group,
     };
 
-    render(() => {
+    const { store } = render(() => {
       const { formItemId, formItem, handleEdit } = React.useContext(FormItemContext);
       return (
         <>
@@ -109,6 +110,8 @@ describe('FormItemContext', () => {
     const button = screen.getByTestId('button');
     await act(() => user.click(button));
 
+    const state = store.getState() as IAppState;
+    expect(state?.appData?.textResources?.currentEditId).toBeUndefined();
     await waitFor(async () =>
       expect((await screen.findByTestId('formItemId')).textContent).toEqual(mockFormItem.id),
     );
@@ -129,7 +132,7 @@ describe('FormItemContext', () => {
       itemType: 'CONTAINER',
       type: ComponentType.Group,
     };
-    render(() => {
+    const { store } = render(() => {
       const { formItemId, formItem, handleEdit } = React.useContext(FormItemContext);
       return (
         <>
@@ -143,7 +146,9 @@ describe('FormItemContext', () => {
 
     const button = screen.getByTestId('button');
     await act(() => user.click(button));
+    const state = store.getState() as IAppState;
 
+    expect(state?.appData?.textResources?.currentEditId).toBeUndefined();
     expect(screen.getByTestId('formItemId')).toBeInTheDocument();
     expect(screen.getByTestId('formItem.id')).toBeInTheDocument();
     expect(screen.getByTestId('formItem.itemType')).toBeInTheDocument();
@@ -161,7 +166,7 @@ describe('FormItemContext', () => {
 
   it('should discard the form item when calling handleDiscard', async () => {
     const user = userEvent.setup();
-    render(() => {
+    const { store } = render(() => {
       const { formItemId, formItem, handleDiscard } = React.useContext(FormItemContext);
       return (
         <>
@@ -176,6 +181,8 @@ describe('FormItemContext', () => {
     const button = screen.getByTestId('button');
     await act(() => user.click(button));
 
+    const state = store.getState() as IAppState;
+    expect(state?.appData?.textResources?.currentEditId).toBeUndefined();
     await waitFor(async () =>
       expect((await screen.findByTestId('formItemId')).textContent).toBe(''),
     );
@@ -267,7 +274,6 @@ describe('FormItemContext', () => {
       id: 'id',
       itemType: 'COMPONENT',
       type: ComponentType.Input,
-      dataModelBindings: { simpleBinding: 'somePath' },
     };
 
     render(() => {
@@ -289,7 +295,6 @@ describe('FormItemContext', () => {
       id: 'id',
       itemType: 'COMPONENT',
       type: ComponentType.Input,
-      dataModelBindings: { simpleBinding: 'somePath' },
     };
 
     render(() => {
@@ -320,7 +325,6 @@ describe('FormItemContext', () => {
       id: 'id',
       itemType: 'COMPONENT',
       type: ComponentType.Input,
-      dataModelBindings: { simpleBinding: 'somePath' },
     };
 
     render(() => {

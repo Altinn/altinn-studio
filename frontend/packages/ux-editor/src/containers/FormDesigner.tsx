@@ -35,7 +35,7 @@ import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 
 export interface FormDesignerProps {
   selectedLayout: string;
-  selectedLayoutSet: string;
+  selectedLayoutSet: string | undefined;
 }
 
 export const FormDesigner = ({
@@ -68,12 +68,7 @@ export const FormDesigner = ({
   const t = useText();
 
   const formLayoutIsReady =
-    selectedLayoutSet &&
-    instanceId &&
-    formLayouts &&
-    formLayoutSettings &&
-    ruleModel &&
-    isRuleConfigFetched;
+    instanceId && formLayouts && formLayoutSettings && ruleModel && isRuleConfigFetched;
 
   const mapErrorToDisplayError = (): { title: string; message: string } => {
     const defaultTitle = t('general.fetch_error_title');

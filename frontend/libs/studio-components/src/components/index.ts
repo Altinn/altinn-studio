@@ -13,7 +13,7 @@ export * from './StudioLabelWrapper';
 export * from './StudioModal';
 export * from './StudioNotFoundPage';
 export * from './StudioPageSpinner';
-export * from './StudioProperty';
+export * from './StudioPropertyButton';
 export * from './StudioSectionHeader';
 export * from './StudioSpinner';
 export * from './StudioTextarea';

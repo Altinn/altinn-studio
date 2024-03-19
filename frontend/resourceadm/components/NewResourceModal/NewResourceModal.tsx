@@ -9,7 +9,6 @@ import { useTranslation } from 'react-i18next';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUrlParams } from '../../hooks/useSelectedContext';
 import { StudioButton } from '@studio/components';
-import { getResourceIdentifierErrorMessage } from 'resourceadm/utils/resourceUtils';
 
 export type NewResourceModalProps = {
   onClose: () => void;
@@ -38,10 +37,6 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
     // Mutation function to create new resource
     const { mutate: createNewResource, isPending: isCreatingResource } =
       useCreateResourceMutation(selectedContext);
-
-    const idErrorMessage = getResourceIdentifierErrorMessage(id, resourceIdExists);
-    const hasValidValues =
-      id.length !== 0 && title.length !== 0 && !idErrorMessage && !isCreatingResource;
 
     /**
      * Creates a new resource in backend, and navigates if success
@@ -77,6 +72,10 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
       setResourceIdExists(false);
     };
 
+    const isCreateButtonDisabled = (): boolean => {
+      return id.length === 0 || title.length === 0 || isCreatingResource;
+    };
+
     return (
       <Modal ref={ref} onClose={handleClose}>
         <Modal.Header>{t('resourceadm.dashboard_create_modal_title')}</Modal.Header>
@@ -94,14 +93,16 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
               setId(newId);
             }}
             onTitleChange={(newTitle: string) => setTitle(newTitle)}
-            conflictErrorMessage={idErrorMessage ? t(idErrorMessage) : ''}
+            conflictErrorMessage={
+              resourceIdExists ? t('resourceadm.dashboard_resource_name_and_id_error') : ''
+            }
           />
         </Modal.Content>
         <Modal.Footer>
           <StudioButton
-            onClick={() => (hasValidValues ? handleCreateNewResource() : undefined)}
+            onClick={() => (isCreateButtonDisabled() ? undefined : handleCreateNewResource())}
             color='first'
-            aria-disabled={!hasValidValues}
+            aria-disabled={isCreateButtonDisabled()}
             size='small'
           >
             {t('resourceadm.dashboard_create_modal_create_button')}

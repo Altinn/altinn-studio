@@ -11,7 +11,6 @@ const commonProps: Pick<FormComponentBase, 'id' | 'itemType' | 'dataModelBinding
 const checkboxesComponent: FormComponent<ComponentType.Checkboxes> = {
   ...commonProps,
   type: ComponentType.Checkboxes,
-  dataModelBindings: { simpleBinding: '' },
   options: [
     { label: 'Option 1', value: 'option1' },
     { label: 'Option 2', value: 'option2' },
@@ -22,7 +21,6 @@ const checkboxesComponent: FormComponent<ComponentType.Checkboxes> = {
 const radiosComponent: FormComponent<ComponentType.RadioButtons> = {
   ...commonProps,
   type: ComponentType.RadioButtons,
-  dataModelBindings: { simpleBinding: '' },
   options: [
     { label: 'Option 1', value: 'option1' },
     { label: 'Option 2', value: 'option2' },
@@ -33,7 +31,6 @@ const radiosComponent: FormComponent<ComponentType.RadioButtons> = {
 const inputComponent: FormComponent<ComponentType.Input> = {
   ...commonProps,
   type: ComponentType.Input,
-  dataModelBindings: { simpleBinding: '' },
 };
 const headerComponent: FormComponent<ComponentType.Header> = {
   ...commonProps,
@@ -51,24 +48,20 @@ const imageComponent: FormComponent<ComponentType.Image> = {
 const datePickerComponent: FormComponent<ComponentType.Datepicker> = {
   ...commonProps,
   type: ComponentType.Datepicker,
-  dataModelBindings: { simpleBinding: '' },
   timeStamp: true,
 };
 const dropdownComponent: FormComponent<ComponentType.Dropdown> = {
   ...commonProps,
   type: ComponentType.Dropdown,
-  dataModelBindings: { simpleBinding: '' },
   optionsId: '',
 };
 const textareaComponent: FormComponent<ComponentType.TextArea> = {
   ...commonProps,
   type: ComponentType.TextArea,
-  dataModelBindings: { simpleBinding: '' },
 };
 const fileUploaderComponent: FormComponent<ComponentType.FileUpload> = {
   ...commonProps,
   type: ComponentType.FileUpload,
-  dataModelBindings: { simpleBinding: '' },
   description: 'test',
   displayMode: 'list',
   hasCustomFileEndings: false,
@@ -79,7 +72,6 @@ const fileUploaderComponent: FormComponent<ComponentType.FileUpload> = {
 const fileUploaderWithTagComponent: FormComponent<ComponentType.FileUploadWithTag> = {
   ...commonProps,
   type: ComponentType.FileUploadWithTag,
-  dataModelBindings: { simpleBinding: '' },
   description: 'test',
   displayMode: 'list',
   hasCustomFileEndings: false,
@@ -96,11 +88,6 @@ const buttonComponent: FormComponent<ComponentType.Button> = {
 const addressComponent: FormComponent<ComponentType.Address> = {
   ...commonProps,
   type: ComponentType.Address,
-  dataModelBindings: {
-    address: 'some-address',
-    zipCode: 'some-zip',
-    postPlace: 'some-place',
-  },
   simplified: true,
 };
 const navigationBarComponent: FormComponent<ComponentType.NavigationBar> = {
@@ -126,7 +113,6 @@ const panelComponent: FormComponent<ComponentType.Panel> = {
 const mapComponent: FormComponent<ComponentType.Map> = {
   ...commonProps,
   type: ComponentType.Map,
-  dataModelBindings: { simpleBinding: '' },
   centerLocation: {
     latitude: 0,
     longitude: 0,
@@ -157,7 +143,6 @@ const repeatingGroupContainer: FormContainer<ComponentType.RepeatingGroup> = {
   ...commonProps,
   itemType: 'CONTAINER',
   type: ComponentType.RepeatingGroup,
-  dataModelBindings: { group: '' },
 };
 
 export const componentMocks = {

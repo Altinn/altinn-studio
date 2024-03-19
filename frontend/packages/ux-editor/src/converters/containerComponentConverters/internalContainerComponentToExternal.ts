@@ -13,5 +13,5 @@ export const internalContainerComponentToExternal = (
     ...propertiesToKeep,
     children,
     type: internalContainerComponent.type,
-  } as ExternalContainerComponent;
+  };
 };

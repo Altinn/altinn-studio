@@ -1,4 +1,3 @@
-import { ObjectUtils } from '@studio/pure-functions';
 import { createSelector } from 'reselect';
 
 export interface IUpdateArrayObj {
@@ -18,7 +17,7 @@ const changeOrderNum = ({ array, order }: ITwoArraysObj) => {
     }
   });
   markFirstAndLastObject(array);
-  return ObjectUtils.deepCopy({ array, order });
+  return JSON.parse(JSON.stringify({ array, order }));
 };
 
 const findMissing = (a: any[]) => {

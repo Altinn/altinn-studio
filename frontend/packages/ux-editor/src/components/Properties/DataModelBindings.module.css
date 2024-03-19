@@ -1,6 +1,5 @@
 .container {
   display: grid;
-  gap: var(--studio-property-vertical-gap);
 }
 
 .switch {

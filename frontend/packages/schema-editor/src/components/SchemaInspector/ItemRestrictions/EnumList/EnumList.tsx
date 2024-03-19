@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import classes from './EnumList.module.css';
 import type { FieldNode } from '@altinn/schema-model';
-import { ObjectUtils, ArrayUtils } from '@studio/pure-functions';
+import { deepCopy } from 'app-shared/pure';
 import { EnumField } from './EnumField';
 import { ErrorMessage, Fieldset } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,7 @@ import { findDuplicateValues } from './utils';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 import { removeEmptyStrings } from 'app-shared/utils/arrayUtils';
 import { StudioButton } from '@studio/components';
+import { ArrayUtils } from '@studio/pure-functions';
 
 export type EnumListProps = {
   schemaNode: FieldNode;
@@ -20,7 +21,7 @@ export const EnumList = ({ schemaNode }: EnumListProps): JSX.Element => {
   const { schemaModel, save } = useSchemaEditorAppContext();
 
   const [enumList, setEnumList] = useState<string[]>(
-    schemaNode?.enum ? ObjectUtils.deepCopy(schemaNode.enum) : [],
+    schemaNode?.enum ? deepCopy(schemaNode.enum) : [],
   );
 
   const [duplicateValues, setDuplicateValues] = useState<string[]>(null);

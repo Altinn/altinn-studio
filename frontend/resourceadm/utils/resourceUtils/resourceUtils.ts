@@ -10,7 +10,6 @@ import type {
 } from 'app-shared/types/ResourceAdm';
 import type { ReactNode } from 'react';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
-import { isAppPrefix } from '../stringUtils';
 
 /**
  * The map of resource type
@@ -183,14 +182,4 @@ export const createNavigationTab = (
     },
     isActiveTab: getIsActiveTab(currentPage, tabId),
   };
-};
-
-export const getResourceIdentifierErrorMessage = (identifier: string, isConflict?: boolean) => {
-  const hasAppPrefix = isAppPrefix(identifier);
-  if (hasAppPrefix) {
-    return 'resourceadm.dashboard_resource_id_cannot_be_app';
-  } else if (isConflict) {
-    return 'resourceadm.dashboard_resource_name_and_id_error';
-  }
-  return '';
 };

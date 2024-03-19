@@ -35,9 +35,8 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IOrgService _orgService;
         private readonly IResourceRegistry _resourceRegistry;
         private readonly ResourceRegistryIntegrationSettings _resourceRegistrySettings;
-        private readonly IUserRequestsSynchronizationService _userRequestsSynchronizationService;
 
-        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IAltinn2MetadataClient altinn2MetadataClient, IOrgService orgService, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IResourceRegistry resourceRegistry, IUserRequestsSynchronizationService userRequestsSynchronizationService)
+        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IAltinn2MetadataClient altinn2MetadataClient, IOrgService orgService, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IResourceRegistry resourceRegistry)
         {
             _giteaApi = gitea;
             _repository = repository;
@@ -48,7 +47,6 @@ namespace Altinn.Studio.Designer.Controllers
             _orgService = orgService;
             _resourceRegistrySettings = resourceRegistryEnvironment.Value;
             _resourceRegistry = resourceRegistry;
-            _userRequestsSynchronizationService = userRequestsSynchronizationService;
         }
 
         [HttpPost]
@@ -249,20 +247,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/updateresource/{id}")]
         public async Task<ActionResult> UpdateResource(string org, string id, [FromBody] ServiceResource resource)
         {
-            string repository = string.Format("{0}-resources", org);
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
-            semaphore.Wait();
-            try
-            {
-                resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
-                return _repository.UpdateServiceResource(org, id, resource);
-            }
-            finally
-            {
-                semaphore.Release();
-            }
-
+            resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
+            return _repository.UpdateServiceResource(org, id, resource);
         }
 
         [HttpPost]

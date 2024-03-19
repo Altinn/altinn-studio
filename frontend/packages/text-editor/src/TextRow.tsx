@@ -27,8 +27,7 @@ export interface TextRowProps {
   upsertTextResource: (data: UpsertTextResourceMutation) => void;
   variables: TextResourceVariable[];
   selectedLanguages: string[];
-  showEditButton?: boolean;
-  showDeleteButton?: boolean;
+  showButton?: boolean;
 }
 
 export const TextRow = ({
@@ -40,8 +39,7 @@ export const TextRow = ({
   idExists,
   variables,
   selectedLanguages,
-  showEditButton = true,
-  showDeleteButton = true,
+  showButton = true,
 }: TextRowProps) => {
   const [textIdValue, setTextIdValue] = useState(textId);
   const [textIdEditOpen, setTextIdEditOpen] = useState(false);
@@ -80,7 +78,7 @@ export const TextRow = ({
   return (
     <TableRow>
       <TableCell>
-        {showDeleteButton && (
+        {showButton && (
           <AltinnConfirmDialog
             open={isConfirmDeleteDialogOpen}
             confirmText={t('schema_editor.textRow-deletion-confirm')}
@@ -141,7 +139,7 @@ export const TextRow = ({
               <span>{textIdValue}</span>
             </div>
           )}
-          {showEditButton && (
+          {showButton && (
             <StudioButton
               aria-label={t('text_editor.toggle_edit_mode', { textKey: textIdValue })}
               icon={<PencilIcon />}

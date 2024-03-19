@@ -15,7 +15,6 @@ import type { IDataModelBindings } from '../../types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
-import type { DataModelBindingsSimple } from 'app-shared/types/ComponentSpecificConfig';
 
 // Test data:
 const org = 'org';
@@ -24,9 +23,7 @@ const selectedLayoutName = 'Side1';
 const selectedLayoutSet = 'test-layout-set';
 const id = component1IdMock;
 const type = ComponentType.TextArea;
-const dataModelBindings: IDataModelBindings & DataModelBindingsSimple = {
-  simpleBinding: 'some-path',
-};
+const dataModelBindings: IDataModelBindings = {};
 const updatedComponent: FormComponent = {
   id,
   itemType: 'COMPONENT',

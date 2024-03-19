@@ -1,16 +1,17 @@
+import type { IAppDataState } from '../features/appData/appDataReducers';
 import type { IFormDesignerState } from '../features/formDesigner/formDesignerReducer';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { FormComponent } from './FormComponent';
 import type { FormContainer } from './FormContainer';
-import type { BooleanExpression } from '@studio/components';
 import type React from 'react';
 
-export interface IFormDesignerNameSpace<T1> {
+export interface IFormDesignerNameSpace<T1, T2> {
   formDesigner: T1;
+  appData: T2;
 }
-export type IAppState = IFormDesignerNameSpace<IFormDesignerState>;
+export type IAppState = IFormDesignerNameSpace<IFormDesignerState, IAppDataState>;
 
 export interface IOption {
   label: string;
@@ -28,7 +29,7 @@ export interface IInternalLayout {
   components: IFormDesignerComponents;
   containers: IFormDesignerContainers;
   order: IFormLayoutOrder;
-  hidden?: BooleanExpression;
+  hidden?: any;
   customRootProperties: KeyValuePairs;
   customDataProperties: KeyValuePairs;
 }

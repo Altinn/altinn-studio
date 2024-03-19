@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { IInternalLayout } from '../../types/global';
-import { ObjectUtils } from '@studio/pure-functions';
+import { deepCopy } from 'app-shared/pure';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
@@ -36,7 +36,7 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
 
   return useMutation({
     mutationFn: async (layoutName: string) => {
-      let layouts = ObjectUtils.deepCopy(formLayouts);
+      let layouts = deepCopy(formLayouts);
       delete layouts[layoutName];
       layouts = await addOrRemoveNavigationButtons(
         layouts,
@@ -48,7 +48,7 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
       return { layoutName, layouts };
     },
     onSuccess: ({ layoutName, layouts }) => {
-      const layoutSettings: ILayoutSettings = ObjectUtils.deepCopy(formLayoutSettings);
+      const layoutSettings: ILayoutSettings = deepCopy(formLayoutSettings);
 
       const { order } = layoutSettings?.pages;
 

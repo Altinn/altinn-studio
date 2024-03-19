@@ -8,7 +8,6 @@ import { EditDataModelBindings } from '../../editModal/EditDataModelBindings/Edi
 import type { FormAddressComponent } from '../../../../types/FormComponent';
 import { FormField } from '../../../FormField';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { StudioProperty } from '@studio/components';
 
 export const AddressComponent = ({
   component,
@@ -46,27 +45,25 @@ export const AddressComponent = ({
         )}
       />
 
-      <StudioProperty.Group>
-        {Object.keys(AddressKeys).map((value: AddressKeys, index) => {
-          const simple: boolean = (component as FormAddressComponent).simplified;
-          if (simple && (value === AddressKeys.careOf || value === AddressKeys.houseNumber)) {
-            return null;
-          }
-          return (
-            <EditDataModelBindings
-              component={component}
-              handleComponentChange={handleComponentChange}
-              key={value}
-              renderOptions={{
-                label: getTextResourceByAddressKey(value, t),
-                returnValue: value,
-                key: value,
-                uniqueKey: index,
-              }}
-            />
-          );
-        })}
-      </StudioProperty.Group>
+      {Object.keys(AddressKeys).map((value: AddressKeys, index) => {
+        const simple: boolean = (component as FormAddressComponent).simplified;
+        if (simple && (value === AddressKeys.careOf || value === AddressKeys.houseNumber)) {
+          return null;
+        }
+        return (
+          <EditDataModelBindings
+            component={component}
+            handleComponentChange={handleComponentChange}
+            key={value}
+            renderOptions={{
+              label: getTextResourceByAddressKey(value, t),
+              returnValue: value,
+              key: value,
+              uniqueKey: index,
+            }}
+          />
+        );
+      })}
     </Fieldset>
   );
 };

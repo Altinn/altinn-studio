@@ -39,7 +39,7 @@ describe('ImportResourceModal', () => {
 
     const importButtonText = textMock('resourceadm.dashboard_import_modal_import_button');
     const importButton = screen.queryByRole('button', { name: importButtonText });
-    expect(importButton).toHaveAttribute('aria-disabled', 'true');
+    expect(importButton).toBeDisabled();
 
     const environmentSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_env'),
@@ -48,7 +48,7 @@ describe('ImportResourceModal', () => {
     await act(() => user.click(screen.getByRole('option', { name: 'AT21' })));
 
     await waitFor(() => expect(environmentSelect).toHaveValue('AT21'));
-    expect(importButton).toHaveAttribute('aria-disabled', 'true');
+    expect(importButton).toBeDisabled();
 
     // wait for the second combobox to appear, instead of waiting for the spinner to disappear.
     // (sometimes the spinner disappears) too quick and the test will fail
@@ -65,23 +65,7 @@ describe('ImportResourceModal', () => {
     await act(() => user.click(screen.getByRole('option', { name: mockOption })));
 
     await waitFor(() => expect(serviceSelect).toHaveValue(mockOption));
-    expect(screen.getByRole('button', { name: importButtonText })).not.toHaveAttribute(
-      'aria-disabled',
-      'true',
-    );
-  });
-
-  it('should not import resource if some information is missing', async () => {
-    const user = userEvent.setup();
-    const importResourceFromAltinn2 = jest.fn();
-    renderImportResourceModal({ importResourceFromAltinn2 });
-
-    const importButton = screen.getByRole('button', {
-      name: textMock('resourceadm.dashboard_import_modal_import_button'),
-    });
-
-    await act(() => user.click(importButton));
-    expect(importResourceFromAltinn2).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: importButtonText })).not.toBeDisabled();
   });
 
   it('should clear service field when environment is changed', async () => {
@@ -226,41 +210,6 @@ describe('ImportResourceModal', () => {
     await act(() => user.type(idField, '?/test'));
 
     expect(idField).toHaveValue(`${mockAltinn2LinkService.serviceName.toLowerCase()}--test`);
-  });
-
-  it('displays error message when resource identifier starts with _app', async () => {
-    const user = userEvent.setup();
-    renderImportResourceModal();
-
-    const environmentSelect = screen.getByLabelText(
-      textMock('resourceadm.dashboard_import_modal_select_env'),
-    );
-    await act(() => user.click(environmentSelect));
-    await act(() => user.click(screen.getByRole('option', { name: 'AT21' })));
-
-    // wait for the second combobox to appear, instead of waiting for the spinner to disappear.
-    // (sometimes the spinner disappears) too quick and the test will fail
-    await waitFor(() => {
-      expect(
-        screen.getByLabelText(textMock('resourceadm.dashboard_import_modal_select_service')),
-      ).toBeInTheDocument();
-    });
-
-    const serviceSelect = screen.getByLabelText(
-      textMock('resourceadm.dashboard_import_modal_select_service'),
-    );
-    await act(() => user.click(serviceSelect));
-    await act(() => user.click(screen.getByRole('option', { name: mockOption })));
-
-    const idField = await screen.findByLabelText(
-      textMock('resourceadm.dashboard_resource_name_and_id_resource_id'),
-    );
-    await act(() => user.clear(idField));
-    await act(() => user.type(idField, 'app_'));
-
-    expect(
-      screen.getByText(textMock('resourceadm.dashboard_resource_id_cannot_be_app')),
-    ).toBeInTheDocument();
   });
 
   it('displays conflict message if identifier is in use', async () => {

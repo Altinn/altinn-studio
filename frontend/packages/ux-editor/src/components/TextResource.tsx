@@ -1,0 +1,242 @@
+import React, { useState } from 'react';
+import type { LegacySingleSelectOption } from '@digdir/design-system-react';
+import { LegacySelect, Paragraph } from '@digdir/design-system-react';
+import {
+  MagnifyingGlassIcon,
+  PencilIcon,
+  PlusIcon,
+  TrashIcon,
+  XMarkIcon,
+} from '@navikt/aksel-icons';
+import classes from './TextResource.module.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { setCurrentEditId } from '../features/appData/textResources/textResourcesSlice';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import {
+  allTextResourceIdsWithTextSelector,
+  getCurrentEditId,
+  textResourceByLanguageAndIdSelector,
+} from '../selectors/textResourceSelectors';
+import { generateRandomId } from 'app-shared/utils/generateRandomId';
+import { generateTextResourceId } from '../utils/generateId';
+import { useText, useTextResourcesSelector } from '../hooks';
+import { prepend } from 'app-shared/utils/arrayUtils';
+import cn from 'classnames';
+import type { ITextResource } from 'app-shared/types/global';
+
+import { AltinnConfirmDialog } from 'app-shared/components/AltinnConfirmDialog';
+import { useTranslation } from 'react-i18next';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { StudioButton } from '@studio/components';
+
+export interface TextResourceProps {
+  description?: string;
+  handleIdChange: (id: string) => void;
+  handleRemoveTextResource?: () => void;
+  label?: string;
+  placeholder?: string;
+  previewMode?: boolean;
+  textResourceId?: string;
+  generateIdOptions?: GenerateTextResourceIdOptions;
+}
+
+export interface GenerateTextResourceIdOptions {
+  componentId: string;
+  layoutId: string;
+  textResourceKey: string;
+}
+
+export const generateId = (options?: GenerateTextResourceIdOptions) => {
+  if (!options) {
+    return generateRandomId(12);
+  }
+  return generateTextResourceId(options.layoutId, options.componentId, options.textResourceKey);
+};
+
+export const TextResource = ({
+  description,
+  handleIdChange,
+  handleRemoveTextResource,
+  label,
+  placeholder,
+  textResourceId,
+  generateIdOptions,
+}: TextResourceProps) => {
+  const dispatch = useDispatch();
+
+  const textResource: ITextResource = useTextResourcesSelector<ITextResource>(
+    textResourceByLanguageAndIdSelector(DEFAULT_LANGUAGE, textResourceId),
+  );
+  const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
+    allTextResourceIdsWithTextSelector(DEFAULT_LANGUAGE),
+  );
+  const { t } = useTranslation();
+  const [isSearchMode, setIsSearchMode] = useState(false);
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>(false);
+
+  const editId = useSelector(getCurrentEditId);
+  const setEditId = (id: string) => dispatch(setCurrentEditId(id));
+  const isEditing = textResourceId && editId === textResourceId;
+
+  const handleEditButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    if (textResourceId) {
+      setEditId(textResourceId);
+    } else {
+      const id = generateId(generateIdOptions);
+      handleIdChange(id);
+      setEditId(id);
+    }
+  };
+
+  const handleDeleteButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    handleRemoveTextResource();
+  };
+
+  const searchOptions: LegacySingleSelectOption[] = prepend<LegacySingleSelectOption>(
+    textResources.map((tr) => ({
+      label: tr.id,
+      value: tr.id,
+      formattedLabel: <TextResourceOption textResource={tr} />,
+      keywords: [tr.id, tr.value],
+    })),
+    { label: t('ux_editor.search_text_resources_none'), value: '' },
+  );
+
+  const renderTextResource = () => (
+    <span
+      className={cn(
+        classes.root,
+        isEditing && classes.isEditing,
+        isSearchMode && classes.isSearching,
+      )}
+    >
+      {label && <span className={classes.label}>{label}</span>}
+      {description && <span className={classes.description}>{description}</span>}
+      {isSearchMode && (
+        <span className={classes.searchContainer}>
+          <span className={classes.select}>
+            <LegacySelect
+              hideLabel={true}
+              label={t('ux_editor.search_text_resources_label')}
+              onChange={(id) => handleIdChange(id === '' ? undefined : id)}
+              options={searchOptions}
+              value={textResource?.id ?? ''}
+            />
+          </span>
+          <StudioButton
+            aria-label={t('ux_editor.search_text_resources_close')}
+            className={classes.button}
+            color='second'
+            icon={<XMarkIcon />}
+            onClick={() => setIsSearchMode(false)}
+            title={t('ux_editor.search_text_resources_close')}
+            variant='tertiary'
+            size='small'
+          />
+        </span>
+      )}
+      <span className={classes.textResource}>
+        {textResource?.value ? (
+          <Paragraph className={classes.paragraph}>{textResource.value}</Paragraph>
+        ) : (
+          <span className={classes.placeholder}>{placeholder}</span>
+        )}
+        <span className={classes.buttonsWrapper}>
+          <span className={classes.buttons}>
+            {textResource?.value ? (
+              <StudioButton
+                aria-label={t(getTextKeyForButton('edit', generateIdOptions?.textResourceKey))}
+                className={classes.button}
+                color='second'
+                disabled={isEditing}
+                icon={<PencilIcon />}
+                onClick={handleEditButtonClick}
+                title={t(getTextKeyForButton('edit', generateIdOptions?.textResourceKey))}
+                variant='tertiary'
+                size='small'
+              />
+            ) : (
+              <StudioButton
+                aria-label={t(getTextKeyForButton('add', generateIdOptions?.textResourceKey))}
+                className={classes.button}
+                color='second'
+                disabled={isEditing}
+                icon={<PlusIcon />}
+                onClick={handleEditButtonClick}
+                title={t(getTextKeyForButton('add', generateIdOptions?.textResourceKey))}
+                variant='tertiary'
+                size='small'
+              />
+            )}
+            <StudioButton
+              aria-label={t(getTextKeyForButton('search', generateIdOptions?.textResourceKey))}
+              className={classes.button}
+              color='second'
+              disabled={isSearchMode}
+              icon={<MagnifyingGlassIcon />}
+              onClick={() => setIsSearchMode(true)}
+              title={t(getTextKeyForButton('search', generateIdOptions?.textResourceKey))}
+              variant='tertiary'
+              size='small'
+            />
+            <AltinnConfirmDialog
+              open={isConfirmDeleteDialogOpen}
+              confirmText={t('ux_editor.text_resource_bindings.delete_confirm')}
+              onConfirm={handleDeleteButtonClick}
+              onClose={() => setIsConfirmDeleteDialogOpen(false)}
+              trigger={
+                <StudioButton
+                  aria-label={t(getTextKeyForButton('delete', generateIdOptions?.textResourceKey))}
+                  className={classes.button}
+                  color='second'
+                  disabled={
+                    !handleRemoveTextResource ||
+                    !(!!textResourceId || shouldDisplayFeature('componentConfigBeta'))
+                  }
+                  icon={<TrashIcon />}
+                  onClick={() => setIsConfirmDeleteDialogOpen(true)}
+                  title={t(getTextKeyForButton('delete', generateIdOptions?.textResourceKey))}
+                  variant='tertiary'
+                  size='small'
+                />
+              }
+            >
+              <div>
+                <p>{t('ux_editor.text_resource_bindings.delete_confirm_question')}</p>
+                <p>{t('ux_editor.text_resource_bindings.delete_info')}</p>
+              </div>
+            </AltinnConfirmDialog>
+          </span>
+        </span>
+      </span>
+    </span>
+  );
+
+  return renderTextResource();
+};
+
+export interface TextResourceOptionProps {
+  textResource: ITextResource;
+}
+
+export const TextResourceOption = ({ textResource }: TextResourceOptionProps) => {
+  const t = useText();
+  return (
+    <span className={classes.textOption}>
+      <span className={classes.textOptionId}>{textResource.id}</span>
+      <span className={cn(classes.textOptionValue, !textResource.value && classes.empty)}>
+        {textResource.value || t('ux_editor.no_text')}
+      </span>
+    </span>
+  );
+};
+
+type Action = 'add' | 'edit' | 'delete' | 'search';
+const textResourceKeys: string[] = ['title', 'description', 'help'];
+
+const getTextKeyForButton = (action: Action, textResourceKey: string): string => {
+  return textResourceKey && textResourceKeys.includes(textResourceKey)
+    ? `ux_editor.text_resource_binding_${action}_${textResourceKey}`
+    : `general.${action}`;
+};

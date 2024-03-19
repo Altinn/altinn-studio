@@ -1,7 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>Altinn.Studio.DataModeling</AssemblyName>
+    <Company>Altinn</Company>
     <LangVersion>latest</LangVersion>
     <RootNamespace>Altinn.Studio.DataModeling</RootNamespace>
   </PropertyGroup>

@@ -69,13 +69,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         public Task SaveLayoutSettings(AltinnRepoEditingContext altinnRepoEditingContext, JsonNode layoutSettings, string layoutSetName, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Gets an array of names of all layouts in all layoutSets (if app uses sets)
-        /// </summary>
-        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
-        public Task<string[]> GetLayoutNames(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default);
-
-        /// <summary>
         /// Returns the <see cref="ModelMetadata"/> for an app.
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>

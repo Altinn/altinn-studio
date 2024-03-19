@@ -10,36 +10,38 @@ import { EditComponentIdRow } from './EditComponentIdRow';
 import type { FormItem } from '../../../types/FormItem';
 
 export type PropertiesHeaderProps = {
-  formItem: FormItem;
+  form: FormItem;
   handleComponentUpdate: (component: FormItem) => void;
 };
 
 export const PropertiesHeader = ({
-  formItem,
+  form,
   handleComponentUpdate,
 }: PropertiesHeaderProps): React.JSX.Element => {
   const { t } = useTranslation();
 
-  const isUnknownInternalComponent: boolean = !formItemConfigs[formItem.type];
+  const isUnknownInternalComponent: boolean = !formItemConfigs[form.type];
   const Icon = isUnknownInternalComponent
     ? QuestionmarkDiamondIcon
-    : formItemConfigs[formItem.type]?.icon;
+    : formItemConfigs[form.type]?.icon;
 
   return (
     <>
       <StudioSectionHeader
         icon={<Icon />}
         heading={{
-          text: t(`ux_editor.component_title.${formItem.type}`),
+          text: t(`ux_editor.component_title.${form.type}`),
           level: 2,
         }}
         helpText={{
-          text: getComponentHelperTextByComponentType(formItem.type, t),
+          text: getComponentHelperTextByComponentType(form.type, t),
           title: t('ux_editor.component_help_text_general_title'),
         }}
       />
       <div className={classes.content}>
-        <EditComponentIdRow component={formItem} handleComponentUpdate={handleComponentUpdate} />
+        <div className={classes.contentRow}>
+          <EditComponentIdRow component={form} handleComponentUpdate={handleComponentUpdate} />
+        </div>
       </div>
     </>
   );

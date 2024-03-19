@@ -21,7 +21,7 @@ const component: FormFileUploaderComponent = {
   onClickAction: jest.fn(),
   type: ComponentType.FileUpload,
   itemType: 'COMPONENT',
-  dataModelBindings: { simpleBinding: 'some-path' },
+  dataModelBindings: {},
 };
 const handleComponentChange = jest.fn();
 const defaultProps: IGenericEditComponent<ComponentType.FileUpload> = {

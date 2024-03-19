@@ -5,7 +5,7 @@ import { StudioGridSelector } from '@studio/components';
 import { Paragraph, Switch } from '@digdir/design-system-react';
 import { PadlockLockedFillIcon } from '@studio/icons';
 import classes from './EditGridForGivenViewSize.module.css';
-import { ObjectUtils } from '@studio/pure-functions';
+import { deepCopy } from 'app-shared/pure';
 import type { GridSizes } from './types/GridSizes';
 import type { ViewSize } from './types/ViewSize';
 import { findEffectiveGridSize } from './utils';
@@ -17,7 +17,7 @@ export interface EditGridForGivenViewSizeProps {
 }
 
 const setGridValueOnViewSize = (viewSize: ViewSize, gridValues: GridSizes, newGridValue) => {
-  const newGridValues = ObjectUtils.deepCopy(gridValues);
+  const newGridValues = deepCopy(gridValues);
   newGridValues[viewSize] = newGridValue;
   return newGridValues;
 };

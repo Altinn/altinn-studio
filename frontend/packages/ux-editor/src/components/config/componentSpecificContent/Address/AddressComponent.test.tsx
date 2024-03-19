@@ -12,9 +12,7 @@ import userEvent from '@testing-library/user-event';
 const component: FormAddressComponent = {
   type: ComponentType.Address,
   dataModelBindings: {
-    address: 'address',
-    zipCode: 'zipCode',
-    postPlace: 'postPlace',
+    test: 'test',
   },
   id: '1',
   simplified: false,

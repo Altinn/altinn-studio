@@ -14,7 +14,7 @@ import { componentSchemaMocks } from '../../../testing/componentSchemaMocks';
 const mockHandleComponentUpdate = jest.fn();
 
 const defaultProps: PropertiesHeaderProps = {
-  formItem: component1Mock,
+  form: component1Mock,
   handleComponentUpdate: mockHandleComponentUpdate,
 };
 const user = userEvent.setup();
@@ -53,9 +53,7 @@ describe('PropertiesHeader', () => {
   it('should invoke "handleComponentUpdate" when id field blurs', async () => {
     renderPropertiesHeader();
 
-    const editComponentIdButton = screen.getByRole('button', {
-      name: textMock('ux_editor.id_identifier'),
-    });
+    const editComponentIdButton = screen.getByRole('button', { name: 'ID: Component-1' });
     await act(() => user.click(editComponentIdButton));
 
     const inputField = screen.getByLabelText(
@@ -70,9 +68,7 @@ describe('PropertiesHeader', () => {
   it('should not invoke "handleComponentUpdateMock" when input field has error', async () => {
     renderPropertiesHeader();
 
-    const editComponentIdButton = screen.getByRole('button', {
-      name: textMock('ux_editor.id_identifier'),
-    });
+    const editComponentIdButton = screen.getByRole('button', { name: 'ID: Component-1' });
     await act(() => user.click(editComponentIdButton));
 
     const containerIdInput = screen.getByLabelText(
@@ -89,7 +85,7 @@ describe('PropertiesHeader', () => {
   });
 });
 const renderPropertiesHeader = (props: Partial<PropertiesHeaderProps> = {}) => {
-  const componentType = props.formItem ? props.formItem.type : defaultProps.formItem.type;
+  const componentType = props.form ? props.form.type : defaultProps.form.type;
   queryClientMock.setQueryData(
     [QueryKey.FormComponent, componentType],
     componentSchemaMocks[componentType],

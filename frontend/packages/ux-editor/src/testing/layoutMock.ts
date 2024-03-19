@@ -18,7 +18,6 @@ export const component1TypeMock = ComponentType.Input;
 export const component1Mock: FormComponent<ComponentType.Input> = {
   id: component1IdMock,
   type: component1TypeMock,
-  dataModelBindings: { simpleBinding: 'some-path' },
   itemType: 'COMPONENT',
   propertyPath: 'definitions/inputComponent',
   pageIndex: null,
@@ -48,7 +47,6 @@ export const component3Mock: FormComponent = {
 export const componentWithOptionsMock: FormComponent = {
   id: 'ComponentWithOptionsMock',
   type: ComponentType.Checkboxes,
-  dataModelBindings: { simpleBinding: 'some-path' },
   itemType: 'COMPONENT',
   pageIndex: null,
   optionsId: '',
@@ -90,7 +88,6 @@ export const layoutMock: IInternalLayout = {
       id: container2IdMock,
       itemType: 'CONTAINER',
       type: ComponentType.RepeatingGroup,
-      dataModelBindings: { group: 'some-path' },
       pageIndex: null,
       propertyPath: 'definitions/repeatingGroupComponent',
     },
@@ -117,12 +114,10 @@ export const layout1Mock: ExternalFormLayout = {
         id: container2IdMock,
         type: ComponentType.RepeatingGroup,
         children: [component2IdMock, component3IdMock],
-        dataModelBindings: { group: 'some-path' },
       },
       {
         id: component1IdMock,
         type: component1TypeMock,
-        dataModelBindings: { simpleBinding: 'some-path' },
       },
       {
         id: component2IdMock,
@@ -141,7 +136,6 @@ export const layout1Mock: ExternalFormLayout = {
       {
         id: 'ComponentWithOptionsMock',
         type: ComponentType.Checkboxes,
-        dataModelBindings: { simpleBinding: 'some-path' },
         optionsId: '',
       },
     ],

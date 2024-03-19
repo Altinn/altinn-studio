@@ -1,2 +1,1 @@
-export type { SubexpressionErrorsProps } from './SubexpressionErrors';
-export { SubexpressionErrors } from './SubexpressionErrors';
+export { SubexpressionErrors, SubexpressionErrorsProps } from './SubexpressionErrors';

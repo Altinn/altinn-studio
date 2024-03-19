@@ -26,7 +26,7 @@ import {
 } from 'app-shared/utils/arrayUtils';
 import { ROOT_POINTER } from './constants';
 import type { ReferenceNode } from '../types/ReferenceNode';
-import { ObjectUtils, ArrayUtils } from '@studio/pure-functions';
+import { deepCopy } from 'app-shared/pure';
 import { replaceStart } from 'app-shared/utils/stringUtils';
 import {
   createDefinitionPointer,
@@ -39,6 +39,7 @@ import {
   defaultReferenceNode,
 } from '../config/default-nodes';
 import { convertPropToType } from './mutations/convert-node';
+import { ArrayUtils } from '@studio/pure-functions';
 
 export class SchemaModel {
   private readonly nodeMap: NodeMap;
@@ -57,7 +58,7 @@ export class SchemaModel {
   }
 
   public deepClone(): SchemaModel {
-    const nodes = ObjectUtils.deepCopy(this.asArray());
+    const nodes = deepCopy(this.asArray());
     return SchemaModel.fromArray(nodes);
   }
 

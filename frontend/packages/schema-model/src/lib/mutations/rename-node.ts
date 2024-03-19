@@ -2,7 +2,7 @@ import type { UiSchemaNodes } from '../../types';
 import { CombinationKind } from '../../types';
 import { getNodeByPointer, hasNodePointer } from '../selectors';
 import { isFieldOrCombination, isReference, splitPointerInBaseAndName } from '../utils';
-import { ObjectUtils } from '@studio/pure-functions';
+import { deepCopy } from 'app-shared/pure';
 
 export const renameNodePointer = (
   uiSchemaNodes: UiSchemaNodes,
@@ -26,7 +26,7 @@ export const renameNodePointer = (
   }
   const mutatedNodeArray: UiSchemaNodes = [];
   uiSchemaNodes.forEach((uiNode) => {
-    const nodeCopy = ObjectUtils.deepCopy(uiNode);
+    const nodeCopy = deepCopy(uiNode);
     if (pointerIsInBranch(uiNode.pointer, oldPointer)) {
       nodeCopy.pointer = nodeCopy.pointer.replace(oldPointer, newPointer);
     }

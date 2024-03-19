@@ -1,5 +1,5 @@
-export type {
+export {
   SchemaValidationError,
-  StudioToggleableTextfieldSchemaProps,
+  StudioToggleableTextfieldSchema,
+  type StudioToggleableTextfieldSchemaProps,
 } from './StudioToggleableTextfieldSchema';
-export { StudioToggleableTextfieldSchema } from './StudioToggleableTextfieldSchema';

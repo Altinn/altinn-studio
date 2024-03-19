@@ -26,7 +26,7 @@ import { customDataPropertiesMock, customRootPropertiesMock } from '../testing/l
 import type { FormComponent } from '../types/FormComponent';
 import type { FormContainer } from '../types/FormContainer';
 import type { ContainerComponentType } from '../types/ContainerComponent';
-import { ObjectUtils } from '@studio/pure-functions';
+import { deepCopy } from 'app-shared/pure';
 import {
   component3_1_1Id,
   component3_1Id,
@@ -469,7 +469,7 @@ describe('formLayoutUtils', () => {
     });
 
     it('Returns 3 if there is a group within a group within a group', () => {
-      let layout = ObjectUtils.deepCopy(mockInternal);
+      let layout = deepCopy(mockInternal);
       const container: FormContainer = {
         id: groupInGroupId,
         itemType: 'CONTAINER',
@@ -486,7 +486,7 @@ describe('formLayoutUtils', () => {
     });
 
     it('Returns false if the depth is invalid', () => {
-      let layout = ObjectUtils.deepCopy(mockInternal);
+      let layout = deepCopy(mockInternal);
       const container: FormContainer = {
         id: groupInGroupId,
         itemType: 'CONTAINER',

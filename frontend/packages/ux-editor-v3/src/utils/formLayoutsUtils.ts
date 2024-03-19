@@ -7,9 +7,10 @@ import {
 } from './formLayoutUtils';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { generateComponentId } from './generateId';
-import { ObjectUtils, ArrayUtils } from '@studio/pure-functions';
+import { deepCopy } from 'app-shared/pure';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
+import { ArrayUtils } from '@studio/pure-functions';
 import { externalLayoutToInternal } from '../converters/formLayoutConverters';
 
 /**
@@ -30,7 +31,7 @@ export const addOrRemoveNavigationButtons = async (
     throw new Error(`Layout with name ${currentLayoutName} does not exist.`);
   }
 
-  const allLayouts = ObjectUtils.deepCopy(layouts);
+  const allLayouts = deepCopy(layouts);
   let layoutsToUpdate: string[] = [];
 
   // Update layouts to have navigation buttons if there are multiple layouts, or remove them if there is only one.

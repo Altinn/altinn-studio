@@ -1,18 +1,25 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { IOption } from '../../../types/global';
-import { Paragraph, Switch, ErrorMessage } from '@digdir/design-system-react';
+import {
+  Fieldset,
+  Heading,
+  HelpText,
+  Paragraph,
+  Switch,
+  Textfield,
+  ErrorMessage,
+} from '@digdir/design-system-react';
 import classes from './EditOptions.module.css';
 import type { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';
-import { useComponentErrorMessage } from '../../../hooks';
+import { PlusIcon, TrashIcon } from '@navikt/aksel-icons';
+import { TextResource } from '../../TextResource';
+import { useText, useComponentErrorMessage } from '../../../hooks';
 import { addOptionToComponent, generateRandomOption } from '../../../utils/component';
 
-import { StudioProperty } from '@studio/components';
+import { FormField } from '../../FormField';
+import { StudioButton } from '@studio/components';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { EditOption } from './EditOption';
-import { ArrayUtils } from '@studio/pure-functions';
-import type { Option } from 'app-shared/types/Option';
-import { useTranslation } from 'react-i18next';
 
 type SelectionComponentType = ComponentType.Checkboxes | ComponentType.RadioButtons;
 
@@ -56,7 +63,7 @@ export function EditOptions<T extends SelectionComponentType>({
   const previousEditFormId = useRef(editFormId);
   const initialSelectedOptionType = getSelectedOptionsType(component.optionsId, component.options);
   const [selectedOptionsType, setSelectedOptionsType] = useState(initialSelectedOptionType);
-  const { t } = useTranslation();
+  const t = useText();
 
   const errorMessage = useComponentErrorMessage(component);
 
@@ -82,21 +89,31 @@ export function EditOptions<T extends SelectionComponentType>({
     });
   };
 
-  const handleOptionsChange = (options: Option[]) =>
+  const handleUpdateOptionLabel = (index: number) => (id: string) => {
     handleComponentChange({
       ...component,
-      options,
+      options: component.options.map((option, idx) =>
+        idx === index ? { ...option, label: id } : option,
+      ),
     });
+  };
 
-  const handleOptionChange = (index: number) => (newOption: Option) => {
-    const newOptions = ArrayUtils.replaceByIndex(component.options, index, newOption);
-    return handleOptionsChange(newOptions);
+  const handleUpdateOptionValue = (index: number, e: any) => {
+    handleComponentChange({
+      ...component,
+      options: component.options.map((option, idx) =>
+        idx === index ? { ...option, value: e.target.value } : option,
+      ),
+    });
   };
 
   const handleRemoveOption = (index: number) => {
     const options = [...component.options];
     options.splice(index, 1);
-    handleOptionsChange(options);
+    handleComponentChange({
+      ...component,
+      options,
+    });
   };
 
   const handleAddOption = () => {
@@ -108,52 +125,103 @@ export function EditOptions<T extends SelectionComponentType>({
   }
 
   return (
-    <div className={classes.root}>
+    <>
       <div className={classes.codeListSwitchWrapper}>
         <Switch
-          size='small'
           checked={selectedOptionsType === SelectedOptionsType.CodeList}
           onChange={() => handleOptionsTypeChange(selectedOptionsType)}
         >
           <Paragraph>{t('ux_editor.properties_panel.options.use_code_list_label')}</Paragraph>
         </Switch>
+        <HelpText title={t('ux_editor.properties_panel.options.use_code_list_helpText')}>
+          {t('ux_editor.properties_panel.options.use_code_list_helpText')}
+        </HelpText>
       </div>
       {selectedOptionsType === SelectedOptionsType.CodeList && (
         <EditCodeList component={component} handleComponentChange={handleComponentChange} />
       )}
 
       {selectedOptionsType === SelectedOptionsType.Manual && (
-        <StudioProperty.Group>
-          {component.options?.map((option, index) => {
-            const removeItem = () => handleRemoveOption(index);
-            const key = `${option.value}-${index}`; // Figure out a way to remove index from key.
-            const optionNumber = index + 1;
-            const legend =
-              component.type === 'RadioButtons'
-                ? t('ux_editor.radios_option', { optionNumber })
-                : t('ux_editor.checkboxes_option', { optionNumber });
-            return (
-              <EditOption
-                key={key}
-                legend={legend}
-                onChange={handleOptionChange(index)}
-                onDelete={removeItem}
-                option={option}
-              />
-            );
-          })}
-          <StudioProperty.Button
-            disabled={component.options?.some(({ label }) => !label)}
-            onClick={handleAddOption}
-            property={t('ux_editor.modal_new_option')}
+        <>
+          <Heading level={4} size='xxsmall' spacing>
+            {t('ux_editor.properties_panel.options.add_options')}
+          </Heading>
+          <FormField
+            id={component.id}
+            value={component.options}
+            propertyPath={`${component.propertyPath}/properties/options`}
+            renderField={() => (
+              <div>
+                {component.options?.map((option, index) => {
+                  const updateValue = (e: any) => handleUpdateOptionValue(index, e);
+                  const removeItem = () => handleRemoveOption(index);
+                  const key = `${option.label}-${index}`; // Figure out a way to remove index from key.
+                  const optionTitle = `${
+                    component.type === 'RadioButtons'
+                      ? t('ux_editor.modal_radio_button_increment')
+                      : t('ux_editor.modal_check_box_increment')
+                  } ${index + 1}`;
+                  return (
+                    <div className={classes.optionContainer} key={key}>
+                      <div className={classes.optionContentWrapper}>
+                        <Fieldset legend={optionTitle}>
+                          <div className={classes.optionContent}>
+                            <TextResource
+                              handleIdChange={handleUpdateOptionLabel(index)}
+                              placeholder={
+                                component.type === 'RadioButtons'
+                                  ? t('ux_editor.modal_radio_button_add_label')
+                                  : t('ux_editor.modal_check_box_add_label')
+                              }
+                              textResourceId={option.label}
+                            />
+                            <div>
+                              <Textfield
+                                label={t('general.value')}
+                                onChange={updateValue}
+                                placeholder={t('general.value')}
+                                value={option.value}
+                              />
+                            </div>
+                          </div>
+                        </Fieldset>
+                      </div>
+                      <div>
+                        <StudioButton
+                          color='danger'
+                          icon={<TrashIcon />}
+                          onClick={removeItem}
+                          variant='tertiary'
+                          size='small'
+                          title={t('ux_editor.properties_panel.options.remove_option')}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           />
-        </StudioProperty.Group>
+        </>
+      )}
+
+      {selectedOptionsType === SelectedOptionsType.Manual && (
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <StudioButton
+            disabled={component.options?.some(({ label }) => !label)}
+            fullWidth
+            icon={<PlusIcon />}
+            onClick={handleAddOption}
+            variant='secondary'
+            size='small'
+          >
+            {t('ux_editor.modal_new_option')}
+          </StudioButton>
+        </div>
       )}
       {selectedOptionsType !== SelectedOptionsType.CodeList && errorMessage && (
-        <ErrorMessage className={classes.errorMessage} size='small'>
-          {errorMessage}
-        </ErrorMessage>
+        <ErrorMessage size='small'>{errorMessage}</ErrorMessage>
       )}
-    </div>
+    </>
   );
 }

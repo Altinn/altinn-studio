@@ -17,7 +17,7 @@ namespace Altinn.Studio.Designer.Filters
                 Status = (int)statusCode,
                 Type = exceptionType
             };
-            details.Extensions.Add(ProblemDetailsExtensionsCodes.ErrorCode, customErrorCode);
+            details.Extensions.Add("errorCode", customErrorCode);
 
             if (customErrorMessages is not null)
             {

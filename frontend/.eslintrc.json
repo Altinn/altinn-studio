@@ -1,5 +1,5 @@
 {
-  "ignorePatterns": ["yarn/**", "yarn.lock", "*.css", "*.snap"],
+  "ignorePatterns": ["yarn/**", "yarn.lock", "*.css"],
   "extends": [
     "plugin:import/typescript",
     "plugin:react/recommended",
@@ -7,9 +7,6 @@
   ],
   "plugins": ["jsx-a11y", "react", "react-hooks", "@typescript-eslint", "import"],
   "parser": "@typescript-eslint/parser",
-  "parserOptions": {
-    "project": "./frontend/tsconfig.json"
-  },
   "rules": {
     "react/destructuring-assignment": "off",
     "react/prop-types": "error",
@@ -25,7 +22,6 @@
     ],
     "prefer-const": "error",
     "object-curly-spacing": ["error", "always"],
-    "@typescript-eslint/consistent-type-exports": "error",
     "@typescript-eslint/consistent-type-imports": "error",
     "@typescript-eslint/no-use-before-define": "off",
     "@typescript-eslint/no-explicit-any": "off",

@@ -10,7 +10,7 @@ import { getNodeIndexByPointer, getParentNodeByPointer } from '../selectors';
 import { renameNodePointer } from './rename-node';
 import { insertSchemaNode } from './create-node';
 import { ROOT_POINTER } from '../constants';
-import { ObjectUtils } from '@studio/pure-functions';
+import { deepCopy } from 'app-shared/pure';
 import { makePointerFromArray } from '../pointerUtils';
 import { SchemaModel } from '../SchemaModel';
 
@@ -55,7 +55,7 @@ export const convertPropToType = (model: SchemaModel, pointer: string): SchemaMo
   // Add the promoted node back to the bottom of the stack.
   const finalNodes = insertSchemaNode(
     [...updatedUiSchemaNodes],
-    Object.assign(ObjectUtils.deepCopy(uiNode), {
+    Object.assign(deepCopy(uiNode), {
       pointer: promotedNodePointer,
       children,
       isRequired: false,

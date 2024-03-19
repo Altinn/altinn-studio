@@ -15,5 +15,5 @@ export const externalContainerComponentToInternal = (
     type: externalComponent.type,
     propertyPath: formItemConfigs[externalComponent.type].propertyPath,
     pageIndex,
-  } as FormContainer;
+  };
 };

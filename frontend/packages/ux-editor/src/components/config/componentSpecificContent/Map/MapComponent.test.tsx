@@ -3,6 +3,7 @@ import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MapComponent } from './MapComponent';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
+import { appDataMock } from '../../../../testing/stateMocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
 import type { IGenericEditComponent } from '../../componentConfig';
@@ -38,9 +39,9 @@ const renderMapComponent = async ({
 }: Partial<IGenericEditComponent<ComponentType.Map>>) => {
   await waitForData();
 
-  renderWithMockStore()(
-    <MapComponent component={component} handleComponentChange={handleComponentChange} />,
-  );
+  renderWithMockStore({
+    appData: { ...appDataMock },
+  })(<MapComponent component={component} handleComponentChange={handleComponentChange} />);
 };
 
 describe('MapComponent', () => {

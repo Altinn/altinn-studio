@@ -50,7 +50,7 @@ export const PageAccordion = ({
   const selectedLayout = searchParams.get('layout');
 
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
-  const layoutOrder = formLayoutSettings?.pages?.order;
+  const layoutOrder = formLayoutSettings?.pages.order;
 
   const { mutate: deleteLayout, isPending } = useDeleteLayout();
 

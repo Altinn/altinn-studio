@@ -1,1 +1,1 @@
-export { formatIdString, isAppPrefix } from './stringUtils';
+export { formatIdString } from './stringUtils';

@@ -7,6 +7,5 @@
         public const string JsonSchemaConvertError = "DM_03";
         public const string ModelMetadataConvertError = "DM_04";
         public const string InvalidXmlError = "DM_05";
-        public const string ModelWithTheSameTypeNameExists = nameof(ModelWithTheSameTypeNameExists);
     }
 }

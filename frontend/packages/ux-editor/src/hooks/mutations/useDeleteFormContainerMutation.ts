@@ -2,14 +2,14 @@ import type { IInternalLayout } from '../../types/global';
 import { useSelectedFormLayoutWithName } from '../useFormLayoutsSelector';
 import { useMutation } from '@tanstack/react-query';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
-import { ObjectUtils } from '@studio/pure-functions';
+import { deepCopy } from 'app-shared/pure';
 
 export const useDeleteFormContainerMutation = (org: string, app: string, layoutSetName: string) => {
   const { layout, layoutName } = useSelectedFormLayoutWithName();
   const formLayoutsMutation = useFormLayoutMutation(org, app, layoutName, layoutSetName);
   return useMutation({
     mutationFn: (id: string) => {
-      const updatedLayout: IInternalLayout = ObjectUtils.deepCopy(layout);
+      const updatedLayout: IInternalLayout = deepCopy(layout);
 
       // Delete child components:
       // Todo: Consider if this should rather be done in the backend

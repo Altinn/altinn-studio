@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <AssemblyName>Altinn.Studio.Designer.Tests</AssemblyName>
     <RootNamespace>Designer.Tests</RootNamespace>
@@ -114,6 +115,5 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="_TestData\DataNorge\" />
-    <Folder Include="_TestData\Repositories\testUser\ttd\model-namespace\" />
   </ItemGroup>
 </Project>

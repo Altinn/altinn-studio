@@ -1,2 +1,1 @@
-export type { LogicalOperatorToggleProps } from './LogicalOperatorToggle';
-export { LogicalOperatorToggle } from './LogicalOperatorToggle';
+export { LogicalOperatorToggle, LogicalOperatorToggleProps } from './LogicalOperatorToggle';

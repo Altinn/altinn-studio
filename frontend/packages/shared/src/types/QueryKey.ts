@@ -19,7 +19,6 @@ export enum QueryKey {
   FrontEndSettings = 'FrontEndSettings',
   InstanceId = 'InstanceId',
   JsonSchema = 'JsonSchema',
-  LayoutNames = 'LayoutNames',
   LayoutSchema = 'LayoutSchema',
   LayoutSets = 'LayoutSets',
   NewsList = 'NewsList',

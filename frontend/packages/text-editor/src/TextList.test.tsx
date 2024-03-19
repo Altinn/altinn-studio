@@ -5,10 +5,6 @@ import { TextList } from './TextList';
 import { screen, render as rtlRender, act } from '@testing-library/react';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import type { TextTableRow } from './types';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
-import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const textKey1: string = 'a';
 
@@ -61,15 +57,8 @@ const renderTextList = (props: Partial<TextListProps> = {}) => {
     selectedLanguages: ['nb', 'en', 'nn'],
     ...props,
   };
-  queryClientMock.setQueryData([QueryKey.LayoutNames, 'org', 'app'], []);
-  return {
-    initPros: allProps,
-    ...rtlRender(
-      <ServicesContextProvider {...queriesMock} client={queryClientMock}>
-        <TextList {...allProps} />
-      </ServicesContextProvider>,
-    ),
-  };
+
+  return { initPros: allProps, ...rtlRender(<TextList {...allProps} />) };
 };
 
 describe('TextList', () => {
@@ -77,12 +66,7 @@ describe('TextList', () => {
     const user = userEvent.setup();
     const updateEntryId = jest.fn();
     const { rerender, initPros } = renderTextList({ updateEntryId });
-    queryClientMock.setQueryData([QueryKey.LayoutNames, 'org', 'app'], []);
-    rerender(
-      <ServicesContextProvider {...queriesMock} client={queryClientMock}>
-        <TextList {...initPros} />
-      </ServicesContextProvider>,
-    );
+    rerender(<TextList {...initPros} />);
 
     const toggleEditButton = screen.getAllByRole('button', {
       name: textMock('text_editor.toggle_edit_mode', { textKey: textKey1 }),
@@ -106,12 +90,7 @@ describe('TextList', () => {
       textMock('text_editor.key.error_empty'),
     ];
     const { rerender, initPros } = renderTextList({ updateEntryId });
-    queryClientMock.setQueryData([QueryKey.LayoutNames, 'org', 'app'], []);
-    rerender(
-      <ServicesContextProvider {...queriesMock} client={queryClientMock}>
-        <TextList {...initPros} />
-      </ServicesContextProvider>,
-    );
+    rerender(<TextList {...initPros} />);
 
     const toggleEditButton = screen.getAllByRole('button', {
       name: textMock('text_editor.toggle_edit_mode', { textKey: textKey1 }),

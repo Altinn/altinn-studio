@@ -2,7 +2,7 @@ import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useDispatch } from 'react-redux';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
-import { ObjectUtils } from '@studio/pure-functions';
+import { deepCopy } from 'app-shared/pure';
 import { createEmptyLayout } from '../../utils/formLayoutUtils';
 import type { IInternalLayout } from '../../types/global';
 import type { ExternalFormLayoutV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
@@ -38,7 +38,7 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
       const layouts = formLayoutsQuery.data;
 
       if (Object.keys(layouts).indexOf(layoutName) !== -1) throw Error('Layout already exists');
-      let newLayouts = ObjectUtils.deepCopy(layouts);
+      let newLayouts = deepCopy(layouts);
 
       newLayouts[layoutName] = createEmptyLayout();
       newLayouts = await addOrRemoveNavigationButtons(
@@ -51,7 +51,7 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
     },
 
     onSuccess: async ({ newLayouts, layoutName, isReceiptPage }) => {
-      const layoutSettings: ILayoutSettings = ObjectUtils.deepCopy(formLayoutSettingsQuery.data);
+      const layoutSettings: ILayoutSettings = deepCopy(formLayoutSettingsQuery.data);
       const { order } = layoutSettings?.pages;
 
       if (isReceiptPage) layoutSettings.receiptLayoutName = layoutName;

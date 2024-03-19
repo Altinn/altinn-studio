@@ -2,7 +2,7 @@ import type { UiSchemaNode, UiSchemaNodes } from '../../types';
 import { Keyword } from '../../types';
 import { createNodeBase, isCombination, isField, isObject, isReference } from '../utils';
 import { getParentNodeByPointer, hasNodePointer } from '../selectors';
-import { ObjectUtils } from '@studio/pure-functions';
+import { deepCopy } from 'app-shared/pure';
 
 export const insertSchemaNode = (
   uiSchemaNodes: UiSchemaNodes,
@@ -12,7 +12,7 @@ export const insertSchemaNode = (
     throw new Error(`Pointer ${newNode.pointer} exists already`);
   }
 
-  const mutatedNodeArray: UiSchemaNodes = ObjectUtils.deepCopy(uiSchemaNodes);
+  const mutatedNodeArray: UiSchemaNodes = deepCopy(uiSchemaNodes);
   const parentNode = getParentNodeByPointer(mutatedNodeArray, newNode.pointer);
   if (!parentNode) {
     throw new Error(`Can't find ParentNode for pointer ${newNode.pointer}`);

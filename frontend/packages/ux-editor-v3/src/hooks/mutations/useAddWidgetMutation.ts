@@ -6,7 +6,7 @@ import type {
 } from '../../types/global';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSelectedFormLayoutWithName } from '../useFormLayoutsSelector';
-import { ObjectUtils } from '@studio/pure-functions';
+import { deepCopy } from 'app-shared/pure';
 import { v4 as uuidv4 } from 'uuid';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -35,7 +35,7 @@ export const useAddWidgetMutation = (org: string, app: string, layoutSetName: st
         data: { layout: widget.components },
         $schema: null,
       });
-      const components: IFormDesignerComponents = ObjectUtils.deepCopy(layout.components);
+      const components: IFormDesignerComponents = deepCopy(layout.components);
       if (!containerId) containerId = BASE_CONTAINER_ID; // If containerId is not set, set it to the base-container's ID
       const containerOrder: string[] = [...layout.order[containerId]];
       const ids: string[] = [];
@@ -46,7 +46,7 @@ export const useAddWidgetMutation = (org: string, app: string, layoutSetName: st
         ids.push(newId);
       });
       containerOrder.splice(position, 0, ...ids);
-      const updatedLayout = ObjectUtils.deepCopy(layout);
+      const updatedLayout = deepCopy(layout);
       updatedLayout.components = components;
       updatedLayout.order[containerId] = containerOrder;
       await updateLayout(updatedLayout);
@@ -60,7 +60,7 @@ export const useAddWidgetMutation = (org: string, app: string, layoutSetName: st
       queryClient.setQueryData(
         [QueryKey.FormLayouts, org, app, layoutSetName],
         (oldLayouts: IFormLayouts) => {
-          const newLayouts: IFormLayouts = ObjectUtils.deepCopy(oldLayouts);
+          const newLayouts: IFormLayouts = deepCopy(oldLayouts);
           newLayouts[layoutName] = updatedLayout;
           return newLayouts;
         },

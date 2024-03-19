@@ -7,9 +7,10 @@ import React, {
   useEffect,
   useContext,
 } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import type { FormContainer } from '../types/FormContainer';
 import type { FormComponent } from '../types/FormComponent';
+import { setCurrentEditId } from '../features/appData/textResources/textResourcesSlice';
 import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
 import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateFormComponentMutation';
 import { selectedLayoutNameSelector } from '../selectors/formLayoutSelectors';
@@ -53,6 +54,7 @@ type FormItemContextProviderProps = {
 export const FormItemContextProvider = ({
   children,
 }: FormItemContextProviderProps): React.JSX.Element => {
+  const dispatch = useDispatch();
   const { org, app } = useStudioUrlParams();
   const { selectedLayoutSet } = useAppContext();
   const selectedLayoutName = useSelector(selectedLayoutNameSelector);
@@ -127,10 +129,14 @@ export const FormItemContextProvider = ({
     [handleComponentSave, handleContainerSave],
   );
 
-  const handleEdit = useCallback((updatedForm: FormContainer | FormComponent): void => {
-    setFormItemId(updatedForm?.id);
-    setFormItem(updatedForm);
-  }, []);
+  const handleEdit = useCallback(
+    (updatedForm: FormContainer | FormComponent): void => {
+      dispatch(setCurrentEditId(undefined));
+      setFormItemId(updatedForm?.id);
+      setFormItem(updatedForm);
+    },
+    [dispatch],
+  );
 
   const handleDiscard = useCallback((): void => {
     clearTimeout(autoSaveTimeoutRef.current);

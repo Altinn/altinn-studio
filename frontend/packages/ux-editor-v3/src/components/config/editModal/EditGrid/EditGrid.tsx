@@ -6,13 +6,13 @@ import classes from './EditGrid.module.css';
 import { EditGridForGivenViewSize } from './EditGridForGivenViewSize';
 import { LaptopIcon, MobileIcon, MobileSmallIcon, MonitorIcon, TabletIcon } from '@studio/icons';
 import type { FormComponent } from '../../../../types/FormComponent';
-import { ObjectUtils } from '@studio/pure-functions';
+import { deepCopy } from 'app-shared/pure';
 import { ViewSize } from './types/ViewSize';
 import type { GridSizes } from './types/GridSizes';
 import { useTranslation } from 'react-i18next';
 
 const setGridOnComponent = (gridValues: GridSizes, component: FormComponent) => {
-  const newComponent = ObjectUtils.deepCopy(component);
+  const newComponent = deepCopy(component);
   newComponent.grid = { ...newComponent.grid, ...gridValues };
   if (
     Object.keys(newComponent.grid).length === 0 ||

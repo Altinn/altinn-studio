@@ -1,5 +1,5 @@
 import type { TextResourceEntry, TextResourceFile, TextResourceMap } from './types';
-import { ObjectUtils } from '@studio/pure-functions';
+import { deepCopy } from 'app-shared/pure';
 
 export const removeTextEntry = (texts: TextResourceMap, entryId: string) => {
   const updatedTranslations = { ...texts };
@@ -30,7 +30,7 @@ export const upsertTextEntry = (
   resourceFile: TextResourceFile,
   newEntry: TextResourceEntry,
 ): TextResourceFile => {
-  const updatedFile = ObjectUtils.deepCopy(resourceFile);
+  const updatedFile = deepCopy(resourceFile);
   const existingEntryIndex = updatedFile.resources.findIndex((e) => e.id === newEntry.id);
   if (updatedFile.resources[existingEntryIndex]) {
     updatedFile.resources[existingEntryIndex].value = newEntry.value;
@@ -42,7 +42,7 @@ export const upsertTextEntry = (
 };
 
 export const updateTextEntryId = (resourceFile: TextResourceFile, oldId: string, newId: string) => {
-  const updatedFile = ObjectUtils.deepCopy(resourceFile);
+  const updatedFile = deepCopy(resourceFile);
   const existingEntryIndex = updatedFile.resources.findIndex((e) => e.id === oldId);
   if (updatedFile.resources[existingEntryIndex]) {
     updatedFile.resources[existingEntryIndex].id = newId;
