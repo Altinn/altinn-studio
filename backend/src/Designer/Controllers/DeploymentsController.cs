@@ -49,14 +49,14 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>SearchResults of type DeploymentEntity</returns>
         [HttpGet]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
-        public async Task<SearchResults<DeploymentEntity>> Get(string org, string app, [FromQuery] DocumentQueryModel query)
+        public async Task<SearchResults<DeploymentEntity>> Get(string org, string app, [FromQuery] DocumentQueryModel query, CancellationToken cancellationToken)
         {
-            SearchResults<DeploymentEntity> deployments = await _deploymentService.GetAsync(org, app, query);
+            SearchResults<DeploymentEntity> deployments = await _deploymentService.GetAsync(org, app, query, cancellationToken);
             List<DeploymentEntity> laggingDeployments = deployments.Results.Where(d => d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.Value.AddMinutes(5) < DateTime.UtcNow).ToList();
 
             foreach (DeploymentEntity deployment in laggingDeployments)
             {
-                await _deploymentService.UpdateAsync(deployment.Build.Id, deployment.Org);
+                await _deploymentService.UpdateAsync(deployment.Build.Id, deployment.Org, cancellationToken);
             }
 
             return deployments;
@@ -99,7 +99,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return BadRequest(ModelState);
             }
-            return Created(string.Empty, await _deploymentService.CreateAsync(org, app, createDeployment.ToDomainModel()));
+            return Created(string.Empty, await _deploymentService.CreateAsync(org, app, createDeployment.ToDomainModel(), cancellationToken));
         }
     }
 }

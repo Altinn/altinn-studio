@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Configuration;
@@ -225,9 +226,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task UpdateApplicationMetadataInStorageAsync(string org, string app, string shortCommitId, string envName)
+        public async Task UpdateApplicationMetadataInStorageAsync(string org, string app, string shortCommitId, string envName, CancellationToken cancellationToken)
         {
-
+            cancellationToken.ThrowIfCancellationRequested();
             ApplicationMetadata applicationFromRepository = await GetApplicationMetadataFromSpecificReference(org, app, shortCommitId);
             await UpdateApplicationMetadataInStorage(org, app, applicationFromRepository, envName, shortCommitId);
         }

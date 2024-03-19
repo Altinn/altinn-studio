@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models.App;
@@ -31,7 +32,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">Application</param>
         /// <param name="fullCommitId">Commit Id</param>
         /// <param name="envName">Environment Name</param>
-        public Task UpdateApplicationMetadataInStorageAsync(string org, string app, string fullCommitId, string envName);
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        public Task UpdateApplicationMetadataInStorageAsync(string org, string app, string fullCommitId, string envName, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Updates app title in application metadata
