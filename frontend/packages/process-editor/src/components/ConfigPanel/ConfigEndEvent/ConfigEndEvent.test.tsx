@@ -39,7 +39,7 @@ describe('ConfigEndEvent', () => {
     await act(() => user.type(inputField, customReceiptLayoutSetName));
     await act(() => user.tab());
     expect(updateLayoutSetMock).toHaveBeenCalledTimes(1);
-    expect(updateLayoutSetMock).toHaveBeenCalledWith(undefined, {
+    expect(updateLayoutSetMock).toHaveBeenCalledWith(customReceiptLayoutSetName, {
       id: customReceiptLayoutSetName,
       tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
     });

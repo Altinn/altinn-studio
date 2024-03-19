@@ -336,8 +336,8 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         [HttpPut]
         [UseSystemTextJson]
-        [Route("layout-sets")]
-        public async Task<ActionResult> UpdateLayoutSet(string org, string app, [FromQuery] string layoutSetIdToUpdate, [FromBody] LayoutSetConfig layoutSet, CancellationToken cancellationToken)
+        [Route("layout-sets/{layoutSetIdToUpdate}")]
+        public async Task<ActionResult> UpdateLayoutSet(string org, string app, [FromRoute] string layoutSetIdToUpdate, [FromBody] LayoutSetConfig layoutSet, CancellationToken cancellationToken)
         {
             try
             {

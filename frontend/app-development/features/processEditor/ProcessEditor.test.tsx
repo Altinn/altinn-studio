@@ -85,7 +85,7 @@ describe('ProcessEditor', () => {
     await act(() => user.type(inputField, customReceiptLayoutSetName));
     await act(() => user.tab());
     expect(queriesMock.updateLayoutSet).toHaveBeenCalledTimes(1);
-    expect(queriesMock.updateLayoutSet).toHaveBeenCalledWith(org, app, undefined, {
+    expect(queriesMock.updateLayoutSet).toHaveBeenCalledWith(org, app, customReceiptLayoutSetName, {
       id: customReceiptLayoutSetName,
       tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
     });

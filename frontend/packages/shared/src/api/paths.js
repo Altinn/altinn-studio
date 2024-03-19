@@ -34,7 +34,7 @@ export const ruleConfigPath = (org, app, layoutSetName) => `${basePath}/${org}/$
 export const datamodelMetadataPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/model-metadata?${s({ layoutSetName })}`; // Get
 export const layoutNamesPath = (org, app) => `${basePath}/${org}/${app}/app-development/layout-names`; // Get
 export const layoutSetsPath = (org, app) => `${basePath}/${org}/${app}/app-development/layout-sets`; // Get
-export const layoutSetPath = (org, app, layoutSetIdToUpdate) => `${basePath}/${org}/${app}/app-development/layout-sets?${s({ layoutSetIdToUpdate })}`; // Put
+export const layoutSetPath = (org, app, layoutSetIdToUpdate) => `${basePath}/${org}/${app}/app-development/layout-sets/${layoutSetIdToUpdate}`; // Put
 export const layoutSettingsPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/layout-settings?${s({ layoutSetName })}`; // Get, Post
 export const formLayoutsPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/form-layouts?${s({ layoutSetName })}`; // Get
 export const formLayoutPath = (org, app, layout, layoutSetName) => `${basePath}/${org}/${app}/app-development/form-layout/${layout}?${s({ layoutSetName })}`; // Post, Delete

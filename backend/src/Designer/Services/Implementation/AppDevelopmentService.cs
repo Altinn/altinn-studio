@@ -239,39 +239,50 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return null;
         }
 
-        public async Task<LayoutSets> UpdateLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetId,
-            LayoutSetConfig layoutSet, CancellationToken cancellationToken = default)
+        public async Task<LayoutSets> UpdateLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetToUpdateId,
+            LayoutSetConfig newLayoutSet, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             AltinnAppGitRepository altinnAppGitRepository =
                 _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
                     altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-            if (altinnAppGitRepository.AppUsesLayoutSets())
+            if (!altinnAppGitRepository.AppUsesLayoutSets())
             {
-                LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
-                LayoutSetConfig layoutSetToReplace = layoutSets.Sets.Find(set => set.Id == layoutSetId);
-                if (layoutSetToReplace is null)
-                {
-                    layoutSets.Sets.Add(layoutSet);
-                    await altinnAppGitRepository.SaveLayout(layoutSet.Id, AltinnAppGitRepository.InitialLayoutFileName,
-                        altinnAppGitRepository.InitialLayout);
-                    await altinnAppGitRepository.SaveLayoutSettings(layoutSet.Id,
-                        altinnAppGitRepository.InitialLayoutSettings);
-                }
-                else
-                {
-                    int indexOfLayoutSetToReplace = layoutSets.Sets.IndexOf(layoutSetToReplace);
-                    layoutSets.Sets[indexOfLayoutSetToReplace] = layoutSet;
-                    if (layoutSet.Id != layoutSetId)
-                    {
-                        altinnAppGitRepository.ChangeLayoutSetFolderName(layoutSetId, layoutSet.Id);
-                    }
-                }
-                await altinnAppGitRepository.SaveLayoutSetsFile(layoutSets);
-                return layoutSets;
+                throw new FileNotFoundException("No layout set found for this app");
+            }
+            LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+            LayoutSetConfig layoutSetToReplace = layoutSets.Sets.Find(set => set.Id == layoutSetToUpdateId);
+            if (layoutSetToReplace is null)
+            {
+                return await AddNewLayoutSet(altinnAppGitRepository, layoutSets, newLayoutSet);
+            }
+            LayoutSets updatedLayoutSets = await UpdateExistingLayoutSet(altinnAppGitRepository, layoutSets, layoutSetToReplace, newLayoutSet);
+            if (newLayoutSet.Id != layoutSetToUpdateId)
+            {
+                // Layout set name is updated which means layout set folder must be updated also
+                altinnAppGitRepository.ChangeLayoutSetFolderName(layoutSetToUpdateId, newLayoutSet.Id);
             }
 
-            throw new FileNotFoundException("No layout set found for this app");
+            return updatedLayoutSets;
+        }
+
+        private static async Task<LayoutSets> AddNewLayoutSet(AltinnAppGitRepository altinnAppGitRepository, LayoutSets layoutSets, LayoutSetConfig layoutSet)
+        {
+            layoutSets.Sets.Add(layoutSet);
+            await altinnAppGitRepository.SaveLayout(layoutSet.Id, AltinnAppGitRepository.InitialLayoutFileName,
+                altinnAppGitRepository.InitialLayout);
+            await altinnAppGitRepository.SaveLayoutSettings(layoutSet.Id,
+                altinnAppGitRepository.InitialLayoutSettings);
+            await altinnAppGitRepository.SaveLayoutSetsFile(layoutSets);
+            return layoutSets;
+        }
+
+        private static async Task<LayoutSets> UpdateExistingLayoutSet(AltinnAppGitRepository altinnAppGitRepository, LayoutSets layoutSets, LayoutSetConfig layoutSetToReplace, LayoutSetConfig newLayoutSet)
+        {
+            int indexOfLayoutSetToReplace = layoutSets.Sets.IndexOf(layoutSetToReplace);
+            layoutSets.Sets[indexOfLayoutSetToReplace] = newLayoutSet;
+            await altinnAppGitRepository.SaveLayoutSetsFile(layoutSets);
+            return layoutSets;
         }
 
 

@@ -98,10 +98,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Adds a config for an additional layout set to the layout-set.json, or updates existing based on layoutSetId
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-        /// <param name="layoutSetId">The id of the layout set to replace</param>
-        /// <param name="layoutSet">Config for the new layout set</param>
+        /// <param name="layoutSetToUpdateId">The id of the layout set to replace</param>
+        /// <param name="newLayoutSet">Config for the new layout set</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        public Task<LayoutSets> UpdateLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetId, LayoutSetConfig layoutSet, CancellationToken cancellationToken = default);
+        public Task<LayoutSets> UpdateLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetToUpdateId, LayoutSetConfig newLayoutSet, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets the rule handler for a specific organization, application, developer, and layout set name.
