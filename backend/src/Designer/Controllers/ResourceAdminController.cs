@@ -35,8 +35,9 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IOrgService _orgService;
         private readonly IResourceRegistry _resourceRegistry;
         private readonly ResourceRegistryIntegrationSettings _resourceRegistrySettings;
+        private readonly IUserRequestsSynchronizationService _userRequestsSynchronizationService;
 
-        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IAltinn2MetadataClient altinn2MetadataClient, IOrgService orgService, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IResourceRegistry resourceRegistry)
+        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IAltinn2MetadataClient altinn2MetadataClient, IOrgService orgService, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IResourceRegistry resourceRegistry, IUserRequestsSynchronizationService userRequestsSynchronizationService)
         {
             _giteaApi = gitea;
             _repository = repository;
@@ -47,6 +48,7 @@ namespace Altinn.Studio.Designer.Controllers
             _orgService = orgService;
             _resourceRegistrySettings = resourceRegistryEnvironment.Value;
             _resourceRegistry = resourceRegistry;
+            _userRequestsSynchronizationService = userRequestsSynchronizationService;
         }
 
         [HttpPost]
@@ -247,13 +249,25 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/updateresource/{id}")]
         public async Task<ActionResult> UpdateResource(string org, string id, [FromBody] ServiceResource resource)
         {
-            resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
-            return _repository.UpdateServiceResource(org, id, resource);
+            string repository = string.Format("{0}-resources", org);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
+            semaphore.Wait();
+            try
+            {
+                resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
+                return _repository.UpdateServiceResource(org, id, resource);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+
         }
 
         [HttpPost]
         [Route("designer/api/{org}/resources/addresource")]
-        public async Task<ActionResult<ServiceResource>> AddResource(string org, [FromBody] ServiceResource resource)
+        public async Task<StatusCodeResult> AddResource(string org, [FromBody] ServiceResource resource)
         {
             resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
             return _repository.AddServiceResource(org, resource);
@@ -266,7 +280,11 @@ namespace Altinn.Studio.Designer.Controllers
             string repository = string.Format("{0}-resources", org);
             ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(serviceCode, serviceEdition, environment.ToLower());
             resource.Identifier = resourceId;
-            _repository.AddServiceResource(org, resource);
+            StatusCodeResult statusCodeResult = _repository.AddServiceResource(org, resource);
+            if (statusCodeResult.StatusCode != (int)HttpStatusCode.Created)
+            {
+                return statusCodeResult;
+            }
             XacmlPolicy policy = await _resourceRegistry.GetXacmlPolicy(serviceCode, serviceEdition, resource.Identifier, environment.ToLower());
             await _repository.SavePolicy(org, repository, resource.Identifier, policy);
             return Ok(resource);

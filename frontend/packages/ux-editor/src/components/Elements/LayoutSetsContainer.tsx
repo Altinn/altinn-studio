@@ -27,6 +27,7 @@ export function LayoutSetsContainer() {
         label={t('left_menu.layout_dropdown_menu_label')}
         onChange={(event) => onLayoutSetClick(event.target.value)}
         value={selectedLayoutSet}
+        className={classes.layoutSetsDropDown}
       >
         {layoutSetNames.map((set: string) => {
           return (

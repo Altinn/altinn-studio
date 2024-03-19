@@ -3,14 +3,14 @@ import {
   addNavigationButtons,
   createEmptyLayout,
   hasNavigationButtons,
+  idExistsInLayout,
   removeComponentsByType,
 } from './formLayoutUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { generateComponentId } from './generateId';
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils, ArrayUtils } from '@studio/pure-functions';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
-import { ArrayUtils } from '@studio/pure-functions';
 import { externalLayoutToInternal } from '../converters/formLayoutConverters';
 
 /**
@@ -31,7 +31,7 @@ export const addOrRemoveNavigationButtons = async (
     throw new Error(`Layout with name ${currentLayoutName} does not exist.`);
   }
 
-  const allLayouts = deepCopy(layouts);
+  const allLayouts = ObjectUtils.deepCopy(layouts);
   let layoutsToUpdate: string[] = [];
 
   // Update layouts to have navigation buttons if there are multiple layouts, or remove them if there is only one.
@@ -109,3 +109,13 @@ export const firstAvailableLayout = (deletedLayoutName: string, layoutPagesOrder
 
   return DEFAULT_SELECTED_LAYOUT_NAME;
 };
+
+/**
+ * Checks if a layout-set with the given id exists in the given list of layouts
+ * @param id The id of the component/container to check for
+ * @param formLayouts The list of layouts to check
+ * @returns True if the id exists in any of the layouts, false otherwise
+ */
+export function idExists(id: string, formLayouts: IFormLayouts): boolean {
+  return Object.values(formLayouts).some((layout) => idExistsInLayout(id, layout));
+}
