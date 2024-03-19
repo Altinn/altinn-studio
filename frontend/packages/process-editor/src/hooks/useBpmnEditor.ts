@@ -4,7 +4,7 @@ import type BpmnModeler from 'bpmn-js/lib/Modeler';
 import { useBpmnContext } from '../contexts/BpmnContext';
 import { useBpmnModeler } from './useBpmnModeler';
 import { getBpmnEditorDetailsFromBusinessObject } from '../utils/hookUtils';
-import { updateDataTaskTrackingLists } from '../utils/processEditorUtils';
+import type { BpmnDetails } from '../types/BpmnDetails';
 
 // Wrapper around bpmn-js to Reactify it
 
@@ -21,8 +21,6 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
     setDataTasksAdded,
     setDataTasksRemoved,
     setBpmnDetails,
-    dataTasksAdded,
-    dataTasksRemoved,
   } = useBpmnContext();
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const { getModeler } = useBpmnModeler();
@@ -36,44 +34,6 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
 
     // set modelerRef.current to the Context so that it can be used in other components
     modelerRef.current = modelerInstance;
-
-    const initializeUnsavedChangesCount = () => {
-      modelerInstance.on('commandStack.changed', () => {
-        setNumberOfUnsavedChanges((prevCount) => prevCount + 1);
-      });
-    };
-
-    const initializeChangesStatus = () => {
-      modelerInstance.on('shape.add', (e: any) => {
-        const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
-        updateDataTaskTrackingLists(
-          setDataTasksAdded,
-          setDataTasksRemoved,
-          bpmnDetails,
-          dataTasksRemoved,
-        );
-      });
-
-      modelerInstance.on('shape.remove', (e: any) => {
-        const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
-        updateDataTaskTrackingLists(
-          setDataTasksRemoved,
-          setDataTasksAdded,
-          bpmnDetails,
-          dataTasksAdded,
-        );
-      });
-    };
-
-    const eventBus: any = modelerInstance.get('eventBus');
-    const events = ['element.click'];
-
-    events.forEach((event) => {
-      eventBus.on(event, (e: any) => {
-        const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
-        setBpmnDetails(bpmnDetails);
-      });
-    });
 
     const initializeEditor = async () => {
       try {
@@ -89,9 +49,74 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
     };
 
     initializeEditor();
+  }, [
+    bpmnXml,
+    modelerRef,
+    setBpmnDetails,
+    setNumberOfUnsavedChanges,
+    setDataTasksAdded,
+    setDataTasksRemoved,
+  ]);
+
+  useEffect(() => {
+    const modelerInstance: BpmnModeler = getModeler(canvasRef.current);
+    const initializeUnsavedChangesCount = () => {
+      modelerInstance.on('commandStack.changed', () => {
+        setNumberOfUnsavedChanges((prevCount) => prevCount + 1);
+      });
+    };
+
+    const initializeChangesStatus = () => {
+      modelerInstance.on('shape.add', (e: any) => {
+        const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
+        updateDataTaskTrackingLists(bpmnDetails, 'add');
+      });
+
+      modelerInstance.on('shape.remove', (e: any) => {
+        const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
+        updateDataTaskTrackingLists(bpmnDetails, 'remove');
+      });
+    };
+
+    const eventBus: any = modelerInstance.get('eventBus');
+    const events = ['element.click'];
+
+    events.forEach((event) => {
+      eventBus.on(event, (e: any) => {
+        const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
+        setBpmnDetails(bpmnDetails);
+      });
+    });
+
     initializeUnsavedChangesCount();
     initializeChangesStatus();
-  }, [bpmnXml, modelerRef, setBpmnDetails, setNumberOfUnsavedChanges, setDataTasksAdded]);
+  }, []);
+
+  /**
+   * Updates the data task tracking lists
+   * Adds the provided item to the primary list and removes it from the secondary list (if it exists there)
+   * @param updatePrimaryList The function to update the primary list by adding the new item
+   * @param updateSecondaryList The function to update the secondary list by removing the item
+   * @param itemToAdd The item to add to the primary list
+   * @param secondaryList The secondary list to remove the item from
+   */
+  const updateDataTaskTrackingLists = (itemToAdd: BpmnDetails, action: 'add' | 'remove') => {
+    if (itemToAdd?.taskType !== 'data') {
+      return;
+    }
+
+    if (action === 'add') {
+      setDataTasksAdded((prevItems: BpmnDetails[]) => [...prevItems, itemToAdd]);
+      setDataTasksRemoved((prevItems) => prevItems.filter((task) => task.id !== itemToAdd.id));
+      return;
+    }
+
+    if (action === 'remove') {
+      setDataTasksRemoved((prevItems: BpmnDetails[]) => [...prevItems, itemToAdd]);
+      setDataTasksAdded((prevItems) => prevItems.filter((task) => task.id !== itemToAdd.id));
+      return;
+    }
+  };
 
   return { canvasRef, modelerRef };
 };

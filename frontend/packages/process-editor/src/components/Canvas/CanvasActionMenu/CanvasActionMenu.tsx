@@ -21,7 +21,14 @@ export type CanvasActionMenuProps = {
  */
 export const CanvasActionMenu = ({ onSave }: CanvasActionMenuProps): ReactNode => {
   const { t } = useTranslation();
-  const { numberOfUnsavedChanges, isEditAllowed } = useBpmnContext();
+  const { numberOfUnsavedChanges, isEditAllowed, setDataTasksAdded, setDataTasksRemoved } =
+    useBpmnContext();
+
+  const handleSaveClicked = () => {
+    setDataTasksAdded([]);
+    setDataTasksRemoved([]);
+    onSave();
+  };
 
   return (
     <span className={classes.canvasMenuContainer}>
@@ -32,7 +39,11 @@ export const CanvasActionMenu = ({ onSave }: CanvasActionMenuProps): ReactNode =
         </Paragraph>
       )}
       {isEditAllowed && (
-        <StudioButton onClick={onSave} color='success' disabled={numberOfUnsavedChanges === 0}>
+        <StudioButton
+          onClick={handleSaveClicked}
+          color='success'
+          disabled={numberOfUnsavedChanges === 0}
+        >
           {t('process_editor.save')}
         </StudioButton>
       )}
