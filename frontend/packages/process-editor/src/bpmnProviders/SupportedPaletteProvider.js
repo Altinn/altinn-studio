@@ -64,6 +64,36 @@ class SupportedPaletteProvider {
       };
     }
 
+    function createCustomPaymentTask() {
+      const taskType = 'payment';
+
+      return function (event) {
+        const task = buildAltinnTask(taskType);
+
+        const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
+          values: [
+            bpmnFactory.create('altinn:TaskExtension', {
+              taskType: taskType,
+              actions: bpmnFactory.create('altinn:Actions', {
+                action: ['pay', 'reject'],
+              }),
+              paymentConfig: bpmnFactory.create('altinn:PaymentConfig', {
+                paymentDataType: bpmnFactory.create('altinn:PaymentDataType', {
+                  dataType: ['paymentInformation'],
+                }),
+              }),
+            }),
+          ],
+        });
+
+        modeling.updateProperties(task, {
+          extensionElements,
+        });
+
+        create.start(event, task);
+      };
+    }
+
     const buildAltinnTask = (taskType) => {
       const businessObject = bpmnFactory.create('bpmn:Task', {
         name: `Altinn ${taskType} task`,
@@ -110,6 +140,14 @@ class SupportedPaletteProvider {
           title: translate('Create Altinn signing Task'),
           action: {
             dragstart: createCustomSigningTask(),
+          },
+        },
+        'create.altinn-payment-task': {
+          group: 'activity',
+          className: 'bpmn-icon-task-generic bpmn-icon-payment-task',
+          title: translate('Payment'),
+          action: {
+            dragstart: createCustomPaymentTask(),
           },
         },
       };
