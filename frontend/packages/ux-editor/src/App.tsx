@@ -19,11 +19,8 @@ import { FormItemContextProvider } from './containers/FormItemContext';
 export function App() {
   const t = useText();
   const { org, app } = useStudioUrlParams();
-  const {
-    selectedFormLayoutSetName,
-    setSelectedFormLayoutSetName,
-    removeFormSelectedLayoutSetName,
-  } = useSelectedFormLayoutSetName();
+  const { selectedFormLayoutSetName, removeFormSelectedLayoutSetName } =
+    useSelectedFormLayoutSetName();
   const { selectedFormLayoutName } = useSelectedFormLayoutName();
   const { data: layoutSets, isSuccess: areLayoutSetsFetched } = useLayoutSetsQuery(org, app);
   const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
@@ -68,13 +65,6 @@ export function App() {
 
     return createErrorMessage(t('general.unknown_error'));
   };
-
-  useEffect(() => {
-    if (selectedFormLayoutSetName === null && layoutSets) {
-      // Only set layout set if layout sets exists and there is no layout set selected yet
-      setSelectedFormLayoutSetName(layoutSets.sets[0].id);
-    }
-  }, [layoutSets, selectedFormLayoutSetName, setSelectedFormLayoutSetName]);
 
   if (componentHasError) {
     const mappedError = mapErrorToDisplayError();

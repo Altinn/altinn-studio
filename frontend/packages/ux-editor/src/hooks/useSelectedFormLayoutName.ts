@@ -1,7 +1,7 @@
 import { useSearchParamsState } from '../../../shared/src/hooks/useSearchParamsState';
 import { useFormLayoutSettingsQuery } from './queries/useFormLayoutSettingsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useReactiveLocalStorage } from 'app-shared/hooks/useReactiveLocalStorage';
+import { useSelectedFormLayoutSetName } from './';
 
 export type UseSelectedFormLayoutNameResult = {
   selectedFormLayoutName: string;
@@ -10,8 +10,12 @@ export type UseSelectedFormLayoutNameResult = {
 
 export const useSelectedFormLayoutName = (): UseSelectedFormLayoutNameResult => {
   const { org, app } = useStudioUrlParams();
-  const [selectedLayoutSet] = useReactiveLocalStorage('layoutSet/' + app, null);
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
+  const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
   const layoutPagesOrder = formLayoutSettings?.pages.order;
 
   const isValidLayout = (layoutName: string): boolean => {

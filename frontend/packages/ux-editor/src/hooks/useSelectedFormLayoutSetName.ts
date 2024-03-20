@@ -1,5 +1,6 @@
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useReactiveLocalStorage } from 'app-shared/hooks/useReactiveLocalStorage';
+import { useLayoutSetsQuery } from './queries/useLayoutSetsQuery';
+import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
 
 export type UseSelectedFormLayoutSetNameResult = {
   selectedFormLayoutSetName: string;
@@ -8,21 +9,20 @@ export type UseSelectedFormLayoutSetNameResult = {
 };
 
 export const useSelectedFormLayoutSetName = (): UseSelectedFormLayoutSetNameResult => {
-  const { app } = useStudioUrlParams();
-
-  // const isValidLayout = (layoutName: string): boolean => {
-  //   const isExistingLayout = layoutPagesOrder?.includes(layoutName);
-  //   const isReceipt = formLayoutSettings?.receiptLayoutName === layoutName;
-  //   return isExistingLayout || isReceipt;
-  // };
+  const { org, app } = useStudioUrlParams();
+  const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
   const [selectedFormLayoutSetName, setSelectedFormLayoutSetName, removeFormSelectedLayoutSetName] =
-    useReactiveLocalStorage(
-      'layoutSet/' + app,
-      undefined /*, (value: string) => {
-      return isValidLayout(value) ? value : undefined;
-    }*/,
-    );
+    useLocalStorage('layoutSet/' + app, undefined);
+
+  if (layoutSets) {
+    if (
+      !selectedFormLayoutSetName ||
+      layoutSets.sets.some((item) => item.id !== selectedFormLayoutSetName)
+    ) {
+      setSelectedFormLayoutSetName(layoutSets.sets[0].id);
+    }
+  }
 
   return {
     selectedFormLayoutSetName,
