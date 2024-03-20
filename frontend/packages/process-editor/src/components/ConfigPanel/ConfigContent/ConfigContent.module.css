@@ -1,9 +1,18 @@
 .headerWrapper {
   display: flex;
   align-items: center;
-  margin-inline: 1rem;
-  margin-top: 1rem;
+  padding: 1rem;
   justify-content: space-between;
+  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
+}
+
+.configSectionWrapper {
+  display: flex;
+  flex-direction: column;
+  padding-inline: 1rem;
+  padding-top: 4px;
+  gap: 1rem;
+  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
 }
 
 .headerTextAndIconWrapper {
