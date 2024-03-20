@@ -3,7 +3,7 @@ import classes from './Preview.module.css';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
-import { useAppContext } from '../../hooks/useAppContext';
+import { useAppContext, useSelectedLayoutName } from '../../hooks';
 import { useUpdate } from 'app-shared/hooks/useUpdate';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/design-system-react';
@@ -12,7 +12,6 @@ import type { SupportedView } from './ViewToggler/ViewToggler';
 import { ViewToggler } from './ViewToggler/ViewToggler';
 import { ArrowRightIcon } from '@studio/icons';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
-import { useSelectedLayoutName } from '../../hooks/useSelectedLayoutName';
 
 export const Preview = () => {
   const { t } = useTranslation();

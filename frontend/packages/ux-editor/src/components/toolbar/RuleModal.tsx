@@ -10,7 +10,7 @@ import { useRuleConfigQuery } from '../../hooks/queries/useRuleConfigQuery';
 import { useRuleConfigMutation } from '../../hooks/mutations/useRuleConfigMutation';
 import { addRuleConnection, deleteRuleConnection } from '../../utils/ruleConfigUtils';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useSelectedLayoutSetName } from '../../hooks/useSelectedLayoutSetName';
+import { useSelectedLayoutSetName } from '../../hooks';
 
 export interface IRuleModalProps {
   modalOpen: boolean;

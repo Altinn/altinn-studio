@@ -14,7 +14,7 @@ import { UndefinedBinding } from './UndefinedBinding';
 import { EditBinding } from './EditBinding';
 import { DefinedBinding } from './DefinedBinding';
 import type { FormItem } from '../../../../types/FormItem';
-import { useSelectedLayoutSetName } from '../../../../hooks/useSelectedLayoutSetName';
+import { useSelectedLayoutSetName } from '../../../../hooks';
 
 export interface EditDataModelBindingsProps<T extends ComponentType>
   extends IGenericEditComponent<T> {

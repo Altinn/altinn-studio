@@ -19,7 +19,7 @@ import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';
 import type { FormItem } from '../../types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { useSelectedLayoutName } from '../../hooks/useSelectedLayoutName';
+import { useSelectedLayoutName } from '../../hooks';
 
 export interface IEditFormComponentProps<T extends ComponentType = ComponentType> {
   editFormId: string;

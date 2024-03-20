@@ -2,14 +2,12 @@ import React from 'react';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
 import { Heading, Paragraph } from '@digdir/design-system-react';
-import { useText } from '../../hooks';
+import { useText, useSelectedLayoutSetName, useSelectedLayoutName } from '../../hooks';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
 
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import classes from './Elements.module.css';
-import { useSelectedLayoutSetName } from '../../hooks/useSelectedLayoutSetName';
-import { useSelectedLayoutName } from '../../hooks/useSelectedLayoutName';
 
 export const Elements = () => {
   const { org, app } = useStudioUrlParams();

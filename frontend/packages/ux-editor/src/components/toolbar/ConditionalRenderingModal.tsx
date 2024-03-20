@@ -20,7 +20,7 @@ import {
 } from '../../utils/ruleConfigUtils';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
-import { useSelectedLayoutSetName } from '../../hooks/useSelectedLayoutSetName';
+import { useSelectedLayoutSetName } from '../../hooks';
 
 export interface IConditionalRenderingModalProps {
   modalOpen: boolean;

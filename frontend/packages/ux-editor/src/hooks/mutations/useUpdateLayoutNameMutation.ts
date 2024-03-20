@@ -6,7 +6,7 @@ import { deepCopy } from 'app-shared/pure';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import type { ILayoutSettings } from 'app-shared/types/global';
-import { useAppContext } from '../../hooks/useAppContext';
+import { useAppContext } from '../';
 
 export interface UpdateLayoutNameMutationArgs {
   oldName: string;

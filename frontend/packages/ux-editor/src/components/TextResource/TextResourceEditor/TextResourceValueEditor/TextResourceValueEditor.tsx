@@ -8,7 +8,7 @@ import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import classes from './TextResourceValueEditor.module.css';
 import { Trans, useTranslation } from 'react-i18next';
-import { useAppContext } from '../../../../hooks/useAppContext';
+import { useAppContext } from '../../../../hooks';
 
 export type TextResourceValueEditorProps = {
   textResourceId: string;

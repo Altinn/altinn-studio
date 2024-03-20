@@ -3,7 +3,7 @@ import { TextResource } from '../../../../TextResource/TextResource';
 import type { TranslationKey } from '@altinn-studio/language/type';
 import { useTranslation } from 'react-i18next';
 import type { EditTextResourceBindingBase } from '../EditTextResourceBindings';
-import { useSelectedLayoutName } from '../../../../../hooks/useSelectedLayoutName';
+import { useSelectedLayoutName } from '../../../../../hooks';
 
 export interface EditTextResourceBindingProps extends EditTextResourceBindingBase {
   textKey: string;

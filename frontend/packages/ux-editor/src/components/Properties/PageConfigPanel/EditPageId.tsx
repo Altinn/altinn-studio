@@ -6,11 +6,9 @@ import { useUpdateLayoutNameMutation } from '../../../hooks/mutations/useUpdateL
 import { StudioToggleableTextfield } from '@studio/components';
 import { useTextIdMutation } from 'app-development/hooks/mutations';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useSelectedLayoutSetName } from '../../../hooks/useSelectedLayoutSetName';
-import { useText } from '../../../hooks';
+import { useText, useSelectedLayoutSetName, useSelectedLayoutName } from '../../../hooks';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import { Trans } from 'react-i18next';
-import { useSelectedLayoutName } from '../../../hooks/useSelectedLayoutName';
 
 export interface EditPageIdProps {
   layoutName: string;

@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { isContainer } from '../../../../../utils/formItemUtils';
 import type { FormComponent } from '../../../../../types/FormComponent';
 import type { FormContainer } from '../../../../../types/FormContainer';
-import { useSelectedLayoutSetName } from '../../../../../hooks/useSelectedLayoutSetName';
+import { useSelectedLayoutSetName } from '../../../../../hooks';
 
 export const useDeleteItem = (formItem: FormComponent | FormContainer) => {
   const { org, app } = useStudioUrlParams();

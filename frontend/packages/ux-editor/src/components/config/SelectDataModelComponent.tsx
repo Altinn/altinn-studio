@@ -5,7 +5,7 @@ import { FormField } from '../FormField';
 import type { Option } from 'packages/text-editor/src/types';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import type { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
-import { useSelectedLayoutSetName } from '../../hooks/useSelectedLayoutSetName';
+import { useSelectedLayoutSetName } from '../../hooks';
 
 export interface ISelectDataModelProps {
   inputId?: string;

@@ -3,16 +3,20 @@ import classes from './RepeatingGroupComponent.module.css';
 import { Checkbox, LegacyFieldSet, LegacyTextField } from '@digdir/design-system-react';
 import { FormField } from '../../../FormField';
 import { getTextResource } from '../../../../utils/language';
-import { useSelectedFormLayout, useText, useTextResourcesSelector } from '../../../../hooks';
+import {
+  useSelectedFormLayout,
+  useText,
+  useTextResourcesSelector,
+  useSelectedLayoutSetName,
+  useSelectedLayoutName,
+} from '../../../../hooks';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useSelectedLayoutSetName } from '../../../../hooks/useSelectedLayoutSetName';
 import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
 import type { ITextResource } from 'app-shared/types/global';
 import { textResourcesByLanguageSelector } from '../../../../selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import type { IEditFormComponentProps } from '../../EditFormComponent';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { useSelectedLayoutName } from '../../../../hooks/useSelectedLayoutName';
 
 export const RepeatingGroupComponent = ({
   component,

@@ -4,7 +4,7 @@ import type { IFormLayouts } from '../../types/global';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
-import { useAppContext } from '../../hooks/useAppContext';
+import { useAppContext } from '../';
 
 export const useFormLayoutsQuery = (
   org: string,

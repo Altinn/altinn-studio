@@ -4,7 +4,7 @@ import { ExternalLinkIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { giteaEditLink, altinnDocsUrl } from 'app-shared/ext-urls';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useSelectedLayoutSetName } from '../../hooks/useSelectedLayoutSetName';
+import { useSelectedLayoutSetName } from '../../hooks';
 import { Link } from '@digdir/design-system-react';
 
 export const OldDynamicsInfo = () => {

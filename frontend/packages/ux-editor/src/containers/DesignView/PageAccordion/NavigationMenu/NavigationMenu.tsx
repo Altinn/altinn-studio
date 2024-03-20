@@ -5,9 +5,8 @@ import { MenuElipsisVerticalIcon, ArrowUpIcon, ArrowDownIcon } from '@navikt/aks
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
 import { useUpdateLayoutOrderMutation } from '../../../../hooks/mutations/useUpdateLayoutOrderMutation';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from '../../../../hooks/useAppContext';
+import { useAppContext, useSelectedLayoutSetName } from '../../../../hooks';
 import { StudioButton } from '@studio/components';
-import { useSelectedLayoutSetName } from '../../../../hooks';
 
 export type NavigationMenuProps = {
   pageName: string;

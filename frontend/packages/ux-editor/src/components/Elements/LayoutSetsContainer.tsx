@@ -2,9 +2,8 @@ import React from 'react';
 import { useLayoutSetsQuery } from '../../hooks/queries/useLayoutSetsQuery';
 import { NativeSelect } from '@digdir/design-system-react';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useText } from '../../hooks';
+import { useText, useSelectedLayoutSetName } from '../../hooks';
 import classes from './LayoutSetsContainer.module.css';
-import { useSelectedLayoutSetName } from '../../hooks/useSelectedLayoutSetName';
 
 export function LayoutSetsContainer() {
   const { org, app } = useStudioUrlParams();

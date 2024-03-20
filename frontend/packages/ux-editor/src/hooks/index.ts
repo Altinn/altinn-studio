@@ -10,5 +10,6 @@ export { useTextResourcesSelector } from './useTextResourcesSelector';
 export type { ComponentValidationResult, ErrorCode } from './useValidateComponent';
 export { useValidateComponent } from './useValidateComponent';
 export { useComponentPropertyLabel } from './useComponentPropertyLabel';
+export { useAppContext } from './useAppContext';
 export { useSelectedLayoutSetName } from './useSelectedLayoutSetName';
 export { useSelectedLayoutName } from './useSelectedLayoutName';

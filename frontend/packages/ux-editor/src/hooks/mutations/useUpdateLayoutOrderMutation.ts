@@ -2,7 +2,7 @@ import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuer
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { useMutation } from '@tanstack/react-query';
 import { deepCopy } from 'app-shared/pure';
-import { useAppContext } from '../../hooks/useAppContext';
+import { useAppContext } from '../';
 
 export interface UpdateLayoutOrderMutationArgs {
   layoutName: string;

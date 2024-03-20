@@ -12,10 +12,9 @@ import { PlusIcon } from '@navikt/aksel-icons';
 import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
 import { PageAccordion } from './PageAccordion';
 import { ReceiptContent } from './ReceiptContent';
-import { useSelectedLayoutSetName } from '../../hooks/useSelectedLayoutSetName';
+import { useSelectedLayoutSetName, useSelectedLayoutName } from '../../hooks';
 import { FormLayout } from './FormLayout';
 import { StudioButton } from '@studio/components';
-import { useSelectedLayoutName } from '../../hooks/useSelectedLayoutName';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { FormDesigner } from './containers/FormDesigner';
-import { useText } from './hooks';
+import { useText, useSelectedLayoutSetName, useSelectedLayoutName } from './hooks';
 import { StudioPageSpinner } from '@studio/components';
 import { ErrorPage } from './components/ErrorPage';
 import { useDatamodelMetadataQuery } from './hooks/queries/useDatamodelMetadataQuery';
@@ -8,9 +8,7 @@ import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { useLayoutSetsQuery } from './hooks/queries/useLayoutSetsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useSelectedLayoutSetName } from './hooks/useSelectedLayoutSetName';
 import { FormItemContextProvider } from './containers/FormItemContext';
-import { useSelectedLayoutName } from './hooks/useSelectedLayoutName';
 
 /**
  * This is the main React component responsible for controlling

@@ -9,7 +9,7 @@ import { EditOptions } from '../config/editModal/EditOptions';
 import type { FormComponentBase } from '../../types/FormComponent';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
-import { useSelectedLayoutName } from '../../hooks/useSelectedLayoutName';
+import { useSelectedLayoutName } from '../../hooks';
 
 export const Text = () => {
   const { formItemId: formId, formItem: form, handleUpdate, debounceSave } = useFormItemContext();
