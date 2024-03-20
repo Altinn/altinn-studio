@@ -163,14 +163,13 @@ export const queriesMock: ServicesContextProps = {
 
   // Mutations
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
-  addLanguageCode: jest.fn().mockImplementation(() => Promise.resolve()),
   addLayoutSet: jest.fn().mockImplementation(() => Promise.resolve()),
+  addLanguageCode: jest.fn().mockImplementation(() => Promise.resolve()),
   addRepo: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
   addXsdFromRepo: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   commitAndPushChanges: jest
     .fn()
     .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
-  configureLayoutSet: jest.fn().mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets)),
   copyApp: jest.fn().mockImplementation(() => Promise.resolve()),
   createDatamodel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   createDeployment: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -195,6 +194,7 @@ export const queriesMock: ServicesContextProps = {
   unsetStarredRepo: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   updateFormLayoutName: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateLayoutSet: jest.fn().mockImplementation(() => Promise.resolve()),
   updateTextId: jest.fn().mockImplementation(() => Promise.resolve()),
   updateTranslationByLangCode: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppPolicy: jest.fn().mockImplementation(() => Promise.resolve()),
