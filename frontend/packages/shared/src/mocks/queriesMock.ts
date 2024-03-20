@@ -163,6 +163,7 @@ export const queriesMock: ServicesContextProps = {
 
   // Mutations
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
+  addLayoutSet: jest.fn().mockImplementation(() => Promise.resolve()),
   addLanguageCode: jest.fn().mockImplementation(() => Promise.resolve()),
   addRepo: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
   addXsdFromRepo: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),

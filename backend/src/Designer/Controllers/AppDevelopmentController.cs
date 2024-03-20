@@ -327,7 +327,32 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Update an existing layout set with a new set
+        /// Add a new layout set
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="layoutSet">The config needed for the layout set to be added to layout-sets.json</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        [HttpPost]
+        [UseSystemTextJson]
+        [Route("layout-set/{layoutSetIdToUpdate}")]
+        public async Task<ActionResult> AddLayoutSet(string org, string app, [FromBody] LayoutSetConfig layoutSet, CancellationToken cancellationToken)
+        {
+            try
+            {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+                LayoutSets layoutSets = await _appDevelopmentService.AddLayoutSet(editingContext, layoutSet, cancellationToken);
+                return Ok(layoutSets);
+            }
+            catch (FileNotFoundException exception)
+            {
+                return NotFound($"Layout-sets.json not found: {exception}");
+            }
+        }
+
+        /// <summary>
+        /// Update an existing layout set with new config
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -336,7 +361,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         [HttpPut]
         [UseSystemTextJson]
-        [Route("layout-sets/{layoutSetIdToUpdate}")]
+        [Route("layout-set/{layoutSetIdToUpdate}")]
         public async Task<ActionResult> UpdateLayoutSet(string org, string app, [FromRoute] string layoutSetIdToUpdate, [FromBody] LayoutSetConfig layoutSet, CancellationToken cancellationToken)
         {
             try

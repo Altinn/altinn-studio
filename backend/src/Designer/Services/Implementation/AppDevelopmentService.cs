@@ -240,7 +240,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return null;
         }
 
-        public async Task<LayoutSets> UpdateLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetToUpdateId,
+        /// <inheritdoc />
+        public async Task<LayoutSets> AddLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext,
             LayoutSetConfig newLayoutSet, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -256,19 +257,35 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 throw new NonUniqueLayoutSetIdException($"Layout set name, {newLayoutSet.Id}, already exists.");
             }
-            LayoutSetConfig layoutSetToReplace = layoutSets.Sets.Find(set => set.Id == layoutSetToUpdateId);
-            if (layoutSetToReplace is null)
-            {
-                return await AddNewLayoutSet(altinnAppGitRepository, layoutSets, newLayoutSet);
-            }
-            LayoutSets updatedLayoutSets = await UpdateExistingLayoutSet(altinnAppGitRepository, layoutSets, layoutSetToReplace, newLayoutSet);
-            if (newLayoutSet.Id != layoutSetToUpdateId)
-            {
-                // Layout set name is updated which means layout set folder must be updated also
-                altinnAppGitRepository.ChangeLayoutSetFolderName(layoutSetToUpdateId, newLayoutSet.Id, cancellationToken);
-            }
 
-            return updatedLayoutSets;
+            return await AddNewLayoutSet(altinnAppGitRepository, layoutSets, newLayoutSet);
+        }
+
+        /// <inheritdoc />
+        public async Task<LayoutSets> UpdateLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetToUpdateId,
+            LayoutSetConfig newLayoutSet, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
+                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            if (!altinnAppGitRepository.AppUsesLayoutSets())
+            {
+                throw new FileNotFoundException("No layout set found for this app");
+            }
+            LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+            LayoutSetConfig layoutSetToReplace = layoutSets.Sets.Find(set => set.Id == layoutSetToUpdateId);
+            if (newLayoutSet.Id == layoutSetToUpdateId)
+            {
+                return await UpdateExistingLayoutSet(altinnAppGitRepository, layoutSets, layoutSetToReplace, newLayoutSet);
+            }
+            // Layout set name is updated which means layout set folder must be updated also
+            if (layoutSets.Sets.Exists(set => set.Id == newLayoutSet.Id))
+            {
+                throw new NonUniqueLayoutSetIdException($"Layout set name, {newLayoutSet.Id}, already exists.");
+            }
+            altinnAppGitRepository.ChangeLayoutSetFolderName(layoutSetToUpdateId, newLayoutSet.Id, cancellationToken);
+            return await UpdateExistingLayoutSet(altinnAppGitRepository, layoutSets, layoutSetToReplace, newLayoutSet);
         }
 
         private static async Task<LayoutSets> AddNewLayoutSet(AltinnAppGitRepository altinnAppGitRepository, LayoutSets layoutSets, LayoutSetConfig layoutSet)

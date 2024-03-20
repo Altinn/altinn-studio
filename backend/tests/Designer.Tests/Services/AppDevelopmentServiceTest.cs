@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Exceptions;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation;
@@ -122,6 +123,24 @@ public class AppDevelopmentServiceTest : IDisposable
     }
 
     [Fact]
+    public async Task UpdateLayoutSet_WhenUpdatingSetIdToAnExistingId_ShouldThrowError()
+    {
+        // Arrange
+        string layoutSetIdToUpdate = "layoutSet1";
+        string existingLayoutSetName = "layoutSet2";
+        var newLayoutSet = new LayoutSetConfig { Id = existingLayoutSetName };
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(_org, _repository, _developer, targetRepository);
+
+        // Act and Assert
+        await Assert.ThrowsAsync<NonUniqueLayoutSetIdException>(async () =>
+        {
+            await _appDevelopmentService.UpdateLayoutSet(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), layoutSetIdToUpdate, newLayoutSet);
+        });
+    }
+
+    [Fact]
     public async Task UpdateLayoutSet_WhenLayoutSetExistsAndNewIdIsProvided_ShouldUpdateLayoutSetWithNewIdAndChangeFolderName()
     {
         // Arrange
@@ -147,7 +166,7 @@ public class AppDevelopmentServiceTest : IDisposable
     }
 
     [Fact]
-    public async Task UpdateLayoutSet_WhenLayoutSetDoesNotExist_ShouldAddNewLayoutSet()
+    public async Task AddLayoutSet_WhenLayoutSetDoesNotExist_ShouldAddNewLayoutSet()
     {
         // Arrange
         var newLayoutSet = new LayoutSetConfig { Id = "newLayoutSet" };
@@ -156,12 +175,28 @@ public class AppDevelopmentServiceTest : IDisposable
         CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(_org, _repository, _developer, targetRepository);
 
         // Act
-        var updatedLayoutSets = await _appDevelopmentService.UpdateLayoutSet(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), null, newLayoutSet);
+        var updatedLayoutSets = await _appDevelopmentService.AddLayoutSet(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), newLayoutSet);
 
         // Assert
         updatedLayoutSets.Should().NotBeNull();
         updatedLayoutSets.Sets.Should().HaveCount(4);
         updatedLayoutSets.Sets.Should().Contain(newLayoutSet); // Ensure newLayoutSet is added
+    }
+
+    [Fact]
+    public async Task AddLayoutSet_WhenLayoutSetIdExist_ShouldThrowError()
+    {
+        // Arrange
+        var newLayoutSet = new LayoutSetConfig { Id = "layoutSet1" };
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(_org, _repository, _developer, targetRepository);
+
+        // Act and Assert
+        await Assert.ThrowsAsync<NonUniqueLayoutSetIdException>(async () =>
+        {
+            await _appDevelopmentService.AddLayoutSet(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), newLayoutSet);
+        });
     }
 
     [Fact]
@@ -175,6 +210,22 @@ public class AppDevelopmentServiceTest : IDisposable
 
         // Act
         Func<Task> act = async () => await _appDevelopmentService.UpdateLayoutSet(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), "layoutSet1", new LayoutSetConfig());
+
+        // Assert
+        await act.Should().ThrowAsync<FileNotFoundException>();
+    }
+
+    [Fact]
+    public async Task AddLayoutSet_WhenAppHasNoLayoutSets_ShouldThrowFileNotFoundException()
+    {
+        // Arrange
+        string repository = "app-without-layoutsets";
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(_org, repository, _developer, targetRepository);
+
+        // Act
+        Func<Task> act = async () => await _appDevelopmentService.AddLayoutSet(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), new LayoutSetConfig());
 
         // Assert
         await act.Should().ThrowAsync<FileNotFoundException>();

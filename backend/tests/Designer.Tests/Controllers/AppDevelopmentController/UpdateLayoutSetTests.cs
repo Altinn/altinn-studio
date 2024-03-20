@@ -15,52 +15,24 @@ using Xunit;
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
 
-    public class UpdateLayoutSetsTests(WebApplicationFactory<Program> factory)
-        : DisagnerEndpointsTestsBase<UpdateLayoutSetsTests>(factory), IClassFixture<WebApplicationFactory<Program>>
+    public class UpdateLayoutSetTests(WebApplicationFactory<Program> factory)
+        : DisagnerEndpointsTestsBase<UpdateLayoutSetTests>(factory), IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) =>
             $"/designer/api/{org}/{repository}/app-development";
 
         [Theory]
-        [InlineData("ttd", "app-with-layoutsets", "testUser", "newSet")]
-        public async Task UpdateLayoutSets_NewSet_ReturnsOk(string org, string app, string developer,
-            string layoutSetName)
-        {
-            string targetRepository = TestDataHelper.GenerateTestRepoName();
-            await CopyRepositoryForTest(org, app, developer, targetRepository);
-            var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetName };
-            LayoutSets layoutSetsBefore = await GetLayoutSetsFile(org, targetRepository, developer);
-
-            string url = $"{VersionPrefix(org, targetRepository)}/layout-sets/{layoutSetName}";
-
-            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
-            {
-                Content = new StringContent(JsonSerializer.Serialize(newLayoutSetConfig), Encoding.UTF8, "application/json")
-            };
-
-            using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
-
-            LayoutSets layoutSetsAfter = await GetLayoutSetsFile(org, targetRepository, developer);
-
-            layoutSetsBefore.Sets.Should().HaveCount(3);
-            Assert.False(layoutSetsBefore.Sets.Exists(set => set.Id == newLayoutSetConfig.Id));
-            layoutSetsAfter.Sets.Should().HaveCount(4);
-            Assert.True(layoutSetsAfter.Sets.Exists(set => set.Id == newLayoutSetConfig.Id));
-        }
-
-        [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1")]
-        public async Task UpdateLayoutSets_NewConfigOnSameSet_ReturnsOk(string org, string app, string developer,
-            string layoutSetName)
+        public async Task UpdateLayoutSet_NewConfigOnSameSet_ReturnsOk(string org, string app, string developer,
+            string layoutSetIdToUpdate)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
             string newDataModel = "NewDataModel";
-            var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetName, DataType = newDataModel };
+            var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetIdToUpdate, DataType = newDataModel };
             LayoutSets layoutSetsBefore = await GetLayoutSetsFile(org, targetRepository, developer);
 
-            string url = $"{VersionPrefix(org, targetRepository)}/layout-sets/{layoutSetName}";
+            string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetIdToUpdate}";
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
             {
@@ -80,15 +52,15 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1")]
-        public async Task UpdateLayoutSets_NewIdOnExistingSet_ReturnsOk(string org, string app, string developer,
-            string layoutSetName)
+        public async Task UpdateLayoutSet_NewIdOnExistingSet_ReturnsOk(string org, string app, string developer,
+            string layoutSetIdToUpdate)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
             var newLayoutSetConfig = new LayoutSetConfig() { Id = "newSet" };
             LayoutSets layoutSetsBefore = await GetLayoutSetsFile(org, targetRepository, developer);
 
-            string url = $"{VersionPrefix(org, targetRepository)}/layout-sets/{layoutSetName}";
+            string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetIdToUpdate}";
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
             {
@@ -107,15 +79,35 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         }
 
         [Theory]
+        [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1")]
+        public async Task UpdateLayoutSet_NewLayoutSetIdExistsBefore_ReturnsBadRequest(string org, string app, string developer,
+            string layoutSetIdToUpdate)
+        {
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
+            var newLayoutSetConfig = new LayoutSetConfig() { Id = "layoutSet2" };
+
+            string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetIdToUpdate}";
+
+            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
+            {
+                Content = new StringContent(JsonSerializer.Serialize(newLayoutSetConfig), Encoding.UTF8, "application/json")
+            };
+
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
+            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
+
+        [Theory]
         [InlineData("ttd", "app-without-layoutsets", "testUser", null)]
-        public async Task UpdateLayoutSets_AppWithoutLayoutSets_ReturnsNotFound(string org, string app, string developer,
-            string layoutSetName)
+        public async Task UpdateLayoutSet_AppWithoutLayoutSets_ReturnsNotFound(string org, string app, string developer,
+            string layoutSetIdToUpdate)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
             var newLayoutSetConfig = new LayoutSetConfig() { Id = "newSet" };
 
-            string url = $"{VersionPrefix(org, targetRepository)}/layout-sets/{layoutSetName}";
+            string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetIdToUpdate}";
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
             {
