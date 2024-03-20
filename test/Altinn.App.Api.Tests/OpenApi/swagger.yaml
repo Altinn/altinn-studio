@@ -76,6 +76,10 @@ paths:
             text/xml:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Conflict
+        '500':
+          description: Server Error
         '401':
           description: Unauthorized
   '/{org}/{app}/api/v1/applicationlanguages':

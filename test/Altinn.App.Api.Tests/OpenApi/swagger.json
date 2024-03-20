@@ -123,6 +123,12 @@
               }
             }
           },
+          "409": {
+            "description": "Conflict"
+          },
+          "500": {
+            "description": "Server Error"
+          },
           "401": {
             "description": "Unauthorized"
           }
