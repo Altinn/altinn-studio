@@ -22,7 +22,7 @@ import {
   ExpressionPropertyBase,
   Operator,
 } from '../../../../../types/Expressions';
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils } from '@studio/pure-functions';
 import type { ExpressionEditModeProps } from './ExpressionEditMode';
 import { ExpressionEditMode } from './ExpressionEditMode';
 
@@ -163,7 +163,7 @@ describe('ExpressionEditMode', () => {
       name: textMock('right_menu.expressions_function_less_than'),
     });
     await act(() => user.click(functionOption));
-    const simpleInternalExpressionCopy = deepCopy(simpleInternalExpression);
+    const simpleInternalExpressionCopy = ObjectUtils.deepCopy(simpleInternalExpression);
     simpleInternalExpressionCopy.subExpressions[0].function = ExpressionFunction.LessThan;
     expect(mockOnSetExpression).toHaveBeenCalledWith(simpleInternalExpressionCopy);
     expect(mockOnSetExpression).toHaveBeenCalledTimes(1);
@@ -180,7 +180,7 @@ describe('ExpressionEditMode', () => {
       name: textMock('right_menu.expressions_add_sub_expression'),
     });
     await act(() => user.click(addSubExpressionButton));
-    const simpleInternalExpressionCopy = deepCopy(simpleInternalExpression);
+    const simpleInternalExpressionCopy = ObjectUtils.deepCopy(simpleInternalExpression);
     simpleInternalExpressionCopy.subExpressions.push({});
     simpleInternalExpressionCopy.operator = Operator.And;
     expect(mockOnSetExpression).toHaveBeenCalledWith(simpleInternalExpressionCopy);
