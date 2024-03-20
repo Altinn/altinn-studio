@@ -15,6 +15,7 @@ import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { LayoutItemType } from '../types/global';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from '../hooks/useAppContext';
+import { useSelectedLayoutName } from '../hooks/useSelectedLayoutName';
 
 export type FormItemContext = {
   formItemId: string;
@@ -53,7 +54,7 @@ export const FormItemContextProvider = ({
 }: FormItemContextProviderProps): React.JSX.Element => {
   const { org, app } = useStudioUrlParams();
   const { selectedLayoutSet } = useAppContext();
-  const { selectedLayout: selectedLayoutName } = useAppContext();
+  const { selectedLayoutName } = useSelectedLayoutName();
   const prevSelectedLayoutSetNameRef = useRef(selectedLayoutSet);
   const prevSelectedLayoutNameRef = useRef(selectedLayoutName);
 

@@ -9,17 +9,18 @@ import { TextResource } from '../../TextResource/TextResource';
 import { EditPageId } from './EditPageId';
 import { textResourceByLanguageAndIdSelector } from '../../../selectors/textResourceSelectors';
 import type { ITextResource } from 'app-shared/types/global';
-import { useAppContext } from '../../../hooks/useAppContext';
+import { useSelectedLayoutName } from '../../../hooks/useSelectedLayoutName';
 
 export const PageConfigPanel = () => {
-  const { selectedLayout: layoutName } = useAppContext();
+  const { selectedLayoutName } = useSelectedLayoutName();
   const t = useText();
 
-  const layoutIsSelected = layoutName !== DEFAULT_SELECTED_LAYOUT_NAME && layoutName !== undefined;
+  const layoutIsSelected =
+    selectedLayoutName !== DEFAULT_SELECTED_LAYOUT_NAME && selectedLayoutName !== undefined;
 
   const layoutNameTextResourceSelector = textResourceByLanguageAndIdSelector(
     DEFAULT_LANGUAGE,
-    layoutName,
+    selectedLayoutName,
   );
   const layoutNameTextResource = useTextResourcesSelector<ITextResource>(
     layoutNameTextResourceSelector,
@@ -28,7 +29,7 @@ export const PageConfigPanel = () => {
 
   const headingTitle = !layoutIsSelected
     ? t('right_menu.content_empty')
-    : layoutNameText ?? layoutName;
+    : layoutNameText ?? selectedLayoutName;
 
   return (
     <>
@@ -41,7 +42,7 @@ export const PageConfigPanel = () => {
       />
       {layoutIsSelected && (
         <>
-          <EditPageId layoutName={layoutName} />
+          <EditPageId layoutName={selectedLayoutName} />
           <Accordion color='subtle'>
             <Accordion.Item>
               <Accordion.Header>{t('right_menu.text')}</Accordion.Header>
@@ -49,7 +50,7 @@ export const PageConfigPanel = () => {
                 <TextResource
                   handleIdChange={() => {}}
                   label={t('ux_editor.modal_properties_textResourceBindings_page_name')}
-                  textResourceId={layoutName}
+                  textResourceId={selectedLayoutName}
                 />
               </Accordion.Content>
             </Accordion.Item>

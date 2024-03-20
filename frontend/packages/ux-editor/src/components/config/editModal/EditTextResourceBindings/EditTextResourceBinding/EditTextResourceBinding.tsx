@@ -3,7 +3,7 @@ import { TextResource } from '../../../../TextResource/TextResource';
 import type { TranslationKey } from '@altinn-studio/language/type';
 import { useTranslation } from 'react-i18next';
 import type { EditTextResourceBindingBase } from '../EditTextResourceBindings';
-import { useAppContext } from '../../../../../hooks/useAppContext';
+import { useSelectedLayoutName } from '../../../../../hooks/useSelectedLayoutName';
 
 export interface EditTextResourceBindingProps extends EditTextResourceBindingBase {
   textKey: string;
@@ -21,7 +21,7 @@ export const EditTextResourceBinding = ({
   labelKey,
 }: EditTextResourceBindingProps) => {
   const { t } = useTranslation();
-  const { selectedLayout } = useAppContext();
+  const { selectedLayoutName } = useSelectedLayoutName();
 
   const handleTextResourceIdChange = (value: string) =>
     handleComponentChange({
@@ -49,7 +49,7 @@ export const EditTextResourceBinding = ({
       }
       generateIdOptions={{
         componentId: component.id,
-        layoutId: selectedLayout,
+        layoutId: selectedLayoutName,
         textResourceKey: textKey,
       }}
     />

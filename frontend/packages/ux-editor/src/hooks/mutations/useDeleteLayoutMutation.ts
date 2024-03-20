@@ -13,15 +13,15 @@ import { useAddLayoutMutation } from './useAddLayoutMutation';
 import { useText } from '../useText';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
 import { useAppContext } from '../../hooks/useAppContext';
-import { useSearchParams } from 'react-router-dom';
+import { useSelectedLayoutName } from '../../hooks/useSelectedLayoutName';
 
 export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName: string) => {
   const { deleteFormLayout, saveFormLayout } = useServicesContext();
 
   const { data: formLayouts } = useFormLayoutsQuery(org, app, layoutSetName);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, layoutSetName);
-  const { selectedLayout, refetchLayouts, refetchLayoutSettings, reloadPreview } = useAppContext();
-  const [, setSearchParams] = useSearchParams();
+  const { refetchLayouts, refetchLayoutSettings, reloadPreview } = useAppContext();
+  const { selectedLayoutName, setSelectedLayoutName } = useSelectedLayoutName();
 
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
   const addLayoutMutation = useAddLayoutMutation(org, app, layoutSetName);
@@ -63,7 +63,7 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
       const layoutPagesOrder = formLayoutSettings?.pages.order;
 
       // Make sure to create a new page when the last one is deleted!
-      if (!selectedLayout && layoutPagesOrder.length === 0) {
+      if (!selectedLayoutName && layoutPagesOrder.length === 0) {
         const layoutName = t('general.page') + (layoutPagesOrder.length + 1);
         addLayoutMutation.mutate({ layoutName, isReceiptPage: false });
       }
@@ -71,8 +71,8 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
       queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], () => layouts);
 
       const layoutToSelect = firstAvailableLayout(layoutName, layoutOrder);
-      if (selectedLayout === layoutName) {
-        setSearchParams((prevParams) => ({ ...prevParams, layout: layoutToSelect }));
+      if (selectedLayoutName === layoutName) {
+        setSelectedLayoutName(layoutToSelect);
       } else {
         await refetchLayouts();
         await refetchLayoutSettings();

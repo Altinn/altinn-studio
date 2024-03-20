@@ -1,11 +1,8 @@
 import type { MutableRefObject } from 'react';
-import React, { useMemo, useRef, createContext, useCallback, useEffect, useState } from 'react';
+import React, { useMemo, useRef, createContext, useCallback, useState } from 'react';
 import type { QueryClient, QueryKey } from '@tanstack/react-query';
 import { useReactiveLocalStorage } from 'app-shared/hooks/useReactiveLocalStorage';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useInstanceIdQuery } from 'app-shared/hooks/queries';
-import { useSearchParams } from 'react-router-dom';
-import { useFormLayoutSettingsQuery } from './hooks/queries/useFormLayoutSettingsQuery';
 
 export interface WindowWithQueryClient extends Window {
   queryClient?: QueryClient;
@@ -20,8 +17,6 @@ export interface AppContextProps {
   selectedLayoutSet: string;
   setSelectedLayoutSet: (layoutSet: string) => void;
   removeSelectedLayoutSet: () => void;
-  selectedLayout: string;
-  setSelectedLayout: (layout: string) => void;
   invalidLayouts: string[];
   setInvalidLayouts: (invalidLayouts: string[]) => void;
 }
@@ -35,38 +30,9 @@ type AppContextProviderProps = {
 export const AppContextProvider = ({ children }: AppContextProviderProps): React.JSX.Element => {
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
   const { org, app } = useStudioUrlParams();
-  const { data: instanceId } = useInstanceIdQuery(org, app);
-  const [searchParams] = useSearchParams();
   const [selectedLayoutSet, setSelectedLayoutSet, removeSelectedLayoutSet] =
     useReactiveLocalStorage('layoutSet/' + app, null);
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
-  const layoutPagesOrder = formLayoutSettings?.pages.order;
-  const [selectedLayout, setSelectedLayout, removeSelectedLayout] = useReactiveLocalStorage(
-    instanceId,
-    null,
-  );
   const [invalidLayouts, setInvalidLayouts] = useState<string[]>([]);
-
-  const searchParamsLayout = searchParams.get('layout');
-
-  const isValidLayout = (layoutName: string): boolean => {
-    const isExistingLayout = layoutPagesOrder?.includes(layoutName);
-    const isReceipt = formLayoutSettings?.receiptLayoutName === layoutName;
-    return isExistingLayout || isReceipt;
-  };
-
-  const selectedLayoutName = isValidLayout(searchParamsLayout) ? searchParamsLayout : undefined;
-
-  /**
-   * Set the correct selected layout based on url parameters
-   */
-  useEffect(() => {
-    if (!selectedLayoutName) {
-      removeSelectedLayout();
-    } else {
-      setSelectedLayout(selectedLayoutName);
-    }
-  }, [setSelectedLayout, selectedLayoutName, removeSelectedLayout]);
 
   const refetch = useCallback(async (queryKey: QueryKey): Promise<void> => {
     const contentWindow: WindowWithQueryClient = previewIframeRef?.current?.contentWindow;
@@ -109,8 +75,6 @@ export const AppContextProvider = ({ children }: AppContextProviderProps): React
       previewIframeRef,
       selectedLayoutSet,
       setSelectedLayoutSet,
-      selectedLayout,
-      setSelectedLayout,
       removeSelectedLayoutSet,
       invalidLayouts,
       setInvalidLayouts,
@@ -123,8 +87,6 @@ export const AppContextProvider = ({ children }: AppContextProviderProps): React
       removeSelectedLayoutSet,
       selectedLayoutSet,
       setSelectedLayoutSet,
-      selectedLayout,
-      setSelectedLayout,
       invalidLayouts,
       setInvalidLayouts,
     ],

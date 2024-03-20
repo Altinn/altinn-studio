@@ -9,14 +9,14 @@ import { EditOptions } from '../config/editModal/EditOptions';
 import type { FormComponentBase } from '../../types/FormComponent';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
-import { useAppContext } from '../../hooks/useAppContext';
+import { useSelectedLayoutName } from '../../hooks/useSelectedLayoutName';
 
 export const Text = () => {
   const { formItemId: formId, formItem: form, handleUpdate, debounceSave } = useFormItemContext();
   const { t } = useTranslation();
 
   const { data: schema } = useComponentSchemaQuery(form.type);
-  const { selectedLayout } = useAppContext();
+  const { selectedLayoutName } = useSelectedLayoutName();
 
   if (!schema) {
     return (
@@ -42,7 +42,7 @@ export const Text = () => {
           }}
           textResourceBindingKeys={Object.keys(schema.properties.textResourceBindings.properties)}
           editFormId={formId}
-          layoutName={selectedLayout}
+          layoutName={selectedLayoutName}
         />
       )}
       {(schema.properties.options || schema.properties.optionsId) && (
@@ -59,7 +59,7 @@ export const Text = () => {
             debounceSave(formId, updatedComponent);
           }}
           editFormId={formId}
-          layoutName={selectedLayout}
+          layoutName={selectedLayoutName}
           renderOptions={{
             onlyCodeListOptions: schema.properties.optionsId && !schema.properties.options,
           }}

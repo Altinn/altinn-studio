@@ -11,7 +11,7 @@ import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuer
 import type { ILayoutSettings } from 'app-shared/types/global';
 import { addOrRemoveNavigationButtons } from '../../utils/formLayoutsUtils';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
-import { useSearchParams } from 'react-router-dom';
+import { useSelectedLayoutName } from '../../hooks/useSelectedLayoutName';
 
 export interface AddLayoutMutationArgs {
   layoutName: string;
@@ -23,8 +23,8 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
   const formLayoutsQuery = useFormLayoutsQuery(org, app, layoutSetName);
   const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, layoutSetName);
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
+  const { setSelectedLayoutName } = useSelectedLayoutName();
   const queryClient = useQueryClient();
-  const [, setSearchParams] = useSearchParams();
 
   const save = async (updatedLayoutName: string, updatedLayout: IInternalLayout) => {
     const convertedLayout: ExternalFormLayout = internalLayoutToExternal(updatedLayout);
@@ -60,7 +60,7 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
 
       queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], () => newLayouts);
 
-      setSearchParams((prevParams) => ({ ...prevParams, layout: layoutName }));
+      setSelectedLayoutName(layoutName);
     },
   });
 };

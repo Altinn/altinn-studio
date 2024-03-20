@@ -12,12 +12,13 @@ import type { SupportedView } from './ViewToggler/ViewToggler';
 import { ViewToggler } from './ViewToggler/ViewToggler';
 import { ArrowRightIcon } from '@studio/icons';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
+import { useSelectedLayoutName } from '../../hooks/useSelectedLayoutName';
 
 export const Preview = () => {
   const { t } = useTranslation();
   const [isPreviewHidden, setIsPreviewHidden] = useState<boolean>(false);
-  const { selectedLayout } = useAppContext();
-  const noPageSelected = selectedLayout === 'default' || selectedLayout === undefined;
+  const { selectedLayoutName } = useSelectedLayoutName();
+  const noPageSelected = selectedLayoutName === 'default' || selectedLayoutName === undefined;
 
   const togglePreview = (): void => {
     setIsPreviewHidden((prev: boolean) => !prev);
@@ -63,16 +64,16 @@ const PreviewFrame = () => {
   const { previewIframeRef, refetchLayouts, refetchLayoutSettings, reloadPreview } =
     useAppContext();
   const { t } = useTranslation();
-  const { selectedLayout } = useAppContext();
+  const { selectedLayoutName } = useSelectedLayoutName();
 
   useUpdate(() => {
     const reload = async () => {
       await refetchLayouts();
       await refetchLayoutSettings();
-      reloadPreview(selectedLayout);
+      reloadPreview(selectedLayoutName);
     };
     reload();
-  }, [previewIframeRef, selectedLayout]);
+  }, [previewIframeRef, selectedLayoutName]);
 
   useEffect(() => {
     return () => {
@@ -89,7 +90,7 @@ const PreviewFrame = () => {
             ref={previewIframeRef}
             className={cn(classes.iframe, classes[viewportToSimulate])}
             title={t('ux_editor.preview')}
-            src={previewPage(org, app, selectedLayout)}
+            src={previewPage(org, app, selectedLayoutName)}
           />
         </div>
         <PreviewLimitationsInfo />

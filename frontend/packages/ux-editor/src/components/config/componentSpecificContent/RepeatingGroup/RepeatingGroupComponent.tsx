@@ -12,6 +12,7 @@ import { textResourcesByLanguageSelector } from '../../../../selectors/textResou
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import type { IEditFormComponentProps } from '../../EditFormComponent';
 import type { ComponentType } from 'app-shared/types/ComponentType';
+import { useSelectedLayoutName } from '../../../../hooks/useSelectedLayoutName';
 
 export const RepeatingGroupComponent = ({
   component,
@@ -30,8 +31,8 @@ export const RepeatingGroupComponent = ({
 
   const [tableHeadersError, setTableHeadersError] = useState<string>(null);
 
-  const { selectedLayout } = useAppContext();
-  const layoutOrder = formLayouts?.[selectedLayout]?.order || {};
+  const { selectedLayoutName } = useSelectedLayoutName();
+  const layoutOrder = formLayouts?.[selectedLayoutName]?.order || {};
 
   const items = layoutOrder[component.id];
 

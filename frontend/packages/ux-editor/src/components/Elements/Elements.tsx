@@ -9,14 +9,16 @@ import { LayoutSetsContainer } from './LayoutSetsContainer';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import classes from './Elements.module.css';
 import { useAppContext } from '../../hooks/useAppContext';
+import { useSelectedLayoutName } from '../../hooks/useSelectedLayoutName';
 
 export const Elements = () => {
   const { org, app } = useStudioUrlParams();
-  const { selectedLayoutSet, selectedLayout } = useAppContext();
+  const { selectedLayoutSet } = useAppContext();
+  const { selectedLayoutName } = useSelectedLayoutName();
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const receiptName = formLayoutSettings?.receiptLayoutName;
 
-  const hideComponents = selectedLayout === 'default' || selectedLayout === undefined;
+  const hideComponents = selectedLayoutName === 'default' || selectedLayoutName === undefined;
 
   const t = useText();
 
@@ -30,7 +32,7 @@ export const Elements = () => {
         <Paragraph className={classes.noPageSelected} size='small'>
           {t('left_menu.no_components_selected')}
         </Paragraph>
-      ) : receiptName === selectedLayout ? (
+      ) : receiptName === selectedLayoutName ? (
         <ConfPageToolbar />
       ) : (
         <DefaultToolbar />

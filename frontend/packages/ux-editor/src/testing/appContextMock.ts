@@ -14,8 +14,6 @@ export const appContextMock: AppContextProps = {
   selectedLayoutSet: '',
   setSelectedLayoutSet: jest.fn(),
   removeSelectedLayoutSet: jest.fn(),
-  selectedLayout: 'test-layout-set',
-  setSelectedLayout: jest.fn(),
   invalidLayouts: [],
   setInvalidLayouts: jest.fn(),
 };

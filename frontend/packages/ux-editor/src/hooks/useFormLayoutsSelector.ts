@@ -3,6 +3,7 @@ import type { IFormLayouts, IInternalLayout, IInternalLayoutWithName } from '../
 import { createEmptyLayout } from '../utils/formLayoutUtils';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from './useAppContext';
+import { useSelectedLayoutName } from './useSelectedLayoutName';
 
 export const useFormLayouts = (): IFormLayouts => {
   const { org, app } = useStudioUrlParams();
@@ -18,15 +19,15 @@ export const useFormLayout = (layoutName: string): IInternalLayout => {
 };
 
 export const useSelectedFormLayout = (): IInternalLayout => {
-  const { selectedLayout } = useAppContext();
-  return useFormLayout(selectedLayout);
+  const { selectedLayoutName } = useSelectedLayoutName();
+  return useFormLayout(selectedLayoutName);
 };
 
 export const useSelectedFormLayoutWithName = (): IInternalLayoutWithName => {
   const layout = useSelectedFormLayout();
-  const { selectedLayout: layoutName } = useAppContext();
+  const { selectedLayoutName } = useSelectedLayoutName();
   return {
     layout,
-    layoutName,
+    layoutName: selectedLayoutName,
   };
 };

@@ -7,7 +7,6 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { Accordion } from '@digdir/design-system-react';
 import type { IFormLayouts } from '../../types/global';
 import type { FormLayoutPage } from '../../types/FormLayoutPage';
-import { useSearchParams } from 'react-router-dom';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
@@ -16,6 +15,7 @@ import { ReceiptContent } from './ReceiptContent';
 import { useAppContext } from '../../hooks/useAppContext';
 import { FormLayout } from './FormLayout';
 import { StudioButton } from '@studio/components';
+import { useSelectedLayoutName } from '../../hooks/useSelectedLayoutName';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
@@ -36,6 +36,7 @@ const mapFormLayoutsToFormLayoutPages = (formLayouts: IFormLayouts): FormLayoutP
 export const DesignView = (): ReactNode => {
   const { org, app } = useStudioUrlParams();
   const { selectedLayoutSet } = useAppContext();
+  const { selectedLayoutName, setSelectedLayoutName } = useSelectedLayoutName();
   const { mutate: addLayoutMutation, isPending: isAddLayoutMutationPending } = useAddLayoutMutation(
     org,
     app,
@@ -46,30 +47,9 @@ export const DesignView = (): ReactNode => {
   const receiptName = formLayoutSettings?.receiptLayoutName;
   const layoutOrder = formLayoutSettings?.pages?.order;
 
-  const [searchParams, setSearchParams] = useSearchParams();
-  const searchParamsLayout = searchParams.get('layout');
-  const [openAccordion, setOpenAccordion] = useState(searchParamsLayout);
-
   const { t } = useTranslation();
 
-  useEffect(() => {
-    setOpenAccordion(searchParamsLayout);
-  }, [searchParamsLayout]);
-
   const formLayoutData = mapFormLayoutsToFormLayoutPages(layouts);
-
-  /**
-   * Checks if the layout name provided is valid
-   *
-   * @param layoutName the name to check
-   *
-   * @returns boolean value for the validity
-   */
-  const isValidLayout = (layoutName: string): boolean => {
-    const isExistingLayout = formLayoutData.map((el) => el.page).includes(layoutName);
-    const isReceipt = formLayoutSettings?.receiptLayoutName === layoutName;
-    return isExistingLayout || isReceipt;
-  };
 
   /**
    * Handles the click of an accordion. It updates the URL and sets the
@@ -78,14 +58,10 @@ export const DesignView = (): ReactNode => {
    * @param pageName the name of the accordion clicked
    */
   const handleClickAccordion = (pageName: string) => {
-    if (isValidLayout(pageName)) {
-      if (searchParamsLayout !== pageName) {
-        setSearchParams((prevParams) => ({ ...prevParams, layout: pageName }));
-        setOpenAccordion(pageName);
-      } else {
-        setSearchParams(undefined);
-        setOpenAccordion('');
-      }
+    if (selectedLayoutName !== pageName) {
+      setSelectedLayoutName(pageName);
+    } else {
+      setSelectedLayoutName(undefined);
     }
   };
 
@@ -97,14 +73,7 @@ export const DesignView = (): ReactNode => {
       newNum += 1;
       newLayoutName = `${t('ux_editor.page')}${newNum}`;
     }
-    addLayoutMutation(
-      { layoutName: newLayoutName, isReceiptPage: false },
-      {
-        onSuccess: () => {
-          setOpenAccordion(newLayoutName);
-        },
-      },
-    );
+    addLayoutMutation({ layoutName: newLayoutName, isReceiptPage: false });
   };
 
   /**
@@ -120,10 +89,10 @@ export const DesignView = (): ReactNode => {
       <PageAccordion
         pageName={layout.page}
         key={i}
-        isOpen={layout.page === openAccordion}
+        isOpen={layout.page === selectedLayoutName}
         onClick={() => handleClickAccordion(layout.page)}
       >
-        {layout.page === openAccordion && <FormLayout layout={layout.data} />}
+        {layout.page === selectedLayoutName && <FormLayout layout={layout.data} />}
       </PageAccordion>
     );
   });
@@ -138,7 +107,7 @@ export const DesignView = (): ReactNode => {
         </div>
         <ReceiptContent
           receiptName={receiptName}
-          selectedAccordion={openAccordion}
+          selectedAccordion={selectedLayoutName}
           formLayoutData={formLayoutData}
           onClickAccordion={() => handleClickAccordion(receiptName)}
         />

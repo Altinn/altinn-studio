@@ -10,6 +10,7 @@ import { useLayoutSetsQuery } from './hooks/queries/useLayoutSetsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from './hooks/useAppContext';
 import { FormItemContextProvider } from './containers/FormItemContext';
+import { useSelectedLayoutName } from './hooks/useSelectedLayoutName';
 
 /**
  * This is the main React component responsible for controlling
@@ -20,8 +21,8 @@ import { FormItemContextProvider } from './containers/FormItemContext';
 export function App() {
   const t = useText();
   const { org, app } = useStudioUrlParams();
-  const { selectedLayoutSet, setSelectedLayoutSet, removeSelectedLayoutSet, selectedLayout } =
-    useAppContext();
+  const { selectedLayoutSet, setSelectedLayoutSet, removeSelectedLayoutSet } = useAppContext();
+  const { selectedLayoutName } = useSelectedLayoutName();
   const { data: layoutSets, isSuccess: areLayoutSetsFetched } = useLayoutSetsQuery(org, app);
   const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
   const { isSuccess: isDatamodelFetched, isError: dataModelFetchedError } =
@@ -82,7 +83,7 @@ export function App() {
   if (componentIsReady) {
     return (
       <FormItemContextProvider>
-        <FormDesigner selectedLayout={selectedLayout} selectedLayoutSet={selectedLayoutSet} />
+        <FormDesigner selectedLayout={selectedLayoutName} selectedLayoutSet={selectedLayoutSet} />
       </FormItemContextProvider>
     );
   }
