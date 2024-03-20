@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Models;
 using Altinn.Studio.DataModeling.Metamodel;
+using Altinn.Studio.Designer.Exceptions;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
@@ -239,43 +240,81 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return null;
         }
 
-        public async Task<LayoutSets> ConfigureLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext,
-            string layoutSetName, CancellationToken cancellationToken = default)
+        /// <inheritdoc />
+        public async Task<LayoutSets> AddLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext,
+            LayoutSetConfig newLayoutSet, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             AltinnAppGitRepository altinnAppGitRepository =
                 _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
                     altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-            bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
-            if (appUsesLayoutSets)
+            if (!altinnAppGitRepository.AppUsesLayoutSets())
             {
-                throw new BadHttpRequestException("Layout sets are already configured for this app");
+                throw new FileNotFoundException("No layout set found for this app");
+            }
+            if (string.IsNullOrEmpty(newLayoutSet.Id))
+            {
+                throw new EmptyLayoutSetIdException("New layout set name must have a value.");
+            }
+            LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+            if (layoutSets.Sets.Exists(set => set.Id == newLayoutSet.Id))
+            {
+                throw new NonUniqueLayoutSetIdException($"Layout set name, {newLayoutSet.Id}, already exists.");
             }
 
-            altinnAppGitRepository.MoveLayoutsToInitialLayoutSet(layoutSetName);
-            altinnAppGitRepository.MoveOtherUiFilesToLayoutSet(layoutSetName);
-            LayoutSets layoutSets = await altinnAppGitRepository.CreateLayoutSetFile(layoutSetName);
+            return await AddNewLayoutSet(altinnAppGitRepository, layoutSets, newLayoutSet);
+        }
+
+        /// <inheritdoc />
+        public async Task<LayoutSets> UpdateLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetToUpdateId,
+            LayoutSetConfig newLayoutSet, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
+                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            if (!altinnAppGitRepository.AppUsesLayoutSets())
+            {
+                throw new FileNotFoundException("No layout set found for this app");
+            }
+            if (string.IsNullOrEmpty(newLayoutSet.Id))
+            {
+                throw new EmptyLayoutSetIdException("New layout set name must have a value.");
+            }
+            LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+            LayoutSetConfig layoutSetToReplace = layoutSets.Sets.Find(set => set.Id == layoutSetToUpdateId);
+            if (newLayoutSet.Id == layoutSetToUpdateId)
+            {
+                return await UpdateExistingLayoutSet(altinnAppGitRepository, layoutSets, layoutSetToReplace, newLayoutSet);
+            }
+            // Layout set name is updated which means layout set folder must be updated also
+            if (layoutSets.Sets.Exists(set => set.Id == newLayoutSet.Id))
+            {
+                throw new NonUniqueLayoutSetIdException($"Layout set name, {newLayoutSet.Id}, already exists.");
+            }
+            altinnAppGitRepository.ChangeLayoutSetFolderName(layoutSetToUpdateId, newLayoutSet.Id, cancellationToken);
+            return await UpdateExistingLayoutSet(altinnAppGitRepository, layoutSets, layoutSetToReplace, newLayoutSet);
+        }
+
+        private static async Task<LayoutSets> AddNewLayoutSet(AltinnAppGitRepository altinnAppGitRepository, LayoutSets layoutSets, LayoutSetConfig layoutSet)
+        {
+            layoutSets.Sets.Add(layoutSet);
+            await altinnAppGitRepository.SaveLayout(layoutSet.Id, AltinnAppGitRepository.InitialLayoutFileName,
+                altinnAppGitRepository.InitialLayout);
+            await altinnAppGitRepository.SaveLayoutSettings(layoutSet.Id,
+                altinnAppGitRepository.InitialLayoutSettings);
+            await altinnAppGitRepository.SaveLayoutSetsFile(layoutSets);
             return layoutSets;
         }
 
-        public async Task AddLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, LayoutSetConfig layoutSet,
-            CancellationToken cancellationToken = default)
+        private static async Task<LayoutSets> UpdateExistingLayoutSet(AltinnAppGitRepository altinnAppGitRepository, LayoutSets layoutSets, LayoutSetConfig layoutSetToReplace, LayoutSetConfig newLayoutSet)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            AltinnAppGitRepository altinnAppGitRepository =
-                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
-                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-            bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
-            if (appUsesLayoutSets)
-            {
-                LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
-                layoutSets.Sets.Add(layoutSet);
-                await altinnAppGitRepository.SaveLayoutSetsFile(layoutSets);
-                return;
-            }
-
-            throw new FileNotFoundException("No layout set found for this app");
+            int indexOfLayoutSetToReplace = layoutSets.Sets.IndexOf(layoutSetToReplace);
+            layoutSets.Sets[indexOfLayoutSetToReplace] = newLayoutSet;
+            await altinnAppGitRepository.SaveLayoutSetsFile(layoutSets);
+            return layoutSets;
         }
+
 
         /// <inheritdoc />
         public async Task<string> GetRuleHandler(AltinnRepoEditingContext altinnRepoEditingContext,
