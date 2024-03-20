@@ -37,6 +37,7 @@ describe('ResourceContactPointFields', () => {
 
     const categoryLabel = screen.getByLabelText(
       textMock('resourceadm.about_resource_contact_label_category'),
+      { exact: false, selector: 'input' },
     );
     const emailLabel = screen.getByLabelText(
       textMock('resourceadm.about_resource_contact_label_email'),
@@ -60,13 +61,17 @@ describe('ResourceContactPointFields', () => {
 
     const categoryLabel = screen.getByLabelText(
       textMock('resourceadm.about_resource_contact_label_category'),
+      { exact: false, selector: 'input' },
     );
     expect(categoryLabel).toHaveValue(mockContactPoint1.category);
 
     await act(() => user.type(categoryLabel, mockNewInput));
 
     expect(
-      screen.getByLabelText(textMock('resourceadm.about_resource_contact_label_category')),
+      screen.getByLabelText(textMock('resourceadm.about_resource_contact_label_category'), {
+        exact: false,
+        selector: 'input',
+      }),
     ).toHaveValue(`${mockContactPoint1.category}${mockNewInput}`);
   });
 
