@@ -99,6 +99,26 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         }
 
         [Theory]
+        [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1")]
+        public async Task UpdateLayoutSet_NewLayoutSetIdIsEmpty_ReturnsBadRequest(string org, string app, string developer,
+            string layoutSetIdToUpdate)
+        {
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
+            var newLayoutSetConfig = new LayoutSetConfig() { Id = "" };
+
+            string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetIdToUpdate}";
+
+            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
+            {
+                Content = new StringContent(JsonSerializer.Serialize(newLayoutSetConfig), Encoding.UTF8, "application/json")
+            };
+
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
+            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
+
+        [Theory]
         [InlineData("ttd", "app-without-layoutsets", "testUser", null)]
         public async Task UpdateLayoutSet_AppWithoutLayoutSets_ReturnsNotFound(string org, string app, string developer,
             string layoutSetIdToUpdate)

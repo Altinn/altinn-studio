@@ -252,6 +252,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 throw new FileNotFoundException("No layout set found for this app");
             }
+            if (string.IsNullOrEmpty(newLayoutSet.Id))
+            {
+                throw new EmptyLayoutSetIdException("New layout set name must have a value.");
+            }
             LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
             if (layoutSets.Sets.Exists(set => set.Id == newLayoutSet.Id))
             {
@@ -272,6 +276,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (!altinnAppGitRepository.AppUsesLayoutSets())
             {
                 throw new FileNotFoundException("No layout set found for this app");
+            }
+            if (string.IsNullOrEmpty(newLayoutSet.Id))
+            {
+                throw new EmptyLayoutSetIdException("New layout set name must have a value.");
             }
             LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
             LayoutSetConfig layoutSetToReplace = layoutSets.Sets.Find(set => set.Id == layoutSetToUpdateId);
