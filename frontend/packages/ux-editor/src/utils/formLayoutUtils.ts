@@ -5,9 +5,8 @@ import type {
   IToolbarElement,
 } from '../types/global';
 import { BASE_CONTAINER_ID, MAX_NESTED_GROUP_LEVEL } from 'app-shared/constants';
-import { deepCopy } from 'app-shared/pure';
 import { insertArrayElementAtPos } from 'app-shared/utils/arrayUtils';
-import { ArrayUtils } from '@studio/pure-functions';
+import { ArrayUtils, ObjectUtils } from '@studio/pure-functions';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent } from '../types/FormComponent';
 import { generateFormItem } from './component';
@@ -63,7 +62,7 @@ export const addComponent = (
   containerId: string = BASE_CONTAINER_ID,
   position: number = -1,
 ): IInternalLayout => {
-  const newLayout = deepCopy(layout);
+  const newLayout = ObjectUtils.deepCopy(layout);
   component.pageIndex = calculateNewPageIndex(newLayout, containerId, position);
   newLayout.components[component.id] = component;
   if (position < 0) newLayout.order[containerId].push(component.id);
@@ -124,7 +123,7 @@ export const addContainer = <T extends ContainerComponentType>(
   parentId: string = BASE_CONTAINER_ID,
   position: number = -1,
 ): IInternalLayout => {
-  const newLayout = deepCopy(layout);
+  const newLayout = ObjectUtils.deepCopy(layout);
   container.pageIndex = calculateNewPageIndex(newLayout, parentId, position);
   newLayout.containers[id] = container as FormContainer<T>;
   newLayout.order[id] = [];
@@ -145,7 +144,7 @@ export const updateContainer = <T extends ContainerComponentType>(
   updatedContainer: FormContainer<T>,
   containerId: string,
 ): IInternalLayout => {
-  const oldLayout: IInternalLayout = deepCopy(layout);
+  const oldLayout: IInternalLayout = ObjectUtils.deepCopy(layout);
 
   const currentId = containerId;
   const newId = updatedContainer.id || currentId;
@@ -188,7 +187,7 @@ export const updateContainer = <T extends ContainerComponentType>(
  * @returns The new layout.
  */
 export const removeComponent = (layout: IInternalLayout, componentId: string): IInternalLayout => {
-  const newLayout = deepCopy(layout);
+  const newLayout = ObjectUtils.deepCopy(layout);
   const containerId = findParentId(layout, componentId);
   if (containerId) {
     newLayout.order[containerId] = ArrayUtils.removeItemByValue(
@@ -281,7 +280,7 @@ export const moveLayoutItem = (
   newContainerId: string = BASE_CONTAINER_ID,
   newPosition: number = 0,
 ): IInternalLayout => {
-  const newLayout = deepCopy(layout);
+  const newLayout = ObjectUtils.deepCopy(layout);
   const oldContainerId = findParentId(layout, id);
   const item = getItem(newLayout, id);
   item.pageIndex = calculateNewPageIndex(newLayout, newContainerId, newPosition);
@@ -395,18 +394,15 @@ export const hasMultiPageGroup = (layout: IInternalLayout): boolean =>
 
 export const isItemChildOfContainer = (
   layout: IInternalLayout,
-  item: FormItem,
+  itemId: string,
   containerType?: ContainerComponentType,
 ): boolean => {
-  const containerOfItemId = Object.keys(layout.order).find((containerId) => {
-    return (
-      containerId !== BASE_CONTAINER_ID &&
-      Object.values(layout.order[containerId]).includes(item.id)
-    );
-  });
-  if (!containerOfItemId) return false;
-  return containerType ? layout.containers[containerOfItemId].type === containerType : true;
+  const parentId = findParentId(layout, itemId);
+  if (parentId === BASE_CONTAINER_ID || !parentId) return false;
+  const parent = getItem(layout, parentId);
+  return !containerType || parent.type === containerType;
 };
+
 /**
  * Checks if a component with the given id exists in the given layout.
  * @param id The id of the component to check for.

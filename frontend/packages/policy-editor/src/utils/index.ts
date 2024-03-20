@@ -1,4 +1,4 @@
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils } from '@studio/pure-functions';
 import type {
   PolicyAction,
   PolicyEditorUsage,
@@ -158,7 +158,7 @@ export const mergeActionsFromPolicyWithActionOptions = (
   actions: PolicyAction[],
 ): PolicyAction[] => {
   const existingActionIds = actions.map((action) => action.actionId);
-  const copiedActions = deepCopy(actions);
+  const copiedActions = ObjectUtils.deepCopy(actions);
 
   rules.forEach((rule) => {
     rule.actions.forEach((actionString) => {
@@ -190,7 +190,7 @@ export const mergeSubjectsFromPolicyWithSubjectOptions = (
   subjects: PolicySubject[],
 ): PolicySubject[] => {
   const existingSubjectIds = subjects.map((subject) => subject.subjectId);
-  const copiedSubjects = deepCopy(subjects);
+  const copiedSubjects = ObjectUtils.deepCopy(subjects);
 
   rules.forEach((rule) => {
     rule.subject.forEach((subjectString) => {

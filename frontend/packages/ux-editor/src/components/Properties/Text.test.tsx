@@ -85,7 +85,7 @@ describe('TextTab', () => {
   describe('when editing a component', () => {
     const props = {
       formItemId: component1IdMock,
-      formItem: { ...component1Mock, dataModelBindings: {} },
+      formItem: { ...component1Mock },
     };
 
     it('should render the component', () => {
