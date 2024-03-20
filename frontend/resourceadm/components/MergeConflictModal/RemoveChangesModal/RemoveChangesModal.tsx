@@ -3,7 +3,6 @@ import { Trans, useTranslation } from 'react-i18next';
 import { Textfield, Paragraph } from '@digdir/design-system-react';
 import classes from './RemoveChangesModal.module.css';
 import { Modal } from '../../../components/Modal';
-import { ScreenReaderSpan } from '../../../components/ScreenReaderSpan';
 import { StudioButton } from '@studio/components';
 
 type RemoveChangesModalProps = {
@@ -68,7 +67,7 @@ export const RemoveChangesModal = ({
     <Modal isOpen={isOpen} onClose={onClose} title={t('local_changes.modal_delete_modal_title')}>
       <Paragraph size='small'>
         <Trans
-          i18nKey={'local_changes.modal_delete_modal_text'}
+          i18nKey={'overview.reset_repo_confirm_info'}
           values={{ repositoryName: repo }}
           components={{ bold: <strong /> }}
         />
@@ -78,11 +77,6 @@ export const RemoveChangesModal = ({
           label={t('resourceadm.reset_repo_confirm_repo_name')}
           value={deleteRepoName}
           onChange={(e) => setDeleteRepoName(e.target.value)}
-          aria-labelledby='delete-changes'
-        />
-        <ScreenReaderSpan
-          id='delete-changes'
-          label={t('resourceadm.reset_repo_confirm_repo_name')}
         />
       </div>
       <div className={classes.buttonWrapper}>
