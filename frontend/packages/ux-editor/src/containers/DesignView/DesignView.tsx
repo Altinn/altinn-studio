@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
@@ -12,7 +12,7 @@ import { PlusIcon } from '@navikt/aksel-icons';
 import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
 import { PageAccordion } from './PageAccordion';
 import { ReceiptContent } from './ReceiptContent';
-import { useAppContext } from '../../hooks/useAppContext';
+import { useSelectedLayoutSetName } from '../../hooks/useSelectedLayoutSetName';
 import { FormLayout } from './FormLayout';
 import { StudioButton } from '@studio/components';
 import { useSelectedLayoutName } from '../../hooks/useSelectedLayoutName';
@@ -35,15 +35,15 @@ const mapFormLayoutsToFormLayoutPages = (formLayouts: IFormLayouts): FormLayoutP
  */
 export const DesignView = (): ReactNode => {
   const { org, app } = useStudioUrlParams();
-  const { selectedLayoutSet } = useAppContext();
+  const { selectedLayoutSetName } = useSelectedLayoutSetName();
   const { selectedLayoutName, setSelectedLayoutName } = useSelectedLayoutName();
   const { mutate: addLayoutMutation, isPending: isAddLayoutMutationPending } = useAddLayoutMutation(
     org,
     app,
-    selectedLayoutSet,
+    selectedLayoutSetName,
   );
-  const { data: layouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
+  const { data: layouts } = useFormLayoutsQuery(org, app, selectedLayoutSetName);
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSetName);
   const receiptName = formLayoutSettings?.receiptLayoutName;
   const layoutOrder = formLayoutSettings?.pages?.order;
 

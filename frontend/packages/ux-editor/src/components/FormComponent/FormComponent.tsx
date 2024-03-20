@@ -17,7 +17,7 @@ import { useTextResourcesSelector } from '../../hooks';
 import { useTranslation } from 'react-i18next';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from '../../hooks/useAppContext';
+import { useSelectedLayoutSetName } from '../../hooks/useSelectedLayoutSetName';
 
 export interface IFormComponentProps {
   component: IFormComponent;
@@ -45,14 +45,14 @@ export const FormComponent = memo(function FormComponent({
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
     textResourcesByLanguageSelector(DEFAULT_LANGUAGE),
   );
-  const { selectedLayoutSet } = useAppContext();
+  const { selectedLayoutSetName } = useSelectedLayoutSetName();
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
   const Icon = formItemConfigs[component.type]?.icon;
 
   const { mutate: deleteFormComponent } = useDeleteFormComponentMutation(
     org,
     app,
-    selectedLayoutSet,
+    selectedLayoutSetName,
   );
 
   const handleDelete = (): void => {

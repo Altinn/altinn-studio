@@ -5,7 +5,7 @@ import type { Expression, DataLookupOptions } from '@studio/components';
 import { DataLookupFuncName, StudioDeleteButton } from '@studio/components';
 import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from '../../../hooks/useAppContext';
+import { useSelectedLayoutSetName } from '../../../hooks/useSelectedLayoutSetName';
 import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
 import { Paragraph } from '@digdir/design-system-react';
 import classes from './ExpressionContent.module.css';
@@ -27,9 +27,9 @@ export const ExpressionContent = ({
 }: ExpressionContentProps) => {
   const t = useText();
   const { org, app } = useStudioUrlParams();
-  const { selectedLayoutSet } = useAppContext();
-  const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedLayoutSet);
-  const { data: datamodelMetadata } = useDatamodelMetadataQuery(org, app, selectedLayoutSet);
+  const { selectedLayoutSetName } = useSelectedLayoutSetName();
+  const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedLayoutSetName);
+  const { data: datamodelMetadata } = useDatamodelMetadataQuery(org, app, selectedLayoutSetName);
 
   const dataLookupOptions: DataLookupOptions = useMemo(
     () => ({

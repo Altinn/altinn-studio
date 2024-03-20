@@ -8,7 +8,7 @@ import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { useLayoutSetsQuery } from './hooks/queries/useLayoutSetsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from './hooks/useAppContext';
+import { useSelectedLayoutSetName } from './hooks/useSelectedLayoutSetName';
 import { FormItemContextProvider } from './containers/FormItemContext';
 import { useSelectedLayoutName } from './hooks/useSelectedLayoutName';
 
@@ -21,28 +21,23 @@ import { useSelectedLayoutName } from './hooks/useSelectedLayoutName';
 export function App() {
   const t = useText();
   const { org, app } = useStudioUrlParams();
-  const { selectedLayoutSet, setSelectedLayoutSet, removeSelectedLayoutSet } = useAppContext();
+  const { selectedLayoutSetName, setSelectedLayoutSetName, removeSelectedLayoutSetName } =
+    useSelectedLayoutSetName();
   const { selectedLayoutName } = useSelectedLayoutName();
   const { data: layoutSets, isSuccess: areLayoutSetsFetched } = useLayoutSetsQuery(org, app);
   const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
   const { isSuccess: isDatamodelFetched, isError: dataModelFetchedError } =
-    useDatamodelMetadataQuery(org, app, selectedLayoutSet);
+    useDatamodelMetadataQuery(org, app, selectedLayoutSetName);
   const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
 
   useEffect(() => {
     if (
       areLayoutSetsFetched &&
-      selectedLayoutSet &&
-      (!layoutSets || !layoutSets.sets.map((set) => set.id).includes(selectedLayoutSet))
+      selectedLayoutSetName &&
+      (!layoutSets || !layoutSets.sets.map((set) => set.id).includes(selectedLayoutSetName))
     )
-      removeSelectedLayoutSet();
-  }, [
-    areLayoutSetsFetched,
-    layoutSets,
-    selectedLayoutSet,
-    setSelectedLayoutSet,
-    removeSelectedLayoutSet,
-  ]);
+      removeSelectedLayoutSetName();
+  }, [areLayoutSetsFetched, layoutSets, selectedLayoutSetName, removeSelectedLayoutSetName]);
 
   const componentIsReady =
     areWidgetsFetched && isDatamodelFetched && areTextResourcesFetched && areLayoutSetsFetched;
@@ -69,11 +64,11 @@ export function App() {
   };
 
   useEffect(() => {
-    if (selectedLayoutSet === null && layoutSets) {
+    if (selectedLayoutSetName === null && layoutSets) {
       // Only set layout set if layout sets exists and there is no layout set selected yet
-      setSelectedLayoutSet(layoutSets.sets[0].id);
+      setSelectedLayoutSetName(layoutSets.sets[0].id);
     }
-  }, [setSelectedLayoutSet, selectedLayoutSet, layoutSets, app]);
+  }, [layoutSets, selectedLayoutSetName, setSelectedLayoutSetName]);
 
   if (componentHasError) {
     const mappedError = mapErrorToDisplayError();
@@ -83,7 +78,10 @@ export function App() {
   if (componentIsReady) {
     return (
       <FormItemContextProvider>
-        <FormDesigner selectedLayout={selectedLayoutName} selectedLayoutSet={selectedLayoutSet} />
+        <FormDesigner
+          selectedLayout={selectedLayoutName}
+          selectedLayoutSet={selectedLayoutSetName}
+        />
       </FormItemContextProvider>
     );
   }

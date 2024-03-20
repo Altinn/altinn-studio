@@ -6,7 +6,7 @@ import { useUpdateLayoutNameMutation } from '../../../hooks/mutations/useUpdateL
 import { StudioToggleableTextfield } from '@studio/components';
 import { useTextIdMutation } from 'app-development/hooks/mutations';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from '../../../hooks/useAppContext';
+import { useSelectedLayoutSetName } from '../../../hooks/useSelectedLayoutSetName';
 import { useText } from '../../../hooks';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import { Trans } from 'react-i18next';
@@ -17,11 +17,11 @@ export interface EditPageIdProps {
 }
 export const EditPageId = ({ layoutName }: EditPageIdProps) => {
   const { app, org } = useStudioUrlParams();
-  const { selectedLayoutSet } = useAppContext();
+  const { selectedLayoutSetName } = useSelectedLayoutSetName();
   const { setSelectedLayoutName } = useSelectedLayoutName();
   const { mutate: mutateTextId } = useTextIdMutation(org, app);
-  const { mutate: updateLayoutName } = useUpdateLayoutNameMutation(org, app, selectedLayoutSet);
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
+  const { mutate: updateLayoutName } = useUpdateLayoutNameMutation(org, app, selectedLayoutSetName);
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSetName);
   const t = useText();
 
   const layoutOrder = formLayoutSettings?.pages?.order;

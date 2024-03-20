@@ -1,8 +1,8 @@
 import type { MutableRefObject } from 'react';
 import React, { useMemo, useRef, createContext, useCallback, useState } from 'react';
 import type { QueryClient, QueryKey } from '@tanstack/react-query';
-import { useReactiveLocalStorage } from 'app-shared/hooks/useReactiveLocalStorage';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useSelectedLayoutSetName } from './hooks';
 
 export interface WindowWithQueryClient extends Window {
   queryClient?: QueryClient;
@@ -14,9 +14,6 @@ export interface AppContextProps {
   refetchTexts: (language: string) => Promise<void>;
   reloadPreview: (layoutName: string) => void;
   previewIframeRef: MutableRefObject<HTMLIFrameElement>;
-  selectedLayoutSet: string;
-  setSelectedLayoutSet: (layoutSet: string) => void;
-  removeSelectedLayoutSet: () => void;
   invalidLayouts: string[];
   setInvalidLayouts: (invalidLayouts: string[]) => void;
 }
@@ -30,8 +27,7 @@ type AppContextProviderProps = {
 export const AppContextProvider = ({ children }: AppContextProviderProps): React.JSX.Element => {
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
   const { org, app } = useStudioUrlParams();
-  const [selectedLayoutSet, setSelectedLayoutSet, removeSelectedLayoutSet] =
-    useReactiveLocalStorage('layoutSet/' + app, null);
+  const { selectedLayoutSetName } = useSelectedLayoutSetName();
   const [invalidLayouts, setInvalidLayouts] = useState<string[]>([]);
 
   const refetch = useCallback(async (queryKey: QueryKey): Promise<void> => {
@@ -43,12 +39,12 @@ export const AppContextProvider = ({ children }: AppContextProviderProps): React
   }, []);
 
   const refetchLayouts = useCallback(async (): Promise<void> => {
-    return await refetch(['formLayouts', selectedLayoutSet]);
-  }, [refetch, selectedLayoutSet]);
+    return await refetch(['formLayouts', selectedLayoutSetName]);
+  }, [refetch, selectedLayoutSetName]);
 
   const refetchLayoutSettings = useCallback(async (): Promise<void> => {
-    return await refetch(['layoutSettings', selectedLayoutSet]);
-  }, [refetch, selectedLayoutSet]);
+    return await refetch(['layoutSettings', selectedLayoutSetName]);
+  }, [refetch, selectedLayoutSetName]);
 
   const refetchTexts = useCallback(
     async (language: string): Promise<void> => {
@@ -73,9 +69,6 @@ export const AppContextProvider = ({ children }: AppContextProviderProps): React
       refetchTexts,
       reloadPreview,
       previewIframeRef,
-      selectedLayoutSet,
-      setSelectedLayoutSet,
-      removeSelectedLayoutSet,
       invalidLayouts,
       setInvalidLayouts,
     }),
@@ -84,9 +77,6 @@ export const AppContextProvider = ({ children }: AppContextProviderProps): React
       refetchLayoutSettings,
       refetchTexts,
       reloadPreview,
-      removeSelectedLayoutSet,
-      selectedLayoutSet,
-      setSelectedLayoutSet,
       invalidLayouts,
       setInvalidLayouts,
     ],

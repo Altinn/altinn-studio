@@ -11,9 +11,6 @@ export const appContextMock: AppContextProps = {
   refetchTexts: jest.fn(),
   reloadPreview: jest.fn(),
   previewIframeRef: previewIframeRefMock,
-  selectedLayoutSet: '',
-  setSelectedLayoutSet: jest.fn(),
-  removeSelectedLayoutSet: jest.fn(),
   invalidLayouts: [],
   setInvalidLayouts: jest.fn(),
 };

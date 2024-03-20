@@ -20,7 +20,7 @@ import {
 } from '../../utils/ruleConfigUtils';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
-import { useAppContext } from '../../hooks/useAppContext';
+import { useSelectedLayoutSetName } from '../../hooks/useSelectedLayoutSetName';
 
 export interface IConditionalRenderingModalProps {
   modalOpen: boolean;
@@ -31,11 +31,11 @@ export interface IConditionalRenderingModalProps {
 export function ConditionalRenderingModal(props: IConditionalRenderingModalProps) {
   const { org, app } = useStudioUrlParams();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
-  const { selectedLayoutSet } = useAppContext();
-  const { data: ruleModel } = useRuleModelQuery(org, app, selectedLayoutSet);
-  const { data: ruleConfig } = useRuleConfigQuery(org, app, selectedLayoutSet);
-  const { mutate: saveRuleConfig } = useRuleConfigMutation(org, app, selectedLayoutSet);
-  const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
+  const { selectedLayoutSetName } = useSelectedLayoutSetName();
+  const { data: ruleModel } = useRuleModelQuery(org, app, selectedLayoutSetName);
+  const { data: ruleConfig } = useRuleConfigQuery(org, app, selectedLayoutSetName);
+  const { mutate: saveRuleConfig } = useRuleConfigMutation(org, app, selectedLayoutSetName);
+  const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedLayoutSetName);
   const layoutContainers = getAllLayoutContainers(formLayouts);
   const layoutComponents = getAllLayoutComponents(formLayouts);
   const layoutOrder = getFullLayoutOrder(formLayouts);

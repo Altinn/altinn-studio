@@ -8,14 +8,14 @@ import { LayoutSetsContainer } from './LayoutSetsContainer';
 
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import classes from './Elements.module.css';
-import { useAppContext } from '../../hooks/useAppContext';
+import { useSelectedLayoutSetName } from '../../hooks/useSelectedLayoutSetName';
 import { useSelectedLayoutName } from '../../hooks/useSelectedLayoutName';
 
 export const Elements = () => {
   const { org, app } = useStudioUrlParams();
-  const { selectedLayoutSet } = useAppContext();
+  const { selectedLayoutSetName } = useSelectedLayoutSetName();
   const { selectedLayoutName } = useSelectedLayoutName();
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSetName);
   const receiptName = formLayoutSettings?.receiptLayoutName;
 
   const hideComponents = selectedLayoutName === 'default' || selectedLayoutName === undefined;

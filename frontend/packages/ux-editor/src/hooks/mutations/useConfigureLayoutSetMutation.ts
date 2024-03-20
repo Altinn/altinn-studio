@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { useAppContext } from '../useAppContext';
+import { useSelectedLayoutSetName } from '../';
 
 export interface ConfigureLayoutSetMutationArgs {
   layoutSetName: string;
@@ -9,7 +9,7 @@ export interface ConfigureLayoutSetMutationArgs {
 
 export const useConfigureLayoutSetMutation = (org: string, app: string) => {
   const { configureLayoutSet } = useServicesContext();
-  const { setSelectedLayoutSet } = useAppContext();
+  const { setSelectedLayoutSetName } = useSelectedLayoutSetName();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -20,7 +20,7 @@ export const useConfigureLayoutSetMutation = (org: string, app: string) => {
       })),
 
     onSuccess: ({ layoutSetName, layoutSets }) => {
-      setSelectedLayoutSet(layoutSetName);
+      setSelectedLayoutSetName(layoutSetName);
       queryClient.setQueryData([QueryKey.LayoutSets, org, app], () => layoutSets);
     },
   });

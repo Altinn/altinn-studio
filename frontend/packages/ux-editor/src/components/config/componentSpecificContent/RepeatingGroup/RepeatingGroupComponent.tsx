@@ -5,7 +5,7 @@ import { FormField } from '../../../FormField';
 import { getTextResource } from '../../../../utils/language';
 import { useSelectedFormLayout, useText, useTextResourcesSelector } from '../../../../hooks';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from '../../../../hooks/useAppContext';
+import { useSelectedLayoutSetName } from '../../../../hooks/useSelectedLayoutSetName';
 import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
 import type { ITextResource } from 'app-shared/types/global';
 import { textResourcesByLanguageSelector } from '../../../../selectors/textResourceSelectors';
@@ -22,8 +22,8 @@ export const RepeatingGroupComponent = ({
 
   const { org, app } = useStudioUrlParams();
 
-  const { selectedLayoutSet } = useAppContext();
-  const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
+  const { selectedLayoutSetName } = useSelectedLayoutSetName();
+  const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedLayoutSetName);
   const { components } = useSelectedFormLayout();
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
     textResourcesByLanguageSelector(DEFAULT_LANGUAGE),

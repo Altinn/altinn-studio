@@ -14,8 +14,7 @@ import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateForm
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { LayoutItemType } from '../types/global';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from '../hooks/useAppContext';
-import { useSelectedLayoutName } from '../hooks/useSelectedLayoutName';
+import { useSelectedLayoutSetName, useSelectedLayoutName } from '../hooks';
 
 export type FormItemContext = {
   formItemId: string;
@@ -53,9 +52,9 @@ export const FormItemContextProvider = ({
   children,
 }: FormItemContextProviderProps): React.JSX.Element => {
   const { org, app } = useStudioUrlParams();
-  const { selectedLayoutSet } = useAppContext();
+  const { selectedLayoutSetName } = useSelectedLayoutSetName();
   const { selectedLayoutName } = useSelectedLayoutName();
-  const prevSelectedLayoutSetNameRef = useRef(selectedLayoutSet);
+  const prevSelectedLayoutSetNameRef = useRef(selectedLayoutSetName);
   const prevSelectedLayoutNameRef = useRef(selectedLayoutName);
 
   const autoSaveTimeoutRef = useRef(undefined);
@@ -69,13 +68,13 @@ export const FormItemContextProvider = ({
     org,
     app,
     prevSelectedLayoutNameRef.current,
-    selectedLayoutSet,
+    selectedLayoutSetName,
   );
   const { mutateAsync: updateFormComponent } = useUpdateFormComponentMutation(
     org,
     app,
     prevSelectedLayoutNameRef.current,
-    selectedLayoutSet,
+    selectedLayoutSetName,
   );
 
   useEffect(() => {
@@ -149,7 +148,7 @@ export const FormItemContextProvider = ({
   useEffect(() => {
     const autoSaveOnLayoutChange = async () => {
       if (
-        prevSelectedLayoutSetNameRef.current === selectedLayoutSet &&
+        prevSelectedLayoutSetNameRef.current === selectedLayoutSetName &&
         prevSelectedLayoutNameRef.current === selectedLayoutName
       )
         return;
@@ -160,7 +159,7 @@ export const FormItemContextProvider = ({
     };
 
     autoSaveOnLayoutChange();
-  }, [handleDiscard, handleSave, selectedLayoutSet, selectedLayoutName]);
+  }, [handleDiscard, handleSave, selectedLayoutSetName, selectedLayoutName]);
 
   const value = useMemo(
     () => ({

@@ -7,6 +7,7 @@ import { useUpdateLayoutOrderMutation } from '../../../../hooks/mutations/useUpd
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from '../../../../hooks/useAppContext';
 import { StudioButton } from '@studio/components';
+import { useSelectedLayoutSetName } from '../../../../hooks';
 
 export type NavigationMenuProps = {
   pageName: string;
@@ -27,16 +28,21 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
 
   const { org, app } = useStudioUrlParams();
 
-  const { selectedLayoutSet, invalidLayouts } = useAppContext();
+  const { selectedLayoutSetName } = useSelectedLayoutSetName();
+  const { invalidLayouts } = useAppContext();
   const invalid = invalidLayouts.includes(pageName);
 
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSetName);
 
   const layoutOrder = formLayoutSettings?.pages?.order;
   const disableUp = layoutOrder.indexOf(pageName) === 0;
   const disableDown = layoutOrder.indexOf(pageName) === layoutOrder.length - 1;
 
-  const { mutate: updateLayoutOrder } = useUpdateLayoutOrderMutation(org, app, selectedLayoutSet);
+  const { mutate: updateLayoutOrder } = useUpdateLayoutOrderMutation(
+    org,
+    app,
+    selectedLayoutSetName,
+  );
 
   const settingsRef = useRef(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
