@@ -5,7 +5,7 @@ import type {
   IWidget,
 } from '../../types/global';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSelectedFormLayoutWithName } from '../useFormLayoutsSelector';
+import { useSelectedFormLayoutWithName } from '../';
 import { deepCopy } from 'app-shared/pure';
 import { v4 as uuidv4 } from 'uuid';
 import { useFormLayoutMutation } from './useFormLayoutMutation';

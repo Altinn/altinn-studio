@@ -1,4 +1,4 @@
-import { useSelectedFormLayoutWithName } from '../useFormLayoutsSelector';
+import { useSelectedFormLayoutWithName } from '../';
 import { useMutation } from '@tanstack/react-query';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutMutation } from './useFormLayoutMutation';

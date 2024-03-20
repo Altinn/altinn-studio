@@ -3,7 +3,7 @@ import classes from './Preview.module.css';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
-import { useAppContext, useSelectedLayoutName } from '../../hooks';
+import { useAppContext, useSelectedFormLayoutName } from '../../hooks';
 import { useUpdate } from 'app-shared/hooks/useUpdate';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/design-system-react';
@@ -16,8 +16,9 @@ import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitations
 export const Preview = () => {
   const { t } = useTranslation();
   const [isPreviewHidden, setIsPreviewHidden] = useState<boolean>(false);
-  const { selectedLayoutName } = useSelectedLayoutName();
-  const noPageSelected = selectedLayoutName === 'default' || selectedLayoutName === undefined;
+  const { selectedFormLayoutName } = useSelectedFormLayoutName();
+  const noPageSelected =
+    selectedFormLayoutName === 'default' || selectedFormLayoutName === undefined;
 
   const togglePreview = (): void => {
     setIsPreviewHidden((prev: boolean) => !prev);
@@ -63,16 +64,16 @@ const PreviewFrame = () => {
   const { previewIframeRef, refetchLayouts, refetchLayoutSettings, reloadPreview } =
     useAppContext();
   const { t } = useTranslation();
-  const { selectedLayoutName } = useSelectedLayoutName();
+  const { selectedFormLayoutName } = useSelectedFormLayoutName();
 
   useUpdate(() => {
     const reload = async () => {
       await refetchLayouts();
       await refetchLayoutSettings();
-      reloadPreview(selectedLayoutName);
+      reloadPreview(selectedFormLayoutName);
     };
     reload();
-  }, [previewIframeRef, selectedLayoutName]);
+  }, [previewIframeRef, selectedFormLayoutName]);
 
   useEffect(() => {
     return () => {
@@ -89,7 +90,7 @@ const PreviewFrame = () => {
             ref={previewIframeRef}
             className={cn(classes.iframe, classes[viewportToSimulate])}
             title={t('ux_editor.preview')}
-            src={previewPage(org, app, selectedLayoutName)}
+            src={previewPage(org, app, selectedFormLayoutName)}
           />
         </div>
         <PreviewLimitationsInfo />

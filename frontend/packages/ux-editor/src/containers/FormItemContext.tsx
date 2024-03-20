@@ -14,7 +14,7 @@ import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateForm
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { LayoutItemType } from '../types/global';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useSelectedLayoutSetName, useSelectedLayoutName } from '../hooks';
+import { useSelectedFormLayoutSetName, useSelectedFormLayoutName } from '../hooks';
 
 export type FormItemContext = {
   formItemId: string;
@@ -52,10 +52,10 @@ export const FormItemContextProvider = ({
   children,
 }: FormItemContextProviderProps): React.JSX.Element => {
   const { org, app } = useStudioUrlParams();
-  const { selectedLayoutSetName } = useSelectedLayoutSetName();
-  const { selectedLayoutName } = useSelectedLayoutName();
-  const prevSelectedLayoutSetNameRef = useRef(selectedLayoutSetName);
-  const prevSelectedLayoutNameRef = useRef(selectedLayoutName);
+  const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
+  const { selectedFormLayoutName } = useSelectedFormLayoutName();
+  const prevSelectedLayoutSetNameRef = useRef(selectedFormLayoutSetName);
+  const prevSelectedLayoutNameRef = useRef(selectedFormLayoutName);
 
   const autoSaveTimeoutRef = useRef(undefined);
 
@@ -68,13 +68,13 @@ export const FormItemContextProvider = ({
     org,
     app,
     prevSelectedLayoutNameRef.current,
-    selectedLayoutSetName,
+    selectedFormLayoutSetName,
   );
   const { mutateAsync: updateFormComponent } = useUpdateFormComponentMutation(
     org,
     app,
     prevSelectedLayoutNameRef.current,
-    selectedLayoutSetName,
+    selectedFormLayoutSetName,
   );
 
   useEffect(() => {
@@ -148,18 +148,18 @@ export const FormItemContextProvider = ({
   useEffect(() => {
     const autoSaveOnLayoutChange = async () => {
       if (
-        prevSelectedLayoutSetNameRef.current === selectedLayoutSetName &&
-        prevSelectedLayoutNameRef.current === selectedLayoutName
+        prevSelectedLayoutSetNameRef.current === selectedFormLayoutSetName &&
+        prevSelectedLayoutNameRef.current === selectedFormLayoutName
       )
         return;
       await handleSave();
       handleDiscard();
-      prevSelectedLayoutSetNameRef.current = selectedLayoutName;
-      prevSelectedLayoutNameRef.current = selectedLayoutName;
+      prevSelectedLayoutSetNameRef.current = selectedFormLayoutName;
+      prevSelectedLayoutNameRef.current = selectedFormLayoutName;
     };
 
     autoSaveOnLayoutChange();
-  }, [handleDiscard, handleSave, selectedLayoutSetName, selectedLayoutName]);
+  }, [handleDiscard, handleSave, selectedFormLayoutSetName, selectedFormLayoutName]);
 
   const value = useMemo(
     () => ({

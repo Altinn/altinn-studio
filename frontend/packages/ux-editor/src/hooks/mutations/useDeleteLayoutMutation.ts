@@ -12,7 +12,7 @@ import type { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsRespons
 import { useAddLayoutMutation } from './useAddLayoutMutation';
 import { useText } from '../useText';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
-import { useAppContext, useSelectedLayoutName } from '../';
+import { useAppContext, useSelectedFormLayoutName } from '../';
 
 export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName: string) => {
   const { deleteFormLayout, saveFormLayout } = useServicesContext();
@@ -20,7 +20,7 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
   const { data: formLayouts } = useFormLayoutsQuery(org, app, layoutSetName);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, layoutSetName);
   const { refetchLayouts, refetchLayoutSettings, reloadPreview } = useAppContext();
-  const { selectedLayoutName, setSelectedLayoutName } = useSelectedLayoutName();
+  const { selectedFormLayoutName, setSelectedFormLayoutName } = useSelectedFormLayoutName();
 
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
   const addLayoutMutation = useAddLayoutMutation(org, app, layoutSetName);
@@ -62,7 +62,7 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
       const layoutPagesOrder = formLayoutSettings?.pages.order;
 
       // Make sure to create a new page when the last one is deleted!
-      if (!selectedLayoutName && layoutPagesOrder.length === 0) {
+      if (!selectedFormLayoutName && layoutPagesOrder.length === 0) {
         const layoutName = t('general.page') + (layoutPagesOrder.length + 1);
         addLayoutMutation.mutate({ layoutName, isReceiptPage: false });
       }
@@ -70,8 +70,8 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
       queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], () => layouts);
 
       const layoutToSelect = firstAvailableLayout(layoutName, layoutOrder);
-      if (selectedLayoutName === layoutName) {
-        setSelectedLayoutName(layoutToSelect);
+      if (selectedFormLayoutName === layoutName) {
+        setSelectedFormLayoutName(layoutToSelect);
       } else {
         await refetchLayouts();
         await refetchLayoutSettings();

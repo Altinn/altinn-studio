@@ -6,7 +6,7 @@ import { useUpdateLayoutNameMutation } from '../../../hooks/mutations/useUpdateL
 import { StudioToggleableTextfield } from '@studio/components';
 import { useTextIdMutation } from 'app-development/hooks/mutations';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useText, useSelectedLayoutSetName, useSelectedLayoutName } from '../../../hooks';
+import { useText, useSelectedFormLayoutSetName, useSelectedFormLayoutName } from '../../../hooks';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import { Trans } from 'react-i18next';
 
@@ -15,11 +15,19 @@ export interface EditPageIdProps {
 }
 export const EditPageId = ({ layoutName }: EditPageIdProps) => {
   const { app, org } = useStudioUrlParams();
-  const { selectedLayoutSetName } = useSelectedLayoutSetName();
-  const { setSelectedLayoutName } = useSelectedLayoutName();
+  const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
+  const { setSelectedFormLayoutName } = useSelectedFormLayoutName();
   const { mutate: mutateTextId } = useTextIdMutation(org, app);
-  const { mutate: updateLayoutName } = useUpdateLayoutNameMutation(org, app, selectedLayoutSetName);
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSetName);
+  const { mutate: updateLayoutName } = useUpdateLayoutNameMutation(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
   const t = useText();
 
   const layoutOrder = formLayoutSettings?.pages?.order;
@@ -27,7 +35,7 @@ export const EditPageId = ({ layoutName }: EditPageIdProps) => {
   const handleSaveNewName = (newName: string) => {
     if (newName === layoutName) return;
     updateLayoutName({ oldName: layoutName, newName });
-    setSelectedLayoutName(newName);
+    setSelectedFormLayoutName(newName);
     mutateTextId([{ oldId: layoutName, newId: newName }]);
   };
 

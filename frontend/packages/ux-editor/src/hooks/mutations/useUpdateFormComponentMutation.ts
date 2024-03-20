@@ -7,7 +7,7 @@ import { useUpdateAppAttachmentMetadataMutation } from './useUpdateAppAttachment
 import { switchSelectedFieldId } from '../../utils/ruleConfigUtils';
 import { useRuleConfigQuery } from '../queries/useRuleConfigQuery';
 import { useRuleConfigMutation } from './useRuleConfigMutation';
-import { useFormLayout } from '../useFormLayoutsSelector';
+import { useFormLayout } from '../';
 import { deepCopy } from 'app-shared/pure';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import type { FormComponent, FormFileUploaderComponent } from '../../types/FormComponent';

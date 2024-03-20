@@ -5,7 +5,7 @@ import { MenuElipsisVerticalIcon, ArrowUpIcon, ArrowDownIcon } from '@navikt/aks
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
 import { useUpdateLayoutOrderMutation } from '../../../../hooks/mutations/useUpdateLayoutOrderMutation';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext, useSelectedLayoutSetName } from '../../../../hooks';
+import { useSelectedFormLayoutSetName } from '../../../../hooks';
 import { StudioButton } from '@studio/components';
 
 export type NavigationMenuProps = {
@@ -15,7 +15,7 @@ export type NavigationMenuProps = {
 
 /**
  * @component
- *    Displays the buttons to move a page accoridon up or down, edit the name and delete the page
+ *    Displays the buttons to move a page accordion up or down, edit the name and delete the page
  *
  * @property {string}[pageName] - The name of the page
  * @property {boolean}[pageIsReceipt] - If the page is a receipt page
@@ -27,11 +27,13 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
 
   const { org, app } = useStudioUrlParams();
 
-  const { selectedLayoutSetName } = useSelectedLayoutSetName();
-  const { invalidLayouts } = useAppContext();
-  const invalid = invalidLayouts.includes(pageName);
+  const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
 
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSetName);
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
 
   const layoutOrder = formLayoutSettings?.pages?.order;
   const disableUp = layoutOrder.indexOf(pageName) === 0;
@@ -40,7 +42,7 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
   const { mutate: updateLayoutOrder } = useUpdateLayoutOrderMutation(
     org,
     app,
-    selectedLayoutSetName,
+    selectedFormLayoutSetName,
   );
 
   const settingsRef = useRef(null);
@@ -76,16 +78,16 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
             {!pageIsReceipt && (
               <>
                 <DropdownMenu.Item
-                  onClick={() => !(disableUp || invalid) && moveLayout('up')}
-                  disabled={disableUp || invalid}
+                  onClick={() => !disableUp && moveLayout('up')}
+                  disabled={disableUp}
                   id='move-page-up-button'
                 >
                   <ArrowUpIcon />
                   {t('ux_editor.page_menu_up')}
                 </DropdownMenu.Item>
                 <DropdownMenu.Item
-                  onClick={() => !(disableDown || invalid) && moveLayout('down')}
-                  disabled={disableDown || invalid}
+                  onClick={() => !disableDown && moveLayout('down')}
+                  disabled={disableDown}
                   id='move-page-down-button'
                 >
                   <ArrowDownIcon />

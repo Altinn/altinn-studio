@@ -10,7 +10,7 @@ import { useRuleConfigQuery } from '../../hooks/queries/useRuleConfigQuery';
 import { useRuleConfigMutation } from '../../hooks/mutations/useRuleConfigMutation';
 import { addRuleConnection, deleteRuleConnection } from '../../utils/ruleConfigUtils';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useSelectedLayoutSetName } from '../../hooks';
+import { useSelectedFormLayoutSetName } from '../../hooks';
 
 export interface IRuleModalProps {
   modalOpen: boolean;
@@ -21,10 +21,10 @@ export interface IRuleModalProps {
 export function RuleModal(props: IRuleModalProps) {
   const { org, app } = useStudioUrlParams();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
-  const { selectedLayoutSetName } = useSelectedLayoutSetName();
-  const { data: ruleConfig } = useRuleConfigQuery(org, app, selectedLayoutSetName);
-  const { data: ruleModelElements } = useRuleModelQuery(org, app, selectedLayoutSetName);
-  const { mutate: saveRuleConfig } = useRuleConfigMutation(org, app, selectedLayoutSetName);
+  const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
+  const { data: ruleConfig } = useRuleConfigQuery(org, app, selectedFormLayoutSetName);
+  const { data: ruleModelElements } = useRuleModelQuery(org, app, selectedFormLayoutSetName);
+  const { mutate: saveRuleConfig } = useRuleConfigMutation(org, app, selectedFormLayoutSetName);
   const { t } = useTranslation();
 
   const { ruleConnection } = ruleConfig?.data ?? {};

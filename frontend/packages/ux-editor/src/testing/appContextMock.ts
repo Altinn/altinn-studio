@@ -6,11 +6,9 @@ const previewIframeRefMock: RefObject<HTMLIFrameElement> = {
 };
 
 export const appContextMock: AppContextProps = {
+  previewIframeRef: previewIframeRefMock,
   refetchLayouts: jest.fn(),
   refetchLayoutSettings: jest.fn(),
   refetchTexts: jest.fn(),
   reloadPreview: jest.fn(),
-  previewIframeRef: previewIframeRefMock,
-  invalidLayouts: [],
-  setInvalidLayouts: jest.fn(),
 };

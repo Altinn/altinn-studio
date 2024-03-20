@@ -2,7 +2,7 @@ import React from 'react';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
 import { Heading, Paragraph } from '@digdir/design-system-react';
-import { useText, useSelectedLayoutSetName, useSelectedLayoutName } from '../../hooks';
+import { useText, useSelectedFormLayoutSetName, useSelectedFormLayoutName } from '../../hooks';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
 
@@ -11,12 +11,17 @@ import classes from './Elements.module.css';
 
 export const Elements = () => {
   const { org, app } = useStudioUrlParams();
-  const { selectedLayoutSetName } = useSelectedLayoutSetName();
-  const { selectedLayoutName } = useSelectedLayoutName();
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSetName);
+  const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
+  const { selectedFormLayoutName } = useSelectedFormLayoutName();
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
   const receiptName = formLayoutSettings?.receiptLayoutName;
 
-  const hideComponents = selectedLayoutName === 'default' || selectedLayoutName === undefined;
+  const hideComponents =
+    selectedFormLayoutName === 'default' || selectedFormLayoutName === undefined;
 
   const t = useText();
 
@@ -30,7 +35,7 @@ export const Elements = () => {
         <Paragraph className={classes.noPageSelected} size='small'>
           {t('left_menu.no_components_selected')}
         </Paragraph>
-      ) : receiptName === selectedLayoutName ? (
+      ) : receiptName === selectedFormLayoutName ? (
         <ConfPageToolbar />
       ) : (
         <DefaultToolbar />

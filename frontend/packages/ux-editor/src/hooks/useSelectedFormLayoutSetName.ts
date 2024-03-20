@@ -1,13 +1,13 @@
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useReactiveLocalStorage } from 'app-shared/hooks/useReactiveLocalStorage';
 
-export type UseSelectedLayoutSetNameResult = {
-  selectedLayoutSetName: string;
-  setSelectedLayoutSetName: (layoutName: string) => void;
-  removeSelectedLayoutSetName: () => void;
+export type UseSelectedFormLayoutSetNameResult = {
+  selectedFormLayoutSetName: string;
+  setSelectedFormLayoutSetName: (layoutName: string) => void;
+  removeFormSelectedLayoutSetName: () => void;
 };
 
-export const useSelectedLayoutSetName = (): UseSelectedLayoutSetNameResult => {
+export const useSelectedFormLayoutSetName = (): UseSelectedFormLayoutSetNameResult => {
   const { app } = useStudioUrlParams();
 
   // const isValidLayout = (layoutName: string): boolean => {
@@ -16,7 +16,7 @@ export const useSelectedLayoutSetName = (): UseSelectedLayoutSetNameResult => {
   //   return isExistingLayout || isReceipt;
   // };
 
-  const [selectedLayoutSetName, setSelectedLayoutSetName, removeSelectedLayoutSetName] =
+  const [selectedFormLayoutSetName, setSelectedFormLayoutSetName, removeFormSelectedLayoutSetName] =
     useReactiveLocalStorage(
       'layoutSet/' + app,
       undefined /*, (value: string) => {
@@ -25,8 +25,8 @@ export const useSelectedLayoutSetName = (): UseSelectedLayoutSetNameResult => {
     );
 
   return {
-    selectedLayoutSetName,
-    setSelectedLayoutSetName,
-    removeSelectedLayoutSetName,
+    selectedFormLayoutSetName,
+    setSelectedFormLayoutSetName,
+    removeFormSelectedLayoutSetName,
   };
 };

@@ -4,9 +4,8 @@ import { StudioProperty, StudioSpinner } from '@studio/components';
 import { Alert, Switch } from '@digdir/design-system-react';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { useFormItemContext } from '../../containers/FormItemContext';
-import { useText } from '../../hooks';
+import { useText, useSelectedFormLayout } from '../../hooks';
 import classes from './DataModelBindings.module.css';
-import { useSelectedFormLayout } from '../../hooks/useFormLayoutsSelector';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { isItemChildOfContainer } from '../../utils/formLayoutUtils';
 

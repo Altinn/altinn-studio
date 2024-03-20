@@ -5,7 +5,7 @@ import { FormField } from '../FormField';
 import type { Option } from 'packages/text-editor/src/types';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import type { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
-import { useSelectedLayoutSetName } from '../../hooks';
+import { useSelectedFormLayoutSetName } from '../../hooks';
 
 export interface ISelectDataModelProps {
   inputId?: string;
@@ -32,8 +32,8 @@ export const SelectDataModelComponent = ({
   propertyPath,
 }: ISelectDataModelProps) => {
   const { org, app } = useStudioUrlParams();
-  const { selectedLayoutSetName } = useSelectedLayoutSetName();
-  const { data } = useDatamodelMetadataQuery(org, app, selectedLayoutSetName);
+  const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
+  const { data } = useDatamodelMetadataQuery(org, app, selectedFormLayoutSetName);
   const [dataModelElementNames, setDataModelElementNames] = React.useState<Option[]>([]);
 
   useEffect(() => {

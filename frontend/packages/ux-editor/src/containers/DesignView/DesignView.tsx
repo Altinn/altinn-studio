@@ -12,7 +12,7 @@ import { PlusIcon } from '@navikt/aksel-icons';
 import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
 import { PageAccordion } from './PageAccordion';
 import { ReceiptContent } from './ReceiptContent';
-import { useSelectedLayoutSetName, useSelectedLayoutName } from '../../hooks';
+import { useSelectedFormLayoutSetName, useSelectedFormLayoutName } from '../../hooks';
 import { FormLayout } from './FormLayout';
 import { StudioButton } from '@studio/components';
 
@@ -34,15 +34,19 @@ const mapFormLayoutsToFormLayoutPages = (formLayouts: IFormLayouts): FormLayoutP
  */
 export const DesignView = (): ReactNode => {
   const { org, app } = useStudioUrlParams();
-  const { selectedLayoutSetName } = useSelectedLayoutSetName();
-  const { selectedLayoutName, setSelectedLayoutName } = useSelectedLayoutName();
+  const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
+  const { selectedFormLayoutName, setSelectedFormLayoutName } = useSelectedFormLayoutName();
   const { mutate: addLayoutMutation, isPending: isAddLayoutMutationPending } = useAddLayoutMutation(
     org,
     app,
-    selectedLayoutSetName,
+    selectedFormLayoutSetName,
   );
-  const { data: layouts } = useFormLayoutsQuery(org, app, selectedLayoutSetName);
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSetName);
+  const { data: layouts } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
   const receiptName = formLayoutSettings?.receiptLayoutName;
   const layoutOrder = formLayoutSettings?.pages?.order;
 
@@ -57,10 +61,10 @@ export const DesignView = (): ReactNode => {
    * @param pageName the name of the accordion clicked
    */
   const handleClickAccordion = (pageName: string) => {
-    if (selectedLayoutName !== pageName) {
-      setSelectedLayoutName(pageName);
+    if (selectedFormLayoutName !== pageName) {
+      setSelectedFormLayoutName(pageName);
     } else {
-      setSelectedLayoutName(undefined);
+      setSelectedFormLayoutName(undefined);
     }
   };
 
@@ -88,10 +92,10 @@ export const DesignView = (): ReactNode => {
       <PageAccordion
         pageName={layout.page}
         key={i}
-        isOpen={layout.page === selectedLayoutName}
+        isOpen={layout.page === selectedFormLayoutName}
         onClick={() => handleClickAccordion(layout.page)}
       >
-        {layout.page === selectedLayoutName && <FormLayout layout={layout.data} />}
+        {layout.page === selectedFormLayoutName && <FormLayout layout={layout.data} />}
       </PageAccordion>
     );
   });
@@ -106,7 +110,7 @@ export const DesignView = (): ReactNode => {
         </div>
         <ReceiptContent
           receiptName={receiptName}
-          selectedAccordion={selectedLayoutName}
+          selectedAccordion={selectedFormLayoutName}
           formLayoutData={formLayoutData}
           onClickAccordion={() => handleClickAccordion(receiptName)}
         />

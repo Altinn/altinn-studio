@@ -5,14 +5,19 @@ import type { IInternalLayout } from '../../../types/global';
 import { deepCopy } from 'app-shared/pure';
 import { useFormLayoutMutation } from '../../../hooks/mutations/useFormLayoutMutation';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useSelectedFormLayoutWithName, useSelectedLayoutSetName } from '../../../hooks';
+import { useSelectedFormLayoutWithName, useSelectedFormLayoutSetName } from '../../../hooks';
 import { Trans } from 'react-i18next';
 
 export const HiddenExpressionOnLayout = () => {
   const { app, org } = useStudioUrlParams();
   const { layout, layoutName } = useSelectedFormLayoutWithName();
-  const { selectedLayoutSetName } = useSelectedLayoutSetName();
-  const { mutate: saveLayout } = useFormLayoutMutation(org, app, layoutName, selectedLayoutSetName);
+  const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
+  const { mutate: saveLayout } = useFormLayoutMutation(
+    org,
+    app,
+    layoutName,
+    selectedFormLayoutSetName,
+  );
   const handleChangeHiddenExpressionOnLayout = async (expression: Expression) => {
     const updatedLayout: IInternalLayout = deepCopy(layout);
     saveLayout({ ...updatedLayout, hidden: expression });
