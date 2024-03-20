@@ -14,7 +14,7 @@
   "address_component.validation_error_house_number": "Bolignummer er ugyldig",
   "address_component.validation_error_zipcode": "Postnummer er ugyldig",
   "api_errors.AD_01": "Navnet er allerede i bruk for en annen sidegruppe.",
-  "api_errors.AD_02": "Navnet på sidegruppen kan ikke være tomt.",
+  "api_errors.AD_02": "Ugyldig navn på sidegruppe.",
   "api_errors.DM_01": "Noe gikk galt under bygging av datamodellen.",
   "api_errors.DM_05": "Kunne ikke lese ugyldig XML.",
   "api_errors.DM_CsharpCompiler_NameCollision": "Navnet <bold>{{nodeName}}</bold> er i bruk på et element som har et overordnet element med samme navn. Gi et av disse elementene et annet navn.",

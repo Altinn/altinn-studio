@@ -180,7 +180,7 @@ public class AppDevelopmentServiceTest : IDisposable
         // Assert
         updatedLayoutSets.Should().NotBeNull();
         updatedLayoutSets.Sets.Should().HaveCount(4);
-        updatedLayoutSets.Sets.Should().Contain(newLayoutSet); // Ensure newLayoutSet is added
+        updatedLayoutSets.Sets.Should().Contain(newLayoutSet);
     }
 
     [Fact]
