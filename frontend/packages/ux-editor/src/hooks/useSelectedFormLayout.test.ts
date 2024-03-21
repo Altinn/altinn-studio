@@ -18,12 +18,12 @@ const render = async (callback: () => IFormLayouts | IInternalLayout | IInternal
   ).result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
 
-  return renderHookWithProviders(() => callback()).result;
+  return renderHookWithProviders(() => callback());
 };
 
 describe('useFormLayoutsSelector', () => {
   it('should return the selected layout', async () => {
-    const result = await render(useSelectedFormLayout);
+    const { result } = await render(useSelectedFormLayout);
     expect(result.current).toEqual(layoutMock);
   });
 });
