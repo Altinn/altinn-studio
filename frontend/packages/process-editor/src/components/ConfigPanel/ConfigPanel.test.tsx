@@ -8,6 +8,11 @@ import type { BpmnDetails } from '../../types/BpmnDetails';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 import { BpmnConfigPanelFormContextProvider } from '../../contexts/BpmnConfigPanelContext';
 import type Modeler from 'bpmn-js/lib/Modeler';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+
+jest.mock('app-shared/utils/featureToggleUtils', () => ({
+  shouldDisplayFeature: jest.fn().mockReturnValue(false),
+}));
 
 const mockBpmnDetails: BpmnDetails = {
   id: 'testId',
@@ -27,11 +32,11 @@ const mockBpmnContextValue: BpmnContextProps = {
   setBpmnDetails: jest.fn(),
 };
 
-jest.mock('app-shared/utils/featureToggleUtils', () => ({
-  shouldDisplayFeature: jest.fn().mockReturnValue(false),
-}));
-
 describe('ConfigPanel', () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
+
   it('should render no selected task message', () => {
     renderConfigPanel({ bpmnDetails: null });
     const title = screen.getByRole('heading', {
@@ -67,6 +72,40 @@ describe('ConfigPanel', () => {
       name: textMock('process_editor.configuration_panel_change_task_id'),
     });
     expect(editTaskIdButton).toBeInTheDocument();
+  });
+
+  it('should display the details about the end event when bpmnDetails.type is "EndEvent" and customizeEndEvent feature flag is enabled', () => {
+    (shouldDisplayFeature as jest.Mock).mockReturnValue(true);
+    renderConfigPanel({ bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.EndEvent } });
+
+    expect(
+      screen.getByText(textMock('process_editor.configuration_panel_end_event')),
+    ).toBeInTheDocument();
+  });
+
+  it.each([
+    {
+      task: BpmnTypeEnum.Process,
+      expectedText: 'process_editor.configuration_panel_no_task_title',
+    },
+    {
+      task: BpmnTypeEnum.SequenceFlow,
+      expectedText: 'process_editor.configuration_panel_element_not_supported',
+    },
+    {
+      task: BpmnTypeEnum.StartEvent,
+      expectedText: 'process_editor.configuration_panel_element_not_supported',
+    },
+    {
+      task: BpmnTypeEnum.EndEvent,
+      expectedText: 'process_editor.configuration_panel_element_not_supported',
+    },
+  ])('should display correct message based on selected task', ({ task, expectedText }) => {
+    renderConfigPanel({
+      modelerRef: { current: '' as unknown as Modeler },
+      bpmnDetails: { ...mockBpmnDetails, type: task },
+    });
+    expect(screen.getByText(textMock(expectedText))).toBeInTheDocument();
   });
 });
 
