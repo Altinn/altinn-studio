@@ -3,7 +3,7 @@ import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Canvas } from './Canvas';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { BpmnContextProviderProps, useBpmnContext } from '../../contexts/BpmnContext';
+import { type BpmnContextProviderProps, useBpmnContext } from '../../contexts/BpmnContext';
 import { BpmnContextProvider } from '../../contexts/BpmnContext';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
 
