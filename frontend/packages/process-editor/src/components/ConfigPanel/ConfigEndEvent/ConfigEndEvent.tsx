@@ -7,24 +7,26 @@ import { useTranslation } from 'react-i18next';
 import classes from './ConfigEndEvent.module.css';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import { ConfigIcon } from '../ConfigContent/ConfigIcon';
+import { getLayoutSetIdValidationErrorKey } from 'app-shared/utils/layoutSetsUtils';
+import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 
-export interface ConfigEndEventProps {
-  existingCustomReceiptName: string | undefined;
-  onUpdateLayoutSet: (layoutSetIdToUpdate: string, layoutSetConfig: LayoutSetConfig) => void;
-}
-
-export const ConfigEndEvent = ({
-  existingCustomReceiptName,
-  onUpdateLayoutSet,
-}: ConfigEndEventProps) => {
+export const ConfigEndEvent = () => {
   const { t } = useTranslation();
+  const { layoutSets, existingCustomReceiptLayoutSetName, addLayoutSet, mutateLayoutSet } =
+    useBpmnApiContext();
+
   const handleUpdateLayoutSet = (layoutSetIdToUpdate: string, customReceiptId: string) => {
+    if (layoutSetIdToUpdate === customReceiptId || (!layoutSetIdToUpdate && !customReceiptId))
+      return;
     const customReceiptLayoutSetConfig: LayoutSetConfig = {
       id: customReceiptId,
       tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
     };
-    onUpdateLayoutSet(layoutSetIdToUpdate, customReceiptLayoutSetConfig);
+    if (!layoutSetIdToUpdate)
+      addLayoutSet({ layoutSetIdToUpdate, layoutSetConfig: customReceiptLayoutSetConfig });
+    else mutateLayoutSet({ layoutSetIdToUpdate, layoutSetConfig: customReceiptLayoutSetConfig });
   };
+
   return (
     <>
       <StudioSectionHeader
@@ -41,24 +43,32 @@ export const ConfigEndEvent = ({
       />
       <div className={classes.container}>
         <Paragraph size='small'>
-          {existingCustomReceiptName
+          {existingCustomReceiptLayoutSetName
             ? t('process_editor.configuration_panel_custom_receipt_name')
             : t('process_editor.configuration_panel_custom_receipt_add')}
         </Paragraph>
         <StudioToggleableTextfield
           viewProps={{
             title: t('process_editor.configuration_panel_custom_receipt_add'),
-            children: existingCustomReceiptName,
-            variant: existingCustomReceiptName ? 'tertiary' : 'secondary',
+            children: existingCustomReceiptLayoutSetName,
+            variant: existingCustomReceiptLayoutSetName ? 'tertiary' : 'secondary',
             fullWidth: true,
           }}
           inputProps={{
             title: t('process_editor.configuration_panel_custom_receipt_add_button_title'),
             icon: <PencilWritingIcon />,
-            value: existingCustomReceiptName,
+            value: existingCustomReceiptLayoutSetName,
             onBlur: ({ target }) =>
-              handleUpdateLayoutSet(existingCustomReceiptName ?? target.value, target.value),
+              handleUpdateLayoutSet(existingCustomReceiptLayoutSetName, target.value),
             size: 'small',
+          }}
+          customValidation={(newLayoutSetId: string) => {
+            const validationResult = getLayoutSetIdValidationErrorKey(
+              layoutSets,
+              existingCustomReceiptLayoutSetName,
+              newLayoutSetId,
+            );
+            return validationResult ? t(validationResult) : undefined;
           }}
         />
       </div>

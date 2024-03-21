@@ -202,7 +202,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private string GetModelName(ApplicationMetadata applicationMetadata, [CanBeNull] string taskId)
         {
-            // fallback to first model if no task_id is provided (no layoutsets)
+            // fallback to first model if no task_id is provided (no layout sets)
             if (taskId == null)
             {
                 return applicationMetadata.DataTypes.FirstOrDefault(data => data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef) && !string.IsNullOrEmpty(data.TaskId))?.Id ?? string.Empty;
@@ -221,7 +221,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private async Task<string> GetTaskIdBasedOnLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName, CancellationToken cancellationToken = default)
         {
+            if (string.IsNullOrEmpty(layoutSetName))
+            {
+                // App without layout sets --> no need for task_id, we just retrieve the first occurence of a dataType with a classRef
+                return null;
+            }
             LayoutSets layoutSets = await GetLayoutSets(altinnRepoEditingContext, cancellationToken);
+
             return layoutSets?.Sets?.Find(set => set.Id == layoutSetName)?.Tasks[0];
         }
 
@@ -257,7 +263,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 throw new NoLayoutSetsFileFoundException("No layout set found for this app.");
             }
-            if (Regex.IsMatch(newLayoutSet.Id, _layoutSetNameRegEx))
+            if (!Regex.IsMatch(newLayoutSet.Id, _layoutSetNameRegEx))
             {
                 throw new InvalidLayoutSetIdException("New layout set name is not valid.");
             }
