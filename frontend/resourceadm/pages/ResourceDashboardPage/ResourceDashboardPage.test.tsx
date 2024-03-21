@@ -18,35 +18,35 @@ import { organization } from 'app-shared/mocks/mocks';
 const mockResourceListItem1: ResourceListItem = {
   title: { nb: 'resource 1', nn: '', en: '' },
   createdBy: 'John Doe',
-  lastChanged: '2023-08-30',
+  lastChanged: new Date('2023-08-30'),
   hasPolicy: true,
   identifier: 'r1',
 };
 const mockResourceListItem2: ResourceListItem = {
   title: { nb: 'resource 2', nn: '', en: '' },
   createdBy: 'John Doe',
-  lastChanged: '2023-08-30',
+  lastChanged: new Date('2023-08-30'),
   hasPolicy: true,
   identifier: 'r2',
 };
 const mockResourceListItem3: ResourceListItem = {
   title: { nb: 'resource 3', nn: '', en: '' },
   createdBy: 'John Doe',
-  lastChanged: '2023-08-30',
+  lastChanged: new Date('2023-08-30'),
   hasPolicy: false,
   identifier: 'r3',
 };
 const mockResourceListItem4: ResourceListItem = {
   title: { nb: 'resource 4', nn: '', en: '' },
   createdBy: 'John Doe',
-  lastChanged: '2023-08-30',
+  lastChanged: new Date('2023-08-30'),
   hasPolicy: true,
   identifier: 'r4',
 };
 const mockResourceListItem5: ResourceListItem = {
   title: { nb: 'resource 5', nn: '', en: '' },
   createdBy: 'John Doe',
-  lastChanged: '2023-08-30',
+  lastChanged: new Date('2023-08-30'),
   hasPolicy: false,
   identifier: 'r5',
 };
