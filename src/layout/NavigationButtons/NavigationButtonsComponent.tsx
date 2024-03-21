@@ -115,20 +115,25 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
     navigateToPage(returnToView, { skipAutoSave: true });
   };
 
+  /**
+   * The buttons are rendered in order BackToSummary -> Next -> Previous, but shown in the form as Previous -> Next -> BackToSummary.
+   * This is done with css and flex-direction: row-reverse. The reason for this is so that screen readers
+   * will read Next before Previous, as this is the primary Button for the user.
+   */
   return (
     <div
       data-testid='NavigationButtons'
       className={classes.container}
       style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}
     >
-      {!disablePrevious && showBackButton && (
+      {showBackToSummaryButton && (
         <Grid item>
           <Button
-            ref={refPrev}
+            ref={refNext}
             size='small'
-            onClick={onClickPrevious}
+            onClick={onClickBackToSummary}
           >
-            <Lang id={backTextKey} />
+            <Lang id={returnToViewText} />
           </Button>
         </Grid>
       )}
@@ -138,19 +143,22 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
             ref={refNext}
             size='small'
             onClick={onClickNext}
+            // If we are showing a back to summary button, we want the "next" button to be secondary
+            variant={showBackToSummaryButton ? 'secondary' : 'primary'}
           >
             <Lang id={nextTextKey} />
           </Button>
         </Grid>
       )}
-      {showBackToSummaryButton && (
+      {!disablePrevious && showBackButton && (
         <Grid item>
           <Button
-            ref={refNext}
+            ref={refPrev}
             size='small'
-            onClick={onClickBackToSummary}
+            variant={showNextButton || showBackToSummaryButton ? 'secondary' : 'primary'}
+            onClick={onClickPrevious}
           >
-            <Lang id={returnToViewText} />
+            <Lang id={backTextKey} />
           </Button>
         </Grid>
       )}
