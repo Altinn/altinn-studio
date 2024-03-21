@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Exceptions;
+using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation;
@@ -12,6 +12,7 @@ using Designer.Tests.Utils;
 using FluentAssertions;
 using Moq;
 using Xunit;
+using NonUniqueLayoutSetIdException = Altinn.Studio.Designer.Exceptions.NonUniqueLayoutSetIdException;
 
 namespace Designer.Tests.Services;
 
@@ -212,7 +213,7 @@ public class AppDevelopmentServiceTest : IDisposable
         Func<Task> act = async () => await _appDevelopmentService.UpdateLayoutSet(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), "layoutSet1", new LayoutSetConfig());
 
         // Assert
-        await act.Should().ThrowAsync<FileNotFoundException>();
+        await act.Should().ThrowAsync<NoLayoutSetsFileFoundException>();
     }
 
     [Fact]
@@ -228,7 +229,7 @@ public class AppDevelopmentServiceTest : IDisposable
         Func<Task> act = async () => await _appDevelopmentService.AddLayoutSet(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), new LayoutSetConfig());
 
         // Assert
-        await act.Should().ThrowAsync<FileNotFoundException>();
+        await act.Should().ThrowAsync<NoLayoutSetsFileFoundException>();
     }
 
     private List<string> GetFileNamesInLayoutSet(string layoutSetName)

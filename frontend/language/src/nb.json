@@ -753,6 +753,8 @@
   "process_editor.configuration_panel_header_help_text_signing": "Signerings-oppgave (signing) brukes når sluttbruker skal bekrefte med signatur.",
   "process_editor.configuration_panel_header_help_text_title": "Informasjon om valgt oppgave",
   "process_editor.configuration_panel_id_label": "ID:",
+  "process_editor.configuration_panel_layout_set_id_not_unique": "Sidegruppenavnet må være unikt",
+  "process_editor.configuration_panel_layout_set_id_not_valid_format": "Sidegruppenavnet må være unikt",
   "process_editor.configuration_panel_missing_task": "Oppgave",
   "process_editor.configuration_panel_name_label": "Navn: ",
   "process_editor.configuration_panel_no_task": "Velg et element i prosessen for å se detaljer.",

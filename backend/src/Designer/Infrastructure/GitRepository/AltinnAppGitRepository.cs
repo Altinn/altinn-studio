@@ -57,7 +57,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string LayoutSchemaUrl = "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json";
 
         private const string TextResourceFileNamePattern = "resource.??.json";
-        
+
         public static readonly string InitialLayoutFileName = "Side1.json";
 
         public readonly JsonNode InitialLayout = new JsonObject { ["$schema"] = LayoutSchemaUrl, ["data"] = new JsonObject { ["layout"] = new JsonArray([]) } };
@@ -808,7 +808,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             return Path.Combine(ConfigFolderPath, LanguageResourceFolderName, MarkdownTextsFolderName, fileName);
         }
-        
+
         // can be null if app does not use layout set
         private static string GetPathToLayoutSet(string layoutSetName, bool excludeLayoutsFolderName = false)
         {
