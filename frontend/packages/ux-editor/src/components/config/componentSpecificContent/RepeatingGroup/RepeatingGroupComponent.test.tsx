@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithMockStore } from '../../../../testing/mocks';
+import { renderWithProviders } from '../../../../testing/mocks';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { RepeatingGroupComponent } from './RepeatingGroupComponent';
 import {
@@ -33,7 +33,7 @@ const render = async () => {
   const container: FormContainer<ComponentType.RepeatingGroup> = {
     ...(layoutMock.containers[container2IdMock] as FormContainer<ComponentType.RepeatingGroup>),
   };
-  renderWithMockStore()(
+  renderWithProviders(
     <RepeatingGroupComponent
       editFormId={container2IdMock}
       component={container}

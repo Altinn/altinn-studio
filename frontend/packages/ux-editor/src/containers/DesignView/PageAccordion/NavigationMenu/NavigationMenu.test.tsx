@@ -7,8 +7,8 @@ import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import {
   formLayoutSettingsMock,
-  renderHookWithMockStore,
-  renderWithMockStore,
+  renderHookWithProviders,
+  renderWithProviders,
 } from '../../../../testing/mocks';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
 import { layout1NameMock } from '../../../../testing/layoutMock';
@@ -166,16 +166,17 @@ const waitForData = async () => {
   const getFormLayoutSettings = jest
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
-  const settingsResult = renderHookWithMockStore({ getFormLayoutSettings })(() =>
-    useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet),
-  ).renderHookResult.result;
+  const settingsResult = renderHookWithProviders(
+    () => useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet),
+    { queries: { getFormLayoutSettings } },
+  ).result;
 
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 };
 
 const render = async (props: Partial<NavigationMenuProps> = {}) => {
   await waitForData();
-  return renderWithMockStore()(
+  return renderWithProviders(
     <>
       <NavigationMenu {...defaultProps} {...props} />
       <NavigationMenu {...defaultProps} {...props} />

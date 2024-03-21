@@ -2,7 +2,7 @@ import React from 'react';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MapComponent } from './MapComponent';
-import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
+import { renderWithProviders, renderHookWithProviders } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
 import type { IGenericEditComponent } from '../../componentConfig';
@@ -27,8 +27,7 @@ jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(tex
 const handleComponentChangeMock = jest.fn();
 
 const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
-    .renderHookResult.result;
+  const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
@@ -38,7 +37,7 @@ const renderMapComponent = async ({
 }: Partial<IGenericEditComponent<ComponentType.Map>>) => {
   await waitForData();
 
-  renderWithMockStore()(
+  renderWithProviders(
     <MapComponent component={component} handleComponentChange={handleComponentChange} />,
   );
 };

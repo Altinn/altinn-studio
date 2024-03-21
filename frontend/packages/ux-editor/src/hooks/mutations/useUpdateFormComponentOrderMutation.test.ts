@@ -1,5 +1,5 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderHookWithMockStore } from '../../testing/mocks';
+import { renderHookWithProviders } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { useUpdateFormComponentOrderMutation } from './useUpdateFormComponentOrderMutation';
@@ -27,9 +27,9 @@ describe('useUpdateFormComponentOrderMutation', () => {
   it('Calls updateFormComponentOrder with correct arguments and payload', async () => {
     await renderAndWaitForData();
 
-    const componentOrderResult = renderHookWithMockStore()(() =>
+    const componentOrderResult = renderHookWithProviders(() =>
       useUpdateFormComponentOrderMutation(org, app, selectedLayoutSet),
-    ).renderHookResult.result;
+    ).result;
 
     const newOrder: IFormLayoutOrder = {
       ...layoutMock.order,
@@ -64,8 +64,9 @@ const renderAndWaitForData = async () => {
   const getFormLayouts = jest
     .fn()
     .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
-  const formLayoutsResult = renderHookWithMockStore({ getFormLayouts })(() =>
-    useFormLayoutsQuery(org, app, selectedLayoutSet),
-  ).renderHookResult.result;
+  const formLayoutsResult = renderHookWithProviders(
+    () => useFormLayoutsQuery(org, app, selectedLayoutSet),
+    { queries: { getFormLayouts } },
+  ).result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
 };

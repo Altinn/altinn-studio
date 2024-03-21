@@ -2,7 +2,7 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import {
   formLayoutSettingsMock,
-  renderHookWithMockStore,
+  renderHookWithProviders,
   renderWithProviders,
 } from '../testing/mocks';
 import { FormDesigner } from './FormDesigner';
@@ -40,8 +40,7 @@ const render = () => {
 };
 
 const waitForData = async () => {
-  const widgetsResult = renderHookWithMockStore()(() => useWidgetsQuery(org, app)).renderHookResult
-    .result;
+  const widgetsResult = renderHookWithProviders(() => useWidgetsQuery(org, app)).result;
   await waitFor(() => expect(widgetsResult.current.isSuccess).toBe(true));
 };
 

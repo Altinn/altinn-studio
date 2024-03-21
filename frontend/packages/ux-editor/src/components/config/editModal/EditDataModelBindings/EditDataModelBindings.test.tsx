@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, screen } from '@testing-library/react';
-import { renderWithMockStore } from '../../../../testing/mocks';
+import { renderWithProviders } from '../../../../testing/mocks';
 import { EditDataModelBindings } from './EditDataModelBindings';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -85,12 +85,15 @@ const render = ({
   handleComponentChange?: () => void;
   renderOptions?: { uniqueKey: string; key: string; label: string };
 }) => {
-  return renderWithMockStore({ getDatamodelMetadata })(
+  return renderWithProviders(
     <EditDataModelBindings
       handleComponentChange={handleComponentChange}
       component={component as FormItem}
       renderOptions={renderOptions}
     />,
+    {
+      queries: { getDatamodelMetadata },
+    },
   );
 };
 
@@ -335,14 +338,14 @@ describe('EditDataModelBindings', () => {
   });
 
   it('show right data model when switching component', () => {
-    const { renderResult } = render({
+    const { rerender } = render({
       component: {
         ...defaultComponent,
         dataModelBindings: { simpleBinding: 'testModel.field1' },
       },
     });
     screen.getByText('testModel.field1');
-    renderResult.rerender(
+    rerender(
       <EditDataModelBindings
         handleComponentChange={jest.fn()}
         component={{

@@ -5,14 +5,14 @@ import { useReactiveLocalStorage } from 'app-shared/hooks/useReactiveLocalStorag
 export type UseSelectedFormLayoutSetNameResult = {
   selectedFormLayoutSetName: string;
   setSelectedFormLayoutSetName: (layoutName: string) => void;
-  removeFormSelectedLayoutSetName: () => void;
+  removeSelectedFormLayoutSetName: () => void;
 };
 
 export const useSelectedFormLayoutSetName = (): UseSelectedFormLayoutSetNameResult => {
   const { org, app } = useStudioUrlParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
-  const [selectedFormLayoutSetName, setSelectedFormLayoutSetName, removeFormSelectedLayoutSetName] =
+  const [selectedFormLayoutSetName, setSelectedFormLayoutSetName, removeSelectedFormLayoutSetName] =
     useReactiveLocalStorage('layoutSet/' + app, undefined);
 
   if (layoutSets) {
@@ -27,6 +27,6 @@ export const useSelectedFormLayoutSetName = (): UseSelectedFormLayoutSetNameResu
   return {
     selectedFormLayoutSetName,
     setSelectedFormLayoutSetName,
-    removeFormSelectedLayoutSetName,
+    removeSelectedFormLayoutSetName,
   };
 };

@@ -1,4 +1,4 @@
-import { renderHookWithMockStore } from '../../testing/mocks';
+import { renderHookWithProviders } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import { useWidgetsQuery } from './useWidgetsQuery';
 import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
@@ -38,15 +38,15 @@ describe('useWidgetsQuery', () => {
   });
 
   it('Returns an array of requested widgets', async () => {
-    const { result } = await render();
-    expect(result.current.data).toEqual([widget1, widget2]);
+    const view = await render();
+    expect(view.current.data).toEqual([widget1, widget2]);
   });
 });
 
 const render = async () => {
-  const { renderHookResult } = renderHookWithMockStore({ getWidgetSettings })(() =>
-    useWidgetsQuery(org, app),
-  );
-  await waitFor(() => expect(renderHookResult.result.current.isSuccess).toBe(true));
-  return renderHookResult;
+  const { result } = renderHookWithProviders(() => useWidgetsQuery(org, app), {
+    queries: { getWidgetSettings },
+  });
+  await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  return result;
 };

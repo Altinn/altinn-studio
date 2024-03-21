@@ -1,6 +1,6 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { formLayoutSettingsMock, renderHookWithMockStore } from '../../testing/mocks';
+import { formLayoutSettingsMock, renderHookWithProviders } from '../../testing/mocks';
 import { useDeleteLayoutMutation } from './useDeleteLayoutMutation';
 import { externalLayoutsMock, layout2NameMock } from '../../testing/layoutMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -53,6 +53,5 @@ const renderDeleteLayoutMutation = () => {
     [QueryKey.FormLayoutSettings, org, app, selectedLayoutSet],
     formLayoutSettingsMock,
   );
-  return renderHookWithMockStore()(() => useDeleteLayoutMutation(org, app, selectedLayoutSet))
-    .renderHookResult;
+  return renderHookWithProviders(() => useDeleteLayoutMutation(org, app, selectedLayoutSet));
 };

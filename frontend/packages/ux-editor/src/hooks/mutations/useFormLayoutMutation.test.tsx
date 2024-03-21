@@ -1,6 +1,6 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { renderHookWithMockStore } from '../../testing/mocks';
+import { renderHookWithProviders } from '../../testing/mocks';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import type { IInternalLayout } from '../../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -101,9 +101,6 @@ describe('useFormLayoutMutation', () => {
 });
 
 const renderAndMutate = (layout: IInternalLayout, appContext: Partial<AppContextProps> = {}) =>
-  renderHookWithMockStore(
-    {},
-    queryClientMock,
-  )(() =>
-    useFormLayoutMutation(org, app, layoutName, selectedLayoutSet),
-  ).renderHookResult.result.current.mutateAsync(layout);
+  renderHookWithProviders(() => useFormLayoutMutation(org, app, layoutName, selectedLayoutSet), {
+    queryClient: queryClientMock,
+  }).result.current.mutateAsync(layout);

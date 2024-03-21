@@ -8,8 +8,8 @@ import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import {
   formLayoutSettingsMock,
-  renderHookWithMockStore,
-  renderWithMockStore,
+  renderHookWithProviders,
+  renderWithProviders,
 } from '../../../testing/mocks';
 import { layout1NameMock, layout2NameMock } from '../../../testing/layoutMock';
 
@@ -127,14 +127,15 @@ const waitForData = async () => {
   const getFormLayoutSettings = jest
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
-  const settingsResult = renderHookWithMockStore({ getFormLayoutSettings })(() =>
-    useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet),
-  ).renderHookResult.result;
+  const settingsResult = renderHookWithProviders(
+    () => useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet),
+    { queries: { getFormLayoutSettings } },
+  ).result;
 
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 };
 
 const render = async (props: Partial<PageAccordionProps> = {}) => {
   await waitForData();
-  return renderWithMockStore()(<PageAccordion {...defaultProps} {...props} />);
+  return renderWithProviders(<PageAccordion {...defaultProps} {...props} />);
 };

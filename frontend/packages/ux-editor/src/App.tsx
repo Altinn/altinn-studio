@@ -19,7 +19,7 @@ import { FormItemContextProvider } from './containers/FormItemContext';
 export function App() {
   const t = useText();
   const { org, app } = useStudioUrlParams();
-  const { selectedFormLayoutSetName, removeFormSelectedLayoutSetName } = useAppContext();
+  const { selectedFormLayoutSetName, removeSelectedFormLayoutSetName } = useAppContext();
   const { selectedFormLayoutName } = useSelectedFormLayoutName();
   const { data: layoutSets, isSuccess: areLayoutSetsFetched } = useLayoutSetsQuery(org, app);
   const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
@@ -33,12 +33,12 @@ export function App() {
       selectedFormLayoutSetName &&
       (!layoutSets || !layoutSets.sets.map((set) => set.id).includes(selectedFormLayoutSetName))
     )
-      removeFormSelectedLayoutSetName();
+      removeSelectedFormLayoutSetName();
   }, [
     areLayoutSetsFetched,
     layoutSets,
     selectedFormLayoutSetName,
-    removeFormSelectedLayoutSetName,
+    removeSelectedFormLayoutSetName,
   ]);
 
   const componentIsReady =

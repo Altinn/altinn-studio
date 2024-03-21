@@ -4,8 +4,8 @@ import { EditTextResourceBinding } from './EditTextResourceBinding';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
-  renderHookWithMockStore,
-  renderWithMockStore,
+  renderHookWithProviders,
+  renderWithProviders,
   textLanguagesMock,
 } from '../../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../../hooks/queries/useLayoutSchemaQuery';
@@ -107,16 +107,17 @@ describe('EditTextResourceBindings component', () => {
   });
 
   const waitForData = async () => {
-    const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
-      .renderHookResult.result;
-    const { result } = renderHookWithMockStore({
-      getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
-      getTextResources: (_o, _a, lang) =>
-        Promise.resolve<ITextResourcesWithLanguage>({
-          language: lang,
-          resources: textResources,
-        }),
-    })(() => useTextResourcesQuery(org, app)).renderHookResult;
+    const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
+    const result = renderHookWithProviders(() => useTextResourcesQuery(org, app), {
+      queries: {
+        getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
+        getTextResources: (_o, _a, lang) =>
+          Promise.resolve<ITextResourcesWithLanguage>({
+            language: lang,
+            resources: textResources,
+          }),
+      },
+    }).result;
     await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
   };
@@ -130,7 +131,7 @@ describe('EditTextResourceBindings component', () => {
   }: Partial<EditTextResourceBindingProps>) => {
     await waitForData();
 
-    return renderWithMockStore()(
+    return renderWithProviders(
       <EditTextResourceBinding
         component={component}
         handleComponentChange={handleComponentChange}

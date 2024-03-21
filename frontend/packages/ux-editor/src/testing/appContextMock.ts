@@ -7,6 +7,9 @@ const previewIframeRefMock: RefObject<HTMLIFrameElement> = {
 
 export const appContextMock: AppContextProps = {
   previewIframeRef: previewIframeRefMock,
+  selectedFormLayoutSetName: 'test-layout-set',
+  setSelectedFormLayoutSetName: jest.fn(),
+  removeSelectedFormLayoutSetName: jest.fn(),
   refetchLayouts: jest.fn(),
   refetchLayoutSettings: jest.fn(),
   refetchTexts: jest.fn(),

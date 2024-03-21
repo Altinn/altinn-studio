@@ -171,7 +171,7 @@ describe('Expressions', () => {
 });
 
 const renderExpressions = (formItemContext: Partial<FormItemContext> = {}) => {
-  const appContextProps: Partial<AppContextProps> = { selectedLayoutSet: layoutSetName };
+  const appContextProps: Partial<AppContextProps> = { selectedFormLayoutSetName: layoutSetName };
 
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);

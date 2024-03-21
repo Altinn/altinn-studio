@@ -66,7 +66,7 @@ describe('ExpressionContent', () => {
 });
 
 const renderExpressionContent = (props: Partial<ExpressionContentProps> = {}) => {
-  const appContextProps: Partial<AppContextProps> = { selectedLayoutSet: layoutSetName };
+  const appContextProps: Partial<AppContextProps> = { selectedFormLayoutSetName: layoutSetName };
 
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);

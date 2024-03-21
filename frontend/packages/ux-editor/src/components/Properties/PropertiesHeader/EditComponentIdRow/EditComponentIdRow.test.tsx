@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, screen } from '@testing-library/react';
-import { renderWithMockStore } from '../../../../testing/mocks';
+import { renderWithProviders } from '../../../../testing/mocks';
 import { EditComponentIdRow, type EditComponentIdRowProps } from './EditComponentIdRow';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -19,7 +19,7 @@ const layouts: IFormLayouts = {
 
 const studioRender = async (props: Partial<EditComponentIdRowProps> = {}) => {
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
-  return renderWithMockStore({})(
+  return renderWithProviders(
     <EditComponentIdRow
       component={{
         id: 'test',

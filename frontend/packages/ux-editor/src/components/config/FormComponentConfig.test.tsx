@@ -1,7 +1,7 @@
 import React from 'react';
 import type { FormComponentConfigProps } from './FormComponentConfig';
 import { FormComponentConfig } from './FormComponentConfig';
-import { renderWithMockStore } from '../../testing/mocks';
+import { renderWithProviders } from '../../testing/mocks';
 import { componentMocks } from '../../testing/componentMocks';
 import InputSchema from '../../testing/schemas/json/component/Input.schema.v1.json';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -192,6 +192,6 @@ describe('FormComponentConfig', () => {
       handleComponentUpdate: jest.fn(),
       hideUnsupported: false,
     };
-    return renderWithMockStore(queries)(<FormComponentConfig {...defaultProps} {...props} />);
+    return renderWithProviders(<FormComponentConfig {...defaultProps} {...props} />, { queries });
   };
 });

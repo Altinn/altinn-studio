@@ -10,7 +10,7 @@ import ruleHandlerMock from './testing/ruleHandlerMock';
 import { layoutSetsMock, layout1NameMock } from './testing/layoutMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
-const selectedLayoutSet = layout1NameMock;
+const selectedFormLayoutSetName = layout1NameMock;
 const mockQueries: Partial<ServicesContextProps> = {
   getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve('test')),
   getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
@@ -36,12 +36,12 @@ describe('App', () => {
   afterEach(() => typedLocalStorage.setItem('featureFlags', []));
 
   it('should render the spinner', () => {
-    renderApp({}, { selectedLayoutSet });
+    renderApp({}, { selectedFormLayoutSetName });
     expect(screen.getByTitle(textMock('ux_editor.loading_page'))).toBeInTheDocument();
   });
 
   it('should render the component', async () => {
-    renderApp(mockQueries, { selectedLayoutSet });
+    renderApp(mockQueries, { selectedFormLayoutSetName });
     await waitForLoadingToFinish();
   });
 
@@ -50,8 +50,8 @@ describe('App', () => {
     const layoutSetThatDoesNotExist = 'layout-set-that-does-not-exist';
     typedLocalStorage.setItem('selectedLayoutSet', layoutSetThatDoesNotExist);
     renderApp(mockQueries, {
-      selectedLayoutSet: layoutSetThatDoesNotExist,
-      removeSelectedLayoutSet: removeSelectedLayoutSetMock,
+      selectedFormLayoutSetName: layoutSetThatDoesNotExist,
+      removeSelectedFormLayoutSetName: removeSelectedLayoutSetMock,
     });
     await waitForLoadingToFinish();
     expect(removeSelectedLayoutSetMock).toHaveBeenCalledTimes(1);
@@ -59,10 +59,10 @@ describe('App', () => {
 
   it('Does not remove the preview layout set from local storage if it exists', async () => {
     const removeSelectedLayoutSetMock = jest.fn();
-    typedLocalStorage.setItem('selectedLayoutSet', selectedLayoutSet);
+    typedLocalStorage.setItem('selectedLayoutSet', selectedFormLayoutSetName);
     renderApp(mockQueries, {
-      selectedLayoutSet,
-      removeSelectedLayoutSet: removeSelectedLayoutSetMock,
+      selectedFormLayoutSetName,
+      removeSelectedFormLayoutSetName: removeSelectedLayoutSetMock,
     });
     await waitForLoadingToFinish();
     expect(removeSelectedLayoutSetMock).not.toHaveBeenCalled();

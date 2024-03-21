@@ -1,5 +1,5 @@
 import React from 'react';
-import { formLayoutSettingsMock, renderWithMockStore } from '../../testing/mocks';
+import { formLayoutSettingsMock, renderWithProviders } from '../../testing/mocks';
 import { DesignView } from './DesignView';
 import { act, screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
@@ -95,14 +95,14 @@ const render = async () => {
     formLayoutSettingsMock,
   );
 
-  return renderWithMockStore(
-    {},
-    queryClient,
-  )(
+  return renderWithProviders(
     <DragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
       <FormItemContextProvider>
         <DesignView />
       </FormItemContextProvider>
     </DragAndDrop.Provider>,
+    {
+      queryClient,
+    },
   );
 };

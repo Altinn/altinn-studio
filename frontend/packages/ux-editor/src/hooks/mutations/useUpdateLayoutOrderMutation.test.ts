@@ -1,5 +1,5 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { formLayoutSettingsMock, renderHookWithMockStore } from '../../testing/mocks';
+import { formLayoutSettingsMock, renderHookWithProviders } from '../../testing/mocks';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { waitFor } from '@testing-library/react';
 import type { UpdateLayoutOrderMutationArgs } from './useUpdateLayoutOrderMutation';
@@ -17,9 +17,9 @@ describe('useUpdateLayoutOrderMutation', () => {
   it('Moves layout down when direction is set to "down"', async () => {
     await renderAndWaitForData();
 
-    const updateLayoutOrderResult = renderHookWithMockStore()(() =>
+    const updateLayoutOrderResult = renderHookWithProviders(() =>
       useUpdateLayoutOrderMutation(org, app, selectedLayoutSet),
-    ).renderHookResult.result;
+    ).result;
 
     const args: UpdateLayoutOrderMutationArgs = {
       layoutName: layout1NameMock,
@@ -43,9 +43,9 @@ describe('useUpdateLayoutOrderMutation', () => {
   it('Moves layout up when direction is set to "up"', async () => {
     await renderAndWaitForData();
 
-    const updateLayoutOrderResult = renderHookWithMockStore()(() =>
+    const updateLayoutOrderResult = renderHookWithProviders(() =>
       useUpdateLayoutOrderMutation(org, app, selectedLayoutSet),
-    ).renderHookResult.result;
+    ).result;
 
     const args: UpdateLayoutOrderMutationArgs = {
       layoutName: layout2NameMock,
@@ -71,8 +71,9 @@ const renderAndWaitForData = async () => {
   const getFormLayoutSettings = jest
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
-  const settingsResult = renderHookWithMockStore({ getFormLayoutSettings })(() =>
-    useFormLayoutSettingsQuery(org, app, selectedLayoutSet),
-  ).renderHookResult.result;
+  const settingsResult = renderHookWithProviders(
+    () => useFormLayoutSettingsQuery(org, app, selectedLayoutSet),
+    { queries: { getFormLayoutSettings } },
+  ).result;
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 };

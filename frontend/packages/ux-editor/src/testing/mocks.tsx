@@ -46,54 +46,28 @@ const wrapper = ({
       </PreviewConnectionContextProvider>
     </ServicesContextProvider>
   );
-  return { renderComponent };
+  return renderComponent;
 };
-
-/**
- *
- * @deprecated Use renderWithProviders instead
- */
-export const renderWithMockStore =
-  (
-    queries: Partial<ServicesContextProps> = {},
-    queryClient: QueryClient = queryClientMock,
-    appContextProps: Partial<AppContextProps> = {},
-  ) =>
-  (component: ReactNode) => {
-    const { renderComponent } = wrapper({
-      appContextProps,
-      queries,
-      queryClient,
-    });
-    const renderResult = render(renderComponent(component));
-    const rerender = (rerenderedComponent) =>
-      renderResult.rerender(renderComponent(rerenderedComponent));
-    return { renderResult: { ...renderResult, rerender } };
-  };
-
-export const renderHookWithMockStore =
-  (
-    queries: Partial<ServicesContextProps> = {},
-    queryClient: QueryClient = queryClientMock,
-    appContextProps: Partial<AppContextProps> = {},
-  ) =>
-  (hook: () => any) => {
-    const { renderComponent } = wrapper({
-      appContextProps,
-      queries,
-      queryClient,
-    });
-    const renderHookResult = renderHook(hook, {
-      wrapper: ({ children }) => renderComponent(children),
-    });
-    return { renderHookResult };
-  };
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   queries?: Partial<ServicesContextProps>;
   queryClient?: QueryClient;
   appContextProps?: Partial<AppContextProps>;
 }
+
+export const renderHookWithProviders = (
+  hook: () => any,
+  { queries = {}, queryClient = queryClientMock, appContextProps = {} }: ExtendedRenderOptions = {},
+) => {
+  return renderHook(hook, {
+    wrapper: ({ children }) =>
+      wrapper({
+        appContextProps,
+        queries,
+        queryClient,
+      })(children),
+  });
+};
 
 export const renderWithProviders = (
   component: ReactNode,
@@ -104,21 +78,14 @@ export const renderWithProviders = (
     ...renderOptions
   }: Partial<ExtendedRenderOptions> = {},
 ) => {
-  function Wrapper({ children }: React.PropsWithChildren<unknown>) {
-    return (
-      <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
-        <PreviewConnectionContextProvider>
-          <AppContext.Provider value={{ ...appContextMock, ...appContextProps }}>
-            <BrowserRouter>{children}</BrowserRouter>
-          </AppContext.Provider>
-        </PreviewConnectionContextProvider>
-      </ServicesContextProvider>
-    );
-  }
-
   return {
     ...render(component, {
-      wrapper: Wrapper,
+      wrapper: ({ children }) =>
+        wrapper({
+          appContextProps,
+          queries,
+          queryClient,
+        })(children),
       ...renderOptions,
     }),
   };

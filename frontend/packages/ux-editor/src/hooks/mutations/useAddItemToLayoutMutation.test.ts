@@ -1,6 +1,6 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { renderHookWithMockStore } from '../../testing/mocks';
+import { renderHookWithProviders } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import type { AddFormItemMutationArgs } from './useAddItemToLayoutMutation';
 import { useAddItemToLayoutMutation } from './useAddItemToLayoutMutation';
@@ -93,6 +93,5 @@ const renderAddItemToLayoutMutation = (layoutSetName?: string) => {
     [QueryKey.LayoutSets, org, app],
     layoutSetName ? layoutSetsMock : null,
   );
-  return renderHookWithMockStore()(() => useAddItemToLayoutMutation(org, app, layoutSetName))
-    .renderHookResult;
+  return renderHookWithProviders(() => useAddItemToLayoutMutation(org, app, layoutSetName));
 };

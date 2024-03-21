@@ -2,7 +2,7 @@ import type { MutableRefObject } from 'react';
 import React, { useMemo, useRef, createContext, useCallback } from 'react';
 import type { QueryClient, QueryKey } from '@tanstack/react-query';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useSelectedFormLayoutName, useSelectedFormLayoutSetName } from './hooks';
+import { useSelectedFormLayoutSetName } from './hooks';
 import { previewPage } from 'app-shared/api/paths';
 
 export interface WindowWithQueryClient extends Window {
@@ -13,7 +13,7 @@ export interface AppContextProps {
   previewIframeRef: MutableRefObject<HTMLIFrameElement>;
   selectedFormLayoutSetName: string;
   setSelectedFormLayoutSetName: (layoutSet: string) => void;
-  removeFormSelectedLayoutSetName: () => void;
+  removeSelectedFormLayoutSetName: () => void;
   refetchLayouts: () => Promise<void>;
   refetchLayoutSettings: () => Promise<void>;
   refetchTexts: (language: string) => Promise<void>;
@@ -32,7 +32,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps): React
   const {
     selectedFormLayoutSetName,
     setSelectedFormLayoutSetName,
-    removeFormSelectedLayoutSetName,
+    removeSelectedFormLayoutSetName,
   } = useSelectedFormLayoutSetName();
 
   const refetch = useCallback(async (queryKey: QueryKey): Promise<void> => {
@@ -76,7 +76,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps): React
       previewIframeRef,
       selectedFormLayoutSetName,
       setSelectedFormLayoutSetName,
-      removeFormSelectedLayoutSetName,
+      removeSelectedFormLayoutSetName,
       refetchLayouts,
       refetchLayoutSettings,
       refetchTexts,
@@ -85,7 +85,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps): React
     [
       selectedFormLayoutSetName,
       setSelectedFormLayoutSetName,
-      removeFormSelectedLayoutSetName,
+      removeSelectedFormLayoutSetName,
       refetchLayouts,
       refetchLayoutSettings,
       refetchTexts,

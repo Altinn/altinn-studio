@@ -1,4 +1,4 @@
-import { renderHookWithMockStore } from '../../testing/mocks';
+import { renderHookWithProviders } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import type { WindowWithRuleModel } from './useRuleModelQuery';
 import { useRuleModelQuery } from './useRuleModelQuery';
@@ -44,7 +44,7 @@ describe('useRuleModelQuery', () => {
   });
 
   it('Parses file correctly and returns an array of rules and conditions', async () => {
-    const { result } = await renderAndWaitForSuccess({ getRuleModel });
+    const result = await renderAndWaitForSuccess({ getRuleModel });
     expect(result.current.data).toEqual([
       {
         name: rule1Name,
@@ -101,10 +101,10 @@ const renderAndWaitForSuccess = async (
   queries: Partial<ServicesContextProps> = {},
   queryClient = createQueryClientMock(),
 ) => {
-  const { renderHookResult } = renderHookWithMockStore(
+  const { result } = renderHookWithProviders(() => useRuleModelQuery(org, app, selectedLayoutSet), {
     queries,
     queryClient,
-  )(() => useRuleModelQuery(org, app, selectedLayoutSet));
-  await waitFor(() => expect(renderHookResult.result.current.isSuccess).toBe(true));
-  return renderHookResult;
+  });
+  await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  return result;
 };

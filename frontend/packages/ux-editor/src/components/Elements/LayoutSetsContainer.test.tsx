@@ -3,7 +3,7 @@ import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { renderWithMockStore } from '../../testing/mocks';
+import { renderWithProviders } from '../../testing/mocks';
 import { layoutSetsMock, layout1NameMock } from '../../testing/layoutMock';
 import type { AppContextProps } from '../../AppContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -40,8 +40,10 @@ describe('LayoutSetsContainer', () => {
 const render = () => {
   queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
   const appContextProps: Partial<AppContextProps> = {
-    selectedLayoutSet: selectedLayoutSet,
-    setSelectedLayoutSet: setSelectedLayoutSetMock,
+    selectedFormLayoutSetName: selectedLayoutSet,
+    setSelectedFormLayoutSetName: setSelectedLayoutSetMock,
   };
-  return renderWithMockStore({}, undefined, appContextProps)(<LayoutSetsContainer />);
+  return renderWithProviders(<LayoutSetsContainer />, {
+    appContextProps,
+  });
 };
