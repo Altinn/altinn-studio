@@ -156,7 +156,6 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 ListviewServiceResource listviewResource = await _giteaApi.MapServiceResourceToListViewResource(org, string.Format("{0}-resources", org), resource);
                 listviewResource.HasPolicy = _repository.ResourceHasPolicy(org, repository, resource);
-                listviewResource = _repository.AddLastChangedAndCreatedByIfMissingFromGitea(listviewResource);
                 listviewServiceResources.Add(listviewResource);
             }
 
@@ -247,12 +246,12 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpPut]
         [Route("designer/api/{org}/resources/updateresource/{id}")]
-        public async Task<ActionResult> UpdateResource(string org, string id, [FromBody] ServiceResource resource)
+        public async Task<ActionResult> UpdateResource(string org, string id, [FromBody] ServiceResource resource, CancellationToken cancellationToken = default)
         {
             string repository = string.Format("{0}-resources", org);
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
-            semaphore.Wait();
+            await semaphore.WaitAsync(cancellationToken);
             try
             {
                 resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
