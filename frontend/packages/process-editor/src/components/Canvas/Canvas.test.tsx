@@ -1,11 +1,16 @@
 import React from 'react';
-import { render as rtlRender, screen, act } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Canvas } from './Canvas';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import type { BpmnContextProviderProps } from '../../contexts/BpmnContext';
+import { BpmnContextProviderProps, useBpmnContext } from '../../contexts/BpmnContext';
 import { BpmnContextProvider } from '../../contexts/BpmnContext';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
+
+jest.mock('../../contexts/BpmnContext', () => ({
+  ...jest.requireActual('../../contexts/BpmnContext'),
+  useBpmnContext: jest.fn(),
+}));
 
 const mockOnSave = jest.fn();
 
@@ -18,7 +23,7 @@ const defaultProps: BpmnContextProviderProps = {
   children: null,
 };
 
-const render = (props: Partial<BpmnContextProviderProps> = {}) => {
+const renderCanvas = (props: Partial<BpmnContextProviderProps> = {}) => {
   const allProps = { ...defaultProps, ...props };
   const router = createMemoryRouter([
     {
@@ -31,15 +36,18 @@ const render = (props: Partial<BpmnContextProviderProps> = {}) => {
     },
   ]);
 
-  return rtlRender(<RouterProvider router={router}></RouterProvider>);
+  return render(<RouterProvider router={router}></RouterProvider>);
 };
 
 describe('Canvas', () => {
-  afterEach(jest.clearAllMocks);
+  beforeEach(jest.clearAllMocks);
 
   it('hides actionMenu when version is 7 or older', async () => {
+    (useBpmnContext as jest.Mock).mockReturnValue({
+      ...jest.requireActual('../../contexts/BpmnContext'),
+    });
     const user = userEvent.setup();
-    render({ appLibVersion: mockAppLibVersion7 });
+    renderCanvas({ appLibVersion: mockAppLibVersion7 });
 
     // Fix to remove act error
     await act(() => user.tab());
@@ -48,14 +56,23 @@ describe('Canvas', () => {
     expect(editButton).not.toBeInTheDocument;
   });
 
-  it('shows actionMenu when version is 8 or newer', async () => {
+  it('should call onSave when save button is clicked', async () => {
+    const getUpdatedXmlMock = jest.fn().mockResolvedValue('<bpmn>xml</bpmn>');
+    (useBpmnContext as jest.Mock).mockReturnValue({
+      ...jest.requireActual('../../contexts/BpmnContext'),
+      getUpdatedXml: getUpdatedXmlMock,
+      isEditAllowed: true,
+      modelerRef: {
+        current: { saveXML: jest.fn().mockResolvedValue({ xml: '<bpmn>xml</bpmn>' }) },
+      },
+    });
     const user = userEvent.setup();
-    render({ appLibVersion: mockAppLibVersion8 });
+    renderCanvas({ appLibVersion: mockAppLibVersion8 });
 
-    // Fix to remove act error
-    await act(() => user.tab());
+    const saveButton = screen.getByRole('button', { name: textMock('process_editor.save') });
+    await act(() => user.click(saveButton));
 
-    const editButton = screen.getByRole('button', { name: textMock('process_editor.save') });
-    expect(editButton).toBeInTheDocument;
+    expect(getUpdatedXmlMock).toHaveBeenCalled();
+    expect(mockOnSave).toHaveBeenCalledTimes(1);
   });
 });
