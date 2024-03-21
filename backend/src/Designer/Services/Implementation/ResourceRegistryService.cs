@@ -185,9 +185,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             HttpResponseMessage getResourceResponse = await _httpClient.GetAsync(resourceUrl);
             if (getResourceResponse.StatusCode.Equals(HttpStatusCode.OK))
             {
-                string responseContent = await getResourceResponse.Content.ReadAsStringAsync();
-                ServiceResource res = JsonSerializer.Deserialize<ServiceResource>(responseContent, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-                return res;
+                return await getResourceResponse.Content.ReadAsAsync<ServiceResource>();
             }
 
             return null;
@@ -210,9 +208,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             HttpResponseMessage getResourceResponse = await _httpClient.GetAsync(resourceUrl);
             if (getResourceResponse.StatusCode.Equals(HttpStatusCode.OK))
             {
-                string responseContent = await getResourceResponse.Content.ReadAsStringAsync();
-                List<ServiceResource> res = JsonSerializer.Deserialize<List<ServiceResource>>(responseContent, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-                return res;
+                return await getResourceResponse.Content.ReadAsAsync<List<ServiceResource>>();
             }
 
             return null;
@@ -268,9 +264,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             HttpResponseMessage response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
 
-            string contentString = await response.Content.ReadAsStringAsync();
-            ServiceResource serviceResource = JsonSerializer.Deserialize<ServiceResource>(contentString, _serializerOptions);
-            return serviceResource;
+            return await response.Content.ReadAsAsync<ServiceResource>();
         }
 
         public async Task<XacmlPolicy> GetXacmlPolicy(string serviceCode, int serviceEditionCode, string identifier, string environment)
@@ -304,8 +298,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             HttpResponseMessage getAccessListsResponse = await _httpClient.SendAsync(request);
             getAccessListsResponse.EnsureSuccessStatusCode();
-            string responseContent = await getAccessListsResponse.Content.ReadAsStringAsync();
-            AccessList accessList = JsonSerializer.Deserialize<AccessList>(responseContent, _serializerOptions);
+            AccessList accessList = await getAccessListsResponse.Content.ReadAsAsync<AccessList>();
 
             _listMembers.TryGetValue(identifier, out List<AccessListMemberDto> list);
 
@@ -346,8 +339,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             HttpResponseMessage getAccessListsResponse = await _httpClient.SendAsync(request);
             getAccessListsResponse.EnsureSuccessStatusCode();
-            string responseContent = await getAccessListsResponse.Content.ReadAsStringAsync();
-            AccessListInfoDtoPaginated res = JsonSerializer.Deserialize<AccessListInfoDtoPaginated>(responseContent, _serializerOptions);
+            AccessListInfoDtoPaginated res = await getAccessListsResponse.Content.ReadAsAsync<AccessListInfoDtoPaginated>();
             return new PagedAccessListResponse()
             {
                 Data = res.Data,
@@ -367,8 +359,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             HttpResponseMessage getAccessListsResponse = await _httpClient.SendAsync(request);
             getAccessListsResponse.EnsureSuccessStatusCode();
-            string responseContent = await getAccessListsResponse.Content.ReadAsStringAsync();
-            AccessListInfoDtoPaginated res = JsonSerializer.Deserialize<AccessListInfoDtoPaginated>(responseContent, _serializerOptions);
+            AccessListInfoDtoPaginated res = await getAccessListsResponse.Content.ReadAsAsync<AccessListInfoDtoPaginated>();
+
             return new PagedAccessListResponse()
             {
                 Data = res.Data,
@@ -390,8 +382,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             HttpResponseMessage response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
-            string responseContent = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<AccessList>(responseContent, _serializerOptions);
+            return await response.Content.ReadAsAsync<AccessList>();
         }
 
         public async Task<HttpStatusCode> DeleteAccessList(string org, string identifier, string env)
@@ -417,8 +408,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             HttpResponseMessage response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
-            string responseContent = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<AccessList>(responseContent, _serializerOptions);
+            return await response.Content.ReadAsAsync<AccessList>();
         }
 
         public async Task<HttpStatusCode> AddAccessListMember(string org,
@@ -498,11 +488,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             HttpResponseMessage enheterResponse = await _httpClient.GetAsync(url);
             enheterResponse.EnsureSuccessStatusCode();
-            string responseContent = await enheterResponse.Content.ReadAsStringAsync();
-            BrregPartyResultSet results = JsonSerializer.Deserialize<BrregPartyResultSet>(
-                responseContent,
-                _serializerOptions
-            );
+            BrregPartyResultSet results = await enheterResponse.Content.ReadAsAsync<BrregPartyResultSet>();
+
             return results.Embedded != null ? results.Embedded.Parties ?? results.Embedded.SubParties : new List<BrregParty>();
         }
 
