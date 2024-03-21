@@ -746,7 +746,7 @@
   "process_editor.configuration_panel_data_task": "Oppgave: Utfylling",
   "process_editor.configuration_panel_element_not_supported_message": "Vi støtter foreløpig kun å se detaljer på oppgaver, ikke redigere. Velg en oppgave for å se detaljer.",
   "process_editor.configuration_panel_element_not_supported_title": "Valgt elementet er ikke støttet",
-  "process_editor.configuration_panel_end_event": "Sluttsteg",
+  "process_editor.configuration_panel_end_event": "Hendelse: Slutt",
   "process_editor.configuration_panel_feedback_task": "Oppgave: Tilbakemelding",
   "process_editor.configuration_panel_header_help_text_confirmation": "Bekreftelse-oppgave (confirmation) brukes for å vise sluttbruker en oppsummering som de kan bekrefte.",
   "process_editor.configuration_panel_header_help_text_custom_receipt": "Ved å opprette en egendefinert kvittering overskriver du standardkvitteringen med egne skjemasider som du kan tilpasse i skjemabyggeren.",
