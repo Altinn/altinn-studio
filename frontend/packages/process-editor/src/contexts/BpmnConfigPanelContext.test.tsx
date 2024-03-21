@@ -56,7 +56,7 @@ describe('BpmnConfigPanelContext', () => {
       return (
         <div data-testid='context'>
           <button
-            onClick={() => setMetaDataForm({ taskIdChanges: { oldId: 'old', newId: 'new' } })}
+            onClick={() => setMetaDataForm({ taskIdChanges: [{ oldId: 'old', newId: 'new' }] })}
           >
             Set meta data
           </button>
@@ -73,7 +73,7 @@ describe('BpmnConfigPanelContext', () => {
     );
     await act(() => user.click(screen.getByRole('button', { name: 'Set meta data' })));
     expect(screen.getByTestId('context')).toHaveTextContent(
-      '{"taskIdChanges":{"oldId":"old","newId":"new"}}',
+      '{"taskIdChanges":[{"oldId":"old","newId":"new"}]}',
     );
 
     await act(() => user.click(screen.getByRole('button', { name: 'Reset meta data' })));
