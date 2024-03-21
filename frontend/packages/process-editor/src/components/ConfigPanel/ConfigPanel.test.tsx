@@ -57,7 +57,7 @@ describe('ConfigPanel', () => {
       name: textMock('process_editor.configuration_panel_element_not_supported_title'),
     });
     const message = screen.getByText(
-      textMock('process_editor.configuration_panel_element_not_supported'),
+      textMock('process_editor.configuration_panel_element_not_supported_message'),
     );
     expect(title).toBeInTheDocument();
     expect(message).toBeInTheDocument();
@@ -90,15 +90,15 @@ describe('ConfigPanel', () => {
     },
     {
       task: BpmnTypeEnum.SequenceFlow,
-      expectedText: 'process_editor.configuration_panel_element_not_supported',
+      expectedText: 'process_editor.configuration_panel_element_not_supported_message',
     },
     {
       task: BpmnTypeEnum.StartEvent,
-      expectedText: 'process_editor.configuration_panel_element_not_supported',
+      expectedText: 'process_editor.configuration_panel_element_not_supported_message',
     },
     {
       task: BpmnTypeEnum.EndEvent,
-      expectedText: 'process_editor.configuration_panel_element_not_supported',
+      expectedText: 'process_editor.configuration_panel_element_not_supported_message',
     },
   ])('should display correct message based on selected task', ({ task, expectedText }) => {
     renderConfigPanel({

@@ -63,7 +63,7 @@ const ConfigPanelContent = ({
   return (
     <BpmnAlert
       title={t('process_editor.configuration_panel_element_not_supported_title')}
-      message={t('process_editor.configuration_panel_element_not_supported')}
+      message={t('process_editor.configuration_panel_element_not_supported_message')}
     />
   );
 };
