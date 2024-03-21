@@ -1,6 +1,7 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
+import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { waitFor } from '@testing-library/react';
 import type { AddFormContainerMutationArgs } from './useAddFormContainerMutation';
 import { useAddFormContainerMutation } from './useAddFormContainerMutation';
@@ -29,7 +30,7 @@ jest.mock('../../utils/generateId', () => ({
 
 describe('useAddFormContainerMutation', () => {
   it('Calls saveFormLayout with correct arguments and payload', async () => {
-    const result = await renderAddFormContainerMutation();
+    const { result } = await renderAddFormContainerMutation();
     await result.current.mutateAsync(defaultArgs);
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
     expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
@@ -57,6 +58,11 @@ const renderAddFormContainerMutation = async () => {
     useFormLayoutsQuery(org, app, selectedLayoutSet),
   ).result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
-  return renderHookWithProviders(() => useAddFormContainerMutation(org, app, selectedLayoutSet))
-    .result;
+
+  const formLayoutSettingsResult = renderHookWithProviders(() =>
+    useFormLayoutSettingsQuery(org, app, selectedLayoutSet),
+  ).result;
+  await waitFor(() => expect(formLayoutSettingsResult.current.isSuccess).toBe(true));
+
+  return renderHookWithProviders(() => useAddFormContainerMutation(org, app, selectedLayoutSet));
 };

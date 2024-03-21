@@ -1,6 +1,7 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
+import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { waitFor } from '@testing-library/react';
 import { useUpdateFormComponentOrderMutation } from './useUpdateFormComponentOrderMutation';
 import type { IFormLayoutOrder } from '../../types/global';
@@ -69,4 +70,9 @@ const renderAndWaitForData = async () => {
     { queries: { getFormLayouts } },
   ).result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
+
+  const formLayoutSettingsResult = renderHookWithProviders(() =>
+    useFormLayoutSettingsQuery(org, app, selectedLayoutSet),
+  ).result;
+  await waitFor(() => expect(formLayoutSettingsResult.current.isSuccess).toBe(true));
 };

@@ -1,6 +1,7 @@
 import { useSelectedFormLayout } from './';
 import { renderHookWithProviders } from '../testing/mocks';
 import { useFormLayoutsQuery } from './queries/useFormLayoutsQuery';
+import { useFormLayoutSettingsQuery } from './queries/useFormLayoutSettingsQuery';
 import { externalLayoutsMock, layoutMock } from '../testing/layoutMock';
 import { waitFor } from '@testing-library/react';
 import type { IFormLayouts, IInternalLayout, IInternalLayoutWithName } from '../types/global';
@@ -18,10 +19,15 @@ const render = async (callback: () => IFormLayouts | IInternalLayout | IInternal
   ).result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
 
+  const formLayoutsSettingsResult = renderHookWithProviders(() =>
+    useFormLayoutSettingsQuery(org, app, selectedLayoutSet),
+  ).result;
+  await waitFor(() => expect(formLayoutsSettingsResult.current.isSuccess).toBe(true));
+
   return renderHookWithProviders(() => callback());
 };
 
-describe('useFormLayoutsSelector', () => {
+describe('useSelectedFormLayout', () => {
   it('should return the selected layout', async () => {
     const { result } = await render(useSelectedFormLayout);
     expect(result.current).toEqual(layoutMock);

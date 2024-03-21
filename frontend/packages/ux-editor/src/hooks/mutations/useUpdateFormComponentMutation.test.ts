@@ -147,7 +147,7 @@ describe('useUpdateFormComponentMutation', () => {
 const renderAndWaitForData = () => {
   queryClientMock.setQueryData(
     [QueryKey.FormLayouts, org, app, selectedLayoutSet],
-    convertExternalLayoutsToInternalFormat(externalLayoutsMock).convertedLayouts,
+    convertExternalLayoutsToInternalFormat(externalLayoutsMock),
   );
   queryClientMock.setQueryData([QueryKey.RuleConfig, org, app, selectedLayoutSet], ruleConfigMock);
 };

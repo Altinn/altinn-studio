@@ -1,6 +1,7 @@
 import { useSelectedFormLayoutWithName } from './';
 import { renderHookWithProviders } from '../testing/mocks';
 import { useFormLayoutsQuery } from './queries/useFormLayoutsQuery';
+import { useFormLayoutSettingsQuery } from './queries/useFormLayoutSettingsQuery';
 import { externalLayoutsMock, layoutMock, layout1NameMock } from '../testing/layoutMock';
 import { waitFor } from '@testing-library/react';
 import type { IFormLayouts, IInternalLayout, IInternalLayoutWithName } from '../types/global';
@@ -14,16 +15,23 @@ const render = async (callback: () => IFormLayouts | IInternalLayout | IInternal
   const getFormLayouts = jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock));
   const formLayoutsResult = renderHookWithProviders(
     () => useFormLayoutsQuery(org, app, selectedLayoutSet),
-    { queries: { getFormLayouts } },
+    {
+      queries: { getFormLayouts },
+    },
   ).result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
 
-  return renderHookWithProviders(() => callback()).result;
+  const formLayoutsSettingsResult = renderHookWithProviders(() =>
+    useFormLayoutSettingsQuery(org, app, selectedLayoutSet),
+  ).result;
+  await waitFor(() => expect(formLayoutsSettingsResult.current.isSuccess).toBe(true));
+
+  return renderHookWithProviders(() => callback());
 };
 
-describe('useFormLayoutsSelector', () => {
+describe('useSelectedFormLayoutWithName', () => {
   it('should return the selected layout and the selected layout name', async () => {
-    const result = await render(useSelectedFormLayoutWithName);
+    const { result } = await render(useSelectedFormLayoutWithName);
     expect(result.current).toEqual({
       layout: layoutMock,
       layoutName: layout1NameMock,

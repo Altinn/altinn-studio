@@ -19,13 +19,13 @@ const render = async (callback: () => IFormLayouts | IInternalLayout | IInternal
   ).result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
 
-  return renderHookWithProviders(() => callback()).result;
+  return renderHookWithProviders(() => callback());
 };
 
-describe('useFormLayoutsSelector', () => {
+describe('useFormLayouts', () => {
   it('should return all layouts', async () => {
-    const result = await render(useFormLayouts);
-    const { convertedLayouts } = convertExternalLayoutsToInternalFormat(externalLayoutsMock);
+    const { result } = await render(useFormLayouts);
+    const convertedLayouts = convertExternalLayoutsToInternalFormat(externalLayoutsMock);
 
     expect(result.current).toEqual(convertedLayouts);
   });

@@ -16,7 +16,7 @@ export const useSelectedFormLayoutName = (): UseSelectedFormLayoutNameResult => 
     app,
     selectedFormLayoutSetName,
   );
-  const layoutPagesOrder = formLayoutSettings?.pages.order;
+  const layoutPagesOrder = formLayoutSettings?.pages?.order;
 
   const isValidLayout = (layoutName: string): boolean => {
     const isExistingLayout = layoutPagesOrder?.includes(layoutName);

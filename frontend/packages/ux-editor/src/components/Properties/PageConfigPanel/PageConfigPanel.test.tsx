@@ -69,5 +69,5 @@ const renderPageConfigPanel = (
   queryClientMock.setQueryData([QueryKey.TextResources, org, app], textResources);
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet], layouts);
   queryClientMock.setQueryData([QueryKey.DatamodelMetadata, org, app, layoutSet], []);
-  return renderWithProviders(<PageConfigPanel />);
+  return renderWithProviders(<PageConfigPanel />, { startUrl: '?layout=' + selectedLayoutName });
 };

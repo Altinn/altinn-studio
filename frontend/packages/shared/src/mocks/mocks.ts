@@ -12,7 +12,7 @@ import type { Commit } from 'app-shared/types/Commit';
 import type { OrgsState } from 'app-shared/types/OrgsState';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
-import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
+import type { ILayoutSettings, ITextResourcesWithLanguage } from 'app-shared/types/global';
 import type { User, Repository } from 'app-shared/types/Repository';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Policy } from '@altinn/policy-editor';
@@ -219,4 +219,10 @@ export const searchRepositoryResponse: SearchRepositoryResponse = {
   ok: false,
   totalCount: 0,
   totalPages: 0,
+};
+
+export const formLayoutSettings: ILayoutSettings = {
+  pages: {
+    order: ['Side1'],
+  },
 };

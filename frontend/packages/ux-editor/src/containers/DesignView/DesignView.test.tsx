@@ -88,7 +88,7 @@ const render = async () => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData(
     [QueryKey.FormLayouts, mockOrg, mockApp, mockSelectedLayoutSet],
-    convertExternalLayoutsToInternalFormat(externalLayoutsMock).convertedLayouts,
+    convertExternalLayoutsToInternalFormat(externalLayoutsMock),
   );
   queryClient.setQueryData(
     [QueryKey.FormLayoutSettings, mockOrg, mockApp, mockSelectedLayoutSet],

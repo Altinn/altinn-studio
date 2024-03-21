@@ -5,9 +5,7 @@ import { useFormLayoutMutation } from './useFormLayoutMutation';
 import type { IInternalLayout } from '../../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { baseContainerIdMock } from '../../testing/layoutMock';
-import type { AppContextProps } from '../../AppContext';
-import type { RefObject } from 'react';
-import { createRef } from 'react';
+import { appContextMock } from '../../testing/appContextMock';
 
 // Test data:
 const org = 'org';
@@ -81,26 +79,12 @@ describe('useFormLayoutMutation', () => {
   });
 
   it('Reloads preview iframe', async () => {
-    const reload = jest.fn();
-    const previewIframeRefMock = createRef<HTMLIFrameElement>();
-    const previewIframeRef: RefObject<HTMLIFrameElement> = {
-      current: {
-        ...previewIframeRefMock.current,
-        contentWindow: {
-          ...previewIframeRefMock.current?.contentWindow,
-          location: {
-            ...previewIframeRefMock.current?.contentWindow?.location,
-            reload,
-          },
-        },
-      },
-    };
-    await renderAndMutate(newLayout, { previewIframeRef });
-    expect(reload).toHaveBeenCalledTimes(1);
+    await renderAndMutate(newLayout);
+    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
   });
 });
 
-const renderAndMutate = (layout: IInternalLayout, appContext: Partial<AppContextProps> = {}) =>
+const renderAndMutate = (layout: IInternalLayout) =>
   renderHookWithProviders(() => useFormLayoutMutation(org, app, layoutName, selectedLayoutSet), {
     queryClient: queryClientMock,
   }).result.current.mutateAsync(layout);

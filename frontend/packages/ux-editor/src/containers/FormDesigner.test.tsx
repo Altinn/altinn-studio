@@ -36,7 +36,11 @@ const render = () => {
     selectedLayoutSet: 'test-layout-set',
   };
   queryClient.setQueryData([QueryKey.TextResources, org, app], defaultTexts);
-  return renderWithProviders(<FormDesigner {...props} />, { queries, queryClient });
+  return renderWithProviders(<FormDesigner {...props} />, {
+    queries,
+    queryClient,
+    startUrl: '',
+  });
 };
 
 const waitForData = async () => {

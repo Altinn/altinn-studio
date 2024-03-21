@@ -87,7 +87,7 @@ describe('useAddItemToLayoutMutation', () => {
 const renderAddItemToLayoutMutation = (layoutSetName?: string) => {
   queryClientMock.setQueryData(
     [QueryKey.FormLayouts, org, app, layoutSetName],
-    convertExternalLayoutsToInternalFormat(externalLayoutsMock).convertedLayouts,
+    convertExternalLayoutsToInternalFormat(externalLayoutsMock),
   );
   queryClientMock.setQueryData(
     [QueryKey.LayoutSets, org, app],

@@ -47,7 +47,7 @@ describe('useDeleteLayoutMutation', () => {
 const renderDeleteLayoutMutation = () => {
   queryClientMock.setQueryData(
     [QueryKey.FormLayouts, org, app, selectedLayoutSet],
-    convertExternalLayoutsToInternalFormat(externalLayoutsMock).convertedLayouts,
+    convertExternalLayoutsToInternalFormat(externalLayoutsMock),
   );
   queryClientMock.setQueryData(
     [QueryKey.FormLayoutSettings, org, app, selectedLayoutSet],
