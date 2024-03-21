@@ -123,4 +123,30 @@ describe('EditTaskId', () => {
     render(<EditTaskId className='my-awesome-class-name' data-testid='unitTestId' />);
     expect(screen.getByTestId('unitTestId')).toHaveClass('my-awesome-class-name');
   });
+
+  it('should not update id if new id is the same as the old id', async () => {
+    const user = userEvent.setup();
+    const mockedSetMetaDataForm = jest.fn();
+
+    (useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({
+      setMetaDataForm: mockedSetMetaDataForm,
+    });
+
+    render(<EditTaskId />);
+
+    const editButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_change_task_id'),
+    });
+    await act(() => user.click(editButton));
+
+    const input = screen.getByLabelText(
+      textMock('process_editor.configuration_panel_change_task_id'),
+    );
+
+    await act(() => user.clear(input));
+    await act(() => user.type(input, 'testId'));
+    await act(() => user.tab());
+
+    expect(mockedSetMetaDataForm).toHaveBeenCalledTimes(0);
+  });
 });
