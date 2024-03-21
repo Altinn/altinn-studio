@@ -23,7 +23,7 @@ const renderEditStringValue = ({ maxLength = undefined, handleComponentChange = 
         },
         maxLength: maxLength || '',
         itemType: 'COMPONENT',
-        dataModelBindings: {},
+        dataModelBindings: { simpleBinding: 'some-path' },
       }}
     />,
   );
@@ -49,7 +49,7 @@ describe('EditStringValue', () => {
       },
       maxLength: 'new value',
       itemType: 'COMPONENT',
-      dataModelBindings: {},
+      dataModelBindings: { simpleBinding: 'some-path' },
     });
   });
 });

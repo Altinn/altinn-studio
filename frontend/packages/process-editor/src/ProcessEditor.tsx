@@ -13,16 +13,21 @@ import { ConfigPanel } from './components/ConfigPanel';
 import { ConfigViewerPanel } from './components/ConfigViewerPanel';
 
 import classes from './ProcessEditor.module.css';
+import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 
 export type ProcessEditorProps = {
   bpmnXml: string | undefined | null;
+  existingCustomReceipt: string | undefined;
   onSave: (bpmnXml: string, metaData?: MetaDataForm) => void;
+  onUpdateLayoutSet: (layoutSetIdToUpdate: string, layoutSetConfig: LayoutSetConfig) => void;
   appLibVersion: string;
 };
 
 export const ProcessEditor = ({
   bpmnXml,
+  existingCustomReceipt,
   onSave,
+  onUpdateLayoutSet,
   appLibVersion,
 }: ProcessEditorProps): React.ReactElement => {
   const { t } = useTranslation();
@@ -38,14 +43,28 @@ export const ProcessEditor = ({
   return (
     <BpmnContextProvider bpmnXml={bpmnXml} appLibVersion={appLibVersion}>
       <BpmnConfigPanelFormContextProvider>
-        <BPMNCanvas onSave={onSave} />
+        <BPMNCanvas
+          onSave={onSave}
+          existingCustomReceipt={existingCustomReceipt}
+          onUpdateLayoutSet={onUpdateLayoutSet}
+        />
       </BpmnConfigPanelFormContextProvider>
+      <div className={classes.container}>
+        <Canvas onSave={onSave} />
+      </div>
     </BpmnContextProvider>
   );
 };
 
-type BPMNCanvasProps = Pick<ProcessEditorProps, 'onSave'>;
-const BPMNCanvas = ({ onSave }: BPMNCanvasProps): React.ReactElement | null => {
+type BPMNCanvasProps = Pick<
+  ProcessEditorProps,
+  'onSave' | 'existingCustomReceipt' | 'onUpdateLayoutSet'
+>;
+const BPMNCanvas = ({
+  onSave,
+  existingCustomReceipt,
+  onUpdateLayoutSet,
+}: BPMNCanvasProps): React.ReactElement | null => {
   const { isEditAllowed } = useBpmnContext();
   const { metaDataForm, resetForm } = useBpmnConfigPanelFormContext();
 
@@ -58,7 +77,14 @@ const BPMNCanvas = ({ onSave }: BPMNCanvasProps): React.ReactElement | null => {
   return (
     <div className={classes.container}>
       <Canvas onSave={handleSave} />
-      {isEditAllowed ? <ConfigPanel /> : <ConfigViewerPanel />}
+      {isEditAllowed ? (
+        <ConfigPanel
+          existingCustomReceiptName={existingCustomReceipt}
+          onUpdateLayoutSet={onUpdateLayoutSet}
+        />
+      ) : (
+        <ConfigViewerPanel />
+      )}
     </div>
   );
 };

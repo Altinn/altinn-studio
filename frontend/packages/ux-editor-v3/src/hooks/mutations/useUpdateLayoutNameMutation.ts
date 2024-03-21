@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { IFormLayouts } from '../../types/global';
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils } from '@studio/pure-functions';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import type { ILayoutSettings } from 'app-shared/types/global';
@@ -31,13 +31,13 @@ export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetN
       queryClient.setQueryData(
         [QueryKey.FormLayouts, org, app, layoutSetName],
         (oldLayouts: IFormLayouts) => {
-          const newLayouts = deepCopy(oldLayouts);
+          const newLayouts = ObjectUtils.deepCopy(oldLayouts);
           newLayouts[newName] = newLayouts[oldName];
           delete newLayouts[oldName];
           return newLayouts;
         },
       );
-      const layoutSettings: ILayoutSettings = deepCopy(formLayoutSettingsQuery.data);
+      const layoutSettings: ILayoutSettings = ObjectUtils.deepCopy(formLayoutSettingsQuery.data);
       const { order } = layoutSettings?.pages;
       if (order.includes(oldName)) order[order.indexOf(oldName)] = newName;
       if (layoutSettings.receiptLayoutName === oldName) layoutSettings.receiptLayoutName = newName;

@@ -4,17 +4,35 @@ import { Paragraph, Alert, Heading } from '@digdir/design-system-react';
 import { useBpmnContext } from '../../contexts/BpmnContext';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 import { ConfigContent } from './ConfigContent';
+import { ConfigEndEvent } from './ConfigEndEvent';
+import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { ConfigSurface } from '../ConfigSurface/ConfigSurface';
 
-export const ConfigPanel = (): React.ReactElement => {
+export interface ConfigPanelProps {
+  existingCustomReceiptName: string | undefined;
+  onUpdateLayoutSet: (layoutSetIdToUpdate: string, layoutSetConfig: LayoutSetConfig) => void;
+}
+
+export const ConfigPanel = ({
+  existingCustomReceiptName,
+  onUpdateLayoutSet,
+}: ConfigPanelProps): React.ReactElement => {
   return (
     <ConfigSurface>
-      <ConfigPanelContent />
+      <ConfigPanelContent
+        existingCustomReceiptName={existingCustomReceiptName}
+        onUpdateLayoutSet={onUpdateLayoutSet}
+      />
     </ConfigSurface>
   );
 };
 
-const ConfigPanelContent = (): React.ReactElement => {
+type ConfigPanelContentProps = ConfigPanelProps;
+const ConfigPanelContent = ({
+  existingCustomReceiptName,
+  onUpdateLayoutSet,
+}: ConfigPanelContentProps): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
 
@@ -24,6 +42,15 @@ const ConfigPanelContent = (): React.ReactElement => {
       <BpmnAlert
         title={t('process_editor.configuration_panel_no_task_title')}
         message={t('process_editor.configuration_panel_no_task_message')}
+      />
+    );
+  }
+
+  if (shouldDisplayFeature('customizeEndEvent') && bpmnDetails.type === BpmnTypeEnum.EndEvent) {
+    return (
+      <ConfigEndEvent
+        existingCustomReceiptName={existingCustomReceiptName}
+        onUpdateLayoutSet={onUpdateLayoutSet}
       />
     );
   }

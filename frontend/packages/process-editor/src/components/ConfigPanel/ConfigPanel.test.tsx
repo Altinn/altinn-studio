@@ -27,6 +27,10 @@ const mockBpmnContextValue: BpmnContextProps = {
   setBpmnDetails: jest.fn(),
 };
 
+jest.mock('app-shared/utils/featureToggleUtils', () => ({
+  shouldDisplayFeature: jest.fn().mockReturnValue(false),
+}));
+
 describe('ConfigPanel', () => {
   it('should render no selected task message', () => {
     renderConfigPanel({ bpmnDetails: null });
@@ -70,7 +74,7 @@ const renderConfigPanel = (rootContextProps: Partial<BpmnContextProps> = {}) => 
   return render(
     <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
       <BpmnConfigPanelFormContextProvider>
-        <ConfigPanel />
+        <ConfigPanel existingCustomReceiptName={undefined} onUpdateLayoutSet={jest.fn()} />
       </BpmnConfigPanelFormContextProvider>
     </BpmnContext.Provider>,
   );
