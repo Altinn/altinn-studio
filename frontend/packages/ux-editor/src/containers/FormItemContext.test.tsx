@@ -267,6 +267,7 @@ describe('FormItemContext', () => {
       id: 'id',
       itemType: 'COMPONENT',
       type: ComponentType.Input,
+      dataModelBindings: { simpleBinding: 'somePath' },
     };
 
     render(() => {
@@ -288,6 +289,7 @@ describe('FormItemContext', () => {
       id: 'id',
       itemType: 'COMPONENT',
       type: ComponentType.Input,
+      dataModelBindings: { simpleBinding: 'somePath' },
     };
 
     render(() => {
@@ -318,6 +320,7 @@ describe('FormItemContext', () => {
       id: 'id',
       itemType: 'COMPONENT',
       type: ComponentType.Input,
+      dataModelBindings: { simpleBinding: 'somePath' },
     };
 
     render(() => {

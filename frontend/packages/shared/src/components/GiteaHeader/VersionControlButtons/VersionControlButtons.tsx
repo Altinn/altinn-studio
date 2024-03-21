@@ -78,6 +78,8 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
     });
     const { data: result } = await fetchPullData();
     if (result.repositoryStatus === 'Ok') {
+      // force refetch  files
+      await queryClient.invalidateQueries(); // Todo: This invalidates ALL queries. Consider providing a list of relevant queries only.
       // if pull was successfull, show app is updated message
       setModalState({
         ...initialModalState,
@@ -85,8 +87,6 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
         isLoading: false,
         shouldShowDoneIcon: true,
       });
-      // force refetch  files
-      await queryClient.invalidateQueries(); // Todo: This invalidates ALL queries. Consider providing a list of relevant queries only.
       forceRepoStatusCheck();
     } else if (result.repositoryStatus === 'CheckoutConflict') {
       // if pull gives merge conflict, show user needs to commit message

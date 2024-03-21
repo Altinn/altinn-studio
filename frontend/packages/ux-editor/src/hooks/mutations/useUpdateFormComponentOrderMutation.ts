@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import type { IFormLayoutOrder } from '../../types/global';
 import { useSelectedFormLayoutWithName } from '../';
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils } from '@studio/pure-functions';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 
 export const useUpdateFormComponentOrderMutation = (
@@ -13,7 +13,7 @@ export const useUpdateFormComponentOrderMutation = (
   const formLayoutMutation = useFormLayoutMutation(org, app, layoutName, layoutSetName);
   return useMutation({
     mutationFn: (order: IFormLayoutOrder) => {
-      const newLayout = deepCopy(layout);
+      const newLayout = ObjectUtils.deepCopy(layout);
       newLayout.order = order;
       return formLayoutMutation.mutateAsync(newLayout);
     },

@@ -3,22 +3,18 @@ import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
 import { Heading, Paragraph } from '@digdir/design-system-react';
 import { useText, useAppContext, useSelectedFormLayoutName } from '../../hooks';
-import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
 
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import classes from './Elements.module.css';
 
+import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
+
 export const Elements = () => {
   const { org, app } = useStudioUrlParams();
-  const { selectedFormLayoutSetName } = useAppContext();
   const { selectedFormLayoutName } = useSelectedFormLayoutName();
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
-    org,
-    app,
-    selectedFormLayoutSetName,
-  );
-  const receiptName = formLayoutSettings?.receiptLayoutName;
+  const { selectedFormLayoutSetName } = useAppContext();
+  const existingCustomReceiptName: string | undefined = useCustomReceiptLayoutSetName(org, app);
 
   const hideComponents =
     selectedFormLayoutName === 'default' || selectedFormLayoutName === undefined;
@@ -35,7 +31,7 @@ export const Elements = () => {
         <Paragraph className={classes.noPageSelected} size='small'>
           {t('left_menu.no_components_selected')}
         </Paragraph>
-      ) : receiptName === selectedFormLayoutName ? (
+      ) : existingCustomReceiptName === selectedFormLayoutSetName ? (
         <ConfPageToolbar />
       ) : (
         <DefaultToolbar />

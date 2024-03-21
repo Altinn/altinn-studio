@@ -1,7 +1,7 @@
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { useMutation } from '@tanstack/react-query';
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils } from '@studio/pure-functions';
 import { useAppContext } from '../';
 
 export interface UpdateLayoutOrderMutationArgs {
@@ -15,7 +15,7 @@ export const useUpdateLayoutOrderMutation = (org: string, app: string, layoutSet
   const { refetchLayouts, refetchLayoutSettings } = useAppContext();
   return useMutation({
     mutationFn: ({ layoutName, direction }: UpdateLayoutOrderMutationArgs) => {
-      const layoutSettings = deepCopy(formLayoutSettingsQuery.data);
+      const layoutSettings = ObjectUtils.deepCopy(formLayoutSettingsQuery.data);
       const { order } = layoutSettings.pages;
       const currentIndex = order.indexOf(layoutName);
       let destination: number;

@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { IInternalLayout } from '../../types/global';
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils } from '@studio/pure-functions';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
@@ -35,7 +35,7 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
 
   return useMutation({
     mutationFn: async (layoutName: string) => {
-      let layouts = deepCopy(formLayouts);
+      let layouts = ObjectUtils.deepCopy(formLayouts);
       delete layouts[layoutName];
       layouts = await addOrRemoveNavigationButtons(
         layouts,
@@ -47,7 +47,7 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
       return { layoutName, layouts };
     },
     onSuccess: async ({ layoutName, layouts }) => {
-      const layoutSettings: ILayoutSettings = deepCopy(formLayoutSettings);
+      const layoutSettings: ILayoutSettings = ObjectUtils.deepCopy(formLayoutSettings);
 
       const { order } = layoutSettings?.pages;
 

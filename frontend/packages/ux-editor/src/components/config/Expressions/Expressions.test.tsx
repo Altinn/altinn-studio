@@ -14,7 +14,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { parsableLogicalExpression } from '../../../testing/expressionMocks';
 import type { FormContainer } from '../../../types/FormContainer';
 import type { AppContextProps } from '../../../AppContext';
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils } from '@studio/pure-functions';
 import { LogicalTupleOperator } from '@studio/components';
 
 // Test data:
@@ -27,12 +27,14 @@ const layouts: IFormLayouts = {
 const componentWithExpression: FormComponent<ComponentType.Input> = {
   id: 'some-id',
   type: ComponentType.Input,
+  dataModelBindings: { simpleBinding: 'some-path' },
   itemType: 'COMPONENT',
   hidden: parsableLogicalExpression,
 };
 const componentWithoutExpression: FormComponent<ComponentType.Input> = {
   id: 'some-id',
   type: ComponentType.Input,
+  dataModelBindings: { simpleBinding: 'some-path' },
   itemType: 'COMPONENT',
 };
 
@@ -65,6 +67,7 @@ describe('Expressions', () => {
     const componentWithMultipleExpressions: FormComponent = {
       id: 'some-id',
       type: ComponentType.Input,
+      dataModelBindings: { simpleBinding: 'some-path' },
       itemType: 'COMPONENT',
       hidden: parsableLogicalExpression,
       required: parsableLogicalExpression,
@@ -83,6 +86,7 @@ describe('Expressions', () => {
         id: 'some-id',
         itemType: 'CONTAINER',
         type: ComponentType.RepeatingGroup,
+        dataModelBindings: { group: 'some-path' },
         hidden: parsableLogicalExpression,
         edit: {
           addButton: parsableLogicalExpression,
@@ -125,7 +129,7 @@ describe('Expressions', () => {
     const deleteButton = within(expression).getByRole('button', { name: deleteButtonName });
     await act(() => user.click(deleteButton));
     expect(handleUpdate).toHaveBeenCalledTimes(1);
-    const expectedUpdatedComponent = deepCopy(componentWithExpression);
+    const expectedUpdatedComponent = ObjectUtils.deepCopy(componentWithExpression);
     delete expectedUpdatedComponent.hidden;
     expect(handleUpdate).toHaveBeenCalledWith(expectedUpdatedComponent);
   });
@@ -151,6 +155,7 @@ describe('Expressions', () => {
       id: 'some-id',
       itemType: 'CONTAINER',
       type: ComponentType.RepeatingGroup,
+      dataModelBindings: { group: 'some-path' },
       edit: {
         multiPage: true,
       },

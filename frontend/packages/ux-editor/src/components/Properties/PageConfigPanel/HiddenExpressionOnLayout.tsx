@@ -2,7 +2,7 @@ import React from 'react';
 import { ExpressionContent } from '../../config/ExpressionContent';
 import type { Expression } from '@studio/components';
 import type { IInternalLayout } from '../../../types/global';
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils } from '@studio/pure-functions';
 import { useFormLayoutMutation } from '../../../hooks/mutations/useFormLayoutMutation';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useSelectedFormLayoutWithName, useAppContext } from '../../../hooks';
@@ -19,12 +19,12 @@ export const HiddenExpressionOnLayout = () => {
     selectedFormLayoutSetName,
   );
   const handleChangeHiddenExpressionOnLayout = async (expression: Expression) => {
-    const updatedLayout: IInternalLayout = deepCopy(layout);
+    const updatedLayout: IInternalLayout = ObjectUtils.deepCopy(layout);
     saveLayout({ ...updatedLayout, hidden: expression });
   };
 
   const handleDeleteHiddenExpressionOnLayout = async () => {
-    const updatedLayout: IInternalLayout = deepCopy(layout);
+    const updatedLayout: IInternalLayout = ObjectUtils.deepCopy(layout);
     saveLayout({ ...updatedLayout, hidden: undefined });
   };
 

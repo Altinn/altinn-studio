@@ -4,6 +4,6 @@ export interface LayoutSets {
 
 export interface LayoutSetConfig {
   id: string;
-  dataTypes: string;
+  dataTypes?: string;
   tasks: string[];
 }
