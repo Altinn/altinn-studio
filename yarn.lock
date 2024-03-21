@@ -17422,8 +17422,6 @@ __metadata:
   resolution: "ux-editor@workspace:frontend/packages/ux-editor"
   dependencies:
     "@mui/material": "npm:5.15.13"
-    "@redux-devtools/extension": "npm:3.3.0"
-    "@reduxjs/toolkit": "npm:1.9.7"
     "@studio/icons": "workspace:^"
     axios: "npm:1.6.8"
     classnames: "npm:2.5.1"
@@ -17433,9 +17431,7 @@ __metadata:
     react-dnd-html5-backend: "npm:16.0.1"
     react-dom: "npm:18.2.0"
     react-modal: "npm:3.16.1"
-    react-redux: "npm:8.1.3"
     react-select: "npm:5.8.0"
-    redux: "npm:4.2.1"
     reselect: "npm:4.1.8"
     typescript: "npm:5.4.2"
     uuid: "npm:9.0.1"

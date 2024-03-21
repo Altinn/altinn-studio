@@ -8,10 +8,6 @@ import { layoutSetsMock, layout1NameMock } from '../../testing/layoutMock';
 import type { AppContextProps } from '../../AppContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useDispatch: jest.fn(),
-}));
 // Test data
 const org = 'org';
 const app = 'app';
