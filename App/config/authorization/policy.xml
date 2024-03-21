@@ -116,7 +116,7 @@
       </xacml:AnyOf>
     </xacml:Target>
   </xacml:Rule>
-  <xacml:Rule RuleId="urn:altinn:example:ruleid:2" Effect="Permit">
+  <xacml:Rule RuleId="urn:altinn:example:ruleid:3" Effect="Permit">
     <xacml:Description>Rule that defines that user with role REGNA or DAGL can read and write for [ORG]/[APP] when it is in Task_2</xacml:Description>
     <xacml:Target>
       <xacml:AnyOf>
@@ -197,7 +197,7 @@
       </xacml:AnyOf>
     </xacml:Target>
   </xacml:Rule>
-  <xacml:Rule RuleId="urn:altinn:example:ruleid:3" Effect="Permit">
+  <xacml:Rule RuleId="urn:altinn:example:ruleid:4" Effect="Permit">
     <xacml:Description>Rule that defines that user with role REGNA or DAGL can delete instances of [ORG]/[APP]</xacml:Description>
     <xacml:Target>
       <xacml:AnyOf>
@@ -232,7 +232,7 @@
       </xacml:AnyOf>
     </xacml:Target>
   </xacml:Rule>
-  <xacml:Rule RuleId="urn:altinn:example:ruleid:4" Effect="Permit">
+  <xacml:Rule RuleId="urn:altinn:example:ruleid:5" Effect="Permit">
     <xacml:Description>Rule that defines that org can write to instances of [ORG]/[APP] for any states</xacml:Description>
     <xacml:Target>
       <xacml:AnyOf>
@@ -265,7 +265,7 @@
       </xacml:AnyOf>
     </xacml:Target>
   </xacml:Rule>
-  <xacml:Rule RuleId="urn:altinn:example:ruleid:5" Effect="Permit">
+  <xacml:Rule RuleId="urn:altinn:example:ruleid:6" Effect="Permit">
     <xacml:Description>Rule that defines that org can complete an instance of [ORG]/[APP] which state is at the end event.</xacml:Description>
     <xacml:Target>
       <xacml:AnyOf>
@@ -302,7 +302,7 @@
       </xacml:AnyOf>
     </xacml:Target>
   </xacml:Rule>
-  <xacml:Rule RuleId="urn:altinn:example:ruleid:6" Effect="Permit">
+  <xacml:Rule RuleId="urn:altinn:example:ruleid:7" Effect="Permit">
     <xacml:Description>A rule giving user with role REGNA or DAGL and the app owner [ORG] the right to read the appresource events of a given app of [ORG]/[APP]</xacml:Description>
     <xacml:Target>
       <xacml:AnyOf>
