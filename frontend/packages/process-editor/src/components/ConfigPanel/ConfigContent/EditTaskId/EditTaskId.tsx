@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { HTMLAttributes } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { StudioToggleableTextfield } from '@studio/components';
@@ -11,7 +11,8 @@ import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 
 import classes from './EditTaskId.module.css';
 
-export const EditTaskId = (): React.ReactElement => {
+type EditTaskIdProps = HTMLAttributes<HTMLDivElement>;
+export const EditTaskId = ({ ...rest }: EditTaskIdProps): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails, modelerRef, setBpmnDetails } = useBpmnContext();
   const { setMetaDataForm } = useBpmnConfigPanelFormContext();
@@ -52,27 +53,29 @@ export const EditTaskId = (): React.ReactElement => {
   };
 
   return (
-    <StudioToggleableTextfield
-      customValidation={validateTaskId}
-      inputProps={{
-        className: classes.textfield,
-        icon: <KeyVerticalIcon />,
-        label: t('process_editor.configuration_panel_change_task_id'),
-        value: bpmnDetails.id,
-        onBlur: (event) => handleOnTaskIdBlur(event),
-        size: 'small',
-      }}
-      viewProps={{
-        className: classes.view,
-        children: (
-          <span>
-            <b>ID:</b> {bpmnDetails.id}
-          </span>
-        ),
-        value: bpmnDetails.id,
-        variant: 'tertiary',
-        'aria-label': t('process_editor.configuration_panel_change_task_id'),
-      }}
-    />
+    <div {...rest}>
+      <StudioToggleableTextfield
+        customValidation={validateTaskId}
+        inputProps={{
+          className: classes.textfield,
+          icon: <KeyVerticalIcon />,
+          label: t('process_editor.configuration_panel_change_task_id'),
+          value: bpmnDetails.id,
+          onBlur: (event) => handleOnTaskIdBlur(event),
+          size: 'small',
+        }}
+        viewProps={{
+          className: classes.view,
+          children: (
+            <span>
+              <b>ID:</b> {bpmnDetails.id}
+            </span>
+          ),
+          value: bpmnDetails.id,
+          variant: 'tertiary',
+          'aria-label': t('process_editor.configuration_panel_change_task_id'),
+        }}
+      />
+    </div>
   );
 };

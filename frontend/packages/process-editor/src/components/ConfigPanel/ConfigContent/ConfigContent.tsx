@@ -6,6 +6,8 @@ import { StudioDisplayTile, StudioSectionHeader } from '@studio/components';
 import { getConfigTitleKey, getConfigTitleHelpTextKey } from '../../../utils/configPanelUtils';
 import { ConfigIcon } from './ConfigIcon';
 
+import classes from './ConfigContent.module.css';
+
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
@@ -14,6 +16,17 @@ export const ConfigContent = (): React.ReactElement => {
     title: t(getConfigTitleKey(bpmnDetails?.taskType)),
     helpTextTitle: bpmnDetails?.taskType && t(getConfigTitleHelpTextKey(bpmnDetails?.taskType)),
   };
+
+  const propertiesToDisplay = [
+    {
+      label: t('process_editor.configuration_panel_id_label'),
+      value: bpmnDetails.id,
+    },
+    {
+      label: t('process_editor.configuration_panel_name_label'),
+      value: bpmnDetails.name,
+    },
+  ];
 
   return (
     <>
@@ -28,15 +41,19 @@ export const ConfigContent = (): React.ReactElement => {
           title: t('process_editor.configuration_panel_header_help_text_title'),
         }}
       />
-      <EditTaskId />
-      <StudioDisplayTile
-        label={t('process_editor.configuration_panel_id_label')}
-        value={bpmnDetails.id}
-      />
-      <StudioDisplayTile
-        label={t('process_editor.configuration_panel_name_label')}
-        value={bpmnDetails.name}
-      />
+
+      <EditTaskId className={classes.editTaskId} />
+
+      {propertiesToDisplay.map(
+        ({ label, value }, index): React.ReactElement => (
+          <StudioDisplayTile
+            key={label}
+            label={label}
+            value={value}
+            className={classes.displayTile}
+          />
+        ),
+      )}
     </>
   );
 };

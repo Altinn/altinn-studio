@@ -1,0 +1,8 @@
+.editTaskId {
+  margin-bottom: var(--fds-spacing-4);
+}
+
+.displayTile {
+  padding: var(--fds-spacing-1) var(--fds-spacing-4);
+  box-sizing: border-box;
+}

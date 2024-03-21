@@ -115,4 +115,12 @@ describe('EditTaskId', () => {
 
     expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
   });
+
+  it('should support HTMLDivElement props', () => {
+    (useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({
+      setMetaDataForm: jest.fn(),
+    });
+    render(<EditTaskId className='my-awesome-class-name' data-testid='unitTestId' />);
+    expect(screen.getByTestId('unitTestId')).toHaveClass('my-awesome-class-name');
+  });
 });
