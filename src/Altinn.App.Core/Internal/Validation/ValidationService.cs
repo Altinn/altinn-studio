@@ -106,7 +106,7 @@ public class ValidationService : IValidationService
 
     private Task<List<ValidationIssue>[]> RunDataElementValidators(Instance instance, DataElement dataElement, DataType dataType, string? language)
     {
-        var validators = _validatorFactory.GetDataElementValidators(dataElement.Id);
+        var validators = _validatorFactory.GetDataElementValidators(dataType.Id);
 
         var dataElementsIssuesTask = Task.WhenAll(validators.Select(async v =>
         {
