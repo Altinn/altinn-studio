@@ -60,7 +60,6 @@ const isFeatureActivatedByUrl = (featureFlag: SupportedFeatureFlags): boolean =>
 // Check if feature includes in local storage, featureFlags: ["featureName"]
 const isFeatureActivatedByLocalStorage = (featureFlag: SupportedFeatureFlags): boolean => {
   const featureFlagsFromStorage = typedLocalStorage.getItem<string[]>(featureFlagKey) || [];
-  console.log(featureFlagsFromStorage);
   return featureFlagsFromStorage.includes(featureFlag);
 };
 
