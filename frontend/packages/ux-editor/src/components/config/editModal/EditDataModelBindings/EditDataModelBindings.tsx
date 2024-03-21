@@ -14,7 +14,7 @@ import { UndefinedBinding } from './UndefinedBinding';
 import { EditBinding } from './EditBinding';
 import { DefinedBinding } from './DefinedBinding';
 import type { FormItem } from '../../../../types/FormItem';
-import { useSelectedFormLayoutSetName } from '../../../../hooks';
+import { useAppContext } from '../../../../hooks';
 
 export interface EditDataModelBindingsProps<T extends ComponentType>
   extends IGenericEditComponent<T> {
@@ -34,7 +34,7 @@ export const EditDataModelBindings = <T extends ComponentType>({
   helpText,
 }: EditDataModelBindingsProps<T>) => {
   const { org, app } = useStudioUrlParams();
-  const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
+  const { selectedFormLayoutSetName } = useAppContext();
   const { data } = useDatamodelMetadataQuery(org, app, selectedFormLayoutSetName);
   const { t } = useTranslation();
   const [dataModelSelectVisible, setDataModelSelectVisible] = useState(false);

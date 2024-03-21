@@ -1,6 +1,6 @@
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useLayoutSetsQuery } from './queries/useLayoutSetsQuery';
-import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
+import { useReactiveLocalStorage } from 'app-shared/hooks/useReactiveLocalStorage';
 
 export type UseSelectedFormLayoutSetNameResult = {
   selectedFormLayoutSetName: string;
@@ -13,12 +13,12 @@ export const useSelectedFormLayoutSetName = (): UseSelectedFormLayoutSetNameResu
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
   const [selectedFormLayoutSetName, setSelectedFormLayoutSetName, removeFormSelectedLayoutSetName] =
-    useLocalStorage('layoutSet/' + app, undefined);
+    useReactiveLocalStorage('layoutSet/' + app, undefined);
 
   if (layoutSets) {
     if (
       !selectedFormLayoutSetName ||
-      layoutSets.sets.some((item) => item.id !== selectedFormLayoutSetName)
+      !layoutSets.sets.find((item) => item.id === selectedFormLayoutSetName)
     ) {
       setSelectedFormLayoutSetName(layoutSets.sets[0].id);
     }

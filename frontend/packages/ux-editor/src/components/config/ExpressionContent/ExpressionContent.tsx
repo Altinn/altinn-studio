@@ -9,7 +9,7 @@ import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMe
 import { Paragraph } from '@digdir/design-system-react';
 import classes from './ExpressionContent.module.css';
 import { Expression as ExpressionWithTexts } from 'app-shared/components/Expression';
-import { useText, useSelectedFormLayoutSetName } from '../../../hooks';
+import { useText, useAppContext } from '../../../hooks';
 
 export interface ExpressionContentProps {
   expression: Expression;
@@ -26,7 +26,7 @@ export const ExpressionContent = ({
 }: ExpressionContentProps) => {
   const t = useText();
   const { org, app } = useStudioUrlParams();
-  const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
+  const { selectedFormLayoutSetName } = useAppContext();
   const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
   const { data: datamodelMetadata } = useDatamodelMetadataQuery(
     org,

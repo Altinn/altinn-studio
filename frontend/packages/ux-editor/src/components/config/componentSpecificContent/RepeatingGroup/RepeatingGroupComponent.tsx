@@ -7,7 +7,7 @@ import {
   useSelectedFormLayout,
   useText,
   useTextResourcesSelector,
-  useSelectedFormLayoutSetName,
+  useAppContext,
   useSelectedFormLayoutName,
 } from '../../../../hooks';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
@@ -26,7 +26,7 @@ export const RepeatingGroupComponent = ({
 
   const { org, app } = useStudioUrlParams();
 
-  const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
+  const { selectedFormLayoutSetName } = useAppContext();
   const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
   const { components } = useSelectedFormLayout();
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(

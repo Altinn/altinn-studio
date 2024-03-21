@@ -8,7 +8,7 @@ import * as testids from '../../../../../../testing/testids';
 import { TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useSelectedFormLayoutSetName } from '../../../hooks';
+import { useAppContext } from '../../../hooks';
 import { StudioButton } from '@studio/components';
 import { useDeleteLayoutMutation } from '../../../hooks/mutations/useDeleteLayoutMutation';
 
@@ -42,7 +42,7 @@ export const PageAccordion = ({
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
-  const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
+  const { selectedFormLayoutSetName } = useAppContext();
 
   const { mutate: deleteLayout, isPending } = useDeleteLayoutMutation(
     org,

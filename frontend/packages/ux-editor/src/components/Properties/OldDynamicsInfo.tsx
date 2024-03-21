@@ -4,12 +4,12 @@ import { ExternalLinkIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { giteaEditLink, altinnDocsUrl } from 'app-shared/ext-urls';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useSelectedFormLayoutSetName } from '../../hooks';
+import { useAppContext } from '../../hooks';
 import { Link } from '@digdir/design-system-react';
 
 export const OldDynamicsInfo = () => {
   const { t } = useTranslation();
-  const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
+  const { selectedFormLayoutSetName } = useAppContext();
   const { app, org } = useStudioUrlParams();
   const dynamicLocation = selectedFormLayoutSetName
     ? `App/ui/${selectedFormLayoutSetName}/RuleHandler.js`

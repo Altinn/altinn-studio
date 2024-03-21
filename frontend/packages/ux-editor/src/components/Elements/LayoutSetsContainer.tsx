@@ -2,7 +2,7 @@ import React from 'react';
 import { useLayoutSetsQuery } from '../../hooks/queries/useLayoutSetsQuery';
 import { NativeSelect } from '@digdir/design-system-react';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useText, useSelectedFormLayoutSetName } from '../../hooks';
+import { useText, useAppContext } from '../../hooks';
 import classes from './LayoutSetsContainer.module.css';
 
 export function LayoutSetsContainer() {
@@ -10,8 +10,7 @@ export function LayoutSetsContainer() {
   const layoutSetsQuery = useLayoutSetsQuery(org, app);
   const layoutSetNames = layoutSetsQuery.data?.sets?.map((set) => set.id);
   const t = useText();
-  const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } =
-    useSelectedFormLayoutSetName();
+  const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } = useAppContext();
 
   const onLayoutSetClick = (set: string) => {
     if (selectedFormLayoutSetName !== set) {

@@ -10,7 +10,7 @@ import { useRuleConfigQuery } from '../../hooks/queries/useRuleConfigQuery';
 import { useRuleConfigMutation } from '../../hooks/mutations/useRuleConfigMutation';
 import { addRuleConnection, deleteRuleConnection } from '../../utils/ruleConfigUtils';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useSelectedFormLayoutSetName } from '../../hooks';
+import { useAppContext } from '../../hooks';
 
 export interface IRuleModalProps {
   modalOpen: boolean;
@@ -21,7 +21,7 @@ export interface IRuleModalProps {
 export function RuleModal(props: IRuleModalProps) {
   const { org, app } = useStudioUrlParams();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
-  const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
+  const { selectedFormLayoutSetName } = useAppContext();
   const { data: ruleConfig } = useRuleConfigQuery(org, app, selectedFormLayoutSetName);
   const { data: ruleModelElements } = useRuleModelQuery(org, app, selectedFormLayoutSetName);
   const { mutate: saveRuleConfig } = useRuleConfigMutation(org, app, selectedFormLayoutSetName);

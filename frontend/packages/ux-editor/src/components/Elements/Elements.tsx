@@ -2,7 +2,7 @@ import React from 'react';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
 import { Heading, Paragraph } from '@digdir/design-system-react';
-import { useText, useSelectedFormLayoutSetName, useSelectedFormLayoutName } from '../../hooks';
+import { useText, useAppContext, useSelectedFormLayoutName } from '../../hooks';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
 
@@ -11,7 +11,7 @@ import classes from './Elements.module.css';
 
 export const Elements = () => {
   const { org, app } = useStudioUrlParams();
-  const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
+  const { selectedFormLayoutSetName } = useAppContext();
   const { selectedFormLayoutName } = useSelectedFormLayoutName();
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
     org,

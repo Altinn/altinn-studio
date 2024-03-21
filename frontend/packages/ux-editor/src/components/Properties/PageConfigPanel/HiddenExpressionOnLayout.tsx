@@ -5,13 +5,13 @@ import type { IInternalLayout } from '../../../types/global';
 import { deepCopy } from 'app-shared/pure';
 import { useFormLayoutMutation } from '../../../hooks/mutations/useFormLayoutMutation';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useSelectedFormLayoutWithName, useSelectedFormLayoutSetName } from '../../../hooks';
+import { useSelectedFormLayoutWithName, useAppContext } from '../../../hooks';
 import { Trans } from 'react-i18next';
 
 export const HiddenExpressionOnLayout = () => {
   const { app, org } = useStudioUrlParams();
   const { layout, layoutName } = useSelectedFormLayoutWithName();
-  const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
+  const { selectedFormLayoutSetName } = useAppContext();
   const { mutate: saveLayout } = useFormLayoutMutation(
     org,
     app,

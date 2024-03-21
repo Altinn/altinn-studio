@@ -10,6 +10,9 @@ export interface WindowWithQueryClient extends Window {
 
 export interface AppContextProps {
   previewIframeRef: MutableRefObject<HTMLIFrameElement>;
+  selectedFormLayoutSetName: string;
+  setSelectedFormLayoutSetName: (layoutSet: string) => void;
+  removeFormSelectedLayoutSetName: () => void;
   refetchLayouts: () => Promise<void>;
   refetchLayoutSettings: () => Promise<void>;
   refetchTexts: (language: string) => Promise<void>;
@@ -25,7 +28,11 @@ type AppContextProviderProps = {
 export const AppContextProvider = ({ children }: AppContextProviderProps): React.JSX.Element => {
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
   const { org, app } = useStudioUrlParams();
-  const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
+  const {
+    selectedFormLayoutSetName,
+    setSelectedFormLayoutSetName,
+    removeFormSelectedLayoutSetName,
+  } = useSelectedFormLayoutSetName();
 
   const refetch = useCallback(async (queryKey: QueryKey): Promise<void> => {
     const contentWindow: WindowWithQueryClient = previewIframeRef?.current?.contentWindow;
@@ -62,12 +69,23 @@ export const AppContextProvider = ({ children }: AppContextProviderProps): React
   const value = useMemo(
     () => ({
       previewIframeRef,
+      selectedFormLayoutSetName,
+      setSelectedFormLayoutSetName,
+      removeFormSelectedLayoutSetName,
       refetchLayouts,
       refetchLayoutSettings,
       refetchTexts,
       reloadPreview,
     }),
-    [refetchLayouts, refetchLayoutSettings, refetchTexts, reloadPreview],
+    [
+      selectedFormLayoutSetName,
+      setSelectedFormLayoutSetName,
+      removeFormSelectedLayoutSetName,
+      refetchLayouts,
+      refetchLayoutSettings,
+      refetchTexts,
+      reloadPreview,
+    ],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
