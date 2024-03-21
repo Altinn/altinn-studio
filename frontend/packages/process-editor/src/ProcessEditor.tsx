@@ -49,9 +49,6 @@ export const ProcessEditor = ({
           onUpdateLayoutSet={onUpdateLayoutSet}
         />
       </BpmnConfigPanelFormContextProvider>
-      <div className={classes.container}>
-        <Canvas onSave={onSave} />
-      </div>
     </BpmnContextProvider>
   );
 };
@@ -69,8 +66,7 @@ const BPMNCanvas = ({
   const { metaDataForm, resetForm } = useBpmnConfigPanelFormContext();
 
   const handleSave = (bpmnXml: string): void => {
-    console.log({ metaDataForm });
-    onSave(bpmnXml, metaDataForm);
+    onSave(bpmnXml, metaDataForm || null);
     resetForm();
   };
 

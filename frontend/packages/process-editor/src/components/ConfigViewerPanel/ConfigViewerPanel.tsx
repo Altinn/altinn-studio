@@ -28,6 +28,17 @@ export const ConfigViewerPanelContent = (): React.ReactElement => {
   const configHeaderHelpText =
     bpmnDetails?.taskType && t(getConfigTitleHelpTextKey(bpmnDetails.taskType));
 
+  const propertiesToDisplay: Array<{ label: string; value: string }> = [
+    {
+      label: t('process_editor.configuration_view_panel_id_label'),
+      value: bpmnDetails.id,
+    },
+    {
+      label: t('process_editor.configuration_view_panel_name_label'),
+      value: bpmnDetails.name,
+    },
+  ];
+
   return (
     <>
       <StudioSectionHeader
@@ -42,15 +53,9 @@ export const ConfigViewerPanelContent = (): React.ReactElement => {
         }}
       />
       <div>
-        <StudioDisplayTile
-          icon={<KeyVerticalIcon fontSize='1.2rem' />}
-          label={t('process_editor.configuration_view_panel_id_label')}
-          value={bpmnDetails.id}
-        />
-        <StudioDisplayTile
-          label={t('process_editor.configuration_view_panel_name_label')}
-          value={bpmnDetails.name}
-        />
+        {propertiesToDisplay.map(({ label, value }) => (
+          <StudioDisplayTile key={label} label={label} value={value} />
+        ))}
       </div>
     </>
   );

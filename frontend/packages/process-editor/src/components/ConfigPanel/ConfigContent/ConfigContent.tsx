@@ -17,7 +17,7 @@ export const ConfigContent = (): React.ReactElement => {
     helpTextTitle: bpmnDetails?.taskType && t(getConfigTitleHelpTextKey(bpmnDetails?.taskType)),
   };
 
-  const propertiesToDisplay = [
+  const propertiesToDisplay: Array<{ label: string; value: string }> = [
     {
       label: t('process_editor.configuration_panel_id_label'),
       value: bpmnDetails.id,
@@ -45,7 +45,7 @@ export const ConfigContent = (): React.ReactElement => {
       <EditTaskId className={classes.editTaskId} />
 
       {propertiesToDisplay.map(
-        ({ label, value }, index): React.ReactElement => (
+        ({ label, value }): React.ReactElement => (
           <StudioDisplayTile
             key={label}
             label={label}

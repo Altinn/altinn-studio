@@ -1,10 +1,10 @@
 import React, { useState, createContext, useContext } from 'react';
 
 export type MetaDataForm = {
-  taskIdChanges?: {
+  taskIdChanges?: Array<{
     oldId: string;
     newId: string;
-  };
+  }>;
 };
 
 type BpmnConfigPanelContextType = {

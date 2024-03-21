@@ -1,4 +1,4 @@
-import React, { HTMLAttributes } from 'react';
+import React, { type HTMLAttributes } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { StudioToggleableTextfield } from '@studio/components';
@@ -21,6 +21,7 @@ export const EditTaskId = ({ ...rest }: EditTaskIdProps): React.ReactElement => 
   const modeler = getModeler(modelerRef.current as unknown as HTMLDivElement);
   const modeling: Modeling = modeler.get('modeling');
 
+  // TODO: this should be moved to where the saving of the bpmn file is done, because we want to keep the old id
   const updateId = (value: string): void => {
     modeling.updateProperties(bpmnDetails.element, {
       id: value,
@@ -38,10 +39,12 @@ export const EditTaskId = ({ ...rest }: EditTaskIdProps): React.ReactElement => 
 
     setMetaDataForm((prevMetaData) => ({
       ...prevMetaData,
-      taskIdChanges: {
-        newId,
-        oldId: bpmnDetails.id,
-      },
+      taskIdChanges: [
+        {
+          newId,
+          oldId: bpmnDetails.id,
+        },
+      ],
     }));
     updateId(newId);
   };
