@@ -46,7 +46,7 @@ export function App() {
 
     return createErrorMessage(t('general.unknown_error'));
   };
-
+  
   if (componentHasError) {
     const mappedError = mapErrorToDisplayError();
     return <ErrorPage title={mappedError.title} message={mappedError.message} />;
