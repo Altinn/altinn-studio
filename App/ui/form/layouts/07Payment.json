@@ -7,6 +7,14 @@
         "type": "NavigationBar"
       },
       {
+        "id": "my-paymentSumary",
+        "type": "PaymentDetails",
+        "textResourceBindings": {
+          "title": "Oversikt over betaling",
+          "description": "Her er en oversikt over hva du skal betale for."
+        }
+      },
+      {
         "id": "next-button",
         "type": "Button",
         "textResourceBindings": {
