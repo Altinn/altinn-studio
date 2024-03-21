@@ -123,4 +123,131 @@ describe('Navigation', () => {
     cy.findByRole('button', { name: /Neste/ }).should('exist');
     cy.findByRole('button', { name: /Tilbake til oppsummering/ }).should('exist');
   });
+
+  it('should navigate to a specified page clicking a linkToPage', () => {
+    cy.interceptLayout(
+      'group',
+      (component) => component,
+      (layout) => {
+        layout['prefill'].data.layout.push({
+          id: 'paragraph-formLink-test',
+          type: 'Paragraph',
+          textResourceBindings: {
+            title: ['linkToPage', 'Klikk på meg', 'repeating'],
+          },
+        });
+
+        return layout;
+      },
+    );
+    cy.goto('group');
+    cy.findByRole('link', { name: 'Klikk på meg' }).click();
+
+    cy.url().should('satisfy', (url) => url.endsWith('/Task_3/repeating'));
+  });
+
+  it('should navigate to a specified page and focus component when clicking a linkToComponent', () => {
+    cy.interceptLayout(
+      'group',
+      (component) => component,
+      (layout) => {
+        layout['prefill'].data.layout.push({
+          id: 'paragraph-formLink-test',
+          type: 'Paragraph',
+          textResourceBindings: {
+            title: ['linkToComponent', 'Klikk på meg', 'hideRepeatingGroupRow'],
+          },
+        });
+
+        return layout;
+      },
+    );
+    cy.goto('group');
+    cy.findByRole('link', { name: 'Klikk på meg' }).click();
+
+    cy.url().should('satisfy', (url) => url.endsWith('/Task_3/repeating'));
+    cy.findByLabelText('Hvilket tall må "Endre fra" være større enn for å skjule rader?').should('be.focused');
+  });
+
+  it('should navigate back to previous page when using browser back after navigating to a component', () => {
+    cy.interceptLayout(
+      'group',
+      (component) => component,
+      (layout) => {
+        layout['prefill'].data.layout.push({
+          id: 'paragraph-formLink-test',
+          type: 'Paragraph',
+          textResourceBindings: {
+            title: ['linkToComponent', 'Klikk på meg', 'hideRepeatingGroupRow'],
+          },
+        });
+
+        return layout;
+      },
+    );
+    cy.goto('group');
+    cy.findByRole('link', { name: 'Klikk på meg' }).click();
+
+    cy.url().should('satisfy', (url) => url.endsWith('/Task_3/repeating'));
+    cy.findByLabelText('Hvilket tall må "Endre fra" være større enn for å skjule rader?').should('be.focused');
+    cy.go('back');
+    cy.url().should('satisfy', (url) => url.endsWith('/Task_3/prefill'));
+  });
+
+  it('should navigate back to previous page when using browser back after trying to navigate to a non-existent component', () => {
+    cy.interceptLayout(
+      'group',
+      (component) => component,
+      (layout) => {
+        layout['prefill'].data.layout.push({
+          id: 'paragraph-formLink-test',
+          type: 'Paragraph',
+          textResourceBindings: {
+            title: ['linkToComponent', 'Klikk på meg', 'thisComponentIdDoesNotExist'],
+          },
+        });
+
+        return layout;
+      },
+    );
+    cy.goto('group');
+
+    cy.findByRole('button', { name: /hide/ }).click();
+    cy.url().should('satisfy', (url) => url.endsWith('/Task_3/hide'));
+    cy.findByRole('button', { name: /prefill/ }).click();
+    cy.url().should('satisfy', (url) => url.endsWith('/Task_3/prefill'));
+
+    cy.findByRole('link', { name: 'Klikk på meg' }).click();
+
+    cy.go('back');
+    cy.url().should('satisfy', (url) => url.endsWith('/Task_3/hide'));
+  });
+
+  it('should navigate back to previous page when using browser back after trying to navigate to a non-existent component', () => {
+    cy.interceptLayout(
+      'group',
+      (component) => component,
+      (layout) => {
+        layout['prefill'].data.layout.push({
+          id: 'paragraph-formLink-test',
+          type: 'Paragraph',
+          textResourceBindings: {
+            title: ['linkToPage', 'Klikk på meg', 'hide'],
+          },
+        });
+
+        return layout;
+      },
+    );
+    cy.goto('group');
+
+    cy.url().should('satisfy', (url) => url.endsWith('/Task_3/prefill'));
+
+    cy.findByRole('link', { name: 'Klikk på meg' }).click();
+    cy.url().should('satisfy', (url) => url.endsWith('/Task_3/hide'));
+
+    cy.go('back');
+
+    cy.url().should('satisfy', (url) => url.endsWith('/Task_3/prefill'));
+  });
 });

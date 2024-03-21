@@ -49,6 +49,15 @@ function findComponent(context: FunctionTest['context'], collection: LayoutPages
 }
 
 describe('Expressions shared function tests', () => {
+  let preHash;
+  beforeAll(() => {
+    preHash = window.location.hash;
+    window.location.hash = '#/instance/510001/d00ce51c-800b-416a-a906-ccab55f597e9/Task_3/grid';
+  });
+  afterAll(() => {
+    window.location.hash = preHash;
+  });
+
   const sharedTests = getSharedTests('functions');
 
   describe.each(sharedTests.content)('Function: $folderName', (folder) => {
@@ -64,6 +73,7 @@ describe('Expressions shared function tests', () => {
         dataModel,
         instanceDataElements,
         instance,
+        process,
         permissions,
         frontendSettings,
         textResources,
@@ -88,6 +98,7 @@ describe('Expressions shared function tests', () => {
               textResources: textResources ? resourcesAsMap(textResources) : {},
             }),
           },
+          process,
           currentLanguage: profileSettings?.language || 'nb',
           options: (nodeId) => options[nodeId] || [],
           isHidden: (nodeId: string) => hidden.has(nodeId),

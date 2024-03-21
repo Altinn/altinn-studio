@@ -10,7 +10,7 @@ import type { useAllOptionsSelector } from 'src/features/options/useAllOptions';
 import type { FormDataSelector } from 'src/layout';
 import type { ILayoutSettings } from 'src/layout/common.generated';
 import type { IHiddenLayoutsExternal } from 'src/types';
-import type { IApplicationSettings, IAuthContext, IInstanceDataSources } from 'src/types/shared';
+import type { IApplicationSettings, IAuthContext, IInstanceDataSources, IProcess } from 'src/types/shared';
 import type { BaseLayoutNode, LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
@@ -22,6 +22,7 @@ export type PageNavigationConfig = {
 };
 
 export interface ContextDataSources {
+  process?: IProcess;
   instanceDataSources: IInstanceDataSources | null;
   applicationSettings: IApplicationSettings | null;
   formDataSelector: FormDataSelector;

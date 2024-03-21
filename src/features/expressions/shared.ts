@@ -4,7 +4,7 @@ import type { IAttachments, UploadedAttachment } from 'src/features/attachments'
 import type { Expression } from 'src/features/expressions/types';
 import type { IRawTextResource } from 'src/features/language/textResources';
 import type { ILayout, ILayouts } from 'src/layout/layout';
-import type { IApplicationSettings, IData, IInstance, ITask } from 'src/types/shared';
+import type { IApplicationSettings, IData, IInstance, IProcess, ITask } from 'src/types/shared';
 
 export interface Layouts {
   [key: string]: {
@@ -22,6 +22,7 @@ export interface SharedTest {
   layouts?: Layouts;
   dataModel?: any;
   instance?: IInstance;
+  process?: IProcess;
   instanceDataElements?: IData[];
   permissions?: ITask;
   frontendSettings?: IApplicationSettings;

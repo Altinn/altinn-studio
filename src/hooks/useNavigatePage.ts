@@ -27,6 +27,10 @@ export enum TaskKeys {
   CustomReceipt = 'CustomReceipt',
 }
 
+export enum SearchParams {
+  FocusComponentId = 'focusComponentId',
+}
+
 export const useNavigationParams = () => {
   const instanceMatch = useMatch('/instance/:partyId/:instanceGuid');
   const taskIdMatch = useMatch('/instance/:partyId/:instanceGuid/:taskId');

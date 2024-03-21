@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
 
 import Grid from '@material-ui/core/Grid';
 import deepEqual from 'fast-deep-equal';
@@ -11,15 +11,15 @@ import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { Loader } from 'src/core/loading/Loader';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useExpandedWidthLayouts } from 'src/features/form/layout/LayoutsContext';
-import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
+import { useNavigateToNode, useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { FrontendValidationSource } from 'src/features/validation';
 import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
-import { useCurrentView, useNavigatePage } from 'src/hooks/useNavigatePage';
+import { SearchParams, useCurrentView, useNavigatePage } from 'src/hooks/useNavigatePage';
 import { GenericComponentById } from 'src/layout/GenericComponent';
 import { extractBottomButtons, hasRequiredFields } from 'src/utils/formLayout';
-import { useNodesMemoSelector } from 'src/utils/layout/NodesContext';
+import { useNodesMemoSelector, useResolvedNode } from 'src/utils/layout/NodesContext';
 
 interface FormState {
   hasRequired: boolean;
@@ -46,7 +46,10 @@ export function Form() {
   useRegisterNodeNavigationHandler((targetNode) => {
     const targetView = targetNode?.top.top.myKey;
     if (targetView && targetView !== currentPageId) {
-      navigateToPage(targetView, { shouldFocusComponent: true });
+      navigateToPage(targetView, {
+        shouldFocusComponent: true,
+        replace: window.location.href.includes(SearchParams.FocusComponentId),
+      });
       return true;
     }
     return false;
@@ -98,6 +101,7 @@ export function Form() {
         </Grid>
       </Grid>
       <ReadyForPrint />
+      <HandleNavigationFocusComponent />
     </>
   );
 }
@@ -211,6 +215,27 @@ function ErrorProcessing({ setFormState }: ErrorProcessingProps) {
       };
     });
   }, [setFormState, hasRequired, requiredFieldsMissing, mainIds, errorReportIds]);
+
+  return null;
+}
+
+function HandleNavigationFocusComponent() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const componentId = searchParams.get(SearchParams.FocusComponentId);
+  const focusNode = useResolvedNode(componentId);
+  const navigateTo = useNavigateToNode();
+
+  React.useEffect(() => {
+    searchParams.delete(SearchParams.FocusComponentId);
+    setSearchParams(searchParams, { replace: true, preventScrollReset: true });
+  }, [searchParams, setSearchParams]);
+
+  React.useEffect(() => {
+    if (focusNode != null) {
+      navigateTo(focusNode);
+    }
+  }, [navigateTo, focusNode]);
 
   return null;
 }

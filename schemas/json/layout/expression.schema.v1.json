@@ -70,6 +70,8 @@
         { "$ref": "#/definitions/func-frontendSettings" },
         { "$ref": "#/definitions/func-concat" },
         { "$ref": "#/definitions/func-formatDate" },
+        { "$ref": "#/definitions/func-linkToComponent" },
+        { "$ref": "#/definitions/func-linkToPage" },
         { "$ref": "#/definitions/func-round" },
         { "$ref": "#/definitions/func-text" },
         { "$ref": "#/definitions/func-language" },
@@ -324,6 +326,28 @@
       "type": "array",
       "items": [
         { "const":  "formatDate" },
+        { "$ref": "#/definitions/string" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
+    },
+    "func-linkToComponent": {
+      "title": "Link to component function",
+      "description": "This function returns a link to a specific component in a form",
+      "type": "array",
+      "items": [
+        { "const":  "linkToComponent" },
+        { "$ref": "#/definitions/string" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
+    },
+    "func-linkToPage": {
+      "title": "Link to page function",
+      "description": "This function returns a link to a specific page in a form",
+      "type": "array",
+      "items": [
+        { "const": "linkToPage" },
         { "$ref": "#/definitions/string" },
         { "$ref": "#/definitions/string" }
       ],

@@ -11,6 +11,7 @@ import {
 import { ExprContext } from 'src/features/expressions/ExprContext';
 import { ExprVal } from 'src/features/expressions/types';
 import { addError, asExpression, canBeExpression } from 'src/features/expressions/validation';
+import { SearchParams } from 'src/hooks/useNavigatePage';
 import { implementsDisplayData } from 'src/layout';
 import { isDate } from 'src/utils/dateHelpers';
 import { formatDateLocale } from 'src/utils/formatDateLocale';
@@ -626,6 +627,51 @@ export const ExprFunctions = {
       return this.dataSources.langToolsRef.current.langAsNonProcessedString(key);
     },
     args: [ExprVal.String] as const,
+    returns: ExprVal.String,
+  }),
+  linkToComponent: defineFunc({
+    impl(linkText, componentId) {
+      if (componentId == null) {
+        window.logWarn('Component id was empty but must be set for linkToComponent to work');
+        return null;
+      }
+      if (linkText == null) {
+        window.logWarn('Link text was empty but must be set for linkToComponent to work');
+        return null;
+      }
+      const [_url, queryParams] = window.location.hash.split('#')?.[1]?.split('?') ?? [];
+      const searchParams = new URLSearchParams(queryParams);
+      searchParams.set(SearchParams.FocusComponentId, componentId);
+      const newUrl = `${_url}?${searchParams.toString()}`;
+      return `<a href="${newUrl}" data-link-type="LinkToPotentialNode">${linkText}</a>`;
+    },
+    args: [ExprVal.String, ExprVal.String] as const,
+    minArguments: 2,
+    returns: ExprVal.String,
+  }),
+  linkToPage: defineFunc({
+    impl(linkText, pageId) {
+      if (pageId == null) {
+        window.logWarn('Page id was empty but must be set for linkToPage to work');
+        return null;
+      }
+      if (linkText == null) {
+        window.logWarn('Link text was empty but must be set for linkToPage to work');
+        return null;
+      }
+      const taskId = this.dataSources.process?.currentTask?.elementId;
+      const instanceId = this.dataSources.instanceDataSources?.instanceId;
+
+      let url = '';
+      if (taskId && instanceId) {
+        url = `#/instance/${instanceId}/${taskId}/${pageId}`;
+      } else {
+        url = `#/${pageId}`;
+      }
+      return `<a href="${url}" class="same-window">${linkText}</a>`;
+    },
+    args: [ExprVal.String, ExprVal.String] as const,
+    minArguments: 2,
     returns: ExprVal.String,
   }),
   language: defineFunc({

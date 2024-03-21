@@ -7,6 +7,7 @@ import { marked } from 'marked';
 import { mangle } from 'marked-mangle';
 import type { DOMNode, Element, HTMLReactParserOptions } from 'html-react-parser';
 
+import { LinkToPotentialNode } from 'src/components/form/LinkToPotentialNode';
 import { cachedFunction } from 'src/utils/cachedFunction';
 
 marked.use(mangle());
@@ -101,6 +102,13 @@ const parserOptions: HTMLReactParserOptions = {
       return React.createElement(
         Heading,
         { level: 6, size: 'xsmall' },
+        domToReact(domNode.children as DOMNode[], parserOptions),
+      );
+    }
+    if (isElement(domNode) && domNode.name === 'a' && domNode.attribs['data-link-type'] === 'LinkToPotentialNode') {
+      return React.createElement(
+        LinkToPotentialNode,
+        { to: domNode.attribs.href, preventScrollReset: true },
         domToReact(domNode.children as DOMNode[], parserOptions),
       );
     }
