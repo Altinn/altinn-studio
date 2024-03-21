@@ -6,7 +6,7 @@
   "license": "3-Clause BSD",
   "exports": "./src/index.tsx",
   "scripts": {
-    "postinstall": "husky install",
+    "postinstall": "husky",
     "gen": "node -r ts-node/register/transpile-only -r tsconfig-paths/register src/codegen/run.ts",
     "copy-schemas": "node -r ts-node/register/transpile-only -r tsconfig-paths/register scripts/copy-schemas.ts",
     "start": "yarn gen && cross-env NODE_ENV=development webpack-dev-server --config webpack.config.development.js --mode development --progress",
