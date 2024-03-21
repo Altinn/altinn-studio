@@ -1,5 +1,5 @@
 import { stringify as s } from 'qs';
-import { APP_DEVELOPMENT_BASENAME } from '../constants';
+import { APP_DEVELOPMENT_BASENAME, PREVIEW_MOCK_PARTY_ID, PREVIEW_MOCK_INSTANCE_GUID, PREVIEW_MOCK_TASK_ID } from '../constants';
 
 // Base path
 const basePath = '/designer/api';
@@ -64,7 +64,7 @@ export const orgsListPath = () => `${basePath}/orgs`; // Get
 
 // Preview
 export const instanceIdForPreviewPath = (org, app) => `${basePath}/${org}/${app}/mock-instance-id`; // Get
-export const previewPage = (org, app, selectedLayout) => `/app-specific-preview/${org}/${app}#/instance/51001/f1e23d45-6789-1bcd-8c34-56789abcdef0/Task_1/${selectedLayout}`;
+export const previewPage = (org, app, selectedLayout) => `/app-specific-preview/${org}/${app}#/instance/${PREVIEW_MOCK_PARTY_ID}/${PREVIEW_MOCK_INSTANCE_GUID}/${PREVIEW_MOCK_TASK_ID}/${selectedLayout}`;
 
 // Preview - SignalR Hub
 export const previewSignalRHubSubPath = () => `/previewHub`;

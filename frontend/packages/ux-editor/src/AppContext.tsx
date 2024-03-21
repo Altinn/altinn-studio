@@ -2,7 +2,8 @@ import type { MutableRefObject } from 'react';
 import React, { useMemo, useRef, createContext, useCallback } from 'react';
 import type { QueryClient, QueryKey } from '@tanstack/react-query';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useSelectedFormLayoutSetName } from './hooks';
+import { useSelectedFormLayoutName, useSelectedFormLayoutSetName } from './hooks';
+import { previewPage } from 'app-shared/api/paths';
 
 export interface WindowWithQueryClient extends Window {
   queryClient?: QueryClient;
@@ -60,7 +61,11 @@ export const AppContextProvider = ({ children }: AppContextProviderProps): React
   const reloadPreview = useCallback(
     (layoutName: string) => {
       if (previewIframeRef?.current?.contentWindow) {
-        previewIframeRef.current.contentWindow.window.location.href = `/app-specific-preview/${org}/${app}#/instance/51001/f1e23d45-6789-1bcd-8c34-56789abcdef0/Task_1/${layoutName}`;
+        previewIframeRef.current.contentWindow.window.location.href = previewPage(
+          org,
+          app,
+          layoutName,
+        );
       }
     },
     [app, org],

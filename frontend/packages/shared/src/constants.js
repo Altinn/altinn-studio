@@ -12,3 +12,6 @@ export const DEFAULT_SELECTED_LAYOUT_NAME = 'default';
 export const TASKID_FOR_STATELESS_APPS = 'Task_1';
 export const MAX_NESTED_GROUP_LEVEL = 2;
 export const PROTECTED_TASK_NAME_CUSTOM_RECEIPT = 'CustomReceipt';
+export const PREVIEW_MOCK_PARTY_ID = '51001';
+export const PREVIEW_MOCK_INSTANCE_GUID = 'f1e23d45-6789-1bcd-8c34-56789abcdef0';
+export const PREVIEW_MOCK_TASK_ID = 'Task_1';
