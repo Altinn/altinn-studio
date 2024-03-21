@@ -1,3 +1,5 @@
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+
 const supportedEntries = ['create.exclusive-gateway', 'create.start-event', 'create.end-event'];
 
 class SupportedPaletteProvider {
@@ -144,7 +146,7 @@ class SupportedPaletteProvider {
         },
         'create.altinn-payment-task': {
           group: 'activity',
-          className: 'bpmn-icon-task-generic bpmn-icon-payment-task',
+          className: `bpmn-icon-task-generic ${shouldDisplayFeature('displayPaymentTaskProcessEditor') ? 'bpmn-icon-payment-task' : 'payment-is-hidden-based-on-feature-toggle'}`,
           title: translate('Payment'),
           action: {
             dragstart: createCustomPaymentTask(),
