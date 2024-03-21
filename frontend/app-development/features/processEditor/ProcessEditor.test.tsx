@@ -13,11 +13,19 @@ import userEvent from '@testing-library/user-event';
 import { layoutSets } from 'app-shared/mocks/mocks';
 import { layoutSetsMock } from '../../../packages/ux-editor/src/testing/layoutMock';
 import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
+import { useWebSocket } from 'app-shared/hooks/useWebSocket';
+import { WSConnector } from 'app-shared/websockets/WSConnector';
+import { type SyncError } from './syncUtils';
+import { processEditorWebSocketHub } from 'app-shared/api/paths';
 
 // test data
 const org = 'org';
 const app = 'app';
 const defaultAppVersion: AppVersion = { backendVersion: '8.0.0', frontendVersion: '4.0.0' };
+
+jest.mock('app-shared/hooks/useWebSocket', () => ({
+  useWebSocket: jest.fn(),
+}));
 
 jest.mock('app-shared/hooks/useConfirmationDialogOnPageLeave', () => ({
   useConfirmationDialogOnPageLeave: jest.fn(),
@@ -37,12 +45,20 @@ jest.mock('app-shared/utils/featureToggleUtils', () => ({
 }));
 
 describe('ProcessEditor', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders spinner when appLibVersion is not fetched', () => {
+    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
+
     renderProcessEditor();
     screen.getByText(textMock('process_editor.loading'));
   });
 
   it('renders processEditor with "noBpmnFound" error message when appLibVersion is fetched but no bpmn is found', () => {
+    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
+
     const queryClientMock = createQueryClientMock();
     queryClientMock.setQueryData([QueryKey.AppVersion, org, app], defaultAppVersion);
     renderProcessEditor({ queryClient: queryClientMock });
@@ -50,6 +66,8 @@ describe('ProcessEditor', () => {
   });
 
   it('renders processEditor with "No task selected" message in config panel when appLibVersion is fetched but no bpmnDetails are found', () => {
+    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
+
     const queryClientMock = createQueryClientMock();
     queryClientMock.setQueryData([QueryKey.AppVersion, org, app], defaultAppVersion);
     (useBpmnContext as jest.Mock).mockReturnValue({
@@ -60,6 +78,8 @@ describe('ProcessEditor', () => {
   });
 
   it('renders config panel for end event when bpmnDetails has endEvent type', () => {
+    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
+
     const queryClientMock = createQueryClientMock();
     queryClientMock.setQueryData([QueryKey.AppVersion, org, app], defaultAppVersion);
     (useBpmnContext as jest.Mock).mockReturnValue({
@@ -70,6 +90,8 @@ describe('ProcessEditor', () => {
   });
 
   it('calls onUpdateLayoutSet and trigger addLayoutSet mutation call when layoutSetName for custom receipt is added', async () => {
+    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
+
     const customReceiptLayoutSetName = 'CustomReceipt';
     const user = userEvent.setup();
     const queryClientMock = createQueryClientMock();
@@ -95,6 +117,8 @@ describe('ProcessEditor', () => {
   });
 
   it('calls onUpdateLayoutSet and trigger updateLayoutSet mutation call when layoutSetName for custom receipt is changed', async () => {
+    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
+
     const customReceiptLayoutSetName = 'CustomReceipt';
     const newCustomReceiptLayoutSetName = 'NewCustomReceipt';
     const user = userEvent.setup();
@@ -127,6 +151,39 @@ describe('ProcessEditor', () => {
       id: newCustomReceiptLayoutSetName,
       tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
     });
+  });
+
+  it('should render the ProcessEditor component', () => {
+    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
+    renderProcessEditor();
+  });
+
+  it('should call useWebSocket with the correct parameters', () => {
+    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
+    renderProcessEditor();
+
+    expect(useWebSocket).toHaveBeenCalledWith({
+      webSocketUrl: processEditorWebSocketHub(),
+      webSocketConnector: WSConnector,
+    });
+  });
+
+  it('should invoke mockOnWSMessageReceived with error details', () => {
+    const mockOnWSMessageReceived = jest.fn();
+    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: mockOnWSMessageReceived });
+    renderProcessEditor();
+
+    const syncErrorMock: SyncError = {
+      errorCode: 'applicationMetadataTaskIdSyncError',
+      source: {
+        name: '',
+        path: '',
+      },
+      details: '',
+    };
+
+    mockOnWSMessageReceived(syncErrorMock);
+    expect(mockOnWSMessageReceived).toHaveBeenCalledWith(syncErrorMock);
   });
 });
 

@@ -1,18 +1,22 @@
+import React from 'react';
 import { ProcessEditor as ProcessEditorImpl } from '@altinn/process-editor';
 import { useBpmnMutation } from 'app-development/hooks/mutations';
 import { useBpmnQuery } from 'app-development/hooks/queries/useBpmnQuery';
-import React from 'react';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { toast } from 'react-toastify';
 import { Spinner } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
+import { processEditorWebSocketHub } from 'app-shared/api/paths';
+import { WSConnector } from 'app-shared/websockets/WSConnector';
+import { useWebSocket } from 'app-shared/hooks/useWebSocket';
+import { type SyncSuccess, type SyncError, SyncUtils } from './syncUtils';
 import { useUpdateLayoutSetMutation } from '../../hooks/mutations/useUpdateLayoutSetMutation';
 import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useAddLayoutSetMutation } from '../../hooks/mutations/useAddLayoutSetMutation';
 
-export const ProcessEditor = () => {
+export const ProcessEditor = (): React.ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
   const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
@@ -21,6 +25,25 @@ export const ProcessEditor = () => {
   const { mutate: addLayoutSet } = useAddLayoutSetMutation(org, app);
   const existingCustomReceipt: string | undefined = useCustomReceiptLayoutSetName(org, app);
   const bpmnMutation = useBpmnMutation(org, app);
+
+  const { onWSMessageReceived } = useWebSocket({
+    webSocketUrl: processEditorWebSocketHub(),
+    webSocketConnector: WSConnector,
+  });
+
+  onWSMessageReceived<SyncError | SyncSuccess>((message): void => {
+    // Check if the message is a SyncError
+    if ('errorCode' in message) {
+      toast.error(t(SyncUtils.getSyncErrorMessage(message)));
+      return;
+    }
+
+    // Check if the message is a SyncSuccess
+    if ('source' in message) {
+      // Here we can handle the SyncSuccess message or invalidate the query cache
+      console.log('SyncSuccess received');
+    }
+  });
 
   const saveBpmnXml = async (xml: string): Promise<void> => {
     await bpmnMutation.mutateAsync(
