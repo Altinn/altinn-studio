@@ -1,6 +1,5 @@
 import React from 'react';
 import { StudioDisplayTile, StudioSectionHeader } from '@studio/components';
-import { KeyVerticalIcon } from '@studio/icons';
 import { useBpmnContext } from '../../contexts/BpmnContext';
 import { ConfigIcon } from '../ConfigPanel/ConfigContent/ConfigIcon';
 import { getConfigTitleHelpTextKey, getConfigTitleKey } from '../../utils/configPanelUtils';

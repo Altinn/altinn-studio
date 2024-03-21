@@ -1,7 +1,7 @@
+import React from 'react';
 import { ProcessEditor as ProcessEditorImpl } from '@altinn/process-editor';
 import { useBpmnMutation } from 'app-development/hooks/mutations';
 import { useBpmnQuery } from 'app-development/hooks/queries/useBpmnQuery';
-import React from 'react';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { toast } from 'react-toastify';
 import { Spinner } from '@digdir/design-system-react';
