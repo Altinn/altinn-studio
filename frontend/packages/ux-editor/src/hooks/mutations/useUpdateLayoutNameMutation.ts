@@ -6,7 +6,7 @@ import { ObjectUtils } from '@studio/pure-functions';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import type { ILayoutSettings } from 'app-shared/types/global';
-import { useAppContext } from '../';
+import { useSelectedFormLayoutName } from '../';
 
 export interface UpdateLayoutNameMutationArgs {
   oldName: string;
@@ -17,7 +17,7 @@ export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetN
   const { updateFormLayoutName } = useServicesContext();
   const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, layoutSetName);
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
-  const { refetchLayouts, refetchLayoutSettings } = useAppContext();
+  const { setSelectedFormLayoutName } = useSelectedFormLayoutName();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ oldName, newName }: UpdateLayoutNameMutationArgs) =>
@@ -26,13 +26,6 @@ export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetN
         newName,
       })),
     onSuccess: async ({ oldName, newName }) => {
-      // if () {
-      //   setSelectedLayoutInLocalStorage(instanceId, pageName);
-      //   dispatch(FormLayoutActions.updateSelectedLayout(newName));
-      //   setSearchParams((prevParams) => ({ ...prevParams, layout: pageName }));
-      //   setOpenAccordion(pageName);
-      // }
-
       queryClient.setQueryData(
         [QueryKey.FormLayouts, org, app, layoutSetName],
         (oldLayouts: IFormLayouts) => {
@@ -48,8 +41,7 @@ export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetN
       if (layoutSettings.receiptLayoutName === oldName) layoutSettings.receiptLayoutName = newName;
       formLayoutSettingsMutation.mutate(layoutSettings);
 
-      await refetchLayouts();
-      await refetchLayoutSettings();
+      setSelectedFormLayoutName(newName);
     },
   });
 };

@@ -6,7 +6,7 @@ import { useUpdateLayoutNameMutation } from '../../../hooks/mutations/useUpdateL
 import { StudioToggleableTextfield } from '@studio/components';
 import { useTextIdMutation } from 'app-development/hooks/mutations';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useText, useAppContext, useSelectedFormLayoutName } from '../../../hooks';
+import { useText, useAppContext } from '../../../hooks';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import { Trans } from 'react-i18next';
 
@@ -16,7 +16,6 @@ export interface EditPageIdProps {
 export const EditPageId = ({ layoutName }: EditPageIdProps) => {
   const { app, org } = useStudioUrlParams();
   const { selectedFormLayoutSetName } = useAppContext();
-  const { setSelectedFormLayoutName } = useSelectedFormLayoutName();
   const { mutate: mutateTextId } = useTextIdMutation(org, app);
   const { mutate: updateLayoutName } = useUpdateLayoutNameMutation(
     org,
@@ -35,7 +34,6 @@ export const EditPageId = ({ layoutName }: EditPageIdProps) => {
   const handleSaveNewName = (newName: string) => {
     if (newName === layoutName) return;
     updateLayoutName({ oldName: layoutName, newName });
-    setSelectedFormLayoutName(newName);
     mutateTextId([{ oldId: layoutName, newId: newName }]);
   };
 
