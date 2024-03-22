@@ -31,6 +31,10 @@ const mockBpmnContextValue: BpmnContextProps = {
   isEditAllowed: true,
   bpmnDetails: mockBpmnDetails,
   setBpmnDetails: jest.fn(),
+  dataTasksAdded: [],
+  setDataTasksAdded: jest.fn(),
+  dataTasksRemoved: [],
+  setDataTasksRemoved: jest.fn(),
 };
 
 jest.mock('app-shared/utils/featureToggleUtils', () => ({
