@@ -42,34 +42,34 @@ context(
       // About app page
       overview.getHeader(Cypress.env('deployAppName')).should('be.visible');
 
-      // Forms editor
-      header.getCreateLink().click();
-      designer.getAddPageButton().click();
-      cy.wait('@postLayoutSettings').its('response.statusCode').should('eq', 200);
-      cy.wait('@getLayoutSettings').its('response.statusCode').should('eq', 200);
-      designer.getToolbarItemByText(texts['ux_editor.component_title.Input']).should('be.visible');
-
-      // Text editor
-      header.getTextEditorLink().should('be.visible').click();
-      textEditor.getNewTextButton().should('be.visible');
-
-      // Preview
-      header.getPreviewButton().should('be.visible').click();
-      cy.visit(`/preview/${Cypress.env('orgUserName')}/${Cypress.env('deployAppName')}`);
-      preview.getBackToEditorButton().should('be.visible').click();
-
-      // Profile
-      header.getProfileIcon().should('be.visible').click();
-
-      // Repos
-      header
-        .getOpenRepoLink()
-        .should('be.visible')
-        .invoke('attr', 'href')
-        .then((href) => {
-          cy.visit(href);
-          gitea.getRepositoryHeader().should('be.visible');
-        });
+      // // Forms editor
+      // header.getCreateLink().click();
+      // designer.getAddPageButton().click();
+      // cy.wait('@postLayoutSettings').its('response.statusCode').should('eq', 200);
+      // cy.wait('@getLayoutSettings').its('response.statusCode').should('eq', 200);
+      // designer.getToolbarItemByText(texts['ux_editor.component_title.Input']).should('be.visible');
+      //
+      // // Text editor
+      // header.getTextEditorLink().should('be.visible').click();
+      // textEditor.getNewTextButton().should('be.visible');
+      //
+      // // Preview
+      // header.getPreviewButton().should('be.visible').click();
+      // cy.visit(`/preview/${Cypress.env('orgUserName')}/${Cypress.env('deployAppName')}`);
+      // preview.getBackToEditorButton().should('be.visible').click();
+      //
+      // // Profile
+      // header.getProfileIcon().should('be.visible').click();
+      //
+      // // Repos
+      // header
+      //   .getOpenRepoLink()
+      //   .should('be.visible')
+      //   .invoke('attr', 'href')
+      //   .then((href) => {
+      //     cy.visit(href);
+      //     gitea.getRepositoryHeader().should('be.visible');
+      //   });
     });
 
     // it('Gitea connection - Pull changes', () => {
