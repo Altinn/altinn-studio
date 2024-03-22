@@ -1,8 +1,6 @@
 name: Deploy Storybook Production
 # Automatically triggers will be added in a separate PR when the workflow is ready
 on:
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
