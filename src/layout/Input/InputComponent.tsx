@@ -141,15 +141,19 @@ export const InputComponent: React.FunctionComponent<IInputProps> = ({ node, isV
         onValueChange={(values) => {
           setValue('simpleBinding', values.value);
         }}
-        onPaste={(event: React.ClipboardEvent<HTMLInputElement>) => {
+        onPaste={(event) => {
           /* This is a workaround for a react-number-format bug that
            * removes the decimal on paste.
            * We should be able to remove it when this issue gets fixed:
            * https://github.com/s-yadav/react-number-format/issues/349
            *  */
-          const pastedText = event.clipboardData.getData('Text');
           event.preventDefault();
-          setValue('simpleBinding', pastedText);
+          const pastedText = event.clipboardData.getData('Text');
+          if (pastedText.indexOf(',') !== -1) {
+            setValue('simpleBinding', pastedText.replace(',', '.'));
+          } else {
+            setValue('simpleBinding', pastedText);
+          }
         }}
         customInput={TextfieldWrapped as React.ComponentType}
         data-testid={`${id}-formatted-number-${variant}`}
