@@ -76,6 +76,8 @@ paths:
             text/xml:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+        '302':
+          description: Redirect
         '409':
           description: Conflict
         '500':

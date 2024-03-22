@@ -123,6 +123,9 @@
               }
             }
           },
+          "302": {
+            "description": "Redirect"
+          },
           "409": {
             "description": "Conflict"
           },

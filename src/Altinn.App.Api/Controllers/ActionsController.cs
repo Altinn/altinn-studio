@@ -74,7 +74,7 @@ public class ActionsController : ControllerBase
     [Authorize]
     [ProducesResponseType(typeof(UserActionResponse), 200)]
     [ProducesResponseType(typeof(ProblemDetails), 400)]
-    [ProducesResponseType(typeof(RedirectResult), 302)]
+    [ProducesResponseType(302)]
     [ProducesResponseType(409)]
     [ProducesResponseType(500)]
     [ProducesResponseType(401)]
