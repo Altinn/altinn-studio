@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Net;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.Extensions;
@@ -10,7 +11,6 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Microsoft.Extensions.Logging;
-using Microsoft.Rest.TransientFaultHandling;
 using PlatformStorageModels = Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -41,68 +41,40 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task UpdateTextResourcesAsync(string org, string app, string shortCommitId, string envName)
+        public async Task UpdateTextResourcesAsync(string org, string app, string shortCommitId, string envName, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             string textResourcesPath = GetTextResourceDirectoryPath();
             List<FileSystemObject> folder = await _giteaApiWrapper.GetDirectoryAsync(org, app, textResourcesPath, shortCommitId);
-            if (folder != null)
+            if (folder == null)
             {
-                // TODO: Add Cancellation token to signature of the method and to the methods used in loop and convert loot to Parallel.ForEachAsync
-                // https://github.com/Altinn/altinn-studio/issues/12031
-                foreach (FileSystemObject textResourceFromRepo in folder)
+                return;
+            }
+
+            var resourceFiles =
+                folder.Where(textResourceFromRepo =>
+                    Regex.Match(textResourceFromRepo.Name, "^(resource\\.)..(\\.json)").Success);
+
+            await Parallel.ForEachAsync(resourceFiles, cancellationToken, async (textResourceFromRepo, c) =>
+            {
+                c.ThrowIfCancellationRequested();
+                FileSystemObject populatedFile =
+                    await _giteaApiWrapper.GetFileAsync(org, app, textResourceFromRepo.Path, shortCommitId);
+                byte[] data = Convert.FromBase64String(populatedFile.Content);
+
+                try
                 {
-                    if (!Regex.Match(textResourceFromRepo.Name, "^(resource\\.)..(\\.json)").Success)
-                    {
-                        continue;
-                    }
-
-                    FileSystemObject populatedFile = await _giteaApiWrapper.GetFileAsync(org, app, textResourceFromRepo.Path, shortCommitId);
-                    byte[] data = Convert.FromBase64String(populatedFile.Content);
-                    PlatformStorageModels.TextResource content;
-
-                    try
-                    {
-                        content = data.Deserialize<PlatformStorageModels.TextResource>();
-                    }
-                    catch (SerializationException e)
-                    {
-                        _logger.LogError($" // TextResourceService // UpdatedTextResourcesAsync // Error when trying to deserialize text resource file {org}/{app}/{textResourceFromRepo.Path} // Exception {e}");
-                        continue;
-                    }
-
-                    PlatformStorageModels.TextResource textResourceStorage = await GetTextResourceFromStorage(org, app, content.Language, envName);
-                    if (textResourceStorage == null)
-                    {
-                        await _storageTextResourceClient.Create(org, app, content, envName);
-                    }
-                    else
-                    {
-                        await _storageTextResourceClient.Update(org, app, content, envName);
-                    }
+                    PlatformStorageModels.TextResource content =
+                        data.Deserialize<PlatformStorageModels.TextResource>();
+                    await _storageTextResourceClient.Upsert(org, app, content, envName);
                 }
-
-            }
-        }
-
-        private async Task<PlatformStorageModels.TextResource> GetTextResourceFromStorage(string org, string app, string language, string envName)
-        {
-            try
-            {
-                return await _storageTextResourceClient.Get(org, app, language, envName);
-            }
-            catch (HttpRequestWithStatusException e)
-            {
-                /*
-                 * Special exception handling because we want to continue if the exception
-                 * was caused by a 404 (NOT FOUND) HTTP status code.
-                 */
-                if (e.StatusCode == HttpStatusCode.NotFound)
+                catch (SerializationException e)
                 {
-                    return null;
+                    _logger.LogError(
+                        $" // TextResourceService // UpdatedTextResourcesAsync // Error when trying to deserialize text resource file {org}/{app}/{textResourceFromRepo.Path} // Exception {e}");
+                    throw;
                 }
-
-                throw;
-            }
+            });
         }
 
         private string GetTextResourceDirectoryPath()
