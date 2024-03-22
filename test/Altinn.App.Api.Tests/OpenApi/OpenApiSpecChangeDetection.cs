@@ -19,9 +19,10 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
         // The test project exposes swagger.json at /swagger/v1/swagger.json not /{org}/{app}/swagger/v1/swagger.json
         HttpResponseMessage response = await client.GetAsync("/swagger/v1/swagger.json");
         string openApiSpec = await response.Content.ReadAsStringAsync();
-        _outputHelper.WriteLine(openApiSpec);
         response.EnsureSuccessStatusCode();
+        var originalSpec = await File.ReadAllTextAsync("../../../OpenApi/swagger.json");
         await File.WriteAllTextAsync("../../../OpenApi/swagger.json", openApiSpec);
+        openApiSpec.ReplaceLineEndings().Should().BeEquivalentTo(originalSpec.ReplaceLineEndings(), because: "The OpenAPI spec in the repo should be up do date with the code. If this test fails, update the OpenAPI spec in the repo with the new one from the code. This ensures that tests fails in CI if spec is not updated.");
     }
 
     [Fact]
@@ -33,8 +34,9 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/yaml"));
         HttpResponseMessage response = await client.SendAsync(request);
         string openApiSpec = await response.Content.ReadAsStringAsync();
-        _outputHelper.WriteLine(openApiSpec);
         response.EnsureSuccessStatusCode();
+        var originalSpec = await File.ReadAllTextAsync("../../../OpenApi/swagger.yaml");
         await File.WriteAllTextAsync("../../../OpenApi/swagger.yaml", openApiSpec);
+        openApiSpec.ReplaceLineEndings().Should().BeEquivalentTo(originalSpec.ReplaceLineEndings(), because: "The OpenAPI spec in the repo should be up do date with the code. If this test fails, update the OpenAPI spec in the repo with the new one from the code. This ensures that tests fails in CI if spec is not updated.");
     }
 }
