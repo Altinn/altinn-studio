@@ -26,7 +26,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:
-          name: github-pages
+          name: github-pages-storybook
           path: frontend/libs/studio-components/storybook-static
 
   deploy:
@@ -43,4 +43,4 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v2
         with:
-          artifact_name: github-pages
+          artifact_name: github-pages-storybook
