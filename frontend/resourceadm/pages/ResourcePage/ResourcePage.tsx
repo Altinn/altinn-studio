@@ -326,12 +326,7 @@ export const ResourcePage = (): React.JSX.Element => {
         </div>
       )}
       {hasMergeConflict && (
-        <MergeConflictModal
-          isOpen={hasMergeConflict}
-          handleSolveMerge={refetchRepoStatus}
-          org={selectedContext}
-          repo={repo}
-        />
+        <MergeConflictModal isOpen={hasMergeConflict} org={selectedContext} repo={repo} />
       )}
       {policyErrorModalOpen && (
         <NavigationModal
