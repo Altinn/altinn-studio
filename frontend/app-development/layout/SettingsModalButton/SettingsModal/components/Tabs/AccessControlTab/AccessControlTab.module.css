@@ -4,19 +4,6 @@
   gap: var(--fds-spacing-2);
 }
 
-.tableContent {
-  width: 100%;
-  margin-top: var(--fds-spacing-3);
-}
-
-.header {
-  background-color: var(--fds-colors-grey-100);
-}
-
-.checkboxContent {
-  width: 3rem;
-}
-
 .docsLinkText {
   margin-top: var(--fds-spacing-10);
   display: flex;
@@ -24,8 +11,4 @@
 }
 .docsLink {
   margin-top: var(--fds-spacing-3);
-}
-
-.modalContent {
-  margin-top: var(--fds-spacing-4);
 }

@@ -1306,7 +1306,7 @@
   "settings_modal.access_control_tab_option_choose_type_modal_message": "Du kan ikke fjerne den siste avmerkingen. Minst én type tilgangskontroll må være valgt.",
   "settings_modal.access_control_tab_option_organisation": "Hovedenhet (virksomhet)",
   "settings_modal.access_control_tab_option_person": "Privatperson",
-  "settings_modal.access_control_tab_option_sub_unit": "Underenhet(datterselskap)",
+  "settings_modal.access_control_tab_option_sub_unit": "Underenhet (datterselskap)",
   "settings_modal.close_button_label": "Lukk innstillinger",
   "settings_modal.heading": "Innstillinger",
   "settings_modal.left_nav_tab_about": "Om applikasjonen",
