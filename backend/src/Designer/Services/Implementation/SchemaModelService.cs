@@ -358,6 +358,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 logicElement.AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = classRef };
             }
+
+            if (logicElement.AppLogic.ClassRef != classRef)
+            {
+                logicElement.AppLogic.ClassRef = classRef;
+            }
         }
 
         private static string SerializeJson(Json.Schema.JsonSchema jsonSchema)
