@@ -1,5 +1,6 @@
 import React, { forwardRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { Paragraph, Modal } from '@digdir/design-system-react';
 import { ResourceNameAndId } from '../ResourceNameAndId';
 import { useCreateResourceMutation } from '../../hooks/mutations';
@@ -55,8 +56,15 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
       };
 
       createNewResource(idAndTitle, {
-        onSuccess: () =>
-          navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about')),
+        onSuccess: () => {
+          toast.success(
+            t('resourceadm.dashboard_create_resource_success', {
+              resourceName: idAndTitle.title.nb,
+            }),
+          );
+          navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about'));
+        },
+
         onError: (error: any) => {
           if (error.response.status === ServerCodes.Conflict) {
             setResourceIdExists(true);

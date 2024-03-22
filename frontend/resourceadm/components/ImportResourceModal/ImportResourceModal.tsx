@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'react-toastify';
 import classes from './ImportResourceModal.module.css';
 import { Modal } from '../Modal';
 import { Combobox, Paragraph, Textfield } from '@digdir/design-system-react';
@@ -81,6 +82,7 @@ export const ImportResourceModal = ({
       },
       {
         onSuccess: (resource: Resource) => {
+          toast.success(t('resourceadm.dashboard_import_success'));
           navigate(getResourcePageURL(selectedContext, repo, resource.identifier, 'about'));
         },
         onError: (error: AxiosError) => {

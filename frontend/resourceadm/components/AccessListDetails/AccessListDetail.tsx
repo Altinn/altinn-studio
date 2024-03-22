@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
 import { Textfield, Modal, Heading, Link as DigdirLink } from '@digdir/design-system-react';
 import classes from './AccessListDetail.module.css';
 import type { AccessList } from 'app-shared/types/ResourceAdm';
@@ -42,7 +43,10 @@ export const AccessListDetail = ({
 
   const handleDelete = (): void => {
     deleteAccessList(undefined, {
-      onSuccess: () => navigate(backUrl),
+      onSuccess: () => {
+        toast.success(t('resourceadm.listadmin_delete_list_success', { listname: listName }));
+        navigate(backUrl);
+      },
     });
   };
 
