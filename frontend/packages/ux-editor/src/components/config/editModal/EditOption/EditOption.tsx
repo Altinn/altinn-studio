@@ -1,4 +1,3 @@
-import type { ChangeEvent } from 'react';
 import React, { useState } from 'react';
 import {
   StudioButton,
@@ -55,8 +54,10 @@ type OpenOptionProps = EditOptionProps & { onClose: () => void };
 const OpenOption = ({ legend, onChange, option, onDelete, onClose }: OpenOptionProps) => {
   const { t } = useTranslation();
 
-  const handleValueChange = (event: ChangeEvent<HTMLInputElement>) =>
-    onChange(setValue(option, event.target.value));
+  const handleValueChange = (event: React.FocusEvent<HTMLInputElement>) => {
+    const updatedValue = event.target.value;
+    onChange(setValue(option, updatedValue));
+  };
 
   const handleLabelChange = (textResourceId: string) => onChange(setLabel(option, textResourceId));
 
@@ -77,7 +78,7 @@ const OpenOption = ({ legend, onChange, option, onDelete, onClose }: OpenOptionP
       <StudioTextfield
         className={classes.valueField}
         label={t('general.value')}
-        onChange={handleValueChange}
+        onBlur={handleValueChange}
         placeholder={t('general.value')}
         value={option.value.toString()}
       />

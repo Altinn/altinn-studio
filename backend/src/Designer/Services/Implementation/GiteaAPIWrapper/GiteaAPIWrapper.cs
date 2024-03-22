@@ -204,20 +204,23 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource)
         {
-            ListviewServiceResource listviewResource = new ListviewServiceResource { Identifier = serviceResource.Identifier, Title = serviceResource.Title };
+            ListviewServiceResource listviewResource = new ListviewServiceResource
+            {
+                Identifier = serviceResource.Identifier,
+                Title = serviceResource.Title,
+            };
+
             string resourceFolder = serviceResource.Identifier;
 
-            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{repo}/contents/{resourceFolder}/{serviceResource.Identifier}_resource.json");
+            HttpResponseMessage fileResponse = await _httpClient.GetAsync($"repos/{org}/{repo}/commits?path={resourceFolder}&stat=false&verification=false&files=false");
 
-            if (response.StatusCode == HttpStatusCode.OK)
+            if (fileResponse.StatusCode == HttpStatusCode.OK)
             {
-                string content = await response.Content.ReadAsStringAsync();
-
-                ContentsResponse contentsResponse = null;
+                List<GiteaCommit> commitResponse = null;
 
                 try
                 {
-                    contentsResponse = System.Text.Json.JsonSerializer.Deserialize<ContentsResponse>(content);
+                    commitResponse = await fileResponse.Content.ReadAsAsync<List<GiteaCommit>>();
                 }
                 catch (JsonException)
                 {
@@ -228,36 +231,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     // Not pushed to git
                 }
 
-                if (contentsResponse != null)
+                if (commitResponse != null)
                 {
-                    response = await _httpClient.GetAsync($"repos/{org}/{repo}/git/commits/{contentsResponse.LastCommitSha}");
-                    if (response.StatusCode == HttpStatusCode.OK)
-                    {
-                        GiteaCommit lastCommit = await response.Content.ReadAsAsync<GiteaCommit>();
-                        listviewResource.LastChanged = DateTime.Parse(lastCommit.Created);
-                    }
-
-                    HttpResponseMessage responseFromCommits = await _httpClient.GetAsync($"repos/{org}/{repo}/commits");
-                    if (responseFromCommits.StatusCode == HttpStatusCode.OK)
-                    {
-                        List<GiteaCommit> commitList = await responseFromCommits.Content.ReadAsAsync<List<GiteaCommit>>();
-                        DateTime oldestCommitTimestamp = listviewResource.LastChanged;
-                        GiteaCommit oldestCommit = new GiteaCommit();
-                        foreach (GiteaCommit commit in commitList)
-                        {
-                            if (DateTime.Parse(commit.Created) <= oldestCommitTimestamp)
-                            {
-                                oldestCommitTimestamp = DateTime.Parse(commit.Created);
-                                oldestCommit = commit;
-                            }
-                        }
-
-                        if (oldestCommit?.Commit?.Author?.Name != null)
-                        {
-                            listviewResource.CreatedBy = oldestCommit.Commit.Author.Name;
-                        }
-                    }
+                    string commitUserName = commitResponse.LastOrDefault().Commit?.Author?.Name;
+                    GiteaUser user = await GetCachedUser(commitUserName);
+                    listviewResource.CreatedBy = string.IsNullOrEmpty(user.FullName) ? commitUserName : user.FullName;
+                    listviewResource.LastChanged = DateTime.Parse(commitResponse.FirstOrDefault().Created);
                 }
+            }
+
+            if (string.IsNullOrEmpty(listviewResource.CreatedBy))
+            {
+                string localUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+                GiteaUser localUser = await GetCachedUser(localUserName);
+                listviewResource.CreatedBy = string.IsNullOrEmpty(localUser.FullName) ? localUserName : localUser.FullName;
+            }
+
+            if (listviewResource.LastChanged.Year.Equals(1))
+            {
+                listviewResource.LastChanged = DateTime.Now;
             }
 
             return listviewResource;
@@ -728,6 +720,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return null;
+        }
+
+        private async Task<GiteaUser> GetCachedUser(string username)
+        {
+            string cacheKey = $"giteauser:{username}";
+            if (!_cache.TryGetValue(cacheKey, out GiteaUser giteaUser))
+            {
+                HttpResponseMessage response = await _httpClient.GetAsync($"users/{username}/");
+                response.EnsureSuccessStatusCode();
+                giteaUser = await response.Content.ReadAsAsync<GiteaUser>();
+                var cacheEntryOptions = new MemoryCacheEntryOptions();
+
+                _cache.Set(cacheKey, giteaUser, cacheEntryOptions);
+            }
+
+            return giteaUser;
         }
 
         private async Task<Organization> GetCachedOrg(string org)
