@@ -1,0 +1,12 @@
+import {Canvas, Meta} from '@storybook/blocks';
+import {Heading, Paragraph} from '@digdir/design-system-react';
+import * as StudioDecimalInputStories from './StudioDecimalInput.stories';
+
+<Meta of={StudioDecimalInputStories}/>
+
+<Heading level={1} size="small">StudioDecimalInput</Heading>
+<Paragraph>
+  StudioDecimalInput is a component for entering decimal numbers and show error messages when the input value is invalid.
+</Paragraph>
+
+<Canvas of={StudioDecimalInputStories.Preview}/>
