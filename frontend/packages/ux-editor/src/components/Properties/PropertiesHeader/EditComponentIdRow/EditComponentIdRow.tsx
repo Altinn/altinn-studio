@@ -3,7 +3,7 @@ import { StudioToggleableTextfieldSchema, type SchemaValidationError } from '@st
 import { KeyVerticalIcon } from '@navikt/aksel-icons';
 import classes from './EditComponentIdRow.module.css';
 import { idExists } from '../../../../utils/formLayoutsUtils';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import type { FormItem } from '../../../../types/FormItem';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { useFormLayouts } from '../../../../hooks/useFormLayoutsSelector';
@@ -62,7 +62,7 @@ export const EditComponentIdRow = ({
         propertyPath='definitions/component/properties/id'
         key={component.id}
         viewProps={{
-          children: `ID: ${component.id}`,
+          children: <Trans i18nKey={'ux_editor.id_identifier'} values={{ item: component.id }} />,
           variant: 'tertiary',
           fullWidth: true,
         }}

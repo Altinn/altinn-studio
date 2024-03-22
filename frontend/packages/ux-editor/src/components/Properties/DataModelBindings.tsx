@@ -11,6 +11,7 @@ import { useFormLayout } from '../../hooks/useFormLayoutsSelector';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { isItemChildOfContainer } from '../../utils/formLayoutUtils';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
+import type { FormItem } from '../../types/FormItem';
 
 export const DataModelBindings = (): React.JSX.Element => {
   const selectedLayout = useSelector(selectedLayoutNameSelector);
@@ -19,6 +20,12 @@ export const DataModelBindings = (): React.JSX.Element => {
   const { data: schema } = useComponentSchemaQuery(formItem.type);
   const [multipleAttachments, setMultipleAttachments] = useState<boolean>(false);
   const t = useText();
+
+  React.useEffect(() => {
+    if (formItem.dataModelBindings?.list !== undefined) {
+      setMultipleAttachments(true);
+    }
+  }, [formItem.dataModelBindings?.list]);
 
   if (!schema) {
     return <StudioSpinner spinnerTitle={t('general.loading')} />;
@@ -40,13 +47,22 @@ export const DataModelBindings = (): React.JSX.Element => {
   }
 
   const handleMultipleAttachmentsSwitch = () => {
-    setMultipleAttachments(!multipleAttachments);
+    const updatedValue = !multipleAttachments;
+    setMultipleAttachments(updatedValue);
     const updatedComponent = {
       ...formItem,
-      dataModelBindings: {},
+      dataModelBindings: {
+        simpleBinding: !updatedValue ? '' : undefined,
+        list: updatedValue ? '' : undefined,
+      },
     };
-    handleUpdate(updatedComponent);
-    debounceSave(formItemId, updatedComponent);
+    handleUpdate(
+      updatedComponent as FormItem<ComponentType.FileUpload | ComponentType.FileUploadWithTag>,
+    );
+    debounceSave(
+      formItemId,
+      updatedComponent as FormItem<ComponentType.FileUpload | ComponentType.FileUploadWithTag>,
+    );
   };
 
   return (
@@ -54,7 +70,7 @@ export const DataModelBindings = (): React.JSX.Element => {
       <div className={classes.container}>
         {(formItem.type === ComponentType.FileUploadWithTag ||
           formItem.type === ComponentType.FileUpload) &&
-          isItemChildOfContainer(layout, formItem, ComponentType.RepeatingGroup) && (
+          isItemChildOfContainer(layout, formItem.id, ComponentType.RepeatingGroup) && (
             <Alert severity='warning'>
               {t('ux_editor.modal_properties_data_model_restrictions_attachment_components')}
             </Alert>

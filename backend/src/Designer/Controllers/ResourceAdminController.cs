@@ -35,8 +35,9 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IOrgService _orgService;
         private readonly IResourceRegistry _resourceRegistry;
         private readonly ResourceRegistryIntegrationSettings _resourceRegistrySettings;
+        private readonly IUserRequestsSynchronizationService _userRequestsSynchronizationService;
 
-        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IAltinn2MetadataClient altinn2MetadataClient, IOrgService orgService, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IResourceRegistry resourceRegistry)
+        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IAltinn2MetadataClient altinn2MetadataClient, IOrgService orgService, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IResourceRegistry resourceRegistry, IUserRequestsSynchronizationService userRequestsSynchronizationService)
         {
             _giteaApi = gitea;
             _repository = repository;
@@ -47,6 +48,7 @@ namespace Altinn.Studio.Designer.Controllers
             _orgService = orgService;
             _resourceRegistrySettings = resourceRegistryEnvironment.Value;
             _resourceRegistry = resourceRegistry;
+            _userRequestsSynchronizationService = userRequestsSynchronizationService;
         }
 
         [HttpPost]
@@ -154,7 +156,6 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 ListviewServiceResource listviewResource = await _giteaApi.MapServiceResourceToListViewResource(org, string.Format("{0}-resources", org), resource);
                 listviewResource.HasPolicy = _repository.ResourceHasPolicy(org, repository, resource);
-                listviewResource = _repository.AddLastChangedAndCreatedByIfMissingFromGitea(listviewResource);
                 listviewServiceResources.Add(listviewResource);
             }
 
@@ -245,10 +246,22 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpPut]
         [Route("designer/api/{org}/resources/updateresource/{id}")]
-        public async Task<ActionResult> UpdateResource(string org, string id, [FromBody] ServiceResource resource)
+        public async Task<ActionResult> UpdateResource(string org, string id, [FromBody] ServiceResource resource, CancellationToken cancellationToken = default)
         {
-            resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
-            return _repository.UpdateServiceResource(org, id, resource);
+            string repository = string.Format("{0}-resources", org);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
+            await semaphore.WaitAsync(cancellationToken);
+            try
+            {
+                resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
+                return _repository.UpdateServiceResource(org, id, resource);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+
         }
 
         [HttpPost]

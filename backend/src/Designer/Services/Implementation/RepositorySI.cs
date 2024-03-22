@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using Altinn.Authorization.ABAC.Utils;
@@ -34,6 +35,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         // Using Norwegian name of initial page to be consistent
         // with automatic naming from frontend when adding new page
         private const string InitialLayout = "Side1";
+
+        private readonly string _resourceIdentifierRegex = "^[a-z0-9_æøå-]*$";
 
         private readonly ServiceRepositorySettings _settings;
         private readonly GeneralSettings _generalSettings;
@@ -262,7 +265,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 CreateServiceMetadata(metadata);
                 await _applicationMetadataService.CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
                 await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
-                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, serviceConfig.RepositoryName, developer);
                 await CreateRepositorySettings(org, serviceConfig.RepositoryName, developer);
 
                 CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
@@ -467,13 +469,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 string repository = string.Format("{0}-resources", org);
                 List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository);
                 string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                string resourceFileName = GetResourceFileName(updatedResource.Identifier);
 
                 foreach (FileSystemObject resourceFile in resourceFiles)
                 {
-                    string jsonString = File.ReadAllText($"{repopath}/{resourceFile.Path}");
-                    ServiceResource serviceResource = System.Text.Json.JsonSerializer.Deserialize<ServiceResource>(jsonString, _serializerOptions);
-
-                    if (serviceResource != null && serviceResource.Identifier == updatedResource.Identifier)
+                    if (resourceFile.Name == resourceFileName)
                     {
                         string updatedResourceString = System.Text.Json.JsonSerializer.Serialize(updatedResource, _serializerOptions);
                         File.WriteAllText($"{repopath}/{resourceFile.Path}", updatedResourceString);
@@ -493,6 +493,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             try
             {
+                bool isResourceIdentifierValid = !string.IsNullOrEmpty(newResource.Identifier) && Regex.IsMatch(newResource.Identifier, _resourceIdentifierRegex) && !newResource.Identifier.StartsWith("app_");
+                if (!isResourceIdentifierValid)
+                {
+                    return new StatusCodeResult(400);
+                }
                 string repository = $"{org}-resources";
                 if (!CheckIfResourceFileAlreadyExists(newResource.Identifier, org, repository))
                 {
@@ -560,21 +565,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return false;
-        }
-
-        public ListviewServiceResource AddLastChangedAndCreatedByIfMissingFromGitea(ListviewServiceResource serviceResource)
-        {
-            if (serviceResource.CreatedBy == null)
-            {
-                serviceResource.CreatedBy = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            }
-
-            if (serviceResource.LastChanged.Year.Equals(1))
-            {
-                serviceResource.LastChanged = DateTime.Now;
-            }
-
-            return serviceResource;
         }
 
         private List<FileSystemObject> GetResourceFiles(string org, string repository, string path = "")

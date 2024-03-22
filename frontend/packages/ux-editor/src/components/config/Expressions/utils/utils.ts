@@ -1,7 +1,7 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../../../types/FormItem';
 import type { BooleanExpression, Expression } from '@studio/components';
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils } from '@studio/pure-functions';
 import type { FormItemProperty } from '../../../../types/FormItemProperty';
 
 export const expressionPropertiesOnFormItem = <T extends ComponentType>(
@@ -74,7 +74,7 @@ export const removeExpressionFromFormItem = <T extends ComponentType>(
   property: FormItemProperty<T>,
 ): FormItem<T> => {
   const { key, subKey } = property;
-  const newFormItem = deepCopy(formItem);
+  const newFormItem = ObjectUtils.deepCopy(formItem);
   if (subKey) {
     delete newFormItem[key][subKey];
   } else {

@@ -13,7 +13,7 @@ const componentMock: FormComponent<ComponentType.Input> = {
   type: ComponentType.Input,
   itemType: 'COMPONENT',
   propertyPath: 'definitions/inputComponent',
-  dataModelBindings: {},
+  dataModelBindings: { simpleBinding: '' },
 };
 
 export const renderEditAutocomplete = (
