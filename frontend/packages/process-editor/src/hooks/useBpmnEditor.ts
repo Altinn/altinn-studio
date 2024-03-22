@@ -93,12 +93,11 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   }, []);
 
   /**
-   * Updates the data task tracking lists
-   * Adds the provided item to the primary list and removes it from the secondary list (if it exists there)
-   * @param updatePrimaryList The function to update the primary list by adding the new item
-   * @param updateSecondaryList The function to update the secondary list by removing the item
+   * Updates the data task tracking lists based on the action
+   * action add: Adds the item to the dataTasksAdded list and removes it from the dataTasksRemoved list
+   * action remove: Adds the item to the dataTasksRemoved list and removes it from the dataTasksAdded list
    * @param itemToAdd The item to add to the primary list
-   * @param secondaryList The secondary list to remove the item from
+   * @param action The action performed on the item
    */
   const updateDataTaskTrackingLists = (itemToAdd: BpmnDetails, action: 'add' | 'remove') => {
     if (itemToAdd?.taskType !== 'data') {

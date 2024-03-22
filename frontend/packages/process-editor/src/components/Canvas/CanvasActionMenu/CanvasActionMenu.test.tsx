@@ -9,7 +9,7 @@ import { BpmnContext } from '../../../contexts/BpmnContext';
 
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 
-const mockAppLibVersion7: string = '7.0.0';
+const mockAppLibVersion8: string = '8.0.0';
 
 const mockOnSave = jest.fn();
 
@@ -28,7 +28,7 @@ const defaultContextProps: BpmnContextProps = {
   setDataTasksRemoved: () => {},
   getUpdatedXml: async () => '',
   isEditAllowed: true,
-  appLibVersion: mockAppLibVersion7,
+  appLibVersion: mockAppLibVersion8,
   bpmnDetails: null,
   setBpmnDetails: () => {},
 };
