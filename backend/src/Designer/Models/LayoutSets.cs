@@ -17,7 +17,7 @@ public class LayoutSets : Altinn.App.Core.Models.LayoutSets
     public IDictionary<string, object?> UnknownProperties { get; set; }
 }
 
-public class LayoutSetConfig : Altinn.App.Core.Models.LayoutSet
+public class LayoutSetConfig
 {
     [JsonPropertyName("id")]
     public string Id { get; set; }
