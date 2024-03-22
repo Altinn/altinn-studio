@@ -76,7 +76,7 @@ const OpenOption = ({ legend, onChange, option, onDelete, onClose }: OpenOptionP
       <StudioTextfield
         className={classes.valueField}
         label={t('general.value')}
-        onBlur={handleValueChange}
+        onChange={handleValueChange}
         placeholder={t('general.value')}
         value={option.value.toString()}
       />
