@@ -1,1 +1,1 @@
-export { AccessControlModal } from './AccessControlWarningModal';
+export { AccessControlWarningModal } from './AccessControlWarningModal';

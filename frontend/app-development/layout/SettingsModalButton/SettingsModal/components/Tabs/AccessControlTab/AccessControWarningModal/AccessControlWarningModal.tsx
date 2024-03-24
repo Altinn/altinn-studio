@@ -2,12 +2,12 @@ import React from 'react';
 import classes from './AccessControlWarningModal.module.css';
 import { Modal, Button } from '@digdir/design-system-react';
 
-export interface AccessControlModalProps {
+export interface AccessControlWarningModalProps {
   t: (key: string) => string;
   modalRef: React.MutableRefObject<HTMLDialogElement>;
 }
 
-export const AccessControlModal = ({ t, modalRef }: AccessControlModalProps) => {
+export const AccessControlWarningModal = ({ t, modalRef }: AccessControlWarningModalProps) => {
   return (
     <Modal ref={modalRef}>
       <Modal.Content className={classes.modalContent}>
