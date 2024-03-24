@@ -24,7 +24,7 @@ describe('useRuleConfigMutation', () => {
   afterEach(jest.clearAllMocks);
 
   it('Calls saveRuleConfig with correct arguments and payload', async () => {
-    const result = await render();
+    const { result } = await render();
     await result.current.mutateAsync(newRuleConfig);
     expect(queriesMock.saveRuleConfig).toHaveBeenCalledTimes(1);
     expect(queriesMock.saveRuleConfig).toHaveBeenCalledWith(
@@ -37,4 +37,4 @@ describe('useRuleConfigMutation', () => {
 });
 
 const render = async () =>
-  renderHookWithProviders(() => useRuleConfigMutation(org, app, selectedLayoutSet)).result;
+  renderHookWithProviders(() => useRuleConfigMutation(org, app, selectedLayoutSet));

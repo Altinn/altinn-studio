@@ -44,8 +44,8 @@ describe('useRuleModelQuery', () => {
   });
 
   it('Parses file correctly and returns an array of rules and conditions', async () => {
-    const result = await renderAndWaitForSuccess({ getRuleModel });
-    expect(result.current.data).toEqual([
+    const view = await renderAndWaitForSuccess({ getRuleModel });
+    expect(view.current.data).toEqual([
       {
         name: rule1Name,
         inputs: {
