@@ -17,17 +17,13 @@ const mockOrg = 'org';
 const mockApp = 'app';
 const mockPageName1: string = layout1NameMock;
 const mockSelectedLayoutSet = 'test-layout-set';
-const mockSetSearchParams = jest.fn();
-const mockSearchParams = { layout: mockPageName1 };
+
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
     org: mockOrg,
     app: mockApp,
   }),
-  useSearchParams: () => {
-    return [new URLSearchParams(mockSearchParams), mockSetSearchParams];
-  },
 }));
 
 const mockDeleteFormLayout = jest.fn();
@@ -104,7 +100,6 @@ describe('PageAccordion', () => {
     expect(deleteButton).toBeDisabled();
     await act(() => user.click(deleteButton));
     expect(mockDeleteFormLayout).not.toHaveBeenCalled();
-    expect(mockSetSearchParams).not.toHaveBeenCalled();
   });
 
   it('Does not call deleteLayout when delete button is clicked, but deletion is not confirmed', async () => {

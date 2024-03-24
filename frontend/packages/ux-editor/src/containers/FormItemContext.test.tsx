@@ -7,7 +7,7 @@ import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateForm
 import type { UpdateFormComponentMutationArgs } from '../hooks/mutations/useUpdateFormComponentMutation';
 import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateFormComponentMutation';
 import type { UseMutationResult } from '@tanstack/react-query';
-import { renderWithProviders } from '../testing/mocks';
+import { formLayoutSettingsMock, renderWithProviders } from '../testing/mocks';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormContainer } from '../types/FormContainer';
@@ -50,6 +50,14 @@ const render = (ChildComponent: React.ElementType) => {
     </FormItemContextProvider>,
   );
 };
+
+const mockPageName1: string = formLayoutSettingsMock.pages.order[0];
+const mockSetSearchParamsState = jest.fn();
+jest.mock('app-shared/hooks/useSearchParamsState', () => ({
+  useSearchParamsState: () => {
+    return [mockPageName1, mockSetSearchParamsState];
+  },
+}));
 
 describe('FormItemContext', () => {
   afterEach(jest.clearAllMocks);

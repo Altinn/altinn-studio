@@ -54,8 +54,8 @@ export const FormItemContextProvider = ({
   const { org, app } = useStudioUrlParams();
   const { selectedFormLayoutSetName } = useAppContext();
   const { selectedFormLayoutName } = useSelectedFormLayoutName();
-  const prevSelectedLayoutSetNameRef = useRef(selectedFormLayoutSetName);
-  const prevSelectedLayoutNameRef = useRef(selectedFormLayoutName);
+  const prevSelectedFormLayoutSetNameRef = useRef(selectedFormLayoutSetName);
+  const prevSelectedFormLayoutNameRef = useRef(selectedFormLayoutName);
 
   const autoSaveTimeoutRef = useRef(undefined);
 
@@ -67,13 +67,13 @@ export const FormItemContextProvider = ({
   const { mutateAsync: updateFormContainer } = useUpdateFormContainerMutation(
     org,
     app,
-    prevSelectedLayoutNameRef.current,
+    prevSelectedFormLayoutNameRef.current,
     selectedFormLayoutSetName,
   );
   const { mutateAsync: updateFormComponent } = useUpdateFormComponentMutation(
     org,
     app,
-    prevSelectedLayoutNameRef.current,
+    prevSelectedFormLayoutNameRef.current,
     selectedFormLayoutSetName,
   );
 
@@ -148,14 +148,14 @@ export const FormItemContextProvider = ({
   useEffect(() => {
     const autoSaveOnLayoutChange = async () => {
       if (
-        prevSelectedLayoutSetNameRef.current === selectedFormLayoutSetName &&
-        prevSelectedLayoutNameRef.current === selectedFormLayoutName
+        prevSelectedFormLayoutSetNameRef.current === selectedFormLayoutSetName &&
+        prevSelectedFormLayoutNameRef.current === selectedFormLayoutName
       )
         return;
       await handleSave();
       handleDiscard();
-      prevSelectedLayoutSetNameRef.current = selectedFormLayoutName;
-      prevSelectedLayoutNameRef.current = selectedFormLayoutName;
+      prevSelectedFormLayoutSetNameRef.current = selectedFormLayoutName;
+      prevSelectedFormLayoutNameRef.current = selectedFormLayoutName;
     };
 
     autoSaveOnLayoutChange();

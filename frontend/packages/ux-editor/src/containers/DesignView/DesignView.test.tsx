@@ -20,16 +20,17 @@ const mockSelectedLayoutSet = 'test-layout-set';
 const mockPageName1: string = formLayoutSettingsMock.pages.order[0];
 const mockPageName2: string = formLayoutSettingsMock.pages.order[1];
 
-const mockSetSearchParams = jest.fn();
-const mockSearchParams = { layout: mockPageName1 };
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
     org: mockOrg,
     app: mockApp,
   }),
-  useSearchParams: () => {
-    return [new URLSearchParams(mockSearchParams), mockSetSearchParams];
+}));
+const mockSetSearchParamsState = jest.fn();
+jest.mock('app-shared/hooks/useSearchParamsState', () => ({
+  useSearchParamsState: () => {
+    return [mockPageName1, mockSetSearchParamsState];
   },
 }));
 
@@ -54,8 +55,8 @@ describe('DesignView', () => {
     const accordionButton1 = screen.getByRole('button', { name: mockPageName1 });
     await act(() => user.click(accordionButton1));
 
-    expect(mockSetSearchParams).toHaveBeenCalledTimes(1);
-    expect(mockSetSearchParams).toHaveBeenCalledWith(undefined);
+    expect(mockSetSearchParamsState).toHaveBeenCalledTimes(1);
+    expect(mockSetSearchParamsState).toHaveBeenCalledWith(undefined);
   });
 
   it('calls "setSearchParams" with the new page when another page accordion is clicked', async () => {
@@ -65,7 +66,8 @@ describe('DesignView', () => {
     const accordionButton2 = screen.getByRole('button', { name: mockPageName2 });
     await act(() => user.click(accordionButton2));
 
-    expect(mockSetSearchParams).toHaveBeenCalledTimes(1);
+    expect(mockSetSearchParamsState).toHaveBeenCalledTimes(1);
+    expect(mockSetSearchParamsState).toHaveBeenCalledWith(mockPageName2);
   });
 
   it('calls "saveFormLayout" when add page is clicked', async () => {

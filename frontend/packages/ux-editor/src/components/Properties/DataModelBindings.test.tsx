@@ -13,6 +13,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../types/FormItem';
 import { componentMocks } from '../../testing/componentMocks';
 import { component3IdMock, component3Mock, layoutMock } from '../../testing/layoutMock';
+import { formLayoutSettings } from 'app-shared/mocks/mocks';
 
 const user = userEvent.setup();
 
@@ -263,6 +264,13 @@ const render = async ({
     [QueryKey.FormComponent, props.formItem.type],
     componentSchemaMocks[props.formItem.type],
   );
+  queryClientMock.setQueryData([QueryKey.FormLayoutSettings, 'org', 'app', 'test-layout-set'], {
+    ...formLayoutSettings,
+    pages: {
+      ...formLayoutSettings.pages,
+      order: [...formLayoutSettings.pages.order, 'default'],
+    },
+  });
   return renderWithProviders(
     <FormItemContext.Provider
       value={{
@@ -272,5 +280,6 @@ const render = async ({
     >
       <DataModelBindings />
     </FormItemContext.Provider>,
+    { startUrl: '?layout=default' },
   );
 };
