@@ -2,6 +2,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
+import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { useDeleteFormContainerMutation } from './useDeleteFormContainerMutation';
 import { container1IdMock, externalLayoutsMock, layout1NameMock } from '../../testing/layoutMock';
 import type { FormLayoutsResponse } from 'app-shared/types/api';
@@ -14,7 +15,7 @@ const id = container1IdMock;
 
 describe('useDeleteFormContainerMutation', () => {
   it('Should save layout without deleted container', async () => {
-    const result = await renderDeleteFormContainerMutation();
+    const { result } = await renderDeleteFormContainerMutation();
     await result.current.mutateAsync(id);
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
     expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
@@ -40,6 +41,11 @@ const renderDeleteFormContainerMutation = async () => {
     { queries: { getFormLayouts } },
   ).result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
-  return renderHookWithProviders(() => useDeleteFormContainerMutation(org, app, selectedLayoutSet))
-    .result;
+
+  const formLayoutsSettingsResult = renderHookWithProviders(() =>
+    useFormLayoutSettingsQuery(org, app, selectedLayoutSet),
+  ).result;
+  await waitFor(() => expect(formLayoutsSettingsResult.current.isSuccess).toBe(true));
+
+  return renderHookWithProviders(() => useDeleteFormContainerMutation(org, app, selectedLayoutSet));
 };

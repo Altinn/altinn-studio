@@ -9,6 +9,7 @@ import { DEFAULT_LANGUAGE, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/const
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import type { IFormLayouts } from '../../../types/global';
 import { layout1NameMock, layoutMock } from '../../../testing/layoutMock';
+import { formLayoutSettings } from 'app-shared/mocks/mocks';
 
 // Test data
 const app = 'app';
@@ -69,5 +70,13 @@ const renderPageConfigPanel = (
   queryClientMock.setQueryData([QueryKey.TextResources, org, app], textResources);
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet], layouts);
   queryClientMock.setQueryData([QueryKey.DatamodelMetadata, org, app, layoutSet], []);
+  queryClientMock.setQueryData([QueryKey.FormLayoutSettings, org, app, layoutSet], {
+    ...formLayoutSettings,
+    pages: {
+      ...formLayoutSettings.pages,
+      order: [...formLayoutSettings.pages.order, 'newSelectedPage'],
+    },
+  });
+
   return renderWithProviders(<PageConfigPanel />, { startUrl: '?layout=' + selectedLayoutName });
 };

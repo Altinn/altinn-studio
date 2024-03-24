@@ -11,14 +11,12 @@ import {
   renderHookWithProviders,
   renderWithProviders,
 } from '../../../testing/mocks';
-import { layout1NameMock, layout2NameMock } from '../../../testing/layoutMock';
+import { layout1NameMock } from '../../../testing/layoutMock';
 
 const mockOrg = 'org';
 const mockApp = 'app';
 const mockPageName1: string = layout1NameMock;
 const mockSelectedLayoutSet = 'test-layout-set';
-const mockPageName2 = layout2NameMock;
-
 const mockSetSearchParams = jest.fn();
 const mockSearchParams = { layout: mockPageName1 };
 jest.mock('react-router-dom', () => ({
@@ -33,8 +31,8 @@ jest.mock('react-router-dom', () => ({
 }));
 
 const mockDeleteFormLayout = jest.fn();
-jest.mock('./useDeleteLayout', () => ({
-  useDeleteLayout: jest.fn(() => ({ mutate: mockDeleteFormLayout, isPending: false })),
+jest.mock('../../../hooks/mutations/useDeleteLayoutMutation', () => ({
+  useDeleteLayoutMutation: jest.fn(() => ({ mutate: mockDeleteFormLayout, isPending: false })),
 }));
 
 const mockChildren: ReactNode = (
@@ -78,7 +76,7 @@ describe('PageAccordion', () => {
     expect(elementInMenuAfter).toBeInTheDocument();
   });
 
-  it('Calls deleteLayout with pageName when delete button is clicked and deletion is confirmed, and updates the url correctly', async () => {
+  it('Calls deleteLayout with pageName when delete button is clicked and deletion is confirmed', async () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
     await render();
@@ -90,14 +88,13 @@ describe('PageAccordion', () => {
 
     expect(mockDeleteFormLayout).toHaveBeenCalledTimes(1);
     expect(mockDeleteFormLayout).toHaveBeenCalledWith(mockPageName1);
-    expect(mockSetSearchParams).toHaveBeenCalledWith({ layout: mockPageName2 });
   });
 
   it('Disables delete button when isPending is true', async () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
     jest
-      .spyOn(require('./useDeleteLayout'), 'useDeleteLayout')
+      .spyOn(require('../../../hooks/mutations/useDeleteLayoutMutation'), 'useDeleteLayoutMutation')
       .mockImplementation(() => ({ mutate: mockDeleteFormLayout, isPending: true }));
     await render();
     const deleteButton = screen.getByRole('button', {

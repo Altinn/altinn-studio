@@ -51,7 +51,7 @@ const wrapper = ({
   return renderComponent;
 };
 
-interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
+export interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   queries?: Partial<ServicesContextProps>;
   queryClient?: QueryClient;
   appContextProps?: Partial<AppContextProps>;

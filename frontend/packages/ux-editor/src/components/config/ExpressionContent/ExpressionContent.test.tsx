@@ -3,7 +3,7 @@ import { act, screen } from '@testing-library/react';
 import { parsableLogicalExpression } from '../../../testing/expressionMocks';
 import { renderWithProviders } from '../../../testing/mocks';
 import type { IFormLayouts } from '../../../types/global';
-import { layout1NameMock, layoutMock } from '../../../testing/layoutMock';
+import { layout1NameMock, layoutMock, layoutSetsMock } from '../../../testing/layoutMock';
 import type { ExpressionContentProps } from './ExpressionContent';
 import { ExpressionContent } from './ExpressionContent';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -16,7 +16,7 @@ import userEvent from '@testing-library/user-event';
 // Test data:
 const org = 'org';
 const app = 'app';
-const layoutSetName = layout1NameMock;
+const layoutSetName = layoutSetsMock.sets[0].id;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };

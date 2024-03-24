@@ -9,6 +9,7 @@ import {
   container2IdMock,
   layout1NameMock,
   layoutMock,
+  layoutSetsMock,
 } from '../../../../testing/layoutMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -19,7 +20,7 @@ import type { ComponentType } from 'app-shared/types/ComponentType';
 // Test data:
 const org = 'org';
 const app = 'app';
-const layoutSetName = layout1NameMock;
+const layoutSetName = layoutSetsMock.sets[0].id;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };
@@ -48,9 +49,7 @@ describe('RepeatingGroupComponent', () => {
   it('user should be able to choose which titles to display in table', async () => {
     await render();
 
-    expect(
-      screen.getByText(textMock('ux_editor.modal_properties_group_table_headers')),
-    ).toBeInTheDocument();
+    await screen.findByText(textMock('ux_editor.modal_properties_group_table_headers'));
 
     const firstCheckbox = screen.getByRole('checkbox', { name: component2IdMock });
     expect(firstCheckbox).toBeInTheDocument();
