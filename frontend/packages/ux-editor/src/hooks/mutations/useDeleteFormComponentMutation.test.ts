@@ -3,7 +3,6 @@ import { renderHookWithProviders } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import { useDeleteFormComponentMutation } from './useDeleteFormComponentMutation';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
-import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { component2IdMock, layout1NameMock } from '../../testing/layoutMock';
 
 // Test data:
@@ -35,9 +34,5 @@ const renderDeleteFormComponentsMutation = async () => {
     useFormLayoutsQuery(org, app, selectedLayoutSet),
   ).result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
-  const formLayoutSettingsResult = renderHookWithProviders(() =>
-    useFormLayoutSettingsQuery(org, app, selectedLayoutSet),
-  ).result;
-  await waitFor(() => expect(formLayoutSettingsResult.current.isSuccess).toBe(true));
   return renderHookWithProviders(() => useDeleteFormComponentMutation(org, app, selectedLayoutSet));
 };

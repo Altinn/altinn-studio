@@ -4,7 +4,7 @@ import { DesignView } from './DesignView';
 import classes from './FormDesigner.module.css';
 import { Elements } from '../components/Elements';
 import { useFormItemContext } from './FormItemContext';
-import { useText } from '../hooks';
+import { useAppContext, useText } from '../hooks';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
 import { useRuleModelQuery } from '../hooks/queries/useRuleModelQuery';
@@ -29,38 +29,43 @@ import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation'
 import { Preview } from '../components/Preview';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 
-export interface FormDesignerProps {
-  selectedLayout: string;
-  selectedLayoutSet: string;
-}
-
-export const FormDesigner = ({
-  selectedLayout,
-  selectedLayoutSet,
-}: FormDesignerProps): JSX.Element => {
+export const FormDesigner = (): JSX.Element => {
   const { org, app } = useStudioUrlParams();
   const { data: instanceId } = useInstanceIdQuery(org, app);
+  const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(
     org,
     app,
-    selectedLayoutSet,
+    selectedFormLayoutSetName,
   );
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
-  const { data: ruleModel } = useRuleModelQuery(org, app, selectedLayoutSet);
-  const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(org, app, selectedLayoutSet);
-  const { mutate: addItemToLayout } = useAddItemToLayoutMutation(org, app, selectedLayoutSet);
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
+  const { data: ruleModel } = useRuleModelQuery(org, app, selectedFormLayoutSetName);
+  const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
+  const { mutate: addItemToLayout } = useAddItemToLayoutMutation(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
   const { mutate: updateFormLayout } = useFormLayoutMutation(
     org,
     app,
-    selectedLayout,
-    selectedLayoutSet,
+    selectedFormLayoutName,
+    selectedFormLayoutSetName,
   );
   const { handleEdit } = useFormItemContext();
 
   const t = useText();
 
   const formLayoutIsReady =
-    selectedLayoutSet &&
+    selectedFormLayoutSetName &&
     instanceId &&
     formLayouts &&
     formLayoutSettings &&
@@ -89,7 +94,7 @@ export const FormDesigner = ({
   if (formLayoutIsReady) {
     const triggerDepthAlert = () => alert(t('schema_editor.depth_error'));
     const triggerInvalidChildAlert = () => alert(t('schema_editor.invalid_child_error'));
-    const layout = formLayouts[selectedLayout];
+    const layout = formLayouts[selectedFormLayoutName];
 
     const addItem: HandleAdd<ComponentType> = (type, { parentId, index }) => {
       const newId = generateComponentId(type, formLayouts);

@@ -31,12 +31,8 @@ const render = () => {
     getRuleModel: jest.fn().mockImplementation(() => Promise.resolve<string>(ruleHandlerMock)),
     getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve<string>('test')),
   };
-  const props = {
-    selectedLayout: 'test-layout',
-    selectedLayoutSet: 'test-layout-set',
-  };
   queryClient.setQueryData([QueryKey.TextResources, org, app], defaultTexts);
-  return renderWithProviders(<FormDesigner {...props} />, {
+  return renderWithProviders(<FormDesigner />, {
     queries,
     queryClient,
     appContextProps: {

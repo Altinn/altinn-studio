@@ -55,7 +55,6 @@ import {
   commit,
   createRepoCommitPayload,
   datamodelMetadataResponse,
-  formLayoutSettings,
   layoutSets,
   newsList,
   orgsState,
@@ -94,9 +93,7 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<AppDeploymentsResponse>(appDeploymentsResponse)),
   getEnvironments: jest.fn().mockImplementation(() => Promise.resolve<DeployEnvironment[]>([])),
-  getFormLayoutSettings: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve<ILayoutSettings>(formLayoutSettings)),
+  getFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponse>({})),
   getFormLayoutsV3: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponseV3>({})),
   getFrontEndSettings: jest.fn().mockImplementation(() => Promise.resolve<IFrontEndSettings>({})),

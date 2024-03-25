@@ -1,32 +1,23 @@
 import React, { createRef } from 'react';
 import { Preview } from './Preview';
-import { act, screen, waitFor } from '@testing-library/react';
-import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { act, screen } from '@testing-library/react';
 import type { ExtendedRenderOptions } from '../../testing/mocks';
-import { renderHookWithProviders, renderWithProviders } from '../../testing/mocks';
+import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 
 describe('Preview', () => {
-  it('Renders an iframe with the ref from AppContext', async () => {
+  it('Renders an iframe with the ref from AppContext', () => {
     const previewIframeRef = createRef<HTMLIFrameElement>();
-    await render({
-      queryClient: queryClientMock,
+    render({
       appContextProps: { previewIframeRef },
     });
-    await waitFor(() =>
-      expect(screen.getByTitle(textMock('ux_editor.preview'))).toBe(previewIframeRef.current),
-    );
+    expect(screen.getByTitle(textMock('ux_editor.preview'))).toBe(previewIframeRef.current);
   });
 
   it('should be able to toggle between mobile and desktop view', async () => {
     const user = userEvent.setup();
-    const previewIframeRef = createRef<HTMLIFrameElement>();
-    await render({
-      queryClient: queryClientMock,
-      appContextProps: { previewIframeRef },
-    });
+    render();
 
     const switchButton = screen.getByRole('checkbox', {
       name: textMock('ux_editor.mobilePreview'),
@@ -38,9 +29,8 @@ describe('Preview', () => {
     expect(switchButton).toBeChecked();
   });
 
-  it('should render a message when no page is selected', async () => {
-    await render({
-      queryClient: queryClientMock,
+  it('should render a message when no page is selected', () => {
+    render({
       appContextProps: {
         selectedFormLayoutName: undefined,
       },
@@ -48,23 +38,15 @@ describe('Preview', () => {
     expect(screen.getByText(textMock('ux_editor.no_components_selected'))).toBeInTheDocument();
   });
 
-  it('Renders the information alert with preview being limited', async () => {
-    const previewIframeRef = createRef<HTMLIFrameElement>();
-    await render({
-      queryClient: queryClientMock,
-      appContextProps: { previewIframeRef },
-    });
+  it('Renders the information alert with preview being limited', () => {
+    render();
 
     const previewLimitationsAlert = screen.getByText(textMock('preview.limitations_info'));
     expect(previewLimitationsAlert).toBeInTheDocument();
   });
 
-  it('should not display open preview button if preview is open', async () => {
-    const previewIframeRef = createRef<HTMLIFrameElement>();
-    await render({
-      queryClient: queryClientMock,
-      appContextProps: { previewIframeRef },
-    });
+  it('should not display open preview button if preview is open', () => {
+    render();
 
     const showPreviewButton = screen.queryByRole('button', {
       name: textMock('ux_editor.open_preview'),
@@ -75,11 +57,7 @@ describe('Preview', () => {
 
   it('should be possible to toggle preview window', async () => {
     const user = userEvent.setup();
-    const previewIframeRef = createRef<HTMLIFrameElement>();
-    await render({
-      queryClient: queryClientMock,
-      appContextProps: { previewIframeRef },
-    });
+    render();
 
     const hidePreviewButton = screen.getByRole('button', {
       name: textMock('ux_editor.close_preview'),
@@ -95,11 +73,5 @@ describe('Preview', () => {
   });
 });
 
-export const render = async (options: Partial<ExtendedRenderOptions>) => {
-  const formLayoutsSettingsResult = renderHookWithProviders(() =>
-    useFormLayoutSettingsQuery('org', 'app', 'selectedLayoutSet'),
-  ).result;
-  await waitFor(() => expect(formLayoutsSettingsResult.current.isSuccess).toBe(true));
-
-  return renderWithProviders(<Preview />, options);
-};
+export const render = (options: Partial<ExtendedRenderOptions> = {}) =>
+  renderWithProviders(<Preview />, options);

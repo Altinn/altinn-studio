@@ -1,7 +1,6 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
-import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { waitFor } from '@testing-library/react';
 import type { AddFormContainerMutationArgs } from './useAddFormContainerMutation';
 import { useAddFormContainerMutation } from './useAddFormContainerMutation';
@@ -58,11 +57,5 @@ const renderAddFormContainerMutation = async () => {
     useFormLayoutsQuery(org, app, selectedLayoutSet),
   ).result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
-
-  const formLayoutSettingsResult = renderHookWithProviders(() =>
-    useFormLayoutSettingsQuery(org, app, selectedLayoutSet),
-  ).result;
-  await waitFor(() => expect(formLayoutSettingsResult.current.isSuccess).toBe(true));
-
   return renderHookWithProviders(() => useAddFormContainerMutation(org, app, selectedLayoutSet));
 };

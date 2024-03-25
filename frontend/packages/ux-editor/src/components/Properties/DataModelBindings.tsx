@@ -61,8 +61,6 @@ export const DataModelBindings = (): React.JSX.Element => {
     );
   };
 
-  console.log('formItem.type', formItem.type);
-
   return (
     dataModelBindingsProperties && (
       <div className={classes.container}>

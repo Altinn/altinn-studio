@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../testing/mocks';
-import { layoutSetsMock, layout1NameMock } from '../../testing/layoutMock';
+import { layoutSetsMock } from '../../testing/layoutMock';
 import type { AppContextProps } from '../../AppContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
@@ -13,7 +13,6 @@ const org = 'org';
 const app = 'app';
 const layoutSetName1 = layoutSetsMock.sets[0].id;
 const layoutSetName2 = layoutSetsMock.sets[1].id;
-const selectedLayoutSet = layout1NameMock;
 const setSelectedLayoutSetMock = jest.fn();
 
 describe('LayoutSetsContainer', () => {
@@ -40,7 +39,6 @@ describe('LayoutSetsContainer', () => {
 const render = () => {
   queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
   const appContextProps: Partial<AppContextProps> = {
-    selectedFormLayoutSetName: selectedLayoutSet,
     setSelectedFormLayoutSetName: setSelectedLayoutSetMock,
   };
   return renderWithProviders(<LayoutSetsContainer />, {
