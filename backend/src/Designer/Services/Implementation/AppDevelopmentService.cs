@@ -177,7 +177,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<string>> GetAppMetadataModelIds(AltinnRepoEditingContext altinnRepoEditingContext,
+        public async Task<IEnumerable<string>> GetAppMetadataModelIds(AltinnRepoEditingContext altinnRepoEditingContext, bool onlyUnReferenced,
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -186,9 +186,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
             ApplicationMetadata applicationMetadata =
                 await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
-            return GetAppMetadataModelIds(applicationMetadata);
-
-
+            return GetAppMetadataModelIds(applicationMetadata, onlyUnReferenced);
         }
 
         /// <inheritdoc />
@@ -227,10 +225,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return data?.Id ?? string.Empty;
         }
 
-        private IEnumerable<string> GetAppMetadataModelIds(ApplicationMetadata applicationMetadata)
+        private IEnumerable<string> GetAppMetadataModelIds(ApplicationMetadata applicationMetadata, bool onlyUnReferenced)
         {
             var appMetaDataDataTypes = applicationMetadata.DataTypes
                 .Where(data => data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef));
+
+            if (onlyUnReferenced)
+            {
+                var unReferencedDataTypes =
+                    appMetaDataDataTypes.Where(dataType => string.IsNullOrEmpty(dataType.TaskId));
+                return unReferencedDataTypes.Select(datatype => datatype.Id);
+            }
 
             return appMetaDataDataTypes.Select(datatype => datatype.Id);
         }
@@ -380,9 +385,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return layoutSets;
         }
 
-        private static async Task<LayoutSets> UpdateExistingLayoutSet(AltinnAppGitRepository altinnAppGitRepository, LayoutSets layoutSets, LayoutSetConfig layoutSetToReplace, LayoutSetConfig newLayoutSet)
+        private async Task<LayoutSets> UpdateExistingLayoutSet(AltinnAppGitRepository altinnAppGitRepository, LayoutSets layoutSets, LayoutSetConfig layoutSetToReplace, LayoutSetConfig newLayoutSet)
         {
             int indexOfLayoutSetToReplace = layoutSets.Sets.IndexOf(layoutSetToReplace);
+            if (layoutSets.Sets[indexOfLayoutSetToReplace].DataType != newLayoutSet.DataType)
+            {
+                await _schemaModelService.UpdateApplicationMetadata(altinnAppGitRepository, newLayoutSet.DataType,
+                    $"Altinn.App.Models.{newLayoutSet.DataType}.{newLayoutSet.DataType}");
+            }
             layoutSets.Sets[indexOfLayoutSetToReplace] = newLayoutSet;
             await altinnAppGitRepository.SaveLayoutSetsFile(layoutSets);
             return layoutSets;

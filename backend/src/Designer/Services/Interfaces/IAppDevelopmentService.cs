@@ -79,10 +79,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Returns a list of data model IDs in application metadata.
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+        /// <param name="onlyUnReferenced">If true only model IDs without task_id ref in app metadata is returned</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The model metadata for a given layout set.</returns>
         public Task<IEnumerable<string>> GetAppMetadataModelIds(
             AltinnRepoEditingContext altinnRepoEditingContext,
+            bool onlyUnReferenced,
             CancellationToken cancellationToken = default);
 
         /// <summary>

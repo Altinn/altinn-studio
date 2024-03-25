@@ -17,6 +17,7 @@ import { type MetaDataForm } from '@altinn/process-editor/contexts/BpmnConfigPan
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useDeleteLayoutSetMutation } from '../../hooks/mutations/useDeleteLayoutSetMutation';
+import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
 
 enum SyncClientsName {
   FileSyncSuccess = 'FileSyncSuccess',
@@ -42,6 +43,7 @@ export const ProcessEditor = (): React.ReactElement => {
     app,
   );
   const existingCustomReceiptName: string | undefined = useCustomReceiptLayoutSetName(org, app);
+  const { data: availableDataModelIds } = useAppMetadataModelIdsQuery(org, app);
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
   const pendingApiOperations: boolean =
     mutateBpmnPending || mutateLayoutSetPending || addLayoutSetPending || deleteLayoutSetPending;
@@ -88,6 +90,7 @@ export const ProcessEditor = (): React.ReactElement => {
   // TODO: Handle error will be handled better after issue #10735 is resolved
   return (
     <ProcessEditorImpl
+      availableDataModelIds={availableDataModelIds}
       layoutSets={layoutSets}
       pendingApiOperations={pendingApiOperations}
       existingCustomReceiptLayoutSetName={existingCustomReceiptName}

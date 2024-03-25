@@ -33,6 +33,7 @@ const mockBpmnContextValue: BpmnContextProps = {
 };
 
 const mockBpmnApiContextValue: BpmnApiContextProps = {
+  availableDataModelIds: [],
   layoutSets: { sets: [] },
   pendingApiOperations: false,
   existingCustomReceiptLayoutSetName: undefined,

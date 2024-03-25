@@ -1,20 +1,42 @@
 import React from 'react';
+import classes from './ConfigContent.module.css';
+import { NativeSelect } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { EditTaskId } from './EditTaskId/EditTaskId';
 import { StudioDisplayTile, StudioSectionHeader } from '@studio/components';
 import { getConfigTitleKey, getConfigTitleHelpTextKey } from '../../../utils/configPanelUtils';
 import { ConfigIcon } from './ConfigIcon';
-
-import classes from './ConfigContent.module.css';
+import { toast } from 'react-toastify';
+import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
+  const { availableDataModelIds, layoutSets, mutateLayoutSet } = useBpmnApiContext();
   const { bpmnDetails } = useBpmnContext();
-
   const configHeaderTexts: Record<'title' | 'helpText', string> = {
     title: bpmnDetails?.taskType && t(getConfigTitleKey(bpmnDetails.taskType)),
     helpText: bpmnDetails?.taskType && t(getConfigTitleHelpTextKey(bpmnDetails.taskType)),
+  };
+  const layoutSet = layoutSets?.sets.find((set) => set.tasks.includes(bpmnDetails.id));
+  const existingDataTypeForTask = layoutSet?.dataType;
+  const noModelKey = 'noModel';
+  const dataModelIds = [...availableDataModelIds, noModelKey, existingDataTypeForTask ?? null];
+
+  const handleChangeDataModel = (dataModelId: string) => {
+    if (dataModelId == existingDataTypeForTask) return;
+    debugger;
+    if (!layoutSet) {
+      toast.error(t('process_editor.layout_set_not_found_error'));
+      return;
+    }
+    mutateLayoutSet({
+      layoutSetIdToUpdate: layoutSet.id,
+      layoutSetConfig: {
+        ...layoutSet,
+        dataType: dataModelId === noModelKey ? undefined : dataModelId,
+      },
+    });
   };
 
   return (
@@ -38,6 +60,20 @@ export const ConfigContent = (): React.ReactElement => {
         value={bpmnDetails.name}
         className={classes.displayTile}
       />
+      <div className={classes.configSectionWrapper}>
+        <NativeSelect
+          size='small'
+          onChange={({ target }) => handleChangeDataModel(target.value)}
+          label={t('process_editor.configuration_panel_set_datamodel')}
+          value={existingDataTypeForTask ?? noModelKey}
+        >
+          {dataModelIds.map((option) => (
+            <option key={option} value={option}>
+              {option == noModelKey ? t('process_editor.configuration_panel_no_datamodel') : option}
+            </option>
+          ))}
+        </NativeSelect>
+      </div>
     </>
   );
 };

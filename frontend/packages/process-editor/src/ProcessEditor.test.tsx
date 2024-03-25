@@ -16,6 +16,7 @@ const defaultProps: ProcessEditorProps = {
   bpmnXml: mockBPMNXML,
   saveBpmn: mockSaveBpmn,
   appLibVersion: mockAppLibVersion8,
+  availableDataModelIds: [],
   layoutSets: { sets: [] },
   pendingApiOperations: false,
   existingCustomReceiptLayoutSetName: undefined,

@@ -2,8 +2,7 @@ import React from 'react';
 import { ConfigContent } from './ConfigContent';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
-import type { BpmnContextProps } from '../../../contexts/BpmnContext';
-import { BpmnContext } from '../../../contexts/BpmnContext';
+import {BpmnContextProps, BpmnContextProvider} from '../../../contexts/BpmnContext';
 import type { BpmnDetails } from '../../../types/BpmnDetails';
 import { BpmnTypeEnum } from '../../../enum/BpmnTypeEnum';
 import userEvent from '@testing-library/user-event';
@@ -11,18 +10,25 @@ import type Modeler from 'bpmn-js/lib/Modeler';
 import { type BpmnTaskType } from '../../../types/BpmnTaskType';
 import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
 import { BpmnApiContextProvider } from '../../../contexts/BpmnApiContext';
+import type { BpmnApiContextProps } from '../../../contexts/BpmnApiContext';
+import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 const mockAppLibVersion8: string = '8.0.3';
 
-const mockId: string = 'testId';
+const mockTaskId: string = 'testId';
 const mockName: string = 'testName';
 
 const mockBpmnDetails: BpmnDetails = {
-  id: mockId,
+  id: mockTaskId,
   name: mockName,
   taskType: 'data',
   type: BpmnTypeEnum.Task,
+};
+
+const mockBpmnApiContextValue: Partial<BpmnApiContextProps> = {
+  layoutSets: { sets: [] },
+  availableDataModelIds: [],
 };
 
 const mockBpmnContextValue: BpmnContextProps = {
@@ -49,11 +55,10 @@ describe('ConfigContent', () => {
     jest.clearAllMocks();
   });
   it('should render heading for selected task', () => {
-    renderConfigContent({
+    renderConfigContent({}, {
       modelerRef: { current: { get: () => {} } as unknown as Modeler },
       bpmnDetails: { ...mockBpmnDetails, taskType: 'data' as BpmnTaskType },
     });
-
     screen.getByRole('heading', {
       name: textMock('process_editor.configuration_panel_data_task'),
       level: 2,
@@ -62,7 +67,7 @@ describe('ConfigContent', () => {
 
   it('should render helpText for selected task', async () => {
     const user = userEvent.setup();
-    renderConfigContent({
+    renderConfigContent({}, {
       modelerRef: { current: { get: () => {} } as unknown as Modeler },
       bpmnDetails: { ...mockBpmnDetails, taskType: 'data' as BpmnTaskType },
     });
@@ -76,7 +81,7 @@ describe('ConfigContent', () => {
   });
 
   it('should render EditTaskId component', () => {
-    renderConfigContent({
+    renderConfigContent({}, {
       modelerRef: { current: { get: () => {} } as unknown as Modeler },
       bpmnDetails: { ...mockBpmnDetails, taskType: 'data' as BpmnTaskType },
     });
@@ -89,27 +94,117 @@ describe('ConfigContent', () => {
   it.each(['data', 'confirmation', 'feedback', 'signing'])(
     'should render correct header config for each taskType',
     (taskType) => {
-      renderConfigContent({
+      renderConfigContent({}, {
         modelerRef: { current: { get: () => {} } as unknown as Modeler },
         bpmnDetails: { ...mockBpmnDetails, taskType: taskType as BpmnTaskType },
       });
-
-      screen.getByRole('heading', {
-        name: textMock(`process_editor.configuration_panel_${taskType}_task`),
-        level: 2,
+        screen.getByRole('heading', {
+            name: textMock(`process_editor.configuration_panel_${taskType}_task`),
+            level: 2,
+        });
+        
+  it('should display the data type details about the selected task when a "data" task is selected', () => {
+      renderConfigContent({}, {
+          modelerRef: { current: { get: () => {} } as unknown as Modeler },
+          bpmnDetails: { ...mockBpmnDetails, taskType: 'data' },
       });
-    },
-  );
+      screen.getByRole('combobox', {
+          name: textMock('process_editor.configuration_panel_set_datamodel'),
+      });
+    screen.getByText(mockBpmnDetails.id);
+    screen.getByText(mockBpmnDetails.name);
+    screen.getByText(textMock('process_editor.configuration_panel_no_datamodel'));
+  });
+
+        it('should display the details about the selected task when a task not of type "BpmnTaskType" is selected', () => {
+            renderConfigContent({}, { bpmnDetails: { ...mockBpmnDetails, taskType: undefined } });
+
+            screen.getByRole('heading', {
+                    name: textMock('process_editor.configuration_panel_missing_task'),
+                    level: 2,
+                });
+            screen.getByRole('combobox', {
+                    name: textMock('process_editor.configuration_panel_set_datamodel'),
+                });
+
+            screen.getByText(mockBpmnDetails.id);
+            screen.getByText(mockBpmnDetails.name);
+            screen.getByText(textMock('process_editor.configuration_panel_no_datamodel'));
+        });
+
+        it('should display the connected data model as selected in the select list by default when data type is connected to task and no available data types exists', () => {
+            const connectedDataType = 'dataModel0';
+            const existingLayoutSets: LayoutSets = {
+                sets: [
+                    {
+                        id: 'layoutSet1',
+                        tasks: [mockTaskId],
+                        dataType: connectedDataType,
+                    },
+                ],
+            };
+            renderConfigContent({ layoutSets: existingLayoutSets });
+            const selectDataModel = screen.getByRole('combobox', {
+                name: textMock('process_editor.configuration_panel_set_datamodel'),
+            });
+            expect(selectDataModel).toBeInTheDocument();
+            expect(selectDataModel).toHaveValue(connectedDataType);
+        });
+
+        it('should display the default text as selected in the select list when no data type is connected to task and there are available data types', () => {
+            const availableDataTypes = ['dataModel1', 'dataModel2'];
+            renderConfigContent({ availableDataModelIds: availableDataTypes });
+            const selectDataModel = screen.getByRole('combobox', {
+                name: textMock('process_editor.configuration_panel_set_datamodel'),
+            });
+            expect(selectDataModel).toBeInTheDocument();
+            expect(selectDataModel).toHaveValue('noModel');
+            expect(
+                screen.getByRole('option', {
+                    name: textMock('process_editor.configuration_panel_no_datamodel'),
+                }),
+            ).toBeInTheDocument();
+        });
+
+        it('should display all available data types including existing and no-model-option as options for data type select', () => {
+            const availableDataTypes = ['dataModel1', 'dataModel2'];
+            const connectedDataType = 'dataModel0';
+            const existingLayoutSets: LayoutSets = {
+                sets: [
+                    {
+                        id: 'layoutSet1',
+                        tasks: [mockTaskId],
+                        dataType: connectedDataType,
+                    },
+                ],
+            };
+            renderConfigContent({ availableDataModelIds: availableDataTypes, layoutSets: existingLayoutSets });
+            const selectDataModel = screen.getByRole('combobox', {
+                name: textMock('process_editor.configuration_panel_set_datamodel'),
+            });
+            expect(selectDataModel).toBeInTheDocument();
+            expect(selectDataModel).toHaveValue(connectedDataType);
+            expect(
+                screen.getByRole('option', {
+                    name: textMock('process_editor.configuration_panel_no_datamodel'),
+                }),
+            ).toBeInTheDocument();
+
+            availableDataTypes.forEach((dataType) =>
+                expect(screen.getByRole('option', { name: dataType })).toBeInTheDocument(),
+            );
+        });
+    });
 });
 
-const renderConfigContent = (rootContextProps: Partial<BpmnContextProps> = {}) => {
+const renderConfigContent = (bpmnApiContextProps: Partial<BpmnApiContextProps> = {},bpmnConfigPanelFormContextProps: Partial<BpmnContextProps> = {}) => {
   return render(
-    <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
-      <BpmnApiContextProvider>
-        <BpmnConfigPanelFormContextProvider>
+      <BpmnContextProvider>
+      <BpmnApiContextProvider { ...mockBpmnApiContextValue} {...bpmnApiContextProps }>
+    <BpmnConfigPanelFormContextProvider { ...mockBpmnContextValue} {...bpmnConfigPanelFormContextProps }>
           <ConfigContent />
         </BpmnConfigPanelFormContextProvider>
       </BpmnApiContextProvider>
-    </BpmnContext.Provider>,
+    </BpmnContextProvider>
   );
 };

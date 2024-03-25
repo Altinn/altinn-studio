@@ -6,3 +6,17 @@
   padding: var(--fds-spacing-1) var(--fds-spacing-4);
   box-sizing: border-box;
 }
+
+.configSectionWrapper {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  gap: 1rem;
+  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
+}
+
+.headerTextAndIconWrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}

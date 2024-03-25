@@ -49,9 +49,9 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            
+
             string responseContent = await response.Content.ReadAsStringAsync();
-            
+
             responseContent.Should().Be("[]");
         }
     }

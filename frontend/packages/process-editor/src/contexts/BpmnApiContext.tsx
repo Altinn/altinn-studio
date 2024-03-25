@@ -3,6 +3,7 @@ import React, { createContext, useContext } from 'react';
 import type { MetaDataForm } from './BpmnConfigPanelContext';
 
 export type BpmnApiContextProps = {
+  availableDataModelIds: string[];
   layoutSets: LayoutSets;
   pendingApiOperations: boolean;
   existingCustomReceiptLayoutSetName: string | undefined;
@@ -19,6 +20,7 @@ export const BpmnApiContext = createContext<Partial<BpmnApiContextProps>>(undefi
 
 export type BpmnApiContextProviderProps = {
   children: React.ReactNode;
+  availableDataModelIds: string[];
   layoutSets: LayoutSets;
   pendingApiOperations: boolean;
   existingCustomReceiptLayoutSetName: string | undefined;
@@ -32,6 +34,7 @@ export type BpmnApiContextProviderProps = {
 };
 export const BpmnApiContextProvider = ({
   children,
+  availableDataModelIds,
   layoutSets,
   pendingApiOperations,
   existingCustomReceiptLayoutSetName,
@@ -43,6 +46,7 @@ export const BpmnApiContextProvider = ({
   return (
     <BpmnApiContext.Provider
       value={{
+        availableDataModelIds,
         layoutSets,
         pendingApiOperations,
         existingCustomReceiptLayoutSetName,
