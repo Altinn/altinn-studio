@@ -2,9 +2,10 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { formLayoutSettingsMock, renderHookWithProviders } from '../../testing/mocks';
 import { useDeleteLayoutMutation } from './useDeleteLayoutMutation';
-import { externalLayoutsMock, layout2NameMock } from '../../testing/layoutMock';
+import { externalLayoutsMock, layout1NameMock, layout2NameMock } from '../../testing/layoutMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
+import { appContextMock } from '../../testing/appContextMock';
 
 // Test data:
 const org = 'org';
@@ -41,6 +42,21 @@ describe('useDeleteLayoutMutation', () => {
       ...formLayoutSettingsMock,
       receiptLayoutName: undefined,
     });
+  });
+
+  it.only('Selects a new layout when deleting the selected layout', async () => {
+    const { result } = renderDeleteLayoutMutation();
+    await result.current.mutateAsync(layout1NameMock);
+    expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledTimes(1);
+    expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledWith(layoutName);
+  });
+
+  it.only('Reloads preview when deleting a layout that is not selected', async () => {
+    const { result } = renderDeleteLayoutMutation();
+    await result.current.mutateAsync(layout2NameMock);
+    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchLayoutSettings).toHaveBeenCalledTimes(1);
+    expect(appContextMock.reloadPreview).toHaveBeenCalledTimes(1);
   });
 });
 

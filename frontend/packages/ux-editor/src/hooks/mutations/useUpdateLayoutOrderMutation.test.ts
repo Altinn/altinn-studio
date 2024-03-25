@@ -5,6 +5,7 @@ import { waitFor } from '@testing-library/react';
 import type { UpdateLayoutOrderMutationArgs } from './useUpdateLayoutOrderMutation';
 import { useUpdateLayoutOrderMutation } from './useUpdateLayoutOrderMutation';
 import { layout1NameMock, layout2NameMock } from '../../testing/layoutMock';
+import { appContextMock } from '../../testing/appContextMock';
 
 // Test data:
 const org = 'org';
@@ -38,6 +39,9 @@ describe('useUpdateLayoutOrderMutation', () => {
         }),
       }),
     );
+
+    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchLayoutSettings).toHaveBeenCalledTimes(1);
   });
 
   it('Moves layout up when direction is set to "up"', async () => {
@@ -64,6 +68,9 @@ describe('useUpdateLayoutOrderMutation', () => {
         }),
       }),
     );
+
+    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchLayoutSettings).toHaveBeenCalledTimes(1);
   });
 });
 

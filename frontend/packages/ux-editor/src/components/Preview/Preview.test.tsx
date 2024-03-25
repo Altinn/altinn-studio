@@ -1,6 +1,6 @@
 import React from 'react';
 import { Preview } from './Preview';
-import { act, screen } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import type { ExtendedRenderOptions } from '../../testing/mocks';
 import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
@@ -70,6 +70,21 @@ describe('Preview', () => {
     });
     await act(() => user.click(showPreviewButton));
     expect(showPreviewButton).not.toBeInTheDocument();
+  });
+
+  it.only('reloads preview when the selected form layout name changes', async () => {
+    const view = render();
+
+    appContextMock.selectedFormLayoutName = 'test';
+    view.rerender(<Preview />);
+    await waitFor(() => expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(appContextMock.refetchLayoutSettings).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(appContextMock.reloadPreview).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(appContextMock.reloadPreview).toHaveBeenCalledWith(
+        appContextMock.selectedFormLayoutName,
+      ),
+    );
   });
 });
 
