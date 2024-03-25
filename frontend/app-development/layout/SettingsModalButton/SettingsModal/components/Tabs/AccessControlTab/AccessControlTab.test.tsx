@@ -147,6 +147,16 @@ describe('AccessControlTab', () => {
     expect(updateAppMetadataMutation).not.toHaveBeenCalled();
   });
 
+  it("should close modal when clicking 'close' button", async () => {
+    const user = userEvent.setup();
+    await resolveAndWaitForSpinnerToDisappear();
+    const checkbox = screen.getAllByRole('checkbox')[4];
+    await act(() => user.click(checkbox));
+    const closeButton = screen.getByRole('button', { name: textMock('general.close') });
+    await act(() => user.click(closeButton));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
   it('should call updateAppMetadataMutation when selecting checkbox', async () => {
     const user = userEvent.setup();
     await resolveAndWaitForSpinnerToDisappear();
