@@ -16,6 +16,8 @@ public class ObjectUtilsTests
 
         public decimal? NullableDecimal { get; set; }
 
+        public DateTime? DateTime { get; set; }
+
         public TestClass? Child { get; set; }
 
         public List<TestClass>? Children { get; set; }
@@ -107,6 +109,7 @@ public class ObjectUtilsTests
     [Fact]
     public void TestGuidInitialized()
     {
+        var dateTime = DateTime.Parse("2021-01-01");
         var test = new TestClass()
         {
             Child = new(),
@@ -114,7 +117,10 @@ public class ObjectUtilsTests
             {
                 new TestClass(),
                 new TestClass()
-            }
+            },
+            DateTime = dateTime,
+            NullableDecimal = 1.1m,
+            Decimal = 2.2m,
         };
         test.AltinnRowId.Should().Be(Guid.Empty);
         test.Child.AltinnRowId.Should().Be(Guid.Empty);
@@ -125,6 +131,9 @@ public class ObjectUtilsTests
         test.AltinnRowId.Should().NotBe(Guid.Empty);
         test.Child.AltinnRowId.Should().NotBe(Guid.Empty);
         test.Children.Should().AllSatisfy(c => c.AltinnRowId.Should().NotBe(Guid.Empty));
+        test.DateTime.Should().Be(dateTime);
+        test.NullableDecimal.Should().Be(1.1m);
+        test.Decimal.Should().Be(2.2m);
     }
 
     [Fact]
