@@ -76,6 +76,16 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         public Task<string[]> GetLayoutNames(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Returns a list of data model IDs in application metadata.
+        /// </summary>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>The model metadata for a given layout set.</returns>
+        public Task<IEnumerable<string>> GetAppMetadataModelIds(
+            AltinnRepoEditingContext altinnRepoEditingContext,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Returns the <see cref="ModelMetadata"/> for an app.
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
@@ -85,7 +95,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         public Task<ModelMetadata> GetModelMetadata(
             AltinnRepoEditingContext altinnRepoEditingContext, [CanBeNull] string layoutSetName,
             CancellationToken cancellationToken = default);
-
 
         /// <summary>
         /// Gets an array of all layoutsets for layout-sets.json. If no sets returns null.
