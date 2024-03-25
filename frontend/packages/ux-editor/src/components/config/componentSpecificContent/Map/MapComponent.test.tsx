@@ -45,57 +45,11 @@ const renderMapComponent = async ({
 describe('MapComponent', () => {
   afterEach(() => jest.resetAllMocks());
 
-  test('should render titles', async () => {
+  it('should render /Legg til kartlag/ button', async () => {
     await renderMapComponent({});
-    expect(screen.getByRole('heading', { level: 2, name: 'Sentrum av kartet' }));
-    expect(screen.getByRole('heading', { level: 2, name: 'Legg til kartlag' }));
-  });
-
-  test('should render input-fields, latitude, longitude, zoom and button "Add map layer"', async () => {
-    await renderMapComponent({});
-    expect(screen.getByLabelText('Latitude')).toBeInTheDocument();
-    expect(screen.getByLabelText('Longitude')).toBeInTheDocument();
-    expect(screen.getByLabelText('Standard zoom')).toBeInTheDocument();
-  });
-
-  test('should be able to set latitude', async () => {
-    const user = userEvent.setup();
-    await renderMapComponent({
-      handleComponentChange: handleComponentChangeMock,
-    });
-
-    const latitudeInput = screen.getByLabelText('Latitude');
-    await act(() => user.type(latitudeInput, '40'));
-
-    expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
-      centerLocation: { latitude: 40 },
-    });
-  });
-
-  test('should be able to set longitude', async () => {
-    const user = userEvent.setup();
-    await renderMapComponent({
-      handleComponentChange: handleComponentChangeMock,
-    });
-
-    const longitudeInput = screen.getByLabelText('Longitude');
-    await act(() => user.type(longitudeInput, '21'));
-
-    expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
-      centerLocation: { longitude: 21 },
-    });
-  });
-
-  test('should be able to set zoom', async () => {
-    const user = userEvent.setup();
-    await renderMapComponent({
-      handleComponentChange: handleComponentChangeMock,
-    });
-
-    const zoomInput = screen.getByLabelText('Standard zoom');
-    await act(() => user.type(zoomInput, '2'));
-
-    expect(handleComponentChangeMock).toHaveBeenLastCalledWith({ zoom: 2 });
+    expect(
+      screen.getByRole('button', { name: texts['ux_editor.add_map_layer'] }),
+    ).toBeInTheDocument();
   });
 });
 

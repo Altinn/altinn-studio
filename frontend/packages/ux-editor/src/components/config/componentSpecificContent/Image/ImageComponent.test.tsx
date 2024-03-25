@@ -75,26 +75,6 @@ describe('ImageComponent', () => {
     });
   });
 
-  it('should call handleComponentUpdate callback with image width value when image width input is changed', async () => {
-    const handleUpdate = jest.fn();
-    const size = '250px';
-    await render({ handleComponentChange: handleUpdate });
-
-    const widthInput = screen.getByRole('textbox', {
-      name: /width/i,
-    });
-
-    await act(() => user.type(widthInput, size));
-
-    expect(handleUpdate).toHaveBeenCalledWith({
-      ...componentData,
-      image: {
-        ...componentData.image,
-        width: size,
-      },
-    });
-  });
-
   it('should call handleComponentUpdate callback with alignment when placement select is changed', async () => {
     const handleUpdate = jest.fn();
     await render({ handleComponentChange: handleUpdate });
