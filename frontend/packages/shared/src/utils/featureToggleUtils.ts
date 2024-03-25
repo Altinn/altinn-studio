@@ -8,7 +8,8 @@ export type SupportedFeatureFlags =
   | 'customizeEndEvent'
   | 'componentConfigBeta'
   | 'shouldOverrideAppLibCheck'
-  | 'resourceAccessLists';
+  | 'resourceAccessLists'
+  | 'resourceMigration';
 
 /*
  * Please add all the features that you want to be toggle on by default here.
