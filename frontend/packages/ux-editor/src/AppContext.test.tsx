@@ -8,6 +8,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { previewHash } from 'app-shared/api/paths';
 
 const org = 'org';
 const app = 'app';
@@ -191,6 +192,33 @@ describe('AppContext', () => {
         queryKey: ['fetchTextResources', mockLanguage],
       }),
     );
+  });
+
+  it('reloads preview correctly', async () => {
+    const user = userEvent.setup();
+
+    render(() => {
+      const { previewIframeRef, reloadPreview } = React.useContext(AppContext);
+      return (
+        <>
+          <button
+            data-testid='button'
+            onClick={() => reloadPreview(mockSelectedFormLayoutSetName)}
+          />
+          <iframe data-testid='previewIframeRef' ref={previewIframeRef} />
+        </>
+      );
+    });
+
+    const previewIframeRef: HTMLIFrameElement = screen.getByTestId('previewIframeRef');
+    const contentWindow = previewIframeRef?.contentWindow;
+
+    expect(contentWindow.location.hash).toBe('');
+
+    const button = screen.getByTestId('button');
+    await act(() => user.click(button));
+
+    expect(contentWindow.location.hash).toBe(previewHash(mockSelectedFormLayoutSetName));
   });
 
   it('removed selectedFormLayoutSetName correctly', async () => {

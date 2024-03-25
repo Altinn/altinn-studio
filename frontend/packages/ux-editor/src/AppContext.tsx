@@ -1,9 +1,8 @@
 import type { MutableRefObject } from 'react';
 import React, { useMemo, useRef, createContext, useCallback } from 'react';
 import type { QueryClient, QueryKey } from '@tanstack/react-query';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useSelectedFormLayoutName, useSelectedFormLayoutSetName } from './hooks';
-import { previewPage } from 'app-shared/api/paths';
+import { previewHash } from 'app-shared/api/paths';
 
 export interface WindowWithQueryClient extends Window {
   queryClient?: QueryClient;
@@ -30,7 +29,6 @@ type AppContextProviderProps = {
 
 export const AppContextProvider = ({ children }: AppContextProviderProps): React.JSX.Element => {
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
-  const { org, app } = useStudioUrlParams();
   const {
     selectedFormLayoutSetName,
     setSelectedFormLayoutSetName,
@@ -62,18 +60,11 @@ export const AppContextProvider = ({ children }: AppContextProviderProps): React
     [refetch],
   );
 
-  const reloadPreview = useCallback(
-    (layoutName: string) => {
-      if (previewIframeRef?.current?.contentWindow) {
-        previewIframeRef.current.contentWindow.window.location.href = previewPage(
-          org,
-          app,
-          layoutName,
-        );
-      }
-    },
-    [app, org],
-  );
+  const reloadPreview = useCallback((layoutName: string) => {
+    if (previewIframeRef?.current?.contentWindow) {
+      previewIframeRef.current.contentWindow.window.location.hash = previewHash(layoutName);
+    }
+  }, []);
 
   const value = useMemo(
     () => ({
