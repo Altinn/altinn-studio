@@ -1299,6 +1299,7 @@
   "settings_modal.access_control_tab_checkbox_legend_label": "Hvilke type parter skal ha lov til å starte denne appen? ",
   "settings_modal.access_control_tab_heading": "Oppstartskontroll for appen",
   "settings_modal.access_control_tab_help_text_heading": "I oppstartskontrollen velger du hva som skal kontrolleres når appen starter.",
+  "settings_modal.access_control_tab_help_text_title": "Hjelpetekst for oppstartskontroll",
   "settings_modal.access_control_tab_option_access_control_docs_link": "<0 href=\"https://docs.altinn.studio/app/development/logic/instantiation\">I dokumentasjonen kan du lære hvordan du setter andre kontroller for oppstart.</0>",
   "settings_modal.access_control_tab_option_access_control_docs_link_text": "Velg eller lag andre tilleggskontroller:",
   "settings_modal.access_control_tab_option_all_types": "Alle typer",

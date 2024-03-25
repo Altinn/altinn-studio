@@ -119,7 +119,7 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
     <TabContent>
       <div className={classes.tabHeaderContent}>
         <TabHeader text={t('settings_modal.access_control_tab_heading')} />
-        <HelpText title={'helptext'} placement='top'>
+        <HelpText title={t('settings_modal.access_control_tab_help_text_title')} placement='top'>
           {t('settings_modal.access_control_tab_help_text_heading')}
         </HelpText>
       </div>

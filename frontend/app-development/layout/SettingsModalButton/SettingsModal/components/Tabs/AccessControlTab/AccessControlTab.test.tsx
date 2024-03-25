@@ -1,5 +1,10 @@
 import React from 'react';
-import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import {
+  act,
+  render as rtlRender,
+  screen,
+  waitForElementToBeRemoved,
+} from '@testing-library/react';
 import type { AccessControlTabProps } from './AccessControlTab';
 import { AccessControlTab } from './AccessControlTab';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
@@ -8,9 +13,15 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import { mockAppMetadata } from '../../../mocks/applicationMetadataMock';
+import userEvent from '@testing-library/user-event';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
+const updateAppMetadataMutation = jest.fn();
+
+jest.mock('app-development/hooks/mutations', () => ({
+  useAppMetadataMutation: () => ({ mutate: updateAppMetadataMutation }),
+}));
 
 const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 
@@ -106,6 +117,19 @@ describe('AccessControlTab', () => {
     });
   });
 
+  it('should render the text of the button for help text correctly', async () => {
+    const user = userEvent.setup();
+    render();
+    const helpButton = screen.getByRole('button', {
+      name: textMock('settings_modal.access_control_tab_help_text_title'),
+    });
+    await act(() => user.click(helpButton));
+    screen.getByText(textMock('settings_modal.access_control_tab_help_text_heading'));
+    expect(
+      screen.getByText(textMock('settings_modal.access_control_tab_help_text_heading')),
+    ).toBeInTheDocument();
+  });
+
   it('renders the documentation link with the correct text', async () => {
     await resolveAndWaitForSpinnerToDisappear();
     const documentationLink = screen.getByText(
@@ -113,11 +137,39 @@ describe('AccessControlTab', () => {
     );
     expect(documentationLink).toBeInTheDocument();
   });
+
+  it('render modal', async () => {
+    const user = userEvent.setup();
+    await resolveAndWaitForSpinnerToDisappear();
+    const checkbox = screen.getAllByRole('checkbox')[4];
+    await act(() => user.click(checkbox));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(updateAppMetadataMutation).not.toHaveBeenCalled();
+  });
+
+  it('should call updateAppMetadataMutation when selecting checkbox', async () => {
+    const user = userEvent.setup();
+    await resolveAndWaitForSpinnerToDisappear();
+    const checkboxes = screen.getAllByRole('checkbox')[0];
+    await act(() => user.click(checkboxes));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1);
+    expect(updateAppMetadataMutation).toHaveBeenCalledWith({
+      ...mockAppMetadata,
+      partyTypesAllowed: {
+        ...mockAppMetadata.partyTypesAllowed,
+        person: true,
+      },
+    });
+  });
 });
 
-const resolveAndWaitForSpinnerToDisappear = async (props: Partial<AccessControlTabProps> = {}) => {
+const resolveAndWaitForSpinnerToDisappear = async (
+  props: Partial<AccessControlTabProps> = {},
+  queries: Partial<ServicesContextProps> = {},
+) => {
   getAppMetadata.mockImplementation(() => Promise.resolve(mockAppMetadata));
-  render(props);
+  render(props, queries);
   await waitForElementToBeRemoved(() =>
     screen.queryByTitle(textMock('settings_modal.loading_content')),
   );
@@ -135,9 +187,7 @@ const render = (
 
   return rtlRender(
     <ServicesContextProvider {...allQueries} client={queryClient}>
-      <AccessControlTab {...defaultProps} {...props}>
-        {/*         <AccessControlWarningModal t={textMock} modalRef={{ current: null }} /> */}
-      </AccessControlTab>
+      <AccessControlTab {...defaultProps} {...props}></AccessControlTab>
     </ServicesContextProvider>,
   );
 };
