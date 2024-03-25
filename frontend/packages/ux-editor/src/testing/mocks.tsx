@@ -30,20 +30,18 @@ type WrapperArgs = {
   queries: Partial<ServicesContextProps>;
   queryClient: QueryClient;
   appContextProps: Partial<AppContextProps>;
-  startUrl?: string;
 };
 
 const wrapper = ({
   queries = {},
   queryClient = queryClientMock,
   appContextProps = {},
-  startUrl = '/?layout=Side1',
 }: WrapperArgs) => {
   const renderComponent = (component: ReactNode) => (
     <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
       <PreviewConnectionContextProvider>
         <AppContext.Provider value={{ ...appContextMock, ...appContextProps }}>
-          <MemoryRouter initialEntries={[startUrl]}>{component}</MemoryRouter>
+          <MemoryRouter>{component}</MemoryRouter>
         </AppContext.Provider>
       </PreviewConnectionContextProvider>
     </ServicesContextProvider>
@@ -55,17 +53,11 @@ export interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   queries?: Partial<ServicesContextProps>;
   queryClient?: QueryClient;
   appContextProps?: Partial<AppContextProps>;
-  startUrl?: string;
 }
 
 export const renderHookWithProviders = (
   hook: () => any,
-  {
-    queries = {},
-    queryClient = queryClientMock,
-    appContextProps = {},
-    startUrl = undefined,
-  }: ExtendedRenderOptions = {},
+  { queries = {}, queryClient = queryClientMock, appContextProps = {} }: ExtendedRenderOptions = {},
 ) => {
   return renderHook(hook, {
     wrapper: ({ children }) =>
@@ -73,7 +65,6 @@ export const renderHookWithProviders = (
         queries,
         queryClient,
         appContextProps,
-        startUrl,
       })(children),
   });
 };
@@ -84,7 +75,6 @@ export const renderWithProviders = (
     queries = {},
     queryClient = queryClientMock,
     appContextProps = {},
-    startUrl = undefined,
     ...renderOptions
   }: Partial<ExtendedRenderOptions> = {},
 ) => {
@@ -95,7 +85,6 @@ export const renderWithProviders = (
           queries,
           queryClient,
           appContextProps,
-          startUrl,
         })(children),
       ...renderOptions,
     }),

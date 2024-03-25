@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { FormDesigner } from './containers/FormDesigner';
-import { useText, useAppContext, useSelectedFormLayoutName } from './hooks';
+import { useText, useAppContext } from './hooks';
 import { StudioPageSpinner } from '@studio/components';
 import { ErrorPage } from './components/ErrorPage';
 import { useDatamodelMetadataQuery } from './hooks/queries/useDatamodelMetadataQuery';
@@ -19,8 +19,8 @@ import { FormItemContextProvider } from './containers/FormItemContext';
 export function App() {
   const t = useText();
   const { org, app } = useStudioUrlParams();
-  const { selectedFormLayoutSetName, removeSelectedFormLayoutSetName } = useAppContext();
-  const { selectedFormLayoutName } = useSelectedFormLayoutName();
+  const { selectedFormLayoutSetName, removeSelectedFormLayoutSetName, selectedFormLayoutName } =
+    useAppContext();
   const { data: layoutSets, isSuccess: areLayoutSetsFetched } = useLayoutSetsQuery(org, app);
   const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
   const { isSuccess: isDatamodelFetched, isError: dataModelFetchedError } =

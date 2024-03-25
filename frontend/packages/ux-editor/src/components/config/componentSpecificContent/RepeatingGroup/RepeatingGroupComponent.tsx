@@ -8,7 +8,6 @@ import {
   useText,
   useTextResourcesSelector,
   useAppContext,
-  useSelectedFormLayoutName,
 } from '../../../../hooks';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
@@ -26,7 +25,7 @@ export const RepeatingGroupComponent = ({
 
   const { org, app } = useStudioUrlParams();
 
-  const { selectedFormLayoutSetName } = useAppContext();
+  const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
   const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
   const { components } = useSelectedFormLayout();
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
@@ -35,7 +34,6 @@ export const RepeatingGroupComponent = ({
 
   const [tableHeadersError, setTableHeadersError] = useState<string>(null);
 
-  const { selectedFormLayoutName } = useSelectedFormLayoutName();
   const layoutOrder = formLayouts?.[selectedFormLayoutName]?.order || {};
 
   const items = layoutOrder[component.id];

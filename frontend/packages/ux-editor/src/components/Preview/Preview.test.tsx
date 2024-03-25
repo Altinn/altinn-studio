@@ -41,7 +41,9 @@ describe('Preview', () => {
   it('should render a message when no page is selected', async () => {
     await render({
       queryClient: queryClientMock,
-      startUrl: '',
+      appContextProps: {
+        selectedFormLayoutName: undefined,
+      },
     });
     expect(screen.getByText(textMock('ux_editor.no_components_selected'))).toBeInTheDocument();
   });

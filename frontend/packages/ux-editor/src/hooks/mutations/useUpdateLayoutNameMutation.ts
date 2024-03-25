@@ -6,7 +6,7 @@ import { ObjectUtils } from '@studio/pure-functions';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import type { ILayoutSettings } from 'app-shared/types/global';
-import { useSelectedFormLayoutName } from '../';
+import { useAppContext } from '../';
 
 export interface UpdateLayoutNameMutationArgs {
   oldName: string;
@@ -17,7 +17,7 @@ export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetN
   const { updateFormLayoutName } = useServicesContext();
   const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, layoutSetName);
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
-  const { setSelectedFormLayoutName } = useSelectedFormLayoutName();
+  const { setSelectedFormLayoutName } = useAppContext();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ oldName, newName }: UpdateLayoutNameMutationArgs) =>

@@ -9,14 +9,14 @@ import { EditOptions } from '../config/editModal/EditOptions';
 import type { FormComponentBase } from '../../types/FormComponent';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
-import { useSelectedFormLayoutName } from '../../hooks';
+import { useAppContext } from '../../hooks';
 
 export const Text = () => {
   const { formItemId: formId, formItem: form, handleUpdate, debounceSave } = useFormItemContext();
   const { t } = useTranslation();
 
   const { data: schema } = useComponentSchemaQuery(form.type);
-  const { selectedFormLayoutName } = useSelectedFormLayoutName();
+  const { selectedFormLayoutName } = useAppContext();
 
   if (!schema) {
     return (

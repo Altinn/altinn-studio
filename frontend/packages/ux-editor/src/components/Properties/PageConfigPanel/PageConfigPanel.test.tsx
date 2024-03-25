@@ -78,5 +78,7 @@ const renderPageConfigPanel = (
     },
   });
 
-  return renderWithProviders(<PageConfigPanel />, { startUrl: '?layout=' + selectedLayoutName });
+  return renderWithProviders(<PageConfigPanel />, {
+    appContextProps: { selectedFormLayoutName: selectedLayoutName },
+  });
 };

@@ -1,9 +1,9 @@
 import type { IInternalLayoutWithName } from '../types/global';
-import { useSelectedFormLayoutName, useSelectedFormLayout } from './';
+import { useAppContext, useSelectedFormLayout } from './';
 
 export const useSelectedFormLayoutWithName = (): IInternalLayoutWithName => {
   const layout = useSelectedFormLayout();
-  const { selectedFormLayoutName } = useSelectedFormLayoutName();
+  const { selectedFormLayoutName } = useAppContext();
   return {
     layout,
     layoutName: selectedFormLayoutName,

@@ -1,16 +1,16 @@
 import { useSearchParamsState } from '../../../shared/src/hooks/useSearchParamsState';
 import { useFormLayoutSettingsQuery } from './queries/useFormLayoutSettingsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from './';
 
 export type UseSelectedFormLayoutNameResult = {
   selectedFormLayoutName: string;
   setSelectedFormLayoutName: (layoutName: string) => void;
 };
 
-export const useSelectedFormLayoutName = (): UseSelectedFormLayoutNameResult => {
+export const useSelectedFormLayoutName = (
+  selectedFormLayoutSetName: string,
+): UseSelectedFormLayoutNameResult => {
   const { org, app } = useStudioUrlParams();
-  const { selectedFormLayoutSetName } = useAppContext();
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
     org,
     app,

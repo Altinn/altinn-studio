@@ -2,7 +2,7 @@ import React from 'react';
 import { Accordion } from '@digdir/design-system-react';
 import { FileIcon } from '@navikt/aksel-icons';
 import { StudioSectionHeader } from '@studio/components';
-import { useText, useTextResourcesSelector, useSelectedFormLayoutName } from '../../../hooks';
+import { useText, useTextResourcesSelector, useAppContext } from '../../../hooks';
 import { DEFAULT_LANGUAGE, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { HiddenExpressionOnLayout } from './HiddenExpressionOnLayout';
 import { TextResource } from '../../TextResource/TextResource';
@@ -11,7 +11,7 @@ import { textResourceByLanguageAndIdSelector } from '../../../selectors/textReso
 import type { ITextResource } from 'app-shared/types/global';
 
 export const PageConfigPanel = () => {
-  const { selectedFormLayoutName } = useSelectedFormLayoutName();
+  const { selectedFormLayoutName } = useAppContext();
   const t = useText();
 
   const layoutIsSelected =

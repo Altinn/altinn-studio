@@ -12,7 +12,7 @@ import { PlusIcon } from '@navikt/aksel-icons';
 import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
 import { PageAccordion } from './PageAccordion';
 import { ReceiptContent } from './ReceiptContent';
-import { useAppContext, useSelectedFormLayoutName } from '../../hooks';
+import { useAppContext } from '../../hooks';
 import { FormLayout } from './FormLayout';
 import { StudioButton } from '@studio/components';
 
@@ -34,8 +34,8 @@ const mapFormLayoutsToFormLayoutPages = (formLayouts: IFormLayouts): FormLayoutP
  */
 export const DesignView = (): ReactNode => {
   const { org, app } = useStudioUrlParams();
-  const { selectedFormLayoutSetName } = useAppContext();
-  const { selectedFormLayoutName, setSelectedFormLayoutName } = useSelectedFormLayoutName();
+  const { selectedFormLayoutSetName, selectedFormLayoutName, setSelectedFormLayoutName } =
+    useAppContext();
   const { mutate: addLayoutMutation, isPending: isAddLayoutMutationPending } = useAddLayoutMutation(
     org,
     app,

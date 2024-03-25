@@ -11,7 +11,7 @@ import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuer
 import type { ILayoutSettings } from 'app-shared/types/global';
 import { addOrRemoveNavigationButtons } from '../../utils/formLayoutsUtils';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
-import { useSelectedFormLayoutName } from '../../hooks';
+import { useAppContext } from '../../hooks';
 
 export interface AddLayoutMutationArgs {
   layoutName: string;
@@ -23,7 +23,7 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
   const formLayoutsQuery = useFormLayoutsQuery(org, app, layoutSetName);
   const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, layoutSetName);
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
-  const { setSelectedFormLayoutName } = useSelectedFormLayoutName();
+  const { setSelectedFormLayoutName } = useAppContext();
   const queryClient = useQueryClient();
 
   const save = async (updatedLayoutName: string, updatedLayout: IInternalLayout) => {

@@ -12,15 +12,20 @@ import type { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsRespons
 import { useAddLayoutMutation } from './useAddLayoutMutation';
 import { useText } from '../useText';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
-import { useAppContext, useSelectedFormLayoutName } from '../';
+import { useAppContext } from '../';
 
 export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName: string) => {
   const { deleteFormLayout, saveFormLayout } = useServicesContext();
 
   const { data: formLayouts } = useFormLayoutsQuery(org, app, layoutSetName);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, layoutSetName);
-  const { refetchLayouts, refetchLayoutSettings, reloadPreview } = useAppContext();
-  const { selectedFormLayoutName, setSelectedFormLayoutName } = useSelectedFormLayoutName();
+  const {
+    selectedFormLayoutName,
+    setSelectedFormLayoutName,
+    refetchLayouts,
+    refetchLayoutSettings,
+    reloadPreview,
+  } = useAppContext();
 
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
   const addLayoutMutation = useAddLayoutMutation(org, app, layoutSetName);

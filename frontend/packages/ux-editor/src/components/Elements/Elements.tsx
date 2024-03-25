@@ -2,7 +2,7 @@ import React from 'react';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
 import { Heading, Paragraph } from '@digdir/design-system-react';
-import { useText, useAppContext, useSelectedFormLayoutName } from '../../hooks';
+import { useText, useAppContext } from '../../hooks';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
 
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
@@ -12,8 +12,7 @@ import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceipt
 
 export const Elements = () => {
   const { org, app } = useStudioUrlParams();
-  const { selectedFormLayoutName } = useSelectedFormLayoutName();
-  const { selectedFormLayoutSetName } = useAppContext();
+  const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
   const existingCustomReceiptName: string | undefined = useCustomReceiptLayoutSetName(org, app);
 
   const hideComponents =

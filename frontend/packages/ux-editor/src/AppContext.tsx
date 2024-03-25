@@ -2,7 +2,7 @@ import type { MutableRefObject } from 'react';
 import React, { useMemo, useRef, createContext, useCallback } from 'react';
 import type { QueryClient, QueryKey } from '@tanstack/react-query';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useSelectedFormLayoutSetName } from './hooks';
+import { useSelectedFormLayoutName, useSelectedFormLayoutSetName } from './hooks';
 import { previewPage } from 'app-shared/api/paths';
 
 export interface WindowWithQueryClient extends Window {
@@ -14,6 +14,8 @@ export interface AppContextProps {
   selectedFormLayoutSetName: string;
   setSelectedFormLayoutSetName: (layoutSet: string) => void;
   removeSelectedFormLayoutSetName: () => void;
+  selectedFormLayoutName: string;
+  setSelectedFormLayoutName: (layout: string) => void;
   refetchLayouts: () => Promise<void>;
   refetchLayoutSettings: () => Promise<void>;
   refetchTexts: (language: string) => Promise<void>;
@@ -34,6 +36,8 @@ export const AppContextProvider = ({ children }: AppContextProviderProps): React
     setSelectedFormLayoutSetName,
     removeSelectedFormLayoutSetName,
   } = useSelectedFormLayoutSetName();
+  const { selectedFormLayoutName, setSelectedFormLayoutName } =
+    useSelectedFormLayoutName(selectedFormLayoutSetName);
 
   const refetch = useCallback(async (queryKey: QueryKey): Promise<void> => {
     const contentWindow: WindowWithQueryClient = previewIframeRef?.current?.contentWindow;
@@ -77,6 +81,8 @@ export const AppContextProvider = ({ children }: AppContextProviderProps): React
       selectedFormLayoutSetName,
       setSelectedFormLayoutSetName,
       removeSelectedFormLayoutSetName,
+      selectedFormLayoutName,
+      setSelectedFormLayoutName,
       refetchLayouts,
       refetchLayoutSettings,
       refetchTexts,
@@ -86,6 +92,8 @@ export const AppContextProvider = ({ children }: AppContextProviderProps): React
       selectedFormLayoutSetName,
       setSelectedFormLayoutSetName,
       removeSelectedFormLayoutSetName,
+      selectedFormLayoutName,
+      setSelectedFormLayoutName,
       refetchLayouts,
       refetchLayoutSettings,
       refetchTexts,

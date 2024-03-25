@@ -19,7 +19,7 @@ import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';
 import type { FormItem } from '../../types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { useSelectedFormLayoutName } from '../../hooks';
+import { useAppContext } from '../../hooks';
 
 export interface IEditFormComponentProps<T extends ComponentType = ComponentType> {
   editFormId: string;
@@ -32,7 +32,7 @@ export const EditFormComponent = ({
   component,
   handleComponentUpdate,
 }: IEditFormComponentProps) => {
-  const { selectedFormLayoutName } = useSelectedFormLayoutName();
+  const { selectedFormLayoutName } = useAppContext();
   const { t } = useTranslation();
   const [showComponentConfigBeta, setShowComponentConfigBeta] = React.useState<boolean>(
     shouldDisplayFeature('componentConfigBeta'),

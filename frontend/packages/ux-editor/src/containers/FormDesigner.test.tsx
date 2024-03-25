@@ -39,7 +39,9 @@ const render = () => {
   return renderWithProviders(<FormDesigner {...props} />, {
     queries,
     queryClient,
-    startUrl: '',
+    appContextProps: {
+      selectedFormLayoutName: undefined,
+    },
   });
 };
 

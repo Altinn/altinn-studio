@@ -3,7 +3,7 @@ import classes from './Preview.module.css';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
-import { useAppContext, useSelectedFormLayoutName } from '../../hooks';
+import { useAppContext } from '../../hooks';
 import { useUpdate } from 'app-shared/hooks/useUpdate';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/design-system-react';
@@ -16,7 +16,7 @@ import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitations
 export const Preview = () => {
   const { t } = useTranslation();
   const [isPreviewHidden, setIsPreviewHidden] = useState<boolean>(false);
-  const { selectedFormLayoutName } = useSelectedFormLayoutName();
+  const { selectedFormLayoutName } = useAppContext();
   const noPageSelected =
     selectedFormLayoutName === 'default' || selectedFormLayoutName === undefined;
 
@@ -61,10 +61,14 @@ const NoSelectedPageMessage = () => {
 const PreviewFrame = () => {
   const { org, app } = useStudioUrlParams();
   const [viewportToSimulate, setViewportToSimulate] = useState<SupportedView>('desktop');
-  const { previewIframeRef, refetchLayouts, refetchLayoutSettings, reloadPreview } =
-    useAppContext();
+  const {
+    previewIframeRef,
+    selectedFormLayoutName,
+    refetchLayouts,
+    refetchLayoutSettings,
+    reloadPreview,
+  } = useAppContext();
   const { t } = useTranslation();
-  const { selectedFormLayoutName } = useSelectedFormLayoutName();
 
   useUpdate(() => {
     const reload = async () => {
