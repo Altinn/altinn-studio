@@ -13,7 +13,7 @@
     <PackageReference Update="ini-parser-netstandard" Version="2.5.2" />
     <PackageReference Update="JWTCookieAuthentication" Version="3.0.1" />
     <!-- Do not upgrade this package unless extensively tested-->
-    <PackageReference Update="LibGit2Sharp" Version="0.29.0" />
+    <PackageReference Update="LibGit2Sharp" Version="0.30.0" />
     <PackageReference Update="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
     <PackageReference Update="Microsoft.ApplicationInsights.Kubernetes" Version="6.1.2" />
     <PackageReference Update="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
@@ -53,8 +53,8 @@
     <PackageReference Update="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
     <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.9.2" />
     <PackageReference Update="Microsoft.CodeAnalysis.Common" Version="4.9.2" />
-    <PackageReference Update="Testcontainers" Version="3.7.0" />
-    <PackageReference Update="Testcontainers.PostgreSql" Version="3.7.0" />
+    <PackageReference Update="Testcontainers" Version="3.8.0" />
+    <PackageReference Update="Testcontainers.PostgreSql" Version="3.8.0" />
     <PackageReference Update="Microsoft.AspNetCore.SignalR.Client" Version="8.0.3" />
   </ItemGroup>
 </Project>
