@@ -59,8 +59,8 @@ public static class ObjectUtils
                     prop.SetValue(model, null);
                 }
 
-                // continue recursion over all properties
-                if (value is not null)
+                // continue recursion over all properties that are not null or value types
+                if (value?.GetType().IsValueType == false)
                 {
                     InitializeAltinnRowId(value);
                 }
