@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { render as rtlRender, act, screen, waitFor } from '@testing-library/react';
 import type { WindowWithQueryClient } from './AppContext';
-import { AppContext, AppContextProvider } from './AppContext';
+import { AppContextProvider } from './AppContext';
 import userEvent from '@testing-library/user-event';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -9,6 +9,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { previewHash } from 'app-shared/api/paths';
+import { useAppContext } from './hooks';
 
 const org = 'org';
 const app = 'app';
@@ -40,8 +41,7 @@ describe('AppContext', () => {
     const user = userEvent.setup();
 
     render(() => {
-      const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } =
-        React.useContext(AppContext);
+      const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } = useAppContext();
       return (
         <>
           <button
@@ -69,7 +69,7 @@ describe('AppContext', () => {
     const user = userEvent.setup();
 
     render(() => {
-      const { selectedFormLayoutName, setSelectedFormLayoutName } = React.useContext(AppContext);
+      const { selectedFormLayoutName, setSelectedFormLayoutName } = useAppContext();
       return (
         <>
           <button
@@ -100,7 +100,7 @@ describe('AppContext', () => {
     queryClient.invalidateQueries = jest.fn();
 
     render(() => {
-      const { previewIframeRef, refetchLayouts } = React.useContext(AppContext);
+      const { previewIframeRef, refetchLayouts } = useAppContext();
       useEffect(() => {
         if (previewIframeRef) {
           const contentWindow: WindowWithQueryClient = previewIframeRef?.current?.contentWindow;
@@ -133,7 +133,7 @@ describe('AppContext', () => {
     queryClient.invalidateQueries = jest.fn();
 
     render(() => {
-      const { previewIframeRef, refetchLayoutSettings } = React.useContext(AppContext);
+      const { previewIframeRef, refetchLayoutSettings } = useAppContext();
       useEffect(() => {
         if (previewIframeRef) {
           const contentWindow: WindowWithQueryClient = previewIframeRef?.current?.contentWindow;
@@ -168,7 +168,7 @@ describe('AppContext', () => {
     queryClient.invalidateQueries = jest.fn();
 
     render(() => {
-      const { previewIframeRef, refetchTexts } = React.useContext(AppContext);
+      const { previewIframeRef, refetchTexts } = useAppContext();
       useEffect(() => {
         if (previewIframeRef) {
           const contentWindow: WindowWithQueryClient = previewIframeRef?.current?.contentWindow;
@@ -198,7 +198,7 @@ describe('AppContext', () => {
     const user = userEvent.setup();
 
     render(() => {
-      const { previewIframeRef, reloadPreview } = React.useContext(AppContext);
+      const { previewIframeRef, reloadPreview } = useAppContext();
       return (
         <>
           <button
@@ -225,8 +225,7 @@ describe('AppContext', () => {
     const user = userEvent.setup();
 
     render(() => {
-      const { selectedFormLayoutSetName, removeSelectedFormLayoutSetName } =
-        React.useContext(AppContext);
+      const { selectedFormLayoutSetName, removeSelectedFormLayoutSetName } = useAppContext();
       return (
         <>
           <button data-testid='button' onClick={() => removeSelectedFormLayoutSetName()} />
