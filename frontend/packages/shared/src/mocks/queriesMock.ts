@@ -73,6 +73,7 @@ import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResp
 
 export const queriesMock: ServicesContextProps = {
   // Queries
+  getAppMetadataModelIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getAppReleases: jest
     .fn()
     .mockImplementation(() => Promise.resolve<AppReleasesResponse>(appReleasesResponse)),

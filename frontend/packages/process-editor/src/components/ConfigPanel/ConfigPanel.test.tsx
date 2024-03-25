@@ -156,6 +156,7 @@ const render = (rootContextProps: Partial<BpmnContextProps> = {}) => {
   return rtlRender(
     <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
       <BpmnApiContextProvider
+        availableDataModelIds={[]}
         layoutSets={{ sets: [] }}
         existingCustomReceiptLayoutSetName={undefined}
         addLayoutSet={jest.fn()}

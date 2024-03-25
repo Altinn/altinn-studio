@@ -248,20 +248,20 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Return a list of all data model IDs present in application metadata
+        /// Gets a list of all data model IDs present in application metadata
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="layoutSetName">Name of current layoutSet in ux-editor that edited layout belongs to</param>
+        /// <param name="onlyUnReferenced">If true only model IDs without task_id ref in app metadata is returned</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        /// <returns>The model as JSON</returns>
+        /// <returns></returns>
         [HttpGet]
         [UseSystemTextJson]
         [Route("model-ids")]
-        public async Task<IActionResult> GetAppMetadataDataModelIds(string org, string app, [FromQuery] string layoutSetName, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetAppMetadataDataModelIds(string org, string app, CancellationToken cancellationToken, [FromQuery] bool onlyUnReferenced = false)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            IEnumerable<string> dataModelIds = await _appDevelopmentService.GetAppMetadataModelIds(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), cancellationToken);
+            IEnumerable<string> dataModelIds = await _appDevelopmentService.GetAppMetadataModelIds(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), onlyUnReferenced, cancellationToken);
             return Ok(dataModelIds);
         }
 

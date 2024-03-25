@@ -12,6 +12,7 @@ import { useUpdateLayoutSetMutation } from '../../hooks/mutations/useUpdateLayou
 import { useAddLayoutSetMutation } from '../../hooks/mutations/useAddLayoutSetMutation';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
+import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
 
 export const ProcessEditor = () => {
   const { t } = useTranslation();
@@ -22,6 +23,7 @@ export const ProcessEditor = () => {
   const { mutate: mutateLayoutSet } = useUpdateLayoutSetMutation(org, app);
   const { mutate: addLayoutSet } = useAddLayoutSetMutation(org, app);
   const existingCustomReceiptName: string | undefined = useCustomReceiptLayoutSetName(org, app);
+  const { data: availableDataModelIds } = useAppMetadataModelIdsQuery(org, app);
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
   const saveBpmnXml = async (
@@ -45,6 +47,7 @@ export const ProcessEditor = () => {
   // TODO: Handle error will be handled better after issue #10735 is resolved
   return (
     <ProcessEditorImpl
+      availableDataModelIds={availableDataModelIds}
       layoutSets={layoutSets}
       existingCustomReceiptLayoutSetName={existingCustomReceiptName}
       addLayoutSet={addLayoutSet}

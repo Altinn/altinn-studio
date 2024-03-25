@@ -9,8 +9,7 @@
 .configSectionWrapper {
   display: flex;
   flex-direction: column;
-  padding-inline: 1rem;
-  padding-top: 4px;
+  padding: 1rem;
   gap: 1rem;
   border-bottom: 1px solid var(--fds-semantic-border-divider-default);
 }
