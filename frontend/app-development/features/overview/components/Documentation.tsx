@@ -11,14 +11,17 @@ export const Documentation = () => {
       <Heading level={2} size='xxsmall' className={classes.heading}>
         {t('overview.documentation.title')}
       </Heading>
-      <Paragraph size='small' className={classes.content}>
-        {t('overview.documentation.content')}
-      </Paragraph>
       <Link
         href='https://docs.altinn.studio/nb/app/getting-started/create-app/'
         className={classes.link}
       >
-        <span>{t('overview.documentation.link')}</span>
+             <span>
+        
+        
+        {t('overview.documentation.link')}
+      </span>
+      
+
         <ExternalLinkIcon className={classes.linkIcon} />
       </Link>
     </div>

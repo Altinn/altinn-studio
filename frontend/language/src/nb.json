@@ -619,8 +619,8 @@
   "overview.app_logs_error": "Kunne ikke laste inn aktiviteten for denne applikasjonen. Prøv igjen senere.",
   "overview.app_logs_title": "Versjon {{tagName}} {{environment}}, {{envName}}",
   "overview.app_status_error": "Kunne ikke laste inn statusen for {{envName}}-miljøet. Prøv igjen senere.",
-  "overview.documentation.content": "Vi har laget en guide som hjelper deg med å komme i gang med å utvikle applikasjoner i Altinn Studio.",
-  "overview.documentation.link": "Les vår guide",
+  
+  "overview.documentation.link": "Her får du hjelp til å komme i gang med Altinn Studio",
   "overview.documentation.title": "Kom i gang",
   "overview.download_repo_changes": "Last ned en zip fil med bare filene som har blitt endret",
   "overview.download_repo_full": "Last ned en full kopi av endret repo som zip fil",
