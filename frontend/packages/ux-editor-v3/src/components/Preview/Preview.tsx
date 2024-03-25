@@ -7,7 +7,7 @@ import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors'
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../../hooks/useAppContext';
 import { useUpdate } from 'app-shared/hooks/useUpdate';
-import { previewPage } from 'app-shared/api/paths';
+import { previewPageV3 } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/design-system-react';
 import { StudioButton, StudioCenter } from '@studio/components';
 import type { SupportedView } from './ViewToggler/ViewToggler';
@@ -79,7 +79,7 @@ const PreviewFrame = () => {
             ref={previewIframeRef}
             className={cn(classes.iframe, classes[viewportToSimulate])}
             title={t('ux_editor.preview')}
-            src={previewPage(org, app, layoutName)}
+            src={previewPageV3(org, app, layoutName)}
           />
         </div>
         <PreviewLimitationsInfo />

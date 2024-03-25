@@ -63,6 +63,7 @@ const PreviewFrame = () => {
   const [viewportToSimulate, setViewportToSimulate] = useState<SupportedView>('desktop');
   const {
     previewIframeRef,
+    selectedFormLayoutSetName,
     selectedFormLayoutName,
     refetchLayouts,
     refetchLayoutSettings,
@@ -77,7 +78,7 @@ const PreviewFrame = () => {
       reloadPreview(selectedFormLayoutName);
     };
     reload();
-  }, [previewIframeRef, selectedFormLayoutName]);
+  }, [previewIframeRef, selectedFormLayoutSetName, selectedFormLayoutName]);
 
   useEffect(() => {
     return () => {
