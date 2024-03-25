@@ -78,7 +78,7 @@
     <dependency>
       <groupId>com.azure</groupId>
       <artifactId>azure-identity</artifactId>
-      <version>1.11.3</version>
+      <version>1.11.4</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -87,7 +87,7 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>1.18.30</version>
+      <version>1.18.32</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>

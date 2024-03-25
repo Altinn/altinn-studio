@@ -49,7 +49,7 @@ import {
   subExpression2,
   unParsableComplexExpression,
 } from '../testing/expressionMocks';
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils } from '@studio/pure-functions';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import type { FormContainer } from '../types/FormContainer';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
@@ -451,7 +451,9 @@ describe('expressionsUtils', () => {
   });
   describe('removeSubExpression', () => {
     it('should remove a subExpression and do nothing more with parent properties when there are more than 2 subExpressions to start with', () => {
-      const internalExpressionCopy = deepCopy(internalExpressionWithMultipleSubExpressions);
+      const internalExpressionCopy = ObjectUtils.deepCopy(
+        internalExpressionWithMultipleSubExpressions,
+      );
       internalExpressionCopy.subExpressions.push(subExpression0);
       const newExpression = removeSubExpression(internalExpressionCopy, subExpression0);
 

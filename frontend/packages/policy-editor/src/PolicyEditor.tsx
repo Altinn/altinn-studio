@@ -20,7 +20,7 @@ import classes from './PolicyEditor.module.css';
 import { VerificationModal } from './components/VerificationModal';
 import { ExpandablePolicyCard } from './components/ExpandablePolicyCard';
 import { CardButton } from './components/CardButton';
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils } from '@studio/pure-functions';
 import { useTranslation } from 'react-i18next';
 import { SecurityLevelSelect } from './components/SecurityLevelSelect';
 
@@ -146,7 +146,7 @@ export const PolicyEditor = ({
     };
 
     // Create a deep copy of the object so the objects don't share same object reference
-    const deepCopiedRuleToDuplicate: PolicyRuleCard = deepCopy(ruleToDuplicate);
+    const deepCopiedRuleToDuplicate: PolicyRuleCard = ObjectUtils.deepCopy(ruleToDuplicate);
 
     const updatedRules = [...policyRules, deepCopiedRuleToDuplicate];
     setPolicyRules(updatedRules);
