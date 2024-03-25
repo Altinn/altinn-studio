@@ -13,13 +13,13 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { externalLayoutsMock } from '../../testing/layoutMock';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
+import { appContextMock } from '../../testing/appContextMock';
 
 const mockOrg = 'org';
 const mockApp = 'app';
 const mockSelectedLayoutSet = 'test-layout-set';
 const mockPageName1: string = formLayoutSettingsMock.pages.order[0];
 const mockPageName2: string = formLayoutSettingsMock.pages.order[1];
-const mockSetSelectedFormLayoutName = jest.fn();
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -43,26 +43,26 @@ describe('DesignView', () => {
     });
   });
 
-  it('calls "setSearchParams" with undefined when current page the accordion is clicked', async () => {
+  it('calls "setSelectedFormLayoutName" with undefined when current page the accordion is clicked', async () => {
     const user = userEvent.setup();
     await render();
 
     const accordionButton1 = screen.getByRole('button', { name: mockPageName1 });
     await act(() => user.click(accordionButton1));
 
-    expect(mockSetSelectedFormLayoutName).toHaveBeenCalledTimes(1);
-    expect(mockSetSelectedFormLayoutName).toHaveBeenCalledWith(undefined);
+    expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledTimes(1);
+    expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledWith(undefined);
   });
 
-  it('calls "setSearchParams" with the new page when another page accordion is clicked', async () => {
+  it('calls "setSelectedFormLayoutName" with the new page when another page accordion is clicked', async () => {
     const user = userEvent.setup();
     await render();
 
     const accordionButton2 = screen.getByRole('button', { name: mockPageName2 });
     await act(() => user.click(accordionButton2));
 
-    expect(mockSetSelectedFormLayoutName).toHaveBeenCalledTimes(1);
-    expect(mockSetSelectedFormLayoutName).toHaveBeenCalledWith(mockPageName2);
+    expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledTimes(1);
+    expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledWith(mockPageName2);
   });
 
   it('calls "saveFormLayout" when add page is clicked', async () => {
@@ -100,9 +100,6 @@ const render = async () => {
     </DragAndDrop.Provider>,
     {
       queryClient,
-      appContextProps: {
-        setSelectedFormLayoutName: mockSetSelectedFormLayoutName,
-      },
     },
   );
 };

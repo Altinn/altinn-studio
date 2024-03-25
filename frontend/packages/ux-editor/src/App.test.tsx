@@ -9,6 +9,7 @@ import type { AppContextProps } from './AppContext';
 import ruleHandlerMock from './testing/ruleHandlerMock';
 import { layoutSetsMock } from './testing/layoutMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { appContextMock } from './testing/appContextMock';
 
 const selectedFormLayoutSetName = layoutSetsMock.sets[0].id;
 const mockQueries: Partial<ServicesContextProps> = {
@@ -33,39 +34,36 @@ const renderApp = (
 };
 
 describe('App', () => {
-  afterEach(() => typedLocalStorage.setItem('featureFlags', []));
+  afterEach(() => {
+    typedLocalStorage.setItem('featureFlags', []);
+    jest.clearAllMocks();
+  });
 
   it('should render the spinner', () => {
-    renderApp({}, { selectedFormLayoutSetName });
+    renderApp();
     expect(screen.getByTitle(textMock('ux_editor.loading_page'))).toBeInTheDocument();
   });
 
   it('should render the component', async () => {
-    renderApp(mockQueries, { selectedFormLayoutSetName });
+    renderApp(mockQueries);
     await waitForLoadingToFinish();
   });
 
   it('Removes the preview layout set from local storage if it does not exist', async () => {
-    const removeSelectedLayoutSetMock = jest.fn();
     const layoutSetThatDoesNotExist = 'layout-set-that-does-not-exist';
     typedLocalStorage.setItem('selectedLayoutSet', layoutSetThatDoesNotExist);
     renderApp(mockQueries, {
       selectedFormLayoutSetName: layoutSetThatDoesNotExist,
-      removeSelectedFormLayoutSetName: removeSelectedLayoutSetMock,
     });
     await waitForLoadingToFinish();
-    expect(removeSelectedLayoutSetMock).toHaveBeenCalledTimes(1);
+    expect(appContextMock.removeSelectedFormLayoutSetName).toHaveBeenCalledTimes(1);
   });
 
   it('Does not remove the preview layout set from local storage if it exists', async () => {
-    const removeSelectedLayoutSetMock = jest.fn();
     typedLocalStorage.setItem('selectedLayoutSet', selectedFormLayoutSetName);
-    renderApp(mockQueries, {
-      selectedFormLayoutSetName,
-      removeSelectedFormLayoutSetName: removeSelectedLayoutSetMock,
-    });
+    renderApp(mockQueries);
     await waitForLoadingToFinish();
-    expect(removeSelectedLayoutSetMock).not.toHaveBeenCalled();
+    expect(appContextMock.removeSelectedFormLayoutSetName).not.toHaveBeenCalled();
   });
 });
 

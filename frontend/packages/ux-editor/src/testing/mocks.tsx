@@ -38,13 +38,15 @@ const wrapper = ({
   appContextProps = {},
 }: WrapperArgs) => {
   const renderComponent = (component: ReactNode) => (
-    <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
-      <PreviewConnectionContextProvider>
-        <AppContext.Provider value={{ ...appContextMock, ...appContextProps }}>
-          <MemoryRouter>{component}</MemoryRouter>
-        </AppContext.Provider>
-      </PreviewConnectionContextProvider>
-    </ServicesContextProvider>
+    <MemoryRouter>
+      <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
+        <PreviewConnectionContextProvider>
+          <AppContext.Provider value={{ ...appContextMock, ...appContextProps }}>
+            {component}
+          </AppContext.Provider>
+        </PreviewConnectionContextProvider>
+      </ServicesContextProvider>
+    </MemoryRouter>
   );
   return renderComponent;
 };

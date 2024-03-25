@@ -15,7 +15,7 @@ export const useSelectedFormLayoutSetName = (): UseSelectedFormLayoutSetNameResu
   const [selectedFormLayoutSetName, setSelectedFormLayoutSetName, removeSelectedFormLayoutSetName] =
     useReactiveLocalStorage('layoutSet/' + app, undefined);
 
-  if (layoutSets) {
+  if (layoutSets?.sets.length > 0) {
     if (
       !selectedFormLayoutSetName ||
       !layoutSets.sets.find((item) => item.id === selectedFormLayoutSetName)

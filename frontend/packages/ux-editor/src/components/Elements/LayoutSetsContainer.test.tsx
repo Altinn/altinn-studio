@@ -5,15 +5,14 @@ import { LayoutSetsContainer } from './LayoutSetsContainer';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../testing/mocks';
 import { layoutSetsMock } from '../../testing/layoutMock';
-import type { AppContextProps } from '../../AppContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { appContextMock } from '../../testing/appContextMock';
 
 // Test data
 const org = 'org';
 const app = 'app';
 const layoutSetName1 = layoutSetsMock.sets[0].id;
 const layoutSetName2 = layoutSetsMock.sets[1].id;
-const setSelectedLayoutSetMock = jest.fn();
 
 describe('LayoutSetsContainer', () => {
   it('renders component', async () => {
@@ -32,16 +31,11 @@ describe('LayoutSetsContainer', () => {
     render();
     const user = userEvent.setup();
     await act(() => user.selectOptions(screen.getByRole('combobox'), layoutSetName2));
-    expect(setSelectedLayoutSetMock).toHaveBeenCalledTimes(1);
+    expect(appContextMock.setSelectedFormLayoutSetName).toHaveBeenCalledTimes(1);
   });
 });
 
 const render = () => {
   queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
-  const appContextProps: Partial<AppContextProps> = {
-    setSelectedFormLayoutSetName: setSelectedLayoutSetMock,
-  };
-  return renderWithProviders(<LayoutSetsContainer />, {
-    appContextProps,
-  });
+  return renderWithProviders(<LayoutSetsContainer />);
 };

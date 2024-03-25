@@ -1,18 +1,18 @@
-import React, { createRef } from 'react';
+import React from 'react';
 import { Preview } from './Preview';
 import { act, screen } from '@testing-library/react';
 import type { ExtendedRenderOptions } from '../../testing/mocks';
 import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
+import { appContextMock } from '../../testing/appContextMock';
 
 describe('Preview', () => {
   it('Renders an iframe with the ref from AppContext', () => {
-    const previewIframeRef = createRef<HTMLIFrameElement>();
-    render({
-      appContextProps: { previewIframeRef },
-    });
-    expect(screen.getByTitle(textMock('ux_editor.preview'))).toBe(previewIframeRef.current);
+    render();
+    expect(screen.getByTitle(textMock('ux_editor.preview'))).toBe(
+      appContextMock.previewIframeRef.current,
+    );
   });
 
   it('should be able to toggle between mobile and desktop view', async () => {
