@@ -248,6 +248,24 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Return a list of all data model IDs present in application metadata
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="layoutSetName">Name of current layoutSet in ux-editor that edited layout belongs to</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>The model as JSON</returns>
+        [HttpGet]
+        [UseSystemTextJson]
+        [Route("model-ids")]
+        public async Task<IActionResult> GetAppMetadataDataModelIds(string org, string app, [FromQuery] string layoutSetName, CancellationToken cancellationToken)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            IEnumerable<string> dataModelIds = await _appDevelopmentService.GetAppMetadataModelIds(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), cancellationToken);
+            return Ok(dataModelIds);
+        }
+
+        /// <summary>
         /// Return JSON presentation of the model
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>

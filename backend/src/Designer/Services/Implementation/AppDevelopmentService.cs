@@ -177,6 +177,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
+        public async Task<IEnumerable<string>> GetAppMetadataModelIds(AltinnRepoEditingContext altinnRepoEditingContext,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
+                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            ApplicationMetadata applicationMetadata =
+                await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
+            return GetAppMetadataModelIds(applicationMetadata);
+
+
+        }
+
+        /// <inheritdoc />
         public async Task<ModelMetadata> GetModelMetadata(AltinnRepoEditingContext altinnRepoEditingContext,
             string layoutSetName, CancellationToken cancellationToken = default)
         {
@@ -210,6 +225,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 .FirstOrDefault(data => data.AppLogic != null && DoesDataTaskMatchTaskId(data, taskId) && !string.IsNullOrEmpty(data.AppLogic.ClassRef));
 
             return data?.Id ?? string.Empty;
+        }
+
+        private IEnumerable<string> GetAppMetadataModelIds(ApplicationMetadata applicationMetadata)
+        {
+            var appMetaDataDataTypes = applicationMetadata.DataTypes
+                .Where(data => data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef));
+
+            return appMetaDataDataTypes.Select(datatype => datatype.Id);
         }
 
         private bool DoesDataTaskMatchTaskId(PlatformStorageModels.DataType data, [CanBeNull] string taskId)
