@@ -24,7 +24,7 @@ jobs:
         run: yarn build-storybook
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           name: github-pages-storybook
           path: frontend/libs/studio-components/storybook-static
