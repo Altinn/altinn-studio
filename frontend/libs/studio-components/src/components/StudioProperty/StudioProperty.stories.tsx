@@ -6,7 +6,7 @@ import {
   type StudioPropertyGroupProps,
   type StudioPropertyFieldsetProps,
 } from './index';
-import { StudioPropertyGroup } from './StudioPropertyGroup';
+import { type StudioPropertyGroup } from './StudioPropertyGroup';
 
 type PreviewProps = {
   withoutNegativeMargin: StudioPropertyGroupProps['withoutNegativeMargin'];
