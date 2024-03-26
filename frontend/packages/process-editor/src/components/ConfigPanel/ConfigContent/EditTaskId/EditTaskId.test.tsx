@@ -35,7 +35,7 @@ jest.mock('../../../../contexts/BpmnConfigPanelContext', () => ({
 }));
 
 describe('EditTaskId', () => {
-  it('should render task id as view mode', () => {
+  it('should render task id as view mode by default', () => {
     (useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({
       setMetaDataForm: jest.fn(),
     });
@@ -48,7 +48,7 @@ describe('EditTaskId', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render edit mode when clicking on the edit button', async () => {
+  it('should render task id in edit mode when clicking on the edit button', async () => {
     const user = userEvent.setup();
 
     (useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({

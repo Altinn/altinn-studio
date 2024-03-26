@@ -59,12 +59,10 @@ describe('ConfigContent', () => {
       bpmnDetails: { ...mockBpmnDetails, taskType: 'data' as BpmnTaskType },
     });
 
-    const heading = screen.getByRole('heading', {
+    screen.getByRole('heading', {
       name: textMock('process_editor.configuration_panel_data_task'),
       level: 2,
     });
-
-    expect(heading).toBeInTheDocument();
   });
 
   it('should render helpText for selected task', async () => {
@@ -79,11 +77,7 @@ describe('ConfigContent', () => {
     });
     await act(() => user.click(helpTextButton));
 
-    const helpText = screen.getByText(
-      textMock('process_editor.configuration_panel_header_help_text_data'),
-    );
-
-    expect(helpText).toBeInTheDocument();
+    screen.getByText(textMock('process_editor.configuration_panel_header_help_text_data'));
   });
 
   it('should render EditTaskId component', () => {
@@ -92,11 +86,9 @@ describe('ConfigContent', () => {
       bpmnDetails: { ...mockBpmnDetails, taskType: 'data' as BpmnTaskType },
     });
 
-    const editTaskIdButton = screen.getByRole('button', {
+    screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_change_task_id'),
     });
-
-    expect(editTaskIdButton).toBeInTheDocument();
   });
 
   it.each(['data', 'confirmation', 'feedback', 'signing'])(
@@ -107,12 +99,10 @@ describe('ConfigContent', () => {
         bpmnDetails: { ...mockBpmnDetails, taskType: taskType as BpmnTaskType },
       });
 
-      const heading = screen.getByRole('heading', {
+      screen.getByRole('heading', {
         name: textMock(`process_editor.configuration_panel_${taskType}_task`),
         level: 2,
       });
-
-      expect(heading).toBeInTheDocument();
     },
   );
 });

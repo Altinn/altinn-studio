@@ -46,7 +46,9 @@ const ConfigPanelContent = ({
     );
   }
 
-  if (shouldDisplayFeature('customizeEndEvent') && bpmnDetails.type === BpmnTypeEnum.EndEvent) {
+  const shouldDisplayEndEventConfig =
+    shouldDisplayFeature('customizeEndEvent') && bpmnDetails.type === BpmnTypeEnum.EndEvent;
+  if (shouldDisplayEndEventConfig) {
     return (
       <ConfigEndEvent
         existingCustomReceiptName={existingCustomReceiptName}

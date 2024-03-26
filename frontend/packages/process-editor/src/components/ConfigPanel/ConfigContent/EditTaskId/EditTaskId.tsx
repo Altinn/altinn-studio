@@ -21,7 +21,6 @@ export const EditTaskId = ({ ...rest }: EditTaskIdProps): React.ReactElement => 
   const modeler = getModeler(modelerRef.current as unknown as HTMLDivElement);
   const modeling: Modeling = modeler.get('modeling');
 
-  // TODO: this should be moved to where the saving of the bpmn file is done, because we want to keep the old id
   const updateId = (value: string): void => {
     modeling.updateProperties(bpmnDetails.element, {
       id: value,

@@ -12,16 +12,12 @@ export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
 
-  const configHeaderTexts: Record<'title' | 'helpTextTitle', string> = {
-    title: t(getConfigTitleKey(bpmnDetails?.taskType)),
-    helpTextTitle: bpmnDetails?.taskType && t(getConfigTitleHelpTextKey(bpmnDetails?.taskType)),
+  const configHeaderTexts: Record<'title' | 'helpText', string> = {
+    title: bpmnDetails?.taskType && t(getConfigTitleKey(bpmnDetails.taskType)),
+    helpText: bpmnDetails?.taskType && t(getConfigTitleHelpTextKey(bpmnDetails.taskType)),
   };
 
   const propertiesToDisplay: Array<{ label: string; value: string }> = [
-    {
-      label: t('process_editor.configuration_panel_id_label'),
-      value: bpmnDetails.id,
-    },
     {
       label: t('process_editor.configuration_panel_name_label'),
       value: bpmnDetails.name,
@@ -37,7 +33,7 @@ export const ConfigContent = (): React.ReactElement => {
           level: 2,
         }}
         helpText={{
-          text: configHeaderTexts.helpTextTitle,
+          text: configHeaderTexts.helpText,
           title: t('process_editor.configuration_panel_header_help_text_title'),
         }}
       />

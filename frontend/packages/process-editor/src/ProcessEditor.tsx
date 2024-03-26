@@ -43,7 +43,7 @@ export const ProcessEditor = ({
   return (
     <BpmnContextProvider bpmnXml={bpmnXml} appLibVersion={appLibVersion}>
       <BpmnConfigPanelFormContextProvider>
-        <BPMNCanvas
+        <BpmnCanvas
           onSave={onSave}
           existingCustomReceipt={existingCustomReceipt}
           onUpdateLayoutSet={onUpdateLayoutSet}
@@ -53,15 +53,15 @@ export const ProcessEditor = ({
   );
 };
 
-type BPMNCanvasProps = Pick<
+type BpmnCanvasProps = Pick<
   ProcessEditorProps,
   'onSave' | 'existingCustomReceipt' | 'onUpdateLayoutSet'
 >;
-const BPMNCanvas = ({
+const BpmnCanvas = ({
   onSave,
   existingCustomReceipt,
   onUpdateLayoutSet,
-}: BPMNCanvasProps): React.ReactElement | null => {
+}: BpmnCanvasProps): React.ReactElement | null => {
   const { isEditAllowed } = useBpmnContext();
   const { metaDataForm, resetForm } = useBpmnConfigPanelFormContext();
 

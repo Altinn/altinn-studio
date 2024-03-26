@@ -23,9 +23,10 @@ export const ConfigViewerPanelContent = (): React.ReactElement => {
     return <ChooseElementToViewAlert />;
   }
 
-  const configTitle = t(getConfigTitleKey(bpmnDetails.taskType));
-  const configHeaderHelpText =
-    bpmnDetails?.taskType && t(getConfigTitleHelpTextKey(bpmnDetails.taskType));
+  const configHeaderTexts: Record<'title' | 'helpText', string> = {
+    title: bpmnDetails.taskType && t(getConfigTitleKey(bpmnDetails.taskType)),
+    helpText: bpmnDetails?.taskType && t(getConfigTitleHelpTextKey(bpmnDetails.taskType)),
+  };
 
   const propertiesToDisplay: Array<{ label: string; value: string }> = [
     {
@@ -43,11 +44,11 @@ export const ConfigViewerPanelContent = (): React.ReactElement => {
       <StudioSectionHeader
         icon={<ConfigIcon taskType={bpmnDetails.taskType} />}
         heading={{
-          text: configTitle,
+          text: configHeaderTexts.title,
           level: 2,
         }}
         helpText={{
-          text: configHeaderHelpText,
+          text: configHeaderTexts.helpText,
           title: t('process_editor.configuration_panel_header_help_text_title'),
         }}
       />

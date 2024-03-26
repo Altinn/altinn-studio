@@ -55,19 +55,7 @@ describe('ConfigPanel', () => {
     expect(message).toBeInTheDocument();
   });
 
-  it('should render no supported element message', () => {
-    renderConfigPanel({ bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.SequenceFlow } });
-    const title = screen.getByRole('heading', {
-      name: textMock('process_editor.configuration_panel_element_not_supported_title'),
-    });
-    const message = screen.getByText(
-      textMock('process_editor.configuration_panel_element_not_supported_message'),
-    );
-    expect(title).toBeInTheDocument();
-    expect(message).toBeInTheDocument();
-  });
-
-  it('should render ConfigPanel if task is supported', () => {
+  it('should render ConfigPanel if bpmn type is task', () => {
     renderConfigPanel({
       modelerRef: { current: '' as unknown as Modeler },
       bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.Task },
@@ -104,7 +92,7 @@ describe('ConfigPanel', () => {
       task: BpmnTypeEnum.EndEvent,
       expectedText: 'process_editor.configuration_panel_element_not_supported_message',
     },
-  ])('should display correct message based on selected task', ({ task, expectedText }) => {
+  ])('should display correct message based on selected bpmn type', ({ task, expectedText }) => {
     renderConfigPanel({
       modelerRef: { current: '' as unknown as Modeler },
       bpmnDetails: { ...mockBpmnDetails, type: task },

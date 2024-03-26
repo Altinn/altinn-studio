@@ -744,7 +744,7 @@
   "process_editor.configuration_panel_custom_receipt_add_button_title": "Navn på egendefinert kvittering",
   "process_editor.configuration_panel_custom_receipt_name": "Sidegruppenavnet på din egendefinerte kvittering",
   "process_editor.configuration_panel_data_task": "Oppgave: Utfylling",
-  "process_editor.configuration_panel_element_not_supported_message": "Vi støtter foreløpig kun å se detaljer på oppgaver. Velg en oppgave for å se detaljer.",
+  "process_editor.configuration_panel_element_not_supported_message": "Vi støtter foreløpig kun å se detaljer på oppgaver, ikke redigere. Velg en oppgave for å se detaljer.",
   "process_editor.configuration_panel_element_not_supported_title": "Valgt elementet er ikke støttet",
   "process_editor.configuration_panel_end_event": "Oppgave: Sluttsteg",
   "process_editor.configuration_panel_feedback_task": "Oppgave: Tilbakemelding",
