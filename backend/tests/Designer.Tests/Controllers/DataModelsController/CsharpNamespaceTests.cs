@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -105,7 +106,7 @@ public class CsharpNamespaceTests : DisagnerEndpointsTestsBase<CsharpNamespaceTe
         await CopyRepositoryForTest(org, repo, developer, targetRepo);
         string url = $"{VersionPrefix(org, targetRepo)}/datamodel?modelPath={modelPath}";
 
-        using var response = await UploadNewJsonSchema(expectedModelName, url);
+        using var response = await GenerateModels(expectedModelName, url);
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         // get the csharp model from repo
         string csharpModel = TestDataHelper.GetFileFromRepo(org, targetRepo, developer, expectedModelPath);
@@ -146,6 +147,36 @@ public class CsharpNamespaceTests : DisagnerEndpointsTestsBase<CsharpNamespaceTe
         errorCode.ToString().Should().Be(expectedErrorCode);
     }
 
+
+    [Theory]
+    [InlineData("ttd", "empty-app", "testUser", "App/models/initmodel.schema.json", "newmodel")]
+    public async Task WhenClassRefIsChanged_ShouldUpdateApplicationMetadata(string org, string repos, string developer, string modelPath, string newModelName)
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, repos, developer, targetRepository);
+
+        string initModelName = Path.GetFileNameWithoutExtension(modelPath);
+        initModelName = Path.GetFileNameWithoutExtension(initModelName);
+
+        var newJsonSchemaResponse = await GenerateNewJsonSchema(initModelName, $"{VersionPrefix(org, targetRepository)}/new");
+        newJsonSchemaResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var generateInitModelsResponse = await GenerateModels(initModelName, $"{VersionPrefix(org, targetRepository)}/datamodel?modelPath={modelPath}");
+        generateInitModelsResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        // Check classRef in application metadata
+        string applicationMetadataContent = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
+        var applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataContent, JsonSerializerOptions);
+        applicationMetadata.DataTypes.Single(d => d.Id == initModelName).AppLogic.ClassRef.Should().Be($"Altinn.App.Models.{initModelName}.{initModelName}");
+
+        var generateNewModelsResponse = await GenerateModels(newModelName, $"{VersionPrefix(org, targetRepository)}/datamodel?modelPath={modelPath}");
+        generateNewModelsResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        // Check classRef in application metadata
+        applicationMetadataContent = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
+        applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataContent, JsonSerializerOptions);
+        applicationMetadata.DataTypes.Single(d => d.Id == initModelName).AppLogic.ClassRef.Should().Be($"Altinn.App.Models.{newModelName}.{newModelName}");
+    }
+
     private async Task<HttpResponseMessage> UploadNewXsdSchema(string xsdPath, string url)
     {
         await using var fileStream = SharedResourcesHelper.LoadTestData(xsdPath);
@@ -156,13 +187,12 @@ public class CsharpNamespaceTests : DisagnerEndpointsTestsBase<CsharpNamespaceTe
         return await HttpClient.PostAsync(url, formData);
     }
 
-    private async Task<HttpResponseMessage> UploadNewJsonSchema(string modelName, string url)
+    private async Task<HttpResponseMessage> GenerateModels(string modelName, string url)
     {
         string schema = new GeneralJsonTemplate(new Uri("http://altinn-testschema.json"), modelName).GetJsonString();
         using var content = new StringContent(schema, Encoding.UTF8, MediaTypeNames.Application.Json);
         return await HttpClient.PutAsync(url, content);
     }
-
 
     private async Task<HttpResponseMessage> GenerateNewJsonSchema(string modelName, string url)
     {

@@ -1,0 +1,14 @@
+import { Canvas, Meta } from '@storybook/blocks';
+import { Heading, Paragraph } from '@digdir/design-system-react';
+import * as StudioDropdownMenuStories from './StudioDropdownMenu.stories';
+
+<Meta of={StudioDropdownMenuStories} />
+
+<Heading level={1} size='small'>
+  StudioDropdownMenu
+</Heading>
+<Paragraph>
+  StudioDropdownMenu is a component that is used to display a dropdown menu in the studio.
+</Paragraph>
+
+<Canvas of={StudioDropdownMenuStories.Preview} />

@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { Spinner } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
+import type { BpmnDetails } from '@altinn/process-editor/src/types/BpmnDetails';
 import { useUpdateLayoutSetMutation } from '../../hooks/mutations/useUpdateLayoutSetMutation';
 import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
