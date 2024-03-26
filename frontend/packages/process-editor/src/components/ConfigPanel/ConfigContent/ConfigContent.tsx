@@ -26,11 +26,11 @@ export const ConfigContent = (): React.ReactElement => {
     : [...availableDataModelIds, noModelKey];
 
   const handleChangeDataModel = (dataModelId: string) => {
-    if (dataModelId == existingDataTypeForTask) return;
     if (!layoutSet) {
       toast.error(t('process_editor.layout_set_not_found_error'));
       return;
     }
+    if (dataModelId == existingDataTypeForTask) return;
     mutateLayoutSet({
       layoutSetIdToUpdate: layoutSet.id,
       layoutSetConfig: {
@@ -59,9 +59,9 @@ export const ConfigContent = (): React.ReactElement => {
       <StudioDisplayTile
         label={t('process_editor.configuration_panel_name_label')}
         value={bpmnDetails.name}
-        className={classes.displayTile}
+        className={classes.configContent}
       />
-      <div className={classes.configSectionWrapper}>
+      <div className={classes.configContent}>
         <NativeSelect
           size='small'
           onChange={({ target }) => handleChangeDataModel(target.value)}

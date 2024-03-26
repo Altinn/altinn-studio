@@ -106,9 +106,10 @@ public class AppDevelopmentServiceTest : IDisposable
     public async Task UpdateLayoutSet_WhenLayoutSetExistsWithSameId_ShouldUpdateLayoutSet()
     {
         // Arrange
-        string newDataTypeName = "NewDataModel";
         string layoutSetToUpdateId = "layoutSet1";
-        var newLayoutSet = new LayoutSetConfig { Id = layoutSetToUpdateId, DataType = newDataTypeName };
+        string newDataTypeName = "unUsedDatamodel";
+        string connectedTask = "Task_1";
+        var newLayoutSet = new LayoutSetConfig { Id = layoutSetToUpdateId, DataType = newDataTypeName, Tasks = [connectedTask] };
         string targetRepository = TestDataHelper.GenerateTestRepoName();
 
         CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(_org, _repository, _developer, targetRepository);
@@ -145,7 +146,10 @@ public class AppDevelopmentServiceTest : IDisposable
     {
         // Arrange
         string layoutSetToUpdateId = "layoutSet1";
-        var newLayoutSet = new LayoutSetConfig { Id = "newLayoutSet" };
+        string updatedLayoutSetId = "newLayoutSet";
+        string newDataTypeName = "unUsedDatamodel";
+        string connectedTask = "Task_1";
+        var newLayoutSet = new LayoutSetConfig { Id = updatedLayoutSetId, DataType = newDataTypeName, Tasks = [connectedTask] };
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         AltinnRepoEditingContext altinnRepoEditingContext =
             AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer);

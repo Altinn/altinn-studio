@@ -396,7 +396,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await altinnAppGitRepository.SaveLayoutSetsFile(layoutSets);
             return layoutSets;
         }
-        
+
         private async Task UpdateApplicationMetadata(AltinnAppGitRepository altinnAppGitRepository, LayoutSetConfig newLayoutSet)
         {
             var applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
@@ -413,12 +413,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     oldDataType.TaskId = null;
                 }
 
-                var newDataType = applicationMetadata.DataTypes.Find(dataType => dataType.Id == newLayoutSet.DataType);
-                newDataType.TaskId = newLayoutSet.Tasks[0];
+                var dataTypeToUpdate = applicationMetadata.DataTypes.Find(dataType => dataType.Id == newLayoutSet.DataType);
+                // Only update taskId on appMetaData dataType if the new connected dataType for the layout set exists in appMetaData
+                if (dataTypeToUpdate is not null)
+                {
+                    dataTypeToUpdate.TaskId = newLayoutSet.Tasks[0];
+                }
             }
             await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
         }
-        
+
         /// <inheritdoc />
         public async Task<string> GetRuleHandler(AltinnRepoEditingContext altinnRepoEditingContext,
             string layoutSetName, CancellationToken cancellationToken = default)

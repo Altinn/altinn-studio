@@ -21,22 +21,22 @@ const defaultLayoutSets: LayoutSets = {
   sets: [
     {
       id: 'layoutSetId1',
-      dataTypes: 'layoutSetId1',
+      dataType: 'layoutSetId1',
       tasks: ['Task_1'],
     },
     {
       id: 'layoutSetId2',
-      dataTypes: 'layoutSetId2',
+      dataType: 'layoutSetId2',
       tasks: ['Task_2'],
     },
     {
       id: 'layoutSetId3',
-      dataTypes: 'layoutSetId3',
+      dataType: 'layoutSetId3',
       tasks: ['Task_3'],
     },
     {
       id: 'layoutSetId4',
-      dataTypes: 'layoutSetId4',
+      dataType: 'layoutSetId4',
       tasks: ['CustomReceipt'],
     },
   ],

@@ -19,7 +19,7 @@ export const ConfigPanel = (): React.ReactElement => {
 const ConfigPanelContent = (): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
-  
+
   const noTaskSelected = bpmnDetails === null || bpmnDetails.type === BpmnTypeEnum.Process;
   if (noTaskSelected) {
     return (

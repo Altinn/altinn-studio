@@ -19,6 +19,18 @@
             "minCount": 1
         },
         {
+            "id": "unUsedDatamodel",
+            "allowedContentTypes": [
+                "application/xml"
+            ],
+            "appLogic": {
+                "autoCreate": true,
+                "classRef": "Altinn.App.Models.unUsedDatamodel"
+            },
+            "maxCount": 1,
+            "minCount": 1
+        },
+        {
             "id": "fileUpload-message",
             "taskId": "Task_1",
             "maxSize": 5,
