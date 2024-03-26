@@ -2,9 +2,9 @@ import React from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
 import {
   StudioProperty,
-  StudioPropertyButtonProps,
-  StudioPropertyGroupProps,
-  StudioPropertyFieldsetProps,
+  type StudioPropertyButtonProps,
+  type StudioPropertyGroupProps,
+  type StudioPropertyFieldsetProps,
 } from './index';
 import { StudioPropertyGroup } from './StudioPropertyGroup';
 
@@ -21,7 +21,7 @@ const ComposedPreviewComponent = ({ withoutNegativeMargin, legend, buttons }: Pr
     <StudioProperty.Group withoutNegativeMargin={withoutNegativeMargin}>
       <StudioProperty.Fieldset legend={legend}>
         {buttons.map((button) => (
-          <StudioProperty.Button {...button} />
+          <StudioProperty.Button key={button.property} {...button} />
         ))}
       </StudioProperty.Fieldset>
     </StudioProperty.Group>

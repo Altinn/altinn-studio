@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
 import { StudioGridSelector } from './StudioGridSelector';
-import { GridSize } from './types/GridSize';
+import { type GridSize } from './types/GridSize';
 
 type Story = StoryFn<typeof StudioGridSelector>;
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
-import { StudioModal, StudioModalProps } from './StudioModal';
+import { StudioModal, type StudioModalProps } from './StudioModal';
 import { StudioButton } from '../StudioButton';
 
 type Story = StoryFn<typeof StudioModal>;
