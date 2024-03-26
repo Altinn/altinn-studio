@@ -21,5 +21,5 @@ export const Preview: Story = (args) => <StudioIconTextfield {...args}></StudioI
 Preview.args = {
   icon: <PencilIcon />,
   value: 2.3,
-  validationErrorMessage: 'Your custom error message!',
+  error: 'Your custom error message!',
 };
