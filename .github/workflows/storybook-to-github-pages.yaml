@@ -1,8 +1,14 @@
-name: Deploy Storybook Production
-# Automatically triggers will be added in a separate PR when the workflow is ready
+name: Deploy Studio Components Storybook Production
+
 on:
   workflow_dispatch:
-
+  pull_request:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/libs/studio-components/**'
+      - '.github/workflows/storybook-to-github-pages.yml'
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -41,6 +47,6 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
         with:
           artifact_name: github-pages-storybook
