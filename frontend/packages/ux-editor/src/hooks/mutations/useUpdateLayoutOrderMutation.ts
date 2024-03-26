@@ -12,7 +12,7 @@ export interface UpdateLayoutOrderMutationArgs {
 export const useUpdateLayoutOrderMutation = (org: string, app: string, layoutSetName: string) => {
   const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, layoutSetName);
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
-  const { refetchLayouts, refetchLayoutSettings } = useAppContext();
+  const { refetchLayoutSettings } = useAppContext();
   return useMutation({
     mutationFn: ({ layoutName, direction }: UpdateLayoutOrderMutationArgs) => {
       const layoutSettings = ObjectUtils.deepCopy(formLayoutSettingsQuery.data);
@@ -29,7 +29,6 @@ export const useUpdateLayoutOrderMutation = (org: string, app: string, layoutSet
       return formLayoutSettingsMutation.mutateAsync(layoutSettings);
     },
     onSuccess: async () => {
-      await refetchLayouts(layoutSetName);
       await refetchLayoutSettings(layoutSetName);
     },
   });
