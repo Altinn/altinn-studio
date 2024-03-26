@@ -99,4 +99,15 @@ describe('ArrayUtils', () => {
       expect(ArrayUtils.removeItemByIndex([], 1)).toEqual([]);
     });
   });
+
+  describe('getNonEmptyArrayOrUndefined', () => {
+    it('Returns array if it is not empty', () => {
+      expect(ArrayUtils.getNonEmptyArrayOrUndefined([1, 2, 3])).toEqual([1, 2, 3]);
+      expect(ArrayUtils.getNonEmptyArrayOrUndefined(['a', 'b', 'c'])).toEqual(['a', 'b', 'c']);
+    });
+
+    it('Returns undefined if array is empty', () => {
+      expect(ArrayUtils.getNonEmptyArrayOrUndefined([])).toBeUndefined();
+    });
+  });
 });

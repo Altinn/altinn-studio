@@ -1,0 +1,46 @@
+name: Deploy Storybook Production
+# Automatically triggers will be added in a separate PR when the workflow is ready
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use node 20 and yarn cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        working-directory: frontend/libs/studio-components
+        run: yarn build-storybook
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          name: github-pages-storybook
+          path: frontend/libs/studio-components/storybook-static
+
+  deploy:
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-storybook
