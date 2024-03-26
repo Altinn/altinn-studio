@@ -8,7 +8,6 @@ import {
   StrRestrictionKey,
 } from '../../types';
 import { getCombinationKind, getObjectKind, isField } from '../utils';
-import { arrayIntersection } from 'app-shared/utils/arrayUtils';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { ArrayUtils } from '@studio/pure-functions';
 
@@ -31,13 +30,13 @@ export const findUiFieldType = (schemaNode: KeyValuePairs) => {
   } else if (isCompundFieldType(schemaNode.type)) {
     // @see SeresNillable.json, we need to support types where stuff can be null.
     return schemaNode.type.filter((t: FieldType) => t !== FieldType.Null).pop();
-  } else if (arrayIntersection(keys, Object.values(IntRestrictionKey)).length) {
+  } else if (ArrayUtils.intersection(keys, Object.values(IntRestrictionKey)).length) {
     return FieldType.Number;
-  } else if (arrayIntersection(keys, Object.values(ArrRestrictionKey)).length) {
+  } else if (ArrayUtils.intersection(keys, Object.values(ArrRestrictionKey)).length) {
     return FieldType.Boolean;
-  } else if (arrayIntersection(keys, Object.values(StrRestrictionKey)).length) {
+  } else if (ArrayUtils.intersection(keys, Object.values(StrRestrictionKey)).length) {
     return FieldType.String;
-  } else if (arrayIntersection(keys, Object.values(ObjRestrictionKey)).length) {
+  } else if (ArrayUtils.intersection(keys, Object.values(ObjRestrictionKey)).length) {
     return FieldType.Object;
   } else if (Array.isArray(schemaNode.enum) && schemaNode.enum.length) {
     return findEnumFieldType(schemaNode.enum);

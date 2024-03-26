@@ -18,8 +18,29 @@ export class ArrayUtils {
     return givenIndex < 0 || givenIndex >= array.length ? array.length - 1 : givenIndex;
   }
 
+  /**
+   * Removes item from array by value.
+   * @param array Array to delete item from.
+   * @param value Value to delete.
+   * @returns Array without the given value.
+   */
+  public static removeItemByValue<T>(array: T[], value: T): T[] {
+    return array.filter((item) => item !== value);
+  }
+
   /** Returns the last item of the given array */
   public static last = <T>(array: T[]): T => array[array.length - 1];
+
+  /**
+   * Returns an array of which the element of arrA are either present or not present in arrB based on the include param.
+   * @param arrA The first array.
+   * @param arrB The second array.
+   * @param include Whether to include or exclude the elements of arrB from arrA. Defaults to true.
+   * @returns Array that contains the filtered elements based on the filtering condition.
+   */
+  public static intersection = <T>(arrA: T[], arrB: T[], include: boolean = true): T[] => {
+    return arrA.filter((x) => (include ? arrB.includes(x) : !arrB.includes(x)));
+  };
 
   /** Replaces an element in an array with a new value */
   public static replaceByIndex = <T>(array: T[], index: number, newValue: T): T[] => {

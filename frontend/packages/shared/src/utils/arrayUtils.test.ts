@@ -1,13 +1,11 @@
 import {
   areItemsUnique,
-  arrayIntersection,
   generateUniqueStringWithNumber,
   insertArrayElementAtPos,
   mapByKey,
   moveArrayItem,
   prepend,
   removeEmptyStrings,
-  removeItemByValue,
   replaceByPredicate,
   replaceItemsByValue,
   swapArrayElements,
@@ -18,16 +16,6 @@ describe('arrayUtils', () => {
     it('Prepends item to array', () => {
       expect(prepend([1, 2, 3], 0)).toEqual([0, 1, 2, 3]);
       expect(prepend(['a', 'b', 'c'], 'd')).toEqual(['d', 'a', 'b', 'c']);
-    });
-  });
-
-  describe('removeItemByValue', () => {
-    it('Deletes item from array by value', () => {
-      expect(removeItemByValue([1, 2, 3], 2)).toEqual([1, 3]);
-      expect(removeItemByValue(['a', 'b', 'c'], 'b')).toEqual(['a', 'c']);
-      expect(removeItemByValue(['a', 'b', 'c'], 'd')).toEqual(['a', 'b', 'c']);
-      expect(removeItemByValue([], 'a')).toEqual([]);
-      expect(removeItemByValue(['a', 'b', 'c', 'b', 'a'], 'b')).toEqual(['a', 'c', 'a']);
     });
   });
 
@@ -78,15 +66,6 @@ describe('arrayUtils', () => {
     it('Swaps two elements in an array', () => {
       const arr: string[] = ['a', 'b', 'c', 'd', 'e', 'f'];
       expect(swapArrayElements(arr, 'a', 'b')).toEqual(['b', 'a', 'c', 'd', 'e', 'f']);
-    });
-  });
-
-  describe('arrayIntersection', () => {
-    it('Returns intersection of two arrays', () => {
-      expect(arrayIntersection([1, 2, 3], [3, '4', 5])).toStrictEqual([3]);
-      expect(arrayIntersection([1, 2, 3], [4, '4', 5])).toStrictEqual([]);
-      expect(arrayIntersection([1, 2, 3], [3, '4', 2])).toStrictEqual([2, 3]);
-      expect(arrayIntersection([1, 2, 3], [1, 2, 3])).toStrictEqual([1, 2, 3]);
     });
   });
 

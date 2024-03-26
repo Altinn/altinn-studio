@@ -36,6 +36,16 @@ describe('ArrayUtils', () => {
     });
   });
 
+  describe('removeItemByValue', () => {
+    it('Deletes item from array by value', () => {
+      expect(ArrayUtils.removeItemByValue([1, 2, 3], 2)).toEqual([1, 3]);
+      expect(ArrayUtils.removeItemByValue(['a', 'b', 'c'], 'b')).toEqual(['a', 'c']);
+      expect(ArrayUtils.removeItemByValue(['a', 'b', 'c'], 'd')).toEqual(['a', 'b', 'c']);
+      expect(ArrayUtils.removeItemByValue([], 'a')).toEqual([]);
+      expect(ArrayUtils.removeItemByValue(['a', 'b', 'c', 'b', 'a'], 'b')).toEqual(['a', 'c', 'a']);
+    });
+  });
+
   describe('last', () => {
     it('Returns last item in array', () => {
       expect(ArrayUtils.last([1, 2, 3])).toEqual(3);
@@ -44,6 +54,22 @@ describe('ArrayUtils', () => {
 
     it('Returns undefined if array is empty', () => {
       expect(ArrayUtils.last([])).toBeUndefined();
+    });
+  });
+
+  describe('ArrayUtils.intersection', () => {
+    it('Returns intersection of two arrays when included is true', () => {
+      expect(ArrayUtils.intersection([1, 2, 3], [3, '4', 5])).toStrictEqual([3]);
+      expect(ArrayUtils.intersection([1, 2, 3], [4, '4', 5])).toStrictEqual([]);
+      expect(ArrayUtils.intersection([1, 2, 3], [3, '4', 2])).toStrictEqual([2, 3]);
+      expect(ArrayUtils.intersection([1, 2, 3], [1, 2, 3])).toStrictEqual([1, 2, 3]);
+    });
+
+    it('Returns intersection of two arrays when included is false', () => {
+      expect(ArrayUtils.intersection([1, 2, 3], [3, '4', 5], false)).toStrictEqual([1, 2]);
+      expect(ArrayUtils.intersection([1, 2, 3], [4, '4', 5], false)).toStrictEqual([1, 2, 3]);
+      expect(ArrayUtils.intersection([1, 2, 3], [3, '4', 2], false)).toStrictEqual([1]);
+      expect(ArrayUtils.intersection([1, 2, 3], [1, 2, 3], false)).toStrictEqual([]);
     });
   });
 

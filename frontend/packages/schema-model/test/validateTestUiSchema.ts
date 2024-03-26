@@ -1,7 +1,7 @@
 import type { UiSchemaNodes } from '../src';
 import { FieldType, ObjectKind, ROOT_POINTER } from '../src';
 import { getPointers } from '../src/lib/mappers/getPointers';
-import { areItemsUnique, mapByKey, removeItemByValue } from 'app-shared/utils/arrayUtils';
+import { areItemsUnique, mapByKey } from 'app-shared/utils/arrayUtils';
 import {
   isField,
   isFieldOrCombination,
@@ -12,6 +12,7 @@ import {
   isNotTheRootNode,
   isTheRootNode,
 } from '../src/lib/utils';
+import { ArrayUtils } from '@studio/pure-functions';
 
 /** Verifies that there is a root node */
 export const hasRootNode = (uiSchema: UiSchemaNodes) =>
@@ -33,7 +34,7 @@ export const allPointersExist = (uiSchema: UiSchemaNodes) => {
 /** Verifies that all nodes except the root node have a parent */
 export const nodesHaveParent = (uiSchema: UiSchemaNodes) => {
   const allChildPointers = mapByKey(uiSchema.filter(isFieldOrCombination), 'children').flat();
-  removeItemByValue(getPointers(uiSchema), ROOT_POINTER).forEach((pointer) => {
+  ArrayUtils.removeItemByValue(getPointers(uiSchema), ROOT_POINTER).forEach((pointer) => {
     expect(allChildPointers).toContain(pointer);
   });
 };

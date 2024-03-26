@@ -1409,12 +1409,6 @@
           "title": "Data type IDs",
           "description": "List of data type IDs for the attachment list to show.",
           "examples": [["SomeDataType", "SomeOtherDataType"]]
-        },
-        "includePDF": {
-          "type": "boolean",
-          "title": "Include PDF as attachments",
-          "description": "Set the flag if the list of attachments should include PDF of answers.",
-          "default": false
         }
       }
     },
