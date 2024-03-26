@@ -1,7 +1,8 @@
 import React from 'react';
 import { ConfigContent } from './ConfigContent';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { act, render as rtlRender, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import userEvent from '@testing-library/user-event';
 import type { BpmnContextProps } from '../../../contexts/BpmnContext';
 import { BpmnContext } from '../../../contexts/BpmnContext';
 import type { BpmnDetails } from '../../../types/BpmnDetails';
@@ -15,6 +16,8 @@ const mockAppLibVersion8: string = '8.0.3';
 
 const mockTaskId: string = 'testId';
 const mockName: string = 'testName';
+const noModelKey: string = 'noModel';
+const layoutSetIdToUpdate: string = 'layoutSet1';
 
 const mockBpmnDetails: BpmnDetails = {
   id: mockTaskId,
@@ -161,7 +164,7 @@ describe('ConfigContent', () => {
     const existingLayoutSets: LayoutSets = {
       sets: [
         {
-          id: 'layoutSet1',
+          id: layoutSetIdToUpdate,
           tasks: [mockTaskId],
           dataType: connectedDataType,
         },
@@ -182,7 +185,7 @@ describe('ConfigContent', () => {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
     expect(selectDataModel).toBeInTheDocument();
-    expect(selectDataModel).toHaveValue('noModel');
+    expect(selectDataModel).toHaveValue(noModelKey);
     expect(
       screen.getByRole('option', {
         name: textMock('process_editor.configuration_panel_no_datamodel'),
@@ -196,7 +199,7 @@ describe('ConfigContent', () => {
     const existingLayoutSets: LayoutSets = {
       sets: [
         {
-          id: 'layoutSet1',
+          id: layoutSetIdToUpdate,
           tasks: [mockTaskId],
           dataType: connectedDataType,
         },
@@ -217,6 +220,131 @@ describe('ConfigContent', () => {
     availableDataTypes.forEach((dataType) =>
       expect(screen.getByRole('option', { name: dataType })).toBeInTheDocument(),
     );
+  });
+
+  it('should call mutateLayoutSet with new data type when new option is clicked', async () => {
+    const user = userEvent.setup();
+    const mutateLayoutSetMock = jest.fn();
+    const dataTypeToConnect = 'datamodel0';
+    const availableDataTypes = [dataTypeToConnect, 'dataModel1', 'dataModel2'];
+    const existingLayoutSets: LayoutSets = {
+      sets: [
+        {
+          id: layoutSetIdToUpdate,
+          tasks: [mockTaskId],
+        },
+      ],
+    };
+    render({
+      availableDataModelIds: availableDataTypes,
+      layoutSets: existingLayoutSets,
+      mutateLayoutSet: mutateLayoutSetMock,
+    });
+    const selectDataModel = screen.getByRole('combobox', {
+      name: textMock('process_editor.configuration_panel_set_datamodel'),
+    });
+    await act(() => user.selectOptions(selectDataModel, dataTypeToConnect));
+    expect(mutateLayoutSetMock).toHaveBeenCalledWith({
+      layoutSetIdToUpdate,
+      layoutSetConfig: {
+        dataType: dataTypeToConnect,
+        id: layoutSetIdToUpdate,
+        tasks: [mockTaskId],
+      },
+    });
+  });
+
+  it('should call mutateLayoutSet with new data type when data type is changed', async () => {
+    const user = userEvent.setup();
+    const mutateLayoutSetMock = jest.fn();
+    const dataTypeToConnect = 'datamodel1';
+    const availableDataTypes = [dataTypeToConnect, 'dataModel2'];
+    const connectedDataType = 'dataModel0';
+    const existingLayoutSets: LayoutSets = {
+      sets: [
+        {
+          id: layoutSetIdToUpdate,
+          tasks: [mockTaskId],
+          dataType: connectedDataType,
+        },
+      ],
+    };
+    render({
+      availableDataModelIds: availableDataTypes,
+      layoutSets: existingLayoutSets,
+      mutateLayoutSet: mutateLayoutSetMock,
+    });
+    const selectDataModel = screen.getByRole('combobox', {
+      name: textMock('process_editor.configuration_panel_set_datamodel'),
+    });
+    await act(() => user.selectOptions(selectDataModel, dataTypeToConnect));
+    expect(mutateLayoutSetMock).toHaveBeenCalledWith({
+      layoutSetIdToUpdate,
+      layoutSetConfig: {
+        dataType: dataTypeToConnect,
+        id: layoutSetIdToUpdate,
+        tasks: [mockTaskId],
+      },
+    });
+  });
+
+  it('should call mutateLayoutSet with no data type when data type is set to noModel', async () => {
+    const user = userEvent.setup();
+    const mutateLayoutSetMock = jest.fn();
+    const availableDataTypes = ['datamodel1', 'dataModel2'];
+    const connectedDataType = 'dataModel0';
+    const existingLayoutSets: LayoutSets = {
+      sets: [
+        {
+          id: layoutSetIdToUpdate,
+          tasks: [mockTaskId],
+          dataType: connectedDataType,
+        },
+      ],
+    };
+    render({
+      availableDataModelIds: availableDataTypes,
+      layoutSets: existingLayoutSets,
+      mutateLayoutSet: mutateLayoutSetMock,
+    });
+    const selectDataModel = screen.getByRole('combobox', {
+      name: textMock('process_editor.configuration_panel_set_datamodel'),
+    });
+    await act(() => user.selectOptions(selectDataModel, noModelKey));
+    expect(mutateLayoutSetMock).toHaveBeenCalledWith({
+      layoutSetIdToUpdate,
+      layoutSetConfig: {
+        dataType: undefined,
+        id: layoutSetIdToUpdate,
+        tasks: [mockTaskId],
+      },
+    });
+  });
+
+  it('should not call mutateLayoutSet when data type is set to existing', async () => {
+    const user = userEvent.setup();
+    const mutateLayoutSetMock = jest.fn();
+    const availableDataTypes = ['datamodel1', 'dataModel2'];
+    const connectedDataType = 'dataModel0';
+    const existingLayoutSets: LayoutSets = {
+      sets: [
+        {
+          id: layoutSetIdToUpdate,
+          tasks: [mockTaskId],
+          dataType: connectedDataType,
+        },
+      ],
+    };
+    render({
+      availableDataModelIds: availableDataTypes,
+      layoutSets: existingLayoutSets,
+      mutateLayoutSet: mutateLayoutSetMock,
+    });
+    const selectDataModel = screen.getByRole('combobox', {
+      name: textMock('process_editor.configuration_panel_set_datamodel'),
+    });
+    await act(() => user.selectOptions(selectDataModel, connectedDataType));
+    expect(mutateLayoutSetMock).not.toHaveBeenCalled();
   });
 });
 

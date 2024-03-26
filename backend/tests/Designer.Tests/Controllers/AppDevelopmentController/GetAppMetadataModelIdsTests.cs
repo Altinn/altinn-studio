@@ -34,7 +34,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             string responseContent = await response.Content.ReadAsStringAsync();
 
-            responseContent.Should().Be("[\"datamodel\",\"HvemErHvem_M\"]");
+            responseContent.Should().Be("[\"datamodel\",\"unUsedDatamodel\",\"HvemErHvem_M\"]");
         }
 
         [Theory]
