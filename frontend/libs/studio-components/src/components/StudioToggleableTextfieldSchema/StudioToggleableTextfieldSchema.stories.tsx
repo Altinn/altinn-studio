@@ -1,17 +1,17 @@
 import React from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
-import { StudioToggleableTextfield } from './StudioToggleableTextfield';
+import { StudioToggleableTextfieldSchema } from './StudioToggleableTextfieldSchema';
 import { KeyVerticalIcon } from '@navikt/aksel-icons';
 
-type Story = StoryFn<typeof StudioToggleableTextfield>;
+type Story = StoryFn<typeof StudioToggleableTextfieldSchema>;
 
 const meta: Meta = {
-  title: 'Forms/StudioToggleableTextfield',
-  component: StudioToggleableTextfield,
+  title: 'Forms/StudioToggleableTextfieldSchema',
+  component: StudioToggleableTextfieldSchema,
 };
 
 export const Preview: Story = (args) => (
-  <StudioToggleableTextfield {...args}></StudioToggleableTextfield>
+  <StudioToggleableTextfieldSchema {...args}></StudioToggleableTextfieldSchema>
 );
 
 Preview.args = {

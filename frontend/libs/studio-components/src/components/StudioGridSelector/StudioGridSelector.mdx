@@ -1,0 +1,14 @@
+import {Canvas, Meta} from '@storybook/blocks';
+import {Heading, Paragraph} from '@digdir/design-system-react';
+import * as StudioGridSelectorStories from './StudioGridSelector.stories';
+
+<Meta of={StudioGridSelectorStories}/>
+
+<Heading level={1} size='small'>
+  StudioGridSelector
+</Heading>
+<Paragraph>
+  StudioGridSelector is a component that allows the user to select a grid from a list of available grid-values.
+</Paragraph>
+
+<Canvas of={StudioGridSelectorStories.Preview}/>
