@@ -112,6 +112,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         public Task<LayoutSets> UpdateLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetToUpdateId, LayoutSetConfig newLayoutSet, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Deletes an existing layout set in layout-sets.json based on layoutSetId and deletes connection between related dataType/task in application metadata
+        /// </summary>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+        /// <param name="layoutSetToDeleteId">The id of the layout set to replace</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        public Task<LayoutSets> DeleteLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetToDeleteId, CancellationToken cancellationToken = default);
+        
+        /// <summary>
         /// Gets the rule handler for a specific organization, application, developer, and layout set name.
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>

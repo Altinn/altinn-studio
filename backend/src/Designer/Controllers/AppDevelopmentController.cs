@@ -323,6 +323,31 @@ namespace Altinn.Studio.Designer.Controllers
             LayoutSets layoutSets = await _appDevelopmentService.UpdateLayoutSet(editingContext, layoutSetIdToUpdate, layoutSet, cancellationToken);
             return Ok(layoutSets);
         }
+        
+        /// <summary>
+        /// Delete an existing layout set
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="layoutSetToDeleteId">The id of the layout set to delete</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        [HttpDelete]
+        [UseSystemTextJson]
+        [Route("layout-set/{layoutSetToDeleteId}")]
+        public async Task<ActionResult> UpdateLayoutSet(string org, string app, [FromRoute] string layoutSetToDeleteId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+                LayoutSets layoutSets = await _appDevelopmentService.UpdateLayoutSet(editingContext, layoutSetToDeleteId, layoutSet, cancellationToken);
+                return Ok(layoutSets);
+            }
+            catch (FileNotFoundException exception)
+            {
+                return NotFound($"Layout-sets.json not found: {exception}");
+            }
+        }
 
         /// <summary>
         /// Get rule handler in JSON structure

@@ -15,6 +15,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Server.HttpSys;
 using NuGet.Versioning;
 using LayoutSets = Altinn.Studio.Designer.Models.LayoutSets;
 using NonUniqueLayoutSetIdException = Altinn.Studio.Designer.Exceptions.NonUniqueLayoutSetIdException;
@@ -309,6 +310,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return await UpdateExistingLayoutSet(altinnAppGitRepository, layoutSets, layoutSetToReplace, newLayoutSet);
         }
 
+        public async Task<LayoutSets> DeleteLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext,
+            string layoutSetToDeleteId, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
+                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+            // Remove TaskId connection from datatype in appmetadata with the id == layoutSet.datatype
+            return await DeleteExistingLayoutSet(altinnAppGitRepository, layoutSets, layoutSetToDeleteId);
+        }
+
         private static async Task<LayoutSets> AddNewLayoutSet(AltinnAppGitRepository altinnAppGitRepository, LayoutSets layoutSets, LayoutSetConfig layoutSet)
         {
             layoutSets.Sets.Add(layoutSet);
@@ -327,7 +340,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await altinnAppGitRepository.SaveLayoutSetsFile(layoutSets);
             return layoutSets;
         }
-
+        
+        private static async Task<LayoutSets> DeleteExistingLayoutSet(AltinnAppGitRepository altinnAppGitRepository, LayoutSets layoutSets, string layoutSetToDeleteId)
+        {
+            LayoutSetConfig layoutSetToDelete = layoutSets.Sets.Find(set => set.Id == layoutSetToDeleteId);
+            layoutSets.Sets.Remove(layoutSetToDelete);
+            await altinnAppGitRepository.SaveLayoutSetsFile(layoutSets);
+            return layoutSets;
+        }
 
         /// <inheritdoc />
         public async Task<string> GetRuleHandler(AltinnRepoEditingContext altinnRepoEditingContext,
