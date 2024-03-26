@@ -1,5 +1,5 @@
 name: Deploy Studio Components Storybook Production
-  # Automatically triggers will be added in a separate PR when the workflow is ready
+
 on:
   workflow_dispatch:
   push:
