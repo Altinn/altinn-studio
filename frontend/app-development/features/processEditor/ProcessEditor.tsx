@@ -35,9 +35,23 @@ export const ProcessEditor = () => {
       {
         onSuccess: () => {
           toast.success(t('process_editor.saved_successfully'));
+          updateLayoutSetsBasedOnBpmnUpdates(dataTasksChanged.added, dataTasksChanged.removed);
         },
       },
     );
+  };
+
+  const updateLayoutSetsBasedOnBpmnUpdates = (added?: BpmnDetails[], removed?: BpmnDetails[]) => {
+    added?.forEach((taskAdded) =>
+      addLayoutSet({
+        layoutSetIdToUpdate: undefined,
+        layoutSetConfig: {
+          id: taskAdded.name,
+          tasks: [taskAdded.id],
+        },
+      }),
+    );
+    removed?.forEach((taskRemoved) => {});
   };
 
   if (appLibDataLoading) {

@@ -20,6 +20,7 @@ export const useUpdateLayoutSetMutation = (org: string, app: string) => {
       updateLayoutSet(org, app, layoutSetIdToUpdate, layoutSetConfig).then(() => layoutSetConfig),
     onSuccess: (layoutSetConfig) => {
       setSelectedLayoutSet(layoutSetConfig.id);
+      queryClient.invalidateQueries({ queryKey: [QueryKey.AppMetadataModelIds, org, app] });
       queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSets, org, app] });
     },
   });
