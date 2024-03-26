@@ -25,31 +25,21 @@ The components must also use `forwardRef` to make sure it supports React Top Lev
 #### Example
 
 ```tsx
-type StudioButtonProps
-{
-  size ? : 'small' | 'medium' | 'large';
-}
-&
-HTMLAttributes<HTMLButtonElement>
+type StudioButtonProps = {
+  size?: 'small' | 'medium' | 'large';
+} & HTMLAttributes<HTMLButtonElement>;
 
-export const StudioButton = forwardRef<HTMLButtonElement, StudioButtonProps>(({
-                                                                                size = 'medium',
-                                                                                children,
-                                                                                ...rest
-                                                                              }: ButtonProps, ref): ReactNode => {
-  return (
-    <button {...rest} ref={ref}>
-      <Paragraph
-        size={size}
-        asChild
-      >
-        <span>
-          {children}
-        </span>
-      </Paragraph>
-    </button>
-  )
-})
+export const StudioButton = forwardRef<HTMLButtonElement, StudioButtonProps>(
+  ({ size = 'medium', children, ...rest }: ButtonProps, ref): ReactNode => {
+    return (
+      <button {...rest} ref={ref}>
+        <Paragraph size={size} asChild>
+          <span>{children}</span>
+        </Paragraph>
+      </button>
+    );
+  },
+);
 ```
 
 ## How to install Studio Components
