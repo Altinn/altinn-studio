@@ -13,3 +13,5 @@ language/old/*
 *.csv
 script.js
 /testing/playwright/test-results
+
+*storybook.log

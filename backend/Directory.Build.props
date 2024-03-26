@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Company>Altinn</Company>
+    <Product>Altinn Studio</Product>
+  </PropertyGroup>
+</Project>
+

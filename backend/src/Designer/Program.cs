@@ -8,7 +8,6 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Configuration.Marker;
 using Altinn.Studio.Designer.EventHandlers;
-using Altinn.Studio.Designer.EventHandlers.ProcessTaskIdChanged;
 using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Hubs;
 using Altinn.Studio.Designer.Hubs.SyncHub;
@@ -45,18 +44,17 @@ string applicationInsightsKey = string.Empty;
 ConfigureSetupLogging();
 
 var builder = WebApplication.CreateBuilder(args);
-
-await SetConfigurationProviders(builder.Configuration, builder.Environment);
-
-ConfigureLogging(builder.Logging);
-
-ConfigureServices(builder.Services, builder.Configuration, builder.Environment);
+{
+    await SetConfigurationProviders(builder.Configuration, builder.Environment);
+    ConfigureLogging(builder.Logging);
+    ConfigureServices(builder.Services, builder.Configuration, builder.Environment);
+}
 
 var app = builder.Build();
-
-Configure(builder.Configuration);
-
-app.Run();
+{
+    Configure(builder.Configuration);
+    app.Run();
+}
 
 void ConfigureSetupLogging()
 {

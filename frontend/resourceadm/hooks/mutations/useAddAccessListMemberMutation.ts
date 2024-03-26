@@ -20,7 +20,7 @@ export const useAddAccessListMemberMutation = (
   return useMutation({
     mutationFn: (orgnr: string) => addAccessListMember(org, listIdentifier, orgnr, env),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QueryKey.AccessList, listIdentifier, env] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.AccessList, env, listIdentifier] });
     },
   });
 };

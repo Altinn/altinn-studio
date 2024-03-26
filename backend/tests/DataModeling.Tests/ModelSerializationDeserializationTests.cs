@@ -1,5 +1,3 @@
-using System.IO;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Json.Keywords;

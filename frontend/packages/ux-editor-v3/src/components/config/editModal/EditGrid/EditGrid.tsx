@@ -6,13 +6,13 @@ import classes from './EditGrid.module.css';
 import { EditGridForGivenViewSize } from './EditGridForGivenViewSize';
 import { LaptopIcon, MobileIcon, MobileSmallIcon, MonitorIcon, TabletIcon } from '@studio/icons';
 import type { FormComponent } from '../../../../types/FormComponent';
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils } from '@studio/pure-functions';
 import { ViewSize } from './types/ViewSize';
 import type { GridSizes } from './types/GridSizes';
 import { useTranslation } from 'react-i18next';
 
 const setGridOnComponent = (gridValues: GridSizes, component: FormComponent) => {
-  const newComponent = deepCopy(component);
+  const newComponent = ObjectUtils.deepCopy(component);
   newComponent.grid = { ...newComponent.grid, ...gridValues };
   if (
     Object.keys(newComponent.grid).length === 0 ||
@@ -55,12 +55,8 @@ export const EditGrid = ({ handleComponentChange, component }: IGenericEditCompo
       <Tabs.List className={classes.tabs}>
         {Object.values(ViewSize).map((viewSize: ViewSize) => {
           return (
-            <Tabs.Tab
-              key={viewSize}
-              value={viewSize}
-              icon={iconMapping[viewSize] || null}
-              className={classes.tab}
-            >
+            <Tabs.Tab key={viewSize} value={viewSize} className={classes.tab}>
+              {iconMapping[viewSize] || null}
               {t(`ux_editor.modal_properties_grid_size_${viewSize}`)}
             </Tabs.Tab>
           );

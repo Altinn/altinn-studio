@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.ApiClients.Maskinporten.Extensions;
 using Altinn.Authorization.ABAC.Xacml;
-using Altinn.ResourceRegistry.Core.Enums.Altinn2;
 using Altinn.ResourceRegistry.Core.Models;
 using Altinn.ResourceRegistry.Core.Models.Altinn2;
 using Altinn.Studio.Designer.Configuration;
@@ -15,7 +14,6 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
-using Humanizer.Localisation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -37,8 +35,9 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IOrgService _orgService;
         private readonly IResourceRegistry _resourceRegistry;
         private readonly ResourceRegistryIntegrationSettings _resourceRegistrySettings;
+        private readonly IUserRequestsSynchronizationService _userRequestsSynchronizationService;
 
-        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IAltinn2MetadataClient altinn2MetadataClient, IOrgService orgService, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IResourceRegistry resourceRegistry)
+        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IAltinn2MetadataClient altinn2MetadataClient, IOrgService orgService, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IResourceRegistry resourceRegistry, IUserRequestsSynchronizationService userRequestsSynchronizationService)
         {
             _giteaApi = gitea;
             _repository = repository;
@@ -49,6 +48,83 @@ namespace Altinn.Studio.Designer.Controllers
             _orgService = orgService;
             _resourceRegistrySettings = resourceRegistryEnvironment.Value;
             _resourceRegistry = resourceRegistry;
+            _userRequestsSynchronizationService = userRequestsSynchronizationService;
+        }
+
+        [HttpPost]
+        [Route("designer/api/{org}/resources/accesslist/")]
+        public async Task<ActionResult<AccessList>> CreateAccessList(string org, string env, [FromBody] AccessList accessList)
+        {
+            AccessList newAccessList = await _resourceRegistry.CreateAccessList(org, env, accessList);
+            return Created($"designer/api/{org}/resources/accesslist/{newAccessList.Identifier}", newAccessList);
+        }
+
+        [HttpGet]
+        [Route("designer/api/{org}/resources/accesslist/")]
+        public async Task<ActionResult<PagedAccessListResponse>> GetAccessLists(string org, string env, int page)
+        {
+            return await _resourceRegistry.GetAccessLists(org, env, page);
+        }
+
+        [HttpGet]
+        [Route("designer/api/{org}/resources/accesslist/{identifier}")]
+        public async Task<ActionResult<AccessList>> GetAccessList(string org, string identifier, string env)
+        {
+            return await _resourceRegistry.GetAccessList(org, identifier, env);
+        }
+
+        [HttpDelete]
+        [Route("designer/api/{org}/resources/accesslist/{identifier}")]
+        public async Task<ActionResult> DeleteAccessList(string org, string identifier, string env)
+        {
+            HttpStatusCode statusCode = await _resourceRegistry.DeleteAccessList(org, identifier, env);
+            return new StatusCodeResult(((int)statusCode));
+        }
+
+        [HttpPut]
+        [Route("designer/api/{org}/resources/accesslist/{identifier}")]
+        public async Task<ActionResult<AccessList>> UpdateAccessList(string org, string identifier, string env, [FromBody] AccessList accessList)
+        {
+            return await _resourceRegistry.UpdateAccessList(org, identifier, env, accessList);
+        }
+
+        [HttpPost]
+        [Route("designer/api/{org}/resources/accesslist/{identifier}/members/{memberOrgNr}")]
+        public async Task<ActionResult> AddAccessListMember(string org, string identifier, string memberOrgNr, string env)
+        {
+            HttpStatusCode statusCode = await _resourceRegistry.AddAccessListMember(org, identifier, memberOrgNr, env);
+            return new StatusCodeResult(((int)statusCode));
+        }
+
+        [HttpDelete]
+        [Route("designer/api/{org}/resources/accesslist/{identifier}/members/{memberOrgNr}")]
+        public async Task<ActionResult> RemoveAccessListMember(string org, string identifier, string memberOrgNr, string env)
+        {
+            HttpStatusCode statusCode = await _resourceRegistry.RemoveAccessListMember(org, identifier, memberOrgNr, env);
+            return new StatusCodeResult(((int)statusCode));
+        }
+
+        [HttpGet]
+        [Route("designer/api/{org}/resources/{id}/accesslists/")]
+        public async Task<ActionResult<PagedAccessListResponse>> GetResourceAccessLists(string org, string id, string env, int page)
+        {
+            return await _resourceRegistry.GetResourceAccessLists(org, id, env, page);
+        }
+
+        [HttpPost]
+        [Route("designer/api/{org}/resources/{id}/accesslists/{listId}")]
+        public async Task<ActionResult<ResourceAccessList>> AddResourceAccessList(string org, string id, string listId, string env)
+        {
+            HttpStatusCode statusCode = await _resourceRegistry.AddResourceAccessList(org, id, listId, env);
+            return new StatusCodeResult(((int)statusCode));
+        }
+
+        [HttpDelete]
+        [Route("designer/api/{org}/resources/{id}/accesslists/{listId}")]
+        public async Task<ActionResult> RemoveResourceAccessList(string org, string id, string listId, string env)
+        {
+            HttpStatusCode statusCode = await _resourceRegistry.RemoveResourceAccessList(org, id, listId, env);
+            return new StatusCodeResult(((int)statusCode));
         }
 
         [HttpGet]
@@ -80,7 +156,6 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 ListviewServiceResource listviewResource = await _giteaApi.MapServiceResourceToListViewResource(org, string.Format("{0}-resources", org), resource);
                 listviewResource.HasPolicy = _repository.ResourceHasPolicy(org, repository, resource);
-                listviewResource = _repository.AddLastChangedAndCreatedByIfMissingFromGitea(listviewResource);
                 listviewServiceResources.Add(listviewResource);
             }
 
@@ -171,15 +246,27 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpPut]
         [Route("designer/api/{org}/resources/updateresource/{id}")]
-        public async Task<ActionResult> UpdateResource(string org, string id, [FromBody] ServiceResource resource)
+        public async Task<ActionResult> UpdateResource(string org, string id, [FromBody] ServiceResource resource, CancellationToken cancellationToken = default)
         {
-            resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
-            return _repository.UpdateServiceResource(org, id, resource);
+            string repository = string.Format("{0}-resources", org);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
+            await semaphore.WaitAsync(cancellationToken);
+            try
+            {
+                resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
+                return _repository.UpdateServiceResource(org, id, resource);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+
         }
 
         [HttpPost]
         [Route("designer/api/{org}/resources/addresource")]
-        public async Task<ActionResult<ServiceResource>> AddResource(string org, [FromBody] ServiceResource resource)
+        public async Task<StatusCodeResult> AddResource(string org, [FromBody] ServiceResource resource)
         {
             resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
             return _repository.AddServiceResource(org, resource);
@@ -190,10 +277,14 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult> ImportResource(string org, string serviceCode, int serviceEdition, string environment, [FromBody] string resourceId)
         {
             string repository = string.Format("{0}-resources", org);
-            ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(serviceCode, serviceEdition, environment);
+            ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(serviceCode, serviceEdition, environment.ToLower());
             resource.Identifier = resourceId;
-            _repository.AddServiceResource(org, resource);
-            XacmlPolicy policy = await _resourceRegistry.GetXacmlPolicy(serviceCode, serviceEdition, resource.Identifier, environment);
+            StatusCodeResult statusCodeResult = _repository.AddServiceResource(org, resource);
+            if (statusCodeResult.StatusCode != (int)HttpStatusCode.Created)
+            {
+                return statusCodeResult;
+            }
+            XacmlPolicy policy = await _resourceRegistry.GetXacmlPolicy(serviceCode, serviceEdition, resource.Identifier, environment.ToLower());
             await _repository.SavePolicy(org, repository, resource.Identifier, policy);
             return Ok(resource);
         }

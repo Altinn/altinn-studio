@@ -5,7 +5,7 @@ import { RouterRoute } from './RouterRoute';
 import type { Environment } from './StudioEnvironment';
 
 type Locale = 'nb' | 'en';
-type TextKey = keyof typeof nbTexts | keyof typeof enTexts;
+export type TextKey = keyof typeof nbTexts | keyof typeof enTexts;
 
 const localeTextMap: Record<Locale, typeof nbTexts | typeof enTexts> = {
   nb: nbTexts,

@@ -1,10 +1,15 @@
-import { BasePage } from '../helpers/BasePage';
+import { BasePage, type TextKey } from '../helpers/BasePage';
 import type { Environment } from '../helpers/StudioEnvironment';
 import type { Locator, Page } from '@playwright/test';
 import type { ComponentType } from '../enum/ComponentType';
 import type { DragAndDropComponents } from '../types/DragAndDropComponents';
 import { expect } from '@playwright/test';
 import { DataTestId } from '../enum/DataTestId';
+import type { LanguageCode } from '../enum/LanguageCode';
+
+const dataModelBindingButtonTextMap: Record<string, TextKey> = {
+  Input: 'ux_editor.component_title.Input',
+};
 
 export class UiEditorPage extends BasePage {
   constructor(page: Page, environment?: Environment) {
@@ -27,6 +32,19 @@ export class UiEditorPage extends BasePage {
 
   public async clickOnPageAccordion(pageName: string): Promise<void> {
     await this.page.getByRole('button', { name: pageName, exact: true }).click();
+  }
+
+  public async clickOnComponentTextConfigAccordion(): Promise<void> {
+    await this.page
+      .getByLabel(this.textMock('right_menu.text_label'))
+      .getByRole('button', { name: this.textMock('right_menu.text') })
+      .click();
+  }
+
+  public async clickOnComponentDataModelBindingConfigAccordion(): Promise<void> {
+    await this.page
+      .getByRole('button', { name: this.textMock('right_menu.dataModelBindings') })
+      .click();
   }
 
   public async verifyThatPageIsEmpty(): Promise<void> {
@@ -103,6 +121,7 @@ export class UiEditorPage extends BasePage {
 
   public async openTextComponentSection(): Promise<void> {
     await this.page
+      .getByRole('heading', { level: 3 })
       .getByRole('button', {
         name: this.textMock('ux_editor.collapsable_text_components'),
       })
@@ -117,32 +136,25 @@ export class UiEditorPage extends BasePage {
     await expect(textTreeItem).toBeVisible();
   }
 
-  public async getBetaConfigSwitchValue(): Promise<boolean> {
-    return await this.page
-      .getByRole('checkbox', {
-        name: this.textMock('ux_editor.edit_component.show_beta_func'),
-      })
-      .isChecked();
-  }
-
-  public async clickOnTurnOnBetaConfigSwitch(): Promise<void> {
-    await this.page
-      .getByRole('checkbox', {
-        name: this.textMock('ux_editor.edit_component.show_beta_func'),
-      })
-      .click();
-  }
-
-  public async clickOnAddLabelText(): Promise<void> {
+  public async clickOnTitleTextButton(): Promise<void> {
     await this.page
       .getByRole('button', {
-        name: this.textMock('ux_editor.text_resource_binding_add_title'),
+        name: this.textMock('ux_editor.modal_properties_textResourceBindings_title'),
+        exact: true,
       })
       .click();
   }
 
-  public async writeLabelTextInTextarea(text: string): Promise<void> {
-    await this.page.getByLabel(this.textMock('language.nb')).fill(text);
+  public async writeTitleTextInTextarea(text: string): Promise<void> {
+    await this.getTitleTextFieldset()
+      .getByRole('textbox', { name: this.textMock('ux_editor.text_resource_binding_text') })
+      .fill(text);
+  }
+
+  private getTitleTextFieldset(): Locator {
+    return this.page.getByRole('group', {
+      name: this.textMock('ux_editor.modal_properties_textResourceBindings_title'),
+    });
   }
 
   public async clickOnSaveNewLabelName(): Promise<void> {
@@ -161,9 +173,9 @@ export class UiEditorPage extends BasePage {
     await this.page.getByRole('treeitem', { name }).isVisible();
   }
 
-  public async clickOnAddDataModelButton(): Promise<void> {
+  public async clickOnAddDataModelButton(componentType: ComponentType): Promise<void> {
     await this.page
-      .getByRole('button', { name: this.textMock('ux_editor.modal_properties_data_model_link') })
+      .getByRole('button', { name: this.textMock(dataModelBindingButtonTextMap[componentType]) })
       .click();
   }
 
@@ -171,19 +183,9 @@ export class UiEditorPage extends BasePage {
     await this.page.getByRole('treeitem', { name }).click();
   }
 
-  public async clickOnTreeItemByComponentType(component: ComponentType): Promise<void> {
+  public async clickOnDataModelBindingsCombobox(componentType: ComponentType): Promise<void> {
     await this.page
-      .getByRole('treeitem', {
-        name: this.textMock(`ux_editor.component_title.${component}`),
-      })
-      .click();
-  }
-
-  public async clickOnDataModelBindingsCombobox(): Promise<void> {
-    await this.page
-      .getByRole('combobox', {
-        name: this.textMock('ux_editor.modal_properties_data_model_helper'),
-      })
+      .getByRole('combobox', { name: this.textMock(dataModelBindingButtonTextMap[componentType]) })
       .click();
   }
 
@@ -196,10 +198,12 @@ export class UiEditorPage extends BasePage {
       .isHidden();
   }
 
-  public async verifyThatThereAreOptionsInTheDataModelList(): Promise<void> {
+  public async verifyThatThereAreOptionsInTheDataModelList(
+    componentType: ComponentType,
+  ): Promise<void> {
     await this.page
       .getByRole('combobox', {
-        name: this.textMock('ux_editor.modal_properties_data_model_helper'),
+        name: this.textMock(dataModelBindingButtonTextMap[componentType]),
       })
       .getByRole('option')
       .isVisible();
@@ -212,7 +216,7 @@ export class UiEditorPage extends BasePage {
   public async clickOnSaveDataModel(): Promise<void> {
     await this.page
       .getByRole('button', {
-        name: this.textMock('ux_editor.input_popover_save_button'),
+        name: this.textMock('general.close'),
       })
       .click();
   }
@@ -228,6 +232,35 @@ export class UiEditorPage extends BasePage {
   public async waitForTreeItemToGetNewLabel(label: string): Promise<void> {
     const newTreeItemLabel = this.page.getByRole('treeitem', { name: label });
     await expect(newTreeItemLabel).toBeVisible();
+  }
+
+  public async deleteOldComponentId(): Promise<void> {
+    await this.page.getByRole('button', { name: /ID:/ }).click();
+    await this.page
+      .getByLabel(this.textMock('ux_editor.modal_properties_component_change_id'))
+      .clear();
+  }
+
+  public async writeNewComponentId(newId: string): Promise<void> {
+    await this.page
+      .getByLabel(this.textMock('ux_editor.modal_properties_component_change_id'))
+      .fill(newId);
+
+    await this.page
+      .getByLabel(this.textMock('ux_editor.modal_properties_component_change_id'))
+      .blur();
+  }
+
+  public async verifyThatTextKeyIsVisible(textKey: string): Promise<void> {
+    await this.page.getByText(this.textMock('ux_editor.field_id', { id: textKey })).isVisible();
+  }
+
+  public async verifyThatTextKeyIsHidden(textKey: string): Promise<void> {
+    await this.page.getByText(this.textMock('ux_editor.field_id', { id: textKey })).isHidden();
+  }
+
+  public async verifyThatTextareaIsVisible(lang: LanguageCode): Promise<void> {
+    await this.page.getByRole('textbox', { name: this.textMock(`language.${lang}`) }).isVisible();
   }
 
   private getToolbarItems(): Locator {

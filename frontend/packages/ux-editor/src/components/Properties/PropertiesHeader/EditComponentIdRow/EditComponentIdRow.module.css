@@ -1,0 +1,7 @@
+.container {
+  width: 100%;
+}
+
+.idInput {
+  padding: var(--fds-spacing-5);
+}

@@ -15,6 +15,8 @@ const mockOnSave = jest.fn();
 
 const defaultProps: ProcessEditorProps = {
   bpmnXml: mockBPMNXML,
+  existingCustomReceipt: undefined,
+  onUpdateLayoutSet: jest.fn(),
   onSave: mockOnSave,
   appLibVersion: mockAppLibVersion8,
 };

@@ -1,14 +1,13 @@
 import { StudioButton } from '../StudioButton';
 import type { StudioButtonProps } from '../StudioButton';
 import type { OverridableComponent } from '../../types/OverridableComponent';
-import { forwardRef } from 'react';
+import React, { forwardRef } from 'react';
 import { TrashIcon } from '@studio/icons';
 import type { MouseEvent } from 'react';
-import React from 'react';
 
 export interface StudioDeleteButtonProps extends StudioButtonProps {
   onDelete: () => void;
-  confirmMessage: string;
+  confirmMessage?: string;
 }
 
 const StudioDeleteButton: OverridableComponent<StudioDeleteButtonProps, HTMLButtonElement> =
@@ -16,7 +15,7 @@ const StudioDeleteButton: OverridableComponent<StudioDeleteButtonProps, HTMLButt
     ({ confirmMessage, onClick, onDelete, ...rest }, ref) => {
       const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
         onClick?.(event);
-        if (confirm(confirmMessage)) onDelete();
+        if (!confirmMessage || confirm(confirmMessage)) onDelete();
       };
 
       return (
@@ -25,6 +24,7 @@ const StudioDeleteButton: OverridableComponent<StudioDeleteButtonProps, HTMLButt
           icon={<TrashIcon />}
           onClick={handleClick}
           variant='secondary'
+          size='small'
           {...rest}
           ref={ref}
         />

@@ -52,6 +52,8 @@ export const ResourcePage = (): React.JSX.Element => {
   const [nextPage, setNextPage] = useState<NavigationBarPage>('about');
 
   const [hasMergeConflict, setHasMergeConflict] = useState(false);
+  // Use a local resource object as model to update immediately after user input. Use debounce to save this object every 500 ms
+  const [resourceData, setResourceData] = useState<Resource | null>(null);
 
   // Handle the state of resource and policy errors
   const [showResourceErrors, setShowResourceErrors] = useState(false);
@@ -60,7 +62,10 @@ export const ResourcePage = (): React.JSX.Element => {
   const [policyErrorModalOpen, setPolicyErrorModalOpen] = useState(false);
 
   // Get the metadata for Gitea
-  const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
+  const { data: repoStatus, refetch: refetchRepoStatus } = useRepoStatusQuery(
+    selectedContext,
+    repo,
+  );
 
   // Get metadata for policy
   const { refetch: refetchValidatePolicy } = useValidatePolicyQuery(
@@ -77,7 +82,7 @@ export const ResourcePage = (): React.JSX.Element => {
   );
 
   const {
-    data: resourceData,
+    data: loadedResourceData,
     refetch: refetchResource,
     isPending: resourcePending,
   } = useSinlgeResourceQuery(selectedContext, repo, resourceId);
@@ -86,6 +91,13 @@ export const ResourcePage = (): React.JSX.Element => {
 
   // Mutation function for editing a resource
   const { mutate: editResource } = useEditResourceMutation(selectedContext, repo, resourceId);
+
+  // Set resourceData when loaded from server. Should only be called once
+  useEffect(() => {
+    if (!resourceData && loadedResourceData) {
+      setResourceData(loadedResourceData);
+    }
+  }, [loadedResourceData, resourceData]);
 
   /**
    * If repostatus is not undefined, set the flags for if the repo has merge
@@ -153,7 +165,7 @@ export const ResourcePage = (): React.JSX.Element => {
     setCurrentPage(newPage);
     setPolicyErrorModalOpen(false);
     setResourceErrorModalOpen(false);
-    refetch();
+    refetchRepoStatus();
     navigate(getResourcePageURL(selectedContext, repo, resourceId, newPage));
   };
 
@@ -237,10 +249,11 @@ export const ResourcePage = (): React.JSX.Element => {
   /**
    * Saves the resource
    */
-  const handleSaveResource = async (r: Resource) => {
-    editResource(r);
-    await refetch();
-    await refetchResource();
+  const handleSaveResource = (r: Resource) => {
+    if (JSON.stringify(r) !== JSON.stringify(resourceData)) {
+      setResourceData(r);
+      editResource(r);
+    }
   };
 
   return (
@@ -254,7 +267,7 @@ export const ResourcePage = (): React.JSX.Element => {
           selectedTab={currentPage}
         />
       </div>
-      {resourcePending ? (
+      {resourcePending || !resourceData ? (
         <div className={classes.spinnerWrapper}>
           <Spinner
             size='xlarge'
@@ -315,7 +328,7 @@ export const ResourcePage = (): React.JSX.Element => {
       {hasMergeConflict && (
         <MergeConflictModal
           isOpen={hasMergeConflict}
-          handleSolveMerge={refetch}
+          handleSolveMerge={refetchRepoStatus}
           org={selectedContext}
           repo={repo}
         />

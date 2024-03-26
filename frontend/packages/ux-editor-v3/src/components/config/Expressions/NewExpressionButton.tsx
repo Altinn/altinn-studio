@@ -6,8 +6,6 @@ import type { ExpressionProperty } from '../../../types/Expressions';
 import { expressionPropertyTexts } from '../../../types/Expressions';
 import { StudioButton } from '@studio/components';
 
-import classes from './NewExpressionButton.module.css';
-
 export interface NewExpressionButtonProps {
   options: ExpressionProperty[];
   onAddExpression: (property: ExpressionProperty) => void;
@@ -36,26 +34,27 @@ export const NewExpressionButton = ({ options, onAddExpression }: NewExpressionB
       </StudioButton>
       <DropdownMenu
         anchorEl={anchorEl.current}
-        className={classes.dropdownMenu}
         onClose={() => setShowDropdown(false)}
         open={showDropdown}
         placement='top'
         portal
         size='small'
       >
-        <DropdownMenu.Group heading={t('right_menu.expressions_property')}>
-          {options.map((o) => (
-            <DropdownMenu.Item
-              key={o}
-              onClick={() => {
-                setShowDropdown(false);
-                onAddExpression(o);
-              }}
-            >
-              {expressionPropertyTexts(t)[o]}
-            </DropdownMenu.Item>
-          ))}
-        </DropdownMenu.Group>
+        <DropdownMenu.Content>
+          <DropdownMenu.Group heading={t('right_menu.expressions_property')}>
+            {options.map((o) => (
+              <DropdownMenu.Item
+                key={o}
+                onClick={() => {
+                  setShowDropdown(false);
+                  onAddExpression(o);
+                }}
+              >
+                {expressionPropertyTexts(t)[o]}
+              </DropdownMenu.Item>
+            ))}
+          </DropdownMenu.Group>
+        </DropdownMenu.Content>
       </DropdownMenu>
     </>
   );

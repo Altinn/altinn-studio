@@ -1,0 +1,306 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<xsd:schema elementFormDefault="qualified" attributeFormDefault="unqualified" xmlns:seres="http://seres.no/xsd/forvaltningsdata" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:annotation>
+    <xsd:documentation>
+      <xsd:attribute name="XSLT-skriptnavn" fixed="SERES_XSD_GEN" />
+      <xsd:attribute name="XSD-generatorversjon" fixed="2.0.23" />
+      <xsd:attribute name="XSLT-prosessor" fixed="SAXON versjon 9.1.0.7" />
+      <xsd:attribute name="generert" fixed="2017-08-17T10:08:00.018+02:00" />
+      <xsd:attribute name="navneromprefix" fixed="http://seres.no/xsd" />
+      <xsd:attribute name="namespace" fixed="http://seres.no/xsd/Finanstilsynet/KRT-1011_M/2017" />
+      <xsd:attribute name="meldingsnavn" fixed="melding" />
+      <xsd:attribute name="domenenavn" fixed="Finanstilsynet" />
+      <xsd:attribute name="modellnavn" fixed="KRT-1011_M" />
+      <xsd:attribute name="metamodellversjon" fixed="1.2" />
+      <xsd:attribute name="guid" fixed="true" />
+      <xsd:attribute name="orid" fixed="false" />
+      <xsd:attribute name="nillable" fixed="true" />
+      <xsd:attribute name="tillat-gjenbruk" fixed="false" />
+      <xsd:attribute name="elementtype" fixed="true" />
+      <xsd:attribute name="forvaltningsdata" fixed="true" />
+      <xsd:attribute name="forvaltningsdata-navnerom" fixed="http://seres.no/xsd/forvaltningsdata" />
+      <xsd:attribute name="saernorske-bokstaver-i-navn" fixed="false" />
+      <xsd:attribute name="ft_guid_som_attributt" fixed="true" />
+      <xsd:attribute name="sem-ref" fixed="false" />
+      <xsd:attribute name="kodebibliotek" fixed="false" />
+      <xsd:attribute name="spraak" fixed="" />
+      <xsd:attribute name="XSD-variant" fixed="Altinn 1.3.2" />
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:element name="melding" type="KRT-1011_M" />
+  <xsd:complexType name="KRT-1011_M" seres:elementtype="Meldingsmodell" seres:guid="http://seres.no/guid/Finanstilsynet/Meldingsmodell/KRT-1011_M/446137">
+    <xsd:sequence>
+      <xsd:element name="RapportKRT-1011" type="RapportKRT-1011" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/Finanstilsynet/Meldingsdel/RapportKRT-1011/446128" />
+      <xsd:element name="SkjemainnholdKRT-1011" type="SkjemainnholdKRT-1011" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/Finanstilsynet/Meldingsdel/SkjemainnholdKRT-1011/446121" />
+    </xsd:sequence>
+    <xsd:attribute name="dataFormatProvider" type="xsd:string" use="required" fixed="SERES" />
+    <xsd:attribute name="dataFormatId" type="xsd:string" use="required" fixed="3221" />
+    <xsd:attribute name="dataFormatVersion" type="xsd:string" use="required" fixed="42265" />
+    <xsd:anyAttribute />
+  </xsd:complexType>
+  <xsd:complexType name="RapportKRT-1011" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/Finanstilsynet/Meldingsdel/RapportKRT-1011/446128">
+    <xsd:sequence>
+      <xsd:element name="foretaksinfo" type="Foretak" nillable="true" minOccurs="0" seres:elementtype="Relasjonsegenskap" seres:guid="http://seres.no/guid/Finanstilsynet/Relasjonsegenskap/foretak/446126" />
+      <xsd:element name="kontaktperson1" type="Kontaktperson1" nillable="true" minOccurs="0" seres:elementtype="Relasjonsegenskap" seres:guid="http://seres.no/guid/Finanstilsynet/Relasjonsegenskap/kontaktperson1/639248" />
+      <xsd:element name="rapportPeriodeType" type="PeriodeType" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Finanstilsynet/Dataegenskap/rapportPeriodeType/639247" />
+      <xsd:element name="rapporteringId" type="RapporteringsId" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Finanstilsynet/Dataegenskap/rapporteringId/639246" />
+      <xsd:element name="rapportAar" type="AAr" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Finanstilsynet/Dataegenskap/rapportAar/639245" />
+      <xsd:element name="kontaktperson2" type="Kontaktperson2" nillable="true" minOccurs="0" seres:elementtype="Relasjonsegenskap" seres:guid="http://seres.no/guid/Finanstilsynet/Relasjonsegenskap/kontaktperson2/639244" />
+      <xsd:element name="maalform" type="Spraak" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Finanstilsynet/Dataegenskap/maalform/639243" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Foretak" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/Finanstilsynet/Dataobjekttype/Foretak/446118">
+    <xsd:sequence>
+      <xsd:element name="organisasjonsnummer" type="Organisasjonsnummer" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Finanstilsynet/Dataegenskap/organisasjonsnummer/446117" />
+      <xsd:element name="navn" type="Foretaksnavn" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Finanstilsynet/Dataegenskap/navn/446116" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Organisasjonsnummer" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Finanstilsynet/Dataenkeltype/Organisasjonsnummer/472763">
+    <xsd:simpleContent>
+      <xsd:extension base="Organisasjonsnummer_RestriksjonOrganisasjonsnummer">
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/Finanstilsynet/Dataenkeltype/Organisasjonsnummer/472763" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="Foretaksnavn" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Finanstilsynet/Dataenkeltype/Foretaksnavn/639250">
+    <xsd:simpleContent>
+      <xsd:extension base="Foretaksnavn_RestriksjonForetaksnavn">
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/Finanstilsynet/Dataenkeltype/Foretaksnavn/639250" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="Kontaktperson1" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/Finanstilsynet/Dataobjekttype/Kontaktperson1/637652">
+    <xsd:sequence>
+      <xsd:element name="epost" type="Epost_S01" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Finanstilsynet/Dataegenskap/epost/637651" />
+      <xsd:element name="navn" type="Navn_S01" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Finanstilsynet/Dataegenskap/navn/637650" />
+      <xsd:element name="telefonNummer" type="TelefonNummer_S01" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Finanstilsynet/Dataegenskap/telefonnr/637649" />
+      <xsd:element name="telefonPrefiks" type="TelefonPrefiks_S01" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Finanstilsynet/Dataegenskap/telefonPrefiks/637648" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Epost_S01" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Finanstilsynet/Dataenkeltype/Epost_S01/637664">
+    <xsd:simpleContent>
+      <xsd:extension base="Epost_S01_Verdirestriksjon">
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/Finanstilsynet/Dataenkeltype/Epost_S01/637664" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="Navn_S01" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Finanstilsynet/Dataenkeltype/Navn_S01/637662">
+    <xsd:simpleContent>
+      <xsd:extension base="Navn_S01_RestriksjonNavn">
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/Finanstilsynet/Dataenkeltype/Navn_S01/637662" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="TelefonNummer_S01" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Finanstilsynet/Dataenkeltype/TelefonNummer_S01/637660">
+    <xsd:simpleContent>
+      <xsd:extension base="TelefonNummer_S01_RestriksjonTelefon">
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/Finanstilsynet/Dataenkeltype/TelefonNummer_S01/637660" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="TelefonPrefiks_S01" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Finanstilsynet/Dataenkeltype/TelefonPrefiks_S01/637658">
+    <xsd:simpleContent>
+      <xsd:extension base="TelefonPrefiks_S01_RestriksjonTelefonPrefiks">
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/Finanstilsynet/Dataenkeltype/TelefonPrefiks_S01/637658" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="PeriodeType" seres:elementtype="Datakodeliste" seres:guid="http://seres.no/guid/Finanstilsynet/Datakodeliste/PeriodeType/636920">
+    <xsd:simpleContent>
+      <xsd:extension base="PeriodeType_Verdirestriksjon">
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/Finanstilsynet/Datakodeliste/PeriodeType/636920" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="RapporteringsId" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Finanstilsynet/Dataenkeltype/RapporteringsId/636854">
+    <xsd:simpleContent>
+      <xsd:extension base="RapporteringsId_RapporteringsIdRestriksjon">
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/Finanstilsynet/Dataenkeltype/RapporteringsId/636854" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="AAr" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Finanstilsynet/Dataenkeltype/År/10615">
+    <xsd:simpleContent>
+      <xsd:extension base="AAr_Verdirestriksjon">
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/Finanstilsynet/Dataenkeltype/År/10615" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="Kontaktperson2" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/Finanstilsynet/Dataobjekttype/Kontaktperson2/637647">
+    <xsd:sequence>
+      <xsd:element name="epost" type="Epost_S02" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Finanstilsynet/Dataegenskap/epost/637646" />
+      <xsd:element name="navn" type="Navn_S02" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Finanstilsynet/Dataegenskap/navn/637645" />
+      <xsd:element name="telefonNummer" type="TelefonNummer_S02" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Finanstilsynet/Dataegenskap/telefonnr/637644" />
+      <xsd:element name="telefonPrefiks" type="TelefonPrefiks_S02" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Finanstilsynet/Dataegenskap/telefonPrefiks/637643" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Epost_S02" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Finanstilsynet/Dataenkeltype/Epost_S02/637663">
+    <xsd:simpleContent>
+      <xsd:extension base="Epost_S02_Verdirestriksjon">
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/Finanstilsynet/Dataenkeltype/Epost_S02/637663" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="Navn_S02" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Finanstilsynet/Dataenkeltype/Navn_S02/637661">
+    <xsd:simpleContent>
+      <xsd:extension base="Navn_S02_RestriksjonNavn">
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/Finanstilsynet/Dataenkeltype/Navn_S02/637661" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="TelefonNummer_S02" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Finanstilsynet/Dataenkeltype/TelefonNummer_S02/637659">
+    <xsd:simpleContent>
+      <xsd:extension base="TelefonNummer_S02_RestriksjonTelefon">
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/Finanstilsynet/Dataenkeltype/TelefonNummer_S02/637659" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="TelefonPrefiks_S02" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Finanstilsynet/Dataenkeltype/TelefonPrefiks_S02/637657">
+    <xsd:simpleContent>
+      <xsd:extension base="TelefonPrefiks_S02_RestriksjonTelefonPrefiks">
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/Finanstilsynet/Dataenkeltype/TelefonPrefiks_S02/637657" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="Spraak" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Finanstilsynet/Dataenkeltype/Språk/618319">
+    <xsd:simpleContent>
+      <xsd:extension base="Spraak_RestriksjonSpraak">
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/Finanstilsynet/Dataenkeltype/Språk/618319" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="SkjemainnholdKRT-1011" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/Finanstilsynet/Meldingsdel/SkjemainnholdKRT-1011/446121">
+    <xsd:sequence>
+      <xsd:element name="adresse" type="Adresse" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Finanstilsynet/Dataegenskap/adresse/446120" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Adresse" seres:elementtype="Datakomplekstype" seres:guid="http://seres.no/guid/Finanstilsynet/Datakomplekstype/Adresse/446135">
+    <xsd:sequence>
+      <xsd:element name="adresse" type="VirksomhetAdresse-25453" nillable="true" minOccurs="0" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Finanstilsynet/DataTypeegenskap/adresse/446134" />
+      <xsd:element name="postnummer" type="RapporteringsenhetPostnummer-21774" nillable="true" minOccurs="0" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Finanstilsynet/DataTypeegenskap/postnummer/446133" />
+      <xsd:element name="poststed" type="RapporteringsenhetPoststed-21775" nillable="true" minOccurs="0" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/Finanstilsynet/DataTypeegenskap/poststed/446132" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="VirksomhetAdresse-25453" seres:elementtype="ORDataenkeltype" seres:guid="http://seres.no/guid/Finanstilsynet/ORDataenkeltype/VirksomhetAdresse-25453/10843" seres:orid="25453">
+    <xsd:simpleContent>
+      <xsd:extension base="VirksomhetAdresse-25453_Tekst105-9_2">
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/Finanstilsynet/ORDataenkeltype/VirksomhetAdresse-25453/10843" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="RapporteringsenhetPostnummer-21774" seres:elementtype="ORDataenkeltype" seres:guid="http://seres.no/guid/ORDataenkeltype/RapporteringsenhetPostnummer-21774/374138" seres:orid="21774">
+    <xsd:simpleContent>
+      <xsd:extension base="RapporteringsenhetPostnummer-21774_Tekst44BareTall-10_6">
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/ORDataenkeltype/RapporteringsenhetPostnummer-21774/374138" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="RapporteringsenhetPoststed-21775" seres:elementtype="ORDataenkeltype" seres:guid="http://seres.no/guid/ORDataenkeltype/RapporteringsenhetPoststed-21775/374094" seres:orid="21775">
+    <xsd:simpleContent>
+      <xsd:extension base="RapporteringsenhetPoststed-21775_Tekst35-3_2">
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/ORDataenkeltype/RapporteringsenhetPoststed-21775/374094" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:simpleType name="Organisasjonsnummer_RestriksjonOrganisasjonsnummer" seres:elementtype="Tegnrestriksjon" seres:guid="http://seres.no/guid/Finanstilsynet/Tegnrestriksjon/RestriksjonOrganisasjonsnummer/520950">
+    <xsd:restriction base="xsd:string">
+      <xsd:length value="9" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Foretaksnavn_RestriksjonForetaksnavn" seres:elementtype="Tegnrestriksjon" seres:guid="http://seres.no/guid/Finanstilsynet/Tegnrestriksjon/RestriksjonForetaksnavn/639249">
+    <xsd:restriction base="xsd:string">
+      <xsd:maxLength value="255" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Epost_S01_Verdirestriksjon">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Navn_S01_RestriksjonNavn" seres:elementtype="Tegnrestriksjon" seres:guid="http://seres.no/guid/Finanstilsynet/Tegnrestriksjon/RestriksjonNavn/637655">
+    <xsd:restriction base="xsd:string">
+      <xsd:maxLength value="255" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="TelefonNummer_S01_RestriksjonTelefon" seres:elementtype="Tegnrestriksjon" seres:guid="http://seres.no/guid/Finanstilsynet/Tegnrestriksjon/RestriksjonTelefon/637653">
+    <xsd:restriction base="xsd:string">
+      <xsd:maxLength value="20" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="TelefonPrefiks_S01_RestriksjonTelefonPrefiks" seres:elementtype="Tegnrestriksjon" seres:guid="http://seres.no/guid/Finanstilsynet/Tegnrestriksjon/RestriksjonTelefonPrefiks/637654">
+    <xsd:restriction base="xsd:string">
+      <xsd:maxLength value="4" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="PeriodeType_Verdirestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="M1" seres:elementtype="Datakodeelement" seres:guid="http://seres.no/guid/Finanstilsynet/Datakodeelement/M1/636919" />
+      <xsd:enumeration value="M2" seres:elementtype="Datakodeelement" seres:guid="http://seres.no/guid/Finanstilsynet/Datakodeelement/M2/636918" />
+      <xsd:enumeration value="M3" seres:elementtype="Datakodeelement" seres:guid="http://seres.no/guid/Finanstilsynet/Datakodeelement/M3/636917" />
+      <xsd:enumeration value="M4" seres:elementtype="Datakodeelement" seres:guid="http://seres.no/guid/Finanstilsynet/Datakodeelement/M4/636916" />
+      <xsd:enumeration value="M5" seres:elementtype="Datakodeelement" seres:guid="http://seres.no/guid/Finanstilsynet/Datakodeelement/M5/636915" />
+      <xsd:enumeration value="M6" seres:elementtype="Datakodeelement" seres:guid="http://seres.no/guid/Finanstilsynet/Datakodeelement/M6/636914" />
+      <xsd:enumeration value="M7" seres:elementtype="Datakodeelement" seres:guid="http://seres.no/guid/Finanstilsynet/Datakodeelement/M7/636913" />
+      <xsd:enumeration value="M8" seres:elementtype="Datakodeelement" seres:guid="http://seres.no/guid/Finanstilsynet/Datakodeelement/M8/636912" />
+      <xsd:enumeration value="M9" seres:elementtype="Datakodeelement" seres:guid="http://seres.no/guid/Finanstilsynet/Datakodeelement/M9/636911" />
+      <xsd:enumeration value="M10" seres:elementtype="Datakodeelement" seres:guid="http://seres.no/guid/Finanstilsynet/Datakodeelement/M10/636910" />
+      <xsd:enumeration value="M11" seres:elementtype="Datakodeelement" seres:guid="http://seres.no/guid/Finanstilsynet/Datakodeelement/M11/636909" />
+      <xsd:enumeration value="M12" seres:elementtype="Datakodeelement" seres:guid="http://seres.no/guid/Finanstilsynet/Datakodeelement/M12/636908" />
+      <xsd:enumeration value="Q1" seres:elementtype="Datakodeelement" seres:guid="http://seres.no/guid/Finanstilsynet/Datakodeelement/Q1/636907" />
+      <xsd:enumeration value="Q2" seres:elementtype="Datakodeelement" seres:guid="http://seres.no/guid/Finanstilsynet/Datakodeelement/Q2/636906" />
+      <xsd:enumeration value="Q3" seres:elementtype="Datakodeelement" seres:guid="http://seres.no/guid/Finanstilsynet/Datakodeelement/Q3/636905" />
+      <xsd:enumeration value="Q4" seres:elementtype="Datakodeelement" seres:guid="http://seres.no/guid/Finanstilsynet/Datakodeelement/Q4/636904" />
+      <xsd:enumeration value="H1" seres:elementtype="Datakodeelement" seres:guid="http://seres.no/guid/Finanstilsynet/Datakodeelement/H1/636903" />
+      <xsd:enumeration value="H2" seres:elementtype="Datakodeelement" seres:guid="http://seres.no/guid/Finanstilsynet/Datakodeelement/H2/636902" />
+      <xsd:enumeration value="Y" seres:elementtype="Datakodeelement" seres:guid="http://seres.no/guid/Finanstilsynet/Datakodeelement/Y/636901" />
+      <xsd:enumeration value="O" seres:elementtype="Datakodeelement" seres:guid="http://seres.no/guid/Finanstilsynet/Datakodeelement/O/636900" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="RapporteringsId_RapporteringsIdRestriksjon" seres:elementtype="Tegnrestriksjon" seres:guid="http://seres.no/guid/Finanstilsynet/Tegnrestriksjon/RapporteringsIdRestriksjon/636853">
+    <xsd:restriction base="xsd:string">
+      <xsd:maxLength value="50" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="AAr_Verdirestriksjon">
+    <xsd:restriction base="xsd:gYear" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Epost_S02_Verdirestriksjon">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Navn_S02_RestriksjonNavn" seres:elementtype="Tegnrestriksjon" seres:guid="http://seres.no/guid/Finanstilsynet/Tegnrestriksjon/RestriksjonNavn/637655">
+    <xsd:restriction base="xsd:string">
+      <xsd:maxLength value="255" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="TelefonNummer_S02_RestriksjonTelefon" seres:elementtype="Tegnrestriksjon" seres:guid="http://seres.no/guid/Finanstilsynet/Tegnrestriksjon/RestriksjonTelefon/637653">
+    <xsd:restriction base="xsd:string">
+      <xsd:maxLength value="20" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="TelefonPrefiks_S02_RestriksjonTelefonPrefiks" seres:elementtype="Tegnrestriksjon" seres:guid="http://seres.no/guid/Finanstilsynet/Tegnrestriksjon/RestriksjonTelefonPrefiks/637654">
+    <xsd:restriction base="xsd:string">
+      <xsd:maxLength value="4" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Spraak_RestriksjonSpraak" seres:elementtype="Tallrestriksjon" seres:guid="http://seres.no/guid/Finanstilsynet/Tallrestriksjon/RestriksjonSpråk/618318">
+    <xsd:restriction base="xsd:integer">
+      <xsd:totalDigits value="4" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="VirksomhetAdresse-25453_Tekst105-9_2" seres:elementtype="Tegnrestriksjon" seres:guid="http://seres.no/guid/Finanstilsynet/Tegnrestriksjon/Tekst105-9_2/521763">
+    <xsd:restriction base="xsd:string">
+      <xsd:minLength value="1" />
+      <xsd:maxLength value="105" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="RapporteringsenhetPostnummer-21774_Tekst44BareTall-10_6" seres:elementtype="Tegnrestriksjon" seres:guid="http://seres.no/guid/Finanstilsynet/Tegnrestriksjon/Tekst44BareTall-10_6/521660">
+    <xsd:restriction base="xsd:string">
+      <xsd:length value="4" />
+      <xsd:pattern value="[0-9]{4}" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="RapporteringsenhetPoststed-21775_Tekst35-3_2" seres:elementtype="Tegnrestriksjon" seres:guid="http://seres.no/guid/Finanstilsynet/Tegnrestriksjon/Tekst35-3_2/521656">
+    <xsd:restriction base="xsd:string">
+      <xsd:minLength value="1" />
+      <xsd:maxLength value="35" />
+    </xsd:restriction>
+  </xsd:simpleType>
+</xsd:schema>

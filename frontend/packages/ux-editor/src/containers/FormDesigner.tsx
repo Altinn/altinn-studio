@@ -4,7 +4,7 @@ import { Properties } from '../components/Properties';
 import { DesignView } from './DesignView';
 import classes from './FormDesigner.module.css';
 import { Elements } from '../components/Elements';
-import { useFormContext } from './FormContext';
+import { useFormItemContext } from './FormItemContext';
 import { useText } from '../hooks';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
@@ -35,7 +35,7 @@ import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 
 export interface FormDesignerProps {
   selectedLayout: string;
-  selectedLayoutSet: string | undefined;
+  selectedLayoutSet: string;
 }
 
 export const FormDesigner = ({
@@ -61,14 +61,19 @@ export const FormDesigner = ({
     selectedLayoutSet,
   );
   const [searchParams] = useSearchParams();
-  const { handleEdit } = useFormContext();
+  const { handleEdit } = useFormItemContext();
 
   const layoutPagesOrder = formLayoutSettings?.pages.order;
 
   const t = useText();
 
   const formLayoutIsReady =
-    instanceId && formLayouts && formLayoutSettings && ruleModel && isRuleConfigFetched;
+    selectedLayoutSet &&
+    instanceId &&
+    formLayouts &&
+    formLayoutSettings &&
+    ruleModel &&
+    isRuleConfigFetched;
 
   const mapErrorToDisplayError = (): { title: string; message: string } => {
     const defaultTitle = t('general.fetch_error_title');
@@ -156,5 +161,7 @@ export const FormDesigner = ({
       </DragAndDropTree.Provider>
     );
   }
-  return <StudioPageSpinner />;
+  return (
+    <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('ux_editor.loading_form_layout')} />
+  );
 };

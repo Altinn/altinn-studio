@@ -3,7 +3,6 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.PolicyAdmin.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;

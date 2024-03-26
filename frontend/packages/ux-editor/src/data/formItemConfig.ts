@@ -81,10 +81,15 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: FingerButtonIcon,
   },
-  [ComponentType.AddressComponent]: {
-    name: ComponentType.AddressComponent,
+  [ComponentType.Address]: {
+    name: ComponentType.Address,
     itemType: LayoutItemType.Component,
     defaultProperties: {
+      dataModelBindings: {
+        address: '',
+        zipCode: '',
+        postPlace: '',
+      },
       simplified: true,
       saveWhileTyping: 400,
     },
@@ -116,7 +121,11 @@ export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Checkboxes]: {
     name: ComponentType.Checkboxes,
     itemType: LayoutItemType.Component,
-    defaultProperties: {},
+    defaultProperties: {
+      dataModelBindings: {
+        simpleBinding: '',
+      },
+    },
     propertyPath: 'definitions/radioAndCheckboxComponents',
     icon: CheckboxIcon,
   },
@@ -142,6 +151,9 @@ export const formItemConfigs: FormItemConfigs = {
     name: ComponentType.Datepicker,
     itemType: LayoutItemType.Component,
     defaultProperties: {
+      dataModelBindings: {
+        simpleBinding: '',
+      },
       minDate: '1900-01-01T12:00:00.000Z',
       maxDate: '2100-01-01T12:00:00.000Z',
       timeStamp: false,
@@ -153,6 +165,9 @@ export const formItemConfigs: FormItemConfigs = {
     name: ComponentType.Dropdown,
     itemType: LayoutItemType.Component,
     defaultProperties: {
+      dataModelBindings: {
+        simpleBinding: '',
+      },
       optionsId: '',
     },
     propertyPath: 'definitions/selectionComponents',
@@ -162,7 +177,6 @@ export const formItemConfigs: FormItemConfigs = {
     name: ComponentType.FileUpload,
     itemType: LayoutItemType.Component,
     defaultProperties: {
-      description: '',
       displayMode: 'list',
       hasCustomFileEndings: false,
       maxFileSizeInMB: 25,
@@ -176,7 +190,6 @@ export const formItemConfigs: FormItemConfigs = {
     name: ComponentType.FileUploadWithTag,
     itemType: LayoutItemType.Component,
     defaultProperties: {
-      description: '',
       displayMode: 'list',
       hasCustomFileEndings: false,
       maxFileSizeInMB: 25,
@@ -237,7 +250,11 @@ export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Input]: {
     name: ComponentType.Input,
     itemType: LayoutItemType.Component,
-    defaultProperties: {},
+    defaultProperties: {
+      dataModelBindings: {
+        simpleBinding: '',
+      },
+    },
     propertyPath: 'definitions/inputComponent',
     icon: ShortTextIcon,
   },
@@ -257,14 +274,23 @@ export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Likert]: {
     name: ComponentType.Likert,
     itemType: LayoutItemType.Component,
-    defaultProperties: {},
+    defaultProperties: {
+      dataModelBindings: {
+        questions: '',
+        answer: '',
+      },
+    },
     propertyPath: 'definitions/radioAndCheckboxComponents',
     icon: LikertIcon,
   },
   [ComponentType.LikertItem]: {
     name: ComponentType.LikertItem,
     itemType: LayoutItemType.Component,
-    defaultProperties: {},
+    defaultProperties: {
+      dataModelBindings: {
+        simpleBinding: '',
+      },
+    },
     propertyPath: 'definitions/radioAndCheckboxComponents',
     icon: LikertIcon,
   },
@@ -280,6 +306,7 @@ export const formItemConfigs: FormItemConfigs = {
     name: ComponentType.List,
     itemType: LayoutItemType.Component,
     defaultProperties: {
+      dataModelBindings: {},
       tableHeaders: {},
       dataListId: '',
     },
@@ -290,6 +317,9 @@ export const formItemConfigs: FormItemConfigs = {
     name: ComponentType.Map,
     itemType: LayoutItemType.Component,
     defaultProperties: {
+      dataModelBindings: {
+        simpleBinding: '',
+      },
       centerLocation: {
         latitude: 0,
         longitude: 0,
@@ -303,6 +333,9 @@ export const formItemConfigs: FormItemConfigs = {
     name: ComponentType.MultipleSelect,
     itemType: LayoutItemType.Component,
     defaultProperties: {
+      dataModelBindings: {
+        simpleBinding: '',
+      },
       optionsId: '',
     },
     propertyPath: 'definitions/selectionComponents',
@@ -351,14 +384,22 @@ export const formItemConfigs: FormItemConfigs = {
   [ComponentType.RadioButtons]: {
     name: ComponentType.RadioButtons,
     itemType: LayoutItemType.Component,
-    defaultProperties: {},
+    defaultProperties: {
+      dataModelBindings: {
+        simpleBinding: '',
+      },
+    },
     propertyPath: 'definitions/radioAndCheckboxComponents',
     icon: RadioButtonIcon,
   },
   [ComponentType.RepeatingGroup]: {
     name: ComponentType.RepeatingGroup,
     itemType: LayoutItemType.Container,
-    defaultProperties: {},
+    defaultProperties: {
+      dataModelBindings: {
+        group: '',
+      },
+    },
     propertyPath: 'definitions/repeatingGroupComponent',
     icon: RepeatingGroupIcon,
     validChildTypes: Object.values(ComponentType),
@@ -375,14 +416,18 @@ export const formItemConfigs: FormItemConfigs = {
   [ComponentType.TextArea]: {
     name: ComponentType.TextArea,
     itemType: LayoutItemType.Component,
-    defaultProperties: {},
+    defaultProperties: {
+      dataModelBindings: {
+        simpleBinding: '',
+      },
+    },
     propertyPath: 'definitions/textAreaComponent',
     icon: LongTextIcon,
   },
 };
 
 export const advancedItems: FormItemConfigs[ComponentType][] = [
-  formItemConfigs[ComponentType.AddressComponent],
+  formItemConfigs[ComponentType.Address],
   formItemConfigs[ComponentType.AttachmentList],
   formItemConfigs[ComponentType.Group],
   formItemConfigs[ComponentType.Grid],

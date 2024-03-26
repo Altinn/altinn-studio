@@ -20,7 +20,7 @@ import {
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
 import { DragAndDrop } from 'app-shared/components/dragAndDrop';
-import { FormContextProvider } from '../../FormContext';
+import { FormItemContextProvider } from '../../FormItemContext';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
@@ -48,28 +48,16 @@ const mockFormLayoutData: FormLayoutPage[] = [
 ];
 
 const mockOnClickAccordion = jest.fn();
-const mockOnClickAddPage = jest.fn();
 
 const defaultProps: ReceiptContentProps = {
   receiptName: mockReceiptName,
   selectedAccordion: mockReceiptName,
   formLayoutData: mockFormLayoutData,
   onClickAccordion: mockOnClickAccordion,
-  onClickAddPage: mockOnClickAddPage,
 };
 
 describe('ReceiptContent', () => {
   afterEach(jest.clearAllMocks);
-
-  it('displays button when receiptName is undefined', async () => {
-    await render({ receiptName: undefined });
-
-    const addButton = screen.getByRole('button', { name: textMock('receipt.create') });
-    expect(addButton).toBeInTheDocument();
-
-    const receiptAccordion = screen.queryByRole('button', { name: mockReceiptName });
-    expect(receiptAccordion).not.toBeInTheDocument();
-  });
 
   it('displays accordion when receiptName is present', async () => {
     await render();
@@ -100,16 +88,6 @@ describe('ReceiptContent', () => {
 
     expect(mockOnClickAccordion).toHaveBeenCalledTimes(1);
   });
-
-  it('calls "onClickAddPage" when add page is clicked', async () => {
-    const user = userEvent.setup();
-    await render({ receiptName: undefined });
-
-    const addButton = screen.getByRole('button', { name: textMock('receipt.create') });
-    await act(() => user.click(addButton));
-
-    expect(mockOnClickAddPage).toHaveBeenCalled();
-  });
 });
 
 const waitForData = async () => {
@@ -133,9 +111,9 @@ const render = async (props: Partial<ReceiptContentProps> = {}) => {
   await waitForData();
   return renderWithMockStore()(
     <DragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
-      <FormContextProvider>
+      <FormItemContextProvider>
         <ReceiptContent {...defaultProps} {...props} />
-      </FormContextProvider>
+      </FormItemContextProvider>
     </DragAndDrop.Provider>,
   );
 };

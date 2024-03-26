@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { LegacySelect, Textfield } from '@digdir/design-system-react';
+import { LegacySelect, Textfield, ErrorMessage } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useOptionListIdsQuery } from '../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation, Trans } from 'react-i18next';
 import { StudioButton, StudioSpinner } from '@studio/components';
-import { ErrorMessage } from '@digdir/design-system-react';
+
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { FormField } from '../../FormField';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
@@ -25,7 +25,10 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
   return (
     <div>
       {isPending ? (
-        <StudioSpinner />
+        <StudioSpinner
+          showSpinnerTitle={false}
+          spinnerTitle={t('ux_editor.modal_properties_loading')}
+        />
       ) : isError ? (
         <ErrorMessage>
           {error instanceof Error ? error.message : t('ux_editor.modal_properties_error_message')}

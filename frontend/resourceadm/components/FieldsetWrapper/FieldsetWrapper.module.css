@@ -1,5 +1,7 @@
 .divider {
-  margin-top: var(--fds-spacing-7);
+  margin-top: var(--fds-spacing-8);
+  margin-bottom: var(--fds-spacing-8);
+  border-bottom: 1px solid var(--fds-semantic-border-neutral-default);
 }
 
 .fieldset {
@@ -9,5 +11,10 @@
 }
 
 .buttonWrapper {
-  margin-top: var(--fds-spacing-2);
+  margin-top: var(--fds-spacing-3);
+}
+
+.itemWrapper {
+  background-color: var(--fds-semantic-background-subtle);
+  box-shadow: 0 0 0 1rem var(--fds-semantic-background-subtle);
 }

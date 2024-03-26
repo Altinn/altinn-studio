@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
-using PolicyAdmin.Models;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions
 {

@@ -1,7 +1,6 @@
 import { ConfigFile } from './ConfigFile';
-import { unsupportedLayoutComponents } from './unsupported';
+import { unsupportedLayoutComponents, unsupportedComponentProperties } from './unsupported';
 import { ConfigurableItem } from './ConfigurableItem';
-import { unsupportedComponentProperties } from './unsupported';
 
 /**
  * Class representing layout configuration file stats

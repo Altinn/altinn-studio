@@ -1,5 +1,4 @@
 import React from 'react';
-import { MemoryRouter } from 'react-router-dom';
 import { render, screen } from '@testing-library/react';
 import type { AboutResourcePageProps } from './AboutResourcePage';
 import { AboutResourcePage } from './AboutResourcePage';
@@ -15,8 +14,12 @@ import type {
 import {
   getMissingInputLanguageString,
   mapKeywordsArrayToString,
+  resourceStatusMap,
 } from '../../utils/resourceUtils/resourceUtils';
 import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const mockContactPoint: ResourceContactPoint = {
   category: 'test',
@@ -30,7 +33,7 @@ const mockResource1: Resource = {
   title: { nb: 'ressurs 1', nn: 'res1', en: 'resource 1' },
   description: { nb: 'Beskrivelse av resource 1', nn: 'Mock', en: 'Description of test resource' },
   keywords: [
-    { language: 'nb', word: 'Key1 ' },
+    { language: 'nb', word: 'Key 1' },
     { language: 'nb', word: 'Key 2' },
   ],
   visible: false,
@@ -55,7 +58,7 @@ const mockResource2: Resource = {
 const mockResourceType: ResourceTypeOption = textMock(
   'resourceadm.about_resource_resource_type_system_resource',
 );
-const mockStatus: ResourceStatusOption = textMock('resourceadm.about_resource_status_deprecated');
+const mockStatus: ResourceStatusOption = 'Deprecated';
 
 const mockNewTitleInput: string = '23';
 const mockNewDescriptionInput: string = ' test';
@@ -99,6 +102,7 @@ describe('AboutResourcePage', () => {
 
     const titleNbInput = screen.getByLabelText(
       textMock('resourceadm.about_resource_resource_title_label'),
+      { exact: false },
     );
     expect(titleNbInput).toHaveValue(mockResource1.title.nb);
 
@@ -120,12 +124,14 @@ describe('AboutResourcePage', () => {
 
     const titleNbInput = screen.getByLabelText(
       textMock('resourceadm.about_resource_resource_title_label'),
+      { exact: false },
     );
     await act(() => user.type(titleNbInput, mockNewTitleInput));
     expect(mockOnSaveResource).not.toHaveBeenCalled();
 
     const descriptionNbInput = screen.getByLabelText(
       textMock('resourceadm.about_resource_resource_description_label'),
+      { exact: false },
     );
     await act(() => user.type(descriptionNbInput, mockNewDescriptionInput));
     expect(mockOnSaveResource).toHaveBeenCalled();
@@ -137,6 +143,7 @@ describe('AboutResourcePage', () => {
 
     const descriptionNbInput = screen.getByLabelText(
       textMock('resourceadm.about_resource_resource_description_label'),
+      { exact: false },
     );
     expect(descriptionNbInput).toHaveValue(mockResource1.description.nb);
 
@@ -163,10 +170,12 @@ describe('AboutResourcePage', () => {
 
     await act(() => user.clear(homepageInput));
     await act(() => user.type(homepageInput, mockNewHomepageInput));
+    await act(() => homepageInput.blur());
 
-    expect(
-      screen.getByLabelText(textMock('resourceadm.about_resource_homepage_label')),
-    ).toHaveValue(`${mockResource1.homepage}${mockNewHomepageInput}`);
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockResource1,
+      homepage: mockNewHomepageInput,
+    });
   });
 
   it('handles delegable switch changes', async () => {
@@ -180,10 +189,10 @@ describe('AboutResourcePage', () => {
 
     await act(() => user.click(delegableInput));
 
-    const delegableInputAfter = screen.getByLabelText(
-      textMock('resourceadm.about_resource_delegable_label'),
-    );
-    expect(delegableInputAfter).not.toBeChecked();
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockResource1,
+      delegable: false,
+    });
   });
 
   it('handles keyword input change', async () => {
@@ -197,10 +206,12 @@ describe('AboutResourcePage', () => {
     expect(keywordInput).toHaveValue(keywordString);
 
     await act(() => user.type(keywordInput, mockNewKeyboardInput));
+    await act(() => keywordInput.blur());
 
-    expect(
-      screen.getByLabelText(textMock('resourceadm.about_resource_keywords_label')),
-    ).toHaveValue(`${keywordString}${mockNewKeyboardInput}`);
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockResource1,
+      keywords: [...mockResource1.keywords, { language: 'nb', word: 'key 3' }],
+    });
   });
 
   it('handles rights description input change', async () => {
@@ -209,25 +220,34 @@ describe('AboutResourcePage', () => {
 
     const rightDescriptionInput = screen.getByLabelText(
       textMock('resourceadm.about_resource_rights_description_label'),
+      { exact: false },
     );
     expect(rightDescriptionInput).toHaveValue(mockResource1.rightDescription.nb);
 
     await act(() => user.clear(rightDescriptionInput));
     await act(() => user.type(rightDescriptionInput, mockNewRightDescriptionInput));
+    await act(() => rightDescriptionInput.blur());
 
-    expect(
-      screen.getByLabelText(textMock('resourceadm.about_resource_rights_description_label')),
-    ).toHaveValue(`${mockResource1.rightDescription.nb}${mockNewRightDescriptionInput}`);
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockResource1,
+      rightDescription: {
+        ...mockResource1.rightDescription,
+        nb: `${mockResource1.rightDescription.nb}${mockNewRightDescriptionInput}`,
+      },
+    });
   });
 
   it('handles status change', async () => {
     const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
 
-    const statusRadio = screen.getByLabelText(mockStatus);
+    const statusRadio = screen.getByLabelText(textMock(resourceStatusMap[mockStatus]));
     await act(() => user.click(statusRadio));
 
-    expect(statusRadio).toBeChecked();
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockResource1,
+      status: mockStatus,
+    });
   });
 
   it('handles self identifiable switch changes', async () => {
@@ -241,10 +261,10 @@ describe('AboutResourcePage', () => {
 
     await act(() => user.click(input));
 
-    const inputAfter = screen.getByLabelText(
-      textMock('resourceadm.about_resource_self_identified_label'),
-    );
-    expect(inputAfter).toBeChecked();
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockResource1,
+      selfIdentifiedUserEnabled: true,
+    });
   });
 
   it('handles enterprise switch changes', async () => {
@@ -256,10 +276,10 @@ describe('AboutResourcePage', () => {
 
     await act(() => user.click(input));
 
-    const inputAfter = screen.getByLabelText(
-      textMock('resourceadm.about_resource_enterprise_label'),
-    );
-    expect(inputAfter).toBeChecked();
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockResource1,
+      enterpriseUserEnabled: true,
+    });
   });
 
   it('handles visible switch changes', async () => {
@@ -271,8 +291,10 @@ describe('AboutResourcePage', () => {
 
     await act(() => user.click(input));
 
-    const inputAfter = screen.getByLabelText(textMock('resourceadm.about_resource_visible_label'));
-    expect(inputAfter).toBeChecked();
+    expect(mockOnSaveResource).toHaveBeenCalledWith({
+      ...mockResource1,
+      visible: true,
+    });
   });
 
   it('displays errors for the required translation fields when showAllErrors are true', async () => {
@@ -336,25 +358,19 @@ describe('AboutResourcePage', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should display access list links when RRR is enabled', () => {
+  it('should display access list links when RRR is enabled', async () => {
     addFeatureFlagToLocalStorage('resourceAccessLists');
 
     render(
-      <MemoryRouter>
+      <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
         <AboutResourcePage
           {...defaultProps}
           resourceData={{ ...mockResource2, limitedByRRR: true }}
         />
-      </MemoryRouter>,
+      </ServicesContextProvider>,
     );
 
-    expect(
-      screen.getByText(
-        textMock('resourceadm.about_resource_edit_rrr', {
-          env: textMock('resourceadm.deploy_test_env'),
-        }),
-      ),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId('rrr-buttons')).toBeInTheDocument();
   });
 
   it('should display correct fields for resourceType MaskinportenSchema', () => {

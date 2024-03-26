@@ -10,9 +10,8 @@ import { useSelector } from 'react-redux';
 import type { IAppState } from '../../../../types/global';
 import { useSearchParams } from 'react-router-dom';
 import { InputPopover } from './InputPopover';
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils } from '@studio/pure-functions';
 import { useAppContext } from '../../../../hooks/useAppContext';
-import classes from './NavigationMenu.module.css';
 import { StudioButton } from '@studio/components';
 
 export type NavigationMenuProps = {
@@ -42,7 +41,7 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
 
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
 
-  const layoutOrder = formLayoutSettings?.pages.order;
+  const layoutOrder = formLayoutSettings?.pages?.order;
   const disableUp = layoutOrder.indexOf(pageName) === 0;
   const disableDown = layoutOrder.indexOf(pageName) === layoutOrder.length - 1;
 
@@ -63,7 +62,7 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
 
   const handleSaveNewName = (newName: string) => {
     updateLayoutName({ oldName: pageName, newName });
-    setSearchParams({ ...deepCopy(searchParams), layout: newName });
+    setSearchParams({ ...ObjectUtils.deepCopy(searchParams), layout: newName });
   };
 
   return (
@@ -84,37 +83,38 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
         onClose={() => setDropdownOpen(false)}
         portal
         size='small'
-        className={classes.dropdownMenu}
       >
-        <DropdownMenu.Group>
-          {!pageIsReceipt && (
-            <>
-              <DropdownMenu.Item
-                onClick={() => !(disableUp || invalid) && moveLayout('up')}
-                disabled={disableUp || invalid}
-                id='move-page-up-button'
-              >
-                <ArrowUpIcon />
-                {t('ux_editor.page_menu_up')}
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                onClick={() => !(disableDown || invalid) && moveLayout('down')}
-                disabled={disableDown || invalid}
-                id='move-page-down-button'
-              >
-                <ArrowDownIcon />
-                {t('ux_editor.page_menu_down')}
-              </DropdownMenu.Item>
-            </>
-          )}
-          <InputPopover
-            oldName={pageName}
-            disabled={invalid}
-            layoutOrder={layoutOrder}
-            saveNewName={handleSaveNewName}
-            onClose={() => setDropdownOpen(false)}
-          />
-        </DropdownMenu.Group>
+        <DropdownMenu.Content>
+          <DropdownMenu.Group>
+            {!pageIsReceipt && (
+              <>
+                <DropdownMenu.Item
+                  onClick={() => !(disableUp || invalid) && moveLayout('up')}
+                  disabled={disableUp || invalid}
+                  id='move-page-up-button'
+                >
+                  <ArrowUpIcon />
+                  {t('ux_editor.page_menu_up')}
+                </DropdownMenu.Item>
+                <DropdownMenu.Item
+                  onClick={() => !(disableDown || invalid) && moveLayout('down')}
+                  disabled={disableDown || invalid}
+                  id='move-page-down-button'
+                >
+                  <ArrowDownIcon />
+                  {t('ux_editor.page_menu_down')}
+                </DropdownMenu.Item>
+              </>
+            )}
+            <InputPopover
+              oldName={pageName}
+              disabled={invalid}
+              layoutOrder={layoutOrder}
+              saveNewName={handleSaveNewName}
+              onClose={() => setDropdownOpen(false)}
+            />
+          </DropdownMenu.Group>
+        </DropdownMenu.Content>
       </DropdownMenu>
     </div>
   );

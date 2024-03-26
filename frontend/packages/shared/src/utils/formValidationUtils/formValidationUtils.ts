@@ -20,10 +20,6 @@ export const addSchemas = (schemas: any[]) => {
   });
 };
 
-export const getSchema = ($id: string) => {
-  return ajv.getSchema($id);
-};
-
 export const getPropertyByPath = (schema: any, path: string) => {
   return { ...path.split('/').reduce((o, p) => (o || {})[p], schema) };
 };

@@ -5,6 +5,7 @@ import { Textarea, Textfield } from '@digdir/design-system-react';
 import { RightTranslationBar } from '../RightTranslationBar';
 import type { SupportedLanguage } from 'app-shared/types/ResourceAdm';
 import { getMissingInputLanguageString } from '../../utils/resourceUtils';
+import { ResourceFieldHeader } from './ResourceFieldHeader';
 
 /**
  * Initial value for languages with empty fields
@@ -50,6 +51,10 @@ type ResourceLanguageTextFieldProps = {
    * Whether the component should use textarea instead of input
    */
   useTextArea?: boolean;
+  /**
+   * Whether this field is required or not
+   */
+  required?: boolean;
 };
 
 /**
@@ -65,6 +70,7 @@ type ResourceLanguageTextFieldProps = {
  * @property {function}[onBlur] - Function to be executed on blur
  * @property {string}[errorText] - The error text to be shown
  * @property {boolean}[useTextArea] - Whether the component should use textarea instead of input
+ * @property {boolean}[required] - Whether this field is required or not
  *
  * @returns {React.JSX.Element} - The rendered component
  */
@@ -78,6 +84,7 @@ export const ResourceLanguageTextField = ({
   onBlur,
   errorText,
   useTextArea,
+  required,
 }: ResourceLanguageTextFieldProps): React.JSX.Element => {
   const { t } = useTranslation();
 
@@ -95,11 +102,10 @@ export const ResourceLanguageTextField = ({
 
   return (
     <>
-      <div className={classes.divider} />
       <div className={classes.inputWrapper}>
         {useTextArea ? (
           <Textarea
-            label={label}
+            label={<ResourceFieldHeader label={label} required={required} />}
             description={description}
             size='small'
             value={translations['nb']}
@@ -108,10 +114,11 @@ export const ResourceLanguageTextField = ({
             error={errorText ? getMissingInputLanguageString(translations, errorText, t) : ''}
             onBlur={onBlurField}
             rows={5}
+            required={required}
           />
         ) : (
           <Textfield
-            label={label}
+            label={<ResourceFieldHeader label={label} required={required} />}
             description={description}
             size='small'
             value={translations['nb']}
@@ -119,6 +126,7 @@ export const ResourceLanguageTextField = ({
             onFocus={onFocus}
             error={errorText ? getMissingInputLanguageString(translations, errorText, t) : ''}
             onBlur={onBlurField}
+            required={required}
           />
         )}
       </div>
@@ -130,6 +138,7 @@ export const ResourceLanguageTextField = ({
           usesTextArea={useTextArea}
           showErrors={!!errorText}
           onBlur={onBlurField}
+          required={required}
         />
       )}
     </>

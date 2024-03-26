@@ -18,6 +18,7 @@ export const component1TypeMock = ComponentType.Input;
 export const component1Mock: FormComponent<ComponentType.Input> = {
   id: component1IdMock,
   type: component1TypeMock,
+  dataModelBindings: { simpleBinding: 'some-path' },
   itemType: 'COMPONENT',
   propertyPath: 'definitions/inputComponent',
   pageIndex: null,
@@ -30,9 +31,24 @@ export const component2Mock: FormComponent<ComponentType.Paragraph> = {
   itemType: 'COMPONENT',
   pageIndex: null,
 };
+export const component3IdMock = 'fileUploadComponentIdMock';
+export const component3Mock: FormComponent = {
+  id: component3IdMock,
+  type: ComponentType.FileUpload,
+  itemType: 'COMPONENT',
+  description: 'test',
+  displayMode: 'list',
+  pageIndex: null,
+  propertyPath: 'definitions/fileUploadComponent',
+  hasCustomFileEndings: false,
+  maxFileSizeInMB: 1,
+  maxNumberOfAttachments: 1,
+  minNumberOfAttachments: 1,
+};
 export const componentWithOptionsMock: FormComponent = {
   id: 'ComponentWithOptionsMock',
   type: ComponentType.Checkboxes,
+  dataModelBindings: { simpleBinding: 'some-path' },
   itemType: 'COMPONENT',
   pageIndex: null,
   optionsId: '',
@@ -52,6 +68,7 @@ export const layoutMock: IInternalLayout = {
   components: {
     [component1IdMock]: component1Mock,
     [component2IdMock]: component2Mock,
+    [component3IdMock]: component3Mock,
     ComponentWithOptionsMock: componentWithOptionsMock,
   },
   containers: {
@@ -73,6 +90,7 @@ export const layoutMock: IInternalLayout = {
       id: container2IdMock,
       itemType: 'CONTAINER',
       type: ComponentType.RepeatingGroup,
+      dataModelBindings: { group: 'some-path' },
       pageIndex: null,
       propertyPath: 'definitions/repeatingGroupComponent',
     },
@@ -80,7 +98,7 @@ export const layoutMock: IInternalLayout = {
   order: {
     [baseContainerIdMock]: [container1IdMock, container2IdMock, 'ComponentWithOptionsMock'],
     [container1IdMock]: [component1IdMock],
-    [container2IdMock]: [component2IdMock],
+    [container2IdMock]: [component2IdMock, component3IdMock],
   },
   customRootProperties: customRootPropertiesMock,
   customDataProperties: customDataPropertiesMock,
@@ -98,19 +116,32 @@ export const layout1Mock: ExternalFormLayout = {
       {
         id: container2IdMock,
         type: ComponentType.RepeatingGroup,
-        children: [component2IdMock],
+        children: [component2IdMock, component3IdMock],
+        dataModelBindings: { group: 'some-path' },
       },
       {
         id: component1IdMock,
         type: component1TypeMock,
+        dataModelBindings: { simpleBinding: 'some-path' },
       },
       {
         id: component2IdMock,
         type: component2TypeMock,
       },
       {
+        id: component3IdMock,
+        type: ComponentType.FileUpload,
+        description: 'test',
+        displayMode: 'list',
+        hasCustomFileEndings: false,
+        maxFileSizeInMB: 1,
+        maxNumberOfAttachments: 1,
+        minNumberOfAttachments: 1,
+      },
+      {
         id: 'ComponentWithOptionsMock',
         type: ComponentType.Checkboxes,
+        dataModelBindings: { simpleBinding: 'some-path' },
         optionsId: '',
       },
     ],

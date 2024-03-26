@@ -7,16 +7,21 @@ import { BpmnContextProvider } from './contexts/BpmnContext';
 import { ConfigPanel } from './components/ConfigPanel';
 
 import classes from './ProcessEditor.module.css';
+import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 
 export type ProcessEditorProps = {
   bpmnXml: string | undefined | null;
+  existingCustomReceipt: string | undefined;
   onSave: (bpmnXml: string) => void;
+  onUpdateLayoutSet: (layoutSetIdToUpdate: string, layoutSetConfig: LayoutSetConfig) => void;
   appLibVersion: string;
 };
 
 export const ProcessEditor = ({
   bpmnXml,
+  existingCustomReceipt,
   onSave,
+  onUpdateLayoutSet,
   appLibVersion,
 }: ProcessEditorProps): JSX.Element => {
   const { t } = useTranslation();
@@ -33,7 +38,10 @@ export const ProcessEditor = ({
     <BpmnContextProvider bpmnXml={bpmnXml} appLibVersion={appLibVersion}>
       <div className={classes.container}>
         <Canvas onSave={onSave} />
-        <ConfigPanel />
+        <ConfigPanel
+          existingCustomReceiptName={existingCustomReceipt}
+          onUpdateLayoutSet={onUpdateLayoutSet}
+        />
       </div>
     </BpmnContextProvider>
   );

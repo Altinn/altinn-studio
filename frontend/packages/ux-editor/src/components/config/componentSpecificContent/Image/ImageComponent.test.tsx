@@ -38,8 +38,8 @@ const waitForData = async () => {
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
-const render = async (props: Partial<IGenericEditComponent> = {}) => {
-  const allProps: IGenericEditComponent = {
+const render = async (props: Partial<IGenericEditComponent<ComponentType.Image>> = {}) => {
+  const allProps: IGenericEditComponent<ComponentType.Image> = {
     component: componentData,
     handleComponentChange: jest.fn(),
     ...props,
@@ -72,26 +72,6 @@ describe('ImageComponent', () => {
         src: {
           nb: imgSrc,
         },
-      },
-    });
-  });
-
-  it('should call handleComponentUpdate callback with image width value when image width input is changed', async () => {
-    const handleUpdate = jest.fn();
-    const size = '250px';
-    await render({ handleComponentChange: handleUpdate });
-
-    const widthInput = screen.getByRole('textbox', {
-      name: /width/i,
-    });
-
-    await act(() => user.type(widthInput, size));
-
-    expect(handleUpdate).toHaveBeenCalledWith({
-      ...componentData,
-      image: {
-        ...componentData.image,
-        width: size,
       },
     });
   });

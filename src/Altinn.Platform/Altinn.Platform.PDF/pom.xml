@@ -32,7 +32,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.2.2</version>
+    <version>3.2.3</version>
   </parent>
   <dependencies>
     <dependency>
@@ -54,7 +54,7 @@
     <dependency>
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-ui</artifactId>
-      <version>1.7.0</version>
+      <version>1.8.0</version>
     </dependency>
     <dependency>
       <groupId>org.hibernate.validator</groupId>
@@ -68,7 +68,7 @@
     <dependency>
       <groupId>com.azure</groupId>
       <artifactId>azure-security-keyvault-secrets</artifactId>
-      <version>4.7.3</version>
+      <version>4.8.0</version>
     </dependency>
     <dependency>
       <groupId>com.microsoft.azure</groupId>
@@ -78,7 +78,7 @@
     <dependency>
       <groupId>com.azure</groupId>
       <artifactId>azure-identity</artifactId>
-      <version>1.11.2</version>
+      <version>1.11.4</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -87,7 +87,7 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>1.18.30</version>
+      <version>1.18.32</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>

@@ -34,9 +34,11 @@ export const StudioDropdownMenu = ({
         onClose={() => setOpen(false)}
         open={open}
       >
-        <StudioDropdownMenuContext.Provider value={{ setOpen }}>
-          {children}
-        </StudioDropdownMenuContext.Provider>
+        <DropdownMenu.Content>
+          <StudioDropdownMenuContext.Provider value={{ setOpen }}>
+            {children}
+          </StudioDropdownMenuContext.Provider>
+        </DropdownMenu.Content>
       </DropdownMenu>
     </>
   );

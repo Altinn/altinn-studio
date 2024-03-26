@@ -6,6 +6,9 @@ import { Paragraph } from '@digdir/design-system-react';
 import { useBpmnContext } from '../../contexts/BpmnContext';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 import { ConfigContent } from './ConfigContent';
+import { ConfigEndEvent } from './ConfigEndEvent';
+import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 /**
  * @component
@@ -13,9 +16,19 @@ import { ConfigContent } from './ConfigContent';
  *
  * @returns {JSX.Element} - The rendered component
  */
-export const ConfigPanel = (): JSX.Element => {
+
+export interface ConfigPanelProps {
+  existingCustomReceiptName: string | undefined;
+  onUpdateLayoutSet: (layoutSetIdToUpdate: string, layoutSetConfig: LayoutSetConfig) => void;
+}
+
+export const ConfigPanel = ({
+  existingCustomReceiptName,
+  onUpdateLayoutSet,
+}: ConfigPanelProps): JSX.Element => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
+  const [showEndEventConfig] = React.useState<boolean>(shouldDisplayFeature('customizeEndEvent'));
 
   const displayContent = () => {
     if (bpmnDetails === null || bpmnDetails.type === BpmnTypeEnum.Process) {
@@ -23,6 +36,13 @@ export const ConfigPanel = (): JSX.Element => {
         <Paragraph className={classes.configPanelParagraph} size='small'>
           {t('process_editor.configuration_panel_no_task')}
         </Paragraph>
+      );
+    } else if (showEndEventConfig && bpmnDetails.type === BpmnTypeEnum.EndEvent) {
+      return (
+        <ConfigEndEvent
+          existingCustomReceiptName={existingCustomReceiptName}
+          onUpdateLayoutSet={onUpdateLayoutSet}
+        />
       );
     } else if (bpmnDetails.type === BpmnTypeEnum.Task) {
       return <ConfigContent />;

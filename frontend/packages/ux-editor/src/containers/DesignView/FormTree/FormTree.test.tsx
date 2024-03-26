@@ -10,7 +10,7 @@ import type { ITextResources } from 'app-shared/types/global';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { FormContext } from '../../FormContext';
+import { FormItemContext } from '../../FormItemContext';
 import type { IInternalLayout } from '../../../types/global';
 import type { FormComponent } from '../../../types/FormComponent';
 import type { FormContainer } from '../../../types/FormContainer';
@@ -45,6 +45,7 @@ const subComponent: FormComponent = {
   id: 'subComponent',
   itemType: 'COMPONENT',
   type: ComponentType.Input,
+  dataModelBindings: { simpleBinding: 'somePath' },
 };
 const subContainer: FormContainer = {
   id: 'subContainer',
@@ -55,6 +56,7 @@ const subSubComponent: FormComponent = {
   id: 'subSubComponent',
   itemType: 'COMPONENT',
   type: ComponentType.TextArea,
+  dataModelBindings: { simpleBinding: 'somePath' },
 };
 const layoutMock: IInternalLayout = {
   components: {
@@ -83,10 +85,10 @@ const rootContainerName = textMock(`ux_editor.component_title.${rootContainerWit
 const emptyRootContainerName = textMock(`ux_editor.component_title.${emptyRootContainer.type}`);
 const subContainerName = textMock(`ux_editor.component_title.${subContainer.type}`);
 const handleEdit = jest.fn();
-const formContext: FormContext = {
+const formItemContext: FormItemContext = {
   debounceSave: jest.fn(),
-  form: null,
-  formId: '',
+  formItem: null,
+  formItemId: '',
   handleDiscard: jest.fn(),
   handleEdit,
   handleSave: jest.fn(),
@@ -173,10 +175,10 @@ const render = (layout: IInternalLayout = layoutMock) => {
     {},
     queryClient,
   )(
-    <FormContext.Provider value={formContext}>
+    <FormItemContext.Provider value={formItemContext}>
       <DragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={BASE_CONTAINER_ID}>
         <FormTree layout={layout} />
       </DragAndDropTree.Provider>
-    </FormContext.Provider>,
+    </FormItemContext.Provider>,
   );
 };

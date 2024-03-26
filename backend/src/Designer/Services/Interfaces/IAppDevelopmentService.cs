@@ -2,7 +2,9 @@ using System.Collections.Generic;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Models;
+using JetBrains.Annotations;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
 {
@@ -67,6 +69,25 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         public Task SaveLayoutSettings(AltinnRepoEditingContext altinnRepoEditingContext, JsonNode layoutSettings, string layoutSetName, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Gets an array of names of all layouts in all layoutSets (if app uses sets)
+        /// </summary>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
+        public Task<string[]> GetLayoutNames(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Returns the <see cref="ModelMetadata"/> for an app.
+        /// </summary>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+        /// <param name="layoutSetName">Name of layoutSet to fetch corresponding model metadata for</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>The model metadata for a given layout set.</returns>
+        public Task<ModelMetadata> GetModelMetadata(
+            AltinnRepoEditingContext altinnRepoEditingContext, [CanBeNull] string layoutSetName,
+            CancellationToken cancellationToken = default);
+
+
+        /// <summary>
         /// Gets an array of all layoutsets for layout-sets.json. If no sets returns null.
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
@@ -74,20 +95,21 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         public Task<LayoutSets> GetLayoutSets(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Creates a layout-sets.json file
+        /// Adds a config for an additional layout set to the layout-set.json
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-        /// <param name="layoutSetName">The name of the layout set.</param>
+        /// <param name="newLayoutSet">Config for the new layout set</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        public Task<LayoutSets> ConfigureLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName, CancellationToken cancellationToken = default);
+        public Task<LayoutSets> AddLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, LayoutSetConfig newLayoutSet, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Adds a config for an additional layoutset to the layout-set.json
+        /// Updates an existing layout set in layout-sets.json based on layoutSetId
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-        /// <param name="layoutSet">Config for the new layoutset</param>
+        /// <param name="layoutSetToUpdateId">The id of the layout set to replace</param>
+        /// <param name="newLayoutSet">Config for the new layout set</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        public Task AddLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, LayoutSetConfig layoutSet, CancellationToken cancellationToken = default);
+        public Task<LayoutSets> UpdateLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetToUpdateId, LayoutSetConfig newLayoutSet, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets the rule handler for a specific organization, application, developer, and layout set name.

@@ -1,14 +1,13 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioPageSpinner } from '@studio/components';
+import { StudioPageSpinner, StudioCenter } from '@studio/components';
 import { Alert, ErrorMessage, Paragraph } from '@digdir/design-system-react';
 import { SchemaEditorWithToolbar } from './SchemaEditorWithToolbar';
 import { useDatamodelsJsonQuery, useDatamodelsXsdQuery } from 'app-shared/hooks/queries';
 import { useParams } from 'react-router-dom';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { mergeJsonAndXsdData } from '../../utils/metadataUtils';
-import { StudioCenter } from '@studio/components';
 
 interface DataModellingProps {
   createPathOption?: boolean;
@@ -22,7 +21,9 @@ export function DataModelling({ createPathOption = false }: DataModellingProps):
 
   switch (mergeQueryStatuses(jsonStatus, xsdStatus)) {
     case 'pending':
-      return <StudioPageSpinner />;
+      return (
+        <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('datamodelling.loading')} />
+      );
     case 'error':
       return (
         <StudioCenter>

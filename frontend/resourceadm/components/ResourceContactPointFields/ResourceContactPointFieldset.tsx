@@ -4,6 +4,7 @@ import { Fieldset } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { ResourceContactPointTextField } from './ResourceContactPointTextField';
 import { InputFieldErrorMessage } from '../ResourcePageInputs/InputFieldErrorMessage';
+import { ResourceFieldHeader } from '../ResourcePageInputs/ResourceFieldHeader';
 
 type ResourceContactPointFieldsetProps = {
   /**
@@ -25,6 +26,10 @@ type ResourceContactPointFieldsetProps = {
    * If the error should be shown
    */
   showErrors: boolean;
+  /**
+   * Whether this field is required or not
+   */
+  required?: boolean;
 };
 
 /**
@@ -35,6 +40,7 @@ type ResourceContactPointFieldsetProps = {
  * @property {function}[onLeaveTextFields] - Function to be executed when leaving a text field
  * @property {function}[onFocus] - Function to be executed when the field is focused
  * @property {boolean}[showErrors] - Function to be executed when leaving a text field
+ * @property {boolean}[required] - Whether this field is required or not
  *
  * @returns {React.JSX.Element} - The rendered component
  */
@@ -43,6 +49,7 @@ export const ResourceContactPointFieldset = ({
   onLeaveTextFields,
   onFocus,
   showErrors,
+  required,
 }: ResourceContactPointFieldsetProps): React.JSX.Element => {
   const { t } = useTranslation();
 
@@ -57,7 +64,12 @@ export const ResourceContactPointFieldset = ({
   return (
     <>
       <Fieldset
-        legend={t('resourceadm.about_resource_contact_legend')}
+        legend={
+          <ResourceFieldHeader
+            label={t('resourceadm.about_resource_contact_legend')}
+            required={required}
+          />
+        }
         description={t('resourceadm.about_resource_contact_description')}
         size='small'
       >

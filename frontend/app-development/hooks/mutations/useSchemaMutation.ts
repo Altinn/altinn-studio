@@ -14,5 +14,8 @@ export const useSchemaMutation = () => {
       queryClient.setQueryData([QueryKey.JsonSchema, org, app, modelPath], () => model);
       await saveDatamodel(org, app, modelPath, model);
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueryKey.DatamodelsMetadata, org, app] });
+    },
   });
 };

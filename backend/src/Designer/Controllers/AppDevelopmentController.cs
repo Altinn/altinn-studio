@@ -5,6 +5,7 @@ using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
@@ -12,7 +13,6 @@ using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -262,6 +262,42 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Get all names of layouts across layoutSets
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
+        /// <returns>The layout-sets.json</returns>
+        [HttpGet]
+        [UseSystemTextJson]
+        [Route("layout-names")]
+        public async Task<IActionResult> GetLayoutNames(string org, string app, CancellationToken cancellationToken)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+            string[] layoutNames = await _appDevelopmentService.GetLayoutNames(editingContext, cancellationToken);
+            return Ok(layoutNames);
+        }
+
+        /// <summary>
+        /// Return JSON presentation of the model
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="layoutSetName">Name of current layoutSet in ux-editor that edited layout belongs to</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>The model as JSON</returns>
+        [HttpGet]
+        [UseSystemTextJson]
+        [Route("model-metadata")]
+        public async Task<IActionResult> GetModelMetadata(string org, string app, [FromQuery] string layoutSetName, CancellationToken cancellationToken)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            ModelMetadata modelMetadata = await _appDevelopmentService.GetModelMetadata(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), layoutSetName, cancellationToken);
+            return Ok(modelMetadata);
+        }
+
+        /// <summary>
         /// Get all layoutsets in the layout-set.json file
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -291,59 +327,49 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Create a layout-set.json file
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="layoutSetName">Name of initial layout set</param>
-        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        /// <returns>The layout-sets.json</returns>
-        [HttpPost]
-        [UseSystemTextJson]
-        [Route("layout-sets")]
-        public async Task<IActionResult> ConfigureLayoutSet(string org, string app, [FromQuery] string layoutSetName, CancellationToken cancellationToken)
-        {
-            try
-            {
-                bool isValidLayoutSetName = string.IsNullOrEmpty(layoutSetName) ||
-                                            Regex.IsMatch(layoutSetName, _layoutSetNameRegEx);
-                if (!isValidLayoutSetName)
-                {
-                    return BadRequest("LayoutSetName is not valid");
-                }
-
-                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                LayoutSets layoutSets = await _appDevelopmentService.ConfigureLayoutSet(editingContext, layoutSetName, cancellationToken);
-                return Ok(layoutSets);
-            }
-            catch (BadHttpRequestException exception)
-            {
-                return BadRequest(exception.Message);
-            }
-            catch (FileNotFoundException exception)
-            {
-                return NotFound(exception.Message);
-            }
-        }
-
-        /// <summary>
-        /// Add a layoutset to the layout-sets.json file
+        /// Add a new layout set
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="layoutSet">The config needed for the layout set to be added to layout-sets.json</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        [HttpPut]
-        [Route("layout-sets")]
-        public async Task<ActionResult> AddLayoutSet(string org, string app, [FromQuery] LayoutSetConfig layoutSet, CancellationToken cancellationToken)
+        [HttpPost]
+        [UseSystemTextJson]
+        [Route("layout-set/{layoutSetIdToUpdate}")]
+        public async Task<ActionResult> AddLayoutSet(string org, string app, [FromBody] LayoutSetConfig layoutSet, CancellationToken cancellationToken)
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                await _appDevelopmentService.AddLayoutSet(editingContext, layoutSet, cancellationToken);
-                return Ok();
+                LayoutSets layoutSets = await _appDevelopmentService.AddLayoutSet(editingContext, layoutSet, cancellationToken);
+                return Ok(layoutSets);
+            }
+            catch (FileNotFoundException exception)
+            {
+                return NotFound($"Layout-sets.json not found: {exception}");
+            }
+        }
+
+        /// <summary>
+        /// Update an existing layout set with new config
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="layoutSetIdToUpdate">The id of a new set or the set to replace</param>
+        /// <param name="layoutSet">The config needed for the layout set to be added to layout-sets.json</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        [HttpPut]
+        [UseSystemTextJson]
+        [Route("layout-set/{layoutSetIdToUpdate}")]
+        public async Task<ActionResult> UpdateLayoutSet(string org, string app, [FromRoute] string layoutSetIdToUpdate, [FromBody] LayoutSetConfig layoutSet, CancellationToken cancellationToken)
+        {
+            try
+            {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+                LayoutSets layoutSets = await _appDevelopmentService.UpdateLayoutSet(editingContext, layoutSetIdToUpdate, layoutSet, cancellationToken);
+                return Ok(layoutSets);
             }
             catch (FileNotFoundException exception)
             {

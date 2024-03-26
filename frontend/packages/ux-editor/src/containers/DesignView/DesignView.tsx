@@ -41,7 +41,7 @@ export const DesignView = (): ReactNode => {
   const dispatch = useDispatch();
   const { org, app } = useStudioUrlParams();
   const { selectedLayoutSet } = useAppContext();
-  const { mutate: addLayoutMutation, isPending } = useAddLayoutMutation(
+  const { mutate: addLayoutMutation, isPending: isAddLayoutMutationPending } = useAddLayoutMutation(
     org,
     app,
     selectedLayoutSet,
@@ -50,7 +50,7 @@ export const DesignView = (): ReactNode => {
   const { data: instanceId } = useInstanceIdQuery(org, app);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const receiptName = formLayoutSettings?.receiptLayoutName;
-  const layoutOrder = formLayoutSettings?.pages.order;
+  const layoutOrder = formLayoutSettings?.pages?.order;
 
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParamsLayout = searchParams.get('layout');
@@ -99,32 +99,20 @@ export const DesignView = (): ReactNode => {
     }
   };
 
-  /**
-   * Handles the click of add page. It adds either a receipt page or a
-   * normal page based on the isReceipt variable.
-   */
-  const handleAddPage = (isReceipt: boolean) => {
-    if (isReceipt) {
-      addLayoutMutation({ layoutName: 'Kvittering', isReceiptPage: true });
-      setSearchParams((prevParams) => ({ ...prevParams, layout: 'Kvittering' }));
-      setOpenAccordion('Kvittering');
-    } else {
-      if (!isPending) {
-        let newNum = 1;
-        let newLayoutName = `${t('ux_editor.page')}${layoutOrder.length + newNum}`;
+  const handleAddPage = () => {
+    let newNum = 1;
+    let newLayoutName = `${t('ux_editor.page')}${layoutOrder.length + newNum}`;
 
-        while (layoutOrder.indexOf(newLayoutName) > -1) {
-          newNum += 1;
-          newLayoutName = `${t('ux_editor.page')}${newNum}`;
-        }
-
-        addLayoutMutation({ layoutName: newLayoutName, isReceiptPage: false });
-        setSearchParams((prevParams) => ({ ...prevParams, layout: newLayoutName }));
-        setSelectedLayoutInLocalStorage(instanceId, newLayoutName);
-        dispatch(FormLayoutActions.updateSelectedLayout(newLayoutName));
-        setOpenAccordion(newLayoutName);
-      }
+    while (layoutOrder.indexOf(newLayoutName) > -1) {
+      newNum += 1;
+      newLayoutName = `${t('ux_editor.page')}${newNum}`;
     }
+
+    addLayoutMutation({ layoutName: newLayoutName, isReceiptPage: false });
+    setSearchParams((prevParams) => ({ ...prevParams, layout: newLayoutName }));
+    setSelectedLayoutInLocalStorage(instanceId, newLayoutName);
+    dispatch(FormLayoutActions.updateSelectedLayout(newLayoutName));
+    setOpenAccordion(newLayoutName);
   };
 
   /**
@@ -161,15 +149,15 @@ export const DesignView = (): ReactNode => {
           selectedAccordion={openAccordion}
           formLayoutData={formLayoutData}
           onClickAccordion={() => handleClickAccordion(receiptName)}
-          onClickAddPage={() => handleAddPage(true)}
         />
       </div>
       <div className={classes.buttonContainer}>
         <StudioButton
-          icon={<PlusIcon />}
-          onClick={() => handleAddPage(false)}
+          icon={<PlusIcon aria-hidden />}
+          onClick={() => handleAddPage()}
           size='small'
           className={classes.button}
+          disabled={isAddLayoutMutationPending}
         >
           {t('ux_editor.pages_add')}
         </StudioButton>

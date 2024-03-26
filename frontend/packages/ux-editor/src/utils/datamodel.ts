@@ -1,4 +1,5 @@
 import type { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 /* UTIL METHODS FOR HANDLING DATA MODEL */
 export function filterDataModelForIntellisense(
@@ -47,6 +48,16 @@ export const getMinOccursFromDataModel = (
   return element?.minOccurs;
 };
 
+export const getMaxOccursFromDataModel = (
+  dataBindingName: string,
+  dataModel: DatamodelFieldElement[],
+): number => {
+  const element: DatamodelFieldElement = dataModel.find((e: DatamodelFieldElement) => {
+    return e.dataBindingName === dataBindingName;
+  });
+  return element?.maxOccurs;
+};
+
 export const getXsdDataTypeFromDataModel = (
   dataBindingName: string,
   dataModel: DatamodelFieldElement[],
@@ -56,4 +67,26 @@ export const getXsdDataTypeFromDataModel = (
   });
 
   return element?.xsdValueType;
+};
+
+const generalFilter = (element: DatamodelFieldElement) =>
+  element.dataBindingName && element.maxOccurs <= 1;
+const repeatingGroupFilter = (element: DatamodelFieldElement) =>
+  element.dataBindingName && element.maxOccurs > 1;
+const multipleAttachmentsFilter = (element: DatamodelFieldElement) =>
+  element.dataBindingName && element.maxOccurs > 1 && element.xsdValueType === 'String';
+
+export const getDataModelFieldsFilter = (
+  componentType: ComponentType,
+  label: boolean,
+): ((element: DatamodelFieldElement) => boolean) => {
+  switch (componentType) {
+    case ComponentType.RepeatingGroup:
+      return repeatingGroupFilter;
+    case ComponentType.FileUpload:
+    case ComponentType.FileUploadWithTag:
+      return label ? multipleAttachmentsFilter : generalFilter;
+    default:
+      return generalFilter;
+  }
 };
