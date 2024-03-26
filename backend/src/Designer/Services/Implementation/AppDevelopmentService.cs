@@ -390,14 +390,35 @@ namespace Altinn.Studio.Designer.Services.Implementation
             int indexOfLayoutSetToReplace = layoutSets.Sets.IndexOf(layoutSetToReplace);
             if (layoutSets.Sets[indexOfLayoutSetToReplace].DataType != newLayoutSet.DataType)
             {
-                await _schemaModelService.UpdateApplicationMetadata(altinnAppGitRepository, newLayoutSet.DataType,
-                    $"Altinn.App.Models.{newLayoutSet.DataType}.{newLayoutSet.DataType}");
+                await UpdateApplicationMetadata(altinnAppGitRepository, newLayoutSet);
             }
             layoutSets.Sets[indexOfLayoutSetToReplace] = newLayoutSet;
             await altinnAppGitRepository.SaveLayoutSetsFile(layoutSets);
             return layoutSets;
         }
+        
+        private async Task UpdateApplicationMetadata(AltinnAppGitRepository altinnAppGitRepository, LayoutSetConfig newLayoutSet)
+        {
+            var applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
+            if (string.IsNullOrEmpty(newLayoutSet.DataType))
+            {
+                var dataType = applicationMetadata.DataTypes.Find(dataType => dataType.TaskId == newLayoutSet.Tasks[0]);
+                dataType.TaskId = null;
+            }
+            else
+            {
+                var oldDataType = applicationMetadata.DataTypes.Find(dataType => dataType.TaskId == newLayoutSet.Tasks[0]);
+                if (oldDataType is not null)
+                {
+                    oldDataType.TaskId = null;
+                }
 
+                var newDataType = applicationMetadata.DataTypes.Find(dataType => dataType.Id == newLayoutSet.DataType);
+                newDataType.TaskId = newLayoutSet.Tasks[0];
+            }
+            await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
+        }
+        
         /// <inheritdoc />
         public async Task<string> GetRuleHandler(AltinnRepoEditingContext altinnRepoEditingContext,
             string layoutSetName, CancellationToken cancellationToken = default)

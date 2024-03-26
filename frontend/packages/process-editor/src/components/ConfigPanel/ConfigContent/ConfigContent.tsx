@@ -21,11 +21,12 @@ export const ConfigContent = (): React.ReactElement => {
   const layoutSet = layoutSets?.sets.find((set) => set.tasks.includes(bpmnDetails.id));
   const existingDataTypeForTask = layoutSet?.dataType;
   const noModelKey = 'noModel';
-  const dataModelIds = [...availableDataModelIds, noModelKey, existingDataTypeForTask ?? null];
+  const dataModelIds = existingDataTypeForTask
+    ? [...availableDataModelIds, noModelKey, existingDataTypeForTask]
+    : [...availableDataModelIds, noModelKey];
 
   const handleChangeDataModel = (dataModelId: string) => {
     if (dataModelId == existingDataTypeForTask) return;
-    debugger;
     if (!layoutSet) {
       toast.error(t('process_editor.layout_set_not_found_error'));
       return;
