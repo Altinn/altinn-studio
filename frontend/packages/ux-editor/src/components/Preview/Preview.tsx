@@ -3,8 +3,7 @@ import classes from './Preview.module.css';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
-import { useAppContext } from '../../hooks';
-import { useUpdate } from 'app-shared/hooks/useUpdate';
+import { useAppContext, useSelectedTaskId } from '../../hooks';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/design-system-react';
 import { StudioButton, StudioCenter } from '@studio/components';
@@ -61,24 +60,9 @@ const NoSelectedPageMessage = () => {
 const PreviewFrame = () => {
   const { org, app } = useStudioUrlParams();
   const [viewportToSimulate, setViewportToSimulate] = useState<SupportedView>('desktop');
-  const {
-    previewIframeRef,
-    selectedFormLayoutSetName,
-    selectedFormLayoutName,
-    refetchLayouts,
-    refetchLayoutSettings,
-    reloadPreview,
-  } = useAppContext();
+  const { previewIframeRef, selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
+  const taskId = useSelectedTaskId(selectedFormLayoutSetName);
   const { t } = useTranslation();
-
-  useUpdate(() => {
-    const reload = async () => {
-      await refetchLayouts();
-      await refetchLayoutSettings();
-      reloadPreview(selectedFormLayoutName);
-    };
-    reload();
-  }, [previewIframeRef, selectedFormLayoutSetName, selectedFormLayoutName]);
 
   useEffect(() => {
     return () => {
@@ -95,7 +79,7 @@ const PreviewFrame = () => {
             ref={previewIframeRef}
             className={cn(classes.iframe, classes[viewportToSimulate])}
             title={t('ux_editor.preview')}
-            src={previewPage(org, app, selectedFormLayoutName)}
+            src={previewPage(org, app, selectedFormLayoutSetName, taskId, selectedFormLayoutName)}
           />
         </div>
         <PreviewLimitationsInfo />

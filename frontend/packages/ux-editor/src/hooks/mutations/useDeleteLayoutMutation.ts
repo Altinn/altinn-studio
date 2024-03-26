@@ -24,7 +24,6 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
     setSelectedFormLayoutName,
     refetchLayouts,
     refetchLayoutSettings,
-    reloadPreview,
   } = useAppContext();
 
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
@@ -77,11 +76,9 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
       const layoutToSelect = firstAvailableLayout(layoutName, layoutOrder);
       if (selectedFormLayoutName === layoutName) {
         setSelectedFormLayoutName(layoutToSelect);
-      } else {
-        await refetchLayouts();
-        await refetchLayoutSettings();
-        reloadPreview(layoutToSelect);
       }
+      await refetchLayouts(layoutSetName);
+      await refetchLayoutSettings(layoutSetName);
     },
   });
 };

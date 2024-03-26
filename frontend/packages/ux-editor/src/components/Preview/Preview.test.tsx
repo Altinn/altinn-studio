@@ -1,11 +1,13 @@
 import React from 'react';
 import { Preview } from './Preview';
-import { act, screen, waitFor } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import type { ExtendedRenderOptions } from '../../testing/mocks';
 import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { appContextMock } from '../../testing/appContextMock';
+import { previewPage } from 'app-shared/api/paths';
+import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
 
 describe('Preview', () => {
   it('Renders an iframe with the ref from AppContext', () => {
@@ -74,16 +76,31 @@ describe('Preview', () => {
 
   it.only('reloads preview when the selected form layout name changes', async () => {
     const view = render();
+    expect(appContextMock.previewIframeRef?.current?.src).toBe(
+      'http://localhost' +
+        previewPage(
+          'org',
+          'app',
+          appContextMock.selectedFormLayoutSetName,
+          TASKID_FOR_STATELESS_APPS,
+          appContextMock.selectedFormLayoutName,
+        ),
+    );
 
-    appContextMock.selectedFormLayoutName = 'test';
+    const newSelectedFormLayoutName = 'test';
+    appContextMock.selectedFormLayoutName = newSelectedFormLayoutName;
+
     view.rerender(<Preview />);
-    await waitFor(() => expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(appContextMock.refetchLayoutSettings).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(appContextMock.reloadPreview).toHaveBeenCalledTimes(1));
-    await waitFor(() =>
-      expect(appContextMock.reloadPreview).toHaveBeenCalledWith(
-        appContextMock.selectedFormLayoutName,
-      ),
+
+    expect(appContextMock.previewIframeRef?.current?.src).toBe(
+      'http://localhost' +
+        previewPage(
+          'org',
+          'app',
+          appContextMock.selectedFormLayoutSetName,
+          TASKID_FOR_STATELESS_APPS,
+          newSelectedFormLayoutName,
+        ),
     );
   });
 });

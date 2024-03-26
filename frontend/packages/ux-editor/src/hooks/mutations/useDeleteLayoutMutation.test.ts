@@ -56,7 +56,6 @@ describe('useDeleteLayoutMutation', () => {
     await result.current.mutateAsync(layout2NameMock);
     expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
     expect(appContextMock.refetchLayoutSettings).toHaveBeenCalledTimes(1);
-    expect(appContextMock.reloadPreview).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -29,8 +29,8 @@ export const useUpdateLayoutOrderMutation = (org: string, app: string, layoutSet
       return formLayoutSettingsMutation.mutateAsync(layoutSettings);
     },
     onSuccess: async () => {
-      await refetchLayouts();
-      await refetchLayoutSettings();
+      await refetchLayouts(layoutSetName);
+      await refetchLayoutSettings(layoutSetName);
     },
   });
 };

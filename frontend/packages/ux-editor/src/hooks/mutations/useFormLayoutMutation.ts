@@ -37,7 +37,7 @@ export const useFormLayoutMutation = (
         (oldData: IFormLayouts) => ({ ...oldData, [layoutName]: savedLayout }),
       );
 
-      await refetchLayouts();
+      await refetchLayouts(layoutSetName);
     },
   });
 };

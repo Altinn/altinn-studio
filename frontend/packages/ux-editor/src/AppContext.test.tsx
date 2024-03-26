@@ -8,7 +8,6 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { previewHash } from 'app-shared/api/paths';
 import { useAppContext } from './hooks';
 
 const org = 'org';
@@ -100,7 +99,7 @@ describe('AppContext', () => {
     queryClient.invalidateQueries = jest.fn();
 
     render(() => {
-      const { previewIframeRef, refetchLayouts } = useAppContext();
+      const { previewIframeRef, refetchLayouts, selectedFormLayoutSetName } = useAppContext();
       useEffect(() => {
         if (previewIframeRef) {
           const contentWindow: WindowWithQueryClient = previewIframeRef?.current?.contentWindow;
@@ -109,7 +108,7 @@ describe('AppContext', () => {
       }, [previewIframeRef]);
       return (
         <>
-          <button data-testid='button' onClick={() => refetchLayouts()} />
+          <button data-testid='button' onClick={() => refetchLayouts(selectedFormLayoutSetName)} />
           <iframe data-testid='previewIframeRef' ref={previewIframeRef} />
         </>
       );
@@ -133,7 +132,8 @@ describe('AppContext', () => {
     queryClient.invalidateQueries = jest.fn();
 
     render(() => {
-      const { previewIframeRef, refetchLayoutSettings } = useAppContext();
+      const { previewIframeRef, refetchLayoutSettings, selectedFormLayoutSetName } =
+        useAppContext();
       useEffect(() => {
         if (previewIframeRef) {
           const contentWindow: WindowWithQueryClient = previewIframeRef?.current?.contentWindow;
@@ -142,7 +142,10 @@ describe('AppContext', () => {
       }, [previewIframeRef]);
       return (
         <>
-          <button data-testid='button' onClick={() => refetchLayoutSettings()} />
+          <button
+            data-testid='button'
+            onClick={() => refetchLayoutSettings(selectedFormLayoutSetName)}
+          />
           <iframe data-testid='previewIframeRef' ref={previewIframeRef} />
         </>
       );
@@ -192,33 +195,6 @@ describe('AppContext', () => {
         queryKey: ['fetchTextResources', mockLanguage],
       }),
     );
-  });
-
-  it('reloads preview correctly', async () => {
-    const user = userEvent.setup();
-
-    render(() => {
-      const { previewIframeRef, reloadPreview } = useAppContext();
-      return (
-        <>
-          <button
-            data-testid='button'
-            onClick={() => reloadPreview(mockSelectedFormLayoutSetName)}
-          />
-          <iframe data-testid='previewIframeRef' ref={previewIframeRef} />
-        </>
-      );
-    });
-
-    const previewIframeRef: HTMLIFrameElement = screen.getByTestId('previewIframeRef');
-    const contentWindow = previewIframeRef?.contentWindow;
-
-    expect(contentWindow.location.hash).toBe('');
-
-    const button = screen.getByTestId('button');
-    await act(() => user.click(button));
-
-    expect(contentWindow.location.hash).toBe(previewHash(mockSelectedFormLayoutSetName));
   });
 
   it('removed selectedFormLayoutSetName correctly', async () => {

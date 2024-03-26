@@ -10,11 +10,21 @@ export function LayoutSetsContainer() {
   const layoutSetsQuery = useLayoutSetsQuery(org, app);
   const layoutSetNames = layoutSetsQuery.data?.sets?.map((set) => set.id);
   const t = useText();
-  const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } = useAppContext();
+  const {
+    selectedFormLayoutSetName,
+    setSelectedFormLayoutSetName,
+    setSelectedFormLayoutName,
+    refetchLayouts,
+    refetchLayoutSettings,
+  } = useAppContext();
 
-  const onLayoutSetClick = (set: string) => {
+  const onLayoutSetClick = async (set: string) => {
     if (selectedFormLayoutSetName !== set) {
+      await refetchLayouts(set);
+      await refetchLayoutSettings(set);
+
       setSelectedFormLayoutSetName(set);
+      setSelectedFormLayoutName(undefined);
     }
   };
 
