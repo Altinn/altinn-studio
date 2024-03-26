@@ -61,6 +61,10 @@ describe('Canvas', () => {
     (useBpmnContext as jest.Mock).mockReturnValue({
       ...jest.requireActual('../../contexts/BpmnContext'),
       getUpdatedXml: getUpdatedXmlMock,
+      setDataTasksAdded: jest.fn(),
+      setDataTasksRemoved: jest.fn(),
+      dataTasksAdded: [],
+      dataTasksRemoved: [],
       isEditAllowed: true,
       modelerRef: {
         current: { saveXML: jest.fn().mockResolvedValue({ xml: '<bpmn>xml</bpmn>' }) },
