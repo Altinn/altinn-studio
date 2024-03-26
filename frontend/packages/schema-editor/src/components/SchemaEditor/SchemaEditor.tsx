@@ -23,15 +23,9 @@ export const SchemaEditor = () => {
     <>
       <DragAndDropTree.Provider
         onAdd={addReference}
-        onMove={(pointer, position) =>
-          // listItemContext update timing may affect useParentId functionality. For now, use selectedTypePointer as parentId if set, else use parentId from position object
-          // Refactor may provide a better solution: https://github.com/Altinn/altinn-studio/issues/11824
-          moveProperty(pointer, {
-            index: position.index,
-            parentId: selectedTypePointer || position.parentId,
-          })
-        }
+        onMove={moveProperty}
         rootId={ROOT_POINTER}
+        itemId={selectedTypePointer ?? null}
       >
         <aside className={classes.inspector}>
           <TypesInspector schemaItems={definitions} />

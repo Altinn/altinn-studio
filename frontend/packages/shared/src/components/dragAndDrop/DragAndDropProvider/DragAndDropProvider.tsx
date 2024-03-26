@@ -4,6 +4,7 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DragAndDropRootContext } from './DragAndDropRootContext';
 import type { HandleAdd, HandleDrop, HandleMove } from 'app-shared/types/dndTypes';
+import { DragAndDropListItemContext } from '../DragAndDropListItem';
 
 export interface DragAndDropProviderProps<T> {
   children: ReactNode;
@@ -11,6 +12,7 @@ export interface DragAndDropProviderProps<T> {
   onAdd: HandleAdd<T>;
   onMove: HandleMove;
   rootId: string;
+  itemId: string;
 }
 
 export function DragAndDropProvider<T>({
@@ -19,6 +21,7 @@ export function DragAndDropProvider<T>({
   onAdd,
   onMove,
   rootId,
+  itemId,
 }: DragAndDropProviderProps<T>) {
   const onDrop: HandleDrop<T> = (item, position) =>
     item.isNew === true ? onAdd(item.payload, position) : onMove(item.id, position);
@@ -26,7 +29,9 @@ export function DragAndDropProvider<T>({
   return (
     <DndProvider backend={HTML5Backend}>
       <DragAndDropRootContext.Provider value={{ gap, rootId, onDrop, uniqueDomId }}>
-        {children}
+        <DragAndDropListItemContext.Provider value={{ isDisabled: false, itemId }}>
+          {children}
+        </DragAndDropListItemContext.Provider>
       </DragAndDropRootContext.Provider>
     </DndProvider>
   );
