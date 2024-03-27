@@ -12,6 +12,7 @@ import { useUpdateLayoutSetMutation } from '../../hooks/mutations/useUpdateLayou
 import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useAddLayoutSetMutation } from '../../hooks/mutations/useAddLayoutSetMutation';
+import { useDeleteLayoutSetMutation } from '../../hooks/mutations/useDeleteLayoutSetMutation';
 
 export const ProcessEditor = () => {
   const { t } = useTranslation();
@@ -20,6 +21,7 @@ export const ProcessEditor = () => {
   const { data: appLibData, isLoading: appLibDataLoading } = useAppVersionQuery(org, app);
   const { mutate: mutateLayoutSet } = useUpdateLayoutSetMutation(org, app);
   const { mutate: addLayoutSet } = useAddLayoutSetMutation(org, app);
+  const { mutate: deleteLayoutSet } = useDeleteLayoutSetMutation(org, app);
   const existingCustomReceipt: string | undefined = useCustomReceiptLayoutSetName(org, app);
   const bpmnMutation = useBpmnMutation(org, app);
 
@@ -32,9 +34,25 @@ export const ProcessEditor = () => {
       {
         onSuccess: () => {
           toast.success(t('process_editor.saved_successfully'));
+          updateLayoutSetsBasedOnBpmnUpdates(dataTasksChanged.added, dataTasksChanged.removed);
         },
       },
     );
+  };
+
+  const updateLayoutSetsBasedOnBpmnUpdates = (added?: BpmnDetails[], removed?: BpmnDetails[]) => {
+    added?.forEach((taskAdded) =>
+      addLayoutSet({
+        layoutSetIdToUpdate: undefined,
+        layoutSetConfig: {
+          id: taskAdded.name,
+          tasks: [taskAdded.id],
+        },
+      }),
+    );
+    removed?.forEach((taskRemoved) => {
+      deleteLayoutSet({ layoutSetIdToUpdate: taskRemoved.name });
+    });
   };
 
   const updateLayoutSet = (layoutSetIdToUpdate: string, layoutSetConfig: LayoutSetConfig) => {

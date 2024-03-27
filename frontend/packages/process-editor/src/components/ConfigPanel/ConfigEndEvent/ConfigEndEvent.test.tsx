@@ -24,6 +24,22 @@ describe('ConfigEndEvent', () => {
     screen.getByRole('button', { name: existingCustomReceiptLayoutSetName });
   });
 
+  it('should display button to remove the custom receipt when a custom receipt exists from before', () => {
+    const existingCustomReceiptLayoutSetName = 'CustomReceipt';
+    render({ existingCustomReceiptName: existingCustomReceiptLayoutSetName });
+    screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_custom_receipt_remove_receipt'),
+    });
+  });
+
+  it('should display button to remove the custom receipt when a custom receipt exists from before', () => {
+    render();
+    const removeCustomReceiptButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_custom_receipt_remove_receipt'),
+    });
+    expect(removeCustomReceiptButton).toHaveAttribute('disabled');
+  });
+
   it('should call onUpdateLayoutSet when a custom receipt is created by adding a name to the input field', async () => {
     const customReceiptLayoutSetName = 'CustomReceipt';
     const updateLayoutSetMock = jest.fn();
