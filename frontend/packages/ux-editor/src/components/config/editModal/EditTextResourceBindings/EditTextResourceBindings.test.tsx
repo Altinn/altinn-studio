@@ -3,8 +3,8 @@ import type { EditTextResourceBindingsProps } from './EditTextResourceBindings';
 import { EditTextResourceBindings } from './EditTextResourceBindings';
 import { screen, waitFor } from '@testing-library/react';
 import {
-  renderHookWithMockStore,
-  renderWithMockStore,
+  renderHookWithProviders,
+  renderWithProviders,
   textLanguagesMock,
 } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
@@ -91,11 +91,9 @@ describe('EditTextResourceBindings component', () => {
   });
 
   const waitForData = async () => {
-    const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
-      .renderHookResult.result;
-    const { result } = renderHookWithMockStore(
-      {},
-      {
+    const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
+    const result = renderHookWithProviders(() => useTextResourcesQuery(org, app), {
+      queries: {
         getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
         getTextResources: (_o, _a, lang) =>
           Promise.resolve<ITextResourcesWithLanguage>({
@@ -103,7 +101,7 @@ describe('EditTextResourceBindings component', () => {
             resources: textResources,
           }),
       },
-    )(() => useTextResourcesQuery(org, app)).renderHookResult;
+    }).result;
     await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
   };
@@ -115,7 +113,7 @@ describe('EditTextResourceBindings component', () => {
   }: Partial<EditTextResourceBindingsProps>) => {
     await waitForData();
 
-    return renderWithMockStore()(
+    return renderWithProviders(
       <EditTextResourceBindings
         component={component}
         handleComponentChange={handleComponentChange}

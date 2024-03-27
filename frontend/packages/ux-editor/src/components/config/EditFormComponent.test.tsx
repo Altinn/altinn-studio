@@ -2,7 +2,7 @@ import React from 'react';
 import type { IEditFormComponentProps } from './EditFormComponent';
 import { EditFormComponent } from './EditFormComponent';
 import { screen, waitFor } from '@testing-library/react';
-import { renderHookWithMockStore, renderWithMockStore } from '../../testing/mocks';
+import { renderHookWithProviders, renderWithProviders } from '../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -95,14 +95,12 @@ describe('EditFormComponent', () => {
 });
 
 const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
-    .renderHookResult.result;
+  const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
-  const dataModelMetadataResult = renderHookWithMockStore(
-    {},
-    { getDatamodelMetadata },
-  )(() => useDatamodelMetadataQuery('test-org', 'test-app', 'test-layout-set')).renderHookResult
-    .result;
+  const dataModelMetadataResult = renderHookWithProviders(
+    () => useDatamodelMetadataQuery('test-org', 'test-app', 'test-layout-set'),
+    { queries: { getDatamodelMetadata } },
+  ).result;
   await waitFor(() => expect(dataModelMetadataResult.current.isSuccess).toBe(true));
 };
 
@@ -115,8 +113,7 @@ const defaultProps: IEditFormComponentProps = {
 const render = async (props: Partial<IEditFormComponentProps> = {}) => {
   await waitForData();
 
-  renderWithMockStore(
-    {},
-    { getDatamodelMetadata },
-  )(<EditFormComponent {...defaultProps} {...props} />);
+  renderWithProviders(<EditFormComponent {...defaultProps} {...props} />, {
+    queries: { getDatamodelMetadata },
+  });
 };

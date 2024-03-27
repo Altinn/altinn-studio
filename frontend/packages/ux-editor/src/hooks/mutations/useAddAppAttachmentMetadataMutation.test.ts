@@ -1,6 +1,6 @@
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderHookWithMockStore } from '../../testing/mocks';
+import { renderHookWithProviders } from '../../testing/mocks';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
 
 // Test data:
@@ -17,9 +17,9 @@ const metadata: ApplicationAttachmentMetadata = {
 
 describe('useAddAppAttachmentMetadataMutation', () => {
   it('Calls addAppAttachmentMetadata with correct arguments and payload', async () => {
-    const metadataResult = renderHookWithMockStore()(() =>
+    const metadataResult = renderHookWithProviders(() =>
       useAddAppAttachmentMetadataMutation(org, app),
-    ).renderHookResult.result;
+    ).result;
 
     await metadataResult.current.mutateAsync(metadata);
 

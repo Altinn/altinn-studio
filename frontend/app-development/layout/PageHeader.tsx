@@ -10,6 +10,10 @@ import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import type { User } from 'app-shared/types/Repository';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { RepositoryType } from 'app-shared/types/global';
+import {
+  useSelectedFormLayoutSetName,
+  useSelectedFormLayoutName,
+} from '../../packages/ux-editor/src/hooks';
 
 type SubMenuContentProps = {
   org: string;
@@ -30,14 +34,18 @@ export const subMenuContent = ({ org, app }: SubMenuContentProps) => {
   );
 };
 
-export const buttonActions = (org: string, app: string): AltinnButtonActionItem[] => {
+export const buttonActions = (
+  org: string,
+  app: string,
+  selectedFormLayoutName: string,
+): AltinnButtonActionItem[] => {
   const packagesRouter = new PackagesRouter({ org, app });
 
   const actions: AltinnButtonActionItem[] = [
     {
       title: 'top_menu.preview',
       menuKey: TopBarMenu.Preview,
-      to: packagesRouter.getPackageNavigationUrl('preview'),
+      to: `${packagesRouter.getPackageNavigationUrl('preview')}${selectedFormLayoutName ? `?layout=${selectedFormLayoutName}` : ''}`,
       isInverted: true,
     },
     {
@@ -69,6 +77,8 @@ export const PageHeader = ({
   const repoType = getRepositoryType(org, app);
   const repository = useAppSelector((state) => state.serviceInformation.repositoryInfo);
   const menuItems = getFilteredTopBarMenu(repoType);
+  const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
+  const { selectedFormLayoutName } = useSelectedFormLayoutName(selectedFormLayoutSetName);
 
   return (
     <AltinnHeader
@@ -80,7 +90,7 @@ export const PageHeader = ({
       user={user}
       repository={repository}
       repoOwnerIsOrg={repoOwnerIsOrg}
-      buttonActions={!isRepoError && buttonActions(org, app)}
+      buttonActions={!isRepoError && buttonActions(org, app, selectedFormLayoutName)}
     />
   );
 };

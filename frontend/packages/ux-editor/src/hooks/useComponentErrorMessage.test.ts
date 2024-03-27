@@ -1,4 +1,4 @@
-import { renderHookWithMockStore } from '../testing/mocks';
+import { renderHookWithProviders } from '../testing/mocks';
 import { useComponentErrorMessage } from './useComponentErrorMessage';
 import type { FormComponent } from '../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -41,4 +41,4 @@ describe('useComponentErrorMessage', () => {
 });
 
 const renderHook = (component: FormComponent) =>
-  renderHookWithMockStore()(() => useComponentErrorMessage(component)).renderHookResult;
+  renderHookWithProviders(() => useComponentErrorMessage(component));

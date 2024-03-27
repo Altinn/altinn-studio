@@ -3,7 +3,7 @@ import { act, screen } from '@testing-library/react';
 import { FormTree } from './FormTree';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { BASE_CONTAINER_ID, DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { renderWithMockStore } from '../../../testing/mocks';
+import { renderWithProviders } from '../../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ITextResources } from 'app-shared/types/global';
@@ -170,15 +170,14 @@ describe('FormTree', () => {
 const render = (layout: IInternalLayout = layoutMock) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
-  return renderWithMockStore(
-    {},
-    {},
-    queryClient,
-  )(
+  return renderWithProviders(
     <FormItemContext.Provider value={formItemContext}>
       <DragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={BASE_CONTAINER_ID}>
         <FormTree layout={layout} />
       </DragAndDropTree.Provider>
     </FormItemContext.Provider>,
+    {
+      queryClient,
+    },
   );
 };

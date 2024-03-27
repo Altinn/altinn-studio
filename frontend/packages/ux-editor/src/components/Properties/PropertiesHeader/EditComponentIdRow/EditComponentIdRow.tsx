@@ -6,7 +6,7 @@ import { idExists } from '../../../../utils/formLayoutsUtils';
 import { Trans, useTranslation } from 'react-i18next';
 import type { FormItem } from '../../../../types/FormItem';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
-import { useFormLayouts } from '../../../../hooks/useFormLayoutsSelector';
+import { useFormLayouts } from '../../../../hooks';
 
 export interface EditComponentIdRowProps {
   handleComponentUpdate: (component: FormItem) => void;
