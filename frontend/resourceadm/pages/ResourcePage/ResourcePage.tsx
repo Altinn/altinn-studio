@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import classes from './ResourcePage.module.css';
@@ -27,7 +27,7 @@ import {
   UploadIcon,
 } from '@studio/icons';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
-import { createNavigationTab } from '../../utils/resourceUtils';
+import { createNavigationTab, deepCompare } from '../../utils/resourceUtils';
 import { ResourceAccessLists } from '../../components/ResourceAccessLists';
 import { AccessListDetail } from '../../components/AccessListDetails';
 import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery';
@@ -43,6 +43,7 @@ export const ResourcePage = (): React.JSX.Element => {
   const { t } = useTranslation();
 
   const navigate = useNavigate();
+  const autoSaveTimeoutRef = useRef(undefined);
 
   const { pageType, resourceId, selectedContext, repo, env, accessListId } = useUrlParams();
   const currentPage = pageType as NavigationBarPage;
@@ -96,6 +97,20 @@ export const ResourcePage = (): React.JSX.Element => {
       setResourceData(loadedResourceData);
     }
   }, [loadedResourceData, resourceData]);
+
+  /**
+   * Check if the pageType parameter has changed and update the currentPage
+   */
+  useEffect(() => {
+    setCurrentPage(pageType as NavigationBarPage);
+  }, [pageType]);
+
+  const debounceSave = (resource: Resource): void => {
+    clearTimeout(autoSaveTimeoutRef.current);
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      editResource(resource);
+    }, 400);
+  };
 
   /**
    * Navigates to the selected page
@@ -229,9 +244,9 @@ export const ResourcePage = (): React.JSX.Element => {
    * Saves the resource
    */
   const handleSaveResource = (r: Resource) => {
-    if (JSON.stringify(r) !== JSON.stringify(resourceData)) {
+    if (!deepCompare(resourceData, r)) {
       setResourceData(r);
-      editResource(r);
+      debounceSave(r);
     }
   };
 

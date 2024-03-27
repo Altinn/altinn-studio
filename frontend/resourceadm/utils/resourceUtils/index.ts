@@ -4,4 +4,5 @@ export {
   getIsActiveTab,
   createNavigationTab,
   getResourceIdentifierErrorMessage,
+  deepCompare,
 } from './resourceUtils';

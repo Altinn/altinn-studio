@@ -194,3 +194,37 @@ export const getResourceIdentifierErrorMessage = (identifier: string, isConflict
   }
   return '';
 };
+
+/**
+ * Deep compare two objects. Will call itself recursively for nested keys
+ * @param original the original object
+ * @param changed the changed object
+ *
+ * @returns true if objects are equal, false otherwise
+ */
+export const deepCompare = (original: any, changed: any) => {
+  if (original === changed) {
+    return true;
+  }
+
+  if (
+    typeof original !== 'object' ||
+    typeof changed !== 'object' ||
+    original === null ||
+    changed === null ||
+    Array.isArray(original) !== Array.isArray(changed)
+  ) {
+    return false;
+  }
+
+  const originalKeys = Object.keys(original);
+  const changedKeys = Object.keys(changed);
+
+  if (originalKeys.length !== changedKeys.length) {
+    return false;
+  }
+
+  return originalKeys.every(
+    (key) => changedKeys.includes(key) && deepCompare(original[key], changed[key]),
+  );
+};

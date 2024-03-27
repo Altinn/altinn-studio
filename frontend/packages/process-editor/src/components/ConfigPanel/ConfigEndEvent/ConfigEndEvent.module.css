@@ -1,0 +1,8 @@
+.container {
+  padding: var(--fds-spacing-3);
+  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
+}
+
+.endEvent {
+  background-color: var(--fds-colors-green-200);
+}
