@@ -376,7 +376,7 @@ namespace Altinn.Studio.Designer.Controllers
                 return NotFound($"Layout-sets.json not found: {exception}");
             }
         }
-        
+
         /// <summary>
         /// Delete an existing layout set
         /// </summary>

@@ -12,7 +12,7 @@ import { useUpdateLayoutSetMutation } from '../../hooks/mutations/useUpdateLayou
 import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useAddLayoutSetMutation } from '../../hooks/mutations/useAddLayoutSetMutation';
-import {useDeleteLayoutSetMutation} from "../../hooks/mutations/useDeleteLayoutSetMutation";
+import { useDeleteLayoutSetMutation } from '../../hooks/mutations/useDeleteLayoutSetMutation';
 
 export const ProcessEditor = () => {
   const { t } = useTranslation();
@@ -42,16 +42,16 @@ export const ProcessEditor = () => {
 
   const updateLayoutSetsBasedOnBpmnUpdates = (added?: BpmnDetails[], removed?: BpmnDetails[]) => {
     added?.forEach((taskAdded) =>
-        addLayoutSet({
-          layoutSetIdToUpdate: undefined,
-          layoutSetConfig: {
-            id: taskAdded.name,
-            tasks: [taskAdded.id],
-          },
-        }),
+      addLayoutSet({
+        layoutSetIdToUpdate: undefined,
+        layoutSetConfig: {
+          id: taskAdded.name,
+          tasks: [taskAdded.id],
+        },
+      }),
     );
     removed?.forEach((taskRemoved) => {
-      deleteLayoutSet({layoutSetIdToUpdate: taskRemoved.name})
+      deleteLayoutSet({ layoutSetIdToUpdate: taskRemoved.name });
     });
   };
 
