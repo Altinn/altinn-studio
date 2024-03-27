@@ -15,10 +15,13 @@ const mockOnSave = jest.fn();
 
 const defaultProps: ProcessEditorProps = {
   bpmnXml: mockBPMNXML,
-  existingCustomReceipt: undefined,
-  onUpdateLayoutSet: jest.fn(),
   onSave: mockOnSave,
   appLibVersion: mockAppLibVersion8,
+  availableDataModelIds: [],
+  layoutSets: { sets: [] },
+  existingCustomReceiptLayoutSetName: undefined,
+  addLayoutSet: jest.fn(),
+  mutateLayoutSet: jest.fn(),
 };
 
 const render = (props: Partial<ProcessEditorProps> = {}) => {
@@ -34,8 +37,6 @@ const render = (props: Partial<ProcessEditorProps> = {}) => {
 };
 
 describe('ProcessEditor', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should render loading while bpmnXml is undefined', () => {
     render({ bpmnXml: undefined });
     expect(screen.getByTitle(textMock('process_editor.loading'))).toBeInTheDocument();

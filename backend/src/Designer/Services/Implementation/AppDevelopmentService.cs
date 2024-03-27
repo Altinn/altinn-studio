@@ -2,11 +2,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Models;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Exceptions;
+using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
@@ -15,6 +17,7 @@ using JetBrains.Annotations;
 using Microsoft.AspNetCore.Http;
 using NuGet.Versioning;
 using LayoutSets = Altinn.Studio.Designer.Models.LayoutSets;
+using NonUniqueLayoutSetIdException = Altinn.Studio.Designer.Exceptions.NonUniqueLayoutSetIdException;
 using PlatformStorageModels = Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -26,6 +29,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     {
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly ISchemaModelService _schemaModelService;
+        private readonly string _layoutSetNameRegEx = "[a-zA-Z0-9-]{2,28}";
 
         /// <summary>
         /// Constructor
@@ -175,6 +179,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
+        public async Task<IEnumerable<string>> GetAppMetadataModelIds(AltinnRepoEditingContext altinnRepoEditingContext, bool onlyUnReferenced,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
+                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            ApplicationMetadata applicationMetadata =
+                await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
+            return GetAppMetadataModelIds(applicationMetadata, onlyUnReferenced);
+        }
+
+        /// <inheritdoc />
         public async Task<ModelMetadata> GetModelMetadata(AltinnRepoEditingContext altinnRepoEditingContext,
             string layoutSetName, CancellationToken cancellationToken = default)
         {
@@ -198,7 +215,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private string GetModelName(ApplicationMetadata applicationMetadata, [CanBeNull] string taskId)
         {
-            // fallback to first model if no task_id is provided (no layoutsets)
+            // fallback to first model if no task_id is provided (no layout sets)
             if (taskId == null)
             {
                 return applicationMetadata.DataTypes.FirstOrDefault(data => data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef) && !string.IsNullOrEmpty(data.TaskId))?.Id ?? string.Empty;
@@ -210,6 +227,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return data?.Id ?? string.Empty;
         }
 
+        private IEnumerable<string> GetAppMetadataModelIds(ApplicationMetadata applicationMetadata, bool onlyUnReferenced)
+        {
+            var appMetaDataDataTypes = applicationMetadata.DataTypes
+                .Where(data => data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef));
+
+            if (onlyUnReferenced)
+            {
+                var unReferencedDataTypes =
+                    appMetaDataDataTypes.Where(dataType => string.IsNullOrEmpty(dataType.TaskId));
+                return unReferencedDataTypes.Select(datatype => datatype.Id);
+            }
+
+            return appMetaDataDataTypes.Select(datatype => datatype.Id);
+        }
+
         private bool DoesDataTaskMatchTaskId(PlatformStorageModels.DataType data, [CanBeNull] string taskId)
         {
             return string.IsNullOrEmpty(taskId) || data.TaskId == taskId;
@@ -217,7 +249,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private async Task<string> GetTaskIdBasedOnLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName, CancellationToken cancellationToken = default)
         {
+            if (string.IsNullOrEmpty(layoutSetName))
+            {
+                // App without layout sets --> no need for task_id, we just retrieve the first occurence of a dataType with a classRef
+                return null;
+            }
             LayoutSets layoutSets = await GetLayoutSets(altinnRepoEditingContext, cancellationToken);
+
             return layoutSets?.Sets?.Find(set => set.Id == layoutSetName)?.Tasks[0];
         }
 
@@ -237,7 +275,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return layoutSets;
             }
 
-            return null;
+            throw new NoLayoutSetsFileFoundException(
+                "No layout set found for this app.");
         }
 
         /// <inheritdoc />
@@ -250,11 +289,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
             if (!altinnAppGitRepository.AppUsesLayoutSets())
             {
-                throw new FileNotFoundException("No layout set found for this app");
+                throw new NoLayoutSetsFileFoundException("No layout set found for this app.");
             }
-            if (string.IsNullOrEmpty(newLayoutSet.Id))
+            if (!Regex.IsMatch(newLayoutSet.Id, _layoutSetNameRegEx))
             {
-                throw new EmptyLayoutSetIdException("New layout set name must have a value.");
+                throw new InvalidLayoutSetIdException("New layout set name is not valid.");
             }
             LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
             if (layoutSets.Sets.Exists(set => set.Id == newLayoutSet.Id))
@@ -275,11 +314,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
             if (!altinnAppGitRepository.AppUsesLayoutSets())
             {
-                throw new FileNotFoundException("No layout set found for this app");
+
+                throw new NoLayoutSetsFileFoundException("No layout set found for this app.");
             }
-            if (string.IsNullOrEmpty(newLayoutSet.Id))
+            if (!Regex.IsMatch(newLayoutSet.Id, _layoutSetNameRegEx))
             {
-                throw new EmptyLayoutSetIdException("New layout set name must have a value.");
+                throw new InvalidLayoutSetIdException("New layout set name is not valid.");
             }
             LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
             LayoutSetConfig layoutSetToReplace = layoutSets.Sets.Find(set => set.Id == layoutSetToUpdateId);
@@ -287,11 +327,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 return await UpdateExistingLayoutSet(altinnAppGitRepository, layoutSets, layoutSetToReplace, newLayoutSet);
             }
-            // Layout set name is updated which means layout set folder must be updated also
+            // NewLayoutSet Id is not the same as existing layout set Id so must check if the suggested new Id already exists
             if (layoutSets.Sets.Exists(set => set.Id == newLayoutSet.Id))
             {
                 throw new NonUniqueLayoutSetIdException($"Layout set name, {newLayoutSet.Id}, already exists.");
             }
+            // Layout set name is updated which means layout set folder must be updated also
             altinnAppGitRepository.ChangeLayoutSetFolderName(layoutSetToUpdateId, newLayoutSet.Id, cancellationToken);
             return await UpdateExistingLayoutSet(altinnAppGitRepository, layoutSets, layoutSetToReplace, newLayoutSet);
         }
@@ -307,12 +348,38 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return layoutSets;
         }
 
-        private static async Task<LayoutSets> UpdateExistingLayoutSet(AltinnAppGitRepository altinnAppGitRepository, LayoutSets layoutSets, LayoutSetConfig layoutSetToReplace, LayoutSetConfig newLayoutSet)
+        private async Task<LayoutSets> UpdateExistingLayoutSet(AltinnAppGitRepository altinnAppGitRepository, LayoutSets layoutSets, LayoutSetConfig layoutSetToReplace, LayoutSetConfig newLayoutSet)
         {
             int indexOfLayoutSetToReplace = layoutSets.Sets.IndexOf(layoutSetToReplace);
+            if (layoutSets.Sets[indexOfLayoutSetToReplace].DataType != newLayoutSet.DataType)
+            {
+                await UpdateApplicationMetadata(altinnAppGitRepository, newLayoutSet);
+            }
             layoutSets.Sets[indexOfLayoutSetToReplace] = newLayoutSet;
             await altinnAppGitRepository.SaveLayoutSetsFile(layoutSets);
             return layoutSets;
+        }
+
+        private async Task UpdateApplicationMetadata(AltinnAppGitRepository altinnAppGitRepository, LayoutSetConfig newLayoutSet)
+        {
+            var applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
+            if (string.IsNullOrEmpty(newLayoutSet.DataType))
+            {
+                var dataType = applicationMetadata.DataTypes.Find(dataType => dataType.TaskId == newLayoutSet.Tasks[0]);
+                dataType.TaskId = null;
+            }
+            else
+            {
+                var oldDataType = applicationMetadata.DataTypes.Find(dataType => dataType.TaskId == newLayoutSet.Tasks[0]);
+                if (oldDataType is not null)
+                {
+                    oldDataType.TaskId = null;
+                }
+
+                var newDataType = applicationMetadata.DataTypes.Find(dataType => dataType.Id == newLayoutSet.DataType);
+                newDataType.TaskId = newLayoutSet.Tasks[0];
+            }
+            await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
         }
 
 

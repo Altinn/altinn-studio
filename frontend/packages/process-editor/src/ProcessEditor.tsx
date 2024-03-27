@@ -7,22 +7,29 @@ import { BpmnContextProvider } from './contexts/BpmnContext';
 import { ConfigPanel } from './components/ConfigPanel';
 
 import classes from './ProcessEditor.module.css';
-import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
+import type { BpmnApiContextProps } from './contexts/BpmnApiContext';
+import { BpmnApiContextProvider } from './contexts/BpmnApiContext';
 
 export type ProcessEditorProps = {
-  bpmnXml: string | undefined | null;
-  existingCustomReceipt: string | undefined;
-  onSave: (bpmnXml: string) => void;
-  onUpdateLayoutSet: (layoutSetIdToUpdate: string, layoutSetConfig: LayoutSetConfig) => void;
   appLibVersion: string;
+  bpmnXml: string | undefined | null;
+  onSave: (bpmnXml: string) => void;
+  availableDataModelIds: BpmnApiContextProps['availableDataModelIds'];
+  layoutSets: BpmnApiContextProps['layoutSets'];
+  existingCustomReceiptLayoutSetName: BpmnApiContextProps['existingCustomReceiptLayoutSetName'];
+  addLayoutSet: BpmnApiContextProps['addLayoutSet'];
+  mutateLayoutSet: BpmnApiContextProps['mutateLayoutSet'];
 };
 
 export const ProcessEditor = ({
-  bpmnXml,
-  existingCustomReceipt,
-  onSave,
-  onUpdateLayoutSet,
   appLibVersion,
+  bpmnXml,
+  onSave,
+  availableDataModelIds,
+  layoutSets,
+  existingCustomReceiptLayoutSetName,
+  addLayoutSet,
+  mutateLayoutSet,
 }: ProcessEditorProps): JSX.Element => {
   const { t } = useTranslation();
 
@@ -36,13 +43,18 @@ export const ProcessEditor = ({
 
   return (
     <BpmnContextProvider bpmnXml={bpmnXml} appLibVersion={appLibVersion}>
-      <div className={classes.container}>
-        <Canvas onSave={onSave} />
-        <ConfigPanel
-          existingCustomReceiptName={existingCustomReceipt}
-          onUpdateLayoutSet={onUpdateLayoutSet}
-        />
-      </div>
+      <BpmnApiContextProvider
+        availableDataModelIds={availableDataModelIds}
+        layoutSets={layoutSets}
+        existingCustomReceiptLayoutSetName={existingCustomReceiptLayoutSetName}
+        addLayoutSet={addLayoutSet}
+        mutateLayoutSet={mutateLayoutSet}
+      >
+        <div className={classes.container}>
+          <Canvas onSave={onSave} />
+          <ConfigPanel />
+        </div>
+      </BpmnApiContextProvider>
     </BpmnContextProvider>
   );
 };
