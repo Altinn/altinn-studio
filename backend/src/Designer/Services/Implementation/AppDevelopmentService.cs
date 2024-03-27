@@ -318,8 +318,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
                     altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
             LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
-            // Remove TaskId connection from datatype in appmetadata with the id == layoutSet.datatype
+            var layoutSetToDelete = layoutSets.Sets.Find(set => set.Id == layoutSetToDeleteId);
+            var dataTypeNameToRemoveTaskIdRef = layoutSetToDelete?.DataType;
+            if (!string.IsNullOrEmpty(dataTypeNameToRemoveTaskIdRef)) await DeleteTaskRefInApplicationMetadata(altinnAppGitRepository, dataTypeNameToRemoveTaskIdRef);
             return await DeleteExistingLayoutSet(altinnAppGitRepository, layoutSets, layoutSetToDeleteId);
+        }
+        
+        private async Task DeleteTaskRefInApplicationMetadata(AltinnAppGitRepository altinnAppGitRepository, string dataTypeId)
+        {
+            var applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
+            var dataType = applicationMetadata.DataTypes.Find(dataType => dataType.Id == dataTypeId);
+            dataType.TaskId = null;
+            await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
         }
 
         private static async Task<LayoutSets> AddNewLayoutSet(AltinnAppGitRepository altinnAppGitRepository, LayoutSets layoutSets, LayoutSetConfig layoutSet)

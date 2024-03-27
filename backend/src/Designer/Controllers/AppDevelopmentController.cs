@@ -329,18 +329,18 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="layoutSetToDeleteId">The id of the layout set to delete</param>
+        /// <param name="layoutSetIdToUpdate">The id of the layout set to delete</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         [HttpDelete]
         [UseSystemTextJson]
-        [Route("layout-set/{layoutSetToDeleteId}")]
-        public async Task<ActionResult> UpdateLayoutSet(string org, string app, [FromRoute] string layoutSetToDeleteId, CancellationToken cancellationToken)
+        [Route("layout-set/{layoutSetIdToUpdate}")]
+        public async Task<ActionResult> DeleteLayoutSet(string org, string app, [FromRoute] string layoutSetIdToUpdate, CancellationToken cancellationToken)
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                LayoutSets layoutSets = await _appDevelopmentService.UpdateLayoutSet(editingContext, layoutSetToDeleteId, layoutSet, cancellationToken);
+                LayoutSets layoutSets = await _appDevelopmentService.DeleteLayoutSet(editingContext, layoutSetIdToUpdate, cancellationToken);
                 return Ok(layoutSets);
             }
             catch (FileNotFoundException exception)
