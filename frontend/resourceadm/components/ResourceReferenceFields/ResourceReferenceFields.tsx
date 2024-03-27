@@ -67,7 +67,11 @@ export const ResourceReferenceFields = ({
         deleteConfirmationButton: 'resourceadm.about_resource_reference_confirm_delete_button',
         addButton: 'resourceadm.about_resource_reference_add_reference',
       }}
-      renderItem={(item: ResourceReference, onChange: (changedItem: ResourceReference) => void) => {
+      renderItem={(
+        item: ResourceReference,
+        index: number,
+        onChange: (changedItem: ResourceReference) => void,
+      ) => {
         return (
           <ResourceReferenceFieldset
             resourceReference={item}
@@ -75,6 +79,7 @@ export const ResourceReferenceFields = ({
             onFocus={onFocus}
             showErrors={showErrors}
             required={required}
+            index={index}
           />
         );
       }}

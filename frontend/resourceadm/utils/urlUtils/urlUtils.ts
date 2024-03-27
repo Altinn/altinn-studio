@@ -47,5 +47,5 @@ export const getPartiesQueryUrl = (search: string, isSubParty?: boolean): string
   const partyType = isSubParty ? 'underenheter' : 'enheter';
   const isOrgnrSearch = /^\d{9}$/.test(search); // regex for search string is exactly 9 digits
   const searchTerm = isOrgnrSearch ? `organisasjonsnummer=${search}` : `navn=${search}`;
-  return `https://data.brreg.no/enhetsregisteret/api/${partyType}?${searchTerm}&size=5&sort=navn,ASC`;
+  return `https://data.brreg.no/enhetsregisteret/api/${partyType}?${searchTerm}&size=5`;
 };

@@ -1,7 +1,5 @@
 .divider {
-  margin-top: var(--fds-spacing-8);
-  margin-bottom: var(--fds-spacing-8);
-  border-bottom: 1px solid var(--fds-semantic-border-neutral-default);
+  margin-top: var(--fds-spacing-18);
 }
 
 .fieldset {

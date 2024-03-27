@@ -390,6 +390,8 @@ describe('AboutResourcePage', () => {
     expect(
       screen.queryByLabelText(textMock('resourceadm.about_resource_available_for_legend')),
     ).not.toBeInTheDocument();
-    expect(screen.getByText(textMock('resourceadm.about_resource_references'))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('resourceadm.about_resource_references', { index: 1 })),
+    ).toBeInTheDocument();
   });
 });

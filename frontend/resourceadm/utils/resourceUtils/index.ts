@@ -1,5 +1,4 @@
 export {
-  convertResourceTypeToDisplayString,
   mapLanguageKeyToLanguageText,
   getMissingInputLanguageString,
   getIsActiveTab,

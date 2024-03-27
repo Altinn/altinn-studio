@@ -37,7 +37,7 @@ export type FieldsetWrapperProps<T> = {
    * @param listItem the list item to render
    * @param onChange function to call when item is changed. Call this function from child fieldset render on change
    */
-  renderItem: (listItem: T, onChange: (item: T) => void) => React.JSX.Element;
+  renderItem: (listItem: T, index: number, onChange: (item: T) => void) => React.JSX.Element;
 };
 
 /**
@@ -110,7 +110,7 @@ export const FieldsetWrapper = <T,>({
     <div key={`${pos}/${listItems.length}`} className={classes.fieldset}>
       {pos > 0 && <div className={classes.divider} />}
       <div className={classes.itemWrapper}>
-        {renderItem(listItem, (item: T) => {
+        {renderItem(listItem, pos, (item: T) => {
           onChangeListItemField(item, pos);
         })}
         {listItems.length > 1 && (

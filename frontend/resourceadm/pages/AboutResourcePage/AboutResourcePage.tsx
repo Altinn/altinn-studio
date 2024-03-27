@@ -29,7 +29,7 @@ import {
 import { ResourceContactPointFields } from '../../components/ResourceContactPointFields';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { ResourceReferenceFields } from '../../components/ResourceReferenceFields';
-import { AccessListEnvLinks } from 'resourceadm/components/AccessListEnvLinks';
+import { AccessListEnvLinks } from '../../components/AccessListEnvLinks';
 
 export type AboutResourcePageProps = {
   showAllErrors: boolean;

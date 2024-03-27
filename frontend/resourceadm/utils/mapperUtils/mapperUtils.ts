@@ -45,7 +45,18 @@ export const sortResourceListByDateAndMap = (
  */
 export const mapAltinn2LinkServiceToSelectOption = (linkServices: Altinn2LinkService[]) => {
   return linkServices.map((ls: Altinn2LinkService) => ({
-    value: `${ls.externalServiceCode}-${ls.externalServiceEditionCode}-${ls.serviceName}`,
+    value: JSON.stringify(ls),
     label: `${ls.externalServiceCode}-${ls.externalServiceEditionCode}-${ls.serviceName}`,
   }));
+};
+
+/**
+ * Maps a link service option string back to Altinn2LinkService object
+ *
+ * @param selectOption JSON string of Altinn2LinkService
+ *
+ * @returns a Altinn2LinkService object
+ */
+export const mapSelectOptiontoAltinn2LinkService = (selectOption: string): Altinn2LinkService => {
+  return JSON.parse(selectOption);
 };

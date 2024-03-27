@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import classes from './PageLayout.module.css';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import AppHeader, {
   HeaderContext,
   SelectedContextType,
@@ -20,12 +20,17 @@ import { useUrlParams } from '../../hooks/useSelectedContext';
  * @returns {React.JSX.Element} - The rendered component
  */
 export const PageLayout = (): React.JSX.Element => {
+  const { pathname } = useLocation();
   const { data: user } = useUserQuery();
   const { data: organizations } = useOrganizationsQuery();
 
   const { selectedContext = SelectedContextType.Self, repo } = useUrlParams();
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
   useEffect(() => {
     if (

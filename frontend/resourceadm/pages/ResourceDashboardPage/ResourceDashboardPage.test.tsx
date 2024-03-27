@@ -14,6 +14,7 @@ import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtil
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { Organization } from 'app-shared/types/Organization';
 import { organization } from 'app-shared/mocks/mocks';
+import type { RepoStatus } from 'app-shared/types/RepoStatus';
 
 const mockResourceListItem1: ResourceListItem = {
   title: { nb: 'resource 1', nn: '', en: '' },
@@ -249,6 +250,21 @@ describe('ResourceDashBoardPage', () => {
     expect(
       screen.getByText(textMock('resourceadm.dashboard_change_organization_lists')),
     ).toBeInTheDocument();
+  });
+
+  it('should show merge conflict modal if repo has merge conflict', async () => {
+    const getRepoStatus = jest.fn().mockImplementation(() =>
+      Promise.resolve<RepoStatus>({
+        aheadBy: 1,
+        behindBy: 1,
+        contentStatus: [],
+        hasMergeConflict: true,
+        repositoryStatus: 'conflict',
+      }),
+    );
+    renderResourceDashboardPage({ getRepoStatus });
+
+    await screen.findByText(textMock('merge_conflict.headline'));
   });
 });
 

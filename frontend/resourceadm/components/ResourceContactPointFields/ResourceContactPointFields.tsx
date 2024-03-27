@@ -71,6 +71,7 @@ export const ResourceContactPointFields = ({
       emptyItem={emptyContactPoint}
       renderItem={(
         contactPoint: ResourceContactPoint,
+        index: number,
         onChange: (changedItem: ResourceContactPoint) => void,
       ) => {
         return (
@@ -80,6 +81,7 @@ export const ResourceContactPointFields = ({
             onFocus={onFocus}
             showErrors={showErrors}
             required={required}
+            index={index}
           />
         );
       }}
