@@ -1,6 +1,10 @@
 import React from 'react';
 import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
-import { StudioSectionHeader, StudioToggleableTextfield } from '@studio/components';
+import {
+  StudioDeleteButton,
+  StudioSectionHeader,
+  StudioToggleableTextfield,
+} from '@studio/components';
 import { Paragraph } from '@digdir/design-system-react';
 import { PencilWritingIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
@@ -71,6 +75,13 @@ export const ConfigEndEvent = () => {
             return validationResult ? t(validationResult) : undefined;
           }}
         />
+        <StudioDeleteButton
+          onDelete={() => {}} // Call mutation from BpmnApiContext
+          size='small'
+          disabled={!existingCustomReceiptName}
+        >
+          {t('process_editor.configuration_panel_custom_receipt_remove_receipt')}
+        </StudioDeleteButton>
       </div>
     </>
   );

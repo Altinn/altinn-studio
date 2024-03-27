@@ -1,6 +1,9 @@
 .container {
+  display: flex;
+  flex-direction: column;
   padding: var(--fds-spacing-3);
   border-bottom: 1px solid var(--fds-semantic-border-divider-default);
+  gap: 1rem;
 }
 
 .endEvent {
