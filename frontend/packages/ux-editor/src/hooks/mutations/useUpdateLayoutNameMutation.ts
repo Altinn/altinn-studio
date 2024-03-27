@@ -17,7 +17,7 @@ export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetN
   const { updateFormLayoutName } = useServicesContext();
   const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, layoutSetName);
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
-  const { setSelectedFormLayoutName, refetchLayouts, refetchLayoutSettings } = useAppContext();
+  const { setSelectedFormLayoutName, refetchLayouts } = useAppContext();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ oldName, newName }: UpdateLayoutNameMutationArgs) =>
@@ -42,7 +42,6 @@ export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetN
       formLayoutSettingsMutation.mutate(layoutSettings);
 
       await refetchLayouts(layoutSetName);
-      await refetchLayoutSettings(layoutSetName);
 
       setSelectedFormLayoutName(newName);
     },

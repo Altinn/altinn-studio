@@ -2,7 +2,6 @@ import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuer
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { useMutation } from '@tanstack/react-query';
 import { ObjectUtils } from '@studio/pure-functions';
-import { useAppContext } from '../';
 
 export interface UpdateLayoutOrderMutationArgs {
   layoutName: string;
@@ -12,7 +11,6 @@ export interface UpdateLayoutOrderMutationArgs {
 export const useUpdateLayoutOrderMutation = (org: string, app: string, layoutSetName: string) => {
   const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, layoutSetName);
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
-  const { refetchLayoutSettings } = useAppContext();
   return useMutation({
     mutationFn: ({ layoutName, direction }: UpdateLayoutOrderMutationArgs) => {
       const layoutSettings = ObjectUtils.deepCopy(formLayoutSettingsQuery.data);
@@ -27,9 +25,6 @@ export const useUpdateLayoutOrderMutation = (org: string, app: string, layoutSet
       order.splice(currentIndex, 1);
       order.splice(destination, 0, layoutName);
       return formLayoutSettingsMutation.mutateAsync(layoutSettings);
-    },
-    onSuccess: async () => {
-      await refetchLayoutSettings(layoutSetName);
     },
   });
 };

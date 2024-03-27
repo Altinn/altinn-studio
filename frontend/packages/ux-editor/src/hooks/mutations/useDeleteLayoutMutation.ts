@@ -19,12 +19,8 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
 
   const { data: formLayouts } = useFormLayoutsQuery(org, app, layoutSetName);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, layoutSetName);
-  const {
-    selectedFormLayoutName,
-    setSelectedFormLayoutName,
-    refetchLayouts,
-    refetchLayoutSettings,
-  } = useAppContext();
+  const { selectedFormLayoutName, setSelectedFormLayoutName, refetchLayouts, previewIframeRef } =
+    useAppContext();
 
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
   const addLayoutMutation = useAddLayoutMutation(org, app, layoutSetName);
@@ -77,8 +73,13 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
       if (selectedFormLayoutName === layoutName) {
         setSelectedFormLayoutName(layoutToSelect);
       }
+
+      // TODO - Remove this condition when this issue is fixed : https://github.com/Altinn/app-frontend-react/issues/1977
+      if (Object.keys(layouts).length === 1) {
+        previewIframeRef?.current?.contentWindow.window.location.reload();
+      }
+
       await refetchLayouts(layoutSetName);
-      await refetchLayoutSettings(layoutSetName);
     },
   });
 };

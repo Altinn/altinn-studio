@@ -38,7 +38,6 @@ describe('useUpdateLayoutNameMutation', () => {
     );
 
     expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
-    expect(appContextMock.refetchLayoutSettings).toHaveBeenCalledTimes(1);
   });
 });
 
