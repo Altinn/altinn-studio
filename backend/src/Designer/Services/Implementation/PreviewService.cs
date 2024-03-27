@@ -55,6 +55,18 @@ public class PreviewService : IPreviewService
                     ElementId = task
                 }
             };
+        InstanceStatus status = processShouldActAsReceipt
+            ? new()
+            {
+                Archived = DateTime.Now,
+                IsArchived = true,
+                ReadStatus = ReadStatus.Read,
+            }
+            : new()
+            {
+                Archived = null,
+                IsArchived = false
+            };
         Instance instance = new()
         {
             InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId == null ? "undefined" : instanceOwnerPartyId.Value.ToString() },
@@ -70,6 +82,7 @@ public class PreviewService : IPreviewService
                 },
             Org = applicationMetadata.Org == developer ? "ttd" : applicationMetadata.Org,
             Process = processState,
+            Status = status
         };
         return instance;
     }
@@ -101,6 +114,11 @@ public class PreviewService : IPreviewService
             {
                 foreach (LayoutSetConfig layoutSet in layoutSets.Sets.Where(ls => !tasks.Contains(ls.Tasks[0])))
                 {
+                    if (layoutSet.Tasks[0] == "CustomReceipt")
+                    {
+                        continue;
+                    }
+
                     tasks.Add(layoutSet.Tasks[0]);
                 }
             }
