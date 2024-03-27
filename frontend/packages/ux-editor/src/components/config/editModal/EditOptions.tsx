@@ -126,6 +126,7 @@ export function EditOptions<T extends SelectionComponentType>({
         <StudioProperty.Group>
           {component.options?.map((option, index) => {
             const removeItem = () => handleRemoveOption(index);
+            const key = `${option.value}-${index}`; // Figure out a way to remove index from key.
             const optionNumber = index + 1;
             const legend =
               component.type === 'RadioButtons'
@@ -133,7 +134,7 @@ export function EditOptions<T extends SelectionComponentType>({
                 : t('ux_editor.checkboxes_option', { optionNumber });
             return (
               <EditOption
-                key={option.id}
+                key={key}
                 legend={legend}
                 onChange={handleOptionChange(index)}
                 onDelete={removeItem}
