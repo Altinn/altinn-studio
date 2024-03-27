@@ -21,16 +21,7 @@ export type CanvasProps = {
   ) => void;
 };
 
-/**
- * @component
- *  Displays the canvas area of the ProcessEditor
- *
- * @property {function}[onSave] - Function to be executed when saving the canvas
- * @property {string}[appLibVersion] - The app-lib version the user has
- *
- * @returns {JSX.Element} - The rendered component
- */
-export const Canvas = ({ onSave }: CanvasProps): JSX.Element => {
+export const Canvas = ({ onSave }: CanvasProps): React.ReactElement => {
   const { getUpdatedXml, isEditAllowed, numberOfUnsavedChanges, dataTasksAdded, dataTasksRemoved } =
     useBpmnContext();
 

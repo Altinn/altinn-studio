@@ -1,0 +1,8 @@
+.view {
+  width: 100%;
+}
+
+.textfield {
+  padding: var(--fds-spacing-3);
+  box-sizing: border-box;
+}

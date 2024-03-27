@@ -1,8 +1,7 @@
+import React, { createContext, useContext, useRef, useState, type MutableRefObject } from 'react';
 import { supportsProcessEditor } from '../utils/processEditorUtils';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import type Modeler from 'bpmn-js/lib/Modeler';
-import type { MutableRefObject } from 'react';
-import React, { createContext, useContext, useRef, useState } from 'react';
 import type { BpmnDetails } from '../types/BpmnDetails';
 
 export type BpmnContextProps = {
