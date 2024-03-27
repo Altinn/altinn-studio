@@ -13,6 +13,7 @@ export interface IFormDesignerNameSpace<T1> {
 export type IAppState = IFormDesignerNameSpace<IFormDesignerState>;
 
 export interface IOption {
+  id: string;
   label: string;
   value: any;
 }

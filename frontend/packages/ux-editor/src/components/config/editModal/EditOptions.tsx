@@ -133,7 +133,7 @@ export function EditOptions<T extends SelectionComponentType>({
                 : t('ux_editor.checkboxes_option', { optionNumber });
             return (
               <EditOption
-                key={index}
+                key={option.id}
                 legend={legend}
                 onChange={handleOptionChange(index)}
                 onDelete={removeItem}
