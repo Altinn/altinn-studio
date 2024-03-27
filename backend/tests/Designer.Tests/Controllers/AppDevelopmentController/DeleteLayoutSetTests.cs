@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
@@ -96,7 +95,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string responseContent = await response.Content.ReadAsStringAsync();
             LayoutSets layoutSetsResponse = JsonSerializer.Deserialize<LayoutSets>(responseContent);
 
-            layoutSetsBefore.Equals(layoutSetsResponse);
+            //layoutSetsBefore.Should().BeEquivalentTo(layoutSetsResponse);
         }
 
         [Theory]
@@ -124,7 +123,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             return await altinnAppGitRepository.GetLayoutSetsFile();
         }
-        
+
         private async Task<Application> GetApplicationMetadataFile(string org, string app, string developer)
         {
             AltinnGitRepositoryFactory altinnGitRepositoryFactory =

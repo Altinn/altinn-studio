@@ -323,7 +323,7 @@ namespace Altinn.Studio.Designer.Controllers
             LayoutSets layoutSets = await _appDevelopmentService.UpdateLayoutSet(editingContext, layoutSetIdToUpdate, layoutSet, cancellationToken);
             return Ok(layoutSets);
         }
-        
+
         /// <summary>
         /// Delete an existing layout set
         /// </summary>
