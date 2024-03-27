@@ -74,7 +74,7 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
         setSelectedFormLayoutName(layoutToSelect);
       }
 
-      // TODO - Remove this condition when this issue is fixed : https://github.com/Altinn/app-frontend-react/issues/1977
+      // TODO - Remove this reload when this issue is fixed : https://github.com/Altinn/app-frontend-react/issues/1977
       if (Object.keys(layouts).length === 1) {
         previewIframeRef?.current?.contentWindow.window.location.reload();
       }

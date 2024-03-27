@@ -22,7 +22,7 @@ export const useDeleteFormComponentMutation = (org: string, app: string, layoutS
         await deleteAppAttachmentMetadataMutation.mutateAsync(id);
       }
 
-      // TODO - Remove this condition when this issue is fixed : https://github.com/Altinn/app-frontend-react/issues/1977
+      // TODO - Remove this reload when this issue is fixed : https://github.com/Altinn/app-frontend-react/issues/1977
       previewIframeRef?.current?.contentWindow.window.location.reload();
 
       return formLayoutsMutation.mutateAsync(updatedLayout);
