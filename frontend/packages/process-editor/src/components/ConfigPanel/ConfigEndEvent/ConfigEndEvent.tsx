@@ -55,7 +55,7 @@ export const ConfigEndEvent = () => {
             fullWidth: true,
           }}
           inputProps={{
-            title: t('process_editor.configuration_panel_custom_receipt_add_button_title'),
+            label: t('process_editor.configuration_panel_custom_receipt_add_button_title'),
             icon: <PencilWritingIcon />,
             value: existingCustomReceiptLayoutSetName,
             onBlur: ({ target }) =>
