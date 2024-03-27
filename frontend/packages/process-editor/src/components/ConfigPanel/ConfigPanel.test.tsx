@@ -6,7 +6,8 @@ import type { BpmnContextProps } from '../../contexts/BpmnContext';
 import { BpmnContext } from '../../contexts/BpmnContext';
 import type { BpmnDetails } from '../../types/BpmnDetails';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
-import * as FeautreToggleUtils from 'app-shared/utils/featureToggleUtils';
+import * as FeatureToggleUtils from 'app-shared/utils/featureToggleUtils';
+import { BpmnApiContextProvider } from '../../contexts/BpmnApiContext';
 
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 const mockAppLibVersion8: string = '8.0.3';
@@ -87,7 +88,7 @@ describe('ConfigPanel', () => {
   });
 
   it('should display the details about the end event when bpmnDetails.type is "EndEvent" and customizeEndEvent feature flag is enabled', () => {
-    jest.spyOn(FeautreToggleUtils, 'shouldDisplayFeature').mockReturnValue(true);
+    jest.spyOn(FeatureToggleUtils, 'shouldDisplayFeature').mockReturnValue(true);
     render({ bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.EndEvent } });
     expect(
       screen.getByText(textMock('process_editor.configuration_panel_end_event')),
@@ -154,7 +155,14 @@ describe('ConfigPanel', () => {
 const render = (rootContextProps: Partial<BpmnContextProps> = {}) => {
   return rtlRender(
     <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
-      <ConfigPanel existingCustomReceiptName={undefined} onUpdateLayoutSet={jest.fn()} />
+      <BpmnApiContextProvider
+        layoutSets={{ sets: [] }}
+        existingCustomReceiptLayoutSetName={undefined}
+        addLayoutSet={jest.fn()}
+        mutateLayoutSet={jest.fn()}
+      >
+        <ConfigPanel />
+      </BpmnApiContextProvider>
     </BpmnContext.Provider>,
   );
 };

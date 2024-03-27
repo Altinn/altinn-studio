@@ -5,7 +5,7 @@ import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';
 import type { FormFileUploaderComponent } from '../../types/FormComponent';
 import { addItemOfType } from '../../utils/formLayoutUtils';
-import { useLayoutSetsQuery } from '../queries/useLayoutSetsQuery';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
 
 export interface AddFormItemMutationArgs {

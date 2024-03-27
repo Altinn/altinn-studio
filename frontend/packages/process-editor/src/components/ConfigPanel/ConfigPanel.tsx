@@ -7,7 +7,6 @@ import { useBpmnContext } from '../../contexts/BpmnContext';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 import { ConfigContent } from './ConfigContent';
 import { ConfigEndEvent } from './ConfigEndEvent';
-import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 /**
@@ -17,15 +16,7 @@ import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
  * @returns {JSX.Element} - The rendered component
  */
 
-export interface ConfigPanelProps {
-  existingCustomReceiptName: string | undefined;
-  onUpdateLayoutSet: (layoutSetIdToUpdate: string, layoutSetConfig: LayoutSetConfig) => void;
-}
-
-export const ConfigPanel = ({
-  existingCustomReceiptName,
-  onUpdateLayoutSet,
-}: ConfigPanelProps): JSX.Element => {
+export const ConfigPanel = (): JSX.Element => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
   const [showEndEventConfig] = React.useState<boolean>(shouldDisplayFeature('customizeEndEvent'));
@@ -38,12 +29,7 @@ export const ConfigPanel = ({
         </Paragraph>
       );
     } else if (showEndEventConfig && bpmnDetails.type === BpmnTypeEnum.EndEvent) {
-      return (
-        <ConfigEndEvent
-          existingCustomReceiptName={existingCustomReceiptName}
-          onUpdateLayoutSet={onUpdateLayoutSet}
-        />
-      );
+      return <ConfigEndEvent />;
     } else if (bpmnDetails.type === BpmnTypeEnum.Task) {
       return <ConfigContent />;
     } else {
