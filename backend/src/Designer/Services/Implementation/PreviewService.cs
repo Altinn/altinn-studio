@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -34,8 +35,26 @@ public class PreviewService : IPreviewService
         Application applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
         DataType dataType = await GetDataTypeForLayoutSetName(org, app, developer, layoutSetName, cancellationToken);
         string task = await GetTaskForLayoutSetName(org, app, developer, layoutSetName, cancellationToken);
+        bool processShouldActAsReceipt = task == "CustomReceipt";
         // RegEx for instance guid in app-frontend: [\da-f]{8}-[\da-f]{4}-[1-5][\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}
         string instanceGuid = "f1e23d45-6789-1bcd-8c34-56789abcdef0";
+        ProcessState processState = processShouldActAsReceipt
+            ? new()
+            {
+                CurrentTask = null,
+                EndEvent = "EndEvent_1",
+                Ended = DateTime.Now,
+                StartEvent = "StartEvent_1",
+                Started = DateTime.Now,
+            }
+            : new()
+            {
+                CurrentTask = new()
+                {
+                    AltinnTaskType = "data",
+                    ElementId = task
+                }
+            };
         Instance instance = new()
         {
             InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId == null ? "undefined" : instanceOwnerPartyId.Value.ToString() },
@@ -50,14 +69,7 @@ public class PreviewService : IPreviewService
                     }
                 },
             Org = applicationMetadata.Org == developer ? "ttd" : applicationMetadata.Org,
-            Process = new()
-            {
-                CurrentTask = new()
-                {
-                    AltinnTaskType = "data",
-                    ElementId = task
-                }
-            }
+            Process = processState,
         };
         return instance;
     }
