@@ -52,6 +52,7 @@ export const SelectAllowedPartyTypes = ({
           <Table.Row key={mappedOption.value}>
             <Table.Cell className={classes.checkboxContent}>
               <Checkbox
+                aria-label={t(mappedOption.label)}
                 key={key}
                 onChange={() =>
                   handleAllowedPartyTypeChange(appMetadata.partyTypesAllowed, mappedOption.value)

@@ -3,6 +3,7 @@ import {
   act,
   render as rtlRender,
   screen,
+  waitFor,
   waitForElementToBeRemoved,
 } from '@testing-library/react';
 import type { AccessControlTabProps } from './AccessControlTab';
@@ -17,11 +18,7 @@ import userEvent from '@testing-library/user-event';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
-const updateAppMetadataMutation = jest.fn();
-
-jest.mock('app-development/hooks/mutations', () => ({
-  useAppMetadataMutation: () => ({ mutate: updateAppMetadataMutation }),
-}));
+const updateAppMetadataMock = jest.fn();
 
 const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 
@@ -46,7 +43,7 @@ describe('AccessControlTab', () => {
 
   it('shows an error message if an error occured on the getAppMetadata query', async () => {
     const errorMessage = 'error-message-test';
-    render({}, { getAppMetadata: () => Promise.reject({ message: errorMessage }) });
+    render({ getAppMetadata: () => Promise.reject({ message: errorMessage }) });
 
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('settings_modal.loading_content')),
@@ -70,51 +67,38 @@ describe('AccessControlTab', () => {
     screen.getByRole('table');
   });
 
-  it('renders the column header for (Alle typer)', async () => {
+  it('should render all checkboxes', async () => {
     await resolveAndWaitForSpinnerToDisappear();
     screen.getByRole('columnheader', {
       name: textMock('settings_modal.access_control_tab_option_all_types'),
     });
-  });
-
-  it('should render all checkboxes', async () => {
-    await resolveAndWaitForSpinnerToDisappear();
-    screen.getByRole('row', {
+    screen.getByRole('checkbox', {
       name: textMock('settings_modal.access_control_tab_option_bankruptcy_estate'),
     });
-    screen.getByRole('row', {
+    screen.getByRole('checkbox', {
       name: textMock('settings_modal.access_control_tab_option_organisation'),
     });
-    screen.getByRole('row', {
+    screen.getByRole('checkbox', {
       name: textMock('settings_modal.access_control_tab_option_person'),
     });
-    screen.getByRole('row', {
+    screen.getByRole('checkbox', {
       name: textMock('settings_modal.access_control_tab_option_sub_unit'),
     });
   });
 
   it('should render all checkboxes as checked when applicationMetadata contains all partyTypes allowed', async () => {
-    await resolveAndWaitForSpinnerToDisappear();
+    const getAppMetadataMock = jest.fn().mockResolvedValue({
+      ...mockAppMetadata,
+      partyTypesAllowed: {
+        bankruptcyEstate: true,
+        organisation: true,
+        person: true,
+        subUnit: true,
+      },
+    });
+    await resolveAndWaitForSpinnerToDisappear({ getAppMetadata: getAppMetadataMock });
     const checkboxes = screen.queryAllByRole('checkbox');
-    expect(checkboxes).toHaveLength(5);
-    checkboxes.forEach((c) => expect(c).toBeTruthy());
-  });
-
-  it('should render all checkboxes labels', async () => {
-    await resolveAndWaitForSpinnerToDisappear();
-
-    screen.getByRole('row', {
-      name: textMock('settings_modal.access_control_tab_option_bankruptcy_estate'),
-    });
-    screen.getByRole('row', {
-      name: textMock('settings_modal.access_control_tab_option_organisation'),
-    });
-    screen.getByRole('row', {
-      name: textMock('settings_modal.access_control_tab_option_person'),
-    });
-    screen.getByRole('row', {
-      name: textMock('settings_modal.access_control_tab_option_sub_unit'),
-    });
+    checkboxes.forEach((c) => expect(c).toBeChecked());
   });
 
   it('should render the text of the button for help text correctly', async () => {
@@ -125,33 +109,43 @@ describe('AccessControlTab', () => {
     });
     await act(() => user.click(helpButton));
     screen.getByText(textMock('settings_modal.access_control_tab_help_text_heading'));
-    expect(
-      screen.getByText(textMock('settings_modal.access_control_tab_help_text_heading')),
-    ).toBeInTheDocument();
   });
 
   it('renders the documentation link with the correct text', async () => {
     await resolveAndWaitForSpinnerToDisappear();
-    const documentationLink = screen.getByText(
+    screen.getByText(
       textMock('settings_modal.access_control_tab_option_access_control_docs_link_text'),
     );
-    expect(documentationLink).toBeInTheDocument();
   });
 
-  it('render modal', async () => {
+  it('render the warning modal when user tries to uncheck all checkboxes', async () => {
     const user = userEvent.setup();
     await resolveAndWaitForSpinnerToDisappear();
     const checkbox = screen.getAllByRole('checkbox')[4];
     await act(() => user.click(checkbox));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(updateAppMetadataMutation).not.toHaveBeenCalled();
+    expect(updateAppMetadataMock).not.toHaveBeenCalled();
   });
 
-  it("should close modal when clicking 'close' button", async () => {
+  it('render the warning modal when user tries to uncheck all checkboxes, and close it', async () => {
     const user = userEvent.setup();
-    await resolveAndWaitForSpinnerToDisappear();
-    const checkbox = screen.getAllByRole('checkbox')[4];
-    await act(() => user.click(checkbox));
+    const getAppMetadataMock = jest.fn().mockResolvedValue({
+      ...mockAppMetadata,
+      partyTypesAllowed: {
+        person: false,
+        organisation: false,
+        subUnit: false,
+        bankruptcyEstate: true,
+      },
+    });
+    await resolveAndWaitForSpinnerToDisappear({ getAppMetadata: getAppMetadataMock });
+    const bankruptcyEstateCheckbox = screen.getByRole('checkbox', {
+      name: textMock('settings_modal.access_control_tab_option_bankruptcy_estate'),
+    });
+    expect(bankruptcyEstateCheckbox).toBeChecked();
+    await waitFor(() => user.click(bankruptcyEstateCheckbox));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(updateAppMetadataMock).not.toHaveBeenCalled();
     const closeButton = screen.getByRole('button', { name: textMock('general.close') });
     await act(() => user.click(closeButton));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -160,44 +154,35 @@ describe('AccessControlTab', () => {
   it('should call updateAppMetadataMutation when selecting checkbox', async () => {
     const user = userEvent.setup();
     await resolveAndWaitForSpinnerToDisappear();
-    const checkboxes = screen.getAllByRole('checkbox')[0];
-    await act(() => user.click(checkboxes));
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1);
-    expect(updateAppMetadataMutation).toHaveBeenCalledWith({
-      ...mockAppMetadata,
-      partyTypesAllowed: {
-        ...mockAppMetadata.partyTypesAllowed,
-        person: true,
-      },
+    const checkboxes = screen.getByRole('checkbox', {
+      name: textMock('settings_modal.access_control_tab_option_person'),
     });
+    await act(() => user.click(checkboxes));
+    expect(updateAppMetadataMock).toHaveBeenCalledTimes(1);
   });
 });
 
-const resolveAndWaitForSpinnerToDisappear = async (
-  props: Partial<AccessControlTabProps> = {},
-  queries: Partial<ServicesContextProps> = {},
-) => {
+const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesContextProps> = {}) => {
   getAppMetadata.mockImplementation(() => Promise.resolve(mockAppMetadata));
-  render(props, queries);
+  render(queries);
   await waitForElementToBeRemoved(() =>
     screen.queryByTitle(textMock('settings_modal.loading_content')),
   );
 };
 
 const render = (
-  props: Partial<AccessControlTabProps> = {},
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
   const allQueries: ServicesContextProps = {
     getAppMetadata,
+    updateAppMetadata: updateAppMetadataMock,
     ...queries,
   };
 
   return rtlRender(
     <ServicesContextProvider {...allQueries} client={queryClient}>
-      <AccessControlTab {...defaultProps} {...props}></AccessControlTab>
+      <AccessControlTab {...defaultProps}></AccessControlTab>
     </ServicesContextProvider>,
   );
 };

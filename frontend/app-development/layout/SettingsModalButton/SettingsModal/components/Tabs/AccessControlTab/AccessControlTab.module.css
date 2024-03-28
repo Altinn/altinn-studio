@@ -8,7 +8,5 @@
   margin-top: var(--fds-spacing-10);
   display: flex;
   align-items: center;
-}
-.docsLink {
-  margin-top: var(--fds-spacing-3);
+  margin-bottom: var(--fds-spacing-3);
 }

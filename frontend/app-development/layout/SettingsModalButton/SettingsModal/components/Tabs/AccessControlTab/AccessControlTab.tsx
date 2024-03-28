@@ -11,8 +11,8 @@ import { useAppMetadataQuery } from 'app-development/hooks/queries';
 import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';
 import { TabContent } from '../../TabContent';
-import { AccessControlWarningModal } from '../AccessControlTab/AccessControWarningModal';
-import { SelectAllowedPartyTypes } from '../AccessControlTab/SelectAllowedPartyTypes';
+import { AccessControlWarningModal } from './AccessControWarningModal';
+import { SelectAllowedPartyTypes } from './SelectAllowedPartyTypes';
 
 export type AccessControlTabProps = {
   org: string;
@@ -127,11 +127,9 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
       <span className={classes.docsLinkText}>
         {t('settings_modal.access_control_tab_option_access_control_docs_link_text')}
       </span>
-      <div className={classes.docsLink}>
-        <Trans i18nKey={'settings_modal.access_control_tab_option_access_control_docs_link'}>
-          <Link>documentation</Link>
-        </Trans>
-      </div>
+      <Trans i18nKey={'settings_modal.access_control_tab_option_access_control_docs_link'}>
+        <Link>documentation</Link>
+      </Trans>
       <AccessControlWarningModal t={t} modalRef={modalRef} />
     </TabContent>
   );
