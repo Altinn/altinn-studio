@@ -1,3 +1,12 @@
-.checkboxParagraph {
-  margin-left: 0.5rem;
+.tabHeaderContent {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-2);
+}
+
+.docsLinkText {
+  margin-top: var(--fds-spacing-10);
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--fds-spacing-3);
 }

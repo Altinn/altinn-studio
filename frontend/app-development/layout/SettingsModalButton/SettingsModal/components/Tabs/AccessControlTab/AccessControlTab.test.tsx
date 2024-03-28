@@ -3,6 +3,7 @@ import {
   act,
   render as rtlRender,
   screen,
+  waitFor,
   waitForElementToBeRemoved,
 } from '@testing-library/react';
 import type { AccessControlTabProps } from './AccessControlTab';
@@ -11,23 +12,13 @@ import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import type { QueryClient, UseMutationResult } from '@tanstack/react-query';
-import userEvent from '@testing-library/user-event';
-import { useAppMetadataMutation } from 'app-development/hooks/mutations';
-import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import type { QueryClient } from '@tanstack/react-query';
 import { mockAppMetadata } from '../../../mocks/applicationMetadataMock';
+import userEvent from '@testing-library/user-event';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
-
-jest.mock('../../../../../../hooks/mutations/useAppMetadataMutation');
-const updateAppMetadataMutation = jest.fn();
-const mockUpdateAppMetadataMutation = useAppMetadataMutation as jest.MockedFunction<
-  typeof useAppMetadataMutation
->;
-mockUpdateAppMetadataMutation.mockReturnValue({
-  mutate: updateAppMetadataMutation,
-} as unknown as UseMutationResult<void, Error, ApplicationMetadata, unknown>);
+const updateAppMetadataMock = jest.fn();
 
 const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 
@@ -52,7 +43,7 @@ describe('AccessControlTab', () => {
 
   it('shows an error message if an error occured on the getAppMetadata query', async () => {
     const errorMessage = 'error-message-test';
-    render({}, { getAppMetadata: () => Promise.reject({ message: errorMessage }) });
+    render({ getAppMetadata: () => Promise.reject({ message: errorMessage }) });
 
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('settings_modal.loading_content')),
@@ -63,89 +54,135 @@ describe('AccessControlTab', () => {
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
   });
 
-  it('should render all checkboxes as unchecked when applicationMetadata des not contain partyTypes allowed', async () => {
-    getAppMetadata.mockImplementation(() =>
-      Promise.resolve({ ...mockAppMetadata, partyTypesAllowed: null }),
-    );
+  it('renders the header', () => {
     render();
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('settings_modal.loading_content')),
-    );
-
-    const checkboxes = screen.queryAllByRole('checkbox');
-    expect(checkboxes).toHaveLength(4);
-    checkboxes.forEach((c) => expect(c).not.toBeChecked());
+    const header = screen.getByRole('heading', {
+      name: textMock('settings_modal.access_control_tab_heading'),
+    });
+    expect(header).toBeInTheDocument();
   });
 
-  it('should render all checkboxes with the correct values based on the party types allowed', async () => {
+  it('renders the table', async () => {
     await resolveAndWaitForSpinnerToDisappear();
+    screen.getByRole('table');
+  });
 
-    const bankruptcyEstateCheckbox = screen.getByRole('checkbox', {
+  it('should render all checkboxes', async () => {
+    await resolveAndWaitForSpinnerToDisappear();
+    screen.getByRole('columnheader', {
+      name: textMock('settings_modal.access_control_tab_option_all_types'),
+    });
+    screen.getByRole('checkbox', {
       name: textMock('settings_modal.access_control_tab_option_bankruptcy_estate'),
     });
-    expect(bankruptcyEstateCheckbox).toBeChecked();
-
-    const organisationCheckbox = screen.getByRole('checkbox', {
+    screen.getByRole('checkbox', {
       name: textMock('settings_modal.access_control_tab_option_organisation'),
     });
-    expect(organisationCheckbox).not.toBeChecked();
-
-    const personCheckbox = screen.getByRole('checkbox', {
+    screen.getByRole('checkbox', {
       name: textMock('settings_modal.access_control_tab_option_person'),
     });
-    expect(personCheckbox).not.toBeChecked();
-
-    const subUnitCheckbox = screen.getByRole('checkbox', {
+    screen.getByRole('checkbox', {
       name: textMock('settings_modal.access_control_tab_option_sub_unit'),
     });
-    expect(subUnitCheckbox).not.toBeChecked();
   });
 
-  it('handles checkbox changes', async () => {
-    const user = userEvent.setup();
-    await resolveAndWaitForSpinnerToDisappear();
-
-    const organisationCheckboxBefore = screen.getByRole('checkbox', {
-      name: textMock('settings_modal.access_control_tab_option_organisation'),
-    });
-    expect(organisationCheckboxBefore).not.toBeChecked();
-
-    await act(() => user.click(organisationCheckboxBefore));
-
-    expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1);
-    expect(updateAppMetadataMutation).toHaveBeenCalledWith({
+  it('should render all checkboxes as checked when applicationMetadata contains all partyTypes allowed', async () => {
+    const getAppMetadataMock = jest.fn().mockResolvedValue({
       ...mockAppMetadata,
       partyTypesAllowed: {
         bankruptcyEstate: true,
         organisation: true,
-        person: false,
-        subUnit: false,
+        person: true,
+        subUnit: true,
       },
     });
+    await resolveAndWaitForSpinnerToDisappear({ getAppMetadata: getAppMetadataMock });
+    const checkboxes = screen.queryAllByRole('checkbox');
+    checkboxes.forEach((c) => expect(c).toBeChecked());
+  });
+
+  it('should render the text of the button for help text correctly', async () => {
+    const user = userEvent.setup();
+    render();
+    const helpButton = screen.getByRole('button', {
+      name: textMock('settings_modal.access_control_tab_help_text_title'),
+    });
+    await act(() => user.click(helpButton));
+    screen.getByText(textMock('settings_modal.access_control_tab_help_text_heading'));
+  });
+
+  it('renders the documentation link with the correct text', async () => {
+    await resolveAndWaitForSpinnerToDisappear();
+    screen.getByText(
+      textMock('settings_modal.access_control_tab_option_access_control_docs_link_text'),
+    );
+  });
+
+  it('render the warning modal when user tries to uncheck all checkboxes', async () => {
+    const user = userEvent.setup();
+    await resolveAndWaitForSpinnerToDisappear();
+    const checkbox = screen.getAllByRole('checkbox')[4];
+    await act(() => user.click(checkbox));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(updateAppMetadataMock).not.toHaveBeenCalled();
+  });
+
+  it('render the warning modal when user tries to uncheck all checkboxes, and close it', async () => {
+    const user = userEvent.setup();
+    const getAppMetadataMock = jest.fn().mockResolvedValue({
+      ...mockAppMetadata,
+      partyTypesAllowed: {
+        person: false,
+        organisation: false,
+        subUnit: false,
+        bankruptcyEstate: true,
+      },
+    });
+    await resolveAndWaitForSpinnerToDisappear({ getAppMetadata: getAppMetadataMock });
+    const bankruptcyEstateCheckbox = screen.getByRole('checkbox', {
+      name: textMock('settings_modal.access_control_tab_option_bankruptcy_estate'),
+    });
+    expect(bankruptcyEstateCheckbox).toBeChecked();
+    await waitFor(() => user.click(bankruptcyEstateCheckbox));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(updateAppMetadataMock).not.toHaveBeenCalled();
+    const closeButton = screen.getByRole('button', { name: textMock('general.close') });
+    await act(() => user.click(closeButton));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('should call updateAppMetadataMutation when selecting checkbox', async () => {
+    const user = userEvent.setup();
+    await resolveAndWaitForSpinnerToDisappear();
+    const checkboxes = screen.getByRole('checkbox', {
+      name: textMock('settings_modal.access_control_tab_option_person'),
+    });
+    await act(() => user.click(checkboxes));
+    expect(updateAppMetadataMock).toHaveBeenCalledTimes(1);
   });
 });
 
-const resolveAndWaitForSpinnerToDisappear = async (props: Partial<AccessControlTabProps> = {}) => {
+const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesContextProps> = {}) => {
   getAppMetadata.mockImplementation(() => Promise.resolve(mockAppMetadata));
-  render(props);
+  render(queries);
   await waitForElementToBeRemoved(() =>
     screen.queryByTitle(textMock('settings_modal.loading_content')),
   );
 };
 
 const render = (
-  props: Partial<AccessControlTabProps> = {},
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
   const allQueries: ServicesContextProps = {
     getAppMetadata,
+    updateAppMetadata: updateAppMetadataMock,
     ...queries,
   };
 
   return rtlRender(
     <ServicesContextProvider {...allQueries} client={queryClient}>
-      <AccessControlTab {...defaultProps} {...props} />
+      <AccessControlTab {...defaultProps}></AccessControlTab>
     </ServicesContextProvider>,
   );
 };
