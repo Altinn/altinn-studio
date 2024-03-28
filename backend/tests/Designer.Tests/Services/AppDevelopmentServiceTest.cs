@@ -118,7 +118,7 @@ public class AppDevelopmentServiceTest : IDisposable
 
         // Assert
         updatedLayoutSets.Should().NotBeNull();
-        updatedLayoutSets.Sets.Should().HaveCount(3);
+        updatedLayoutSets.Sets.Should().HaveCount(4);
         updatedLayoutSets.Sets.Should().Contain(newLayoutSet);
     }
 
@@ -160,7 +160,7 @@ public class AppDevelopmentServiceTest : IDisposable
 
         // Assert
         updatedLayoutSets.Should().NotBeNull();
-        updatedLayoutSets.Sets.Should().HaveCount(3);
+        updatedLayoutSets.Sets.Should().HaveCount(4);
         updatedLayoutSets.Sets.Should().Contain(newLayoutSet);
         layoutSetFileNamesBeforeUpdate.Should().BeEquivalentTo(layoutSetFileNamesAfterUpdate);
     }
@@ -179,7 +179,7 @@ public class AppDevelopmentServiceTest : IDisposable
 
         // Assert
         updatedLayoutSets.Should().NotBeNull();
-        updatedLayoutSets.Sets.Should().HaveCount(4);
+        updatedLayoutSets.Sets.Should().HaveCount(5);
         updatedLayoutSets.Sets.Should().Contain(newLayoutSet); // Ensure newLayoutSet is added
     }
 

@@ -145,6 +145,7 @@ public class PreviewService : IPreviewService
         cancellationToken.ThrowIfCancellationRequested();
         AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
         LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
-        return layoutSets?.Sets?.Find(set => set.Tasks[0] == "CustomReceipt")?.DataType;
+        string dataType = layoutSets?.Sets?.Find(set => set.Tasks[0] == "CustomReceipt")?.DataType;
+        return dataType ?? string.Empty;
     }
 }
