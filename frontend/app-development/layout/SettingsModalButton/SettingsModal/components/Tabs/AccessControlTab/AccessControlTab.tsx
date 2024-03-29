@@ -1,17 +1,13 @@
 import type { ReactNode } from 'react';
-import React, { useRef } from 'react';
+import React from 'react';
 import classes from './AccessControlTab.module.css';
 import { Trans, useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
 import { ErrorMessage, HelpText, Link, Paragraph } from '@digdir/design-system-react';
-import type { PartyTypesAllowed } from 'app-shared/types/ApplicationMetadata';
-import { useAppMetadataMutation } from 'app-development/hooks/mutations';
-import { getPartyTypesAllowedOptions } from '../../../utils/tabUtils/accessControlTabUtils';
 import { useAppMetadataQuery } from 'app-development/hooks/queries';
 import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';
 import { TabContent } from '../../TabContent';
-import { AccessControlWarningModal } from './AccessControWarningModal';
 import { SelectAllowedPartyTypes } from './SelectAllowedPartyTypes';
 
 export type AccessControlTabProps = {
@@ -30,47 +26,12 @@ export type AccessControlTabProps = {
  */
 export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode => {
   const { t } = useTranslation();
-  const modalRef = useRef<HTMLDialogElement>(null);
 
   const {
     status: appMetadataStatus,
     data: appMetadata,
     error: appMetadataError,
   } = useAppMetadataQuery(org, app);
-
-  const { mutate: updateAppMetadataMutation } = useAppMetadataMutation(org, app);
-
-  const handleAllowedPartyTypeChange = (
-    currentPartyTypesAllowed: PartyTypesAllowed,
-    checkboxValue: string,
-  ) => {
-    const updatedPartyTypesAllowed = { ...currentPartyTypesAllowed };
-    updatedPartyTypesAllowed[checkboxValue] = !currentPartyTypesAllowed[checkboxValue];
-
-    const updatedCheckedCheckboxes = Object.values(updatedPartyTypesAllowed).filter(
-      (value) => value,
-    );
-
-    if (updatedCheckedCheckboxes.length === 0) {
-      modalRef.current?.showModal();
-      return;
-    }
-    updateAppMetadataMutation({
-      ...appMetadata,
-      partyTypesAllowed: updatedPartyTypesAllowed,
-    });
-  };
-
-  const handleTableHeaderCheckboxChange = () => {
-    const updatedPartyTypesAllowed = appMetadata.partyTypesAllowed;
-    Object.keys(appMetadata.partyTypesAllowed).forEach((key) => {
-      updatedPartyTypesAllowed[key] = true;
-    });
-    updateAppMetadataMutation({
-      ...appMetadata,
-      partyTypesAllowed: updatedPartyTypesAllowed,
-    });
-  };
 
   const displayContent = () => {
     switch (appMetadataStatus) {
@@ -85,15 +46,6 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
         );
       }
       case 'success': {
-        const isNoCheckboxesChecked = Object.values(appMetadata.partyTypesAllowed).every(
-          (value) => !value,
-        );
-        const areAllCheckboxesChecked = Object.values(appMetadata.partyTypesAllowed).every(
-          (value) => value,
-        );
-        const isSomeCheckboxesChecked = Object.values(appMetadata.partyTypesAllowed).some(
-          (value) => value,
-        );
         return (
           <>
             <TabHeader text={t('settings_modal.access_control_tab_checkbox_legend_label')} />
@@ -101,14 +53,9 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
               <span>{t('settings_modal.access_control_tab_checkbox_description')}</span>
             </Paragraph>
             <SelectAllowedPartyTypes
-              t={t}
-              appMetadata={appMetadata}
-              isAllChecked={areAllCheckboxesChecked}
-              isSomeChecked={isSomeCheckboxesChecked}
-              isNoneChecked={isNoCheckboxesChecked}
-              handleTableHeaderCheckboxChange={handleTableHeaderCheckboxChange}
-              handleAllowedPartyTypeChange={handleAllowedPartyTypeChange}
-              getPartyTypesAllowedOptions={getPartyTypesAllowedOptions}
+              org={org}
+              app={app}
+              partyTypesAllowed={appMetadata.partyTypesAllowed}
             />
           </>
         );
@@ -130,7 +77,6 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
       <Trans i18nKey={'settings_modal.access_control_tab_option_access_control_docs_link'}>
         <Link>documentation</Link>
       </Trans>
-      <AccessControlWarningModal t={t} modalRef={modalRef} />
     </TabContent>
   );
 };
