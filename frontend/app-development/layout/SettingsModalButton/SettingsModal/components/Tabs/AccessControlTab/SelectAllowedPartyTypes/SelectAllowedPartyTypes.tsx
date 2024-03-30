@@ -11,21 +11,17 @@ import { AccessControlWarningModal } from '../AccessControWarningModal';
 export interface SelectAllowedPartyTypesProps {
   org: string;
   app: string;
-  partyTypesAllowed: PartyTypesAllowed;
 }
 
-export const SelectAllowedPartyTypes = ({
-  partyTypesAllowed,
-  org,
-  app,
-}: SelectAllowedPartyTypesProps) => {
+export const SelectAllowedPartyTypes = ({ org, app }: SelectAllowedPartyTypesProps) => {
   const { t } = useTranslation();
-  const isNoCheckboxesChecked = Object.values(partyTypesAllowed).every((value) => !value);
-  const areAllCheckboxesChecked = Object.values(partyTypesAllowed).every((value) => value);
-  const isSomeCheckboxesChecked = Object.values(partyTypesAllowed).some((value) => value);
   const modalRef = useRef<HTMLDialogElement>(null);
 
   const { data: appMetadata } = useAppMetadataQuery(org, app);
+  const partyTypesAllowed = appMetadata.partyTypesAllowed;
+  const isNoCheckboxesChecked = Object.values(partyTypesAllowed).every((value) => !value);
+  const areAllCheckboxesChecked = Object.values(partyTypesAllowed).every((value) => value);
+  const isSomeCheckboxesChecked = Object.values(partyTypesAllowed).some((value) => value);
 
   const { mutate: updateAppMetadataMutation } = useAppMetadataMutation(org, app);
 
