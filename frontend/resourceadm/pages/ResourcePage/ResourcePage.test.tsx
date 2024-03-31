@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen, waitForElementToBeRemoved, waitFor } from '@testing-library/react';
 import { ResourcePage } from './ResourcePage';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
@@ -145,6 +145,31 @@ describe('ResourcePage', () => {
         level: 1,
       }),
     ).toBeInTheDocument();
+  });
+
+  it('should call editResource when resource data is changed', async () => {
+    const user = userEvent.setup();
+    const getResource = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<Resource>(mockResource1));
+
+    renderResourcePage({ getResource });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
+    );
+
+    const deployButton = screen.getByRole('tab', {
+      name: textMock('resourceadm.left_nav_bar_deploy'),
+    });
+    await act(() => user.click(deployButton));
+
+    const deployFieldLabel = textMock('resourceadm.deploy_version_label');
+    await waitFor(() => screen.findByText(deployFieldLabel));
+    const deployResourceVersionField = screen.getByLabelText(deployFieldLabel);
+    await act(() => user.type(deployResourceVersionField, '1.2'));
+    await act(() => deployResourceVersionField.blur());
+
+    await waitFor(() => expect(queriesMock.updateResource).toHaveBeenCalledTimes(1));
   });
 });
 
