@@ -11,7 +11,6 @@ export interface AppContextProps {
   previewIframeRef: MutableRefObject<HTMLIFrameElement>;
   selectedFormLayoutSetName: string;
   setSelectedFormLayoutSetName: (selectedFormLayoutSetName: string) => void;
-  removeSelectedFormLayoutSetName: () => void;
   selectedFormLayoutName: string;
   setSelectedFormLayoutName: (selectedFormLayoutName: string) => void;
   refetchLayouts: (layoutSetName: string) => Promise<void>;
@@ -27,11 +26,8 @@ type AppContextProviderProps = {
 
 export const AppContextProvider = ({ children }: AppContextProviderProps): React.JSX.Element => {
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
-  const {
-    selectedFormLayoutSetName,
-    setSelectedFormLayoutSetName,
-    removeSelectedFormLayoutSetName,
-  } = useSelectedFormLayoutSetName();
+  const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } =
+    useSelectedFormLayoutSetName();
   const { selectedFormLayoutName, setSelectedFormLayoutName } =
     useSelectedFormLayoutName(selectedFormLayoutSetName);
 
@@ -69,7 +65,6 @@ export const AppContextProvider = ({ children }: AppContextProviderProps): React
       previewIframeRef,
       selectedFormLayoutSetName,
       setSelectedFormLayoutSetName,
-      removeSelectedFormLayoutSetName,
       selectedFormLayoutName,
       setSelectedFormLayoutName,
       refetchLayouts,
@@ -79,7 +74,6 @@ export const AppContextProvider = ({ children }: AppContextProviderProps): React
     [
       selectedFormLayoutSetName,
       setSelectedFormLayoutSetName,
-      removeSelectedFormLayoutSetName,
       selectedFormLayoutName,
       setSelectedFormLayoutName,
       refetchLayouts,

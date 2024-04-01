@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { FormDesigner } from './containers/FormDesigner';
 import { useText, useAppContext } from './hooks';
 import { StudioPageSpinner } from '@studio/components';
@@ -6,7 +6,6 @@ import { ErrorPage } from './components/ErrorPage';
 import { useDatamodelMetadataQuery } from './hooks/queries/useDatamodelMetadataQuery';
 import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
-import { useLayoutSetsQuery } from './hooks/queries/useLayoutSetsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { FormItemContextProvider } from './containers/FormItemContext';
 
@@ -19,29 +18,13 @@ import { FormItemContextProvider } from './containers/FormItemContext';
 export function App() {
   const t = useText();
   const { org, app } = useStudioUrlParams();
-  const { selectedFormLayoutSetName, removeSelectedFormLayoutSetName } = useAppContext();
-  const { data: layoutSets, isSuccess: areLayoutSetsFetched } = useLayoutSetsQuery(org, app);
+  const { selectedFormLayoutSetName } = useAppContext();
   const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
   const { isSuccess: isDatamodelFetched, isError: dataModelFetchedError } =
     useDatamodelMetadataQuery(org, app, selectedFormLayoutSetName);
   const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
 
-  useEffect(() => {
-    if (
-      areLayoutSetsFetched &&
-      selectedFormLayoutSetName &&
-      (!layoutSets || !layoutSets.sets.map((set) => set.id).includes(selectedFormLayoutSetName))
-    )
-      removeSelectedFormLayoutSetName();
-  }, [
-    areLayoutSetsFetched,
-    layoutSets,
-    selectedFormLayoutSetName,
-    removeSelectedFormLayoutSetName,
-  ]);
-
-  const componentIsReady =
-    areWidgetsFetched && isDatamodelFetched && areTextResourcesFetched && areLayoutSetsFetched;
+  const componentIsReady = areWidgetsFetched && isDatamodelFetched && areTextResourcesFetched;
 
   const componentHasError = dataModelFetchedError || widgetFetchedError;
 

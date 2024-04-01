@@ -12,15 +12,19 @@ export const useSelectedFormLayoutSetName = (): UseSelectedFormLayoutSetNameResu
   const { org, app } = useStudioUrlParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
-  const [selectedFormLayoutSetName, setSelectedFormLayoutSetName, removeSelectedFormLayoutSetName] =
-    useReactiveLocalStorage('layoutSet/' + app, undefined);
+  const [
+    selectedFormLayoutSetNameState,
+    setSelectedFormLayoutSetName,
+    removeSelectedFormLayoutSetName,
+  ] = useReactiveLocalStorage('layoutSet/' + app, undefined);
+
+  let selectedFormLayoutSetName: string;
 
   if (layoutSets?.sets.length > 0) {
-    if (
-      !selectedFormLayoutSetName ||
-      !layoutSets.sets.find((item) => item.id === selectedFormLayoutSetName)
-    ) {
-      setSelectedFormLayoutSetName(layoutSets.sets[0].id);
+    if (layoutSets.sets.find((item) => item.id === selectedFormLayoutSetNameState)) {
+      selectedFormLayoutSetName = selectedFormLayoutSetNameState;
+    } else {
+      selectedFormLayoutSetName = layoutSets.sets[0].id;
     }
   }
 
