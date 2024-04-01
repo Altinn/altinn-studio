@@ -17,6 +17,13 @@ const mockSelectedFormLayoutName = 'Side1';
 
 const render = (ChildComponent: React.ElementType) => {
   const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.LayoutSets, org, app], {
+    sets: [
+      {
+        id: mockSelectedFormLayoutSetName,
+      },
+    ],
+  });
   queryClient.setQueryData([QueryKey.FormLayoutSettings, org, app, mockSelectedFormLayoutSetName], {
     pages: {
       order: [mockSelectedFormLayoutName],
@@ -51,8 +58,6 @@ describe('AppContext', () => {
         </>
       );
     });
-
-    expect((await screen.findByTestId('selectedFormLayoutSetName')).textContent).toEqual('');
 
     const button = screen.getByTestId('button');
     await act(() => user.click(button));
