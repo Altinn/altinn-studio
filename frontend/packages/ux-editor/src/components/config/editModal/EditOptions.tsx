@@ -57,6 +57,7 @@ export function EditOptions<T extends SelectionComponentType>({
   const initialSelectedOptionType = getSelectedOptionsType(component.optionsId, component.options);
   const [selectedOptionsType, setSelectedOptionsType] = useState(initialSelectedOptionType);
   const { t } = useTranslation();
+  const [optionIds, setOptionIds] = useState<string[]>([]);
 
   const errorMessage = useComponentErrorMessage(component);
 
@@ -66,6 +67,11 @@ export function EditOptions<T extends SelectionComponentType>({
       setSelectedOptionsType(initialSelectedOptionType);
     }
   }, [editFormId, initialSelectedOptionType]);
+
+  useEffect(() => {
+    const newOptionIds = component.options.map((_, index) => `option_${index}`);
+    setOptionIds(newOptionIds);
+  }, [component.options]);
 
   const handleOptionsTypeChange = (oldOptionsType: SelectedOptionsType) => {
     const newOptionsType =
@@ -126,7 +132,7 @@ export function EditOptions<T extends SelectionComponentType>({
         <StudioProperty.Group>
           {component.options?.map((option, index) => {
             const removeItem = () => handleRemoveOption(index);
-            const key = `${option.value}-${index}`; // Figure out a way to remove index from key.
+            const key = optionIds[index];
             const optionNumber = index + 1;
             const legend =
               component.type === 'RadioButtons'
