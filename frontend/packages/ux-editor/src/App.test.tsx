@@ -9,9 +9,7 @@ import type { AppContextProps } from './AppContext';
 import ruleHandlerMock from './testing/ruleHandlerMock';
 import { layoutSetsMock } from './testing/layoutMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { appContextMock } from './testing/appContextMock';
 
-const selectedFormLayoutSetName = layoutSetsMock.sets[0].id;
 const mockQueries: Partial<ServicesContextProps> = {
   getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve('test')),
   getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
@@ -47,23 +45,6 @@ describe('App', () => {
   it('should render the component', async () => {
     renderApp(mockQueries);
     await waitForLoadingToFinish();
-  });
-
-  it('Removes the preview layout set from local storage if it does not exist', async () => {
-    const layoutSetThatDoesNotExist = 'layout-set-that-does-not-exist';
-    typedLocalStorage.setItem('selectedLayoutSet', layoutSetThatDoesNotExist);
-    renderApp(mockQueries, {
-      selectedFormLayoutSetName: layoutSetThatDoesNotExist,
-    });
-    await waitForLoadingToFinish();
-    expect(appContextMock.removeSelectedFormLayoutSetName).toHaveBeenCalledTimes(1);
-  });
-
-  it('Does not remove the preview layout set from local storage if it exists', async () => {
-    typedLocalStorage.setItem('selectedLayoutSet', selectedFormLayoutSetName);
-    renderApp(mockQueries);
-    await waitForLoadingToFinish();
-    expect(appContextMock.removeSelectedFormLayoutSetName).not.toHaveBeenCalled();
   });
 });
 

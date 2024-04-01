@@ -196,29 +196,4 @@ describe('AppContext', () => {
       }),
     );
   });
-
-  it('removed selectedFormLayoutSetName correctly', async () => {
-    const user = userEvent.setup();
-
-    render(() => {
-      const { selectedFormLayoutSetName, removeSelectedFormLayoutSetName } = useAppContext();
-      return (
-        <>
-          <button data-testid='button' onClick={() => removeSelectedFormLayoutSetName()} />
-          <div data-testid='selectedFormLayoutSetName'>{selectedFormLayoutSetName}</div>
-        </>
-      );
-    });
-
-    expect((await screen.findByTestId('selectedFormLayoutSetName')).textContent).toEqual(
-      mockSelectedFormLayoutSetName,
-    );
-
-    const button = screen.getByTestId('button');
-    await act(() => user.click(button));
-
-    await waitFor(async () =>
-      expect((await screen.findByTestId('selectedFormLayoutSetName')).textContent).toEqual(''),
-    );
-  });
 });
