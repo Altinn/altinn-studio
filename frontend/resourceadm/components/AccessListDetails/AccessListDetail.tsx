@@ -34,7 +34,11 @@ export const AccessListDetail = ({
   const [listDescription, setListDescription] = useState<string>(list.description || '');
 
   const { mutate: editAccessList } = useEditAccessListMutation(org, list.identifier, env);
-  const { mutate: deleteAccessList } = useDeleteAccessListMutation(org, list.identifier, env);
+  const { mutate: deleteAccessList, isPending: isDeletingAccessList } = useDeleteAccessListMutation(
+    org,
+    list.identifier,
+    env,
+  );
 
   // change list name, description and possibly other properties
   const handleSave = (accessList: AccessList): void => {
@@ -118,6 +122,7 @@ export const AccessListDetail = ({
           icon={<TrashIcon className={classes.deleteIcon} />}
           iconPlacement='right'
           onClick={() => deleteWarningModalRef.current?.showModal()}
+          disabled={isDeletingAccessList}
         >
           {t('resourceadm.listadmin_delete_list')}
         </StudioButton>

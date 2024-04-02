@@ -25,9 +25,10 @@ export const NewAccessListModal = forwardRef<HTMLDialogElement, NewAccessListMod
     const [name, setName] = useState<string>('');
     const [errorMessage, setErrorMessage] = useState<string>('');
 
-    const { mutate: createAccessList } = useCreateAccessListMutation(org, env);
+    const { mutate: createAccessList, isPending: isCreatingAccessList } =
+      useCreateAccessListMutation(org, env);
 
-    const isSaveButtonDisabled = !id.trim().length || !name.trim().length;
+    const isSaveButtonDisabled = !id.trim().length || !name.trim().length || isCreatingAccessList;
 
     const handleCreateNewAccessList = (newId: string, newName: string) => {
       setErrorMessage('');

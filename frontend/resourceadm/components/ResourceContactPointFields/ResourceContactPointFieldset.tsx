@@ -30,6 +30,10 @@ type ResourceContactPointFieldsetProps = {
    * Whether this field is required or not
    */
   required?: boolean;
+  /**
+   * Index of fieldset
+   */
+  index: number;
 };
 
 /**
@@ -41,6 +45,7 @@ type ResourceContactPointFieldsetProps = {
  * @property {function}[onFocus] - Function to be executed when the field is focused
  * @property {boolean}[showErrors] - Function to be executed when leaving a text field
  * @property {boolean}[required] - Whether this field is required or not
+ * @property {number}[index] - Index of fieldset
  *
  * @returns {React.JSX.Element} - The rendered component
  */
@@ -50,6 +55,7 @@ export const ResourceContactPointFieldset = ({
   onFocus,
   showErrors,
   required,
+  index,
 }: ResourceContactPointFieldsetProps): React.JSX.Element => {
   const { t } = useTranslation();
 
@@ -66,7 +72,7 @@ export const ResourceContactPointFieldset = ({
       <Fieldset
         legend={
           <ResourceFieldHeader
-            label={t('resourceadm.about_resource_contact_legend')}
+            label={t('resourceadm.about_resource_contact_legend', { index: index + 1 })}
             required={required}
           />
         }

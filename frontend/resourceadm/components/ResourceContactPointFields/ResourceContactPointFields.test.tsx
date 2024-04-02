@@ -130,10 +130,10 @@ describe('ResourceContactPointFields', () => {
     const addButton = screen.getByText(textMock('resourceadm.about_resource_contact_add_button'));
     await act(() => user.click(addButton));
 
-    const contactPointFields = screen.getAllByText(
-      textMock('resourceadm.about_resource_contact_legend'),
+    const newContactPointField = screen.getByText(
+      textMock('resourceadm.about_resource_contact_legend', { index: 2 }),
     );
-    expect(contactPointFields).toHaveLength(mockContactPointList.length + 1);
+    expect(newContactPointField).toBeInTheDocument();
     expect(mockOnContactPointsChanged).toHaveBeenCalledWith([
       mockContactPoint1,
       {
@@ -164,10 +164,10 @@ describe('ResourceContactPointFields', () => {
     );
     await act(() => user.click(confirmRemoveButton));
 
-    const contactPointFields = screen.getAllByText(
-      textMock('resourceadm.about_resource_contact_legend'),
+    const contactPointField = screen.queryByText(
+      textMock('resourceadm.about_resource_contact_legend', { index: 2 }),
     );
-    expect(contactPointFields).toHaveLength(1);
+    expect(contactPointField).not.toBeInTheDocument();
   });
 
   it('should edit contact point when input field value is changed', async () => {

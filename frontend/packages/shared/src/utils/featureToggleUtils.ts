@@ -9,7 +9,8 @@ export type SupportedFeatureFlags =
   | 'componentConfigBeta'
   | 'shouldOverrideAppLibCheck'
   | 'resourceAccessLists'
-  | 'resourceMigration';
+  | 'resourceMigration'
+  | 'displayPaymentTaskProcessEditor';
 
 /*
  * Please add all the features that you want to be toggle on by default here.

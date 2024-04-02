@@ -37,10 +37,12 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
     const [resourceIdExists, setResourceIdExists] = useState(false);
 
     // Mutation function to create new resource
-    const { mutate: createNewResource } = useCreateResourceMutation(selectedContext);
+    const { mutate: createNewResource, isPending: isCreatingResource } =
+      useCreateResourceMutation(selectedContext);
 
     const idErrorMessage = getResourceIdentifierErrorMessage(id, resourceIdExists);
-    const hasValidValues = id.length !== 0 && title.length !== 0 && !idErrorMessage;
+    const hasValidValues =
+      id.length !== 0 && title.length !== 0 && !idErrorMessage && !isCreatingResource;
 
     /**
      * Creates a new resource in backend, and navigates if success
@@ -108,7 +110,6 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
             onClick={() => (hasValidValues ? handleCreateNewResource() : undefined)}
             color='first'
             aria-disabled={!hasValidValues}
-            size='small'
           >
             {t('resourceadm.dashboard_create_modal_create_button')}
           </StudioButton>
