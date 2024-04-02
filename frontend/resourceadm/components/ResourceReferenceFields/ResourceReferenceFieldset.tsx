@@ -79,6 +79,10 @@ type ResourceReferenceFieldsetProps = {
    * Whether this field is required or not
    */
   required?: boolean;
+  /**
+   * Index of fieldset
+   */
+  index: number;
 };
 
 /**
@@ -90,6 +94,7 @@ type ResourceReferenceFieldsetProps = {
  * @property {function}[onFocus] - Function to be executed when the field is focused
  * @property {boolean}[showErrors] - If errors should be shown or not
  * @property {boolean}[required] - Whether this field is required or not
+ * @property {number}[index] - Index of fieldset
  *
  * @returns {React.JSX.Element} - The rendered component
  */
@@ -99,6 +104,7 @@ export const ResourceReferenceFieldset = ({
   onFocus,
   showErrors,
   required,
+  index,
 }: ResourceReferenceFieldsetProps): React.JSX.Element => {
   const { t } = useTranslation();
 
@@ -118,7 +124,7 @@ export const ResourceReferenceFieldset = ({
       <Fieldset
         legend={
           <ResourceFieldHeader
-            label={t('resourceadm.about_resource_references')}
+            label={t('resourceadm.about_resource_references', { index: index + 1 })}
             required={required}
           />
         }

@@ -15,6 +15,7 @@ import { useUpdateLayoutSetMutation } from '../../hooks/mutations/useUpdateLayou
 import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useAddLayoutSetMutation } from '../../hooks/mutations/useAddLayoutSetMutation';
+import { type MetaDataForm } from '@altinn/process-editor/src/contexts/BpmnConfigPanelContext';
 
 export const ProcessEditor = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -45,9 +46,13 @@ export const ProcessEditor = (): React.ReactElement => {
     }
   });
 
-  const saveBpmnXml = async (xml: string): Promise<void> => {
-    await bpmnMutation.mutateAsync(
-      { bpmnXml: xml },
+  const saveBpmnXml = async (xml: string, metaData: MetaDataForm): Promise<void> => {
+    const formData = new FormData();
+    formData.append('content', new Blob([xml]), 'process.bpmn');
+    formData.append('metadata', JSON.stringify(metaData));
+
+    bpmnMutation.mutate(
+      { form: formData },
       {
         onSuccess: () => {
           toast.success(t('process_editor.saved_successfully'));

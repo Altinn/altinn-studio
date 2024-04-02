@@ -74,7 +74,7 @@ describe('ProcessEditor', () => {
       bpmnDetails: null,
     });
     renderProcessEditor({ bpmnFile: 'mockBpmn', queryClient: queryClientMock });
-    screen.getByText(textMock('process_editor.configuration_panel_no_task'));
+    screen.getByText(textMock('process_editor.configuration_view_panel_no_task'));
   });
 
   it('renders config panel for end event when bpmnDetails has endEvent type', () => {
@@ -84,6 +84,7 @@ describe('ProcessEditor', () => {
     queryClientMock.setQueryData([QueryKey.AppVersion, org, app], defaultAppVersion);
     (useBpmnContext as jest.Mock).mockReturnValue({
       bpmnDetails: { type: 'bpmn:EndEvent' },
+      isEditAllowed: true,
     });
     renderProcessEditor({ bpmnFile: 'mockBpmn', queryClient: queryClientMock });
     screen.getByText(textMock('process_editor.configuration_panel_end_event'));
@@ -98,6 +99,7 @@ describe('ProcessEditor', () => {
     queryClientMock.setQueryData([QueryKey.AppVersion, org, app], defaultAppVersion);
     (useBpmnContext as jest.Mock).mockReturnValue({
       bpmnDetails: { type: 'bpmn:EndEvent' },
+      isEditAllowed: true,
     });
     renderProcessEditor({ bpmnFile: 'mockBpmn', queryClient: queryClientMock });
     const inputFieldButton = screen.getByTitle(
@@ -134,6 +136,7 @@ describe('ProcessEditor', () => {
     });
     (useBpmnContext as jest.Mock).mockReturnValue({
       bpmnDetails: { type: 'bpmn:EndEvent' },
+      isEditAllowed: true,
     });
     renderProcessEditor({ bpmnFile: 'mockBpmn', queryClient: queryClientMock });
     const inputFieldButton = screen.getByTitle(

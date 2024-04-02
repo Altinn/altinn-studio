@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import classes from './ResourcePage.module.css';
@@ -27,7 +27,7 @@ import {
   UploadIcon,
 } from '@studio/icons';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
-import { createNavigationTab } from '../../utils/resourceUtils';
+import { createNavigationTab, deepCompare } from '../../utils/resourceUtils';
 import { ResourceAccessLists } from '../../components/ResourceAccessLists';
 import { AccessListDetail } from '../../components/AccessListDetails';
 import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery';
@@ -43,15 +43,14 @@ export const ResourcePage = (): React.JSX.Element => {
   const { t } = useTranslation();
 
   const navigate = useNavigate();
+  const autoSaveTimeoutRef = useRef(undefined);
 
   const { pageType, resourceId, selectedContext, repo, env, accessListId } = useUrlParams();
-
-  const [currentPage, setCurrentPage] = useState<NavigationBarPage>(pageType as NavigationBarPage);
+  const currentPage = pageType as NavigationBarPage;
 
   // Stores the temporary next page
   const [nextPage, setNextPage] = useState<NavigationBarPage>('about');
 
-  const [hasMergeConflict, setHasMergeConflict] = useState(false);
   // Use a local resource object as model to update immediately after user input. Use debounce to save this object every 500 ms
   const [resourceData, setResourceData] = useState<Resource | null>(null);
 
@@ -99,22 +98,12 @@ export const ResourcePage = (): React.JSX.Element => {
     }
   }, [loadedResourceData, resourceData]);
 
-  /**
-   * If repostatus is not undefined, set the flags for if the repo has merge
-   * conflict and if the repo is in sync
-   */
-  useEffect(() => {
-    if (repoStatus) {
-      setHasMergeConflict(repoStatus.hasMergeConflict);
-    }
-  }, [repoStatus]);
-
-  /**
-   * Check if the pageType parameter has changed and update the currentPage
-   */
-  useEffect(() => {
-    setCurrentPage(pageType as NavigationBarPage);
-  }, [pageType]);
+  const debounceSave = (resource: Resource): void => {
+    clearTimeout(autoSaveTimeoutRef.current);
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      editResource(resource);
+    }, 400);
+  };
 
   /**
    * Navigates to the selected page
@@ -162,7 +151,6 @@ export const ResourcePage = (): React.JSX.Element => {
    * @param newPage the page to navigate to
    */
   const handleNavigation = (newPage: NavigationBarPage) => {
-    setCurrentPage(newPage);
     setPolicyErrorModalOpen(false);
     setResourceErrorModalOpen(false);
     refetchRepoStatus();
@@ -181,7 +169,9 @@ export const ResourcePage = (): React.JSX.Element => {
       await refetchValidateResource();
       setShowResourceErrors(true);
     }
-    if (page === 'policy') setShowPolicyErrors(true);
+    if (page === 'policy') {
+      setShowPolicyErrors(true);
+    }
     handleNavigation(page);
   };
 
@@ -199,6 +189,7 @@ export const ResourcePage = (): React.JSX.Element => {
   const policyPageId = 'policy';
   const deployPageId = 'deploy';
   const migrationPageId = 'migration';
+  const accessListsPageId = 'accesslists';
 
   const leftNavigationTabs: LeftNavigationTab[] = [
     createNavigationTab(
@@ -239,20 +230,16 @@ export const ResourcePage = (): React.JSX.Element => {
    * @returns the tabs to display in the LeftNavigationBar
    */
   const getTabs = (): LeftNavigationTab[] => {
-    if (isMigrateEnabled() && !leftNavigationTabs.includes(migrationTab)) {
-      return [...leftNavigationTabs, migrationTab];
-    } else {
-      return leftNavigationTabs;
-    }
+    return isMigrateEnabled() ? [...leftNavigationTabs, migrationTab] : leftNavigationTabs;
   };
 
   /**
    * Saves the resource
    */
   const handleSaveResource = (r: Resource) => {
-    if (JSON.stringify(r) !== JSON.stringify(resourceData)) {
+    if (!deepCompare(resourceData, r)) {
       setResourceData(r);
-      editResource(r);
+      debounceSave(r);
     }
   };
 
@@ -262,9 +249,11 @@ export const ResourcePage = (): React.JSX.Element => {
         <LeftNavigationBar
           upperTab='backButton'
           tabs={getTabs()}
-          backLink={`${getResourceDashboardURL(selectedContext, repo)}`}
+          backLink={getResourceDashboardURL(selectedContext, repo)}
           backLinkText={t('resourceadm.left_nav_bar_back')}
-          selectedTab={currentPage}
+          selectedTab={
+            currentPage === migrationPageId && !isMigrateEnabled() ? aboutPageId : currentPage
+          }
         />
       </div>
       {resourcePending || !resourceData ? (
@@ -277,7 +266,7 @@ export const ResourcePage = (): React.JSX.Element => {
         </div>
       ) : (
         <div className={classes.resourcePageWrapper}>
-          {currentPage === 'about' && (
+          {currentPage === aboutPageId && (
             <AboutResourcePage
               showAllErrors={showResourceErrors}
               resourceData={resourceData}
@@ -285,10 +274,10 @@ export const ResourcePage = (): React.JSX.Element => {
               id='page-content-about'
             />
           )}
-          {currentPage === 'policy' && (
+          {currentPage === policyPageId && (
             <PolicyEditorPage showAllErrors={showPolicyErrors} id='page-content-policy' />
           )}
-          {currentPage === 'deploy' && (
+          {currentPage === deployPageId && (
             <DeployResourcePage
               navigateToPageWithError={navigateToPageWithError}
               resourceVersionText={resourceData?.version ?? ''}
@@ -301,17 +290,18 @@ export const ResourcePage = (): React.JSX.Element => {
               id='page-content-deploy'
             />
           )}
-          {currentPage === 'migration' && isMigrateEnabled() && (
+          {currentPage === migrationPageId && isMigrateEnabled() && (
             <MigrationPage
               navigateToPageWithError={navigateToPageWithError}
               id='page-content-migration'
             />
           )}
-          {currentPage === 'accesslists' && env && !accessListId && (
+          {currentPage === accessListsPageId && env && !accessListId && (
             <ResourceAccessLists env={env} resourceData={resourceData} />
           )}
-          {currentPage === 'accesslists' && env && accessList && (
+          {currentPage === accessListsPageId && env && accessList && (
             <AccessListDetail
+              key={accessList.identifier}
               org={selectedContext}
               env={env}
               list={accessList}
@@ -325,9 +315,9 @@ export const ResourcePage = (): React.JSX.Element => {
           )}
         </div>
       )}
-      {hasMergeConflict && (
+      {repoStatus?.hasMergeConflict && (
         <MergeConflictModal
-          isOpen={hasMergeConflict}
+          isOpen={repoStatus.hasMergeConflict}
           handleSolveMerge={refetchRepoStatus}
           org={selectedContext}
           repo={repo}

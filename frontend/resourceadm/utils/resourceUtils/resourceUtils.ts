@@ -44,13 +44,12 @@ export const availableForTypeMap: Record<ResourceAvailableForTypeOption, string>
 
 export type EnvId = 'tt02' | 'prod' | 'at22' | 'at23';
 export type EnvType = 'test' | 'prod';
-export const getAvailableEnvironments = (
-  org: string,
-): {
+export type Environment = {
   id: EnvId;
   label: string;
   envType: EnvType;
-}[] => {
+};
+export const getAvailableEnvironments = (org: string): Environment[] => {
   const availableEnvs = [
     {
       id: 'tt02' as EnvId,
@@ -78,17 +77,6 @@ export const getAvailableEnvironments = (
     );
   }
   return availableEnvs;
-};
-
-/**
- * Converts the resource type key to the correct displayable string
- *
- * @param resourceType the resourcetype to convert
- *
- * @returns the string to display
- */
-export const convertResourceTypeToDisplayString = (resourceType: ResourceTypeOption): string => {
-  return resourceTypeMap[resourceType];
 };
 
 /**
@@ -205,4 +193,38 @@ export const getResourceIdentifierErrorMessage = (identifier: string, isConflict
     return 'resourceadm.dashboard_resource_name_and_id_error';
   }
   return '';
+};
+
+/**
+ * Deep compare two objects. Will call itself recursively for nested keys
+ * @param original the original object
+ * @param changed the changed object
+ *
+ * @returns true if objects are equal, false otherwise
+ */
+export const deepCompare = (original: any, changed: any) => {
+  if (original === changed) {
+    return true;
+  }
+
+  if (
+    typeof original !== 'object' ||
+    typeof changed !== 'object' ||
+    original === null ||
+    changed === null ||
+    Array.isArray(original) !== Array.isArray(changed)
+  ) {
+    return false;
+  }
+
+  const originalKeys = Object.keys(original);
+  const changedKeys = Object.keys(changed);
+
+  if (originalKeys.length !== changedKeys.length) {
+    return false;
+  }
+
+  return originalKeys.every(
+    (key) => changedKeys.includes(key) && deepCompare(original[key], changed[key]),
+  );
 };
