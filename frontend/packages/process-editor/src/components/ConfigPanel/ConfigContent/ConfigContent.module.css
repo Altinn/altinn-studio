@@ -1,22 +1,8 @@
-.headerWrapper {
-  display: flex;
-  align-items: center;
-  padding: 1rem;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
+.editTaskId {
+  margin-bottom: var(--fds-spacing-4);
 }
 
-.configSectionWrapper {
-  display: flex;
-  flex-direction: column;
-  padding-inline: 1rem;
-  padding-top: 4px;
-  gap: 1rem;
-  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
-}
-
-.headerTextAndIconWrapper {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+.displayTile {
+  padding: var(--fds-spacing-1) var(--fds-spacing-4);
+  box-sizing: border-box;
 }
