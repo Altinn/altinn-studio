@@ -12,7 +12,7 @@ export interface DragAndDropProviderProps<T> {
   onAdd: HandleAdd<T>;
   onMove: HandleMove;
   rootId: string;
-  itemId: string;
+  itemId?: string;
 }
 
 export function DragAndDropProvider<T>({
