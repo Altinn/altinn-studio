@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUrlParams } from '../../hooks/useSelectedContext';
 import { StudioButton } from '@studio/components';
-import { getResourceIdentifierErrorMessage } from 'resourceadm/utils/resourceUtils';
+import { getResourceIdentifierErrorMessage } from '../../utils/resourceUtils';
 
 export type NewResourceModalProps = {
   onClose: () => void;

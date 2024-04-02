@@ -7,7 +7,7 @@ import { repoDownloadPath } from 'app-shared/api/paths';
 import { RemoveChangesModal } from './RemoveChangesModal';
 import { Modal } from '../Modal';
 import { StudioButton } from '@studio/components';
-import { useResetRepositoryMutation } from 'resourceadm/hooks/mutations';
+import { useResetRepositoryMutation } from '../../hooks/mutations';
 
 type MergeConflictModalProps = {
   /**

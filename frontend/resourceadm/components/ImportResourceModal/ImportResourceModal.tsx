@@ -16,7 +16,7 @@ import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUrlParams } from '../../hooks/useSelectedContext';
 import { StudioButton } from '@studio/components';
 import { formatIdString } from '../../utils/stringUtils';
-import { getResourceIdentifierErrorMessage } from 'resourceadm/utils/resourceUtils';
+import { getResourceIdentifierErrorMessage } from '../../utils/resourceUtils';
 
 const environmentOptions = ['AT21', 'AT22', 'AT23', 'AT24', 'TT02', 'PROD'];
 
