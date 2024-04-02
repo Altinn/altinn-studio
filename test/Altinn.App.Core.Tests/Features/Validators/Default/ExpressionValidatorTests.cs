@@ -29,7 +29,7 @@ public class ExpressionValidatorTests
     private readonly Mock<ILogger<ExpressionValidator>> _logger = new();
     private readonly Mock<IAppResources> _appResources = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadata = new(MockBehavior.Strict);
-    private readonly IOptions<FrontEndSettings> _frontendSettings = Options.Create(new FrontEndSettings());
+    private readonly IOptions<FrontEndSettings> _frontendSettings = Microsoft.Extensions.Options.Options.Create(new FrontEndSettings());
     private readonly Mock<LayoutEvaluatorStateInitializer> _layoutInitializer;
 
     public ExpressionValidatorTests()

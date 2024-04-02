@@ -18,7 +18,7 @@ using Prometheus;
 namespace Altinn.App.Api.Extensions
 {
     /// <summary>
-    /// Class for registering requiered services to run an Altinn application.
+    /// Class for registering required services to run an Altinn application.
     /// </summary>
     public static class ServiceCollectionExtensions
     {

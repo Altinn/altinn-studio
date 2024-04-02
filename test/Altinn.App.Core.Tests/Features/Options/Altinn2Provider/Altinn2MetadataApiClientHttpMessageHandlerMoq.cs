@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace Altinn.App.PlatformServices.Tests.Options.Altinn2Provider
+namespace Altinn.App.Core.Tests.Features.Options.Altinn2Provider
 {
     public class Altinn2MetadataApiClientHttpMessageHandlerMoq : HttpMessageHandler
     {
