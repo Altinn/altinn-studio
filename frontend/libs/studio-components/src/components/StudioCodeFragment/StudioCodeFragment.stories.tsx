@@ -1,16 +1,12 @@
+import React from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
 import { StudioCodeFragment } from './StudioCodeFragment';
-import React from 'react';
 
 type Story = StoryFn<typeof StudioCodeFragment>;
 
-// Define your component meta
 const meta: Meta = {
   title: 'Studio/StudioCodeFragment',
   component: StudioCodeFragment,
-  parameters: {
-    layout: 'centered', // Optional parameter to center the component in the Canvas.
-  },
 };
 
 export default meta;
