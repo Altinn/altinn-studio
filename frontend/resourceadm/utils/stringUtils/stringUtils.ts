@@ -11,3 +11,7 @@ export const formatIdString = (s: string): string => {
 export const isAppPrefix = (s: string): boolean => {
   return s.substring(0, 4) === 'app_';
 };
+
+export const isSePrefix = (s: string): boolean => {
+  return s.substring(0, 3) === 'se_';
+};
