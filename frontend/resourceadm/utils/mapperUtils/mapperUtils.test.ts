@@ -20,7 +20,7 @@ describe('mapperUtils', () => {
       const result = mapAltinn2LinkServiceToSelectOption(mockLinkServices);
 
       expect(result).toHaveLength(mockLinkServices.length);
-      expect(result[0].value).toBe('code1-edition1-name1');
+      expect(result[0].value).toBe(JSON.stringify(mockLinkServices[0]));
       expect(result[0].label).toBe('code1-edition1-name1');
     });
   });
