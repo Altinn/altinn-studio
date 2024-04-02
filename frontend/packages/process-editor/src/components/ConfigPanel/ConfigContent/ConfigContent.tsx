@@ -17,13 +17,6 @@ export const ConfigContent = (): React.ReactElement => {
     helpText: bpmnDetails?.taskType && t(getConfigTitleHelpTextKey(bpmnDetails.taskType)),
   };
 
-  const propertiesToDisplay: Array<{ label: string; value: string }> = [
-    {
-      label: t('process_editor.configuration_panel_name_label'),
-      value: bpmnDetails.name,
-    },
-  ];
-
   return (
     <>
       <StudioSectionHeader
@@ -40,16 +33,11 @@ export const ConfigContent = (): React.ReactElement => {
 
       <EditTaskId className={classes.editTaskId} />
 
-      {propertiesToDisplay.map(
-        ({ label, value }): React.ReactElement => (
-          <StudioDisplayTile
-            key={label}
-            label={label}
-            value={value}
-            className={classes.displayTile}
-          />
-        ),
-      )}
+      <StudioDisplayTile
+        label={t('process_editor.configuration_panel_name_label')}
+        value={bpmnDetails.name}
+        className={classes.displayTile}
+      />
     </>
   );
 };
