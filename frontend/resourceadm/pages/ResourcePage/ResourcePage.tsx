@@ -98,13 +98,6 @@ export const ResourcePage = (): React.JSX.Element => {
     }
   }, [loadedResourceData, resourceData]);
 
-  /**
-   * Check if the pageType parameter has changed and update the currentPage
-   */
-  useEffect(() => {
-    setCurrentPage(pageType as NavigationBarPage);
-  }, [pageType]);
-
   const debounceSave = (resource: Resource): void => {
     clearTimeout(autoSaveTimeoutRef.current);
     autoSaveTimeoutRef.current = setTimeout(() => {

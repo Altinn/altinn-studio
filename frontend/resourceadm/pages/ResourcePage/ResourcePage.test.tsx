@@ -260,6 +260,12 @@ describe('ResourcePage', () => {
       .fn()
       .mockImplementation(() => Promise.resolve<Resource>(mockResource1));
 
+    (useParams as jest.Mock).mockReturnValue({
+      pageType: 'deploy',
+      resourceId: mockResource1.identifier,
+      selectedContext: mockSelectedContext,
+    });
+
     renderResourcePage({ getResource });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
