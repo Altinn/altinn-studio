@@ -21,7 +21,7 @@ public sealed class EmailNotificationClient : IEmailNotificationClient
     private readonly IAppMetadata _appMetadata;
     private readonly PlatformSettings _platformSettings;
     private readonly IAccessTokenGenerator _accessTokenGenerator;
-    private readonly TelemetryClient _telemetryClient;
+    private readonly TelemetryClient? _telemetryClient;
     private static readonly Counter _orderCount = Metrics
         .CreateCounter("altinn_app_notification_order_request_count", "Number of notification order requests.", labelNames: ["type", "result"]);
 
@@ -38,7 +38,7 @@ public sealed class EmailNotificationClient : IEmailNotificationClient
         IOptions<PlatformSettings> platformSettings,
         IAppMetadata appMetadata,
         IAccessTokenGenerator accessTokenGenerator,
-        TelemetryClient telemetryClient)
+        TelemetryClient? telemetryClient = null)
     {
         _platformSettings = platformSettings.Value;
         _httpClientFactory = httpClientFactory;
@@ -106,7 +106,7 @@ public sealed class EmailNotificationClient : IEmailNotificationClient
             httpResponseMessage?.Dispose();
 
             timer.Stop();
-            _telemetryClient.TrackDependency(
+            _telemetryClient?.TrackDependency(
                 "Altinn.Notifications",
                 "OrderEmailNotification",
                 "",
