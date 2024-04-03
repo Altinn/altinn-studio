@@ -10,6 +10,7 @@ using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using SharedResources.Tests;
 using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
@@ -82,20 +83,19 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
-            LayoutSets layoutSetsBefore = await GetLayoutSetsFile(org, targetRepository, developer);
+
+            string layoutSetsBefore = TestDataHelper.GetFileFromRepo(org, app, developer, "App/ui/layout-sets.json");
 
             string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetToDeleteId}";
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
-
             using var response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             string responseContent = await response.Content.ReadAsStringAsync();
-            LayoutSets layoutSetsResponse = JsonSerializer.Deserialize<LayoutSets>(responseContent);
 
-            //layoutSetsBefore.Should().BeEquivalentTo(layoutSetsResponse);
+            Assert.True(JsonUtils.DeepEquals(layoutSetsBefore, responseContent));
         }
 
         [Theory]
