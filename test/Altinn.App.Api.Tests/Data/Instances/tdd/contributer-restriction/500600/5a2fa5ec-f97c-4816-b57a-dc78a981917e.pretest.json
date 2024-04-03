@@ -23,7 +23,6 @@
     },
     "status": {
         "isArchived": false,
-        "archived": "2024-02-10T15:04:22.179525Z",
         "isSoftDeleted": false,
         "isHardDeleted": false,
         "readStatus": "Read"
