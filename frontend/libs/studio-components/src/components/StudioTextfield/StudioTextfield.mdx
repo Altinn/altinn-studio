@@ -1,0 +1,14 @@
+import { Canvas, Meta } from '@storybook/blocks';
+import { Heading, Paragraph } from '@digdir/design-system-react';
+import * as StudioTextfieldStories from './StudioTextfield.stories';
+
+<Meta of={StudioTextfieldStories} />
+
+<Heading level={1} size='small'>
+  StudioTextfield
+</Heading>
+<Paragraph>
+  StudioTextfield is a component for text input used within Studio to gain consistency.
+</Paragraph>
+
+<Canvas of={StudioTextfieldStories.Preview} />

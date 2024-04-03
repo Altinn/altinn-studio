@@ -5,9 +5,12 @@ const persistFeatureKey = 'persistFeatureFlag';
 
 // All the features that you want to be toggle on/off should be added here. To ensure that we type check the feature name.
 export type SupportedFeatureFlags =
+  | 'customizeEndEvent'
   | 'componentConfigBeta'
   | 'shouldOverrideAppLibCheck'
-  | 'resourceAccessLists';
+  | 'resourceAccessLists'
+  | 'resourceMigration'
+  | 'displayPaymentTaskProcessEditor';
 
 /*
  * Please add all the features that you want to be toggle on by default here.

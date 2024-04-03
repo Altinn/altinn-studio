@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Repository;
@@ -56,8 +57,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<DeploymentEntity> CreateAsync(string org, string app, DeploymentModel deployment)
+        public async Task<DeploymentEntity> CreateAsync(string org, string app, DeploymentModel deployment, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             DeploymentEntity deploymentEntity = new();
             deploymentEntity.PopulateBaseProperties(org, app, _httpContext);
             deploymentEntity.TagName = deployment.TagName;
@@ -66,7 +68,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             ReleaseEntity release = await _releaseRepository.GetSucceededReleaseFromDb(org, app, deploymentEntity.TagName);
 
             await _applicationInformationService
-                .UpdateApplicationInformationAsync(org, app, release.TargetCommitish, deployment.EnvName);
+                .UpdateApplicationInformationAsync(org, app, release.TargetCommitish, deployment.EnvName, cancellationToken);
             Build queuedBuild = await QueueDeploymentBuild(release, deploymentEntity, deployment.EnvName);
 
             deploymentEntity.Build = new BuildEntity
@@ -81,8 +83,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         /// <inheritdoc/>
         /// TODO: https://github.com/Altinn/altinn-studio/issues/11377
-        public async Task<SearchResults<DeploymentEntity>> GetAsync(string org, string app, DocumentQueryModel query)
+        public async Task<SearchResults<DeploymentEntity>> GetAsync(string org, string app, DocumentQueryModel query, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             List<DeploymentEntity> deploymentEntities = (await _deploymentRepository.Get(org, app, query)).ToList();
 
             IEnumerable<EnvironmentModel> environments = await _environmentsService.GetOrganizationEnvironments(org);
@@ -92,8 +95,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task UpdateAsync(string buildNumber, string appOwner)
+        public async Task UpdateAsync(string buildNumber, string appOwner, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             DeploymentEntity deploymentEntity = await _deploymentRepository.Get(appOwner, buildNumber);
 
             try

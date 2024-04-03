@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
@@ -48,7 +49,7 @@ public class GetDeployments : DisagnerEndpointsTestsBase<GetDeployments>, IClass
         List<KubernetesDeployment> kubernetesDeployments = GetKubernetesDeploymentsList("completedDeployments.json");
 
         _deploymentServiceMock
-            .Setup(rs => rs.GetAsync(org, app, It.IsAny<DocumentQueryModel>()))
+            .Setup(rs => rs.GetAsync(org, app, It.IsAny<DocumentQueryModel>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new SearchResults<DeploymentEntity> { Results = completedDeployments });
 
         _kubernetesDeploymentsMock
@@ -66,8 +67,8 @@ public class GetDeployments : DisagnerEndpointsTestsBase<GetDeployments>, IClass
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
         Assert.Equal(8, actual.PipelineDeploymentList.Count);
         Assert.Equal(2, actual.KubernetesDeploymentList.Count);
-        _deploymentServiceMock.Verify(p => p.UpdateAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-        _deploymentServiceMock.Verify(r => r.GetAsync(org, app, It.IsAny<DocumentQueryModel>()), Times.Once);
+        _deploymentServiceMock.Verify(p => p.UpdateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        _deploymentServiceMock.Verify(r => r.GetAsync(org, app, It.IsAny<DocumentQueryModel>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     private List<DeploymentEntity> GetDeploymentsList(string filename)

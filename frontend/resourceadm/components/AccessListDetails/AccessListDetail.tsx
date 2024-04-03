@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
 import { Textfield, Modal, Heading, Link as DigdirLink } from '@digdir/design-system-react';
 import classes from './AccessListDetail.module.css';
 import type { AccessList } from 'app-shared/types/ResourceAdm';
@@ -33,7 +34,11 @@ export const AccessListDetail = ({
   const [listDescription, setListDescription] = useState<string>(list.description || '');
 
   const { mutate: editAccessList } = useEditAccessListMutation(org, list.identifier, env);
-  const { mutate: deleteAccessList } = useDeleteAccessListMutation(org, list.identifier, env);
+  const { mutate: deleteAccessList, isPending: isDeletingAccessList } = useDeleteAccessListMutation(
+    org,
+    list.identifier,
+    env,
+  );
 
   // change list name, description and possibly other properties
   const handleSave = (accessList: AccessList): void => {
@@ -42,7 +47,10 @@ export const AccessListDetail = ({
 
   const handleDelete = (): void => {
     deleteAccessList(undefined, {
-      onSuccess: () => navigate(backUrl),
+      onSuccess: () => {
+        toast.success(t('resourceadm.listadmin_delete_list_success', { listname: listName }));
+        navigate(backUrl);
+      },
     });
   };
 
@@ -114,6 +122,7 @@ export const AccessListDetail = ({
           icon={<TrashIcon className={classes.deleteIcon} />}
           iconPlacement='right'
           onClick={() => deleteWarningModalRef.current?.showModal()}
+          disabled={isDeletingAccessList}
         >
           {t('resourceadm.listadmin_delete_list')}
         </StudioButton>

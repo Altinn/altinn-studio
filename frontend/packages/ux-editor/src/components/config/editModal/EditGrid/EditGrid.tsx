@@ -5,7 +5,7 @@ import { Tabs } from '@digdir/design-system-react';
 import classes from './EditGrid.module.css';
 import { EditGridForGivenViewSize } from './EditGridForGivenViewSize';
 import { LaptopIcon, MobileIcon, MobileSmallIcon, MonitorIcon, TabletIcon } from '@studio/icons';
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils } from '@studio/pure-functions';
 import { ViewSize } from './types/ViewSize';
 import type { GridSizes } from './types/GridSizes';
 import { useTranslation } from 'react-i18next';
@@ -16,7 +16,7 @@ const setGridOnComponent = <T extends ComponentType>(
   gridValues: GridSizes,
   component: FormItem<T>,
 ): FormItem<T> => {
-  const newComponent: FormItem<T> = deepCopy(component);
+  const newComponent: FormItem<T> = ObjectUtils.deepCopy(component);
   newComponent.grid = { ...newComponent.grid, ...gridValues };
   if (
     Object.keys(newComponent.grid).length === 0 ||

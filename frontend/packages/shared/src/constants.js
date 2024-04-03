@@ -12,3 +12,4 @@ export const DEFAULT_SELECTED_LAYOUT_NAME = 'default';
 export const TASKID_FOR_STATELESS_APPS = 'Task_1';
 export const MAX_NESTED_GROUP_LEVEL = 2;
 export const PROD_ENV_TYPE = 'production';
+export const PROTECTED_TASK_NAME_CUSTOM_RECEIPT = 'CustomReceipt';

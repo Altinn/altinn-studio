@@ -17,6 +17,7 @@ describe('externalSimpleComponentToInternal', () => {
         id,
         type,
         customProperty,
+        dataModelBindings: { simpleBinding: 'some-path' },
       };
       const result = externalSimpleComponentToInternal(externalComponent, pageIndex);
       expect(result).toEqual({
@@ -26,6 +27,7 @@ describe('externalSimpleComponentToInternal', () => {
         propertyPath,
         type,
         customProperty,
+        dataModelBindings: { simpleBinding: 'some-path' },
       });
     },
   );

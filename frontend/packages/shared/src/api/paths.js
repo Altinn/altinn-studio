@@ -33,8 +33,8 @@ export const optionListIdsPath = (org, app) => `${basePath}/${org}/${app}/app-de
 export const ruleConfigPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/rule-config?${s({ layoutSetName })}`; // Get, Post
 export const datamodelMetadataPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/model-metadata?${s({ layoutSetName })}`; // Get
 export const layoutNamesPath = (org, app) => `${basePath}/${org}/${app}/app-development/layout-names`; // Get
-export const layoutSetPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/layout-sets?${s({ layoutSetName })}`; // Put, Post
 export const layoutSetsPath = (org, app) => `${basePath}/${org}/${app}/app-development/layout-sets`; // Get
+export const layoutSetPath = (org, app, layoutSetIdToUpdate) => `${basePath}/${org}/${app}/app-development/layout-set/${layoutSetIdToUpdate}`; // Put
 export const layoutSettingsPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/layout-settings?${s({ layoutSetName })}`; // Get, Post
 export const formLayoutsPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/form-layouts?${s({ layoutSetName })}`; // Get
 export const formLayoutPath = (org, app, layout, layoutSetName) => `${basePath}/${org}/${app}/app-development/form-layout/${layout}?${s({ layoutSetName })}`; // Post, Delete
@@ -145,4 +145,6 @@ export const resourceAccessListPath = (org, resourceId, listId, env) => `${baseP
 
 // Process Editor
 export const processEditorPath = (org, repo) => `${basePath}/${org}/${repo}/process-modelling/process-definition`;
+export const processEditorPathPut = (org, repo) => `${basePath}/${org}/${repo}/process-modelling/process-definition-latest`;
+
 export const appLibVersionPath = (org, app) => `${basePath}/${org}/${app}/app-development/app-version`;

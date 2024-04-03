@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import classes from './ResourceDashboardPage.module.css';
 import { PlusCircleIcon, MigrationIcon, TasklistIcon } from '@studio/icons';
@@ -34,26 +34,16 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
   const navigate = useNavigate();
 
   const [searchValue, setSearchValue] = useState('');
-  const [hasMergeConflict, setHasMergeConflict] = useState(false);
 
   const [importModalOpen, setImportModalOpen] = useState(false);
 
   // Get metadata with queries
-  const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
+  const { data: repoStatus } = useRepoStatusQuery(selectedContext, repo);
   const {
     data: resourceListData,
     isPending: resourceListPending,
     isRefetching: refetchingList,
   } = useGetResourceListQuery(selectedContext);
-
-  /**
-   * Updates the value for if there is a merge conflict when the repostatus is not undefined
-   */
-  useEffect(() => {
-    if (repoStatus) {
-      setHasMergeConflict(repoStatus.hasMergeConflict);
-    }
-  }, [repoStatus]);
 
   const filteredResourceList = filterTableData(searchValue, resourceListData ?? []);
 
@@ -141,10 +131,9 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
       </div>
       <div className={classes.horizontalDivider} />
       <div className={classes.componentWrapper}>{displayContent()}</div>
-      {hasMergeConflict && (
+      {repoStatus?.hasMergeConflict && (
         <MergeConflictModal
-          isOpen={hasMergeConflict}
-          handleSolveMerge={refetch}
+          isOpen={repoStatus.hasMergeConflict}
           org={selectedContext}
           repo={repo}
         />
