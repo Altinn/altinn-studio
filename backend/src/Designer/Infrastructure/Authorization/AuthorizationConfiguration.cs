@@ -33,10 +33,28 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                         policy.RequireAuthenticatedUser();
                         policy.Requirements.Add(new GiteaDeployPermissionRequirement());
                     });
+
+                options.AddPolicy(
+                    AltinnPolicy.MustHaveGiteaDeployResourcePermission,
+                    policy =>
+                    {
+                        policy.RequireAuthenticatedUser();
+                        policy.Requirements.Add(new GiteaDeployResourcePermissionRequirement());
+                    });
+
+                options.AddPolicy(
+                    AltinnPolicy.MustHaveGiteaResourceAccessListPermission,
+                    policy =>
+                    {
+                        policy.RequireAuthenticatedUser();
+                        policy.Requirements.Add(new GiteaResourceAccessListPermissionRequirement());
+                    });
             });
 
             services.AddScoped<IAuthorizationHandler, GiteaPushPermissionHandler>();
             services.AddScoped<IAuthorizationHandler, GiteaDeployPermissionHandler>();
+            services.AddScoped<IAuthorizationHandler, GiteaDeployResourcePermissionHandler>();
+            services.AddScoped<IAuthorizationHandler, GiteaResourceAccessListPermissionHandler>();
 
             return services;
         }
