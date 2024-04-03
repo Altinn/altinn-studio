@@ -31,7 +31,13 @@ export const ServiceOwnerSelector = ({
       <Label spacing htmlFor={serviceOwnerId}>
         {t('general.service_owner')}
       </Label>
-      <NativeSelect hideLabel error={errorMessage} id={serviceOwnerId} name={name}>
+      <NativeSelect
+        hideLabel
+        error={errorMessage}
+        id={serviceOwnerId}
+        name={name}
+        defaultValue={selectedOrgOrUser}
+      >
         {selectableOptions.map(({ value, label }) => (
           <option key={value} value={value}>
             {label}
