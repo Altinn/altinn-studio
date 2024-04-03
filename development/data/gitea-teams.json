@@ -46,5 +46,17 @@
     "permission": "read",
     "description": "Test av kun lesetilgang",
     "includes_all_repositories": true
+  },
+  {
+    "name": "Accesslist-Test",
+    "permission": "write",
+    "description": "Skriving av RRR tilgangslister i alle testmiljø",
+    "includes_all_repositories": true
+  },
+  {
+    "name": "Resource-Publish-Test",
+    "permission": "write",
+    "description": "Deploy av ressurser i alle testmiljø",
+    "includes_all_repositories": true
   }
 ]
