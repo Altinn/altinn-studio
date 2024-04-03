@@ -57,7 +57,7 @@ export interface Version {
 export interface ResourceListItem {
   title: SupportedLanguage;
   createdBy: string;
-  lastChanged: string;
+  lastChanged: Date;
   hasPolicy: boolean;
   identifier: string;
 }

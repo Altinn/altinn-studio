@@ -25,7 +25,7 @@ const getResourceListResponse = [
       en: '',
     },
     createdBy: '',
-    lastChanged: new Date().toISOString(),
+    lastChanged: new Date(),
     hasPolicy: true,
     identifier: 'test-ressurs',
   },

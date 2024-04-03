@@ -38,7 +38,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
   const [importModalOpen, setImportModalOpen] = useState(false);
 
   // Get metadata with queries
-  const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
+  const { data: repoStatus } = useRepoStatusQuery(selectedContext, repo);
   const {
     data: resourceListData,
     isPending: resourceListPending,
@@ -134,7 +134,6 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
       {repoStatus?.hasMergeConflict && (
         <MergeConflictModal
           isOpen={repoStatus.hasMergeConflict}
-          handleSolveMerge={refetch}
           org={selectedContext}
           repo={repo}
         />
