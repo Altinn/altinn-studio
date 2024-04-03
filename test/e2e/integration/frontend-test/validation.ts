@@ -2,6 +2,8 @@ import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Common } from 'test/e2e/pageobjects/common';
 
+import type { IDataModelPatchResponse } from 'src/features/formData/types';
+
 const appFrontend = new AppFrontend();
 const mui = new Common();
 
@@ -848,6 +850,36 @@ describe('Validation', () => {
         'not.contain.text',
         'Feil format',
       );
+    });
+
+    it('should not show required validation when data is invalid and not saveable', () => {
+      cy.interceptLayout('changename', (component) => {
+        if (component.type === 'Input' && component.id === 'int32AsNumber') {
+          component.showValidations = ['All'];
+          component.required = true;
+        }
+      });
+
+      // Prevent patch response from setting the value to zero when empty
+      cy.intercept('PATCH', '**/data/**', (req) => {
+        req.on('response', (res) => {
+          const body = res.body as IDataModelPatchResponse;
+          if (body.newDataModel['Numeric']?.Int32 === 0) {
+            delete body.newDataModel['Numeric'].Int32;
+          }
+        });
+      });
+
+      cy.goto('changename');
+
+      cy.findByRole('checkbox', { name: /tall-input/i }).dsCheck();
+      cy.gotoNavPage('numeric-fields');
+
+      cy.get(appFrontend.fieldValidation('int32AsNumber')).should('contain.text', 'Du må fylle ut int32');
+
+      cy.findByRole('textbox', { name: /int32.*/i }).type('999999999999999');
+      cy.get(appFrontend.fieldValidation('int32AsNumber')).should('contain.text', 'Feil format eller verdi');
+      cy.get(appFrontend.fieldValidation('int32AsNumber')).should('not.contain.text', 'Du må fylle ut int32');
     });
   });
 });

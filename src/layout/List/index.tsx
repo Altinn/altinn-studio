@@ -39,7 +39,10 @@ export class List extends ListDef {
     return <SummaryItemSimple formDataAsString={displayData} />;
   }
 
-  runEmptyFieldValidation(node: LayoutNode<'List'>, { formData }: ValidationDataSources): ComponentValidation[] {
+  runEmptyFieldValidation(
+    node: LayoutNode<'List'>,
+    { formData, invalidData }: ValidationDataSources,
+  ): ComponentValidation[] {
     if (!node.item.required || !node.item.dataModelBindings) {
       return [];
     }
@@ -52,7 +55,7 @@ export class List extends ListDef {
 
     let listHasErrors = false;
     for (const field of fields) {
-      const data = dot.pick(field, formData);
+      const data = dot.pick(field, formData) ?? dot.pick(field, invalidData);
       const dataAsString =
         typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean' ? String(data) : undefined;
 

@@ -164,6 +164,7 @@ export type NodeValidation<Severity extends ValidationSeverity = ValidationSever
 export type ValidationDataSources = {
   currentLanguage: string;
   formData: object;
+  invalidData: object;
   attachments: IAttachments;
   nodes: LayoutPages;
 };
