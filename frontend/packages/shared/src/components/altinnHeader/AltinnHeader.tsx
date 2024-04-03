@@ -43,12 +43,13 @@ export const AltinnHeader = ({
   const { t } = useTranslation();
 
   const repositoryType = getRepositoryType(org, app);
+  const isOrgRepo = user.login !== org;
 
   return (
     <div role='banner'>
       <div className={classnames(classes.altinnHeaderBar, classes[variant])}>
         <div className={classes.leftContent}>
-          <a href='/' aria-label={t('top_menu.dashboard')}>
+          <a href={`/dashboard/${isOrgRepo ? org : ''}`} aria-label={t('top_menu.dashboard')}>
             <AltinnStudioLogo />
           </a>
           {app && (
