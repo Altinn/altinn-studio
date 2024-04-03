@@ -11,7 +11,9 @@
 
 .link {
   display: flex;
+  align-items: flex-start;
   margin-top: var(--fds-spacing-4);
+  line-height: var(--fds-sizing-6);
 }
 
 .linkIcon {
