@@ -26,6 +26,10 @@ export const ServiceOwnerSelector = ({
   const selectableOrganizations: SelectableItem[] = mapOrganizationToSelectableItems(organizations);
   const selectableOptions: SelectableItem[] = [selectableUser, ...selectableOrganizations];
 
+  const defaultValue: string =
+    selectableOptions.find((item) => item.value === selectedOrgOrUser)?.value ??
+    selectableUser.value;
+
   return (
     <div>
       <Label spacing htmlFor={serviceOwnerId}>
@@ -36,7 +40,7 @@ export const ServiceOwnerSelector = ({
         error={errorMessage}
         id={serviceOwnerId}
         name={name}
-        defaultValue={selectedOrgOrUser}
+        defaultValue={defaultValue}
       >
         {selectableOptions.map(({ value, label }) => (
           <option key={value} value={value}>

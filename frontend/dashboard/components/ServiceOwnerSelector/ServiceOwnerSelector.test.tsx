@@ -47,6 +47,15 @@ describe('ServiceOwnerSelector', () => {
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
   });
 
+  it('selects the org when the current context is the org', async () => {
+    const selectedOrgOrUser = defaultProps.organizations[0].username;
+
+    render({ selectedOrgOrUser });
+
+    const select = screen.getByLabelText(textMock('general.service_owner'));
+    expect(select).toHaveValue(selectedOrgOrUser);
+  });
+
   it('selects the user when the current context is the user', async () => {
     const selectedOrgOrUser = defaultProps.user.login;
 
@@ -56,12 +65,12 @@ describe('ServiceOwnerSelector', () => {
     expect(select).toHaveValue(selectedOrgOrUser);
   });
 
-  it('selects the org when the current context is the org', async () => {
-    const selectedOrgOrUser = defaultProps.organizations[0].username;
+  it('selects the user when the current context is invalid', async () => {
+    const selectedOrgOrUser = 'all';
 
     render({ selectedOrgOrUser });
 
     const select = screen.getByLabelText(textMock('general.service_owner'));
-    expect(select).toHaveValue(selectedOrgOrUser);
+    expect(select).toHaveValue(defaultProps.user.login);
   });
 });
