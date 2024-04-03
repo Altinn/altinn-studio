@@ -51,7 +51,9 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   });
 
   const defaultSelectedOrgOrUser: string =
-    selectedContext === SelectedContextType.Self ? user.login : selectedContext;
+    selectedContext === SelectedContextType.Self || selectedContext === SelectedContextType.All
+      ? user.login
+      : selectedContext;
   const createAppRepo = async (createAppForm: CreateAppForm) => {
     addRepoMutation(
       {
@@ -144,7 +146,11 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
             <StudioButton type='submit' color='first' size='small'>
               {t('dashboard.create_service_btn')}
             </StudioButton>
-            <Link to={DASHBOARD_ROOT_ROUTE}>{t('general.cancel')}</Link>
+            <Link
+              to={`${DASHBOARD_ROOT_ROUTE}${selectedContext === SelectedContextType.Self ? '' : selectedContext}`}
+            >
+              {t('general.cancel')}
+            </Link>
           </>
         )}
       </div>
