@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { Organization } from 'app-shared/types/Organization';
 import type { User } from 'app-shared/types/Repository';
 
-type ServiceOwnerSelectorProps = {
+export type ServiceOwnerSelectorProps = {
   selectedOrgOrUser: string;
   user: User;
   organizations: Organization[];
