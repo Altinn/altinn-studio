@@ -5,7 +5,7 @@
  * @returns the string formatted
  */
 export const formatIdString = (s: string): string => {
-  return s.replace(/[^A-Za-z0-9_æøåØÆÅ-]+/g, '-').toLowerCase();
+  return s.replace(/[^A-Za-z0-9_-]+/g, '-').toLowerCase();
 };
 
 export const isAppPrefix = (s: string): boolean => {
