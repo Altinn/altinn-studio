@@ -1,12 +1,10 @@
 using System.Net;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
-using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Models.Validation;
@@ -180,6 +178,44 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
         _outputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task RunProcessNext_PdfFails_DataIsUnlocked()
+    {
+        bool sendAsyncCalled = false;
+        var dataElementPath = TestData.GetDataElementPath(Org, App, InstanceOwnerPartyId, InstanceGuid, DataGuid);
+
+        SendAsync = async message =>
+        {
+            message.RequestUri!.PathAndQuery.Should().Be($"/pdf");
+            var content = await message.Content!.ReadAsStringAsync();
+
+            _outputHelper.WriteLine("pdf request content:");
+            _outputHelper.WriteLine(content);
+            _outputHelper.WriteLine("");
+
+            // Verify that data element is locked while pdf is being generated
+            var lockedInstanceString = await File.ReadAllTextAsync(dataElementPath);
+            var lockedInstance = JsonSerializer.Deserialize<DataElement>(lockedInstanceString, JsonSerializerOptions)!;
+            lockedInstance.Locked.Should().BeTrue();
+
+            sendAsyncCalled = true;
+
+            // Return a 429 to simulate pdf generation failure
+            return new HttpResponseMessage(HttpStatusCode.TooManyRequests);
+        };
+        using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
+        var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{InstanceId}/process/next", null);
+        var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
+        _outputHelper.WriteLine(nextResponseContent);
+        nextResponse.Should().HaveStatusCode(HttpStatusCode.InternalServerError);
+        sendAsyncCalled.Should().BeTrue();
+
+        // Verify that the instance is not locked after pdf failed
+        var unLockedInstanceString = await File.ReadAllTextAsync(dataElementPath);
+        var unLockedInstance = JsonSerializer.Deserialize<DataElement>(unLockedInstanceString, JsonSerializerOptions)!;
+        unLockedInstance.Locked.Should().BeFalse();
     }
 
     [Fact]
