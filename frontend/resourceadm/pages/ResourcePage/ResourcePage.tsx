@@ -32,6 +32,7 @@ import { ResourceAccessLists } from '../../components/ResourceAccessLists';
 import { AccessListDetail } from '../../components/AccessListDetails';
 import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery';
 import { useUrlParams } from '../../hooks/useSelectedContext';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 /**
  * @component
@@ -182,7 +183,7 @@ export const ResourcePage = (): React.JSX.Element => {
     const hasAltinn2ReferenceSource = resourceData?.resourceReferences?.some(
       (ref) => ref.referenceSource === 'Altinn2',
     );
-    return hasAltinn2ReferenceSource;
+    return hasAltinn2ReferenceSource && shouldDisplayFeature('resourceMigration');
   };
 
   const aboutPageId = 'about';
@@ -318,7 +319,6 @@ export const ResourcePage = (): React.JSX.Element => {
       {repoStatus?.hasMergeConflict && (
         <MergeConflictModal
           isOpen={repoStatus.hasMergeConflict}
-          handleSolveMerge={refetchRepoStatus}
           org={selectedContext}
           repo={repo}
         />

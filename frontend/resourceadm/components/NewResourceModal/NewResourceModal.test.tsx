@@ -120,6 +120,24 @@ describe('NewResourceModal', () => {
     ).toBeInTheDocument();
   });
 
+  test('should show error message if resource id starts with se_', async () => {
+    const user = userEvent.setup();
+    await renderAndOpenModal({
+      createResource: jest
+        .fn()
+        .mockImplementation(() => Promise.reject({ response: { status: ServerCodes.Conflict } })),
+    });
+
+    const titleInput = screen.getByLabelText(
+      textMock('resourceadm.dashboard_resource_name_and_id_resource_name'),
+    );
+    await act(() => user.type(titleInput, 'se_test'));
+
+    expect(
+      screen.getByText(textMock('resourceadm.dashboard_resource_id_cannot_be_se')),
+    ).toBeInTheDocument();
+  });
+
   test('should show error message if resource id is already in use', async () => {
     const user = userEvent.setup();
     await renderAndOpenModal({
