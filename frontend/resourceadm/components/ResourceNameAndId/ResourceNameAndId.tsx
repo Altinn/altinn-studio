@@ -1,140 +1,172 @@
-import React from 'react';
+import { Paragraph, Textfield } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
+import { CheckmarkIcon, MultiplyIcon, PencilWritingIcon } from '@studio/icons';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import classes from './ResourceNameAndId.module.css';
-import { Button, TextField, ErrorMessage, Paragraph, Label } from '@digdir/design-system-react';
-import { MultiplyIcon, PencilWritingIcon, CheckmarkIcon } from '@navikt/aksel-icons';
+import { FieldWrapper } from '../../components/FieldWrapper';
+import { formatIdString } from '../../utils/stringUtils';
 
-interface Props {
-  isEditOpen: boolean;
-  title: string;
+export type ResourceNameAndIdProps = {
+  idLabel: string;
+  titleLabel: string;
   id: string;
-  handleEditTitle: (s: string) => void;
-  handleIdInput: (s: string) => void;
-  handleClickEditButton: (isSave: boolean) => void;
-  resourceIdExists: boolean;
-  bothFieldsHaveSameValue: boolean;
-}
+  title: string;
+  onTitleChange: (s: string) => void;
+  onIdChange: (s: string) => void;
+  conflictErrorMessage?: string;
+};
 
 /**
- * Displays the title and Id of a new resource that is either being
- * created new, or migrated from Altinn 2.
+ * @component
+ *    Displays the title and Id of a new resource that is either being
+ *    created new, or migrated from Altinn 2.
  *
- * @param props.isEditOpen flag to decide if the edit ID is open or not
- * @param props.title the value of the title
- * @param props.id the value of the id
- * @param props.handleEditTitle function to handle the editing of the title
- * @param props.handleEditId function to handle the editing of the id
- * @param props.handleClickEditButton function to be executed when edit button is clicked
- * @param props.resourceIdExists flag for id the ID already exists
- * @param props.bothFieldsHaveSameValue flag for if ID and title has same display value
+ * @property {string}[idLabel] - The label of the id field
+ * @property {string}[titleLabel] - The label of the title field
+ * @property {string}[title] - The value of the title
+ * @property {string}[id] - The value of the id
+ * @property {function}[onTitleChange] - Function to handle the editing of the title
+ * @property {function}[onIdChange] - Function to handle the editing of the id
+ * @property {string}[conflictErrorMessage] - Error message to display in the id field
+ *
+ * @returns {React.JSX.Element} - If there should be space on top of the component
  */
 export const ResourceNameAndId = ({
-  isEditOpen,
-  title,
+  idLabel,
+  titleLabel,
   id,
-  handleEditTitle,
-  handleIdInput,
-  handleClickEditButton,
-  resourceIdExists,
-  bothFieldsHaveSameValue,
-}: Props) => {
+  title,
+  onTitleChange,
+  onIdChange,
+  conflictErrorMessage,
+}: ResourceNameAndIdProps): React.JSX.Element => {
+  const { t } = useTranslation();
+
+  const [editIdFieldOpen, setEditIdFieldOpen] = useState(false);
+  const [bothFieldsHaveSameValue, setBothFieldsHaveSameValue] = useState(true);
+
+  useEffect(() => {
+    if (conflictErrorMessage) {
+      setEditIdFieldOpen(true);
+    }
+  }, [conflictErrorMessage]);
+
   /**
-   * Replaces spaces and '.' with '-' so that the ID looks correct
-   *
-   * @param s the string to format
-   *
-   * @returns the string formatted
+   * Replaces the spaces in the value typed with '-'.
    */
-  const formatString = (s: string): string => {
-    return s.replace(/[\s.]+/g, '-');
+  const handleEditId = (val: string) => {
+    const newId = formatIdString(val);
+    onIdChange(newId);
   };
 
   /**
-   * If the edit field is open, then the id to dispay is the actual id
-   * value, otherwise it is the title value
+   * Updates the value of the title. If the edit field is not open,
+   * then it updates the ID to the same as the title.
    *
-   * @returns the formatted value
+   * @param val the title value typed
    */
-  const getIdToDisplay = (): string => {
-    if (isEditOpen) {
-      return formatString(id);
-    } else if (!bothFieldsHaveSameValue) {
-      return formatString(id);
-    } else {
-      return formatString(title);
+  const handleEditTitle = (val: string) => {
+    if (!editIdFieldOpen && bothFieldsHaveSameValue) {
+      handleEditId(val);
+    }
+    onTitleChange(val);
+  };
+  /**
+   * Handles the click of the edit button. If we click the edit button
+   * so that it closes the edit field, the id is set to the title.
+   *
+   * @param saveChanges if the save button is pressed, keep id and title separate
+   */
+  const handleClickEditButton = (saveChanges: boolean) => {
+    setEditIdFieldOpen((old) => !old);
+    if (saveChanges) {
+      setBothFieldsHaveSameValue(false);
+    }
+    if (!saveChanges && editIdFieldOpen) {
+      setBothFieldsHaveSameValue(true);
+      const shouldSetTitleToId = title !== id;
+      if (shouldSetTitleToId) {
+        handleEditId(title);
+      }
     }
   };
 
-  return (
-    <>
-      <Paragraph size='medium'>Velg navn og id for ressursen.</Paragraph>
-      <Label className={classes.label} size='small'>
-        Ressursnavn (Bokmål)
-      </Label>
-      <div className={classes.textfieldWrapper}>
-        <TextField
-          value={title}
-          onChange={(e) => handleEditTitle(e.target.value)}
-          aria-label='Ressursnavn (Bokmål)'
-        />
-      </div>
-      <Label className={classes.label} size='small'>
-        Ressurs id
-      </Label>
-      <div className={classes.editFieldWrapper}>
-        {isEditOpen ? (
-          <>
+  /**
+   * Displays either the id input field or the id text
+   * @returns ReactNode
+   */
+  const displayIdTextOrInput = () => {
+    return (
+      <FieldWrapper label={idLabel} fieldId='resourceIdInputId'>
+        {editIdFieldOpen ? (
+          <div className={classes.editFieldWrapper}>
             <div className={classes.textfieldWrapper}>
-              <TextField
+              <Textfield
                 value={id}
-                onChange={(e) => handleIdInput(e.target.value)}
-                aria-label='Ressurs id'
-                isValid={!resourceIdExists}
+                size='small'
+                onChange={(e) => handleEditId(e.target.value)}
+                id='resourceIdInputId'
+                error={conflictErrorMessage}
               />
             </div>
             <div className={classes.buttonWrapper}>
-              <div className={classes.stopEditingButton}>
-                <Button
-                  onClick={() => handleClickEditButton(false)}
-                  variant='quiet'
-                  color='danger'
-                  icon={<MultiplyIcon title='Slett ny ressurs id' />}
-                />
-              </div>
-              <Button
+              <StudioButton
+                onClick={() => handleClickEditButton(false)}
+                variant='tertiary'
+                color='danger'
+                title={t('resourceadm.dashboard_resource_name_and_id_delete_icon')}
+                size='small'
+                icon={<MultiplyIcon />}
+              />
+              <StudioButton
                 onClick={() => handleClickEditButton(true)}
-                variant='quiet'
-                icon={<CheckmarkIcon title='Bruk ny ressurs id' />}
+                variant='tertiary'
+                title={t('resourceadm.dashboard_resource_name_and_id_checkmark_icon')}
+                size='small'
+                icon={<CheckmarkIcon />}
               />
             </div>
-          </>
+          </div>
         ) : (
-          <>
-            <div className={classes.idBox}>
+          <div className={classes.editFieldWrapper}>
+            <div>
               <p className={classes.idText}>id</p>
             </div>
             <Paragraph size='small'>
-              {/* TODO - find out what to replace altinn.svv with if it has to be replaced? */}
-              altinn.svv.<strong>{getIdToDisplay()}</strong>
+              <strong>{formatIdString(id)}</strong>
             </Paragraph>
             <div className={classes.editButtonWrapper}>
-              <Button
+              <StudioButton
                 onClick={() => handleClickEditButton(false)}
+                variant='tertiary'
+                color='first'
+                size='small'
+                icon={<PencilWritingIcon />}
                 iconPlacement='right'
-                icon={<PencilWritingIcon title='Endre ressurs id' />}
-                variant='quiet'
-                color='primary'
               >
-                Rediger
-              </Button>
+                {t('general.edit')}
+              </StudioButton>
             </div>
-          </>
+          </div>
         )}
+      </FieldWrapper>
+    );
+  };
+
+  return (
+    <div className={classes.resourceNameAndId}>
+      <div className={classes.textfieldWrapper}>
+        <FieldWrapper label={titleLabel} fieldId='resourceNameInputId'>
+          <Textfield
+            value={title}
+            onChange={(e) => handleEditTitle(e.target.value)}
+            id='resourceNameInputId'
+            size='small'
+          />
+        </FieldWrapper>
       </div>
-      <div className={classes.resourceIdError}>
-        {resourceIdExists && (
-          <ErrorMessage size='small'>Ressurs med valgt id eksisterer allerede.</ErrorMessage>
-        )}
-      </div>
-    </>
+      {displayIdTextOrInput()}
+    </div>
   );
 };

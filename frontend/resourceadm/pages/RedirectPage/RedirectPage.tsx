@@ -1,10 +1,17 @@
 import React from 'react';
-import { useParams, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import classes from './RedirectPage.module.css';
 import { ErrorPage } from '../ErrorPage';
+import { useUrlParams } from '../../hooks/useSelectedContext';
 
-export const RedirectPage = () => {
-  const { selectedContext } = useParams();
+/**
+ * @component
+ *    Displays an error page or redirects the user
+ *
+ * @returns {React.JSX.Element} - The rendered component
+ */
+export const RedirectPage = (): React.JSX.Element => {
+  const { selectedContext } = useUrlParams();
 
   return (
     <div className={classes.pageWrapper}>

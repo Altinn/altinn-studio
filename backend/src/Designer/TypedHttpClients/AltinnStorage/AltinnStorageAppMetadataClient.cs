@@ -3,10 +3,12 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Interface.Models;
+
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
+
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
@@ -41,27 +43,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         }
 
         /// <inheritdoc />
-        public async Task<Application> GetApplicationMetadata(string org, string app, string envName)
-        {
-            var storageUri = await CreateStorageUri(envName);
-            Uri uri = new($"{storageUri}{org}/{app}");
-            HttpClientHelper.AddSubscriptionKeys(_httpClient, uri, _platformSettings);
-            /*
-             * Have to create a HttpRequestMessage instead of using helper extension methods like _httpClient.PostAsync(...)
-             * because the base address can change on each request and after HttpClient gets initial base address,
-             * it is not advised (and not allowed) to change base address.
-             */
-            using HttpRequestMessage request = new(HttpMethod.Get, uri);
-            HttpResponseMessage response = await _httpClient.SendAsync(request);
-
-            return await response.Content.ReadAsAsync<Application>();
-        }
-
-        /// <inheritdoc />
-        public async Task CreateApplicationMetadata(
+        public async Task UpsertApplicationMetadata(
             string org,
             string app,
-            Application applicationMetadata,
+            ApplicationMetadata applicationMetadata,
             string envName)
         {
             var storageUri = await CreateStorageUri(envName);
@@ -74,29 +59,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
              * it is not advised (and not allowed) to change base address.
              */
             HttpRequestMessage request = new(HttpMethod.Post, uri)
-            {
-                Content = new StringContent(stringContent, Encoding.UTF8, "application/json"),
-            };
-            await _httpClient.SendAsync(request);
-        }
-
-        /// <inheritdoc />
-        public async Task UpdateApplicationMetadata(
-            string org,
-            string app,
-            Application applicationMetadata,
-            string envName)
-        {
-            var storageUri = await CreateStorageUri(envName);
-            Uri uri = new($"{storageUri}{org}/{app}");
-            HttpClientHelper.AddSubscriptionKeys(_httpClient, uri, _platformSettings);
-            string stringContent = JsonSerializer.Serialize(applicationMetadata);
-            /*
-             * Have to create a HttpRequestMessage instead of using helper extension methods like _httpClient.PostAsync(...)
-             * because the base address can change on each request and after HttpClient gets initial base address,
-             * it is not advised (and not allowed) to change base address.
-             */
-            HttpRequestMessage request = new(HttpMethod.Put, uri)
             {
                 Content = new StringContent(stringContent, Encoding.UTF8, "application/json"),
             };

@@ -1,4 +1,4 @@
-import { IFormLayouts } from '../types/global';
+import type { IFormLayouts } from '../types/global';
 import { generateComponentId, generateTextResourceId } from './generateId';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
@@ -7,8 +7,10 @@ describe('generateComponentId', () => {
     layout1: {
       containers: {
         container1: {
+          id: 'container1',
           index: 0,
           itemType: 'CONTAINER',
+          type: ComponentType.Group,
         },
       },
       components: {
@@ -16,7 +18,7 @@ describe('generateComponentId', () => {
           id: 'Input-1bd34',
           type: ComponentType.Input,
           itemType: 'COMPONENT',
-          dataModelBindings: {},
+          dataModelBindings: { simpleBinding: 'somePath' },
         },
       },
       order: {
@@ -28,8 +30,10 @@ describe('generateComponentId', () => {
     layout2: {
       containers: {
         container2: {
+          id: 'container2',
           index: 0,
           itemType: 'CONTAINER',
+          type: ComponentType.Group,
         },
       },
       components: {
@@ -37,7 +41,7 @@ describe('generateComponentId', () => {
           id: 'Input-abfr34',
           type: ComponentType.Input,
           itemType: 'COMPONENT',
-          dataModelBindings: {},
+          dataModelBindings: { simpleBinding: 'somePath' },
         },
       },
       order: {

@@ -1,5 +1,6 @@
 import React from 'react';
 import * as networking from '../../utils/networking';
+import type { IHeaderContext } from './Header';
 import { HeaderContext, SelectedContextType } from './Header';
 import type { HeaderMenuProps } from './HeaderMenu';
 import { HeaderMenu } from './HeaderMenu';
@@ -13,11 +14,11 @@ jest.mock('../../utils/networking', () => ({
 }));
 
 const mockedNavigate = jest.fn();
-jest.mock("react-router-dom", () => ({
-  ...jest.requireActual("react-router-dom"),
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockedNavigate,
   useLocation: () => ({
-    search: ''
+    search: '',
   }),
 }));
 
@@ -99,7 +100,7 @@ const openMenu = async () => {
 
 const render = (props: Partial<HeaderMenuProps> = {}) => {
   const handleSetSelectedContext = jest.fn();
-  const headerContextValue = {
+  const headerContextValue: IHeaderContext = {
     selectableOrgs: [
       {
         avatar_url: 'avatar_url',
@@ -115,6 +116,9 @@ const render = (props: Partial<HeaderMenuProps> = {}) => {
       full_name: 'John Smith',
       avatar_url: 'avatar_url',
       login: 'login',
+      email: '',
+      id: 0,
+      userType: 0,
     },
   };
   const allProps = {
@@ -127,7 +131,7 @@ const render = (props: Partial<HeaderMenuProps> = {}) => {
     rendered: rtlRender(
       <HeaderContext.Provider value={headerContextValue}>
         <HeaderMenu {...allProps} />
-      </HeaderContext.Provider>
+      </HeaderContext.Provider>,
     ),
     handleSetSelectedContext,
   };

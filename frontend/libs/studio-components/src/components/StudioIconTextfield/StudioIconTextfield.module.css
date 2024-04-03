@@ -1,0 +1,14 @@
+.container {
+  display: flex;
+  gap: var(--fds-spacing-2);
+}
+
+.prefixIcon {
+  color: var(--fds-semantic-text-neutral-default);
+  margin-top: var(--fds-spacing-7);
+  font-size: var(--fds-sizing-6);
+}
+
+.textfield {
+  width: 100%;
+}

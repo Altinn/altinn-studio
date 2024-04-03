@@ -1,0 +1,54 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/Accordion.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Accordion component",
+  "description": "Schema that describes the layout configuration for a Accordion component.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "title": "ID",
+      "description": "The component ID. Must be unique within all layouts/pages in a layout-set. Cannot end with <dash><number>.",
+      "type": "string",
+      "pattern": "^[0-9a-zA-Z][0-9a-zA-Z-]*(-?[a-zA-Z]+|[a-zA-Z][0-9]+|-[0-9]{6,})$"
+    },
+    "type": {
+      "const": "Accordion"
+    },
+    "textResourceBindings": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "title": "Title",
+          "description": "The title of the accordion",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "children": {
+      "title": "Children",
+      "description": "List of child component IDs to show inside the Accordion (limited to a few component types)",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "headingLevel": {
+      "$ref": "#/definitions/HeadingLevel"
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
+    },
+    "grid": {
+      "$ref": "#/definitions/IGrid"
+    },
+    "pageBreak": {
+      "$ref": "#/definitions/IPageBreak"
+    }
+  },
+  "required": ["id", "type", "children"],
+  "additionalProperties": false
+}

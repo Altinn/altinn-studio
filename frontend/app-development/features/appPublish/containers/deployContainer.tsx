@@ -1,10 +1,10 @@
 import React, { useMemo } from 'react';
 import classes from './deployContainer.module.css';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
-import { AppDeploymentComponent, ImageOption } from '../components/appDeploymentComponent';
+import type { ImageOption } from '../components/appDeploymentComponent';
+import { AppDeploymentComponent } from '../components/appDeploymentComponent';
 import { BuildResult } from 'app-shared/types/Build';
 import { useAppSelector } from '../../../hooks';
-import { useParams } from 'react-router-dom';
 import {
   useOrgListQuery,
   useEnvironmentsQuery,
@@ -12,27 +12,34 @@ import {
   useAppReleasesQuery,
   useAppDeploymentsQuery,
 } from '../../../hooks/queries';
-import {
+import type {
   ICreateAppDeploymentEnvObject,
   IDeployment,
 } from '../../../sharedResources/appDeployment/types';
 import { formatDateTime } from 'app-shared/pure/date-format';
-import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
+import type { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export const DeployContainerComponent = () => {
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const createAppDeploymentErrors: any = useAppSelector(
-    (state) => state.appDeployments.createAppDeploymentErrors
+    (state) => state.appDeployments.createAppDeploymentErrors,
   );
 
-  const { data: appDeployments = [], isLoading: deploysAreLoading } = useAppDeploymentsQuery(org, app);
-  const { data: environmentList = [], isLoading: envIsLoading } = useEnvironmentsQuery();
-  const { data: releases = [], isLoading: releasesIsLoading } = useAppReleasesQuery(org, app);
-  const { data: orgs = { orgs: {} }, isLoading: orgsIsLoading } = useOrgListQuery();
-  const { data: permissions, isLoading: permissionsIsLoading } = useDeployPermissionsQuery(org, app);
+  const { data: appDeployments = [], isPending: isDeploysPending } = useAppDeploymentsQuery(
+    org,
+    app,
+  );
+  const { data: environmentList = [], isPending: isEnvPending } = useEnvironmentsQuery();
+  const { data: releases = [], isPending: isReleasesPending } = useAppReleasesQuery(org, app);
+  const { data: orgs = { orgs: {} }, isPending: isOrgsPending } = useOrgListQuery();
+  const { data: permissions, isPending: isPermissionsPending } = useDeployPermissionsQuery(
+    org,
+    app,
+  );
 
-  const isLoading = () =>
-    releasesIsLoading || orgsIsLoading || permissionsIsLoading || envIsLoading || deploysAreLoading;
+  const isPending =
+    isReleasesPending || isOrgsPending || isPermissionsPending || isEnvPending || isDeploysPending;
 
   const orgName: string = useMemo(() => {
     let name = '';
@@ -46,10 +53,10 @@ export const DeployContainerComponent = () => {
     () =>
       orgs?.orgs[org]?.environments
         .map((envName: string) =>
-          environmentList.find((env: DeployEnvironment) => env.name === envName)
+          environmentList.find((env: DeployEnvironment) => env.name === envName),
         )
         .filter((element: any) => element != null),
-    [orgs, org, environmentList]
+    [orgs, org, environmentList],
   );
 
   const imageOptions: ImageOption[] = useMemo(
@@ -60,10 +67,10 @@ export const DeployContainerComponent = () => {
           value: image.tagName,
           label: `Version ${image.tagName} (${formatDateTime(image.created)})`,
         })),
-    [releases]
+    [releases],
   );
 
-  if (isLoading()) {
+  if (isPending) {
     return (
       <div className={classes.deployContainer}>
         <AltinnContentLoader width={900} height={320}>
@@ -79,7 +86,7 @@ export const DeployContainerComponent = () => {
     <div className={classes.deployContainer}>
       {deployEnvironments.map((env: DeployEnvironment, index: number) => {
         const deploymentsInEnv: IDeployment[] = appDeployments.filter(
-          (x) => x.envName === env.name
+          (x) => x.envName === env.name,
         );
         return (
           <AppDeploymentComponent

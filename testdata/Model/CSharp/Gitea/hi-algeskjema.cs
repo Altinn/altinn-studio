@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
@@ -37,16 +36,31 @@ namespace Altinn.App.Models
     [JsonPropertyName("longitude")]
     public decimal? longitude { get; set; }
 
+    public bool ShouldSerializelongitude()
+    {
+      return longitude.HasValue;
+    }
+
     [XmlElement("latitude", Order = 6)]
     [JsonProperty("latitude")]
     [JsonPropertyName("latitude")]
     public decimal? latitude { get; set; }
+
+    public bool ShouldSerializelatitude()
+    {
+      return latitude.HasValue;
+    }
 
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("depth", Order = 7)]
     [JsonProperty("depth")]
     [JsonPropertyName("depth")]
     public decimal? depth { get; set; }
+
+    public bool ShouldSerializedepth()
+    {
+      return depth.HasValue;
+    }
 
     [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$")]
     [XmlElement("sampledate", Order = 8)]
@@ -60,11 +74,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("hour")]
     public decimal? hour { get; set; }
 
+    public bool ShouldSerializehour()
+    {
+      return hour.HasValue;
+    }
+
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("minute", Order = 10)]
     [JsonProperty("minute")]
     [JsonPropertyName("minute")]
     public decimal? minute { get; set; }
+
+    public bool ShouldSerializeminute()
+    {
+      return minute.HasValue;
+    }
 
     [XmlElement("productionarea", Order = 11)]
     [JsonProperty("productionarea")]
@@ -91,15 +115,30 @@ namespace Altinn.App.Models
     [JsonPropertyName("harmfulalgae")]
     public bool? harmfulalgae { get; set; }
 
+    public bool ShouldSerializeharmfulalgae()
+    {
+      return harmfulalgae.HasValue;
+    }
+
     [XmlElement("reportedmortality", Order = 16)]
     [JsonProperty("reportedmortality")]
     [JsonPropertyName("reportedmortality")]
     public bool? reportedmortality { get; set; }
 
+    public bool ShouldSerializereportedmortality()
+    {
+      return reportedmortality.HasValue;
+    }
+
     [XmlElement("behaviourchanges", Order = 17)]
     [JsonProperty("behaviourchanges")]
     [JsonPropertyName("behaviourchanges")]
     public bool? behaviourchanges { get; set; }
+
+    public bool ShouldSerializebehaviourchanges()
+    {
+      return behaviourchanges.HasValue;
+    }
 
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("diatomcount", Order = 18)]
@@ -107,17 +146,32 @@ namespace Altinn.App.Models
     [JsonPropertyName("diatomcount")]
     public decimal? diatomcount { get; set; }
 
+    public bool ShouldSerializediatomcount()
+    {
+      return diatomcount.HasValue;
+    }
+
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("dinoflagellatecount", Order = 19)]
     [JsonProperty("dinoflagellatecount")]
     [JsonPropertyName("dinoflagellatecount")]
     public decimal? dinoflagellatecount { get; set; }
 
+    public bool ShouldSerializedinoflagellatecount()
+    {
+      return dinoflagellatecount.HasValue;
+    }
+
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("flagellatecount", Order = 20)]
     [JsonProperty("flagellatecount")]
     [JsonPropertyName("flagellatecount")]
     public decimal? flagellatecount { get; set; }
+
+    public bool ShouldSerializeflagellatecount()
+    {
+      return flagellatecount.HasValue;
+    }
 
     [XmlElement("comments", Order = 21)]
     [JsonProperty("comments")]
@@ -149,6 +203,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("density")]
     public decimal? density { get; set; }
 
+    public bool ShouldSerializedensity()
+    {
+      return density.HasValue;
+    }
+
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId()
+    {
+      return AltinnRowId != default;
+    }
   }
 
   public class AltinnOwner
@@ -163,5 +232,15 @@ namespace Altinn.App.Models
     [JsonPropertyName("organisationname")]
     public string organisationname { get; set; }
 
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId()
+    {
+      return AltinnRowId != default;
+    }
   }
 }

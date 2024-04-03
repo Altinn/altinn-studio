@@ -1,40 +1,27 @@
 import React from 'react';
 import { RepositoryType } from 'app-shared/types/global';
-import { Link, useParams } from 'react-router-dom';
-import { TFunction } from 'i18next';
-import { editorPath } from 'app-shared/api/paths';
-import { Button, ButtonVariant, Select, ToggleButtonGroup } from '@digdir/design-system-react';
-import { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
-import { TopBarMenu } from 'app-development/layout/AppBar/appBarConfig';
+import type { TFunction } from 'i18next';
+import { LegacyToggleButtonGroup, LegacySelect } from '@digdir/design-system-react';
+import type { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import classes from '../AppPreviewSubMenu.module.css';
 import { ArrowCirclepathIcon, EyeIcon, LinkIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
-import { AppPreviewSubMenuProps } from '../AppPreviewSubMenu';
+import type { AppPreviewSubMenuProps } from '../AppPreviewSubMenu';
 import { useLayoutSetsQuery } from '../../../../packages/ux-editor/src/hooks/queries/useLayoutSetsQuery';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
+import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
+import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
+import { StudioButton } from '@studio/components';
 
 export interface AppPreviewMenuItem {
   key: string;
   link: JSX.Element;
 }
 
-export interface TopBarAppPreviewMenuItem {
-  key: TopBarAppPreviewMenu;
-  link: string;
-  repositoryTypes: RepositoryType[];
-}
-
-export enum TopBarAppPreviewMenu {
-  Preview = 'general.preview',
-}
-
-const handleChangeViewSizeClick = (selectedViewSize: string, setViewSize: (value: any) => void) => {
-  localStorage.setItem('viewSize', selectedViewSize);
-  setViewSize(selectedViewSize);
-};
-
-export const menu: TopBarAppPreviewMenuItem[] = [
+export const menu: TopBarMenuItem[] = [
   {
-    key: TopBarAppPreviewMenu.Preview,
+    key: TopBarMenu.Preview,
     link: '/:org/:app',
     repositoryTypes: [RepositoryType.App],
   },
@@ -44,27 +31,25 @@ export const getTopBarAppPreviewMenu = (
   org: string,
   app: string,
   repositoryType: RepositoryType,
-  t: TFunction
-): AppPreviewMenuItem[] => {
-  return menu
-    .filter((menuItem) => menuItem.repositoryTypes.includes(repositoryType))
-    .map((item) => {
-      return {
-        key: item.key,
-        link: <Link to={item.link.replace(':org', org).replace(':app', app)}>{t(item.key)} </Link>,
-      } as AppPreviewMenuItem;
-    });
+  t: TFunction,
+): TopBarMenuItem[] => {
+  return menu.filter((menuItem) => menuItem.repositoryTypes.includes(repositoryType));
 };
 
-export const SubPreviewMenuLeftContent = ({ viewSize, setViewSize, selectedLayoutSet, handleChangeLayoutSet }: AppPreviewSubMenuProps) => {
+export const SubPreviewMenuLeftContent = ({
+  viewSize,
+  setViewSize,
+  selectedLayoutSet,
+  handleChangeLayoutSet,
+}: AppPreviewSubMenuProps) => {
   const { t } = useTranslation();
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
   return (
     <div className={classes.leftSubHeaderComponents}>
       <div className={classes.viewSizeButtons}>
-        <ToggleButtonGroup
+        <LegacyToggleButtonGroup
           items={[
             {
               label: t('preview.view_size_desktop'),
@@ -75,19 +60,22 @@ export const SubPreviewMenuLeftContent = ({ viewSize, setViewSize, selectedLayou
               value: 'mobile',
             },
           ]}
-          onChange={(value) => handleChangeViewSizeClick(value, setViewSize)}
+          onChange={setViewSize}
           selectedValue={viewSize === 'desktop' ? 'desktop' : 'mobile'}
         />
       </div>
-      {layoutSets &&
+      {layoutSets && (
         <div className={classes.layoutSetSelector}>
-        <Select
-          onChange={(layoutSet) => handleChangeLayoutSet(layoutSet)}
-          options={layoutSets.sets.map(layoutSet => ({ label: layoutSet.id, value: layoutSet.id }))}
-          value={selectedLayoutSet}
-        />
+          <LegacySelect
+            onChange={(layoutSet) => handleChangeLayoutSet(layoutSet)}
+            options={layoutSets.sets.map((layoutSet) => ({
+              label: layoutSet.id,
+              value: layoutSet.id,
+            }))}
+            value={selectedLayoutSet}
+          />
         </div>
-      }
+      )}
     </div>
   );
 };
@@ -96,29 +84,32 @@ export const SubPreviewMenuRightContent = () => {
   const { t } = useTranslation();
   return (
     <div className={classes.rightSubHeaderButtons}>
-      <Button data-testid='restartBtn' icon={<ArrowCirclepathIcon/>} variant={ButtonVariant.Quiet} size='small'>
-        {t('preview.subheader.restart.button')}
-      </Button>
-      <Button data-testid='showBtn' icon={<EyeIcon/>} variant={ButtonVariant.Quiet} size='small'>
-        {t('preview.subheader.showas.button')}
-      </Button>
-      <Button data-testid='shareBtn' icon={<LinkIcon/>} variant={ButtonVariant.Quiet} size='small'>
-        {t('preview.subheader.sharelink.button')}
-      </Button>
+      <StudioButton icon={<ArrowCirclepathIcon />} variant='tertiary' size='small' color='inverted'>
+        {t('preview.subheader.restart')}
+      </StudioButton>
+      <StudioButton icon={<EyeIcon />} variant='tertiary' size='small' color='inverted'>
+        {t('preview.subheader.showas')}
+      </StudioButton>
+      <StudioButton icon={<LinkIcon />} variant='tertiary' size='small' color='inverted'>
+        {t('preview.subheader.sharelink')}
+      </StudioButton>
     </div>
   );
 };
 
-export const appPreviewButtonActions = (org: string, app: string, selectedLayoutInEditor: string): AltinnButtonActionItem[] => {
-  const subUrl = `/ui-editor?layout=${selectedLayoutInEditor}`;
-  const action = [
+export const appPreviewButtonActions = (
+  org: string,
+  app: string,
+  instanceId: string,
+): AltinnButtonActionItem[] => {
+  const packagesRouter = new PackagesRouter({ org, app });
+  const queryParams = `?layout=${window.localStorage.getItem(instanceId)}`;
+
+  const action: AltinnButtonActionItem[] = [
     {
       title: 'top_menu.preview_back_to_editing',
-      path: editorPath,
       menuKey: TopBarMenu.Preview,
-      buttonVariant: ButtonVariant.Outline,
-      headerButtonsClasses: classes.backToEditorBtn,
-      handleClick: () => (window.location.href = editorPath(org, app) + subUrl),
+      to: `${packagesRouter.getPackageNavigationUrl('editorUiEditor')}${queryParams}`,
     },
   ];
   return action;

@@ -1,8 +1,7 @@
-/* TODO - font families */
 .policyEditorWrapper {
   width: 90%;
   margin: 0;
-  padding: 40px;
+  padding: var(--fds-spacing-10);
 }
 
 .spinnerWrapper {

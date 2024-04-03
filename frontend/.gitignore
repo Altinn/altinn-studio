@@ -2,6 +2,7 @@
 
 /.pnp.*
 /.yarn/*
+scripts/.yarn/*
 language/old/*
 !/.yarn/patches
 !/.yarn/plugins
@@ -11,3 +12,6 @@ language/old/*
 **/stats.json
 *.csv
 script.js
+/testing/playwright/test-results
+
+*storybook.log

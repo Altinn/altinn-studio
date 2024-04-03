@@ -16,6 +16,13 @@ langFiles.forEach((file) => {
 });
 const uniqueKeys = [...new Set(allKeys)];
 uniqueKeys.sort();
-it.skip.each(langFiles)('should have all keys in all files %s', (filename, content) => {
-  expect(Object.keys(content)).toBe(uniqueKeys);
+describe('Text files', () => {
+  test.skip.each(langFiles)('%s should have all keys in all files', (filename, content) => {
+    expect(Object.keys(content)).toBe(uniqueKeys);
+  });
+
+  test.each(langFiles)('%s should be sorted alphabetically', (filename, content) => {
+    const sortedKeys = Object.keys(content).sort();
+    expect(Object.keys(content)).toEqual(sortedKeys);
+  });
 });

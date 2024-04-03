@@ -128,22 +128,33 @@ namespace Designer.Tests.Utils
         /// Generates test repository name that will be excluded from project and will be git ignored.
         /// </summary>
         /// <param name="suffix">If provided appends suffix to test repo.</param>
+        /// <param name="length">Define length of the repo name.</param>
         /// <returns>Test repository name.</returns>
-        public static string GenerateTestRepoName(string suffix = null)
+        public static string GenerateTestRepoName(string suffix = null, int length = 28)
         {
             if (suffix?.Length > 15)
             {
                 throw new ArgumentException("Suffix is too long");
             }
-            string nonSuffixName = $"test-repo-{Guid.NewGuid()}"[..28];
+            if (length is < 12 or > 28)
+            {
+                throw new ArgumentException("Length for test repo must be between 12 and 20.");
+            }
+
+            if ("test-repo-".Length + suffix?.Length > length)
+            {
+                throw new ArgumentException("Suffix is too long");
+            }
+
+            string nonSuffixName = $"test-repo-{Guid.NewGuid()}"[..length];
 
             return suffix == null ? nonSuffixName : $"{nonSuffixName[..^suffix.Length]}{suffix}";
         }
 
-        public async static Task<string> CopyRepositoryForTest(string org, string repository, string developer, string targetRepsository)
+        public static async Task<string> CopyRepositoryForTest(string org, string repository, string developer, string targetRepository)
         {
             var sourceAppRepository = GetTestDataRepositoryDirectory(org, repository, developer);
-            var targetDirectory = Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org, targetRepsository);
+            var targetDirectory = Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org, targetRepository);
 
             await CopyDirectory(sourceAppRepository, targetDirectory);
 
@@ -234,7 +245,7 @@ namespace Designer.Tests.Utils
             return repositoryDirectory;
         }
 
-        public async static Task CopyDirectory(string sourceDirectory, string targetDirectory, bool copySubDirs = true)
+        public static async Task CopyDirectory(string sourceDirectory, string targetDirectory, bool copySubDirs = true)
         {
             DirectoryInfo sourceDirectoryInfo = new DirectoryInfo(sourceDirectory);
 
@@ -248,23 +259,33 @@ namespace Designer.Tests.Utils
             Directory.CreateDirectory(targetDirectory);
 
             FileInfo[] files = sourceDirectoryInfo.GetFiles();
-            foreach (FileInfo file in files)
+            await Parallel.ForEachAsync(files, async (file, _) =>
             {
                 string tempPath = Path.Combine(targetDirectory, file.Name);
-
-                var sourceBytes = ReadAllBytesWithoutLockingWithRetry(file.FullName);
-                await File.WriteAllBytesAsync(tempPath, sourceBytes);
-                File.SetAttributes(tempPath, FileAttributes.Normal);
-            }
+                await CopyFileIfNotExistsAsync(file, tempPath);
+            });
 
             if (copySubDirs)
             {
-                foreach (DirectoryInfo subdir in sourceSubDirectories)
+                await Parallel.ForEachAsync(sourceSubDirectories, async (subDir, _) =>
                 {
-                    string tempPath = Path.Combine(targetDirectory, subdir.Name);
-                    await CopyDirectory(subdir.FullName, tempPath, copySubDirs);
-                }
+                    string tempPath = Path.Combine(targetDirectory, subDir.Name);
+                    await CopyDirectory(subDir.FullName, tempPath, copySubDirs);
+                });
             }
+        }
+
+        // Copy file using Streams for better performance
+        private static async Task CopyFileIfNotExistsAsync(FileInfo file, string destinationPath)
+        {
+            if (File.Exists(destinationPath))
+            {
+                return;
+            }
+            await using FileStream sourceStream = file.OpenRead();
+            await using FileStream destinationStream = File.Create(destinationPath, bufferSize: 4096, FileOptions.Asynchronous);
+            await sourceStream.CopyToAsync(destinationStream, bufferSize: 4096);
+            File.SetAttributes(destinationPath, FileAttributes.Normal);
         }
 
         public static void CleanUpRemoteRepository(string org, string repository)
@@ -302,6 +323,17 @@ namespace Designer.Tests.Utils
             }
 
             return string.Empty;
+        }
+
+        public static byte[] GetFileAsByteArrayFromRepo(string org, string repository, string developer, string relativePath)
+        {
+            string filePath = Path.Combine(GetTestDataRepositoryDirectory(org, repository, developer), relativePath);
+            if (File.Exists(filePath))
+            {
+                return File.ReadAllBytes(filePath);
+            }
+
+            return new byte[0];
         }
 
         public static bool FileExistsInRepo(string org, string repository, string developer, string relativePath)

@@ -1,0 +1,9 @@
+.dropDownContainer {
+  margin: var(--fds-spacing-5);
+  margin-bottom: 5px;
+}
+
+.layoutSetsDropDown {
+  width: 100%;
+  text-overflow: ellipsis;
+}

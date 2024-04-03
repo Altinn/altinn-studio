@@ -1,11 +1,10 @@
-import { IAppState, IFormLayouts } from '../types/global';
-import { appStateMock, formDesignerMock } from '../testing/mocks';
+import type { IAppState, IFormLayouts } from '../types/global';
+import { appStateMock, formDesignerMock } from '../testing/stateMocks';
 import {
   getAllLayoutComponents,
   getAllLayoutContainers,
   getFullLayoutOrder,
   selectedLayoutNameSelector,
-  selectedLayoutSetSelector
 } from './formLayoutSelectors';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
@@ -13,7 +12,6 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 const layout1Name = 'Side1';
 const layout2Name = 'Side2';
 const selectedLayout = layout1Name;
-const selectedLayoutSet = 'test-layout-set';
 const appState: IAppState = {
   ...appStateMock,
   formDesigner: {
@@ -22,7 +20,7 @@ const appState: IAppState = {
       ...formDesignerMock.layout,
       selectedLayout,
     },
-  }
+  },
 };
 const container0Id = '42d928ea-57bc-4744-84d0-52d8ed80fd4d';
 const container1Id = '46c74255-82b2-41a3-8208-39e552547b3f';
@@ -40,19 +38,43 @@ const formLayoutsData: IFormLayouts = {
   [layout1Name]: {
     containers: {
       [container0Id]: {
+        id: container0Id,
         index: 0,
-        itemType: 'CONTAINER'
+        itemType: 'CONTAINER',
+        type: ComponentType.Group,
       },
       [container1Id]: {
+        id: container1Id,
         index: 1,
-        itemType: 'CONTAINER'
-      }
+        itemType: 'CONTAINER',
+        type: ComponentType.Group,
+      },
     },
     components: {
-      [component0AId]: { id: component0AId, type: ComponentType.Input, itemType: 'COMPONENT', dataModelBindings: {} },
-      [component0BId]: { id: component0BId, type: ComponentType.Input, itemType: 'COMPONENT', dataModelBindings: {} },
-      [component1AId]: { id: component1AId, type: ComponentType.Input, itemType: 'COMPONENT', dataModelBindings: {} },
-      [component1BId]: { id: component1BId, type: ComponentType.Input, itemType: 'COMPONENT', dataModelBindings: {} },
+      [component0AId]: {
+        id: component0AId,
+        type: ComponentType.Input,
+        itemType: 'COMPONENT',
+        dataModelBindings: { simpleBinding: 'path1' },
+      },
+      [component0BId]: {
+        id: component0BId,
+        type: ComponentType.Input,
+        itemType: 'COMPONENT',
+        dataModelBindings: { simpleBinding: 'path2' },
+      },
+      [component1AId]: {
+        id: component1AId,
+        type: ComponentType.Input,
+        itemType: 'COMPONENT',
+        dataModelBindings: { simpleBinding: 'path3' },
+      },
+      [component1BId]: {
+        id: component1BId,
+        type: ComponentType.Input,
+        itemType: 'COMPONENT',
+        dataModelBindings: { simpleBinding: 'path4' },
+      },
     },
     order: {
       [container0Id]: container0Order,
@@ -64,27 +86,35 @@ const formLayoutsData: IFormLayouts = {
   [layout2Name]: {
     containers: {
       [container2Id]: {
+        id: container2Id,
         index: 0,
-        itemType: 'CONTAINER'
+        itemType: 'CONTAINER',
+        type: ComponentType.Group,
       },
     },
     components: {
-      [component2AId]: { id: component2AId, type: ComponentType.Input, itemType: 'COMPONENT', dataModelBindings: {} },
-      [component2BId]: { id: component2BId, type: ComponentType.Input, itemType: 'COMPONENT', dataModelBindings: {} },
+      [component2AId]: {
+        id: component2AId,
+        type: ComponentType.Input,
+        itemType: 'COMPONENT',
+        dataModelBindings: { simpleBinding: 'somePath1' },
+      },
+      [component2BId]: {
+        id: component2BId,
+        type: ComponentType.Input,
+        itemType: 'COMPONENT',
+        dataModelBindings: { simpleBinding: 'somePath2' },
+      },
     },
     order: { [container2Id]: container2Order },
     customRootProperties: {},
     customDataProperties: {},
-  }
+  },
 };
 
 describe('formLayoutSelectors', () => {
   test('selectedLayoutNameSelector', () => {
     expect(selectedLayoutNameSelector(appState)).toEqual(selectedLayout);
-  });
-
-  test('selectedLayoutSetSelector', () => {
-    expect(selectedLayoutSetSelector(appState)).toEqual(selectedLayoutSet);
   });
 
   test('getAllLayoutContainers', () => {

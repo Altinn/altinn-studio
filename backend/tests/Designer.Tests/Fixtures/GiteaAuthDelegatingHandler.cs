@@ -32,7 +32,6 @@ namespace Designer.Tests.Fixtures
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-
             using HttpResponseMessage authorizedGiteaResponse = await GetAuthorizedGiteaResponse(cancellationToken);
             return await LoginToDesignerAndProxyRequest(authorizedGiteaResponse, request, cancellationToken);
         }
@@ -47,14 +46,14 @@ namespace Designer.Tests.Fixtures
 
             using var giteaGetLoginResponse = await giteaClient.GetAsync(giteaLoginUrl, cancellationToken);
             string htmlContent = await giteaGetLoginResponse.Content.ReadAsStringAsync(cancellationToken);
-            List<KeyValuePair<string, string>> formValues = new List<KeyValuePair<string, string>>
+            List<KeyValuePair<string, string>> formValues = new()
             {
                 new KeyValuePair<string, string>("user_name", GiteaConstants.TestUser),
                 new KeyValuePair<string, string>("password", GiteaConstants.TestUserPassword),
                 new KeyValuePair<string, string>("_csrf", GetStringFromHtmlContent(htmlContent, "<input type=\"hidden\" name=\"_csrf\" value=\"", "\"")),
             };
 
-            using FormUrlEncodedContent content = new FormUrlEncodedContent(formValues);
+            using FormUrlEncodedContent content = new(formValues);
 
             using var giteaPostLoginMessage = new HttpRequestMessage(HttpMethod.Post, giteaLoginUrl)
             {
@@ -82,14 +81,14 @@ namespace Designer.Tests.Fixtures
             if (loginResponse.Headers.Contains("Set-Cookie"))
             {
                 cookies = loginResponse.Headers.GetValues("Set-Cookie");
-                AuthenticationUtil.SetAltinnStudiCookieFromResponseHeader(httpRequestMessageXsrf, cookies);
+                AuthenticationUtil.SetAltinnStudioCookieFromResponseHeader(httpRequestMessageXsrf, cookies);
             }
 
             var xsrfResponse = await base.SendAsync(httpRequestMessageXsrf, cancellationToken);
 
-            var xsrfcookies = xsrfResponse.Headers.GetValues("Set-Cookie");
+            var xsrfcookies = xsrfResponse.Headers.Contains("Set-Cookie") ? xsrfResponse.Headers.GetValues("Set-Cookie") : xsrfResponse.RequestMessage.Headers.GetValues("Cookie");
             string xsrfToken = AuthenticationUtil.GetXsrfTokenFromCookie(xsrfcookies);
-            AuthenticationUtil.SetAltinnStudiCookieFromResponseHeader(request, cookies, xsrfToken);
+            AuthenticationUtil.SetAltinnStudioCookieFromResponseHeader(request, cookies, xsrfToken);
             SetCookies(request, GetGiteaAuthCookiesFromResponseMessage(xsrfResponse));
 
             return await base.SendAsync(request, cancellationToken);
@@ -118,7 +117,13 @@ namespace Designer.Tests.Fixtures
         {
             if (responseMessage.Headers.Contains("Set-Cookie"))
             {
-                return responseMessage.Headers.GetValues("Set-Cookie").Where(x => x.Contains("i_like_gitea") || x.Contains("macaron_flash")).ToList();
+                return responseMessage.Headers.GetValues("Set-Cookie").Where(x => x.Contains("i_like_gitea") || x.Contains("_flash")).ToList();
+            }
+
+            if (responseMessage.RequestMessage.Headers.Contains("Cookie"))
+            {
+                return responseMessage.RequestMessage.Headers.GetValues("Cookie")
+                    .Where(x => x.Contains("i_like_gitea") || x.Contains("_flash")).ToList();
             }
 
             throw new ArgumentException("Response message does not contain any cookies");

@@ -1,4 +1,4 @@
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 export interface ApplicationMetadata {
   autoDeleteOnProcessEnd?: boolean;
@@ -89,9 +89,5 @@ export interface OnEntry {
   show: string;
 }
 
-export interface PartyTypesAllowed {
-  bankruptcyEstate: boolean;
-  organisation: boolean;
-  person: boolean;
-  subUnit: boolean;
-}
+export type AllowedPartyTypes = 'bankruptcyEstate' | 'organisation' | 'person' | 'subUnit';
+export type PartyTypesAllowed = Record<AllowedPartyTypes, boolean>;

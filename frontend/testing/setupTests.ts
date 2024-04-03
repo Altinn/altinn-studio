@@ -1,12 +1,13 @@
 import 'jest';
-import '@testing-library/jest-dom/extend-expect';
 import 'whatwg-fetch';
+import '@testing-library/jest-dom/jest-globals';
+import '@testing-library/jest-dom';
 
 import failOnConsole from 'jest-fail-on-console';
 import { textMock } from './mocks/i18nMock';
 import { SignalR } from './mocks/signalr';
-import { ReactNode } from 'react';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { ReactNode } from 'react';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 failOnConsole({
   shouldFailOnWarn: true,
@@ -26,6 +27,11 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
+Object.defineProperty(window, 'scrollTo', {
+  writable: true,
+  value: jest.fn(),
+});
+
 // ResizeObserver must be mocked because it is used by the Popover component from the design system, but it is not supported by React Testing Library.
 class ResizeObserver {
   observe = jest.fn();
@@ -34,19 +40,32 @@ class ResizeObserver {
 }
 window.ResizeObserver = ResizeObserver;
 
+// document.getAnimations must be mocked because it is used by the design system, but it is not supported by React Testing Library.
+Object.defineProperty(document, 'getAnimations', {
+  value: () => [],
+  writable: true,
+});
+
+// Workaround for the known issue. For more info, see this: https://github.com/jsdom/jsdom/issues/3294#issuecomment-1268330372
+HTMLDialogElement.prototype.showModal = jest.fn(function mock(this: HTMLDialogElement) {
+  this.open = true;
+});
+HTMLDialogElement.prototype.close = jest.fn(function mock(this: HTMLDialogElement) {
+  this.open = false;
+});
+
 // I18next mocks. The useTranslation and Trans mocks apply the textMock function on the text key, so that it can be used to address the texts in the tests.
 jest.mock('i18next', () => ({ use: () => ({ init: jest.fn() }) }));
-jest.mock(
-  'react-i18next',
-  () => ({
-    Trans: ({ i18nKey }) => textMock(i18nKey),
-    useTranslation: () => ({ t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables) }),
-    withTranslation: () => (Component: ReactNode) => Component,
+jest.mock('react-i18next', () => ({
+  Trans: ({ i18nKey }) => textMock(i18nKey),
+  useTranslation: () => ({
+    t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
   }),
-);
+  withTranslation: () => (Component: ReactNode) => Component,
+}));
 
 // SignalR PreviewHub mock to simulate setup of websockets.
-jest.mock('@microsoft/signalr', () => SignalR );
+jest.mock('@microsoft/signalr', () => SignalR);
 
 // Mock org and app params
 jest.mock('react-router-dom', () => ({

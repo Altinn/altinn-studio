@@ -1,4 +1,5 @@
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
+import type { MutationMeta } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 
 interface CopyAppMutationArgs {
@@ -7,7 +8,10 @@ interface CopyAppMutationArgs {
   repoName: string;
 }
 
-export const useCopyAppMutation = () => {
+export const useCopyAppMutation = (meta?: MutationMeta) => {
   const { copyApp } = useServicesContext();
-  return useMutation(({ org, app, repoName }: CopyAppMutationArgs) => copyApp(org, app, repoName));
+  return useMutation({
+    mutationFn: ({ org, app, repoName }: CopyAppMutationArgs) => copyApp(org, app, repoName),
+    meta,
+  });
 };

@@ -1,21 +1,23 @@
 import React, { useEffect, useRef } from 'react';
 import classes from './AltinnConfirmDialog.module.css';
-import type { PopoverProps } from '@digdir/design-system-react';
-import { Button, ButtonColor, ButtonVariant, Popover, PopoverVariant } from '@digdir/design-system-react';
+import type { LegacyPopoverProps } from '@digdir/design-system-react';
+import { LegacyPopover } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
+import { StudioButton } from '@studio/components';
+import type { StudioButtonProps } from '@studio/components';
 
 export type AltinnConfirmDialogProps = {
   confirmText?: string;
-  confirmColor?: ButtonColor;
+  confirmColor?: StudioButtonProps['color'];
   cancelText?: string;
   onConfirm: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  onClose:(event: React.MouseEvent<HTMLButtonElement> | MouseEvent) => void;
-} & Partial<Pick<PopoverProps, 'open' | 'trigger' | 'placement' | 'children' | 'className'>>;
+  onClose: (event: React.MouseEvent<HTMLButtonElement> | MouseEvent) => void;
+} & Partial<Pick<LegacyPopoverProps, 'open' | 'trigger' | 'placement' | 'children' | 'className'>>;
 
 export function AltinnConfirmDialog({
   confirmText,
-  confirmColor = ButtonColor.Danger,
+  confirmColor = 'danger',
   cancelText,
   onConfirm,
   onClose,
@@ -41,14 +43,12 @@ export function AltinnConfirmDialog({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  },[onClose, open]);
+  }, [onClose, open]);
 
   return (
-    <div
-      ref={dialogRef}
-    >
-      <Popover
-        variant={PopoverVariant.Warning}
+    <div ref={dialogRef}>
+      <LegacyPopover
+        variant='warning'
         className={cn(className, classes.popover)}
         trigger={trigger}
         placement={placement}
@@ -56,9 +56,9 @@ export function AltinnConfirmDialog({
       >
         {children}
         <div className={classes.buttonContainer}>
-          <Button
+          <StudioButton
             color={confirmColor}
-            variant={ButtonVariant.Filled}
+            variant='primary'
             onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
               event.stopPropagation();
               onConfirm(event);
@@ -68,10 +68,10 @@ export function AltinnConfirmDialog({
             size='small'
           >
             {confirmText || t('general.yes')}
-          </Button>
-          <Button
-            color={ButtonColor.Secondary}
-            variant={ButtonVariant.Quiet}
+          </StudioButton>
+          <StudioButton
+            color='second'
+            variant='tertiary'
             onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
               event.stopPropagation();
               onClose(event);
@@ -79,9 +79,9 @@ export function AltinnConfirmDialog({
             size='small'
           >
             {cancelText || t('general.cancel')}
-          </Button>
+          </StudioButton>
         </div>
-      </Popover>
+      </LegacyPopover>
     </div>
   );
 }

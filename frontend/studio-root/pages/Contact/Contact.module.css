@@ -1,0 +1,76 @@
+:root {
+  --primary-color-700: #022f51;
+}
+
+.container {
+  background-color: var(--colors-white);
+  border-radius: 4px;
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  font-family: var(--studio-font-family);
+  position: relative;
+
+  margin: var(--fds-spacing-10) auto;
+  max-width: 1230px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-6);
+  margin: var(--fds-spacing-12) var(--fds-spacing-8);
+}
+
+.section {
+  background-color: var(--colors-grey-100);
+  border-radius: 4px;
+  display: flex;
+  gap: var(--fds-spacing-6);
+  padding: var(--fds-spacing-8);
+  max-width: 735px;
+}
+
+.iconContainer {
+  background-color: var(--primary-color-700);
+  border-radius: 100%;
+  color: var(--colors-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
+  width: 60px;
+  box-sizing: border-box;
+}
+
+.emailIcon {
+  font-size: 2.5rem;
+}
+
+.githubIcon {
+  padding: 10px;
+}
+
+.textContainer {
+  flex: 1;
+}
+
+.link a {
+  font-size: 1rem;
+}
+
+@media (min-width: 768px) {
+  .content {
+    margin: var(--fds-spacing-18);
+  }
+
+  .section {
+    padding: var(--fds-spacing-12);
+  }
+}
+
+@media (min-width: 960px) {
+  .section {
+    padding-right: var(--fds-spacing-22);
+  }
+}

@@ -406,3 +406,13 @@ backend/srcaccesstoken/
 !/.yarn/versions
 
 stats.csv
+
+## VSCode settings
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+/test-results/
+/blob-report/
+/playwright/.cache/
+/frontend/testing/playwright/playwright-report
+.playwright/

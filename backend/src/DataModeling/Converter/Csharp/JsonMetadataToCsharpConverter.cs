@@ -21,16 +21,17 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
         private string Indent(int level = 1) => new string(' ', level * _generationSettings.IndentSize);
 
-        /// <summary>
-        /// Create Model from ServiceMetadata object
-        /// </summary>
-        /// <param name="serviceMetadata">ServiceMetadata object</param>
-        /// <returns>The model code in C#</returns>
-        public string CreateModelFromMetadata(ModelMetadata serviceMetadata)
+        /// <inheritdoc />
+        public string CreateModelFromMetadata(ModelMetadata serviceMetadata, bool separateNamespaces = false)
         {
-            Dictionary<string, string> classes = new Dictionary<string, string>();
+            Dictionary<string, string> classes = new();
 
-            CreateModelFromMetadataRecursive(classes, serviceMetadata.Elements.Values.First(el => el.ParentElement == null), serviceMetadata, serviceMetadata.TargetNamespace);
+            var rootElementType = serviceMetadata.GetRootElement();
+            string modelNamespace = _generationSettings.ModelNamespace +
+                                    (separateNamespaces ? $".{rootElementType.TypeName}"
+                                        : string.Empty);
+
+            CreateModelFromMetadataRecursive(classes, rootElementType, serviceMetadata, serviceMetadata.TargetNamespace);
 
             StringBuilder writer = new StringBuilder()
                 .AppendLine("using System;")
@@ -38,16 +39,19 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 .AppendLine("using System.ComponentModel.DataAnnotations;")
                 .AppendLine("using System.Linq;")
                 .AppendLine("using System.Text.Json.Serialization;")
-                .AppendLine("using System.Threading.Tasks;")
                 .AppendLine("using System.Xml.Serialization;")
                 .AppendLine("using Microsoft.AspNetCore.Mvc.ModelBinding;")
                 .AppendLine("using Newtonsoft.Json;")
-                .AppendLine($"namespace {_generationSettings.ModelNamespace}")
+                .AppendLine($"namespace {modelNamespace}")
                 .AppendLine("{")
                 .Append(string.Concat(classes.Values))
                 .AppendLine("}");
 
-            return writer.ToString();
+            string cSharpClasses = writer.ToString();
+
+            Compiler.CompileToAssembly(cSharpClasses);
+
+            return cSharpClasses;
         }
 
         /// <summary>
@@ -83,6 +87,12 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
             classBuilder.AppendLine(Indent() + "public class " + parentElement.TypeName);
             classBuilder.AppendLine(Indent() + "{");
+
+
+            if (ShouldWriteAltinnRowId(parentElement, serviceMetadata.Elements.Values.ToList()))
+            {
+                WriteAltinnRowId(classBuilder);
+            }
 
             int elementOrder = 0;
 
@@ -150,6 +160,10 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
                 bool shouldBeNullable = isValueType && !element.IsTagContent; // Can't use complex type for XmlText.
                 classBuilder.AppendLine(Indent(2) + "public " + dataType + (shouldBeNullable ? "?" : string.Empty) + " " + element.Name + " { get; set; }\n");
+                if (shouldBeNullable && element.Nillable.HasValue && !element.Nillable.Value && element.MinOccurs == 0)
+                {
+                    WriteShouldSerializeMethod(classBuilder, element.Name);
+                }
             }
         }
 
@@ -211,11 +225,11 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 classBuilder.AppendLine(Indent(2) + "[BindNever]");
                 if (dataType.Equals("string"))
                 {
-                    classBuilder.AppendLine(Indent(2) + "public " + dataType + " " + element.Name + " {get; set; } = \"" + element.FixedValue + "\";\n");
+                    classBuilder.AppendLine(Indent(2) + "public " + dataType + " " + element.Name + " { get; set; } = \"" + element.FixedValue + "\";\n");
                 }
                 else
                 {
-                    classBuilder.AppendLine(Indent(2) + "public " + dataType + " " + element.Name + " {get; set;} = " + element.FixedValue + ";\n");
+                    classBuilder.AppendLine(Indent(2) + "public " + dataType + " " + element.Name + " { get; set; } = " + element.FixedValue + ";\n");
                 }
             }
             else
@@ -251,6 +265,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
             WriteTypeRestrictions(classBuilder, element.XsdValueType.Value, errorMessage);
         }
+
         private void WriteRestrictions(StringBuilder classBuilder, ElementMetadata element, string errorMessage, out bool hasRange)
         {
             hasRange = false;
@@ -269,17 +284,12 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 classBuilder.AppendLine(Indent(2) + "[MaxLength(" + maxLengthRestriction.Value + errorMessage + ")]");
             }
 
-            if (element.Restrictions.TryGetValue("minInclusive", out var minInclusiveRestriction) && element.Restrictions.TryGetValue("maxInclusive", out var maxExclusiveRestriction))
+            WriteRangeRestriction(classBuilder, element, errorMessage, "minInclusive", "maxInclusive", out hasRange);
+            if (!hasRange)
             {
-                classBuilder.AppendLine(Indent(2) + "[Range(" + minInclusiveRestriction.Value + ", " + maxExclusiveRestriction.Value + errorMessage + ")]");
-                hasRange = true;
+                WriteRangeRestriction(classBuilder, element, errorMessage, "minimum", "maximum", out hasRange);
             }
 
-            if (element.Restrictions.TryGetValue("minimum", out var minimumRestriction) && element.Restrictions.TryGetValue("maximum", out var maximumRestriction))
-            {
-                classBuilder.AppendLine(Indent(2) + "[Range(" + minimumRestriction.Value + ", " + maximumRestriction.Value + errorMessage + ")]");
-                hasRange = true;
-            }
 
             if (element.Restrictions.TryGetValue("pattern", out var patternRestriction))
             {
@@ -296,31 +306,59 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                     Indent(2) + $@"[RegularExpression(@""{regexString}""{errorMessage})]");
             }
         }
+
+        private void WriteRangeRestriction(StringBuilder classBuilder, ElementMetadata element, string errorMessage, string leftRestrictionName, string rightRestrictionName, out bool hasRange)
+        {
+            hasRange = false;
+            bool hasMinimum = element.Restrictions.TryGetValue(leftRestrictionName, out var minRestriction);
+            bool hasMaximum = element.Restrictions.TryGetValue(rightRestrictionName, out var maxRestriction);
+
+            if (hasMinimum && hasMaximum)
+            {
+                classBuilder.AppendLine($"{Indent(2)}[Range({GetRangeValueAsString(element, minRestriction)}, {GetRangeValueAsString(element, maxRestriction)}{errorMessage})]");
+                hasRange = true;
+            }
+            else if (hasMinimum)
+            {
+                classBuilder.AppendLine($"{Indent(2)}[Range({GetRangeValueAsString(element, minRestriction)}, {RightRangeLimit(element.XsdValueType ?? BaseValueType.Double)}{errorMessage})]");
+                hasRange = true;
+            }
+            else if (hasMaximum)
+            {
+                classBuilder.AppendLine($"{Indent(2)}[Range({LeftRangeLimit(element.XsdValueType ?? BaseValueType.Double)}, {GetRangeValueAsString(element, maxRestriction)}{errorMessage})]");
+                hasRange = true;
+            }
+        }
+
+        private static string GetRangeValueAsString(ElementMetadata element, Restriction restriction)
+        {
+            string value = restriction?.Value ?? string.Empty;
+            bool isAlreadyDecimal = value.Contains('.') || value.Contains(',');
+            // Use decimal range value for all types except int and long
+            if (!isAlreadyDecimal && element.XsdValueType.HasValue && !new[]
+                {
+                    BaseValueType.Int, BaseValueType.Long
+                }.Contains(element.XsdValueType.Value))
+            {
+                value = $"{value}d";
+            }
+            return value;
+        }
+
         private void WriteTypeRestrictions(StringBuilder classBuilder, BaseValueType type, string errorMessage)
         {
 
             switch (type)
             {
                 case BaseValueType.Double:
-                    classBuilder.AppendLine(Indent(2) + "[Range(Double.MinValue,Double.MaxValue" + errorMessage + ")]");
-                    break;
                 case BaseValueType.Int:
-                    classBuilder.AppendLine(Indent(2) + "[Range(Int32.MinValue,Int32.MaxValue" + errorMessage + ")]");
-                    break;
                 case BaseValueType.Integer:
-                    classBuilder.AppendLine(Indent(2) + "[Range(Double.MinValue,Double.MaxValue" + errorMessage + ")]");
-                    break;
+                case BaseValueType.Long:
                 case BaseValueType.NegativeInteger:
-                    classBuilder.AppendLine(Indent(2) + "[Range(Double.MinValue,-1" + errorMessage + ")]");
-                    break;
                 case BaseValueType.NonPositiveInteger:
-                    classBuilder.AppendLine(Indent(2) + "[Range(Double.MinValue,0" + errorMessage + ")]");
-                    break;
                 case BaseValueType.NonNegativeInteger:
-                    classBuilder.AppendLine(Indent(2) + "[Range(0,Double.MaxValue" + errorMessage + ")]");
-                    break;
                 case BaseValueType.PositiveInteger:
-                    classBuilder.AppendLine(Indent(2) + "[Range(1,Double.MaxValue" + errorMessage + ")]");
+                    classBuilder.AppendLine(Indent(2) + $"[Range({LeftRangeLimit(type)},{RightRangeLimit(type)}" + errorMessage + ")]");
                     break;
                 case BaseValueType.GYear:
                     classBuilder.AppendLine(Indent(2) + "[RegularExpression(@\"^[0-9]{4}$\"" + errorMessage + ")]");
@@ -345,6 +383,34 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                     break;
             }
         }
+
+        private static string LeftRangeLimit(BaseValueType type) => type switch
+        {
+            BaseValueType.Int => "Int32.MinValue",
+            BaseValueType.Integer => "Double.MinValue",
+            BaseValueType.NegativeInteger => "Double.MinValue",
+            BaseValueType.NonPositiveInteger => "Double.MinValue",
+            BaseValueType.NonNegativeInteger => "0",
+            BaseValueType.PositiveInteger => "1",
+            BaseValueType.Decimal => "Double.MinValue",
+            BaseValueType.Double => "Double.MinValue",
+            BaseValueType.Long => "Int64.MinValue",
+            _ => throw new CsharpGenerationException("Unsupported range for type: " + type)
+        };
+
+        private static string RightRangeLimit(BaseValueType? type) => type switch
+        {
+            BaseValueType.Int => "Int32.MaxValue",
+            BaseValueType.Integer => "Double.MaxValue",
+            BaseValueType.NegativeInteger => "-1",
+            BaseValueType.NonPositiveInteger => "0",
+            BaseValueType.NonNegativeInteger => "Double.MaxValue",
+            BaseValueType.PositiveInteger => "Double.MaxValue",
+            BaseValueType.Decimal => "Double.MaxValue",
+            BaseValueType.Double => "Double.MaxValue",
+            BaseValueType.Long => "Int64.MaxValue",
+            _ => throw new CsharpGenerationException("Unsupported range for type: " + type)
+        };
 
         private static (string DataType, bool IsValueType) GetPropertyType(BaseValueType? typeName)
         {
@@ -375,7 +441,38 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 BaseValueType.Long => ("long", true),
                 _ => throw new CsharpGenerationException("Unsupported type: " + typeName)
             };
+        }
 
+        /// <summary>
+        /// When nillable is set in xsd and minOccurs set to 0 nil attribute should not be set when serializing. Xml serializer by default sets attribute as true for nullable types.
+        /// </summary>
+        private void WriteShouldSerializeMethod(StringBuilder classBuilder, string propName)
+        {
+            classBuilder.AppendLine(Indent(2) + $"public bool ShouldSerialize{propName}()");
+            classBuilder.AppendLine(Indent(2) + "{");
+            classBuilder.AppendLine(Indent(3) + $"return {propName}.HasValue;");
+            classBuilder.AppendLine(Indent(2) + "}");
+            classBuilder.AppendLine();
+        }
+
+        private bool ShouldWriteAltinnRowId(ElementMetadata element, List<ElementMetadata> allElements) =>
+            allElements.Any(e =>
+                e.TypeName == element.TypeName && e.MaxOccurs > 1);
+
+        private void WriteAltinnRowId(StringBuilder classBuilder)
+        {
+            classBuilder.AppendLine(Indent(2) + "[XmlAttribute(\"altinnRowId\")]");
+            classBuilder.AppendLine(Indent(2) + "[JsonPropertyName(\"altinnRowId\")]");
+            classBuilder.AppendLine(Indent(2) +
+                                    "[System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]");
+            classBuilder.AppendLine(Indent(2) + "[Newtonsoft.Json.JsonIgnore]");
+            classBuilder.AppendLine(Indent(2) + "public Guid AltinnRowId { get; set; }");
+            classBuilder.AppendLine("");
+            classBuilder.AppendLine(Indent(2) + "public bool ShouldSerializeAltinnRowId()");
+            classBuilder.AppendLine(Indent(2) + "{");
+            classBuilder.AppendLine(Indent(3) + "return AltinnRowId != default;");
+            classBuilder.AppendLine(Indent(2) + "}");
+            classBuilder.AppendLine();
         }
     }
 }

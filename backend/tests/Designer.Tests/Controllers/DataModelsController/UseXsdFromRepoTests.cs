@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Controllers;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
@@ -10,10 +9,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class UseXsdFromRepoTests : DisagnerEndpointsTestsBase<DatamodelsController, UseXsdFromRepoTests>
+public class UseXsdFromRepoTests : DisagnerEndpointsTestsBase<UseXsdFromRepoTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
-    public UseXsdFromRepoTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
+    public UseXsdFromRepoTests(WebApplicationFactory<Program> factory) : base(factory)
     {
     }
 
@@ -29,7 +28,7 @@ public class UseXsdFromRepoTests : DisagnerEndpointsTestsBase<DatamodelsControll
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url);
 
-        using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
         response.StatusCode.Should().Be(HttpStatusCode.Created);
     }
 }

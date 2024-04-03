@@ -19,33 +19,35 @@ const defaultProps: IActionMenuProps = { className, items, openButtonText };
 
 const renderActionMenu = () => render(<ActionMenu {...defaultProps} />);
 
-test('Renders open button', () => {
-  renderActionMenu();
-  expect(screen.getByText(openButtonText)).toBeDefined();
-});
+describe('ActionMenu', () => {
+  test('Renders open button', () => {
+    renderActionMenu();
+    expect(screen.getByRole('button', { name: openButtonText })).toBeDefined();
+  });
 
-test('All items are present', () => {
-  renderActionMenu();
-  items.forEach(({ text }) => expect(screen.getByText(text)).toBeDefined());
-});
+  test('All items are present', () => {
+    renderActionMenu();
+    items.forEach(({ text }) => expect(screen.getByRole('menuitem', { name: text })).toBeDefined());
+  });
 
-test('All menu item buttons call their respective action on click', async () => {
-  renderActionMenu();
-  for (const { action, text } of items) {
-    await act(() => user.click(screen.getByText(text)));
-    expect(action).toHaveBeenCalledTimes(1);
-  }
-});
+  test('All menu item buttons call their respective action on click', async () => {
+    renderActionMenu();
+    for (const { action, text } of items) {
+      await act(() => user.click(screen.getByRole('menuitem', { name: text })));
+      expect(action).toHaveBeenCalledTimes(1);
+    }
+  });
 
-test('Menu item button loses focus when clicked', async () => {
-  renderActionMenu();
-  const { text } = items[0];
-  await act(() => user.click(screen.getByText(text)));
-  expect(screen.getByText(text)).not.toHaveFocus();
-});
+  test('Menu item button loses focus when clicked', async () => {
+    renderActionMenu();
+    const { text } = items[0];
+    await act(() => user.click(screen.getByRole('menuitem', { name: text })));
+    expect(screen.getByText(text)).not.toHaveFocus();
+  });
 
-test('Menu item has given class name', () => {
-  renderActionMenu();
-  const [firstItem] = screen.getAllByTestId('menuitem-action-menu');
-  expect(firstItem).toHaveClass('item-class');
+  test('Menu item has given class name', () => {
+    renderActionMenu();
+    const [firstItem] = screen.getAllByRole('listitem');
+    expect(firstItem).toHaveClass('item-class');
+  });
 });

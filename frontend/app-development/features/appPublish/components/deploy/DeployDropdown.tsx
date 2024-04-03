@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
 import classes from './DeployDropdown.module.css';
-import { AltinnIcon, AltinnSpinner, AltinnConfirmDialog } from 'app-shared/components';
-import {
-  Button,
-  ButtonColor,
-  Select,
-} from '@digdir/design-system-react';
-import { DeploymentStatus, ImageOption } from '../appDeploymentComponent';
+import { AltinnConfirmDialog } from 'app-shared/components';
+import { StudioSpinner, StudioButton } from '@studio/components';
+import { LegacySelect } from '@digdir/design-system-react';
+import type { ImageOption } from '../appDeploymentComponent';
+import { DeploymentStatus } from '../appDeploymentComponent';
 import { formatTimeHHmm } from 'app-shared/pure/date-format';
 import { getAzureDevopsBuildResultUrl } from '../../../../utils/urlHelper';
 import { shouldDisplayDeployStatus } from './utils';
 import { useTranslation, Trans } from 'react-i18next';
+import {
+  CheckmarkCircleFillIcon,
+  InformationSquareFillIcon,
+  XMarkOctagonFillIcon,
+} from '@studio/icons';
 
 export interface DeployDropdownProps {
   appDeployedVersion: string;
@@ -45,7 +48,7 @@ export const DeployDropdown = ({
       <div>{t('app_deploy_messages.choose_version')}</div>
       <div className={classes.select} id={`deploy-select-${envName.toLowerCase()}`}>
         {imageOptions.length > 0 && (
-          <Select
+          <LegacySelect
             key={imageOptions.length}
             options={imageOptions || []}
             onChange={(value: string) => setSelectedImageTag(value)}
@@ -55,47 +58,50 @@ export const DeployDropdown = ({
       <div className={classes.deployButton}>
         <AltinnConfirmDialog
           open={isConfirmDeployDialogOpen}
-          confirmColor={ButtonColor.Primary}
+          confirmColor='first'
           onConfirm={onStartDeployClick}
           onClose={() => setIsConfirmDeployDialogOpen(false)}
           placement='right'
           trigger={
-            <Button
+            <StudioButton
               disabled={disabled}
-              onClick={() => setIsConfirmDeployDialogOpen(prevState => !prevState)}
+              onClick={() => setIsConfirmDeployDialogOpen((prevState) => !prevState)}
               id={`deploy-button-${envName.toLowerCase()}`}
               size='small'
             >
               {t('app_deploy_messages.btn_deploy_new_version')}
-            </Button>
+            </StudioButton>
           }
         >
-          <p>{appDeployedVersion
-            ? t('app_deploy_messages.deploy_confirmation', {
-                selectedImageTag,
-                appDeployedVersion,
-              })
-            : t('app_deploy_messages.deploy_confirmation_short', { selectedImageTag })}</p>
+          <p>
+            {appDeployedVersion
+              ? t('app_deploy_messages.deploy_confirmation', {
+                  selectedImageTag,
+                  appDeployedVersion,
+                })
+              : t('app_deploy_messages.deploy_confirmation_short', { selectedImageTag })}
+          </p>
         </AltinnConfirmDialog>
       </div>
       {shouldDisplayDeployStatus(deployHistoryEntry?.created) && (
         <div className={classes.deployStatusGridContainer}>
           <div className={classes.deploySpinnerGridItem}>
-            {deploymentStatus === DeploymentStatus.inProgress && <AltinnSpinner />}
+            {deploymentStatus === DeploymentStatus.inProgress && (
+              <StudioSpinner
+                showSpinnerTitle={false}
+                spinnerTitle={t('app_deploy.loading_deploy')}
+              />
+            )}
             {deploymentStatus === DeploymentStatus.succeeded && (
-              <AltinnIcon iconClass='ai ai-check-circle' iconColor='#12AA64' iconSize='3.6rem' />
+              <CheckmarkCircleFillIcon className={classes.successIcon} />
             )}
             {(deploymentStatus === DeploymentStatus.partiallySucceeded ||
               deploymentStatus === DeploymentStatus.none) && (
-              <AltinnIcon iconClass='ai ai-info-circle' iconColor='#008FD6' iconSize='3.6rem' />
+              <InformationSquareFillIcon className={classes.infoIcon} />
             )}
             {(deploymentStatus === DeploymentStatus.canceled ||
               deploymentStatus === DeploymentStatus.failed) && (
-              <AltinnIcon
-                iconClass='ai ai-circle-exclamation'
-                iconColor='#E23B53'
-                iconSize='3.6rem'
-              />
+              <XMarkOctagonFillIcon className={classes.errorIcon} />
             )}
           </div>
           <div>

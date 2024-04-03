@@ -21,5 +21,8 @@ namespace Altinn.Studio.Designer.Enums
 
         [PgName("altinnapp")]
         AltinnApp = 8,
+
+        [PgName("GenericAccessResource")]
+        GenericAccessResource = 16,
     }
 }

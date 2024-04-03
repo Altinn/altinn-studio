@@ -1,88 +1,180 @@
 import React from 'react';
-import {
-  FormComponentConfig,
-  FormComponentConfigProps,
-  isPropertyTypeSupported,
-} from './FormComponentConfig';
+import type { FormComponentConfigProps } from './FormComponentConfig';
+import { FormComponentConfig } from './FormComponentConfig';
 import { renderWithMockStore } from '../../testing/mocks';
 import { componentMocks } from '../../testing/componentMocks';
 import InputSchema from '../../testing/schemas/json/component/Input.schema.v1.json';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-
-describe('isPropertyTypeSupported', () => {
-  it('should return true if property type is supported', () => {
-    expect(
-      isPropertyTypeSupported({
-        type: 'string',
-      })
-    ).toBe(true);
-  });
-
-  it('should return true if property ref is supported', () => {
-    expect(
-      isPropertyTypeSupported({
-        $ref: 'https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean',
-      })
-    ).toBe(true);
-  });
-  it('should return true for property of array type with items that are type string', () => {
-    expect(
-      isPropertyTypeSupported({
-        type: 'array',
-        items: {
-          type: 'string',
-        },
-      })
-    ).toBe(true);
-  });
-  it('should return true for property type object', () => {
-    expect(
-      isPropertyTypeSupported({
-        type: 'object',
-      })
-    ).toBe(true);
-  });
-  it('should return false if property ref is not supported', () => {
-    expect(
-      isPropertyTypeSupported({
-        $ref: 'test',
-      })
-    ).toBe(false);
-  });
-});
 
 describe('FormComponentConfig', () => {
   it('should render expected components', async () => {
     render({});
-    expect(
-      screen.getByText(textMock('ux_editor.modal_properties_component_change_id'))
-    ).toBeInTheDocument();
-    ['title', 'description', 'help'].forEach((key) => {
-      expect(
-        screen.getByText(textMock(`ux_editor.modal_properties_textResourceBindings_${key}`))
-      ).toBeInTheDocument();
 
+    [
+      'grid',
+      'readOnly',
+      'required',
+      'hidden',
+      'renderAsSummary',
+      'variant',
+      'autocomplete',
+      'maxLength',
+      'triggers',
+      'labelSettings',
+      'pageBreak',
+      'formatting',
+    ].forEach(async (propertyKey) => {
       expect(
-        screen.getByText(textMock('ux_editor.modal_properties_data_model_helper'))
+        await screen.findByText(textMock(`ux_editor.component_properties.${propertyKey}`)),
       ).toBeInTheDocument();
-
-      [
-        'readOnly',
-        'required',
-        'hidden',
-        'renderAsSummary',
-        'variant',
-        'autocomplete',
-        'maxLength',
-        'triggers',
-      ].forEach(async (propertyKey) => {
-        expect(
-          await screen.findByText(textMock(`ux_editor.component_properties.${propertyKey}`))
-        ).toBeInTheDocument();
-      });
     });
+  });
+
+  it('should render list of unsupported properties', () => {
+    render({
+      props: {
+        hideUnsupported: false,
+        schema: {
+          ...InputSchema,
+          properties: {
+            ...InputSchema.properties,
+            unsupportedProperty: {
+              type: 'array',
+              items: {
+                type: 'object',
+              },
+            },
+          },
+        },
+      },
+    });
+    expect(
+      screen.getByText(textMock('ux_editor.edit_component.unsupported_properties_message')),
+    ).toBeInTheDocument();
+    expect(screen.getByText('unsupportedProperty')).toBeInTheDocument();
+  });
+
+  it('should not render list of unsupported properties if hideUnsupported is true', () => {
+    render({
+      props: {
+        hideUnsupported: true,
+        schema: {
+          ...InputSchema,
+          properties: {
+            ...InputSchema.properties,
+            unsupportedProperty: {
+              type: 'array',
+              items: {
+                type: 'object',
+              },
+            },
+          },
+        },
+      },
+    });
+    expect(
+      screen.queryByText(textMock('ux_editor.edit_component.unsupported_properties_message')),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('unsupportedProperty')).not.toBeInTheDocument();
+  });
+
+  it('should not render property if it is null', () => {
+    render({
+      props: {
+        hideUnsupported: true,
+        schema: {
+          ...InputSchema,
+          properties: {
+            ...InputSchema.properties,
+            nullProperty: null,
+          },
+        },
+      },
+    });
+    expect(screen.queryByText('nullProperty')).not.toBeInTheDocument();
+  });
+
+  it('should render nothing if schema is undefined', () => {
+    render({
+      props: {
+        schema: undefined,
+      },
+    });
+    expect(
+      screen.queryByText(textMock(`ux_editor.component_properties.grid`)),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should render nothing if schema properties are undefined', () => {
+    render({
+      props: {
+        schema: {
+          properties: undefined,
+        },
+      },
+    });
+    expect(
+      screen.queryByText(textMock(`ux_editor.component_properties.grid`)),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should not render property if it is unsupported', () => {
+    render({
+      props: {
+        schema: {
+          ...InputSchema,
+          properties: {
+            ...InputSchema.properties,
+            unsupportedProperty: {
+              type: 'object',
+              properties: {},
+              additionalProperties: {
+                type: 'string',
+              },
+            },
+          },
+        },
+      },
+    });
+    expect(
+      screen.queryByText(textMock(`ux_editor.component_properties.unsupportedProperty`)),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should only render array properties with items of type string AND enum values', () => {
+    render({
+      props: {
+        schema: {
+          ...InputSchema,
+          properties: {
+            ...InputSchema.properties,
+            supportedArrayProperty: {
+              type: 'array',
+              items: {
+                type: 'string',
+                enum: ['option1', 'option2'],
+              },
+            },
+            unsupportedArrayProperty: {
+              type: 'array',
+              items: {
+                type: 'string',
+              },
+            },
+          },
+        },
+      },
+    });
+    expect(
+      screen.getByRole('combobox', {
+        name: textMock(`ux_editor.component_properties.supportedArrayProperty`),
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText(textMock(`ux_editor.component_properties.unsupportedArrayProperty`)),
+    ).not.toBeInTheDocument();
   });
 
   const render = ({

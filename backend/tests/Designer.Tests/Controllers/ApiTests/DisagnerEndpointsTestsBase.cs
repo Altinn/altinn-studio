@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -7,7 +8,6 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,10 +17,8 @@ namespace Designer.Tests.Controllers.ApiTests
     /// More adjusted version of the ApiTestsBase class that is used for testing controllers that contains org and repo in the path.
     /// Provides functionality for copying a repository from the test repositories location to a temporary location for testing which is disposed after execution of the test.
     /// </summary>
-    /// <typeparam name="TController">Controller type.</typeparam>
     /// <typeparam name="TControllerTest">Tests class type.</typeparam>
-    public abstract class DisagnerEndpointsTestsBase<TController, TControllerTest> : ApiTestsBase<TController, TControllerTest>, IDisposable
-        where TController : ControllerBase
+    public abstract class DisagnerEndpointsTestsBase<TControllerTest> : ApiTestsBase<TControllerTest>
         where TControllerTest : class
     {
         /// <summary>
@@ -49,7 +47,7 @@ namespace Designer.Tests.Controllers.ApiTests
             Converters = { new JsonStringEnumConverter() }
         };
 
-        public DisagnerEndpointsTestsBase(WebApplicationFactory<TController> factory) : base(factory)
+        public DisagnerEndpointsTestsBase(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -90,19 +88,20 @@ namespace Designer.Tests.Controllers.ApiTests
             RemoteTestRepoPath = await TestDataHelper.CopyRemoteRepositoryForTest(org, repo, targetRepository);
         }
 
-        public void Dispose()
+        protected override void Dispose(bool disposing)
         {
+            base.Dispose(disposing);
+            if (!disposing)
+            {
+                return;
+            }
             if (!string.IsNullOrWhiteSpace(TestRepoPath))
             {
-                TestDataHelper.DeleteDirectory(TestRepoPath);
+                Directory.Delete(TestRepoPath, true);
             }
             if (!string.IsNullOrWhiteSpace(RemoteTestRepoPath))
             {
-                TestDataHelper.DeleteDirectory(RemoteTestRepoPath);
-            }
-            if (HttpClient.IsValueCreated)
-            {
-                HttpClient.Value.Dispose();
+                Directory.Delete(RemoteTestRepoPath, true);
             }
         }
     }

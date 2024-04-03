@@ -3,17 +3,23 @@ import { useAugmentReposWithStarred } from '../../hooks/useAugmentReposWithStarr
 import { RepoList } from '../RepoList';
 import { useTranslation } from 'react-i18next';
 import { useReposSearch } from 'dashboard/hooks/useReposSearch';
-import { DATAGRID_ROWS_PER_PAGE_OPTIONS } from '../../constants';
-import { IRepository } from 'app-shared/types/global';
+import { useStarredReposQuery } from 'dashboard/hooks/queries';
 
 type SearchResultReposList = {
-  starredRepos: IRepository[];
   searchValue: string;
 };
-export const SearchResultReposList = ({ starredRepos, searchValue }: SearchResultReposList) => {
+export const SearchResultReposList = ({ searchValue }: SearchResultReposList) => {
+  const { data: starredRepos = [], isPending: areStarredReposPending } = useStarredReposQuery();
   const { t } = useTranslation();
-  const { searchResults, isLoadingSearchResults, sortModel, pageSize, setPageNumber, setSortModel, setPageSize } =
-    useReposSearch({ keyword: searchValue });
+  const {
+    searchResults,
+    isLoadingSearchResults,
+    sortModel,
+    pageSize,
+    setPageNumber,
+    setSortModel,
+    setPageSize,
+  } = useReposSearch({ keyword: searchValue });
 
   const reposWithStarred = useAugmentReposWithStarred({
     repos: searchResults?.data,
@@ -21,11 +27,11 @@ export const SearchResultReposList = ({ starredRepos, searchValue }: SearchResul
   });
 
   return (
-    <div data-testid='search-result-repos-list'>
+    <div>
       <h2>{t('dashboard.search_result')}</h2>
       <RepoList
         repos={reposWithStarred}
-        isLoading={isLoadingSearchResults}
+        isLoading={isLoadingSearchResults || areStarredReposPending}
         onPageSizeChange={setPageSize}
         isServerSort={true}
         rowCount={searchResults?.totalCount}
@@ -33,7 +39,6 @@ export const SearchResultReposList = ({ starredRepos, searchValue }: SearchResul
         onSortModelChange={setSortModel}
         sortModel={sortModel}
         pageSize={pageSize}
-        rowsPerPageOptions={DATAGRID_ROWS_PER_PAGE_OPTIONS}
       />
     </div>
   );

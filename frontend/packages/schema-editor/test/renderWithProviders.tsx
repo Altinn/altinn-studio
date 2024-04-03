@@ -1,100 +1,64 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import { render } from '@testing-library/react';
-import { Provider } from 'react-redux';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { SchemaEditorAppContext, SchemaEditorAppContextProps } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
-import { SchemaState } from '@altinn/schema-editor/types';
-import configureStore from 'redux-mock-store';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { QueryClient } from '@tanstack/react-query';
-import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import type { SchemaEditorAppContextProps } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
+import { SchemaEditorAppContext } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
+import { uiSchemaNodesMock } from './mocks/uiSchemaMock';
+import { SchemaModel } from '@altinn/schema-model';
 
 export interface RenderWithProvidersData {
-  state?: Partial<SchemaState>,
-  queryClient?: QueryClient,
-  servicesContextProps?: Partial<ServicesContextProps>,
-  appContextProps?: Partial<SchemaEditorAppContextProps>,
+  appContextProps?: Partial<SchemaEditorAppContextProps>;
 }
 
-export const renderWithProviders = ({
-  state = {},
-  queryClient = queryClientMock,
-  servicesContextProps = {},
-  appContextProps = {},
-}: RenderWithProvidersData = {
-  state: {},
-  queryClient: queryClientMock,
-  appContextProps: {},
-  servicesContextProps: {}
-}) => (element: ReactNode) => {
+export const renderWithProviders =
+  (
+    { appContextProps = {} }: RenderWithProvidersData = {
+      appContextProps: {},
+    },
+  ) =>
+  (element: ReactNode) => {
+    const name = 'Test';
 
-  const allStateProps: SchemaState = {
-    selectedEditorTab: null,
-    selectedPropertyNodeId: null,
-    name: null,
-    selectedDefinitionNodeId: null,
-    ...state,
-  };
-
-  const allServicesContextProps: ServicesContextProps = {
-    ...queriesMock,
-    ...servicesContextProps,
-  };
-
-  const allSelectedSchemaContextProps: SchemaEditorAppContextProps = {
-    modelPath: '',
-    ...appContextProps,
-  };
-
-  const store = configureStore()(allStateProps);
-
-  const result = render(
-    <Provider store={store}>
-      <ServicesContextProvider {...allServicesContextProps} client={queryClient}>
-        <SchemaEditorAppContext.Provider value={allSelectedSchemaContextProps}>
-          {element}
-        </SchemaEditorAppContext.Provider>
-      </ServicesContextProvider>
-    </Provider>
-  );
-
-  const rerender = ({
-    state: rerenderState = {},
-    servicesContextProps: rerenderServicesContextProps = {},
-    appContextProps: rerenderAppContextProps = {},
-  }: RenderWithProvidersData = {
-    state: {},
-    appContextProps: {},
-    servicesContextProps: {},
-  }) => {
-    const newStateProps: SchemaState = {
-      selectedEditorTab: null,
-      selectedPropertyNodeId: null,
-      name: null,
-      selectedDefinitionNodeId: null,
-      ...rerenderState,
+    const allSelectedSchemaContextProps: SchemaEditorAppContextProps = {
+      schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
+      save: jest.fn(),
+      selectedNodePointer: null,
+      setSelectedNodePointer: jest.fn(),
+      selectedTypePointer: null,
+      setSelectedTypePointer: jest.fn(),
+      name,
+      ...appContextProps,
     };
 
-    const newServicesContextProps: ServicesContextProps = {
-      ...queriesMock,
-      ...rerenderServicesContextProps,
-    };
+    const result = render(
+      <SchemaEditorAppContext.Provider value={allSelectedSchemaContextProps}>
+        {element}
+      </SchemaEditorAppContext.Provider>,
+    );
 
-    const newAppContextProps: SchemaEditorAppContextProps = {
-      modelPath: '',
-      ...rerenderAppContextProps,
-    };
+    const rerender = (
+      { appContextProps: rerenderAppContextProps = {} }: RenderWithProvidersData = {
+        appContextProps: {},
+      },
+    ) => {
+      const newAppContextProps: SchemaEditorAppContextProps = {
+        schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
+        save: jest.fn(),
+        selectedNodePointer: null,
+        setSelectedNodePointer: jest.fn(),
+        selectedTypePointer: null,
+        setSelectedTypePointer: jest.fn(),
+        name,
+        ...rerenderAppContextProps,
+      };
 
-    return (rerenderElement: ReactNode) => result.rerender(
-      <Provider store={configureStore()(newStateProps)}>
-        <ServicesContextProvider {...newServicesContextProps} client={queryClient}>
+      return (rerenderElement: ReactNode) =>
+        result.rerender(
           <SchemaEditorAppContext.Provider value={newAppContextProps}>
             {rerenderElement}
-          </SchemaEditorAppContext.Provider>
-        </ServicesContextProvider>
-      </Provider>
-    );
-  };
+          </SchemaEditorAppContext.Provider>,
+        );
+    };
 
-  return { ...result, store, rerender };
-};
+    return { ...result, rerender };
+  };

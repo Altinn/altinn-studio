@@ -1,17 +1,17 @@
-import { IFormLayouts, IInternalLayout } from '../types/global';
+import type { IFormLayouts, IInternalLayout } from '../types/global';
 import {
   addNavigationButtons,
-  convertFromLayoutToInternalFormat,
   createEmptyLayout,
   hasNavigationButtons,
+  idExistsInLayout,
   removeComponentsByType,
 } from './formLayoutUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { generateComponentId } from './generateId';
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils, ArrayUtils } from '@studio/pure-functions';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
-import { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
-import { removeDuplicates } from 'app-shared/utils/arrayUtils';
+import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
+import { externalLayoutToInternal } from '../converters/formLayoutConverters';
 
 /**
  * Update layouts to have navigation buttons if there are multiple layouts, or remove them if this is the only one.
@@ -25,18 +25,20 @@ export const addOrRemoveNavigationButtons = async (
   layouts: IFormLayouts,
   callback: (layoutName: string, layout: IInternalLayout) => Promise<void>,
   currentLayoutName?: string,
-  receiptLayoutName?: string
+  receiptLayoutName?: string,
 ): Promise<IFormLayouts> => {
   if (currentLayoutName && !layouts[currentLayoutName]) {
     throw new Error(`Layout with name ${currentLayoutName} does not exist.`);
   }
 
-  const allLayouts = deepCopy(layouts);
+  const allLayouts = ObjectUtils.deepCopy(layouts);
   let layoutsToUpdate: string[] = [];
 
   // Update layouts to have navigation buttons if there are multiple layouts, or remove them if there is only one.
   const allLayoutNames = Object.keys(layouts);
-  const layoutsThatShouldHaveNavigationButtons = allLayoutNames.filter((name) => name !== receiptLayoutName);
+  const layoutsThatShouldHaveNavigationButtons = allLayoutNames.filter(
+    (name) => name !== receiptLayoutName,
+  );
   if (layoutsThatShouldHaveNavigationButtons.length === 1) {
     // There is only one layout
     const name = layoutsThatShouldHaveNavigationButtons[0];
@@ -55,7 +57,7 @@ export const addOrRemoveNavigationButtons = async (
     }
   }
   currentLayoutName && layoutsToUpdate.push(currentLayoutName); // Always update the current layout if it is set
-  layoutsToUpdate = removeDuplicates(layoutsToUpdate); // Remove duplicates so that callback is only called once for each layout
+  layoutsToUpdate = ArrayUtils.removeDuplicates(layoutsToUpdate); // Remove duplicates so that callback is only called once for each layout
   await Promise.all(layoutsToUpdate.map((name) => callback(name, allLayouts[name])));
   return allLayouts;
 };
@@ -71,7 +73,7 @@ interface AllLayouts {
  * @returns A list of layouts in internal format and a list of layouts with an invalid format.
  */
 export const convertExternalLayoutsToInternalFormat = (
-  layouts: FormLayoutsResponse
+  layouts: FormLayoutsResponse,
 ): AllLayouts => {
   const convertedLayouts: IFormLayouts = {};
   const invalidLayouts: string[] = [];
@@ -80,7 +82,7 @@ export const convertExternalLayoutsToInternalFormat = (
       convertedLayouts[name] = createEmptyLayout();
     } else {
       try {
-        convertedLayouts[name] = convertFromLayoutToInternalFormat(layouts[name]);
+        convertedLayouts[name] = externalLayoutToInternal(layouts[name]);
       } catch {
         invalidLayouts.push(name);
       }
@@ -107,3 +109,13 @@ export const firstAvailableLayout = (deletedLayoutName: string, layoutPagesOrder
 
   return DEFAULT_SELECTED_LAYOUT_NAME;
 };
+
+/**
+ * Checks if a layout-set with the given id exists in the given list of layouts
+ * @param id The id of the component/container to check for
+ * @param formLayouts The list of layouts to check
+ * @returns True if the id exists in any of the layouts, false otherwise
+ */
+export function idExists(id: string, formLayouts: IFormLayouts): boolean {
+  return Object.values(formLayouts).some((layout) => idExistsInLayout(id, layout));
+}

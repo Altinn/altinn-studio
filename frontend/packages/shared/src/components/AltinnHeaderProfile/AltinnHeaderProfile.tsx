@@ -1,9 +1,10 @@
 import { ProfileMenu } from 'app-shared/navigation/main-header/ProfileMenu';
-import { Repository } from 'app-shared/types/Repository';
-import { User } from 'app-shared/types/User';
+import type { Repository, User } from 'app-shared/types/Repository';
+
+import type { ReactNode } from 'react';
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import classes from './AltinnHeaderProfile.module.css';
+import { useUserNameAndOrg } from './hooks/useUserNameAndOrg';
 
 export interface AltinnHeaderProfileProps {
   user: User;
@@ -11,23 +12,32 @@ export interface AltinnHeaderProfileProps {
   repository: Repository;
 }
 
-export const AltinnHeaderProfile = ({ user, repository, org }: AltinnHeaderProfileProps) => {
-  const { t } = useTranslation();
+/**
+ * @component
+ *    Dispalys the Heacer Profile in the Altinn header
+ *
+ * @property {User}[user] - the user
+ * @property {string}[org] - the org
+ * @property {Repository}[repository] - the repository
+ *
+ * @returns {ReactNode} - The Rendered component
+ */
+export const AltinnHeaderProfile = ({
+  user,
+  repository,
+  org,
+}: AltinnHeaderProfileProps): ReactNode => {
+  const userNameAndOrg = useUserNameAndOrg(user, org, repository);
 
   return (
     <div className={classes.profileMenuWrapper}>
-      {user && repository && (
-        <>
-          <span className={classes.userOrgNames}>
-            {org && user.login !== org
-              ? t('shared.header_user_for_org', {
-                  user: user.full_name || user.login,
-                  org: repository.owner.full_name || repository.owner.login,
-                })
-              : user.full_name || user.login}
-          </span>
-          <ProfileMenu showlogout user={user} />
-        </>
+      {user && (
+        <ProfileMenu
+          showlogout
+          user={user}
+          userNameAndOrg={userNameAndOrg}
+          repositoryError={!repository}
+        />
       )}
     </div>
   );

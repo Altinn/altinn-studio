@@ -1,34 +1,39 @@
 import React from 'react';
-import { getNameFromPointer, UiSchemaNode } from '@altinn/schema-model';
-import { CogIcon } from '@navikt/aksel-icons';
+import type { UiSchemaNode } from '@altinn/schema-model';
+import { extractNameFromPointer } from '@altinn/schema-model';
+import { CogIcon, FileJsonIcon } from '@navikt/aksel-icons';
 import classes from './TypeItem.module.css';
 import classNames from 'classnames';
+import * as testids from '../../../../../testing/testids';
+import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 
 export interface TypeItemProps {
   uiSchemaNode: UiSchemaNode;
   selected?: boolean;
-  handleItemClick: (node: UiSchemaNode) => void;
+  setSelectedTypePointer: (pointer: string) => void;
 }
 
-export const TypeItem = ({ uiSchemaNode, selected, handleItemClick }: TypeItemProps) => {
+export const TypeItem = ({ uiSchemaNode, selected, setSelectedTypePointer }: TypeItemProps) => {
   const handleClick = () => {
-    handleItemClick(uiSchemaNode);
+    setSelectedTypePointer(uiSchemaNode.pointer);
   };
+  const name = extractNameFromPointer(uiSchemaNode.pointer);
+
   return (
-    <div
-      className={classNames(classes.item, {
-        [classes.itemSelected]: selected,
-      })}
-      onClick={handleClick}
-      data-testid={`type-item-${uiSchemaNode.pointer}`}
-    >
-      <div>
-        <i className={`fa fa-datamodel-object ${classes.typeIcon}`} />
+    <DragAndDropTree.NewItem payload={name}>
+      <div
+        className={classNames(classes.item, {
+          [classes.itemSelected]: selected,
+        })}
+        onClick={handleClick}
+        data-testid={testids.typeItem(uiSchemaNode.pointer)}
+      >
+        <div>
+          <FileJsonIcon className={classes.typeIcon} />
+        </div>
+        <span className={classes.typeName}>{name}</span>
+        <CogIcon />
       </div>
-      <span className={classes.typeName}>
-        {getNameFromPointer({ pointer: uiSchemaNode.pointer })}
-      </span>
-      <CogIcon />
-    </div>
+    </DragAndDropTree.NewItem>
   );
 };

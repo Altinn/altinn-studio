@@ -1,0 +1,30 @@
+.modalContent {
+  display: flex;
+  height: var(--modal-content-max-height);
+  width: 70vw;
+  overflow-y: auto;
+}
+
+.leftNavWrapper {
+  height: 100%;
+  top: 0;
+  position: sticky;
+  overflow-y: auto;
+}
+
+.contentWrapper {
+  height: 100%;
+}
+
+.headingWrapper {
+  display: flex;
+  align-items: center;
+}
+
+.headingWrapper > :first-child {
+  margin-right: 10px;
+}
+
+.icon {
+  font-size: 2rem;
+}

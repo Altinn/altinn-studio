@@ -1,0 +1,89 @@
+import React from 'react';
+import { render, screen, act } from '@testing-library/react';
+import type { ProcessEditorProps } from './ProcessEditor';
+import { ProcessEditor } from './ProcessEditor';
+import { textMock } from '../../../testing/mocks/i18nMock';
+import userEvent from '@testing-library/user-event';
+import { RouterProvider, createMemoryRouter } from 'react-router-dom';
+
+const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
+
+const mockAppLibVersion8: string = '8.0.3';
+const mockAppLibVersion7: string = '7.0.3';
+
+const mockOnSave = jest.fn();
+
+const defaultProps: ProcessEditorProps = {
+  bpmnXml: mockBPMNXML,
+  existingCustomReceipt: undefined,
+  onUpdateLayoutSet: jest.fn(),
+  onSave: mockOnSave,
+  appLibVersion: mockAppLibVersion8,
+};
+
+const renderProcessEditor = (props: Partial<ProcessEditorProps> = {}) => {
+  const allProps = { ...defaultProps, ...props };
+  const router = createMemoryRouter([
+    {
+      path: '/',
+      element: <ProcessEditor {...allProps} />,
+    },
+  ]);
+
+  return render(<RouterProvider router={router}></RouterProvider>);
+};
+
+describe('ProcessEditor', () => {
+  beforeEach(jest.clearAllMocks);
+
+  it('should render loading while bpmnXml is undefined', () => {
+    renderProcessEditor({ bpmnXml: undefined });
+    expect(screen.getByTitle(textMock('process_editor.loading'))).toBeInTheDocument();
+  });
+
+  it('should render "NoBpmnFoundAlert" when bpmnXml is null', () => {
+    renderProcessEditor({ bpmnXml: null });
+    expect(
+      screen.getByRole('heading', {
+        name: textMock('process_editor.fetch_bpmn_error_title'),
+        level: 2,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('should render "canvas" when bpmnXml is provided and default render is edit-mode', async () => {
+    // eslint-disable-next-line testing-library/no-unnecessary-act
+    await act(() => {
+      renderProcessEditor();
+    });
+
+    expect(
+      screen.getByRole('button', { name: textMock('process_editor.save') }),
+    ).toBeInTheDocument();
+  });
+
+  it('does not display the information about too old version when the version is 8 or newer', async () => {
+    const user = userEvent.setup();
+    renderProcessEditor();
+
+    // Fix to remove act error
+    await act(() => user.tab());
+
+    const alertHeader = screen.queryByRole('heading', {
+      name: textMock('process_editor.too_old_version_title'),
+      level: 1,
+    });
+    expect(alertHeader).not.toBeInTheDocument();
+  });
+
+  it('displays the alert when the version is 7 or older', async () => {
+    const user = userEvent.setup();
+    renderProcessEditor({ appLibVersion: mockAppLibVersion7 });
+
+    // Fix to remove act error
+    await act(() => user.tab());
+
+    const tooOldText = screen.getByText(textMock('process_editor.too_old_version_title'));
+    expect(tooOldText).toBeInTheDocument();
+  });
+});

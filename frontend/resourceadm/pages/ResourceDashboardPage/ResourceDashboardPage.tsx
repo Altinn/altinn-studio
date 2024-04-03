@@ -1,84 +1,78 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useRef, useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import classes from './ResourceDashboardPage.module.css';
-import { Button, Spinner, Heading, Paragraph } from '@digdir/design-system-react';
-import { PlusCircleIcon, MigrationIcon } from '@navikt/aksel-icons';
-import { ResourceTable } from 'resourceadm/components/ResourceTable';
-import { SearchBox } from 'resourceadm/components/ResourceSeachBox';
-import { ResourceType } from 'resourceadm/types/global';
-import { useGetResourceListQuery } from 'resourceadm/hooks/queries';
-import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
-import { NewResourceModal } from 'resourceadm/components/NewResourceModal';
-import { MigrateResourceModal } from 'resourceadm/components/MigrateResourceModal';
+import { PlusCircleIcon, MigrationIcon, TasklistIcon } from '@studio/icons';
+import { Spinner, Heading } from '@digdir/design-system-react';
+import { ResourceTable } from '../../components/ResourceTable';
+import { SearchBox } from '../../components/ResourceSeachBox';
+import { useGetResourceListQuery, useOrganizationsQuery } from '../../hooks/queries';
+import { MergeConflictModal } from '../../components/MergeConflictModal';
+import { NewResourceModal } from '../../components/NewResourceModal';
+import { ImportResourceModal } from '../../components/ImportResourceModal';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
+import { filterTableData } from '../../utils/resourceListUtils';
+import { useTranslation } from 'react-i18next';
+import { getResourceDashboardURL, getResourcePageURL } from '../../utils/urlUtils';
+import { getReposLabel } from 'dashboard/utils/repoUtils';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { useUrlParams } from '../../hooks/useSelectedContext';
+import { StudioButton } from '@studio/components';
 
 /**
- * Displays the page for the resource dashboard
+ * @component
+ *    Displays the page for the resource dashboard
+ *
+ * @returns {React.JSX.Element} - The rendered component
  */
-export const ResourceDashboardPage = () => {
-  const { selectedContext } = useParams();
-  const repo = `${selectedContext}-resources`;
+export const ResourceDashboardPage = (): React.JSX.Element => {
+  const createResourceModalRef = useRef<HTMLDialogElement>(null);
+  const { selectedContext, repo } = useUrlParams();
+  const { data: organizations } = useOrganizationsQuery();
+
+  const { t } = useTranslation();
+
+  const navigate = useNavigate();
 
   const [searchValue, setSearchValue] = useState('');
-  const [hasMergeConflict, setHasMergeConflict] = useState(false);
 
-  const [newResourceModalOpen, setNewResourceModalOpen] = useState(false);
-  const [migrateModalOpen, setMigrateModalOpen] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
 
   // Get metadata with queries
   const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
   const {
     data: resourceListData,
-    isLoading: resourceListLoading,
+    isPending: resourceListPending,
     isRefetching: refetchingList,
   } = useGetResourceListQuery(selectedContext);
 
-  /**
-   * Updates the value for if there is a merge conflict when the repostatus is not undefined
-   */
-  useEffect(() => {
-    if (repoStatus) {
-      setHasMergeConflict(repoStatus.hasMergeConflict);
-    }
-  }, [repoStatus]);
+  const filteredResourceList = filterTableData(searchValue, resourceListData ?? []);
 
-  /**
-   * Filter the list based on what is typed in the search box
-   */
-  const filteredTableData = (list: ResourceType[]) => {
-    const searchValueLower = searchValue.toLocaleLowerCase();
-
-    return list.filter((resource: ResourceType) => {
-      const titles = Object.values(resource.title).map((title) => title.toLocaleLowerCase());
-      return titles.some((titleString) => titleString.includes(searchValueLower));
-    });
+  const handleNavigateToResource = (id: string) => {
+    navigate(getResourcePageURL(selectedContext, repo, id, 'about'));
   };
-
   /**
    * Display different content based on the loading state
    */
   const displayContent = () => {
-    if (resourceListLoading || refetchingList) {
+    if (resourceListPending || refetchingList) {
       return (
         <div className={classes.spinnerWrapper}>
-          <Spinner size='3xLarge' variant='interaction' title='Laster inn ressurser' />
+          <Spinner size='xlarge' variant='interaction' title={t('resourceadm.dashboard_spinner')} />
         </div>
       );
     } else {
       return (
         <>
           <SearchBox onChange={(value: string) => setSearchValue(value)} />
-          <div style={{ width: '100%' }}>
+          <div>
             <Heading size='xsmall' level={2}>
-              {`Alle ressurser (${resourceListData?.length ?? 0})`}
+              {t('resourceadm.dashboard_num_resources', { num: resourceListData?.length ?? 0 })}
             </Heading>
           </div>
-          <ResourceTable list={filteredTableData(resourceListData ?? [])} />
-          {filteredTableData(resourceListData ?? []).length === 0 && (
-            <Paragraph size='small' className={classes.noResultText}>
-              Det finnes ingen ressursen som har navnet du søkte etter.
-            </Paragraph>
-          )}
+          <ResourceTable
+            list={filteredResourceList}
+            onClickEditResource={handleNavigateToResource}
+          />
         </>
       );
     }
@@ -88,47 +82,68 @@ export const ResourceDashboardPage = () => {
     <div className={classes.pageWrapper}>
       <div className={classes.topWrapper}>
         <Heading size='large' level={1}>
-          {`${selectedContext}'s ressurser`}
+          {getReposLabel({
+            selectedContext,
+            orgs: organizations ? organizations : [],
+            t,
+            isResourcesRepo: true,
+          })}
         </Heading>
         <div className={classes.topRightWrapper}>
-          <Button
-            variant='quiet'
-            color='secondary'
-            icon={<MigrationIcon title='Migrer ressurs' />}
-            iconPlacement='right'
-            onClick={() => setMigrateModalOpen(true)}
+          {shouldDisplayFeature('resourceAccessLists') && (
+            <>
+              <StudioButton
+                as={Link}
+                variant='tertiary'
+                color='second'
+                to={`${getResourceDashboardURL(selectedContext, repo)}/accesslists`}
+                size='medium'
+                icon={<TasklistIcon />}
+                iconPlacement='right'
+              >
+                <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
+              </StudioButton>
+              <div className={classes.verticalDivider} />
+            </>
+          )}
+          <StudioButton
+            variant='tertiary'
+            color='second'
+            onClick={() => setImportModalOpen(true)}
             size='medium'
+            icon={<MigrationIcon />}
+            iconPlacement='right'
           >
-            <strong>Migrer ressurs</strong>
-          </Button>
+            <strong>{t('resourceadm.dashboard_import_resource')}</strong>
+          </StudioButton>
           <div className={classes.verticalDivider} />
-          <Button
-            variant='quiet'
-            color='secondary'
-            icon={<PlusCircleIcon title='Opprett ny ressurs' />}
-            iconPlacement='right'
-            onClick={() => setNewResourceModalOpen(true)}
+          <StudioButton
+            variant='tertiary'
+            color='second'
+            onClick={() => createResourceModalRef.current?.showModal()}
             size='medium'
+            icon={<PlusCircleIcon />}
+            iconPlacement='right'
           >
-            <strong>Opprett ny ressurs</strong>
-          </Button>
+            <strong>{t('resourceadm.dashboard_create_resource')}</strong>
+          </StudioButton>
         </div>
       </div>
       <div className={classes.horizontalDivider} />
       <div className={classes.componentWrapper}>{displayContent()}</div>
-      {hasMergeConflict && (
+      {repoStatus?.hasMergeConflict && (
         <MergeConflictModal
-          isOpen={hasMergeConflict}
+          isOpen={repoStatus.hasMergeConflict}
           handleSolveMerge={refetch}
           org={selectedContext}
           repo={repo}
         />
       )}
       <NewResourceModal
-        isOpen={newResourceModalOpen}
-        onClose={() => setNewResourceModalOpen(false)}
+        ref={createResourceModalRef}
+        onClose={() => createResourceModalRef.current?.close()}
       />
-      <MigrateResourceModal isOpen={migrateModalOpen} onClose={() => setMigrateModalOpen(false)} />
+      <ImportResourceModal isOpen={importModalOpen} onClose={() => setImportModalOpen(false)} />
     </div>
   );
 };

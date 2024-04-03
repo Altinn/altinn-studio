@@ -1,5 +1,7 @@
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
+import type { Expression } from '@studio/components';
 
 export type FormLayoutsResponse = KeyValuePairs<ExternalFormLayout>;
 
@@ -11,12 +13,19 @@ export interface ExternalFormLayout {
 
 export interface ExternalData {
   layout: ExternalComponent[];
-  hidden?: boolean;
+  hidden?: Expression;
   [key: string]: any;
 }
 
-export interface ExternalComponent {
+type ExternalComponentBase<T extends ComponentType = ComponentType> = {
   id: string;
-  type: ComponentType;
-  [key: string]: any; // Todo: Set type here
-}
+  type: T;
+  dataModelBindings?: KeyValuePairs<string>;
+  textResourceBindings?: KeyValuePairs<string>;
+  [key: string]: any;
+};
+
+export type ExternalComponent<T extends ComponentType = ComponentType> = {
+  [componentType in ComponentType]: ExternalComponentBase<componentType> &
+    ComponentSpecificConfig<componentType>;
+}[T];

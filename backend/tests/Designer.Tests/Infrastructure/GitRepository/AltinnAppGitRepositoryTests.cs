@@ -4,6 +4,7 @@ using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Models.App;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Xunit;
@@ -37,7 +38,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string developer = "testUser";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
-            Application applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
+            ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
 
             applicationMetadata.Id.Should().Be("yabbin/hvem-er-hvem");
             applicationMetadata.Org.Should().Be("yabbin");
@@ -83,6 +84,20 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
             textResource.Should().NotBeNull();
             textResource.Resources.First(r => r.Id == "ServiceName").Value.Should().Be("Hvem er hvem?");
+        }
+
+        [Fact]
+        public void GetLanguages_NotOnlyResourceFilesInTextsFolder_ShouldReturnCorrectLanguagesSorted()
+        {
+            string org = "ttd";
+            string repository = "hvem-er-hvem";
+            string developer = "testUser";
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
+
+            var languages = altinnAppGitRepository.GetLanguages();
+
+            languages.Should().NotBeNull();
+            languages.ToArray().Should().Equal("en", "nb");
         }
 
         [Fact]
@@ -251,16 +266,15 @@ namespace Designer.Tests.Infrastructure.GitRepository
         }
 
         [Fact]
-        public Task GetOptions_WhenSpecifiedOptionIdDoesNotExistInApp_ShouldThrowNotFoundException()
+        public async Task GetOptions_WhenSpecifiedOptionIdDoesNotExistInApp_ShouldThrowNotFoundException()
         {
             string org = "ttd";
             string repository = "app-with-options";
             string developer = "testUser";
-            string optionsId = "test-options";
+            string optionsId = "non-existing-test-options";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
-            Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () => await altinnAppGitRepository.GetOptions(optionsId));
-            return Task.CompletedTask;
+            await Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () => await altinnAppGitRepository.GetOptions(optionsId));
         }
 
         [Fact]

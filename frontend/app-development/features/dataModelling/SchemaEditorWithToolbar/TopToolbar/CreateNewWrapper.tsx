@@ -1,21 +1,16 @@
 import React, { useState } from 'react';
-import {
-  Button,
-  ButtonColor,
-  ButtonVariant,
-  ErrorMessage,
-  TextField,
-  Popover,
-} from '@digdir/design-system-react';
+import { ErrorMessage, Textfield, LegacyPopover } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@navikt/aksel-icons';
-import { useDatamodelsMetadataQuery } from '../../../../hooks/queries';
 import { extractModelNamesFromMetadataList } from '../../../../utils/metadataUtils';
+import type { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
+import { StudioButton } from '@studio/components';
 
 export interface CreateNewWrapperProps {
   disabled: boolean;
   createNewOpen: boolean;
   createPathOption?: boolean;
+  datamodels: DatamodelMetadata[];
   setCreateNewOpen: (open: boolean) => void;
   handleCreateSchema: (props: { name: string; relativePath: string | undefined }) => void;
 }
@@ -24,6 +19,7 @@ export function CreateNewWrapper({
   disabled,
   createPathOption,
   createNewOpen,
+  datamodels,
   setCreateNewOpen,
   handleCreateSchema,
 }: CreateNewWrapperProps) {
@@ -31,9 +27,8 @@ export function CreateNewWrapper({
   const [newModelName, setNewModelName] = useState('');
   const [nameError, setNameError] = useState('');
   const [confirmedWithReturn, setConfirmedWithReturn] = useState(false);
-  const { data: metadata } = useDatamodelsMetadataQuery();
 
-  const modelNames = extractModelNamesFromMetadataList(metadata);
+  const modelNames = extractModelNamesFromMetadataList(datamodels);
 
   const relativePath = createPathOption ? '' : undefined;
 
@@ -81,42 +76,40 @@ export function CreateNewWrapper({
   };
 
   return (
-    <Popover
+    <LegacyPopover
       open={createNewOpen}
       onOpenChange={setCreateNewOpen}
       trigger={
-        <Button
+        <StudioButton
           id='create-new-datamodel-button'
           disabled={disabled}
           icon={<PlusIcon />}
-          variant={ButtonVariant.Quiet}
+          variant='tertiary'
           onClick={() => setCreateNewOpen(!createNewOpen)}
           size='small'
         >
           {t('general.create_new')}
-        </Button>
+        </StudioButton>
       }
     >
-      <label>{t('schema_editor.create_model_description')}</label>
-      <TextField
+      <Textfield
         id='newModelInput'
-        placeholder={t('schema_editor.name')}
-        isValid={!nameError}
+        label={t('schema_editor.create_model_description')}
         onChange={onNameChange}
         onBlur={onInputBlur}
         onKeyUp={onKeyUp}
+        error={nameError && <ErrorMessage>{nameError}</ErrorMessage>}
       />
-      {nameError && <ErrorMessage>{nameError}</ErrorMessage>}
-      <Button
-        color={ButtonColor.Secondary}
+      <StudioButton
+        color='second'
         onClick={onCreateConfirmClick}
         style={{ marginTop: 22 }}
-        variant={ButtonVariant.Outline}
+        variant='secondary'
         size='small'
       >
         {t('schema_editor.create_model_confirm_button')}
-      </Button>
-    </Popover>
+      </StudioButton>
+    </LegacyPopover>
   );
 }
 CreateNewWrapper.defaultProps = {

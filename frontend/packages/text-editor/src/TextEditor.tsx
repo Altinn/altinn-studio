@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import classes from './TextEditor.module.css';
 import type {
   LangCode,
@@ -7,13 +7,16 @@ import type {
   UpsertTextResourceMutation,
 } from './types';
 import { SearchField } from '@altinn/altinn-design-system';
-import { Button, ButtonColor, ButtonVariant } from '@digdir/design-system-react';
+import { Chip } from '@digdir/design-system-react';
+import { ArrowsUpDownIcon } from '@studio/icons';
+import { StudioButton } from '@studio/components';
 import { RightMenu } from './RightMenu';
 import { getRandNumber, mapResourceFilesToTableRows } from './utils';
 import { defaultLangCode } from './constants';
 import { TextList } from './TextList';
 import ISO6391 from 'iso-639-1';
-import { ITextResources } from 'app-shared/types/global';
+import type { ITextResources } from 'app-shared/types/global';
+import { useTranslation } from 'react-i18next';
 
 export interface TextEditorProps {
   addLanguage: (language: LangCode) => void;
@@ -40,16 +43,34 @@ export const TextEditor = ({
   updateTextId,
   upsertTextResource,
 }: TextEditorProps) => {
-  const resourceRows = mapResourceFilesToTableRows(textResourceFiles);
+  const { t } = useTranslation();
+  const [sortTextsAlphabetically, setSortTextsAlphabetically] = useState<boolean>(false);
+  const resourceRows = mapResourceFilesToTableRows(textResourceFiles, sortTextsAlphabetically);
+  const previousSelectedLanguages = useRef<string[]>([]);
+
   const availableLangCodesFiltered = useMemo(
     () => availableLanguages?.filter((code) => ISO6391.validate(code)),
-    [availableLanguages]
+    [availableLanguages],
   );
+
+  useEffect(() => {
+    const addedLanguage = selectedLangCodes.find(
+      (lang) => !previousSelectedLanguages.current.includes(lang),
+    );
+
+    if (addedLanguage) {
+      const elementToFocus: HTMLElement = document.getElementById('header-lang' + addedLanguage);
+      if (elementToFocus) {
+        elementToFocus.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+      }
+    }
+    previousSelectedLanguages.current = selectedLangCodes;
+  }, [selectedLangCodes.length, selectedLangCodes]);
 
   const handleAddNewEntryClick = () => {
     const textId = `id_${getRandNumber()}`;
     availableLangCodesFiltered.forEach((language) =>
-      upsertTextResource({ language, textId, translation: '' })
+      upsertTextResource({ language, textId, translation: '' }),
     );
     setSearchQuery('');
   };
@@ -75,22 +96,34 @@ export const TextEditor = ({
     <div className={classes.TextEditor}>
       <div className={classes.TextEditor__main}>
         <div className={classes.TextEditor__topRow}>
-          <Button
-            variant={ButtonVariant.Filled}
-            color={ButtonColor.Primary}
+          <StudioButton
+            variant='primary'
+            color='first'
             onClick={handleAddNewEntryClick}
-            data-testid='text-editor-btn-add'
             size='small'
           >
-            Ny tekst
-          </Button>
-          <div>
-            <SearchField
-              id='text-editor-search'
-              label='Søk etter tekst eller id'
-              value={searchQuery}
-              onChange={handleSearchChange}
-            />
+            {t('text_editor.new_text')}
+          </StudioButton>
+          <div className={classes.filterAndSearch}>
+            <Chip.Toggle
+              onClick={() => setSortTextsAlphabetically(!sortTextsAlphabetically)}
+              selected={sortTextsAlphabetically}
+            >
+              {
+                <div className={classes.sortAlphabetically}>
+                  {t('text_editor.sort_alphabetically')}
+                  <ArrowsUpDownIcon />
+                </div>
+              }
+            </Chip.Toggle>
+            <div>
+              <SearchField
+                id='text-editor-search'
+                label={t('text_editor.search_for_text')}
+                value={searchQuery}
+                onChange={handleSearchChange}
+              />
+            </div>
           </div>
         </div>
         <div className={classes.TextEditor__body}>

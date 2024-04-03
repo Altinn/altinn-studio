@@ -1,25 +1,36 @@
-import React, { ChangeEvent } from 'react';
+import type { ChangeEvent } from 'react';
+import React from 'react';
 import classes from './ResourceSeachBox.module.css';
-import { TextField } from '@digdir/design-system-react';
+import { Textfield } from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next';
 
-interface Props {
+export type SearchBoxProps = {
+  /**
+   * Function to handle the change of value
+   * @param value the value typed
+   * @returns void
+   */
   onChange: (value: string) => void;
-}
+};
 
 /**
- * Searchbox component that displays an input field and a search icon
+ * @component
+ *    Searchbox component that displays an input field and a search icon
  *
- * @param props.onChange function to handle the change of value
+ * @property {function}[onChange] - Function to handle the change of value
+ *
+ * @returns {React.JSX.Element} - The rendered component
  */
-export const SearchBox = ({ onChange }: Props) => {
+export const SearchBox = ({ onChange }: SearchBoxProps): React.JSX.Element => {
+  const { t } = useTranslation();
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     onChange(e.target.value);
   };
 
-  // TODO - translation
   return (
     <div className={classes.searchBox}>
-      <TextField onChange={handleChange} label='Søk etter en ressurs' />
+      <Textfield onChange={handleChange} label={t('resourceadm.dashboard_searchbox')} />
     </div>
   );
 };

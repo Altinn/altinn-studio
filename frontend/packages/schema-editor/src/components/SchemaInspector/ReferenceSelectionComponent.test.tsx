@@ -3,57 +3,54 @@ import { act, screen } from '@testing-library/react';
 import type { IReferenceSelectionProps } from './ReferenceSelectionComponent';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
-import { createNodeBase, Keyword, ObjectKind } from '@altinn/schema-model';
+import {
+  createNodeBase,
+  Keyword,
+  ObjectKind,
+  SchemaModel,
+  validateTestUiSchema,
+} from '@altinn/schema-model';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../test/renderWithProviders';
-import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
-import { validateTestUiSchema } from '../../../../schema-model/test/validateTestUiSchema';
 
 const user = userEvent.setup();
 
 // Test data:
 const buttonText = 'Gå til type';
-const emptyOptionLabel = 'Velg type';
 const label = 'Refererer til';
 const onChangeRef = jest.fn();
 const onGoToDefButtonClick = jest.fn();
-const selectedNode: UiSchemaNode = {
-  ...createNodeBase(Keyword.Reference, 'test'),
-  objectKind: ObjectKind.Reference,
-  reference: '',
-};
 const type1Name = 'type1';
 const type2Name = 'type2';
 const type1 = createNodeBase(Keyword.Definitions, type1Name);
 const type2 = createNodeBase(Keyword.Definitions, type2Name);
+const selectedNode: UiSchemaNode = {
+  ...createNodeBase(Keyword.Reference, 'test'),
+  objectKind: ObjectKind.Reference,
+  reference: type1.pointer,
+};
 const rootNode = {
   ...createNodeBase('#'),
   children: [selectedNode, type1, type2].map((node) => node.pointer),
 };
 const uiSchema: UiSchemaNodes = [rootNode, selectedNode, type1, type2];
-const org = 'org';
-const app = 'app';
-const modelPath = 'test';
+const schemaModel = SchemaModel.fromArray(uiSchema);
 
 const defaultProps: IReferenceSelectionProps = {
   buttonText,
-  emptyOptionLabel,
   label,
   onChangeRef,
   onGoToDefButtonClick,
   selectedNode,
 };
 
-const renderReferenceSelectionComponent = (props?: Partial<IReferenceSelectionProps>) => {
-  queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchema);
-  return renderWithProviders({
-    appContextProps: { modelPath },
+const renderReferenceSelectionComponent = (props?: Partial<IReferenceSelectionProps>) =>
+  renderWithProviders({
+    appContextProps: { schemaModel },
   })(<ReferenceSelectionComponent {...defaultProps} {...props} />);
-};
 
 describe('ReferenceSelectionComponent', () => {
-  beforeEach(() => validateTestUiSchema(uiSchema));
+  beforeAll(() => validateTestUiSchema(uiSchema));
 
   test('Select box appears', async () => {
     renderReferenceSelectionComponent();
@@ -73,7 +70,7 @@ describe('ReferenceSelectionComponent', () => {
   test('All types should appear as options', async () => {
     renderReferenceSelectionComponent();
     await act(() => user.click(screen.getByRole('combobox')));
-    expect(screen.queryAllByRole('option')).toHaveLength(3);
+    expect(screen.queryAllByRole('option')).toHaveLength(2);
   });
 
   test('Type options should have correct values and labels', async () => {
@@ -83,18 +80,7 @@ describe('ReferenceSelectionComponent', () => {
     expect(screen.getByRole('option', { name: type2Name })).toHaveAttribute('value', type2.pointer);
   });
 
-  test('Empty option text appears', async () => {
-    renderReferenceSelectionComponent();
-    await act(() => user.click(screen.getByRole('combobox')));
-    expect(screen.getByRole('option', { name: emptyOptionLabel })).toBeDefined();
-  });
-
-  test('Empty option is selected by default', async () => {
-    renderReferenceSelectionComponent();
-    expect(await screen.findByRole('combobox')).toHaveValue(emptyOptionLabel);
-  });
-
-  test('Referenced type is selected if given', async () => {
+  test('Referenced type is selected', async () => {
     renderReferenceSelectionComponent({
       selectedNode: { ...selectedNode, reference: type1.pointer },
     });

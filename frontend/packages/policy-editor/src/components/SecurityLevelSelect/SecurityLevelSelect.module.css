@@ -1,0 +1,23 @@
+.selectAuthLevel {
+  width: 500px;
+}
+
+.labelAndHelpTextWrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 5px;
+}
+
+.paragraph {
+  margin-bottom: 20px;
+}
+
+.link {
+  display: inline;
+  font: var(--fds-typography-paragraph-small);
+}
+
+.securityLevelContainer {
+  max-width: 650px;
+}

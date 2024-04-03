@@ -1,38 +1,27 @@
 .deployPageWrapper {
   width: 90%;
   margin: 0;
-  padding: 40px;
+  padding: var(--fds-spacing-10);
 }
 
 .contentWrapper {
-  width: 630px;
+  width: 40rem;
 }
 
-.deployCardsWrapper {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 10px;
+.informationText {
+  margin-top: var(--fds-spacing-7);
+}
+
+.environmentWrapper {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-gap: var(--fds-spacing-5);
 }
 
 .newVersionWrapper {
-  margin-top: 40px;
+  margin-top: var(--fds-spacing-7);
   width: 100%;
-  margin-bottom: 40px;
-}
-
-.textAndButton {
-  display: flex;
-  align-items: flex-end;
-  width: 100%;
-}
-
-.textfield {
-  flex: 1;
-  margin-right: 8px;
-}
-
-.firstError {
-  margin-bottom: 20px;
+  margin-bottom: var(--fds-spacing-10);
 }
 
 p,

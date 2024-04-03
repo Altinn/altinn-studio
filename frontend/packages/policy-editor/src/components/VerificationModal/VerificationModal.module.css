@@ -1,0 +1,21 @@
+.headingWrapper {
+  display: flex;
+  align-items: center;
+  padding-block: 10px;
+  padding-inline: 20px;
+}
+
+.buttonWrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 40px;
+}
+
+.closeButtonWrapper {
+  margin-right: 10px;
+}
+
+.content {
+  min-width: 400px;
+  padding: 32px;
+}

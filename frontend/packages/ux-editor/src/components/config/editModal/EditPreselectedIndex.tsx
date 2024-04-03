@@ -1,12 +1,17 @@
 import React from 'react';
-import { TextField } from '@digdir/design-system-react';
+import { Textfield } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { FormCheckboxesComponent, FormRadioButtonsComponent } from '../../../types/FormComponent';
+import type {
+  FormCheckboxesComponent,
+  FormRadioButtonsComponent,
+} from '../../../types/FormComponent';
 import { FormField } from '../../FormField';
 
-export function EditPreselectedIndex({ component, handleComponentChange }: IGenericEditComponent) {
+export function EditPreselectedIndex<
+  T extends ComponentType.Checkboxes | ComponentType.RadioButtons | ComponentType.Dropdown,
+>({ component, handleComponentChange }: IGenericEditComponent<T>) {
   const t = useText();
 
   const handlePreselectedOptionChange = (preselectedOptionIndex: number) => {
@@ -27,21 +32,25 @@ export function EditPreselectedIndex({ component, handleComponentChange }: IGene
       default:
         return 'Unknown component';
     }
-  }
+  };
 
   return (
     <FormField
       id={component.id}
       label={mapComponentTypeToText(component.type as ComponentType)}
-      value={(component as FormCheckboxesComponent | FormRadioButtonsComponent).preselectedOptionIndex}
+      value={
+        (component as FormCheckboxesComponent | FormRadioButtonsComponent).preselectedOptionIndex
+      }
       onChange={handlePreselectedOptionChange}
       propertyPath={`${component.propertyPath}/properties/preselectedOptionIndex`}
-    >
-      {({ onChange }) => <TextField
-        formatting={{ number: {} }}
-        placeholder={t('ux_editor.modal_selection_set_preselected_placeholder')}
-        onChange={(e) => onChange(parseInt(e.target.value), e)}
-      />}
-    </FormField>
+      renderField={({ fieldProps }) => (
+        <Textfield
+          {...fieldProps}
+          type='number'
+          placeholder={t('ux_editor.modal_selection_set_preselected_placeholder')}
+          onChange={(e) => fieldProps.onChange(parseInt(e.target.value), e)}
+        />
+      )}
+    />
   );
 }

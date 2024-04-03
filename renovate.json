@@ -13,11 +13,11 @@
       "matchPackageNames": ["gitea/gitea"]
     }
   ],
-  "ignorePaths": [
-    "testdata/**",
-    "src/**"
-  ],
+  "ignorePaths": ["testdata/**", "src/**"],
   "ignoreDeps": [
-    "@mui/x-data-grid"
-  ]
+    "@mui/x-data-grid",
+    "Moq",
+    "Altinn.App.Core"
+  ],
+  "schedule": ["before 07:00 on Monday"]
 }

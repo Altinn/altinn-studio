@@ -2,6 +2,7 @@ export * from './CombinationKind';
 export * from './CustomPropertyType';
 export * from './FieldType';
 export * from './Keyword';
+export * from './NodePosition';
 export * from './ObjectKind';
 export * from './SpecialArrayXsdField';
 export * from './StringFormat';

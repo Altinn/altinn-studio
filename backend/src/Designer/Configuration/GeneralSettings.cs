@@ -1,4 +1,3 @@
-using System;
 using Altinn.Studio.Designer.Configuration.Marker;
 
 namespace Altinn.Studio.Designer.Configuration
@@ -64,5 +63,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// Gets or sets the url to the environment file.
         /// </summary>
         public string EnvironmentsUrl { get; set; }
+
+        public string OrganizationsUrl { get; set; }
     }
 }

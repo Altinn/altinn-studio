@@ -4,18 +4,21 @@ import { DeployContainerComponent } from '../containers/deployContainer';
 import { InfoCard } from '../components/InfoCard';
 import { ReleaseContainer } from '../containers/releaseContainer';
 import { useDeployPermissionsQuery, useOrgListQuery } from '../../../hooks/queries';
-import { useParams } from 'react-router-dom';
 import { Trans, useTranslation } from 'react-i18next';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
 import { useInvalidator } from '../../../hooks/useInvalidator';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export function DeployPage() {
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const { t } = useTranslation();
-  const { data: orgs = { orgs: {} }, isLoading: isLoadingOrgs } = useOrgListQuery();
-  const { data: permissions, isLoading: permissionsIsLoading } = useDeployPermissionsQuery(org, app);
+  const { data: orgs = { orgs: {} }, isPending: isOrgsPending } = useOrgListQuery();
+  const { data: permissions, isPending: isPermissionsPending } = useDeployPermissionsQuery(
+    org,
+    app,
+  );
   useInvalidator();
-  if (isLoadingOrgs || permissionsIsLoading) {
+  if (isOrgsPending || isPermissionsPending) {
     return (
       <div style={{ height: 'calc(100% - 111px)' }}>
         <AltinnContentLoader width={1200} height={600}>
@@ -48,9 +51,7 @@ export function DeployPage() {
   if (!permissions || !permissions.length) {
     return (
       <InfoCard headerText={t('app_publish.no_team')} shadow={true}>
-        <div style={{ paddingTop: '2.4rem' }}>
-          {t('app_publish.no_team_info')}
-        </div>
+        <div style={{ paddingTop: '2.4rem' }}>{t('app_publish.no_team_info')}</div>
       </InfoCard>
     );
   }

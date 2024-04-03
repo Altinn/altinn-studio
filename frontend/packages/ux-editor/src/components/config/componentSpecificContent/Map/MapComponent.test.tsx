@@ -2,14 +2,11 @@ import React from 'react';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MapComponent } from './MapComponent';
-import {
-  renderWithMockStore,
-  renderHookWithMockStore,
-  appDataMock,
-} from '../../../../testing/mocks';
+import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
-import { IGenericEditComponent } from '../../componentConfig';
+import type { IGenericEditComponent } from '../../componentConfig';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
 const texts: Record<string, string> = {
   'validation_errors.required': 'Feltet er påkrevd!',
@@ -38,73 +35,22 @@ const waitForData = async () => {
 const renderMapComponent = async ({
   component = {} as any,
   handleComponentChange = handleComponentChangeMock,
-}: Partial<IGenericEditComponent>) => {
-  const user = userEvent.setup();
-
+}: Partial<IGenericEditComponent<ComponentType.Map>>) => {
   await waitForData();
 
-  renderWithMockStore({
-    appData: { ...appDataMock },
-  })(
-    <MapComponent
-      component={component}
-      handleComponentChange={handleComponentChange}
-    />
+  renderWithMockStore()(
+    <MapComponent component={component} handleComponentChange={handleComponentChange} />,
   );
-  return { user };
 };
 
 describe('MapComponent', () => {
   afterEach(() => jest.resetAllMocks());
 
-  test('should render titles', async () => {
+  it('should render /Legg til kartlag/ button', async () => {
     await renderMapComponent({});
-    expect(screen.getByRole('heading', { level: 2, name: 'Sentrum av kartet' }));
-    expect(screen.getByRole('heading', { level: 2, name: 'Legg til kartlag' }));
-  });
-
-  test('should render input-fields, latitude, longitude, zoom and button "Add map layer"', async () => {
-    await renderMapComponent({});
-    expect(screen.getByLabelText('Latitude')).toBeInTheDocument();
-    expect(screen.getByLabelText('Longitude')).toBeInTheDocument();
-    expect(screen.getByLabelText('Standard zoom')).toBeInTheDocument();
-  });
-
-  test('should be able to set latitude', async () => {
-    const { user } = await renderMapComponent({
-      handleComponentChange: handleComponentChangeMock,
-    });
-
-    const latitudeInput = screen.getByLabelText('Latitude');
-    await act(() => user.type(latitudeInput, '40'));
-
-    expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
-      centerLocation: { latitude: 40 },
-    });
-  });
-
-  test('should be able to set longitude', async () => {
-    const { user } = await renderMapComponent({
-      handleComponentChange: handleComponentChangeMock,
-    });
-
-    const longitudeInput = screen.getByLabelText('Longitude');
-    await act(() => user.type(longitudeInput, '21'));
-
-    expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
-      centerLocation: { longitude: 21 },
-    });
-  });
-
-  test('should be able to set zoom', async () => {
-    const { user } = await renderMapComponent({
-      handleComponentChange: handleComponentChangeMock,
-    });
-
-    const zoomInput = screen.getByLabelText('Standard zoom');
-    await act(() => user.type(zoomInput, '2'));
-
-    expect(handleComponentChangeMock).toHaveBeenLastCalledWith({ zoom: 2 });
+    expect(
+      screen.getByRole('button', { name: texts['ux_editor.add_map_layer'] }),
+    ).toBeInTheDocument();
   });
 });
 
@@ -141,7 +87,8 @@ describe('AddMapLayer', () => {
   });
 
   test('should be able to set link', async () => {
-    const { user } = await renderMapComponent({ component: componentMock });
+    const user = userEvent.setup();
+    await renderMapComponent({ component: componentMock });
 
     const input = screen.getByLabelText(texts['ux_editor.url_label']);
     await act(() => user.type(input, 'test'));
@@ -158,7 +105,8 @@ describe('AddMapLayer', () => {
   });
 
   test('should be able to set attribution', async () => {
-    const { user } = await renderMapComponent({ component: componentMock });
+    const user = userEvent.setup();
+    await renderMapComponent({ component: componentMock });
 
     const input = screen.getByLabelText(texts['ux_editor.attribution_label']);
     await act(() => user.type(input, 'test'));
@@ -175,7 +123,8 @@ describe('AddMapLayer', () => {
   });
 
   test('should be able to set subdomains', async () => {
-    const { user } = await renderMapComponent({ component: componentMock });
+    const user = userEvent.setup();
+    await renderMapComponent({ component: componentMock });
 
     const input = screen.getByLabelText(texts['ux_editor.subdomains_label']);
     await act(() => user.type(input, 'test'));
@@ -192,7 +141,8 @@ describe('AddMapLayer', () => {
   });
 
   it('calls handleAddLayer on button click', async () => {
-    const { user } = await renderMapComponent({});
+    const user = userEvent.setup();
+    await renderMapComponent({});
 
     const button = screen.getByRole('button');
 

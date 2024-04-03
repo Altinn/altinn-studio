@@ -1,17 +1,19 @@
 name: "My Shared Steps"
-description: "Doing yarn installs with propper caching"
+description: "Doing yarn installs with proper caching"
 runs:
   using: "composite"
   steps:
     - name: 'Setting up Node'
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
+      with:
+        cache: 'yarn'
 
     - name: "Getting yarn cache directory path"
       id: yarn-cache-dir-path
       run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
       shell: bash
 
-    - uses: actions/cache@v3
+    - uses: actions/cache@v4
       id: yarn-cache
       with:
         path: ${{ steps.yarn-cache-dir-path.outputs.dir }}

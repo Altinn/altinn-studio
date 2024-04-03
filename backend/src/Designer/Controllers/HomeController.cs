@@ -32,6 +32,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly ServiceRepositorySettings _settings;
         private readonly ISourceControl _sourceControl;
         private readonly GeneralSettings _generalSettings;
+        private readonly ApplicationInsightsSettings _applicationInsightsSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HomeController"/> class
@@ -41,18 +42,21 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="generalSettings">the general settings</param>
         /// <param name="giteaWrapper">the gitea wrapper</param>
         /// <param name="sourceControl">the source control</param>
+        /// <param name="applicationInsightsSettings">An <see cref="ApplicationInsightsSettings"/></param>
         public HomeController(
             ILogger<HomeController> logger,
             ServiceRepositorySettings repositorySettings,
             GeneralSettings generalSettings,
             IGitea giteaWrapper,
-            ISourceControl sourceControl)
+            ISourceControl sourceControl,
+            ApplicationInsightsSettings applicationInsightsSettings)
         {
             _logger = logger;
             _settings = repositorySettings;
             _generalSettings = generalSettings;
             _giteaApi = giteaWrapper;
             _sourceControl = sourceControl;
+            _applicationInsightsSettings = applicationInsightsSettings;
         }
 
         /// <summary>
@@ -76,6 +80,13 @@ namespace Altinn.Studio.Designer.Controllers
             return LocalRedirect("/dashboard");
         }
 
+        [Route("/{*AllValues:regex(^(?!designer).*$)}")]
+        public IActionResult Index()
+        {
+            ViewBag.InstrumentationKey = _applicationInsightsSettings.InstrumentationKey;
+            return View();
+        }
+
         /// <summary>
         /// The default action presenting a list of available apps when the user is logged in
         /// </summary>
@@ -83,9 +94,10 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("/[controller]/[action]")]
         [Authorize]
         [Route("/dashboard/{*AllValues}", Name = "DefaultLoggedIn")]
-        public ActionResult Index()
+        public ActionResult Dashboard()
         {
-            return View();
+            ViewBag.InstrumentationKey = _applicationInsightsSettings.InstrumentationKey;
+            return View("Dashboard");
         }
 
         /// <summary>
@@ -121,7 +133,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The login page</returns>
         public async Task<IActionResult> Login()
         {
-            string userName = string.Empty;
+            string userName;
             string goToUrl = "/";
 
             // Verify that user is not logged in already.
@@ -136,7 +148,7 @@ namespace Altinn.Studio.Designer.Controllers
                 userName = await _giteaApi.GetUserNameFromUI();
                 if (string.IsNullOrEmpty(userName))
                 {
-                    return (Environment.GetEnvironmentVariable("ServiceRepositorySettings__GiteaLoginUrl") != null)
+                    return Environment.GetEnvironmentVariable("ServiceRepositorySettings__GiteaLoginUrl") != null
                     ? Redirect(Environment.GetEnvironmentVariable("ServiceRepositorySettings__GiteaLoginUrl"))
                     : Redirect(_settings.GiteaLoginUrl);
                 }
@@ -148,7 +160,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             _logger.LogInformation("Updating app key for " + userName);
             KeyValuePair<string, string> accessKeyValuePair = await _giteaApi.GetSessionAppKey() ?? default(KeyValuePair<string, string>);
-            List<Claim> claims = new List<Claim>();
+            List<Claim> claims = new();
             const string Issuer = "https://altinn.no";
             if (!accessKeyValuePair.Equals(default(KeyValuePair<string, string>)))
             {
@@ -160,10 +172,10 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             claims.Add(new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, Issuer));
-            ClaimsIdentity identity = new ClaimsIdentity("TestUserLogin");
+            ClaimsIdentity identity = new("TestUserLogin");
             identity.AddClaims(claims);
 
-            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+            ClaimsPrincipal principal = new(identity);
 
             string timeoutString = DateTime.UtcNow.AddMinutes(_generalSettings.SessionDurationInMinutes - 5).ToString();
             HttpContext.Response.Cookies.Append(
@@ -222,7 +234,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The debug info you want</returns>
         public async Task<IActionResult> Debug()
         {
-            StringBuilder stringBuilder = new StringBuilder();
+            StringBuilder stringBuilder = new();
             stringBuilder.AppendLine("Debug info");
             stringBuilder.AppendLine("App token is: " + _sourceControl.GetAppToken());
             stringBuilder.AppendLine("App token id is " + _sourceControl.GetAppTokenId());

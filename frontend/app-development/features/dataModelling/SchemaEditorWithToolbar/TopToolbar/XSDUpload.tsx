@@ -1,24 +1,22 @@
 import React from 'react';
-import { AltinnSpinner, FileSelector } from 'app-shared/components';
+import { FileSelector } from 'app-shared/components';
+import { StudioSpinner } from '@studio/components';
 import axios from 'axios';
 import ErrorPopover from 'app-shared/components/ErrorPopover';
 import { datamodelsUploadPath } from 'app-shared/api/paths';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export interface IXSDUploadProps {
   disabled?: boolean;
   submitButtonRenderer?: (fileInputClickHandler: (event: any) => void) => JSX.Element;
 }
 
-export const XSDUpload = ({
-  disabled,
-  submitButtonRenderer,
-}: IXSDUploadProps) => {
+export const XSDUpload = ({ disabled, submitButtonRenderer }: IXSDUploadProps) => {
   const { t } = useTranslation();
-  const { org, app } = useParams<{ org: string; app: string }>();
+  const { org, app } = useStudioUrlParams();
   const queryClient = useQueryClient();
 
   const [uploading, setUploading] = React.useState(false);
@@ -45,7 +43,12 @@ export const XSDUpload = ({
         }
       })
       .finally(async () => {
-        await queryClient.invalidateQueries([QueryKey.DatamodelsMetadata, org, app]);
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: [QueryKey.DatamodelsJson, org, app],
+          }),
+          queryClient.invalidateQueries({ queryKey: [QueryKey.DatamodelsXsd, org, app] }),
+        ]);
         setUploading(false);
       });
   };
@@ -54,7 +57,7 @@ export const XSDUpload = ({
     <>
       <span ref={uploadButton}>
         {uploading ? (
-          <AltinnSpinner spinnerText={t('app_data_modelling.uploading_xsd')} />
+          <StudioSpinner spinnerTitle={t('app_data_modelling.uploading_xsd')} showSpinnerTitle />
         ) : (
           <FileSelector
             busy={false}

@@ -1,0 +1,1 @@
+export { AccessControlTab } from './AccessControlTab';

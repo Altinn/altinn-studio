@@ -1,0 +1,5 @@
+.container {
+  container: string;
+  display: grid;
+  gap: var(--fieldset-gap);
+}

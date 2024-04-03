@@ -1,17 +1,14 @@
 import React from 'react';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
-import { getNodeByPointer, ROOT_POINTER, UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
+import { FieldType, ROOT_POINTER, SchemaModel, validateTestUiSchema } from '@altinn/schema-model';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { act, screen } from '@testing-library/react';
-import { SchemaState } from '@altinn/schema-editor/types';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { nodeMockBase } from '../../../test/mocks/uiSchemaMock';
-import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { getSavedModel } from '../../../test/test-utils';
-import { validateTestUiSchema } from '../../../../schema-model/test/validateTestUiSchema';
 
 const user = userEvent.setup();
 
@@ -39,17 +36,12 @@ const node: UiSchemaNode = {
 };
 const rootNode: UiSchemaNode = {
   ...nodeMockBase,
+  fieldType: FieldType.Object,
   pointer: ROOT_POINTER,
   children: [defaultPath],
 };
 const uiSchema: UiSchemaNodes = [rootNode, node];
-const defaultSchemaState: Partial<SchemaState> = {
-  selectedDefinitionNodeId: defaultPath,
-  selectedEditorTab: 'definitions',
-};
-const org = 'org';
-const app = 'app';
-const modelPath = 'test';
+const schemaModel = SchemaModel.fromArray(uiSchema);
 const saveDatamodel = jest.fn();
 
 describe('CustomProperties', () => {
@@ -86,7 +78,9 @@ describe('CustomProperties', () => {
 
   it('Renders an "unsupported property" message for unsupported properties', () => {
     render();
-    expect(screen.getAllByText(textMock('schema_editor.custom_props_unknown_format'))).toHaveLength(1);
+    expect(screen.getAllByText(textMock('schema_editor.custom_props_unknown_format'))).toHaveLength(
+      1,
+    );
   });
 
   it('Renders a "delete" button for each property', () => {
@@ -97,10 +91,12 @@ describe('CustomProperties', () => {
 
   it('Saves model without deleted property when the delete button is clicked', async () => {
     render();
-    await act(() => user.click(screen.getAllByRole('button', { name: textMock('general.delete') })[0]));
+    await act(() =>
+      user.click(screen.getAllByRole('button', { name: textMock('general.delete') })[0]),
+    );
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
-    const updatedNode = getNodeByPointer(updatedModel, defaultPath);
+    const updatedNode = updatedModel.getNode(defaultPath);
     const expectedProperties = { ...customProperties };
     delete expectedProperties[Object.keys(customProperties)[0]];
     expect(updatedNode.custom).toEqual(expectedProperties);
@@ -112,7 +108,7 @@ describe('CustomProperties', () => {
     await act(() => user.type(screen.getByLabelText(stringPropKey), newLetter));
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
-    const updatedNode = getNodeByPointer(updatedModel, defaultPath);
+    const updatedNode = updatedModel.getNode(defaultPath);
     expect(updatedNode.custom[stringPropKey]).toEqual(stringPropValue + newLetter);
   });
 
@@ -122,7 +118,7 @@ describe('CustomProperties', () => {
     await act(() => user.type(screen.getByLabelText(numberPropKey), newDigit.toString()));
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
-    const updatedNode = getNodeByPointer(updatedModel, defaultPath);
+    const updatedNode = updatedModel.getNode(defaultPath);
     expect(updatedNode.custom[numberPropKey]).toEqual(numberPropValue * 10 + newDigit);
   });
 
@@ -131,7 +127,7 @@ describe('CustomProperties', () => {
     await act(() => user.click(screen.getByLabelText(initiallyFalseBoolPropKey)));
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
-    const updatedNode = getNodeByPointer(updatedModel, defaultPath);
+    const updatedNode = updatedModel.getNode(defaultPath);
     expect(updatedNode.custom[initiallyFalseBoolPropKey]).toBe(true);
   });
 
@@ -140,16 +136,16 @@ describe('CustomProperties', () => {
     await act(() => user.click(screen.getByLabelText(initiallyTrueBoolPropKey)));
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
-    const updatedNode = getNodeByPointer(updatedModel, defaultPath);
+    const updatedNode = updatedModel.getNode(defaultPath);
     expect(updatedNode.custom[initiallyTrueBoolPropKey]).toBe(false);
   });
 });
 
-const render = (path: string = defaultPath, schemaState: Partial<SchemaState> = {}) => {
-  queryClientMock.setQueryData([QueryKey.Datamodel, org, app, modelPath], uiSchema);
-  return renderWithProviders({
-    servicesContextProps: { saveDatamodel },
-    appContextProps: { modelPath },
-    state: { ...defaultSchemaState, ...schemaState }
-  })(<CustomProperties path={path}/>);
-};
+const render = (path: string = defaultPath) =>
+  renderWithProviders({
+    appContextProps: {
+      schemaModel,
+      save: saveDatamodel,
+      selectedNodePointer: path,
+    },
+  })(<CustomProperties path={path} />);

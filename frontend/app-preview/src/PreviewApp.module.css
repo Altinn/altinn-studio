@@ -1,3 +1,7 @@
+:root {
+  --font-family: 'Inter', sans-serif;
+}
+
 .previewContainer {
   --toolbar-height: 80px;
   --subtoolbar-height: 60px;
@@ -7,6 +11,7 @@
   );
   --left-menu-width: 68px;
 
+  background-color: #efefef;
   min-height: 100vh;
   width: 100%;
   display: flex;

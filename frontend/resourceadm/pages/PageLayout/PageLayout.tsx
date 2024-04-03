@@ -1,25 +1,36 @@
 import React, { useEffect, useMemo } from 'react';
 import classes from './PageLayout.module.css';
-import { Outlet, useNavigate } from 'react-router-dom';
-
-import { HeaderContext } from 'app-shared/navigation/main-header/Header';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import AppHeader, {
+  HeaderContext,
+  SelectedContextType,
+} from 'app-shared/navigation/main-header/Header';
 import type { IHeaderContext } from 'app-shared/navigation/main-header/Header';
-import AppHeader from 'app-shared/navigation/main-header/Header';
 
 import { userHasAccessToSelectedContext } from '../../utils/userUtils';
 import { useOrganizationsQuery } from '../../hooks/queries';
 import { useUserQuery } from 'app-shared/hooks/queries';
-import { useSelectedContext } from '../../hooks/useSelectedContext';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
+import { useUrlParams } from '../../hooks/useSelectedContext';
 
-export const PageLayout = () => {
+/**
+ * @component
+ *    The layout of each page, including the header and the Gitea header
+ *
+ * @returns {React.JSX.Element} - The rendered component
+ */
+export const PageLayout = (): React.JSX.Element => {
+  const { pathname } = useLocation();
   const { data: user } = useUserQuery();
   const { data: organizations } = useOrganizationsQuery();
 
-  const selectedContext = useSelectedContext();
-  const repo = `${selectedContext}-resources`;
+  const { selectedContext = SelectedContextType.Self, repo } = useUrlParams();
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
   useEffect(() => {
     if (
@@ -35,7 +46,7 @@ export const PageLayout = () => {
       selectableOrgs: organizations,
       user,
     }),
-    [organizations, user]
+    [organizations, user],
   );
 
   return (
@@ -47,7 +58,7 @@ export const PageLayout = () => {
           org={selectedContext}
           app={repo}
           menuOnlyHasRepository
-          className={classes.extraPadding}
+          rightContentClassName={classes.extraPadding}
         />
       </HeaderContext.Provider>
       <Outlet />

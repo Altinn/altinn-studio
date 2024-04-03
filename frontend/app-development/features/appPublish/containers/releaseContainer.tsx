@@ -2,34 +2,33 @@ import React, { useEffect, useState } from 'react';
 import classes from './releaseContainer.module.css';
 import type { AppRelease } from 'app-shared/types/AppRelease';
 import type { KeyboardEvent, MouseEvent } from 'react';
-import { AltinnIconComponent } from 'app-shared/components/AltinnIcon';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
-import { Button, ButtonSize, ButtonVariant, Popover } from '@digdir/design-system-react';
+import { LegacyPopover } from '@digdir/design-system-react';
 import { CreateReleaseComponent } from '../components/createAppReleaseComponent';
 import { ReleaseComponent } from '../components/appReleaseComponent';
-import { UploadIcon, CheckmarkIcon } from '@navikt/aksel-icons';
+import { UploadIcon, CheckmarkIcon, XMarkOctagonFillIcon } from '@studio/icons';
 import { gitCommitPath } from 'app-shared/api/paths';
-import { useMediaQuery } from '../../../hooks';
-import { useParams } from 'react-router-dom';
+import { useMediaQuery, StudioButton, StudioSpinner } from '@studio/components';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { Trans, useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { AltinnSpinner } from 'app-shared/components';
+
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export function ReleaseContainer() {
   const hiddenMdDown = useMediaQuery('(max-width: 1025px)');
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const [popoverOpenClick, setPopoverOpenClick] = useState<boolean>(false);
   const [popoverOpenHover, setPopoverOpenHover] = useState<boolean>(false);
 
   const { data: releases = [] } = useAppReleasesQuery(org, app);
-  const { data: repoStatus, isLoading: repoStatusIsLoading } = useRepoStatusQuery(org, app);
-  const { data: masterBranchStatus, isLoading: masterBranchStatusIsLoading } = useBranchStatusQuery(
+  const { data: repoStatus, isPending: isRepoStatusPending } = useRepoStatusQuery(org, app);
+  const { data: masterBranchStatus, isPending: masterBranchStatusIsPending } = useBranchStatusQuery(
     org,
     app,
-    'master'
+    'master',
   );
 
   const latestRelease: AppRelease = releases && releases[0] ? releases[0] : null;
@@ -47,7 +46,9 @@ export function ReleaseContainer() {
     const interval = setInterval(async () => {
       const index = releases.findIndex((release) => release.build.status !== BuildStatus.completed);
       if (index > -1) {
-        await queryClient.invalidateQueries([QueryKey.AppReleases, org, app]);
+        await queryClient.invalidateQueries({
+          queryKey: [QueryKey.AppReleases, org, app],
+        });
       }
     }, 7777);
     return () => clearInterval(interval);
@@ -58,11 +59,14 @@ export function ReleaseContainer() {
   const handlePopoverClose = () => setPopoverOpenHover(false);
 
   function renderCreateRelease() {
-    if (repoStatusIsLoading || masterBranchStatusIsLoading) {
+    if (isRepoStatusPending || masterBranchStatusIsPending) {
       return (
         <div style={{ padding: '2rem' }}>
           <div>
-            <AltinnSpinner />
+            <StudioSpinner
+              showSpinnerTitle={false}
+              spinnerTitle={t('app_create_release.loading')}
+            />
           </div>
           <div style={{ padding: '1.2rem' }}>{t('app_create_release.check_status')}</div>
         </div>
@@ -75,10 +79,7 @@ export function ReleaseContainer() {
       return (
         <div className={classes.cannotCreateReleaseContainer}>
           {hiddenMdDown ? null : (
-            <AltinnIconComponent
-              iconClass={`${classes.renderCannotCreateReleaseIcon} ai ai-circle-exclamation`}
-              iconColor='#E23B53'
-            />
+            <XMarkOctagonFillIcon className={classes.renderCannotCreateReleaseIcon} />
           )}
           <div>
             <div className={classes.cannotCreateReleaseTitle}>
@@ -206,11 +207,11 @@ export function ReleaseContainer() {
       </div>
       <div className={classes.versionSubHeader}>
         <div className={classes.appCreateReleaseTitle}>{renderCreateReleaseTitle()}</div>
-        <Popover
+        <LegacyPopover
           className={classes.popover}
           open={popoverOpenClick || popoverOpenHover}
           trigger={
-            <Button
+            <StudioButton
               className={classes.appCreateReleaseStatusButton}
               onClick={handlePopoverOpenClicked}
               onMouseOver={handlePopoverOpenHover}
@@ -218,17 +219,17 @@ export function ReleaseContainer() {
               tabIndex={0}
               onKeyUp={handlePopoverKeyPress}
               icon={renderStatusIcon()}
-              size={ButtonSize.Small}
-              variant={ButtonVariant.Quiet}
+              size='small'
+              variant='tertiary'
             />
           }
         >
           {renderStatusMessage()}
-        </Popover>
+        </LegacyPopover>
       </div>
       <div className={classes.appReleaseCreateRelease}>{renderCreateRelease()}</div>
       <div className={classes.appReleaseHistoryTitle}>{t('app_release.earlier_releases')}</div>
-      <div className={classes.appReleaseHistory}>
+      <div>
         {!!releases.length &&
           releases.map((release: AppRelease, index: number) => (
             <ReleaseComponent key={index} release={release} />

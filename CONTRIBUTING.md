@@ -1,0 +1,68 @@
+# Contributing to Altinn
+
+We love your input! We want to make contributing to this project as easy and transparent as possible.
+However we do recommend that you check our pages on
+[how to contribute to our development](https://docs.altinn.studio/community/contributing/) first.
+
+You can also contribute by:
+
+- Reporting a bug
+- Discussing the current state of the code
+- Proposing new features
+- Telling us what you want us to prioritise - by adding a :+1: to the issue.
+
+## We develop with GitHub
+
+We use GitHub to host code, to track issues and feature requests, as well as accept pull requests.
+
+## How to Pull Request
+
+Once you've finished developing something, Pull requests are the best way to propose changes to the codebase.
+We actively welcome your pull requests - even more so if you follow our [development guidelines](https://docs.altinn.studio/community/contributing/).
+
+1. Fork the repo and create your branch from `main`.
+2. If you've added code that should be tested, add tests.
+3. If you've changed APIs, update the documentation.
+4. Ensure the test suite passes.
+5. Make sure your code lints.
+6. Issue that pull request!
+7. Be part of the exclusive [external-contribution-❤️](https://github.com/Altinn/altinn-studio/pulls?q=is%3Apr+label%3Aexternal-contribution-%E2%9D%A4%EF%B8%8F+) list.
+
+## Any contributions you make will be under the 3-Clause BSD License Software License
+
+In short, when you submit code changes, your submissions are understood to be under the same liberal [3-Clause BSD License](https://github.com/Altinn/altinn-studio/blob/main/LICENSE.md) that covers the project. Feel free to contact the maintainers if that's a concern.
+
+## Report bugs using GitHub issues
+
+We use GitHub [issues](https://github.com/Altinn/altinn-studio/issues) to track public bugs.
+Report a bug by [opening a new issue](https://github.com/Altinn/altinn-studio/issues/new) and use the `bug` template; it's that easy!
+
+### Write bug reports with detail, background, and sample code
+
+**Great Bug Reports** tend to have:
+
+- A quick summary and/or background
+- Steps to reproduce
+  - Be specific!
+  - Give sample code if you can (and if relevant).
+  - Provide screenshots (if relevant).
+- What you expected would happen
+- What actually happens
+- Notes (possibly including why you think this might be happening, or stuff you tried that didn't work)
+
+People _love_ thorough bug reports. I'm not even kidding.
+
+## Ignore reformatting commits with Git Blame
+
+Some commits only contain automatic reformatting. These should be listed in [the .git-blame-ignore-revs file](.git-blame-ignore-revs).
+They will then be ignored when using the blame feature on Github. This makes it easier to find the commits that actually changed the code.
+In order to make this work when running then `git blame` command, or when using corresponding features in the code editor,
+the file must be specified in the Git configuration. This can be done by running the following command:
+
+```bash
+git config blame.ignoreRevsFile .git-blame-ignore-revs
+```
+
+## License
+
+By contributing, you agree that your contributions will be licensed under the project's [3-Clause BSD License](https://github.com/Altinn/altinn-studio/blob/main/LICENSE.md).

@@ -1,31 +1,40 @@
 import React from 'react';
-import { Checkbox } from '@digdir/design-system-react';
+import { Switch } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import { FormField } from '../../FormField';
+import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { FormItem } from '../../../types/FormItem';
 
-export const EditReadOnly = ({ component, handleComponentChange }: IGenericEditComponent) => {
+export const EditReadOnly = <T extends ComponentType = ComponentType>({
+  component,
+  handleComponentChange,
+}: IGenericEditComponent<T>) => {
   const t = useText();
 
-  const handleChange = () => {
+  const handleChange = (readOnly: boolean) => {
     handleComponentChange({
       ...component,
-      readOnly: !component.readOnly,
-    });
+      readOnly,
+    } as FormItem<T>);
   };
 
   return (
     <FormField
       id={component.id}
-      label={t('ux_editor.modal_configure_read_only')}
-      value={component.readOnly}
+      value={(component as FormItem<T> & { readOnly?: boolean }).readOnly || false}
       onChange={handleChange}
       propertyPath='definitions/component/properties/readOnly'
-    >
-      {({ value, onChange }) => <Checkbox
-        checked={value}
-        onChange={(e) => onChange(e.target.checked, e)}
-      />}
-    </FormField>
+      renderField={({ fieldProps }) => (
+        <Switch
+          {...fieldProps}
+          checked={fieldProps.value}
+          onChange={(e) => handleChange(e.target.checked)}
+          size='small'
+        >
+          {t('ux_editor.modal_configure_read_only')}
+        </Switch>
+      )}
+    />
   );
 };

@@ -1,61 +1,86 @@
 import React from 'react';
+import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
+import { Tag, Paragraph, Spinner } from '@digdir/design-system-react';
 import classes from './ResourceDeployEnvCard.module.css';
-import { Button, Tag, Paragraph } from '@digdir/design-system-react';
-import { ArrowRightIcon } from '@navikt/aksel-icons';
+import { ArrowRightIcon } from '@studio/icons';
+import { StudioButton } from '@studio/components';
+import { usePublishResourceMutation } from '../../hooks/mutations';
+import type { Environment } from '../../utils/resourceUtils/resourceUtils';
+import { useUrlParams } from '../../hooks/useSelectedContext';
 
-interface Props {
+export type ResourceDeployEnvCardProps = {
   isDeployPossible: boolean;
-  envName: string;
+  env: Environment;
   currentEnvVersion: string;
   newEnvVersion?: string;
-}
+};
 
 /**
- * Component for the card displaying the button for publishing the resource
- * to an environment and information about the resource version
+ * @component
+ *    Component for the card displaying the button for publishing the resource
+ *    to an environment and information about the resource version
  *
- * @param props.isDeployPossible flag for if deploy is possible or not
- * @param props.envName the name of the environment
- * @param props.currentEnvVersion the current version in the environment
- * @param props.newEnvVersion the new version the resource will deploy to
+ * @property {boolean}[isDeployPossible] - Flag for if deploy is possible or not
+ * @property {Environment}[env] - The name of the environment
+ * @property {string}[currentEnvVersion] - The current version in the environment
+ * @property {string}[newEnvVersion] - The new version the resource will deploy to
+ *
+ * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceDeployEnvCard = ({
   isDeployPossible,
-  envName,
+  env,
   currentEnvVersion,
   newEnvVersion,
-}: Props) => {
-  // TODO - Translation
+}: ResourceDeployEnvCardProps): React.JSX.Element => {
+  const { t } = useTranslation();
 
-  const handleOnClick = () => {
-    console.log('Coming soon...');
+  const { selectedContext, repo, resourceId } = useUrlParams();
+
+  // Query function for publishing a resource
+  const { mutate: publishResource, isPending: publisingResourcePending } =
+    usePublishResourceMutation(selectedContext, repo, resourceId);
+
+  const handlePublish = () => {
+    publishResource(env.id, {
+      onSuccess: () => {
+        toast.success(t('resourceadm.resource_published_success'));
+      },
+    });
   };
 
   return (
     <div className={classes.cardWrapper}>
-      <Paragraph size='small' className={classes.envName}>
-        <strong>{envName}</strong>
-      </Paragraph>
-      <div className={classes.envWrapper}>
-        <Tag color='neutral' variant='outlined'>
-          <Paragraph size='small'>v{currentEnvVersion}</Paragraph>
-        </Tag>
-        {newEnvVersion && (
-          <>
-            <div className={classes.arrowWrapper}>
-              <ArrowRightIcon title={`Ny versjon for ${envName}`} fontSize='1.5rem' />
-            </div>
-            <Tag color='success' variant='outlined'>
-              <Paragraph size='small'>v{newEnvVersion}</Paragraph>
+      {publisingResourcePending ? (
+        <Spinner title={t('resourceadm.deploy_deploying')}></Spinner>
+      ) : (
+        <>
+          <Paragraph size='small'>
+            <strong>{t(env.label)}</strong>
+          </Paragraph>
+          <Paragraph size='small'>{t('resourceadm.deploy_version_number_text')}</Paragraph>
+          <div className={classes.envWrapper}>
+            <Tag color='neutral' size='small'>
+              {currentEnvVersion}
             </Tag>
-          </>
-        )}
-      </div>
-      <div className={classes.buttonWrapper}>
-        <Button aria-disabled={!isDeployPossible} onClick={isDeployPossible && handleOnClick}>
-          Publiser til {envName}
-        </Button>
-      </div>
+            {newEnvVersion && (
+              <>
+                <ArrowRightIcon
+                  title={t('resourceadm.deploy_card_arrow_icon', { env: t(env.label) })}
+                  fontSize='1.5rem'
+                />
+                <Tag color='success' size='small'>
+                  {newEnvVersion}
+                </Tag>
+              </>
+            )}
+          </div>
+          <StudioButton disabled={!isDeployPossible} onClick={handlePublish} size='small'>
+            {t('resourceadm.deploy_card_publish', { env: t(env.label) })}
+          </StudioButton>
+        </>
+      )}
     </div>
   );
 };

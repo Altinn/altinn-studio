@@ -1,28 +1,16 @@
 .cardWrapper {
-  display: flex;
+  display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
-  width: 260px;
-  padding: 20px;
-  margin: 0;
+  padding: var(--fds-spacing-5);
   background-color: var(--fds-semantic-surface-neutral-default);
   border-radius: 12px;
-  border: solid 1px var(--fds-semantic-border-neutral-divider);
-}
-
-.envName {
-  margin-bottom: 10px;
-}
-
-.buttonWrapper {
-  margin-top: 20px;
+  gap: var(--fds-spacing-3);
+  border: solid 1px var(--fds-semantic-border-divider-default);
 }
 
 .envWrapper {
   display: flex;
   align-items: center;
-}
-
-.arrowWrapper {
-  padding-inline: 10px;
+  gap: var(--fds-spacing-3);
 }

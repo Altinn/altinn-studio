@@ -10,10 +10,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ConfigController
 {
-    public class SetServiceConfigTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ConfigController, SetServiceConfigTests>
+    public class SetServiceConfigTests : DisagnerEndpointsTestsBase<SetServiceConfigTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/config";
-        public SetServiceConfigTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ConfigController> factory) : base(factory)
+        public SetServiceConfigTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -28,7 +28,7 @@ namespace Designer.Tests.Controllers.ConfigController
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, dataPathWithData);
             httpRequestMessage.Content = JsonContent.Create(new { serviceName = "Alternative-form-name", serviceDescription = "", serviceId = "" });
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             response.EnsureSuccessStatusCode();
             ServiceConfiguration serviceConfiguration = ServiceConfigurationUtils.GetServiceConfiguration(TestRepositoriesLocation, org, targetRepository, "testUser");
 

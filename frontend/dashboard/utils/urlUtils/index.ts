@@ -1,1 +1,1 @@
-export { applicationAboutPage, getRepoEditUrl } from './urlUtils';
+export { getAppDevelopmentRootRoute, getRepoEditUrl } from './urlUtils';

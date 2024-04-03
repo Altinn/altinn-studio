@@ -1,5 +1,6 @@
 import type { UiSchemaNode, UiSchemaNodes } from '../../types';
 import { ROOT_POINTER } from '../constants';
+import { isFieldOrCombination } from '../utils';
 
 export const sortNodesByChildren = (uiSchemaNodes: UiSchemaNodes): UiSchemaNodes => {
   const tempMap = new Map();
@@ -12,7 +13,9 @@ const treeWalker = (map: Map<string, UiSchemaNode>, pointer: string): UiSchemaNo
   if (map.has(pointer)) {
     const currentNode = map.get(pointer) as UiSchemaNode;
     nodes.push(currentNode);
-    currentNode.children.forEach((childPointer) => nodes.push(...treeWalker(map, childPointer)));
+    if (isFieldOrCombination(currentNode)) {
+      currentNode.children.forEach((childPointer) => nodes.push(...treeWalker(map, childPointer)));
+    }
   } else {
     throw new Error(`Can't find ${pointer} in node-array.`);
   }

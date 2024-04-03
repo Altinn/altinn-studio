@@ -1,10 +1,12 @@
-import { queriesMock, renderHookWithMockStore } from '../../testing/mocks';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
-import { AddWidgetMutationArgs, useAddWidgetMutation } from './useAddWidgetMutation';
-import { IWidget, IWidgetTexts } from '../../types/global';
+import type { AddWidgetMutationArgs } from './useAddWidgetMutation';
+import { useAddWidgetMutation } from './useAddWidgetMutation';
+import type { IWidget, IWidgetTexts } from '../../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { ITextResource } from 'app-shared/types/global';
+import type { ITextResource } from 'app-shared/types/global';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 
 // Test data:
@@ -21,7 +23,7 @@ const widget: IWidget = {
   components: [],
   texts,
   displayName,
-}
+};
 const defaultArgs: AddWidgetMutationArgs = { widget, position: 0 };
 
 describe('useAddWidgetMutation', () => {
@@ -37,14 +39,21 @@ describe('useAddWidgetMutation', () => {
     const { result } = await renderAddWidgetMutation();
     await result.current.mutateAsync(defaultArgs);
     expect(queriesMock.upsertTextResources).toHaveBeenCalledTimes(texts.length);
-    expect(queriesMock.upsertTextResources).toHaveBeenCalledWith(org, app, language, { [textId]: textValue });
+    expect(queriesMock.upsertTextResources).toHaveBeenCalledWith(org, app, language, {
+      [textId]: textValue,
+    });
   });
 });
 
 const renderAddWidgetMutation = async () => {
-  const { result: formLayouts } = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult;
+  const { result: formLayouts } = renderHookWithMockStore()(() =>
+    useFormLayoutsQuery(org, app, selectedLayoutSet),
+  ).renderHookResult;
   await waitFor(() => expect(formLayouts.current.isSuccess).toBe(true));
-  const { result: texts } = renderHookWithMockStore()(() => useTextResourcesQuery(org, app)).renderHookResult;
+  const { result: texts } = renderHookWithMockStore()(() =>
+    useTextResourcesQuery(org, app),
+  ).renderHookResult;
   await waitFor(() => expect(texts.current.isSuccess).toBe(true));
-  return renderHookWithMockStore()(() => useAddWidgetMutation(org, app, selectedLayoutSet)).renderHookResult;
-}
+  return renderHookWithMockStore()(() => useAddWidgetMutation(org, app, selectedLayoutSet))
+    .renderHookResult;
+};

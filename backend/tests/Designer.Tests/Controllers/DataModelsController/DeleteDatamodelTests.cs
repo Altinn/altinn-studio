@@ -2,7 +2,6 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
@@ -11,19 +10,17 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
-using static Designer.Tests.Controllers.DataModelsController.Utils.MockUtils;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class DeleteDatamodelTests : DisagnerEndpointsTestsBase<DatamodelsController, DeleteDatamodelTests>
+public class DeleteDatamodelTests : DisagnerEndpointsTestsBase<DeleteDatamodelTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
     private readonly Mock<IRepository> _repositoryMock;
 
-    public DeleteDatamodelTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
+    public DeleteDatamodelTests(WebApplicationFactory<Program> factory) : base(factory)
     {
         _repositoryMock = new Mock<IRepository>();
-        MockRepositoryCalls(_repositoryMock, TestRepositoriesLocation, "testUser");
     }
 
     protected override void ConfigureTestServices(IServiceCollection services)
@@ -42,7 +39,7 @@ public class DeleteDatamodelTests : DisagnerEndpointsTestsBase<DatamodelsControl
 
         using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, dataPathWithData);
 
-        using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 }

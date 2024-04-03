@@ -1,26 +1,38 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './LinkButton.module.css';
+import { Link } from '@digdir/design-system-react';
 
-interface Props {
-  text: string;
-  icon?: ReactNode;
+export type LinkButtonProps = {
+  /**
+   * Function to handle the click of the link
+   * @returns void
+   */
   onClick?: () => void;
-}
+  /**
+   * Children of the component
+   */
+  children?: ReactNode;
+};
 
 /**
- * 'button' element that looks like a link.
+ * @component
+ *    Link component that behaves like a button
  *
- * @param props.text text to display on the element
- * @param props.href the href of the 'a' element
- * @param props.icon icon to be displayed
+ * @example
+ *    <LinkButton onClick={handleOnClick}>
+ *       Children goes here
+ *    </LinkButton>
  *
- * TODO - Solve issue with visited.
+ * @property {function}[text] - Function to handle the click of the link
+ * @property {React.JSX.Element | string}[children] - Children of the component
+ *
+ * @returns {React.JSX.Element} - The rendered component
  */
-export const LinkButton = ({ text, icon, onClick }: Props) => {
+export const LinkButton = ({ onClick, children }: LinkButtonProps): React.JSX.Element => {
   return (
-    <button className={classes.linkButton} onClick={onClick}>
-      {text}
-      {icon}
-    </button>
+    <Link asChild className={classes.linkButton}>
+      <button onClick={onClick}>{children}</button>
+    </Link>
   );
 };

@@ -1,12 +1,12 @@
 name: Build and Test on windows, linux and macos
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
     paths:
       - 'testdata/**'
       - 'backend/**'
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
     types: [opened, synchronize, reopened]
     paths:
       - 'backend/**'
@@ -17,23 +17,30 @@ jobs:
   analyze:
     strategy:
       matrix:
-        os: [windows-latest,ubuntu-latest] # macos-latest excluded temporarily
+        os: [ubuntu-latest,windows-latest,macos-latest]
     name: Run dotnet build and test
     runs-on: ${{ matrix.os}}
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
     steps:
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
-            6.0.x
-      - uses: actions/checkout@v3
+            8.0.x
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: Build
         run: |
-           dotnet build backend/Designer.sln -v m
+          dotnet build backend/Designer.sln -v m
       - name: Test
         run: |
-           dotnet test backend/Designer.sln --filter Category!=GiteaIntegrationTest -v m --no-build
+          dotnet test backend/Designer.sln --filter FullyQualifiedName~AppDevelopmentController --no-build;
+          dotnet test backend/Designer.sln --filter FullyQualifiedName~PolicyControllerTests --no-build;
+          dotnet test backend/Designer.sln --filter FullyQualifiedName~PreviewController --no-build;
+          dotnet test backend/Designer.sln --filter FullyQualifiedName~DataModelsController --no-build;
+          dotnet test backend/Designer.sln --filter FullyQualifiedName~ResourceAdminController --no-build;
+          dotnet test backend/Designer.sln --filter FullyQualifiedName~TextController --no-build;
+          dotnet test backend/Designer.sln --filter "(Category!=GiteaIntegrationTest)&(FullyQualifiedName~RepositoryController)" --no-build;
+          dotnet test backend/Designer.sln --filter "(Category!=GiteaIntegrationTest)&(FullyQualifiedName!~AppDevelopmentController)&(FullyQualifiedName!~PreviewController)&(FullyQualifiedName!~PolicyControllerTests)&(FullyQualifiedName!~DataModelsController)&(FullyQualifiedName!~ResourceAdminController)&(FullyQualifiedName!~TextController)&(FullyQualifiedName!~RepositoryController)" -v m --no-build

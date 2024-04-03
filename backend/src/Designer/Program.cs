@@ -2,14 +2,19 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Altinn.ApiClients.Maskinporten.Extensions;
 using Altinn.Common.AccessToken.Configuration;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Configuration.Marker;
+using Altinn.Studio.Designer.EventHandlers;
 using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Hubs;
+using Altinn.Studio.Designer.Hubs.SyncHub;
 using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
+using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Tracing;
 using Altinn.Studio.Designer.TypedHttpClients;
 using Microsoft.ApplicationInsights.Extensibility;
@@ -39,18 +44,17 @@ string applicationInsightsKey = string.Empty;
 ConfigureSetupLogging();
 
 var builder = WebApplication.CreateBuilder(args);
-
-await SetConfigurationProviders(builder.Configuration, builder.Environment);
-
-ConfigureLogging(builder.Logging);
-
-ConfigureServices(builder.Services, builder.Configuration, builder.Environment);
+{
+    await SetConfigurationProviders(builder.Configuration, builder.Environment);
+    ConfigureLogging(builder.Logging);
+    ConfigureServices(builder.Services, builder.Configuration, builder.Environment);
+}
 
 var app = builder.Build();
-
-Configure(builder.Configuration);
-
-app.Run();
+{
+    Configure(builder.Configuration);
+    app.Run();
+}
 
 void ConfigureSetupLogging()
 {
@@ -69,7 +73,7 @@ void ConfigureSetupLogging()
 
 async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnvironment hostingEnvironment)
 {
-    logger.LogInformation($"// Program.cs // SetConfigurationProviders // Attempting to configure providers.");
+    logger.LogInformation("// Program.cs // SetConfigurationProviders // Attempting to configure providers");
     string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
     config.SetBasePath(basePath);
     config.AddJsonFile(basePath + "app/altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
@@ -95,7 +99,7 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
         !string.IsNullOrEmpty(keyVaultSettings.ClientSecret) &&
         !string.IsNullOrEmpty(keyVaultSettings.SecretUri))
     {
-        logger.LogInformation("// Program.cs // SetConfigurationProviders // Attempting to configure KeyVault.");
+        logger.LogInformation("// Program.cs // SetConfigurationProviders // Attempting to configure KeyVault");
         AzureServiceTokenProvider azureServiceTokenProvider = new($"RunAs=App;AppId={keyVaultSettings.ClientId};TenantId={keyVaultSettings.TenantId};AppKey={keyVaultSettings.ClientSecret}");
         KeyVaultClient keyVaultClient = new(
             new KeyVaultClient.AuthenticationCallback(
@@ -126,7 +130,7 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
         }
     }
 
-    logger.LogInformation($"// Program.cs // SetConfigurationProviders // Configured providers.");
+    logger.LogInformation("// Program.cs // SetConfigurationProviders // Configured providers");
 }
 
 void ConfigureLogging(ILoggingBuilder builder)
@@ -168,12 +172,25 @@ void ConfigureLogging(ILoggingBuilder builder)
 
 void ConfigureServices(IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
 {
-    logger.LogInformation($"// Program.cs // ConfigureServices // Attempting to configure services.");
+    logger.LogInformation("// Program.cs // ConfigureServices // Attempting to configure services");
 
     services.Configure<KestrelServerOptions>(options =>
     {
         options.AllowSynchronousIO = true;
     });
+
+    services.ConfigureResourceRegistryIntegrationSettings(configuration.GetSection("ResourceRegistryIntegrationSettings"));
+    services.ConfigureMaskinportenIntegrationSettings(configuration.GetSection("MaskinportenClientSettings"));
+
+    services.Configure<MaskinportenClientSettings>(configuration.GetSection("MaskinportenClientSettings"));
+    var maskinPortenClientName = "MaskinportenClient";
+    services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(maskinPortenClientName, configuration.GetSection("MaskinportenClientSettings"));
+    services.AddHttpClient<IResourceRegistry, ResourceRegistryService>().AddMaskinportenHttpMessageHandler<MaskinPortenClientDefinition>(maskinPortenClientName);
+
+    var maskinportenSettings = new MaskinportenClientSettings();
+    configuration.GetSection("MaskinportenClientSettings").Bind(maskinportenSettings);
+
+    services.AddMaskinportenHttpClient<MaskinPortenClientDefinition>("MaskinportenHttpClient", maskinportenSettings);
 
     services.RegisterServiceImplementations(configuration);
 
@@ -233,12 +250,17 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     // Auto register all settings classes
     services.RegisterSettingsByBaseType<ISettingsMarker>(configuration);
-    logger.LogInformation($"// Program.cs // ConfigureServices // Configuration complete");
+
+    // Registers all handlers and the mediator
+    services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+    services.AddTransient<IFileSyncHandlerExecutor, FileSyncHandlerExecutor>();
+
+    logger.LogInformation("// Program.cs // ConfigureServices // Configuration complete");
 }
 
 void Configure(IConfiguration configuration)
 {
-    logger.LogInformation($"// Program.cs // Configure // Attempting to configure env.");
+    logger.LogInformation("// Program.cs // Configure // Attempting to configure env");
     if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
     {
         app.UseExceptionHandler("/error-local-development");
@@ -310,6 +332,7 @@ void Configure(IConfiguration configuration)
 
     app.MapHealthChecks("/health");
     app.MapHub<PreviewHub>("/previewHub");
+    app.MapHub<SyncHub>("/sync-hub");
 
     logger.LogInformation("// Program.cs // Configure // Configuration complete");
 }
@@ -324,7 +347,7 @@ void CreateDirectory(IConfiguration configuration)
                                                        configuration["ServiceRepositorySettings:RepositoryLocation"];
     if (string.IsNullOrWhiteSpace(repoLocation))
     {
-        repoLocation = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), "altinn", "repos");
+        repoLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "altinn", "repos");
         configuration.GetSection("ServiceRepositorySettings")["RepositoryLocation"] = repoLocation;
     }
 
@@ -343,3 +366,5 @@ static string GetXmlCommentsPathForControllers()
 
     return xmlPath;
 }
+
+public partial class Program { }

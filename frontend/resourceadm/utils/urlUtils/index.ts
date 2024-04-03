@@ -1,6 +1,6 @@
 export {
-  applicationAboutPage,
-  getRepoEditUrl,
   getResourcePageURL,
-  getResourceDashboardURL
+  getResourceDashboardURL,
+  getAccessListPageUrl,
+  getPartiesQueryUrl,
 } from './urlUtils';

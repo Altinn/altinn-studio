@@ -3,23 +3,25 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { useDispatch, useSelector } from 'react-redux';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { IInternalLayout } from '../../types/global';
-import { deepCopy } from 'app-shared/pure';
+import type { IInternalLayout } from '../../types/global';
+import { ObjectUtils } from '@studio/pure-functions';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
-import { ILayoutSettings } from 'app-shared/types/global';
+import type { ILayoutSettings } from 'app-shared/types/global';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { addOrRemoveNavigationButtons } from '../../utils/formLayoutsUtils';
-import { convertInternalToLayoutFormat } from '../../utils/formLayoutUtils';
-import { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
+import type { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 import { useAddLayoutMutation } from './useAddLayoutMutation';
 import { useText } from '../useText';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
+import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
 
 export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName: string) => {
   const { deleteFormLayout, saveFormLayout } = useServicesContext();
+
   const { data: formLayouts } = useFormLayoutsQuery(org, app, layoutSetName);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, layoutSetName);
+
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
   const addLayoutMutation = useAddLayoutMutation(org, app, layoutSetName);
   const selectedLayout = useSelector(selectedLayoutNameSelector);
@@ -28,25 +30,25 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
   const queryClient = useQueryClient();
 
   const saveLayout = async (updatedLayoutName: string, updatedLayout: IInternalLayout) => {
-    const convertedLayout: ExternalFormLayout = convertInternalToLayoutFormat(updatedLayout);
+    const convertedLayout: ExternalFormLayout = internalLayoutToExternal(updatedLayout);
     return await saveFormLayout(org, app, updatedLayoutName, layoutSetName, convertedLayout);
   };
 
   return useMutation({
     mutationFn: async (layoutName: string) => {
-      let layouts = deepCopy(formLayouts);
+      let layouts = ObjectUtils.deepCopy(formLayouts);
       delete layouts[layoutName];
       layouts = await addOrRemoveNavigationButtons(
         layouts,
         saveLayout,
         undefined,
-        formLayoutSettings.receiptLayoutName
+        formLayoutSettings.receiptLayoutName,
       );
       await deleteFormLayout(org, app, layoutName, layoutSetName);
       return { layoutName, layouts };
     },
     onSuccess: ({ layoutName, layouts }) => {
-      const layoutSettings: ILayoutSettings = deepCopy(formLayoutSettings);
+      const layoutSettings: ILayoutSettings = ObjectUtils.deepCopy(formLayoutSettings);
 
       const { order } = layoutSettings?.pages;
 

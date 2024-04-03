@@ -69,7 +69,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             if (Request.Headers["accept"] == "application/json")
             {
-                Dictionary<string, Dictionary<string, TextResourceElement>> resources = _repository.GetServiceTexts(org, app);
+                Dictionary<string, Dictionary<string, TextResourceElement>> resources = _repository.GetServiceTexts(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer));
                 return Json(resources);
             }
 
@@ -251,7 +251,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("language/{languageCode}")]
         public IActionResult DeleteLanguage(string org, string app, string languageCode)
         {
-            if (_repository.DeleteLanguage(org, app, languageCode))
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            if (_repository.DeleteLanguage(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), languageCode))
             {
                 return Ok($"Resources.{languageCode}.json was successfully deleted.");
             }

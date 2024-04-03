@@ -1,5 +1,5 @@
+using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Services.Models;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
 {
@@ -15,11 +15,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">Application</param>
         /// <param name="fullCommitId">The full commit SHA</param>
         /// <param name="envName">Environment name</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns></returns>
         Task UpdateApplicationAuthorizationPolicyAsync(
             string org,
             string app,
             string fullCommitId,
-            string envName);
+            string envName,
+            CancellationToken cancellationToken = default);
     }
 }

@@ -11,10 +11,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class DeleteFormLayoutTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.AppDevelopmentController, GetFormLayoutsTestsBase>
+    public class DeleteFormLayoutTests : DisagnerEndpointsTestsBase<DeleteFormLayoutTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
-        public DeleteFormLayoutTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.AppDevelopmentController> factory) : base(factory)
+        public DeleteFormLayoutTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -30,7 +30,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
-            using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             string relativePath = string.IsNullOrEmpty(layoutSetName)
@@ -52,7 +52,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
 
-            using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
     }

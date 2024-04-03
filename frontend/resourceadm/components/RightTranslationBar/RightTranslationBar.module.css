@@ -1,36 +1,34 @@
 .wrapper {
   background-color: var(--fds-semantic-background-subtle);
-  min-height: 100vh;
+  position: sticky;
+  height: 100vh;
+  top: 0;
+  right: 0;
+  border: 1px solid var(--fds-semantic-border-divider-default);
+  border-top: none;
+  padding: var(--fds-spacing-5);
+}
+
+.rightWrapper {
   height: 100%;
   right: 0;
-  border: 1px solid var(--fds-semantic-border-neutral-divider);
-  border-top: none;
+  top: 0;
+  position: absolute;
+  width: 35%;
 }
 
 .topWrapper {
   display: flex;
   align-items: center;
-  padding: 20px;
-  padding-bottom: 0;
-}
-
-.topText {
-  margin-left: 10px;
+  gap: var(--fds-spacing-2);
+  margin-bottom: var(--fds-spacing-2);
 }
 
 .icon {
+  font-size: 1.5rem;
   color: var(--fds-semantic-text-neutral-default);
 }
 
 .inputWrapper {
-  margin-block: 30px;
-}
-
-.bodyWrapper {
-  padding-inline: 20px;
-  margin-top: 20px;
-}
-
-.alert {
-  margin-left: 8px;
+  margin-block: var(--fds-spacing-7);
 }

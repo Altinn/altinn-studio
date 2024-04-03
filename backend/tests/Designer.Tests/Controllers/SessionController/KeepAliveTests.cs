@@ -11,10 +11,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.SessionController
 {
-    public class KeepAliveTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.SessionController, KeepAliveTests>
+    public class KeepAliveTests : DisagnerEndpointsTestsBase<KeepAliveTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix => "/designer/api/session";
-        public KeepAliveTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.SessionController> factory) : base(factory)
+        public KeepAliveTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -27,7 +27,7 @@ namespace Designer.Tests.Controllers.SessionController
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             // Act
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

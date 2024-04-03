@@ -6,15 +6,19 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
-using JetBrains.Annotations;
+using Altinn.Studio.Designer.Models.App;
+using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 using JsonSerializer = System.Text.Json.JsonSerializer;
+using LayoutSets = Altinn.Studio.Designer.Models.LayoutSets;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 {
@@ -30,9 +34,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string CONFIG_FOLDER_PATH = "App/config/";
         private const string OPTIONS_FOLDER_PATH = "App/options/";
         private const string LAYOUTS_FOLDER_NAME = "App/ui/";
+        private const string IMAGES_FOLDER_NAME = "App/wwwroot/";
         private const string LAYOUTS_IN_SET_FOLDER_NAME = "layouts/";
         private const string LANGUAGE_RESOURCE_FOLDER_NAME = "texts/";
         private const string MARKDOWN_TEXTS_FOLDER_NAME = "md/";
+        private const string PROCESS_DEFINITION_FOLDER_PATH = "App/config/process/";
+        private const string CSHTML_PATH = "App/views/Home/Index.cshtml";
 
         private const string SERVICE_CONFIG_FILENAME = "config.json";
         private const string LAYOUT_SETTINGS_FILENAME = "Settings.json";
@@ -40,8 +47,21 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string LAYOUT_SETS_FILENAME = "layout-sets.json";
         private const string RULE_HANDLER_FILENAME = "RuleHandler.js";
         private const string RULE_CONFIGURATION_FILENAME = "RuleConfiguration.json";
+        private const string PROCESS_DEFINITION_FILENAME = "process.bpmn";
 
-        private const string _layoutSettingsSchemaUrl = "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
+        private static string ProcessDefinitionFilePath => Path.Combine(PROCESS_DEFINITION_FOLDER_PATH, PROCESS_DEFINITION_FILENAME);
+
+        private const string LayoutSettingsSchemaUrl = "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
+
+        private const string LayoutSchemaUrl = "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json";
+
+        private const string TextResourceFileNamePattern = "resource.??.json";
+
+        public static string InitialLayoutFileName = "Side1.json";
+
+        public JsonNode InitialLayout = new JsonObject { ["$schema"] = LayoutSchemaUrl, ["data"] = new JsonObject { ["layout"] = new JsonArray([]) } };
+
+        public JsonNode InitialLayoutSettings = new JsonObject { ["$schema"] = LayoutSettingsSchemaUrl, ["pages"] = new JsonObject { ["order"] = new JsonArray([InitialLayoutFileName.Replace(".json", "")]) } };
 
         private static readonly JsonSerializerOptions _jsonOptions = new()
         {
@@ -67,11 +87,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <summary>
         /// Gets the application metadata.
         /// </summary>
-        public async Task<Application> GetApplicationMetadata()
+        public async Task<ApplicationMetadata> GetApplicationMetadata(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             string appMetadataRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
-            string fileContent = await ReadTextByRelativePathAsync(appMetadataRelativeFilePath);
-            Application applicationMetaData = JsonSerializer.Deserialize<Application>(fileContent, _jsonOptions);
+            string fileContent = await ReadTextByRelativePathAsync(appMetadataRelativeFilePath, cancellationToken);
+            ApplicationMetadata applicationMetaData = JsonSerializer.Deserialize<ApplicationMetadata>(fileContent, _jsonOptions);
 
             return applicationMetaData;
         }
@@ -86,7 +107,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// Saves the application metadata file to disk.
         /// </summary>
         /// <param name="applicationMetadata">The updated application metadata to persist.</param>
-        public async Task SaveApplicationMetadata(Application applicationMetadata)
+        public async Task SaveApplicationMetadata(ApplicationMetadata applicationMetadata)
         {
             string metadataAsJson = JsonSerializer.Serialize(applicationMetadata, _jsonOptions);
             string appMetadataRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
@@ -120,17 +141,18 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Get the Json Schema file representing the application model to disk.
+        /// Gets the model metadata content based on model name. If no model metadata found for the model name an empty model metadata is returned.
         /// </summary>
-        /// <param name="modelName">The name of the model without extensions. This will be used as filename.</param>
-        /// <returns>A string containing content of the json schema.</returns>
-        [Obsolete("Generic method GetJsonSchema is deprecated. Use a dedicated one instead.")]
-        public async Task<string> GetJsonSchema(string modelName)
+        /// <param name="modelName">The model metadata as string</param>
+        public async Task<string> GetModelMetadata(string modelName)
         {
-            string relativeFilePath = GetRelativeModelFilePath(modelName);
-            string jsonSchemaContent = await ReadTextByRelativePathAsync(relativeFilePath);
-
-            return jsonSchemaContent;
+            string modelMetadataFileName = GetPathToModelMetadata(modelName);
+            if (!FileExistsByRelativePath(modelMetadataFileName))
+            {
+                ModelMetadata emptyModel = JsonSerializer.Deserialize<ModelMetadata>("{}");
+                return JsonSerializer.Serialize(emptyModel);
+            }
+            return await ReadTextByRelativePathAsync(modelMetadataFileName);
         }
 
         /// <summary>
@@ -141,7 +163,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="modelName">The name of the model. </param>
         public async Task SaveModelMetadata(string modelMetadata, string modelName)
         {
-            string modelMetadataRelativeFilePath = Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.metadata.json");
+            string modelMetadataRelativeFilePath = GetPathToModelMetadata(modelName);
             await WriteTextByRelativePathAsync(modelMetadataRelativeFilePath, modelMetadata, true);
         }
 
@@ -152,8 +174,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="modelName">The name of the model, will be used as filename.</param>
         public async Task SaveCSharpClasses(string csharpClasses, string modelName)
         {
-            string modelMetadataRelativeFilePath = Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.cs");
-            await WriteTextByRelativePathAsync(modelMetadataRelativeFilePath, csharpClasses, true);
+            string csharpModelRelativeFilePath = Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.cs");
+            await WriteTextByRelativePathAsync(csharpModelRelativeFilePath, csharpClasses, true);
         }
 
         /// <summary>
@@ -164,7 +186,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <returns>A string containing the relative path to the file saved.</returns>
         public override async Task<string> SaveJsonSchema(string jsonSchema, string modelName)
         {
-            string relativeFilePath = GetRelativeModelFilePath(modelName);
+            string relativeFilePath = GetPathToModelJsonSchema(modelName);
             await WriteTextByRelativePathAsync(relativeFilePath, jsonSchema, true);
 
             return relativeFilePath;
@@ -218,12 +240,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 Directory.CreateDirectory(pathToTexts);
             }
 
-            string[] directoryFiles = GetFilesByRelativeDirectory(pathToTexts);
+            string[] directoryFiles = GetFilesByRelativeDirectory(pathToTexts, TextResourceFileNamePattern);
             foreach (string directoryFile in directoryFiles)
             {
                 string fileName = Path.GetFileName(directoryFile);
                 string[] nameParts = fileName.Split('.');
-                languages.Add(nameParts[1]);
+                string languageCode = nameParts[1];
+                languages.Add(languageCode);
                 languages.Sort(StringComparer.Ordinal);
             }
 
@@ -237,20 +260,21 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <remarks>
         /// Format of the dictionary is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
         /// </remarks>
-        public async Task<Designer.Models.TextResource> GetTextV1(string language)
+        public async Task<TextResource> GetTextV1(string language, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             string resourcePath = GetPathToJsonTextsFile($"resource.{language}.json");
             if (!FileExistsByRelativePath(resourcePath))
             {
                 throw new NotFoundException("Text resource file not found.");
             }
-            string fileContent = await ReadTextByRelativePathAsync(resourcePath);
-            Designer.Models.TextResource textResource = JsonSerializer.Deserialize<Designer.Models.TextResource>(fileContent, _jsonOptions);
+            string fileContent = await ReadTextByRelativePathAsync(resourcePath, cancellationToken);
+            TextResource textResource = JsonSerializer.Deserialize<TextResource>(fileContent, _jsonOptions);
 
             return textResource;
         }
 
-        public async Task SaveTextV1(string languageCode, Designer.Models.TextResource jsonTexts)
+        public async Task SaveTextV1(string languageCode, TextResource jsonTexts)
         {
             string fileName = $"resource.{languageCode}.json";
             string textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
@@ -334,14 +358,16 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// Returns all the layouts for a specific layoutset
         /// </summary>
         /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>A list of all layouts for a layoutset</returns>
-        public async Task<Dictionary<string, JsonNode>> GetFormLayouts(string layoutSetName)
+        public async Task<Dictionary<string, JsonNode>> GetFormLayouts(string layoutSetName, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             Dictionary<string, JsonNode> formLayouts = new();
             string[] layoutNames = GetLayoutNames(layoutSetName);
             foreach (string layoutName in layoutNames)
             {
-                JsonNode layout = await GetLayout(layoutSetName, layoutName);
+                JsonNode layout = await GetLayout(layoutSetName, layoutName, cancellationToken);
                 formLayouts[layoutName.Replace(".json", "")] = layout;
             }
 
@@ -353,11 +379,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
         /// <param name="layoutName">The name of layoutfile</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The layout</returns>
-        public async Task<JsonNode> GetLayout(string layoutSetName, string layoutName)
+        public async Task<JsonNode> GetLayout(string layoutSetName, string layoutName, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutName);
-            string fileContent = await ReadTextByRelativePathAsync(layoutFilePath);
+            string fileContent = await ReadTextByRelativePathAsync(layoutFilePath, cancellationToken);
             return JsonNode.Parse(fileContent);
         }
 
@@ -391,40 +419,25 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Configure the initial layout set by moving layoutsfolder to new dest: App/ui/{layoutSetName}/layouts
+        /// Change name of layout set folder by moving the content to a new folder
         /// </summary>
-        public void MoveLayoutsToInitialLayoutSet(string layoutSetName)
+        public void ChangeLayoutSetFolderName(string oldLayoutSetName, string newLayoutSetName, CancellationToken cancellationToken)
         {
-            string destRelativePath = GetPathToLayoutSet(layoutSetName);
-            if (DirectoryExistsByRelativePath(destRelativePath))
+            cancellationToken.ThrowIfCancellationRequested();
+            if (DirectoryExistsByRelativePath(GetPathToLayoutSet(newLayoutSetName)))
             {
-                throw new BadHttpRequestException("Layout sets are already configured");
+                throw new BadHttpRequestException("Suggested new layout set name already exist");
             }
-            string destAbsolutePath = GetAbsoluteFileOrDirectoryPathSanitized(destRelativePath);
+            string destAbsolutePath = GetAbsoluteFileOrDirectoryPathSanitized(GetPathToLayoutSet(newLayoutSetName, true));
 
-            string sourceRelativePath = GetPathToLayoutSet(null);
+            string sourceRelativePath = GetPathToLayoutSet(oldLayoutSetName, true);
             if (!DirectoryExistsByRelativePath(sourceRelativePath))
             {
-                throw new NotFoundException("Layouts folder doesn't exist");
+                throw new NotFoundException("Layout set you are trying to change doesn't exist");
             }
 
             string sourceAbsolutePath = GetAbsoluteFileOrDirectoryPathSanitized(sourceRelativePath);
-            string layoutSetToCreatePath = destAbsolutePath.Remove(destAbsolutePath.IndexOf(LAYOUTS_IN_SET_FOLDER_NAME, StringComparison.Ordinal));
-            Directory.CreateDirectory(layoutSetToCreatePath);
             Directory.Move(sourceAbsolutePath, destAbsolutePath);
-        }
-
-        public void MoveOtherUiFilesToLayoutSet(string layoutSetName)
-        {
-            string sourceLayoutSettingsPath = GetPathToLayoutSettings(null);
-            string destLayoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
-            MoveFileByRelativePath(sourceLayoutSettingsPath, destLayoutSettingsPath, LAYOUT_SETTINGS_FILENAME);
-            string sourceRuleHandlerPath = GetPathToRuleHandler(null);
-            string destRuleHandlerPath = GetPathToRuleHandler(layoutSetName);
-            MoveFileByRelativePath(sourceRuleHandlerPath, destRuleHandlerPath, RULE_HANDLER_FILENAME);
-            string sourceRuleConfigPath = GetPathToRuleConfiguration(null);
-            string destRuleConfigPath = GetPathToRuleConfiguration(layoutSetName);
-            MoveFileByRelativePath(sourceRuleConfigPath, destRuleConfigPath, RULE_CONFIGURATION_FILENAME);
         }
 
         /// <summary>
@@ -445,7 +458,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
         /// <returns>An array with the name of all layout files under the specific layoutset</returns>
-        public string[] GetLayoutNames([CanBeNull] string layoutSetName)
+        public string[] GetLayoutNames(string layoutSetName)
         {
             string layoutSetPath = GetPathToLayoutSet(layoutSetName);
             if (!DirectoryExistsByRelativePath(layoutSetPath) && AppUsesLayoutSets())
@@ -468,10 +481,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// Gets the Settings.json for a specific layoutset
         /// </summary>
         /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The content of Settings.json</returns>
-        public async Task<JsonNode> GetLayoutSettingsAndCreateNewIfNotFound(string layoutSetName)
+        public async Task<JsonNode> GetLayoutSettingsAndCreateNewIfNotFound(string layoutSetName, CancellationToken cancellationToken = default)
         {
             string layoutSettingsPath = GetPathToLayoutSettings(layoutSetName);
+            cancellationToken.ThrowIfCancellationRequested();
             if (!FileExistsByRelativePath(layoutSettingsPath))
             {
                 await CreateLayoutSettings(layoutSetName);
@@ -490,15 +505,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 Directory.CreateDirectory(layoutSetPath);
             }
             string[] layoutNames = MakePageOrder(GetLayoutNames(layoutSetName));
-
-            string defaultSettings = $@"{{
-            ""schema"": ""{_layoutSettingsSchemaUrl}"",
-            ""pages"": {{
-                ""order"": {JsonSerializer.Serialize(layoutNames)}
-                }}
-            }}";
-
-            var layoutSettings = JsonNode.Parse(defaultSettings);
+            JsonNode layoutSettings = InitialLayoutSettings;
+            JsonArray layoutNamesArray = new JsonArray();
+            foreach (string name in layoutNames)
+            {
+                layoutNamesArray.Add(name);
+            }
+            layoutSettings["pages"]["order"] = layoutNamesArray;
             await SaveLayoutSettings(layoutSetName, layoutSettings);
         }
 
@@ -533,11 +546,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
         /// <param name="layoutFileName">The name of layout file</param>
         /// <param name="layout">The actual layout that is saved</param>
-        public async Task SaveLayout([CanBeNull] string layoutSetName, string layoutFileName, JsonNode layout)
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        public async Task SaveLayout(string layoutSetName, string layoutFileName, JsonNode layout, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutFileName);
             string serializedLayout = layout.ToJsonString(_jsonOptions);
-            await WriteTextByRelativePathAsync(layoutFilePath, serializedLayout, true);
+            await WriteTextByRelativePathAsync(layoutFilePath, serializedLayout, true, cancellationToken);
         }
 
         public void UpdateFormLayoutName(string layoutSetName, string layoutFileName, string newFileName)
@@ -555,11 +570,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             File.Move(GetAbsoluteFileOrDirectoryPathSanitized(currentFilePath), GetAbsoluteFileOrDirectoryPathSanitized(newFilePath));
         }
 
-        public async Task<LayoutSets> GetLayoutSetsFile()
+        public async Task<LayoutSets> GetLayoutSetsFile(CancellationToken cancellationToken = default)
         {
             if (AppUsesLayoutSets())
             {
                 string layoutSetsFilePath = GetPathToLayoutSetsFile();
+                cancellationToken.ThrowIfCancellationRequested();
                 string fileContent = await ReadTextByRelativePathAsync(layoutSetsFilePath);
                 LayoutSets layoutSetsFile = JsonSerializer.Deserialize<LayoutSets>(fileContent, _jsonOptions);
                 return layoutSetsFile;
@@ -576,8 +592,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 string layoutSetsString = JsonSerializer.Serialize(layoutSets, _jsonOptions);
                 await WriteTextByRelativePathAsync(layoutSetsFilePath, layoutSetsString);
             }
-
-            throw new NotFoundException("No layout set was found for this app");
+            else
+            {
+                throw new NotFoundException("No layout set was found for this app");
+            }
         }
 
         /// <summary>
@@ -596,13 +614,15 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// Gets the RuleHandler.js for a specific layoutset
         /// </summary>
         /// <param name="layoutSetName">The name of the layoutset where the layout belong</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The content of Settings.json</returns>
-        public async Task<string> GetRuleHandler(string layoutSetName)
+        public async Task<string> GetRuleHandler(string layoutSetName, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             string ruleHandlerPath = GetPathToRuleHandler(layoutSetName);
             if (FileExistsByRelativePath(ruleHandlerPath))
             {
-                string ruleHandler = await ReadTextByRelativePathAsync(ruleHandlerPath);
+                string ruleHandler = await ReadTextByRelativePathAsync(ruleHandlerPath, cancellationToken);
                 return ruleHandler;
             }
 
@@ -614,76 +634,78 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="layoutSetName">The name of the layout set where the layout belong</param>
         /// <param name="ruleConfiguration">The ruleConfiguration to be saved</param>
-        public async Task SaveRuleConfiguration(string layoutSetName, JsonNode ruleConfiguration)
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        public async Task SaveRuleConfiguration(string layoutSetName, JsonNode ruleConfiguration, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             string ruleConfigurationPath = GetPathToRuleConfiguration(layoutSetName);
             string serializedRuleConfiguration = ruleConfiguration.ToJsonString(_jsonOptions);
-            await WriteTextByRelativePathAsync(ruleConfigurationPath, serializedRuleConfiguration);
+            await WriteTextByRelativePathAsync(ruleConfigurationPath, serializedRuleConfiguration, cancellationToken: cancellationToken);
         }
 
         /// <summary>
         /// Gets the RuleConfiguration.json for a specific layout set
         /// </summary>
         /// <param name="layoutSetName">The name of the layout set where the layout belong</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The content of RuleConfiguration.json</returns>
-        public async Task<string> GetRuleConfigAndAddDataToRootIfNotAlreadyPresent(string layoutSetName)
+        public async Task<string> GetRuleConfigAndAddDataToRootIfNotAlreadyPresent(string layoutSetName, CancellationToken cancellationToken = default)
         {
             string ruleConfigurationPath = GetPathToRuleConfiguration(layoutSetName);
             if (FileExistsByRelativePath(ruleConfigurationPath))
             {
-                string ruleConfiguration = await ReadTextByRelativePathAsync(ruleConfigurationPath);
-                string fixedRuleConfig = await AddDataToRootOfRuleConfigIfNotPresent(layoutSetName, ruleConfiguration);
+                string ruleConfiguration = await ReadTextByRelativePathAsync(ruleConfigurationPath, cancellationToken);
+                string fixedRuleConfig = await AddDataToRootOfRuleConfigIfNotPresent(layoutSetName, ruleConfiguration, cancellationToken);
                 return fixedRuleConfig;
             }
             throw new FileNotFoundException("Rule configuration not found.");
         }
 
-        private async Task<string> AddDataToRootOfRuleConfigIfNotPresent(string layoutSetName, string ruleConfigData)
+        private async Task<string> AddDataToRootOfRuleConfigIfNotPresent(string layoutSetName, string ruleConfigData, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             JsonNode ruleConfig = JsonNode.Parse(ruleConfigData);
             if (ruleConfig?["data"] == null)
             {
                 JsonNode fixedRuleConfig = JsonNode.Parse("{\"data\":\"\"}");
                 fixedRuleConfig["data"] = ruleConfig;
-                await SaveRuleConfiguration(layoutSetName, fixedRuleConfig);
+                await SaveRuleConfiguration(layoutSetName, fixedRuleConfig, cancellationToken);
                 return JsonSerializer.Serialize(fixedRuleConfig);
             }
             return ruleConfigData;
         }
 
-        public async Task<LayoutSets> CreateLayoutSetFile(string layoutSetName)
+        /// <summary>
+        /// Gets the cshtml file for the app
+        /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>The content of Index.cshtml</returns>
+        public async Task<string> GetAppFrontendCshtml(CancellationToken cancellationToken = default)
         {
-            LayoutSets layoutSets = new()
+            cancellationToken.ThrowIfCancellationRequested();
+            if (FileExistsByRelativePath(CSHTML_PATH))
             {
-                Sets = new List<LayoutSetConfig>
-                {
-                    new()
-                    {
-                        Id = layoutSetName,
-                        DataType = null, // TODO: Add name of datamodel - but what if it does not exist?
-                        Tasks = new List<string> { "Task_1" }
-                    }
-                }
-            };
-            string layoutSetsString = JsonSerializer.Serialize(layoutSets, _jsonOptions);
-            string pathToLayOutSets = Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUT_SETS_FILENAME);
-            await WriteTextByRelativePathAsync(pathToLayOutSets, layoutSetsString);
-            return layoutSets;
+                string cshtml = await ReadTextByRelativePathAsync(CSHTML_PATH, cancellationToken);
+                return cshtml;
+            }
+
+            throw new FileNotFoundException("Index.cshtml was not found.");
         }
 
         /// <summary>
         /// Gets the options list with the provided id.
         /// <param name="optionsListId">The id of the options list to fetch.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The options list as a string.</returns>
         /// </summary>
-        public async Task<string> GetOptions(string optionsListId)
+        public async Task<string> GetOptions(string optionsListId, CancellationToken cancellationToken = default)
         {
             string optionsFilePath = Path.Combine(OPTIONS_FOLDER_PATH, $"{optionsListId}.json");
             if (!FileExistsByRelativePath(optionsFilePath))
             {
                 throw new NotFoundException("Options file not found.");
             }
-            string fileContent = await ReadTextByRelativePathAsync(optionsFilePath);
+            string fileContent = await ReadTextByRelativePathAsync(optionsFilePath, cancellationToken);
 
             return fileContent;
         }
@@ -710,13 +732,58 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Gets the relative path to a model.
+        /// Saves the processdefinition file on disk.
+        /// </summary>
+        /// <param name="file">Stream of the file to be saved.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        public async Task SaveProcessDefinitionFileAsync(Stream file, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (file.Length > 1000_000)
+            {
+                throw new ArgumentException("Bpmn file is too large");
+            }
+            await Guard.AssertValidXmlStreamAndRewindAsync(file);
+
+            await WriteStreamByRelativePathAsync(ProcessDefinitionFilePath, file, true, cancellationToken);
+        }
+
+        public Stream GetProcessDefinitionFile()
+        {
+            if (!FileExistsByRelativePath(ProcessDefinitionFilePath))
+            {
+                throw new NotFoundHttpRequestException("Bpmn file not found.");
+            }
+
+            return OpenStreamByRelativePath(ProcessDefinitionFilePath);
+        }
+
+        /// <summary>
+        /// Gets specified image from App/wwwroot folder of local repo
+        /// </summary>
+        /// <param name="imageFilePath">The file path of the image</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>The image as stream</returns>
+        public Stream GetImage(string imageFilePath, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            string imagePath = GetPathToImage(imageFilePath);
+            return OpenStreamByRelativePath(imagePath);
+        }
+
+        /// <summary>
+        /// Gets the relative path to a json schema model.
         /// </summary>
         /// <param name="modelName">The name of the model without extensions.</param>
         /// <returns>A string with the relative path to the model file, including file extension. </returns>
-        private string GetRelativeModelFilePath(string modelName)
+        private string GetPathToModelJsonSchema(string modelName)
         {
             return Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.schema.json");
+        }
+
+        private string GetPathToModelMetadata(string modelName)
+        {
+            return Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.metadata.json");
         }
 
         private static string GetPathToTexts()
@@ -724,7 +791,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME);
         }
 
-        private static string GetPathToJsonTextsFile([CanBeNull] string fileName)
+        private static string GetPathToImage(string imageFilePath)
+        {
+            return Path.Combine(IMAGES_FOLDER_NAME, imageFilePath);
+        }
+
+        private static string GetPathToJsonTextsFile(string fileName)
         {
             return fileName.IsNullOrEmpty() ?
                 Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME) :
@@ -737,15 +809,16 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         // can be null if app does not use layoutset
-        private static string GetPathToLayoutSet([CanBeNull] string layoutSetName)
+        private static string GetPathToLayoutSet(string layoutSetName, bool excludeLayoutsFolderName = false)
         {
+            var layoutFolderName = excludeLayoutsFolderName ? string.Empty : LAYOUTS_IN_SET_FOLDER_NAME;
             return layoutSetName.IsNullOrEmpty() ?
-                Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUTS_IN_SET_FOLDER_NAME) :
-                Path.Combine(LAYOUTS_FOLDER_NAME, layoutSetName, LAYOUTS_IN_SET_FOLDER_NAME);
+                Path.Combine(LAYOUTS_FOLDER_NAME, layoutFolderName) :
+                Path.Combine(LAYOUTS_FOLDER_NAME, layoutSetName, layoutFolderName);
         }
 
         // can be null if app does not use layoutset
-        private static string GetPathToLayoutFile([CanBeNull] string layoutSetName, string fileName)
+        private static string GetPathToLayoutFile(string layoutSetName, string fileName)
         {
             return layoutSetName.IsNullOrEmpty() ?
                 Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUTS_IN_SET_FOLDER_NAME, fileName) :
@@ -753,7 +826,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         // can be null if app does not use layoutset
-        private static string GetPathToLayoutSettings([CanBeNull] string layoutSetName)
+        private static string GetPathToLayoutSettings(string layoutSetName)
         {
             return layoutSetName.IsNullOrEmpty() ?
                 Path.Combine(LAYOUTS_FOLDER_NAME, LAYOUT_SETTINGS_FILENAME) :

@@ -1,18 +1,27 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import classes from './appDeploymentComponent.module.css';
-import { AltinnIcon, AltinnLink, AltinnSpinner } from 'app-shared/components';
+import { StudioSpinner } from '@studio/components';
 import { DeployDropdown } from './deploy/DeployDropdown';
-import { Panel, PanelVariant } from '@altinn/altinn-design-system';
-import { Table, TableRow, TableHeader, TableCell, TableBody } from '@digdir/design-system-react';
+import {
+  Alert,
+  LegacyTable,
+  LegacyTableBody,
+  LegacyTableCell,
+  LegacyTableHeader,
+  LegacyTableRow,
+  Link,
+} from '@digdir/design-system-react';
 import { formatDateTime } from 'app-shared/pure/date-format';
 import { useCreateDeploymentMutation } from '../../../hooks/mutations';
-import { useParams } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
+import { InformationSquareFillIcon } from '@navikt/aksel-icons';
 
 import type {
   ICreateAppDeploymentErrors,
   IDeployment,
 } from '../../../sharedResources/appDeployment/types';
+import { toast } from 'react-toastify';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export type ImageOption = {
   value: string;
@@ -53,8 +62,8 @@ export const AppDeploymentComponent = ({
   const [selectedImageTag, setSelectedImageTag] = useState(null);
   const { t } = useTranslation();
 
-  const { org, app } = useParams();
-  const mutation = useCreateDeploymentMutation(org, app);
+  const { org, app } = useStudioUrlParams();
+  const mutation = useCreateDeploymentMutation(org, app, { hideDefaultError: true });
   const startDeploy = () =>
     mutation.mutate({
       tagName: selectedImageTag,
@@ -66,15 +75,17 @@ export const AppDeploymentComponent = ({
       deployHistory.filter(
         (deployment: IDeployment) =>
           deployment.build.result === DeploymentStatus.succeeded &&
-          deployment.build.finished !== null
+          deployment.build.finished !== null,
       ),
-    [deployHistory]
+    [deployHistory],
   );
   const latestDeploy = deployHistory ? deployHistory[0] : null;
   const deploymentInEnv = deployHistory ? deployHistory.find((d) => d.deployedInEnv) : false;
   const { deployInProgress, deploymentStatus } = useMemo(() => {
-    if (latestDeploy && latestDeploy.build.finished === null) {
+    if (latestDeploy && latestDeploy.build.finished === null && !latestDeploy.deployedInEnv) {
       return { deployInProgress: true, deploymentStatus: DeploymentStatus.inProgress };
+    } else if (latestDeploy && latestDeploy.build.finished === null && latestDeploy.deployedInEnv) {
+      return { deployInProgress: false, deploymentStatus: DeploymentStatus.succeeded };
     } else if (latestDeploy && latestDeploy.build.finished && latestDeploy.build.result) {
       return { deployInProgress: false, deploymentStatus: latestDeploy.build.result };
     } else {
@@ -87,6 +98,43 @@ export const AppDeploymentComponent = ({
   const deployedVersionNotReachable =
     latestDeploy && !appDeployedAndReachable && deploymentStatus === DeploymentStatus.succeeded;
   const noAppDeployed = !latestDeploy || deployInProgress;
+  const deployStatusUnavailable =
+    latestDeploy &&
+    latestDeploy.deployedInEnv &&
+    latestDeploy.build.result === DeploymentStatus.failed;
+
+  useEffect(() => {
+    if (deployPermission && latestDeploy && deployedVersionNotReachable) {
+      toast.error(() => (
+        <Trans i18nKey='app_deploy_messages.unable_to_list_deploys'>
+          <Link inverted href='mailto:tjenesteeier@altinn.no'>
+            tjenesteeier@altinn.no
+          </Link>
+        </Trans>
+      ));
+    }
+  }, [deployPermission, latestDeploy, deployedVersionNotReachable]);
+
+  useEffect(() => {
+    if (!deployPermission) return;
+    if (mutation.isError) {
+      toast.error(() => (
+        <Trans i18nKey='app_deploy_messages.technical_error_1'>
+          <Link inverted href='mailto:tjenesteeier@altinn.no'>
+            tjenesteeier@altinn.no
+          </Link>
+        </Trans>
+      ));
+    } else if (deployFailed) {
+      toast.error(() =>
+        t('app_deploy_messages.failed', {
+          envName: latestDeploy.envName,
+          tagName: latestDeploy.tagName,
+          time: latestDeploy.build.started,
+        }),
+      );
+    }
+  }, [deployPermission, deployFailed, t, latestDeploy, mutation.isError]);
 
   return (
     <div className={classes.mainContainer}>
@@ -102,12 +150,9 @@ export const AppDeploymentComponent = ({
         </div>
         <div className={classes.gridItem}>
           {showLinkToApp && (
-            <AltinnLink
-              url={urlToApp}
-              linkTxt={urlToAppLinkTxt}
-              shouldShowIcon={false}
-              openInNewTab={true}
-            />
+            <Link href={urlToApp} target='_blank' rel='noopener noreferrer'>
+              {urlToAppLinkTxt}
+            </Link>
           )}
         </div>
       </div>
@@ -116,7 +161,7 @@ export const AppDeploymentComponent = ({
           {!deployPermission && (
             <div className={classes.deployStatusGridContainer}>
               <div className={classes.deploySpinnerGridItem}>
-                <AltinnIcon iconClass='fa fa-info-circle' iconColor='#000' iconSize='3.6rem' />
+                <InformationSquareFillIcon />
               </div>
               <div>{t('app_publish.missing_rights', { envName, orgName })}</div>
             </div>
@@ -135,64 +180,70 @@ export const AppDeploymentComponent = ({
             />
           )}
           {deployInProgress && (
-            <AltinnSpinner spinnerText={t('app_publish.deployment_in_progress') + '...'} />
-          )}
-          {deployPermission && latestDeploy && deployedVersionNotReachable && (
-            <Panel variant={PanelVariant.Error}>
-              <Trans i18nKey={'app_deploy_messages.unable_to_list_deploys'}>
-                <a href='mailto:tjenesteeier@altinn.no' />
-              </Trans>
-            </Panel>
-          )}
-          {deployPermission && (deployFailed || mutation.isError) && (
-            <Panel variant={PanelVariant.Error}>
-              <Trans i18nKey={'app_deploy_messages.technical_error_1'}>
-                <a href='mailto:tjenesteeier@altinn.no' />
-              </Trans>
-            </Panel>
+            <StudioSpinner
+              spinnerTitle={t('app_publish.deployment_in_progress') + '...'}
+              showSpinnerTitle
+            />
           )}
         </div>
         <div className={classes.deploymentListGrid}>
           {succeededDeployHistory.length === 0 ? (
-            <span id={`deploy-history-for-${envName.toLowerCase()}-unavailable`}>
-              {t('app_deploy_table.deployed_version_history_empty', { envName })}
-            </span>
+            deployStatusUnavailable ? (
+              <Alert severity='warning'>
+                {t('app_publish.deployment_in_env.status_missing', {
+                  envName: latestDeploy.envName,
+                  tagName: latestDeploy.tagName,
+                })}
+              </Alert>
+            ) : (
+              <span id={`deploy-history-for-${envName.toLowerCase()}-unavailable`}>
+                {t('app_deploy_table.deployed_version_history_empty', { envName })}
+              </span>
+            )
           ) : (
             <>
               <div id={`deploy-history-for-${envName.toLowerCase()}-available`}>
                 {t('app_deploy_table.deployed_version_history', { envName })}
               </div>
               <div className={classes.tableWrapper} id={`deploy-history-table-${envName}`}>
-                <Table
+                {deployStatusUnavailable && (
+                  <Alert severity='warning'>
+                    {t('app_publish.deployment_in_env.status_missing', {
+                      envName: latestDeploy.envName,
+                      tagName: latestDeploy.tagName,
+                    })}
+                  </Alert>
+                )}
+                <LegacyTable
                   className={classes.table}
                   aria-label={t('app_deploy_table.deploy_table_aria', { envName })}
                 >
-                  <TableHeader>
-                    <TableRow className={classes.tableRow}>
-                      <TableCell className={classes.colorBlack}>
+                  <LegacyTableHeader>
+                    <LegacyTableRow className={classes.tableRow}>
+                      <LegacyTableCell className={classes.colorBlack}>
                         {t('app_deploy_table.version_col')}
-                      </TableCell>
-                      <TableCell className={classes.colorBlack}>
+                      </LegacyTableCell>
+                      <LegacyTableCell className={classes.colorBlack}>
                         {t('app_deploy_table.available_version_col')}
-                      </TableCell>
-                      <TableCell className={classes.colorBlack}>
+                      </LegacyTableCell>
+                      <LegacyTableCell className={classes.colorBlack}>
                         {t('app_deploy_table.deployed_by_col')}
-                      </TableCell>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+                      </LegacyTableCell>
+                    </LegacyTableRow>
+                  </LegacyTableHeader>
+                  <LegacyTableBody>
                     {succeededDeployHistory.map((deploy: IDeployment) => (
-                      <TableRow
+                      <LegacyTableRow
                         key={`${deploy.tagName}-${deploy.created}`}
                         className={classes.tableRow}
                       >
-                        <TableCell>{deploy.tagName}</TableCell>
-                        <TableCell>{formatDateTime(deploy.build.finished)}</TableCell>
-                        <TableCell>{deploy.createdBy}</TableCell>
-                      </TableRow>
+                        <LegacyTableCell>{deploy.tagName}</LegacyTableCell>
+                        <LegacyTableCell>{formatDateTime(deploy.build.finished)}</LegacyTableCell>
+                        <LegacyTableCell>{deploy.createdBy}</LegacyTableCell>
+                      </LegacyTableRow>
                     ))}
-                  </TableBody>
-                </Table>
+                  </LegacyTableBody>
+                </LegacyTable>
               </div>
             </>
           )}

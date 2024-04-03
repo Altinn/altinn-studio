@@ -1,22 +1,16 @@
-import type { IAppDataState } from '../features/appData/appDataReducers';
-import type { IErrorState } from '../features/error/errorSlice';
 import type { IFormDesignerState } from '../features/formDesigner/formDesignerReducer';
-import { ComponentType } from 'app-shared/types/ComponentType';
-import { ITextResource, ITextResources } from 'app-shared/types/global';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { FormComponent } from './FormComponent';
-import { FormContainer } from './FormContainer';
+import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ITextResource, ITextResources } from 'app-shared/types/global';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { FormComponent } from './FormComponent';
+import type { FormContainer } from './FormContainer';
+import type { BooleanExpression } from '@studio/components';
+import type React from 'react';
 
-export interface IFormDesignerNameSpace<T1, T2, T3> {
+export interface IFormDesignerNameSpace<T1> {
   formDesigner: T1;
-  appData: T2;
-  errors: T3;
 }
-export type IAppState = IFormDesignerNameSpace<
-  IFormDesignerState,
-  IAppDataState,
-  IErrorState
->;
+export type IAppState = IFormDesignerNameSpace<IFormDesignerState>;
 
 export interface IOption {
   label: string;
@@ -34,10 +28,13 @@ export interface IInternalLayout {
   components: IFormDesignerComponents;
   containers: IFormDesignerContainers;
   order: IFormLayoutOrder;
-  hidden?: any;
+  hidden?: BooleanExpression;
   customRootProperties: KeyValuePairs;
   customDataProperties: KeyValuePairs;
 }
+
+export type InternalLayoutData = Omit<IInternalLayout, 'customRootProperties'>;
+export type InternalLayoutComponents = Omit<InternalLayoutData, 'customDataProperties'>;
 
 export interface IInternalLayoutWithName {
   layout: IInternalLayout;
@@ -65,12 +62,12 @@ export interface IWidgetTexts {
 
 export interface IToolbarElement {
   label: string;
-  icon?: string;
+  icon?: React.ComponentType;
   type: ComponentType;
 }
 
 export enum CollapsableMenus {
-  Components = 'schema',
+  Components = 'standard',
   Texts = 'texts',
   AdvancedComponents = 'advanced',
   // TODO : Uncomment when we have widgets components

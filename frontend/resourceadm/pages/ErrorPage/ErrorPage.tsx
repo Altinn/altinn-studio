@@ -1,15 +1,22 @@
 import React from 'react';
 import classes from './ErrorPage.module.css';
-import { Heading } from '@digdir/design-system-react';
-import { Link } from 'resourceadm/components/Link';
+import { Heading, Link } from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next';
 
-export const ErrorPage = () => {
+/**
+ * @component
+ *    Displays an error page
+ *
+ * @returns {React.JSX.Element} - The rendered component
+ */
+export const ErrorPage = (): React.JSX.Element => {
+  const { t } = useTranslation();
   return (
     <div className={classes.pageWrapper}>
       <Heading size='medium' level={1} spacing>
-        Du har nådd en ugyldig adresse
+        {t('resourceadm.error_page_text')}
       </Heading>
-      <Link href='/' text='Gå tilbake til dashboard' />
+      <Link href='/'>{t('resourceadm.error_back_to_dashboard')}</Link>
     </div>
   );
 };

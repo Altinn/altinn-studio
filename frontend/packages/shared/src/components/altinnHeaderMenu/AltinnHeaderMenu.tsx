@@ -1,31 +1,31 @@
 import React from 'react';
 import classes from './AltinnHeaderMenu.module.css';
-import classNames from 'classnames';
+import { NavLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
+import { Tag } from '@digdir/design-system-react';
 
 export interface IAltinnHeaderMenuProps {
-  activeSubHeaderSelection?: string;
-  menu: AltinnHeaderMenuItem[];
+  menuItems: TopBarMenuItem[];
 }
 
-export interface AltinnHeaderMenuItem {
-  key: string;
-  link: JSX.Element;
-}
+export const AltinnHeaderMenu = ({ menuItems }: IAltinnHeaderMenuProps) => {
+  const { t } = useTranslation();
 
-export const AltinnHeaderMenu = ({ activeSubHeaderSelection, menu }: IAltinnHeaderMenuProps) => {
-  if (!menu?.length) return null;
+  if (!menuItems?.length) return null;
 
   return (
-    <ul className={classes.menu} data-testid='altinn-header-menu'>
-      {menu.map((item) => (
-        <li
-          key={item.key}
-          className={classNames(
-            classes.menuItem,
-            activeSubHeaderSelection === item.key && classes.active
+    <ul className={classes.menu}>
+      {menuItems.map((item) => (
+        <li key={item.key} className={classes.menuItem}>
+          <NavLink to={item.link} className={({ isActive }) => (isActive ? classes.active : '')}>
+            {t(item.key)}
+          </NavLink>
+          {item.isBeta && (
+            <Tag color='info' size='small'>
+              {t('general.beta')}
+            </Tag>
           )}
-        >
-          {item.link}
         </li>
       ))}
     </ul>

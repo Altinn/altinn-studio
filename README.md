@@ -53,14 +53,14 @@ The fastest way to get things running from scratch is to use our setup-script. T
 ensure that the setup is up to date. As we add more features this script will be updated. It can be run as follows:
 
 ```bash
-node ./development/setup.js
+yarn && yarn setup
 ```
 
 More about that script and development in general, [can be found here](development/README.md).
 
 #### Docker container config
 
-The development environment consist of several services defined in [docker-compose.yml](docker-compose.yml).
+The development environment consist of several services defined in [compose.yaml](compose.yaml).
 
 - `studio-loadbalancer` which is a simple nginx-container using `nginx:alpine` directly, just used for development.
 - `studio-designer` which is the actual build artifact with the .NET backend and the react-apps.
@@ -91,13 +91,14 @@ docker-compose up -d --build studio_designer
 If using the script, the `.env`-file is generated and put at root, otherwise you will need to place it there yourself.
 When starting `docker-compose` the solution should be running as it would in production. But you probably want to change
 parts of the solution. The load balancer is configured to route the traffic to the right place according to your
-particular use case. This is done by placing a `.env`-file in the same folder as docker-compose.yml. The load balancer
+particular use case. This is done by placing a `.env`-file in the same folder as compose.yaml. The load balancer
 is configured with the following variables.
 
 ```text
 DEVELOP_BACKEND=0
 DEVELOP_DASHBOARD=0
 DEVELOP_APP_DEVELOPMENT=0
+DEVELOP_STUDIO_ROOT=0
 ```
 
 ## Developing Backend
@@ -154,7 +155,7 @@ More about developing frontend [can be found here](frontend/README.md).
 
 ## Cypress tests
 
-Some [integration tests](https://github.com/Altinn/altinn-studio/tree/master/frontend/testing/cypress) for studio have
+Some [integration tests](https://github.com/Altinn/altinn-studio/tree/main/frontend/testing/cypress) for studio have
 been created with Cypress. More about these tests [can be found here](frontend/testing/cypress/README.md).
 
 ## Deployment
@@ -176,7 +177,7 @@ The current build is deployed in Kubernetes on Azure. Automated CI/CD using Azur
 
 ## Contributing
 
-Please read [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
 ## Authors
 

@@ -1,134 +1,154 @@
 import type { ReactNode } from 'react';
 import React from 'react';
+import type { RenderOptions } from '@testing-library/react';
 import configureStore from 'redux-mock-store';
-import type { IAppDataState } from '../features/appData/appDataReducers';
 import type { IAppState } from '../types/global';
-import type { ITextResourcesState } from '../features/appData/textResources/textResourcesSlice';
 import { Provider } from 'react-redux';
+import type { PreloadedState } from '@reduxjs/toolkit';
 import { render, renderHook } from '@testing-library/react';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { IFormDesignerState } from '../features/formDesigner/formDesignerReducer';
-import { ILayoutSettings } from 'app-shared/types/global';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { ILayoutSettings } from 'app-shared/types/global';
 import { BrowserRouter } from 'react-router-dom';
-import ruleHandlerMock from './ruleHandlerMock';
 import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewConnectionContext';
-import { ruleConfig as ruleConfigMock } from './ruleConfigMock';
-import {
-  externalLayoutsMock,
-  layout1NameMock,
-  layout2NameMock,
-  layoutSetsMock,
-} from './layoutMock';
-import { queriesMock as allQueriesMock } from 'app-shared/mocks/queriesMock';
-import { QueryClient } from '@tanstack/react-query';
-import expressionSchema from './schemas/json/layout/expression.schema.v1.json';
-import numberFormatSchema from './schemas/json/layout/number-format.schema.v1.json';
-import layoutSchema from './schemas/json/layout/layout.schema.v1.json';
-
-export const textResourcesMock: ITextResourcesState = {
-  currentEditId: undefined,
-};
-
-export const appDataMock: IAppDataState = {
-  textResources: textResourcesMock,
-};
-
-export const formDesignerMock: IFormDesignerState = {
-  layout: {
-    error: null,
-    saving: false,
-    unSavedChanges: false,
-    selectedLayoutSet: 'test-layout-set',
-    selectedLayout: layout1NameMock,
-    invalidLayouts: [],
-  },
-};
-
-export const appStateMock: IAppState = {
-  appData: appDataMock,
-  errors: null,
-  formDesigner: formDesignerMock,
-};
+import { layout1NameMock, layout2NameMock } from './layoutMock';
+import { appStateMock } from './stateMocks';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import type { QueryClient } from '@tanstack/react-query';
+import type { AppContextProps } from '../AppContext';
+import { AppContext } from '../AppContext';
+import { appContextMock } from './appContextMock';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import type { AppStore, RootState } from '../store';
+import { setupStore } from '../store';
 
 export const formLayoutSettingsMock: ILayoutSettings = {
   pages: {
     order: [layout1NameMock, layout2NameMock],
   },
-  receiptLayoutName: 'Kvittering'
+  receiptLayoutName: 'Kvittering',
 };
 
 export const textLanguagesMock = ['nb', 'nn', 'en'];
 
 export const optionListIdsMock: string[] = ['test-1', 'test-2'];
 
-export const queriesMock: ServicesContextProps = {
-  ...allQueriesMock,
-  addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
-  addLayoutSet: jest.fn(),
-  configureLayoutSet: jest.fn(),
-  deleteAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
-  deleteFormLayout: jest.fn().mockImplementation(() => Promise.resolve({})),
-  getDatamodelMetadata: jest.fn().mockImplementation(() => Promise.resolve({ elements: {} })),
-  getFormLayoutSettings: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
-  getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock)),
-  getInstanceIdForPreview: jest.fn(),
-  getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve(optionListIdsMock)),
-  getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
-  getRuleConfig: jest.fn().mockImplementation(() => Promise.resolve(ruleConfigMock)),
-  getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
-  getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
-  getTextResources: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getWidgetSettings: jest.fn().mockImplementation(() => Promise.resolve({})),
-  saveFormLayout: jest.fn().mockImplementation(() => Promise.resolve({})),
-  saveFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve({})),
-  updateAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve({})),
-  updateFormLayoutName: jest.fn().mockImplementation(() => Promise.resolve({})),
-  upsertTextResources: jest.fn().mockImplementation(() => Promise.resolve()),
-  getExpressionSchema: jest.fn().mockImplementation(() => Promise.resolve(expressionSchema)),
-  getLayoutSchema: jest.fn().mockImplementation(() => Promise.resolve(layoutSchema)),
-  getNumberFormatSchema: jest.fn().mockImplementation(() => Promise.resolve(numberFormatSchema)),
+type WrapperArgs = {
+  appContextProps: Partial<AppContextProps>;
+  queries: Partial<ServicesContextProps>;
+  queryClient: QueryClient;
+  state: Partial<IAppState>;
+  storeCreator: ReturnType<typeof configureStore>;
 };
 
-export const queryClientMock = new QueryClient({
-  logger: {
-    log: () => {},
-    warn: () => {},
-    error: () => {},
-  },
-  defaultOptions: {
-    queries: { staleTime: Infinity },
-  },
-});
+const wrapper = ({
+  appContextProps = {},
+  queries = {},
+  queryClient = queryClientMock,
+  state = {},
+  storeCreator,
+}: WrapperArgs) => {
+  const store = storeCreator({ ...appStateMock, ...state });
+  const renderComponent = (component: ReactNode) => (
+    <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
+      <PreviewConnectionContextProvider>
+        <Provider store={store}>
+          <AppContext.Provider value={{ ...appContextMock, ...appContextProps }}>
+            <BrowserRouter>{component}</BrowserRouter>
+          </AppContext.Provider>
+        </Provider>
+      </PreviewConnectionContextProvider>
+    </ServicesContextProvider>
+  );
+  return { store, renderComponent };
+};
 
+/**
+ *
+ * @deprecated Use renderWithProviders instead
+ */
 export const renderWithMockStore =
-  (state: Partial<IAppState> = {}, queries: Partial<ServicesContextProps> = {}) =>
+  (
+    state: Partial<IAppState> = {},
+    queries: Partial<ServicesContextProps> = {},
+    queryClient: QueryClient = queryClientMock,
+    appContextProps: Partial<AppContextProps> = {},
+  ) =>
   (component: ReactNode) => {
-    const store = configureStore()({ ...appStateMock, ...state });
-    const renderResult = render(
-      <ServicesContextProvider {...queriesMock} {...queries} client={queryClientMock}>
+    const storeCreator = configureStore();
+    const { renderComponent, store } = wrapper({
+      appContextProps,
+      queries,
+      queryClient,
+      state,
+      storeCreator,
+    });
+    const renderResult = render(renderComponent(component));
+    const rerender = (rerenderedComponent) =>
+      renderResult.rerender(renderComponent(rerenderedComponent));
+    return { renderResult: { ...renderResult, rerender }, store };
+  };
+
+export const renderHookWithMockStore =
+  (
+    state: Partial<IAppState> = {},
+    queries: Partial<ServicesContextProps> = {},
+    queryClient: QueryClient = queryClientMock,
+    appContextProps: Partial<AppContextProps> = {},
+  ) =>
+  (hook: () => any) => {
+    const storeCreator = configureStore();
+    const { renderComponent, store } = wrapper({
+      appContextProps,
+      queries,
+      queryClient,
+      state,
+      storeCreator,
+    });
+    const renderHookResult = renderHook(hook, {
+      wrapper: ({ children }) => renderComponent(children),
+    });
+    return { renderHookResult, store };
+  };
+
+interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
+  preloadedState?: PreloadedState<RootState>;
+  store?: AppStore;
+  queries?: Partial<ServicesContextProps>;
+  queryClient?: QueryClient;
+  appContextProps?: Partial<AppContextProps>;
+}
+
+export const renderWithProviders = (
+  component: ReactNode,
+  {
+    preloadedState = {},
+    queries = {},
+    queryClient = queryClientMock,
+    store = setupStore(preloadedState),
+    appContextProps = {},
+    ...renderOptions
+  }: Partial<ExtendedRenderOptions> = {},
+) => {
+  function Wrapper({ children }: React.PropsWithChildren<unknown>) {
+    return (
+      <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
         <PreviewConnectionContextProvider>
           <Provider store={store}>
-            <BrowserRouter>{component}</BrowserRouter>
+            <AppContext.Provider value={{ ...appContextMock, ...appContextProps }}>
+              <BrowserRouter>{children}</BrowserRouter>
+            </AppContext.Provider>
           </Provider>
         </PreviewConnectionContextProvider>
       </ServicesContextProvider>
     );
-    return { renderResult, store };
+  }
+
+  return {
+    store,
+    ...render(component, {
+      wrapper: Wrapper,
+      ...renderOptions,
+    }),
   };
-export const renderHookWithMockStore =
-  (state: Partial<IAppState> = {}, queries: Partial<ServicesContextProps> = {}) =>
-  (hook: () => any) => {
-    const store = configureStore()({ ...appStateMock, ...state });
-    const renderHookResult = renderHook(hook, {
-      wrapper: ({ children }) => (
-        <ServicesContextProvider {...queriesMock} {...queries} client={queryClientMock}>
-          <PreviewConnectionContextProvider>
-            <Provider store={store}>{children}</Provider>
-          </PreviewConnectionContextProvider>
-        </ServicesContextProvider>
-      ),
-    });
-    return { renderHookResult, store };
-  };
+};

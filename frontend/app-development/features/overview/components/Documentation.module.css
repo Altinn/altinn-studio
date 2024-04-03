@@ -1,0 +1,49 @@
+.documentation {
+  font-family: var(--studio-font-family);
+  font-size: 15px;
+
+  position: relative;
+}
+
+.heading {
+  margin-bottom: var(--fds-spacing-2);
+}
+
+.link {
+  display: flex;
+  margin-top: var(--fds-spacing-4);
+}
+
+.linkIcon {
+  font-size: 1.4rem;
+}
+
+@media (min-width: 1200px) {
+  .documentation {
+    min-height: 280px;
+  }
+
+  .content {
+    max-width: 250px;
+  }
+}
+
+@media only screen and (min-width: 1200px) {
+  .documentation::before {
+    background-image: url('/designer/img/Altinn-studio-3.svg');
+    background-position: center center;
+    background-size: 150px auto;
+    background-repeat: no-repeat;
+
+    content: ' ';
+    display: block;
+    position: absolute;
+    bottom: var(--fds-spacing-4);
+    right: var(--fds-spacing-4);
+    width: 150px;
+    height: 150px;
+    opacity: 0.3;
+
+    transform: rotateY(180deg);
+  }
+}

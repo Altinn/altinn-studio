@@ -1,83 +1,83 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import classes from './DeployResourcePage.module.css';
-import { ResourceDeployStatus } from 'resourceadm/components/ResourceDeployStatus';
-import { ResourceDeployEnvCard } from 'resourceadm/components/ResourceDeployEnvCard';
-import { TextField, Button, Spinner, Heading, Label } from '@digdir/design-system-react';
-import { useParams } from 'react-router-dom';
-import { NavigationBarPageType, DeployErrorType } from 'resourceadm/types/global';
+import { ResourceDeployStatus } from '../../components/ResourceDeployStatus';
+import { ResourceDeployEnvCard } from '../../components/ResourceDeployEnvCard';
+import {
+  Textfield,
+  Spinner,
+  Heading,
+  Label,
+  Paragraph,
+  Link,
+  Alert,
+  ErrorMessage,
+} from '@digdir/design-system-react';
+import type { NavigationBarPage } from '../../types/NavigationBarPage';
+import type { DeployError } from '../../types/DeployError';
 import {
   useResourcePolicyPublishStatusQuery,
   useValidatePolicyQuery,
   useValidateResourceQuery,
-} from 'resourceadm/hooks/queries';
-import { UploadIcon } from '@navikt/aksel-icons';
-import { ScreenReaderSpan } from 'resourceadm/components/ScreenReaderSpan';
+} from '../../hooks/queries';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
+import { useTranslation, Trans } from 'react-i18next';
+import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
+import { useUrlParams } from '../../hooks/useSelectedContext';
+import { getAvailableEnvironments } from '../../utils/resourceUtils/resourceUtils';
 
-interface Props {
-  navigateToPageWithError: (page: NavigationBarPageType) => void;
-}
+export type DeployResourcePageProps = {
+  navigateToPageWithError: (page: NavigationBarPage) => void;
+  resourceVersionText: string;
+  onSaveVersion: (version: string) => void;
+  id: string;
+};
 
 /**
- * Displays the deploy page for resources
+ * @component
+ *    Displays the deploy page for resources
  *
- * @param props.isLocalRepoInSync boolean for if the local repo is in sync or not
+ * @property {function}[navigateToPageWithError] - Function that navigates to a page with errors
+ * @property {string}[resourceVersionText] - The current version stored
+ * @property {function}[onSaveVersion] - Saves the version to backend
+ * @property {string}[id] - The id of the page
+ *
+ * @returns {React.JSX.Element} - The rendered component
  */
-export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
-  const { selectedContext, resourceId } = useParams();
-  const repo = `${selectedContext}-resources`;
+export const DeployResourcePage = ({
+  navigateToPageWithError,
+  resourceVersionText,
+  onSaveVersion,
+  id,
+}: DeployResourcePageProps): React.JSX.Element => {
+  const { t } = useTranslation();
 
-  const [isLocalRepoInSync, setIsLocalRepoInSync] = useState(false);
-  const [hasPolicyError, setHasPolicyError] = useState<'none' | 'validationFailed' | 'notExisting'>(
-    'none'
-  );
-  const [newVersionText, setNewVersionText] = useState('');
+  const { selectedContext, repo, resourceId } = useUrlParams();
+
+  const [newVersionText, setNewVersionText] = useState(resourceVersionText);
 
   // Queries to get metadata
   const { data: repoStatus } = useRepoStatusQuery(selectedContext, repo);
-  const { data: versionData, isLoading: versionLoading } = useResourcePolicyPublishStatusQuery(
-    selectedContext,
-    repo,
-    resourceId
-  );
-  const { data: validatePolicyData, isLoading: validatePolicyLoading } = useValidatePolicyQuery(
-    selectedContext,
-    repo,
-    resourceId
-  );
-  const { data: validateResourceData, isLoading: validateResourceLoading } =
-    useValidateResourceQuery(selectedContext, repo, resourceId);
+  const {
+    status: publishStatusStatus,
+    data: publishStatusData,
+    error: publishStatusError,
+  } = useResourcePolicyPublishStatusQuery(selectedContext, repo, resourceId);
+  const {
+    status: validatePolicyStatus,
+    data: validatePolicyData,
+    error: validatePolicyError,
+  } = useValidatePolicyQuery(selectedContext, repo, resourceId);
+  const {
+    status: validateResourceStatus,
+    data: validateResourceData,
+    error: validateResourceError,
+  } = useValidateResourceQuery(selectedContext, repo, resourceId);
 
-  /**
-   * Set the value for policy error
-   */
-  useEffect(() => {
-    if (!validatePolicyLoading) {
-      if (validatePolicyData === undefined) setHasPolicyError('notExisting');
-      else if (validatePolicyData.status === 400) setHasPolicyError('validationFailed');
-      else setHasPolicyError('none');
-    }
-  }, [validatePolicyData, validatePolicyLoading]);
-
-  // TODO -  might need to adjust this in future
-  useEffect(() => {
-    if (!versionLoading) {
-      setNewVersionText(versionData.resourceVersion ?? '');
-    }
-  }, [versionData, versionLoading]);
-
-  /**
-   * Constantly check the repostatus to see if we are behind or ahead of master
-   */
-  useEffect(() => {
-    if (repoStatus) {
-      setIsLocalRepoInSync(
-        (repoStatus.behindBy === 0 || repoStatus.behindBy === null) &&
-          (repoStatus.aheadBy === 0 || repoStatus.aheadBy === null) &&
-          repoStatus.contentStatus.length === 0
-      );
-    }
-  }, [repoStatus]);
+  const isLocalRepoInSync =
+    repoStatus &&
+    (repoStatus.behindBy === 0 || repoStatus.behindBy === null) &&
+    (repoStatus.aheadBy === 0 || repoStatus.aheadBy === null) &&
+    repoStatus.contentStatus.length === 0;
 
   /**
    * Gets either danger or success for the card type
@@ -85,47 +85,60 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
    * @returns danger or success
    */
   const getStatusCardType = (): 'danger' | 'success' => {
-    // TODO - Add check for if version is correct
-    if (
+    const hasError =
       validateResourceData.status !== 200 ||
-      hasPolicyError !== 'none' ||
+      validatePolicyData.status !== 200 ||
       !isLocalRepoInSync ||
-      versionData.resourceVersion === null
-    )
-      return 'danger';
-    return 'success';
+      resourceVersionText === '';
+    return hasError ? 'danger' : 'success';
+  };
+
+  /**
+   * Returns the different error messages for a policy based on the status
+   */
+  const getPolicyValidationErrorMessage = () => {
+    switch (validatePolicyData.status) {
+      case 400: {
+        return 'resourceadm.deploy_status_card_error_policy_page';
+      }
+      case 404: {
+        return 'resourceadm.deploy_status_card_error_policy_page_missing';
+      }
+      default: {
+        return 'resourceadm.deploy_status_card_error_policy_page_default';
+      }
+    }
   };
 
   /**
    * Returns the correct error type for the deploy page
    */
-  const getStatusError = (): DeployErrorType[] | string => {
-    if (validateResourceData.status !== 200 || hasPolicyError !== 'none') {
-      const errorList: DeployErrorType[] = [];
+  const getStatusError = (): DeployError[] => {
+    if (validateResourceData.status !== 200 || validatePolicyData.status !== 200) {
+      const errorList: DeployError[] = [];
       if (validateResourceData.status !== 200) {
         errorList.push({
           message: validateResourceData.errors
-            ? `${validateResourceData.errors.length} felt mangler utfylling eller inneholder feil på siden "Om ressursen".`
-            : 'Det finnes mangler på siden "Om ressursen"',
+            ? 'resourceadm.deploy_status_card_error_resource_page'
+            : 'resourceadm.deploy_status_card_error_resource_page_default',
           pageWithError: 'about',
+          numberOfErrors: validateResourceData.errors.length,
         });
       }
-      if (hasPolicyError !== 'none') {
+      if (validatePolicyData.status !== 200) {
         errorList.push({
-          message:
-            hasPolicyError === 'validationFailed'
-              ? validatePolicyData.errors
-                ? `${validatePolicyData.errors.length} felt mangler utfylling eller inneholder feil på siden "Tilgangsregler".`
-                : 'Det finnes mangler på siden "Tilgangsregler"'
-              : 'Du må ha minst en regel på siden "Tilgangsregler"',
+          message: validatePolicyData.errors
+            ? getPolicyValidationErrorMessage()
+            : 'resourceadm.deploy_status_card_error_policy_page_default',
           pageWithError: 'policy',
+          numberOfErrors: validatePolicyData.errors.length,
         });
       }
       return errorList;
+    } else if (resourceVersionText === '') {
+      return [{ message: 'resourceadm.deploy_status_card_error_version' }];
     } else if (!isLocalRepoInSync) {
-      return 'Lokalt repo er ikke i sync med remote repo. Vennligst last opp og hent ned slik at du er i sync.';
-    } else if (versionData.resourceVersion === null) {
-      return 'Lokalt repo mangler versjonsnummer. Vennligst last opp et versjonnummer i feltet under.';
+      return [{ message: 'resourceadm.deploy_status_card_error_repo' }];
     }
     return [];
   };
@@ -134,19 +147,16 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
    * Displays a spinner when loading the status or displays the status card
    */
   const displayStatusCard = () => {
-    if (getStatusCardType() === 'success') {
-      return (
-        <ResourceDeployStatus
-          title='Ressursen er klar til å publiseres'
-          error={[]}
-          isSuccess
-          resourceId={resourceId}
-        />
-      );
-    }
-    return (
+    return getStatusCardType() === 'success' ? (
       <ResourceDeployStatus
-        title='Du må fikse disse feilene før du kan gå videre'
+        title={t('resourceadm.deploy_status_card_success')}
+        error={[]}
+        isSuccess
+        resourceId={resourceId}
+      />
+    ) : (
+      <ResourceDeployStatus
+        title={t('resourceadm.deploy_status_card_error_title')}
         error={getStatusError()}
         onNavigateToPageWithError={navigateToPageWithError}
         resourceId={resourceId}
@@ -161,113 +171,103 @@ export const DeployResourcePage = ({ navigateToPageWithError }: Props) => {
    *
    * @returns a boolean for if it is possible
    */
-  const isDeployPossible = (type: 'test' | 'prod', envVersion: string): boolean => {
+  const isDeployPossible = (envVersion: string): boolean => {
     const policyError = validatePolicyData === undefined || validatePolicyData.status === 400;
+    const canDeploy =
+      validateResourceData.status === 200 &&
+      !policyError &&
+      isLocalRepoInSync &&
+      resourceVersionText !== '' &&
+      envVersion !== resourceVersionText;
 
-    if (
-      type === 'test' &&
-      validateResourceData.status === 200 &&
-      !policyError &&
-      isLocalRepoInSync &&
-      envVersion !== versionData.resourceVersion
-    ) {
-      return true;
-    }
-    if (
-      type === 'prod' &&
-      validateResourceData.status === 200 &&
-      !policyError &&
-      isLocalRepoInSync &&
-      envVersion !== versionData.resourceVersion
-    ) {
-      return true;
-    }
-    return false;
+    return canDeploy;
   };
 
   /**
    * Display the content on the page
    */
   const displayContent = () => {
-    if (versionLoading || validatePolicyLoading || validateResourceLoading) {
-      return (
-        <div className={classes.spinnerWrapper}>
-          <Spinner size='3xLarge' variant='interaction' title='Laster inn policy' />
-        </div>
-      );
-    } else {
-      const versionInTest = versionData.publishedVersions.find(
-        (v) => v.environment === 'TT02'
-      ).version;
-      const versionInProd = versionData.publishedVersions.find(
-        (v) => v.environment === 'PROD'
-      ).version;
+    switch (mergeQueryStatuses(publishStatusStatus, validatePolicyStatus, validateResourceStatus)) {
+      case 'pending': {
+        return (
+          <div>
+            <Spinner size='xlarge' variant='interaction' title={t('resourceadm.deploy_spinner')} />
+          </div>
+        );
+      }
+      case 'error': {
+        return (
+          <Alert severity='danger'>
+            <Paragraph>{t('general.fetch_error_message')}</Paragraph>
+            <Paragraph>{t('general.error_message_with_colon')}</Paragraph>
+            {publishStatusError && <ErrorMessage>{publishStatusError.message}</ErrorMessage>}
+            {validatePolicyError && <ErrorMessage>{validatePolicyError.message}</ErrorMessage>}
+            {validateResourceError && <ErrorMessage>{validateResourceError.message}</ErrorMessage>}
+          </Alert>
+        );
+      }
+      case 'success': {
+        const getVersionString = (env: string): string => {
+          return (
+            publishStatusData.publishedVersions.find((v) => v.environment === env)?.version ??
+            t('resourceadm.deploy_not_deployed')
+          );
+        };
 
-      return (
-        <>
-          <Heading size='large' spacing level={1}>
-            Publiser ressursen
-          </Heading>
-          <div className={classes.contentWrapper}>
-            {displayStatusCard()}
-            <div className={classes.newVersionWrapper}>
+        return (
+          <>
+            <Heading size='large' spacing level={1}>
+              {t('resourceadm.deploy_title')}
+            </Heading>
+            <div className={classes.contentWrapper}>
+              {displayStatusCard()}
+              <Paragraph size='small' className={classes.informationText}>
+                <Trans i18nKey='resourceadm.deploy_description'>
+                  <Link href='https://www.altinn.no/' rel='noopener noreferrer' target='_blank'>
+                    Altinn.no
+                  </Link>
+                </Trans>
+              </Paragraph>
+              <div className={classes.newVersionWrapper}>
+                <Textfield
+                  label={t('resourceadm.deploy_version_label')}
+                  description={t('resourceadm.deploy_version_text')}
+                  size='small'
+                  value={newVersionText}
+                  onChange={(e) => setNewVersionText(e.target.value)}
+                  onBlur={() => onSaveVersion(newVersionText)}
+                  error={resourceVersionText === ''}
+                />
+              </div>
               <Label size='medium' spacing>
-                Nytt versjonsnummer
+                {t('resourceadm.deploy_select_env_label')}
               </Label>
-              <div className={classes.textAndButton}>
-                <div className={classes.textfield}>
-                  <TextField
-                    placeholder=''
-                    value={newVersionText}
-                    onChange={(e) => setNewVersionText(e.target.value)}
-                    aria-labelledby='versionnumber-field'
-                    label='Sett et versjonsnummer for endringene du har gjort'
-                  />
-                </div>
-                <ScreenReaderSpan id='versionnumber-field' label='Nytt versjonssnummer' />
-                <Button
-                  color='primary'
-                  onClick={() => {
-                    // TODO - Save new version number - Missing API call
-                    alert('todo - Save new version number');
-                  }}
-                  iconPlacement='left'
-                  icon={<UploadIcon title='Lagre versjonsnummer' />}
-                >
-                  Last opp dine endringer
-                </Button>
+              <div className={classes.environmentWrapper}>
+                {getAvailableEnvironments(selectedContext).map((env) => {
+                  const versionString = getVersionString(env.id);
+                  return (
+                    <ResourceDeployEnvCard
+                      key={env.id}
+                      isDeployPossible={isDeployPossible(versionString)}
+                      env={env}
+                      currentEnvVersion={versionString}
+                      newEnvVersion={
+                        resourceVersionText !== versionString ? resourceVersionText : undefined
+                      }
+                    />
+                  );
+                })}
               </div>
             </div>
-            <Label size='medium' spacing>
-              Velg miljø der du ønsker å publisere endringene
-            </Label>
-            <div className={classes.deployCardsWrapper}>
-              <ResourceDeployEnvCard
-                isDeployPossible={isDeployPossible('test', versionInTest)}
-                envName='Testmiljø TT-02'
-                currentEnvVersion={versionInTest}
-                newEnvVersion={
-                  versionData.resourceVersion !== versionInTest
-                    ? versionData.resourceVersion
-                    : undefined
-                }
-              />
-              <ResourceDeployEnvCard
-                isDeployPossible={isDeployPossible('prod', versionInProd)}
-                envName='Produksjonsmiljø'
-                currentEnvVersion={versionInProd}
-                newEnvVersion={
-                  versionData.resourceVersion !== versionInProd
-                    ? versionData.resourceVersion
-                    : undefined
-                }
-              />
-            </div>
-          </div>
-        </>
-      );
+          </>
+        );
+      }
     }
   };
 
-  return <div className={classes.deployPageWrapper}>{displayContent()}</div>;
+  return (
+    <div className={classes.deployPageWrapper} id={id} role='tabpanel'>
+      {displayContent()}
+    </div>
+  );
 };

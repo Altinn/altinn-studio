@@ -2,42 +2,49 @@ import classes from './SchemaEditorWithToolbar.module.css';
 import { TopToolbar } from './TopToolbar';
 import { LandingPagePanel } from './LandingPagePanel';
 import React, { useState } from 'react';
-import { MetadataOption } from '../../../types/MetadataOption';
-import { SchemaEditorApp } from '@altinn/schema-editor/SchemaEditorApp';
+import type { MetadataOption } from '../../../types/MetadataOption';
+import { SelectedSchemaEditor } from './SelectedSchemaEditor';
+import type { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
+import { SchemaGenerationErrorsPanel } from './SchemaGenerationErrorsPanel';
 
 export interface SchemaEditorWithToolbarProps {
   createPathOption?: boolean;
-  displayLandingPage?: boolean;
+  datamodels: DatamodelMetadata[];
 }
 
 export const SchemaEditorWithToolbar = ({
   createPathOption,
-  displayLandingPage
+  datamodels,
 }: SchemaEditorWithToolbarProps) => {
-
   const [createNewOpen, setCreateNewOpen] = useState<boolean>(false);
   const [selectedOption, setSelectedOption] = useState<MetadataOption | undefined>(undefined);
+  const [schemaGenerationErrorMessages, setSchemaGenerationErrorMessages] = useState<string[]>([]);
 
   const modelPath = selectedOption?.value.repositoryRelativeUrl;
-  const modelName = selectedOption?.label;
 
   return (
     <div className={classes.root}>
       <TopToolbar
         createNewOpen={createNewOpen}
         createPathOption={createPathOption}
+        datamodels={datamodels}
         selectedOption={selectedOption}
         setCreateNewOpen={setCreateNewOpen}
         setSelectedOption={setSelectedOption}
+        onSetSchemaGenerationErrorMessages={(errorMessages: string[]) =>
+          setSchemaGenerationErrorMessages(errorMessages)
+        }
       />
+      {schemaGenerationErrorMessages.length > 0 && (
+        <SchemaGenerationErrorsPanel
+          onCloseErrorsPanel={() => setSchemaGenerationErrorMessages([])}
+          schemaGenerationErrorMessages={schemaGenerationErrorMessages}
+        />
+      )}
       <main className={classes.main}>
-        {displayLandingPage && (
-          <LandingPagePanel
-            openCreateNew={() => setCreateNewOpen(true)}
-          />
-        )}
-        {modelPath && <SchemaEditorApp modelName={modelName} modelPath={modelPath}/>}
+        {!datamodels.length && <LandingPagePanel openCreateNew={() => setCreateNewOpen(true)} />}
+        {modelPath && <SelectedSchemaEditor modelPath={modelPath} />}
       </main>
     </div>
   );
-}
+};

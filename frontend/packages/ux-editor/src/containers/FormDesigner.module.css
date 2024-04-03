@@ -6,11 +6,17 @@
   --drag-handle-inner-width: 25px;
   --margin-horizontal: 50px;
   --margin-left-with-handle: calc(var(--margin-horizontal) - var(--drag-handle-width));
-  --margin-right-with-buttons: calc(var(--margin-horizontal) - var(--buttons-width) - var(--buttons-distance));
+  --margin-right-with-buttons: calc(
+    var(--margin-horizontal) - var(--buttons-width) - var(--buttons-distance)
+  );
   --margin-top: 50px;
+  --elements-width-fraction: 1.5;
+  --structure-width-fraction: 1.5;
+  --properties-width-fraction: 2;
+  --preview-width-fraction: 3;
 
   flex-grow: 1;
-  height: 100%;
+  height: calc(100vh - var(--header-height));
   overflow-y: hidden;
 }
 
@@ -22,46 +28,14 @@
   top: 69px;
 }
 
-.item {
-  min-width: 240px;
-  overflow-x: hidden;
+.container > * {
   padding: 0;
-}
-
-.leftContent {
-  border-right: 1px solid var(--fds-semantic-border-neutral-subtle);
-  flex: 2;
-  min-width: 283px;
-}
-
-.leftContent h1[class*='Accordion-module_header'] > button:focus,
-.rightContent h1[class*='Accordion-module_header'] > button:focus {
-  border-radius: unset;
-  box-shadow: unset;
-  outline: unset;
-  outline-offset: unset;
-}
-
-.mainContent {
-  display: flex;
-  flex-direction: column;
-  flex: 6;
-  min-width: 682px !important;
   overflow-y: auto;
+  max-height: calc(100vh - var(--header-height));
 }
 
-.mainContent > *:last-child {
-  flex: 1;
-}
-
-.rightContent {
-  border-left: 1px solid var(--fds-semantic-border-neutral-subtle);
-  flex: 4;
-}
-
-.leftContent,
-.rightContent {
-  background: var(--fds-semantic-surface-neutral-subtle);
+.container > div:not(:last-child) {
+  border-right: 1px solid var(--fds-semantic-border-neutral-subtle);
 }
 
 .warningMessage {
@@ -69,7 +43,7 @@
 }
 
 .logicEditor {
-  background-color: #022F5180;
+  background-color: #022f5180;
   display: grid; /* Make content fill up all available space */
   height: 100vh;
   left: 0;

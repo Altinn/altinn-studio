@@ -1,40 +1,43 @@
-import React, { ReactNode } from 'react';
-import { useDatamodelsMetadataQuery } from '../../hooks/queries';
+import type { ReactNode } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { PageSpinner } from 'app-shared/components';
-import { Center } from 'app-shared/components/Center';
+import { StudioPageSpinner, StudioCenter } from '@studio/components';
 import { Alert, ErrorMessage, Paragraph } from '@digdir/design-system-react';
 import { SchemaEditorWithToolbar } from './SchemaEditorWithToolbar';
+import { useDatamodelsJsonQuery, useDatamodelsXsdQuery } from 'app-shared/hooks/queries';
+import { useParams } from 'react-router-dom';
+import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
+import { mergeJsonAndXsdData } from '../../utils/metadataUtils';
 
 interface DataModellingProps {
   createPathOption?: boolean;
 }
 
-export function DataModelling({
-  createPathOption = false,
-}: DataModellingProps): ReactNode {
+export function DataModelling({ createPathOption = false }: DataModellingProps): ReactNode {
   const { t } = useTranslation();
-  const { status, error, data } = useDatamodelsMetadataQuery();
+  const { org, app } = useParams<{ org: string; app: string }>();
+  const { status: jsonStatus, error: jsonError, data: jsonData } = useDatamodelsJsonQuery(org, app);
+  const { status: xsdStatus, error: xsdError, data: xsdData } = useDatamodelsXsdQuery(org, app);
 
-  switch (status) {
-    case 'loading':
-      return <PageSpinner />;
+  switch (mergeQueryStatuses(jsonStatus, xsdStatus)) {
+    case 'pending':
+      return (
+        <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('datamodelling.loading')} />
+      );
     case 'error':
       return (
-        <Center>
+        <StudioCenter>
           <Alert severity='danger'>
             <Paragraph>{t('general.fetch_error_message')}</Paragraph>
             <Paragraph>{t('general.error_message_with_colon')}</Paragraph>
-            <ErrorMessage>{error.message}</ErrorMessage>
+            {jsonError && <ErrorMessage>{jsonError.message}</ErrorMessage>}
+            {xsdError && <ErrorMessage>{xsdError.message}</ErrorMessage>}
           </Alert>
-        </Center>
+        </StudioCenter>
       );
-    case 'success':
-      return (
-        <SchemaEditorWithToolbar
-          createPathOption={createPathOption}
-          displayLandingPage={!data?.length}
-        />
-      );
+    case 'success': {
+      const data = mergeJsonAndXsdData(jsonData, xsdData);
+      return <SchemaEditorWithToolbar createPathOption={createPathOption} datamodels={data} />;
+    }
   }
 }

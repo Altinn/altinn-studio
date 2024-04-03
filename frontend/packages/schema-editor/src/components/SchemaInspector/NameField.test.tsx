@@ -5,40 +5,25 @@ import { textMock } from '../../../../../testing/mocks/i18nMock';
 import type { NameFieldProps } from './NameField';
 import { NameField } from './NameField';
 import { renderWithProviders } from '../../../test/renderWithProviders';
-import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
-import {
-  parentNodeMock,
-  uiSchemaNodesMock
-} from '../../../test/mocks/uiSchemaMock';
+import { combinationNodeMock, uiSchemaNodesMock } from '../../../test/mocks/uiSchemaMock';
+import { SchemaModel } from '@altinn/schema-model';
 
 const user = userEvent.setup();
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const modelPath = 'test';
 const defaultProps: NameFieldProps = {
   id: 'test-id',
   label: 'test-label',
-  pointer: parentNodeMock.pointer,
+  pointer: combinationNodeMock.pointer,
   onKeyDown: jest.fn(),
   disabled: false,
   handleSave: jest.fn(),
 };
 
-const render = async (
-  props?: Partial<NameFieldProps>,
-) => {
-  queryClientMock.setQueryData(
-    [QueryKey.Datamodel, org, app, modelPath],
-    uiSchemaNodesMock,
-  );
-
-  return renderWithProviders({
-    appContextProps: { modelPath },
+const render = async (props?: Partial<NameFieldProps>) =>
+  renderWithProviders({
+    appContextProps: { schemaModel: SchemaModel.fromArray(uiSchemaNodesMock) },
   })(<NameField {...defaultProps} {...props} />);
-};
 
 describe('NameField', () => {
   const mockOnChange = jest.fn();
@@ -50,7 +35,7 @@ describe('NameField', () => {
   it('renders the component', async () => {
     await render();
 
-    expect(screen.getByText(`${defaultProps.label} *`)).toBeInTheDocument();
+    expect(screen.getByText(defaultProps.label)).toBeInTheDocument();
     expect(screen.getByRole('textbox').getAttribute('value')).toBe('test');
   });
 
@@ -58,7 +43,9 @@ describe('NameField', () => {
     await render();
     await act(() => user.type(screen.getByRole('textbox'), '@'));
     await act(() => user.tab());
-    expect(screen.getByText(textMock('schema_editor.nameError_invalidCharacter'))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('schema_editor.nameError_invalidCharacter')),
+    ).toBeInTheDocument();
     expect(defaultProps.handleSave).not.toHaveBeenCalled();
   });
 

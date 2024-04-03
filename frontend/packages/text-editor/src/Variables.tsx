@@ -1,9 +1,10 @@
 import classes from './Variables.module.css';
 import { PanelVariant, PopoverPanel } from '@altinn/altinn-design-system';
-import { Button, ButtonSize, ButtonVariant } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import { InformationSquareFillIcon } from '@navikt/aksel-icons';
 import React, { useState } from 'react';
 import type { TextResourceVariable } from './types';
+import { useTranslation, Trans } from 'react-i18next';
 
 export type VariablesProps = {
   variables: TextResourceVariable[];
@@ -11,29 +12,38 @@ export type VariablesProps = {
 
 export const Variables = ({ variables }: VariablesProps) => {
   const [infoboxOpen, setInfoboxOpen] = useState(false);
+  const { t } = useTranslation();
   return (
-    <div title={'Det er ikke lagt til støtte for redigering av variabler i Studio.'}>
+    <div>
       {variables.map((variable) => (
-        <div key={variable.key} className={classes.chip}>
-          {`${variable.key}: ${variable.dataSource}`}
+        <div key={variable.key} className={classes.chip} title={variable.key}>
+          <span className={classes.variables}>{`${variable.key}: ${variable.dataSource}`}</span>
+          {variable.defaultValue && (
+            <span className={classes.variables}>
+              <Trans
+                i18nKey={'text_editor.variables_default_value'}
+                values={{ defaultValue: variable.defaultValue }}
+                components={{ bold: <strong /> }}
+              />
+            </span>
+          )}
         </div>
       ))}
       {variables.length > 0 && (
-        <span className={classes.infoButton}>
+        <span
+          className={classes.infoButton}
+          title={t('text_editor.variables_editing_not_supported')}
+        >
           <PopoverPanel
             title={'Kun for visning'}
             variant={PanelVariant.Info}
             trigger={
-              <Button
-                icon={<InformationSquareFillIcon />}
-                variant={ButtonVariant.Quiet}
-                size={ButtonSize.Small}
-              />
+              <StudioButton icon={<InformationSquareFillIcon />} variant='tertiary' size='small' />
             }
             open={infoboxOpen}
             onOpenChange={setInfoboxOpen}
           >
-            <div>Det er ikke mulig å redigere variabler i Studio.</div>
+            <div>{t('text_editor.variables_editing_not_supported')}</div>
           </PopoverPanel>
         </span>
       )}

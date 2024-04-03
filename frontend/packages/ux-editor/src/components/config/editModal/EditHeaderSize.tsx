@@ -1,8 +1,9 @@
 import React from 'react';
-import { Select } from '@digdir/design-system-react';
+import { LegacySelect } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import { FormField } from '../../FormField';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
 enum HeaderSize {
   S = 'h4',
@@ -11,14 +12,18 @@ enum HeaderSize {
 }
 
 // Todo: This should be called "level" instead of "size"
-export const EditHeaderSize = ({ handleComponentChange, component }: IGenericEditComponent) => {
+export const EditHeaderSize = ({
+  handleComponentChange,
+  component,
+}: IGenericEditComponent<ComponentType.Header>) => {
   const t = useText();
   const sizes = [
     { value: HeaderSize.S, label: t('ux_editor.modal_header_type_h4') },
     { value: HeaderSize.M, label: t('ux_editor.modal_header_type_h3') },
     { value: HeaderSize.L, label: t('ux_editor.modal_header_type_h2') },
   ];
-  const selectedHeaderSize = HeaderSize[component.size as keyof typeof HeaderSize] || component.size;
+  const selectedHeaderSize =
+    HeaderSize[component.size as keyof typeof HeaderSize] || component.size;
 
   const onSizeChange = (size: string) => {
     handleComponentChange({
@@ -28,18 +33,18 @@ export const EditHeaderSize = ({ handleComponentChange, component }: IGenericEdi
   };
 
   return (
-    <div data-testid='header-size-select-wrapper'>
+    <div>
       <FormField
         id={component.id}
         label={t('ux_editor.modal_header_type_helper')}
         onChange={onSizeChange}
-        value={(selectedHeaderSize ? sizes.find((size) => size.value === selectedHeaderSize) : sizes[0])?.value}
-        propertyPath={`${component.propertyPath}/properties/size`}
-      >
-        {
-          () => <Select options={sizes} />
+        value={
+          (selectedHeaderSize ? sizes.find((size) => size.value === selectedHeaderSize) : sizes[0])
+            ?.value
         }
-      </FormField>
+        propertyPath={`${component.propertyPath}/properties/size`}
+        renderField={({ fieldProps }) => <LegacySelect {...fieldProps} options={sizes} />}
+      />
     </div>
   );
 };

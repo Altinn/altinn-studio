@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './App.module.css';
-import { PageSpinner } from 'app-shared/components';
+import { StudioPageSpinner } from '@studio/components';
 import { CreateService } from '../pages/CreateService';
 import { Dashboard } from '../pages/Dashboard';
 import { Route, Routes } from 'react-router-dom';
@@ -10,8 +10,11 @@ import { ErrorMessage } from 'dashboard/components/ErrorMessage';
 
 import './App.css';
 import { PageLayout } from 'dashboard/pages/PageLayout';
+import { useTranslation } from 'react-i18next';
 
 export const App = (): JSX.Element => {
+  const { t } = useTranslation();
+
   const { data: user, isError: isUserError } = useUserQuery();
   const { data: organizations, isError: isOrganizationsError } = useOrganizationsQuery();
 
@@ -49,7 +52,10 @@ export const App = (): JSX.Element => {
       <div className={classes.root}>
         <Routes>
           <Route element={<PageLayout />}>
-            <Route path='/:selectedContext?' element={<Dashboard user={user} organizations={organizations} />} />
+            <Route
+              path='/:selectedContext?'
+              element={<Dashboard user={user} organizations={organizations} />}
+            />
             <Route
               path='/:selectedContext/new'
               element={<CreateService organizations={organizations} user={user} />}
@@ -60,5 +66,9 @@ export const App = (): JSX.Element => {
     );
   }
 
-  return <div className={classes.appDashboardSpinner}><PageSpinner/></div>;
+  return (
+    <div className={classes.appDashboardSpinner}>
+      <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('dashboard.loading')} />
+    </div>
+  );
 };

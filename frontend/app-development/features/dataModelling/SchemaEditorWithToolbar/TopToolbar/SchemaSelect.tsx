@@ -1,30 +1,37 @@
 import React from 'react';
-import { useDatamodelsMetadataQuery } from '@altinn/schema-editor/hooks/queries';
 import {
   convertMetadataListToOptions,
   findMetadataOptionByRelativeUrl,
-  groupMetadataOptions
+  groupMetadataOptions,
 } from '../../../../utils/metadataUtils';
-import { MetadataOption } from '../../../../types/MetadataOption';
+import type { MetadataOption } from '../../../../types/MetadataOption';
 import { NativeSelect } from '@digdir/design-system-react';
 import classes from './SchemaSelect.module.css';
+import type { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
+import { useTranslation } from 'react-i18next';
 
 export interface ISchemaSelectProps {
+  datamodels: DatamodelMetadata[];
   disabled: boolean;
   selectedOption: MetadataOption | null;
   setSelectedOption: (option: MetadataOption) => void;
 }
 
-export const SchemaSelect = ({ disabled, selectedOption, setSelectedOption }: ISchemaSelectProps) => {
-  const { data: metadataItems } = useDatamodelsMetadataQuery();
-
-  const options = metadataItems ? convertMetadataListToOptions(metadataItems) : [];
+export const SchemaSelect = ({
+  datamodels,
+  disabled,
+  selectedOption,
+  setSelectedOption,
+}: ISchemaSelectProps) => {
+  const { t } = useTranslation();
+  const options = convertMetadataListToOptions(datamodels);
   const optionGroups = groupMetadataOptions(options);
   const handleChange = (repositoyUrl: string) =>
     setSelectedOption(findMetadataOptionByRelativeUrl(options, repositoyUrl));
 
   return (
     <NativeSelect
+      aria-label={t('schema_editor.choose_model')}
       className={classes.select}
       disabled={disabled}
       onChange={(e) => handleChange(e.target.value)}

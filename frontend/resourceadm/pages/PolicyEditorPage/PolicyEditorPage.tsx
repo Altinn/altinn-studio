@@ -1,61 +1,70 @@
 import React from 'react';
 import classes from './PolicyEditorPage.module.css';
-import { PolicyBackendType } from 'resourceadm/types/global';
-import { useParams } from 'react-router-dom';
-import { PolicyEditor } from 'resourceadm/components/PolicyEditor';
-import { mapPolicyResultToPolicyObject } from 'resourceadm/utils/mapperUtils';
-import { Spinner, Heading } from '@digdir/design-system-react';
 import {
-  useResourcePolicyQuery,
+  PolicyEditor,
+  mergeActionsFromPolicyWithActionOptions,
+  mergeSubjectsFromPolicyWithSubjectOptions,
+} from '@altinn/policy-editor';
+import type { Policy } from '@altinn/policy-editor';
+import { Spinner, Heading } from '@digdir/design-system-react';
+import { useResourcePolicyQuery } from '../../hooks/queries';
+import { useEditResourcePolicyMutation } from '../../hooks/mutations';
+import { useTranslation } from 'react-i18next';
+import {
   useResourcePolicyActionsQuery,
   useResourcePolicySubjectsQuery,
-} from 'resourceadm/hooks/queries';
-import { useEditResourcePolicyMutation } from 'resourceadm/hooks/mutations';
+} from 'app-shared/hooks/queries';
+import { useUrlParams } from '../../hooks/useSelectedContext';
 
-interface Props {
+export type PolicyEditorPageProps = {
   showAllErrors: boolean;
-}
+  id: string;
+};
 
 /**
- * Displays the content where a user can add and edit a policy
+ * @component
+ *    Page that displays the content where a user can add and edit a policy
  *
- * @param props.showAllErrors flag to decide if all errors should be shown or not
+ * @property {boolean}[showAllErrors] - Flag to decide if all errors should be shown or not
+ * @property {string}[id] - The id of the page
+ *
+ * @returns {React.JSX.Element} - The rendered component
  */
-export const PolicyEditorPage = ({ showAllErrors }: Props) => {
-  // TODO - translation
+export const PolicyEditorPage = ({
+  showAllErrors,
+  id,
+}: PolicyEditorPageProps): React.JSX.Element => {
+  const { t } = useTranslation();
 
-  const { resourceId, selectedContext } = useParams();
-  const resourceType = 'urn:altinn.resource'; // TODO - Find out if it is fine to hardcode this
-  const repo = `${selectedContext}-resources`;
+  const { resourceId, selectedContext, repo } = useUrlParams();
 
   // Get the data
-  const { data: policyData, isLoading: policyLoading } = useResourcePolicyQuery(
+  const { data: policyData, isPending: isPolicyPending } = useResourcePolicyQuery(
     selectedContext,
     repo,
-    resourceId
+    resourceId,
   );
-  const { data: actionData, isLoading: actionLoading } = useResourcePolicyActionsQuery(
+  const { data: actionData, isPending: isActionPending } = useResourcePolicyActionsQuery(
     selectedContext,
-    repo
+    repo,
   );
-  const { data: subjectData, isLoading: subjectsLoading } = useResourcePolicySubjectsQuery(
+  const { data: subjectData, isPending: isSubjectsPending } = useResourcePolicySubjectsQuery(
     selectedContext,
-    repo
+    repo,
   );
 
   // Mutation function to update policy
   const { mutate: updatePolicyMutation } = useEditResourcePolicyMutation(
     selectedContext,
     repo,
-    resourceId
+    resourceId,
   );
 
   /**
    * Saves the policy to backend
    */
-  const handleSavePolicy = (p: PolicyBackendType) => {
-    updatePolicyMutation(p, {
-      // TODO - Display that it was saved
+  const handleSavePolicy = (policy: Policy) => {
+    updatePolicyMutation(policy, {
       onSuccess: () => {
         console.log('success');
       },
@@ -66,30 +75,38 @@ export const PolicyEditorPage = ({ showAllErrors }: Props) => {
    * Displays the content based on the state of the page
    */
   const displayContent = () => {
-    if (policyLoading || actionLoading || subjectsLoading) {
+    if (isPolicyPending || isActionPending || isSubjectsPending) {
       return (
         <div className={classes.spinnerWrapper}>
-          <Spinner size='3xLarge' variant='interaction' title='Laster inn policy' />
+          <Spinner
+            size='xlarge'
+            variant='interaction'
+            title={t('resourceadm.policy_editor_spinner')}
+          />
         </div>
       );
     }
+
+    const mergedActions = mergeActionsFromPolicyWithActionOptions(policyData.rules, actionData);
+    const mergedSubjects = mergeSubjectsFromPolicyWithSubjectOptions(policyData.rules, subjectData);
+
     return (
       <PolicyEditor
-        policy={mapPolicyResultToPolicyObject(policyData)}
-        actions={actionData}
-        subjects={subjectData}
-        resourceType={resourceType}
+        policy={policyData}
+        actions={mergedActions}
+        subjects={mergedSubjects}
         resourceId={resourceId}
         onSave={handleSavePolicy}
         showAllErrors={showAllErrors}
+        usageType='resource'
       />
     );
   };
 
   return (
-    <div className={classes.policyEditorWrapper}>
+    <div className={classes.policyEditorWrapper} id={id} role='tabpanel'>
       <Heading size='large' spacing level={1}>
-        Tilgangsregler
+        {t('resourceadm.policy_editor_title')}
       </Heading>
       {displayContent()}
     </div>

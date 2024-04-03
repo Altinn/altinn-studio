@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - 'frontend/**'
+      - '!frontend/testing/cypress/**'
+      - '!frontend/stats/**'
       - 'testdata/**'
       - '.github/workflows/frontend-unit-tests.yml'
       - 'package.json'
@@ -25,19 +27,19 @@ jobs:
       security-events: write
     steps:
       - name: 'Checking Out Code'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: 'Initialize CodeQL'
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3
         with:
           languages: javascript
           queries: +security-and-quality
           config-file: .github/codeql/codeql-config.yml
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3
         with:
           category: '/language:javascript'
 
@@ -50,7 +52,7 @@ jobs:
       security-events: write
     steps:
       - name: 'Checking Out Code'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -63,12 +65,15 @@ jobs:
       - name: 'Running Eslint'
         run: yarn lint
 
+      - name: 'Checking code style'
+        run: yarn run codestyle:check
+
   test:
     name: 'Testing'
     runs-on: ubuntu-latest
     steps:
       - name: 'Checking Out Code'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -79,7 +84,7 @@ jobs:
         run: yarn test:ci
 
       - name: 'Upload coverage reports to Codecov'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
@@ -91,7 +96,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 'Checking Out Code'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 

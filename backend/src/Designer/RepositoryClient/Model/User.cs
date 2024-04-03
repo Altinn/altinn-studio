@@ -13,7 +13,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 using System.Text;
-using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.RepositoryClient.Model
 {
@@ -80,7 +79,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Sets
         /// </summary>
-        [DataMember(Name = "UserType", EmitDefaultValue = false)]
+        [DataMember(Name = "userType", EmitDefaultValue = false)]
         public UserType UserType { get; set; }
 
         /// <summary>

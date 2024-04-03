@@ -1,11 +1,13 @@
-import { IFormLayouts } from '../types/global';
+import type { IFormLayouts } from '../types/global';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ContainerComponentType } from '../types/ContainerComponent';
+import { containerComponentTypes } from '../data/containerComponentTypes';
 
 export const generateTextResourceId = (
   layoutName: string,
   componentId: string,
-  textKey: string
+  textKey: string,
 ) => {
   return `${layoutName}.${componentId}.${textKey}`;
 };
@@ -20,7 +22,7 @@ export const generateComponentId = (componentType: ComponentType, layouts: IForm
     componentId = `${componentType}-${generateRandomId(6)}`;
     layoutNames.forEach((layoutName) => {
       const layout = layouts[layoutName];
-      if (componentType === ComponentType.Group) {
+      if (containerComponentTypes.includes(componentType as ContainerComponentType)) {
         existsInLayout = !!layout.containers[componentId];
       } else if (layout.components) {
         existsInLayout = !!layout.components[componentId];

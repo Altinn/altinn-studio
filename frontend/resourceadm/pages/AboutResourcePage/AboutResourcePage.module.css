@@ -3,46 +3,16 @@
   justify-content: space-between;
 }
 
-.rightWrapper {
-  height: 100vh;
-  top: 0;
-  position: sticky;
-  width: 35%;
-}
-
 .pageWrapper {
   margin: 0;
-  padding: 40px;
-  width: 600px;
-}
-
-.divider {
-  margin-top: 30px;
-}
-
-.inputWrapper {
-  width: 450px;
-  margin-top: 10px;
+  padding: var(--fds-spacing-10);
+  padding-bottom: var(--fds-spacing-26);
+  flex: 1;
   position: relative;
 }
 
-.buttonWrapper {
-  margin-block: 30px;
-}
-
-.toggleTextActive {
-  color: var(--fds-semantic-text-success-default);
-}
-
-.toggleTextInactive {
-  color: var(--fds-semantic-text-neutral-subtle);
-}
-
-p,
-h2 {
-  margin: 0;
-}
-
-.warningCardWrapper {
-  margin-top: 5px;
+.resourceFields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-10);
 }

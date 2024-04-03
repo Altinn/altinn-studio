@@ -1,74 +1,53 @@
 import { ItemDataComponent } from './ItemDataComponent';
-import { getNodeByPointer, UiSchemaNode } from '@altinn/schema-model';
+import type { UiSchemaNode } from '@altinn/schema-model';
+import { SchemaModel } from '@altinn/schema-model';
 import React from 'react';
 import { act, fireEvent, screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { SchemaState } from '@altinn/schema-editor/types';
 import {
   fieldNode1Mock,
   nodeWithCustomPropsMock,
-  parentNodeMock,
+  combinationNodeMock,
   toggableNodeMock,
   uiSchemaNodesMock,
 } from '../../../test/mocks/uiSchemaMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
-import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
 import userEvent from '@testing-library/user-event';
 import { getSavedModel } from '../../../test/test-utils';
 
 const user = userEvent.setup();
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const modelPath = 'test';
 const saveDatamodel = jest.fn();
-const defaultNode: UiSchemaNode = parentNodeMock;
-const defaultState: Partial<SchemaState> = {
-  selectedEditorTab: 'properties',
-  selectedPropertyNodeId: parentNodeMock.pointer,
-};
+const defaultNode: UiSchemaNode = combinationNodeMock;
 
-const renderItemDataComponent = (
-  schemaNode: Partial<UiSchemaNode> = {},
-  state: Partial<SchemaState> = {}
-) => {
-
-  queryClientMock.setQueryData(
-    [QueryKey.Datamodel, org, app, modelPath],
-    uiSchemaNodesMock,
-  );
-
+const renderItemDataComponent = (schemaNode: UiSchemaNode = defaultNode) => {
+  const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock);
   return renderWithProviders({
-    state: { ...defaultState, ...state },
-    appContextProps: { modelPath },
-    servicesContextProps: { saveDatamodel },
-  })(<ItemDataComponent schemaNode={{ ...defaultNode, ...schemaNode }}/>);
+    appContextProps: {
+      schemaModel,
+      save: saveDatamodel,
+      selectedNodePointer: schemaNode.pointer,
+    },
+  })(<ItemDataComponent schemaNode={schemaNode} />);
 };
 
 describe('ItemDataComponent', () => {
   afterEach(jest.clearAllMocks);
 
   test('"Multiple answers" checkbox should appear if selected item is field', async () => {
-    renderItemDataComponent(
-      fieldNode1Mock,
-      { selectedPropertyNodeId: fieldNode1Mock.pointer }
-    );
+    renderItemDataComponent(fieldNode1Mock);
     expect(await screen.findByLabelText(textMock('schema_editor.multiple_answers'))).toBeDefined();
   });
 
   test('"Multiple answers" checkbox should not appear if selected item is combination', async () => {
     renderItemDataComponent();
-    await screen.findByLabelText(`${textMock('schema_editor.name')} *`);
-    expect(screen.queryByLabelText(textMock('schema_editor.multiple_answers'))).toBeNull()
+    await screen.findByLabelText(textMock('schema_editor.name'));
+    expect(screen.queryByLabelText(textMock('schema_editor.multiple_answers'))).toBeNull();
   });
 
   test('Model is saved when "multiple answers" checkbox is checked', async () => {
-    renderItemDataComponent(
-      toggableNodeMock,
-      { selectedPropertyNodeId: toggableNodeMock.pointer }
-    );
+    renderItemDataComponent(toggableNodeMock);
     const checkbox = screen.queryByLabelText(textMock('schema_editor.multiple_answers'));
     if (checkbox === null) fail();
     await act(() => user.click(checkbox));
@@ -81,10 +60,7 @@ describe('ItemDataComponent', () => {
   });
 
   test('"Nullable" checkbox should not appear if selected item is not combination', async () => {
-    renderItemDataComponent(
-      fieldNode1Mock,
-      { selectedPropertyNodeId: fieldNode1Mock.pointer }
-    );
+    renderItemDataComponent(fieldNode1Mock);
     await screen.findAllByRole('combobox');
     expect(screen.queryByLabelText(textMock('schema_editor.nullable'))).toBeNull();
   });
@@ -110,7 +86,7 @@ describe('ItemDataComponent', () => {
     await act(() => user.tab());
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
-    const updatedNode = getNodeByPointer(updatedModel, parentNodeMock.pointer);
+    const updatedNode = updatedModel.getNode(combinationNodeMock.pointer);
     expect(updatedNode.title).toEqual(title);
   });
 
@@ -127,7 +103,7 @@ describe('ItemDataComponent', () => {
     await act(() => user.tab());
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
-    const updatedNode = getNodeByPointer(updatedModel, parentNodeMock.pointer);
+    const updatedNode = updatedModel.getNode(combinationNodeMock.pointer);
     expect(updatedNode.description).toEqual(description);
   });
 
@@ -138,19 +114,15 @@ describe('ItemDataComponent', () => {
   });
 
   it('Renders custom properties section if there are custom properties', async () => {
-    renderItemDataComponent(
-      nodeWithCustomPropsMock,
-      { selectedPropertyNodeId: nodeWithCustomPropsMock.pointer }
-    );
+    renderItemDataComponent(nodeWithCustomPropsMock);
     expect(await screen.findByText(textMock('schema_editor.custom_props'))).toBeInTheDocument();
   });
 
-  test('should handleChangeNodeName prevent showing an error message when there is no changing in text', async () => {
+  test('Does not render an error message when there is no change in text', async () => {
     renderItemDataComponent();
-    const inputField = screen.getByLabelText(`${textMock('schema_editor.name')} *`);
+    const inputField = screen.getByLabelText(textMock('schema_editor.name'));
     await act(() => user.type(inputField, 'test'));
     fireEvent.blur(inputField);
     expect(screen.queryByText(textMock('schema_editor.nameError_alreadyInUse'))).toBeNull();
   });
-
 });

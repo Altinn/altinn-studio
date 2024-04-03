@@ -1,37 +1,45 @@
 import React, { useState } from 'react';
 import classes from './ThreeDotsMenu.module.css';
-import { CogIcon, TabsIcon } from '@navikt/aksel-icons';
-import { Link, useParams } from 'react-router-dom';
+import { MonitorIcon, TabsIcon, MenuElipsisVerticalIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
 import { GiteaIcon } from 'app-shared/icons';
-import { Popover, Button } from '@digdir/design-system-react';
-import { MenuElipsisVerticalIcon } from '@navikt/aksel-icons';
-import { CloneModal } from './CloneModal';
+import { LegacyPopover } from '@digdir/design-system-react';
 
-interface Props {
+import { CloneModal } from './CloneModal';
+import { StudioButton } from '@studio/components';
+import { LocalChangesModal } from './LocalChangesModal';
+
+export type ThreeDotsMenuProps = {
   onlyShowRepository?: boolean;
   hasCloneModal?: boolean;
-}
+  org: string;
+  app: string;
+};
 
-export const ThreeDotsMenu = ({ onlyShowRepository = false, hasCloneModal = false }: Props) => {
+export const ThreeDotsMenu = ({
+  onlyShowRepository = false,
+  hasCloneModal = false,
+  org,
+  app,
+}: ThreeDotsMenuProps) => {
   const [cloneModalAnchor, setCloneModalAnchor] = useState(null);
-  const { org, app } = useParams();
   const { t } = useTranslation();
   const closeCloneModal = () => setCloneModalAnchor(null);
   const openCloneModal = (event: React.MouseEvent) => setCloneModalAnchor(event.currentTarget);
+  const [localChangesModalIsOpen, setLocalChangesModalIsOpen] = useState(false);
 
   return (
     <>
-      <Popover
+      <LegacyPopover
         className={classes.popover}
         trigger={
-          <Button
-            icon={<MenuElipsisVerticalIcon title='Gitea menu' />}
-            variant='quiet'
+          <StudioButton
             color='inverted'
-            data-testid='menuBtn'
+            icon={<MenuElipsisVerticalIcon />}
             size='small'
+            title={t('sync_header.gitea_menu')}
+            variant='tertiary'
           />
         }
       >
@@ -51,21 +59,27 @@ export const ThreeDotsMenu = ({ onlyShowRepository = false, hasCloneModal = fals
               <span className={classes.iconWrapper}>
                 <GiteaIcon className={classes.icon + ' ' + classes.giteaIcon} />
               </span>
-              <span>{t('dashboard.repository')}</span>
+              <span>{t('sync_header.repository')}</span>
             </a>
           </li>
-          {!onlyShowRepository && (
-            <li>
-              <Link to={`/${org}/${app}/accesscontrol`} className={classes.link}>
-                <span className={classes.iconWrapper}>
-                  <CogIcon className={classes.icon} />
-                </span>
-                <span>{t('sync_header.settings')}</span>
-              </Link>
-            </li>
+          <li>
+            <button onClick={() => setLocalChangesModalIsOpen(true)} className={classes.link}>
+              <span className={classes.iconWrapper}>
+                <MonitorIcon className={classes.icon} />
+              </span>
+              <span>{t('sync_header.local_changes')}</span>
+            </button>
+          </li>
+          {localChangesModalIsOpen && (
+            <LocalChangesModal
+              isOpen={localChangesModalIsOpen}
+              onClose={() => setLocalChangesModalIsOpen(false)}
+              org={org}
+              app={app}
+            />
           )}
         </ul>
-      </Popover>
+      </LegacyPopover>
       {hasCloneModal && <CloneModal anchorEl={cloneModalAnchor} onClose={closeCloneModal} />}
     </>
   );

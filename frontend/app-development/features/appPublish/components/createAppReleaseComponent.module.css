@@ -5,30 +5,7 @@
   gap: 1rem;
 }
 
-.createReleaseInvalidTagName {
-  background-color: #fbf6bd;
-  padding: 1.2rem;
-  padding: 1.2rem 0 1.2rem 0;
-}
-
-.createReleaseErrorPopoverRoot {
-  background-color: #f9cad3;
-}
-
-.popoverErrorIcon {
-  color: #e23b53;
-  padding-top: 0.8rem;
-}
-
-.popoverErrorText {
-  padding-top: 0.5rem;
-}
-
-.popoverTechnicalErrorText {
-  font-size: 1.4rem;
-  padding-top: 0.5rem;
-}
-
 .releaseVersionInput {
   width: 50%;
+  margin-bottom: 8px;
 }

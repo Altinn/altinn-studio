@@ -1,5 +1,5 @@
 const fs = require('fs');
-const prettier = require('prettier');
+const prettier = require('prettier/standalone');
 const { getStoragePath } = require('../utils');
 
 module.exports = (req, res) => {

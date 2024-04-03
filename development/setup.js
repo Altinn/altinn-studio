@@ -17,7 +17,7 @@ const createUser = (username, password, admin) =>
       `--email ${username}@digdir.no`,
       admin ? `--admin` : undefined,
       `--must-change-password=false`,
-    ].join(' ')
+    ].join(' '),
   );
 
 const ensureUserPassword = (username, password) =>
@@ -26,7 +26,7 @@ const ensureUserPassword = (username, password) =>
       `docker exec studio-repositories gitea admin user change-password`,
       `--username ${username}`,
       `--password ${password}`,
-    ].join(' ')
+    ].join(' '),
   );
 
 const createTestDepOrg = (env) =>
@@ -63,7 +63,7 @@ const createTestDepTeams = async (env) => {
           {
             units: ['repo.code', 'repo.issues', 'repo.pulls', 'repo.releases'],
           },
-          team
+          team,
         ),
       });
     }
@@ -99,13 +99,19 @@ const addUserToSomeTestDepTeams = async (env) => {
 
 const addReleaseAndDeployTestDataToDb = async () =>
   runCommand(
-    [`docker exec -i studio-db psql`, `-U designer_admin designerdb`, `< db/data.sql`].join(' ')
+    [
+      `docker exec -i studio-db psql`,
+      `-U designer_admin designerdb`,
+      `< development/db/data.sql`,
+    ].join(' '),
   );
 
 const script = async () => {
   const env = ensureDotEnv();
   await dnsIsOk('studio.localhost');
-  await dnsIsOk('host.docker.internal');
+  if (!(env.IGNORE_DOCKER_DNS_LOOKUP === 'true')) {
+    await dnsIsOk('host.docker.internal');
+  }
   await startingDockerCompose();
   await waitFor('http://studio.localhost/repos/');
   await createUser(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS, true);

@@ -1,8 +1,8 @@
 import { copyNodePointer } from './copy-node';
 import { buildUiSchema } from '../build-ui-schema';
 import { FieldType, Keyword } from '../../types';
-import { makePointer as p } from '../utils';
 import { getRootNode } from '../selectors';
+import { makePointerFromArray } from '../pointerUtils';
 
 const { Properties, Type } = Keyword;
 
@@ -15,8 +15,8 @@ describe('copyNodePointer', () => {
     });
     const mutatedNodes = copyNodePointer(
       uiSchemaNodes,
-      p(Properties, 'email'),
-      p(Properties, 'copiedEmail')
+      makePointerFromArray([Properties, 'email']),
+      makePointerFromArray([Properties, 'copiedEmail']),
     );
     expect(mutatedNodes).toHaveLength(3);
     expect(getRootNode(mutatedNodes).children).toHaveLength(2);

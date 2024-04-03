@@ -2,8 +2,8 @@ import React from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useTranslation } from 'react-i18next';
 import { FormField } from '../../FormField';
-import { Select, TextField } from '@digdir/design-system-react';
-import { getComponentPropertyLabel } from '../../../utils/language';
+import { LegacySelect, Textfield } from '@digdir/design-system-react';
+import { useComponentPropertyLabel } from '../../../hooks/useComponentPropertyLabel';
 
 export interface EditStringValueProps extends IGenericEditComponent {
   propertyKey: string;
@@ -21,6 +21,7 @@ export const EditStringValue = ({
   multiple,
 }: EditStringValueProps) => {
   const { t } = useTranslation();
+  const componentPropertyLabel = useComponentPropertyLabel();
 
   const handleValueChange = (newValue: string) => {
     handleComponentChange({
@@ -32,7 +33,7 @@ export const EditStringValue = ({
   return (
     <FormField
       id={component.id}
-      label={getComponentPropertyLabel(propertyKey, t)}
+      label={componentPropertyLabel(propertyKey)}
       value={component[propertyKey]}
       onChange={handleValueChange}
       propertyPath={`${component.propertyPath}/properties/${propertyKey}`}
@@ -42,25 +43,26 @@ export const EditStringValue = ({
           return t('validation_errors.pattern');
         }
       }}
-    >
-      {enumValues
-        ? ({ onChange }) => (
-            <Select
-              options={enumValues.map((value) => ({
-                label: value,
-                value: value,
-              }))}
-              onChange={(e: any) => onChange(e)}
-              multiple={multiple}
-              inputId={`component-${propertyKey}-select${component.id}`}
-            />
-          )
-        : ({ onChange }) => (
-            <TextField
-              name={`component-id-input${component.id}`}
-              onChange={(e) => onChange(e.target.value, e)}
-            />
-          )}
-    </FormField>
+      renderField={({ fieldProps }) =>
+        enumValues ? (
+          <LegacySelect
+            {...fieldProps}
+            options={enumValues.map((value) => ({
+              label: value,
+              value: value,
+            }))}
+            onChange={(e: any) => fieldProps.onChange(e)}
+            multiple={multiple}
+            inputId={`component-${propertyKey}-select${component.id}`}
+          />
+        ) : (
+          <Textfield
+            {...fieldProps}
+            id={`component-id-input${component.id}`}
+            onChange={(e) => fieldProps.onChange(e.target.value, e)}
+          />
+        )
+      }
+    />
   );
 };

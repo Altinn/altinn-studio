@@ -1,155 +1,45 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import type { ChangeEvent } from 'react';
+import React from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
-import {
-  TextField,
-  Popover,
-  PopoverVariant,
-  Button,
-  ButtonSize,
-  ButtonColor,
-  ButtonVariant,
-} from '@digdir/design-system-react';
-import { stringToArray, arrayToString } from '../../../utils/stringUtils';
-import { replaceLastItem } from 'app-shared/utils/arrayUtils';
-import { FormField } from '../../FormField';
+import { NativeSelect } from '@digdir/design-system-react';
+import { HTMLAutoCompleteValue } from 'app-shared/types/HTMLAutoCompleteValue';
+import { useTranslation } from 'react-i18next';
+import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { FormItem } from '../../../types/FormItem';
 
-const getLastWord = (value: string) => value.split(' ').pop();
-const stdAutocompleteOpts = [
-  'on',
-  'off',
-  'name',
-  'honorific-prefix',
-  'given-name',
-  'additional-name',
-  'family-name',
-  'honorific-suffix',
-  'nickname',
-  'email',
-  'username',
-  'new-password',
-  'current-password',
-  'one-time-code',
-  'organization-title',
-  'organization',
-  'street-address',
-  'address-line1',
-  'address-line2',
-  'address-line3',
-  'address-level4',
-  'address-level3',
-  'address-level2',
-  'address-level1',
-  'country',
-  'country-name',
-  'postal-code',
-  'cc-name',
-  'cc-given-name',
-  'cc-additional-name',
-  'cc-family-name',
-  'cc-number',
-  'cc-exp',
-  'cc-exp-month',
-  'cc-exp-year',
-  'cc-csc',
-  'cc-type',
-  'transaction-currency',
-  'transaction-amount',
-  'language',
-  'bday',
-  'bday-day',
-  'bday-month',
-  'bday-year',
-  'sex',
-  'tel',
-  'tel-country-code',
-  'tel-national',
-  'tel-area-code',
-  'tel-local',
-  'tel-extension',
-  'url',
-  'photo',
-];
+const htmlAutoCompleteValues: HTMLAutoCompleteValue[] = Object.values(HTMLAutoCompleteValue);
+const isHTMLAutoCompleteValue = (value: string): value is HTMLAutoCompleteValue =>
+  htmlAutoCompleteValues.includes(value as HTMLAutoCompleteValue);
+const options: (HTMLAutoCompleteValue | '')[] = ['', ...htmlAutoCompleteValues];
 
-export const EditAutoComplete = ({ component, handleComponentChange }: IGenericEditComponent) => {
-  const [searchFieldFocused, setSearchFieldFocused] = useState<boolean>(false);
-  const initialAutocompleteText = component?.autocomplete || '';
-  const [autocompleteText, setAutocompleteText] = useState<string>(initialAutocompleteText);
+export const EditAutoComplete = ({
+  component,
+  handleComponentChange,
+}: IGenericEditComponent<ComponentType.Input | ComponentType.TextArea>) => {
+  const { t } = useTranslation();
 
-  useEffect(() => {
-    setAutocompleteText(initialAutocompleteText);
-  }, [initialAutocompleteText, component.id]);
-
-  const autoCompleteOptions = useMemo((): string[] => {
-    const lastWord = getLastWord(autocompleteText);
-    return stdAutocompleteOpts.filter((alternative) => alternative.includes(lastWord))?.slice(0, 6);
-  }, [autocompleteText]);
-
-  const buildNewText = (word: string): string => {
-    const wordParts = stringToArray(autocompleteText, ' ');
-    const newWordParts = replaceLastItem(wordParts, word);
-    return arrayToString(newWordParts);
-  };
-
-  const handleWordClick = (word: string): void => {
-    const autocomplete = buildNewText(word);
-    setAutocompleteText(autocomplete);
-    handleComponentChange({
+  const handleChange = (event: ChangeEvent<HTMLSelectElement>): void => {
+    const { value } = event.target;
+    const newValue = isHTMLAutoCompleteValue(value) ? value : undefined;
+    const updatedComponent: FormItem<ComponentType.Input | ComponentType.TextArea> = {
       ...component,
-      autocomplete,
-    });
-    setSearchFieldFocused(false);
-  };
-
-  const handleChange = (value: string): void => {
-    if (!searchFieldFocused) setSearchFieldFocused(true);
-    setAutocompleteText(value);
+      autocomplete: newValue,
+    };
+    handleComponentChange(updatedComponent);
   };
 
   return (
-    <div>
-      <FormField
-        id={component.id}
-        label='Autocomplete (WCAG)'
-        value={autocompleteText}
-        onChange={handleWordClick}
-        propertyPath={`${component.propertyPath}/properties/autocomplete`}
-      >
-        {
-          ({ onChange }) => <TextField
-            onFocus={(): void => setSearchFieldFocused(true)}
-            onBlur={(): void => {
-              if (searchFieldFocused) setSearchFieldFocused(false);
-            }}
-            onChange={(event) => {
-              const { value } = event.target;
-              handleChange(value);
-              onChange(value);
-            }}
-          />
-        }
-      </FormField>
-      <Popover
-        variant={PopoverVariant.Default}
-        open={searchFieldFocused && autoCompleteOptions.length > 0}
-        placement='bottom-start'
-        arrow={false}
-        trigger={<div />}
-      >
-      {autoCompleteOptions.map(
-        (option): JSX.Element => (
-          <Button
-            role='option'
-            key={option}
-            size={ButtonSize.Small}
-            color={ButtonColor.Secondary}
-            variant={ButtonVariant.Quiet}
-            onMouseDown={() => handleWordClick(option)}
-          >
-            {option}
-          </Button>
-        )
-      )}
-      </Popover>
-    </div>
+    <NativeSelect
+      label={t('ux_editor.component_properties.autocomplete')}
+      onChange={handleChange}
+      defaultValue={component.autocomplete}
+      size='small'
+    >
+      {options.map((value: HTMLAutoCompleteValue) => (
+        <option key={value} value={value}>
+          {value || t('ux_editor.component_properties.autocomplete_default')}
+        </option>
+      ))}
+    </NativeSelect>
   );
 };

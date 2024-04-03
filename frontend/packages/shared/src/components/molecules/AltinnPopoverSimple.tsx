@@ -3,7 +3,7 @@ import classes from './AltinnPopoverSimple.module.css';
 import type { PopoverOrigin } from '@mui/material';
 import { ButtonContainer } from 'app-shared/primitives';
 import { Popover } from '@mui/material';
-import { Button, ButtonColor } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 
 export interface IAltinnPopoverProps {
   anchorEl: any;
@@ -18,7 +18,6 @@ export interface IAltinnPopoverProps {
   children: React.ReactNode;
   handleClose: any;
   paperProps?: any;
-  testId?: string;
   transformOrigin?: PopoverOrigin;
   open: boolean;
 }
@@ -55,25 +54,29 @@ export const AltinnPopoverSimple = (props: IAltinnPopoverProps) => {
       anchorReference={props.anchorEl ? 'anchorEl' : 'none'}
       PaperProps={{ square: true, ...props.paperProps }}
       aria-label={props.ariaLabel ? props.ariaLabel : ''}
-      data-testid={props.testId}
     >
       <div className={classes.container}>
         <div>{props.children}</div>
         <ButtonContainer>
           {props.btnConfirmText && (
-            <Button id={props.btnPrimaryId} color={ButtonColor.Primary} onClick={btnClickedHandler} size='small'>
+            <StudioButton
+              id={props.btnPrimaryId}
+              color='first'
+              onClick={btnClickedHandler}
+              size='small'
+            >
               {props.btnConfirmText}
-            </Button>
+            </StudioButton>
           )}
           {props.btnCancelText && (
-            <Button
+            <StudioButton
               id={props.btnSecondaryId}
-              color={ButtonColor.Inverted}
+              color='inverted'
               onClick={handleButtonClose}
               size='small'
             >
               {props.btnCancelText}
-            </Button>
+            </StudioButton>
           )}
         </ButtonContainer>
       </div>

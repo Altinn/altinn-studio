@@ -8,7 +8,6 @@ using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Fixtures;
 using DotNet.Testcontainers.Builders;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Mvc.Testing.Handlers;
 using Microsoft.AspNetCore.TestHost;
@@ -19,8 +18,7 @@ using Xunit;
 namespace Designer.Tests.GiteaIntegrationTests
 {
     [Collection(nameof(GiteaCollection))]
-    public abstract class GiteaIntegrationTestsBase<TController, TControllerTest> : ApiTestsBase<TController, TControllerTest>, IDisposable
-        where TController : ControllerBase
+    public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<TControllerTest>
         where TControllerTest : class
     {
         protected readonly GiteaFixture GiteaFixture;
@@ -29,30 +27,33 @@ namespace Designer.Tests.GiteaIntegrationTests
 
         private CookieContainer CookieContainer { get; } = new CookieContainer();
 
-        /// <summary>
-        /// Used when performing chained calls to designer api
-        /// </summary>
-        protected void InvalidateAllCookies()
-        {
-            foreach (Cookie cookie in CookieContainer.GetAllCookies())
-            {
-                cookie.Expires = DateTime.Now - TimeSpan.FromHours(1);
-            }
-        }
+        /// On some systems path too long error occurs if repo is nested deep in file system.
+        protected override string TestRepositoriesLocation =>
+            Path.Combine(Path.GetTempPath(), "altinn", "tests", "repos");
 
-        public void Dispose()
+
+        protected override void Dispose(bool disposing)
         {
+            base.Dispose(disposing);
+            if (!disposing)
+            {
+                return;
+            }
+
             DeleteDirectoryIfExists(CreatedFolderPath);
         }
 
-        private static void DeleteDirectoryIfExists(string directoryPath)
+        protected static void DeleteDirectoryIfExists(string directoryPath)
         {
             if (string.IsNullOrWhiteSpace(directoryPath) || !Directory.Exists(directoryPath))
             {
                 return;
             }
 
-            var directory = new DirectoryInfo(directoryPath) { Attributes = FileAttributes.Normal };
+            var directory = new DirectoryInfo(directoryPath)
+            {
+                Attributes = FileAttributes.Normal
+            };
 
             foreach (var info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
             {
@@ -67,7 +68,7 @@ namespace Designer.Tests.GiteaIntegrationTests
 
         }
 
-        protected GiteaIntegrationTestsBase(WebApplicationFactory<TController> factory, GiteaFixture giteaFixture) : base(factory)
+        protected GiteaIntegrationTestsBase(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture) : base(factory)
         {
             GiteaFixture = giteaFixture;
         }
@@ -122,9 +123,34 @@ namespace Designer.Tests.GiteaIntegrationTests
                 HttpMethod.Post,
                 $"designer/api/repos/create-app?org={org}&repository={repoName}");
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.Created);
-            InvalidateAllCookies();
         }
+
+        protected static string GetCommitInfoJson(string text, string org, string repository) =>
+            @$"{{
+                    ""message"": ""{text}"",
+                    ""org"": ""{org}"",
+                    ""repository"": ""{repository}""
+                }}";
+
+        protected static string GenerateCommitJsonPayload(string text, string message) =>
+            @$"{{
+                 ""author"": {{
+                     ""email"": ""{GiteaConstants.AdminEmail}"",
+                     ""name"": ""{GiteaConstants.AdminUser}""
+                 }},
+                 ""committer"": {{
+                     ""email"": ""{GiteaConstants.AdminEmail}"",
+                     ""name"": ""{GiteaConstants.AdminUser}""
+                 }},
+                 ""content"": ""{Convert.ToBase64String(Encoding.UTF8.GetBytes(text))}"",
+                 ""dates"": {{
+                     ""author"": ""{DateTime.Now:O}"",
+                     ""committer"": ""{DateTime.Now:O}""
+                 }},
+                 ""message"": ""{message}"",
+                 ""signoff"": true
+            }}";
     }
 }

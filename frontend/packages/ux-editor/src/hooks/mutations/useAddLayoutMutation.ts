@@ -2,16 +2,17 @@ import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useDispatch } from 'react-redux';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
-import { deepCopy } from 'app-shared/pure';
-import { convertInternalToLayoutFormat, createEmptyLayout } from '../../utils/formLayoutUtils';
-import { IInternalLayout } from '../../types/global';
-import { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
+import { ObjectUtils } from '@studio/pure-functions';
+import { createEmptyLayout } from '../../utils/formLayoutUtils';
+import type { IInternalLayout } from '../../types/global';
+import type { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
-import { ILayoutSettings } from 'app-shared/types/global';
+import type { ILayoutSettings } from 'app-shared/types/global';
 import { addOrRemoveNavigationButtons } from '../../utils/formLayoutsUtils';
+import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
 
 export interface AddLayoutMutationArgs {
   layoutName: string;
@@ -27,7 +28,7 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
   const queryClient = useQueryClient();
 
   const save = async (updatedLayoutName: string, updatedLayout: IInternalLayout) => {
-    const convertedLayout: ExternalFormLayout = convertInternalToLayoutFormat(updatedLayout);
+    const convertedLayout: ExternalFormLayout = internalLayoutToExternal(updatedLayout);
     return await saveFormLayout(org, app, updatedLayoutName, layoutSetName, convertedLayout);
   };
 
@@ -37,31 +38,32 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
       const layouts = formLayoutsQuery.data;
 
       if (Object.keys(layouts).indexOf(layoutName) !== -1) throw Error('Layout already exists');
-      let newLayouts = deepCopy(layouts);
+      let newLayouts = ObjectUtils.deepCopy(layouts);
 
       newLayouts[layoutName] = createEmptyLayout();
       newLayouts = await addOrRemoveNavigationButtons(
         newLayouts,
         save,
         layoutName,
-        isReceiptPage ? layoutName : layoutSettings.receiptLayoutName
+        isReceiptPage ? layoutName : layoutSettings.receiptLayoutName,
       );
       return { newLayouts, layoutName, isReceiptPage };
     },
 
     onSuccess: async ({ newLayouts, layoutName, isReceiptPage }) => {
-      const layoutSettings: ILayoutSettings = deepCopy(formLayoutSettingsQuery.data);
+      const layoutSettings: ILayoutSettings = ObjectUtils.deepCopy(formLayoutSettingsQuery.data);
       const { order } = layoutSettings?.pages;
 
       if (isReceiptPage) layoutSettings.receiptLayoutName = layoutName;
       else order.push(layoutName);
 
       await formLayoutSettingsMutation.mutateAsync(layoutSettings);
+
       dispatch(
         FormLayoutActions.addLayoutFulfilled({
           layoutOrder: order,
-          receiptLayoutName: layoutSettings.receiptLayoutName,
-        })
+          receiptLayoutName: isReceiptPage ? layoutSettings.receiptLayoutName : undefined,
+        }),
       );
 
       queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], () => newLayouts);

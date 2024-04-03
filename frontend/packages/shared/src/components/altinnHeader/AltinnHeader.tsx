@@ -5,15 +5,18 @@ import { AltinnSubMenu } from '../altinnSubHeader';
 import { AltinnHeaderMenu } from '../altinnHeaderMenu';
 import { AltinnHeaderButton } from '../altinnHeaderButtons/AltinnHeaderButton';
 import { AltinnHeaderProfile } from '../AltinnHeaderProfile';
-import { User } from 'app-shared/types/User';
+import type { User, Repository } from 'app-shared/types/Repository';
 import classnames from 'classnames';
-import { AltinnButtonActionItem, AltinnHeaderVariant } from './types';
-import { AltinnHeaderMenuItem } from '../altinnHeaderMenu/AltinnHeaderMenu';
-import { Repository } from 'app-shared/types/Repository';
+import type { AltinnButtonActionItem, AltinnHeaderVariant } from './types';
+
+import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
+import { getRepositoryType } from 'app-shared/utils/repository';
+import { RepositoryType } from 'app-shared/types/global';
+import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
+import { useTranslation } from 'react-i18next';
 
 export interface AltinnHeaderProps {
-  menu: AltinnHeaderMenuItem[];
-  activeMenuSelection?: string;
+  menuItems: TopBarMenuItem[];
   showSubMenu: boolean;
   subMenuContent?: JSX.Element;
   repository: Repository;
@@ -21,13 +24,13 @@ export interface AltinnHeaderProps {
   org: string;
   app: string;
   variant?: AltinnHeaderVariant;
+  repoOwnerIsOrg?: boolean;
   buttonActions: AltinnButtonActionItem[];
 }
 
 export const AltinnHeader = ({
-  menu,
+  menuItems,
   showSubMenu,
-  activeMenuSelection,
   repository,
   org,
   app,
@@ -35,24 +38,37 @@ export const AltinnHeader = ({
   subMenuContent,
   buttonActions,
   variant = 'regular',
+  repoOwnerIsOrg,
 }: AltinnHeaderProps) => {
+  const { t } = useTranslation();
+
+  const repositoryType = getRepositoryType(org, app);
+
   return (
-    <div id='altinn-header-container'>
+    <div role='banner'>
       <div className={classnames(classes.altinnHeaderBar, classes[variant])}>
         <div className={classes.leftContent}>
-          <a href='/'>
+          <a href='/' aria-label={t('top_menu.dashboard')}>
             <AltinnStudioLogo />
           </a>
-          <span className={classes.bigSlash}>/</span>
-          <span className={classes.appName}>{app || ''}</span>
+          {app && (
+            <>
+              <span className={classes.bigSlash}>/</span>
+              <span className={classes.appName}>{app}</span>
+            </>
+          )}
         </div>
-        <AltinnHeaderMenu activeSubHeaderSelection={activeMenuSelection} menu={menu} />
+        <AltinnHeaderMenu menuItems={menuItems} />
         <div className={classes.rightContent}>
           {buttonActions && (
             <div className={classes.rightContentButtons}>
-              {buttonActions.map((action) => (
-                <AltinnHeaderButton key={action.menuKey} action={action} />
-              ))}
+              {buttonActions.map((action) =>
+                !repoOwnerIsOrg && action.menuKey === TopBarMenu.Deploy
+                  ? null
+                  : repositoryType !== RepositoryType.Datamodels && (
+                      <AltinnHeaderButton key={action.menuKey} action={action} />
+                    ),
+              )}
             </div>
           )}
           <AltinnHeaderProfile org={org} repository={repository} user={user} />

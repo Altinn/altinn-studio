@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -130,7 +131,11 @@ namespace Altinn.Studio.Designer.Controllers
             XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, resourceid);
             if (xacmlPolicy == null)
             {
-                return NotFound();
+                ModelState.AddModelError("policy", "policyerror.missingpolicy");
+                ValidationProblemDetails missigPolicyValidation = ProblemDetailsFactory.CreateValidationProblemDetails(HttpContext, ModelState);
+                missigPolicyValidation.Status = 404;
+
+                return Ok(missigPolicyValidation);
             }
 
             ResourcePolicy resourcePolicy = PolicyConverter.ConvertPolicy(xacmlPolicy);
@@ -144,18 +149,18 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet]
         [Route("subjectoptions")]
-        public async Task<ActionResult> GetSubjectOptions(string org, string app)
+        public async Task<ActionResult> GetSubjectOptions(string org, string app, CancellationToken cancellationToken)
         {
-            List<SubjectOption> subjectOptions = await _policyOptions.GetSubjectOptions();
+            List<SubjectOption> subjectOptions = await _policyOptions.GetSubjectOptions(cancellationToken);
             return Ok(subjectOptions);
         }
 
 
         [HttpGet]
         [Route("actionoptions")]
-        public async Task<ActionResult> GetActionOptions(string org, string app)
+        public async Task<ActionResult> GetActionOptions(string org, string app, CancellationToken cancellationToken)
         {
-            List<ActionOption> actionOptions = await _policyOptions.GetActionOptions();
+            List<ActionOption> actionOptions = await _policyOptions.GetActionOptions(cancellationToken);
 
             return Ok(actionOptions);
         }

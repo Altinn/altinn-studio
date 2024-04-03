@@ -349,6 +349,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
         {
             if (IsRefType(subSchema))
             {
+                context.IsNillable = IsNillableType(path);
                 ProcessRefType(subSchema, context);
             }
             else if (IsNillableType(path))
@@ -476,7 +477,8 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                     Restrictions = context.Restrictions,
                     DataBindingName = GetDataBindingName(ElementType.Group, maxOccurs, id, null, xPath),
                     DisplayString = GetDisplayString(id, typeName, minOccurs, maxOccurs),
-                    IsTagContent = context.XmlText
+                    IsTagContent = context.XmlText,
+                    Nillable = context.IsNillable
                 });
         }
 
@@ -531,7 +533,8 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                     FixedValue = fixedValue,
                     DataBindingName = GetDataBindingName(@type, maxOccurs, id, fixedValue, xPath),
                     DisplayString = GetDisplayString(id, context.SchemaValueType.ToString(), minOccurs, maxOccurs),
-                    IsTagContent = context.XmlText
+                    IsTagContent = context.XmlText,
+                    Nillable = context.IsNillable
                 });
         }
 
@@ -598,20 +601,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
         {
             var baseValueType = BaseValueType.Integer;
 
-            if (subSchema.TryGetKeyword(out MinimumKeyword minimumKeyword))
-            {
-                decimal? minimum = minimumKeyword.Value;
-
-                if (minimum > 0.0m)
-                {
-                    baseValueType = BaseValueType.PositiveInteger;
-                }
-                else if (minimum == 0.0m)
-                {
-                    baseValueType = BaseValueType.NonNegativeInteger;
-                }
-            }
-            else if (TryParseXsdTypeKeyword(subSchema, out var parsedBaseValueType))
+            if (TryParseXsdTypeKeyword(subSchema, out var parsedBaseValueType))
             {
                 baseValueType = parsedBaseValueType;
             }

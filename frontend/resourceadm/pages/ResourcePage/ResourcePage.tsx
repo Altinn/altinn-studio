@@ -1,44 +1,58 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { LeftNavigationBar } from 'resourceadm/components/LeftNavigationBar';
-import { NavigationBarPageType, ResourceBackendType } from 'resourceadm/types/global';
+import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import classes from './ResourcePage.module.css';
 import { PolicyEditorPage } from '../PolicyEditorPage';
-import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
+import { getResourceDashboardURL, getResourcePageURL } from '../../utils/urlUtils';
 import { DeployResourcePage } from '../DeployResourcePage';
 import {
-  useResourceSectorsQuery,
-  useResourceThematicAreaEurovocQuery,
-  useResourceThematicAreaLosQuery,
   useSinlgeResourceQuery,
   useValidatePolicyQuery,
   useValidateResourceQuery,
-} from 'resourceadm/hooks/queries';
-import { MergeConflictModal } from 'resourceadm/components/MergeConflictModal';
+} from '../../hooks/queries';
+import { MergeConflictModal } from '../../components/MergeConflictModal';
 import { AboutResourcePage } from '../AboutResourcePage';
-import { NavigationModal } from 'resourceadm/components/NavigationModal';
+import { NavigationModal } from '../../components/NavigationModal';
 import { Spinner } from '@digdir/design-system-react';
-import { useEditResourceMutation } from 'resourceadm/hooks/mutations';
+import { useEditResourceMutation } from '../../hooks/mutations';
 import { MigrationPage } from '../MigrationPage';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
+import type { Resource } from 'app-shared/types/ResourceAdm';
+import { useTranslation } from 'react-i18next';
+import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
+import {
+  GavelSoundBlockIcon,
+  InformationSquareIcon,
+  MigrationIcon,
+  UploadIcon,
+} from '@studio/icons';
+import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
+import { createNavigationTab, deepCompare } from '../../utils/resourceUtils';
+import { ResourceAccessLists } from '../../components/ResourceAccessLists';
+import { AccessListDetail } from '../../components/AccessListDetails';
+import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery';
+import { useUrlParams } from '../../hooks/useSelectedContext';
 
 /**
- * Displays the 3 pages to manage resources and a left navigation bar.
+ * @component
+ *    Displays the 4 pages to manage resources and a left navigation bar.
+ *
+ * @returns {React.JSX.Element} - The rendered component
  */
-export const ResourcePage = () => {
+export const ResourcePage = (): React.JSX.Element => {
+  const { t } = useTranslation();
+
   const navigate = useNavigate();
+  const autoSaveTimeoutRef = useRef(undefined);
 
-  const { pageType, resourceId, selectedContext } = useParams();
-  const repo = `${selectedContext}-resources`;
+  const { pageType, resourceId, selectedContext, repo, env, accessListId } = useUrlParams();
+  const currentPage = pageType as NavigationBarPage;
 
-  const [currentPage, setCurrentPage] = useState<NavigationBarPageType>(
-    pageType as NavigationBarPageType
-  );
   // Stores the temporary next page
-  const [nextPage, setNextPage] = useState<NavigationBarPageType>('about');
-  const [newPageClicked, setNewPageClicked] = useState<NavigationBarPageType>(null);
+  const [nextPage, setNextPage] = useState<NavigationBarPage>('about');
 
-  const [hasMergeConflict, setHasMergeConflict] = useState(false);
+  // Use a local resource object as model to update immediately after user input. Use debounce to save this object every 500 ms
+  const [resourceData, setResourceData] = useState<Resource | null>(null);
 
   // Handle the state of resource and policy errors
   const [showResourceErrors, setShowResourceErrors] = useState(false);
@@ -47,58 +61,55 @@ export const ResourcePage = () => {
   const [policyErrorModalOpen, setPolicyErrorModalOpen] = useState(false);
 
   // Get the metadata for Gitea
-  const { data: repoStatus, refetch } = useRepoStatusQuery(selectedContext, repo);
+  const { data: repoStatus, refetch: refetchRepoStatus } = useRepoStatusQuery(
+    selectedContext,
+    repo,
+  );
 
   // Get metadata for policy
   const { refetch: refetchValidatePolicy } = useValidatePolicyQuery(
     selectedContext,
     repo,
-    resourceId
+    resourceId,
   );
 
   // Get metadata for resource
   const { refetch: refetchValidateResource } = useValidateResourceQuery(
     selectedContext,
     repo,
-    resourceId
+    resourceId,
   );
+
   const {
-    data: resourceData,
+    data: loadedResourceData,
     refetch: refetchResource,
-    isLoading: resourceLoading,
+    isPending: resourcePending,
   } = useSinlgeResourceQuery(selectedContext, repo, resourceId);
-  const { data: sectorsData, isLoading: sectorsLoading } = useResourceSectorsQuery(selectedContext);
-  const { data: losData, isLoading: losLoading } = useResourceThematicAreaLosQuery(selectedContext);
-  const { data: eurData, isLoading: eurLoading } =
-    useResourceThematicAreaEurovocQuery(selectedContext);
+
+  const { data: accessList } = useGetAccessListQuery(selectedContext, accessListId, env);
 
   // Mutation function for editing a resource
   const { mutate: editResource } = useEditResourceMutation(selectedContext, repo, resourceId);
 
-  /**
-   * If repostatus is not undefined, set the flags for if the repo has merge
-   * conflict and if the repo is in sync
-   */
+  // Set resourceData when loaded from server. Should only be called once
   useEffect(() => {
-    if (repoStatus) {
-      setHasMergeConflict(repoStatus.hasMergeConflict);
+    if (!resourceData && loadedResourceData) {
+      setResourceData(loadedResourceData);
     }
-  }, [repoStatus]);
+  }, [loadedResourceData, resourceData]);
 
-  /**
-   * Check if the pageType parameter has changed and update the currentPage
-   */
-  useEffect(() => {
-    setCurrentPage(pageType as NavigationBarPageType);
-  }, [pageType]);
+  const debounceSave = (resource: Resource): void => {
+    clearTimeout(autoSaveTimeoutRef.current);
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      editResource(resource);
+    }, 400);
+  };
 
   /**
    * Navigates to the selected page
    */
-  const navigateToPage = async (page: NavigationBarPageType) => {
+  const navigateToPage = async (page: NavigationBarPage) => {
     if (currentPage !== page) {
-      setNewPageClicked(page);
-
       await refetchResource();
 
       // Validate Resource and display errors + modal
@@ -139,20 +150,11 @@ export const ResourcePage = () => {
    *
    * @param newPage the page to navigate to
    */
-  const handleNavigation = (newPage: NavigationBarPageType) => {
-    setNewPageClicked(null);
-    setCurrentPage(newPage);
+  const handleNavigation = (newPage: NavigationBarPage) => {
     setPolicyErrorModalOpen(false);
     setResourceErrorModalOpen(false);
-    refetch();
+    refetchRepoStatus();
     navigate(getResourcePageURL(selectedContext, repo, resourceId, newPage));
-  };
-
-  /**
-   * Takes the user back to where they came from
-   */
-  const goBack = () => {
-    navigate(getResourceDashboardURL(selectedContext, repo));
   };
 
   /**
@@ -161,72 +163,162 @@ export const ResourcePage = () => {
    *
    * @param page the page to navigate to
    */
-  const navigateToPageWithError = async (page: NavigationBarPageType) => {
+  const navigateToPageWithError = async (page: NavigationBarPage) => {
     if (page === 'about') {
       await refetchResource();
       await refetchValidateResource();
       setShowResourceErrors(true);
     }
-    if (page === 'policy') setShowPolicyErrors(true);
+    if (page === 'policy') {
+      setShowPolicyErrors(true);
+    }
     handleNavigation(page);
   };
 
   /**
    * Decide if the migration page should be accessible or not
    */
-  const getShowMigrate = () => {
-    if (resourceData) {
-      if (resourceData.resourceReferences) return true;
-      return false;
+  const isMigrateEnabled = (): boolean => {
+    const hasAltinn2ReferenceSource = resourceData?.resourceReferences?.some(
+      (ref) => ref.referenceSource === 'Altinn2',
+    );
+    return hasAltinn2ReferenceSource;
+  };
+
+  const aboutPageId = 'about';
+  const policyPageId = 'policy';
+  const deployPageId = 'deploy';
+  const migrationPageId = 'migration';
+  const accessListsPageId = 'accesslists';
+
+  const leftNavigationTabs: LeftNavigationTab[] = [
+    createNavigationTab(
+      <InformationSquareIcon className={classes.icon} />,
+      aboutPageId,
+      () => navigateToPage(aboutPageId),
+      currentPage,
+      getResourcePageURL(selectedContext, repo, resourceId, 'about'),
+    ),
+    createNavigationTab(
+      <GavelSoundBlockIcon className={classes.icon} />,
+      policyPageId,
+      () => navigateToPage(policyPageId),
+      currentPage,
+      getResourcePageURL(selectedContext, repo, resourceId, 'policy'),
+    ),
+    createNavigationTab(
+      <UploadIcon className={classes.icon} />,
+      deployPageId,
+      () => navigateToPage(deployPageId),
+      currentPage,
+      getResourcePageURL(selectedContext, repo, resourceId, 'deploy'),
+    ),
+  ];
+
+  const migrationTab: LeftNavigationTab = createNavigationTab(
+    <MigrationIcon className={classes.icon} />,
+    migrationPageId,
+    () => navigateToPage(migrationPageId),
+    currentPage,
+    getResourcePageURL(selectedContext, repo, resourceId, 'migration'),
+  );
+
+  /**
+   * Gets the tabs to display. If showMigrate is true, the migration tab
+   * is added, otherwise it displays the three initial tabs.
+   *
+   * @returns the tabs to display in the LeftNavigationBar
+   */
+  const getTabs = (): LeftNavigationTab[] => {
+    return isMigrateEnabled() ? [...leftNavigationTabs, migrationTab] : leftNavigationTabs;
+  };
+
+  /**
+   * Saves the resource
+   */
+  const handleSaveResource = (r: Resource) => {
+    if (!deepCompare(resourceData, r)) {
+      setResourceData(r);
+      debounceSave(r);
     }
-    return false;
   };
 
   return (
     <div className={classes.resourceWrapper}>
       <div className={classes.leftNavWrapper}>
         <LeftNavigationBar
-          currentPage={currentPage}
-          navigateToPage={navigateToPage}
-          goBack={goBack}
-          showMigrate={getShowMigrate()}
-          newPageClicked={newPageClicked}
+          upperTab='backButton'
+          tabs={getTabs()}
+          backLink={getResourceDashboardURL(selectedContext, repo)}
+          backLinkText={t('resourceadm.left_nav_bar_back')}
+          selectedTab={
+            currentPage === migrationPageId && !isMigrateEnabled() ? aboutPageId : currentPage
+          }
         />
       </div>
-      <div className={classes.resourcePageWrapper}>
-        {currentPage === 'about' &&
-          (resourceLoading || sectorsLoading || losLoading || eurLoading ? (
-            <div className={classes.spinnerWrapper}>
-              <Spinner size='3xLarge' variant='interaction' title='Laster inn ressurs' />
-            </div>
-          ) : (
+      {resourcePending || !resourceData ? (
+        <div className={classes.spinnerWrapper}>
+          <Spinner
+            size='xlarge'
+            variant='interaction'
+            title={t('resourceadm.about_resource_spinner')}
+          />
+        </div>
+      ) : (
+        <div className={classes.resourcePageWrapper}>
+          {currentPage === aboutPageId && (
             <AboutResourcePage
               showAllErrors={showResourceErrors}
               resourceData={resourceData}
-              sectorsData={sectorsData}
-              thematicData={[...losData, ...eurData]}
-              onSaveResource={(r: ResourceBackendType) => {
-                editResource(r, {
-                  // TODO - Display that it was saved
-                  onSuccess: () => {
-                    console.log('success');
-                  },
-                });
-              }}
+              onSaveResource={handleSaveResource}
+              id='page-content-about'
             />
-          ))}
-        {currentPage === 'policy' && <PolicyEditorPage showAllErrors={showPolicyErrors} />}
-        {currentPage === 'deploy' && (
-          <DeployResourcePage navigateToPageWithError={navigateToPageWithError} />
-        )}
-        {currentPage === 'migration' && resourceData && resourceData.resourceReferences && (
-          <MigrationPage navigateToPageWithError={navigateToPageWithError} />
-        )}
-      </div>
-      {hasMergeConflict && (
+          )}
+          {currentPage === policyPageId && (
+            <PolicyEditorPage showAllErrors={showPolicyErrors} id='page-content-policy' />
+          )}
+          {currentPage === deployPageId && (
+            <DeployResourcePage
+              navigateToPageWithError={navigateToPageWithError}
+              resourceVersionText={resourceData?.version ?? ''}
+              onSaveVersion={(version: string) =>
+                handleSaveResource({
+                  ...resourceData,
+                  version,
+                })
+              }
+              id='page-content-deploy'
+            />
+          )}
+          {currentPage === migrationPageId && isMigrateEnabled() && (
+            <MigrationPage
+              navigateToPageWithError={navigateToPageWithError}
+              id='page-content-migration'
+            />
+          )}
+          {currentPage === accessListsPageId && env && !accessListId && (
+            <ResourceAccessLists env={env} resourceData={resourceData} />
+          )}
+          {currentPage === accessListsPageId && env && accessList && (
+            <AccessListDetail
+              key={accessList.identifier}
+              org={selectedContext}
+              env={env}
+              list={accessList}
+              backUrl={`${getResourcePageURL(
+                selectedContext,
+                repo,
+                resourceId,
+                'accesslists',
+              )}/${env}`}
+            />
+          )}
+        </div>
+      )}
+      {repoStatus?.hasMergeConflict && (
         <MergeConflictModal
-          isOpen={hasMergeConflict}
-          handleSolveMerge={refetch}
+          isOpen={repoStatus.hasMergeConflict}
+          handleSolveMerge={refetchRepoStatus}
           org={selectedContext}
           repo={repo}
         />
@@ -236,10 +328,9 @@ export const ResourcePage = () => {
           isOpen={policyErrorModalOpen}
           onClose={() => {
             setPolicyErrorModalOpen(false);
-            setNewPageClicked(null);
           }}
           onNavigate={() => handleNavigation(nextPage)}
-          title='Manglende informasjon i tilgangsregler'
+          title={t('resourceadm.resource_navigation_modal_title_policy')}
         />
       )}
       {resourceErrorModalOpen && (
@@ -247,10 +338,9 @@ export const ResourcePage = () => {
           isOpen={resourceErrorModalOpen}
           onClose={() => {
             setResourceErrorModalOpen(false);
-            setNewPageClicked(null);
           }}
           onNavigate={() => handleNavigation(nextPage)}
-          title='Manglende informasjon i ressurs'
+          title={t('resourceadm.resource_navigation_modal_title_resource')}
         />
       )}
     </div>

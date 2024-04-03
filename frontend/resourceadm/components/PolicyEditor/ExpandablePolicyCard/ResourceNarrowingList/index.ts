@@ -1,1 +1,0 @@
-export { ResourceNarrowingList } from './ResourceNarrowingList'

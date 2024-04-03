@@ -1,9 +1,13 @@
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import type { UseQueryResult } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { User } from 'app-shared/types/User';
+import type { User } from 'app-shared/types/Repository';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 export const useUserQuery = (): UseQueryResult<User> => {
   const { getUser } = useServicesContext();
-  return useQuery<User>([QueryKey.CurrentUser], () => getUser());
+  return useQuery({
+    queryKey: [QueryKey.CurrentUser],
+    queryFn: getUser,
+  });
 };

@@ -1,4 +1,9 @@
-import { removeEnd, replaceEnd, substringAfterLast, substringBeforeLast } from 'app-shared/utils/stringUtils';
+import {
+  replaceEnd,
+  replaceStart,
+  substringAfterLast,
+  substringBeforeLast,
+} from 'app-shared/utils/stringUtils';
 
 describe('stringUtils', () => {
   describe('substringAfterLast', () => {
@@ -29,6 +34,18 @@ describe('stringUtils', () => {
     });
   });
 
+  describe('replaceStart', () => {
+    it('Replaces the given substring with the given replacement at the start of the string', () => {
+      expect(replaceStart('abc/def/ghi', 'abc', 'xyz')).toBe('xyz/def/ghi');
+    });
+
+    it('Does not replace the given substring other places than at the start', () => {
+      expect(replaceStart('abcdefghi', 'ghi', 'xyz')).toBe('abcdefghi');
+      expect(replaceStart('abcdefghi', 'def', 'xyz')).toBe('abcdefghi');
+      expect(replaceStart('defabcdefghi', 'def', 'xyz')).toBe('xyzabcdefghi');
+    });
+  });
+
   describe('replaceEnd', () => {
     it('Replaces the given substring with the given replacement at the end of the string', () => {
       expect(replaceEnd('abc/def/ghi', 'ghi', 'xyz')).toBe('abc/def/xyz');
@@ -38,26 +55,6 @@ describe('stringUtils', () => {
       expect(replaceEnd('abcdefghi', 'abc', 'xyz')).toBe('abcdefghi');
       expect(replaceEnd('abcdefghi', 'def', 'xyz')).toBe('abcdefghi');
       expect(replaceEnd('abcdefghidef', 'def', 'xyz')).toBe('abcdefghixyz');
-    });
-  });
-
-  describe('removeEnd', () => {
-    it('Removes any of the given substrings from the end of the string', () => {
-      expect(removeEnd('abc/def/ghi', 'ghi')).toBe('abc/def/');
-      expect(removeEnd('abc/def/ghi', 'ghi', 'def')).toBe('abc/def/');
-      expect(removeEnd('abc/def/ghi', 'def', 'ghi')).toBe('abc/def/');
-    });
-
-    it('Does not change the string if none of the substrings appear at the end', () => {
-      expect(removeEnd('abc/def/ghi', 'abc')).toBe('abc/def/ghi');
-      expect(removeEnd('abc/def/ghi', 'def')).toBe('abc/def/ghi');
-      expect(removeEnd('abc/def/ghi', 'abc', 'def')).toBe('abc/def/ghi');
-    });
-
-    it('Is not case sensitive', () => {
-      expect(removeEnd('abc/def/ghi', 'GHI')).toBe('abc/def/');
-      expect(removeEnd('ABC/DEF/GHI', 'ghi')).toBe('ABC/DEF/');
-      expect(removeEnd('aBc/DeF/gHi', 'Ghi')).toBe('aBc/DeF/');
     });
   });
 });

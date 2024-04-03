@@ -1,10 +1,14 @@
-import { appStateMock, queryClientMock, formDesignerMock, queriesMock, renderHookWithMockStore } from '../../testing/mocks';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { renderHookWithMockStore } from '../../testing/mocks';
+import { appStateMock, formDesignerMock } from '../../testing/stateMocks';
 import { waitFor } from '@testing-library/react';
-import { AddFormItemMutationArgs, useAddItemToLayoutMutation } from './useAddItemToLayoutMutation';
+import type { AddFormItemMutationArgs } from './useAddItemToLayoutMutation';
+import { useAddItemToLayoutMutation } from './useAddItemToLayoutMutation';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
-import { IAppState } from '../../types/global';
-import { externalLayoutsMock, layoutSetsMock } from "../../testing/layoutMock";
+import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
+import type { IAppState } from '../../types/global';
+import { externalLayoutsMock, layoutSetsMock } from '../../testing/layoutMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 
@@ -27,8 +31,8 @@ const appStateMockCopy = (layoutSetName: string): Partial<IAppState> => ({
     layout: {
       ...formDesignerMock.layout,
       selectedLayoutSet: layoutSetName,
-    }
-  }
+    },
+  },
 });
 
 const applicationAttachmentMetaDataMock: ApplicationAttachmentMetadata = {
@@ -41,7 +45,6 @@ const applicationAttachmentMetaDataMock: ApplicationAttachmentMetadata = {
 };
 
 describe('useAddItemToLayoutMutation', () => {
-
   afterEach(jest.clearAllMocks);
 
   it('Returns ID of new item', async () => {
@@ -76,27 +79,33 @@ describe('useAddItemToLayoutMutation', () => {
     const { result } = renderAddItemToLayoutMutation('test-layout-set-2');
     result.current.mutate({ ...defaultArgs, componentType: ComponentType.FileUpload });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(org, app, { ...applicationAttachmentMetaDataMock, taskId: 'Task_2' });
+    expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(org, app, {
+      ...applicationAttachmentMetaDataMock,
+      taskId: 'Task_2',
+    });
   });
 
   it('Adds Task_1 to attachment metadata when component type is fileUpload and selectedLayoutSet is undefined', async () => {
     const { result } = renderAddItemToLayoutMutation(undefined);
     result.current.mutate({ ...defaultArgs, componentType: ComponentType.FileUpload });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(org, app, { ...applicationAttachmentMetaDataMock, taskId: 'Task_1' });
+    expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(org, app, {
+      ...applicationAttachmentMetaDataMock,
+      taskId: 'Task_1',
+    });
   });
 });
 
 const renderAddItemToLayoutMutation = (layoutSetName?: string) => {
   queryClientMock.setQueryData(
     [QueryKey.FormLayouts, org, app, layoutSetName],
-    convertExternalLayoutsToInternalFormat(externalLayoutsMock).convertedLayouts
+    convertExternalLayoutsToInternalFormat(externalLayoutsMock).convertedLayouts,
   );
   queryClientMock.setQueryData(
     [QueryKey.LayoutSets, org, app],
-    layoutSetName ? layoutSetsMock : null
+    layoutSetName ? layoutSetsMock : null,
   );
-  return renderHookWithMockStore(appStateMockCopy(layoutSetName))(
-    () => useAddItemToLayoutMutation(org, app, layoutSetName)
+  return renderHookWithMockStore(appStateMockCopy(layoutSetName))(() =>
+    useAddItemToLayoutMutation(org, app, layoutSetName),
   ).renderHookResult;
-}
+};

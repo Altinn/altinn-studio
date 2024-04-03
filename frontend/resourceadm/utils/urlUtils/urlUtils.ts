@@ -1,24 +1,4 @@
-import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
-import { RepositoryType } from 'app-shared/types/global';
-import { getRepositoryType } from 'app-shared/utils/repository';
-import { NavigationBarPageType } from 'resourceadm/types/global';
-
-export const applicationAboutPage = ({ org, repo }: IGetRepoUrl) => {
-  return `${window.location.origin}${APP_DEVELOPMENT_BASENAME}/${org}/${repo}/`;
-};
-
-interface IGetRepoUrl {
-  org: string;
-  repo: string;
-}
-
-export const getRepoEditUrl = ({ org, repo }: IGetRepoUrl) => {
-  if (getRepositoryType(org, repo) === RepositoryType.Datamodels) {
-    return `${APP_DEVELOPMENT_BASENAME}/${org}/${repo}/datamodel`;
-  }
-
-  return `${APP_DEVELOPMENT_BASENAME}/${org}/${repo}`;
-};
+import type { NavigationBarPage } from '../../types/NavigationBarPage';
 
 /**
  * Returns the path to the dashboard based on the name of the organisation
@@ -29,12 +9,9 @@ export const getRepoEditUrl = ({ org, repo }: IGetRepoUrl) => {
  *
  * @returns the path
  */
-export const getResourceDashboardURL = (
-  organisation: string,
-  repo: string
-): string => {
-  return `/${organisation}/${repo}`
-}
+export const getResourceDashboardURL = (organisation: string, repo: string): string => {
+  return `/${organisation}/${repo}`;
+};
 
 /**
  * Returns the path to the resource page, default set to the about page.
@@ -52,7 +29,23 @@ export const getResourcePageURL = (
   organisation: string,
   repo: string,
   resourceId: string,
-  resourcePage: NavigationBarPageType
+  resourcePage: NavigationBarPage,
 ): string => {
-  return `/${organisation}/${repo}/resource/${resourceId}/${resourcePage}`
-}
+  return `/${organisation}/${repo}/resource/${resourceId}/${resourcePage}`;
+};
+
+export const getAccessListPageUrl = (
+  organisation: string,
+  repo: string,
+  environment: string,
+  listIdentifier: string = '',
+): string => {
+  return `/${organisation}/${repo}/accesslists/${environment}/${listIdentifier}`;
+};
+
+export const getPartiesQueryUrl = (search: string, isSubParty?: boolean): string => {
+  const partyType = isSubParty ? 'underenheter' : 'enheter';
+  const isOrgnrSearch = /^\d{9}$/.test(search); // regex for search string is exactly 9 digits
+  const searchTerm = isOrgnrSearch ? `organisasjonsnummer=${search}` : `navn=${search}`;
+  return `https://data.brreg.no/enhetsregisteret/api/${partyType}?${searchTerm}&size=5`;
+};

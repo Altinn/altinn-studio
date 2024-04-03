@@ -2,7 +2,6 @@
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Controllers;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -11,10 +10,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class AddXsdTests : DisagnerEndpointsTestsBase<DatamodelsController, AddXsdTests>
+public class AddXsdTests : DisagnerEndpointsTestsBase<AddXsdTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
-    public AddXsdTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
+    public AddXsdTests(WebApplicationFactory<Program> factory) : base(factory)
     {
     }
 
@@ -39,7 +38,7 @@ public class AddXsdTests : DisagnerEndpointsTestsBase<DatamodelsController, AddX
             Content = formData
         };
 
-        var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        var response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 
@@ -64,7 +63,7 @@ public class AddXsdTests : DisagnerEndpointsTestsBase<DatamodelsController, AddX
             Content = formData
         };
 
-        var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        var response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 
@@ -89,7 +88,7 @@ public class AddXsdTests : DisagnerEndpointsTestsBase<DatamodelsController, AddX
             Content = formData
         };
 
-        var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        var response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 }

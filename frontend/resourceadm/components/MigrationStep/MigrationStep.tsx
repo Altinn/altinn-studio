@@ -1,10 +1,9 @@
 import React from 'react';
-import classes from './MigrationStep.module.css';
+import { Trans } from 'react-i18next';
 import { Alert, Paragraph, Label } from '@digdir/design-system-react';
-import { NavigationBarPageType } from 'resourceadm/types/global';
 import { LinkButton } from '../LinkButton';
 
-interface Props {
+type MigrationStepProps = {
   /**
    * Title of the field
    */
@@ -20,15 +19,18 @@ interface Props {
   /**
    * Function that navigates to the page with error
    */
-  onNavigateToPageWithError: (page: NavigationBarPageType) => void;
+  onNavigateToPageWithError: () => void;
   /**
-   * Page to navigate to if there is an error
+   * Translation values for placeholders
    */
-  page: NavigationBarPageType;
-}
+  translationValues?: { [key: string]: string | number };
+};
 
 /**
  * @component
+ *    Displays the different steps on the migration page together with an alert
+ *    indicating if the step is success or warning.
+ *
  * @example
  *    <MigrationStep
  *        title='Some title'
@@ -36,45 +38,34 @@ interface Props {
  *        isSuccess={isSuccess}
  *        onNavigateToPageWithError={navigateToPageWithError}
  *        page='about'
- *      />
+ *     />
  *
  * @property {string}[title] - Title of the field
  * @property {string}[text] - Text to displa inside the Alert
  * @property {boolean}[isSuccess] - Flag for if the alert is green or not
  * @property {function}[onNavigateToPageWithError] - Function that navigates to the page with error
- * @property {NavigationBarPageType}[page] - Page to navigate to if there is an error
+ * @property {translationValues}[Object] - Translation values for placeholders
  *
- * @returns {React.ReactNode} - The rendered Migration Step with text and alert
+ * @returns {React.JSX.Element} - The rendered Migration Step with text and alert
  */
 export const MigrationStep = ({
   title,
   text,
   isSuccess,
+  translationValues,
   onNavigateToPageWithError,
-  page,
-}: Props): React.ReactNode => {
-  const displayText = () => {
-    if (!isSuccess) {
-      const textArr = text.split('"');
-
-      return (
-        <Paragraph size='small' className={classes.text}>
-          {textArr[0] + ' "'}
-          <LinkButton text={textArr[1]} onClick={() => onNavigateToPageWithError(page)} />
-          {'" ' + textArr[2]}
-        </Paragraph>
-      );
-    }
-    return <Paragraph size='small'>{text}</Paragraph>;
-  };
-
+}: MigrationStepProps): React.JSX.Element => {
   return (
-    <div className={classes.wrapper}>
-      <Label size='medium' spacing>
-        {title}
+    <div>
+      <Label asChild size='medium' spacing>
+        <p>{title}</p>
       </Label>
-      <Alert severity={isSuccess ? 'success' : 'danger'} iconTitle={text} className={classes.alert}>
-        {displayText()}
+      <Alert severity={isSuccess ? 'success' : 'danger'}>
+        <Paragraph size='small'>
+          <Trans i18nKey={text} values={translationValues}>
+            <LinkButton onClick={onNavigateToPageWithError} />
+          </Trans>
+        </Paragraph>
       </Alert>
     </div>
   );

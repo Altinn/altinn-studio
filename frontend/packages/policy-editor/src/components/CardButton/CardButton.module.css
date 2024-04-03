@@ -1,0 +1,25 @@
+.button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  margin: 0;
+  background-color: var(--fds-semantic-surface-neutral-default);
+  border-radius: 12px;
+  border: solid 1px var(--fds-semantic-border-divider-default);
+  cursor: pointer;
+}
+
+.button:hover {
+  background-color: var(--fds-semantic-surface-neutral-subtle-hover);
+}
+
+.button:focus-visible,
+.button:focus-within {
+  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
+  background-color: var(--fds-semantic-background-default);
+  outline: var(--focus-border-width) solid var(--focus-border-outline-color);
+  outline-offset: var(--focus-border-width);
+  box-shadow: 0 0 0 var(--focus-border-width) var(--focus-border-inner-color);
+}

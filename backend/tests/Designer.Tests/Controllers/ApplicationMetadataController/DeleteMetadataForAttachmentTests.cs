@@ -4,7 +4,7 @@ using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.Designer.Models.App;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
@@ -13,10 +13,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ApplicationMetadataController
 {
-    public class DeleteMetadataForAttachmentTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ApplicationMetadataController, DeleteMetadataForAttachmentTests>
+    public class DeleteMetadataForAttachmentTests : DisagnerEndpointsTestsBase<DeleteMetadataForAttachmentTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/metadata";
-        public DeleteMetadataForAttachmentTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ApplicationMetadataController> factory) : base(factory)
+        public DeleteMetadataForAttachmentTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -27,18 +27,18 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
             string previousMetadata = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
-            Application applicationMetadataPreDelete = JsonSerializer.Deserialize<Application>(previousMetadata, JsonSerializerOptions);
+            ApplicationMetadata applicationMetadataPreDelete = JsonSerializer.Deserialize<ApplicationMetadata>(previousMetadata, JsonSerializerOptions);
             Assert.Contains(applicationMetadataPreDelete.DataTypes, x => x.Id == attacmentIdToDelete);
             string url = $"{VersionPrefix(org, targetRepository)}/attachment-component";
 
             using var requestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
             requestMessage.Content = new StringContent($"\"{attacmentIdToDelete}\"", Encoding.UTF8, MediaTypeNames.Application.Json);
 
-            var response = await HttpClient.Value.SendAsync(requestMessage);
+            var response = await HttpClient.SendAsync(requestMessage);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             string currentMetadata = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
-            Application applicationMetadataAfterDelete = JsonSerializer.Deserialize<Application>(currentMetadata, JsonSerializerOptions);
+            ApplicationMetadata applicationMetadataAfterDelete = JsonSerializer.Deserialize<ApplicationMetadata>(currentMetadata, JsonSerializerOptions);
             Assert.DoesNotContain(applicationMetadataAfterDelete.DataTypes, x => x.Id == attacmentIdToDelete);
         }
     }

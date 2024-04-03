@@ -1,49 +1,41 @@
 import React, { useEffect, useState } from 'react';
 import { NameError } from '../../types';
-import type { TextFieldProps } from '@digdir/design-system-react';
-import { TextField } from '@digdir/design-system-react';
-import {
-  getNameFromPointer,
-  hasNodePointer,
-  replaceLastPointerSegment,
-} from '@altinn/schema-model';
+import type { TextfieldProps } from '@digdir/design-system-react';
+import { StudioTextfield } from '@studio/components';
+import { extractNameFromPointer, replaceLastPointerSegment } from '@altinn/schema-model';
 import { isValidName } from '../../utils/ui-schema-utils';
 import { useTranslation } from 'react-i18next';
-import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
 import { FormField } from 'app-shared/components/FormField';
+import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
-export type NameFieldProps = TextFieldProps & {
-  id: string;
+export type NameFieldProps = TextfieldProps & {
+  id?: string;
   pointer: string;
   handleSave: (newNodeName: string, errorCode: string) => void;
+  hideLabel?: boolean;
   label?: string;
 };
 
-export function NameField({
-  id,
-  pointer,
-  handleSave,
-  label,
-  ...props
-}: NameFieldProps) {
+export function NameField({ id, pointer, handleSave, label, hideLabel, ...props }: NameFieldProps) {
   const { t } = useTranslation();
-  const { data } = useDatamodelQuery();
-  const [nodeName, setNodeName] = useState(getNameFromPointer({ pointer }));
+  const { schemaModel } = useSchemaEditorAppContext();
+  const [nodeName, setNodeName] = useState(extractNameFromPointer(pointer));
 
   useEffect(() => {
-    setNodeName(getNameFromPointer({ pointer }));
+    setNodeName(extractNameFromPointer(pointer));
   }, [pointer]);
 
-  const validateName = (nodeNameToValidate: string) : NameError => {
+  const validateName = (nodeNameToValidate: string): NameError => {
     if (nodeNameToValidate === nodeName) return;
     if (!isValidName(nodeNameToValidate)) return NameError.InvalidCharacter;
-    if (hasNodePointer(data, replaceLastPointerSegment(pointer, nodeNameToValidate))) return NameError.AlreadyInUse;
+    if (schemaModel.hasNode(replaceLastPointerSegment(pointer, nodeNameToValidate)))
+      return NameError.AlreadyInUse;
   };
 
   const onNameBlur = (newNodeName: string, errorCode: string) => {
     if (errorCode || newNodeName === nodeName) return;
-    handleSave(newNodeName, errorCode)
-  }
+    handleSave(newNodeName, errorCode);
+  };
 
   return (
     <FormField
@@ -62,14 +54,17 @@ export function NameField({
             return '';
         }
       }}
-    >
-      {({ errorCode, onChange }) => <TextField
+      renderField={({ errorCode, customRequired, fieldProps }) => (
+        <StudioTextfield
+          {...fieldProps}
+          hideLabel={hideLabel}
           id={id}
-          onChange={(e) => onChange(e.target.value, e)}
+          onChange={(e) => fieldProps.onChange(e.target.value, e)}
           onBlur={(e) => onNameBlur(e.target.value, errorCode)}
+          withAsterisk={customRequired}
           {...props}
         />
-      }
-    </FormField>
+      )}
+    />
   );
 }

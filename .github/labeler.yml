@@ -1,43 +1,70 @@
 # Labels for solutions
-
 solution/platform:
-  - 'src/Altinn.Platform/**/*'
+- changed-files:
+  - any-glob-to-any-file: 'src/Altinn.Platform/**/*'
 
 solution/app-backend:
-  - 'src/studio/AppTemplates/**/*'
+- changed-files:
+  - any-glob-to-any-file: 'src/studio/AppTemplates/**/*'
 
 solution/studio/designer:
-  - 'backend/**/*'
-  - 'frontend/**/*'
+- changed-files:
+  - any-glob-to-any-file: ['backend/**/*', 'frontend/**/*']
 
 solution/studio/repos:
-  - 'gitea/**/*'
+- changed-files:
+  - any-glob-to-any-file: 'gitea/**/*'
 
 # Labels for areas
-
 area/app-deploy:
-  - 'frontend/app-development/features/appPublish/**/*'
-  - 'frontend/app-development/sharedResources/appDeployment/**/*'
-  - 'backend/src/Designer/Controllers/DeploymentsController.cs'
-  - 'src/studio/AppTemplates/AspNet/deployment/**/*'
+- changed-files:
+  - any-glob-to-any-file: ['frontend/app-development/features/appPublish/**/*', 'frontend/app-development/sharedResources/appDeployment/**/*', 'backend/src/Designer/Controllers/DeploymentsController.cs', 'src/studio/AppTemplates/AspNet/deployment/**/*']
 
 area/dashboard:
-  - 'frontend/dashboard/**/*'
+- changed-files:
+  - any-glob-to-any-file: 'frontend/dashboard/**/*'
 
 area/data-modeling:
-  - 'frontend/packages/schema-editor/**/*'
-  - 'frontend/packages/schema-model/**/*'
-  - 'backend/src/DataModeling/**/*'
+- changed-files:
+  - any-glob-to-any-file: ['frontend/packages/schema-editor/**/*', 'frontend/packages/schema-model/**/*', 'frontend/app-development/features/dataModelling/**/*', 'backend/src/DataModeling/**/*']
 
 area/pdf:
-  - 'src/Altinn.Platform/Altinn.Platform.PDF/**/*'
+- changed-files:
+  - any-glob-to-any-file: 'src/Altinn.Platform/Altinn.Platform.PDF/**/*'
 
-area/ui-editor:
-  - 'frontend/packages/ux-editor/**/*'
+area/resource-registry:
+- changed-files:
+  - any-glob-to-any-file: 'frontend/resourceAdm/**/*'
 
 area/test:
-  - 'src/test/**/*'
+- changed-files:
+  - any-glob-to-any-file: 'src/test/**/*'
 
 area/text-editor:
-  - 'frontend/packages/text-editor/**'
-  - 'frontend/app-development/features/textEditor/**/*'
+- changed-files:
+  - any-glob-to-any-file: ['frontend/packages/text-editor/**', 'frontend/app-development/features/textEditor/**/*']
+
+area/process:
+- changed-files:
+  - any-glob-to-any-file: ['frontend/app-development/features/processEditor/**/*', 'frontend/packages/process-editor/**/*', 'backend/src/Designer/**/*ProcessesModeling*.cs']
+
+area/ui-editor:
+- changed-files:
+  - any-glob-to-any-file: 'frontend/packages/ux-editor/**/*'
+
+area/studio-root:
+- changed-files:
+  - any-glob-to-any-file: 'frontend/studio-root/**/*'
+
+## Other labels
+kind/dependencies:
+- changed-files:
+  - any-glob-to-any-file: ['backend/packagegroups/NuGet.props', 'frontend/**/package.json']
+
+quality/testing:
+- changed-files:
+  - any-glob-to-any-file: ['frontend/testing/**/*', 'backend/tests/**/*', 'testdata/**/*']
+
+skip-releasenotes:
+- changed-files:
+  - any-glob-to-any-file: ['.github/**/*', '.husky/**/*', '.vscode/**/*', '.yarn/**/*', 'testdata/**/*', 'development/**/*', 'src/**/*']

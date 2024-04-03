@@ -1,11 +1,10 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
-using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Microsoft.AspNetCore.Mvc;
+
 namespace Altinn.Studio.Designer.Services.Interfaces
 {
     /// <summary>
@@ -14,28 +13,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
     public interface IRepository
     {
         /// <summary>
-        /// Method that creates service metadata for a new app
-        /// </summary>
-        /// <param name="serviceMetadata">The <see cref="ModelMetadata"/>.</param>
-        /// <returns>A boolean indicating if creation of service metadata went ok</returns>
-        bool CreateServiceMetadata(ModelMetadata serviceMetadata);
-
-        /// <summary>
-        /// Returns the <see cref="ModelMetadata"/> for an app.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The service metadata for an app.</returns>
-        Task<ModelMetadata> GetModelMetadata(string org, string app);
-
-        /// <summary>
         /// Deletes the resource for a given language id
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <param name="id">The resource language id (for example <code>nb, en</code>)</param>
         /// <returns>A boolean indicating if delete was ok</returns>
-        bool DeleteLanguage(string org, string app, string id);
+        bool DeleteLanguage(AltinnRepoEditingContext altinnRepoEditingContext, string id);
 
         /// <summary>
         /// Creates a new app folder under the given <paramref name="org">org</paramref> and saves the
@@ -59,21 +42,19 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Deletes the local repository for the user and makes a new clone of the repo
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repositoryName">the name of the local repository to reset</param>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <returns>True if the reset was successful, otherwise false.</returns>
-        bool ResetLocalRepository(string org, string repositoryName);
+        bool ResetLocalRepository(AltinnRepoEditingContext altinnRepoEditingContext);
 
         /// <summary>
         /// Returns the app texts
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <remarks>
         /// Format of the dictionary is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
         /// </remarks>
         /// <returns>The text resources</returns>
-        Dictionary<string, Dictionary<string, TextResourceElement>> GetServiceTexts(string org, string app);
+        Dictionary<string, Dictionary<string, TextResourceElement>> GetServiceTexts(AltinnRepoEditingContext altinnRepoEditingContext);
 
         /// <summary>
         /// Saves policy to git repository
@@ -86,7 +67,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<bool> SavePolicy(string org, string repo, string resourceId, XacmlPolicy xacmlPolicy);
 
         /// <summary>
-        /// Gets a specific polic for ann app or for a generic
+        /// Gets a specific polic for an app or for a generic
         /// </summary>
         /// <param name="org"></param>
         /// <param name="repo"></param>
@@ -95,39 +76,20 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         XacmlPolicy GetPolicy(string org, string repo, string resourceId);
 
         /// <summary>
+        /// Gets the filepath of the policyfile
+        /// </summary>
+        /// <param name="org"></param>
+        /// <param name="repo"></param>
+        /// <param name="resourceId"></param>
+        /// <returns></returns>
+        string GetPolicyPath(string org, string repo, string resourceId);
+
+        /// <summary>
         /// Gets the widget settings for an app
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <returns>The content as string</returns>
-        string GetWidgetSettings(string org, string app);
-
-        /// <summary>
-        /// Create a new file in blob storage.
-        /// </summary>
-        /// <param name="org">The application owner id.</param>
-        /// <param name="repo">The repository</param>
-        /// <param name="filepath">The filepath</param>
-        /// <param name="stream">Data to be written to blob storage.</param>
-        /// <returns>The size of the blob.</returns>
-        Task WriteData(string org, string repo, string filepath, Stream stream);
-
-        /// <summary>
-        /// Reads a data file from blob storage
-        /// </summary>
-        /// <param name="org">The application owner id.</param>
-        /// <param name="repo">The repository</param>
-        /// <param name="path">Path to be file to read blob storage.</param>
-        /// <returns>The stream with the file</returns>
-        Task<Stream> ReadData(string org, string repo, string path);
-
-        /// <summary>
-        /// Deletes the data element permanently
-        /// </summary>
-        /// <param name="org">The application owner id.</param>
-        /// <param name="repo">The repository</param>
-        /// <param name="path">Path to the file to delete.</param>
-        void DeleteData(string org, string repo, string path);
+        string GetWidgetSettings(AltinnRepoEditingContext altinnRepoEditingContext);
 
         /// <summary>
         /// Lists the content of a repository
@@ -162,8 +124,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">The organisation which owns the repository</param>
         /// <param name="newResource">The new resource that is to be added to the repository</param>
-        /// <returns></returns>
-        ActionResult AddServiceResource(string org, ServiceResource newResource);
+        /// <returns>Status code result of resource creation request: 201 if success, or 409 or 400 on error</returns>
+        StatusCodeResult AddServiceResource(string org, ServiceResource newResource);
 
         /// <summary>
         /// Checks a resource if it has a policy by checking if a policyfile exists in the same folder as the resourcefile.
@@ -175,11 +137,15 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         bool ResourceHasPolicy(string org, string repository, ServiceResource resource);
 
         /// <summary>
-        /// Checks if LastChanged and/or CreatedBy was added to the ListviewServiceResource-object. If not sets CreatedBy to the logged in user and LastChanged to current datetime.
+        /// Publishes a specific resource to the ResourceRegistry
         /// </summary>
-        /// <param name="serviceResource">The ListviewServiceResource that will be enriched if neccessary</param>
-        /// <returns>The enriched ListviewServiceResource-object if CreatedBy and LastChanged was missing, otherwise returns the same object</returns>
-        ListviewServiceResource AddLastChangedAndCreatedByIfMissingFromGitea(ListviewServiceResource serviceResource);
+        /// <param name="org">The organisation that owns the repository</param>
+        /// <param name="repository">The repository where the resource resides</param>
+        /// <param name="id">The id of the resource that should be published</param>
+        /// <param name="env">The environment the resource will be published to</param>
+        /// <param name="policy">The policy that goes with the resource</param>
+        /// <returns></returns>
+        public Task<ActionResult> PublishResource(string org, string repository, string id, string env, string policy = null);
 
         /// <summary>
         /// Returns the path to the app folder
@@ -188,15 +154,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns></returns>
         string GetAppPath(string org, string app);
-
-        /// <summary>
-        ///  Updates application model with new app logic model
-        /// </summary>
-        /// <param name="org">The org</param>
-        /// <param name="app">The app</param>
-        /// <param name="dataTypeId">The dataTypeId for the new app logic datamodel</param>
-        /// <param name="classRef">The class ref</param>
-        Task UpdateApplicationWithAppLogicModel(string org, string app, string dataTypeId, string classRef);
 
         /// <summary>
         /// Deletes the repository both locally and remotely.

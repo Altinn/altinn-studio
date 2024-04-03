@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import { DownloadIcon } from '@navikt/aksel-icons';
 import classes from './FetchChangesButton.module.css';
 import { useTranslation } from 'react-i18next';
@@ -21,17 +21,16 @@ export const FetchChangesButton = ({
   const fetchChangesHandler = (event: any) => fetchChanges(event.currentTarget);
 
   return (
-    <Button
+    <StudioButton
       className={classes.button}
       color='inverted'
-      data-testid='fetch-changes-button'
       icon={<DownloadIcon />}
       onClick={fetchChangesHandler}
       size='small'
-      variant='quiet'
+      variant='tertiary'
     >
       {t('sync_header.fetch_changes')}
       {displayNotification && <Notification numChanges={numChanges} />}
-    </Button>
+    </StudioButton>
   );
 };

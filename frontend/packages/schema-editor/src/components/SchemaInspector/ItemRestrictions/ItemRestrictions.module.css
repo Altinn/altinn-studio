@@ -1,0 +1,20 @@
+.emptyEnumMessage {
+  margin-top: 1rem;
+  margin-bottom: 0;
+}
+
+.addEnumButton {
+  margin-top: 1rem;
+}
+
+.addEnumButton i::before {
+  content: '\f035';
+  font-family: AltinnStudio, sans-serif;
+  font-style: normal;
+  font-size: 2rem;
+  margin-right: 1rem;
+}
+
+.switch {
+  width: fit-content;
+}

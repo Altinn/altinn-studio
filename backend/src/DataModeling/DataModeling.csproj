@@ -1,13 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>Altinn.Studio.DataModeling</AssemblyName>
-    <Company>Altinn</Company>
     <LangVersion>latest</LangVersion>
     <RootNamespace>Altinn.Studio.DataModeling</RootNamespace>
-    <!-- SonarCloud needs this -->
-    <ProjectGuid>{B5B494B4-88BA-407E-9CA3-9516FACD58CC}</ProjectGuid>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,8 +21,11 @@
   </ItemGroup>
 
   <ItemGroup>
+      <PackageReference Include="Basic.Reference.Assemblies" />
       <PackageReference Include="JsonSchema.Net" />
       <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
+      <PackageReference Include="Microsoft.CodeAnalysis.Common" />
+      <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

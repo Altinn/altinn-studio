@@ -1,66 +1,59 @@
 .pageWrapper {
   width: 90%;
   margin: 0;
-  padding: 40px;
+  padding: var(--fds-spacing-10);
 }
 
 .contentWrapper {
-  width: 630px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 40rem;
 }
 
 .contentDivider {
-  border: solid 1px #d6d6d6;
-  margin-top: 25px;
-  margin-bottom: 15px;
+  border: solid 1px var(--fds-semantic-border-neutral-subtle);
+  margin-top: var(--fds-spacing-6);
+  margin-bottom: var(--fds-spacing-4);
 }
 
 .introWrapper {
-  margin-bottom: 30px;
-}
-
-.selectEnv {
-  margin-top: 10px;
-  margin-bottom: 30px;
-  width: 350px;
-}
-
-.linkWrapper {
-  margin-left: 40px;
+  margin-bottom: var(--fds-spacing-7);
 }
 
 .datePickers {
   display: flex;
-  margin-top: 20px;
-  margin-bottom: 30px;
+  margin-top: var(--fds-spacing-5);
+  margin-bottom: var(--fds-spacing-7);
 }
 
 .datePickerWrapper:last-child {
-  margin-left: 100px;
+  margin-left: var(--fds-spacing-22);
 }
 
 .buttonWrapper {
-  margin-top: 30px;
+  margin-top: var(--fds-spacing-7);
 }
 
 .button {
-  margin-block: 5px;
+  margin-block: var(--fds-spacing-1);
 }
 
 .migrateBox {
-  background-color: #e3f7ff;
-  margin-top: 40px;
-  padding-inline: 30px;
-  padding-block: 24px;
+  background-color: var(--fds-semantic-surface-third-light);
+  margin-top: var(--fds-spacing-10);
+  padding-inline: var(--fds-spacing-7);
+  padding-block: var(--fds-spacing-6);
 }
 
 .migrateSteps {
-  margin-block: 20px;
+  margin-block: var(--fds-spacing-5);
 }
 
 .numDelegations {
-  margin-bottom: 30px;
+  margin-bottom: var(--fds-spacing-7);
 }
 
 .delegations {
-  margin-top: 10px;
+  margin-top: var(--fds-spacing-2);
 }

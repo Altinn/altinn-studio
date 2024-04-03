@@ -1,14 +1,16 @@
-import { IFormLayouts } from '../types/global';
+import type { IFormLayouts } from '../types/global';
 import {
   addOrRemoveNavigationButtons,
   convertExternalLayoutsToInternalFormat,
   firstAvailableLayout,
+  idExists,
 } from './formLayoutsUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { createEmptyLayout } from './formLayoutUtils';
 import { BASE_CONTAINER_ID, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { externalLayoutsMock, layout1NameMock, layout2NameMock } from '../testing/layoutMock';
-import { FormButtonComponent } from '../types/FormComponent';
+import type { FormButtonComponent } from '../types/FormComponent';
+import { componentMocks } from '../testing/componentMocks';
 
 describe('formLayoutsUtils', () => {
   describe('addOrRemoveNavigationButtons', () => {
@@ -44,7 +46,7 @@ describe('formLayoutsUtils', () => {
         layouts,
         callback,
         null,
-        layoutReceiptId
+        layoutReceiptId,
       );
 
       const layoutComponents = Object.values(updatedLayouts[layoutId].components);
@@ -69,7 +71,13 @@ describe('formLayoutsUtils', () => {
       const layouts: IFormLayouts = {
         [layoutId]: {
           components: { [navButtonsId]: navButtonsComponent },
-          containers: { [BASE_CONTAINER_ID]: { itemType: 'CONTAINER' } },
+          containers: {
+            [BASE_CONTAINER_ID]: {
+              id: BASE_CONTAINER_ID,
+              itemType: 'CONTAINER',
+              type: undefined,
+            },
+          },
           order: { [BASE_CONTAINER_ID]: [navButtonsId] },
           customRootProperties: {},
           customDataProperties: {},
@@ -80,7 +88,7 @@ describe('formLayoutsUtils', () => {
         layouts,
         callback,
         null,
-        layoutReceiptId
+        layoutReceiptId,
       );
 
       const layoutComponents = Object.values(updatedLayouts[layoutId].components);
@@ -104,7 +112,7 @@ describe('formLayoutsUtils', () => {
         layouts,
         callback,
         layout1id,
-        layoutReceiptId
+        layoutReceiptId,
       );
       const layout1Components = Object.values(updatedLayouts[layout1id].components);
       const layout2Components = Object.values(updatedLayouts[layout2id].components);
@@ -133,7 +141,13 @@ describe('formLayoutsUtils', () => {
       const layouts: IFormLayouts = {
         [layoutId]: {
           components: { [navButtonsId]: navButtonsComponent },
-          containers: { [BASE_CONTAINER_ID]: { itemType: 'CONTAINER' } },
+          containers: {
+            [BASE_CONTAINER_ID]: {
+              id: BASE_CONTAINER_ID,
+              itemType: 'CONTAINER',
+              type: undefined,
+            },
+          },
           order: { [BASE_CONTAINER_ID]: [navButtonsId] },
           customRootProperties: {},
           customDataProperties: {},
@@ -161,7 +175,13 @@ describe('formLayoutsUtils', () => {
       const layouts: IFormLayouts = {
         [layoutId]: {
           components: { [navButtonsId]: navButtonsComponent },
-          containers: { [BASE_CONTAINER_ID]: { itemType: 'CONTAINER' } },
+          containers: {
+            [BASE_CONTAINER_ID]: {
+              id: BASE_CONTAINER_ID,
+              itemType: 'CONTAINER',
+              type: undefined,
+            },
+          },
           order: { [BASE_CONTAINER_ID]: [navButtonsId] },
           customRootProperties: {},
           customDataProperties: {},
@@ -172,7 +192,7 @@ describe('formLayoutsUtils', () => {
         layouts,
         callback,
         null,
-        layoutReceiptId
+        layoutReceiptId,
       );
       const layout1Components = Object.values(updatedLayouts[layoutId].components);
       expect(layout1Components.length).toBe(0);
@@ -195,7 +215,13 @@ describe('formLayoutsUtils', () => {
       const layouts: IFormLayouts = {
         [layoutId]: {
           components: { [navButtonsId]: navButtonsComponent },
-          containers: { [BASE_CONTAINER_ID]: { itemType: 'CONTAINER' } },
+          containers: {
+            [BASE_CONTAINER_ID]: {
+              id: BASE_CONTAINER_ID,
+              itemType: 'CONTAINER',
+              type: undefined,
+            },
+          },
           order: { [BASE_CONTAINER_ID]: [navButtonsId] },
           customRootProperties: {},
           customDataProperties: {},
@@ -206,7 +232,7 @@ describe('formLayoutsUtils', () => {
         layouts,
         callback,
         null,
-        layoutReceiptId
+        layoutReceiptId,
       );
       const layout1Components = Object.values(updatedLayouts[layoutId].components);
       const layoutReceiptComponents = Object.values(updatedLayouts[layoutReceiptId].components);
@@ -228,7 +254,7 @@ describe('formLayoutsUtils', () => {
         layouts,
         callback,
         layoutReceiptId,
-        layoutReceiptId
+        layoutReceiptId,
       );
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith(layoutReceiptId, updatedLayouts[layoutReceiptId]);
@@ -269,6 +295,48 @@ describe('formLayoutsUtils', () => {
       const layoutOrder = [layout1Id];
       const layout = firstAvailableLayout(layout1Id, layoutOrder);
       expect(layout).toBe(DEFAULT_SELECTED_LAYOUT_NAME);
+    });
+  });
+
+  describe('idExists', () => {
+    const layoutId = 'layout1';
+    const layoutId2 = 'layout2';
+    const navButtonsId = 'navButtons';
+    const groupId = 'group1';
+    const groupComponent = componentMocks[ComponentType.Group];
+
+    const formLayouts: IFormLayouts = {
+      [layoutId]: {
+        components: { [navButtonsId]: componentMocks[ComponentType.NavigationButtons] },
+        containers: undefined,
+        order: { [BASE_CONTAINER_ID]: [navButtonsId] },
+        customRootProperties: {},
+        customDataProperties: {},
+      },
+      [layoutId2]: {
+        components: undefined,
+        containers: {
+          [groupId]: groupComponent,
+        },
+        order: { [BASE_CONTAINER_ID]: [groupId] },
+        customRootProperties: {},
+        customDataProperties: {},
+      },
+    };
+
+    it('returns true when a container has the same id', () => {
+      const exists = idExists(groupId, formLayouts);
+      expect(exists).toBe(true);
+    });
+
+    it('returns true if when a component has the same id', () => {
+      const exists = idExists(navButtonsId, formLayouts);
+      expect(exists).toBe(true);
+    });
+
+    it('Returns false if id does not exist in any of the layouts', () => {
+      const exists = idExists('unique', formLayouts);
+      expect(exists).toBe(false);
     });
   });
 });

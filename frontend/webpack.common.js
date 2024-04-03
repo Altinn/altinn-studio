@@ -15,6 +15,9 @@ module.exports = {
       '@altinn/schema-editor': path.resolve(__dirname, 'packages/schema-editor/src'),
       '@altinn/schema-model': path.resolve(__dirname, 'packages/schema-model/src'),
       '@altinn/ux-editor': path.resolve(__dirname, 'packages/ux-editor/src'),
+      '@altinn/ux-editor-v3': path.resolve(__dirname, 'packages/ux-editor-v3/src'),
+      '@altinn/process-editor': path.resolve(__dirname, 'packages/process-editor/src'),
+      '@altinn/policy-editor': path.resolve(__dirname, 'packages/policy-editor/src'),
     },
     fallback: {
       'react/jsx-runtime': 'react/jsx-runtime.js',
@@ -30,20 +33,6 @@ module.exports = {
         use: ['@svgr/webpack'],
       },
       {
-        test: /\.module\.css$/,
-        use: [
-          'style-loader',
-          {
-            loader: 'css-loader',
-            options: {
-              modules: {
-                localIdentName: '[name]__[local]--[hash:base64:5]',
-              },
-            },
-          },
-        ],
-      },
-      {
         test: /(?<!\.module)\.css$/,
         use: [
           {
@@ -53,6 +42,28 @@ module.exports = {
             loader: 'css-loader',
             options: {
               url: false,
+            },
+          },
+        ],
+      },
+      {
+        test: /\.module\.css$/,
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader,
+          },
+          {
+            loader: 'css-loader',
+            options: {
+              url: {
+                filter: (url, _resourcePath) => {
+                  // Disable processing for root-relative urls (e.g. /designer/img)
+                  return !/^\//.test(url);
+                },
+              },
+              modules: {
+                localIdentName: '[name]__[local]--[hash:base64:5]',
+              },
             },
           },
         ],

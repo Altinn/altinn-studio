@@ -1,16 +1,21 @@
-import { queriesMock, formLayoutSettingsMock, renderHookWithMockStore } from '../../testing/mocks';
-import { AddLayoutMutationArgs, useAddLayoutMutation } from './useAddLayoutMutation';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { formLayoutSettingsMock, renderHookWithMockStore } from '../../testing/mocks';
+import type { AddLayoutMutationArgs } from './useAddLayoutMutation';
+import { useAddLayoutMutation } from './useAddLayoutMutation';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import { externalLayoutsMock } from '../../testing/layoutMock';
+import type { FormLayoutsResponse } from 'app-shared/types/api';
+import type { ILayoutSettings } from 'app-shared/types/global';
 
 // Test data:
 const org = 'org';
 const app = 'app';
 const layoutName = 'layoutName';
 const selectedLayoutSet = 'test-layout-set';
-const defaultArgs: AddLayoutMutationArgs = { layoutName }
+const defaultArgs: AddLayoutMutationArgs = { layoutName };
 
 describe('useAddLayoutMutation', () => {
   afterEach(jest.clearAllMocks);
@@ -18,9 +23,9 @@ describe('useAddLayoutMutation', () => {
   it('Calls saveFormLayout with new layout', async () => {
     await renderAndWaitForData();
 
-    const addLayoutResult = renderHookWithMockStore()(() => useAddLayoutMutation(org, app, selectedLayoutSet))
-      .renderHookResult
-      .result;
+    const addLayoutResult = renderHookWithMockStore()(() =>
+      useAddLayoutMutation(org, app, selectedLayoutSet),
+    ).renderHookResult.result;
 
     addLayoutResult.current.mutate(defaultArgs);
 
@@ -32,23 +37,27 @@ describe('useAddLayoutMutation', () => {
       layoutName,
       selectedLayoutSet,
       {
-        $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
+        $schema:
+          'https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json',
         data: {
-          layout: [expect.objectContaining({ componentType: ComponentType.NavigationButtons })],
+          layout: [expect.objectContaining({ type: ComponentType.NavigationButtons })],
           hidden: undefined,
-        }
-      }
+        },
+      },
     );
   });
 
   it('Calls saveFormLayout with new layout for receiptPage', async () => {
     await renderAndWaitForData();
 
-    const addLayoutResult = renderHookWithMockStore()(() => useAddLayoutMutation(org, app, selectedLayoutSet))
-      .renderHookResult
-      .result;
+    const addLayoutResult = renderHookWithMockStore()(() =>
+      useAddLayoutMutation(org, app, selectedLayoutSet),
+    ).renderHookResult.result;
 
-    addLayoutResult.current.mutate({ layoutName: formLayoutSettingsMock.receiptLayoutName, isReceipt: true });
+    addLayoutResult.current.mutate({
+      layoutName: formLayoutSettingsMock.receiptLayoutName,
+      isReceipt: true,
+    });
 
     await waitFor(() => expect(addLayoutResult.current.isSuccess).toBe(true));
 
@@ -58,19 +67,32 @@ describe('useAddLayoutMutation', () => {
       formLayoutSettingsMock.receiptLayoutName,
       selectedLayoutSet,
       {
-        $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
+        $schema:
+          'https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json',
         data: {
           layout: [],
           hidden: undefined,
-        }
-      }
+        },
+      },
     );
   });
 });
 
 const renderAndWaitForData = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
-  const settingsResult = renderHookWithMockStore()(() => useFormLayoutSettingsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const getFormLayouts = jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
+  const getFormLayoutSettings = jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<ILayoutSettings>(formLayoutSettingsMock));
+  const formLayoutsResult = renderHookWithMockStore(
+    {},
+    { getFormLayouts },
+  )(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const settingsResult = renderHookWithMockStore(
+    {},
+    { getFormLayoutSettings },
+  )(() => useFormLayoutSettingsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
-}
+};

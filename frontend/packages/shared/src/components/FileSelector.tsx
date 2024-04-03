@@ -1,7 +1,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, ButtonVariant } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import { UploadIcon } from '@navikt/aksel-icons';
+import * as testids from '../../../../testing/testids';
 
 export interface IFileSelectorProps {
   submitHandler: (file: FormData, fileName: string) => void;
@@ -22,17 +23,16 @@ function FileSelector({
 }: IFileSelectorProps) {
   const { t } = useTranslation();
   const defaultSubmitButtonRenderer = (fileInputClickHandler: (event: any) => void) => (
-    <Button
+    <StudioButton
       id='file-upload-button'
-      data-testid='upload-button'
       icon={<UploadIcon />}
       onClick={fileInputClickHandler}
       disabled={disabled}
-      variant={ButtonVariant.Quiet}
+      variant='tertiary'
       size='small'
     >
       {t('app_data_modelling.upload_xsd')}
-    </Button>
+    </StudioButton>
   );
 
   const fileInput = React.useRef<HTMLInputElement>(null);
@@ -55,7 +55,7 @@ function FileSelector({
   return (
     <form onSubmit={handleSubmit}>
       <input
-        data-testid='FileSelector-input'
+        data-testid={testids.fileSelectorInput}
         type='file'
         id='file-upload-picker'
         className='sr-only'

@@ -1,14 +1,15 @@
 import React from 'react';
 import { Popover } from '@mui/material';
-import { AltinnIconComponent } from 'app-shared/components/AltinnIcon';
 import { datamodelUploadPagePath, repositoryGitPath } from 'app-shared/api/paths';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { useParams } from 'react-router-dom';
 import { SimpleContainer } from 'app-shared/primitives';
 import classes from './CloneModal.module.css';
-import { Button, TextField } from '@digdir/design-system-react';
+import { LegacyTextField } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { useDatamodelsXsdQuery } from 'app-shared/hooks/queries';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { InformationSquareFillIcon } from '@studio/icons';
+import { StudioButton } from '@studio/components';
 
 export interface ICloneModalProps {
   anchorEl: Element;
@@ -16,7 +17,7 @@ export interface ICloneModalProps {
 }
 
 export const CloneModal = (props: ICloneModalProps) => {
-  const { org, app } = useParams();
+  const { org, app } = useStudioUrlParams();
   const gitUrl = window.location.origin.toString() + repositoryGitPath(org, app);
   const copyGitUrl = () => navigator.clipboard.writeText(gitUrl);
   const canCopy = document.queryCommandSupported ? document.queryCommandSupported('copy') : false;
@@ -41,12 +42,7 @@ export const CloneModal = (props: ICloneModalProps) => {
         {dataModel.length === 0 && (
           <>
             <div className={classes.blackText}>
-              <AltinnIconComponent
-                iconClass='ai ai-circle-exclamation'
-                iconColor='#0062BA'
-                iconSize={30}
-                padding='0px 0px 3px 0px'
-              />
+              <InformationSquareFillIcon className={classes.infoIcon} />
               {t('sync_header.data_model_missing')}
             </div>
             <div className={classes.blackText}>{t('sync_header.data_model_missing_helper')}</div>
@@ -57,12 +53,12 @@ export const CloneModal = (props: ICloneModalProps) => {
         )}
         <>
           <div className={classes.blackText}>{t('sync_header.clone_https')}</div>
-          <TextField id='repository-url-form' value={gitUrl} readOnly />
+          <LegacyTextField id='repository-url-form' value={gitUrl} readOnly />
         </>
         {canCopy && (
-          <Button onClick={copyGitUrl} id='copy-repository-url-button' size='small'>
+          <StudioButton onClick={copyGitUrl} id='copy-repository-url-button' size='small'>
             {t('sync_header.clone_https_button')}
-          </Button>
+          </StudioButton>
         )}
       </SimpleContainer>
     </Popover>

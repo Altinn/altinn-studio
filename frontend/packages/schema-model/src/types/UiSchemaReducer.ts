@@ -1,3 +1,3 @@
-import { UiSchemaNodes } from './UiSchemaNodes';
+import type { SchemaModel } from '../lib/SchemaModel';
 
-export type UiSchemaReducer<T> = (uiSchema: UiSchemaNodes, args: T) => UiSchemaNodes;
+export type UiSchemaReducer<T> = (uiSchema: SchemaModel, args: T) => SchemaModel;

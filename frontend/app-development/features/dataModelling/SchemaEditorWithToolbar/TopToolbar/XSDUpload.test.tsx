@@ -4,11 +4,17 @@ import { XSDUpload } from './XSDUpload';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { renderWithProviders } from '../../../../../packages/schema-editor/test/renderWithProviders';
-import { QueryClient } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import * as testids from '../../../../../testing/testids';
+import { renderWithMockStore } from '../../../../test/mocks';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 const user = userEvent.setup();
+
+// Test data:
+const org = 'org';
+const app = 'app';
 
 // Mocks:
 jest.mock('axios');
@@ -20,17 +26,18 @@ const clickUploadButton = async () => {
 };
 
 const render = (queryClient: QueryClient = createQueryClientMock()) =>
-  renderWithProviders({ queryClient })(<XSDUpload/>);
+  renderWithMockStore({}, {}, queryClient)(<XSDUpload />);
 
 describe('XSDUpload', () => {
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(jest.restoreAllMocks);
+
   it('should show file picker button', () => {
     render();
 
-    const button = screen.getByText(textMock('app_data_modelling.upload_xsd'));
+    const button = screen.getByRole('button', { name: textMock('app_data_modelling.upload_xsd') });
     expect(button).toBeInTheDocument();
 
-    const fileInput = screen.queryByTestId('FileSelector-input');
+    const fileInput = screen.getByTestId(testids.fileSelectorInput);
     expect(fileInput).toBeInTheDocument();
   });
 
@@ -42,19 +49,19 @@ describe('XSDUpload', () => {
     await clickUploadButton();
 
     expect(
-      screen.queryByText(textMock('form_filler.file_uploader_validation_error_upload'))
+      screen.queryByText(textMock('form_filler.file_uploader_validation_error_upload')),
     ).not.toBeInTheDocument();
 
-    const fileInput = screen.getByTestId('FileSelector-input');
+    const fileInput = screen.getByTestId(testids.fileSelectorInput);
 
     await act(() => user.upload(fileInput, file));
 
     expect(
-      screen.getByText(textMock('form_filler.file_uploader_validation_error_upload'))
+      screen.getByText(textMock('form_filler.file_uploader_validation_error_upload')),
     ).toBeInTheDocument();
   });
 
-  it('Invalidates metadata query when upload is successful', async () => {
+  it('Invalidates metadata queries when upload is successful', async () => {
     mockedAxios.post.mockImplementation(() => Promise.resolve({ status: 200 }));
     const filename = 'hello';
     const file = new File([filename], `${filename}.xsd`, { type: 'text/xml' });
@@ -64,10 +71,16 @@ describe('XSDUpload', () => {
 
     await clickUploadButton();
 
-    const fileInput = screen.getByTestId('FileSelector-input');
+    const fileInput = screen.getByTestId(testids.fileSelectorInput);
 
     await act(() => user.upload(fileInput, file));
 
-    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(1);
+    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(2);
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [QueryKey.DatamodelsJson, org, app],
+    });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [QueryKey.DatamodelsXsd, org, app],
+    });
   });
 });

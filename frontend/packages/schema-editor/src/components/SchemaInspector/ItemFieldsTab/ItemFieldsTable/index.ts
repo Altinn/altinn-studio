@@ -1,0 +1,1 @@
+export { ItemFieldsTable } from './ItemFieldsTable';

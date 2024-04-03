@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Controllers;
 using Designer.Tests.Controllers.ApiTests;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -10,12 +9,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class NonAuthenticatedCallsTests : DisagnerEndpointsTestsBase<DatamodelsController, NonAuthenticatedCallsTests>
+public class NonAuthenticatedCallsTests : DisagnerEndpointsTestsBase<NonAuthenticatedCallsTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
-    private readonly WebApplicationFactory<DatamodelsController> _factory;
+    private readonly WebApplicationFactory<Program> _factory;
 
-    public NonAuthenticatedCallsTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
+    public NonAuthenticatedCallsTests(WebApplicationFactory<Program> factory) : base(factory)
     {
         _factory = factory;
     }
@@ -27,7 +26,7 @@ public class NonAuthenticatedCallsTests : DisagnerEndpointsTestsBase<DatamodelsC
         string url = $"{VersionPrefix(org, repo)}/datamodel";
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
-        using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
 
         Assert.Equal(HttpStatusCode.Found, response.StatusCode);
         Assert.Contains("/login/", response.Headers.Location.AbsoluteUri.ToLower());

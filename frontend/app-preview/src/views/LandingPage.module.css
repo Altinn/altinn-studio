@@ -1,5 +1,5 @@
 .header {
-  font-family: Inter, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: var(--font-family);
   align-items: center;
   height: var(--header-height);
   width: 100vw;
@@ -15,27 +15,21 @@
   border: none;
 }
 
-.iframeMobileViewContainer {
+.iframeContainer {
   display: flex;
   justify-content: center;
-  background-color: #efefef;
-  height: calc(100vh - var(--header-height));
+  background-color: var(--fds-semantic-surface-neutral-dark);
+  flex: 1;
 }
 
 .iframeMobile {
-  height: 844px;
-  width: calc(390px + 48px);
-  padding: 20px 0;
+  --phone-width: 390px;
+  width: var(--phone-width);
   border: none;
-  margin: 0;
 }
 
-/* Mobile View Overlay to cover devtools in the middle of the screen */
-.iframeMobileViewOverlay {
-  position: absolute;
-  bottom: 0;
-  height: 100px;
-  width: 100%;
-  background-color: #efefef;
-  z-index: 1;
+.previewArea {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--header-height));
 }

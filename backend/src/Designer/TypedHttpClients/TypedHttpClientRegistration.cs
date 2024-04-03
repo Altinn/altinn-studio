@@ -7,6 +7,7 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
@@ -15,6 +16,7 @@ using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
 using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -48,6 +50,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddKubernetesWrapperTypedHttpClient();
             services.AddHttpClient<IPolicyOptions, PolicyOptionsClient>();
             services.AddHttpClient<IResourceRegistryOptions, ResourceRegistryOptionsClients>();
+            services.AddHttpClient<IAltinn2MetadataClient, Altinn2MetadataClient>();
 
             return services;
         }
@@ -67,24 +70,31 @@ namespace Altinn.Studio.Designer.TypedHttpClients
         private static IHttpClientBuilder AddKubernetesWrapperTypedHttpClient(this IServiceCollection services)
         {
             return services.AddHttpClient<IKubernetesWrapperClient, KubernetesWrapperClient>();
+            // Commented due to the issue with deployments endpoint described in issue: https://github.com/Altinn/altinn-studio/issues/12037
+            // .AddHttpMessageHandler<EnsureSuccessHandler>()
+            // .AddHttpMessageHandler(sp => new CachingDelegatingHandler(sp.GetService<IMemoryCache>(), 15));
         }
 
-        private static IHttpClientBuilder AddGiteaTypedHttpClient(this IServiceCollection services, IConfiguration config)
+        private static IHttpClientBuilder AddGiteaTypedHttpClient(this IServiceCollection services,
+            IConfiguration config)
             => services.AddHttpClient<IGitea, GiteaAPIWrapper>((sp, httpClient) =>
                 {
                     IHttpContextAccessor httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
-                    ServiceRepositorySettings serviceRepSettings = config.GetSection("ServiceRepositorySettings").Get<ServiceRepositorySettings>();
-                    Uri uri = new Uri(serviceRepSettings.ApiEndPoint);
+                    ServiceRepositorySettings serviceRepoSettings =
+                        config.GetSection("ServiceRepositorySettings").Get<ServiceRepositorySettings>();
+                    Uri uri = new Uri(serviceRepoSettings.ApiEndPoint);
                     httpClient.BaseAddress = uri;
                     httpClient.DefaultRequestHeaders.Add(
                         General.AuthorizationTokenHeaderName,
                         AuthenticationHelper.GetDeveloperTokenHeaderValue(httpContextAccessor.HttpContext));
                 })
-                .ConfigurePrimaryHttpMessageHandler(() =>
-                    new HttpClientHandler
-                    {
-                        AllowAutoRedirect = true
-                    });
+                .ConfigurePrimaryHttpMessageHandler((sp) =>
+                {
+                    var handler = new HttpClientHandler { AllowAutoRedirect = true };
+
+                    return new Custom401Handler(handler);
+                });
+
 
         private static IHttpClientBuilder AddAltinnAuthenticationTypedHttpClient(this IServiceCollection services, IConfiguration config)
             => services.AddHttpClient<IAltinnAuthenticationClient, AltinnAuthenticationClient>((sp, httpClient) =>

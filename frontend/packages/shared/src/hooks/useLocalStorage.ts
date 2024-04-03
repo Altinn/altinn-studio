@@ -1,21 +1,36 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useState } from 'react';
+import type { TypedStorage } from 'app-shared/utils/webStorage';
+import { typedLocalStorage } from 'app-shared/utils/webStorage';
 
-export const useLocalStorage = (key: string) => {
-  const [valueInStorage, setValueInStorage] = useState(localStorage.getItem(key));
+const useWebStorage = <T>(
+  typedStorage: TypedStorage,
+  key: string,
+  initialValue?: T,
+): [T, (newValue: T) => void, () => void] => {
+  const [value, setValue] = useState<T>(typedStorage.getItem(key) || initialValue);
 
-  useEffect(() => {
-    const handleStorageChange = (event) => {
-      if (event.key === key) {
-        setValueInStorage(event.newValue);
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, [key]);
+  const setStorageValue = useCallback(
+    (newValue: T) => {
+      typedStorage.setItem(key, newValue);
+      setValue(newValue);
+    },
+    [key, typedStorage],
+  );
 
-  return valueInStorage;
+  const removeStorageValue = useCallback(() => {
+    typedStorage.removeItem(key);
+    setValue(undefined);
+  }, [key, typedStorage]);
+
+  return [value, setStorageValue, removeStorageValue];
 };
 
-// TODO: Add tests for this hook
+/**
+ * @param key - the key to use in local storage
+ * @param initialValue - the initial value to use if there is no value in local storage
+ * @returns [value, setValue, removeValue] - the value, a function to set the value and a function to remove it
+ * @description
+ * useLocalStorage is a hook that allows you to use local storage the same way you would with useState
+ */
+export const useLocalStorage = <T>(key: string, initialValue?: T) =>
+  useWebStorage<T>(typedLocalStorage, key, initialValue);

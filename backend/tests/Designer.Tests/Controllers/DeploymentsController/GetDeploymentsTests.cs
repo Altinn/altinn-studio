@@ -4,9 +4,9 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
@@ -19,11 +19,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-public class GetDeployments : DisagnerEndpointsTestsBase<DeploymentsController, GetDeployments>
+namespace Designer.Tests.Controllers.DeploymentsController;
+
+public class GetDeployments : DisagnerEndpointsTestsBase<GetDeployments>, IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<IDeploymentService> _deploymentServiceMock = new Mock<IDeploymentService>();
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/deployments";
-    public GetDeployments(WebApplicationFactory<DeploymentsController> factory) : base(factory)
+    public GetDeployments(WebApplicationFactory<Program> factory) : base(factory)
     {
     }
 
@@ -44,13 +46,13 @@ public class GetDeployments : DisagnerEndpointsTestsBase<DeploymentsController, 
         List<DeploymentEntity> completedDeployments = GetDeploymentsList("completedDeployments.json");
 
         _deploymentServiceMock
-            .Setup(rs => rs.GetAsync(org, app, It.IsAny<DocumentQueryModel>()))
+            .Setup(rs => rs.GetAsync(org, app, It.IsAny<DocumentQueryModel>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new SearchResults<DeploymentEntity> { Results = completedDeployments });
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
         // Act
-        HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
+        HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
         string responseString = await res.Content.ReadAsStringAsync();
         SearchResults<DeploymentEntity> searchResult = JsonSerializer.Deserialize<SearchResults<DeploymentEntity>>(responseString, JsonSerializerOptions);
         IEnumerable<DeploymentEntity> actual = searchResult.Results;
@@ -59,8 +61,8 @@ public class GetDeployments : DisagnerEndpointsTestsBase<DeploymentsController, 
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
         Assert.Equal(8, actual.Count());
         Assert.DoesNotContain(actual, r => r.Build.Status == BuildStatus.InProgress);
-        _deploymentServiceMock.Verify(p => p.UpdateAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-        _deploymentServiceMock.Verify(r => r.GetAsync(org, app, It.IsAny<DocumentQueryModel>()), Times.Once);
+        _deploymentServiceMock.Verify(p => p.UpdateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        _deploymentServiceMock.Verify(r => r.GetAsync(org, app, It.IsAny<DocumentQueryModel>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Theory]
@@ -72,17 +74,17 @@ public class GetDeployments : DisagnerEndpointsTestsBase<DeploymentsController, 
         List<DeploymentEntity> completedDeployments = GetDeploymentsList("singleLaggingDeployment.json");
 
         _deploymentServiceMock
-            .Setup(ps => ps.UpdateAsync(It.IsAny<string>(), It.IsAny<string>()))
+            .Setup(ps => ps.UpdateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         _deploymentServiceMock
-            .Setup(rs => rs.GetAsync(org, app, It.IsAny<DocumentQueryModel>()))
+            .Setup(rs => rs.GetAsync(org, app, It.IsAny<DocumentQueryModel>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new SearchResults<DeploymentEntity> { Results = completedDeployments });
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
         // Act
-        HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
+        HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
         string responseString = await res.Content.ReadAsStringAsync();
         SearchResults<DeploymentEntity> searchResult = JsonSerializer.Deserialize<SearchResults<DeploymentEntity>>(responseString, JsonSerializerOptions);
         IEnumerable<DeploymentEntity> actual = searchResult.Results;
@@ -91,8 +93,8 @@ public class GetDeployments : DisagnerEndpointsTestsBase<DeploymentsController, 
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
         Assert.Equal(8, actual.Count());
         Assert.Contains(actual, r => r.Build.Status == BuildStatus.InProgress);
-        _deploymentServiceMock.Verify(p => p.UpdateAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-        _deploymentServiceMock.Verify(r => r.GetAsync(org, app, It.IsAny<DocumentQueryModel>()), Times.Once);
+        _deploymentServiceMock.Verify(p => p.UpdateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        _deploymentServiceMock.Verify(r => r.GetAsync(org, app, It.IsAny<DocumentQueryModel>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     private List<DeploymentEntity> GetDeploymentsList(string filename)

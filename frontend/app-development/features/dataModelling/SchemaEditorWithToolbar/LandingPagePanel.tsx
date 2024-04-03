@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './LandingPagePanel.module.css';
-import { Button, ButtonColor } from '@digdir/design-system-react';
+import { StudioButton } from '@studio/components';
 import { XSDUpload } from './TopToolbar/XSDUpload';
 import { useTranslation } from 'react-i18next';
 import { ButtonContainer } from 'app-shared/primitives';
@@ -18,14 +18,14 @@ export function LandingPagePanel({ openCreateNew }: LandingPagePanelProps) {
       <ButtonContainer>
         <XSDUpload
           submitButtonRenderer={(fileInputClickHandler) => (
-            <Button color={ButtonColor.Primary} onClick={fileInputClickHandler} size='small'>
+            <StudioButton color='first' onClick={fileInputClickHandler} size='small'>
               {t('app_data_modelling.landing_dialog_upload')}
-            </Button>
+            </StudioButton>
           )}
         />
-        <Button color={ButtonColor.Secondary} onClick={openCreateNew} size='small'>
+        <StudioButton color='second' onClick={openCreateNew} size='small'>
           {t('app_data_modelling.landing_dialog_create')}
-        </Button>
+        </StudioButton>
       </ButtonContainer>
     </div>
   );

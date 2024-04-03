@@ -8,7 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.Designer.Models.App;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
@@ -17,10 +17,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ApplicationMetadataController
 {
-    public class UpdateMetadataForAttachmentTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.ApplicationMetadataController, UpdateMetadataForAttachmentTests>
+    public class UpdateMetadataForAttachmentTests : DisagnerEndpointsTestsBase<UpdateMetadataForAttachmentTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/metadata";
-        public UpdateMetadataForAttachmentTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.ApplicationMetadataController> factory) : base(factory)
+        public UpdateMetadataForAttachmentTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -41,12 +41,12 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
 
             // payload
             using var payloadContent = new StringContent(payload, Encoding.UTF8, MediaTypeNames.Application.Json);
-            using var response = await HttpClient.Value.PutAsync(url, payloadContent);
+            using var response = await HttpClient.PutAsync(url, payloadContent);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             string applicationMetadataFile = await File.ReadAllTextAsync(Path.Combine(TestRepoPath, "App", "config", "applicationmetadata.json"));
-            var applicationMetadata = JsonSerializer.Deserialize<Application>(applicationMetadataFile, _jsonSerializerOptions);
+            var applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataFile, _jsonSerializerOptions);
 
             var attachmentDataType = applicationMetadata.DataTypes.Single(x => x.Id == payloadNode!["id"]!.ToString());
             attachmentDataType.MaxCount.Should().Be(payloadNode!["maxCount"]!.GetValue<int>());

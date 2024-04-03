@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import type { LangCode } from '@altinn/text-editor';
 import { TextEditor as TextEditorImpl, defaultLangCode } from '@altinn/text-editor';
-import { PageSpinner } from 'app-shared/components';
-import { useParams, useSearchParams } from 'react-router-dom';
-import { TextResourceIdMutation } from '@altinn/text-editor/src/types';
+import { StudioPageSpinner } from '@studio/components';
+import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
+import { useSearchParams } from 'react-router-dom';
+import type { TextResourceIdMutation } from '@altinn/text-editor/src/types';
 import { useLanguagesQuery, useTextResourcesQuery } from '../../hooks/queries';
 import {
   useAddLanguageMutation,
@@ -11,32 +12,23 @@ import {
   useTextIdMutation,
   useUpsertTextResourceMutation,
 } from '../../hooks/mutations';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useTranslation } from 'react-i18next';
 
 export const TextEditor = () => {
+  const { t } = useTranslation();
+  const { org, app } = useStudioUrlParams();
   const [searchParams, setSearchParams] = useSearchParams({ lang: '', search: '' });
-  const [selectedLangCodes, setSelectedLangCodes] = useState<LangCode[]>([]);
 
-  const handleSelectedLangCodes = (value: LangCode[]) => {
-    setSelectedLangCodes(value?.length > 0 ? value : [defaultLangCode]);
-  };
-  useEffect(() => {
-    const initialSelectedLangCodes = JSON.parse(localStorage.getItem('selectedLanguages'));
-    handleSelectedLangCodes(initialSelectedLangCodes);
-  }, []);
-
-useEffect(() => {
-  localStorage.setItem('selectedLanguages', JSON.stringify(selectedLangCodes));
-}, [selectedLangCodes]);
-
+  const selectedLanguagesStorageKey = `${org}:${app}:selectedLanguages`;
+  const [selectedLangCodes, setSelectedLangCodes] = useLocalStorage<string[]>(
+    selectedLanguagesStorageKey,
+    [defaultLangCode],
+  );
   const getSearchQuery = () => searchParams.get('search') || '';
-  const { org, app } = useParams();
 
   const { data: appLangCodes } = useLanguagesQuery(org, app);
-  const {
-    data: textResources,
-    isLoading: isInitialLoadingLang,
-    isFetching: isFetchingTranslations
-  } = useTextResourcesQuery(org, app);
+  const { data: textResources, isPending: isInitialLoadingLang } = useTextResourcesQuery(org, app);
 
   const setSearchQuery = (search: string) => {
     setSearchParams(search.length > 0 ? { search } : {});
@@ -57,8 +49,10 @@ useEffect(() => {
 
   const { mutate: upsertTextResource } = useUpsertTextResourceMutation(org, app);
 
-  if (isInitialLoadingLang || isFetchingTranslations || !textResources) {
-    return <PageSpinner />;
+  if (isInitialLoadingLang || !textResources) {
+    return (
+      <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('text_editor.loading_page')} />
+    );
   }
 
   return (
@@ -69,7 +63,7 @@ useEffect(() => {
       searchQuery={getSearchQuery()}
       selectedLangCodes={selectedLangCodes}
       setSearchQuery={setSearchQuery}
-      setSelectedLangCodes={handleSelectedLangCodes}
+      setSelectedLangCodes={setSelectedLangCodes}
       textResourceFiles={textResources}
       updateTextId={(data: TextResourceIdMutation) => textIdMutation([data])}
       upsertTextResource={upsertTextResource}

@@ -1,0 +1,39 @@
+.cardWrapper {
+  width: 595px;
+  min-width: 595px;
+}
+
+.chipWrapper {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.textAreaWrapper {
+  margin-top: 10px;
+}
+
+.addResourceButton {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.label {
+  margin-top: 30px;
+  margin-bottom: 5px;
+}
+
+.label:first-child {
+  margin-top: 10px;
+}
+
+.dropdownWrapper {
+  margin-bottom: 10px;
+}
+
+.inputParagraph {
+  margin-bottom: 5px;
+}
+
+.descriptionInput {
+  margin-top: 30px;
+}

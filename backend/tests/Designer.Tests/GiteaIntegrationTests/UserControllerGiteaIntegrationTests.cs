@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
@@ -14,10 +13,10 @@ using Xunit;
 
 namespace Designer.Tests.GiteaIntegrationTests
 {
-    public class UserControllerGiteaIntegrationTests : GiteaIntegrationTestsBase<UserController, UserControllerGiteaIntegrationTests>
+    public class UserControllerGiteaIntegrationTests : GiteaIntegrationTestsBase<UserControllerGiteaIntegrationTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public UserControllerGiteaIntegrationTests(WebApplicationFactory<UserController> factory, GiteaFixture giteaFixture) : base(factory, giteaFixture)
+        public UserControllerGiteaIntegrationTests(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture) : base(factory, giteaFixture)
         {
         }
 
@@ -27,9 +26,9 @@ namespace Designer.Tests.GiteaIntegrationTests
         public async Task GetCurrentUser_ShouldReturnOk(string expectedUserName, string expectedEmail)
         {
             string requestUrl = "designer/api/user/current";
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, requestUrl);
 
-            using HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             response.Headers.First(h => h.Key == "Set-Cookie").Value.Should().Satisfy(e => e.Contains("XSRF-TOKEN"));
@@ -51,8 +50,8 @@ namespace Designer.Tests.GiteaIntegrationTests
             string targetRepo = TestDataHelper.GenerateTestRepoName();
             await CreateAppUsingDesigner(org, targetRepo);
 
-            string requestUrl = $"designer/api/user/repos";
-            using var response = await HttpClient.Value.GetAsync(requestUrl);
+            string requestUrl = "designer/api/user/repos";
+            using var response = await HttpClient.GetAsync(requestUrl);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             var content = await response.Content.ReadAsAsync<List<Repository>>();
             content.Should().NotBeNull();
@@ -67,11 +66,11 @@ namespace Designer.Tests.GiteaIntegrationTests
             string targetRepo = TestDataHelper.GenerateTestRepoName();
             await CreateAppUsingDesigner(org, targetRepo);
 
-            using var putStarredResponse = await HttpClient.Value.PutAsync($"designer/api/user/starred/{org}/{targetRepo}", null);
+            using var putStarredResponse = await HttpClient.PutAsync($"designer/api/user/starred/{org}/{targetRepo}", null);
             putStarredResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
             await GetAndVerifyStarredRepos(targetRepo);
 
-            using var deleteStarredResponse = await HttpClient.Value.DeleteAsync($"designer/api/user/starred/{org}/{targetRepo}");
+            using var deleteStarredResponse = await HttpClient.DeleteAsync($"designer/api/user/starred/{org}/{targetRepo}");
             deleteStarredResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
             await GetAndVerifyStarredRepos();
@@ -79,8 +78,7 @@ namespace Designer.Tests.GiteaIntegrationTests
 
         private async Task GetAndVerifyStarredRepos(params string[] expectedStarredRepos)
         {
-            InvalidateAllCookies();
-            using var response = await HttpClient.Value.GetAsync("designer/api/user/starred");
+            using var response = await HttpClient.GetAsync("designer/api/user/starred");
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             var content = await response.Content.ReadAsAsync<List<Repository>>();
             content.Should().NotBeNull().And.HaveCount(expectedStarredRepos.Length);
@@ -88,7 +86,6 @@ namespace Designer.Tests.GiteaIntegrationTests
             {
                 content.Should().Contain(r => r.Name == expectedStarredRepo);
             }
-            InvalidateAllCookies();
         }
 
     }

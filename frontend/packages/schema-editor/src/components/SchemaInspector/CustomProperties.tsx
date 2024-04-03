@@ -1,20 +1,18 @@
 import React from 'react';
-import { Button, Checkbox, FieldSet, HelpText, TextField } from '@digdir/design-system-react';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { Fieldset, HelpText, LegacyTextField, Switch } from '@digdir/design-system-react';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import {
   CustomPropertyType,
   deleteProperty,
   propertyType,
   setCustomProperties,
-  setProperty
+  setProperty,
 } from '@altinn/schema-model';
 import { TrashIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import classes from './CustomProperties.module.css';
-import { useDatamodelQuery } from '@altinn/schema-editor/hooks/queries';
-import { useDatamodelMutation } from '@altinn/schema-editor/hooks/mutations';
-import { useSchemaAndReduxSelector } from '@altinn/schema-editor/hooks/useSchemaAndReduxSelector';
-import { selectedItemSelector } from '@altinn/schema-editor/selectors/schemaAndReduxSelectors';
+import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
+import { StudioButton } from '@studio/components';
 
 export interface CustomPropertiesProps {
   path: string;
@@ -23,13 +21,14 @@ export interface CustomPropertiesProps {
 const inputId = (key: string) => `custom-property-${key}`;
 
 export const CustomProperties = ({ path }: CustomPropertiesProps) => {
-  const { data } = useDatamodelQuery();
-  const { mutate } = useDatamodelMutation();
+  const { schemaModel, save, selectedNodePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
-  const { custom } = useSchemaAndReduxSelector(selectedItemSelector);
+
+  const selectedItem = schemaModel.getNode(selectedNodePointer);
+  const { custom } = selectedItem;
 
   function changeProperties(properties: KeyValuePairs) {
-    mutate(setCustomProperties(data, { path, properties }));
+    save(setCustomProperties(schemaModel, { path, properties }));
   }
 
   function handlePropertyChange<T>(key: string, value: T) {
@@ -72,16 +71,18 @@ export const CustomProperties = ({ path }: CustomPropertiesProps) => {
     }
   }
 
-  function renderKey(key: string)  {
-    return propertyType(custom, key) === CustomPropertyType.Unsupported
-      ? key
-      : <label htmlFor={inputId(key)}>{key}</label>;
+  function renderKey(key: string) {
+    return propertyType(custom, key) === CustomPropertyType.Unsupported ? (
+      key
+    ) : (
+      <label htmlFor={inputId(key)}>{key}</label>
+    );
   }
 
   return (
-    <FieldSet
-      contentClassName={classes.root}
-      helpText={t('schema_editor.custom_props_help')}
+    <Fieldset
+      className={classes.root}
+      description={t('schema_editor.custom_props_help')}
       legend={t('schema_editor.custom_props')}
     >
       {Object.keys(custom).map((key) => (
@@ -90,16 +91,16 @@ export const CustomProperties = ({ path }: CustomPropertiesProps) => {
             <span>{renderKey(key)}</span>
             <span>{renderInput(key)}</span>
           </span>
-          <Button
+          <StudioButton
             className={classes.deleteButton}
-            icon={<TrashIcon/>}
+            icon={<TrashIcon />}
             onClick={() => deleteCustomProperty(key)}
             title={t('general.delete')}
             size='small'
           />
         </div>
       ))}
-    </FieldSet>
+    </Fieldset>
   );
 };
 
@@ -111,17 +112,24 @@ export interface InputProps<T> {
 
 export const StringInput = ({ id, value, onChange }: InputProps<string>) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value);
-  return <TextField id={id} value={value} onChange={handleChange}/>;
+  return <LegacyTextField id={id} value={value} onChange={handleChange} />;
 };
 
 export const NumberInput = ({ id, value, onChange }: InputProps<number>) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => onChange(Number(e.target.value));
-  return <TextField id={id} formatting={{ number: {} }} value={value.toString()} onChange={handleChange} />;
+  return (
+    <LegacyTextField
+      id={id}
+      formatting={{ number: {} }}
+      value={value.toString()}
+      onChange={handleChange}
+    />
+  );
 };
 
 export const BooleanInput = ({ id, value, onChange }: InputProps<boolean>) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.checked);
-  return <Checkbox checkboxId={id} onChange={handleChange} checked={value} />;
+  return <Switch size='small' id={id} onChange={handleChange} checked={value} />;
 };
 
 export const UnsupportedInput = () => {

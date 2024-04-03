@@ -1,11 +1,7 @@
-import { QueryClient, QueryClientConfig } from '@tanstack/react-query';
+import type { QueryClientConfig } from '@tanstack/react-query';
+import { QueryClient } from '@tanstack/react-query';
 
 export const queryClientConfigMock: QueryClientConfig = {
-  logger: {
-    log: () => {},
-    warn: () => {},
-    error: () => {},
-  },
   defaultOptions: {
     mutations: { retry: false },
     queries: { retry: false, staleTime: Infinity },

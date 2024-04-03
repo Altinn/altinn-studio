@@ -1,5 +1,5 @@
+using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Services.Models;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
 {
@@ -15,10 +15,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">Application</param>
         /// <param name="shortCommitId">Commit Id</param>
         /// <param name="envName">Environment Name</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         Task UpdateTextResourcesAsync(
             string org,
             string app,
             string shortCommitId,
-            string envName);
+            string envName,
+            CancellationToken cancellationToken = default);
     }
 }

@@ -1,0 +1,1 @@
+export { ResourceContactPointFields } from './ResourceContactPointFields';

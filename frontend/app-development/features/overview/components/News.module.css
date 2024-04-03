@@ -1,0 +1,19 @@
+.news {
+  max-height: 380px;
+  overflow-y: scroll;
+  padding-top: 24px;
+  border-top: #efefef solid 1px;
+}
+
+.newsContent {
+  background-color: var(--fds-semantic-surface-warning-subtle);
+  padding: var(--fds-spacing-3) var(--fds-spacing-6);
+}
+
+.newsContent:not(:last-child) {
+  margin-bottom: var(--fds-spacing-4);
+}
+
+.newsContainer {
+  padding-top: 24px;
+}

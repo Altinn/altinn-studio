@@ -121,7 +121,7 @@ namespace Designer.Tests.Services
 
             try
             {
-                var repository = await repositoryService.CreateService(org, new ServiceConfiguration() { RepositoryName = repositoryName, ServiceName = repositoryName });
+                await repositoryService.CreateService(org, new ServiceConfiguration() { RepositoryName = repositoryName, ServiceName = repositoryName });
                 var altinnStudioSettings = await new AltinnGitRepositoryFactory(repositoriesRootDirectory).GetAltinnGitRepository(org, repositoryName, developer).GetAltinnStudioSettings();
                 altinnStudioSettings.RepoType.Should().Be(AltinnRepositoryType.App);
             }
@@ -329,7 +329,12 @@ namespace Designer.Tests.Services
 
             ApplicationMetadataService applicationInformationService = new(new Mock<ILogger<ApplicationMetadataService>>().Object, altinnStorageAppMetadataClient, altinnGitRepositoryFactory, httpContextAccessorMock.Object, new IGiteaMock());
 
+            ISchemaModelService schemaModelService = new Mock<ISchemaModelService>().Object;
+            AppDevelopmentService appDevelopmentService = new(altinnGitRepositoryFactory, schemaModelService);
+
             TextsService textsService = new(altinnGitRepositoryFactory, applicationInformationService);
+
+            ResourceRegistryService resourceRegistryService = new();
 
             RepositorySI service = new(
                 repoSettings,
@@ -340,7 +345,9 @@ namespace Designer.Tests.Services
                 new Mock<ILogger<RepositorySI>>().Object,
                 altinnGitRepositoryFactory,
                 applicationInformationService,
-                textsService);
+                appDevelopmentService,
+                textsService,
+                resourceRegistryService);
 
             return service;
         }

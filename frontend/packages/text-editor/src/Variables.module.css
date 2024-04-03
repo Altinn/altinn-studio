@@ -1,19 +1,23 @@
-
 .infoButton {
   display: inline-block;
 }
 
 .chip {
+  display: inline-block;
+  max-width: 450px;
   border-radius: 20px;
-  width: 90%;
   margin: 5px;
   background-color: gray;
+  padding-left: 10px;
+  vertical-align: text-bottom;
+}
+
+.variables {
   display: inline-block;
   overflow: hidden;
-  text-overflow: ellipsis;
+  width: 95%;
   white-space: nowrap;
+  text-overflow: ellipsis;
   color: white;
-  padding-left: 10px;
   font-size: 14px;
-  vertical-align: text-bottom;
 }

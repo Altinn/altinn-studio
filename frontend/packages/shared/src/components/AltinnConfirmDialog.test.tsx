@@ -44,8 +44,8 @@ describe('AltinnConfirmDialog', () => {
     const confirmButton = screen.getByRole('button', { name: confirmTextMock });
     await act(() => user.click(confirmButton));
 
-    expect(onConfirmMock).toBeCalledTimes(1);
-    expect(onCloseMock).toBeCalledTimes(1);
+    expect(onConfirmMock).toHaveBeenCalledTimes(1);
+    expect(onCloseMock).toHaveBeenCalledTimes(1);
   });
 
   it('should call onClose when clicking the cancel button', async () => {
@@ -73,12 +73,12 @@ const render = async (props: Partial<AltinnConfirmDialogProps> = {}) => {
     cancelText: cancelTextMock,
     onClose: onCloseMock,
     open: true,
-    ...props
+    ...props,
   };
 
   return rtlRender(
     <AltinnConfirmDialog {...allProps}>
       <p>{descriptionTextMock}</p>
-    </AltinnConfirmDialog>
+    </AltinnConfirmDialog>,
   );
 };

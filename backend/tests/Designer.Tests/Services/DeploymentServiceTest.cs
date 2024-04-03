@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Repository;
@@ -69,7 +69,8 @@ namespace Designer.Tests.Services
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
-                It.IsAny<string>())).Returns(Task.CompletedTask);
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
             _azureDevOpsBuildClient.Setup(b => b.QueueAsync(
                 It.IsAny<QueueBuildParameters>(),
@@ -103,7 +104,8 @@ namespace Designer.Tests.Services
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>()),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()),
                 Times.Once);
             _azureDevOpsBuildClient.Verify(
                 b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>()), Times.Once);
@@ -114,8 +116,19 @@ namespace Designer.Tests.Services
         public async Task GetAsync_OK()
         {
             // Arrange
+            var testDeployments = GetDeployments("completedDeployments.json");
             _deploymentRepository.Setup(r => r.Get("ttd", "issue-6094", It.IsAny<DocumentQueryModel>()))
-                .ReturnsAsync(GetDeployments("completedDeployments.json"));
+                .ReturnsAsync(testDeployments);
+
+            var kubernetesDeployments = testDeployments.Take(4).Select(deployment => new Deployment()
+            {
+                Release = $"{deployment.Org}-{deployment.App}",
+                Version = deployment.TagName,
+            }).ToList();
+            _kubernetesWrapperClient.Setup(req => req.GetDeploymentsInEnvAsync("ttd", It.IsAny<EnvironmentModel>()))
+                .ReturnsAsync(kubernetesDeployments);
+            _environementsService.Setup(e => e.GetOrganizationEnvironments("ttd")).ReturnsAsync(GetEnvironments("environments.json"));
+
 
             DeploymentService deploymentService = new(
                 GetAzureDevOpsSettings(),
@@ -134,6 +147,7 @@ namespace Designer.Tests.Services
 
             // Assert
             Assert.Equal(8, results.Results.Count());
+            Assert.Equal(4, results.Results.Count(x => x.DeployedInEnv));
             //Assert.True(results.Results.ToArray()[0].Reachable);
             _deploymentRepository.Verify(r => r.Get("ttd", "issue-6094", It.IsAny<DocumentQueryModel>()), Times.Once);
         }

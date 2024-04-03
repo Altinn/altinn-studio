@@ -1,59 +1,32 @@
-import React, { useCallback, useState } from 'react';
-import { AltinnSpinner } from 'app-shared/components';
+import type { ChangeEvent } from 'react';
+import React, { useState } from 'react';
+import { StudioButton, StudioSpinner } from '@studio/components';
 import { ServiceOwnerSelector } from '../../components/ServiceOwnerSelector';
 import { RepoNameInput } from '../../components/RepoNameInput';
-import { validateRepoName } from '../../utils/repoUtils';
-import { applicationAboutPage } from '../../utils/urlUtils';
 import classes from './CreateService.module.css';
-import { Button, ButtonColor } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import i18next from 'i18next';
-import { Organization } from 'app-shared/types/Organization';
-import { User } from 'app-shared/types/User';
+import type { Organization } from 'app-shared/types/Organization';
+import type { User } from 'app-shared/types/Repository';
 import { useAddRepoMutation } from 'dashboard/hooks/mutations/useAddRepoMutation';
 import { DatamodelFormat } from 'app-shared/types/DatamodelFormat';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import type { AxiosError } from 'axios';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { useCreateAppFormValidation } from './hooks/useCreateAppFormValidation';
+import { navigateToAppDevelopment } from './utils/navigationUtils';
 
-enum PageState {
-  Idle = 'Idle',
-  Creating = 'Creating',
-}
+const DASHBOARD_ROOT_ROUTE: string = '/';
 
-interface IValidateInputs {
-  selectedOrgOrUser: string;
-  setOrgErrorMessage: (value: string) => void;
-  setRepoErrorMessage: (value: string) => void;
-  repoName: string;
-  t: typeof i18next.t;
-}
+const initialFormError: CreateAppForm = {
+  org: '',
+  repoName: '',
+};
 
-const validateInputs = ({
-  selectedOrgOrUser,
-  setOrgErrorMessage,
-  setRepoErrorMessage,
-  repoName,
-  t,
-}: IValidateInputs) => {
-  let isValid = true;
-  if (!selectedOrgOrUser) {
-    setOrgErrorMessage(t('dashboard.field_cannot_be_empty'));
-    isValid = false;
-  }
-  if (!repoName) {
-    setRepoErrorMessage(t('dashboard.field_cannot_be_empty'));
-    isValid = false;
-  }
-  if (repoName && !validateRepoName(repoName)) {
-    setRepoErrorMessage(t('dashboard.service_name_has_illegal_characters'));
-    isValid = false;
-  }
-  if (repoName.length > 30) {
-    setRepoErrorMessage(t('dashboard.service_name_is_too_long'));
-    isValid = false;
-  }
-  return isValid;
+type CreateAppForm = {
+  org?: string;
+  repoName?: string;
 };
 
 type CreateServiceProps = {
@@ -61,89 +34,120 @@ type CreateServiceProps = {
   organizations: Organization[];
 };
 export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.Element => {
-  const selectedFormat = DatamodelFormat.XSD;
-  const selectedContext = useSelectedContext();
-  const [selectedOrgOrUser, setSelectedOrgOrUser] = useState(selectedContext === SelectedContextType.Self ? user.login : selectedContext);
-  const [orgErrorMessage, setOrgErrorMessage] = useState(null);
-  const [repoErrorMessage, setRepoErrorMessage] = useState(null);
-  const [repoName, setRepoName] = useState('');
-  const [pageState, setPageState] = useState(PageState.Idle);
-  const { mutate: addRepo } = useAddRepoMutation();
+  const dataModellingPreference: DatamodelFormat.XSD = DatamodelFormat.XSD;
+
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const selectedContext = useSelectedContext();
+  const { validateRepoOwnerName, validateRepoName } = useCreateAppFormValidation();
 
-  const handleServiceOwnerChanged = useCallback((newValue: string) => {
-    setSelectedOrgOrUser(newValue);
-    setOrgErrorMessage(null);
-  }, []);
+  const [formError, setFormError] = useState<CreateAppForm>(initialFormError);
 
-  const handleRepoNameChanged = useCallback((newValue: string) => {
-    setRepoName(newValue);
-    setRepoErrorMessage(null);
-  }, []);
+  const {
+    mutate: addRepoMutation,
+    isPending: isCreatingRepo,
+    isSuccess: isCreatingRepoSuccess,
+  } = useAddRepoMutation({
+    hideDefaultError: (error: AxiosError) => error?.response?.status === ServerCodes.Conflict,
+  });
 
-  const handleCreateService = async () => {
-    const isValid = validateInputs({
-      selectedOrgOrUser,
-      repoName,
-      t,
-      setRepoErrorMessage,
-      setOrgErrorMessage,
-    });
-
-    if (isValid) {
-      setPageState(PageState.Creating);
-
-      await addRepo(
-        { org: selectedOrgOrUser, repository: repoName, datamodellingPreference: selectedFormat },
-        {
-          onSuccess: (repository) => {
-            window.location.assign(
-              applicationAboutPage({
-                org: repository.owner.login,
-                repo: repository.name,
-              })
+  const defaultSelectedOrgOrUser: string =
+    selectedContext === SelectedContextType.Self ? user.login : selectedContext;
+  const createAppRepo = async (createAppForm: CreateAppForm) => {
+    addRepoMutation(
+      {
+        org: createAppForm.org,
+        repository: createAppForm.repoName,
+        datamodellingPreference: dataModellingPreference,
+      },
+      {
+        onSuccess: (): void => {
+          navigateToAppDevelopment(createAppForm.org, createAppForm.repoName);
+        },
+        onError: (error: AxiosError): void => {
+          const appNameAlreadyExists = error.response.status === ServerCodes.Conflict;
+          if (appNameAlreadyExists) {
+            setFormError(
+              (prevErrors): CreateAppForm => ({
+                ...prevErrors,
+                repoName: t('dashboard.app_already_exists'),
+              }),
             );
-          },
-          onError: (error: { response: { status: number } }) => {
-            if (error.response.status === 409) {
-              setPageState(PageState.Idle);
-              setRepoErrorMessage(t('dashboard.app_already_exist'));
-            } else {
-              setPageState(PageState.Idle);
-              setRepoErrorMessage(t('dashboard.error_when_creating_app'));
-            }
-          },
-        }
-      );
+          }
+        },
+      },
+    );
+  };
+
+  const handleCreateAppFormSubmit = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ): Promise<void> => {
+    event.preventDefault();
+
+    const formData: FormData = new FormData(event.currentTarget);
+
+    const createAppForm: CreateAppForm = {
+      org: formData.get('org') as string,
+      repoName: formData.get('repoName') as string,
+    };
+
+    const isFormValid: boolean = validateCreateAppForm(createAppForm);
+    if (isFormValid) {
+      await createAppRepo(createAppForm);
     }
   };
+
+  const validateCreateAppForm = (createAppForm: CreateAppForm): boolean => {
+    const { errorMessage: orgErrorMessage, isValid: isOrgValid } = validateRepoOwnerName(
+      createAppForm.org,
+    );
+    const { errorMessage: repoNameErrorMessage, isValid: isRepoNameValid } = validateRepoName(
+      createAppForm.repoName,
+    );
+
+    setFormError({
+      org: isOrgValid ? '' : orgErrorMessage,
+      repoName: isRepoNameValid ? '' : repoNameErrorMessage,
+    });
+
+    return isOrgValid && isRepoNameValid;
+  };
+
+  const validateTextValue = (event: ChangeEvent<HTMLInputElement>) => {
+    const { errorMessage: repoNameErrorMessage, isValid: isRepoNameValid } = validateRepoName(
+      event.target.value,
+    );
+    setFormError((previous) => ({
+      ...previous,
+      repoName: isRepoNameValid ? '' : repoNameErrorMessage,
+    }));
+  };
+
   return (
-    <div className={classes.createServiceContainer}>
+    <form onSubmit={handleCreateAppFormSubmit} className={classes.createAppForm}>
       <ServiceOwnerSelector
+        name='org'
         user={user}
         organizations={organizations}
-        onServiceOwnerChanged={handleServiceOwnerChanged}
-        errorMessage={orgErrorMessage}
-        selectedOrgOrUser={selectedOrgOrUser}
+        errorMessage={formError.org}
+        selectedOrgOrUser={defaultSelectedOrgOrUser}
       />
       <RepoNameInput
-        onRepoNameChanged={handleRepoNameChanged}
-        repoName={repoName}
-        errorMessage={repoErrorMessage}
+        name='repoName'
+        errorMessage={formError.repoName}
+        onChange={validateTextValue}
       />
-      {pageState === PageState.Creating ? (
-        <AltinnSpinner spinnerText={t('dashboard.creating_your_service')} />
-      ) : (
-        <div className={classes.buttonContainer}>
-          <Button color={ButtonColor.Primary} onClick={handleCreateService} size='small'>
-            {t('dashboard.create_service_btn')}
-          </Button>
-          <Button color={ButtonColor.Inverted} onClick={() => navigate(-1)} size='small'>
-            {t('general.cancel')}
-          </Button>
-        </div>
-      )}
-    </div>
+      <div className={classes.actionContainer}>
+        {isCreatingRepo || isCreatingRepoSuccess ? (
+          <StudioSpinner showSpinnerTitle spinnerTitle={t('dashboard.creating_your_service')} />
+        ) : (
+          <>
+            <StudioButton type='submit' color='first' size='small'>
+              {t('dashboard.create_service_btn')}
+            </StudioButton>
+            <Link to={DASHBOARD_ROOT_ROUTE}>{t('general.cancel')}</Link>
+          </>
+        )}
+      </div>
+    </form>
   );
 };

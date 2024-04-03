@@ -12,9 +12,12 @@
 .menuItem {
   color: #fff;
   font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
-.menuItem :hover {
+.menuItem a:hover {
   border-bottom: 2px solid #fff;
 }
 
@@ -23,6 +26,6 @@
   text-decoration: none;
 }
 
-.menuItem.active {
+.menuItem .active {
   border-bottom: 2px solid #fff;
 }

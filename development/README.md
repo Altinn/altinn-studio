@@ -21,6 +21,7 @@ DEVELOP_APP_DEVELOPMENT=0
 DEVELOP_BACKEND=0
 DEVELOP_DASHBOARD=0
 DEVELOP_PREVIEW=0
+DEVELOP_STUDIO_ROOT=0
 GITEA_ADMIN_PASS=a_password
 GITEA_ADMIN_USER=angiteaadminuser
 GITEA_ORG_USER=ttd
@@ -43,7 +44,7 @@ Need to do this to get a new config loaded, for instance when changing which app
 
 ```bash
 docker rm --force studio-loadbalancer
-docker compose -f ../docker-compose.yml up -d
+docker compose -f ../compose.yaml up -d
 ```
 
 ### Beautify the nginx config in the load balancer

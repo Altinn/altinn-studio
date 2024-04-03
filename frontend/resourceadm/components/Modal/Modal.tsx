@@ -1,52 +1,58 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './Modal.module.css';
-import ReactModal from 'react-modal';
+import cn from 'classnames';
 import { Heading } from '@digdir/design-system-react';
+import { StudioModal } from '@studio/components';
+import { useTranslation } from 'react-i18next';
 
-/**
- * Style the modal
- */
-const modalStyles = {
-  content: {
-    width: '600px',
-    height: 'fit-content',
-    margin: 'auto',
-    padding: '32px',
-  },
-  overlay: {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-  },
-};
-
-interface Props {
+type ModalProps = {
   isOpen: boolean;
   title: string;
   onClose?: () => void;
   children: ReactNode;
-}
+  contentClassName?: string;
+};
 
 /**
- * Modal component implementing the react-modal.
+ * @component
+ *    Modal component implementing the react-modal.
  *
- * @param props.isOpen boolean for if the modal is open or not
- * @param props.title the title in the modal
- * @param props.onClose function to be executed when the modal is closed
- * @param props.children the components inside the modal
+ * @example
+ *    <Modal isOpen={isOpen} onClose={handleClose} title='Some title'>
+ *      <div>...</div>
+ *    </Modal>
+ *
+ * @property {boolean}[isOpen] - Boolean for if the modal is open
+ * @property {string}[title] - Title to be displayed in the modal
+ * @property {function}[onClose] - Function to handle close of the modal
+ * @property {ReactNode}[children] - React components inside the Modal
+ * @property {string}[contentClassName] - Classname for the content
+ *
+ * @returns {React.JSX.Element} - The rendered component
  */
-export const Modal = ({ isOpen, title, onClose, children }: Props) => {
+export const Modal = ({
+  isOpen,
+  title,
+  onClose,
+  children,
+  contentClassName,
+}: ModalProps): React.JSX.Element => {
+  const { t } = useTranslation();
   return (
-    <ReactModal
+    <StudioModal
       isOpen={isOpen}
-      onRequestClose={() => onClose && onClose()}
-      contentLabel={title}
-      style={modalStyles}
-      ariaHideApp={false}
+      onClose={onClose}
+      title={
+        <div className={classes.headingWrapper}>
+          <Heading size='xsmall' level={1}>
+            {title}
+          </Heading>
+        </div>
+      }
+      closeButtonLabel={t('resourceadm.close_modal')}
     >
-      <Heading size='xsmall' spacing level={2}>
-        {title}
-      </Heading>
-      <div className={classes.contentDivider} />
-      {children}
-    </ReactModal>
+      <div className={cn(classes.content, contentClassName)}>{children}</div>
+    </StudioModal>
   );
 };

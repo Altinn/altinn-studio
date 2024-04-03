@@ -4,8 +4,12 @@ import { act, screen, waitFor, waitForElementToBeRemoved } from '@testing-librar
 import React from 'react';
 import { TextEditor } from './TextEditor';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import userEvent from '@testing-library/user-event';
+import * as testids from '../../../testing/testids';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 // Test data
 const org = 'test-org';
@@ -14,51 +18,35 @@ const testTextResourceKey = 'test-key';
 const testTextResourceValue = 'test-value';
 const languages = ['nb', 'en'];
 
-const queriesMock: Partial<ServicesContextProps> = {
-  getTextResources: jest.fn().mockImplementation(() => Promise.resolve({
-    resources:[
+const getTextResources = jest.fn().mockImplementation(() =>
+  Promise.resolve({
+    resources: [
       {
         id: testTextResourceKey,
-        value: testTextResourceValue
-      }
-    ]
-  })),
-  getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(languages)),
-};
+        value: testTextResourceValue,
+      },
+    ],
+  }),
+);
+const getTextLanguages = jest.fn().mockImplementation(() => Promise.resolve(languages));
 
 const mockSetSearchParams = jest.fn();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useSearchParams: () => {
-    return [
-      new URLSearchParams({}),
-      mockSetSearchParams
-    ];
-  }
+    return [new URLSearchParams({}), mockSetSearchParams];
+  },
 }));
 
-const mockLocalStorage = (() => {
-  let store = jest.fn();
-  return {
-    getItem: (key) => store[key] || null,
-    setItem: (key, value) => {
-      store[key] = value.toString();
-    },
-    removeItem: (key) => {
-      delete store[key];
-    },
-    clear: () => {
-      store = jest.fn();
-    },
-  };
-})();
-
-Object.defineProperty(window, 'localStorage', { value: mockLocalStorage });
+// Need to mock the scrollIntoView function
+window.HTMLElement.prototype.scrollIntoView = jest.fn();
 
 describe('TextEditor', () => {
-  it('renders the component', async () => {
-    await render();
+  afterEach(jest.clearAllMocks);
 
+  it('renders the component', async () => {
+    renderTextEditor();
+    await waitForElementToBeRemoved(() => screen.queryByText(textMock('text_editor.loading_page')));
     expect(screen.getByText(testTextResourceKey)).toBeInTheDocument();
     expect(screen.getByText(testTextResourceValue)).toBeInTheDocument();
   });
@@ -66,7 +54,7 @@ describe('TextEditor', () => {
   it('updates search query when searching text', async () => {
     const user = userEvent.setup();
 
-    await render();
+    renderTextEditor();
 
     const search = '1';
     const searchInput = screen.getByTestId('text-editor-search-default');
@@ -78,74 +66,81 @@ describe('TextEditor', () => {
   it('adds new text resource when clicking add button', async () => {
     const user = userEvent.setup();
 
-    const upsertTextResources = jest.fn().mockImplementation(() => Promise.resolve());
+    renderTextEditor();
 
-    await render({ upsertTextResources });
-
-    const addButton = screen.getByRole('button', { name: 'Ny tekst' });
+    const addButton = screen.getByRole('button', { name: textMock('text_editor.new_text') });
     await act(() => user.click(addButton));
 
-    expect(upsertTextResources).toBeCalledTimes(2);
+    expect(queriesMock.upsertTextResources).toHaveBeenCalledTimes(2);
   });
 
   it('updates text resource when editing text', async () => {
     const user = userEvent.setup();
 
-    const upsertTextResources = jest.fn().mockImplementation(() => Promise.resolve());
+    renderTextEditor();
 
-    await render({ upsertTextResources });
-
-    const textarea = screen.getByRole('textbox', { name: 'nb translation' });
+    const textarea = screen.getByRole('textbox', {
+      name: textMock('text_editor.table_row_input_label', {
+        lang: textMock('language.nb'),
+        textKey: testTextResourceKey,
+      }),
+    });
     await act(() => user.clear(textarea));
     await act(() => user.type(textarea, 'test'));
     await act(() => user.tab());
 
-    expect(upsertTextResources).toBeCalledWith(org, app, 'nb', { [testTextResourceKey]: 'test' });
+    expect(queriesMock.upsertTextResources).toHaveBeenCalledWith(org, app, 'nb', {
+      [testTextResourceKey]: 'test',
+    });
   });
 
   it('updates text id when editing text id', async () => {
+    queryClientMock.setQueryData([QueryKey.LayoutNames, org, app], []);
     const user = userEvent.setup();
+    renderTextEditor();
 
-    const updateTextId = jest.fn().mockImplementation(() => Promise.resolve());
+    const editButton = screen.getByRole('button', {
+      name: textMock('text_editor.toggle_edit_mode', { textKey: testTextResourceKey }),
+    });
+    await act(() => user.click(editButton));
 
-    await render({ updateTextId });
-
-    const editButton = screen.getByRole('button', { name: 'toggle-textkey-edit' });
-    await act(() => editButton.click());
-
-    const textarea = screen.getByRole('textbox', { name: 'tekst key edit' });
+    const textarea = screen.getByRole('textbox', {
+      name: textMock('text_editor.key.edit', { textKey: testTextResourceKey }),
+    });
     await act(() => user.clear(textarea));
     await act(() => user.type(textarea, 'test'));
     await act(() => user.tab());
 
-    expect(updateTextId).toBeCalledWith(org, app, [{ 'newId': 'test', 'oldId': testTextResourceKey }]);
+    expect(queriesMock.updateTextId).toHaveBeenCalledWith(org, app, [
+      { newId: 'test', oldId: testTextResourceKey },
+    ]);
   });
 
   it('deletes text id when clicking delete button', async () => {
     const user = userEvent.setup();
 
-    const updateTextId = jest.fn().mockImplementation(() => Promise.resolve());
-
-    await render({ updateTextId });
+    renderTextEditor();
 
     const deleteButton = screen.getByRole('button', { name: textMock('schema_editor.delete') });
-    await act(() => deleteButton.click());
+    act(() => deleteButton.click());
 
-    const confirmButton = await screen.findByRole('button', { name: textMock('schema_editor.textRow-deletion-confirm') });
+    const confirmButton = await screen.findByRole('button', {
+      name: textMock('schema_editor.textRow-deletion-confirm'),
+    });
     await act(() => user.click(confirmButton));
 
-    expect(updateTextId).toBeCalledWith(org, app, [{ 'oldId': testTextResourceKey }]);
+    expect(queriesMock.updateTextId).toHaveBeenCalledWith(org, app, [
+      { oldId: testTextResourceKey },
+    ]);
   });
 
   it('adds new language when clicking add button', async () => {
     const user = userEvent.setup();
 
-    const addLanguageCode = jest.fn().mockImplementation(() => Promise.resolve());
-
-    await render({ addLanguageCode });
+    renderTextEditor();
 
     const addBtn = screen.getByRole('button', {
-      name: /legg til/i,
+      name: textMock('general.add'),
     });
     expect(addBtn).toBeDisabled();
     const select = screen.getByRole('combobox');
@@ -156,23 +151,26 @@ describe('TextEditor', () => {
     expect(addBtn).not.toBeDisabled();
     await act(() => user.click(addBtn));
 
-    expect(addLanguageCode).toBeCalledWith(org, app, 'se', { 'language': 'se', 'resources': [{ 'id': testTextResourceKey, 'value': '' }] });
+    expect(queriesMock.addLanguageCode).toHaveBeenCalledWith(org, app, 'se', {
+      language: 'se',
+      resources: [{ id: testTextResourceKey, value: '' }],
+    });
   });
 
   it('deletes a language when clicking delete button', async () => {
     const user = userEvent.setup();
 
-    const deleteLanguageCode = jest.fn().mockImplementation(() => Promise.resolve());
+    renderTextEditor();
 
-    await render({ deleteLanguageCode });
-
-    const deleteButton = screen.getByTestId('delete-en');
+    const deleteButton = screen.getByTestId(testids.deleteButton('en'));
     await act(() => user.click(deleteButton));
 
-    const confirmButton = await screen.findByRole('button', { name: textMock('schema_editor.language_confirm_deletion') });
+    const confirmButton = await screen.findByRole('button', {
+      name: textMock('schema_editor.language_confirm_deletion'),
+    });
     await act(() => user.click(confirmButton));
 
-    expect(deleteLanguageCode).toBeCalledWith(org, app, 'en');
+    expect(queriesMock.deleteLanguageCode).toHaveBeenCalledWith(org, app, 'en');
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
@@ -181,28 +179,18 @@ describe('TextEditor', () => {
     renderWithProviders(<TextEditor />, {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
     });
-    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
-  });
-
-  it('stores selected language in local storage', () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error');
-    consoleErrorSpy.mockImplementation(jest.fn());
-    mockLocalStorage.setItem('selectedLanguages', JSON.stringify(['nb']));
-    expect(console.error).not.toHaveBeenCalled();
-    consoleErrorSpy.mockRestore();
+    expect(screen.getByText(textMock('text_editor.loading_page'))).toBeInTheDocument();
   });
 });
 
-const render = async (queries: Partial<ServicesContextProps> = {}) => {
-  const view = renderWithProviders(<TextEditor />, {
+const renderTextEditor = (queries: Partial<ServicesContextProps> = {}) => {
+  return renderWithProviders(<TextEditor />, {
+    queryClient: queryClientMock,
     queries: {
-      ...queriesMock,
+      getTextResources,
+      getTextLanguages,
       ...queries,
     },
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
   });
-
-  await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
-
-  return view;
 };

@@ -1,19 +1,22 @@
 import React from 'react';
 import type { UiSchemaNode } from '@altinn/schema-model';
-import { ObjectKind, ROOT_POINTER } from '@altinn/schema-model';
+import { ObjectKind } from '@altinn/schema-model';
 import { InlineObject } from './InlineObject';
 import { ItemDataComponent } from './ItemDataComponent';
+import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
 
 interface ItemPropertiesTabProps {
   selectedItem: UiSchemaNode;
 }
 
 export const ItemPropertiesTab = ({ selectedItem }: ItemPropertiesTabProps) => {
-  if (selectedItem.isCombinationItem && selectedItem.objectKind !== ObjectKind.Reference) {
+  const { schemaModel } = useSchemaEditorAppContext();
+  if (
+    schemaModel.isChildOfCombination(selectedItem.pointer) &&
+    selectedItem.objectKind !== ObjectKind.Reference
+  ) {
     return <InlineObject item={selectedItem} />;
-  } else if (selectedItem.pointer === ROOT_POINTER) {
-    return <>root</>;
   } else {
-    return <ItemDataComponent schemaNode={selectedItem} />;
+    return <ItemDataComponent key={selectedItem.pointer} schemaNode={selectedItem} />;
   }
 };

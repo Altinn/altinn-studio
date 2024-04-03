@@ -1,7 +1,9 @@
-import { useQuery, UseQueryResult } from "@tanstack/react-query"
-import { useServicesContext } from "app-shared/contexts/ServicesContext";
-import { QueryKey } from "app-shared/types/QueryKey";
-import { ResourceVersionStatusType } from "resourceadm/types/global";
+import type { UseQueryResult } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import type { ResourceVersionStatus } from 'app-shared/types/ResourceAdm';
+import type { AxiosError } from 'axios';
 
 /**
  * Query to get the status of the versions of a resource.
@@ -10,13 +12,17 @@ import { ResourceVersionStatusType } from "resourceadm/types/global";
  * @param repo the repo the user is in
  * @param id the id of the resource
  *
- * @returns UseQueryResult with an object of ResourceVersionStatusType
+ * @returns UseQueryResult with an object of ResourceVersionStatus
  */
-export const useResourcePolicyPublishStatusQuery = (org: string, repo: string, id: string): UseQueryResult<ResourceVersionStatusType> =>  {
+export const useResourcePolicyPublishStatusQuery = (
+  org: string,
+  repo: string,
+  id: string,
+): UseQueryResult<ResourceVersionStatus, AxiosError> => {
   const { getResourcePublishStatus } = useServicesContext();
 
-  return useQuery<ResourceVersionStatusType>(
-    [QueryKey.ResourcePublishStatus, org, repo, id],
-    () => getResourcePublishStatus(org, repo, id)
-  )
-}
+  return useQuery<ResourceVersionStatus, AxiosError>({
+    queryKey: [QueryKey.ResourcePublishStatus, org, repo, id],
+    queryFn: () => getResourcePublishStatus(org, repo, id),
+  });
+};

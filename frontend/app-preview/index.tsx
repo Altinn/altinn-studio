@@ -16,8 +16,8 @@ root.render(
   <ServicesContextProvider {...queries} {...mutations}>
     <PreviewConnectionContextProvider>
       <BrowserRouter basename={PREVIEW_BASENAME}>
-        <PreviewApp/>
+        <PreviewApp />
       </BrowserRouter>
     </PreviewConnectionContextProvider>
-  </ServicesContextProvider>
+  </ServicesContextProvider>,
 );

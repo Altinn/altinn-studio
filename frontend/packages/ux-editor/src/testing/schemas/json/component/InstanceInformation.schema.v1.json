@@ -1,95 +1,99 @@
 {
   "$id": "https://altinncdn.no/schemas/json/component/InstanceInformation.schema.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "InstanceInformation component",
-  "description": "Schema that describes the layout configuration for a InstanceInformation component.",
-  "type": "object",
   "properties": {
     "id": {
-      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
-    },
-    "type": {
+      "title": "ID",
+      "description": "The component ID. Must be unique within all layouts/pages in a layout-set. Cannot end with <dash><number>.",
       "type": "string",
-      "title": "Type",
-      "description": "The component type.",
-      "const": "InstanceInformation"
-    },
-    "textResourceBindings": {
-      "type": "object",
-      "title": "Text resource bindings",
-      "description": "Text resource bindings for a component.",
-      "properties": {
-        "title": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "title"
-      ],
-      "additionalProperties": true
-    },
-    "elements": {
-      "title": "Instance information choices",
-      "description": "The properties to include in the instanceInformation summary",
-      "type": "object",
-      "properties": {
-        "dateSent": {
-          "title": "Date sent",
-          "description": "Date when the schema was sent.",
-          "type": "boolean",
-          "default": true
-        },
-        "sender": {
-          "title": "Schema sender",
-          "description": "The sender of the schema.",
-          "type": "boolean",
-          "default": true
-        },
-        "receiver": {
-          "title": "Schema receiver",
-          "description": "The receiver of the schema.",
-          "type": "boolean",
-          "default": true
-        },
-        "referenceNumber": {
-          "title": "Schema reference number",
-          "description": "The reference number of the schema gathered from the instance Guid.",
-          "type": "boolean",
-          "default": true
-        }
-      }
-    },
-    "renderAsSummary": {
-      "title": "Render as summary",
-      "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
-      "default": false,
-      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+      "pattern": "^[0-9a-zA-Z][0-9a-zA-Z-]*(-?[a-zA-Z]+|[a-zA-Z][0-9]+|-[0-9]{6,})$"
     },
     "hidden": {
       "title": "Hidden",
       "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
       "default": false,
-      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
     },
     "grid": {
-      "type": "object",
-      "title": "Grid",
-      "description": "Settings for the components grid. Used for controlling horizontal alignment.",
-      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridSettings",
-      "examples": [
-        {
-          "xs": 12
-        }
-      ]
+      "properties": {
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
+      }
     },
     "pageBreak": {
-      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
+      "title": "Page break",
+      "description": "Optionally insert page-break before/after component when rendered in PDF",
+      "type": "object",
+      "properties": {
+        "breakBefore": {
+          "title": "Page break before",
+          "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
+          "examples": ["auto", "always", "avoid"],
+          "default": "auto",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "breakAfter": {
+          "title": "Page break after",
+          "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
+          "examples": ["auto", "always", "avoid"],
+          "default": "auto",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "labelSettings": {
+      "title": "ILabelSettings",
+      "type": "object",
+      "properties": {
+        "optionalIndicator": {
+          "title": "Optional indicator",
+          "description": "Show optional indicator on label",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "type": { "const": "InstanceInformation" },
+    "textResourceBindings": {
+      "title": "TRBLabel",
+      "type": "object",
+      "properties": {
+        "title": {
+          "title": "Title",
+          "description": "Label text/title shown above the component",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "description": {
+          "title": "Description",
+          "description": "Label description shown above the component, below the title",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "help": {
+          "title": "Help text",
+          "description": "Help text shown in a tooltip when clicking the help button",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        }
+      }
+    },
+    "elements": {
+      "title": "Elements",
+      "description": "Which elements to show in the instance information",
+      "type": "object",
+      "properties": {
+        "dateSent": { "type": "boolean" },
+        "sender": { "type": "boolean" },
+        "receiver": { "type": "boolean" },
+        "referenceNumber": { "type": "boolean" }
+      },
+      "additionalProperties": false
     }
   },
-  "required": [
-    "id",
-    "type",
-    "elements"
-  ],
-  "additionalProperties": false
+  "required": ["id", "type"],
+  "title": "InstanceInformation component schema"
 }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
@@ -216,6 +215,16 @@ namespace Altinn.App.Models
     [JsonPropertyName("Adresse")]
     public Adresse Adresse { get; set; }
 
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId()
+    {
+      return AltinnRowId != default;
+    }
   }
 
   public class NorskRepresentant
@@ -251,11 +260,16 @@ namespace Altinn.App.Models
     [JsonPropertyName("MobilBoenhet")]
     public bool? MobilBoenhet { get; set; }
 
-    [Range(1, 999)]
+    [Range(1d, 999d)]
     [XmlElement("AntallEnerom", Order = 4)]
     [JsonProperty("AntallEnerom")]
     [JsonPropertyName("AntallEnerom")]
     public decimal? AntallEnerom { get; set; }
+
+    public bool ShouldSerializeAntallEnerom()
+    {
+      return AntallEnerom.HasValue;
+    }
 
     [XmlElement("AlleRomHarBadOgToalett", Order = 5)]
     [JsonProperty("AlleRomHarBadOgToalett")]
@@ -267,11 +281,16 @@ namespace Altinn.App.Models
     [JsonPropertyName("TvEllerInternett")]
     public bool? TvEllerInternett { get; set; }
 
-    [Range(0, 999)]
+    [Range(0d, 999d)]
     [XmlElement("AntallRomMedKjokken", Order = 7)]
     [JsonProperty("AntallRomMedKjokken")]
     [JsonPropertyName("AntallRomMedKjokken")]
     public decimal? AntallRomMedKjokken { get; set; }
+
+    public bool ShouldSerializeAntallRomMedKjokken()
+    {
+      return AntallRomMedKjokken.HasValue;
+    }
 
     [XmlElement("TilbysMatservering", Order = 8)]
     [JsonProperty("TilbysMatservering")]
@@ -328,6 +347,11 @@ namespace Altinn.App.Models
     [JsonProperty("BekreftetRiktig")]
     [JsonPropertyName("BekreftetRiktig")]
     public bool? BekreftetRiktig { get; set; }
+
+    public bool ShouldSerializeBekreftetRiktig()
+    {
+      return BekreftetRiktig.HasValue;
+    }
 
     [MinLength(0)]
     [MaxLength(255)]

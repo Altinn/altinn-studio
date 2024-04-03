@@ -1,50 +1,23 @@
 import {
   areItemsUnique,
   arrayIntersection,
+  generateUniqueStringWithNumber,
   insertArrayElementAtPos,
-  last,
   mapByKey,
+  moveArrayItem,
   prepend,
-  removeDuplicates,
+  removeEmptyStrings,
   removeItemByValue,
+  replaceByPredicate,
+  replaceItemsByValue,
   swapArrayElements,
 } from './arrayUtils';
 
 describe('arrayUtils', () => {
-
-  describe('removeDuplicates', () => {
-
-    it('Removes duplicates', () => {
-      expect(removeDuplicates([1, 1, 2, 3, 3])).toEqual([1, 2, 3]);
-      expect(removeDuplicates(['a', 'b', 'c', 'b'])).toEqual(['a', 'b', 'c']);
-    });
-
-    it('Returns equal array if there are no duplicates', () => {
-      expect(removeDuplicates([1, 2, 3])).toEqual([1, 2, 3]);
-      expect(removeDuplicates(['a', 'b', 'c'])).toEqual(['a', 'b', 'c']);
-      expect(removeDuplicates([1, 2, 3, '3'])).toEqual([1, 2, 3, '3']);
-    });
-
-    it('Returns empty array if input is empty', () => {
-      expect(removeDuplicates([])).toEqual([]);
-    });
-  });
-
   describe('prepend', () => {
     it('Prepends item to array', () => {
       expect(prepend([1, 2, 3], 0)).toEqual([0, 1, 2, 3]);
       expect(prepend(['a', 'b', 'c'], 'd')).toEqual(['d', 'a', 'b', 'c']);
-    });
-  });
-
-  describe('last', () => {
-    it('Returns last item in array', () => {
-      expect(last([1, 2, 3])).toEqual(3);
-      expect(last(['a', 'b', 'c'])).toEqual('c');
-    });
-
-    it('Returns undefined if array is empty', () => {
-      expect(last([])).toBeUndefined();
     });
   });
 
@@ -119,8 +92,77 @@ describe('arrayUtils', () => {
 
   describe('mapByKey', () => {
     it('Returns an array of values mapped by the given key', () => {
-      const array = [{ a: 1, b: 2 }, { a: 2, b: 'c' }, { a: 3, b: true, c: 'abc' }];
+      const array = [
+        { a: 1, b: 2 },
+        { a: 2, b: 'c' },
+        { a: 3, b: true, c: 'abc' },
+      ];
       expect(mapByKey(array, 'a')).toEqual([1, 2, 3]);
+    });
+  });
+
+  describe('rplaceItemsByValue', () => {
+    it('Replaces all items matching the given value with the given replacement', () => {
+      const array = ['a', 'b', 'c'];
+      expect(replaceItemsByValue(array, 'b', 'd')).toEqual(['a', 'd', 'c']);
+    });
+  });
+
+  describe('replaceByPredicate', () => {
+    it('Replaces the first item matching the predicate with the given item', () => {
+      const array = ['test1', 'test2', 'test3'];
+      const predicate = (item: string) => item === 'test2';
+      const replaceWith = 'test4';
+      expect(replaceByPredicate(array, predicate, replaceWith)).toEqual([
+        'test1',
+        'test4',
+        'test3',
+      ]);
+    });
+  });
+
+  describe('moveArrayItem', () => {
+    it('Moves the item at the given index to the given position when the new position is BEFORE', () => {
+      const array = ['a', 'b', 'c', 'd', 'e', 'f'];
+      expect(moveArrayItem(array, 4, 1)).toEqual(['a', 'e', 'b', 'c', 'd', 'f']);
+    });
+
+    it('Moves the item at the given index to the given position when the new position is after', () => {
+      const array = ['a', 'b', 'c', 'd', 'e', 'f'];
+      expect(moveArrayItem(array, 1, 4)).toEqual(['a', 'c', 'd', 'e', 'b', 'f']);
+    });
+
+    it('Keeps the array unchanged if the two indices are the same', () => {
+      const array = ['a', 'b', 'c', 'd', 'e', 'f'];
+      expect(moveArrayItem(array, 1, 1)).toEqual(array);
+    });
+  });
+
+  describe('generateUniqueStringWithNumber', () => {
+    it('Returns prefix + 0 when the array is empty', () => {
+      expect(generateUniqueStringWithNumber([], 'prefix')).toBe('prefix0');
+    });
+
+    it('Returns prefix + 0 when the array does not contain this value already', () => {
+      const array = ['something', 'something else'];
+      expect(generateUniqueStringWithNumber(array, 'prefix')).toBe('prefix0');
+    });
+
+    it('Returns prefix + number based on the existing values', () => {
+      const array = ['prefix0', 'prefix1', 'prefix2'];
+      expect(generateUniqueStringWithNumber(array, 'prefix')).toBe('prefix3');
+    });
+
+    it('Returns number only when the prefix is empty', () => {
+      const array = ['0', '1', '2'];
+      expect(generateUniqueStringWithNumber(array)).toBe('3');
+    });
+  });
+
+  describe('removeEmptyStrings', () => {
+    it('Removes empty strings from an array', () => {
+      const array = ['0', '1', '', '2', ''];
+      expect(removeEmptyStrings(array)).toEqual(['0', '1', '2']);
     });
   });
 });

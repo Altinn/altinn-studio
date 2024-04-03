@@ -1,0 +1,30 @@
+.alertWrapper {
+  margin-bottom: 20px;
+  max-width: 650px;
+}
+
+.alert {
+  display: flex;
+  align-items: center;
+}
+
+.addCardButtonWrapper {
+  margin-block: 20px;
+  width: 595px;
+  min-width: 595px;
+}
+
+.space {
+  margin-block: 20px;
+}
+
+.policyEditorHeader {
+  margin-bottom: 40px;
+  font-weight: 400;
+  font-size: 30px;
+}
+
+.heading {
+  margin-top: 30px;
+  margin-bottom: 10px;
+}

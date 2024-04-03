@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -59,6 +61,29 @@ public class EnvironmentsService : IEnvironmentsService
         }
 
         return environmentModel;
+    }
+
+    public async Task<IEnumerable<EnvironmentModel>> GetOrganizationEnvironments(string org)
+    {
+        const string cacheKey = $"{nameof(GetOrganizationEnvironments)}_{nameof(org)}";
+        if (_cache.TryGetValue(cacheKey, out List<EnvironmentModel> environments))
+        {
+            return environments;
+        }
+
+        var response = await _httpClient.GetAsync(_generalSettings.OrganizationsUrl);
+        response.EnsureSuccessStatusCode();
+
+        string content = await response.Content.ReadAsStringAsync();
+        var responseJsonContent = JsonNode.Parse(content);
+        var orgEnvironmentNames = JsonSerializer.Deserialize<List<string>>(responseJsonContent["orgs"][org]["environments"].ToJsonString(), new JsonSerializerOptions
+        { PropertyNameCaseInsensitive = true });
+
+        var allEnvs = await GetEnvironments();
+        var orgEnvModels = allEnvs.Where(env => orgEnvironmentNames.Contains(env.Name)).ToList();
+        _cache.Set(cacheKey, orgEnvModels, TimeSpan.FromHours(2));
+
+        return orgEnvModels;
     }
 
     public async Task<EnvironmentModel> GetEnvModelByName(string envName)

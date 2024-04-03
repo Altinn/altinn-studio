@@ -1,44 +1,8 @@
 .linkButton {
-  display: inline-flex;
-  align-items: center;
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-decoration-skip-ink: none;
-  text-underline-offset: 4px;
-  color: #004e95;
-  cursor: pointer;
+  background-color: inherit;
   border: none;
-  background-color: transparent;
-  font-size: var(--fds-typography-paragraph-medium);
-  margin: 0;
+  font-size: inherit;
+  font-family: inherit;
+  font-weight: inherit;
   padding: 0;
-}
-
-.linkButton > svg {
-  margin-left: 5px;
-}
-
-.linkButton:hover {
-  text-decoration: none;
-}
-
-.linkButton:focus {
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-decoration-skip-ink: none;
-  outline: 2px solid #98177e;
-  outline-offset: 5px;
-  border-radius: 2px;
-}
-
-.linkButton:visited {
-  color: #7a1265;
-  text-decoration: none;
-}
-
-.linkButton:active {
-  text-decoration: none;
-  border: none;
-  outline: none;
-  color: #004e95;
 }

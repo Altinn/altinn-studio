@@ -12,10 +12,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class UpdateFormLayoutNameTests : DisagnerEndpointsTestsBase<Altinn.Studio.Designer.Controllers.AppDevelopmentController, GetFormLayoutsTestsBase>
+    public class UpdateFormLayoutNameTests : DisagnerEndpointsTestsBase<UpdateFormLayoutNameTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
-        public UpdateFormLayoutNameTests(WebApplicationFactory<Altinn.Studio.Designer.Controllers.AppDevelopmentController> factory) : base(factory)
+        public UpdateFormLayoutNameTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
@@ -36,7 +36,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
                 Content = new StringContent($"\"{newLayoutName}\"", Encoding.UTF8, MediaTypeNames.Application.Json)
             };
 
-            using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             string relativeOldLayoutPath = string.IsNullOrEmpty(layoutSetName)
@@ -65,7 +65,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
                 Content = new StringContent($"\"{newLayoutName}\"", Encoding.UTF8, MediaTypeNames.Application.Json)
             };
 
-            using var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
