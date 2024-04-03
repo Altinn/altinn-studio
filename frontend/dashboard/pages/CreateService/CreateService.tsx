@@ -17,7 +17,7 @@ import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useCreateAppFormValidation } from './hooks/useCreateAppFormValidation';
 import { navigateToAppDevelopment } from './utils/navigationUtils';
 
-const DASHBOARD_ROOT_ROUTE: string = '/';
+export const DASHBOARD_ROOT_ROUTE: string = '/';
 
 const initialFormError: CreateAppForm = {
   org: '',
