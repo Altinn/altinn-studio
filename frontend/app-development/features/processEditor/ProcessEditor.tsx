@@ -7,6 +7,10 @@ import { toast } from 'react-toastify';
 import { Spinner } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
+import { processEditorWebSocketHub } from 'app-shared/api/paths';
+import { WSConnector } from 'app-shared/websockets/WSConnector';
+import { useWebSocket } from 'app-shared/hooks/useWebSocket';
+import { type SyncSuccess, type SyncError, SyncUtils } from './syncUtils';
 import { useUpdateLayoutSetMutation } from '../../hooks/mutations/useUpdateLayoutSetMutation';
 import { useAddLayoutSetMutation } from '../../hooks/mutations/useAddLayoutSetMutation';
 import { type MetaDataForm } from '@altinn/process-editor/src/contexts/BpmnConfigPanelContext';
@@ -23,6 +27,25 @@ export const ProcessEditor = (): React.ReactElement => {
   const { mutate: addLayoutSet } = useAddLayoutSetMutation(org, app);
   const existingCustomReceiptName: string | undefined = useCustomReceiptLayoutSetName(org, app);
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
+
+  const { onWSMessageReceived } = useWebSocket({
+    webSocketUrl: processEditorWebSocketHub(),
+    webSocketConnector: WSConnector,
+  });
+
+  onWSMessageReceived<SyncError | SyncSuccess>((message): void => {
+    const isErrorMessage = 'errorCode' in message;
+    if (isErrorMessage) {
+      toast.error(t(SyncUtils.getSyncErrorMessage(message)), { toastId: message.errorCode });
+      return;
+    }
+
+    const isSuccessMessage = 'source' in message;
+    if (isSuccessMessage) {
+      // Here we can handle the SyncSuccess message or invalidate the query cache
+      console.log('SyncSuccess received');
+    }
+  });
 
   const saveBpmnXml = async (xml: string, metaData: MetaDataForm): Promise<void> => {
     const formData = new FormData();
