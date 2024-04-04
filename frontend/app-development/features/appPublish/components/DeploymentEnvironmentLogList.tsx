@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './DeploymentEnvironmentLogList.module.css';
-import { Alert, Heading, Link, Table } from '@digdir/design-system-react';
+import { Heading, Link, Table } from '@digdir/design-system-react';
 import { DateUtils } from '@studio/pure-functions';
 import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
