@@ -87,9 +87,9 @@ export const DeploymentEnvironmentLogList = ({
   return (
     <div className={classes.container}>
       {pipelineDeploymentList.length === 0 ? (
-        <Alert severity='info' id={`deploy-history-for-${envName.toLowerCase()}-unavailable`}>
+        <div id={`deploy-history-for-${envName.toLowerCase()}-unavailable`}>
           {t('app_deployment.table.deployed_version_history_empty', { envTitle })}
-        </Alert>
+        </div>
       ) : (
         <div>
           <Heading level={4} size='xxsmall' className={classes.heading}>

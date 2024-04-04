@@ -84,6 +84,8 @@ describe('DeployDropdown', () => {
     });
 
     it('render no image options message when image options are empty', async () => {
+      const user = userEvent.setup();
+
       render(
         {},
         {
@@ -97,6 +99,9 @@ describe('DeployDropdown', () => {
       await waitForElementToBeRemoved(() =>
         screen.queryByTitle(textMock('app_deployment.releases_loading')),
       );
+
+      const select = screen.getByLabelText(textMock('app_deployment.choose_version'));
+      await act(() => user.click(select));
 
       expect(screen.getByText(textMock('app_deployment.no_versions'))).toBeInTheDocument();
     });

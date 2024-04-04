@@ -54,8 +54,6 @@ export const DeployDropdown = ({
       }),
     }));
 
-  if (!imageOptions.length) return <Alert severity='info'>{t('app_deployment.no_versions')}</Alert>;
-
   return (
     <div className={classes.deployDropDown}>
       <div>
@@ -75,6 +73,7 @@ export const DeployDropdown = ({
               </Combobox.Option>
             );
           })}
+          <Combobox.Empty>{t('app_deployment.no_versions')}</Combobox.Empty>
         </Combobox>
       </div>
       <div className={classes.deployButton}>
