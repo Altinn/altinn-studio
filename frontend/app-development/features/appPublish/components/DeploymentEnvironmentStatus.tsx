@@ -2,11 +2,12 @@ import React from 'react';
 import classes from './DeploymentEnvironmentStatus.module.css';
 import { Alert, Heading, Link, Paragraph, Spinner } from '@digdir/design-system-react';
 import { Trans, useTranslation } from 'react-i18next';
-import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { DateUtils } from '@studio/pure-functions';
 
 export interface DeploymentEnvironmentStatusProps {
+  lastPublishedDate?: string;
+  isDeploymentInProgress?: boolean;
   kubernetesDeployment?: KubernetesDeployment;
   envName: string;
   isProduction: boolean;
@@ -14,6 +15,8 @@ export interface DeploymentEnvironmentStatusProps {
 }
 
 export const DeploymentEnvironmentStatus = ({
+  lastPublishedDate,
+  isDeploymentInProgress,
   kubernetesDeployment,
   envName,
   isProduction,
@@ -51,68 +54,54 @@ export const DeploymentEnvironmentStatus = ({
     );
   };
 
-  if (!kubernetesDeployment) {
+  if (isDeploymentInProgress) {
     return (
       <DeploymentStatusAlert
         severity='info'
-        content={t('app_deployment.kubernetes_deployment.status.none')}
+        content={
+          <span className={classes.loadingSpinner}>
+            <Spinner variant='interaction' title='' size='xsmall' />
+            {t('app_deployment.status.inProgress')}
+          </span>
+        }
       />
     );
   }
 
-  if (!kubernetesDeployment?.status) {
+  if (!kubernetesDeployment) {
+    return <DeploymentStatusAlert severity='info' content={t('app_deployment.status.none')} />;
+  }
+
+  if (!kubernetesDeployment?.version) {
     return (
-      <DeploymentStatusAlert
-        severity='warning'
-        content={t('app_deployment.kubernetes_deployment.status.unavailable')}
-      />
+      <DeploymentStatusAlert severity='warning' content={t('app_deployment.status.unavailable')} />
     );
   }
 
-  switch (kubernetesDeployment.status) {
-    case KubernetesDeploymentStatus.completed:
-      return (
-        <DeploymentStatusAlert
-          severity='success'
-          content={
-            <Trans
-              i18nKey={'app_deployment.kubernetes_deployment.status.completed'}
-              values={{
-                version: kubernetesDeployment.version,
-              }}
-              components={{
-                a: <Link href={urlToApp}> </Link>,
-              }}
-            />
-          }
-          footer={
-            <Trans
-              i18nKey={'app_deployment.last_published'}
-              values={{
-                lastPublishedDate: formatDateTime(kubernetesDeployment?.statusDate),
-              }}
-            />
-          }
+  return (
+    <DeploymentStatusAlert
+      severity='success'
+      content={
+        <Trans
+          i18nKey={'app_deployment.status.succeeded'}
+          values={{
+            version: kubernetesDeployment.version,
+          }}
+          components={{
+            a: <Link href={urlToApp}> </Link>,
+          }}
         />
-      );
-    case KubernetesDeploymentStatus.failed:
-      return (
-        <DeploymentStatusAlert
-          severity='warning'
-          content={t('app_deployment.kubernetes_deployment.status.failed')}
-        />
-      );
-    default:
-      return (
-        <DeploymentStatusAlert
-          severity='info'
-          content={
-            <span className={classes.loadingSpinner}>
-              <Spinner variant='interaction' title='' size='xsmall' />
-              {t('app_deployment.kubernetes_deployment.status.progressing')}
-            </span>
-          }
-        />
-      );
-  }
+      }
+      footer={
+        lastPublishedDate && (
+          <Trans
+            i18nKey={'app_deployment.last_published'}
+            values={{
+              lastPublishedDate: formatDateTime(lastPublishedDate),
+            }}
+          />
+        )
+      }
+    />
+  );
 };

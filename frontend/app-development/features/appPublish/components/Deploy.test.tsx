@@ -13,7 +13,7 @@ import { BuildResult } from 'app-shared/types/Build';
 const defaultProps: DeployProps = {
   appDeployedVersion: 'test',
   lastBuildId: '',
-  inProgress: false,
+  isDeploymentInProgress: false,
   envName: 'tt02',
   isProduction: false,
   orgName: 'test',

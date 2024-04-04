@@ -6,7 +6,6 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { kubernetesDeployment } from 'app-shared/mocks/mocks';
-import { KubernetesDeploymentStatus as KubernetesDeploymentStatusEnum } from 'app-shared/types/api/KubernetesDeploymentStatus';
 
 // Test data
 const org = 'ttd';
@@ -41,65 +40,36 @@ describe('DeploymentEnvironmentStatus', () => {
     expect(screen.getByText('TT02')).toBeInTheDocument();
   });
 
-  it('shows alert when KubernetesDeploymentStatus is completed', async () => {
+  it('shows alert when the deployment is in progress', async () => {
     render({
-      kubernetesDeployment: {
-        ...kubernetesDeployment,
-        status: KubernetesDeploymentStatusEnum.completed,
-      },
+      isDeploymentInProgress: true,
     });
 
-    expect(
-      screen.getByText(textMock('app_deployment.kubernetes_deployment.status.completed')),
-    ).toBeInTheDocument();
-  });
-
-  it('shows alert when KubernetesDeploymentStatus is failed', async () => {
-    render({
-      kubernetesDeployment: {
-        ...kubernetesDeployment,
-        status: KubernetesDeploymentStatusEnum.failed,
-      },
-    });
-
-    expect(
-      screen.getByText(textMock('app_deployment.kubernetes_deployment.status.failed')),
-    ).toBeInTheDocument();
-  });
-
-  it('shows alert when KubernetesDeploymentStatus is progressing', async () => {
-    render({
-      kubernetesDeployment: {
-        ...kubernetesDeployment,
-        status: KubernetesDeploymentStatusEnum.progressing,
-        statusDate: new Date().toString(),
-      },
-    });
-
-    expect(
-      screen.getByText(textMock('app_deployment.kubernetes_deployment.status.progressing')),
-    ).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_deployment.status.inProgress'))).toBeInTheDocument();
   });
 
   it('shows alert when no app is deployed', async () => {
     render();
 
-    expect(
-      screen.getByText(textMock('app_deployment.kubernetes_deployment.status.none')),
-    ).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_deployment.status.none'))).toBeInTheDocument();
   });
 
-  it('shows alert when KubernetesDeploymentStatus is unavailable', async () => {
+  it('shows alert when the deployment status is unavailable', async () => {
+    render({
+      kubernetesDeployment,
+    });
+
+    expect(screen.getByText(textMock('app_deployment.status.unavailable'))).toBeInTheDocument();
+  });
+
+  it('shows alert when the deployment is successful', async () => {
     render({
       kubernetesDeployment: {
         ...kubernetesDeployment,
-        status: null,
-        statusDate: '',
+        version: '1',
       },
     });
 
-    expect(
-      screen.getByText(textMock('app_deployment.kubernetes_deployment.status.unavailable')),
-    ).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_deployment.status.succeeded'))).toBeInTheDocument();
   });
 });

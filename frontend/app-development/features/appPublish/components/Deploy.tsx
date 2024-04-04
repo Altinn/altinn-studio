@@ -11,7 +11,7 @@ import { StudioSpinner } from '@studio/components';
 export interface DeployProps {
   appDeployedVersion: string;
   lastBuildId: string;
-  inProgress: boolean;
+  isDeploymentInProgress: boolean;
   envName: string;
   isProduction: boolean;
   orgName: string;
@@ -20,7 +20,7 @@ export interface DeployProps {
 export const Deploy = ({
   appDeployedVersion,
   lastBuildId,
-  inProgress,
+  isDeploymentInProgress,
   envName,
   isProduction,
   orgName,
@@ -87,7 +87,7 @@ export const Deploy = ({
     );
 
   const deployIsPending = isPending || (!!data?.build?.id && data?.build?.id !== lastBuildId);
-  const deployInProgress = deployIsPending || inProgress;
+  const deployInProgress = deployIsPending || isDeploymentInProgress;
 
   return (
     <DeployDropdown

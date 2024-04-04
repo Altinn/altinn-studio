@@ -5,11 +5,12 @@ import { Trans, useTranslation } from 'react-i18next';
 import { Alert, Heading, Paragraph, Spinner, Link } from '@digdir/design-system-react';
 import { DateUtils } from '@studio/pure-functions';
 import { publishPath } from 'app-shared/api/paths';
-import { KubernetesDeploymentStatus } from 'app-shared/types/api/KubernetesDeploymentStatus';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 
 export type DeploymentStatusProps = {
   kubernetesDeployment?: KubernetesDeployment;
+  isDeploymentInProgress?: boolean;
+  lastPublishedDate?: string;
   envName: string;
   isProduction: boolean;
   urlToApp?: string;
@@ -17,6 +18,8 @@ export type DeploymentStatusProps = {
 
 export const DeploymentStatus = ({
   kubernetesDeployment,
+  isDeploymentInProgress,
+  lastPublishedDate,
   envName,
   isProduction,
   urlToApp,
@@ -54,11 +57,30 @@ export const DeploymentStatus = ({
     );
   };
 
+  if (isDeploymentInProgress) {
+    return (
+      <DeploymentStatusAlert
+        severity='info'
+        content={
+          <span className={classes.loadingSpinner}>
+            <Spinner variant='interaction' title='' size='xsmall' />
+            {t('app_deployment.status.inProgress')}
+          </span>
+        }
+        footer={
+          <Trans i18nKey='overview.go_to_publish'>
+            <a href={publishPath(org, app)} />
+          </Trans>
+        }
+      />
+    );
+  }
+
   if (!kubernetesDeployment) {
     return (
       <DeploymentStatusAlert
         severity='info'
-        content={t('app_deployment.kubernetes_deployment.status.none')}
+        content={t('app_deployment.status.none')}
         footer={
           <Trans i18nKey='overview.go_to_publish'>
             <a href={publishPath(org, app)} />
@@ -68,11 +90,11 @@ export const DeploymentStatus = ({
     );
   }
 
-  if (!kubernetesDeployment?.status) {
+  if (!kubernetesDeployment?.version) {
     return (
       <DeploymentStatusAlert
         severity='warning'
-        content={t('app_deployment.kubernetes_deployment.status.unavailable')}
+        content={t('app_deployment.status.unavailable')}
         footer={
           <Trans i18nKey='overview.go_to_publish'>
             <a href={publishPath(org, app)} />
@@ -82,60 +104,30 @@ export const DeploymentStatus = ({
     );
   }
 
-  switch (kubernetesDeployment.status) {
-    case KubernetesDeploymentStatus.completed:
-      return (
-        <DeploymentStatusAlert
-          severity='success'
-          content={
-            <Trans
-              i18nKey={'app_deployment.kubernetes_deployment.status.completed'}
-              values={{
-                version: kubernetesDeployment.version,
-              }}
-              components={{
-                a: <Link href={urlToApp}> </Link>,
-              }}
-            />
-          }
-          footer={
-            <Trans
-              i18nKey={'app_deployment.last_published'}
-              values={{
-                lastPublishedDate: formatDateTime(kubernetesDeployment?.statusDate),
-              }}
-            />
-          }
+  return (
+    <DeploymentStatusAlert
+      severity='success'
+      content={
+        <Trans
+          i18nKey={'app_deployment.status.succeeded'}
+          values={{
+            version: kubernetesDeployment.version,
+          }}
+          components={{
+            a: <Link href={urlToApp}> </Link>,
+          }}
         />
-      );
-    case KubernetesDeploymentStatus.failed:
-      return (
-        <DeploymentStatusAlert
-          severity='danger'
-          content={t('app_deployment.kubernetes_deployment.status.failed')}
-          footer={
-            <Trans i18nKey='overview.go_to_publish'>
-              <a href={publishPath(org, app)} />
-            </Trans>
-          }
-        />
-      );
-    default:
-      return (
-        <DeploymentStatusAlert
-          severity='info'
-          content={
-            <span className={classes.loadingSpinner}>
-              <Spinner variant='interaction' title='' size='xsmall' />
-              {t('app_deployment.kubernetes_deployment.status.progressing')}
-            </span>
-          }
-          footer={
-            <Trans i18nKey='overview.go_to_publish'>
-              <a href={publishPath(org, app)} />
-            </Trans>
-          }
-        />
-      );
-  }
+      }
+      footer={
+        lastPublishedDate && (
+          <Trans
+            i18nKey={'app_deployment.last_published'}
+            values={{
+              lastPublishedDate: formatDateTime(lastPublishedDate),
+            }}
+          />
+        )
+      }
+    />
+  );
 };

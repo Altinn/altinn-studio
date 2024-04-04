@@ -25,11 +25,18 @@ export const DeploymentEnvironment = ({
   urlToApp,
   orgName,
 }: DeploymentEnvironmentProps) => {
+  const lastPipelineDeployment = pipelineDeploymentList[0];
+  const isDeploymentInProgress = lastPipelineDeployment?.build.result === BuildResult.none;
   return (
     <div className={classes.container}>
       <div className={classes.header}>
         <DeploymentEnvironmentStatus
           kubernetesDeployment={kubernetesDeployment}
+          isDeploymentInProgress={isDeploymentInProgress}
+          lastPublishedDate={
+            pipelineDeploymentList.find((item) => item.tagName === kubernetesDeployment?.version)
+              ?.build.finished
+          }
           envName={envName}
           isProduction={isProduction}
           urlToApp={urlToApp}
@@ -38,8 +45,8 @@ export const DeploymentEnvironment = ({
       <div className={classes.content}>
         <Deploy
           appDeployedVersion={kubernetesDeployment?.version}
-          lastBuildId={pipelineDeploymentList[0]?.build?.id}
-          inProgress={pipelineDeploymentList.some((item) => item.build.result === BuildResult.none)}
+          lastBuildId={lastPipelineDeployment?.build?.id}
+          isDeploymentInProgress={isDeploymentInProgress}
           envName={envName}
           isProduction={isProduction}
           orgName={orgName}

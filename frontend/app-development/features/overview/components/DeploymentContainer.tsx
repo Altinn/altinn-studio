@@ -53,13 +53,14 @@ export const DeploymentContainer = ({ className }: DeploymentContainerProps) => 
       <section className={className}>
         <DeploymentStatusList
           orgEnvironmentList={orgEnvironmentList}
-          kubernetesDeploymentList={appDeployment?.kubernetesDeploymentList}
+          kubernetesDeploymentList={appDeployment.kubernetesDeploymentList}
+          pipelineDeploymentList={appDeployment.pipelineDeploymentList}
         />
       </section>
       <section className={className}>
         <DeploymentLogList
           orgEnvironmentList={orgEnvironmentList}
-          pipelineDeploymentList={appDeployment?.pipelineDeploymentList}
+          pipelineDeploymentList={appDeployment.pipelineDeploymentList}
         />
       </section>
     </>
