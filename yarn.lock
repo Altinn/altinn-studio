@@ -4872,10 +4872,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/mime@npm:3.0.4":
-  version: 3.0.4
-  resolution: "@types/mime@npm:3.0.4"
-  checksum: 10c0/db478bc0f99e40f7b3e01d356a9bdf7817060808a294978111340317bcd80ca35382855578c5b60fbc84ae449674bd9bb38427b18417e1f8f19e4f72f8b242cd
+"@types/mime@npm:4.0.0":
+  version: 4.0.0
+  resolution: "@types/mime@npm:4.0.0"
+  dependencies:
+    mime: "npm:*"
+  checksum: 10c0/c544ca670c2cb53b96c7e4a1b4ecfdf3777dad4b74f7bb305680eed82c753a7ccfdf03c8b06c9fba48bb10d2a96ae95c9a4007b6c83bc5fdc9cfa7250c07b85b
   languageName: node
   linkType: hard
 
@@ -5949,7 +5951,7 @@ __metadata:
     "@types/js-levenshtein": "npm:^1.1.1"
     "@types/json-schema": "npm:^7.0.11"
     "@types/marked": "npm:6.0.0"
-    "@types/mime": "npm:3.0.4"
+    "@types/mime": "npm:4.0.0"
     "@types/node": "npm:^20.10.5"
     "@types/react": "npm:18.2.66"
     "@types/react-dom": "npm:18.2.22"
@@ -13706,21 +13708,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"mime@npm:*, mime@npm:4.0.1":
+  version: 4.0.1
+  resolution: "mime@npm:4.0.1"
+  bin:
+    mime: bin/cli.js
+  checksum: 10c0/8b89fb8d93dca1ce068d072c09faa8e04e85fb1e763197cbf8adaba0aa05eb795197cca332309f724cc2239d99c9c127eccb777d97efddb11aa9e9bcb9538818
+  languageName: node
+  linkType: hard
+
 "mime@npm:1.6.0, mime@npm:^1.6.0":
   version: 1.6.0
   resolution: "mime@npm:1.6.0"
   bin:
     mime: cli.js
   checksum: 10c0/b92cd0adc44888c7135a185bfd0dddc42c32606401c72896a842ae15da71eb88858f17669af41e498b463cd7eb998f7b48939a25b08374c7924a9c8a6f8a81b0
-  languageName: node
-  linkType: hard
-
-"mime@npm:4.0.1":
-  version: 4.0.1
-  resolution: "mime@npm:4.0.1"
-  bin:
-    mime: bin/cli.js
-  checksum: 10c0/8b89fb8d93dca1ce068d072c09faa8e04e85fb1e763197cbf8adaba0aa05eb795197cca332309f724cc2239d99c9c127eccb777d97efddb11aa9e9bcb9538818
   languageName: node
   linkType: hard
 

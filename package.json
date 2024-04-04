@@ -45,7 +45,7 @@
     "@types/js-levenshtein": "^1.1.1",
     "@types/json-schema": "^7.0.11",
     "@types/marked": "6.0.0",
-    "@types/mime": "3.0.4",
+    "@types/mime": "4.0.0",
     "@types/node": "^20.10.5",
     "@types/react": "18.2.66",
     "@types/react-dom": "18.2.22",
