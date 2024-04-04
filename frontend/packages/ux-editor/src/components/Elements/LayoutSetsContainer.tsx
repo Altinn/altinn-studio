@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLayoutSetsQuery } from '../../hooks/queries/useLayoutSetsQuery';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { NativeSelect } from '@digdir/design-system-react';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useText } from '../../hooks';

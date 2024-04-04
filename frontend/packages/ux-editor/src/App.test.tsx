@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { formLayoutSettingsMock, renderWithProviders } from './testing/mocks';
 import { App } from './App';
 import { textMock } from '../../../testing/mocks/i18nMock';
@@ -46,16 +46,16 @@ describe('App', () => {
     await waitForLoadingToFinish();
   });
 
-  it('Removes the preview layout set from local storage if it does not exist', async () => {
-    const removeSelectedLayoutSetMock = jest.fn();
+  it('Sets a new initial layout set as selected if current does not exist', async () => {
+    const setSelectedLayoutSetMock = jest.fn();
     const layoutSetThatDoesNotExist = 'layout-set-that-does-not-exist';
     typedLocalStorage.setItem('selectedLayoutSet', layoutSetThatDoesNotExist);
     renderApp(mockQueries, {
       selectedLayoutSet: layoutSetThatDoesNotExist,
-      removeSelectedLayoutSet: removeSelectedLayoutSetMock,
+      setSelectedLayoutSet: setSelectedLayoutSetMock,
     });
-    await waitForLoadingToFinish();
-    expect(removeSelectedLayoutSetMock).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(setSelectedLayoutSetMock).toHaveBeenCalledTimes(1));
+    expect(setSelectedLayoutSetMock).toHaveBeenCalledWith(layoutSetsMock.sets[0].id);
   });
 
   it('Does not remove the preview layout set from local storage if it exists', async () => {
