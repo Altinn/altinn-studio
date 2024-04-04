@@ -1,11 +1,15 @@
 import React from 'react';
 import { ConfigContent } from './ConfigContent';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import type { BpmnContextProps } from '../../../contexts/BpmnContext';
 import { BpmnContext } from '../../../contexts/BpmnContext';
 import type { BpmnDetails } from '../../../types/BpmnDetails';
 import { BpmnTypeEnum } from '../../../enum/BpmnTypeEnum';
+import userEvent from '@testing-library/user-event';
+import type Modeler from 'bpmn-js/lib/Modeler';
+import { type BpmnTaskType } from '../../../types/BpmnTaskType';
+import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
 
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 const mockAppLibVersion8: string = '8.0.3';
@@ -35,84 +39,80 @@ const mockBpmnContextValue: BpmnContextProps = {
   setDataTasksRemoved: jest.fn(),
 };
 
+jest.mock('../../../hooks/useBpmnModeler', () => ({
+  useBpmnModeler: () => ({
+    getModeler: () => ({
+      get: () => ({
+        updateProperties: jest.fn(),
+      }),
+    }),
+  }),
+}));
+
 describe('ConfigContent', () => {
-  afterEach(jest.clearAllMocks);
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+  it('should render heading for selected task', () => {
+    renderConfigContent({
+      modelerRef: { current: { get: () => {} } as unknown as Modeler },
+      bpmnDetails: { ...mockBpmnDetails, taskType: 'data' as BpmnTaskType },
+    });
 
-  it('should display the details about the selected task when a "data" task is selected', () => {
-    render();
-
-    expect(
-      screen.getByRole('heading', {
-        name: textMock('process_editor.configuration_panel_data_task'),
-        level: 2,
-      }),
-    ).toBeInTheDocument();
-
-    expect(screen.getByText(mockBpmnDetails.id)).toBeInTheDocument();
-    expect(screen.getByText(mockBpmnDetails.name)).toBeInTheDocument();
+    screen.getByRole('heading', {
+      name: textMock('process_editor.configuration_panel_data_task'),
+      level: 2,
+    });
   });
 
-  it('should display the details about the selected task when a "confirmation" task is selected', () => {
-    render({ bpmnDetails: { ...mockBpmnDetails, taskType: 'confirmation' } });
+  it('should render helpText for selected task', async () => {
+    const user = userEvent.setup();
+    renderConfigContent({
+      modelerRef: { current: { get: () => {} } as unknown as Modeler },
+      bpmnDetails: { ...mockBpmnDetails, taskType: 'data' as BpmnTaskType },
+    });
 
-    expect(
-      screen.getByRole('heading', {
-        name: textMock('process_editor.configuration_panel_confirmation_task'),
-        level: 2,
-      }),
-    ).toBeInTheDocument();
+    const helpTextButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_header_help_text_title'),
+    });
+    await act(() => user.click(helpTextButton));
 
-    expect(screen.getByText(mockBpmnDetails.id)).toBeInTheDocument();
-    expect(screen.getByText(mockBpmnDetails.name)).toBeInTheDocument();
+    screen.getByText(textMock('process_editor.configuration_panel_header_help_text_data'));
   });
 
-  it('should display the details about the selected task when a "feedback" task is selected', () => {
-    render({ bpmnDetails: { ...mockBpmnDetails, taskType: 'feedback' } });
+  it('should render EditTaskId component', () => {
+    renderConfigContent({
+      modelerRef: { current: { get: () => {} } as unknown as Modeler },
+      bpmnDetails: { ...mockBpmnDetails, taskType: 'data' as BpmnTaskType },
+    });
 
-    expect(
-      screen.getByRole('heading', {
-        name: textMock('process_editor.configuration_panel_feedback_task'),
-        level: 2,
-      }),
-    ).toBeInTheDocument();
-
-    expect(screen.getByText(mockBpmnDetails.id)).toBeInTheDocument();
-    expect(screen.getByText(mockBpmnDetails.name)).toBeInTheDocument();
+    screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_change_task_id'),
+    });
   });
 
-  it('should display the details about the selected task when a "signing" task is selected', () => {
-    render({ bpmnDetails: { ...mockBpmnDetails, taskType: 'signing' } });
+  it.each(['data', 'confirmation', 'feedback', 'signing'])(
+    'should render correct header config for each taskType',
+    (taskType) => {
+      renderConfigContent({
+        modelerRef: { current: { get: () => {} } as unknown as Modeler },
+        bpmnDetails: { ...mockBpmnDetails, taskType: taskType as BpmnTaskType },
+      });
 
-    expect(
       screen.getByRole('heading', {
-        name: textMock('process_editor.configuration_panel_signing_task'),
+        name: textMock(`process_editor.configuration_panel_${taskType}_task`),
         level: 2,
-      }),
-    ).toBeInTheDocument();
-
-    expect(screen.getByText(mockBpmnDetails.id)).toBeInTheDocument();
-    expect(screen.getByText(mockBpmnDetails.name)).toBeInTheDocument();
-  });
-
-  it('should display the details about the selected task when a task not of type "BpmnTaskType" is selected', () => {
-    render({ bpmnDetails: { ...mockBpmnDetails, taskType: undefined } });
-
-    expect(
-      screen.getByRole('heading', {
-        name: textMock('process_editor.configuration_panel_missing_task'),
-        level: 2,
-      }),
-    ).toBeInTheDocument();
-
-    expect(screen.getByText(mockBpmnDetails.id)).toBeInTheDocument();
-    expect(screen.getByText(mockBpmnDetails.name)).toBeInTheDocument();
-  });
+      });
+    },
+  );
 });
 
-const render = (rootContextProps: Partial<BpmnContextProps> = {}) => {
-  return rtlRender(
+const renderConfigContent = (rootContextProps: Partial<BpmnContextProps> = {}) => {
+  return render(
     <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
-      <ConfigContent />
+      <BpmnConfigPanelFormContextProvider>
+        <ConfigContent />
+      </BpmnConfigPanelFormContextProvider>
     </BpmnContext.Provider>,
   );
 };

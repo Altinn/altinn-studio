@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import type { ResourceContactPoint } from 'app-shared/types/ResourceAdm';
-import { Fieldset } from '@digdir/design-system-react';
+import { Fieldset, HelpText, Textfield } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { ResourceContactPointTextField } from './ResourceContactPointTextField';
 import { InputFieldErrorMessage } from '../ResourcePageInputs/InputFieldErrorMessage';
 import { ResourceFieldHeader } from '../ResourcePageInputs/ResourceFieldHeader';
+import classes from './ResourceContactPointFieldset.module.css';
 
 type ResourceContactPointFieldsetProps = {
   /**
@@ -30,6 +30,10 @@ type ResourceContactPointFieldsetProps = {
    * Whether this field is required or not
    */
   required?: boolean;
+  /**
+   * Index of fieldset
+   */
+  index: number;
 };
 
 /**
@@ -41,6 +45,7 @@ type ResourceContactPointFieldsetProps = {
  * @property {function}[onFocus] - Function to be executed when the field is focused
  * @property {boolean}[showErrors] - Function to be executed when leaving a text field
  * @property {boolean}[required] - Whether this field is required or not
+ * @property {number}[index] - Index of fieldset
  *
  * @returns {React.JSX.Element} - The rendered component
  */
@@ -50,6 +55,7 @@ export const ResourceContactPointFieldset = ({
   onFocus,
   showErrors,
   required,
+  index,
 }: ResourceContactPointFieldsetProps): React.JSX.Element => {
   const { t } = useTranslation();
 
@@ -66,52 +72,54 @@ export const ResourceContactPointFieldset = ({
       <Fieldset
         legend={
           <ResourceFieldHeader
-            label={t('resourceadm.about_resource_contact_legend')}
+            label={t('resourceadm.about_resource_contact_legend', { index: index + 1 })}
             required={required}
           />
         }
         description={t('resourceadm.about_resource_contact_description')}
         size='small'
       >
-        <ResourceContactPointTextField
-          label={t('resourceadm.about_resource_contact_label_category')}
+        <Textfield
+          label={
+            <div className={classes.categoryHeader}>
+              {t('resourceadm.about_resource_contact_label_category')}
+              <HelpText
+                size='small'
+                title={`${t('resourceadm.about_resource_contact_label_category_help_prefix')} ${t('resourceadm.about_resource_contact_label_category_help_text')}`}
+              >
+                {t('resourceadm.about_resource_contact_label_category_help_text')}
+              </HelpText>
+            </div>
+          }
           value={category}
-          onChange={(value: string) => setCategory(value)}
+          onChange={(e) => setCategory(e.target.value)}
           onFocus={onFocus}
-          onBlur={() => {
-            onLeaveTextFields({ ...contactPoint, category });
-          }}
-          isValid={!hasError}
+          onBlur={() => onLeaveTextFields({ ...contactPoint, category })}
+          error={hasError}
         />
-        <ResourceContactPointTextField
+        <Textfield
           label={t('resourceadm.about_resource_contact_label_email')}
           value={email}
-          onChange={(value: string) => setEmail(value)}
+          onChange={(e) => setEmail(e.target.value)}
           onFocus={onFocus}
-          onBlur={() => {
-            onLeaveTextFields({ ...contactPoint, email });
-          }}
-          isValid={!hasError}
+          onBlur={() => onLeaveTextFields({ ...contactPoint, email })}
+          error={hasError}
         />
-        <ResourceContactPointTextField
+        <Textfield
           label={t('resourceadm.about_resource_contact_label_telephone')}
           value={telephone}
-          onChange={(value: string) => setTelephone(value)}
+          onChange={(e) => setTelephone(e.target.value)}
           onFocus={onFocus}
-          onBlur={() => {
-            onLeaveTextFields({ ...contactPoint, telephone });
-          }}
-          isValid={!hasError}
+          onBlur={() => onLeaveTextFields({ ...contactPoint, telephone })}
+          error={hasError}
         />
-        <ResourceContactPointTextField
+        <Textfield
           label={t('resourceadm.about_resource_contact_label_contactpage')}
           value={contactPage}
-          onChange={(value: string) => setContactPage(value)}
+          onChange={(e) => setContactPage(e.target.value)}
           onFocus={onFocus}
-          onBlur={() => {
-            onLeaveTextFields({ ...contactPoint, contactPage });
-          }}
-          isValid={!hasError}
+          onBlur={() => onLeaveTextFields({ ...contactPoint, contactPage })}
+          error={hasError}
         />
       </Fieldset>
       {hasError && (

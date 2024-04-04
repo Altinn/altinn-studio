@@ -2,37 +2,16 @@ import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 
 /**
- * Maps a string from the format sent from backend, e.g.,
- * '2023-06-14T13:35:00+02:00' to dd.mm.yyyy.
+ * Sorts a resource list by the date so the newest is at the top
  *
- * @param dateString the string to map
+ * @param resourceList the list to sort
  *
- * @returns a formatted date
+ * @returns the sorted list
  */
-const formatDateFromBackendToDDMMYYYY = (dateString: string): string => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString().replaceAll('/', '.');
-};
-
-/**
- * Sorts a resource list by the date so the newest is at the top, then maps
- * the object correctly.
- *
- * @param resourceList the list to sort and map
- *
- * @returns the sorted and mapped list
- */
-export const sortResourceListByDateAndMap = (
-  resourceList: ResourceListItem[],
-): ResourceListItem[] => {
-  const sorted = resourceList.sort((a, b) => {
+export const sortResourceListByDate = (resourceList: ResourceListItem[]): ResourceListItem[] => {
+  return resourceList.sort((a, b) => {
     return new Date(b.lastChanged).getTime() - new Date(a.lastChanged).getTime();
   });
-
-  return sorted.map((r) => ({
-    ...r,
-    lastChanged: formatDateFromBackendToDDMMYYYY(r.lastChanged),
-  }));
 };
 
 /**
@@ -45,7 +24,18 @@ export const sortResourceListByDateAndMap = (
  */
 export const mapAltinn2LinkServiceToSelectOption = (linkServices: Altinn2LinkService[]) => {
   return linkServices.map((ls: Altinn2LinkService) => ({
-    value: `${ls.externalServiceCode}-${ls.externalServiceEditionCode}-${ls.serviceName}`,
+    value: JSON.stringify(ls),
     label: `${ls.externalServiceCode}-${ls.externalServiceEditionCode}-${ls.serviceName}`,
   }));
+};
+
+/**
+ * Maps a link service option string back to Altinn2LinkService object
+ *
+ * @param selectOption JSON string of Altinn2LinkService
+ *
+ * @returns a Altinn2LinkService object
+ */
+export const mapSelectOptiontoAltinn2LinkService = (selectOption: string): Altinn2LinkService => {
+  return JSON.parse(selectOption);
 };

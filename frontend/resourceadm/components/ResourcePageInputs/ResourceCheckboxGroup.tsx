@@ -82,7 +82,6 @@ export const ResourceCheckboxGroup = ({
     <div className={classes.inputWrapper}>
       <Checkbox.Group
         legend={<ResourceFieldHeader label={legend} required={required} />}
-        aria-required={required}
         description={description}
         size='small'
         error={
