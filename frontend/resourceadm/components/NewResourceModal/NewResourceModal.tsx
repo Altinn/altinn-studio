@@ -1,5 +1,6 @@
 import React, { forwardRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { Paragraph, Modal } from '@digdir/design-system-react';
 import { ResourceNameAndId } from '../ResourceNameAndId';
 import { useCreateResourceMutation } from '../../hooks/mutations';
@@ -9,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUrlParams } from '../../hooks/useSelectedContext';
 import { StudioButton } from '@studio/components';
-import { getResourceIdentifierErrorMessage } from 'resourceadm/utils/resourceUtils';
+import { getResourceIdentifierErrorMessage } from '../../utils/resourceUtils';
 
 export type NewResourceModalProps = {
   onClose: () => void;
@@ -36,10 +37,12 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
     const [resourceIdExists, setResourceIdExists] = useState(false);
 
     // Mutation function to create new resource
-    const { mutate: createNewResource } = useCreateResourceMutation(selectedContext);
+    const { mutate: createNewResource, isPending: isCreatingResource } =
+      useCreateResourceMutation(selectedContext);
 
     const idErrorMessage = getResourceIdentifierErrorMessage(id, resourceIdExists);
-    const hasValidValues = id.length !== 0 && title.length !== 0 && !idErrorMessage;
+    const hasValidValues =
+      id.length !== 0 && title.length !== 0 && !idErrorMessage && !isCreatingResource;
 
     /**
      * Creates a new resource in backend, and navigates if success
@@ -55,8 +58,15 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
       };
 
       createNewResource(idAndTitle, {
-        onSuccess: () =>
-          navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about')),
+        onSuccess: () => {
+          toast.success(
+            t('resourceadm.dashboard_create_resource_success', {
+              resourceName: idAndTitle.title.nb,
+            }),
+          );
+          navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about'));
+        },
+
         onError: (error: any) => {
           if (error.response.status === ServerCodes.Conflict) {
             setResourceIdExists(true);
@@ -100,7 +110,6 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
             onClick={() => (hasValidValues ? handleCreateNewResource() : undefined)}
             color='first'
             aria-disabled={!hasValidValues}
-            size='small'
           >
             {t('resourceadm.dashboard_create_modal_create_button')}
           </StudioButton>

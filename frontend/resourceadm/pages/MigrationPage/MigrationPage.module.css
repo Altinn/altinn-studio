@@ -5,6 +5,9 @@
 }
 
 .contentWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
   width: 40rem;
 }
 
@@ -16,16 +19,6 @@
 
 .introWrapper {
   margin-bottom: var(--fds-spacing-7);
-}
-
-.selectEnv {
-  margin-top: var(--fds-spacing-2);
-  margin-bottom: var(--fds-spacing-7);
-  width: 22rem;
-}
-
-.linkWrapper {
-  margin-left: var(--fds-spacing-10);
 }
 
 .datePickers {
