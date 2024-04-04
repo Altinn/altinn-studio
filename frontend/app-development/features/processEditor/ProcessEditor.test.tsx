@@ -10,7 +10,7 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { useBpmnContext } from '../../../packages/process-editor/src/contexts/BpmnContext';
 import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
-import { type SyncError, SyncSuccess } from './syncUtils';
+import { type SyncError, type SyncSuccess } from './syncUtils';
 import { processEditorWebSocketHub } from 'app-shared/api/paths';
 
 // test data
