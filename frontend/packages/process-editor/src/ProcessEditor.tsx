@@ -21,6 +21,7 @@ export type ProcessEditorProps = {
   layoutSets: BpmnApiContextProps['layoutSets'];
   existingCustomReceiptLayoutSetName: BpmnApiContextProps['existingCustomReceiptLayoutSetName'];
   addLayoutSet: BpmnApiContextProps['addLayoutSet'];
+  deleteLayoutSet: BpmnApiContextProps['deleteLayoutSet'];
   mutateLayoutSet: BpmnApiContextProps['mutateLayoutSet'];
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
 };
@@ -31,6 +32,7 @@ export const ProcessEditor = ({
   layoutSets,
   existingCustomReceiptLayoutSetName,
   addLayoutSet,
+  deleteLayoutSet,
   mutateLayoutSet,
   saveBpmn,
 }: ProcessEditorProps): JSX.Element => {
@@ -50,6 +52,7 @@ export const ProcessEditor = ({
         layoutSets={layoutSets}
         existingCustomReceiptLayoutSetName={existingCustomReceiptLayoutSetName}
         addLayoutSet={addLayoutSet}
+        deleteLayoutSet={deleteLayoutSet}
         mutateLayoutSet={mutateLayoutSet}
         saveBpmn={saveBpmn}
       >

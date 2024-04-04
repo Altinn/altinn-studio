@@ -439,6 +439,23 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string sourceAbsolutePath = GetAbsoluteFileOrDirectoryPathSanitized(sourceRelativePath);
             Directory.Move(sourceAbsolutePath, destAbsolutePath);
         }
+        
+        /// <summary>
+        /// Delete layout set folder
+        /// </summary>
+        public void DeleteLayoutSetFolder(string oldLayoutSetName, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+           
+            string relativePath = GetPathToLayoutSet(oldLayoutSetName, true);
+            if (!DirectoryExistsByRelativePath(relativePath))
+            {
+                throw new NotFoundException("Layout set you are trying to change doesn't exist");
+            }
+            
+            string absolutePath = GetAbsoluteFileOrDirectoryPathSanitized(relativePath);
+            Directory.Delete(absolutePath, true);
+        }
 
         /// <summary>
         /// Delete layout set folder

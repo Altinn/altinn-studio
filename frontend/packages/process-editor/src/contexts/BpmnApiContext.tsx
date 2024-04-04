@@ -6,6 +6,7 @@ export type BpmnApiContextProps = {
   layoutSets: LayoutSets;
   existingCustomReceiptLayoutSetName: string | undefined;
   addLayoutSet: (data: { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig }) => void;
+  deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
   mutateLayoutSet: (data: {
     layoutSetIdToUpdate: string;
     layoutSetConfig: LayoutSetConfig;
@@ -20,6 +21,7 @@ export type BpmnApiContextProviderProps = {
   layoutSets: LayoutSets;
   existingCustomReceiptLayoutSetName: string | undefined;
   addLayoutSet: (data: { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig }) => void;
+  deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
   mutateLayoutSet: (data: {
     layoutSetIdToUpdate: string;
     layoutSetConfig: LayoutSetConfig;
@@ -31,6 +33,7 @@ export const BpmnApiContextProvider = ({
   layoutSets,
   existingCustomReceiptLayoutSetName,
   addLayoutSet,
+  deleteLayoutSet,
   mutateLayoutSet,
   saveBpmn,
 }: BpmnApiContextProviderProps) => {
@@ -40,6 +43,7 @@ export const BpmnApiContextProvider = ({
         layoutSets,
         existingCustomReceiptLayoutSetName,
         addLayoutSet,
+        deleteLayoutSet,
         mutateLayoutSet,
         saveBpmn,
       }}

@@ -20,28 +20,27 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const { metaDataFormRef, resetForm } = useBpmnConfigPanelFormContext();
   const { getModeler } = useBpmnModeler();
-  const { addLayoutSet, saveBpmn } = useBpmnApiContext();
+  const { addLayoutSet, deleteLayoutSet, saveBpmn } = useBpmnApiContext();
 
   const handleCommandStackChanged = async () => {
-    console.log('CHANGE');
     saveBpmn(await getUpdatedXml(), metaDataFormRef.current || null);
     resetForm();
   };
 
   const handleShapeRemove = (e) => {
     const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
-    console.log('REMOVE: bpmn details: ', bpmnDetails);
     if (bpmnDetails.type === BpmnTypeEnum.Task) {
       // call remove layout set from bpmnApiContext. Make sure potentially updated task-id
       // from metadata is used in order to remove correct connection in app-metadata
+      deleteLayoutSet({
+        layoutSetIdToUpdate: bpmnDetails.id,
+      });
     }
     setBpmnDetails(null);
   };
 
   const handleShapeAdd = (e) => {
-    console.log('ADD event: ', e);
     const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
-    console.log('ADD: bpmn details: ', bpmnDetails);
     setBpmnDetails(bpmnDetails);
     if (bpmnDetails.type === BpmnTypeEnum.Task) {
       addLayoutSet({

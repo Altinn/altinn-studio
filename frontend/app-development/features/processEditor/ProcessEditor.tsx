@@ -16,6 +16,7 @@ import { useAddLayoutSetMutation } from '../../hooks/mutations/useAddLayoutSetMu
 import { type MetaDataForm } from '@altinn/process-editor/src/contexts/BpmnConfigPanelContext';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
+import {useDeleteLayoutSetMutation} from "../../hooks/mutations/useDeleteLayoutSetMutation";
 
 export const ProcessEditor = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -25,6 +26,7 @@ export const ProcessEditor = (): React.ReactElement => {
   const bpmnMutation = useBpmnMutation(org, app);
   const { mutate: mutateLayoutSet } = useUpdateLayoutSetMutation(org, app);
   const { mutate: addLayoutSet } = useAddLayoutSetMutation(org, app);
+  const { mutate: deleteLayoutSet } = useDeleteLayoutSetMutation(org, app);
   const existingCustomReceiptName: string | undefined = useCustomReceiptLayoutSetName(org, app);
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
@@ -72,6 +74,7 @@ export const ProcessEditor = (): React.ReactElement => {
       layoutSets={layoutSets}
       existingCustomReceiptLayoutSetName={existingCustomReceiptName}
       addLayoutSet={addLayoutSet}
+      deleteLayoutSet={deleteLayoutSet}
       mutateLayoutSet={mutateLayoutSet}
       appLibVersion={appLibData.backendVersion}
       bpmnXml={hasBpmnQueryError ? null : bpmnXml}
