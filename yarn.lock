@@ -3002,25 +3002,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-react@npm:0.51.2":
-  version: 0.51.2
-  resolution: "@digdir/design-system-react@npm:0.51.2"
+"@digdir/design-system-react@npm:0.53.3":
+  version: 0.53.3
+  resolution: "@digdir/design-system-react@npm:0.53.3"
   dependencies:
     "@altinn/figma-design-tokens": "npm:^6.0.1"
-    "@digdir/design-system-tokens": "npm:^0.13.0"
+    "@digdir/designsystemet-react": "npm:^0.55.0"
     "@floating-ui/react": "npm:0.26.4"
     "@navikt/aksel-icons": "npm:^5.12.2"
-    "@radix-ui/react-slot": "npm:^1.0.2"
-    "@tanstack/react-virtual": "npm:^3.0.1"
     react-number-format: "npm:5.3.1"
   peerDependencies:
     react: ">=18.2.0"
     react-dom: ">=18.2.0"
-  checksum: 10/8868ec396ab10c636252b0eee38a59892e651753323372a0ee93d1e21e80e865ae488bac9a4f53f575c2e11ca2c6302df9a28009013e2c315b3b5b798f33e5e5
+  checksum: 10/50f9aa0e5be056d391ad7ffce3327e861e0f142880b9094485ec841ba3c4c699a7731834a9794420c8549f69538b5c21e178efc26c99206bd49a021cfee15cbd
   languageName: node
   linkType: hard
 
-"@digdir/design-system-tokens@npm:0.13.0, @digdir/design-system-tokens@npm:^0.13.0":
+"@digdir/design-system-tokens@npm:0.13.0":
   version: 0.13.0
   resolution: "@digdir/design-system-tokens@npm:0.13.0"
   checksum: 10/1564c638807b6bb4706ae893ecc6142f0aa8816f9915a0d43aa08c121a6a8810501b3d7857067df4151c67d372c9443123924351efcc8f490aecf65bc135d7d3
@@ -3031,6 +3029,52 @@ __metadata:
   version: 0.1.7
   resolution: "@digdir/design-system-tokens@npm:0.1.7"
   checksum: 10/319bc8c5d0f6150e4ffdd3fa0ff0a5bbe3458af7e9b02dd47908c3affa938fede2b53356748b43dff72b4957c30473ef83c71962860398a702a76f314fbc4d3f
+  languageName: node
+  linkType: hard
+
+"@digdir/designsystemet-css@npm:^0.2.4-alpha.1":
+  version: 0.2.4-alpha.1
+  resolution: "@digdir/designsystemet-css@npm:0.2.4-alpha.1"
+  dependencies:
+    "@digdir/designsystemet-react": "npm:^0.55.1-alpha.1"
+  checksum: 10/dafab6d9a1bef9c6d5f727fcd4286732cdeb7e7497f5582a3c8a9895add01694e843bfcd17ae116ff8e3210fb1ec0dcc997973d3b83e2dd01e5137ea74039753
+  languageName: node
+  linkType: hard
+
+"@digdir/designsystemet-react@npm:^0.55.0":
+  version: 0.55.0
+  resolution: "@digdir/designsystemet-react@npm:0.55.0"
+  dependencies:
+    "@floating-ui/react": "npm:0.26.4"
+    "@navikt/aksel-icons": "npm:^5.12.2"
+    "@radix-ui/react-slot": "npm:^1.0.2"
+    "@tanstack/react-virtual": "npm:^3.0.1"
+  peerDependencies:
+    react: ">=18.2.0"
+    react-dom: ">=18.2.0"
+  checksum: 10/36bd8d02b21f2553bca4a1909c5e6653d1525b5130278eecee53e6476740273a691e96c276c1f8b2466533b4071246d6f1451faa73351226f3e478c044326d13
+  languageName: node
+  linkType: hard
+
+"@digdir/designsystemet-react@npm:^0.55.1-alpha.1":
+  version: 0.55.1-alpha.1
+  resolution: "@digdir/designsystemet-react@npm:0.55.1-alpha.1"
+  dependencies:
+    "@floating-ui/react": "npm:0.26.4"
+    "@navikt/aksel-icons": "npm:^5.12.2"
+    "@radix-ui/react-slot": "npm:^1.0.2"
+    "@tanstack/react-virtual": "npm:^3.0.1"
+  peerDependencies:
+    react: ">=18.2.0"
+    react-dom: ">=18.2.0"
+  checksum: 10/ee1b1485ffd1cff5b95316461bfb5643ed38c28555386dd330e71d3a1d9dfbedc73abfecd8fc61ccdb76210dc30ddd386de46969d5f385623987a1f465621376
+  languageName: node
+  linkType: hard
+
+"@digdir/designsystemet-theme@npm:^0.15.1-alpha.0":
+  version: 0.15.1-alpha.0
+  resolution: "@digdir/designsystemet-theme@npm:0.15.1-alpha.0"
+  checksum: 10/10094d6b4ebe6a09f42729a3f5104eaa1ab1b1d88775c068213715ed4f505a48dd29ee339a5307e6517ac1fe082a517d1ac76cfbbca0132a584cc6febc6b1833
   languageName: node
   linkType: hard
 
@@ -8327,8 +8371,11 @@ __metadata:
   dependencies:
     "@altinn/altinn-design-system": "npm:0.30.0"
     "@altinn/figma-design-tokens": "npm:6.0.1"
-    "@digdir/design-system-react": "npm:0.51.2"
+    "@digdir/design-system-react": "npm:0.53.3"
     "@digdir/design-system-tokens": "npm:0.13.0"
+    "@digdir/designsystemet-css": "npm:^0.2.4-alpha.1"
+    "@digdir/designsystemet-react": "npm:^0.55.1-alpha.1"
+    "@digdir/designsystemet-theme": "npm:^0.15.1-alpha.0"
     "@emotion/react": "npm:11.11.4"
     "@emotion/styled": "npm:11.11.5"
     "@microsoft/applicationinsights-react-js": "npm:17.1.2"
