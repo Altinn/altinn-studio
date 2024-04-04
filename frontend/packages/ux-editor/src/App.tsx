@@ -30,7 +30,7 @@ export function App() {
     useDatamodelMetadataQuery(org, app, selectedLayoutSet);
   const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
 
-  const layoutSetsIncludesSelectedLayout = layoutSets?.sets
+  const layoutSetsIncludesSelectedLayoutSet = layoutSets?.sets
     ?.map((set) => set.id)
     .includes(selectedLayoutSet);
 
@@ -38,7 +38,7 @@ export function App() {
     if (
       areLayoutSetsFetched &&
       selectedLayoutSet &&
-      (!layoutSets || !layoutSetsIncludesSelectedLayout)
+      (!layoutSets || !layoutSetsIncludesSelectedLayoutSet)
     )
       removeSelectedLayoutSet();
   }, [
@@ -47,14 +47,14 @@ export function App() {
     selectedLayoutSet,
     setSelectedLayoutSet,
     removeSelectedLayoutSet,
-    layoutSetsIncludesSelectedLayout,
+    layoutSetsIncludesSelectedLayoutSet,
   ]);
 
   const componentIsReady =
     areWidgetsFetched &&
     isDatamodelFetched &&
     areTextResourcesFetched &&
-    layoutSetsIncludesSelectedLayout;
+    layoutSetsIncludesSelectedLayoutSet;
 
   const componentHasError = dataModelFetchedError || widgetFetchedError;
 
@@ -78,11 +78,17 @@ export function App() {
   };
 
   useEffect(() => {
-    if (layoutSets && (selectedLayoutSet === null || !layoutSetsIncludesSelectedLayout)) {
+    if (layoutSets && (selectedLayoutSet === null || !layoutSetsIncludesSelectedLayoutSet)) {
       // Only set layout set if layout sets exists and there is no layout set selected yet
       setSelectedLayoutSet(layoutSets.sets[0].id);
     }
-  }, [setSelectedLayoutSet, selectedLayoutSet, layoutSets, layoutSetsIncludesSelectedLayout, app]);
+  }, [
+    setSelectedLayoutSet,
+    selectedLayoutSet,
+    layoutSets,
+    layoutSetsIncludesSelectedLayoutSet,
+    app,
+  ]);
 
   if (componentHasError) {
     const mappedError = mapErrorToDisplayError();
