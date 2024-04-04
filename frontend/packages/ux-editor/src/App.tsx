@@ -8,7 +8,7 @@ import { useDatamodelMetadataQuery } from './hooks/queries/useDatamodelMetadataQ
 import { selectedLayoutNameSelector } from './selectors/formLayoutSelectors';
 import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
-import { useLayoutSetsQuery } from './hooks/queries/useLayoutSetsQuery';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from './hooks/useAppContext';
 import { FormItemContextProvider } from './containers/FormItemContext';
