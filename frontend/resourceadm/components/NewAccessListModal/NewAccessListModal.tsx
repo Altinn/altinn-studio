@@ -58,7 +58,7 @@ export const NewAccessListModal = forwardRef<HTMLDialogElement, NewAccessListMod
       <Modal ref={ref} onClose={onClose}>
         <Modal.Header>
           {t('resourceadm.listadmin_create_list_header', {
-            env: t(getEnvLabel(org, env)),
+            env: t(getEnvLabel(env)),
           })}
         </Modal.Header>
         <Modal.Content>

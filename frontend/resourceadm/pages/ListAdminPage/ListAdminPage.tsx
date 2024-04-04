@@ -2,13 +2,7 @@ import React, { useRef, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { AxiosError } from 'axios';
-import {
-  Heading,
-  Link as DigdirLink,
-  ToggleGroup,
-  Button,
-  Alert,
-} from '@digdir/design-system-react';
+import { Heading, Link as DigdirLink, ToggleGroup, Button } from '@digdir/design-system-react';
 import { StudioSpinner, StudioButton } from '@studio/components';
 import { PencilWritingIcon, PlusIcon } from '@studio/icons';
 import classes from './ListAdminPage.module.css';
@@ -18,6 +12,7 @@ import { getAccessListPageUrl, getResourceDashboardURL } from '../../utils/urlUt
 import { useUrlParams } from '../../hooks/useSelectedContext';
 import type { EnvId } from '../../utils/resourceUtils';
 import { getAvailableEnvironments, getEnvLabel } from '../../utils/resourceUtils';
+import { AccessListErrorMessage } from 'resourceadm/components/AccessListErrorMessage';
 
 export const ListAdminPage = (): React.JSX.Element => {
   const { t } = useTranslation();
@@ -78,12 +73,11 @@ export const ListAdminPage = (): React.JSX.Element => {
               navigateUrl={getAccessListPageUrl(selectedContext, repo, selectedEnv)}
               onClose={() => createAccessListModalRef.current?.close()}
             />
-            {(listFetchError as AxiosError)?.response.status === 403 && (
-              <Alert severity='danger'>
-                {t('resourceadm.loading_access_list_permission_denied', {
-                  envName: t(getEnvLabel(selectedContext, selectedEnv as EnvId)),
-                })}
-              </Alert>
+            {listFetchError && (
+              <AccessListErrorMessage
+                error={listFetchError as AxiosError}
+                env={selectedEnv as EnvId}
+              />
             )}
             {isLoadingEnvListData && (
               <StudioSpinner
@@ -95,7 +89,7 @@ export const ListAdminPage = (): React.JSX.Element => {
               <div>
                 <Heading level={2} size='xsmall'>
                   {t('resourceadm.listadmin_lists_in', {
-                    environment: t(getEnvLabel(selectedContext, selectedEnv as EnvId)),
+                    environment: t(getEnvLabel(selectedEnv as EnvId)),
                   })}
                 </Heading>
                 {envListData.pages.map((list) => {
