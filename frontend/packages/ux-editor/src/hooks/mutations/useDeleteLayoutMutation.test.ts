@@ -44,14 +44,14 @@ describe('useDeleteLayoutMutation', () => {
     });
   });
 
-  it.only('Selects a new layout when deleting the selected layout', async () => {
+  it('Selects a new layout when deleting the selected layout', async () => {
     const { result } = renderDeleteLayoutMutation();
     await result.current.mutateAsync(layout1NameMock);
     expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledTimes(1);
     expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledWith(layoutName);
   });
 
-  it.only('Reloads preview when deleting a layout that is not selected', async () => {
+  it('Reloads preview when deleting a layout that is not selected', async () => {
     const { result } = renderDeleteLayoutMutation();
     await result.current.mutateAsync(layout2NameMock);
     expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);

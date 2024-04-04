@@ -74,7 +74,7 @@ describe('Preview', () => {
     expect(showPreviewButton).not.toBeInTheDocument();
   });
 
-  it.only('reloads preview when the selected form layout name changes', async () => {
+  it('reloads preview when the selected form layout name changes', async () => {
     const view = render();
     expect(appContextMock.previewIframeRef?.current?.src).toBe(
       'http://localhost' +

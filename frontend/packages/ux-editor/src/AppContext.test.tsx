@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { render as rtlRender, act, screen, waitFor } from '@testing-library/react';
+import { render, act, screen, waitFor } from '@testing-library/react';
 import type { WindowWithQueryClient } from './AppContext';
 import { AppContextProvider } from './AppContext';
 import userEvent from '@testing-library/user-event';
@@ -15,7 +15,7 @@ const app = 'app';
 const mockSelectedFormLayoutSetName = 'test-layout-set';
 const mockSelectedFormLayoutName = 'Side1';
 
-const render = (ChildComponent: React.ElementType) => {
+const renderAppContext = (ChildComponent: React.ElementType) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.LayoutSets, org, app], {
     sets: [
@@ -29,7 +29,7 @@ const render = (ChildComponent: React.ElementType) => {
       order: [mockSelectedFormLayoutName],
     },
   });
-  return rtlRender(
+  return render(
     <MemoryRouter>
       <ServicesContextProvider {...queriesMock} client={queryClient}>
         <AppContextProvider>
@@ -46,7 +46,7 @@ describe('AppContext', () => {
   it('sets selectedFormLayoutSetName correctly', async () => {
     const user = userEvent.setup();
 
-    render(() => {
+    renderAppContext(() => {
       const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } = useAppContext();
       return (
         <>
@@ -72,7 +72,7 @@ describe('AppContext', () => {
   it('sets selectedFormLayoutName correctly', async () => {
     const user = userEvent.setup();
 
-    render(() => {
+    renderAppContext(() => {
       const { selectedFormLayoutName, setSelectedFormLayoutName } = useAppContext();
       return (
         <>
@@ -103,7 +103,7 @@ describe('AppContext', () => {
     const queryClient = createQueryClientMock();
     queryClient.invalidateQueries = jest.fn();
 
-    render(() => {
+    renderAppContext(() => {
       const { previewIframeRef, refetchLayouts, selectedFormLayoutSetName } = useAppContext();
       useEffect(() => {
         if (previewIframeRef) {
@@ -136,7 +136,7 @@ describe('AppContext', () => {
     const queryClient = createQueryClientMock();
     queryClient.invalidateQueries = jest.fn();
 
-    render(() => {
+    renderAppContext(() => {
       const { previewIframeRef, refetchLayoutSettings, selectedFormLayoutSetName } =
         useAppContext();
       useEffect(() => {
@@ -175,7 +175,7 @@ describe('AppContext', () => {
     const queryClient = createQueryClientMock();
     queryClient.invalidateQueries = jest.fn();
 
-    render(() => {
+    renderAppContext(() => {
       const { previewIframeRef, refetchTexts } = useAppContext();
       useEffect(() => {
         if (previewIframeRef) {
