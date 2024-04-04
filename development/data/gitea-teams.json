@@ -48,15 +48,45 @@
     "includes_all_repositories": true
   },
   {
-    "name": "Accesslist-Test",
+    "name": "Resources",
     "permission": "write",
-    "description": "Skriving av RRR tilgangslister i alle testmiljø",
+    "description": "Tilgang til ressursregister",
     "includes_all_repositories": true
   },
   {
-    "name": "Resource-Publish-Test",
+    "name": "Resources-Publish-AT22",
     "permission": "write",
-    "description": "Deploy av ressurser i alle testmiljø",
+    "description": "Deploy av ressurser i AT22",
+    "includes_all_repositories": true
+  },
+  {
+    "name": "Resources-Publish-AT23",
+    "permission": "write",
+    "description": "Deploy av ressurser i AT23",
+    "includes_all_repositories": true
+  },
+  {
+    "name": "Resources-Publish-TT02",
+    "permission": "write",
+    "description": "Deploy av ressurser i TT02",
+    "includes_all_repositories": true
+  },
+  {
+    "name": "AccessLists-AT22",
+    "permission": "write",
+    "description": "Skriving av RRR tilgangslister i AT22",
+    "includes_all_repositories": true
+  },
+  {
+    "name": "AccessLists-AT23",
+    "permission": "write",
+    "description": "Skriving av RRR tilgangslister i AT23",
+    "includes_all_repositories": true
+  },
+  {
+    "name": "AccessLists-TT02",
+    "permission": "write",
+    "description": "Skriving av RRR tilgangslister i TT02",
     "includes_all_repositories": true
   }
 ]

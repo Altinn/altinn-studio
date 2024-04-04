@@ -83,8 +83,13 @@ const addUserToSomeTestDepTeams = async (env) => {
     'Devs',
     'Deploy-AT21',
     'Deploy-AT22',
-    'Accesslist-Test',
-    'Resource-Publish-Test',
+    'Resources',
+    'Resources-Publish-AT22',
+    'Resources-Publish-AT23',
+    'Resources-Publish-TT02',
+    'AccessLists-AT22',
+    'AccessLists-AT23',
+    'AccessLists-TT02',
   ]) {
     const existing = teams.find((t) => t.name === teamName);
     await giteaApi({
@@ -100,8 +105,13 @@ const addUserToSomeTestDepTeams = async (env) => {
     'Devs',
     'Deploy-AT21',
     'Deploy-AT22',
-    'Accesslist-Test',
-    'Resource-Publish-Test',
+    'Resources',
+    'Resources-Publish-AT22',
+    'Resources-Publish-AT23',
+    'Resources-Publish-TT02',
+    'AccessLists-AT22',
+    'AccessLists-AT23',
+    'AccessLists-TT02',
   ]) {
     const existing = teams.find((t) => t.name === teamName);
     await giteaApi({
