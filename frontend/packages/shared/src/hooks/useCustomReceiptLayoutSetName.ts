@@ -1,4 +1,4 @@
-import { useLayoutSetsQuery } from '../../../ux-editor/src/hooks/queries/useLayoutSetsQuery';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { getLayoutSetNameForCustomReceipt } from 'app-shared/utils/layoutSetsUtils';
 
 export const useCustomReceiptLayoutSetName = (org: string, app: string): string | undefined => {
