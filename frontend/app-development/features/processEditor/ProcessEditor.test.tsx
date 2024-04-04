@@ -110,7 +110,7 @@ describe('ProcessEditor', () => {
       details: '',
     };
 
-    const mockOnWSMessageReceivedwaitFor = jest
+    const mockOnWSMessageReceived = jest
       .fn()
       .mockImplementation((callback: Function) => callback(syncErrorMock));
 
