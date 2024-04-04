@@ -864,7 +864,7 @@
   "resourceadm.about_resource_resource_description_label": "Beskrivelse (Bokmål)",
   "resourceadm.about_resource_resource_description_text": "Teksten kan bli synlig på flere områder på tvers av offentlige nettløsninger.",
   "resourceadm.about_resource_resource_title_label": "Navn på tjenesten (Bokmål)",
-  "resourceadm.about_resource_resource_title_text": "Navnet vil synes for brukerne, og bør være beskrivende for hva tjenesten handler om. Pass på at navnet er forståelig og gjenkjennbart.",
+  "resourceadm.about_resource_resource_title_text": "Navnet vil synes for brukere, og må være gjenkjennelig og beskrivende for hva tjenesten handler om. Pass på å skille tjenester som har like eller nesten like navn, slik at det blir lett for brukere å forstå.",
   "resourceadm.about_resource_resource_type": "Ressurstype",
   "resourceadm.about_resource_resource_type_error": "Du mangler å legge til ressurstype.",
   "resourceadm.about_resource_resource_type_generic_access_resource": "Generisk tilgangsressurs",
