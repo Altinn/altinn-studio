@@ -82,8 +82,7 @@ export const buildRoute = async (req, res) => {
 export const kubernetesWrapperRoute = async (req, res) => {
   const release = req.query.labelSelector.split('=')[1].split('-');
   const org = release[0];
-  release.shift();
-  const app = release.join('-');
+  const app = release.slice(1).join('-');
 
   res.json(
     deploys
