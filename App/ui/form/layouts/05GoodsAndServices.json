@@ -199,6 +199,22 @@
         ]
       },
       {
+        "id": "paymentDetails",
+        "type": "PaymentDetails",
+        "textResourceBindings": {
+          "title": "Oversikt over betaling",
+          "description": "Her er en oversikt over hva du skal betale for."
+        },
+        "hidden": [
+          "equals",
+          [
+            "dataModel",
+            "HF_HaveReadAndUnderstood"
+          ],
+          null
+        ]
+      },
+      {
         "id": "niceClassificationNumber",
         "type": "Input",
         "textResourceBindings": {
@@ -233,22 +249,6 @@
           "sm": 9,
           "md": 9
         }
-      },
-      {
-        "id": "varningIncreasedBilling",
-        "type": "Alert",
-        "severity": "warning",
-        "textResourceBindings": {
-          "title": "varningIncreasedBilling"
-        },
-        "hidden": [
-          "equals",
-          [
-            "dataModel",
-            "GoodsAndServicesProperties.Inventory.InventoryProperties[1].NiceClassification"
-          ],
-          null
-        ]
       },
       {
         "id": "request-personalCases-table",
