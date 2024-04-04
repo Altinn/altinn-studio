@@ -9,7 +9,8 @@ import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 import { BpmnConfigPanelFormContextProvider } from '../../contexts/BpmnConfigPanelContext';
 import type Modeler from 'bpmn-js/lib/Modeler';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import {BpmnApiContextProps, BpmnApiContextProvider} from '../../contexts/BpmnApiContext';
+import type { BpmnApiContextProps } from '../../contexts/BpmnApiContext';
+import { BpmnApiContextProvider } from '../../contexts/BpmnApiContext';
 
 jest.mock('app-shared/utils/featureToggleUtils', () => ({
   shouldDisplayFeature: jest.fn().mockReturnValue(false),
@@ -32,11 +33,11 @@ const mockBpmnContextValue: BpmnContextProps = {
 };
 
 const mockBpmnApiContextValue: BpmnApiContextProps = {
-  layoutSets: { sets: [] }, 
-  existingCustomReceiptLayoutSetName: undefined, 
-  addLayoutSet: jest.fn(), 
-  mutateLayoutSet: jest.fn(), 
-  saveBpmn: jest.fn()
+  layoutSets: { sets: [] },
+  existingCustomReceiptLayoutSetName: undefined,
+  addLayoutSet: jest.fn(),
+  mutateLayoutSet: jest.fn(),
+  saveBpmn: jest.fn(),
 };
 
 describe('ConfigPanel', () => {

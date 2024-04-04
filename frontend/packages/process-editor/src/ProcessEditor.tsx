@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
-import { PageLoading } from './components/PageLoading';
+import { StudioPageSpinner } from '@studio/components';
 import { Canvas } from './components/Canvas';
 import { BpmnContextProvider, useBpmnContext } from './contexts/BpmnContext';
 import {
@@ -37,7 +37,7 @@ export const ProcessEditor = ({
   const { t } = useTranslation();
 
   if (bpmnXml === undefined) {
-    return <PageLoading title={t('process_editor.loading')} />;
+    return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} showSpinnerTitle />;
   }
 
   if (bpmnXml === null) {

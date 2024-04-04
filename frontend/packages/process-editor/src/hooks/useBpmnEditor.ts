@@ -22,6 +22,43 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   const { getModeler } = useBpmnModeler();
   const { addLayoutSet, saveBpmn } = useBpmnApiContext();
 
+  const handleCommandStackChanged = async () => {
+    console.log('CHANGE');
+    saveBpmn(await getUpdatedXml(), metaDataFormRef.current || null);
+    resetForm();
+  };
+
+  const handleShapeRemove = (e) => {
+    const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
+    console.log('REMOVE: bpmn details: ', bpmnDetails);
+    if (bpmnDetails.type === BpmnTypeEnum.Task) {
+      // call remove layout set from bpmnApiContext. Make sure potentially updated task-id
+      // from metadata is used in order to remove correct connection in app-metadata
+    }
+    setBpmnDetails(null);
+  };
+
+  const handleShapeAdd = (e) => {
+    console.log('ADD event: ', e);
+    const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
+    console.log('ADD: bpmn details: ', bpmnDetails);
+    setBpmnDetails(bpmnDetails);
+    if (bpmnDetails.type === BpmnTypeEnum.Task) {
+      addLayoutSet({
+        layoutSetIdToUpdate: bpmnDetails.id,
+        layoutSetConfig: { id: bpmnDetails.id, tasks: [bpmnDetails.id] },
+      });
+    }
+  };
+
+  const handleSetBpmnDetails = (e) => {
+    const bpmnDetails = {
+      ...getBpmnEditorDetailsFromBusinessObject(e.element?.businessObject),
+      element: e.element,
+    };
+    setBpmnDetails(bpmnDetails);
+  };
+
   useEffect(() => {
     if (!canvasRef.current) {
       console.log('Canvas reference is not yet available in the DOM.');
@@ -43,52 +80,32 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
     };
 
     initializeEditor();
-  }, [bpmnXml, modelerRef, setBpmnDetails]);
+  }, []);
 
   useEffect(() => {
-    const modelerInstance: BpmnModeler = getModeler(canvasRef.current);
     const initializeBpmnChanges = () => {
+      const modelerInstance = getModeler(canvasRef.current);
+
       modelerInstance.on('commandStack.changed', async () => {
-        // call saveBpmn from bpmnApiContext with updated xml and metadata?
-        saveBpmn(await getUpdatedXml(), metaDataFormRef.current || null);
-        resetForm();
+        await handleCommandStackChanged();
       });
 
-      modelerInstance.on('shape.add', (e: any) => {
-        const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
-        if (bpmnDetails.type === BpmnTypeEnum.Task) {
-          addLayoutSet({
-            layoutSetIdToUpdate: bpmnDetails.id,
-            layoutSetConfig: { id: bpmnDetails.id, tasks: [bpmnDetails.id] },
-          });
-        }
+      modelerInstance.on('shape.add', (e) => {
+        handleShapeAdd(e);
       });
 
-      modelerInstance.on('shape.remove', (e: any) => {
-        const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
-        if (bpmnDetails.type === BpmnTypeEnum.Task) {
-          // call remove layout set from bpmnApiContext. Make sure potentially updated task-id
-          // from metadata is used in order to remove correct connection in app-metadata
-        }
+      modelerInstance.on('shape.remove', (e) => {
+        handleShapeRemove(e);
       });
     };
 
-    const eventBus: BpmnModeler = modelerInstance.get('eventBus');
-    const events = ['element.click'];
-
-    events.forEach((event) => {
-      eventBus.on(event, (event: any) => {
-        if (!event) return;
-
-        const bpmnDetails = {
-          ...getBpmnEditorDetailsFromBusinessObject(event.element?.businessObject),
-          element: event.element,
-        };
-        setBpmnDetails(bpmnDetails);
-      });
-    });
-
     initializeBpmnChanges();
+  }, []);
+
+  useEffect(() => {
+    const modelerInstance: BpmnModeler = getModeler(canvasRef.current);
+    const eventBus: BpmnModeler = modelerInstance.get('eventBus');
+    eventBus.on('element.click', handleSetBpmnDetails);
   }, []);
 
   return { canvasRef, modelerRef };

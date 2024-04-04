@@ -4,7 +4,7 @@ import { useBpmnMutation } from 'app-development/hooks/mutations';
 import { useBpmnQuery } from 'app-development/hooks/queries/useBpmnQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { toast } from 'react-toastify';
-import { Spinner } from '@digdir/design-system-react';
+import { StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
 import { processEditorWebSocketHub } from 'app-shared/api/paths';
@@ -63,7 +63,7 @@ export const ProcessEditor = (): React.ReactElement => {
   };
 
   if (appLibDataLoading) {
-    return <Spinner title={t('process_editor.loading')} />;
+    return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} showSpinnerTitle />;
   }
 
   // TODO: Handle error will be handled better after issue #10735 is resolved
