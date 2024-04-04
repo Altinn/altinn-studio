@@ -5,6 +5,7 @@ import { EditTaskId } from './EditTaskId';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { useBpmnConfigPanelFormContext } from '../../../../contexts/BpmnConfigPanelContext';
 
+const setBpmnDetailsMock = jest.fn();
 jest.mock('../../../../contexts/BpmnContext', () => ({
   useBpmnContext: () => ({
     modelerRef: {
@@ -14,7 +15,7 @@ jest.mock('../../../../contexts/BpmnContext', () => ({
         }),
       },
     },
-    setBpmnDetails: jest.fn(),
+    setBpmnDetails: setBpmnDetailsMock,
     bpmnDetails: {
       id: 'testId',
       name: 'testName',
@@ -28,11 +29,13 @@ jest.mock('../../../../contexts/BpmnConfigPanelContext', () => ({
   useBpmnConfigPanelFormContext: jest.fn(),
 }));
 
+const metaDataFormRefMock = { current: undefined };
+(useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({
+  metaDataFormRef: metaDataFormRefMock,
+});
+
 describe('EditTaskId', () => {
   it('should render task id as view mode by default', () => {
-    (useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({
-      setMetaDataForm: jest.fn(),
-    });
     render(<EditTaskId />);
 
     expect(
@@ -44,10 +47,6 @@ describe('EditTaskId', () => {
 
   it('should render task id in edit mode when clicking on the edit button', async () => {
     const user = userEvent.setup();
-
-    (useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({
-      setMetaDataForm: jest.fn(),
-    });
     render(<EditTaskId />);
 
     const editButton = screen.getByRole('button', {
@@ -60,13 +59,9 @@ describe('EditTaskId', () => {
     ).toBeInTheDocument();
   });
 
-  it('should invoke setMetaDataForm and updateId when changing task id', async () => {
+  it('should update metaDataFromRef and updateId (implicitly calling setBpmnDetails) when changing task id', async () => {
     const user = userEvent.setup();
-    const mockedSetMetaDataForm = jest.fn();
-
-    (useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({
-      setMetaDataForm: mockedSetMetaDataForm,
-    });
+    const newId = 'newId';
 
     render(<EditTaskId />);
 
@@ -79,19 +74,18 @@ describe('EditTaskId', () => {
       textMock('process_editor.configuration_panel_change_task_id'),
     );
 
-    await act(() => user.click(input));
-    await act(() => user.type(input, 'newId'));
+    await act(() => user.clear(input));
+    await act(() => user.type(input, newId));
     await act(() => user.tab());
 
-    expect(mockedSetMetaDataForm).toHaveBeenCalledTimes(1);
+    expect(metaDataFormRefMock.current).toEqual(
+      expect.objectContaining({ taskIdChanges: [{ newId: newId, oldId: 'testId' }] }),
+    );
+    expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1);
   });
 
   it('should display validation error when task id is empty', async () => {
     const user = userEvent.setup();
-
-    (useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({
-      setMetaDataForm: jest.fn(),
-    });
     render(<EditTaskId />);
 
     const editButton = screen.getByRole('button', {
@@ -103,7 +97,6 @@ describe('EditTaskId', () => {
       textMock('process_editor.configuration_panel_change_task_id'),
     );
 
-    await act(() => user.click(input));
     await act(() => user.clear(input));
     await act(() => user.tab());
 
@@ -111,20 +104,12 @@ describe('EditTaskId', () => {
   });
 
   it('should support HTMLDivElement props', () => {
-    (useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({
-      setMetaDataForm: jest.fn(),
-    });
     render(<EditTaskId className='my-awesome-class-name' data-testid='unitTestId' />);
     expect(screen.getByTestId('unitTestId')).toHaveClass('my-awesome-class-name');
   });
 
   it('should not update id if new id is the same as the old id', async () => {
     const user = userEvent.setup();
-    const mockedSetMetaDataForm = jest.fn();
-
-    (useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({
-      setMetaDataForm: mockedSetMetaDataForm,
-    });
 
     render(<EditTaskId />);
 
@@ -141,6 +126,7 @@ describe('EditTaskId', () => {
     await act(() => user.type(input, 'testId'));
     await act(() => user.tab());
 
-    expect(mockedSetMetaDataForm).toHaveBeenCalledTimes(0);
+    expect(metaDataFormRefMock.current).toBeUndefined();
+    expect(setBpmnDetailsMock).not.toHaveBeenCalled();
   });
 });

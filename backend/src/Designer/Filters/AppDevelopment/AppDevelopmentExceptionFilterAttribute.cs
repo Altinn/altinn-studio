@@ -1,10 +1,8 @@
 using System.Net;
-using Altinn.Studio.Designer.Exceptions;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
-using NonUniqueLayoutSetIdException = Altinn.Studio.Designer.Exceptions.NonUniqueLayoutSetIdException;
 
 namespace Altinn.Studio.Designer.Filters.AppDevelopment
 {
@@ -25,7 +23,11 @@ namespace Altinn.Studio.Designer.Filters.AppDevelopment
             }
             if (context.Exception is NonUniqueLayoutSetIdException)
             {
-                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, AppDevelopmentErrorCodes.NonUniqueLayoutSetIdError, HttpStatusCode.BadRequest)) { StatusCode = (int)HttpStatusCode.BadRequest };
+                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, AppDevelopmentErrorCodes.NonUniqueLayoutSetIdError, HttpStatusCode.Conflict)) { StatusCode = (int)HttpStatusCode.OK };
+            }
+            if (context.Exception is NonUniqueTaskForLayoutSetException)
+            {
+                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, AppDevelopmentErrorCodes.NonUniqueTaskForLayoutSetError, HttpStatusCode.Conflict)) { StatusCode = (int)HttpStatusCode.OK };
             }
             if (context.Exception is InvalidLayoutSetIdException)
             {

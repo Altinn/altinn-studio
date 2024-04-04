@@ -1,13 +1,17 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetConfig, LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
 
 export const useAddLayoutSetMutation = (org: string, app: string) => {
   const { addLayoutSet } = useServicesContext();
   const queryClient = useQueryClient();
   const [_, setSelectedLayoutSet] = useLocalStorage<string>('layoutSet/' + app, null);
+
+  const isLayoutSets = (obj: any): obj is LayoutSets => {
+    return 'sets' in obj;
+  };
 
   return useMutation({
     mutationFn: ({
@@ -16,10 +20,16 @@ export const useAddLayoutSetMutation = (org: string, app: string) => {
     }: {
       layoutSetIdToUpdate: string;
       layoutSetConfig: LayoutSetConfig;
-    }) => addLayoutSet(org, app, layoutSetIdToUpdate, layoutSetConfig).then(() => layoutSetConfig),
-    onSuccess: (layoutSetConfig) => {
+    }) =>
+      addLayoutSet(org, app, layoutSetIdToUpdate, layoutSetConfig).then((layoutSets) => ({
+        layoutSets,
+        layoutSetConfig,
+      })),
+    onSuccess: ({ layoutSets, layoutSetConfig }) => {
       setSelectedLayoutSet(layoutSetConfig.id);
-      queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSets, org, app] });
+      if (isLayoutSets(layoutSets)) {
+        queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSets);
+      }
     },
   });
 };

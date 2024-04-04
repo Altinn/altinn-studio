@@ -30,7 +30,7 @@ const renderCanvas = (props: Partial<BpmnContextProviderProps> = {}) => {
       path: '/',
       element: (
         <BpmnContextProvider {...allProps}>
-          <Canvas onSave={mockOnSave} />
+          <Canvas />
         </BpmnContextProvider>
       ),
     },

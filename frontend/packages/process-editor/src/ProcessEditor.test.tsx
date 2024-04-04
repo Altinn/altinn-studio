@@ -11,11 +11,11 @@ const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 const mockAppLibVersion8: string = '8.0.3';
 const mockAppLibVersion7: string = '7.0.3';
 
-const mockOnSave = jest.fn();
+const mockSaveBpmn = jest.fn();
 
 const defaultProps: ProcessEditorProps = {
   bpmnXml: mockBPMNXML,
-  onSave: mockOnSave,
+  saveBpmn: mockSaveBpmn,
   appLibVersion: mockAppLibVersion8,
   layoutSets: { sets: [] },
   existingCustomReceiptLayoutSetName: undefined,

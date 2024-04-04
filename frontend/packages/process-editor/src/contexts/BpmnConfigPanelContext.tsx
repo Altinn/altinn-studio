@@ -1,4 +1,4 @@
-import React, { useState, createContext, useContext } from 'react';
+import React, { createContext, useContext, useRef } from 'react';
 
 export type MetaDataForm = {
   taskIdChanges?: Array<{
@@ -8,12 +8,14 @@ export type MetaDataForm = {
 };
 
 type BpmnConfigPanelContextType = {
-  metaDataForm: MetaDataForm;
-  setMetaDataForm: React.Dispatch<React.SetStateAction<MetaDataForm>>;
+  metaDataFormRef: React.MutableRefObject<MetaDataForm>;
   resetForm: () => void;
 };
 
-const BpmnConfigPanelFormContext = createContext<BpmnConfigPanelContextType>(undefined);
+const BpmnConfigPanelFormContext = createContext<BpmnConfigPanelContextType>({
+  metaDataFormRef: { current: undefined },
+  resetForm: () => {},
+});
 
 export type BpmnConfigPanelFormContextProviderProps = {
   children: React.ReactNode;
@@ -22,14 +24,13 @@ export type BpmnConfigPanelFormContextProviderProps = {
 export const BpmnConfigPanelFormContextProvider = ({
   children,
 }: BpmnConfigPanelFormContextProviderProps): React.ReactElement => {
-  const [metaDataForm, setMetaDataForm] = useState<MetaDataForm>(undefined);
-
+  const metaDataFormRef = useRef<MetaDataForm>(undefined);
   const resetForm = (): void => {
-    setMetaDataForm(undefined);
+    metaDataFormRef.current = undefined;
   };
 
   return (
-    <BpmnConfigPanelFormContext.Provider value={{ metaDataForm, setMetaDataForm, resetForm }}>
+    <BpmnConfigPanelFormContext.Provider value={{ metaDataFormRef, resetForm }}>
       {children}
     </BpmnConfigPanelFormContext.Provider>
   );

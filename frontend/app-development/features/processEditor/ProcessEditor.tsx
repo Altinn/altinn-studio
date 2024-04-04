@@ -55,8 +55,8 @@ export const ProcessEditor = (): React.ReactElement => {
     bpmnMutation.mutate(
       { form: formData },
       {
-        onSuccess: () => {
-          toast.success(t('process_editor.saved_successfully'));
+        onError: () => {
+          toast.error(t('process_editor.save_bpmn_xml_error'));
         },
       },
     );
@@ -75,7 +75,7 @@ export const ProcessEditor = (): React.ReactElement => {
       mutateLayoutSet={mutateLayoutSet}
       appLibVersion={appLibData.backendVersion}
       bpmnXml={hasBpmnQueryError ? null : bpmnXml}
-      onSave={saveBpmnXml}
+      saveBpmn={saveBpmnXml}
     />
   );
 };

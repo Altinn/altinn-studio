@@ -1,10 +1,12 @@
 import type { MutableRefObject } from 'react';
-import { useRef, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type BpmnModeler from 'bpmn-js/lib/Modeler';
 import { useBpmnContext } from '../contexts/BpmnContext';
 import { useBpmnModeler } from './useBpmnModeler';
 import { getBpmnEditorDetailsFromBusinessObject } from '../utils/hookUtils';
-import type { BpmnDetails } from '../types/BpmnDetails';
+import { useBpmnConfigPanelFormContext } from '../contexts/BpmnConfigPanelContext';
+import { useBpmnApiContext } from '../contexts/BpmnApiContext';
+import { BpmnTypeEnum } from '../enum/BpmnTypeEnum';
 
 // Wrapper around bpmn-js to Reactify it
 
@@ -14,16 +16,11 @@ type UseBpmnViewerResult = {
 };
 
 export const useBpmnEditor = (): UseBpmnViewerResult => {
-  const {
-    bpmnXml,
-    modelerRef,
-    setNumberOfUnsavedChanges,
-    setDataTasksAdded,
-    setDataTasksRemoved,
-    setBpmnDetails,
-  } = useBpmnContext();
+  const { getUpdatedXml, bpmnXml, modelerRef, setBpmnDetails } = useBpmnContext();
   const canvasRef = useRef<HTMLDivElement | null>(null);
+  const { metaDataFormRef, resetForm } = useBpmnConfigPanelFormContext();
   const { getModeler } = useBpmnModeler();
+  const { addLayoutSet, saveBpmn } = useBpmnApiContext();
 
   useEffect(() => {
     if (!canvasRef.current) {
@@ -40,41 +37,39 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
         await modelerInstance.importXML(bpmnXml);
         const canvas: any = modelerInstance.get('canvas');
         canvas.zoom('fit-viewport');
-        // Reset the dataTasks tracking states when the editor is initialized
-        setDataTasksAdded([]);
-        setDataTasksRemoved([]);
       } catch (exception) {
         console.log('An error occurred while rendering the viewer:', exception);
       }
     };
 
     initializeEditor();
-  }, [
-    bpmnXml,
-    modelerRef,
-    setBpmnDetails,
-    setNumberOfUnsavedChanges,
-    setDataTasksAdded,
-    setDataTasksRemoved,
-  ]);
+  }, [bpmnXml, modelerRef, setBpmnDetails]);
 
   useEffect(() => {
     const modelerInstance: BpmnModeler = getModeler(canvasRef.current);
-    const initializeUnsavedChangesCount = () => {
-      modelerInstance.on('commandStack.changed', () => {
-        setNumberOfUnsavedChanges((prevCount) => prevCount + 1);
+    const initializeBpmnChanges = () => {
+      modelerInstance.on('commandStack.changed', async () => {
+        // call saveBpmn from bpmnApiContext with updated xml and metadata?
+        saveBpmn(await getUpdatedXml(), metaDataFormRef.current || null);
+        resetForm();
       });
-    };
 
-    const initializeChangesStatus = () => {
       modelerInstance.on('shape.add', (e: any) => {
         const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
-        updateDataTaskTrackingLists(bpmnDetails, 'add');
+        if (bpmnDetails.type === BpmnTypeEnum.Task) {
+          addLayoutSet({
+            layoutSetIdToUpdate: bpmnDetails.id,
+            layoutSetConfig: { id: bpmnDetails.id, tasks: [bpmnDetails.id] },
+          });
+        }
       });
 
       modelerInstance.on('shape.remove', (e: any) => {
         const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
-        updateDataTaskTrackingLists(bpmnDetails, 'remove');
+        if (bpmnDetails.type === BpmnTypeEnum.Task) {
+          // call remove layout set from bpmnApiContext. Make sure potentially updated task-id
+          // from metadata is used in order to remove correct connection in app-metadata
+        }
       });
     };
 
@@ -93,34 +88,8 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
       });
     });
 
-    initializeUnsavedChangesCount();
-    initializeChangesStatus();
+    initializeBpmnChanges();
   }, []);
-
-  /**
-   * Updates the data task tracking lists based on the action
-   * action add: Adds the item to the dataTasksAdded list and removes it from the dataTasksRemoved list
-   * action remove: Adds the item to the dataTasksRemoved list and removes it from the dataTasksAdded list
-   * @param itemToAdd The item to add to the primary list
-   * @param action The action performed on the item
-   */
-  const updateDataTaskTrackingLists = (itemToAdd: BpmnDetails, action: 'add' | 'remove') => {
-    if (itemToAdd?.taskType !== 'data') {
-      return;
-    }
-
-    if (action === 'add') {
-      setDataTasksAdded((prevItems: BpmnDetails[]) => [...prevItems, itemToAdd]);
-      setDataTasksRemoved((prevItems) => prevItems.filter((task) => task.id !== itemToAdd.id));
-      return;
-    }
-
-    if (action === 'remove') {
-      setDataTasksRemoved((prevItems: BpmnDetails[]) => [...prevItems, itemToAdd]);
-      setDataTasksAdded((prevItems) => prevItems.filter((task) => task.id !== itemToAdd.id));
-      return;
-    }
-  };
 
   return { canvasRef, modelerRef };
 };

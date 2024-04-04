@@ -12,7 +12,6 @@ using Designer.Tests.Utils;
 using FluentAssertions;
 using Moq;
 using Xunit;
-using NonUniqueLayoutSetIdException = Altinn.Studio.Designer.Exceptions.NonUniqueLayoutSetIdException;
 
 namespace Designer.Tests.Services;
 

@@ -7,12 +7,6 @@ import type { BpmnDetails } from '../types/BpmnDetails';
 export type BpmnContextProps = {
   bpmnXml: string;
   modelerRef?: MutableRefObject<Modeler>;
-  numberOfUnsavedChanges: number;
-  setNumberOfUnsavedChanges: React.Dispatch<React.SetStateAction<number>>;
-  dataTasksAdded: BpmnDetails[];
-  setDataTasksAdded: React.Dispatch<React.SetStateAction<BpmnDetails[]>>;
-  dataTasksRemoved: BpmnDetails[];
-  setDataTasksRemoved: React.Dispatch<React.SetStateAction<BpmnDetails[]>>;
   getUpdatedXml: () => Promise<string>;
   isEditAllowed: boolean;
   appLibVersion: string;
@@ -23,12 +17,6 @@ export type BpmnContextProps = {
 export const BpmnContext = createContext<BpmnContextProps>({
   bpmnXml: '',
   modelerRef: null,
-  numberOfUnsavedChanges: 0,
-  setNumberOfUnsavedChanges: () => {},
-  dataTasksAdded: [],
-  setDataTasksAdded: () => {},
-  dataTasksRemoved: [],
-  setDataTasksRemoved: () => {},
   getUpdatedXml: async () => '',
   isEditAllowed: true,
   appLibVersion: '',
@@ -46,10 +34,7 @@ export const BpmnContextProvider = ({
   children,
   appLibVersion,
 }: BpmnContextProviderProps) => {
-  const [numberOfUnsavedChanges, setNumberOfUnsavedChanges] = useState(0);
   const [bpmnDetails, setBpmnDetails] = useState<BpmnDetails>(null);
-  const [dataTasksAdded, setDataTasksAdded] = useState<BpmnDetails[]>([]);
-  const [dataTasksRemoved, setDataTasksRemoved] = useState<BpmnDetails[]>([]);
 
   const isEditAllowed =
     supportsProcessEditor(appLibVersion) || shouldDisplayFeature('shouldOverrideAppLibCheck');
@@ -62,7 +47,6 @@ export const BpmnContextProvider = ({
     }
     try {
       const { xml } = await modelerRef.current.saveXML({ format: true });
-      setNumberOfUnsavedChanges(0);
       return xml;
     } catch {
       throw new Error('Failed to generate new xml');
@@ -74,12 +58,6 @@ export const BpmnContextProvider = ({
       value={{
         bpmnXml,
         modelerRef,
-        numberOfUnsavedChanges,
-        setNumberOfUnsavedChanges,
-        dataTasksAdded,
-        setDataTasksAdded,
-        dataTasksRemoved,
-        setDataTasksRemoved,
         getUpdatedXml,
         isEditAllowed,
         appLibVersion,

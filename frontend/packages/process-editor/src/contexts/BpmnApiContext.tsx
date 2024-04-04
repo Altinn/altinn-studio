@@ -1,5 +1,6 @@
 import type { LayoutSets, LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import React, { createContext, useContext } from 'react';
+import type { MetaDataForm } from './BpmnConfigPanelContext';
 
 export type BpmnApiContextProps = {
   layoutSets: LayoutSets;
@@ -9,6 +10,7 @@ export type BpmnApiContextProps = {
     layoutSetIdToUpdate: string;
     layoutSetConfig: LayoutSetConfig;
   }) => void;
+  saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
 };
 
 export const BpmnApiContext = createContext<BpmnApiContextProps>(undefined);
@@ -22,6 +24,7 @@ export type BpmnApiContextProviderProps = {
     layoutSetIdToUpdate: string;
     layoutSetConfig: LayoutSetConfig;
   }) => void;
+  saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
 };
 export const BpmnApiContextProvider = ({
   children,
@@ -29,6 +32,7 @@ export const BpmnApiContextProvider = ({
   existingCustomReceiptLayoutSetName,
   addLayoutSet,
   mutateLayoutSet,
+  saveBpmn,
 }: BpmnApiContextProviderProps) => {
   return (
     <BpmnApiContext.Provider
@@ -37,6 +41,7 @@ export const BpmnApiContextProvider = ({
         existingCustomReceiptLayoutSetName,
         addLayoutSet,
         mutateLayoutSet,
+        saveBpmn,
       }}
     >
       {children}
