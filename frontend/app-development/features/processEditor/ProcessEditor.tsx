@@ -34,14 +34,14 @@ export const ProcessEditor = (): React.ReactElement => {
   });
 
   onWSMessageReceived<SyncError | SyncSuccess>((message): void => {
-    // Check if the message is a SyncError
-    if ('errorCode' in message) {
+    const isErrorMessage = 'errorCode' in message;
+    if (isErrorMessage) {
       toast.error(t(SyncUtils.getSyncErrorMessage(message)));
       return;
     }
 
-    // Check if the message is a SyncSuccess
-    if ('source' in message) {
+    const isSuccessMessage = 'source' in message;
+    if (isSuccessMessage) {
       // Here we can handle the SyncSuccess message or invalidate the query cache
       console.log('SyncSuccess received');
     }
