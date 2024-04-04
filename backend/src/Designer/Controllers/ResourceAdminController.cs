@@ -469,7 +469,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpPost]
-        [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployResourcePermission)]
+        [Authorize(Policy = AltinnPolicy.MustHaveGiteaPublishResourcePermission)]
         [Route("designer/api/{org}/resources/publish/{repository}/{id}")]
         public async Task<ActionResult> PublishResource(string org, string repository, string id, string env)
         {

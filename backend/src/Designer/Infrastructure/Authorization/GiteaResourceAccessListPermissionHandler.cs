@@ -49,7 +49,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                 return;
             }
 
-            string matchTeam = environment == "prod" ? "Accesslist-Prod" : "Accesslist-Test";
+            string matchTeam = $"Accesslists-{environment}";
             List<Team> teams = await _giteaApiWrapper.GetTeams();
 
             bool isTeamMember = teams.Any(t =>

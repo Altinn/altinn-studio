@@ -79,8 +79,8 @@
     <Watch Remove="Exceptions\HttpStatusException.cs" />
     <Watch Remove="Helpers\OrgUtil.cs" />
     <Watch Remove="Helpers\ResourceAdminHelper.cs" />
-    <Watch Remove="Infrastructure\Authorization\GiteaDeployResourcePermissionHandler.cs" />
-    <Watch Remove="Infrastructure\Authorization\GiteaDeployResourcePermissionRequirement.cs" />
+    <Watch Remove="Infrastructure\Authorization\GiteaPublishResourcePermissionHandler.cs" />
+    <Watch Remove="Infrastructure\Authorization\GiteaPublishResourcePermissionRequirement.cs" />
     <Watch Remove="Infrastructure\Authorization\GiteaResourceAccessListPermissionHandler.cs" />
     <Watch Remove="Infrastructure\Authorization\GiteaResourceAccessListPermissionRequirement.cs" />
     <Watch Remove="Models\AccessList.cs" />

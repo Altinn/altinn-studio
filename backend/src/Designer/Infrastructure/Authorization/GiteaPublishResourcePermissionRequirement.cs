@@ -3,9 +3,9 @@
 namespace Altinn.Studio.Designer.Infrastructure.Authorization
 {
     /// <summary>
-    /// Requirement for GiteaDeployResourcePermission
+    /// Requirement for GiteaPublishResourcePermission
     /// </summary>
-    public class GiteaDeployResourcePermissionRequirement : IAuthorizationRequirement
+    public class GiteaPublishResourcePermissionRequirement : IAuthorizationRequirement
     {
     }
 }

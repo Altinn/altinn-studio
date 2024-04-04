@@ -35,11 +35,11 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                     });
 
                 options.AddPolicy(
-                    AltinnPolicy.MustHaveGiteaDeployResourcePermission,
+                    AltinnPolicy.MustHaveGiteaPublishResourcePermission,
                     policy =>
                     {
                         policy.RequireAuthenticatedUser();
-                        policy.Requirements.Add(new GiteaDeployResourcePermissionRequirement());
+                        policy.Requirements.Add(new GiteaPublishResourcePermissionRequirement());
                     });
 
                 options.AddPolicy(
@@ -53,7 +53,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
 
             services.AddScoped<IAuthorizationHandler, GiteaPushPermissionHandler>();
             services.AddScoped<IAuthorizationHandler, GiteaDeployPermissionHandler>();
-            services.AddScoped<IAuthorizationHandler, GiteaDeployResourcePermissionHandler>();
+            services.AddScoped<IAuthorizationHandler, GiteaPublishResourcePermissionHandler>();
             services.AddScoped<IAuthorizationHandler, GiteaResourceAccessListPermissionHandler>();
 
             return services;

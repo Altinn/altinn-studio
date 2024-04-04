@@ -11,9 +11,9 @@ using Microsoft.AspNetCore.Routing;
 namespace Altinn.Studio.Designer.Infrastructure.Authorization
 {
     /// <summary>
-    /// Authorization Handler for GiteaDeployResourcePermissionRequirement
+    /// Authorization Handler for GiteaPublishResourcePermissionRequirement
     /// </summary>
-    public class GiteaDeployResourcePermissionHandler : AuthorizationHandler<GiteaDeployResourcePermissionRequirement>
+    public class GiteaPublishResourcePermissionHandler : AuthorizationHandler<GiteaPublishResourcePermissionRequirement>
     {
         private readonly IGitea _giteaApiWrapper;
         private readonly HttpContext _httpContext;
@@ -23,7 +23,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
         /// </summary>
         /// <param name="giteaApiWrapper">IGitea</param>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
-        public GiteaDeployResourcePermissionHandler(
+        public GiteaPublishResourcePermissionHandler(
             IGitea giteaApiWrapper,
             IHttpContextAccessor httpContextAccessor)
         {
@@ -34,7 +34,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
         /// <inheritdoc/>
         protected override async Task HandleRequirementAsync(
             AuthorizationHandlerContext context,
-            GiteaDeployResourcePermissionRequirement requirement)
+            GiteaPublishResourcePermissionRequirement requirement)
         {
             if (_httpContext == null)
             {
@@ -49,7 +49,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                 return;
             }
 
-            string matchTeam = environment == "prod" ? "Resource-Publish-Prod" : "Resource-Publish-Test";
+            string matchTeam = $"Resources-Publish-{environment}";
             List<Team> teams = await _giteaApiWrapper.GetTeams();
 
             bool isTeamMember = teams.Any(t =>
