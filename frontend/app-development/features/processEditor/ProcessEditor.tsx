@@ -36,7 +36,7 @@ export const ProcessEditor = (): React.ReactElement => {
   onWSMessageReceived<SyncError | SyncSuccess>((message): void => {
     const isErrorMessage = 'errorCode' in message;
     if (isErrorMessage) {
-      toast.error(t(SyncUtils.getSyncErrorMessage(message)));
+      toast.error(t(SyncUtils.getSyncErrorMessage(message)), { toastId: message.errorCode });
       return;
     }
 

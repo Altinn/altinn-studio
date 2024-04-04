@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { ProcessEditor } from './ProcessEditor';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../test/testUtils';
@@ -10,7 +10,7 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { useBpmnContext } from '../../../packages/process-editor/src/contexts/BpmnContext';
 import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
-import { type SyncError } from './syncUtils';
+import { type SyncError, SyncSuccess } from './syncUtils';
 import { processEditorWebSocketHub } from 'app-shared/api/paths';
 
 // test data
@@ -100,11 +100,7 @@ describe('ProcessEditor', () => {
     });
   });
 
-  it('should invoke mockOnWSMessageReceived with error details', () => {
-    const mockOnWSMessageReceived = jest.fn();
-    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: mockOnWSMessageReceived });
-    renderProcessEditor();
-
+  it('should invoke mockOnWSMessageReceived when error occur and display error message to the user', async () => {
     const syncErrorMock: SyncError = {
       errorCode: 'applicationMetadataTaskIdSyncError',
       source: {
@@ -114,8 +110,41 @@ describe('ProcessEditor', () => {
       details: '',
     };
 
-    mockOnWSMessageReceived(syncErrorMock);
-    expect(mockOnWSMessageReceived).toHaveBeenCalledWith(syncErrorMock);
+    const mockOnWSMessageReceived = jest
+      .fn()
+      .mockImplementation((callback: Function) => callback(syncErrorMock));
+
+    (useWebSocket as jest.Mock).mockReturnValue({
+      ...jest.requireActual('app-shared/hooks/useWebSocket'),
+      onWSMessageReceived: mockOnWSMessageReceived,
+    });
+
+    renderProcessEditor();
+
+    await screen.findByText(textMock('process_editor.sync_error_application_metadata_task_id'));
+  });
+
+  it('should invoke mockOnWSMessageReceived with success details and console.log success', async () => {
+    const syncSuccessMock: SyncSuccess = {
+      source: {
+        name: 'applicationMetadata.json',
+        path: '/fake/path/applicationMetadata.json',
+      },
+    };
+
+    const consoleSpy = jest.spyOn(console, 'log');
+
+    const mockOnWSMessageReceived = jest
+      .fn()
+      .mockImplementation((callback: Function) => callback(syncSuccessMock));
+
+    (useWebSocket as jest.Mock).mockReturnValue({
+      ...jest.requireActual('app-shared/hooks/useWebSocket'),
+      onWSMessageReceived: mockOnWSMessageReceived,
+    });
+
+    renderProcessEditor();
+    expect(consoleSpy).toHaveBeenCalledWith('SyncSuccess received');
   });
 });
 
