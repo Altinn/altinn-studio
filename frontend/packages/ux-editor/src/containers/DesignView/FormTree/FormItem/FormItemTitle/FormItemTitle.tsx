@@ -8,6 +8,7 @@ import type { FormComponent } from '../../../../../types/FormComponent';
 import type { FormContainer } from '../../../../../types/FormContainer';
 import { useDeleteItem } from './useDeleteItem';
 import { isContainer } from '../../../../../utils/formItemUtils';
+import { useFormItemContext } from '../../../../FormItemContext';
 
 export interface FormItemTitleProps {
   children: ReactNode;
@@ -17,6 +18,7 @@ export interface FormItemTitleProps {
 export const FormItemTitle = ({ children, formItem }: FormItemTitleProps) => {
   const { t } = useTranslation();
   const deleteItem = useDeleteItem(formItem);
+  const { handleDiscard } = useFormItemContext();
 
   const handleDelete = useCallback(() => {
     const confirmMessage = isContainer(formItem)
@@ -24,9 +26,13 @@ export const FormItemTitle = ({ children, formItem }: FormItemTitleProps) => {
       : t('ux_editor.component_deletion_text');
 
     if (confirm(confirmMessage)) {
-      deleteItem(formItem.id);
+      deleteItem(formItem.id, {
+        onSuccess: () => {
+          handleDiscard();
+        },
+      });
     }
-  }, [formItem, t, deleteItem]);
+  }, [formItem, t, deleteItem, handleDiscard]);
 
   return (
     <div className={classes.root}>

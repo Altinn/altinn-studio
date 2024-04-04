@@ -39,7 +39,7 @@ describe('FormItemTitle', () => {
     await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
 
     expect(mockDeleteItem).toHaveBeenCalledTimes(1);
-    expect(mockDeleteItem).toHaveBeenCalledWith(component.id);
+    expect(mockDeleteItem).toHaveBeenCalledWith(component.id, expect.any(Object));
   });
 
   it('Does not call deleteItem when delete button is clicked, but deletion is not confirmed', async () => {
