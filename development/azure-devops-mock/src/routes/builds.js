@@ -8,7 +8,7 @@ const queue = new pQueue({ concurrency: 1 });
  */
 const DEPLOY_DEFINITION_ID = 81;
 const builds = [];
-const deploys = [];
+let deploys = [];
 export const buildsRoute = async (req, res) => {
   const params = JSON.parse(req.body.parameters);
   const isDeploy = parseInt(req.body.definition.id) === DEPLOY_DEFINITION_ID;
@@ -18,13 +18,16 @@ export const buildsRoute = async (req, res) => {
     (isDeploy ? 'checkdeploymentbuildstatus' : 'checkreleasebuildstatus');
 
   if (isDeploy) {
-    deploys.push({
-      app: params.APP_REPO,
-      org: params.APP_OWNER,
-      envName: params.APP_ENVIRONMENT,
-      tagName: params.TAGNAME,
-      time: new Date(),
-    });
+    deploys = [
+      ...deploys.filter((item) => item.envName !== params.APP_ENVIRONMENT),
+      {
+        app: params.APP_REPO,
+        org: params.APP_OWNER,
+        envName: params.APP_ENVIRONMENT,
+        tagName: params.TAGNAME,
+        time: new Date(),
+      },
+    ];
   }
   const ResourceOwner = params.APP_OWNER;
   const BuildNumber = between(10000000, 99999999);
@@ -77,18 +80,20 @@ export const buildRoute = async (req, res) => {
 };
 
 export const kubernetesWrapperRoute = async (req, res) => {
-  const result = [
-    {
-      version: '2405',
-      release: 'ttd-autodeploy-v3',
-      status: 'Completed',
-    },
-  ];
-  deploys.forEach((deploy) => {
-    result.push({
-      version: deploy.tagName,
-      release: [deploy.org, deploy.app].join('-'),
-    });
-  });
-  res.json(result);
+  const release = req.query.labelSelector.split('=')[1].split('-');
+  const org = release[0];
+  release.shift();
+  const app = release.join('-');
+
+  res.json(
+    deploys
+      .filter(
+        (deploy) =>
+          deploy.envName === req.query.envName && deploy.org === org && deploy.app === app,
+      )
+      .map((deploy) => ({
+        version: deploy.tagName,
+        release: [deploy.org, deploy.app].join('-'),
+      })),
+  );
 };

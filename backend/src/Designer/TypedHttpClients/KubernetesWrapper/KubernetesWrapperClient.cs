@@ -25,7 +25,7 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
             ? "http://host.docker.internal:6161"
             : $"https://{org}.{env.AppPrefix}.{env.Hostname}";
 
-        string pathToAzureEnv = baseUrl + $"{PATH_TO_AZURE_ENV}?labelSelector=release={org}-{app}";
+        string pathToAzureEnv = baseUrl + $"{PATH_TO_AZURE_ENV}?labelSelector=release={org}-{app}&envName={env.Name}";
         try
         {
             using HttpResponseMessage response = await _client.GetAsync(pathToAzureEnv);
