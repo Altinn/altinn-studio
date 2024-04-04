@@ -6,7 +6,6 @@ import { KeyVerticalIcon } from '@studio/icons';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 
 import { useBpmnConfigPanelFormContext } from '../../../../contexts/BpmnConfigPanelContext';
-import { useBpmnModeler } from '../../../../hooks/useBpmnModeler';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 
 import classes from './EditTaskId.module.css';
@@ -16,10 +15,9 @@ export const EditTaskId = ({ ...rest }: EditTaskIdProps): React.ReactElement => 
   const { t } = useTranslation();
   const { bpmnDetails, modelerRef, setBpmnDetails } = useBpmnContext();
   const { setMetaDataForm } = useBpmnConfigPanelFormContext();
-  const { getModeler } = useBpmnModeler();
 
-  const modeler = getModeler(modelerRef.current as unknown as HTMLDivElement);
-  const modeling: Modeling = modeler.get('modeling');
+  const modelerInstance = modelerRef.current;
+  const modeling: Modeling = modelerInstance.get('modeling');
 
   const updateId = (value: string): void => {
     modeling.updateProperties(bpmnDetails.element, {

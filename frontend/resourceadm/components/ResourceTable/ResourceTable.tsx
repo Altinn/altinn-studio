@@ -80,6 +80,13 @@ export const ResourceTable = ({
       field: 'lastChanged',
       headerName: t('resourceadm.dashboard_table_header_last_changed'),
       width: 120,
+      type: 'date',
+      valueFormatter: ({ value }) =>
+        new Date(value).toLocaleDateString('nb-NO', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        }),
     },
     {
       field: 'hasPolicy',

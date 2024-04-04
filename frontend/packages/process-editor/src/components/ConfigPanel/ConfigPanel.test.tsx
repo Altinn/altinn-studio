@@ -57,7 +57,7 @@ describe('ConfigPanel', () => {
 
   it('should render ConfigPanel if bpmn type is task', () => {
     renderConfigPanel({
-      modelerRef: { current: '' as unknown as Modeler },
+      modelerRef: { current: { get: () => {} } as unknown as Modeler },
       bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.Task },
     });
     const editTaskIdButton = screen.getByRole('button', {
