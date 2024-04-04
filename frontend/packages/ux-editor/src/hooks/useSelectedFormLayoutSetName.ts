@@ -1,5 +1,5 @@
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useLayoutSetsQuery } from './queries/useLayoutSetsQuery';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useReactiveLocalStorage } from 'app-shared/hooks/useReactiveLocalStorage';
 
 export type UseSelectedFormLayoutSetNameResult = {

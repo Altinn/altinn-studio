@@ -1,5 +1,5 @@
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useLayoutSetsQuery } from './queries/useLayoutSetsQuery';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
 
 export const useSelectedTaskId = (selectedFormLayoutSetName: string): string => {
