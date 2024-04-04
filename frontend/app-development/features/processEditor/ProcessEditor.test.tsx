@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { ProcessEditor } from './ProcessEditor';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../test/testUtils';
@@ -110,7 +110,7 @@ describe('ProcessEditor', () => {
       details: '',
     };
 
-    const mockOnWSMessageReceived = jest
+    const mockOnWSMessageReceivedwaitFor = jest
       .fn()
       .mockImplementation((callback: Function) => callback(syncErrorMock));
 
