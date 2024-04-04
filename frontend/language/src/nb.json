@@ -1021,6 +1021,7 @@
   "resourceadm.listadmin_type": "Type",
   "resourceadm.listadmin_undo_remove_from_list": "Angre fjern",
   "resourceadm.loading_access_list": "Laster inn tilgangsliste",
+  "resourceadm.loading_access_list_permission_denied": "Du har ikke tilgang til å administrere tilgangslister i {{envName}}",
   "resourceadm.loading_app": "Laster inn ressursregisteret",
   "resourceadm.loading_env_list": "Laster inn miljølister",
   "resourceadm.loading_lists": "Laster inn lister",

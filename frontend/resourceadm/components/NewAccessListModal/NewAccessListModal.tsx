@@ -7,11 +7,12 @@ import { Modal, Paragraph } from '@digdir/design-system-react';
 import { ResourceNameAndId } from '../../components/ResourceNameAndId';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { StudioButton } from '@studio/components';
-import { getAvailableEnvironments } from '../../utils/resourceUtils/resourceUtils';
+import { getEnvLabel } from '../../utils/resourceUtils';
+import type { EnvId } from '../../utils/resourceUtils';
 
 export interface NewAccessListModalProps {
   org: string;
-  env: string;
+  env: EnvId;
   navigateUrl: string;
   onClose: () => void;
 }
@@ -57,7 +58,7 @@ export const NewAccessListModal = forwardRef<HTMLDialogElement, NewAccessListMod
       <Modal ref={ref} onClose={onClose}>
         <Modal.Header>
           {t('resourceadm.listadmin_create_list_header', {
-            env: t(getAvailableEnvironments(org).find((listEnv) => listEnv.id === env).label),
+            env: t(getEnvLabel(org, env)),
           })}
         </Modal.Header>
         <Modal.Content>

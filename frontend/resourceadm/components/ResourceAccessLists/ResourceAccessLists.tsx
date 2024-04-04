@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import type { AxiosError } from 'axios';
 import { Alert, Checkbox, Heading, Link as DigdirLink, Button } from '@digdir/design-system-react';
 import classes from './ResourceAccessLists.module.css';
 import { StudioSpinner, StudioButton } from '@studio/components';
@@ -12,9 +13,11 @@ import { getResourcePageURL } from '../../utils/urlUtils';
 import { NewAccessListModal } from '../NewAccessListModal';
 import type { Resource } from 'app-shared/types/ResourceAdm';
 import { useUrlParams } from '../../hooks/useSelectedContext';
+import { getEnvLabel } from '../../utils/resourceUtils';
+import type { EnvId } from '../../utils/resourceUtils';
 
 export interface ResourceAccessListsProps {
-  env: string;
+  env: EnvId;
   resourceData: Resource;
 }
 
@@ -74,7 +77,14 @@ export const ResourceAccessLists = ({
   }
 
   if (accessListsError) {
-    return <Alert severity='danger'>{t('resourceadm.listadmin_load_list_error')}</Alert>;
+    const errorMessage =
+      (accessListsError as AxiosError)?.response.status === 403
+        ? t('resourceadm.loading_access_list_permission_denied', {
+            envName: t(getEnvLabel(selectedContext, env)),
+          })
+        : t('resourceadm.listadmin_load_list_error');
+
+    return <Alert severity='danger'>{errorMessage}</Alert>;
   }
 
   return (

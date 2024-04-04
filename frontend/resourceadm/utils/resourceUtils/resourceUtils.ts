@@ -78,6 +78,9 @@ export const getAvailableEnvironments = (org: string): Environment[] => {
   }
   return availableEnvs;
 };
+export const getEnvLabel = (org: string, env: EnvId): string => {
+  return getAvailableEnvironments(org).find((listEnv) => listEnv.id === env).label;
+};
 
 /**
  * Maps the language key to the text

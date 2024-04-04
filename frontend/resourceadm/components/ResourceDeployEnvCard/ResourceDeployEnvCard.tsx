@@ -6,7 +6,7 @@ import classes from './ResourceDeployEnvCard.module.css';
 import { ArrowRightIcon } from '@studio/icons';
 import { StudioButton } from '@studio/components';
 import { usePublishResourceMutation } from '../../hooks/mutations';
-import type { Environment } from '../../utils/resourceUtils/resourceUtils';
+import type { Environment } from '../../utils/resourceUtils';
 import { useUrlParams } from '../../hooks/useSelectedContext';
 
 export type ResourceDeployEnvCardProps = {
