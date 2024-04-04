@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as rtlRender, screen, act } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import type { ProcessEditorProps } from './ProcessEditor';
 import { ProcessEditor } from './ProcessEditor';
 import { textMock } from '../../../testing/mocks/i18nMock';
@@ -15,13 +15,15 @@ const mockOnSave = jest.fn();
 
 const defaultProps: ProcessEditorProps = {
   bpmnXml: mockBPMNXML,
-  existingCustomReceipt: undefined,
-  onUpdateLayoutSet: jest.fn(),
   onSave: mockOnSave,
   appLibVersion: mockAppLibVersion8,
+  layoutSets: { sets: [] },
+  existingCustomReceiptLayoutSetName: undefined,
+  addLayoutSet: jest.fn(),
+  mutateLayoutSet: jest.fn(),
 };
 
-const render = (props: Partial<ProcessEditorProps> = {}) => {
+const renderProcessEditor = (props: Partial<ProcessEditorProps> = {}) => {
   const allProps = { ...defaultProps, ...props };
   const router = createMemoryRouter([
     {
@@ -30,19 +32,18 @@ const render = (props: Partial<ProcessEditorProps> = {}) => {
     },
   ]);
 
-  return rtlRender(<RouterProvider router={router}></RouterProvider>);
+  return render(<RouterProvider router={router}></RouterProvider>);
 };
 
 describe('ProcessEditor', () => {
-  afterEach(jest.clearAllMocks);
-
+  beforeEach(jest.clearAllMocks);
   it('should render loading while bpmnXml is undefined', () => {
-    render({ bpmnXml: undefined });
+    renderProcessEditor({ bpmnXml: undefined });
     expect(screen.getByTitle(textMock('process_editor.loading'))).toBeInTheDocument();
   });
 
   it('should render "NoBpmnFoundAlert" when bpmnXml is null', () => {
-    render({ bpmnXml: null });
+    renderProcessEditor({ bpmnXml: null });
     expect(
       screen.getByRole('heading', {
         name: textMock('process_editor.fetch_bpmn_error_title'),
@@ -54,7 +55,7 @@ describe('ProcessEditor', () => {
   it('should render "canvas" when bpmnXml is provided and default render is edit-mode', async () => {
     // eslint-disable-next-line testing-library/no-unnecessary-act
     await act(() => {
-      render();
+      renderProcessEditor();
     });
 
     expect(
@@ -64,7 +65,7 @@ describe('ProcessEditor', () => {
 
   it('does not display the information about too old version when the version is 8 or newer', async () => {
     const user = userEvent.setup();
-    render();
+    renderProcessEditor();
 
     // Fix to remove act error
     await act(() => user.tab());
@@ -78,7 +79,7 @@ describe('ProcessEditor', () => {
 
   it('displays the alert when the version is 7 or older', async () => {
     const user = userEvent.setup();
-    render({ appLibVersion: mockAppLibVersion7 });
+    renderProcessEditor({ appLibVersion: mockAppLibVersion7 });
 
     // Fix to remove act error
     await act(() => user.tab());

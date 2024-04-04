@@ -11,7 +11,7 @@ import { useFormLayout } from '../useFormLayoutsSelector';
 import { ObjectUtils } from '@studio/pure-functions';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import type { FormComponent, FormFileUploaderComponent } from '../../types/FormComponent';
-import { useLayoutSetsQuery } from '../queries/useLayoutSetsQuery';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
 
 export interface UpdateFormComponentMutationArgs {

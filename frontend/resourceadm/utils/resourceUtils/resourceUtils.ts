@@ -10,7 +10,7 @@ import type {
 } from 'app-shared/types/ResourceAdm';
 import type { ReactNode } from 'react';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
-import { isAppPrefix } from '../stringUtils';
+import { isAppPrefix, isSePrefix } from '../stringUtils';
 
 /**
  * The map of resource type
@@ -44,13 +44,12 @@ export const availableForTypeMap: Record<ResourceAvailableForTypeOption, string>
 
 export type EnvId = 'tt02' | 'prod' | 'at22' | 'at23';
 export type EnvType = 'test' | 'prod';
-export const getAvailableEnvironments = (
-  org: string,
-): {
+export type Environment = {
   id: EnvId;
   label: string;
   envType: EnvType;
-}[] => {
+};
+export const getAvailableEnvironments = (org: string): Environment[] => {
   const availableEnvs = [
     {
       id: 'tt02' as EnvId,
@@ -78,17 +77,6 @@ export const getAvailableEnvironments = (
     );
   }
   return availableEnvs;
-};
-
-/**
- * Converts the resource type key to the correct displayable string
- *
- * @param resourceType the resourcetype to convert
- *
- * @returns the string to display
- */
-export const convertResourceTypeToDisplayString = (resourceType: ResourceTypeOption): string => {
-  return resourceTypeMap[resourceType];
 };
 
 /**
@@ -199,8 +187,11 @@ export const createNavigationTab = (
 
 export const getResourceIdentifierErrorMessage = (identifier: string, isConflict?: boolean) => {
   const hasAppPrefix = isAppPrefix(identifier);
+  const hasSePrefix = isSePrefix(identifier);
   if (hasAppPrefix) {
     return 'resourceadm.dashboard_resource_id_cannot_be_app';
+  } else if (hasSePrefix) {
+    return 'resourceadm.dashboard_resource_id_cannot_be_se';
   } else if (isConflict) {
     return 'resourceadm.dashboard_resource_name_and_id_error';
   }
