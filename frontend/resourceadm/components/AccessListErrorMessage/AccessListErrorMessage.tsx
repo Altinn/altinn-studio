@@ -7,7 +7,7 @@ import { type EnvId } from 'resourceadm/utils/resourceUtils';
 
 interface AccessListErrorMessageProps {
   error: AxiosError;
-  env?: EnvId;
+  env: EnvId;
 }
 
 export const AccessListErrorMessage = ({
