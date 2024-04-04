@@ -1,12 +1,12 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { ProcessEditor } from './ProcessEditor';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../test/testUtils';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { APP_DEVELOPMENT_BASENAME, PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
+import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { useBpmnContext } from '../../../packages/process-editor/src/contexts/BpmnContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import userEvent from '@testing-library/user-event';
@@ -88,72 +88,6 @@ describe('ProcessEditor', () => {
     });
     renderProcessEditor({ bpmnFile: 'mockBpmn', queryClient: queryClientMock });
     screen.getByText(textMock('process_editor.configuration_panel_end_event'));
-  });
-
-  it('calls onUpdateLayoutSet and trigger addLayoutSet mutation call when layoutSetName for custom receipt is added', async () => {
-    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
-
-    const customReceiptLayoutSetName = 'CustomReceipt';
-    const user = userEvent.setup();
-    const queryClientMock = createQueryClientMock();
-    queryClientMock.setQueryData([QueryKey.AppVersion, org, app], defaultAppVersion);
-    (useBpmnContext as jest.Mock).mockReturnValue({
-      bpmnDetails: { type: 'bpmn:EndEvent' },
-      isEditAllowed: true,
-    });
-    renderProcessEditor({ bpmnFile: 'mockBpmn', queryClient: queryClientMock });
-    const inputFieldButton = screen.getByTitle(
-      textMock('process_editor.configuration_panel_custom_receipt_add'),
-    );
-    await act(() => user.click(inputFieldButton));
-    const inputField = screen.getByTitle(
-      textMock('process_editor.configuration_panel_custom_receipt_add_button_title'),
-    );
-    await act(() => user.type(inputField, customReceiptLayoutSetName));
-    await act(() => user.tab());
-    expect(queriesMock.addLayoutSet).toHaveBeenCalledTimes(1);
-    expect(queriesMock.addLayoutSet).toHaveBeenCalledWith(org, app, customReceiptLayoutSetName, {
-      id: customReceiptLayoutSetName,
-      tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
-    });
-  });
-
-  it('calls onUpdateLayoutSet and trigger updateLayoutSet mutation call when layoutSetName for custom receipt is changed', async () => {
-    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
-
-    const customReceiptLayoutSetName = 'CustomReceipt';
-    const newCustomReceiptLayoutSetName = 'NewCustomReceipt';
-    const user = userEvent.setup();
-    const queryClientMock = createQueryClientMock();
-    queryClientMock.setQueryData([QueryKey.AppVersion, org, app], defaultAppVersion);
-    const layoutSetsWithCustomReceipt: LayoutSetConfig[] = [
-      ...layoutSets.sets,
-      { id: customReceiptLayoutSetName, tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT] },
-    ];
-    queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], {
-      ...layoutSetsMock,
-      sets: layoutSetsWithCustomReceipt,
-    });
-    (useBpmnContext as jest.Mock).mockReturnValue({
-      bpmnDetails: { type: 'bpmn:EndEvent' },
-      isEditAllowed: true,
-    });
-    renderProcessEditor({ bpmnFile: 'mockBpmn', queryClient: queryClientMock });
-    const inputFieldButton = screen.getByTitle(
-      textMock('process_editor.configuration_panel_custom_receipt_add'),
-    );
-    await act(() => user.click(inputFieldButton));
-    const inputField = screen.getByTitle(
-      textMock('process_editor.configuration_panel_custom_receipt_add_button_title'),
-    );
-    await act(() => user.clear(inputField));
-    await act(() => user.type(inputField, newCustomReceiptLayoutSetName));
-    await act(() => user.tab());
-    expect(queriesMock.updateLayoutSet).toHaveBeenCalledTimes(1);
-    expect(queriesMock.updateLayoutSet).toHaveBeenCalledWith(org, app, customReceiptLayoutSetName, {
-      id: newCustomReceiptLayoutSetName,
-      tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
-    });
   });
 
   it('should render the ProcessEditor component', () => {

@@ -13,23 +13,28 @@ import { ConfigPanel } from './components/ConfigPanel';
 import { ConfigViewerPanel } from './components/ConfigViewerPanel';
 
 import classes from './ProcessEditor.module.css';
-import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
+import type { BpmnApiContextProps } from './contexts/BpmnApiContext';
+import { BpmnApiContextProvider } from './contexts/BpmnApiContext';
 
 export type ProcessEditorProps = {
-  bpmnXml: string | undefined | null;
-  existingCustomReceipt: string | undefined;
-  onSave: (bpmnXml: string, metaData?: MetaDataForm) => void;
-  onUpdateLayoutSet: (layoutSetIdToUpdate: string, layoutSetConfig: LayoutSetConfig) => void;
   appLibVersion: string;
+  bpmnXml: string | undefined | null;
+  onSave: (bpmnXml: string, metaData?: MetaDataForm) => void;
+  layoutSets: BpmnApiContextProps['layoutSets'];
+  existingCustomReceiptLayoutSetName: BpmnApiContextProps['existingCustomReceiptLayoutSetName'];
+  addLayoutSet: BpmnApiContextProps['addLayoutSet'];
+  mutateLayoutSet: BpmnApiContextProps['mutateLayoutSet'];
 };
 
 export const ProcessEditor = ({
-  bpmnXml,
-  existingCustomReceipt,
-  onSave,
-  onUpdateLayoutSet,
   appLibVersion,
-}: ProcessEditorProps): React.ReactElement => {
+  bpmnXml,
+  onSave,
+  layoutSets,
+  existingCustomReceiptLayoutSetName,
+  addLayoutSet,
+  mutateLayoutSet,
+}: ProcessEditorProps): JSX.Element => {
   const { t } = useTranslation();
 
   if (bpmnXml === undefined) {
@@ -42,26 +47,22 @@ export const ProcessEditor = ({
 
   return (
     <BpmnContextProvider bpmnXml={bpmnXml} appLibVersion={appLibVersion}>
-      <BpmnConfigPanelFormContextProvider>
-        <BpmnCanvas
-          onSave={onSave}
-          existingCustomReceipt={existingCustomReceipt}
-          onUpdateLayoutSet={onUpdateLayoutSet}
-        />
-      </BpmnConfigPanelFormContextProvider>
+      <BpmnApiContextProvider
+        layoutSets={layoutSets}
+        existingCustomReceiptLayoutSetName={existingCustomReceiptLayoutSetName}
+        addLayoutSet={addLayoutSet}
+        mutateLayoutSet={mutateLayoutSet}
+      >
+        <BpmnConfigPanelFormContextProvider>
+          <BpmnCanvas onSave={onSave} />
+        </BpmnConfigPanelFormContextProvider>
+      </BpmnApiContextProvider>
     </BpmnContextProvider>
   );
 };
 
-type BpmnCanvasProps = Pick<
-  ProcessEditorProps,
-  'onSave' | 'existingCustomReceipt' | 'onUpdateLayoutSet'
->;
-const BpmnCanvas = ({
-  onSave,
-  existingCustomReceipt,
-  onUpdateLayoutSet,
-}: BpmnCanvasProps): React.ReactElement | null => {
+type BpmnCanvasProps = Pick<ProcessEditorProps, 'onSave'>;
+const BpmnCanvas = ({ onSave }: BpmnCanvasProps): React.ReactElement | null => {
   const { isEditAllowed } = useBpmnContext();
   const { metaDataForm, resetForm } = useBpmnConfigPanelFormContext();
 
@@ -73,14 +74,7 @@ const BpmnCanvas = ({
   return (
     <div className={classes.container}>
       <Canvas onSave={handleSave} />
-      {isEditAllowed ? (
-        <ConfigPanel
-          existingCustomReceiptName={existingCustomReceipt}
-          onUpdateLayoutSet={onUpdateLayoutSet}
-        />
-      ) : (
-        <ConfigViewerPanel />
-      )}
+      {isEditAllowed ? <ConfigPanel /> : <ConfigViewerPanel />}
     </div>
   );
 };
