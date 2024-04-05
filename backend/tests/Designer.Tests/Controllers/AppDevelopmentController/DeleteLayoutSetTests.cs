@@ -1,3 +1,4 @@
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -23,7 +24,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet2")]
-        public async Task DeleteLayoutSets_SetWithoutDataTypeConnection_ReturnsOk(string org, string app, string developer,
+        public async Task DeleteLayoutSet_SetWithoutDataTypeConnection_ReturnsOk(string org, string app, string developer,
             string layoutSetToDeleteId)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
@@ -47,7 +48,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1")]
-        public async Task DeleteLayoutSets_SetWithDataTypeConnection_ReturnsOk(string org, string app, string developer,
+        public async Task DeleteLayoutSet_SetWithDataTypeConnection_ReturnsOk(string org, string app, string developer,
             string layoutSetToDeleteId)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
@@ -77,6 +78,26 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         }
 
         [Theory]
+        [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet2")]
+        public async Task DeleteLayoutSet_DeletesRelatedLayoutSetFolder_ReturnsOk(string org, string app, string developer,
+            string layoutSetToDeleteId)
+        {
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
+
+            Assert.True(LayoutSetFolderExists(org, targetRepository, developer, layoutSetToDeleteId));
+
+            string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetToDeleteId}";
+
+            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
+
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            Assert.False(LayoutSetFolderExists(org, targetRepository, developer, layoutSetToDeleteId));
+        }
+
+        [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "non-existing-layout-set")]
         public async Task DeleteLayoutSet_IdNotFound_ReturnsUnAlteredLayoutSets(string org, string app, string developer,
             string layoutSetToDeleteId)
@@ -100,7 +121,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         [Theory]
         [InlineData("ttd", "app-without-layoutsets", "testUser", null)]
-        public async Task AddLayoutSet_AppWithoutLayoutSets_ReturnsNotFound(string org, string app, string developer,
+        public async Task DeleteLayoutSet_AppWithoutLayoutSets_ReturnsNotFound(string org, string app, string developer,
             string layoutSetToDeleteId)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
@@ -132,6 +153,16 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
                 altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
 
             return await altinnAppGitRepository.GetApplicationMetadata();
+        }
+
+        private bool LayoutSetFolderExists(string org, string app, string developer, string layoutSetName)
+        {
+            AltinnGitRepositoryFactory altinnGitRepositoryFactory =
+                new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+            AltinnAppGitRepository altinnAppGitRepository =
+                altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+
+            return altinnAppGitRepository.DirectoryExistsByRelativePath($"App/ui/{layoutSetName}");
         }
     }
 }

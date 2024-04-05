@@ -324,6 +324,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 await DeleteTaskRefInApplicationMetadata(altinnAppGitRepository, dataTypeNameToRemoveTaskIdRef);
             }
 
+            altinnAppGitRepository.DeleteLayoutSetFolder(layoutSetToDeleteId, cancellationToken);
             return await DeleteExistingLayoutSet(altinnAppGitRepository, layoutSets, layoutSetToDeleteId);
         }
 
