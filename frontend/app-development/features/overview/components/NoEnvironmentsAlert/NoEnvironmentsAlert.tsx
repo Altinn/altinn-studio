@@ -11,15 +11,15 @@ export const NoEnvironmentsAlert = ({ ...rest }: NoEnvironmentsAlertProps) => {
   return (
     <Alert severity='warning' className={cn(rest.className)} {...rest}>
       <Heading level={2} size='small' spacing>
-        {t('app_publish.no_env_title')}
+        {t('app_deployment.no_env_title')}
       </Heading>
       <Paragraph spacing>
-        <Trans i18nKey='app_publish.no_env_1'>
+        <Trans i18nKey='app_deployment.no_env_1'>
           <a href='mailto:tjenesteeier@altinn.no' />
         </Trans>
       </Paragraph>
       <Paragraph>
-        <Trans i18nKey='app_publish.no_env_2'>
+        <Trans i18nKey='app_deployment.no_env_2'>
           <a target='_new' rel='noopener noreferrer' />
         </Trans>
       </Paragraph>
