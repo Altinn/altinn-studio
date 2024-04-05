@@ -5,7 +5,7 @@ import type {
   FormComponent,
   FormRadioButtonsComponent,
 } from '../types/FormComponent';
-import { optionListIdsMock, renderHookWithMockStore } from '../testing/mocks';
+import { optionListIdsMock, renderHookWithProviders } from '../testing/mocks';
 
 describe('useValidateComponent', () => {
   describe('Checkboxes', () => {
@@ -149,6 +149,5 @@ const render = (component: FormComponent) => {
       .fn()
       .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
   };
-  return renderHookWithMockStore({}, queries)(() => useValidateComponent(component))
-    .renderHookResult.result.current;
+  return renderHookWithProviders(() => useValidateComponent(component), { queries }).result.current;
 };

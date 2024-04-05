@@ -9,6 +9,7 @@ export type SupportedFeatureFlags =
   | 'componentConfigBeta'
   | 'shouldOverrideAppLibCheck'
   | 'resourceAccessLists'
+  | 'resourceMigration'
   | 'displayPaymentTaskProcessEditor';
 
 /*

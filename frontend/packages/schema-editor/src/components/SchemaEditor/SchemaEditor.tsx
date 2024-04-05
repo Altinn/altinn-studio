@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import classes from './SchemaEditor.module.css';
 import { TypesInspector } from '../TypesInspector';
 import { SchemaInspector } from '../SchemaInspector';
@@ -11,27 +11,9 @@ import { useAddReference } from './hooks/useAddReference';
 import { NodePanel } from '../NodePanel';
 
 export const SchemaEditor = () => {
-  const { schemaModel, selectedTypePointer, selectedNodePointer } = useSchemaEditorAppContext();
+  const { schemaModel, selectedTypePointer } = useSchemaEditorAppContext();
   const moveProperty = useMoveProperty();
   const addReference = useAddReference();
-
-  const [expandedPropNodes, setExpandedPropNodes] = useState<string[]>([]);
-  const [expandedDefNodes, setExpandedDefNodes] = useState<string[]>([]);
-
-  const selectedPropertyParent = schemaModel.getParentNode(selectedNodePointer);
-
-  useEffect(() => {
-    if (selectedPropertyParent && !expandedPropNodes.includes(selectedPropertyParent.pointer)) {
-      setExpandedPropNodes((prevState) => [...prevState, selectedPropertyParent.pointer]);
-    }
-  }, [selectedPropertyParent, expandedPropNodes]);
-
-  const selectedDefinitionParent = schemaModel.getParentNode(selectedTypePointer);
-  useEffect(() => {
-    if (selectedDefinitionParent && !expandedDefNodes.includes(selectedDefinitionParent.pointer)) {
-      setExpandedDefNodes((prevState) => [...prevState, selectedDefinitionParent.pointer]);
-    }
-  }, [selectedPropertyParent, expandedDefNodes, selectedDefinitionParent]);
 
   if (schemaModel.isEmpty()) return null;
   const definitions: UiSchemaNodes = schemaModel.getDefinitions();
@@ -39,7 +21,12 @@ export const SchemaEditor = () => {
 
   return (
     <>
-      <DragAndDropTree.Provider onAdd={addReference} onMove={moveProperty} rootId={ROOT_POINTER}>
+      <DragAndDropTree.Provider
+        onAdd={addReference}
+        onMove={moveProperty}
+        rootId={ROOT_POINTER}
+        itemId={selectedTypePointer ?? null}
+      >
         <aside className={classes.inspector}>
           <TypesInspector schemaItems={definitions} />
         </aside>

@@ -2,7 +2,7 @@ import React from 'react';
 import { act, screen, within } from '@testing-library/react';
 
 import { EditOptions } from './EditOptions';
-import { renderWithMockStore } from '../../../testing/mocks';
+import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
@@ -25,7 +25,7 @@ const renderEditOptions = <T extends ComponentType.Checkboxes | ComponentType.Ra
   component = mockComponent as FormItem<T>,
   handleComponentChange = jest.fn(),
 }: { component?: FormItem<T>; handleComponentChange?: () => void } = {}) =>
-  renderWithMockStore()(
+  renderWithProviders(
     <EditOptions handleComponentChange={handleComponentChange} component={component} />,
   );
 
