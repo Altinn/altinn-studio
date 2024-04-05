@@ -14,39 +14,40 @@ import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtil
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { Organization } from 'app-shared/types/Organization';
 import { organization } from 'app-shared/mocks/mocks';
+import type { RepoStatus } from 'app-shared/types/RepoStatus';
 
 const mockResourceListItem1: ResourceListItem = {
   title: { nb: 'resource 1', nn: '', en: '' },
   createdBy: 'John Doe',
-  lastChanged: '2023-08-30',
+  lastChanged: new Date('2023-08-30'),
   hasPolicy: true,
   identifier: 'r1',
 };
 const mockResourceListItem2: ResourceListItem = {
   title: { nb: 'resource 2', nn: '', en: '' },
   createdBy: 'John Doe',
-  lastChanged: '2023-08-30',
+  lastChanged: new Date('2023-08-30'),
   hasPolicy: true,
   identifier: 'r2',
 };
 const mockResourceListItem3: ResourceListItem = {
   title: { nb: 'resource 3', nn: '', en: '' },
   createdBy: 'John Doe',
-  lastChanged: '2023-08-30',
+  lastChanged: new Date('2023-08-30'),
   hasPolicy: false,
   identifier: 'r3',
 };
 const mockResourceListItem4: ResourceListItem = {
   title: { nb: 'resource 4', nn: '', en: '' },
   createdBy: 'John Doe',
-  lastChanged: '2023-08-30',
+  lastChanged: new Date('2023-08-30'),
   hasPolicy: true,
   identifier: 'r4',
 };
 const mockResourceListItem5: ResourceListItem = {
   title: { nb: 'resource 5', nn: '', en: '' },
   createdBy: 'John Doe',
-  lastChanged: '2023-08-30',
+  lastChanged: new Date('2023-08-30'),
   hasPolicy: false,
   identifier: 'r5',
 };
@@ -249,6 +250,21 @@ describe('ResourceDashBoardPage', () => {
     expect(
       screen.getByText(textMock('resourceadm.dashboard_change_organization_lists')),
     ).toBeInTheDocument();
+  });
+
+  it('should show merge conflict modal if repo has merge conflict', async () => {
+    const getRepoStatus = jest.fn().mockImplementation(() =>
+      Promise.resolve<RepoStatus>({
+        aheadBy: 1,
+        behindBy: 1,
+        contentStatus: [],
+        hasMergeConflict: true,
+        repositoryStatus: 'conflict',
+      }),
+    );
+    renderResourceDashboardPage({ getRepoStatus });
+
+    await screen.findByText(textMock('merge_conflict.headline'));
   });
 });
 

@@ -5,37 +5,30 @@ import type { PageAccordionProps } from './PageAccordion';
 import { PageAccordion } from './PageAccordion';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
-import { formDesignerMock } from '../../../testing/stateMocks';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import {
   formLayoutSettingsMock,
-  renderHookWithMockStore,
-  renderWithMockStore,
+  renderHookWithProviders,
+  renderWithProviders,
 } from '../../../testing/mocks';
-import { layout2NameMock } from '../../../testing/layoutMock';
+import { layout1NameMock } from '../../../testing/layoutMock';
 
 const mockOrg = 'org';
 const mockApp = 'app';
-const mockPageName1: string = formDesignerMock.layout.selectedLayout;
+const mockPageName1: string = layout1NameMock;
 const mockSelectedLayoutSet = 'test-layout-set';
-const mockPageName2 = layout2NameMock;
 
-const mockSetSearchParams = jest.fn();
-const mockSearchParams = { layout: mockPageName1 };
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
     org: mockOrg,
     app: mockApp,
   }),
-  useSearchParams: () => {
-    return [new URLSearchParams(mockSearchParams), mockSetSearchParams];
-  },
 }));
 
 const mockDeleteFormLayout = jest.fn();
-jest.mock('./useDeleteLayout', () => ({
-  useDeleteLayout: jest.fn(() => ({ mutate: mockDeleteFormLayout, isPending: false })),
+jest.mock('../../../hooks/mutations/useDeleteLayoutMutation', () => ({
+  useDeleteLayoutMutation: jest.fn(() => ({ mutate: mockDeleteFormLayout, isPending: false })),
 }));
 
 const mockChildren: ReactNode = (
@@ -79,7 +72,7 @@ describe('PageAccordion', () => {
     expect(elementInMenuAfter).toBeInTheDocument();
   });
 
-  it('Calls deleteLayout with pageName when delete button is clicked and deletion is confirmed, and updates the url correctly', async () => {
+  it('Calls deleteLayout with pageName when delete button is clicked and deletion is confirmed', async () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
     await render();
@@ -91,14 +84,13 @@ describe('PageAccordion', () => {
 
     expect(mockDeleteFormLayout).toHaveBeenCalledTimes(1);
     expect(mockDeleteFormLayout).toHaveBeenCalledWith(mockPageName1);
-    expect(mockSetSearchParams).toHaveBeenCalledWith({ layout: mockPageName2 });
   });
 
   it('Disables delete button when isPending is true', async () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
     jest
-      .spyOn(require('./useDeleteLayout'), 'useDeleteLayout')
+      .spyOn(require('../../../hooks/mutations/useDeleteLayoutMutation'), 'useDeleteLayoutMutation')
       .mockImplementation(() => ({ mutate: mockDeleteFormLayout, isPending: true }));
     await render();
     const deleteButton = screen.getByRole('button', {
@@ -108,7 +100,6 @@ describe('PageAccordion', () => {
     expect(deleteButton).toBeDisabled();
     await act(() => user.click(deleteButton));
     expect(mockDeleteFormLayout).not.toHaveBeenCalled();
-    expect(mockSetSearchParams).not.toHaveBeenCalled();
   });
 
   it('Does not call deleteLayout when delete button is clicked, but deletion is not confirmed', async () => {
@@ -128,16 +119,15 @@ const waitForData = async () => {
   const getFormLayoutSettings = jest
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
-  const settingsResult = renderHookWithMockStore(
-    {},
-    { getFormLayoutSettings },
-  )(() => useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet)).renderHookResult
-    .result;
+  const settingsResult = renderHookWithProviders(
+    () => useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet),
+    { queries: { getFormLayoutSettings } },
+  ).result;
 
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 };
 
 const render = async (props: Partial<PageAccordionProps> = {}) => {
   await waitForData();
-  return renderWithMockStore()(<PageAccordion {...defaultProps} {...props} />);
+  return renderWithProviders(<PageAccordion {...defaultProps} {...props} />);
 };

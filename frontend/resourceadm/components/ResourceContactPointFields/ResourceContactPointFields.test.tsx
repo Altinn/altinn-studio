@@ -37,6 +37,7 @@ describe('ResourceContactPointFields', () => {
 
     const categoryLabel = screen.getByLabelText(
       textMock('resourceadm.about_resource_contact_label_category'),
+      { exact: false, selector: 'input' },
     );
     const emailLabel = screen.getByLabelText(
       textMock('resourceadm.about_resource_contact_label_email'),
@@ -60,13 +61,17 @@ describe('ResourceContactPointFields', () => {
 
     const categoryLabel = screen.getByLabelText(
       textMock('resourceadm.about_resource_contact_label_category'),
+      { exact: false, selector: 'input' },
     );
     expect(categoryLabel).toHaveValue(mockContactPoint1.category);
 
     await act(() => user.type(categoryLabel, mockNewInput));
 
     expect(
-      screen.getByLabelText(textMock('resourceadm.about_resource_contact_label_category')),
+      screen.getByLabelText(textMock('resourceadm.about_resource_contact_label_category'), {
+        exact: false,
+        selector: 'input',
+      }),
     ).toHaveValue(`${mockContactPoint1.category}${mockNewInput}`);
   });
 
@@ -125,10 +130,10 @@ describe('ResourceContactPointFields', () => {
     const addButton = screen.getByText(textMock('resourceadm.about_resource_contact_add_button'));
     await act(() => user.click(addButton));
 
-    const contactPointFields = screen.getAllByText(
-      textMock('resourceadm.about_resource_contact_legend'),
+    const newContactPointField = screen.getByText(
+      textMock('resourceadm.about_resource_contact_legend', { index: 2 }),
     );
-    expect(contactPointFields).toHaveLength(mockContactPointList.length + 1);
+    expect(newContactPointField).toBeInTheDocument();
     expect(mockOnContactPointsChanged).toHaveBeenCalledWith([
       mockContactPoint1,
       {
@@ -159,27 +164,46 @@ describe('ResourceContactPointFields', () => {
     );
     await act(() => user.click(confirmRemoveButton));
 
-    const contactPointFields = screen.getAllByText(
-      textMock('resourceadm.about_resource_contact_legend'),
+    const contactPointField = screen.queryByText(
+      textMock('resourceadm.about_resource_contact_legend', { index: 2 }),
     );
-    expect(contactPointFields).toHaveLength(1);
+    expect(contactPointField).not.toBeInTheDocument();
   });
 
   it('should edit contact point when input field value is changed', async () => {
     const user = userEvent.setup();
     render(<ResourceContactPointFields {...defaultProps} />);
 
-    const telephoneField = screen.getByLabelText(
+    const categoryLabel = screen.getByLabelText(
+      textMock('resourceadm.about_resource_contact_label_category'),
+      { exact: false, selector: 'input' },
+    );
+    const emailLabel = screen.getByLabelText(
+      textMock('resourceadm.about_resource_contact_label_email'),
+    );
+    const telephoneLabel = screen.getByLabelText(
       textMock('resourceadm.about_resource_contact_label_telephone'),
     );
+    const contactPageLabel = screen.getByLabelText(
+      textMock('resourceadm.about_resource_contact_label_contactpage'),
+    );
 
-    await act(() => user.type(telephoneField, mockNewInput));
-    await act(() => telephoneField.blur());
+    await act(() => user.type(categoryLabel, mockNewInput));
+    await act(() => categoryLabel.blur());
+    await act(() => user.type(emailLabel, mockNewInput));
+    await act(() => emailLabel.blur());
+    await act(() => user.type(telephoneLabel, mockNewInput));
+    await act(() => telephoneLabel.blur());
+    await act(() => user.type(contactPageLabel, mockNewInput));
+    await act(() => contactPageLabel.blur());
 
     expect(mockOnContactPointsChanged).toHaveBeenCalledWith([
       {
         ...mockContactPoint1,
+        category: `${mockContactPoint1.contactPage}${mockNewInput}`,
+        email: `${mockContactPoint1.contactPage}${mockNewInput}`,
         telephone: `${mockContactPoint1.contactPage}${mockNewInput}`,
+        contactPage: `${mockContactPoint1.contactPage}${mockNewInput}`,
       },
     ]);
   });

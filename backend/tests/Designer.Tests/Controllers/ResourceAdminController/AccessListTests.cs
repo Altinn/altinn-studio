@@ -21,7 +21,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task GetAccessLists_Ok()
         {
             //Arrange
-            string uri = $"{VersionPrefix}/ttd/resources/accesslist?env=tt02";
+            string uri = $"{VersionPrefix}/ttd/resources/accesslist?env=testEnv";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
 
@@ -39,7 +39,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task GetAccessList_Ok()
         {
             //Arrange
-            string uri = $"{VersionPrefix}/ttd/resources/accesslist/test-list?env=tt02";
+            string uri = $"{VersionPrefix}/ttd/resources/accesslist/test-list?env=testEnv";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             AccessList list = new AccessList()
@@ -64,7 +64,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task GetResourceAccessLists_Ok()
         {
             //Arrange
-            string uri = $"{VersionPrefix}/ttd/resources/ttd_resource/accesslists/?env=tt02";
+            string uri = $"{VersionPrefix}/ttd/resources/ttd_resource/accesslists/?env=testEnv";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
 
@@ -82,7 +82,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task CreateAccessList_Ok()
         {
             //Arrange
-            string uri = $"{VersionPrefix}/ttd/resources/accesslist/?env=tt02";
+            string uri = $"{VersionPrefix}/ttd/resources/accesslist/?env=testEnv";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
             AccessList list = new AccessList()
@@ -108,7 +108,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task DeleteAccessList_Ok()
         {
             //Arrange
-            string uri = $"{VersionPrefix}/ttd/resources/accesslist/test-liste?env=tt02";
+            string uri = $"{VersionPrefix}/ttd/resources/accesslist/test-liste?env=testEnv";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, uri);
 
             ResourceRegistryMock.Setup(r => r.DeleteAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(HttpStatusCode.NoContent);
@@ -125,7 +125,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task UpdateAccessList_Ok()
         {
             //Arrange
-            string uri = $"{VersionPrefix}/ttd/resources/accesslist/test-liste/?env=tt02";
+            string uri = $"{VersionPrefix}/ttd/resources/accesslist/test-liste/?env=testEnv";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, uri);
 
             AccessList list = new AccessList()
@@ -151,7 +151,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task AddAccessListMember_Ok()
         {
             //Arrange
-            string uri = $"{VersionPrefix}/ttd/resources/accesslist/test-liste/members/991825827?env=tt02";
+            string uri = $"{VersionPrefix}/ttd/resources/accesslist/test-liste/members/991825827?env=testEnv";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
             ResourceRegistryMock.Setup(r => r.AddAccessListMember(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(HttpStatusCode.OK);
@@ -168,7 +168,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task RemoveAccessListMember_Ok()
         {
             //Arrange
-            string uri = $"{VersionPrefix}/ttd/resources/accesslist/test-liste/members/991825827?env=tt02";
+            string uri = $"{VersionPrefix}/ttd/resources/accesslist/test-liste/members/991825827?env=testEnv";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, uri);
 
             ResourceRegistryMock.Setup(r => r.RemoveAccessListMember(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(HttpStatusCode.NoContent);
@@ -185,7 +185,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task AddResourceAccessList_Ok()
         {
             //Arrange
-            string uri = $"{VersionPrefix}/ttd/resources/ttd_resource/accesslists/test-liste?env=tt02";
+            string uri = $"{VersionPrefix}/ttd/resources/ttd_resource/accesslists/test-liste?env=testEnv";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
             ResourceRegistryMock.Setup(r => r.AddResourceAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(HttpStatusCode.OK);
@@ -202,7 +202,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task RemoveResourceAccessList_Ok()
         {
             //Arrange
-            string uri = $"{VersionPrefix}/ttd/resources/ttd_resource/accesslists/test-liste?env=tt02";
+            string uri = $"{VersionPrefix}/ttd/resources/ttd_resource/accesslists/test-liste?env=testEnv";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, uri);
 
             ResourceRegistryMock.Setup(r => r.RemoveResourceAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(HttpStatusCode.NoContent);

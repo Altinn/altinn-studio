@@ -10,7 +10,7 @@ import type {
 } from 'app-shared/types/ResourceAdm';
 import type { ReactNode } from 'react';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
-import { isAppPrefix } from '../stringUtils';
+import { isAppPrefix, isSePrefix } from '../stringUtils';
 
 /**
  * The map of resource type
@@ -44,51 +44,44 @@ export const availableForTypeMap: Record<ResourceAvailableForTypeOption, string>
 
 export type EnvId = 'tt02' | 'prod' | 'at22' | 'at23';
 export type EnvType = 'test' | 'prod';
-export const getAvailableEnvironments = (
-  org: string,
-): {
+export type Environment = {
   id: EnvId;
   label: string;
   envType: EnvType;
-}[] => {
-  const availableEnvs = [
-    {
-      id: 'tt02' as EnvId,
-      label: 'resourceadm.deploy_test_env',
-      envType: 'test' as EnvType,
-    },
-    {
-      id: 'prod' as EnvId,
-      label: 'resourceadm.deploy_prod_env',
-      envType: 'prod' as EnvType,
-    },
-  ];
+};
+
+const environments: Record<EnvId, Environment> = {
+  ['at22']: {
+    id: 'at22' as EnvId,
+    label: 'resourceadm.deploy_at22_env',
+    envType: 'test' as EnvType,
+  },
+  ['at23']: {
+    id: 'at23' as EnvId,
+    label: 'resourceadm.deploy_at23_env',
+    envType: 'test' as EnvType,
+  },
+  ['tt02']: {
+    id: 'tt02' as EnvId,
+    label: 'resourceadm.deploy_test_env',
+    envType: 'test' as EnvType,
+  },
+  ['prod']: {
+    id: 'prod' as EnvId,
+    label: 'resourceadm.deploy_prod_env',
+    envType: 'prod' as EnvType,
+  },
+};
+
+export const getAvailableEnvironments = (org: string): Environment[] => {
+  const availableEnvs = [environments['tt02'], environments['prod']];
   if (org === 'ttd') {
-    availableEnvs.push(
-      {
-        id: 'at22' as EnvId,
-        label: 'resourceadm.deploy_at22_env',
-        envType: 'test' as EnvType,
-      },
-      {
-        id: 'at23' as EnvId,
-        label: 'resourceadm.deploy_at23_env',
-        envType: 'test' as EnvType,
-      },
-    );
+    availableEnvs.push(environments['at22'], environments['at23']);
   }
   return availableEnvs;
 };
-
-/**
- * Converts the resource type key to the correct displayable string
- *
- * @param resourceType the resourcetype to convert
- *
- * @returns the string to display
- */
-export const convertResourceTypeToDisplayString = (resourceType: ResourceTypeOption): string => {
-  return resourceTypeMap[resourceType];
+export const getEnvLabel = (env: EnvId): string => {
+  return environments[env]?.label || '';
 };
 
 /**
@@ -199,8 +192,11 @@ export const createNavigationTab = (
 
 export const getResourceIdentifierErrorMessage = (identifier: string, isConflict?: boolean) => {
   const hasAppPrefix = isAppPrefix(identifier);
+  const hasSePrefix = isSePrefix(identifier);
   if (hasAppPrefix) {
     return 'resourceadm.dashboard_resource_id_cannot_be_app';
+  } else if (hasSePrefix) {
+    return 'resourceadm.dashboard_resource_id_cannot_be_se';
   } else if (isConflict) {
     return 'resourceadm.dashboard_resource_name_and_id_error';
   }

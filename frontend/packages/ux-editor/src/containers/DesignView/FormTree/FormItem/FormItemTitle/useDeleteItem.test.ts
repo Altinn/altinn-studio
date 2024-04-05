@@ -1,4 +1,4 @@
-import { renderHookWithMockStore } from '../../../../../testing/mocks';
+import { renderHookWithProviders } from '../../../../../testing/mocks';
 import { useDeleteItem } from './useDeleteItem';
 import type { FormComponent } from '../../../../../types/FormComponent';
 import type { FormContainer } from '../../../../../types/FormContainer';
@@ -20,21 +20,21 @@ describe('useDeleteItem', () => {
   afterEach(jest.clearAllMocks);
 
   it('Calls component mutation when formItem is a component', () => {
-    const { result } = render(componentMocks[ComponentType.Input]);
-    result.current();
+    const view = render(componentMocks[ComponentType.Input]);
+    view.current();
     expect(mockComponentMutation).toHaveBeenCalledTimes(1);
     expect(mockContainerMutation).not.toHaveBeenCalled();
   });
 
   it('Calls container mutation when formItem is a container', () => {
-    const { result } = render(layoutMock.containers[container1IdMock]);
-    result.current();
+    const view = render(layoutMock.containers[container1IdMock]);
+    view.current();
     expect(mockContainerMutation).toHaveBeenCalledTimes(1);
     expect(mockComponentMutation).not.toHaveBeenCalled();
   });
 });
 
 const render = (formItem: FormComponent | FormContainer) => {
-  const { renderHookResult } = renderHookWithMockStore()(() => useDeleteItem(formItem));
-  return renderHookResult;
+  const { result } = renderHookWithProviders(() => useDeleteItem(formItem));
+  return result;
 };

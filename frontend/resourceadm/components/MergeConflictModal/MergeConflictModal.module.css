@@ -7,9 +7,6 @@
 
 .downloadWrapper {
   display: flex;
+  gap: var(--fds-spacing-2);
   flex-direction: column;
-}
-
-.linkDivider {
-  margin-top: var(--fds-spacing-2);
 }

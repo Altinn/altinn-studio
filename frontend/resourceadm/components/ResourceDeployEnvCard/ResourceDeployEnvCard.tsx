@@ -1,17 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
+import type { AxiosError } from 'axios';
+import { Tag, Paragraph, Spinner, Alert } from '@digdir/design-system-react';
 import classes from './ResourceDeployEnvCard.module.css';
 import { ArrowRightIcon } from '@studio/icons';
-import { Tag, Paragraph, Spinner } from '@digdir/design-system-react';
-import { useTranslation } from 'react-i18next';
 import { StudioButton } from '@studio/components';
+import { usePublishResourceMutation } from '../../hooks/mutations';
+import { type Environment } from '../../utils/resourceUtils';
+import { useUrlParams } from '../../hooks/useSelectedContext';
 
 export type ResourceDeployEnvCardProps = {
   isDeployPossible: boolean;
-  envName: string;
+  env: Environment;
   currentEnvVersion: string;
   newEnvVersion?: string;
-  onClick: () => void;
-  loading: boolean;
 };
 
 /**
@@ -20,32 +23,48 @@ export type ResourceDeployEnvCardProps = {
  *    to an environment and information about the resource version
  *
  * @property {boolean}[isDeployPossible] - Flag for if deploy is possible or not
- * @property {string}[envName] - The name of the environment
+ * @property {Environment}[env] - The name of the environment
  * @property {string}[currentEnvVersion] - The current version in the environment
  * @property {string}[newEnvVersion] - The new version the resource will deploy to
- * @property {function}[onClick] - Function to be executed on click
- * @property {boolean}[loading] - if a spinner should be shown
  *
  * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceDeployEnvCard = ({
   isDeployPossible,
-  envName,
+  env,
   currentEnvVersion,
   newEnvVersion,
-  onClick,
-  loading,
 }: ResourceDeployEnvCardProps): React.JSX.Element => {
   const { t } = useTranslation();
 
+  const [hasNoPublishAccess, setHasNoPublishAccess] = useState<boolean>(false);
+  const { selectedContext, repo, resourceId } = useUrlParams();
+
+  // Query function for publishing a resource
+  const { mutate: publishResource, isPending: publisingResourcePending } =
+    usePublishResourceMutation(selectedContext, repo, resourceId);
+
+  const handlePublish = () => {
+    publishResource(env.id, {
+      onSuccess: () => {
+        toast.success(t('resourceadm.resource_published_success', { envName: t(env.label) }));
+      },
+      onError: (error: Error) => {
+        if ((error as AxiosError).response.status === 403) {
+          setHasNoPublishAccess(true);
+        }
+      },
+    });
+  };
+
   return (
     <div className={classes.cardWrapper}>
-      {loading ? (
+      {publisingResourcePending ? (
         <Spinner title={t('resourceadm.deploy_deploying')}></Spinner>
       ) : (
         <>
           <Paragraph size='small'>
-            <strong>{envName}</strong>
+            <strong>{t(env.label)}</strong>
           </Paragraph>
           <Paragraph size='small'>{t('resourceadm.deploy_version_number_text')}</Paragraph>
           <div className={classes.envWrapper}>
@@ -55,7 +74,7 @@ export const ResourceDeployEnvCard = ({
             {newEnvVersion && (
               <>
                 <ArrowRightIcon
-                  title={t('resourceadm.deploy_card_arrow_icon', { env: envName })}
+                  title={t('resourceadm.deploy_card_arrow_icon', { env: t(env.label) })}
                   fontSize='1.5rem'
                 />
                 <Tag color='success' size='small'>
@@ -64,9 +83,20 @@ export const ResourceDeployEnvCard = ({
               </>
             )}
           </div>
-          <StudioButton disabled={!isDeployPossible} onClick={onClick} size='small'>
-            {t('resourceadm.deploy_card_publish', { env: envName })}
+          <StudioButton
+            disabled={!isDeployPossible || hasNoPublishAccess}
+            onClick={handlePublish}
+            size='small'
+          >
+            {t('resourceadm.deploy_card_publish', { env: t(env.label) })}
           </StudioButton>
+          {hasNoPublishAccess && (
+            <Alert severity='danger'>
+              <Paragraph size='small'>
+                {t('resourceadm.resource_publish_no_access', { envName: t(env.label) })}
+              </Paragraph>
+            </Alert>
+          )}
         </>
       )}
     </div>
