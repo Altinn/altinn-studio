@@ -8,6 +8,9 @@ import type { Organization } from 'app-shared/types/Organization';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { repository, user as userMock } from 'app-shared/mocks/mocks';
+import { useParams } from 'react-router-dom';
+import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
+import { DASHBOARD_ROOT_ROUTE } from 'app-shared/constants';
 
 const orgMock: Organization = {
   avatar_url: '',
@@ -19,6 +22,7 @@ const orgMock: Organization = {
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: jest.fn(),
+  useParams: jest.fn().mockReturnValue(''),
 }));
 
 const renderWithMockServices = (
@@ -280,5 +284,41 @@ describe('CreateService', () => {
     await act(() => user.click(createBtn));
 
     expect(windowLocationAssignMock).toHaveBeenCalled();
+  });
+
+  it('should set cancel link to / when selected context is self', async () => {
+    const selectedContext = SelectedContextType.Self;
+    (useParams as jest.Mock).mockReturnValue({ selectedContext });
+
+    renderWithMockServices();
+    const cancelLink: HTMLElement = screen.getByRole('link', {
+      name: textMock('general.cancel'),
+    });
+
+    expect(cancelLink.getAttribute('href')).toBe(DASHBOARD_ROOT_ROUTE);
+  });
+
+  it('should set cancel link to /all when selected context is all', async () => {
+    const selectedContext = SelectedContextType.All;
+    (useParams as jest.Mock).mockReturnValue({ selectedContext });
+
+    renderWithMockServices();
+    const cancelLink: HTMLElement = screen.getByRole('link', {
+      name: textMock('general.cancel'),
+    });
+
+    expect(cancelLink.getAttribute('href')).toBe(DASHBOARD_ROOT_ROUTE + selectedContext);
+  });
+
+  it('should set cancel link to /org when selected context is org', async () => {
+    const selectedContext = 'ttd';
+    (useParams as jest.Mock).mockReturnValue({ selectedContext });
+
+    renderWithMockServices();
+    const cancelLink: HTMLElement = screen.getByRole('link', {
+      name: textMock('general.cancel'),
+    });
+
+    expect(cancelLink.getAttribute('href')).toBe(DASHBOARD_ROOT_ROUTE + selectedContext);
   });
 });
