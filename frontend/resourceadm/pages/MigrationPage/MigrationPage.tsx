@@ -19,8 +19,8 @@ import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import { useTranslation } from 'react-i18next';
 import { useUrlParams } from '../../hooks/useSelectedContext';
 import { StudioButton } from '@studio/components';
-import type { EnvId } from '../../utils/resourceUtils/resourceUtils';
-import { getAvailableEnvironments } from '../../utils/resourceUtils/resourceUtils';
+import type { EnvId } from '../../utils/resourceUtils';
+import { getAvailableEnvironments } from '../../utils/resourceUtils';
 
 export type MigrationPageProps = {
   navigateToPageWithError: (page: NavigationBarPage) => void;
