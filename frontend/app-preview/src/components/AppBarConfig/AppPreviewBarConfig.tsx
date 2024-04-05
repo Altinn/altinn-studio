@@ -7,7 +7,7 @@ import classes from '../AppPreviewSubMenu.module.css';
 import { ArrowCirclepathIcon, EyeIcon, LinkIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import type { AppPreviewSubMenuProps } from '../AppPreviewSubMenu';
-import { useLayoutSetsQuery } from '../../../../packages/ux-editor/src/hooks/queries/useLayoutSetsQuery';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
