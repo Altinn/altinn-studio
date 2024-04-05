@@ -3,7 +3,7 @@ import { SubApp as UiEditorV3 } from '../../packages/ux-editor-v3/src/SubApp';
 import { Overview } from '../features/overview/components/Overview';
 import { TextEditor } from '../features/textEditor/TextEditor';
 import DataModellingContainer from '../features/dataModelling/containers/DataModellingContainer';
-import { DeployPage } from '../features/appPublish/pages/deployPage';
+import { DeployPage } from '../features/appPublish/pages/DeployPage';
 import { ProcessEditor } from 'app-development/features/processEditor';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import type { AppVersion } from 'app-shared/types/AppVersion';
@@ -36,8 +36,9 @@ const isLatestFrontendVersion = (version: AppVersion): boolean =>
 
 const UiEditor = () => {
   const { org, app } = useStudioUrlParams();
-  const { data } = useAppVersionQuery(org, app);
-  return isLatestFrontendVersion(data) ? <UiEditorLatest /> : <UiEditorV3 />;
+  const { data: version } = useAppVersionQuery(org, app);
+  if (!version) return null;
+  return isLatestFrontendVersion(version) ? <UiEditorLatest /> : <UiEditorV3 />;
 };
 
 export const routerRoutes: RouterRoute[] = [

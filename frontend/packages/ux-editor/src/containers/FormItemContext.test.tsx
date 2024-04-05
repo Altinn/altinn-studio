@@ -7,12 +7,11 @@ import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateForm
 import type { UpdateFormComponentMutationArgs } from '../hooks/mutations/useUpdateFormComponentMutation';
 import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateFormComponentMutation';
 import type { UseMutationResult } from '@tanstack/react-query';
-import { renderWithMockStore } from '../testing/mocks';
+import { renderWithProviders } from '../testing/mocks';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormContainer } from '../types/FormContainer';
 import type { FormComponent } from '../types/FormComponent';
-import type { IAppState } from '../types/global';
 
 jest.useFakeTimers({ advanceTimers: true });
 
@@ -45,7 +44,7 @@ mockUseUpdateFormComponentMutation.mockReturnValue({
 >);
 
 const render = (ChildComponent: React.ElementType) => {
-  return renderWithMockStore()(
+  return renderWithProviders(
     <FormItemContextProvider>
       <ChildComponent />
     </FormItemContextProvider>,
@@ -95,7 +94,7 @@ describe('FormItemContext', () => {
       type: ComponentType.Group,
     };
 
-    const { store } = render(() => {
+    render(() => {
       const { formItemId, formItem, handleEdit } = React.useContext(FormItemContext);
       return (
         <>
@@ -110,8 +109,6 @@ describe('FormItemContext', () => {
     const button = screen.getByTestId('button');
     await act(() => user.click(button));
 
-    const state = store.getState() as IAppState;
-    expect(state?.appData?.textResources?.currentEditId).toBeUndefined();
     await waitFor(async () =>
       expect((await screen.findByTestId('formItemId')).textContent).toEqual(mockFormItem.id),
     );
@@ -132,7 +129,7 @@ describe('FormItemContext', () => {
       itemType: 'CONTAINER',
       type: ComponentType.Group,
     };
-    const { store } = render(() => {
+    render(() => {
       const { formItemId, formItem, handleEdit } = React.useContext(FormItemContext);
       return (
         <>
@@ -146,9 +143,7 @@ describe('FormItemContext', () => {
 
     const button = screen.getByTestId('button');
     await act(() => user.click(button));
-    const state = store.getState() as IAppState;
 
-    expect(state?.appData?.textResources?.currentEditId).toBeUndefined();
     expect(screen.getByTestId('formItemId')).toBeInTheDocument();
     expect(screen.getByTestId('formItem.id')).toBeInTheDocument();
     expect(screen.getByTestId('formItem.itemType')).toBeInTheDocument();
@@ -166,7 +161,7 @@ describe('FormItemContext', () => {
 
   it('should discard the form item when calling handleDiscard', async () => {
     const user = userEvent.setup();
-    const { store } = render(() => {
+    render(() => {
       const { formItemId, formItem, handleDiscard } = React.useContext(FormItemContext);
       return (
         <>
@@ -181,8 +176,6 @@ describe('FormItemContext', () => {
     const button = screen.getByTestId('button');
     await act(() => user.click(button));
 
-    const state = store.getState() as IAppState;
-    expect(state?.appData?.textResources?.currentEditId).toBeUndefined();
     await waitFor(async () =>
       expect((await screen.findByTestId('formItemId')).textContent).toBe(''),
     );
@@ -274,6 +267,7 @@ describe('FormItemContext', () => {
       id: 'id',
       itemType: 'COMPONENT',
       type: ComponentType.Input,
+      dataModelBindings: { simpleBinding: 'somePath' },
     };
 
     render(() => {
@@ -295,6 +289,7 @@ describe('FormItemContext', () => {
       id: 'id',
       itemType: 'COMPONENT',
       type: ComponentType.Input,
+      dataModelBindings: { simpleBinding: 'somePath' },
     };
 
     render(() => {
@@ -325,6 +320,7 @@ describe('FormItemContext', () => {
       id: 'id',
       itemType: 'COMPONENT',
       type: ComponentType.Input,
+      dataModelBindings: { simpleBinding: 'somePath' },
     };
 
     render(() => {

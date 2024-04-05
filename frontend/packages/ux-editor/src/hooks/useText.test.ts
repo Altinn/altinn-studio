@@ -1,7 +1,5 @@
-import { renderHookWithMockStore } from '../testing/mocks';
-import { appDataMock } from '../testing/stateMocks';
+import { renderHookWithProviders } from '../testing/mocks';
 import { useText } from './useText';
-import type { IAppDataState } from '../features/appData/appDataReducers';
 import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
 
 // Test data:
@@ -21,6 +19,5 @@ describe('useText', () => {
 });
 
 const renderAndRun = (key: string) => {
-  const appData: IAppDataState = { ...appDataMock };
-  return renderHookWithMockStore({ appData })(() => useText()).renderHookResult.result.current(key);
+  return renderHookWithProviders(() => useText()).result.current(key);
 };

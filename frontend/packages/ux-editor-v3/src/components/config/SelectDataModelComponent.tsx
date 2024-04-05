@@ -4,6 +4,7 @@ import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetad
 import { FormField } from '../FormField';
 import type { Option } from 'packages/text-editor/src/types';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useAppContext } from '../../hooks/useAppContext';
 
 export interface ISelectDataModelProps {
   inputId?: string;
@@ -30,7 +31,8 @@ export const SelectDataModelComponent = ({
   propertyPath,
 }: ISelectDataModelProps) => {
   const { org, app } = useStudioUrlParams();
-  const { data } = useDatamodelMetadataQuery(org, app);
+  const { selectedLayoutSet } = useAppContext();
+  const { data } = useDatamodelMetadataQuery(org, app, selectedLayoutSet);
   const [dataModelElementNames, setDataModelElementNames] = React.useState<Option[]>([]);
 
   useEffect(() => {

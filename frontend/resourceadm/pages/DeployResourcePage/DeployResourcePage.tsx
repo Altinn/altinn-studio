@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import classes from './DeployResourcePage.module.css';
 import { ResourceDeployStatus } from '../../components/ResourceDeployStatus';
 import { ResourceDeployEnvCard } from '../../components/ResourceDeployEnvCard';
@@ -21,12 +21,9 @@ import {
 } from '../../hooks/queries';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useTranslation, Trans } from 'react-i18next';
-import { usePublishResourceMutation } from '../../hooks/mutations';
-import { toast } from 'react-toastify';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { useUrlParams } from '../../hooks/useSelectedContext';
-import type { EnvId, EnvType } from '../../utils/resourceUtils/resourceUtils';
-import { getAvailableEnvironments } from '../../utils/resourceUtils/resourceUtils';
+import { getAvailableEnvironments } from '../../utils/resourceUtils';
 
 export type DeployResourcePageProps = {
   navigateToPageWithError: (page: NavigationBarPage) => void;
@@ -56,11 +53,7 @@ export const DeployResourcePage = ({
 
   const { selectedContext, repo, resourceId } = useUrlParams();
 
-  const [isLocalRepoInSync, setIsLocalRepoInSync] = useState(false);
-
   const [newVersionText, setNewVersionText] = useState(resourceVersionText);
-
-  const [envPublishedTo, setEnvPublishedTo] = useState(null);
 
   // Queries to get metadata
   const { data: repoStatus } = useRepoStatusQuery(selectedContext, repo);
@@ -80,36 +73,11 @@ export const DeployResourcePage = ({
     error: validateResourceError,
   } = useValidateResourceQuery(selectedContext, repo, resourceId);
 
-  // Query function fo rpublishing a resource
-  const { mutate: publishResource, isPending: publisingResourcePending } =
-    usePublishResourceMutation(selectedContext, repo, resourceId);
-
-  const handlePublish = (env: EnvId) => {
-    setEnvPublishedTo(env);
-    publishResource(env, {
-      onSuccess: () => {
-        toast.success(t('resourceadm.resource_published_success'));
-        setEnvPublishedTo(null);
-      },
-      onError: (data) => {
-        console.log(data);
-        setEnvPublishedTo(null);
-      },
-    });
-  };
-
-  /**
-   * Constantly check the repostatus to see if we are behind or ahead of master
-   */
-  useEffect(() => {
-    if (repoStatus) {
-      setIsLocalRepoInSync(
-        (repoStatus.behindBy === 0 || repoStatus.behindBy === null) &&
-          (repoStatus.aheadBy === 0 || repoStatus.aheadBy === null) &&
-          repoStatus.contentStatus.length === 0,
-      );
-    }
-  }, [repoStatus]);
+  const isLocalRepoInSync =
+    repoStatus &&
+    (repoStatus.behindBy === 0 || repoStatus.behindBy === null) &&
+    (repoStatus.aheadBy === 0 || repoStatus.aheadBy === null) &&
+    repoStatus.contentStatus.length === 0;
 
   /**
    * Gets either danger or success for the card type
@@ -117,14 +85,12 @@ export const DeployResourcePage = ({
    * @returns danger or success
    */
   const getStatusCardType = (): 'danger' | 'success' => {
-    if (
+    const hasError =
       validateResourceData.status !== 200 ||
       validatePolicyData.status !== 200 ||
       !isLocalRepoInSync ||
-      resourceVersionText === ''
-    )
-      return 'danger';
-    return 'success';
+      resourceVersionText === '';
+    return hasError ? 'danger' : 'success';
   };
 
   /**
@@ -133,15 +99,13 @@ export const DeployResourcePage = ({
   const getPolicyValidationErrorMessage = () => {
     switch (validatePolicyData.status) {
       case 400: {
-        return t('resourceadm.deploy_status_card_error_policy_page', {
-          num: validatePolicyData.errors.length,
-        });
+        return 'resourceadm.deploy_status_card_error_policy_page';
       }
       case 404: {
-        return t('resourceadm.deploy_status_card_error_policy_page_missing');
+        return 'resourceadm.deploy_status_card_error_policy_page_missing';
       }
       default: {
-        return t('resourceadm.deploy_status_card_error_policy_page_default');
+        return 'resourceadm.deploy_status_card_error_policy_page_default';
       }
     }
   };
@@ -149,32 +113,32 @@ export const DeployResourcePage = ({
   /**
    * Returns the correct error type for the deploy page
    */
-  const getStatusError = (): DeployError[] | string => {
+  const getStatusError = (): DeployError[] => {
     if (validateResourceData.status !== 200 || validatePolicyData.status !== 200) {
       const errorList: DeployError[] = [];
       if (validateResourceData.status !== 200) {
         errorList.push({
           message: validateResourceData.errors
-            ? t('resourceadm.deploy_status_card_error_resource_page', {
-                num: validateResourceData.errors.length,
-              })
-            : t('resourceadm.deploy_status_card_error_resource_page_default'),
+            ? 'resourceadm.deploy_status_card_error_resource_page'
+            : 'resourceadm.deploy_status_card_error_resource_page_default',
           pageWithError: 'about',
+          numberOfErrors: validateResourceData.errors.length,
         });
       }
       if (validatePolicyData.status !== 200) {
         errorList.push({
           message: validatePolicyData.errors
             ? getPolicyValidationErrorMessage()
-            : t('resourceadm.deploy_status_card_error_policy_page_default'),
+            : 'resourceadm.deploy_status_card_error_policy_page_default',
           pageWithError: 'policy',
+          numberOfErrors: validatePolicyData.errors.length,
         });
       }
       return errorList;
     } else if (resourceVersionText === '') {
-      return t('resourceadm.deploy_status_card_error_version');
+      return [{ message: 'resourceadm.deploy_status_card_error_version' }];
     } else if (!isLocalRepoInSync) {
-      return t('resourceadm.deploy_status_card_error_repo');
+      return [{ message: 'resourceadm.deploy_status_card_error_repo' }];
     }
     return [];
   };
@@ -183,17 +147,14 @@ export const DeployResourcePage = ({
    * Displays a spinner when loading the status or displays the status card
    */
   const displayStatusCard = () => {
-    if (getStatusCardType() === 'success') {
-      return (
-        <ResourceDeployStatus
-          title={t('resourceadm.deploy_status_card_success')}
-          error={[]}
-          isSuccess
-          resourceId={resourceId}
-        />
-      );
-    }
-    return (
+    return getStatusCardType() === 'success' ? (
+      <ResourceDeployStatus
+        title={t('resourceadm.deploy_status_card_success')}
+        error={[]}
+        isSuccess
+        resourceId={resourceId}
+      />
+    ) : (
       <ResourceDeployStatus
         title={t('resourceadm.deploy_status_card_error_title')}
         error={getStatusError()}
@@ -210,30 +171,16 @@ export const DeployResourcePage = ({
    *
    * @returns a boolean for if it is possible
    */
-  const isDeployPossible = (type: EnvType, envVersion: string): boolean => {
+  const isDeployPossible = (envVersion: string): boolean => {
     const policyError = validatePolicyData === undefined || validatePolicyData.status === 400;
+    const canDeploy =
+      validateResourceData.status === 200 &&
+      !policyError &&
+      isLocalRepoInSync &&
+      resourceVersionText !== '' &&
+      envVersion !== resourceVersionText;
 
-    if (
-      type === 'test' &&
-      validateResourceData.status === 200 &&
-      !policyError &&
-      isLocalRepoInSync &&
-      resourceVersionText !== '' &&
-      envVersion !== resourceVersionText
-    ) {
-      return true;
-    }
-    if (
-      type === 'prod' &&
-      validateResourceData.status === 200 &&
-      !policyError &&
-      isLocalRepoInSync &&
-      resourceVersionText !== '' &&
-      envVersion !== resourceVersionText
-    ) {
-      return true;
-    }
-    return false;
+    return canDeploy;
   };
 
   /**
@@ -301,14 +248,12 @@ export const DeployResourcePage = ({
                   return (
                     <ResourceDeployEnvCard
                       key={env.id}
-                      isDeployPossible={isDeployPossible(env.envType, versionString)}
-                      envName={t(env.label)}
+                      isDeployPossible={isDeployPossible(versionString)}
+                      env={env}
                       currentEnvVersion={versionString}
                       newEnvVersion={
                         resourceVersionText !== versionString ? resourceVersionText : undefined
                       }
-                      onClick={() => handlePublish(env.id)}
-                      loading={publisingResourcePending && envPublishedTo === env.id}
                     />
                   );
                 })}

@@ -4,9 +4,10 @@ import type {
   TextResourceEntryDeletion,
   TextResourceIdMutation,
   UpsertTextResourceMutation,
+  TextTableRow,
 } from './types';
 import { filterFunction, getLangName } from './utils';
-import type { TextTableRow } from './types';
+
 import {
   LegacyTable,
   LegacyTableBody,
@@ -14,8 +15,10 @@ import {
   LegacyTableHeader,
   LegacyTableRow,
 } from '@digdir/design-system-react';
-import { APP_NAME } from 'app-shared/constants';
 import { useTranslation } from 'react-i18next';
+import { APP_NAME } from 'app-shared/constants';
+import { useLayoutNamesQuery } from './hooks/useLayoutNamesQuery';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export type TextListProps = {
   resourceRows: TextTableRow[];
@@ -31,7 +34,9 @@ export const TextList = ({
   selectedLanguages,
   ...rest
 }: TextListProps) => {
+  const { org, app } = useStudioUrlParams();
   const { t } = useTranslation();
+  const { data: layoutNames, isPending: layoutNamesPending } = useLayoutNamesQuery(org, app);
 
   const textIds = useMemo(() => resourceRows.map((row) => row.textKey), [resourceRows]);
   const idExists = (textId: string): boolean => textIds.includes(textId);
@@ -57,18 +62,23 @@ export const TextList = ({
       <LegacyTableBody>
         {resourceRows
           .filter((row) => filterFunction(row.textKey, row.translations, searchQuery))
-          .map((row) => (
-            <TextRow
-              key={`${row.translations[0].lang}.${row.textKey}`}
-              textId={row.textKey}
-              idExists={idExists}
-              textRowEntries={row.translations}
-              variables={row.variables || []}
-              selectedLanguages={selectedLanguages}
-              showButton={row.textKey !== APP_NAME}
-              {...rest}
-            />
-          ))}
+          .map((row) => {
+            const keyIsAppName = row.textKey === APP_NAME;
+            const keyIsLayoutName = !layoutNamesPending && layoutNames.includes(row.textKey);
+            return (
+              <TextRow
+                key={`${row.translations[0].lang}.${row.textKey}`}
+                textId={row.textKey}
+                idExists={idExists}
+                textRowEntries={row.translations}
+                variables={row.variables || []}
+                selectedLanguages={selectedLanguages}
+                showDeleteButton={!keyIsAppName}
+                showEditButton={!keyIsAppName && !keyIsLayoutName}
+                {...rest}
+              />
+            );
+          })}
       </LegacyTableBody>
     </LegacyTable>
   );

@@ -1,12 +1,12 @@
 import React, { useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
 import { Textfield, Modal, Heading, Link as DigdirLink } from '@digdir/design-system-react';
 import classes from './AccessListDetail.module.css';
 import type { AccessList } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from '../FieldWrapper';
 import { useEditAccessListMutation } from '../../hooks/mutations/useEditAccessListMutation';
-import { createReplacePatch } from '../../utils/jsonPatchUtils/jsonPatchUtils';
 import { useDeleteAccessListMutation } from '../../hooks/mutations/useDeleteAccessListMutation';
 import { AccessListMembers } from '../AccessListMembers';
 import { TrashIcon } from '@studio/icons';
@@ -34,16 +34,23 @@ export const AccessListDetail = ({
   const [listDescription, setListDescription] = useState<string>(list.description || '');
 
   const { mutate: editAccessList } = useEditAccessListMutation(org, list.identifier, env);
-  const { mutate: deleteAccessList } = useDeleteAccessListMutation(org, list.identifier, env);
+  const { mutate: deleteAccessList, isPending: isDeletingAccessList } = useDeleteAccessListMutation(
+    org,
+    list.identifier,
+    env,
+  );
 
   // change list name, description and possibly other properties
-  const handleSave = (diff: Partial<AccessList>): void => {
-    editAccessList(createReplacePatch<Partial<AccessList>>(diff));
+  const handleSave = (accessList: AccessList): void => {
+    editAccessList(accessList);
   };
 
   const handleDelete = (): void => {
     deleteAccessList(undefined, {
-      onSuccess: () => navigate(backUrl),
+      onSuccess: () => {
+        toast.success(t('resourceadm.listadmin_delete_list_success', { listname: listName }));
+        navigate(backUrl);
+      },
     });
   };
 
@@ -66,8 +73,8 @@ export const AccessListDetail = ({
         </Modal.Footer>
       </Modal>
       <div>
-        <DigdirLink to={backUrl} as={Link}>
-          {t('general.back')}
+        <DigdirLink asChild>
+          <Link to={backUrl}>{t('general.back')}</Link>
         </DigdirLink>
       </div>
       <Heading level={1} size='large'>
@@ -90,7 +97,7 @@ export const AccessListDetail = ({
           aria-describedby='listname-description'
           value={listName}
           onChange={(event) => setListName(event.target.value)}
-          onBlur={(event) => handleSave({ name: event.target.value })}
+          onBlur={(event) => handleSave({ ...list, name: event.target.value })}
         />
       </FieldWrapper>
       <FieldWrapper
@@ -104,7 +111,7 @@ export const AccessListDetail = ({
           aria-describedby='listdescription-description'
           value={listDescription}
           onChange={(event) => setListDescription(event.target.value)}
-          onBlur={(event) => handleSave({ description: event.target.value })}
+          onBlur={(event) => handleSave({ ...list, description: event.target.value })}
         />
       </FieldWrapper>
       <AccessListMembers org={org} env={env} list={list} />
@@ -115,6 +122,7 @@ export const AccessListDetail = ({
           icon={<TrashIcon className={classes.deleteIcon} />}
           iconPlacement='right'
           onClick={() => deleteWarningModalRef.current?.showModal()}
+          disabled={isDeletingAccessList}
         >
           {t('resourceadm.listadmin_delete_list')}
         </StudioButton>

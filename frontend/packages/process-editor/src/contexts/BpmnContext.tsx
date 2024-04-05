@@ -1,8 +1,7 @@
+import React, { createContext, useContext, useRef, useState, type MutableRefObject } from 'react';
 import { supportsProcessEditor } from '../utils/processEditorUtils';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import type Modeler from 'bpmn-js/lib/Modeler';
-import type { MutableRefObject } from 'react';
-import React, { createContext, useContext, useRef, useState } from 'react';
 import type { BpmnDetails } from '../types/BpmnDetails';
 
 export type BpmnContextProps = {
@@ -10,6 +9,10 @@ export type BpmnContextProps = {
   modelerRef?: MutableRefObject<Modeler>;
   numberOfUnsavedChanges: number;
   setNumberOfUnsavedChanges: React.Dispatch<React.SetStateAction<number>>;
+  dataTasksAdded: BpmnDetails[];
+  setDataTasksAdded: React.Dispatch<React.SetStateAction<BpmnDetails[]>>;
+  dataTasksRemoved: BpmnDetails[];
+  setDataTasksRemoved: React.Dispatch<React.SetStateAction<BpmnDetails[]>>;
   getUpdatedXml: () => Promise<string>;
   isEditAllowed: boolean;
   appLibVersion: string;
@@ -22,6 +25,10 @@ export const BpmnContext = createContext<BpmnContextProps>({
   modelerRef: null,
   numberOfUnsavedChanges: 0,
   setNumberOfUnsavedChanges: () => {},
+  dataTasksAdded: [],
+  setDataTasksAdded: () => {},
+  dataTasksRemoved: [],
+  setDataTasksRemoved: () => {},
   getUpdatedXml: async () => '',
   isEditAllowed: true,
   appLibVersion: '',
@@ -41,6 +48,8 @@ export const BpmnContextProvider = ({
 }: BpmnContextProviderProps) => {
   const [numberOfUnsavedChanges, setNumberOfUnsavedChanges] = useState(0);
   const [bpmnDetails, setBpmnDetails] = useState<BpmnDetails>(null);
+  const [dataTasksAdded, setDataTasksAdded] = useState<BpmnDetails[]>([]);
+  const [dataTasksRemoved, setDataTasksRemoved] = useState<BpmnDetails[]>([]);
 
   const isEditAllowed =
     supportsProcessEditor(appLibVersion) || shouldDisplayFeature('shouldOverrideAppLibCheck');
@@ -67,6 +76,10 @@ export const BpmnContextProvider = ({
         modelerRef,
         numberOfUnsavedChanges,
         setNumberOfUnsavedChanges,
+        dataTasksAdded,
+        setDataTasksAdded,
+        dataTasksRemoved,
+        setDataTasksRemoved,
         getUpdatedXml,
         isEditAllowed,
         appLibVersion,

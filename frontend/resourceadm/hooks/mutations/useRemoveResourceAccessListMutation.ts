@@ -20,7 +20,7 @@ export const useRemoveResourceAccessListMutation = (
   return useMutation({
     mutationFn: (listId: string) => removeResourceAccessList(org, resourceId, listId, env),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QueryKey.ResourceAccessLists, resourceId, env] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.ResourceAccessLists, env, resourceId] });
     },
   });
 };

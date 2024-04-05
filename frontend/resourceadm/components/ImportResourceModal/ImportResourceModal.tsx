@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'react-toastify';
 import classes from './ImportResourceModal.module.css';
 import { Modal } from '../Modal';
 import { Combobox, Paragraph, Textfield } from '@digdir/design-system-react';
@@ -15,6 +16,7 @@ import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUrlParams } from '../../hooks/useSelectedContext';
 import { StudioButton } from '@studio/components';
 import { formatIdString } from '../../utils/stringUtils';
+import { getResourceIdentifierErrorMessage } from '../../utils/resourceUtils';
 
 const environmentOptions = ['AT21', 'AT22', 'AT23', 'AT24', 'TT02', 'PROD'];
 
@@ -52,9 +54,12 @@ export const ImportResourceModal = ({
   const [id, setId] = useState('');
   const [resourceIdExists, setResourceIdExists] = useState(false);
 
-  const { mutate: importResourceFromAltinn2Mutation } =
+  const { mutate: importResourceFromAltinn2Mutation, isPending: isImportingResource } =
     useImportResourceFromAltinn2Mutation(selectedContext);
 
+  const idErrorMessage = getResourceIdentifierErrorMessage(id, resourceIdExists);
+  const hasValidValues =
+    selectedEnv && selectedService && id && !idErrorMessage && !isImportingResource;
   /**
    * Reset fields on close
    */
@@ -78,6 +83,7 @@ export const ImportResourceModal = ({
       },
       {
         onSuccess: (resource: Resource) => {
+          toast.success(t('resourceadm.dashboard_import_success'));
           navigate(getResourcePageURL(selectedContext, repo, resource.identifier, 'about'));
         },
         onError: (error: AxiosError) => {
@@ -133,10 +139,11 @@ export const ImportResourceModal = ({
               <Textfield
                 label={t('resourceadm.dashboard_resource_name_and_id_resource_id')}
                 value={id}
-                onChange={(event) => setId(formatIdString(event.target.value))}
-                error={
-                  resourceIdExists ? t('resourceadm.dashboard_resource_name_and_id_error') : ''
-                }
+                onChange={(event) => {
+                  setResourceIdExists(false);
+                  setId(formatIdString(event.target.value));
+                }}
+                error={idErrorMessage ? t(idErrorMessage) : ''}
               />
             </div>
           )}
@@ -144,10 +151,10 @@ export const ImportResourceModal = ({
       )}
       <div className={classes.buttonWrapper}>
         <StudioButton
-          onClick={handleImportResource}
+          onClick={() => (hasValidValues ? handleImportResource() : undefined)}
           color='first'
           size='small'
-          disabled={!selectedEnv || !selectedService || !id}
+          aria-disabled={!hasValidValues}
         >
           {t('resourceadm.dashboard_import_modal_import_button')}
         </StudioButton>

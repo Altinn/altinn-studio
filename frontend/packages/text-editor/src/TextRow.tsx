@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
 import classes from './TextRow.module.css';
-import type { UpsertTextResourceMutation } from './types';
+import type {
+  UpsertTextResourceMutation,
+  TextResourceIdMutation,
+  TextResourceVariable,
+  TextTableRowEntry,
+} from './types';
 import { TrashIcon, PencilIcon } from '@studio/icons';
 import { TableCell, TableRow, Textfield } from '@digdir/design-system-react';
 
 import { useTranslation } from 'react-i18next';
 import { ButtonContainer } from 'app-shared/primitives';
-import type { TextResourceIdMutation, TextResourceVariable, TextTableRowEntry } from './types';
+
 import { validateTextId } from './utils';
 import { TextEntry } from './TextEntry';
 import { Variables } from './Variables';
@@ -22,7 +27,8 @@ export interface TextRowProps {
   upsertTextResource: (data: UpsertTextResourceMutation) => void;
   variables: TextResourceVariable[];
   selectedLanguages: string[];
-  showButton?: boolean;
+  showEditButton?: boolean;
+  showDeleteButton?: boolean;
 }
 
 export const TextRow = ({
@@ -34,7 +40,8 @@ export const TextRow = ({
   idExists,
   variables,
   selectedLanguages,
-  showButton = true,
+  showEditButton = true,
+  showDeleteButton = true,
 }: TextRowProps) => {
   const [textIdValue, setTextIdValue] = useState(textId);
   const [textIdEditOpen, setTextIdEditOpen] = useState(false);
@@ -73,7 +80,7 @@ export const TextRow = ({
   return (
     <TableRow>
       <TableCell>
-        {showButton && (
+        {showDeleteButton && (
           <AltinnConfirmDialog
             open={isConfirmDeleteDialogOpen}
             confirmText={t('schema_editor.textRow-deletion-confirm')}
@@ -134,7 +141,7 @@ export const TextRow = ({
               <span>{textIdValue}</span>
             </div>
           )}
-          {showButton && (
+          {showEditButton && (
             <StudioButton
               aria-label={t('text_editor.toggle_edit_mode', { textKey: textIdValue })}
               icon={<PencilIcon />}

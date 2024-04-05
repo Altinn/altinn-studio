@@ -1,29 +1,32 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
 import classes from './RepeatingGroupComponent.module.css';
 import { Checkbox, LegacyFieldSet, LegacyTextField } from '@digdir/design-system-react';
 import { FormField } from '../../../FormField';
 import { getTextResource } from '../../../../utils/language';
-import { useSelectedFormLayout, useText, useTextResourcesSelector } from '../../../../hooks';
+import {
+  useSelectedFormLayout,
+  useText,
+  useTextResourcesSelector,
+  useAppContext,
+} from '../../../../hooks';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from '../../../../hooks/useAppContext';
 import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
 import type { ITextResource } from 'app-shared/types/global';
 import { textResourcesByLanguageSelector } from '../../../../selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { selectedLayoutNameSelector } from '../../../../selectors/formLayoutSelectors';
 import type { IEditFormComponentProps } from '../../EditFormComponent';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
 export const RepeatingGroupComponent = ({
   component,
   handleComponentUpdate,
-}: IEditFormComponentProps) => {
+}: IEditFormComponentProps<ComponentType.RepeatingGroup>) => {
   const t = useText();
 
   const { org, app } = useStudioUrlParams();
 
-  const { selectedLayoutSet } = useAppContext();
-  const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
+  const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
+  const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
   const { components } = useSelectedFormLayout();
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
     textResourcesByLanguageSelector(DEFAULT_LANGUAGE),
@@ -31,8 +34,7 @@ export const RepeatingGroupComponent = ({
 
   const [tableHeadersError, setTableHeadersError] = useState<string>(null);
 
-  const selectedLayout = useSelector(selectedLayoutNameSelector);
-  const layoutOrder = formLayouts?.[selectedLayout]?.order || {};
+  const layoutOrder = formLayouts?.[selectedFormLayoutName]?.order || {};
 
   const items = layoutOrder[component.id];
 

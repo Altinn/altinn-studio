@@ -1,13 +1,8 @@
-.headerWrapper {
-  display: flex;
-  align-items: center;
-  margin-inline: 1rem;
-  margin-top: 1rem;
-  justify-content: space-between;
+.editTaskId {
+  margin-bottom: var(--fds-spacing-4);
 }
 
-.headerTextAndIconWrapper {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+.displayTile {
+  padding: var(--fds-spacing-1) var(--fds-spacing-4);
+  box-sizing: border-box;
 }

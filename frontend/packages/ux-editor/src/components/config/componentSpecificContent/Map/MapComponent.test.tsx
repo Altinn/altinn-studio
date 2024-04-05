@@ -2,11 +2,11 @@ import React from 'react';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MapComponent } from './MapComponent';
-import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
-import { appDataMock } from '../../../../testing/stateMocks';
+import { renderWithProviders, renderHookWithProviders } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
 import type { IGenericEditComponent } from '../../componentConfig';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
 const texts: Record<string, string> = {
   'validation_errors.required': 'Feltet er påkrevd!',
@@ -27,76 +27,29 @@ jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(tex
 const handleComponentChangeMock = jest.fn();
 
 const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
-    .renderHookResult.result;
+  const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
 const renderMapComponent = async ({
   component = {} as any,
   handleComponentChange = handleComponentChangeMock,
-}: Partial<IGenericEditComponent>) => {
+}: Partial<IGenericEditComponent<ComponentType.Map>>) => {
   await waitForData();
 
-  renderWithMockStore({
-    appData: { ...appDataMock },
-  })(<MapComponent component={component} handleComponentChange={handleComponentChange} />);
+  renderWithProviders(
+    <MapComponent component={component} handleComponentChange={handleComponentChange} />,
+  );
 };
 
 describe('MapComponent', () => {
   afterEach(() => jest.resetAllMocks());
 
-  test('should render titles', async () => {
+  it('should render /Legg til kartlag/ button', async () => {
     await renderMapComponent({});
-    expect(screen.getByRole('heading', { level: 2, name: 'Sentrum av kartet' }));
-    expect(screen.getByRole('heading', { level: 2, name: 'Legg til kartlag' }));
-  });
-
-  test('should render input-fields, latitude, longitude, zoom and button "Add map layer"', async () => {
-    await renderMapComponent({});
-    expect(screen.getByLabelText('Latitude')).toBeInTheDocument();
-    expect(screen.getByLabelText('Longitude')).toBeInTheDocument();
-    expect(screen.getByLabelText('Standard zoom')).toBeInTheDocument();
-  });
-
-  test('should be able to set latitude', async () => {
-    const user = userEvent.setup();
-    await renderMapComponent({
-      handleComponentChange: handleComponentChangeMock,
-    });
-
-    const latitudeInput = screen.getByLabelText('Latitude');
-    await act(() => user.type(latitudeInput, '40'));
-
-    expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
-      centerLocation: { latitude: 40 },
-    });
-  });
-
-  test('should be able to set longitude', async () => {
-    const user = userEvent.setup();
-    await renderMapComponent({
-      handleComponentChange: handleComponentChangeMock,
-    });
-
-    const longitudeInput = screen.getByLabelText('Longitude');
-    await act(() => user.type(longitudeInput, '21'));
-
-    expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
-      centerLocation: { longitude: 21 },
-    });
-  });
-
-  test('should be able to set zoom', async () => {
-    const user = userEvent.setup();
-    await renderMapComponent({
-      handleComponentChange: handleComponentChangeMock,
-    });
-
-    const zoomInput = screen.getByLabelText('Standard zoom');
-    await act(() => user.type(zoomInput, '2'));
-
-    expect(handleComponentChangeMock).toHaveBeenLastCalledWith({ zoom: 2 });
+    expect(
+      screen.getByRole('button', { name: texts['ux_editor.add_map_layer'] }),
+    ).toBeInTheDocument();
   });
 });
 

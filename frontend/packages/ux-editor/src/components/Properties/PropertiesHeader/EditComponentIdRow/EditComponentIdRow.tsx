@@ -1,60 +1,84 @@
-import React from 'react';
-import { idExists } from '../../../../utils/formLayoutUtils';
-import { useTranslation } from 'react-i18next';
-import { useSelectedFormLayout } from '../../../../hooks';
-import { FormField } from '../../../FormField';
-import { Textfield } from '@digdir/design-system-react';
+import React, { useState } from 'react';
+import { StudioToggleableTextfieldSchema, type SchemaValidationError } from '@studio/components';
+import { KeyVerticalIcon } from '@navikt/aksel-icons';
+import classes from './EditComponentIdRow.module.css';
+import { idExists } from '../../../../utils/formLayoutsUtils';
+import { Trans, useTranslation } from 'react-i18next';
 import type { FormItem } from '../../../../types/FormItem';
+import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
+import { useFormLayouts } from '../../../../hooks';
 
 export interface EditComponentIdRowProps {
   handleComponentUpdate: (component: FormItem) => void;
   component: FormItem;
   helpText?: string;
 }
+
 export const EditComponentIdRow = ({
   component,
   handleComponentUpdate,
-  helpText,
 }: EditComponentIdRowProps) => {
-  const { components, containers } = useSelectedFormLayout();
+  const formLayouts = useFormLayouts();
   const { t } = useTranslation();
+  const [{ data: layoutSchema }, , { data: expressionSchema }, { data: numberFormatSchema }] =
+    useLayoutSchemaQuery();
 
-  const handleIdChange = (id: string) => {
+  const [errorMessage, setErrorMessage] = useState<string | undefined>(null);
+
+  const idInputValue = component.id;
+
+  const saveComponentUpdate = (id: string) => {
     handleComponentUpdate({
       ...component,
       id,
     });
   };
 
+  const validateId = (value: string) => {
+    if (value?.length === 0) {
+      return t('validation_errors.required');
+    }
+    if (value !== component.id && idExists(value, formLayouts)) {
+      return t('ux_editor.modal_properties_component_id_not_unique_error');
+    }
+    return '';
+  };
+
+  const handleValidationError = (error: SchemaValidationError | null): void => {
+    const errorCodeMap = {
+      required: t('validation_errors.required'),
+      unique: t('ux_editor.modal_properties_component_id_not_unique_error'),
+      pattern: t('ux_editor.modal_properties_component_id_not_valid'),
+    };
+    setErrorMessage(errorCodeMap[error?.errorCode]);
+  };
+
   return (
-    <FormField
-      id={component.id}
-      label={t('ux_editor.modal_properties_component_change_id')}
-      value={component.id}
-      onChange={handleIdChange}
-      propertyPath='definitions/component/properties/id'
-      componentType={component.type}
-      helpText={helpText}
-      customValidationRules={(value: string) => {
-        if (value !== component.id && idExists(value, components, containers)) {
-          return 'unique';
-        }
-      }}
-      customValidationMessages={(errorCode: string) => {
-        if (errorCode === 'unique') {
-          return t('ux_editor.modal_properties_component_id_not_unique_error');
-        }
-        if (errorCode === 'pattern') {
-          return t('ux_editor.modal_properties_component_id_not_valid');
-        }
-      }}
-      renderField={({ fieldProps }) => (
-        <Textfield
-          {...fieldProps}
-          name={`component-id-input${component.id}`}
-          onChange={(e) => fieldProps.onChange(e.target.value, e)}
-        />
-      )}
-    />
+    <div className={classes.container}>
+      <StudioToggleableTextfieldSchema
+        onError={handleValidationError}
+        layoutSchema={layoutSchema}
+        relatedSchemas={[expressionSchema, numberFormatSchema]}
+        propertyPath='definitions/component/properties/id'
+        key={component.id}
+        viewProps={{
+          children: <Trans i18nKey={'ux_editor.id_identifier'} values={{ item: component.id }} />,
+          variant: 'tertiary',
+          fullWidth: true,
+        }}
+        inputProps={{
+          icon: <KeyVerticalIcon />,
+          value: idInputValue,
+          onBlur: (event) => saveComponentUpdate(event.target.value),
+          label: t('ux_editor.modal_properties_component_change_id'),
+          size: 'small',
+          error: errorMessage,
+          className: classes.idInput,
+        }}
+        customValidation={(value) => {
+          return validateId(value);
+        }}
+      />
+    </div>
   );
 };

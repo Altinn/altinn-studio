@@ -7,12 +7,10 @@ import { useUpdateAppAttachmentMetadataMutation } from './useUpdateAppAttachment
 import { switchSelectedFieldId } from '../../utils/ruleConfigUtils';
 import { useRuleConfigQuery } from '../queries/useRuleConfigQuery';
 import { useRuleConfigMutation } from './useRuleConfigMutation';
-import { useFormLayout } from '../useFormLayoutsSelector';
-import { deepCopy } from 'app-shared/pure';
+import { useFormLayout, useSelectedTaskId } from '../';
+import { ObjectUtils } from '@studio/pure-functions';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import type { FormComponent, FormFileUploaderComponent } from '../../types/FormComponent';
-import { useLayoutSetsQuery } from '../queries/useLayoutSetsQuery';
-import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
 
 export interface UpdateFormComponentMutationArgs {
   updatedComponent: FormComponent;
@@ -31,11 +29,11 @@ export const useUpdateFormComponentMutation = (
   const addAppAttachmentMetadataMutation = useAddAppAttachmentMetadataMutation(org, app);
   const deleteAppAttachmentMetadataMutation = useDeleteAppAttachmentMetadataMutation(org, app);
   const updateAppAttachmentMetadata = useUpdateAppAttachmentMetadataMutation(org, app);
-  const { data: layoutSets } = useLayoutSetsQuery(org, app);
+  const taskId = useSelectedTaskId(layoutSetName);
   const { mutateAsync: saveRuleConfig } = useRuleConfigMutation(org, app, layoutSetName);
   return useMutation({
     mutationFn: ({ updatedComponent, id }: UpdateFormComponentMutationArgs) => {
-      const updatedLayout: IInternalLayout = deepCopy(layout);
+      const updatedLayout: IInternalLayout = ObjectUtils.deepCopy(layout);
       const { components, order } = updatedLayout;
 
       const currentId = id;
@@ -70,9 +68,6 @@ export const useUpdateFormComponentMutation = (
             updatedComponent.type === ComponentType.FileUploadWithTag
           ) {
             // Todo: Consider handling this in the backend
-            const taskId = layoutSets
-              ? layoutSets?.sets.find((set) => set.id === layoutSetName)?.tasks[0]
-              : TASKID_FOR_STATELESS_APPS;
             const {
               maxNumberOfAttachments,
               minNumberOfAttachments,

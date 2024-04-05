@@ -3,12 +3,14 @@ import {
   addOrRemoveNavigationButtons,
   convertExternalLayoutsToInternalFormat,
   firstAvailableLayout,
+  idExists,
 } from './formLayoutsUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { createEmptyLayout } from './formLayoutUtils';
 import { BASE_CONTAINER_ID, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { externalLayoutsMock, layout1NameMock, layout2NameMock } from '../testing/layoutMock';
 import type { FormButtonComponent } from '../types/FormComponent';
+import { componentMocks } from '../testing/componentMocks';
 
 describe('formLayoutsUtils', () => {
   describe('addOrRemoveNavigationButtons', () => {
@@ -261,13 +263,11 @@ describe('formLayoutsUtils', () => {
 
   describe('convertExternalLayoutsToInternalFormat', () => {
     it('Converts external layouts to internal format', () => {
-      const { convertedLayouts, invalidLayouts } =
-        convertExternalLayoutsToInternalFormat(externalLayoutsMock);
+      const convertedLayouts = convertExternalLayoutsToInternalFormat(externalLayoutsMock);
       expect(convertedLayouts).toEqual({
         [layout1NameMock]: expect.any(Object),
         [layout2NameMock]: expect.any(Object),
       });
-      expect(invalidLayouts).toEqual([]);
     });
   });
 
@@ -293,6 +293,48 @@ describe('formLayoutsUtils', () => {
       const layoutOrder = [layout1Id];
       const layout = firstAvailableLayout(layout1Id, layoutOrder);
       expect(layout).toBe(DEFAULT_SELECTED_LAYOUT_NAME);
+    });
+  });
+
+  describe('idExists', () => {
+    const layoutId = 'layout1';
+    const layoutId2 = 'layout2';
+    const navButtonsId = 'navButtons';
+    const groupId = 'group1';
+    const groupComponent = componentMocks[ComponentType.Group];
+
+    const formLayouts: IFormLayouts = {
+      [layoutId]: {
+        components: { [navButtonsId]: componentMocks[ComponentType.NavigationButtons] },
+        containers: undefined,
+        order: { [BASE_CONTAINER_ID]: [navButtonsId] },
+        customRootProperties: {},
+        customDataProperties: {},
+      },
+      [layoutId2]: {
+        components: undefined,
+        containers: {
+          [groupId]: groupComponent,
+        },
+        order: { [BASE_CONTAINER_ID]: [groupId] },
+        customRootProperties: {},
+        customDataProperties: {},
+      },
+    };
+
+    it('returns true when a container has the same id', () => {
+      const exists = idExists(groupId, formLayouts);
+      expect(exists).toBe(true);
+    });
+
+    it('returns true if when a component has the same id', () => {
+      const exists = idExists(navButtonsId, formLayouts);
+      expect(exists).toBe(true);
+    });
+
+    it('Returns false if id does not exist in any of the layouts', () => {
+      const exists = idExists('unique', formLayouts);
+      expect(exists).toBe(false);
     });
   });
 });

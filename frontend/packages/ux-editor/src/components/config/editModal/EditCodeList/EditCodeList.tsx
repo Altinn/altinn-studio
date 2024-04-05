@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, LegacySelect, Textfield } from '@digdir/design-system-react';
+import { Alert, LegacySelect, Textfield, ErrorMessage } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { useOptionListIdsQuery } from '../../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation, Trans } from 'react-i18next';
 import { StudioButton, StudioSpinner } from '@studio/components';
-import { ErrorMessage } from '@digdir/design-system-react';
+
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { FormField } from '../../../FormField';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import classes from './EditCodeList.module.css';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
-export function EditCodeList({ component, handleComponentChange }: IGenericEditComponent) {
+export function EditCodeList<
+  T extends ComponentType.Checkboxes | ComponentType.RadioButtons | ComponentType.Dropdown,
+>({ component, handleComponentChange }: IGenericEditComponent<T>) {
   const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
 
@@ -29,7 +32,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
   }, [optionListIds]);
 
   return (
-    <div>
+    <div className={classes.root}>
       {isPending ? (
         <StudioSpinner
           showSpinnerTitle={false}

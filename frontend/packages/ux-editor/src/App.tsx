@@ -1,19 +1,13 @@
-import React, { useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import React from 'react';
 import { FormDesigner } from './containers/FormDesigner';
-import { useText } from './hooks';
+import { useText, useAppContext } from './hooks';
 import { StudioPageSpinner } from '@studio/components';
 import { ErrorPage } from './components/ErrorPage';
 import { useDatamodelMetadataQuery } from './hooks/queries/useDatamodelMetadataQuery';
-import { selectedLayoutNameSelector } from './selectors/formLayoutSelectors';
 import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
-import { useLayoutSetsQuery } from './hooks/queries/useLayoutSetsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from './hooks/useAppContext';
 import { FormItemContextProvider } from './containers/FormItemContext';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { UnsupportedVersionMessage } from './components/UnsupportedVersionMessage';
 
 /**
  * This is the main React component responsible for controlling
@@ -24,31 +18,13 @@ import { UnsupportedVersionMessage } from './components/UnsupportedVersionMessag
 export function App() {
   const t = useText();
   const { org, app } = useStudioUrlParams();
-  const selectedLayout = useSelector(selectedLayoutNameSelector);
-  const { selectedLayoutSet, setSelectedLayoutSet, removeSelectedLayoutSet } = useAppContext();
-  const { data: layoutSets, isSuccess: areLayoutSetsFetched } = useLayoutSetsQuery(org, app);
+  const { selectedFormLayoutSetName } = useAppContext();
   const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
   const { isSuccess: isDatamodelFetched, isError: dataModelFetchedError } =
-    useDatamodelMetadataQuery(org, app);
+    useDatamodelMetadataQuery(org, app, selectedFormLayoutSetName);
   const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
 
-  useEffect(() => {
-    if (
-      areLayoutSetsFetched &&
-      selectedLayoutSet &&
-      (!layoutSets || !layoutSets.sets.map((set) => set.id).includes(selectedLayoutSet))
-    )
-      removeSelectedLayoutSet();
-  }, [
-    areLayoutSetsFetched,
-    layoutSets,
-    selectedLayoutSet,
-    setSelectedLayoutSet,
-    removeSelectedLayoutSet,
-  ]);
-
-  const componentIsReady =
-    areWidgetsFetched && isDatamodelFetched && areTextResourcesFetched && areLayoutSetsFetched;
+  const componentIsReady = areWidgetsFetched && isDatamodelFetched && areTextResourcesFetched;
 
   const componentHasError = dataModelFetchedError || widgetFetchedError;
 
@@ -71,19 +47,6 @@ export function App() {
     return createErrorMessage(t('general.unknown_error'));
   };
 
-  useEffect(() => {
-    if (selectedLayoutSet === null && layoutSets) {
-      // Only set layout set if layout sets exists and there is no layout set selected yet
-      setSelectedLayoutSet(layoutSets.sets[0].id);
-    }
-  }, [setSelectedLayoutSet, selectedLayoutSet, layoutSets, app]);
-
-  if (!shouldDisplayFeature('shouldOverrideAppFrontendCheck')) {
-    return (
-      <UnsupportedVersionMessage version='V4' closestSupportedVersion='V3' category='too-new' />
-    );
-  }
-
   if (componentHasError) {
     const mappedError = mapErrorToDisplayError();
     return <ErrorPage title={mappedError.title} message={mappedError.message} />;
@@ -92,7 +55,7 @@ export function App() {
   if (componentIsReady) {
     return (
       <FormItemContextProvider>
-        <FormDesigner selectedLayout={selectedLayout} selectedLayoutSet={selectedLayoutSet} />
+        <FormDesigner />
       </FormItemContextProvider>
     );
   }

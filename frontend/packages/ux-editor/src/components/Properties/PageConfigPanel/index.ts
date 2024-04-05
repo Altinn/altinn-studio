@@ -1,0 +1,1 @@
+export { PageConfigPanel } from './PageConfigPanel';

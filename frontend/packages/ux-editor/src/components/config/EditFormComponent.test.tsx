@@ -1,17 +1,14 @@
 import React from 'react';
 import type { IEditFormComponentProps } from './EditFormComponent';
 import { EditFormComponent } from './EditFormComponent';
-import { act, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { renderHookWithMockStore, renderWithMockStore } from '../../testing/mocks';
+import { screen, waitFor } from '@testing-library/react';
+import { renderHookWithProviders, renderWithProviders } from '../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 import type { DatamodelMetadataResponse } from 'app-shared/types/api';
 import { componentMocks } from '../../testing/componentMocks';
-
-const user = userEvent.setup();
 
 // Test data:
 const srcValueLabel = 'Source';
@@ -67,104 +64,6 @@ describe('EditFormComponent', () => {
     jest.clearAllMocks();
   });
 
-  test('should return header specific content when type header', async () => {
-    await render({
-      component: {
-        ...componentMocks[ComponentType.Header],
-      },
-    });
-
-    await waitFor(() =>
-      expect(
-        screen.getByRole('combobox', { name: textMock('ux_editor.modal_header_type_helper') }),
-      ),
-    );
-  });
-
-  test('should render only custom code for repeating group component', async () => {
-    await render({
-      component: { ...componentMocks[ComponentType.RepeatingGroup] },
-    });
-
-    const betaSwitch = screen.queryByRole('combobox', {
-      name: textMock('ux_editor.edit_component.show_beta_func'),
-    });
-    expect(betaSwitch).not.toBeInTheDocument();
-
-    const maxOccursField = screen.getByRole('textbox', {
-      name: textMock('ux_editor.modal_properties_group_max_occur'),
-    });
-    expect(maxOccursField).toBeInTheDocument();
-  });
-
-  test('should return file uploader specific content when type file uploader', async () => {
-    await render({
-      component: { ...componentMocks[ComponentType.FileUpload] },
-    });
-
-    const labels = [
-      'ux_editor.modal_properties_file_upload_simple',
-      'ux_editor.modal_properties_file_upload_list',
-      'ux_editor.modal_properties_valid_file_endings_all',
-      'ux_editor.modal_properties_valid_file_endings_custom',
-      'ux_editor.modal_properties_minimum_files',
-      'ux_editor.modal_properties_maximum_files',
-    ];
-
-    labels.map((label) => expect(screen.getByLabelText(textMock(label))));
-    expect(
-      screen.getByLabelText(
-        `${textMock('ux_editor.modal_properties_maximum_file_size')} (${textMock(
-          'ux_editor.modal_properties_maximum_file_size_helper',
-        )})`,
-      ),
-    );
-  });
-
-  test('should call handleComponentUpdate with max number of attachments to 1 when clearing max number of attachments', async () => {
-    const handleUpdate = jest.fn();
-    await render({
-      component: {
-        ...componentMocks[ComponentType.FileUpload],
-        maxNumberOfAttachments: 3,
-      },
-      handleComponentUpdate: handleUpdate,
-    });
-
-    const maxFilesInput = screen.getByLabelText(
-      textMock('ux_editor.modal_properties_maximum_files'),
-    );
-
-    await act(() => user.clear(maxFilesInput));
-    expect(handleUpdate).toHaveBeenCalledWith({
-      ...componentMocks[ComponentType.FileUpload],
-      maxNumberOfAttachments: 1,
-    });
-  });
-
-  test('should call handleComponentUpdate with required: false when min number of attachments is set to 0', async () => {
-    const handleUpdate = jest.fn();
-    await render({
-      component: {
-        ...componentMocks[ComponentType.FileUpload],
-        required: true,
-        minNumberOfAttachments: 1,
-      },
-      handleComponentUpdate: handleUpdate,
-    });
-
-    const minFilesInput = screen.getByLabelText(
-      textMock('ux_editor.modal_properties_minimum_files'),
-    );
-
-    await act(() => user.clear(minFilesInput));
-    expect(handleUpdate).toHaveBeenCalledWith({
-      ...componentMocks[ComponentType.FileUpload],
-      required: false,
-      minNumberOfAttachments: 0,
-    });
-  });
-
   test('should render Image component when component type is Image', async () => {
     await render({
       component: { ...componentMocks[ComponentType.Image] },
@@ -196,13 +95,12 @@ describe('EditFormComponent', () => {
 });
 
 const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
-    .renderHookResult.result;
+  const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
-  const dataModelMetadataResult = renderHookWithMockStore(
-    {},
-    { getDatamodelMetadata },
-  )(() => useDatamodelMetadataQuery('test-org', 'test-app')).renderHookResult.result;
+  const dataModelMetadataResult = renderHookWithProviders(
+    () => useDatamodelMetadataQuery('test-org', 'test-app', 'test-layout-set'),
+    { queries: { getDatamodelMetadata } },
+  ).result;
   await waitFor(() => expect(dataModelMetadataResult.current.isSuccess).toBe(true));
 };
 
@@ -215,8 +113,7 @@ const defaultProps: IEditFormComponentProps = {
 const render = async (props: Partial<IEditFormComponentProps> = {}) => {
   await waitForData();
 
-  renderWithMockStore(
-    {},
-    { getDatamodelMetadata },
-  )(<EditFormComponent {...defaultProps} {...props} />);
+  renderWithProviders(<EditFormComponent {...defaultProps} {...props} />, {
+    queries: { getDatamodelMetadata },
+  });
 };

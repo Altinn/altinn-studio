@@ -329,7 +329,8 @@ namespace Designer.Tests.Services
 
             ApplicationMetadataService applicationInformationService = new(new Mock<ILogger<ApplicationMetadataService>>().Object, altinnStorageAppMetadataClient, altinnGitRepositoryFactory, httpContextAccessorMock.Object, new IGiteaMock());
 
-            AppDevelopmentService appDevelopmentService = new(altinnGitRepositoryFactory);
+            ISchemaModelService schemaModelService = new Mock<ISchemaModelService>().Object;
+            AppDevelopmentService appDevelopmentService = new(altinnGitRepositoryFactory, schemaModelService);
 
             TextsService textsService = new(altinnGitRepositoryFactory, applicationInformationService);
 

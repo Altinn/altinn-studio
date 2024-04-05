@@ -1,4 +1,4 @@
-import { renderHookWithMockStore } from '../testing/mocks';
+import { renderHookWithProviders } from '../testing/mocks';
 import { useComponentErrorMessage } from './useComponentErrorMessage';
 import type { FormComponent } from '../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -16,7 +16,7 @@ describe('useComponentErrorMessage', () => {
       id: 'test',
       optionsId: '',
       itemType: 'COMPONENT',
-      dataModelBindings: {},
+      dataModelBindings: { simpleBinding: 'some-path' },
     };
     const { result } = renderHook(invalidComponent);
     expect(result.current).toEqual(textMock('ux_editor.checkboxes_error_DuplicateValues'));
@@ -33,7 +33,7 @@ describe('useComponentErrorMessage', () => {
       id: 'test',
       optionsId: '',
       itemType: 'COMPONENT',
-      dataModelBindings: {},
+      dataModelBindings: { simpleBinding: 'some-path' },
     };
     const { result } = renderHook(validComponent);
     expect(result.current).toBeNull();
@@ -41,4 +41,4 @@ describe('useComponentErrorMessage', () => {
 });
 
 const renderHook = (component: FormComponent) =>
-  renderHookWithMockStore()(() => useComponentErrorMessage(component)).renderHookResult;
+  renderHookWithProviders(() => useComponentErrorMessage(component));

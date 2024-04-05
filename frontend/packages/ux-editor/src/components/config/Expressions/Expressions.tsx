@@ -1,95 +1,77 @@
 import React, { useContext } from 'react';
-import { Alert } from '@digdir/design-system-react';
-import { ExpressionContent } from './ExpressionContent';
-import { useText } from '../../../hooks';
-import type { ExpressionProperty } from '../../../types/Expressions';
-import { getExpressionPropertiesBasedOnComponentType } from '../../../types/Expressions';
-import {
-  addPropertyForExpression,
-  getAllComponentPropertiesThatCanHaveExpressions,
-  getNonOverlappingElementsFromTwoLists,
-  getPropertiesWithExistingExpression,
-} from '../../../utils/expressionsUtils';
+import { Paragraph, Link } from '@digdir/design-system-react';
+import { ExpressionContent } from '../ExpressionContent';
 import classes from './Expressions.module.css';
-import type { LayoutItemType } from '../../../types/global';
 import { FormItemContext } from '../../../containers/FormItemContext';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { Trans } from 'react-i18next';
 import { NewExpressionButton } from './NewExpressionButton';
+import {
+  getDefinedExpressionProperties,
+  getPropertyValue,
+  removeExpressionFromFormItem,
+  setExpressionOnFormItem,
+} from './utils';
+import type { FormItemProperty } from '../../../types/FormItemProperty';
+import { ExpressionHeading } from './ExpressionHeading';
+import type { FormItem } from '../../../types/FormItem';
+import type { BooleanExpression } from '@studio/components';
+import { StudioCodeFragment } from '@studio/components';
+import { useText } from '../../../hooks';
 
 export const Expressions = () => {
-  const { formItem } = useContext(FormItemContext);
-  const availableProperties = getAllComponentPropertiesThatCanHaveExpressions(formItem);
-  const propertiesFromComponentWithExpressions = getPropertiesWithExistingExpression(
-    formItem,
-    availableProperties,
-  );
-  const [propertiesWithExpressions, setPropertiesWithExpressions] = React.useState<
-    ExpressionProperty[]
-  >(propertiesFromComponentWithExpressions.length ? propertiesFromComponentWithExpressions : []);
-  const [newlyAddedProperty, setNewlyAddedProperty] = React.useState<ExpressionProperty>(undefined);
-  const t = useText();
-  const expressionProperties = getExpressionPropertiesBasedOnComponentType(
-    formItem.itemType as LayoutItemType,
-  );
-  const isExpressionLimitReached =
-    propertiesWithExpressions?.length >= expressionProperties?.length;
+  const { formItem, handleUpdate, debounceSave } = useContext(FormItemContext);
 
-  const addNewExpression = (property: ExpressionProperty) => {
-    const newProperties = addPropertyForExpression(propertiesWithExpressions, property);
-    setPropertiesWithExpressions(newProperties);
-    setNewlyAddedProperty(newProperties.at(newProperties.length - 1));
+  const updateAndSave = async (newFormItem: FormItem) => {
+    handleUpdate(newFormItem);
+    await debounceSave(); // Todo: Make the function synchronous: https://github.com/Altinn/altinn-studio/issues/12383
   };
 
-  const handleDeleteExpression = (propertyToDelete: ExpressionProperty) => {
-    const updatedProperties = propertiesWithExpressions.filter(
-      (property) => property !== propertyToDelete,
-    );
-    setPropertiesWithExpressions(updatedProperties);
+  const handleExpressionChange = (property: FormItemProperty, newExpression: BooleanExpression) => {
+    const newFormItem = setExpressionOnFormItem(formItem, property, newExpression);
+    updateAndSave(newFormItem);
   };
 
-  const getAvailableProperties = (): ExpressionProperty[] => {
-    return getNonOverlappingElementsFromTwoLists(expressionProperties, propertiesWithExpressions);
+  const handleDeleteExpression = (property: FormItemProperty) => {
+    const newFormItem = removeExpressionFromFormItem(formItem, property);
+    updateAndSave(newFormItem);
   };
+
+  const propertiesWithExpressions = getDefinedExpressionProperties(formItem);
 
   return (
     <div className={classes.root}>
-      <Trans i18nKey={'right_menu.read_more_about_expressions'}>
-        <a
-          href={altinnDocsUrl('altinn-studio/designer/build-app/expressions')}
-          target='_newTab'
-          rel='noopener noreferrer'
-        />
-      </Trans>
-      {Object.values(propertiesWithExpressions).map((property: ExpressionProperty) => (
+      <ReadMoreLink />
+      {!propertiesWithExpressions.length && <Placeholder componentName={formItem.id} />}
+      {Object.values(propertiesWithExpressions).map((property) => (
         <ExpressionContent
-          key={property}
-          property={property}
-          defaultEditMode={property === newlyAddedProperty}
-          onDeleteExpression={handleDeleteExpression}
+          expression={getPropertyValue(formItem, property)}
+          heading={<ExpressionHeading formItem={formItem} property={property} />}
+          key={JSON.stringify(property)}
+          onChange={(expression) => handleExpressionChange(property, expression)}
+          onDelete={() => handleDeleteExpression(property)}
         />
       ))}
-      {isExpressionLimitReached ? (
-        <Alert className={classes.expressionsAlert}>
-          {t('right_menu.expressions_expressions_limit_reached_alert')}
-        </Alert>
-      ) : (
-        <>
-          {propertiesWithExpressions.length === 0 && (
-            <p>
-              <Trans
-                i18nKey={'right_menu.expressions_property_on_component'}
-                values={{ componentName: formItem.id }}
-                components={{ bold: <strong /> }}
-              />
-            </p>
-          )}
-          <NewExpressionButton
-            options={getAvailableProperties()}
-            onAddExpression={(property: ExpressionProperty) => addNewExpression(property)}
-          />
-        </>
-      )}
+      <NewExpressionButton />
     </div>
   );
 };
+
+const ReadMoreLink = () => {
+  const t = useText();
+  return (
+    <Link href={altinnDocsUrl('altinn-studio/designer/build-app/expressions')}>
+      {t('right_menu.read_more_about_expressions')}
+    </Link>
+  );
+};
+
+const Placeholder = ({ componentName }: { componentName: string }) => (
+  <Paragraph size='small'>
+    <Trans
+      i18nKey={'right_menu.expressions_property_on_component'}
+      values={{ componentName }}
+      components={{ bold: <StudioCodeFragment /> }}
+    />
+  </Paragraph>
+);

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import React, { useCallback } from 'react';
+import React from 'react';
 import classes from './PageAccordion.module.css';
 import cn from 'classnames';
 import { Accordion } from '@digdir/design-system-react';
@@ -7,13 +7,10 @@ import { NavigationMenu } from './NavigationMenu';
 import * as testids from '../../../../../../testing/testids';
 import { TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from '../../../hooks/useAppContext';
-import { firstAvailableLayout } from '../../../utils/formLayoutsUtils';
-import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
+import { useAppContext } from '../../../hooks';
 import { StudioButton } from '@studio/components';
-import { useDeleteLayout } from './useDeleteLayout';
+import { useDeleteLayoutMutation } from '../../../hooks/mutations/useDeleteLayoutMutation';
 
 export type PageAccordionProps = {
   pageName: string;
@@ -45,24 +42,19 @@ export const PageAccordion = ({
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
-  const { selectedLayoutSet } = useAppContext();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const selectedLayout = searchParams.get('layout');
+  const { selectedFormLayoutSetName } = useAppContext();
 
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
-  const layoutOrder = formLayoutSettings?.pages.order;
+  const { mutate: deleteLayout, isPending } = useDeleteLayoutMutation(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
 
-  const { mutate: deleteLayout, isPending } = useDeleteLayout();
-
-  const handleConfirmDelete = useCallback(() => {
+  const handleConfirmDelete = () => {
     if (confirm(t('ux_editor.page_delete_text'))) {
       deleteLayout(pageName);
-      if (selectedLayout === pageName) {
-        const layoutToSelect = firstAvailableLayout(pageName, layoutOrder);
-        setSearchParams({ layout: layoutToSelect });
-      }
     }
-  }, [deleteLayout, layoutOrder, pageName, selectedLayout, setSearchParams, t]);
+  };
 
   return (
     <Accordion.Item

@@ -1,6 +1,6 @@
 import React from 'react';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { renderWithMockStore } from '../../../../frontend/packages/ux-editor/src/testing/mocks';
+import { renderWithProviders } from '../../../../frontend/packages/ux-editor/src/testing/mocks';
 import { layoutSetsMock } from '../../../../frontend/packages/ux-editor/src/testing/layoutMock';
 import type { AppPreviewSubMenuProps } from './AppPreviewSubMenu';
 import { AppPreviewSubMenu } from './AppPreviewSubMenu';
@@ -33,7 +33,7 @@ describe('AppPreviewSubMenu', () => {
 
   it('renders the component with desktop viewSize', () => {
     setQueryData(null);
-    renderWithMockStore()(<AppPreviewSubMenu {...props} />);
+    renderWithProviders(<AppPreviewSubMenu {...props} />);
     const desktopButton = screen.getByRole('button', { name: 'preview.view_size_desktop' });
     const mobileButton = screen.getByRole('button', { name: 'preview.view_size_mobile' });
     expect(desktopButton).toHaveAttribute('aria-pressed', 'true');
@@ -42,7 +42,7 @@ describe('AppPreviewSubMenu', () => {
 
   it('renders the component with mobile viewSize', () => {
     setQueryData(null);
-    renderWithMockStore()(<AppPreviewSubMenu {...props} viewSize='mobile' />);
+    renderWithProviders(<AppPreviewSubMenu {...props} viewSize='mobile' />);
     const desktopButton = screen.getByRole('button', { name: 'preview.view_size_desktop' });
     const mobileButton = screen.getByRole('button', { name: 'preview.view_size_mobile' });
     expect(desktopButton).toHaveAttribute('aria-pressed', 'false');
@@ -51,7 +51,7 @@ describe('AppPreviewSubMenu', () => {
 
   it('renders the component with layout sets in select list', async () => {
     setQueryData(layoutSetsMock);
-    renderWithMockStore()(<AppPreviewSubMenu {...props} />);
+    renderWithProviders(<AppPreviewSubMenu {...props} />);
     const layoutSetSelector = screen.getByRole('combobox');
     await act(() => user.click(layoutSetSelector));
     const options = screen.getAllByRole('option');

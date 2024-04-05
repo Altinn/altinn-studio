@@ -1,9 +1,6 @@
 using System.Collections.Generic;
-using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
-using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -15,14 +12,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
     /// </summary>
     public interface IRepository
     {
-        /// <summary>
-        /// Returns the <see cref="ModelMetadata"/> for an app.
-        /// </summary>
-        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        /// <returns>The service metadata for an app.</returns>
-        Task<ModelMetadata> GetModelMetadata(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default);
-
         /// <summary>
         /// Deletes the resource for a given language id
         /// </summary>
@@ -135,8 +124,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">The organisation which owns the repository</param>
         /// <param name="newResource">The new resource that is to be added to the repository</param>
-        /// <returns></returns>
-        ActionResult AddServiceResource(string org, ServiceResource newResource);
+        /// <returns>Status code result of resource creation request: 201 if success, or 409 or 400 on error</returns>
+        StatusCodeResult AddServiceResource(string org, ServiceResource newResource);
 
         /// <summary>
         /// Checks a resource if it has a policy by checking if a policyfile exists in the same folder as the resourcefile.
@@ -146,13 +135,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="resource">The resource which is to be checked for policy</param>
         /// <returns>Returns true if resourcefile has a policyfile along with it. If not, returns false</returns>
         bool ResourceHasPolicy(string org, string repository, ServiceResource resource);
-
-        /// <summary>
-        /// Checks if LastChanged and/or CreatedBy was added to the ListviewServiceResource-object. If not sets CreatedBy to the logged in user and LastChanged to current datetime.
-        /// </summary>
-        /// <param name="serviceResource">The ListviewServiceResource that will be enriched if neccessary</param>
-        /// <returns>The enriched ListviewServiceResource-object if CreatedBy and LastChanged was missing, otherwise returns the same object</returns>
-        ListviewServiceResource AddLastChangedAndCreatedByIfMissingFromGitea(ListviewServiceResource serviceResource);
 
         /// <summary>
         /// Publishes a specific resource to the ResourceRegistry

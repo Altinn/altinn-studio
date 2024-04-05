@@ -16,8 +16,8 @@ import {
 import classes from './EditFormContainer.module.css';
 import { TextResource } from '../TextResource';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
-import { useText } from '../../hooks';
-import { useSelectedFormLayout, useTextResourcesSelector } from '../../hooks';
+import { useText, useSelectedFormLayout, useTextResourcesSelector } from '../../hooks';
+
 import { textResourcesByLanguageSelector } from '../../selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import type { ITextResource } from 'app-shared/types/global';
@@ -46,7 +46,7 @@ export const EditFormContainer = ({
 
   const { selectedLayoutSet } = useAppContext();
   const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
-  const { data: dataModel } = useDatamodelMetadataQuery(org, app);
+  const { data: dataModel } = useDatamodelMetadataQuery(org, app, selectedLayoutSet);
   const { components, containers } = useSelectedFormLayout();
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
     textResourcesByLanguageSelector(DEFAULT_LANGUAGE),

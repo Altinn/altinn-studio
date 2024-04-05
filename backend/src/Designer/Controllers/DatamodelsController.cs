@@ -30,16 +30,18 @@ namespace Altinn.Studio.Designer.Controllers
     {
         private readonly ISchemaModelService _schemaModelService;
         private readonly IJsonSchemaValidator _jsonSchemaValidator;
+        private readonly IModelNameValidator _modelNameValidator;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DatamodelsController"/> class.
         /// </summary>
         /// <param name="schemaModelService">Interface for working with models.</param>
         /// <param name="jsonSchemaValidator">An <see cref="IJsonSchemaValidator"/>.</param>
-        public DatamodelsController(ISchemaModelService schemaModelService, IJsonSchemaValidator jsonSchemaValidator)
+        public DatamodelsController(ISchemaModelService schemaModelService, IJsonSchemaValidator jsonSchemaValidator, IModelNameValidator modelNameValidator)
         {
             _schemaModelService = schemaModelService;
             _jsonSchemaValidator = jsonSchemaValidator;
+            _modelNameValidator = modelNameValidator;
         }
 
         /// <summary>
@@ -82,6 +84,7 @@ namespace Altinn.Studio.Designer.Controllers
             string content = payload.ToString();
 
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+
             await _schemaModelService.UpdateSchema(editingContext, modelPath, content, saveOnly, cancellationToken);
 
             return NoContent();
@@ -151,21 +154,24 @@ namespace Altinn.Studio.Designer.Controllers
         /// </remarks>
         /// <param name="org">The short name of the application owner.</param>
         /// <param name="repository">The name of the repository to which the file is being added.</param>
-        /// <param name="thefile">The XSD file being uploaded.</param>
+        /// <param name="theFile">The XSD file being uploaded.</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         [HttpPost]
         [Route("upload")]
-        public async Task<IActionResult> AddXsd(string org, string repository, [FromForm(Name = "file")] IFormFile thefile, CancellationToken cancellationToken)
+        public async Task<IActionResult> AddXsd(string org, string repository, [FromForm(Name = "file")] IFormFile theFile, CancellationToken cancellationToken)
         {
-            Guard.AssertArgumentNotNull(thefile, nameof(thefile));
+            Request.EnableBuffering();
+            Guard.AssertArgumentNotNull(theFile, nameof(theFile));
 
-            string fileName = GetFileNameFromUploadedFile(thefile);
+            string fileName = GetFileNameFromUploadedFile(theFile);
             Guard.AssertFileExtensionIsOfType(fileName, ".xsd");
 
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
-            string jsonSchema = await _schemaModelService.BuildSchemaFromXsd(editingContext, fileName, thefile.OpenReadStream(), cancellationToken);
+            var fileStream = theFile.OpenReadStream();
+            await _modelNameValidator.ValidateModelNameForNewXsdSchemaAsync(fileStream, fileName, editingContext);
+            string jsonSchema = await _schemaModelService.BuildSchemaFromXsd(editingContext, fileName, theFile.OpenReadStream(), cancellationToken);
 
             return Created(Uri.EscapeDataString(fileName), jsonSchema);
         }
@@ -189,13 +195,14 @@ namespace Altinn.Studio.Designer.Controllers
 
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+            await _modelNameValidator.ValidateModelNameForNewJsonSchemaAsync(createModel.ModelName, editingContext);
             var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(editingContext, createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible, cancellationToken);
 
             // Sets the location header and content-type manually instead of using CreatedAtAction
             // because the latter overrides the content type and sets it to text/plain.
             string baseUrl = GetBaseUrl();
             string locationUrl = $"{baseUrl}/designer/api/{org}/{repository}/datamodels/datamodel?modelPath={relativePath}";
-            Response.Headers.Add("Location", locationUrl);
+            Response.Headers.Append("Location", locationUrl);
             Response.StatusCode = (int)HttpStatusCode.Created;
 
             return Content(model, "application/json");

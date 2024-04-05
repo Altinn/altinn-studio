@@ -1,4 +1,4 @@
-import { del, get, post, put, patch } from 'app-shared/utils/networking';
+import { del, get, post, put } from 'app-shared/utils/networking';
 import {
   appMetadataAttachmentPath,
   copyAppPath,
@@ -6,8 +6,6 @@ import {
   deploymentsPath,
   formLayoutNamePath,
   formLayoutPath,
-  layoutSetsPath,
-  layoutSetPath,
   layoutSettingsPath,
   releasesPath,
   repoCommitPath,
@@ -30,11 +28,12 @@ import {
   appMetadataPath,
   serviceConfigPath,
   importResourceFromAltinn2Path,
-  processEditorPath,
   accessListPath,
   createAccessListsPath,
   accessListMemberPath,
   resourceAccessListPath,
+  processEditorPathPut,
+  layoutSetPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -44,7 +43,7 @@ import type { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePay
 import type { CreateRepoCommitPayload } from 'app-shared/types/api/CreateRepoCommitPayload';
 import type { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 import type { ExternalFormLayoutV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
-import type { LayoutSetConfig, LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import type { ILayoutSettings, ITextResourcesObjectFormat } from 'app-shared/types/global';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import type { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
@@ -52,10 +51,11 @@ import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { CreateDatamodelPayload } from 'app-shared/types/api/CreateDatamodelPayload';
 import type { Policy } from '@altinn/policy-editor';
-import type { NewResource, AccessList, Resource, JsonPatch } from 'app-shared/types/ResourceAdm';
+import type { NewResource, AccessList, Resource } from 'app-shared/types/ResourceAdm';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Repository } from 'app-shared/types/Repository';
+import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 
 const headers = {
   Accept: 'application/json',
@@ -64,17 +64,22 @@ const headers = {
 
 export const addAppAttachmentMetadata = (org: string, app: string, payload: ApplicationAttachmentMetadata) => post<void, ApplicationAttachmentMetadata>(appMetadataAttachmentPath(org, app), payload);
 export const addLanguageCode = (org: string, app: string, language: string, payload: AddLanguagePayload) => post<void, AddLanguagePayload>(textResourcesPath(org, app, language), payload);
-export const addLayoutSet = (org: string, app: string, payload: LayoutSetConfig) => put(layoutSetsPath(org, app), payload);
+export const addLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string, payload: LayoutSetConfig) => post(layoutSetPath(org, app, layoutSetIdToUpdate), payload);
+export const deleteLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string) => del(layoutSetPath(org, app, layoutSetIdToUpdate));
+export const updateLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string, payload: LayoutSetConfig) => put(layoutSetPath(org, app, layoutSetIdToUpdate), payload);
 export const addRepo = (repoToAdd: AddRepoParams) => post<Repository>(`${createRepoPath()}${buildQueryParams(repoToAdd)}`);
 export const addXsdFromRepo = (org: string, app: string, modelPath: string) => post<JsonSchema>(datamodelAddXsdFromRepoPath(org, app, modelPath));
 export const commitAndPushChanges = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPushPath(org, app), payload, { headers });
-export const configureLayoutSet = (org: string, app: string, layoutSetName: string) => post<LayoutSets>(layoutSetPath(org, app, layoutSetName));
 export const copyApp = (org: string, app: string, repoName: string) => post(copyAppPath(org, app, repoName));
 export const createDatamodel = (org: string, app: string, payload: CreateDatamodelPayload) => post<JsonSchema, CreateDatamodelPayload>(createDatamodelPath(org, app), payload);
-export const createDeployment = (org: string, app: string, payload: CreateDeploymentPayload) => post<void, CreateDeploymentPayload>(deploymentsPath(org, app), payload);
+export const createDeployment = (org: string, app: string, payload: CreateDeploymentPayload) => post<PipelineDeployment, CreateDeploymentPayload>(deploymentsPath(org, app), payload);
 export const createRelease = (org: string, app: string, payload: CreateReleasePayload) => post<void, CreateReleasePayload>(releasesPath(org, app), payload);
 export const createRepoCommit = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPath(org, app), payload, { headers });
-export const deleteAppAttachmentMetadata = (org: string, app: string, id: string) => del(appMetadataAttachmentPath(org, app), { headers, data: id });
+export const deleteAppAttachmentMetadata = (org: string, app: string, id: string) =>
+  del(appMetadataAttachmentPath(org, app), {
+    headers,
+    data: id,
+  });
 export const deleteDatamodel = (org: string, app: string, modelPath: string) => del(datamodelPath(org, app, modelPath, true));
 export const deleteFormLayout = (org: string, app: string, layoutName: string, layoutSetName: string) => del(formLayoutPath(org, app, layoutName, layoutSetName));
 export const deleteLanguageCode = (org: string, app: string, language: string) => del(textResourcesPath(org, app, language));
@@ -102,7 +107,7 @@ export const upsertTextResources = (org: string, app: string, language: string, 
 export const createResource = (org: string, payload: NewResource) => post(resourceCreatePath(org), payload);
 export const importResourceFromAltinn2 = (org: string, environment: string, code: string, edition: string, payload: string) => post<Resource>(importResourceFromAltinn2Path(org, environment, code, edition), JSON.stringify(payload), { headers: { 'Content-Type': 'application/json' } });
 export const createAccessList = (org: string, environment: string, payload: Partial<AccessList>) => post<AccessList>(createAccessListsPath(org, environment), payload);
-export const updateAccessList = (org: string, listId: string, environment: string, payload: JsonPatch[]) => patch<AccessList>(accessListPath(org, listId, environment), payload);
+export const updateAccessList = (org: string, listId: string, environment: string, payload: AccessList) => put<AccessList>(accessListPath(org, listId, environment), payload);
 export const deleteAccessList = (org: string, listId: string, environment: string) => del(accessListPath(org, listId, environment));
 export const addAccessListMember = (org: string, listId: string, orgnr: string, environment: string) => post(accessListMemberPath(org, listId, orgnr, environment));
 export const removeAccessListMember = (org: string, listId: string, orgnr: string, environment: string) => del(accessListMemberPath(org, listId, orgnr, environment));
@@ -113,9 +118,9 @@ export const updatePolicy = (org: string, repo: string, id: string, payload: Pol
 export const updateResource = (org: string, repo: string, payload: Resource) => put(resourceEditPath(org, repo), payload);
 
 // ProcessEditor
-export const updateBpmnXml = (org: string, app: string, bpmnXml: string) =>
-  put(processEditorPath(org, app), bpmnXml, {
+export const updateBpmnXml = (org: string, app: string, form: any) =>
+  put(processEditorPathPut(org, app), form, {
     headers: {
-      'Content-Type': 'application/xml',
+      'Content-Type': 'multipart/form-data',
     },
   });

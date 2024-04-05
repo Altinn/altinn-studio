@@ -110,8 +110,9 @@ const addNewLabelToTreeItemComponent = async (
   uiEditorPage: UiEditorPage,
   newInputLabel: string,
 ) => {
-  await uiEditorPage.clickOnAddLabelText();
-  await uiEditorPage.writeLabelTextInTextarea(newInputLabel);
+  await uiEditorPage.clickOnComponentTextConfigAccordion();
+  await uiEditorPage.clickOnTitleTextButton();
+  await uiEditorPage.writeTitleTextInTextarea(newInputLabel);
   await uiEditorPage.clickOnSaveNewLabelName();
   await uiEditorPage.waitForTreeItemToGetNewLabel(newInputLabel);
 

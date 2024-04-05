@@ -8,10 +8,10 @@ import { switchSelectedFieldId } from '../../utils/ruleConfigUtils';
 import { useRuleConfigQuery } from '../queries/useRuleConfigQuery';
 import { useRuleConfigMutation } from './useRuleConfigMutation';
 import { useFormLayout } from '../useFormLayoutsSelector';
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils } from '@studio/pure-functions';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import type { FormComponent, FormFileUploaderComponent } from '../../types/FormComponent';
-import { useLayoutSetsQuery } from '../queries/useLayoutSetsQuery';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
 
 export interface UpdateFormComponentMutationArgs {
@@ -35,7 +35,7 @@ export const useUpdateFormComponentMutation = (
   const { mutateAsync: saveRuleConfig } = useRuleConfigMutation(org, app, layoutSetName);
   return useMutation({
     mutationFn: ({ updatedComponent, id }: UpdateFormComponentMutationArgs) => {
-      const updatedLayout: IInternalLayout = deepCopy(layout);
+      const updatedLayout: IInternalLayout = ObjectUtils.deepCopy(layout);
       const { components, order } = updatedLayout;
 
       const currentId = id;

@@ -61,9 +61,11 @@ test('That it is possible to create a text at the ux-editor page, and that the t
 
   await uiEditorPage.deleteOldComponentId();
   await uiEditorPage.writeNewComponentId(COMPONENT_ID);
-  await uiEditorPage.clickOnAddLabelText();
+  await uiEditorPage.waitForXAmountOfMilliseconds(1000); // Wait for the API call to be done
 
-  await uiEditorPage.writeLabelTextInTextarea(INPUT_COMPONENT_LABEL);
+  await uiEditorPage.clickOnComponentTextConfigAccordion();
+  await uiEditorPage.clickOnTitleTextButton();
+  await uiEditorPage.writeTitleTextInTextarea(INPUT_COMPONENT_LABEL);
   await uiEditorPage.clickOnSaveNewLabelName();
   await uiEditorPage.waitForTreeItemToGetNewLabel(INPUT_COMPONENT_LABEL);
 
@@ -90,13 +92,14 @@ test('That it is possible to edit a textkey, and that the key is updated on the 
   await textEditorPage.verifyThatTextKeyIsVisible(INITIAL_TEXT_KEY);
   await updateTextKey(textEditorPage, INITIAL_TEXT_KEY, UPDATED_TEXT_KEY);
 
-  // When the button is clicked, it might take som ms for the API call to be executed - It is success when the textarea has upaded label
+  // When the button is clicked, it might take som ms for the API call to be executed - It is success when the textarea has updated label
   await textEditorPage.waitForTextareaToUpdateTheLabel(LanguageCode.Nb, UPDATED_TEXT_KEY);
 
   await navigateToUiEditorAndVerifyPage(header, uiEditorPage);
 
   await uiEditorPage.clickOnTreeItem(INPUT_COMPONENT_LABEL);
-  await uiEditorPage.clickOnEditLabelText();
+  await uiEditorPage.clickOnComponentTextConfigAccordion();
+  await uiEditorPage.clickOnTitleTextButton();
   await uiEditorPage.verifyThatTextKeyIsVisible(UPDATED_TEXT_KEY);
   await uiEditorPage.verifyThatTextKeyIsHidden(INITIAL_TEXT_KEY);
 });
@@ -142,7 +145,8 @@ test('That it is possible to add a new text, edit the id, and add a new language
 
   await navigateToUiEditorAndVerifyPage(header, uiEditorPage);
   await uiEditorPage.clickOnTreeItem(INPUT_COMPONENT_LABEL);
-  await uiEditorPage.clickOnEditLabelText();
+  await uiEditorPage.clickOnComponentTextConfigAccordion();
+  await uiEditorPage.clickOnTitleTextButton();
   await uiEditorPage.verifyThatTextareaIsVisible(LanguageCode.En);
 
   await header.clickOnUploadLocalChangesButton();
@@ -155,13 +159,14 @@ test('That it is possible to add a new text, edit the id, and add a new language
   await giteaPage.verifyGiteaPage();
   await giteaPage.clickOnAppFilesButton();
   await giteaPage.clickOnUiFilesButton();
-  await giteaPage.clickOnLayoutsFilesButton();
+  await giteaPage.clickOnLayoutSetsFolder();
+  await giteaPage.clickOnLayoutsFilesFolder();
   await giteaPage.clickOnLayoutJsonFile(PAGE_1);
 
   await giteaPage.verifyThatComponentIdIsVisible(COMPONENT_ID);
   await giteaPage.verifyThatTextResourceBindingsTitleIsVisible(UPDATED_TEXT_KEY);
 
-  await giteaPage.goBackNPages(3); // ui -> layout -> page1.json
+  await giteaPage.goBackNPages(4); // ui -> layoutSet -> layouts -> page1.json
   await giteaPage.clickOnConfigFilesButton();
   await giteaPage.clickOnTextFilesButton();
   await giteaPage.verifyThatResourceJsonFileIsVisible(LanguageCode.Nb);

@@ -5,11 +5,9 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
-using System.Threading;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
-using Altinn.App.Core.Models;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.DataModeling.Metamodel;
@@ -19,13 +17,13 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using PlatformStorageModels = Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -37,6 +35,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         // Using Norwegian name of initial page to be consistent
         // with automatic naming from frontend when adding new page
         private const string InitialLayout = "Side1";
+
+        private readonly string _resourceIdentifierRegex = "^[a-z0-9_æøå-]*$";
 
         private readonly ServiceRepositorySettings _settings;
         private readonly GeneralSettings _generalSettings;
@@ -118,22 +118,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.DockerIgnoreFileName);
             UpdateAuthorizationPolicyFile(serviceMetadata.Org, serviceMetadata.RepositoryName);
             return true;
-        }
-
-        /// <inheritdoc />
-        public async Task<ModelMetadata> GetModelMetadata(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            string modelName = await GetModelName(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo);
-            string filename = _settings.GetMetadataPath(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer) + $"{modelName}.metadata.json";
-
-            if (File.Exists(filename))
-            {
-                string filedata = await File.ReadAllTextAsync(filename, Encoding.UTF8, cancellationToken);
-                return JsonConvert.DeserializeObject<ModelMetadata>(filedata);
-            }
-
-            return JsonConvert.DeserializeObject<ModelMetadata>("{ }");
         }
 
         #endregion
@@ -281,9 +265,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 CreateServiceMetadata(metadata);
                 await _applicationMetadataService.CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
                 await _textsService.CreateLanguageResources(org, serviceConfig.RepositoryName, developer);
-                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, serviceConfig.RepositoryName, developer);
-                await _appDevelopmentService.SaveFormLayout(editingContext, null, InitialLayout, GetInitialLayout());
-                await _appDevelopmentService.SaveLayoutSettings(editingContext, GetInitialLayoutSettings(InitialLayout), null);
                 await CreateRepositorySettings(org, serviceConfig.RepositoryName, developer);
 
                 CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
@@ -292,34 +273,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return repository;
-        }
-
-        private static JsonNode GetInitialLayout()
-        {
-            var layout = new JsonObject
-            {
-                ["$schema"] = AltinnAppGitRepository.LayoutSchemaUrl,
-                ["data"] = new JsonObject
-                {
-                    ["layout"] = new JsonArray()
-                }
-            };
-            return layout;
-        }
-
-        private static JsonNode GetInitialLayoutSettings(string initialLayout)
-        {
-
-            var layoutSettings = new JsonObject
-            {
-                ["$schema"] = AltinnAppGitRepository.LayoutSettingsSchemaUrl,
-                ["pages"] = new JsonObject
-                {
-                    ["order"] = new JsonArray { initialLayout }
-                }
-            };
-
-            return layoutSettings;
         }
 
         private async Task CreateRepositorySettings(string org, string repository, string developer)
@@ -427,6 +380,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             // Create the app deployment folder
             Directory.CreateDirectory(targetPath);
 
+            var files = Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories);
+
             // Create all of the directories
             foreach (string dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
             {
@@ -514,13 +469,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 string repository = string.Format("{0}-resources", org);
                 List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository);
                 string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                string resourceFileName = GetResourceFileName(updatedResource.Identifier);
 
                 foreach (FileSystemObject resourceFile in resourceFiles)
                 {
-                    string jsonString = File.ReadAllText($"{repopath}/{resourceFile.Path}");
-                    ServiceResource serviceResource = System.Text.Json.JsonSerializer.Deserialize<ServiceResource>(jsonString, _serializerOptions);
-
-                    if (serviceResource != null && serviceResource.Identifier == updatedResource.Identifier)
+                    if (resourceFile.Name == resourceFileName)
                     {
                         string updatedResourceString = System.Text.Json.JsonSerializer.Serialize(updatedResource, _serializerOptions);
                         File.WriteAllText($"{repopath}/{resourceFile.Path}", updatedResourceString);
@@ -536,15 +489,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new StatusCodeResult(403);
         }
 
-        public ActionResult AddServiceResource(string org, ServiceResource newResource)
+        public StatusCodeResult AddServiceResource(string org, ServiceResource newResource)
         {
             try
             {
+                bool isResourceIdentifierValid = !string.IsNullOrEmpty(newResource.Identifier) && Regex.IsMatch(newResource.Identifier, _resourceIdentifierRegex) && !newResource.Identifier.StartsWith("app_");
+                if (!isResourceIdentifierValid)
+                {
+                    return new StatusCodeResult(400);
+                }
                 string repository = $"{org}-resources";
                 if (!CheckIfResourceFileAlreadyExists(newResource.Identifier, org, repository))
                 {
                     string repopath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                    string fullPathOfNewResource = Path.Combine(repopath, newResource.Identifier.AsFileName(), string.Format("{0}_resource.json", newResource.Identifier));
+                    string fullPathOfNewResource = Path.Combine(repopath, newResource.Identifier.AsFileName(), GetResourceFileName(newResource.Identifier));
                     string newResourceJson = System.Text.Json.JsonSerializer.Serialize(newResource, _serializerOptions);
                     Directory.CreateDirectory(Path.Combine(repopath, newResource.Identifier.AsFileName()));
                     File.WriteAllText(fullPathOfNewResource, newResourceJson);
@@ -565,14 +523,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public bool CheckIfResourceFileAlreadyExists(string identifier, string org, string repository)
         {
             List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository);
-            foreach (var _ in from FileSystemObject resourceFile in resourceFiles
-                              where resourceFile.Name.Contains(identifier)
-                              select new { })
-            {
-                return true;
-            }
-
-            return false;
+            return resourceFiles.Any(resourceFile => resourceFile.Name.ToLower().Equals(GetResourceFileName(identifier).ToLower()));
         }
 
         public ServiceResource GetServiceResourceById(string org, string repository, string identifier)
@@ -616,21 +567,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return false;
         }
 
-        public ListviewServiceResource AddLastChangedAndCreatedByIfMissingFromGitea(ListviewServiceResource serviceResource)
-        {
-            if (serviceResource.CreatedBy == null)
-            {
-                serviceResource.CreatedBy = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            }
-
-            if (serviceResource.LastChanged.Year.Equals(1))
-            {
-                serviceResource.LastChanged = DateTime.Now;
-            }
-
-            return serviceResource;
-        }
-
         private List<FileSystemObject> GetResourceFiles(string org, string repository, string path = "")
         {
             List<FileSystemObject> contents = GetContents(org, repository, path);
@@ -663,6 +599,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return resourceFiles;
+        }
+
+        private string GetResourceFileName(string identifier)
+        {
+            return string.Format("{0}_resource.json", identifier);
         }
 
         private FileSystemObject GetFileSystemObjectForFile(string path)
@@ -699,27 +640,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             };
 
             return fso;
-        }
-
-        private async Task<string> GetModelName(string org, string app)
-        {
-            ApplicationMetadata application = await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
-            string dataTypeId = string.Empty;
-
-            if (application == null)
-            {
-                return dataTypeId;
-            }
-
-            foreach (PlatformStorageModels.DataType data in application.DataTypes)
-            {
-                if (data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef))
-                {
-                    dataTypeId = data.Id;
-                }
-            }
-
-            return dataTypeId;
         }
 
         /// <inheritdoc/>

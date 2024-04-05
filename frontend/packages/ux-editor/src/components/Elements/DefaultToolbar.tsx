@@ -10,9 +10,11 @@ import { useTranslation } from 'react-i18next';
 import { schemaComponents, textComponents, advancedItems } from '../../data/formItemConfig';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { Accordion } from '@digdir/design-system-react';
-import { getCollapsableMenuTitleByType } from '../../utils/language';
+import {
+  getCollapsableMenuTitleByType,
+  getComponentTitleByComponentType,
+} from '../../utils/language';
 import { ToolbarItem } from './ToolbarItem';
-import { getComponentTitleByComponentType } from '../../utils/language';
 
 export function DefaultToolbar() {
   const [compInfoPanelOpen, setCompInfoPanelOpen] = useState<boolean>(false);
@@ -52,7 +54,7 @@ export function DefaultToolbar() {
               defaultOpen={key === CollapsableMenus.Components}
               className={classes.accordionItem}
             >
-              <Accordion.Header className={classes.accordionHeader}>
+              <Accordion.Header className={classes.accordionHeader} level={3}>
                 {getCollapsableMenuTitleByType(key, t)}
               </Accordion.Header>
               <Accordion.Content className={classes.accordionContent}>

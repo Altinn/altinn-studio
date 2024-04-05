@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Modal } from '@digdir/design-system-react';
 import classes from './FieldsetWrapper.module.css';
 import { StudioButton } from '@studio/components';
+import { TrashIcon, PlusIcon } from '@studio/icons';
 
 const DELETE_ID_NOT_SET = -1;
 
@@ -36,7 +37,7 @@ export type FieldsetWrapperProps<T> = {
    * @param listItem the list item to render
    * @param onChange function to call when item is changed. Call this function from child fieldset render on change
    */
-  renderItem: (listItem: T, onChange: (item: T) => void) => React.JSX.Element;
+  renderItem: (listItem: T, index: number, onChange: (item: T) => void) => React.JSX.Element;
 };
 
 /**
@@ -107,30 +108,34 @@ export const FieldsetWrapper = <T,>({
    */
   const displayFields = listItems.map((listItem: T, pos: number) => (
     <div key={`${pos}/${listItems.length}`} className={classes.fieldset}>
-      <div className={classes.divider} />
-      {renderItem(listItem, (item: T) => {
-        onChangeListItemField(item, pos);
-      })}
-      <div className={classes.buttonWrapper}>
-        <StudioButton
-          size='small'
-          color='danger'
-          aria-disabled={listItems.length < 2}
-          onClick={() => {
-            if (listItems.length > 1) {
-              deleteModalRef.current?.showModal();
-              setDeleteId(pos);
-            }
-          }}
-        >
-          {t(translations.deleteButton)}
-        </StudioButton>
+      {pos > 0 && <div className={classes.divider} />}
+      <div className={classes.itemWrapper}>
+        {renderItem(listItem, pos, (item: T) => {
+          onChangeListItemField(item, pos);
+        })}
+        {listItems.length > 1 && (
+          <div className={classes.buttonWrapper}>
+            <StudioButton
+              size='small'
+              color='danger'
+              variant='secondary'
+              icon={<TrashIcon />}
+              iconPlacement='left'
+              onClick={() => {
+                deleteModalRef.current?.showModal();
+                setDeleteId(pos);
+              }}
+            >
+              {t(translations.deleteButton)}
+            </StudioButton>
+          </div>
+        )}
       </div>
     </div>
   ));
 
   return (
-    <>
+    <div>
       <Modal ref={deleteModalRef} onClose={onCloseDeleteModal}>
         <Modal.Header>{t(translations.deleteHeader)}</Modal.Header>
         <Modal.Content>{t(translations.deleteConfirmation)}</Modal.Content>
@@ -143,11 +148,17 @@ export const FieldsetWrapper = <T,>({
           </StudioButton>
         </Modal.Footer>
       </Modal>
-      <div className={classes.divider} />
       {displayFields}
-      <StudioButton size='small' onClick={handleClickAddButton}>
+      <StudioButton
+        size='small'
+        variant='secondary'
+        icon={<PlusIcon />}
+        iconPlacement='left'
+        onClick={handleClickAddButton}
+        className={classes.buttonWrapper}
+      >
         {t(translations.addButton)}
       </StudioButton>
-    </>
+    </div>
   );
 };
