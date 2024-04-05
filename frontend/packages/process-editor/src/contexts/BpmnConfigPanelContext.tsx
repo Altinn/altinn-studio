@@ -12,10 +12,7 @@ type BpmnConfigPanelContextType = {
   resetForm: () => void;
 };
 
-const BpmnConfigPanelFormContext = createContext<BpmnConfigPanelContextType>({
-  metaDataFormRef: { current: undefined },
-  resetForm: () => {},
-});
+const BpmnConfigPanelFormContext = createContext<BpmnConfigPanelContextType>(undefined);
 
 export type BpmnConfigPanelFormContextProviderProps = {
   children: React.ReactNode;

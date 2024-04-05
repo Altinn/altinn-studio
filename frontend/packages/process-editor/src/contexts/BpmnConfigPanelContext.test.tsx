@@ -43,7 +43,7 @@ describe('BpmnConfigPanelContext', () => {
       return <div data-testid='context'>Test</div>;
     };
 
-    expect(() => render(<TestComponent />)).toThrowError(
+    expect(() => render(<TestComponent />)).toThrow(
       'useBpmnConfigPanelFormContext must be used within a BpmnConfigPanelContextProvider',
     );
     expect(consoleError).toHaveBeenCalled();
