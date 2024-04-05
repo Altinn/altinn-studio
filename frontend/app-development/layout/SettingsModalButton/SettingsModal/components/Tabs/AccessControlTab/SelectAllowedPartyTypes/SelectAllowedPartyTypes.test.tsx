@@ -60,64 +60,6 @@ describe('SelectAllowedPartyTypes', () => {
     });
   });
 
-  it('should render all checkboxes as checked when all partyTypes allowed', async () => {
-    const user = userEvent.setup();
-    const getAppMetadataMock = jest.fn().mockResolvedValue({
-      ...mockAppMetadata,
-      partyTypesAllowed: {
-        person: false,
-        organisation: false,
-        subUnit: false,
-        bankruptcyEstate: false,
-      },
-    });
-    renderSelectAllowedPartyTypes({ getAppMetadata: getAppMetadataMock });
-    const checkboxes = screen.getAllByRole('checkbox');
-    checkboxes.forEach((checkbox) => {
-      expect(checkbox).toBeChecked();
-    });
-  });
-
-  it('should call updateAppMetadataMutation with correct payload when checking all types', async () => {
-    const user = userEvent.setup();
-    renderSelectAllowedPartyTypes();
-    const allTypeCheckbox = screen.getByRole('checkbox', {
-      name: textMock('settings_modal.access_control_tab_option_all_types'),
-    });
-    await act(() => user.click(allTypeCheckbox));
-    expect(updateAppMetadataMock).toHaveBeenCalledTimes(1);
-    expect(updateAppMetadataMock).toHaveBeenCalledWith({
-      org,
-      app,
-
-      ...mockAppMetadata,
-      partyTypesAllowed: {
-        bankruptcyEstate: true,
-        organisation: true,
-        person: true,
-        subUnit: true,
-      },
-    });
-  });
-
-  it('all checkboxes should be checked by default when all partytypes are false', async () => {
-    const user = userEvent.setup();
-    const getAppMetadataMock = jest.fn().mockResolvedValue({
-      ...mockAppMetadata,
-      partyTypesAllowed: {
-        person: false,
-        organisation: false,
-        subUnit: false,
-        bankruptcyEstate: false,
-      },
-    });
-    renderSelectAllowedPartyTypes({ getAppMetadata: getAppMetadataMock });
-    const checkboxes = screen.getAllByRole('checkbox');
-    checkboxes.forEach((checkbox) => {
-      expect(checkbox).toBeChecked();
-    });
-  });
-
   it('render the warning modal when user tries to uncheck all checkboxes, and close it', async () => {
     const user = userEvent.setup();
     const getAppMetadataMock = jest.fn().mockResolvedValue({
@@ -140,6 +82,55 @@ describe('SelectAllowedPartyTypes', () => {
     const closeButton = screen.getByRole('button', { name: textMock('general.close') });
     await act(() => user.click(closeButton));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('should all checkboxes be checked when all-types checkbox has aria-checked true', async () => {
+    const user = userEvent.setup();
+    renderSelectAllowedPartyTypes();
+    const allTypeCheckbox = screen.getByRole('checkbox', {
+      name: textMock('settings_modal.access_control_tab_option_all_types'),
+    });
+    await act(() => user.click(allTypeCheckbox));
+    const checkboxes = screen.getAllByRole('checkbox');
+    checkboxes.forEach((checkbox) => {
+      expect(checkbox).toBeChecked();
+    });
+  });
+
+  it('should call updateAppMetadataMutation with correct payload when checking all types', async () => {
+    const user = userEvent.setup();
+    renderSelectAllowedPartyTypes();
+    const allTypeCheckbox = screen.getByRole('checkbox', {
+      name: textMock('settings_modal.access_control_tab_option_all_types'),
+    });
+    await act(() => user.click(allTypeCheckbox));
+    expect(updateAppMetadataMock).toHaveBeenCalledTimes(1);
+    expect(updateAppMetadataMock).toHaveBeenCalledWith(org, app, {
+      ...mockAppMetadata,
+      partyTypesAllowed: {
+        person: true,
+        organisation: true,
+        subUnit: true,
+        bankruptcyEstate: true,
+      },
+    });
+  });
+
+  it('all checkboxes should be checked by default when all partytypes are false', async () => {
+    const getAppMetadataMock = jest.fn().mockResolvedValue({
+      ...mockAppMetadata,
+      partyTypesAllowed: {
+        person: false,
+        organisation: false,
+        subUnit: false,
+        bankruptcyEstate: false,
+      },
+    });
+    renderSelectAllowedPartyTypes({ getAppMetadata: getAppMetadataMock });
+    const checkboxes = screen.getAllByRole('checkbox');
+    checkboxes.forEach((checkbox) => {
+      expect(checkbox).toBeChecked();
+    });
   });
 
   it('should call updateAppMetadataMutation when selecting checkbox', async () => {
