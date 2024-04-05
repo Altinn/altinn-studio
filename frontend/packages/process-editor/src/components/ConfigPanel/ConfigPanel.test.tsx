@@ -36,6 +36,7 @@ const mockBpmnApiContextValue: BpmnApiContextProps = {
   layoutSets: { sets: [] },
   existingCustomReceiptLayoutSetName: undefined,
   addLayoutSet: jest.fn(),
+  deleteLayoutSet: jest.fn(),
   mutateLayoutSet: jest.fn(),
   saveBpmn: jest.fn(),
 };

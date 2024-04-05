@@ -16,7 +16,7 @@ import { useAddLayoutSetMutation } from '../../hooks/mutations/useAddLayoutSetMu
 import { type MetaDataForm } from '@altinn/process-editor/src/contexts/BpmnConfigPanelContext';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import {useDeleteLayoutSetMutation} from "../../hooks/mutations/useDeleteLayoutSetMutation";
+import { useDeleteLayoutSetMutation } from '../../hooks/mutations/useDeleteLayoutSetMutation';
 
 export const ProcessEditor = (): React.ReactElement => {
   const { t } = useTranslation();

@@ -10,6 +10,7 @@ export const useAddLayoutSetMutation = (org: string, app: string) => {
   const [_, setSelectedLayoutSet] = useLocalStorage<string>('layoutSet/' + app, null);
 
   const isLayoutSets = (obj: any): obj is LayoutSets => {
+    if (obj === undefined) return false;
     return 'sets' in obj;
   };
 
@@ -27,6 +28,8 @@ export const useAddLayoutSetMutation = (org: string, app: string) => {
       })),
     onSuccess: ({ layoutSets, layoutSetConfig }) => {
       setSelectedLayoutSet(layoutSetConfig.id);
+      // Need this check since endpoint might return 200 OK, but with conflict error details
+      // when process-editor renders the tasks and 'adds' them on first mount
       if (isLayoutSets(layoutSets)) {
         queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSets);
       }
