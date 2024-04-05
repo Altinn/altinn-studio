@@ -14,8 +14,8 @@ import {
 import type { IInternalLayout } from '../../../types/global';
 import {
   formLayoutSettingsMock,
-  renderHookWithMockStore,
-  renderWithMockStore,
+  renderHookWithProviders,
+  renderWithProviders,
 } from '../../../testing/mocks';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
@@ -94,14 +94,13 @@ const waitForData = async () => {
   const getFormLayoutSettings = jest
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
-  const formLayoutsResult = renderHookWithMockStore()(() =>
+  const formLayoutsResult = renderHookWithProviders(() =>
     useFormLayoutsQuery(mockOrg, mockApp, mockSelectedLayoutSet),
-  ).renderHookResult.result;
-  const settingsResult = renderHookWithMockStore(
-    {},
-    { getFormLayoutSettings },
-  )(() => useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet)).renderHookResult
-    .result;
+  ).result;
+  const settingsResult = renderHookWithProviders(
+    () => useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet),
+    { queries: { getFormLayoutSettings } },
+  ).result;
 
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
@@ -109,7 +108,7 @@ const waitForData = async () => {
 
 const render = async (props: Partial<ReceiptContentProps> = {}) => {
   await waitForData();
-  return renderWithMockStore()(
+  return renderWithProviders(
     <DragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
       <FormItemContextProvider>
         <ReceiptContent {...defaultProps} {...props} />

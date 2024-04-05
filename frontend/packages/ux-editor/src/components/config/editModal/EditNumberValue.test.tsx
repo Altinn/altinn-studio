@@ -2,22 +2,21 @@ import React from 'react';
 import { act, screen, waitFor } from '@testing-library/react';
 
 import { EditNumberValue } from './EditNumberValue';
-import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/mocks';
+import { renderWithProviders, renderHookWithProviders } from '../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 
 const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
-    .renderHookResult.result;
+  const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
 const render = async ({ maxLength = undefined, handleComponentChange = jest.fn() } = {}) => {
   await waitForData();
 
-  return renderWithMockStore()(
+  return renderWithProviders(
     <EditNumberValue
       handleComponentChange={handleComponentChange}
       propertyKey='maxLength'

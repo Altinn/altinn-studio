@@ -1,5 +1,5 @@
 import { useItemTitle } from './useItemTitle';
-import { renderHookWithMockStore } from '../../testing/mocks';
+import { renderHookWithProviders } from '../../testing/mocks';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import type { FormContainer } from '../../types/FormContainer';
 import type { FormComponent } from '../../types/FormComponent';
@@ -25,7 +25,7 @@ const textResources: ITextResources = {
 describe('useItemTitle', () => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
-  const { result } = renderHookWithMockStore({}, {}, queryClient)(useItemTitle).renderHookResult;
+  const result = renderHookWithProviders(useItemTitle, { queryClient }).result;
 
   it('Returns the correct title when the item is a container', () => {
     const id = '1';

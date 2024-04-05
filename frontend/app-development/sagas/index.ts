@@ -9,7 +9,6 @@ import {
   watchHandleSaveServiceConfigSaga,
   watchHandleSaveServiceNameSaga,
 } from '../features/overview/handleServiceInformationSagas';
-import { applicationMetadataSagas } from '../sharedResources/applicationMetadata/applicationMetadataSagas';
 import userSagas from '../sharedResources/user/userSagas';
 
 function* root(): SagaIterator {
@@ -19,7 +18,6 @@ function* root(): SagaIterator {
   yield fork(watchHandleFetchInitialCommitSaga);
   yield fork(watchHandleFetchServiceConfigSaga);
   yield fork(watchHandleSaveServiceConfigSaga);
-  yield fork(applicationMetadataSagas);
   yield fork(userSagas);
 }
 
