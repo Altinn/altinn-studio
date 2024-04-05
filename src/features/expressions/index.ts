@@ -664,11 +664,11 @@ export const ExprFunctions = {
 
       let url = '';
       if (taskId && instanceId) {
-        url = `#/instance/${instanceId}/${taskId}/${pageId}`;
+        url = `/instance/${instanceId}/${taskId}/${pageId}`;
       } else {
-        url = `#/${pageId}`;
+        url = `/${pageId}`;
       }
-      return `<a href="${url}" class="same-window">${linkText}</a>`;
+      return `<a href="${url}" data-link-type="LinkToPotentialPage">${linkText}</a>`;
     },
     args: [ExprVal.String, ExprVal.String] as const,
     minArguments: 2,

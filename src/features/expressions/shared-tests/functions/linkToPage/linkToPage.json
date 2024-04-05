@@ -1,7 +1,7 @@
 {
   "name": "Should create a link with reference to a page when instance is provided",
   "expression": ["linkToPage", "Klikk på meg", "grid"],
-  "expects": "<a href=\"#/instance/510001/d00ce51c-800b-416a-a906-ccab55f597e9/Task_3/grid\" class=\"same-window\">Klikk på meg</a>",
+  "expects": "<a href=\"/instance/510001/d00ce51c-800b-416a-a906-ccab55f597e9/Task_3/grid\" data-link-type=\"LinkToPotentialPage\">Klikk på meg</a>",
   "instance": {
     "id": "510001/d00ce51c-800b-416a-a906-ccab55f597e9",
     "appId": "org/app-name",

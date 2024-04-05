@@ -194,7 +194,7 @@ describe('Navigation', () => {
     cy.url().should('satisfy', (url) => url.endsWith('/Task_3/prefill'));
   });
 
-  it('should navigate back to previous page when using browser back after trying to navigate to a non-existent component', () => {
+  it('Should render link as text and not link if it points to a non exisiting component', () => {
     cy.interceptLayout(
       'group',
       (component) => component,
@@ -212,15 +212,10 @@ describe('Navigation', () => {
     );
     cy.goto('group');
 
-    cy.findByRole('button', { name: /hide/ }).click();
-    cy.url().should('satisfy', (url) => url.endsWith('/Task_3/hide'));
-    cy.findByRole('button', { name: /prefill/ }).click();
     cy.url().should('satisfy', (url) => url.endsWith('/Task_3/prefill'));
 
-    cy.findByRole('link', { name: 'Klikk på meg' }).click();
-
-    cy.go('back');
-    cy.url().should('satisfy', (url) => url.endsWith('/Task_3/hide'));
+    cy.findByRole('link', { name: 'Klikk på meg' }).should('not.exist');
+    cy.findByText('Klikk på meg').should('exist');
   });
 
   it('should navigate back to previous page when using browser back after trying to navigate to a non-existent component', () => {
