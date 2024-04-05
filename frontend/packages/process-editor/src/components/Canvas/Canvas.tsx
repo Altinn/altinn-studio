@@ -8,9 +8,15 @@ import classes from './Canvas.module.css';
 import { useBpmnContext } from '../../contexts/BpmnContext';
 import { BPMNViewer } from './BPMNViewer';
 import { BPMNEditor } from './BPMNEditor';
+import { VersionHelpText } from './VersionHelpText';
 
 export const Canvas = (): React.ReactElement => {
   const { isEditAllowed } = useBpmnContext();
 
-  return <div className={classes.wrapper}>{isEditAllowed ? <BPMNEditor /> : <BPMNViewer />}</div>;
+  return (
+    <>
+      {!isEditAllowed && <VersionHelpText />}
+      <div className={classes.wrapper}>{isEditAllowed ? <BPMNEditor /> : <BPMNViewer />}</div>
+    </>
+  );
 };

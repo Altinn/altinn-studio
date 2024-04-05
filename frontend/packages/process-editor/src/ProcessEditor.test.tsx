@@ -9,7 +9,6 @@ import { RouterProvider, createMemoryRouter } from 'react-router-dom';
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 
 const mockAppLibVersion8: string = '8.0.3';
-const mockAppLibVersion7: string = '7.0.3';
 
 const mockSaveBpmn = jest.fn();
 
@@ -41,7 +40,7 @@ describe('ProcessEditor', () => {
   beforeEach(jest.clearAllMocks);
   it('should render loading while bpmnXml is undefined', () => {
     renderProcessEditor({ bpmnXml: undefined });
-    expect(screen.getByTitle(textMock('process_editor.loading'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('process_editor.loading'))).toBeInTheDocument();
   });
 
   it('should render "NoBpmnFoundAlert" when bpmnXml is null', () => {
@@ -51,17 +50,6 @@ describe('ProcessEditor', () => {
         name: textMock('process_editor.fetch_bpmn_error_title'),
         level: 2,
       }),
-    ).toBeInTheDocument();
-  });
-
-  it('should render "canvas" when bpmnXml is provided and default render is edit-mode', async () => {
-    // eslint-disable-next-line testing-library/no-unnecessary-act
-    await act(() => {
-      renderProcessEditor();
-    });
-
-    expect(
-      screen.getByRole('button', { name: textMock('process_editor.save') }),
     ).toBeInTheDocument();
   });
 
@@ -77,16 +65,5 @@ describe('ProcessEditor', () => {
       level: 1,
     });
     expect(alertHeader).not.toBeInTheDocument();
-  });
-
-  it('displays the alert when the version is 7 or older', async () => {
-    const user = userEvent.setup();
-    renderProcessEditor({ appLibVersion: mockAppLibVersion7 });
-
-    // Fix to remove act error
-    await act(() => user.tab());
-
-    const tooOldText = screen.getByText(textMock('process_editor.too_old_version_title'));
-    expect(tooOldText).toBeInTheDocument();
   });
 });

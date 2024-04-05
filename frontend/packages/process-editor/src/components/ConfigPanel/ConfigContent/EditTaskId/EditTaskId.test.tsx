@@ -111,7 +111,7 @@ describe('EditTaskId', () => {
   it('should not update id if new id is the same as the old id', async () => {
     const user = userEvent.setup();
     (useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({
-      metaDataFormRef: metaDataFormRefMock,
+      metaDataFormRef: { current: undefined },
     });
 
     render(<EditTaskId />);

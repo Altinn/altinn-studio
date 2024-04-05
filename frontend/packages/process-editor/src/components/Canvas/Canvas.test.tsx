@@ -4,6 +4,7 @@ import { Canvas } from './Canvas';
 import { type BpmnContextProviderProps, useBpmnContext } from '../../contexts/BpmnContext';
 import { BpmnContextProvider } from '../../contexts/BpmnContext';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
+import { textMock } from '../../../../../testing/mocks/i18nMock';
 
 jest.mock('../../contexts/BpmnContext', () => ({
   ...jest.requireActual('../../contexts/BpmnContext'),
@@ -57,5 +58,13 @@ describe('Canvas', () => {
     });
     renderCanvas({ appLibVersion: mockAppLibVersion8 });
     screen.queryByTestId('bpmn-editor');
+  });
+  it('displays the alert when the version is 7 or older', async () => {
+    (useBpmnContext as jest.Mock).mockReturnValue({
+      ...jest.requireActual('../../contexts/BpmnContext'),
+    });
+    renderCanvas({ appLibVersion: mockAppLibVersion7 });
+    const tooOldText = screen.getByText(textMock('process_editor.too_old_version_title'));
+    expect(tooOldText).toBeInTheDocument();
   });
 });
