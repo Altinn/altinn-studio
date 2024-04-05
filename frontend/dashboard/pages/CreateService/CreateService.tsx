@@ -16,8 +16,7 @@ import type { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useCreateAppFormValidation } from './hooks/useCreateAppFormValidation';
 import { navigateToAppDevelopment } from './utils/navigationUtils';
-
-export const DASHBOARD_ROOT_ROUTE: string = '/';
+import { DASHBOARD_ROOT_ROUTE } from 'app-shared/constants';
 
 const initialFormError: CreateAppForm = {
   org: '',
