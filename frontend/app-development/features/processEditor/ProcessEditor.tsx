@@ -23,7 +23,7 @@ export const ProcessEditor = (): React.ReactElement => {
   const { org, app } = useStudioUrlParams();
   const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
   const { data: appLibData, isLoading: appLibDataLoading } = useAppVersionQuery(org, app);
-  const bpmnMutation = useBpmnMutation(org, app);
+  const { mutate: mutationBpmn, isPending: mutateBpmnPending } = useBpmnMutation(org, app);
   const { mutate: mutateLayoutSet, isPending: mutateLayoutSetPending } = useUpdateLayoutSetMutation(
     org,
     app,
@@ -38,8 +38,8 @@ export const ProcessEditor = (): React.ReactElement => {
   );
   const existingCustomReceiptName: string | undefined = useCustomReceiptLayoutSetName(org, app);
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
-  const pendingLayoutSetOperations: boolean =
-    mutateLayoutSetPending || addLayoutSetPending || deleteLayoutSetPending;
+  const pendingApiOperations: boolean =
+    mutateBpmnPending || mutateLayoutSetPending || addLayoutSetPending || deleteLayoutSetPending;
 
   const { onWSMessageReceived } = useWebSocket({
     webSocketUrl: processEditorWebSocketHub(),
@@ -65,7 +65,7 @@ export const ProcessEditor = (): React.ReactElement => {
     formData.append('content', new Blob([xml]), 'process.bpmn');
     formData.append('metadata', JSON.stringify(metaData));
 
-    bpmnMutation.mutate(
+    mutationBpmn(
       { form: formData },
       {
         onError: () => {
@@ -83,7 +83,7 @@ export const ProcessEditor = (): React.ReactElement => {
   return (
     <ProcessEditorImpl
       layoutSets={layoutSets}
-      pendingLayoutSetOperations={pendingLayoutSetOperations}
+      pendingApiOperations={pendingApiOperations}
       existingCustomReceiptLayoutSetName={existingCustomReceiptName}
       addLayoutSet={addLayoutSet}
       deleteLayoutSet={deleteLayoutSet}

@@ -19,7 +19,7 @@ export type ProcessEditorProps = {
   appLibVersion: string;
   bpmnXml: string | undefined | null;
   layoutSets: BpmnApiContextProps['layoutSets'];
-  pendingLayoutSetOperations: boolean;
+  pendingApiOperations: boolean;
   existingCustomReceiptLayoutSetName: BpmnApiContextProps['existingCustomReceiptLayoutSetName'];
   addLayoutSet: BpmnApiContextProps['addLayoutSet'];
   deleteLayoutSet: BpmnApiContextProps['deleteLayoutSet'];
@@ -31,7 +31,7 @@ export const ProcessEditor = ({
   appLibVersion,
   bpmnXml,
   layoutSets,
-  pendingLayoutSetOperations,
+  pendingApiOperations,
   existingCustomReceiptLayoutSetName,
   addLayoutSet,
   deleteLayoutSet,
@@ -52,7 +52,7 @@ export const ProcessEditor = ({
     <BpmnContextProvider bpmnXml={bpmnXml} appLibVersion={appLibVersion}>
       <BpmnApiContextProvider
         layoutSets={layoutSets}
-        pendingLayoutSetOperations={pendingLayoutSetOperations}
+        pendingApiOperations={pendingApiOperations}
         existingCustomReceiptLayoutSetName={existingCustomReceiptLayoutSetName}
         addLayoutSet={addLayoutSet}
         deleteLayoutSet={deleteLayoutSet}

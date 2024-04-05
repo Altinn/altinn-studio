@@ -15,17 +15,17 @@ import { StudioSpinner } from '@studio/components';
  */
 export const BPMNEditor = (): ReactNode => {
   const { canvasRef } = useBpmnEditor();
-  const { pendingLayoutSetOperations } = useBpmnApiContext();
+  const { pendingApiOperations } = useBpmnApiContext();
 
   return (
     <>
-      {pendingLayoutSetOperations && (
+      {pendingApiOperations && (
         <div className={classes.spinner}>
           <StudioSpinner spinnerTitle={'process_editor.loading'} />
         </div>
       )}
       <div
-        className={pendingLayoutSetOperations ? classes.container : classes.editorContainer}
+        className={pendingApiOperations ? classes.container : classes.editorContainer}
         ref={canvasRef}
       ></div>
     </>

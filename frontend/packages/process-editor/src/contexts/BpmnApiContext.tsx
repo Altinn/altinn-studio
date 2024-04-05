@@ -4,7 +4,7 @@ import type { MetaDataForm } from './BpmnConfigPanelContext';
 
 export type BpmnApiContextProps = {
   layoutSets: LayoutSets;
-  pendingLayoutSetOperations: boolean;
+  pendingApiOperations: boolean;
   existingCustomReceiptLayoutSetName: string | undefined;
   addLayoutSet: (data: { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig }) => void;
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
@@ -20,7 +20,7 @@ export const BpmnApiContext = createContext<BpmnApiContextProps>(undefined);
 export type BpmnApiContextProviderProps = {
   children: React.ReactNode;
   layoutSets: LayoutSets;
-  pendingLayoutSetOperations: boolean;
+  pendingApiOperations: boolean;
   existingCustomReceiptLayoutSetName: string | undefined;
   addLayoutSet: (data: { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig }) => void;
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
@@ -33,7 +33,7 @@ export type BpmnApiContextProviderProps = {
 export const BpmnApiContextProvider = ({
   children,
   layoutSets,
-  pendingLayoutSetOperations,
+  pendingApiOperations,
   existingCustomReceiptLayoutSetName,
   addLayoutSet,
   deleteLayoutSet,
@@ -44,7 +44,7 @@ export const BpmnApiContextProvider = ({
     <BpmnApiContext.Provider
       value={{
         layoutSets,
-        pendingLayoutSetOperations,
+        pendingApiOperations,
         existingCustomReceiptLayoutSetName,
         addLayoutSet,
         deleteLayoutSet,
