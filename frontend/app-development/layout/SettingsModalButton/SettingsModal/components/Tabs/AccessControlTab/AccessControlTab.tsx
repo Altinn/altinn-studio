@@ -27,7 +27,11 @@ export type AccessControlTabProps = {
 export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode => {
   const { t } = useTranslation();
 
-  const { status: appMetadataStatus, error: appMetadataError } = useAppMetadataQuery(org, app);
+  const {
+    data: appMetadata,
+    status: appMetadataStatus,
+    error: appMetadataError,
+  } = useAppMetadataQuery(org, app);
 
   const displayContent = () => {
     switch (appMetadataStatus) {
@@ -48,7 +52,7 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
             <Paragraph size='medium'>
               <span>{t('settings_modal.access_control_tab_checkbox_description')}</span>
             </Paragraph>
-            <SelectAllowedPartyTypes org={org} app={app} />
+            <SelectAllowedPartyTypes org={org} app={app} appMetadata={appMetadata} />
           </>
         );
       }

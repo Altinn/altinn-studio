@@ -1,23 +1,26 @@
 import React, { useRef } from 'react';
 import { Table, Checkbox } from '@digdir/design-system-react';
-import type { PartyTypesAllowed } from 'app-shared/types/ApplicationMetadata';
+import type { ApplicationMetadata, PartyTypesAllowed } from 'app-shared/types/ApplicationMetadata';
 import classes from './SelectAllowedPartyTypes.module.css';
 import { useTranslation } from 'react-i18next';
 import { getPartyTypesAllowedOptions } from '../../../../utils/tabUtils/accessControlTabUtils';
-import { useAppMetadataQuery } from 'app-development/hooks/queries';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
 import { AccessControlWarningModal } from '../AccessControWarningModal';
 
 export interface SelectAllowedPartyTypesProps {
   org: string;
   app: string;
+  appMetadata: ApplicationMetadata;
 }
 
-export const SelectAllowedPartyTypes = ({ org, app }: SelectAllowedPartyTypesProps) => {
+export const SelectAllowedPartyTypes = ({
+  org,
+  app,
+  appMetadata,
+}: SelectAllowedPartyTypesProps) => {
   const { t } = useTranslation();
   const modalRef = useRef<HTMLDialogElement>(null);
 
-  const { data: appMetadata } = useAppMetadataQuery(org, app);
   const partyTypesAllowed = appMetadata.partyTypesAllowed;
   const isNoCheckboxesChecked = Object.values(partyTypesAllowed).every((value) => !value);
   const areAllCheckboxesChecked = Object.values(partyTypesAllowed).every((value) => value);
@@ -37,8 +40,6 @@ export const SelectAllowedPartyTypes = ({ org, app }: SelectAllowedPartyTypesPro
     );
 
     if (updatedCheckedCheckboxes.length === 0) {
-      console.log(modalRef.current);
-
       modalRef.current?.showModal();
       return;
     }

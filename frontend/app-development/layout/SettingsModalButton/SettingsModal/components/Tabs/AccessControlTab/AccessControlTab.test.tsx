@@ -29,6 +29,13 @@ const defaultProps: AccessControlTabProps = {
 describe('AccessControlTab', () => {
   afterEach(jest.clearAllMocks);
 
+  it('render header for selectAllowedPartyTypes', async () => {
+    await resolveAndWaitForSpinnerToDisappear();
+    expect(
+      screen.getByText(textMock('settings_modal.access_control_tab_heading')),
+    ).toBeInTheDocument();
+  });
+
   it('initially displays the spinner when loading data', () => {
     render();
 
