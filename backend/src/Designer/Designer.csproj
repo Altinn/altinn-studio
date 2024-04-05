@@ -159,6 +159,10 @@
   <ItemGroup>
     <EmbeddedResource Include="Services\Implementation\ProcessModeling\Templates\**\*.*" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations/InitialSqlScripts/*.sql" />
+  </ItemGroup>
 
   <Target Name="AfterPublishScript" AfterTargets="Publish">
     <MakeDir Directories="$(PublishDir)Templates" Condition="!Exists('$(PublishDir)Templates')" />
