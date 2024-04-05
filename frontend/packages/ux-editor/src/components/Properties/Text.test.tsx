@@ -138,7 +138,7 @@ describe('TextTab', () => {
           ...props,
           formItem: {
             ...layoutMock.components.ComponentWithOptionsMock,
-            optionsId: 'optionsId',
+            options: [{ label: labelTextId, value: 'value' }],
           },
         },
       });
@@ -153,7 +153,7 @@ describe('TextTab', () => {
           ...props,
           formItem: {
             ...layoutMock.components.ComponentWithOptionsMock,
-            optionsId: 'optionsId',
+            options: [],
           },
         },
       });
