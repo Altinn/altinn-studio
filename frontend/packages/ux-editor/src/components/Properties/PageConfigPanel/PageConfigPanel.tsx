@@ -1,26 +1,25 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
 import { Accordion } from '@digdir/design-system-react';
 import { FileIcon } from '@navikt/aksel-icons';
 import { StudioSectionHeader } from '@studio/components';
-import { useText, useTextResourcesSelector } from '../../../hooks';
+import { useText, useTextResourcesSelector, useAppContext } from '../../../hooks';
 import { DEFAULT_LANGUAGE, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { HiddenExpressionOnLayout } from './HiddenExpressionOnLayout';
-import { selectedLayoutNameSelector } from '../../../selectors/formLayoutSelectors';
 import { TextResource } from '../../TextResource/TextResource';
 import { EditPageId } from './EditPageId';
 import { textResourceByLanguageAndIdSelector } from '../../../selectors/textResourceSelectors';
 import type { ITextResource } from 'app-shared/types/global';
 
 export const PageConfigPanel = () => {
-  const layoutName = useSelector(selectedLayoutNameSelector);
+  const { selectedFormLayoutName } = useAppContext();
   const t = useText();
 
-  const layoutIsSelected = layoutName !== DEFAULT_SELECTED_LAYOUT_NAME && layoutName !== undefined;
+  const layoutIsSelected =
+    selectedFormLayoutName !== DEFAULT_SELECTED_LAYOUT_NAME && selectedFormLayoutName !== undefined;
 
   const layoutNameTextResourceSelector = textResourceByLanguageAndIdSelector(
     DEFAULT_LANGUAGE,
-    layoutName,
+    selectedFormLayoutName,
   );
   const layoutNameTextResource = useTextResourcesSelector<ITextResource>(
     layoutNameTextResourceSelector,
@@ -29,7 +28,7 @@ export const PageConfigPanel = () => {
 
   const headingTitle = !layoutIsSelected
     ? t('right_menu.content_empty')
-    : layoutNameText ?? layoutName;
+    : layoutNameText ?? selectedFormLayoutName;
 
   return (
     <>
@@ -42,7 +41,7 @@ export const PageConfigPanel = () => {
       />
       {layoutIsSelected && (
         <>
-          <EditPageId layoutName={layoutName} />
+          <EditPageId layoutName={selectedFormLayoutName} />
           <Accordion color='subtle'>
             <Accordion.Item>
               <Accordion.Header>{t('right_menu.text')}</Accordion.Header>
@@ -50,7 +49,7 @@ export const PageConfigPanel = () => {
                 <TextResource
                   handleIdChange={() => {}}
                   label={t('ux_editor.modal_properties_textResourceBindings_page_name')}
-                  textResourceId={layoutName}
+                  textResourceId={selectedFormLayoutName}
                 />
               </Accordion.Content>
             </Accordion.Item>

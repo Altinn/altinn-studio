@@ -1,4 +1,3 @@
-import type { IFormDesignerState } from '../features/formDesigner/formDesignerReducer';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
@@ -10,8 +9,6 @@ import type React from 'react';
 export interface IFormDesignerNameSpace<T1> {
   formDesigner: T1;
 }
-export type IAppState = IFormDesignerNameSpace<IFormDesignerState>;
-
 export interface IOption {
   label: string;
   value: any;
@@ -78,8 +75,6 @@ export enum LayoutItemType {
   Container = 'CONTAINER',
   Component = 'COMPONENT',
 }
-
-export type AppStateSelector<T> = (state: IAppState) => T;
 
 export type FormLayoutsSelector<T> = (formLayoutsData: IFormLayouts) => T;
 

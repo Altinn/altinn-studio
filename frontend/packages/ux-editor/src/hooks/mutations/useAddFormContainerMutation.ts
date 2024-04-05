@@ -1,7 +1,7 @@
 import { generateComponentId } from '../../utils/generateId';
 import type { IInternalLayout } from '../../types/global';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
-import { useSelectedFormLayoutWithName } from '../useFormLayoutsSelector';
+import { useSelectedFormLayoutWithName } from '../';
 import { useMutation } from '@tanstack/react-query';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import type { FormContainer } from '../../types/FormContainer';
