@@ -28,7 +28,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
-            var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId };
+            var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["NewTask"] };
             LayoutSets layoutSetsBefore = await GetLayoutSetsFile(org, targetRepository, developer);
 
             string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";

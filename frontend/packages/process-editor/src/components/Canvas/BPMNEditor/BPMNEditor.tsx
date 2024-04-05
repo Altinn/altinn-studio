@@ -3,7 +3,9 @@ import React from 'react';
 import classes from './BPMNEditor.module.css';
 import { useBpmnEditor } from '../../../hooks/useBpmnEditor';
 
-import './BPMNEditor.css'; // used to override bpmn-js styles
+import './BPMNEditor.css';
+import { useBpmnApiContext } from '../../../contexts/BpmnApiContext'; // used to override bpmn-js styles
+import { StudioSpinner } from '@studio/components';
 
 /**
  * @component
@@ -13,5 +15,19 @@ import './BPMNEditor.css'; // used to override bpmn-js styles
  */
 export const BPMNEditor = (): ReactNode => {
   const { canvasRef } = useBpmnEditor();
-  return <div className={classes.editorContainer} ref={canvasRef}></div>;
+  const { pendingLayoutSetOperations } = useBpmnApiContext();
+
+  return (
+    <>
+      {pendingLayoutSetOperations && (
+        <div className={classes.spinner}>
+          <StudioSpinner spinnerTitle={'process_editor.loading'} />
+        </div>
+      )}
+      <div
+        className={pendingLayoutSetOperations ? classes.container : classes.editorContainer}
+        ref={canvasRef}
+      ></div>
+    </>
+  );
 };

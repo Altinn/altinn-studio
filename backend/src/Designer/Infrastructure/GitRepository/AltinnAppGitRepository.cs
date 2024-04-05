@@ -439,7 +439,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string sourceAbsolutePath = GetAbsoluteFileOrDirectoryPathSanitized(sourceRelativePath);
             Directory.Move(sourceAbsolutePath, destAbsolutePath);
         }
-        
+
         /// <summary>
         /// Delete layout set folder
         /// </summary>

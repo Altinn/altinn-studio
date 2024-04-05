@@ -24,11 +24,22 @@ export const ProcessEditor = (): React.ReactElement => {
   const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
   const { data: appLibData, isLoading: appLibDataLoading } = useAppVersionQuery(org, app);
   const bpmnMutation = useBpmnMutation(org, app);
-  const { mutate: mutateLayoutSet } = useUpdateLayoutSetMutation(org, app);
-  const { mutate: addLayoutSet } = useAddLayoutSetMutation(org, app);
-  const { mutate: deleteLayoutSet } = useDeleteLayoutSetMutation(org, app);
+  const { mutate: mutateLayoutSet, isPending: mutateLayoutSetPending } = useUpdateLayoutSetMutation(
+    org,
+    app,
+  );
+  const { mutate: addLayoutSet, isPending: addLayoutSetPending } = useAddLayoutSetMutation(
+    org,
+    app,
+  );
+  const { mutate: deleteLayoutSet, isPending: deleteLayoutSetPending } = useDeleteLayoutSetMutation(
+    org,
+    app,
+  );
   const existingCustomReceiptName: string | undefined = useCustomReceiptLayoutSetName(org, app);
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
+  const pendingLayoutSetOperations: boolean =
+    mutateLayoutSetPending || addLayoutSetPending || deleteLayoutSetPending;
 
   const { onWSMessageReceived } = useWebSocket({
     webSocketUrl: processEditorWebSocketHub(),
@@ -72,6 +83,7 @@ export const ProcessEditor = (): React.ReactElement => {
   return (
     <ProcessEditorImpl
       layoutSets={layoutSets}
+      pendingLayoutSetOperations={pendingLayoutSetOperations}
       existingCustomReceiptLayoutSetName={existingCustomReceiptName}
       addLayoutSet={addLayoutSet}
       deleteLayoutSet={deleteLayoutSet}
