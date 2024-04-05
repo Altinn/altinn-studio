@@ -15,4 +15,13 @@
 
 .text-padding {
   padding: 0 var(--fds-spacing-2);
+  line-height: 32px;
+}
+
+.focusable:focus-visible {
+  --fds-focus-border-width: 3px;
+  outline: var(--fds-focus-border-width) solid var(--fds-semantic-border-focus-outline);
+  outline-offset: var(--fds-focus-border-width);
+  box-shadow: 0 0 0 var(--fds-focus-border-width) var(--fds-semantic-border-focus-boxshadow);
+  border-radius: var(--fds-border_radius-medium);
 }

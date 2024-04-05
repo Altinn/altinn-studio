@@ -25,7 +25,7 @@ const TextOnly: React.FunctionComponent<TextfieldProps> = ({ className, id, valu
   <Paragraph
     id={id}
     size='small'
-    className={`${classes['text-padding']} ${className}`}
+    className={`${classes['text-padding']} ${classes['focusable']}  ${className}`}
     tabindex='0'
   >
     {value}
