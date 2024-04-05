@@ -43,15 +43,6 @@ jobs:
           echo COMMIT= >> .env
           echo IGNORE_DOCKER_DNS_LOOKUP=true >> .env
 
-      - name: Build all images
-        run: |
-          docker compose build --no-cache
-
-      - name: Install node
-        uses: actions/setup-node@v4
-        with:
-          cache: 'yarn'
-
       - name: Run setup.js script
         run: |
           node ./development/setup.js
