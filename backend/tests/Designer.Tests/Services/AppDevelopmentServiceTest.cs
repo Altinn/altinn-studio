@@ -169,7 +169,7 @@ public class AppDevelopmentServiceTest : IDisposable
     public async Task AddLayoutSet_WhenLayoutSetDoesNotExist_ShouldAddNewLayoutSet()
     {
         // Arrange
-        var newLayoutSet = new LayoutSetConfig { Id = "newLayoutSet" };
+        var newLayoutSet = new LayoutSetConfig { Id = "newLayoutSet", Tasks = ["newTask"] };
         string targetRepository = TestDataHelper.GenerateTestRepoName();
 
         CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(_org, _repository, _developer, targetRepository);

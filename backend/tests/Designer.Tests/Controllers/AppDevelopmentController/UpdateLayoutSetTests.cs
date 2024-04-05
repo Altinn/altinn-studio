@@ -1,14 +1,18 @@
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Factories;
+using Altinn.Studio.Designer.Filters;
+using Altinn.Studio.Designer.Filters.AppDevelopment;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -82,12 +86,12 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1")]
-        public async Task UpdateLayoutSet_NewLayoutSetIdExistsBefore_ReturnsBadRequest(string org, string app, string developer,
+        public async Task UpdateLayoutSet_NewLayoutSetIdExistsBefore_ReturnsOKButWithConflictDetails(string org, string app, string developer,
             string layoutSetIdToUpdate)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
-            var newLayoutSetConfig = new LayoutSetConfig() { Id = "layoutSet2" };
+            var newLayoutSetConfig = new LayoutSetConfig() { Id = "layoutSet2", Tasks = ["newTask"] };
 
             string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetIdToUpdate}";
 
@@ -97,7 +101,11 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            ProblemDetails problemDetails = JsonSerializer.Deserialize<ProblemDetails>(responseContent, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+            Assert.Equal(HttpStatusCode.Conflict, (HttpStatusCode)problemDetails.Status);
+            problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode].ToString().Should().Be(AppDevelopmentErrorCodes.NonUniqueLayoutSetIdError);
         }
 
         [Theory]

@@ -4,11 +4,14 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Factories;
+using Altinn.Studio.Designer.Filters;
+using Altinn.Studio.Designer.Filters.AppDevelopment;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Npgsql.Replication.PgOutput.Messages;
 using Xunit;
@@ -52,12 +55,12 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1")]
-        public async Task AddLayoutSet_NewLayoutSetIdExistsBefore_ReturnsBadRequest(string org, string app, string developer,
+        public async Task AddLayoutSet_NewLayoutSetIdExistsBefore_ReturnsOKButWithConflictDetails(string org, string app, string developer,
            string layoutSetId)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
-            var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId };
+            var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["newTask"] };
 
             string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
 
@@ -67,7 +70,35 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            ProblemDetails problemDetails = JsonSerializer.Deserialize<ProblemDetails>(responseContent, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+            Assert.Equal(HttpStatusCode.Conflict, (HttpStatusCode)problemDetails.Status);
+            problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode].ToString().Should().Be(AppDevelopmentErrorCodes.NonUniqueLayoutSetIdError);
+        }
+
+        [Theory]
+        [InlineData("ttd", "app-with-layoutsets", "testUser", "newSet")]
+        public async Task AddLayoutSet_NewLayoutSetTaskIdExistsBefore_ReturnsOKButWithConflictDetails(string org, string app, string developer,
+            string layoutSetId)
+        {
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
+            var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["Task_1"] };
+
+            string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
+
+            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = new StringContent(JsonSerializer.Serialize(newLayoutSetConfig), Encoding.UTF8, "application/json")
+            };
+
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            ProblemDetails problemDetails = JsonSerializer.Deserialize<ProblemDetails>(responseContent, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+            Assert.Equal(HttpStatusCode.Conflict, (HttpStatusCode)problemDetails.Status);
+            problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode].ToString().Should().Be(AppDevelopmentErrorCodes.NonUniqueTaskForLayoutSetError);
         }
 
         [Theory]
