@@ -6,10 +6,6 @@ namespace Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 
 public class DesignerdbContext : DbContext
 {
-    public DesignerdbContext()
-    {
-    }
-
     public DesignerdbContext(DbContextOptions<DesignerdbContext> options)
         : base(options)
     {

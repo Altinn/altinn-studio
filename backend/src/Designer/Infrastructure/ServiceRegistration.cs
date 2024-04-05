@@ -9,9 +9,11 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Repository;
+using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -62,6 +64,11 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IProcessModelingService, ProcessModelingService>();
             services.RegisterDatamodeling(configuration);
             services.RegisterUserRequestSynchronization(configuration);
+
+            services.AddDbContext<DesignerdbContext>(options =>
+            {
+                options.UseNpgsql("Host=localhost;Database=designerdb;Username=designer_admin;Password=kyeDIG@eip");
+            });
 
             return services;
         }

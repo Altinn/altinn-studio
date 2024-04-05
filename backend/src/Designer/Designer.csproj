@@ -37,6 +37,10 @@
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.3">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" />
     <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink" />
     <PackageReference Include="HtmlAgilityPack" />
@@ -48,6 +52,8 @@
     <PackageReference Include="Yuniql.AspNetCore" />
     <PackageReference Include="Yuniql.PostgreSql" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.5.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="4.5.0" />
   </ItemGroup>
 
   <ItemGroup>
