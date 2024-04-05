@@ -15,4 +15,4 @@ jobs:
       with:
         configuration-path: .github/labeler.yml
         enable-versioned-regex: 0
-        repo-token: ${{ secrets.ASSIGN_PROJECT_TOKEN }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
