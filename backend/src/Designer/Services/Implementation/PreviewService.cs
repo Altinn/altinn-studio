@@ -35,11 +35,11 @@ public class PreviewService : IPreviewService
         Application applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
         DataType dataType = await GetDataTypeForLayoutSetName(org, app, developer, layoutSetName, cancellationToken);
         string task = await GetTaskForLayoutSetName(org, app, developer, layoutSetName, cancellationToken);
-        bool processShouldActAsReceipt = task == "CustomReceipt";
+        bool shouldProcessActAsReceipt = task == "CustomReceipt";
         // RegEx for instance guid in app-frontend: [\da-f]{8}-[\da-f]{4}-[1-5][\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}
         string instanceGuid = "f1e23d45-6789-1bcd-8c34-56789abcdef0";
-        string dataTypeForDataElement = processShouldActAsReceipt ? await GetDataTypeForCustomReceipt(org, app, developer, cancellationToken) : dataType?.Id;
-        ProcessState processState = processShouldActAsReceipt
+        string dataTypeForDataElement = shouldProcessActAsReceipt ? await GetDataTypeForCustomReceipt(org, app, developer, cancellationToken) : dataType?.Id;
+        ProcessState processState = shouldProcessActAsReceipt
             ? new()
             {
                 CurrentTask = null,

@@ -47,7 +47,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             layoutSetsBefore.Schema.Should().NotBeNull();
             Assert.False(layoutSetsBefore.Sets.Exists(set => set.DataType == newLayoutSetConfig.DataType));
             layoutSetsAfter.Schema.Should().NotBeNull();
-            layoutSetsBefore.Sets.Count.Should().Be(layoutSetsAfter.Sets.Count);
+            layoutSetsBefore.Sets.Should().HaveCount(layoutSetsAfter.Sets.Count);
             Assert.True(layoutSetsAfter.Sets.Exists(set => set.DataType == newLayoutSetConfig.DataType));
         }
 
@@ -75,7 +75,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             layoutSetsBefore.Schema.Should().NotBeNull();
             Assert.False(layoutSetsBefore.Sets.Exists(set => set.Id == newLayoutSetConfig.Id));
-            layoutSetsBefore.Sets.Count.Should().Be(layoutSetsAfter.Sets.Count);
+            layoutSetsBefore.Sets.Should().HaveCount(layoutSetsAfter.Sets.Count);
             layoutSetsAfter.Schema.Should().NotBeNull();
             Assert.True(layoutSetsAfter.Sets.Exists(set => set.Id == newLayoutSetConfig.Id));
         }
