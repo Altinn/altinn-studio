@@ -1,7 +1,7 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormAttachmentListComponent } from '../../../../types/FormComponent';
 import type { IGenericEditComponent } from '../../componentConfig';
-import { renderWithMockStore } from '../../../../testing/mocks';
+import { renderWithProviders } from '../../../../testing/mocks';
 import { AttachmentListComponent } from './AttachmentListComponent';
 import React from 'react';
 import { screen, act, waitFor } from '@testing-library/react';
@@ -71,9 +71,12 @@ const render = async (
     client.setQueryData([QueryKey.LayoutSets, org, app], layoutSets);
     client.setQueryData([QueryKey.AppMetadata, org, app], { dataTypes });
   }
-  return renderWithMockStore({}, {}, client, {
-    selectedLayoutSet,
-  })(<AttachmentListComponent {...defaultProps} {...props} />);
+  return renderWithProviders(<AttachmentListComponent {...defaultProps} {...props} />, {
+    queryClient: client,
+    appContextProps: {
+      selectedFormLayoutSetName: selectedLayoutSet,
+    },
+  });
 };
 
 describe('AttachmentListComponent', () => {
