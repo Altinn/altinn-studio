@@ -29,12 +29,13 @@ public class ORMDeploymentRepository : IDeploymentRepository
 
     public async Task<IEnumerable<DeploymentEntity>> Get(string org, string app, DocumentQueryModel query)
     {
-        var deploymentsQuery = _dbContext.Deployments.AsNoTracking().Where(x => x.Org == org && x.App == app)
-            .Take(query.Top ?? int.MaxValue);
+        var deploymentsQuery = _dbContext.Deployments.AsNoTracking().Where(x => x.Org == org && x.App == app);
 
         deploymentsQuery = query.SortDirection == SortDirection.Descending
             ? deploymentsQuery.OrderByDescending(d => d.Created)
             : deploymentsQuery.OrderBy(d => d.Created);
+
+        deploymentsQuery = deploymentsQuery.Take(query.Top ?? int.MaxValue);
 
         var dbObjects = await deploymentsQuery.ToListAsync();
         return DeploymentMapper.MapToModels(dbObjects);

@@ -51,6 +51,5 @@ public class GetSingleIntegrationTests : DbIntegrationTestsBase
         await DbFixture.DbContext.Deployments.AddAsync(dbObject);
         await DbFixture.DbContext.SaveChangesAsync();
         DbFixture.DbContext.Entry(dbObject).State = EntityState.Detached;
-
     }
 }

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 
@@ -22,6 +24,11 @@ public static class DeploymentEntityGenerator
             Build = build,
             TagName = tagname ?? Guid.NewGuid().ToString(),
             EnvName = Guid.NewGuid().ToString(),
+            Created = DateTime.UtcNow,
         };
     }
+
+    public static IEnumerable<DeploymentEntity> GenerateDeploymentEntities(string org, string app, int count) =>
+        Enumerable.Range(0, count)
+            .Select(x => GenerateDeploymentEntity(org, app)).ToList();
 }
