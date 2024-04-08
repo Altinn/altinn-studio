@@ -39,9 +39,8 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             LayoutSets layoutSetsAfter = await GetLayoutSetsFile(org, targetRepository, developer);
 
-            layoutSetsBefore.Sets.Should().HaveCount(3);
             Assert.True(layoutSetsBefore.Sets.Exists(set => set.Id == layoutSetToDeleteId));
-            layoutSetsAfter.Sets.Should().HaveCount(2);
+            layoutSetsAfter.Sets.Should().HaveCount(layoutSetsBefore.Sets.Count - 1);
             Assert.False(layoutSetsAfter.Sets.Exists(set => set.Id == layoutSetToDeleteId));
         }
 
@@ -67,11 +66,10 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             LayoutSets layoutSetsAfter = await GetLayoutSetsFile(org, targetRepository, developer);
             Application appMetadataAfter = await GetApplicationMetadataFile(org, targetRepository, developer);
 
-            layoutSetsBefore.Sets.Should().HaveCount(3);
             appMetadataBefore.DataTypes.Find(dataType => dataType.Id == connectedDataType).TaskId.Should()
                 .Be(connectedTaskId);
             Assert.True(layoutSetsBefore.Sets.Exists(set => set.Id == layoutSetToDeleteId));
-            layoutSetsAfter.Sets.Should().HaveCount(2);
+            layoutSetsAfter.Sets.Should().HaveCount(layoutSetsBefore.Sets.Count - 1);
             appMetadataAfter.DataTypes.Find(dataType => dataType.Id == connectedDataType).TaskId.Should().BeNull();
             Assert.False(layoutSetsAfter.Sets.Exists(set => set.Id == layoutSetToDeleteId));
         }
