@@ -15,7 +15,7 @@ export type BpmnApiContextProps = {
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
 };
 
-export const BpmnApiContext = createContext<BpmnApiContextProps>(undefined);
+export const BpmnApiContext = createContext<Partial<BpmnApiContextProps>>(undefined);
 
 export type BpmnApiContextProviderProps = {
   children: React.ReactNode;
@@ -39,7 +39,7 @@ export const BpmnApiContextProvider = ({
   deleteLayoutSet,
   mutateLayoutSet,
   saveBpmn,
-}: BpmnApiContextProviderProps) => {
+}: Partial<BpmnApiContextProviderProps>) => {
   return (
     <BpmnApiContext.Provider
       value={{
@@ -57,7 +57,7 @@ export const BpmnApiContextProvider = ({
   );
 };
 
-export const useBpmnApiContext = (): BpmnApiContextProps => {
+export const useBpmnApiContext = (): Partial<BpmnApiContextProps> => {
   const context = useContext(BpmnApiContext);
   if (context === undefined) {
     throw new Error('useBpmnApiContext must be used within a BpmnApiContextProvider');

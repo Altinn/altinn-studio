@@ -10,7 +10,7 @@ export const useAddLayoutSetMutation = (org: string, app: string) => {
   const [_, setSelectedLayoutSet] = useLocalStorage<string>('layoutSet/' + app, null);
 
   const isLayoutSets = (obj: any): obj is LayoutSets => {
-    if (obj === undefined) return false;
+    if (obj === undefined || !(obj instanceof Object)) return false;
     return 'sets' in obj;
   };
 

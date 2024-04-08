@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { render, screen, act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
@@ -53,18 +53,23 @@ describe('BpmnConfigPanelContext', () => {
     const user = userEvent.setup();
     const TestComponent = () => {
       const { metaDataFormRef, resetForm } = useBpmnConfigPanelFormContext();
+      // Need to update state to trigger a rerender since metaDataFormRef is a mutable object that does not trigger rerender
+      const [, setState] = useState(undefined);
+
+      const handleSetMetaData = () => {
+        setState('test');
+        metaDataFormRef.current = { taskIdChanges: [{ oldId: 'old', newId: 'new' }] };
+      };
+
+      const handleResetMetaData = () => {
+        setState(undefined);
+        resetForm();
+      };
 
       return (
         <div>
-          <button
-            onClick={() =>
-              (metaDataFormRef.current = { taskIdChanges: [{ oldId: 'old', newId: 'new' }] })
-            }
-          >
-            Set meta data
-          </button>
-
-          <button onClick={resetForm}>Reset meta data</button>
+          <button onClick={handleSetMetaData}>Set meta data</button>
+          <button onClick={handleResetMetaData}>Reset meta data</button>
           <div data-testid='context'>
             {metaDataFormRef.current ? JSON.stringify(metaDataFormRef.current) : 'Empty'}
           </div>

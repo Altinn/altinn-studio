@@ -29,12 +29,14 @@ jest.mock('../../../../contexts/BpmnConfigPanelContext', () => ({
   useBpmnConfigPanelFormContext: jest.fn(),
 }));
 
-const metaDataFormRefMock = { current: undefined };
 (useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({
-  metaDataFormRef: metaDataFormRefMock,
+  metaDataFormRef: { current: undefined },
 });
 
 describe('EditTaskId', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
   it('should render task id as view mode by default', () => {
     render(<EditTaskId />);
 
@@ -62,6 +64,10 @@ describe('EditTaskId', () => {
   it('should update metaDataFromRef and updateId (implicitly calling setBpmnDetails) when changing task id', async () => {
     const user = userEvent.setup();
     const newId = 'newId';
+    const metaDataFormRefMock = { current: undefined };
+    (useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({
+      metaDataFormRef: metaDataFormRefMock,
+    });
 
     render(<EditTaskId />);
 
@@ -110,8 +116,9 @@ describe('EditTaskId', () => {
 
   it('should not update id if new id is the same as the old id', async () => {
     const user = userEvent.setup();
+    const metaDataFormRefMock = { current: undefined };
     (useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({
-      metaDataFormRef: { current: undefined },
+      metaDataFormRef: metaDataFormRefMock,
     });
 
     render(<EditTaskId />);

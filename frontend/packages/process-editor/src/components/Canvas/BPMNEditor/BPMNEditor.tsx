@@ -4,8 +4,9 @@ import classes from './BPMNEditor.module.css';
 import { useBpmnEditor } from '../../../hooks/useBpmnEditor';
 
 import './BPMNEditor.css';
-import { useBpmnApiContext } from '../../../contexts/BpmnApiContext'; // used to override bpmn-js styles
+import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { StudioSpinner } from '@studio/components';
+import { useTranslation } from 'react-i18next';
 
 /**
  * @component
@@ -14,6 +15,7 @@ import { StudioSpinner } from '@studio/components';
  * @returns {ReactNode} - The rendered component
  */
 export const BPMNEditor = (): ReactNode => {
+  const { t } = useTranslation();
   const { canvasRef } = useBpmnEditor();
   const { pendingApiOperations } = useBpmnApiContext();
 
@@ -21,7 +23,7 @@ export const BPMNEditor = (): ReactNode => {
     <>
       {pendingApiOperations && (
         <div className={classes.spinner}>
-          <StudioSpinner spinnerTitle={'process_editor.loading'} />
+          <StudioSpinner spinnerTitle={t('process_editor.loading')} />
         </div>
       )}
       <div
