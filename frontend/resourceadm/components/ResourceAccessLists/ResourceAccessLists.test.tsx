@@ -160,13 +160,33 @@ describe('ResourceAccessLists', () => {
   });
 
   it('should show error when loading fails', async () => {
-    const getResourceAccessListsMock = jest.fn().mockImplementation(() => Promise.reject({}));
+    const getResourceAccessListsMock = jest
+      .fn()
+      .mockImplementation(() => Promise.reject({ response: { status: 500 } }));
     renderResourceAccessLists(getResourceAccessListsMock);
 
     const spinnerTitle = screen.queryByText(textMock('resourceadm.loading_lists'));
     await waitForElementToBeRemoved(spinnerTitle);
 
     expect(screen.getByText(textMock('resourceadm.listadmin_load_list_error'))).toBeInTheDocument();
+  });
+
+  it('should show error when user does not have permission to change access lists', async () => {
+    const getResourceAccessListsMock = jest
+      .fn()
+      .mockImplementation(() => Promise.reject({ response: { status: 403 } }));
+    renderResourceAccessLists(getResourceAccessListsMock);
+
+    const spinnerTitle = screen.queryByText(textMock('resourceadm.loading_lists'));
+    await waitForElementToBeRemoved(spinnerTitle);
+
+    expect(
+      screen.getByText(
+        textMock('resourceadm.loading_access_list_permission_denied', {
+          envName: textMock('resourceadm.deploy_test_env'),
+        }),
+      ),
+    ).toBeInTheDocument();
   });
 });
 

@@ -1,5 +1,5 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderHookWithMockStore } from '../../testing/mocks';
+import { renderHookWithProviders } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import type { AddWidgetMutationArgs } from './useAddWidgetMutation';
@@ -46,14 +46,11 @@ describe('useAddWidgetMutation', () => {
 });
 
 const renderAddWidgetMutation = async () => {
-  const { result: formLayouts } = renderHookWithMockStore()(() =>
+  const { result: formLayouts } = renderHookWithProviders(() =>
     useFormLayoutsQuery(org, app, selectedLayoutSet),
-  ).renderHookResult;
+  );
   await waitFor(() => expect(formLayouts.current.isSuccess).toBe(true));
-  const { result: texts } = renderHookWithMockStore()(() =>
-    useTextResourcesQuery(org, app),
-  ).renderHookResult;
+  const { result: texts } = renderHookWithProviders(() => useTextResourcesQuery(org, app));
   await waitFor(() => expect(texts.current.isSuccess).toBe(true));
-  return renderHookWithMockStore()(() => useAddWidgetMutation(org, app, selectedLayoutSet))
-    .renderHookResult;
+  return renderHookWithProviders(() => useAddWidgetMutation(org, app, selectedLayoutSet));
 };

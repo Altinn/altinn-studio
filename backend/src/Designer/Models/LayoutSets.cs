@@ -11,7 +11,7 @@ public class LayoutSets : Altinn.App.Core.Models.LayoutSets
     public string Schema { get; set; }
 
     [JsonPropertyName("sets")]
-    public List<LayoutSetConfig> Sets { get; set; }
+    public new List<LayoutSetConfig> Sets { get; set; }
 
     [JsonExtensionData]
     public IDictionary<string, object?> UnknownProperties { get; set; }

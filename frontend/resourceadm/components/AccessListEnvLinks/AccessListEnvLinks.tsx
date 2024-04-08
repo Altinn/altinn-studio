@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Button, List, Paragraph } from '@digdir/design-system-react';
 import { getResourcePageURL } from '../../utils/urlUtils';
 import { useUrlParams } from '../../hooks/useSelectedContext';
-import { getAvailableEnvironments } from '../../utils/resourceUtils/resourceUtils';
+import { getAvailableEnvironments } from '../../utils/resourceUtils';
 import { useResourcePolicyPublishStatusQuery } from '../../hooks/queries';
 import { StudioSpinner } from '@studio/components';
 import { ArrowForwardIcon } from '@studio/icons';

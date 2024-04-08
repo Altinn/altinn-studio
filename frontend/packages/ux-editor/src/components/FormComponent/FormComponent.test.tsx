@@ -6,8 +6,8 @@ import { DndProvider } from 'react-dnd';
 import type { IFormComponentProps } from './FormComponent';
 import { FormComponent } from './FormComponent';
 import {
-  renderHookWithMockStore,
-  renderWithMockStore,
+  renderHookWithProviders,
+  renderWithProviders,
   textLanguagesMock,
 } from '../../testing/mocks';
 import { component1IdMock, component1Mock } from '../../testing/layoutMock';
@@ -201,15 +201,14 @@ describe('FormComponent', () => {
 });
 
 const waitForData = async () => {
-  const { result: texts } = renderHookWithMockStore(
-    {},
-    {
+  const { result: texts } = renderHookWithProviders(() => useTextResourcesQuery(org, app), {
+    queries: {
       getTextResources: jest
         .fn()
         .mockImplementation(() => Promise.resolve({ language: 'nb', resources: nbTextResources })),
       getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
     },
-  )(() => useTextResourcesQuery(org, app)).renderHookResult;
+  });
   await waitFor(() => expect(texts.current.isSuccess).toBe(true));
 };
 
@@ -227,7 +226,7 @@ const render = async (props: Partial<IFormComponentProps> = {}) => {
 
   await waitForData();
 
-  return renderWithMockStore()(
+  return renderWithProviders(
     <DndProvider backend={HTML5Backend}>
       <FormComponent {...allProps} />
     </DndProvider>,

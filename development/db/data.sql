@@ -3,7 +3,6 @@ values  (1, '1239', '2403', 'ttd', 'auto-deploy-app-v3', 'succeeded', '2022-01-0
   "tagName": "2403",
   "envName": "tt02",
   "createdBy" : "localgiteaadmin",
-  "deployedInEnv": false,
   "build": {
     "id": "586909",
     "status": "completed",
@@ -16,7 +15,6 @@ values  (1, '1239', '2403', 'ttd', 'auto-deploy-app-v3', 'succeeded', '2022-01-0
   "tagName": "2404",
   "envName": "at21",
   "createdBy" : "localgiteaadmin",
-  "deployedInEnv": false,
   "build": {
     "id": "586910",
     "status": "completed",
@@ -29,7 +27,6 @@ values  (1, '1239', '2403', 'ttd', 'auto-deploy-app-v3', 'succeeded', '2022-01-0
   "tagName": "2405",
   "envName": "at22",
   "createdBy" : "localgiteaadmin",
-  "deployedInEnv": true,
   "build": {
     "id": "586911",
     "status": "completed",

@@ -13,5 +13,6 @@ export const useFormLayoutSettingsQuery = (
   return useQuery<ILayoutSettings>({
     queryKey: [QueryKey.FormLayoutSettings, org, app, layoutSetName],
     queryFn: () => getFormLayoutSettings(org, app, layoutSetName),
+    enabled: !!layoutSetName,
   });
 };

@@ -21,6 +21,13 @@
             "tasks": [
                 "Task_3"
             ]
+        },
+        {
+            "id": "receipt",
+            "dataType": "receiptDataType",
+            "tasks": [
+                "CustomReceipt"
+            ]
         }
     ],
     "uiSettings": {}

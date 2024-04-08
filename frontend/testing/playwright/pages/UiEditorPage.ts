@@ -104,7 +104,7 @@ export class UiEditorPage extends BasePage {
   }
 
   public async verifyThatNewPageIsVisible(pageName: string): Promise<void> {
-    await this.page.getByRole('heading', { name: pageName, level: 3, exact: true }).isVisible();
+    await this.page.getByRole('button', { name: pageName, exact: true }).isVisible();
   }
 
   public async verifyThatPageEmptyMessageIsHidden(): Promise<void> {
