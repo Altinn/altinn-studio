@@ -2,7 +2,7 @@ import React from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { useAppMetadataQuery } from 'app-development/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useLayoutSetsQuery } from '../../../../hooks/queries/useLayoutSetsQuery';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useAppContext } from '../../../../hooks/useAppContext';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { useTranslation } from 'react-i18next';
@@ -23,14 +23,14 @@ export const AttachmentListComponent = ({
   const { org, app } = useStudioUrlParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
   const { data: appMetadata, isPending: appMetadataPending } = useAppMetadataQuery(org, app);
-  const { selectedLayoutSet } = useAppContext();
+  const { selectedFormLayoutSetName } = useAppContext();
 
   if (appMetadataPending)
     return <StudioSpinner spinnerTitle={t('ux_editor.component_properties.loading')} />;
 
   const availableAttachments: AvailableAttachementLists = getAvailableAttachments(
     layoutSets,
-    selectedLayoutSet,
+    selectedFormLayoutSetName,
     appMetadata.dataTypes,
   );
 
@@ -60,15 +60,15 @@ export const AttachmentListComponent = ({
 
 const getAvailableAttachments = (
   layoutSets: LayoutSets,
-  selectedLayoutSet: string,
+  selectedFormLayoutSetName: string,
   availableDataTypes: DataTypeElement[],
 ): AvailableAttachementLists => {
   const attachmentsCurrentTasks = getAttachments(
-    currentTasks(layoutSets, selectedLayoutSet),
+    currentTasks(layoutSets, selectedFormLayoutSetName),
     availableDataTypes,
   );
   const attachmentsAllTasks = getAttachments(
-    sampleTasks(layoutSets, selectedLayoutSet),
+    sampleTasks(layoutSets, selectedFormLayoutSetName),
     availableDataTypes,
   );
 
@@ -101,14 +101,14 @@ const filterAttachments = (
   });
 };
 
-const currentTasks = (layoutSets: LayoutSets, selectedLayoutSet: string): string[] =>
-  layoutSets.sets.find((layoutSet) => layoutSet.id === selectedLayoutSet).tasks;
+const currentTasks = (layoutSets: LayoutSets, selectedFormLayoutSetName: string): string[] =>
+  layoutSets.sets.find((layoutSet) => layoutSet.id === selectedFormLayoutSetName).tasks;
 
-const sampleTasks = (layoutSets: LayoutSets, selectedLayoutSet: string): string[] => {
+const sampleTasks = (layoutSets: LayoutSets, selectedFormLayoutSetName: string): string[] => {
   const tasks = [];
   for (const layoutSet of layoutSets.sets) {
     tasks.push(...layoutSet.tasks);
-    if (layoutSet.id === selectedLayoutSet) {
+    if (layoutSet.id === selectedFormLayoutSetName) {
       break;
     }
   }
