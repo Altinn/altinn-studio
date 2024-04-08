@@ -17,6 +17,11 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { previewPage } from 'app-shared/api/paths';
 import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
+import {
+  useSelectedFormLayoutName,
+  useSelectedFormLayoutSetName,
+  useSelectedTaskId,
+} from '../../../packages/ux-editor/src/hooks';
 
 export interface LandingPageProps {
   variant?: AltinnHeaderVariant;
@@ -31,14 +36,14 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const { data: user } = useUserQuery();
   const { data: repository } = useRepoMetadataQuery(org, app);
   const { data: instanceId } = useInstanceIdQuery(org, app);
-  const [selectedLayoutSet, setSelectedLayoutSet] = useLocalStorage<string>(
-    'layoutSet/' + app,
-    null,
-  );
+  const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } =
+    useSelectedFormLayoutSetName();
+  const { selectedFormLayoutName } = useSelectedFormLayoutName(selectedFormLayoutSetName);
   const [previewViewSize, setPreviewViewSize] = useLocalStorage<PreviewAsViewSize>(
     'viewSize',
     'desktop',
   );
+  const taskId = useSelectedTaskId(selectedFormLayoutSetName);
 
   const repoType = getRepositoryType(org, app);
   const menuItems: TopBarMenuItem[] = getTopBarAppPreviewMenu(org, app, repoType, t);
@@ -46,7 +51,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
     input !== null && input.tagName === 'IFRAME';
 
   const handleChangeLayoutSet = (layoutSet: string) => {
-    setSelectedLayoutSet(layoutSet);
+    setSelectedFormLayoutSetName(layoutSet);
     // might need to remove selected layout from local storage to make sure first page is selected
     window.location.reload();
   };
@@ -80,7 +85,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
             <AppPreviewSubMenu
               setViewSize={setPreviewViewSize}
               viewSize={previewViewSize}
-              selectedLayoutSet={selectedLayoutSet}
+              selectedLayoutSet={selectedFormLayoutSetName}
               handleChangeLayoutSet={handleChangeLayoutSet}
             />
           }
@@ -92,7 +97,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
           <iframe
             title={t('preview.iframe_title')}
             id='app-frontend-react-iframe'
-            src={previewPage(org, app, selectedLayoutSet)}
+            src={previewPage(org, app, selectedFormLayoutSetName, taskId, selectedFormLayoutName)}
             className={previewViewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile}
           />
         </div>

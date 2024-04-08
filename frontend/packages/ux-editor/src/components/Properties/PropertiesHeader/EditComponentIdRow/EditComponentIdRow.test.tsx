@@ -1,26 +1,25 @@
 import React from 'react';
 import { act, screen } from '@testing-library/react';
-import { renderWithMockStore } from '../../../../testing/mocks';
+import { renderWithProviders } from '../../../../testing/mocks';
 import { EditComponentIdRow, type EditComponentIdRowProps } from './EditComponentIdRow';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { formDesignerMock } from '../../../../testing/stateMocks';
 import type { IFormLayouts } from '../../../../types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { layout1NameMock, layoutMock } from '../../../../testing/layoutMock';
+import { layout1NameMock, layoutMock, layoutSetsMock } from '../../../../testing/layoutMock';
 
 const org = 'org';
 const app = 'app';
-const layoutSetName = formDesignerMock.layout.selectedLayoutSet;
+const layoutSetName = layoutSetsMock.sets[0].id;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };
 
 const studioRender = async (props: Partial<EditComponentIdRowProps> = {}) => {
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
-  return renderWithMockStore({})(
+  return renderWithProviders(
     <EditComponentIdRow
       component={{
         id: 'test',

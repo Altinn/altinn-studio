@@ -272,5 +272,10 @@ const render = async ({
     >
       <DataModelBindings />
     </FormItemContext.Provider>,
+    {
+      appContextProps: {
+        selectedFormLayoutName: 'default',
+      },
+    },
   );
 };

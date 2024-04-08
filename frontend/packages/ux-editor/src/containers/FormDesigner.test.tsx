@@ -2,7 +2,7 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import {
   formLayoutSettingsMock,
-  renderHookWithMockStore,
+  renderHookWithProviders,
   renderWithProviders,
 } from '../testing/mocks';
 import { FormDesigner } from './FormDesigner';
@@ -31,17 +31,18 @@ const render = () => {
     getRuleModel: jest.fn().mockImplementation(() => Promise.resolve<string>(ruleHandlerMock)),
     getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve<string>('test')),
   };
-  const props = {
-    selectedLayout: 'test-layout',
-    selectedLayoutSet: 'test-layout-set',
-  };
   queryClient.setQueryData([QueryKey.TextResources, org, app], defaultTexts);
-  return renderWithProviders(<FormDesigner {...props} />, { queries, queryClient });
+  return renderWithProviders(<FormDesigner />, {
+    queries,
+    queryClient,
+    appContextProps: {
+      selectedFormLayoutName: undefined,
+    },
+  });
 };
 
 const waitForData = async () => {
-  const widgetsResult = renderHookWithMockStore()(() => useWidgetsQuery(org, app)).renderHookResult
-    .result;
+  const widgetsResult = renderHookWithProviders(() => useWidgetsQuery(org, app)).result;
   await waitFor(() => expect(widgetsResult.current.isSuccess).toBe(true));
 };
 

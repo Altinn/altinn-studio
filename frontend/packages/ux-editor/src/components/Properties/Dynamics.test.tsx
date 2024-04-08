@@ -2,7 +2,7 @@ import React from 'react';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FormItemContext } from '../../containers/FormItemContext';
-import { renderWithMockStore } from '../../testing/mocks';
+import { renderWithProviders } from '../../testing/mocks';
 import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
 import { Dynamics } from './Dynamics';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
@@ -75,7 +75,7 @@ describe('Dynamics', () => {
 });
 
 const render = async (props: Partial<FormItemContext> = {}) => {
-  return renderWithMockStore({})(
+  return renderWithProviders(
     <FormItemContext.Provider
       value={{
         ...formItemContextProviderMock,

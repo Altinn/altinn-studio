@@ -1,13 +1,12 @@
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useDispatch } from 'react-redux';
-import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { IFormLayouts } from '../../types/global';
 import { ObjectUtils } from '@studio/pure-functions';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import type { ILayoutSettings } from 'app-shared/types/global';
+import { useAppContext } from '../';
 
 export interface UpdateLayoutNameMutationArgs {
   oldName: string;
@@ -18,7 +17,7 @@ export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetN
   const { updateFormLayoutName } = useServicesContext();
   const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, layoutSetName);
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
-  const dispatch = useDispatch();
+  const { setSelectedFormLayoutName, refetchLayouts } = useAppContext();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ oldName, newName }: UpdateLayoutNameMutationArgs) =>
@@ -26,8 +25,7 @@ export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetN
         oldName,
         newName,
       })),
-    onSuccess: ({ oldName, newName }) => {
-      dispatch(FormLayoutActions.updateSelectedLayout(newName));
+    onSuccess: async ({ oldName, newName }) => {
       queryClient.setQueryData(
         [QueryKey.FormLayouts, org, app, layoutSetName],
         (oldLayouts: IFormLayouts) => {
@@ -42,6 +40,10 @@ export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetN
       if (order.includes(oldName)) order[order.indexOf(oldName)] = newName;
       if (layoutSettings.receiptLayoutName === oldName) layoutSettings.receiptLayoutName = newName;
       formLayoutSettingsMutation.mutate(layoutSettings);
+
+      await refetchLayouts(layoutSetName);
+
+      setSelectedFormLayoutName(newName);
     },
   });
 };

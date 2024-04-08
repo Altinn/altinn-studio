@@ -6,7 +6,7 @@ import { UnknownReferencedItem } from './UnknownReferencedItem';
 import { layoutMock } from '../../../../testing/layoutMock';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { renderWithMockStore } from '../../../../testing/mocks';
+import { renderWithProviders } from '../../../../testing/mocks';
 
 describe('UnknownReferencedItem', () => {
   it('should display unknown reference component with help text', async () => {
@@ -58,8 +58,7 @@ type RenderUnknownReferencedItem = {
   queries?: Partial<ServicesContextProps>;
 };
 const renderUnknownReferencedItem = ({ props, queries = {} }: RenderUnknownReferencedItem) => {
-  return renderWithMockStore(
-    {},
-    { ...queries },
-  )(<UnknownReferencedItem id={props.id} layout={props.layout} />);
+  return renderWithProviders(<UnknownReferencedItem id={props.id} layout={props.layout} />, {
+    queries,
+  });
 };
