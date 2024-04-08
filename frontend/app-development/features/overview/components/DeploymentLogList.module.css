@@ -1,0 +1,30 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-4);
+  justify-content: space-between;
+
+  max-height: 275px;
+}
+
+.heading {
+  font-weight: unset !important;
+}
+
+.logs {
+  background-color: white;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-6);
+  margin: 0;
+  padding: var(--fds-spacing-4);
+  padding-left: var(--fds-spacing-8);
+
+  overflow: auto;
+}
+
+.logTitle {
+  font-weight: bold;
+  margin-bottom: var(--fds-spacing-2);
+}

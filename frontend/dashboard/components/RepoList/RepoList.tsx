@@ -15,15 +15,12 @@ import type { RepositoryWithStarred } from 'dashboard/utils/repoUtils/repoUtils'
 import { MakeCopyModal } from '../MakeCopyModal';
 import { getRepoEditUrl } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
-import {
-  DATAGRID_DEFAULT_PAGE_SIZE,
-  DATAGRID_PAGE_SIZE_OPTIONS,
-  DATAGRID_PAGE_SIZE_TYPE,
-} from '../../constants';
+import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
+import { DATAGRID_DEFAULT_PAGE_SIZE, DATAGRID_PAGE_SIZE_OPTIONS } from '../../constants';
 import classes from './RepoList.module.css';
-import { User } from 'app-shared/types/Repository';
-import { useSetStarredRepoMutation } from '../../hooks/mutations';
-import { useUnsetStarredRepoMutation } from '../../hooks/mutations';
+import type { User } from 'app-shared/types/Repository';
+import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from '../../hooks/mutations';
+
 import {
   PencilIcon,
   FilesIcon,
@@ -136,7 +133,9 @@ export const RepoList = ({
             key={repo.id}
             id={`fav-repo-${repo.id}`}
             onClick={handleToggleFav}
-            label={repo.hasStarred ? t('dashboard.unstar') : t('dashboard.star')}
+            label={t(repo.hasStarred ? 'dashboard.unstar' : 'dashboard.star', {
+              appName: repo.name,
+            })}
             icon={
               repo.hasStarred ? (
                 <StarFillIcon name='star-fill-icon' className={classes.favoriteIcon} />
@@ -203,7 +202,7 @@ export const RepoList = ({
               className={cn(classes.actionLink, classes.repoLink)}
               icon={<i className={cn('fa fa-gitea', classes.linkIcon, classes.repoLink)} />}
               key={`dashboard.repository${params.row.id}`}
-              label={t('dashboard.repository')}
+              label={t('dashboard.repository_in_list', { appName: repo })}
               onClick={() => (window.location.href = params.row.html_url)}
               showInMenu={false}
               edge='end'
@@ -217,7 +216,7 @@ export const RepoList = ({
                 />
               }
               key={`dashboard.edit_app${params.row.id}`}
-              label={t('dashboard.edit_app')}
+              label={t('dashboard.edit_app', { appName: repo })}
               onClick={() => (window.location.href = editUrl)}
               showInMenu={false}
             >

@@ -1,11 +1,13 @@
 import React from 'react';
-import { render, screen, act, waitForElementToBeRemoved } from '@testing-library/react';
-import { ServiceContent, ServiceContentProps } from './ServiceContent';
-import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
+import { render, screen, act, waitForElementToBeRemoved, waitFor } from '@testing-library/react';
+import type { ServiceContentProps } from './ServiceContent';
+import { ServiceContent } from './ServiceContent';
+import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { QueryClient } from '@tanstack/react-query';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 
@@ -17,15 +19,24 @@ const mockAltinn2LinkService: Altinn2LinkService = {
   externalServiceEditionCode: 'edition1',
   serviceName: 'TestService',
 };
-const mockAltinn2LinkServices: Altinn2LinkService[] = [mockAltinn2LinkService];
+const mockAltinn2HyphenLinkService: Altinn2LinkService = {
+  externalServiceCode: 'code2',
+  externalServiceEditionCode: 'edition2',
+  serviceName: 'test-med---hyphens',
+};
+const mockAltinn2LinkServices: Altinn2LinkService[] = [
+  mockAltinn2LinkService,
+  mockAltinn2HyphenLinkService,
+];
 const mockOption: string = `${mockAltinn2LinkService.externalServiceCode}-${mockAltinn2LinkService.externalServiceEditionCode}-${mockAltinn2LinkService.serviceName}`;
+const mockHyphenOption: string = `${mockAltinn2HyphenLinkService.externalServiceCode}-${mockAltinn2HyphenLinkService.externalServiceEditionCode}-${mockAltinn2HyphenLinkService.serviceName}`;
 
 const mockOnSelectService = jest.fn();
 
 const defaultProps: ServiceContentProps = {
   selectedContext: mockSelectedContext,
   env: mockEnv,
-  selectedService: mockAltinn2LinkService,
+  selectedService: undefined,
   onSelectService: mockOnSelectService,
 };
 
@@ -97,8 +108,23 @@ describe('ServiceContent', () => {
     );
     await act(() => user.click(select));
     await act(() => user.click(screen.getByRole('option', { name: mockOption })));
+    await waitFor(() => expect(select).toHaveValue(mockOption));
 
     expect(mockOnSelectService).toHaveBeenCalledWith(mockAltinn2LinkService);
+  });
+
+  it('handles service selection correctly when servicename contains hyphens', async () => {
+    const user = userEvent.setup();
+    await resolveAndWaitForSpinnerToDisappear();
+
+    const select = screen.getByLabelText(
+      textMock('resourceadm.dashboard_import_modal_select_service'),
+    );
+    await act(() => user.click(select));
+    await act(() => user.click(screen.getByRole('option', { name: mockHyphenOption })));
+    await waitFor(() => expect(select).toHaveValue(mockHyphenOption));
+
+    expect(mockOnSelectService).toHaveBeenCalledWith(mockAltinn2HyphenLinkService);
   });
 });
 

@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <AssemblyName>Altinn.Studio.Designer.Tests</AssemblyName>
     <RootNamespace>Designer.Tests</RootNamespace>
@@ -16,6 +15,7 @@
     <PackageReference Include="Basic.Reference.Assemblies" />
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Fare" />
     <PackageReference Include="Moq" />
@@ -114,5 +114,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="_TestData\DataNorge\" />
+    <Folder Include="_TestData\Repositories\testUser\ttd\model-namespace\" />
   </ItemGroup>
 </Project>

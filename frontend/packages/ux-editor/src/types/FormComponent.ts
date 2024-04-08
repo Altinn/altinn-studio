@@ -1,7 +1,10 @@
-import { ComponentType } from 'app-shared/types/ComponentType';
-import { IDataModelBindings, ITextResourceBindings, IOption } from './global';
-import { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
-import { FormComponent } from '../components/FormComponent';
+import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { IDataModelBindings, ITextResourceBindings, IOption } from './global';
+import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
+import type { FormComponent } from '../components/FormComponent';
+import type { SimpleComponentType } from './SimpleComponentType';
+import type { GridSizes } from '../components/config/editModal/EditGrid/types/GridSizes';
+import type { BooleanExpression } from '@studio/components';
 
 export interface FormComponentBase<T extends ComponentType = ComponentType> {
   id: string;
@@ -22,9 +25,8 @@ export interface FormComponentBase<T extends ComponentType = ComponentType> {
   handleUpdateFormData?: (formData: any) => void;
   handleUpdateDataModel?: (dataModelBinding: string) => void;
   disabled?: boolean;
-  required?: boolean | any;
-  hidden?: boolean | any;
-  readOnly?: boolean | any;
+  hidden?: BooleanExpression;
+  grid?: GridSizes;
   [id: string]: any;
   propertyPath?: string;
 }
@@ -37,9 +39,9 @@ export type FormFileUploaderWithTagComponent = FormComponent<ComponentType.FileU
 export type FormButtonComponent = FormComponent<
   ComponentType.Button | ComponentType.NavigationButtons
 >;
-export type FormAddressComponent = FormComponent<ComponentType.AddressComponent>;
+export type FormAddressComponent = FormComponent<ComponentType.Address>;
 
-export type FormComponent<T extends ComponentType = ComponentType> = {
+export type FormComponent<T extends SimpleComponentType = SimpleComponentType> = {
   [componentType in ComponentType]: FormComponentBase<componentType> &
     ComponentSpecificConfig<componentType>;
 }[T];

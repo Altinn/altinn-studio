@@ -1,22 +1,22 @@
-import React, { ChangeEvent, useState } from 'react';
+import type { ChangeEvent } from 'react';
+import React, { useState } from 'react';
 import { StudioButton, StudioSpinner } from '@studio/components';
 import { ServiceOwnerSelector } from '../../components/ServiceOwnerSelector';
 import { RepoNameInput } from '../../components/RepoNameInput';
 import classes from './CreateService.module.css';
 import { useTranslation } from 'react-i18next';
-import { Organization } from 'app-shared/types/Organization';
-import { User } from 'app-shared/types/Repository';
+import type { Organization } from 'app-shared/types/Organization';
+import type { User } from 'app-shared/types/Repository';
 import { useAddRepoMutation } from 'dashboard/hooks/mutations/useAddRepoMutation';
 import { DatamodelFormat } from 'app-shared/types/DatamodelFormat';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { Link } from 'react-router-dom';
-import { AxiosError } from 'axios';
+import type { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useCreateAppFormValidation } from './hooks/useCreateAppFormValidation';
 import { navigateToAppDevelopment } from './utils/navigationUtils';
-
-const DASHBOARD_ROOT_ROUTE: string = '/';
+import { DASHBOARD_ROOT_ROUTE } from 'app-shared/constants';
 
 const initialFormError: CreateAppForm = {
   org: '',
@@ -50,7 +50,9 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   });
 
   const defaultSelectedOrgOrUser: string =
-    selectedContext === SelectedContextType.Self ? user.login : selectedContext;
+    selectedContext === SelectedContextType.Self || selectedContext === SelectedContextType.All
+      ? user.login
+      : selectedContext;
   const createAppRepo = async (createAppForm: CreateAppForm) => {
     addRepoMutation(
       {
@@ -137,13 +139,17 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
       />
       <div className={classes.actionContainer}>
         {isCreatingRepo || isCreatingRepoSuccess ? (
-          <StudioSpinner spinnerText={t('dashboard.creating_your_service')} />
+          <StudioSpinner showSpinnerTitle spinnerTitle={t('dashboard.creating_your_service')} />
         ) : (
           <>
             <StudioButton type='submit' color='first' size='small'>
               {t('dashboard.create_service_btn')}
             </StudioButton>
-            <Link to={DASHBOARD_ROOT_ROUTE}>{t('general.cancel')}</Link>
+            <Link
+              to={`${DASHBOARD_ROOT_ROUTE}${selectedContext === SelectedContextType.Self ? '' : selectedContext}`}
+            >
+              {t('general.cancel')}
+            </Link>
           </>
         )}
       </div>

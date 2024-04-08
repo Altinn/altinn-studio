@@ -2,17 +2,14 @@
 
 import React from 'react';
 import { render as renderRtl, screen } from '@testing-library/react';
-import { DragAndDropTreeItem, DragAndDropTreeItemProps } from './DragAndDropTreeItem';
-import {
-  DragAndDropTreeRootContext,
-  DragAndDropTreeRootContextProps,
-} from '../DragAndDropTreeRoot';
+import type { DragAndDropTreeItemProps } from './DragAndDropTreeItem';
+import { DragAndDropTreeItem } from './DragAndDropTreeItem';
+import type { DragAndDropTreeRootContextProps } from '../DragAndDropTreeRoot';
+import { DragAndDropTreeRootContext } from '../DragAndDropTreeRoot';
 import { DragAndDropTreeProvider } from '../DragAndDropTreeProvider';
-import {
-  DragAndDropTreeItemContext,
-  DragAndDropTreeItemContextProps,
-} from 'app-shared/components/DragAndDropTree/DragAndDropTreeItem/DragAndDropTreeItemContext';
-import { TreeViewRoot } from 'app-shared/components/TreeView/TreeViewRoot';
+import type { DragAndDropTreeItemContextProps } from './DragAndDropTreeItemContext';
+import { DragAndDropTreeItemContext } from './DragAndDropTreeItemContext';
+import { StudioTreeView } from '@studio/components';
 
 // Test data:
 const label = 'Test';
@@ -47,13 +44,13 @@ const wrapper =
       <DragAndDropTreeRootContext.Provider
         value={{ ...defaultRootContextProps, ...rootContextProps }}
       >
-        <TreeViewRoot>
+        <StudioTreeView.Root>
           <DragAndDropTreeItemContext.Provider
             value={{ ...defaultItemContextProps, ...itemContextProps }}
           >
             {children}
           </DragAndDropTreeItemContext.Provider>
-        </TreeViewRoot>
+        </StudioTreeView.Root>
       </DragAndDropTreeRootContext.Provider>
     </DragAndDropTreeProvider>
   );

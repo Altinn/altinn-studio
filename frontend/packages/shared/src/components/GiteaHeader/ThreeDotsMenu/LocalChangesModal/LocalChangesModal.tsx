@@ -1,4 +1,5 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './LocalChangesModal.module.css';
 import { Heading } from '@digdir/design-system-react';
 import { MonitorIcon } from '@navikt/aksel-icons';
@@ -33,6 +34,7 @@ export const LocalChangesModal = ({
           </Heading>
         </div>
       }
+      closeButtonLabel={t('sync_header.close_local_changes_button')}
     >
       <LocalChanges org={org} app={app} />
     </StudioModal>

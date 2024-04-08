@@ -5,7 +5,7 @@ describe('ui-schema-utils', () => {
     it('removes unsupported characters', () => {
       const idWithUnsupportedCharacters = '#my\\id: with+unsupported/CHARACTERS ^ *0';
       expect(makeDomFriendlyID(idWithUnsupportedCharacters, { suffix: '1/2#3 4#5/' })).toMatch(
-        /^my-id-_with-unsupported\/characters_-_-0-1\/23_45\//
+        /^my-id-_with-unsupported\/characters_-_-0-1\/23_45\//,
       );
     });
     it('should return a new value each time the command is run until it is reset', () => {
@@ -32,6 +32,11 @@ describe('ui-schema-utils', () => {
 
     it('should validate provided name - name with whitespace should return false', () => {
       const invalidName = 'test 123';
+      expect(isValidName(invalidName)).toBeFalsy();
+    });
+
+    it('should validate provided name - name with punctuation should return false', () => {
+      const invalidName = 'test.something';
       expect(isValidName(invalidName)).toBeFalsy();
     });
   });

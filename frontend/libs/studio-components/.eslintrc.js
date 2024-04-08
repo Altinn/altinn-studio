@@ -1,15 +1,28 @@
 module.exports = {
   overrides: [
     {
-      files: ['*.tsx'],
+      files: ['*.tsx', '*.ts'],
       rules: {
-        '@typescript-eslint/naming-convention': [
+        'no-restricted-imports': [
           'error',
           {
-            selector: ['variable', 'function'],
-            modifiers: ['exported'],
-            format: ['PascalCase'],
-            prefix: ['Studio'],
+            patterns: [
+              {
+                group: ['@tanstack/react-query'],
+                message:
+                  'In the components library, backend data should be provided as input values to the functions and components that needs them.',
+              },
+              {
+                group: ['app-shared/*', '@altinn/*'],
+                message:
+                  'Files in the @studio/components package should not depend on app-specific packages.',
+              },
+              {
+                group: ['i18next', 'react-i18next'],
+                message:
+                  'In the components library, texts should be provided as input props to the components that needs them.',
+              },
+            ],
           },
         ],
       },
@@ -21,4 +34,6 @@ module.exports = {
       },
     },
   ],
+
+  extends: ['plugin:storybook/recommended'],
 };

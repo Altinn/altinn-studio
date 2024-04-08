@@ -1,17 +1,21 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './ServiceContent.module.css';
 import { Alert, ErrorMessage, Combobox, Paragraph, Spinner } from '@digdir/design-system-react';
 import { StudioCenter } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useGetAltinn2LinkServicesQuery } from '../../../hooks/queries';
-import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
-import { mapAltinn2LinkServiceToSelectOption } from '../../../utils/mapperUtils';
+import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
+import {
+  mapAltinn2LinkServiceToSelectOption,
+  mapSelectOptiontoAltinn2LinkService,
+} from '../../../utils/mapperUtils';
 
 export type ServiceContentProps = {
   selectedContext: string;
   env: string;
-  selectedService: Altinn2LinkService;
-  onSelectService: (altinn2LinkService: Altinn2LinkService) => void;
+  selectedService: Altinn2LinkService | undefined;
+  onSelectService: (altinn2LinkService: Altinn2LinkService | undefined) => void;
 };
 
 /**
@@ -20,7 +24,7 @@ export type ServiceContentProps = {
  *
  * @property {string}[selectedContext] - The selected context
  * @property {string}[env] - The selected environment
- * @property {Altinn2LinkService}[selectedService] - The selected service
+ * @property {Altinn2LinkService | undefined}[selectedService] - The selected service
  * @property {function}[onSelectService] - Function to be executed when selecting the service
  *
  * @returns {ReactNode} - The rendered component
@@ -43,12 +47,8 @@ export const ServiceContent = ({
    * Handles the selection of the service
    */
   const handleSelectService = (s: string) => {
-    const valueAsArray: string[] = s.split('-');
-    onSelectService({
-      serviceName: valueAsArray[2],
-      externalServiceEditionCode: valueAsArray[1],
-      externalServiceCode: valueAsArray[0],
-    });
+    const linkService = s ? mapSelectOptiontoAltinn2LinkService(s) : undefined;
+    onSelectService(linkService);
   };
 
   /**
@@ -96,9 +96,7 @@ export const ServiceContent = ({
           }
           label={t('resourceadm.dashboard_import_modal_select_service')}
           onValueChange={(newValue: string[]) => {
-            if (newValue?.length) {
-              handleSelectService(newValue[0]);
-            }
+            handleSelectService(newValue[0]);
           }}
         >
           {mapAltinn2LinkServiceToSelectOption(altinn2LinkServices).map((ls) => {

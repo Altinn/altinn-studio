@@ -1,24 +1,46 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import classes from './Preview.module.css';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useSelector } from 'react-redux';
 import cn from 'classnames';
-import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { useTranslation } from 'react-i18next';
-import { useAppContext } from '../../hooks/useAppContext';
-import { useUpdate } from 'app-shared/hooks/useUpdate';
+import { useAppContext, useSelectedTaskId } from '../../hooks';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/design-system-react';
-import { StudioCenter } from '@studio/components';
-import { SupportedView, ViewToggler } from './ViewToggler/ViewToggler';
+import { StudioButton, StudioCenter } from '@studio/components';
+import type { SupportedView } from './ViewToggler/ViewToggler';
+import { ViewToggler } from './ViewToggler/ViewToggler';
+import { ArrowRightIcon } from '@studio/icons';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
 
 export const Preview = () => {
-  const layoutName = useSelector(selectedLayoutNameSelector);
-  const noPageSelected = layoutName === 'default' || layoutName === undefined;
+  const { t } = useTranslation();
+  const [isPreviewHidden, setIsPreviewHidden] = useState<boolean>(false);
+  const { selectedFormLayoutName } = useAppContext();
+  const noPageSelected =
+    selectedFormLayoutName === 'default' || selectedFormLayoutName === undefined;
 
-  return (
+  const togglePreview = (): void => {
+    setIsPreviewHidden((prev: boolean) => !prev);
+  };
+
+  return isPreviewHidden ? (
+    <StudioButton
+      size='small'
+      variant='secondary'
+      className={classes.openPreviewButton}
+      onClick={togglePreview}
+    >
+      {t('ux_editor.open_preview')}
+    </StudioButton>
+  ) : (
     <div className={classes.root}>
+      <StudioButton
+        variant='tertiary'
+        icon={<ArrowRightIcon aria-hidden />}
+        title={t('ux_editor.close_preview')}
+        className={classes.closePreviewButton}
+        onClick={togglePreview}
+      />
       {noPageSelected ? <NoSelectedPageMessage /> : <PreviewFrame />}
     </div>
   );
@@ -38,14 +60,15 @@ const NoSelectedPageMessage = () => {
 const PreviewFrame = () => {
   const { org, app } = useStudioUrlParams();
   const [viewportToSimulate, setViewportToSimulate] = useState<SupportedView>('desktop');
-  const { selectedLayoutSet } = useAppContext();
+  const { previewIframeRef, selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
+  const taskId = useSelectedTaskId(selectedFormLayoutSetName);
   const { t } = useTranslation();
-  const { previewIframeRef } = useAppContext();
-  const layoutName = useSelector(selectedLayoutNameSelector);
 
-  useUpdate(() => {
-    previewIframeRef.current?.contentWindow?.location.reload();
-  }, [layoutName, previewIframeRef]);
+  useEffect(() => {
+    return () => {
+      previewIframeRef.current = null;
+    };
+  }, [previewIframeRef]);
 
   return (
     <div className={classes.root}>
@@ -56,7 +79,7 @@ const PreviewFrame = () => {
             ref={previewIframeRef}
             className={cn(classes.iframe, classes[viewportToSimulate])}
             title={t('ux_editor.preview')}
-            src={previewPage(org, app, selectedLayoutSet)}
+            src={previewPage(org, app, selectedFormLayoutSetName, taskId, selectedFormLayoutName)}
           />
         </div>
         <PreviewLimitationsInfo />

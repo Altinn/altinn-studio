@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import classes from './ThreeDotsMenu.module.css';
-import { MonitorIcon, TabsIcon } from '@navikt/aksel-icons';
+import { MonitorIcon, TabsIcon, MenuElipsisVerticalIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
 import { GiteaIcon } from 'app-shared/icons';
 import { LegacyPopover } from '@digdir/design-system-react';
-import { MenuElipsisVerticalIcon } from '@navikt/aksel-icons';
+
 import { CloneModal } from './CloneModal';
 import { StudioButton } from '@studio/components';
 import { LocalChangesModal } from './LocalChangesModal';
@@ -59,16 +59,16 @@ export const ThreeDotsMenu = ({
               <span className={classes.iconWrapper}>
                 <GiteaIcon className={classes.icon + ' ' + classes.giteaIcon} />
               </span>
-              <span>{t('dashboard.repository')}</span>
+              <span>{t('sync_header.repository')}</span>
             </a>
           </li>
-          <li onClick={() => setLocalChangesModalIsOpen(true)}>
-            <div className={classes.link}>
+          <li>
+            <button onClick={() => setLocalChangesModalIsOpen(true)} className={classes.link}>
               <span className={classes.iconWrapper}>
                 <MonitorIcon className={classes.icon} />
               </span>
               <span>{t('sync_header.local_changes')}</span>
-            </div>
+            </button>
           </li>
           {localChangesModalIsOpen && (
             <LocalChangesModal

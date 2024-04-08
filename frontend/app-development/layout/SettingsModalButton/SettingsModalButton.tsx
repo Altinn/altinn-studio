@@ -1,4 +1,5 @@
-import React, { ReactNode, useState } from 'react';
+import type { ReactNode } from 'react';
+import React, { useState } from 'react';
 import { StudioButton } from '@studio/components';
 import { CogIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
@@ -26,7 +27,7 @@ export const SettingsModalButton = ({ org, app }: SettingsModalButtonProps): Rea
         color='inverted'
         icon={<CogIcon />}
       >
-        {t('settings_modal.heading')}
+        {t('sync_header.settings')}
       </StudioButton>
       {
         // Done to prevent API calls to be executed before the modal is open

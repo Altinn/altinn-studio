@@ -1,7 +1,8 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './Tab.module.css';
 import cn from 'classnames';
-import { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
+import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { Paragraph } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { TabContent } from './TabContent';
@@ -54,8 +55,8 @@ export const Tab = ({
       onKeyDown={onKeyDown}
     >
       {tab.icon}
-      <Paragraph as='span' size='small' short className={classes.buttonText}>
-        {t(tab.tabName)}
+      <Paragraph asChild size='small' short className={classes.buttonText}>
+        <span>{t(tab.tabName)}</span>
       </Paragraph>
     </TabContent>
   );

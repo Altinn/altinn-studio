@@ -1,6 +1,7 @@
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { ComponentType } from 'app-shared/types/ComponentType';
-import { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
+import type { Expression } from '@studio/components';
 
 export type FormLayoutsResponse = KeyValuePairs<ExternalFormLayout>;
 
@@ -12,7 +13,7 @@ export interface ExternalFormLayout {
 
 export interface ExternalData {
   layout: ExternalComponent[];
-  hidden?: boolean;
+  hidden?: Expression;
   [key: string]: any;
 }
 

@@ -1,14 +1,13 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import { SubApp } from './SubApp';
 import { render, screen, within } from '@testing-library/react';
 
 const providerTestId = 'provider';
 const appTestId = 'app';
 jest.mock('./AppContext', () => ({
-  AppContext: {
-    Provider: ({ children }: { children: ReactNode }) => {
-      return <div data-testid={providerTestId}>{children}</div>;
-    },
+  AppContextProvider: ({ children }: { children: ReactNode }) => {
+    return <div data-testid={providerTestId}>{children}</div>;
   },
 }));
 jest.mock('./App', () => ({

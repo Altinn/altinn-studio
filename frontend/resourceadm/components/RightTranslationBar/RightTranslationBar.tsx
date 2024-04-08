@@ -4,7 +4,8 @@ import { GlobeIcon } from '@studio/icons';
 import { Textfield, Alert, Paragraph, Heading, Textarea } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { mapLanguageKeyToLanguageText } from '../../utils/resourceUtils';
-import { SupportedLanguage, ValidLanguage } from 'app-shared/types/ResourceAdm';
+import type { SupportedLanguage, ValidLanguage } from 'app-shared/types/ResourceAdm';
+import { ResourceFieldHeader } from '../ResourcePageInputs/ResourceFieldHeader';
 
 export type RightTranslationBarProps = {
   title: string;
@@ -13,6 +14,7 @@ export type RightTranslationBarProps = {
   onLanguageChange: (value: SupportedLanguage) => void;
   showErrors: boolean;
   onBlur: () => void;
+  required?: boolean;
 };
 
 /**
@@ -32,6 +34,7 @@ export type RightTranslationBarProps = {
  * @property {(value: LanguageString) => void}[onLanguageChange] - Function that updates the value when changes are made in the input field.
  * @property {boolean}[showErrors] - Flag to handle when to show the errors
  * @property {function}[onBlur] - Function to be executed on blur
+ * @property {boolean}[required] - Whether this field is required or not
  *
  * @returns {React.JSX.Element} - The rendered component
  */
@@ -42,6 +45,7 @@ export const RightTranslationBar = ({
   onLanguageChange,
   showErrors,
   onBlur,
+  required,
 }: RightTranslationBarProps): React.JSX.Element => {
   const { t } = useTranslation();
 
@@ -58,10 +62,11 @@ export const RightTranslationBar = ({
           value={value[lang]}
           onChange={(e) => handleChange(lang, e.currentTarget.value)}
           rows={5}
-          label={label}
+          label={<ResourceFieldHeader label={label} required={required} />}
           error={showErrors && !value[lang]}
           onBlur={onBlur}
           size='small'
+          required={required}
         />
       );
     }
@@ -69,10 +74,11 @@ export const RightTranslationBar = ({
       <Textfield
         value={value[lang]}
         onChange={(e) => handleChange(lang, e.target.value)}
-        label={label}
+        label={<ResourceFieldHeader label={label} required={required} />}
         error={showErrors && !value[lang]}
         onBlur={onBlur}
         size='small'
+        required={required}
       />
     );
   };

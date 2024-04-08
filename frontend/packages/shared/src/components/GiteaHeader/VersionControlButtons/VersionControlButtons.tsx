@@ -3,7 +3,7 @@ import classes from './VersionControlButtons.module.css';
 import { FetchChangesButton } from './FetchChangesButton';
 import { ShareChangesButton } from './ShareChangesButton';
 import { SyncModal } from './SyncModal';
-import { IContentStatus, IGitStatus } from 'app-shared/types/global';
+import type { IContentStatus, IGitStatus } from 'app-shared/types/global';
 import { useTranslation } from 'react-i18next';
 import {
   useRepoMetadataQuery,
@@ -13,6 +13,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { useRepoCommitAndPushMutation } from 'app-shared/hooks/mutations';
 import * as testids from '../../../../../../testing/testids';
+import { toast } from 'react-toastify';
 
 const initialModalState = {
   header: '',
@@ -77,6 +78,8 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
     });
     const { data: result } = await fetchPullData();
     if (result.repositoryStatus === 'Ok') {
+      // force refetch  files
+      await queryClient.invalidateQueries(); // Todo: This invalidates ALL queries. Consider providing a list of relevant queries only.
       // if pull was successfull, show app is updated message
       setModalState({
         ...initialModalState,
@@ -84,8 +87,6 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
         isLoading: false,
         shouldShowDoneIcon: true,
       });
-      // force refetch  files
-      await queryClient.invalidateQueries(); // Todo: This invalidates ALL queries. Consider providing a list of relevant queries only.
       forceRepoStatusCheck();
     } else if (result.repositoryStatus === 'CheckoutConflict') {
       // if pull gives merge conflict, show user needs to commit message
@@ -188,12 +189,9 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
 
     const { data: result } = await fetchPullData();
     if (result.repositoryStatus === 'Ok') {
-      setModalState({
-        ...initialModalState,
-        header: t('sync_header.sharing_changes_completed'),
-        descriptionText: [t('sync_header.sharing_changes_completed_submessage')],
-        shouldShowDoneIcon: true,
-      });
+      setModalState(initialModalState);
+      setSyncModalAnchorEl(null);
+      toast.success(t('sync_header.sharing_changes_completed'));
     } else if (
       result.repositoryStatus === 'MergeConflict' ||
       result.repositoryStatus === 'CheckoutConflict'

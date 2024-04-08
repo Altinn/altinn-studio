@@ -3,11 +3,13 @@ import { render as rtlRender, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryClient } from '@tanstack/react-query';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { QueryClient } from '@tanstack/react-query';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { MemoryRouter } from 'react-router-dom';
-import { LocalChangesModal, LocalChangesModalProps } from './LocalChangesModal';
+import type { LocalChangesModalProps } from './LocalChangesModal';
+import { LocalChangesModal } from './LocalChangesModal';
 
 describe('LocalChangesModal', () => {
   const user = userEvent.setup();
@@ -15,7 +17,9 @@ describe('LocalChangesModal', () => {
   it('calls onClose when the close button is clicked', async () => {
     render();
 
-    const closeButton = screen.getByRole('button', { name: textMock('modal.close_icon') });
+    const closeButton = screen.getByRole('button', {
+      name: textMock('sync_header.close_local_changes_button'),
+    });
     await act(() => user.click(closeButton));
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);

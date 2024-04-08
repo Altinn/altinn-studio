@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 
 import type { IGenericEditComponent } from '../../componentConfig';
 import { ImageComponent } from './ImageComponent';
-import { renderHookWithMockStore, renderWithMockStore } from '../../../../testing/mocks';
+import { renderHookWithProviders, renderWithProviders } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
@@ -33,12 +33,12 @@ const texts = {
 };
 
 const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery()).renderHookResult.result;
+  const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
-const render = async (props: Partial<IGenericEditComponent> = {}) => {
-  const allProps: IGenericEditComponent = {
+const render = async (props: Partial<IGenericEditComponent<ComponentType.Image>> = {}) => {
+  const allProps: IGenericEditComponent<ComponentType.Image> = {
     component: componentData,
     handleComponentChange: jest.fn(),
     ...props,
@@ -46,14 +46,11 @@ const render = async (props: Partial<IGenericEditComponent> = {}) => {
 
   await waitForData();
 
-  return renderWithMockStore()(<ImageComponent {...allProps} />);
+  return renderWithProviders(<ImageComponent {...allProps} />);
 };
 
 // Mocks:
-jest.mock(
-  'react-i18next',
-  () => ({ useTranslation: () => mockUseTranslation(texts) }),
-);
+jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 describe('ImageComponent', () => {
   it('should call handleComponentUpdate callback with image src value for nb when image source input is changed', async () => {
@@ -74,26 +71,6 @@ describe('ImageComponent', () => {
         src: {
           nb: imgSrc,
         },
-      },
-    });
-  });
-
-  it('should call handleComponentUpdate callback with image width value when image width input is changed', async () => {
-    const handleUpdate = jest.fn();
-    const size = '250px';
-    await render({ handleComponentChange: handleUpdate });
-
-    const widthInput = screen.getByRole('textbox', {
-      name: /width/i,
-    });
-
-    await act(() => user.type(widthInput, size));
-
-    expect(handleUpdate).toHaveBeenCalledWith({
-      ...componentData,
-      image: {
-        ...componentData.image,
-        width: size,
       },
     });
   });

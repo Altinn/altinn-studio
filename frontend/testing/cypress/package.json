@@ -3,13 +3,13 @@
   "description": "studio tests",
   "version": "1.0.0",
   "devDependencies": {
-    "@faker-js/faker": "8.3.1",
+    "@faker-js/faker": "8.4.1",
     "@testing-library/cypress": "10.0.1",
-    "axe-core": "4.8.3",
-    "cypress": "13.6.3",
+    "axe-core": "4.9.0",
+    "cypress": "13.7.1",
     "cypress-axe": "1.5.0",
     "cypress-plugin-tab": "1.0.5",
-    "eslint": "8.56.0",
+    "eslint": "8.57.0",
     "eslint-plugin-cypress": "2.15.1"
   },
   "main": "index.js",
@@ -26,7 +26,6 @@
     "prettier:check": "prettier -c src/**/*.js",
     "prettier:format": "prettier -w src/**/*.js",
     "test:all": "cypress run -b chrome -s 'src/integration/**/*.js'",
-    "test:studio": "cypress run -b chrome -s 'src/integration/studio/*.js'",
     "test:usecase": "cypress run -b chrome -s 'src/integration/usecase/*.js'"
   }
 }

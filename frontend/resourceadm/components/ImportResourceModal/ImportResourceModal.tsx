@@ -1,20 +1,22 @@
 import React, { useState } from 'react';
+import { toast } from 'react-toastify';
 import classes from './ImportResourceModal.module.css';
 import { Modal } from '../Modal';
 import { Combobox, Paragraph, Textfield } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { EnvironmentType } from '../../types/EnvironmentType';
+import type { EnvironmentType } from '../../types/EnvironmentType';
 import { useNavigate } from 'react-router-dom';
 import { ServiceContent } from './ServiceContent';
-import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
+import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { useImportResourceFromAltinn2Mutation } from '../../hooks/mutations';
-import { Resource } from 'app-shared/types/ResourceAdm';
+import type { Resource } from 'app-shared/types/ResourceAdm';
 import { getResourcePageURL } from '../../utils/urlUtils';
-import { AxiosError } from 'axios';
+import type { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUrlParams } from '../../hooks/useSelectedContext';
 import { StudioButton } from '@studio/components';
 import { formatIdString } from '../../utils/stringUtils';
+import { getResourceIdentifierErrorMessage } from '../../utils/resourceUtils';
 
 const environmentOptions = ['AT21', 'AT22', 'AT23', 'AT24', 'TT02', 'PROD'];
 
@@ -47,20 +49,25 @@ export const ImportResourceModal = ({
 
   const navigate = useNavigate();
 
-  const [selectedEnv, setSelectedEnv] = useState<EnvironmentType>();
-  const [selectedService, setSelectedService] = useState<Altinn2LinkService>();
+  const [selectedEnv, setSelectedEnv] = useState<EnvironmentType | undefined>(undefined);
+  const [selectedService, setSelectedService] = useState<Altinn2LinkService | undefined>(undefined);
   const [id, setId] = useState('');
   const [resourceIdExists, setResourceIdExists] = useState(false);
 
-  const { mutate: importResourceFromAltinn2Mutation } =
+  const { mutate: importResourceFromAltinn2Mutation, isPending: isImportingResource } =
     useImportResourceFromAltinn2Mutation(selectedContext);
 
+  const idErrorMessage = getResourceIdentifierErrorMessage(id, resourceIdExists);
+  const hasValidValues =
+    selectedEnv && selectedService && id && !idErrorMessage && !isImportingResource;
   /**
    * Reset fields on close
    */
   const handleClose = () => {
     onClose();
     setSelectedEnv(undefined);
+    setSelectedService(undefined);
+    setId('');
   };
 
   /**
@@ -76,6 +83,7 @@ export const ImportResourceModal = ({
       },
       {
         onSuccess: (resource: Resource) => {
+          toast.success(t('resourceadm.dashboard_import_success'));
           navigate(getResourcePageURL(selectedContext, repo, resource.identifier, 'about'));
         },
         onError: (error: AxiosError) => {
@@ -98,7 +106,11 @@ export const ImportResourceModal = ({
         <Combobox
           value={selectedEnv ? [selectedEnv] : undefined}
           label={t('resourceadm.dashboard_import_modal_select_env')}
-          onValueChange={(newValue: EnvironmentType[]) => setSelectedEnv(newValue[0])}
+          onValueChange={(newValue: EnvironmentType[]) => {
+            setSelectedEnv(newValue[0]);
+            setSelectedService(undefined);
+            setId('');
+          }}
         >
           {environmentOptions.map((env) => (
             <Combobox.Option key={env} value={env}>
@@ -115,7 +127,7 @@ export const ImportResourceModal = ({
             selectedService={selectedService}
             onSelectService={(altinn2LinkService: Altinn2LinkService) => {
               setSelectedService(altinn2LinkService);
-              setId(formatIdString(altinn2LinkService.serviceName));
+              setId(altinn2LinkService ? formatIdString(altinn2LinkService.serviceName) : '');
             }}
           />
           {selectedService && (
@@ -127,10 +139,11 @@ export const ImportResourceModal = ({
               <Textfield
                 label={t('resourceadm.dashboard_resource_name_and_id_resource_id')}
                 value={id}
-                onChange={(event) => setId(formatIdString(event.target.value))}
-                error={
-                  resourceIdExists ? t('resourceadm.dashboard_resource_name_and_id_error') : ''
-                }
+                onChange={(event) => {
+                  setResourceIdExists(false);
+                  setId(formatIdString(event.target.value));
+                }}
+                error={idErrorMessage ? t(idErrorMessage) : ''}
               />
             </div>
           )}
@@ -138,10 +151,10 @@ export const ImportResourceModal = ({
       )}
       <div className={classes.buttonWrapper}>
         <StudioButton
-          onClick={handleImportResource}
+          onClick={() => (hasValidValues ? handleImportResource() : undefined)}
           color='first'
           size='small'
-          disabled={!selectedEnv || !selectedService || !id}
+          aria-disabled={!hasValidValues}
         >
           {t('resourceadm.dashboard_import_modal_import_button')}
         </StudioButton>

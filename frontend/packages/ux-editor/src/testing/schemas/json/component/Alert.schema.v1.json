@@ -1,42 +1,76 @@
 {
   "$id": "https://altinncdn.no/schemas/json/component/Alert.schema.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Alert component",
-  "description": "Schema that describes the layout configuration for a Alert component.",
-  "type": "object",
   "properties": {
     "id": {
-      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
-    },
-    "type": {
+      "title": "ID",
+      "description": "The component ID. Must be unique within all layouts/pages in a layout-set. Cannot end with <dash><number>.",
       "type": "string",
-      "title": "Type",
-      "description": "The component type.",
-      "const": "Alert"
+      "pattern": "^[0-9a-zA-Z][0-9a-zA-Z-]*(-?[a-zA-Z]+|[a-zA-Z][0-9]+|-[0-9]{6,})$"
     },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
+    },
+    "grid": {
+      "properties": {
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
+      }
+    },
+    "pageBreak": {
+      "title": "Page break",
+      "description": "Optionally insert page-break before/after component when rendered in PDF",
+      "type": "object",
+      "properties": {
+        "breakBefore": {
+          "title": "Page break before",
+          "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
+          "examples": ["auto", "always", "avoid"],
+          "default": "auto",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "breakAfter": {
+          "title": "Page break after",
+          "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
+          "examples": ["auto", "always", "avoid"],
+          "default": "auto",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "type": { "const": "Alert" },
     "textResourceBindings": {
       "type": "object",
       "properties": {
         "title": {
-          "type": "string"
+          "title": "Title",
+          "description": "The title of the alert",
+          "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "body": {
-          "type": "string"
+          "title": "Body",
+          "description": "The body text of the alert",
+          "$ref": "expression.schema.v1.json#/definitions/string"
         }
       },
       "additionalProperties": false
     },
     "severity": {
-      "title": "Severity",
-      "description": "The severity of the alert.",
-      "type": "string",
-      "enum": ["success", "warning", "danger", "info"]
+      "title": "Alert severity",
+      "description": "The severity of the alert",
+      "enum": ["success", "warning", "danger", "info"],
+      "type": "string"
     }
   },
-  "required": [
-    "id",
-    "type",
-    "severity"
-  ],
-  "additionalProperties": false
+  "required": ["id", "type", "severity"],
+  "title": "Alert component schema"
 }

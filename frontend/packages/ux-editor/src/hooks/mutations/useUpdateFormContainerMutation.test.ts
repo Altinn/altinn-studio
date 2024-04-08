@@ -1,13 +1,11 @@
 import { waitFor } from '@testing-library/react';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderHookWithMockStore } from '../../testing/mocks';
+import { renderHookWithProviders } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useRuleConfigQuery } from '../queries/useRuleConfigQuery';
-import {
-  UpdateFormContainerMutationArgs,
-  useUpdateFormContainerMutation,
-} from './useUpdateFormContainerMutation';
-import { FormContainer } from '../../types/FormContainer';
+import type { UpdateFormContainerMutationArgs } from './useUpdateFormContainerMutation';
+import { useUpdateFormContainerMutation } from './useUpdateFormContainerMutation';
+import type { FormContainer } from '../../types/FormContainer';
 import {
   container1IdMock,
   externalLayoutsMock,
@@ -15,8 +13,9 @@ import {
   layout1NameMock,
 } from '../../testing/layoutMock';
 import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
-import { FormLayoutsResponse } from 'app-shared/types/api';
-import { RuleConfig } from 'app-shared/types/RuleConfig';
+import type { FormLayoutsResponse } from 'app-shared/types/api';
+import type { RuleConfig } from 'app-shared/types/RuleConfig';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 // Test data:
 const org = 'org';
@@ -27,6 +26,7 @@ const maxCount = 2;
 const updatedContainer: FormContainer = {
   id: 'newId',
   itemType: 'CONTAINER',
+  type: ComponentType.Group,
   maxCount,
 };
 const id = container1IdMock;
@@ -36,9 +36,9 @@ describe('useUpdateFormContainerMutation', () => {
   it('Saves layouts with new container and updates rule config', async () => {
     await renderAndWaitForData();
 
-    const updateFormContainerResult = renderHookWithMockStore()(() =>
+    const updateFormContainerResult = renderHookWithProviders(() =>
       useUpdateFormContainerMutation(org, app, selectedLayoutName, selectedLayoutSet),
-    ).renderHookResult.result;
+    ).result;
 
     await updateFormContainerResult.current.mutateAsync(mutationArgs);
 
@@ -70,14 +70,14 @@ const renderAndWaitForData = async () => {
   const getRuleConfig = jest
     .fn()
     .mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfigMock));
-  const formLayoutsResult = renderHookWithMockStore(
-    {},
-    { getFormLayouts },
-  )(() => useFormLayoutsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
-  const ruleConfigResult = renderHookWithMockStore(
-    {},
-    { getRuleConfig },
-  )(() => useRuleConfigQuery(org, app, selectedLayoutSet)).renderHookResult.result;
+  const formLayoutsResult = renderHookWithProviders(
+    () => useFormLayoutsQuery(org, app, selectedLayoutSet),
+    { queries: { getFormLayouts } },
+  ).result;
+  const ruleConfigResult = renderHookWithProviders(
+    () => useRuleConfigQuery(org, app, selectedLayoutSet),
+    { queries: { getRuleConfig } },
+  ).result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(ruleConfigResult.current.isSuccess).toBe(true));
 };

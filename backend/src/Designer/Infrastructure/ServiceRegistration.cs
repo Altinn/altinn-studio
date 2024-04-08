@@ -45,6 +45,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddScoped<IDeploymentRepository, DeploymentRepository>();
             services.AddTransient<IReleaseService, ReleaseService>();
             services.AddTransient<IDeploymentService, DeploymentService>();
+            services.AddTransient<IKubernetesDeploymentsService, KubernetesDeploymentsService>();
             services.AddTransient<IApplicationInformationService, ApplicationInformationService>();
             services.AddTransient<IApplicationMetadataService, ApplicationMetadataService>();
             services.AddTransient<IAuthorizationPolicyService, AuthorizationPolicyService>();
@@ -73,6 +74,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IModelMetadataToCsharpConverter, JsonMetadataToCsharpConverter>();
             services.RegisterSettings<CSharpGenerationSettings>(configuration);
             services.AddTransient<IJsonSchemaValidator, AltinnJsonSchemaValidator>();
+            services.AddTransient<IModelNameValidator, ModelNameValidator>();
             RegisterXsdKeywords();
             return services;
         }

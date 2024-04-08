@@ -8,98 +8,24 @@ import { stringToArray, arrayToString } from '../../../../utils/stringUtils';
 import classes from './MapComponent.module.css';
 import type { MapLayer } from 'app-shared/types/MapLayer';
 import { StudioButton } from '@studio/components';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
 export const MapComponent = ({
   component,
   handleComponentChange,
-}: IGenericEditComponent): JSX.Element => {
+}: IGenericEditComponent<ComponentType.Map>): JSX.Element => {
   const t = useText();
 
-  const handleCenterLocationChange = (value: number, propertyName: string): void => {
-    handleComponentChange({
-      ...component,
-      centerLocation: { ...component.centerLocation, [propertyName]: value },
-    });
-  };
-
-  const handleNumberInputChange = (value: number, propertyName: string): void => {
-    handleComponentChange({
-      ...component,
-      [propertyName]: value || undefined,
-    });
-  };
-
   return (
-    <LegacyFieldSet className={classes.fieldSetContent}>
-      <div>
-        <h2 className={classes.subTitle}>{t('ux_editor.center_location')}</h2>
-        <div className={classes.formGroup}>
-          <FormField
-            id={component.id}
-            label={t('ux_editor.latitude_label')}
-            value={component.centerLocation?.latitude}
-            onChange={(value: number) => handleCenterLocationChange(value, 'latitude')}
-            propertyPath={`${component.propertyPath}/properties/centerLocation/properties/latitude`}
-            customValidationMessages={(errorCode: string) => {
-              if (errorCode === 'type') return t('validation_errors.numbers_only');
-            }}
-            renderField={({ fieldProps }) => (
-              <LegacyTextField
-                {...fieldProps}
-                formatting={{ number: {} }}
-                onChange={(e) => fieldProps.onChange(parseInt(e.target.value, 10), e)}
-              />
-            )}
-          />
-
-          <FormField
-            id={component.id}
-            label={t('ux_editor.longitude_label')}
-            value={component.centerLocation?.longitude}
-            onChange={(value: number) => handleCenterLocationChange(value, 'longitude')}
-            propertyPath={`${component.propertyPath}/properties/centerLocation/properties/longitude`}
-            customValidationMessages={(errorCode: string) => {
-              if (errorCode === 'type') return t('validation_errors.numbers_only');
-            }}
-            renderField={({ fieldProps }) => (
-              <LegacyTextField
-                {...fieldProps}
-                formatting={{ number: {} }}
-                onChange={(e) => fieldProps.onChange(parseInt(e.target.value, 10), e)}
-              />
-            )}
-          />
-        </div>
-      </div>
-
-      <div>
-        <FormField
-          id={component.id}
-          label={t('ux_editor.adjust_zoom')}
-          value={component.zoom}
-          onChange={(value: number) => handleNumberInputChange(value, 'zoom')}
-          propertyPath={`${component.propertyPath}/properties/zoom`}
-          customValidationMessages={(errorCode: string) => {
-            if (errorCode === 'type') return t('validation_errors.numbers_only');
-          }}
-          renderField={({ fieldProps }) => (
-            <LegacyTextField
-              {...fieldProps}
-              formatting={{ number: {} }}
-              onChange={(e) => fieldProps.onChange(parseInt(e.target.value, 10), e)}
-            />
-          )}
-        />
-      </div>
-      <div>
-        <h2 className={classes.subTitle}>{t('ux_editor.add_map_layer')}</h2>
-        <AddMapLayer component={component} handleComponentChange={handleComponentChange} />
-      </div>
-    </LegacyFieldSet>
+    <div className={classes.addMapLayerContent}>
+      <h2 className={classes.subTitle}>{t('ux_editor.add_map_layer')}</h2>
+      <AddMapLayer component={component} handleComponentChange={handleComponentChange} />
+    </div>
   );
 };
 
-interface AddMapLayerProps extends IGenericEditComponent {}
+interface AddMapLayerProps extends IGenericEditComponent<ComponentType.Map> {}
+
 const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JSX.Element => {
   const t = useText();
 

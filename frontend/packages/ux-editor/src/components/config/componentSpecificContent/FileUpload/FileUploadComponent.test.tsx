@@ -1,6 +1,6 @@
 import React from 'react';
-import { IGenericEditComponent } from '../../componentConfig';
-import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
+import type { IGenericEditComponent } from '../../componentConfig';
+import { renderWithProviders, renderHookWithProviders } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { FileUploadComponent } from './FileUploadComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -21,10 +21,10 @@ const component: FormFileUploaderComponent = {
   onClickAction: jest.fn(),
   type: ComponentType.FileUpload,
   itemType: 'COMPONENT',
-  dataModelBindings: {},
+  dataModelBindings: { simpleBinding: 'some-path' },
 };
 const handleComponentChange = jest.fn();
-const defaultProps: IGenericEditComponent = {
+const defaultProps: IGenericEditComponent<ComponentType.FileUpload> = {
   component,
   handleComponentChange,
 };
@@ -139,13 +139,12 @@ describe('FileUploadComponent', () => {
 });
 
 const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
-    .renderHookResult.result;
+  const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
-const render = async (props?: Partial<IGenericEditComponent>) => {
+const render = async (props?: Partial<IGenericEditComponent<ComponentType.FileUpload>>) => {
   await waitForData();
 
-  return renderWithMockStore()(<FileUploadComponent {...defaultProps} {...props} />);
+  return renderWithProviders(<FileUploadComponent {...defaultProps} {...props} />);
 };

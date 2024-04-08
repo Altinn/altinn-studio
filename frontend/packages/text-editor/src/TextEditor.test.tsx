@@ -4,8 +4,12 @@ import type { TextEditorProps } from './TextEditor';
 import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { ITextResource, ITextResources } from 'app-shared/types/global';
+import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import * as testids from '../../../testing/testids';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const user = userEvent.setup();
 let mockScrollIntoView = jest.fn();
@@ -40,7 +44,12 @@ describe('TextEditor', () => {
       updateTextId: jest.fn(),
       upsertTextResource: jest.fn(),
     };
-    return rtlRender(<TextEditor {...defaultProps} {...props} />);
+    queryClientMock.setQueryData([QueryKey.LayoutNames, 'org', 'app'], []);
+    return rtlRender(
+      <ServicesContextProvider {...queriesMock} client={queryClientMock}>
+        <TextEditor {...defaultProps} {...props} />
+      </ServicesContextProvider>,
+    );
   };
   beforeEach(() => {
     // Need to mock the scrollIntoView function
@@ -147,18 +156,15 @@ describe('TextEditor', () => {
 
   it('Sorts texts when sort chip is clicked', async () => {
     renderTextEditor({});
-    const translations = screen.getAllByRole('textbox', {
-      name: 'nb translation',
-    });
-    expect(translations[0]).toHaveValue(textValue1);
+
+    const textEntries = screen.getAllByRole('textbox');
+    expect(textEntries[1]).toHaveValue(textValue1);
 
     const sortAlphabeticallyButton = screen.getByText(textMock('text_editor.sort_alphabetically'));
     await act(() => user.click(sortAlphabeticallyButton));
 
-    const sortedTranslations = screen.getAllByRole('textbox', {
-      name: 'nb translation',
-    });
-    expect(sortedTranslations[0]).toHaveValue(textValue2);
+    const sortedTranslations = screen.getAllByRole('textbox');
+    expect(sortedTranslations[1]).toHaveValue(textValue2);
   });
 
   it('signals correctly when a translation is changed', async () => {
@@ -166,18 +172,21 @@ describe('TextEditor', () => {
     renderTextEditor({
       upsertTextResource,
     });
-    const translationsToChange = screen.getAllByRole('textbox', {
-      name: 'nb translation',
+    const nbTextarea = screen.getByRole('textbox', {
+      name: textMock('text_editor.table_row_input_label', {
+        lang: textMock('language.nb'),
+        textKey: textId1,
+      }),
     });
-    expect(translationsToChange).toHaveLength(2);
-    const changedTranslations = nb;
-    changedTranslations[0].value = 'new translation';
-    await act(() => user.tripleClick(translationsToChange[0]));
-    await act(() => user.keyboard(`${changedTranslations[0].value}{TAB}`));
+
+    const newValue: string = 'new translation';
+    await act(() => user.clear(nbTextarea));
+    await act(() => user.type(nbTextarea, newValue));
+    await act(() => user.tab());
     expect(upsertTextResource).toHaveBeenCalledWith({
       language: 'nb',
       textId: textId1,
-      translation: 'new translation',
+      translation: newValue,
     });
   });
 
@@ -204,28 +213,28 @@ describe('TextEditor', () => {
       await expect(onTextIdChange).toHaveBeenCalledWith({ oldId: nb[0].id });
     };
 
-    const getInputs = (name: RegExp) => screen.getAllByRole('textbox', { name });
-
     const makeChangesToTextIds = async (onTextIdChange = jest.fn()) => {
       renderTextEditor({
         updateTextId: onTextIdChange,
       });
 
       const editKeyButton = await screen.getAllByRole('button', {
-        name: 'toggle-textkey-edit',
+        name: textMock('text_editor.toggle_edit_mode', { textKey: textId1 }),
       })[0];
       await act(() => user.click(editKeyButton));
 
-      const textIdInputs = getInputs(/tekst key edit/i);
-      expect(textIdInputs).toHaveLength(1);
-      await user.tripleClick(textIdInputs[0]); // select all text
+      const textIdInput = screen.getByRole('textbox', {
+        name: textMock('text_editor.key.edit', { textKey: textId1 }),
+      });
+
+      await user.tripleClick(textIdInput);
       await act(() => user.keyboard('new-key{TAB}')); // type new text and blur
 
       await expect(onTextIdChange).toHaveBeenCalledWith({
         oldId: nb[0].id,
         newId: 'new-key',
       });
-      return textIdInputs;
+      return textIdInput;
     };
     const setupError = () => {
       const error = jest.spyOn(console, 'error').mockImplementation();
@@ -250,9 +259,13 @@ describe('TextEditor', () => {
       const textIdRefsAfter1 = screen.getAllByText(textId2);
       expect(textIdRefsAfter1).toHaveLength(1);
 
-      const textIdRefsAfter2 = screen.queryAllByText(/new-key/i);
+      const newTextKey: string = 'new-key';
+      const textIdRefsAfter2 = screen.queryAllByText(newTextKey);
+      const textIdInput = screen.getByRole('textbox', {
+        name: textMock('text_editor.key.edit', { textKey: newTextKey }),
+      });
       expect(textIdRefsAfter2).toHaveLength(0);
-      expect(getInputs(/tekst key edit/i)).toEqual(original);
+      expect(textIdInput).toEqual(original);
     });
 
     it('reverts to the previous IDs if an entry could not be deleted', async () => {

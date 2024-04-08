@@ -1,18 +1,48 @@
 import React from 'react';
+import type { ReactElement } from 'react';
 import { render, screen } from '@testing-library/react';
-import { ResourceDeployStatus, ResourceDeployStatusProps } from './ResourceDeployStatus';
+import type { ResourceDeployStatusProps } from './ResourceDeployStatus';
+import { ResourceDeployStatus } from './ResourceDeployStatus';
 import { act } from 'react-dom/test-utils';
 import userEvent from '@testing-library/user-event';
-import { DeployError } from '../../types/DeployError';
+import type { DeployError } from '../../types/DeployError';
 import { textMock } from '../../../testing/mocks/i18nMock';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
+// add own version of mock for <Trans> element, to test replacement of <LinkButton>
+jest.mock('react-i18next', () => ({
+  Trans: ({ i18nKey, children }: { i18nKey: string; children: ReactElement }) => {
+    const hasInterpolationElement = i18nKey.indexOf('<0>') > -1;
+    if (hasInterpolationElement) {
+      const parts = i18nKey.split(/<\/?0>/);
+      return React.createElement(
+        React.Fragment,
+        {},
+        ...parts.map((_part, index) => {
+          const partString = textMock(i18nKey);
+          return index % 2 === 1 ? React.cloneElement(children, {}, partString) : partString;
+        }),
+      );
+    } else {
+      return textMock(i18nKey);
+    }
+  },
+  useTranslation: () => ({
+    t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
+  }),
+}));
+
+const testSidenName = 'Test siden';
+const side2Name = 'Side 2';
 const mockDeployError1: DeployError = {
-  message: "2 feil på siden 'Test siden'.",
+  message: `{{num}} feil på siden <0>${testSidenName}</0>.`,
   pageWithError: 'about',
+  numberOfErrors: 2,
 };
 const mockDeployError2: DeployError = {
-  message: "1 feil på sdein 'Side 2'.",
+  message: `{{num}} feil på siden <0>${side2Name}</0>.`,
   pageWithError: 'policy',
+  numberOfErrors: 1,
 };
 
 const mockDeployErrorList: DeployError[] = [mockDeployError1, mockDeployError2];
@@ -31,27 +61,23 @@ describe('ResourceDeployStatus', () => {
   };
 
   it('renders error message when error is a string', () => {
-    render(<ResourceDeployStatus {...defaultProps} error={mockDeployErrorString} />);
-    const errorMessage = screen.getByText(mockDeployErrorString);
+    render(<ResourceDeployStatus {...defaultProps} error={[{ message: mockDeployErrorString }]} />);
+    const errorMessage = screen.getByText(textMock(mockDeployErrorString));
     expect(errorMessage).toBeInTheDocument();
   });
 
   it('renders error messages with links when error is an array', () => {
     render(<ResourceDeployStatus {...defaultProps} />);
-    const firstErrorMessage = screen.getByText(mockDeployError1.message);
 
     const firstErrorMessageLink = screen.getByRole('button', {
-      name: textMock('resourceadm.about_resource_title'),
+      name: textMock(mockDeployError1.message),
     });
-    expect(firstErrorMessage).toBeInTheDocument();
     expect(firstErrorMessageLink).toBeInTheDocument();
 
-    const secondErrorMessage = screen.getByText(mockDeployError2.message);
     const secondErrorMessageLink = screen.getByRole('button', {
-      name: textMock('resourceadm.policy_editor_title'),
+      name: textMock(mockDeployError2.message),
     });
 
-    expect(secondErrorMessage).toBeInTheDocument();
     expect(secondErrorMessageLink).toBeInTheDocument();
   });
 
@@ -60,7 +86,7 @@ describe('ResourceDeployStatus', () => {
     render(<ResourceDeployStatus {...defaultProps} />);
 
     const linkButton = screen.getByRole('button', {
-      name: textMock('resourceadm.about_resource_title'),
+      name: textMock(mockDeployError1.message),
     });
 
     await act(() => user.click(linkButton));

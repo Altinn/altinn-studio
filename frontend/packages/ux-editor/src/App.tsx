@@ -1,17 +1,13 @@
-import React, { useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import React from 'react';
 import { FormDesigner } from './containers/FormDesigner';
-import { useText } from './hooks';
+import { useText, useAppContext } from './hooks';
 import { StudioPageSpinner } from '@studio/components';
 import { ErrorPage } from './components/ErrorPage';
 import { useDatamodelMetadataQuery } from './hooks/queries/useDatamodelMetadataQuery';
-import { selectedLayoutNameSelector } from './selectors/formLayoutSelectors';
 import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
-import { useLayoutSetsQuery } from './hooks/queries/useLayoutSetsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from './hooks/useAppContext';
-import { FormContextProvider } from '../../ux-editor/src/containers/FormContext';
+import { FormItemContextProvider } from './containers/FormItemContext';
 
 /**
  * This is the main React component responsible for controlling
@@ -22,28 +18,11 @@ import { FormContextProvider } from '../../ux-editor/src/containers/FormContext'
 export function App() {
   const t = useText();
   const { org, app } = useStudioUrlParams();
-  const selectedLayout = useSelector(selectedLayoutNameSelector);
-  const { selectedLayoutSet, setSelectedLayoutSet, removeSelectedLayoutSet } = useAppContext();
-  const { data: layoutSets, isSuccess: areLayoutSetsFetched } = useLayoutSetsQuery(org, app);
+  const { selectedFormLayoutSetName } = useAppContext();
   const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
   const { isSuccess: isDatamodelFetched, isError: dataModelFetchedError } =
-    useDatamodelMetadataQuery(org, app);
+    useDatamodelMetadataQuery(org, app, selectedFormLayoutSetName);
   const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
-
-  useEffect(() => {
-    if (
-      areLayoutSetsFetched &&
-      selectedLayoutSet &&
-      (!layoutSets || !layoutSets.sets.map((set) => set.id).includes(selectedLayoutSet))
-    )
-      removeSelectedLayoutSet();
-  }, [
-    areLayoutSetsFetched,
-    layoutSets,
-    selectedLayoutSet,
-    setSelectedLayoutSet,
-    removeSelectedLayoutSet,
-  ]);
 
   const componentIsReady = areWidgetsFetched && isDatamodelFetched && areTextResourcesFetched;
 
@@ -68,13 +47,6 @@ export function App() {
     return createErrorMessage(t('general.unknown_error'));
   };
 
-  useEffect(() => {
-    if (selectedLayoutSet === null && layoutSets) {
-      // Only set layout set if layout sets exists and there is no layout set selected yet
-      setSelectedLayoutSet(layoutSets.sets[0].id);
-    }
-  }, [setSelectedLayoutSet, selectedLayoutSet, layoutSets, app]);
-
   if (componentHasError) {
     const mappedError = mapErrorToDisplayError();
     return <ErrorPage title={mappedError.title} message={mappedError.message} />;
@@ -82,10 +54,10 @@ export function App() {
 
   if (componentIsReady) {
     return (
-      <FormContextProvider>
-        <FormDesigner selectedLayout={selectedLayout} selectedLayoutSet={selectedLayoutSet} />
-      </FormContextProvider>
+      <FormItemContextProvider>
+        <FormDesigner />
+      </FormItemContextProvider>
     );
   }
-  return <StudioPageSpinner />;
+  return <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('ux_editor.loading_page')} />;
 }

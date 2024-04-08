@@ -148,7 +148,7 @@ More about developing frontend [can be found here](frontend/README.md).
 
 ## Cypress tests
 
-Some [integration tests](https://github.com/Altinn/altinn-studio/tree/master/frontend/testing/cypress) for studio have
+Some [integration tests](https://github.com/Altinn/altinn-studio/tree/main/frontend/testing/cypress) for studio have
 been created with Cypress. More about these tests [can be found here](frontend/testing/cypress/README.md).
 
 ## Deployment
@@ -170,7 +170,7 @@ The current build is deployed in Kubernetes on Azure. Automated CI/CD using Azur
 
 ## Contributing
 
-Please read [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
 ## Authors
 

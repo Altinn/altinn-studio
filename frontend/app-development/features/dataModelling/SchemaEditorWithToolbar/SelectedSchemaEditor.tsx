@@ -6,9 +6,17 @@ import { Alert, ErrorMessage, Paragraph } from '@digdir/design-system-react';
 import { SchemaEditorApp } from '@altinn/schema-editor/SchemaEditorApp';
 import { useTranslation } from 'react-i18next';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
-import { JsonSchema } from 'app-shared/types/JsonSchema';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { useOnUnmount } from 'app-shared/hooks/useOnUnmount';
-
+import type {
+  DatamodelMetadataJson,
+  DatamodelMetadataXsd,
+} from 'app-shared/types/DatamodelMetadata';
+import { useQueryClient } from '@tanstack/react-query';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { mergeJsonAndXsdData } from 'app-development/utils/metadataUtils';
+import { extractFilename, removeSchemaExtension } from 'app-shared/utils/filenameUtils';
 export interface SelectedSchemaEditorProps {
   modelPath: string;
 }
@@ -19,7 +27,12 @@ export const SelectedSchemaEditor = ({ modelPath }: SelectedSchemaEditorProps) =
 
   switch (status) {
     case 'pending':
-      return <StudioPageSpinner />;
+      return (
+        <StudioPageSpinner
+          showSpinnerTitle={false}
+          spinnerTitle={t('schema_editor.loading_page')}
+        />
+      );
 
     case 'error':
       return (
@@ -45,7 +58,9 @@ interface SchemaEditorWithDebounceProps {
 }
 
 const SchemaEditorWithDebounce = ({ jsonSchema, modelPath }: SchemaEditorWithDebounceProps) => {
+  const { org, app } = useStudioUrlParams();
   const { mutate } = useSchemaMutation();
+  const queryClient = useQueryClient();
   const [model, setModel] = useState<JsonSchema>(jsonSchema);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const updatedModel = useRef<JsonSchema>(jsonSchema);
@@ -67,10 +82,36 @@ const SchemaEditorWithDebounce = ({ jsonSchema, modelPath }: SchemaEditorWithDeb
     [saveFunction],
   );
 
+  const doesModelExist = useCallback(() => {
+    const jsonModels: DatamodelMetadataJson[] = queryClient.getQueryData([
+      QueryKey.DatamodelsJson,
+      org,
+      app,
+    ]);
+    const xsdModels: DatamodelMetadataXsd[] = queryClient.getQueryData([
+      QueryKey.DatamodelsXsd,
+      org,
+      app,
+    ]);
+    const metadataList = mergeJsonAndXsdData(jsonModels, xsdModels);
+    return metadataList.some((datamodel) => datamodel.repositoryRelativeUrl === modelPath);
+  }, [queryClient, org, app, modelPath]);
+
   useOnUnmount(() => {
     clearTimeout(saveTimeoutRef.current);
-    saveFunction();
+    if (doesModelExist()) saveFunction();
   });
 
-  return <SchemaEditorApp jsonSchema={model} save={saveSchema} />;
+  return (
+    <SchemaEditorApp
+      jsonSchema={model}
+      save={saveSchema}
+      name={extractModelNameFromPath(modelPath)}
+    />
+  );
+};
+
+const extractModelNameFromPath = (path: string): string => {
+  const filename = extractFilename(path);
+  return removeSchemaExtension(filename);
 };

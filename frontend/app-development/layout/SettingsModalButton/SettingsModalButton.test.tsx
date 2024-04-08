@@ -1,10 +1,12 @@
 import React from 'react';
 import { render as rtlRender, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { SettingsModalButton, SettingsModalButtonProps } from './SettingsModalButton';
+import type { SettingsModalButtonProps } from './SettingsModalButton';
+import { SettingsModalButton } from './SettingsModalButton';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { QueryClient } from '@tanstack/react-query';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { QueryClient } from '@tanstack/react-query';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { MemoryRouter } from 'react-router-dom';
@@ -41,7 +43,7 @@ describe('SettingsModal', () => {
     });
     expect(modalHeading).not.toBeInTheDocument();
 
-    const button = screen.getByRole('button', { name: textMock('settings_modal.heading') });
+    const button = screen.getByRole('button', { name: textMock('sync_header.settings') });
     await act(() => user.click(button));
 
     const modalHeadingAfter = screen.getByRole('heading', {
@@ -53,7 +55,7 @@ describe('SettingsModal', () => {
 
   it('closes the SettingsModal when the modal is closed', async () => {
     render();
-    const button = screen.getByRole('button', { name: textMock('settings_modal.heading') });
+    const button = screen.getByRole('button', { name: textMock('sync_header.settings') });
     await act(() => user.click(button));
 
     const modalHeading = screen.getByRole('heading', {
@@ -62,7 +64,9 @@ describe('SettingsModal', () => {
     });
     expect(modalHeading).toBeInTheDocument();
 
-    const closeButton = screen.getByRole('button', { name: textMock('modal.close_icon') });
+    const closeButton = screen.getByRole('button', {
+      name: textMock('settings_modal.close_button_label'),
+    });
     await act(() => user.click(closeButton));
 
     const modalHeadingAfter = screen.queryByRole('heading', {

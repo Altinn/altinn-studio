@@ -1,4 +1,4 @@
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils } from '@studio/pure-functions';
 import type {
   PolicyAction,
   PolicyEditorUsage,
@@ -19,33 +19,13 @@ export const emptyPolicyRule: PolicyRuleCard = {
   description: '',
 };
 
-/**
- * Maps the list of policy subject strings from backend of the format
- * "subjectID:subjectResource" to the title of the subject.
- *
- * @param subjectOptions the possible subjects to select from
- * @param policySubjects the already selected subjects
- *
- * @returns a mapped string[] with subject titles
- */
-export const mapPolicySubjectToSubjectTitle = (
-  subjectOptions: PolicySubject[],
-  policySubjects: string[],
-): string[] => {
-  const subjectIds = policySubjects.map((s) => {
-    const splitted = s.split(':');
+export const extractPolicyIdsFromPolicySubjects = (policySubjects: string[]): string[] => {
+  const extractPolicyIdFromPolicySubject = (policySubject: string): string => {
+    const splitted = policySubject.split(':');
     return splitted[splitted.length - 1];
-  });
-  return subjectIds.map((subjectId) => {
-    const subjectOption = findSubjectOptionBySubjectId(subjectOptions, subjectId);
-
-    return subjectOption?.subjectTitle || subjectId;
-  });
+  };
+  return policySubjects.map(extractPolicyIdFromPolicySubject);
 };
-const findSubjectOptionBySubjectId = (
-  subjectOptions: PolicySubject[],
-  subjectId: string,
-): PolicySubject => subjectOptions.find((s) => s.subjectId === subjectId.trim()); // .trim() is added to make sure there is no additional whitespace on the ID before it's being checked.
 
 /**
  * Maps the resource string from backend to a resource object with type and id.
@@ -65,38 +45,7 @@ export const mapResourceFromBackendToResource = (resource: string): PolicyRuleRe
   };
 };
 
-/**
- * Maps the list of policy action strings from backend (the id) to the
- * title of the Action which should be displayed
- *
- * @param actionOptions the possible actions to select from
- * @param actionIds the list of IDs of the already selected actions
- *
- * @returns a mapped string[] with action titles
- */
-export const mapPolicyActionsToActionTitle = (
-  actionOptions: PolicyAction[],
-  actionIds: string[],
-): string[] => {
-  return actionIds.map(
-    (actionId) =>
-      actionOptions.find((actionOption) => actionId === actionOption.actionId)?.actionTitle ||
-      actionId,
-  );
-};
-
-/**
- * Maps the policy rules object from backend to an object of the type used to
- * display data on the policy cards on the policy editor.
- *
- * @param subjectOptions the possible subjects to select from
- * @param rules an array of rule objects where all elements are strings from backend.
- *
- * @returns a list of mapped objects of the policy rule card type
- */
 export const mapPolicyRulesBackendObjectToPolicyRuleCard = (
-  subjectOptions: PolicySubject[],
-  actionOptions: PolicyAction[],
   rules: PolicyRule[],
 ): PolicyRuleCard[] => {
   const newRules = rules.map((r) => {
@@ -107,14 +56,13 @@ export const mapPolicyRulesBackendObjectToPolicyRuleCard = (
       resource.map((resource) => mapResourceFromBackendToResource(resource)),
     );
 
-    const actionTitles = mapPolicyActionsToActionTitle(actionOptions, r.actions);
-    const subjectTitles = mapPolicySubjectToSubjectTitle(subjectOptions, r.subject);
+    const subjectIds: string[] = extractPolicyIdsFromPolicySubjects(r.subject);
 
     return {
       ruleId: id,
-      actions: actionTitles,
+      actions: r.actions,
       description: r.description,
-      subject: subjectTitles,
+      subject: subjectIds,
       resources: mappedResources,
     };
   });
@@ -123,35 +71,17 @@ export const mapPolicyRulesBackendObjectToPolicyRuleCard = (
 
 /**
  * Maps a Subject title to the string format to send to backend: "urn:subjectsource:subjectid"
- *
- * @param subjectOptions the possible subjects to select from
- * @param subjectTitle the title of the subject
- *
- * @returns a string of the correct format to send
  */
-export const mapSubjectTitleToSubjectString = (
+export const mapSubjectIdToSubjectString = (
   subjectOptions: PolicySubject[],
-  subjectTitle: string,
+  subjectId: string,
 ): string => {
   const subject: PolicySubject = subjectOptions.find(
-    (s) => s.subjectTitle.toLowerCase() === subjectTitle.toLowerCase(),
+    (s) => s.subjectId.toLowerCase() === subjectId.toLowerCase(),
   );
-  return `urn:${subject.subjectSource}:${subject.subjectId}`;
-};
 
-/**
- * Maps a Action title to the action id
- *
- * @param actionOptions the possible actions to select from
- * @param actionTitle the title of the action
- *
- * @returns a string of the correct format to send
- */
-export const mapActionTitleToActionId = (
-  actionOptions: PolicyAction[],
-  actionTitle: string,
-): string => {
-  return actionOptions.find((a) => a.actionTitle === actionTitle).actionId;
+  if (!subject) return;
+  return `urn:${subject.subjectSource}:${subject.subjectId}`;
 };
 
 /**
@@ -159,7 +89,6 @@ export const mapActionTitleToActionId = (
  * to be sent to backend where all fields are strings.
  *
  * @param subjectOptions the possible subjects to select from
- * @param actionOptions the possible actions to select from
  * @param policyRule the policy rule to map
  * @param ruleId the id of the rule
  *
@@ -167,7 +96,6 @@ export const mapActionTitleToActionId = (
  */
 export const mapPolicyRuleToPolicyRuleBackendObject = (
   subjectOptions: PolicySubject[],
-  actionOptions: PolicyAction[],
   policyRule: PolicyRuleCard,
   ruleId: string,
 ): PolicyRule => {
@@ -178,17 +106,14 @@ export const mapPolicyRuleToPolicyRuleBackendObject = (
   );
 
   const subject: string[] = policyRule.subject.map((s) =>
-    mapSubjectTitleToSubjectString(subjectOptions, s),
-  );
-  const actions: string[] = policyRule.actions.map((a) =>
-    mapActionTitleToActionId(actionOptions, a),
+    mapSubjectIdToSubjectString(subjectOptions, s),
   );
 
   return {
     ruleId,
     description: policyRule.description,
     subject: subject,
-    actions: actions,
+    actions: policyRule.actions,
     resources: resources,
   };
 };
@@ -233,7 +158,7 @@ export const mergeActionsFromPolicyWithActionOptions = (
   actions: PolicyAction[],
 ): PolicyAction[] => {
   const existingActionIds = actions.map((action) => action.actionId);
-  const copiedActions = deepCopy(actions);
+  const copiedActions = ObjectUtils.deepCopy(actions);
 
   rules.forEach((rule) => {
     rule.actions.forEach((actionString) => {
@@ -265,13 +190,12 @@ export const mergeSubjectsFromPolicyWithSubjectOptions = (
   subjects: PolicySubject[],
 ): PolicySubject[] => {
   const existingSubjectIds = subjects.map((subject) => subject.subjectId);
-  const copiedSubjects = deepCopy(subjects);
+  const copiedSubjects = ObjectUtils.deepCopy(subjects);
 
   rules.forEach((rule) => {
     rule.subject.forEach((subjectString) => {
       const subjectId = convertSubjectStringToSubjectId(subjectString);
-
-      if (!existingSubjectIds.includes(subjectId)) {
+      if (!existingSubjectIds.includes(subjectId.toLowerCase())) {
         const newSubject: PolicySubject = createNewSubjectFromSubjectString(subjectString);
         copiedSubjects.push(newSubject);
         existingSubjectIds.push(subjectId);
@@ -291,7 +215,7 @@ export const convertSubjectStringToSubjectId = (subjectString: string): string =
 export const createNewSubjectFromSubjectString = (subjectString: string): PolicySubject => {
   const subjectId: string = convertSubjectStringToSubjectId(subjectString);
   return {
-    subjectId: subjectId,
+    subjectId: subjectId.toLowerCase(),
     subjectTitle: subjectId,
     subjectSource: convertSubjectStringToSubjectSource(subjectString),
     subjectDescription: '',
@@ -303,4 +227,13 @@ export const convertSubjectStringToSubjectSource = (subjectString: string): stri
   const lastColonIndex = subjectString.lastIndexOf(':');
   // Starting at 1 to remove 'urn', and excluding the final to remove the id
   return subjectString.slice(firstColonIndex + 1, lastColonIndex);
+};
+
+export const findSubjectByPolicyRuleSubject = (
+  subjectOptions: PolicySubject[],
+  policyRuleSubject: string,
+): PolicySubject => {
+  return subjectOptions.find(
+    (subject) => subject.subjectId.toLowerCase() === policyRuleSubject.toLowerCase(),
+  );
 };

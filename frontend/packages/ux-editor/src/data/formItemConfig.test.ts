@@ -1,15 +1,24 @@
-import { formItemConfigs } from './formItemConfig';
+import {
+  advancedItems,
+  confOnScreenComponents,
+  schemaComponents,
+  textComponents,
+} from './formItemConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
-describe('formItemConfigs', () => {
-    it('should have textResourceBindings and buttonStyle defined for ActionButton', () => {
-        const actionButtonConfig = formItemConfigs[ComponentType.ActionButton];
-        expect(actionButtonConfig).toBeDefined();
+describe('formItemConfig', () => {
+  const allAvailableLists = [
+    schemaComponents,
+    advancedItems,
+    textComponents,
+    confOnScreenComponents,
+  ];
+  const allAvailableComponents = allAvailableLists.flat();
 
-        const { defaultProperties } = actionButtonConfig;
-        expect(defaultProperties).toBeDefined();
-        expect(defaultProperties.textResourceBindings).toBeDefined();
-        expect(defaultProperties.textResourceBindings.title).toBeDefined();
-        expect(defaultProperties.buttonStyle).toBeDefined();
-    });
+  it.each(Object.values(ComponentType))(
+    '%s is available through one of the visible lists',
+    (componentType) => {
+      expect(allAvailableComponents.map(({ name }) => name)).toContain(componentType);
+    },
+  );
 });

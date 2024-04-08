@@ -20,7 +20,7 @@ We use GitHub to host code, to track issues and feature requests, as well as acc
 Once you've finished developing something, Pull requests are the best way to propose changes to the codebase.
 We actively welcome your pull requests - even more so if you follow our [development guidelines](https://docs.altinn.studio/community/contributing/).
 
-1. Fork the repo and create your branch from `master`.
+1. Fork the repo and create your branch from `main`.
 2. If you've added code that should be tested, add tests.
 3. If you've changed APIs, update the documentation.
 4. Ensure the test suite passes.
@@ -30,7 +30,7 @@ We actively welcome your pull requests - even more so if you follow our [develop
 
 ## Any contributions you make will be under the 3-Clause BSD License Software License
 
-In short, when you submit code changes, your submissions are understood to be under the same liberal [3-Clause BSD License](https://github.com/Altinn/altinn-studio/blob/master/LICENSE.md) that covers the project. Feel free to contact the maintainers if that's a concern.
+In short, when you submit code changes, your submissions are understood to be under the same liberal [3-Clause BSD License](https://github.com/Altinn/altinn-studio/blob/main/LICENSE.md) that covers the project. Feel free to contact the maintainers if that's a concern.
 
 ## Report bugs using GitHub issues
 
@@ -52,6 +52,17 @@ Report a bug by [opening a new issue](https://github.com/Altinn/altinn-studio/is
 
 People _love_ thorough bug reports. I'm not even kidding.
 
+## Ignore reformatting commits with Git Blame
+
+Some commits only contain automatic reformatting. These should be listed in [the .git-blame-ignore-revs file](.git-blame-ignore-revs).
+They will then be ignored when using the blame feature on Github. This makes it easier to find the commits that actually changed the code.
+In order to make this work when running then `git blame` command, or when using corresponding features in the code editor,
+the file must be specified in the Git configuration. This can be done by running the following command:
+
+```bash
+git config blame.ignoreRevsFile .git-blame-ignore-revs
+```
+
 ## License
 
-By contributing, you agree that your contributions will be licensed under the project's [3-Clause BSD License](https://github.com/Altinn/altinn-studio/blob/master/LICENSE.md).
+By contributing, you agree that your contributions will be licensed under the project's [3-Clause BSD License](https://github.com/Altinn/altinn-studio/blob/main/LICENSE.md).

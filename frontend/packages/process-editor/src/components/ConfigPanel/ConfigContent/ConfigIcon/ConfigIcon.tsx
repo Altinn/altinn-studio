@@ -1,21 +1,29 @@
 import React from 'react';
 import classes from './ConfigIcon.module.css';
-import { BpmnTaskType } from '../../../../types/BpmnTaskType';
-import { ConfirmationTask, DataTask, FeedbackTask, SignTask } from '@studio/icons';
+import type { BpmnTaskType } from '../../../../types/BpmnTaskType';
+import {
+  ConfirmationTaskIcon,
+  DataTaskIcon,
+  FeedbackTaskIcon,
+  ReceiptIcon,
+  SignTaskIcon,
+} from '@studio/icons';
 
 export type ConfigIconProps = {
   taskType: BpmnTaskType;
 };
 
-export const ConfigIcon = ({ taskType }: ConfigIconProps): JSX.Element => {
+export const ConfigIcon = ({ taskType }: ConfigIconProps): React.ReactElement => {
   switch (taskType) {
     case 'data':
-      return <DataTask className={classes.icon} />;
+      return <DataTaskIcon className={classes.icon} />;
     case 'confirmation':
-      return <ConfirmationTask className={classes.icon} />;
+      return <ConfirmationTaskIcon className={classes.icon} />;
     case 'feedback':
-      return <FeedbackTask className={classes.icon} />;
+      return <FeedbackTaskIcon className={classes.icon} />;
     case 'signing':
-      return <SignTask className={classes.icon} />;
+      return <SignTaskIcon className={classes.icon} />;
+    case 'endEvent':
+      return <ReceiptIcon className={classes.icon} />;
   }
 };

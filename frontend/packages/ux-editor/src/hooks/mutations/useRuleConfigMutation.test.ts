@@ -1,7 +1,7 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderHookWithMockStore } from '../../testing/mocks';
+import { renderHookWithProviders } from '../../testing/mocks';
 import { useRuleConfigMutation } from './useRuleConfigMutation';
-import { RuleConfig } from 'app-shared/types/RuleConfig';
+import type { RuleConfig } from 'app-shared/types/RuleConfig';
 
 // Test data:
 const org = 'org';
@@ -37,5 +37,4 @@ describe('useRuleConfigMutation', () => {
 });
 
 const render = async () =>
-  renderHookWithMockStore()(() => useRuleConfigMutation(org, app, selectedLayoutSet))
-    .renderHookResult;
+  renderHookWithProviders(() => useRuleConfigMutation(org, app, selectedLayoutSet));

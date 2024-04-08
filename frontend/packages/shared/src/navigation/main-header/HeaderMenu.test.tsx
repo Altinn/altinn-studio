@@ -1,6 +1,7 @@
 import React from 'react';
 import * as networking from '../../utils/networking';
-import { HeaderContext, IHeaderContext, SelectedContextType } from './Header';
+import type { IHeaderContext } from './Header';
+import { HeaderContext, SelectedContextType } from './Header';
 import type { HeaderMenuProps } from './HeaderMenu';
 import { HeaderMenu } from './HeaderMenu';
 import { act, render as rtlRender, screen } from '@testing-library/react';

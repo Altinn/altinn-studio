@@ -1,7 +1,7 @@
-import React, { ReactNode, forwardRef } from 'react';
+import type { ReactNode } from 'react';
+import React, { forwardRef } from 'react';
 import classes from './StudioModal.module.css';
 import ReactModal from 'react-modal'; // TODO - Replace with component from Designsystemet. Issue:
-import { useTranslation } from 'react-i18next';
 import { MultiplyIcon } from '@studio/icons';
 import { StudioButton } from '../StudioButton';
 
@@ -10,6 +10,7 @@ export type StudioModalProps = {
   onClose: () => void;
   title: ReactNode;
   children: ReactNode;
+  closeButtonLabel: string;
 };
 
 /**
@@ -36,13 +37,15 @@ export type StudioModalProps = {
  * @property {function}[onClose] - Fucntion to execute when closing modal
  * @property {ReactNode}[title] - Title of the modal
  * @property {ReactNode}[children] - Content in the modal
+ * @property {string}[closeButtonLabel] - aria-label for close button
  *
  * @returns {ReactNode} - The rendered component
  */
 export const StudioModal = forwardRef<HTMLDialogElement, StudioModalProps>(
-  ({ isOpen, onClose, title, children, ...rest }: StudioModalProps, ref): ReactNode => {
-    const { t } = useTranslation();
-
+  (
+    { isOpen, onClose, title, children, closeButtonLabel, ...rest }: StudioModalProps,
+    ref,
+  ): ReactNode => {
     return (
       <ReactModal
         isOpen={isOpen}
@@ -59,7 +62,7 @@ export const StudioModal = forwardRef<HTMLDialogElement, StudioModalProps>(
             variant='tertiary'
             icon={<MultiplyIcon />}
             onClick={onClose}
-            aria-label={t('modal.close_icon')}
+            aria-label={closeButtonLabel}
           />
         </div>
         <div className={classes.contentWrapper}>{children}</div>

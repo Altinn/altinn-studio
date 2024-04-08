@@ -1,4 +1,5 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './CanvasActionMenu.module.css';
 import { useTranslation } from 'react-i18next';
 import { Paragraph } from '@digdir/design-system-react';
@@ -20,7 +21,14 @@ export type CanvasActionMenuProps = {
  */
 export const CanvasActionMenu = ({ onSave }: CanvasActionMenuProps): ReactNode => {
   const { t } = useTranslation();
-  const { numberOfUnsavedChanges, isEditAllowed } = useBpmnContext();
+  const { numberOfUnsavedChanges, isEditAllowed, setDataTasksAdded, setDataTasksRemoved } =
+    useBpmnContext();
+
+  const handleSaveClicked = () => {
+    setDataTasksAdded([]);
+    setDataTasksRemoved([]);
+    onSave();
+  };
 
   return (
     <span className={classes.canvasMenuContainer}>
@@ -31,7 +39,11 @@ export const CanvasActionMenu = ({ onSave }: CanvasActionMenuProps): ReactNode =
         </Paragraph>
       )}
       {isEditAllowed && (
-        <StudioButton onClick={onSave} color='success'>
+        <StudioButton
+          onClick={handleSaveClicked}
+          color='success'
+          disabled={numberOfUnsavedChanges === 0}
+        >
           {t('process_editor.save')}
         </StudioButton>
       )}

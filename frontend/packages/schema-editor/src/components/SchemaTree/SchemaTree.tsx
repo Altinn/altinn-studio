@@ -2,7 +2,6 @@ import React from 'react';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { renderSchemaNodeList } from './renderSchemaNodeList';
 import { useTranslation } from 'react-i18next';
-import { SchemaNode } from './SchemaNode';
 import { useSavableSchemaModel } from '../../hooks/useSavableSchemaModel';
 import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
 
@@ -20,7 +19,7 @@ export const SchemaTree = ({ pointer }: SchemaTreeProps) => {
       onSelect={setSelectedNodePointer}
       selectedId={selectedNodePointer}
     >
-      {pointer ? <SchemaNode pointer={pointer} /> : renderSchemaNodeList(savableModel, pointer)}
+      {renderSchemaNodeList(savableModel, pointer)}
     </DragAndDropTree.Root>
   );
 };

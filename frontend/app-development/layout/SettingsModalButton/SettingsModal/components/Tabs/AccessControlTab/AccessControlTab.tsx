@@ -1,9 +1,10 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './AccessControlTab.module.css';
 import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
 import { Checkbox, ErrorMessage, Paragraph } from '@digdir/design-system-react';
-import { PartyTypesAllowed } from 'app-shared/types/ApplicationMetadata';
+import type { PartyTypesAllowed } from 'app-shared/types/ApplicationMetadata';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
 import {
   getPartyTypesAllowedOptions,
@@ -79,8 +80,8 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
               (key) => currentPartyTypesAllowed[key],
             )}
           >
-            <Paragraph as='span' size='small' short className={classes.checkboxParagraph}>
-              {t('settings_modal.access_control_tab_checkbox_description')}
+            <Paragraph asChild size='small' short className={classes.checkboxParagraph}>
+              <span>{t('settings_modal.access_control_tab_checkbox_description')}</span>
             </Paragraph>
             {displayCheckboxes()}
           </Checkbox.Group>

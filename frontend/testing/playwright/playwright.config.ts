@@ -1,68 +1,146 @@
 import { defineConfig, devices } from '@playwright/test';
 import { config } from 'dotenv';
-import { ExtendedTestOptions } from './extenders/testExtend';
+import type { ExtendedTestOptions } from './extenders/testExtend';
 import { AppNames } from './enum/AppNames';
+import { TestNames } from './enum/TestNames';
 
 config();
 
 export default defineConfig<ExtendedTestOptions>({
-  fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
   use: {
     locale: 'nb-NO',
     timezoneId: 'Europe/Oslo',
     trace: 'on-first-retry',
+    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
+    screenshot: 'only-on-failure',
   },
+  fullyParallel: false,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: 1, // Github actions always use only 1, so we set to 1 locally as well
+  reporter: 'html',
 
   projects: [
-    { name: 'setup', testMatch: /.*\.setup\.ts/ },
+    { name: TestNames.SETUP, testMatch: /.*\.setup\.ts/ },
     {
-      name: 'create-app-only',
-      dependencies: ['setup'],
+      name: TestNames.CREATE_APP_ONLY,
+      dependencies: [TestNames.SETUP],
       testDir: './tests/create-app-only/',
       testMatch: '*.spec.ts',
-      teardown: 'teardown-create-app-only',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         storageState: '.playwright/auth/user.json',
         testAppName: AppNames.CREATE_APP_ONLY,
         headless: true,
       },
     },
     {
-      name: 'teardown-create-app-only',
-      testDir: './tests/create-app-only/',
-      testMatch: '*create-app-only.teardown.ts',
-      use: {
-        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
-        testAppName: AppNames.CREATE_APP_ONLY,
-      },
-    },
-    {
-      name: 'data-model',
-      dependencies: ['setup'],
+      name: TestNames.DATA_MODEL,
+      dependencies: [TestNames.SETUP],
       testDir: './tests/data-model/',
       testMatch: '*.spec.ts',
-      teardown: 'teardown-data-model',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         storageState: '.playwright/auth/user.json',
         testAppName: AppNames.DATA_MODEL_APP,
         headless: true,
       },
     },
     {
-      name: 'teardown-data-model',
-      testDir: './tests/data-model/',
-      testMatch: '*data-model.teardown.ts',
+      name: TestNames.DASHBOARD,
+      dependencies: [TestNames.SETUP],
+      testDir: './tests/dashboard/',
+      testMatch: '*.spec.ts',
       use: {
-        baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL,
-        testAppName: AppNames.DATA_MODEL_APP,
+        ...devices['Desktop Chrome'],
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.DASHBOARD_APP,
+        headless: true,
+      },
+    },
+    {
+      name: TestNames.MAIN_NAVIGATION_BETWEEN_SUB_APPS,
+      dependencies: [TestNames.SETUP],
+      testDir: './tests/main-navigation-between-sub-apps/',
+      testMatch: '*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.MAIN_NAVIGATION_APP,
+        headless: true,
+      },
+    },
+    {
+      name: TestNames.GIT_SYNC,
+      dependencies: [TestNames.SETUP],
+      testDir: './tests/git-sync/',
+      testMatch: '*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.GIT_SYNC_APP,
+        headless: true,
+      },
+    },
+    {
+      name: TestNames.UI_EDITOR,
+      dependencies: [TestNames.SETUP],
+      testDir: './tests/ui-editor/',
+      testMatch: '*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.UI_EDITOR_APP,
+        headless: true,
+      },
+    },
+    {
+      name: TestNames.SETTINGS_MODAL,
+      dependencies: [TestNames.SETUP],
+      testDir: './tests/settings-modal/',
+      testMatch: '*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.SETTINGS_MODAL_APP,
+        headless: true,
+      },
+    },
+    {
+      name: TestNames.TEXT_EDITOR,
+      dependencies: [TestNames.SETUP],
+      testDir: './tests/text-editor/',
+      testMatch: '*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: '.playwright/auth/user.json',
+        testAppName: AppNames.TEXT_EDITOR_APP,
+        headless: true,
+      },
+    },
+    {
+      name: TestNames.LOGOUT_AND_INVALID_LOGIN_ONLY,
+      // Add ALL other test names here to make sure that the log out test is the last test to be executed
+      dependencies: [
+        TestNames.SETUP,
+        TestNames.CREATE_APP_ONLY,
+        TestNames.DATA_MODEL,
+        TestNames.DASHBOARD,
+        TestNames.MAIN_NAVIGATION_BETWEEN_SUB_APPS,
+        TestNames.GIT_SYNC,
+        TestNames.UI_EDITOR,
+        TestNames.SETTINGS_MODAL,
+        TestNames.TEXT_EDITOR,
+        ...Object.values(TestNames).filter(
+          (testName) => testName !== TestNames.LOGOUT_AND_INVALID_LOGIN_ONLY,
+        ),
+      ],
+      testDir: './tests/logout-and-invalid-login-only/',
+      testMatch: '*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: '.playwright/auth/user.json',
+        headless: true,
       },
     },
   ],

@@ -1,6 +1,6 @@
 ﻿import { renderHook } from '@testing-library/react';
 import { useBpmnModeler } from './useBpmnModeler';
-import Modeler from 'bpmn-js/lib/Modeler';
+import type Modeler from 'bpmn-js/lib/Modeler';
 
 type ModelerMock = Modeler & { container: { container: HTMLDivElement } };
 
@@ -38,17 +38,5 @@ describe('useBpmnModeler', () => {
     const modelerInstance2 = getModeler(mockedCanvasHTMLDivElement2) as ModelerMock;
     expect(modelerInstance2.container.container).not.toBe(mockedCanvasHTMLDivElement2);
     expect(modelerInstance2.container.container).toBe(mockedCanvasHTMLDivElement);
-  });
-
-  it('should kill the instance when unMounting and should be able to create a new instance', () => {
-    const { result, unmount } = renderHook(() => useBpmnModeler());
-    const { getModeler } = result.current;
-
-    getModeler(mockedCanvasHTMLDivElement) as ModelerMock;
-
-    unmount();
-
-    const modelerInstance2 = getModeler(mockedCanvasHTMLDivElement2) as ModelerMock;
-    expect(modelerInstance2.container.container).toBe(mockedCanvasHTMLDivElement2);
   });
 });

@@ -3,10 +3,7 @@ import { test } from '../../extenders/testExtend';
 import { DataModelPage } from '../../pages/DataModelPage';
 import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
-
-// This line must be there to ensure that the tests do not run in parallell, and
-// that the before all call is being executed before we start the tests
-test.describe.configure({ mode: 'serial' });
+import { Gitea } from '../../helpers/Gitea';
 
 // Before the tests starts, we need to create the data model app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
@@ -16,7 +13,13 @@ test.beforeAll(async ({ testAppName, request, storageState }) => {
   expect(response.ok()).toBeTruthy();
 });
 
-test('Allows to adda datamodel, include an object with custom name and fields in it, generate a C# model from it, and then delete it', async ({
+test.afterAll(async ({ request, testAppName }) => {
+  const gitea = new Gitea();
+  const response = await request.delete(gitea.getDeleteAppEndpoint({ app: testAppName }));
+  expect(response.ok()).toBeTruthy();
+});
+
+test('Allows to add a datamodel, include an object with custom name and fields in it, generate a C# model from it, and then delete it', async ({
   page,
   testAppName,
 }): Promise<void> => {
@@ -27,9 +30,10 @@ test('Allows to adda datamodel, include an object with custom name and fields in
 
   // Add datamodel
   await dataModelPage.clickOnCreateNewDataModelButton();
-  const dataModelName: string = 'datamodel';
+  const dataModelName: string = 'testdatamodel';
   await dataModelPage.typeDataModelName(dataModelName);
   await dataModelPage.clickOnCreateModelButton();
+  await dataModelPage.waitForDataModelToAppear(dataModelName);
 
   // Add object
   await dataModelPage.clickOnAddPropertyButton();
@@ -113,6 +117,8 @@ test('Allows to upload and then delete an XSD file', async ({ page, testAppName 
   const dataModelName: string = 'testdatamodel';
   const dataModelFileName: string = `${dataModelName}.xsd`;
   await dataModelPage.selectFileToUpload(dataModelFileName);
+  await dataModelPage.waitForDataModelToBeUploaded();
+  await dataModelPage.waitForDataModelToAppear(dataModelName);
   const dataModelComboboxValue = await dataModelPage.getDataModelOptionValue(dataModelName);
   expect(dataModelComboboxValue).toMatch(/\/testdatamodel.schema.json$/);
 

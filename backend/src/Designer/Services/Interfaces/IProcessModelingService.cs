@@ -39,15 +39,5 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <returns>A <see cref="Stream"/> of a process definition file.</returns>
         Stream GetProcessDefinitionStream(AltinnRepoEditingContext altinnRepoEditingContext);
-
-        /// <summary>
-        /// Updates the name of a task in the process definition file.
-        /// </summary>
-        /// <param name="altinnRepoEditingContext">n <see cref="AltinnRepoEditingContext"/>.</param>
-        /// <param name="taskId">The ID of the task to update</param>
-        /// <param name="taskName">The name to set for the task</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        /// <returns></returns>
-        Task<Stream> UpdateProcessTaskNameAsync(AltinnRepoEditingContext altinnRepoEditingContext, string taskId, string taskName, CancellationToken cancellationToken = default);
     }
 }

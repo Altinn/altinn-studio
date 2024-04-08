@@ -4,8 +4,13 @@ import userEvent from '@testing-library/user-event';
 import { TextRow } from './TextRow';
 import { screen, render as rtlRender, waitFor, act } from '@testing-library/react';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { TextTableRowEntry } from './types';
+import type { TextTableRowEntry } from './types';
 import { Table, TableBody } from '@digdir/design-system-react';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+
+const textKey: string = 'key1';
 
 describe('TextRow', () => {
   const renderTextRow = (props: Partial<TextRowProps> = {}) => {
@@ -19,7 +24,7 @@ describe('TextRow', () => {
     const allProps: TextRowProps = {
       idExists: (_arg) => false,
       removeEntry: (_args) => undefined,
-      textId: 'key1',
+      textId: textKey,
       textRowEntries,
       variables: [],
       updateEntryId: (_args) => undefined,
@@ -27,13 +32,14 @@ describe('TextRow', () => {
       selectedLanguages: ['nb', 'en', 'nn'],
       ...props,
     };
-
     rtlRender(
-      <Table>
-        <TableBody>
-          <TextRow {...allProps} />
-        </TableBody>
-      </Table>,
+      <ServicesContextProvider {...queriesMock} client={queryClientMock}>
+        <Table>
+          <TableBody>
+            <TextRow {...allProps} />
+          </TableBody>
+        </Table>
+      </ServicesContextProvider>,
     );
   };
 
@@ -42,7 +48,10 @@ describe('TextRow', () => {
     const upsertTextResource = jest.fn();
     renderTextRow({ upsertTextResource });
     const valueInput = screen.getByRole('textbox', {
-      name: 'nb translation',
+      name: textMock('text_editor.table_row_input_label', {
+        lang: textMock('language.nb'),
+        textKey,
+      }),
     });
 
     await act(() => user.type(valueInput, '-updated'));
@@ -50,21 +59,33 @@ describe('TextRow', () => {
 
     expect(upsertTextResource).toHaveBeenCalledWith({
       language: 'nb',
-      textId: 'key1',
+      textId: textKey,
       translation: 'value1-updated',
     });
   });
 
-  test('renders a Button component with a PencilIcon when showButton is true', () => {
-    renderTextRow({ showButton: true });
-    const button = screen.getByRole('button', { name: 'toggle-textkey-edit' });
-    expect(button).toBeInTheDocument();
+  test('renders button to delete text and button to edit text key by default', () => {
+    renderTextRow();
+    screen.getByRole('button', { name: textMock('text_editor.toggle_edit_mode', { textKey }) });
+    screen.getByRole('button', { name: textMock('schema_editor.delete') });
   });
 
-  test('Hide a Button component with a PencilIcon when showButton is false', () => {
-    renderTextRow({ showButton: false });
-    const button = screen.queryByRole('button', { name: 'toggle-textkey-edit' });
-    expect(button).not.toBeInTheDocument();
+  test('does not show button to delete text when showDeleteButton is false', () => {
+    renderTextRow({ showDeleteButton: false });
+    screen.getByRole('button', { name: textMock('text_editor.toggle_edit_mode', { textKey }) });
+    const deleteButton = screen.queryByRole('button', {
+      name: textMock('schema_editor.delete'),
+    });
+    expect(deleteButton).not.toBeInTheDocument();
+  });
+
+  test('does not show button to edit text key when showEditButton is false', () => {
+    renderTextRow({ showEditButton: false });
+    screen.getByRole('button', { name: textMock('schema_editor.delete') });
+    const editButton = screen.queryByRole('button', {
+      name: textMock('text_editor.toggle_edit_mode', { textKey }),
+    });
+    expect(editButton).not.toBeInTheDocument();
   });
 
   test('that the user is warned if an illegal character is used', async () => {
@@ -72,19 +93,17 @@ describe('TextRow', () => {
     const updateEntryId = jest.fn();
     renderTextRow({ updateEntryId });
     const toggleKeyEditButton = screen.getByRole('button', {
-      name: 'toggle-textkey-edit',
+      name: textMock('text_editor.toggle_edit_mode', { textKey }),
     });
     await act(() => user.click(toggleKeyEditButton));
 
     const idInput = screen.getByRole('textbox', {
-      name: 'tekst key edit',
+      name: textMock('text_editor.key.edit', { textKey }),
     });
-    const emptyMsg = 'TextId kan ikke være tom';
-    const illegalCharMsg = 'Det er ikke tillat med mellomrom i en textId';
+    const emptyMsg = textMock('text_editor.key.error_empty');
+    const illegalCharMsg = textMock('text_editor.key.error_invalid');
     await act(() => user.dblClick(idInput));
     await act(() => user.keyboard('{BACKSPACE}'));
-    const error = screen.getByRole('alertdialog');
-    expect(error).toBeInTheDocument();
     expect(screen.getByText(emptyMsg)).not.toBeNull();
     await act(() => user.keyboard('2'));
     expect(screen.queryByText(emptyMsg)).toBeNull();

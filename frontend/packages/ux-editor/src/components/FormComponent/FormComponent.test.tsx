@@ -6,17 +6,17 @@ import { DndProvider } from 'react-dnd';
 import type { IFormComponentProps } from './FormComponent';
 import { FormComponent } from './FormComponent';
 import {
-  renderHookWithMockStore,
-  renderWithMockStore,
+  renderHookWithProviders,
+  renderWithProviders,
   textLanguagesMock,
 } from '../../testing/mocks';
 import { component1IdMock, component1Mock } from '../../testing/layoutMock';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
-import { ITextResource } from 'app-shared/types/global';
+import type { ITextResource } from 'app-shared/types/global';
 import { useDeleteFormComponentMutation } from '../../hooks/mutations/useDeleteFormComponentMutation';
-import { UseMutationResult } from '@tanstack/react-query';
-import { IInternalLayout } from '../../types/global';
+import type { UseMutationResult } from '@tanstack/react-query';
+import type { IInternalLayout } from '../../types/global';
 
 const user = userEvent.setup();
 
@@ -201,15 +201,14 @@ describe('FormComponent', () => {
 });
 
 const waitForData = async () => {
-  const { result: texts } = renderHookWithMockStore(
-    {},
-    {
+  const { result: texts } = renderHookWithProviders(() => useTextResourcesQuery(org, app), {
+    queries: {
       getTextResources: jest
         .fn()
         .mockImplementation(() => Promise.resolve({ language: 'nb', resources: nbTextResources })),
       getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
     },
-  )(() => useTextResourcesQuery(org, app)).renderHookResult;
+  });
   await waitFor(() => expect(texts.current.isSuccess).toBe(true));
 };
 
@@ -227,7 +226,7 @@ const render = async (props: Partial<IFormComponentProps> = {}) => {
 
   await waitForData();
 
-  return renderWithMockStore()(
+  return renderWithProviders(
     <DndProvider backend={HTML5Backend}>
       <FormComponent {...allProps} />
     </DndProvider>,

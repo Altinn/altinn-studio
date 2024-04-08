@@ -2,12 +2,12 @@ import type { UiSchemaNodes } from '../../types';
 import { CombinationKind } from '../../types';
 import { getNodeByPointer, hasNodePointer } from '../selectors';
 import { isFieldOrCombination, isReference, splitPointerInBaseAndName } from '../utils';
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils } from '@studio/pure-functions';
 
 export const renameNodePointer = (
   uiSchemaNodes: UiSchemaNodes,
   oldPointer: string,
-  newPointer: string
+  newPointer: string,
 ) => {
   if (oldPointer === newPointer) {
     throw new Error('Old and new name are equal');
@@ -26,7 +26,7 @@ export const renameNodePointer = (
   }
   const mutatedNodeArray: UiSchemaNodes = [];
   uiSchemaNodes.forEach((uiNode) => {
-    const nodeCopy = deepCopy(uiNode);
+    const nodeCopy = ObjectUtils.deepCopy(uiNode);
     if (pointerIsInBranch(uiNode.pointer, oldPointer)) {
       nodeCopy.pointer = nodeCopy.pointer.replace(oldPointer, newPointer);
     }
@@ -34,11 +34,12 @@ export const renameNodePointer = (
       nodeCopy.reference = nodeCopy.reference.replace(oldPointer, newPointer);
     }
     if (isFieldOrCombination(nodeCopy) && isFieldOrCombination(uiNode)) {
-      nodeCopy.children = uiNode.children?.map((childPointer) =>
-        pointerIsInBranch(childPointer, oldPointer)
-          ? childPointer.replace(oldPointer, newPointer)
-          : childPointer
-      ) ?? [];
+      nodeCopy.children =
+        uiNode.children?.map((childPointer) =>
+          pointerIsInBranch(childPointer, oldPointer)
+            ? childPointer.replace(oldPointer, newPointer)
+            : childPointer,
+        ) ?? [];
     }
     mutatedNodeArray.push(nodeCopy);
   });

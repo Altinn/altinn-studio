@@ -1,16 +1,16 @@
 import { Button } from '@digdir/design-system-react';
 import type { ButtonProps } from '@digdir/design-system-react';
-import React, { forwardRef, ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React, { forwardRef } from 'react';
 import cn from 'classnames';
 import classes from './StudioButton.module.css';
 import type { OverridableComponent } from '../../types/OverridableComponent';
+import type { IconPlacement } from '../../types/IconPlacement';
 
-export type IconPlacement = 'left' | 'right';
-
-export type StudioButtonProps = ButtonProps & {
+export type StudioButtonProps = {
   icon?: ReactNode;
   iconPlacement?: IconPlacement;
-};
+} & Omit<ButtonProps, 'icon'>;
 
 const StudioButton: OverridableComponent<StudioButtonProps, HTMLButtonElement> = forwardRef<
   HTMLButtonElement,
@@ -22,7 +22,7 @@ const StudioButton: OverridableComponent<StudioButtonProps, HTMLButtonElement> =
     </span>
   );
   return (
-    <Button {...rest} className={cn(className, classes.studioButton)} ref={ref}>
+    <Button {...rest} className={cn(className, classes.studioButton)} icon={!children} ref={ref}>
       {icon && iconPlacement === 'left' && iconComponent}
       {children}
       {icon && iconPlacement === 'right' && iconComponent}

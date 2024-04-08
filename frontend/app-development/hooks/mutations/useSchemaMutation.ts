@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { JsonSchema } from 'app-shared/types/JsonSchema';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export const useSchemaMutation = () => {
@@ -13,6 +13,9 @@ export const useSchemaMutation = () => {
       const { modelPath, model } = args;
       queryClient.setQueryData([QueryKey.JsonSchema, org, app, modelPath], () => model);
       await saveDatamodel(org, app, modelPath, model);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueryKey.DatamodelsMetadata, org, app] });
     },
   });
 };

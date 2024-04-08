@@ -1,11 +1,10 @@
 import { generateComponentId } from '../../utils/generateId';
-import { IInternalLayout } from '../../types/global';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import type { IInternalLayout } from '../../types/global';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
-import { useSelectedFormLayoutWithName } from '../useFormLayoutsSelector';
+import { useSelectedFormLayoutWithName } from '../';
 import { useMutation } from '@tanstack/react-query';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
-import { FormContainer } from '../../types/FormContainer';
+import type { FormContainer } from '../../types/FormContainer';
 
 export interface AddFormContainerMutationArgs {
   container: FormContainer;
@@ -21,9 +20,15 @@ export const useAddFormContainerMutation = (org: string, app: string, layoutSetN
   const formLayoutsMutation = useFormLayoutMutation(org, app, layoutName, layoutSetName);
 
   return useMutation({
-    mutationFn: ({ container, positionAfterId, addToId, callback, destinationIndex }: AddFormContainerMutationArgs) => {
+    mutationFn: ({
+      container,
+      positionAfterId,
+      addToId,
+      callback,
+      destinationIndex,
+    }: AddFormContainerMutationArgs) => {
       const layouts = formLayoutsQuery.data;
-      const id = generateComponentId(ComponentType.Group, layouts);
+      const id = generateComponentId(container.type, layouts);
       let baseContainerId;
       if (Object.keys(layout.order) && Object.keys(layout.order).length > 0) {
         baseContainerId = Object.keys(layout.order)[0];
@@ -39,8 +44,8 @@ export const useAddFormContainerMutation = (org: string, app: string, layoutSetN
         },
         order: {
           ...layout.order,
-          [id]: []
-        }
+          [id]: [],
+        },
       };
 
       if (baseContainerId) {
@@ -54,7 +59,7 @@ export const useAddFormContainerMutation = (org: string, app: string, layoutSetN
             updatedLayout.order[baseContainerId].splice(
               updatedLayout.order[baseContainerId].indexOf(positionAfterId) + 1,
               0,
-              id
+              id,
             );
           }
         } else if (!destinationIndex === false || destinationIndex === 0) {
@@ -65,6 +70,6 @@ export const useAddFormContainerMutation = (org: string, app: string, layoutSetN
       }
 
       return formLayoutsMutation.mutateAsync(updatedLayout);
-    }
+    },
   });
 };

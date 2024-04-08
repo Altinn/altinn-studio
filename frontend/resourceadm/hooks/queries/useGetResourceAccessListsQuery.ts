@@ -1,7 +1,8 @@
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import type { InfiniteData, UseInfiniteQueryResult } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { AccessListResourceLink } from 'app-shared/types/ResourceAdm';
+import type { AccessList } from 'app-shared/types/ResourceAdm';
 
 /**
  * Query to get all access lists connected to a resource
@@ -16,12 +17,18 @@ export const useGetResourceAccessListsQuery = (
   org: string,
   resourceId: string,
   env: string,
-): UseQueryResult<AccessListResourceLink[]> => {
+): UseInfiniteQueryResult<InfiniteData<AccessList, number>> => {
   const { getResourceAccessLists } = useServicesContext();
 
-  return useQuery<AccessListResourceLink[]>({
-    queryKey: [QueryKey.ResourceAccessLists, resourceId, env],
-    queryFn: () => getResourceAccessLists(org, resourceId, env),
+  return useInfiniteQuery({
+    queryKey: [QueryKey.ResourceAccessLists, env, resourceId],
+    queryFn: ({ pageParam }) => getResourceAccessLists(org, resourceId, env, pageParam),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage.nextPage,
     enabled: !!org && !!env && !!resourceId,
+    select: (data) => ({
+      ...data,
+      pages: data.pages.flatMap((page) => page.data),
+    }),
   });
 };

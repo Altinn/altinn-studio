@@ -5,13 +5,8 @@ import { PencilIcon } from '@studio/icons';
 import { Tag } from '@digdir/design-system-react';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
-import {
-  DataGrid,
-  GridActionsCellItem,
-  GridOverlay,
-  GridRenderCellParams,
-  GridRowParams,
-} from '@mui/x-data-grid';
+import type { GridRenderCellParams, GridRowParams } from '@mui/x-data-grid';
+import { DataGrid, GridActionsCellItem, GridOverlay } from '@mui/x-data-grid';
 
 export type ResourceTableProps = {
   /**
@@ -85,6 +80,13 @@ export const ResourceTable = ({
       field: 'lastChanged',
       headerName: t('resourceadm.dashboard_table_header_last_changed'),
       width: 120,
+      type: 'date',
+      valueFormatter: ({ value }) =>
+        new Date(value).toLocaleDateString('nb-NO', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        }),
     },
     {
       field: 'hasPolicy',

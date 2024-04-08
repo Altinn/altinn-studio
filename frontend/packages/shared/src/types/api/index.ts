@@ -1,6 +1,5 @@
 export * from './AddLanguagePayload';
 export * from './AddRepoParams';
-export * from './AppDeploymentsResponse';
 export * from './AppReleasesResponse';
 export * from './CreateDatamodelPayload';
 export * from './CreateDeploymentPayload';
@@ -8,6 +7,7 @@ export * from './CreateReleasePayload';
 export * from './CreateRepoCommitPayload';
 export * from './DatamodelMetadataResponse';
 export * from './FormLayoutsResponse';
+export * from './FormLayoutsResponseV3';
 export * from './SearchRepoFilterParams';
 export * from './SearchRepositoryResponse';
 export * from './UpdateTextIdPayload';

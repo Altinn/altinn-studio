@@ -1,6 +1,6 @@
-import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
-import { RepositoryType } from './global';
-import { SupportedFeatureFlags } from 'app-shared/utils/featureToggleUtils';
+import type { TopBarMenu } from 'app-shared/enums/TopBarMenu';
+import type { RepositoryType } from './global';
+import type { SupportedFeatureFlags } from 'app-shared/utils/featureToggleUtils';
 
 export interface TopBarMenuItem {
   key: TopBarMenu;

@@ -5,4 +5,4 @@ export const generateRandomId = (length: number): string => {
     result += characters.charAt(Math.floor(Math.random() * characters.length));
   }
   return result;
-}
+};

@@ -2,7 +2,7 @@ import React from 'react';
 import { Fieldset, LegacyTextField, Radio, Textfield } from '@digdir/design-system-react';
 import classes from './FileUploadComponent.module.css';
 import { useText } from '../../../../hooks';
-import { IGenericEditComponent } from '../../componentConfig';
+import type { IGenericEditComponent } from '../../componentConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type {
   FormFileUploaderComponent,
@@ -13,7 +13,7 @@ import { FormField } from '../../../FormField';
 export const FileUploadComponent = ({
   component,
   handleComponentChange,
-}: IGenericEditComponent) => {
+}: IGenericEditComponent<ComponentType.FileUpload | ComponentType.FileUploadWithTag>) => {
   const t = useText();
 
   const fileUploaderComponent = component as FormFileUploaderComponent;

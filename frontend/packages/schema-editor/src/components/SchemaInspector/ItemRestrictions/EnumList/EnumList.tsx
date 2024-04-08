@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import classes from './EnumList.module.css';
-import { FieldNode } from '@altinn/schema-model';
-import { deepCopy } from 'app-shared/pure';
+import type { FieldNode } from '@altinn/schema-model';
+import { ObjectUtils, ArrayUtils } from '@studio/pure-functions';
 import { EnumField } from './EnumField';
 import { ErrorMessage, Fieldset } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@studio/icons';
 import { findDuplicateValues } from './utils';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { removeEmptyStrings, removeItemByIndex, replaceByIndex } from 'app-shared/utils/arrayUtils';
+import { removeEmptyStrings } from 'app-shared/utils/arrayUtils';
 import { StudioButton } from '@studio/components';
 
 export type EnumListProps = {
@@ -20,18 +20,18 @@ export const EnumList = ({ schemaNode }: EnumListProps): JSX.Element => {
   const { schemaModel, save } = useSchemaEditorAppContext();
 
   const [enumList, setEnumList] = useState<string[]>(
-    schemaNode?.enum ? deepCopy(schemaNode.enum) : [],
+    schemaNode?.enum ? ObjectUtils.deepCopy(schemaNode.enum) : [],
   );
 
   const [duplicateValues, setDuplicateValues] = useState<string[]>(null);
 
   const handleChange = (index: number, newEnum: string) => {
-    const newEnumList = replaceByIndex(enumList, index, newEnum);
+    const newEnumList = ArrayUtils.replaceByIndex(enumList, index, newEnum);
     update(newEnumList);
   };
 
   const handleDelete = (index: number) => {
-    const newEnumList = removeItemByIndex(enumList, index);
+    const newEnumList = ArrayUtils.removeItemByIndex(enumList, index);
     update(newEnumList);
   };
 

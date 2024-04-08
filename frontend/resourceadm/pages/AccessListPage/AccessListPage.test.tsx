@@ -5,7 +5,8 @@ import { textMock } from '../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { MemoryRouter } from 'react-router-dom';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -21,24 +22,38 @@ describe('AccessListPage', () => {
 
   it('should show spinner on load', () => {
     renderAccessListPage();
-    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('resourceadm.loading_access_list'))).toBeInTheDocument();
   });
 
   it('should show details page when list is loaded', async () => {
     renderAccessListPage();
 
-    await waitForElementToBeRemoved(() => screen.queryByText(textMock('general.loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('resourceadm.loading_access_list')),
+    );
 
     expect(
       screen.getByText(textMock('resourceadm.listadmin_list_detail_header')),
     ).toBeInTheDocument();
   });
+
+  it('should show error message is list loading fails', async () => {
+    renderAccessListPage(true);
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('resourceadm.loading_access_list')),
+    );
+
+    expect(screen.getByText(textMock('resourceadm.listadmin_list_load_error'))).toBeInTheDocument();
+  });
 });
 
-const renderAccessListPage = () => {
+const renderAccessListPage = (isLoadError?: boolean) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
-    getAccessList: jest.fn().mockImplementation(() => Promise.resolve({})),
+    getAccessList: jest
+      .fn()
+      .mockImplementation(() => (isLoadError ? Promise.reject({}) : Promise.resolve({}))),
   };
   return render(
     <MemoryRouter>

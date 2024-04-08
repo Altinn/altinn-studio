@@ -1,17 +1,22 @@
-import React, { useState, ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React, { useState } from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { Tabs } from '@digdir/design-system-react';
 import classes from './EditGrid.module.css';
 import { EditGridForGivenViewSize } from './EditGridForGivenViewSize';
 import { LaptopIcon, MobileIcon, MobileSmallIcon, MonitorIcon, TabletIcon } from '@studio/icons';
-import { FormComponent } from '../../../../types/FormComponent';
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils } from '@studio/pure-functions';
 import { ViewSize } from './types/ViewSize';
-import { GridSizes } from './types/GridSizes';
+import type { GridSizes } from './types/GridSizes';
 import { useTranslation } from 'react-i18next';
+import type { FormItem } from '../../../../types/FormItem';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
-const setGridOnComponent = (gridValues: GridSizes, component: FormComponent) => {
-  const newComponent = deepCopy(component);
+const setGridOnComponent = <T extends ComponentType>(
+  gridValues: GridSizes,
+  component: FormItem<T>,
+): FormItem<T> => {
+  const newComponent: FormItem<T> = ObjectUtils.deepCopy(component);
   newComponent.grid = { ...newComponent.grid, ...gridValues };
   if (
     Object.keys(newComponent.grid).length === 0 ||
@@ -22,7 +27,10 @@ const setGridOnComponent = (gridValues: GridSizes, component: FormComponent) => 
   return newComponent;
 };
 
-export const EditGrid = ({ handleComponentChange, component }: IGenericEditComponent) => {
+export const EditGrid = <T extends ComponentType>({
+  handleComponentChange,
+  component,
+}: IGenericEditComponent<T>) => {
   const [gridValues, setGridValues] = useState<GridSizes>(component.grid ?? {});
   const [selectedViewSizeForGridProp, setSelectedViewSizeForGridProp] = useState<ViewSize>(
     ViewSize.Xs,
@@ -54,12 +62,8 @@ export const EditGrid = ({ handleComponentChange, component }: IGenericEditCompo
       <Tabs.List className={classes.tabs}>
         {Object.values(ViewSize).map((viewSize: ViewSize) => {
           return (
-            <Tabs.Tab
-              key={viewSize}
-              value={viewSize}
-              icon={iconMapping[viewSize] || null}
-              className={classes.tab}
-            >
+            <Tabs.Tab key={viewSize} value={viewSize} className={classes.tab}>
+              {iconMapping[viewSize] || null}
               {t(`ux_editor.modal_properties_grid_size_${viewSize}`)}
             </Tabs.Tab>
           );

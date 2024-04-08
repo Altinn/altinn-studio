@@ -1,11 +1,11 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { ErrorCode, useValidateComponent } from './useValidateComponent';
-import {
+import type {
   FormCheckboxesComponent,
   FormComponent,
   FormRadioButtonsComponent,
 } from '../types/FormComponent';
-import { optionListIdsMock, renderHookWithMockStore } from '../testing/mocks';
+import { optionListIdsMock, renderHookWithProviders } from '../testing/mocks';
 
 describe('useValidateComponent', () => {
   describe('Checkboxes', () => {
@@ -16,7 +16,7 @@ describe('useValidateComponent', () => {
         id: 'test',
         optionsId: '',
         options: [],
-        dataModelBindings: {},
+        dataModelBindings: { simpleBinding: 'somePath' },
       };
       expect(render(component)).toEqual({
         isValid: false,
@@ -34,7 +34,7 @@ describe('useValidateComponent', () => {
           { label: 'test1', value: 'test' },
           { label: 'test2', value: 'test' },
         ],
-        dataModelBindings: {},
+        dataModelBindings: { simpleBinding: 'somePath' },
       };
       expect(render(component)).toEqual({
         isValid: false,
@@ -49,7 +49,7 @@ describe('useValidateComponent', () => {
         id: 'test',
         optionsId: optionListIdsMock[0],
         options: [],
-        dataModelBindings: {},
+        dataModelBindings: { simpleBinding: 'somePath' },
       };
       expect(render(component)).toEqual({ isValid: true });
     });
@@ -64,7 +64,7 @@ describe('useValidateComponent', () => {
           { label: 'test1', value: 'test1' },
           { label: 'test2', value: 'test2' },
         ],
-        dataModelBindings: {},
+        dataModelBindings: { simpleBinding: 'somePath' },
       };
       expect(render(component)).toEqual({ isValid: true });
     });
@@ -78,7 +78,7 @@ describe('useValidateComponent', () => {
         id: 'test',
         optionsId: '',
         options: [],
-        dataModelBindings: {},
+        dataModelBindings: { simpleBinding: 'somePath' },
       };
       expect(render(component)).toEqual({
         isValid: false,
@@ -96,7 +96,7 @@ describe('useValidateComponent', () => {
           { label: 'test1', value: 'test' },
           { label: 'test2', value: 'test' },
         ],
-        dataModelBindings: {},
+        dataModelBindings: { simpleBinding: 'somePath' },
       };
       expect(render(component)).toEqual({
         isValid: false,
@@ -111,7 +111,7 @@ describe('useValidateComponent', () => {
         id: 'test',
         optionsId: optionListIdsMock[1],
         options: [],
-        dataModelBindings: {},
+        dataModelBindings: { simpleBinding: 'somePath' },
       };
       expect(render(component)).toEqual({ isValid: true });
     });
@@ -126,7 +126,7 @@ describe('useValidateComponent', () => {
           { label: 'test1', value: 'test1' },
           { label: 'test2', value: 'test2' },
         ],
-        dataModelBindings: {},
+        dataModelBindings: { simpleBinding: 'somePath' },
       };
       expect(render(component)).toEqual({ isValid: true });
     });
@@ -149,6 +149,5 @@ const render = (component: FormComponent) => {
       .fn()
       .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
   };
-  return renderHookWithMockStore({}, queries)(() => useValidateComponent(component))
-    .renderHookResult.result.current;
+  return renderHookWithProviders(() => useValidateComponent(component), { queries }).result.current;
 };

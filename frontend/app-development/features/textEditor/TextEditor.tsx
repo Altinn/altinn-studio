@@ -4,7 +4,7 @@ import { TextEditor as TextEditorImpl, defaultLangCode } from '@altinn/text-edit
 import { StudioPageSpinner } from '@studio/components';
 import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
 import { useSearchParams } from 'react-router-dom';
-import { TextResourceIdMutation } from '@altinn/text-editor/src/types';
+import type { TextResourceIdMutation } from '@altinn/text-editor/src/types';
 import { useLanguagesQuery, useTextResourcesQuery } from '../../hooks/queries';
 import {
   useAddLanguageMutation,
@@ -13,8 +13,10 @@ import {
   useUpsertTextResourceMutation,
 } from '../../hooks/mutations';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useTranslation } from 'react-i18next';
 
 export const TextEditor = () => {
+  const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
   const [searchParams, setSearchParams] = useSearchParams({ lang: '', search: '' });
 
@@ -48,7 +50,9 @@ export const TextEditor = () => {
   const { mutate: upsertTextResource } = useUpsertTextResourceMutation(org, app);
 
   if (isInitialLoadingLang || !textResources) {
-    return <StudioPageSpinner />;
+    return (
+      <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('text_editor.loading_page')} />
+    );
   }
 
   return (

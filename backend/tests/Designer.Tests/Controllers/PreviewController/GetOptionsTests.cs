@@ -43,16 +43,16 @@ namespace Designer.Tests.Controllers.PreviewController
         }
 
         [Fact]
-        public async Task Get_Options_when_no_options_exist_returns_NoContent()
+        public async Task Get_Options_when_no_options_exist_returns_Ok_empty_list()
         {
             string dataPathWithData = $"{Org}/{App}/api/options/non-existing-options";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
-            Assert.Equal("", responseBody);
+            Assert.Equal("[]", responseBody);
         }
     }
 }

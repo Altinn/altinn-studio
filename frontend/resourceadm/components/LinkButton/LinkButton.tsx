@@ -1,4 +1,5 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './LinkButton.module.css';
 import { Link } from '@digdir/design-system-react';
 
@@ -11,7 +12,7 @@ export type LinkButtonProps = {
   /**
    * Children of the component
    */
-  children: ReactNode;
+  children?: ReactNode;
 };
 
 /**
@@ -30,8 +31,8 @@ export type LinkButtonProps = {
  */
 export const LinkButton = ({ onClick, children }: LinkButtonProps): React.JSX.Element => {
   return (
-    <Link as='button' onClick={onClick} className={classes.linkButton}>
-      {children}
+    <Link asChild className={classes.linkButton}>
+      <button onClick={onClick}>{children}</button>
     </Link>
   );
 };

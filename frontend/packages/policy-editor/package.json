@@ -5,7 +5,7 @@
   "license": "MIT",
   "main": "index.ts",
   "private": true,
-  "packageManager": "yarn@4.0.2",
+  "packageManager": "yarn@4.1.1",
   "scripts": {
     "test": "jest"
   },
@@ -15,6 +15,6 @@
   "peerDependencies": {
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "typescript": "5.3.3"
+    "typescript": "5.4.3"
   }
 }

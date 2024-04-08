@@ -17,4 +17,23 @@ export class ArrayUtils {
   public static getValidIndex<T>(array: T[], givenIndex: number): number {
     return givenIndex < 0 || givenIndex >= array.length ? array.length - 1 : givenIndex;
   }
+
+  /** Returns the last item of the given array */
+  public static last = <T>(array: T[]): T => array[array.length - 1];
+
+  /** Replaces an element in an array with a new value */
+  public static replaceByIndex = <T>(array: T[], index: number, newValue: T): T[] => {
+    if (index < 0 || index >= array.length) return array;
+    const newArray = [...array];
+    newArray[index] = newValue;
+    return newArray;
+  };
+
+  /** Removes the item with the given index from the given array. */
+  public static removeItemByIndex = <T>(array: T[], indexToRemove: number): T[] =>
+    array.filter((_, index) => index !== indexToRemove);
+
+  /** Returns the provided array if it has at least one item, otherwise returns undefined */
+  public static getNonEmptyArrayOrUndefined = <T>(array: T[]): T[] | undefined =>
+    array.length > 0 ? array : undefined;
 }

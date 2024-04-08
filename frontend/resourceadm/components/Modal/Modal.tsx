@@ -1,8 +1,10 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './Modal.module.css';
 import cn from 'classnames';
 import { Heading } from '@digdir/design-system-react';
 import { StudioModal } from '@studio/components';
+import { useTranslation } from 'react-i18next';
 
 type ModalProps = {
   isOpen: boolean;
@@ -36,17 +38,19 @@ export const Modal = ({
   children,
   contentClassName,
 }: ModalProps): React.JSX.Element => {
+  const { t } = useTranslation();
   return (
     <StudioModal
       isOpen={isOpen}
       onClose={onClose}
       title={
         <div className={classes.headingWrapper}>
-          <Heading size='xsmall' spacing level={1}>
+          <Heading size='xsmall' level={1}>
             {title}
           </Heading>
         </div>
       }
+      closeButtonLabel={t('resourceadm.close_modal')}
     >
       <div className={cn(classes.content, contentClassName)}>{children}</div>
     </StudioModal>

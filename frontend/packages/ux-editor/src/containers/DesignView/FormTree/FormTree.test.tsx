@@ -3,17 +3,17 @@ import { act, screen } from '@testing-library/react';
 import { FormTree } from './FormTree';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { BASE_CONTAINER_ID, DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { renderWithMockStore } from '../../../testing/mocks';
+import { renderWithProviders } from '../../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { ITextResources } from 'app-shared/types/global';
+import type { ITextResources } from 'app-shared/types/global';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { FormContext } from '../../FormContext';
-import { IInternalLayout } from '../../../types/global';
-import { FormComponent } from '../../../types/FormComponent';
-import { FormContainer } from '../../../types/FormContainer';
+import { FormItemContext } from '../../FormItemContext';
+import type { IInternalLayout } from '../../../types/global';
+import type { FormComponent } from '../../../types/FormComponent';
+import type { FormContainer } from '../../../types/FormContainer';
 
 const user = userEvent.setup();
 
@@ -34,24 +34,29 @@ const rootComponent: FormComponent = {
 const rootContainerWithChildren: FormContainer = {
   id: 'rootContainer1',
   itemType: 'CONTAINER',
+  type: ComponentType.Group,
 };
 const emptyRootContainer: FormContainer = {
   id: 'rootContainer2',
   itemType: 'CONTAINER',
+  type: ComponentType.ButtonGroup,
 };
 const subComponent: FormComponent = {
   id: 'subComponent',
   itemType: 'COMPONENT',
   type: ComponentType.Input,
+  dataModelBindings: { simpleBinding: 'somePath' },
 };
 const subContainer: FormContainer = {
   id: 'subContainer',
   itemType: 'CONTAINER',
+  type: ComponentType.Accordion,
 };
 const subSubComponent: FormComponent = {
   id: 'subSubComponent',
   itemType: 'COMPONENT',
   type: ComponentType.TextArea,
+  dataModelBindings: { simpleBinding: 'somePath' },
 };
 const layoutMock: IInternalLayout = {
   components: {
@@ -76,18 +81,14 @@ const layoutMock: IInternalLayout = {
 const rootComponentName = textMock(`ux_editor.component_title.${rootComponent.type}`);
 const subComponentName = textMock(`ux_editor.component_title.${subComponent.type}`);
 const subSubComponentName = textMock(`ux_editor.component_title.${subSubComponent.type}`);
-const rootContainerName = textMock('ux_editor.component_group_header', {
-  id: rootContainerWithChildren.id,
-});
-const emptyRootContainerName = textMock('ux_editor.component_group_header', {
-  id: emptyRootContainer.id,
-});
-const subContainerName = textMock('ux_editor.component_group_header', { id: subContainer.id });
+const rootContainerName = textMock(`ux_editor.component_title.${rootContainerWithChildren.type}`);
+const emptyRootContainerName = textMock(`ux_editor.component_title.${emptyRootContainer.type}`);
+const subContainerName = textMock(`ux_editor.component_title.${subContainer.type}`);
 const handleEdit = jest.fn();
-const formContext: FormContext = {
+const formItemContext: FormItemContext = {
   debounceSave: jest.fn(),
-  form: null,
-  formId: '',
+  formItem: null,
+  formItemId: '',
   handleDiscard: jest.fn(),
   handleEdit,
   handleSave: jest.fn(),
@@ -169,15 +170,14 @@ describe('FormTree', () => {
 const render = (layout: IInternalLayout = layoutMock) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
-  return renderWithMockStore(
-    {},
-    {},
-    queryClient,
-  )(
-    <FormContext.Provider value={formContext}>
+  return renderWithProviders(
+    <FormItemContext.Provider value={formItemContext}>
       <DragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={BASE_CONTAINER_ID}>
         <FormTree layout={layout} />
       </DragAndDropTree.Provider>
-    </FormContext.Provider>,
+    </FormItemContext.Provider>,
+    {
+      queryClient,
+    },
   );
 };

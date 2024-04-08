@@ -1,13 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ErrorMessage, HelpText } from '@digdir/design-system-react';
 import classes from './FormField.module.css';
-import { useText } from '../../../../ux-editor/src/hooks';
-import {
-  validateProperty,
-  isPropertyRequired,
-} from '../../../../ux-editor/src/utils/formValidationUtils';
-import { TranslationKey } from 'language/type';
-import { JsonSchema } from 'app-shared/types/JsonSchema';
+import { useTranslation } from 'react-i18next';
+import { validateProperty, isPropertyRequired } from '../../utils/formValidationUtils';
+import type { TranslationKey } from 'language/type';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
 export type RenderFieldArgs<TT> = {
   errorCode: string;
@@ -53,7 +50,7 @@ export const FormField = <T extends unknown, TT extends unknown>({
   customValidationMessages,
   renderField,
 }: FormFieldProps<T, TT>): JSX.Element => {
-  const t = useText();
+  const { t } = useTranslation();
 
   const [propertyId, setPropertyId] = useState(
     schema && propertyPath ? `${schema.$id}#/${propertyPath}` : null,
@@ -141,15 +138,13 @@ export const FormField = <T extends unknown, TT extends unknown>({
 
   return (
     <div className={className}>
-      <div className={classes.container}>
+      <div className={helpText && classes.container}>
         <div className={classes.formField}>{renderField(generateProps())}</div>
-        <div>
-          {helpText && (
-            <HelpText className={classes.helpText} title={helpText}>
-              {helpText}
-            </HelpText>
-          )}
-        </div>
+        {helpText && (
+          <HelpText className={classes.helpText} title={helpText}>
+            {helpText}
+          </HelpText>
+        )}
       </div>
       {errorCode && (
         <ErrorMessage id={errorMessageId} className={classes.errorMessageText} size='small'>

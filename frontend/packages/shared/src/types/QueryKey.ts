@@ -1,9 +1,9 @@
 export enum QueryKey {
   AppDeployments = 'AppDeployments',
-  AppLibVersion = 'AppLibVersion',
   AppMetadata = 'AppMetadata',
   AppPolicy = 'AppPolicy',
   AppReleases = 'AppReleases',
+  AppVersion = 'AppVersion',
   BranchStatus = 'BranchStatus',
   CurrentUser = 'CurrentUser',
   DatamodelMetadata = 'DatamodelMetadata',
@@ -19,6 +19,7 @@ export enum QueryKey {
   FrontEndSettings = 'FrontEndSettings',
   InstanceId = 'InstanceId',
   JsonSchema = 'JsonSchema',
+  LayoutNames = 'LayoutNames',
   LayoutSchema = 'LayoutSchema',
   LayoutSets = 'LayoutSets',
   NewsList = 'NewsList',

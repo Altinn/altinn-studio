@@ -43,11 +43,12 @@ export const VerificationModal = ({
       onClose={onClose}
       title={
         <div className={classes.headingWrapper}>
-          <Heading size='xsmall' spacing level={1}>
+          <Heading size='xsmall' level={1}>
             {t('policy_editor.verification_modal_heading')}
           </Heading>
         </div>
       }
+      closeButtonLabel={t('policy_editor.close_verification_modal_button')}
     >
       <div className={classes.content}>
         <Paragraph size='small'>{text}</Paragraph>

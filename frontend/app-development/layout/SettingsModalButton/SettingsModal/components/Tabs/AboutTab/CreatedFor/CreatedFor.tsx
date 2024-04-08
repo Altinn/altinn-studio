@@ -1,9 +1,10 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './CreatedFor.module.css';
 import { Label, Paragraph } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { RepositoryType } from 'app-shared/types/global';
-import { Repository } from 'app-shared/types/Repository';
+import type { Repository } from 'app-shared/types/Repository';
 import { PersonCircleIcon } from '@navikt/aksel-icons';
 import { formatDateToDateAndTimeString } from 'app-development/utils/dateUtils';
 
@@ -32,12 +33,14 @@ export const CreatedFor = ({
 
   return (
     <div className={classes.wrapper}>
-      <Label as='p' size='small' spacing className={classes.label}>
-        {t(
-          repositoryType === RepositoryType.Datamodels
-            ? 'settings_modal.about_tab_created_for_repo'
-            : 'settings_modal.about_tab_created_for_service',
-        )}
+      <Label asChild size='small' spacing className={classes.label}>
+        <p>
+          {t(
+            repositoryType === RepositoryType.Datamodels
+              ? 'settings_modal.about_tab_created_for_repo'
+              : 'settings_modal.about_tab_created_for_service',
+          )}
+        </p>
       </Label>
       <div className={classes.createdFor}>
         <img src={repository.owner.avatar_url} className={classes.avatar} alt='' />
@@ -45,8 +48,8 @@ export const CreatedFor = ({
           {repository.owner.full_name || repository.owner.login}
         </Paragraph>
       </div>
-      <Label as='p' size='small' spacing className={classes.label}>
-        {t('settings_modal.about_tab_created_by')}
+      <Label asChild size='small' spacing className={classes.label}>
+        <p>{t('settings_modal.about_tab_created_by')}</p>
       </Label>
       <div className={classes.createdBy}>
         <PersonCircleIcon className={classes.createdByIcon} />

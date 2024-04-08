@@ -1,4 +1,5 @@
-import React, { ReactNode, useCallback } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './PageAccordion.module.css';
 import cn from 'classnames';
 import { Accordion } from '@digdir/design-system-react';
@@ -6,13 +7,10 @@ import { NavigationMenu } from './NavigationMenu';
 import * as testids from '../../../../../../testing/testids';
 import { TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from '../../../hooks/useAppContext';
-import { firstAvailableLayout } from '../../../utils/formLayoutsUtils';
-import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
-import { useDeleteLayout } from './useDeleteLayout';
+import { useAppContext } from '../../../hooks';
 import { StudioButton } from '@studio/components';
+import { useDeleteLayoutMutation } from '../../../hooks/mutations/useDeleteLayoutMutation';
 
 export type PageAccordionProps = {
   pageName: string;
@@ -25,7 +23,7 @@ export type PageAccordionProps = {
 /**
  * @component
  *    Displays an accordion for a page, as well as a menu button where the user can
- *    move accordions, edit the name on them and delete them
+ *    move accordions, edit the name on them and delete them.
  *
  * @property {string}[pageName] - The name of the page
  * @property {ReactNode}[children] - The children of the component
@@ -44,25 +42,19 @@ export const PageAccordion = ({
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
-  const { selectedLayoutSet } = useAppContext();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const selectedLayout = searchParams.get('layout');
+  const { selectedFormLayoutSetName } = useAppContext();
 
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
-  const layoutOrder = formLayoutSettings?.pages.order;
+  const { mutate: deleteLayout, isPending } = useDeleteLayoutMutation(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
 
-  const deleteLayout = useDeleteLayout();
-
-  const handleConfirmDelete = useCallback(() => {
+  const handleConfirmDelete = () => {
     if (confirm(t('ux_editor.page_delete_text'))) {
       deleteLayout(pageName);
-
-      if (selectedLayout === pageName) {
-        const layoutToSelect = firstAvailableLayout(pageName, layoutOrder);
-        setSearchParams({ layout: layoutToSelect });
-      }
     }
-  }, [deleteLayout, layoutOrder, pageName, selectedLayout, setSearchParams, t]);
+  };
 
   return (
     <Accordion.Item
@@ -82,6 +74,7 @@ export const PageAccordion = ({
             title={t('general.delete_item', { item: pageName })}
             variant='tertiary'
             size='small'
+            disabled={isPending}
           />
         </div>
       </div>

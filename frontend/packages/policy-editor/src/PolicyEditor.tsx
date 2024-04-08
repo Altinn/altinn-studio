@@ -20,7 +20,7 @@ import classes from './PolicyEditor.module.css';
 import { VerificationModal } from './components/VerificationModal';
 import { ExpandablePolicyCard } from './components/ExpandablePolicyCard';
 import { CardButton } from './components/CardButton';
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils } from '@studio/pure-functions';
 import { useTranslation } from 'react-i18next';
 import { SecurityLevelSelect } from './components/SecurityLevelSelect';
 
@@ -62,7 +62,7 @@ export const PolicyEditor = ({
   const resourceType = usageType === 'app' ? 'urn:altinn' : 'urn:altinn:resource';
 
   const [policyRules, setPolicyRules] = useState<PolicyRuleCard[]>(
-    mapPolicyRulesBackendObjectToPolicyRuleCard(subjects, actions, policy?.rules ?? []),
+    mapPolicyRulesBackendObjectToPolicyRuleCard(policy?.rules ?? []),
   );
 
   // Handle the new updated IDs of the rules when a rule is deleted / duplicated
@@ -74,9 +74,6 @@ export const PolicyEditor = ({
   const [ruleIdToDelete, setRuleIdToDelete] = useState('0');
   const [showErrorsOnAllRulesAboveNew, setShowErrorsOnAllRulesAboveNew] = useState(false);
 
-  /**
-   * Displays all the rule cards
-   */
   const displayRules = policyRules.map((pr, i) => {
     return (
       <div className={classes.space} key={pr.ruleId}>
@@ -149,7 +146,7 @@ export const PolicyEditor = ({
     };
 
     // Create a deep copy of the object so the objects don't share same object reference
-    const deepCopiedRuleToDuplicate: PolicyRuleCard = deepCopy(ruleToDuplicate);
+    const deepCopiedRuleToDuplicate: PolicyRuleCard = ObjectUtils.deepCopy(ruleToDuplicate);
 
     const updatedRules = [...policyRules, deepCopiedRuleToDuplicate];
     setPolicyRules(updatedRules);
@@ -178,7 +175,6 @@ export const PolicyEditor = ({
     const policyEditorRules: PolicyRule[] = rules.map((pr) =>
       mapPolicyRuleToPolicyRuleBackendObject(
         subjects,
-        actions,
         pr,
         `${resourceType}:${usageType === 'app' ? 'example' : resourceId}:ruleid:${pr.ruleId}`, // TODO - find out if ID should be hardcoded. Issue: #10893
       ),

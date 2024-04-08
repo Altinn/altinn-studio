@@ -1,11 +1,17 @@
-import { CombinationKind, FieldType, NodePosition, UiSchemaNode, UiSchemaNodes } from '../types';
-import { FieldNode } from '../types/FieldNode';
-import { CombinationNode } from '../types/CombinationNode';
-import { NodeMap } from '../types/NodeMap';
+import {
+  CombinationKind,
+  FieldType,
+  type NodePosition,
+  type UiSchemaNode,
+  type UiSchemaNodes,
+} from '../types';
+import type { FieldNode } from '../types/FieldNode';
+import type { CombinationNode } from '../types/CombinationNode';
+import type { NodeMap } from '../types/NodeMap';
 import {
   isCombination,
   isDefinition,
-  isField,
+  isDefinitionPointer,
   isFieldOrCombination,
   isNodeValidParent,
   isProperty,
@@ -19,8 +25,8 @@ import {
   replaceItemsByValue,
 } from 'app-shared/utils/arrayUtils';
 import { ROOT_POINTER } from './constants';
-import { ReferenceNode } from '../types/ReferenceNode';
-import { deepCopy } from 'app-shared/pure';
+import type { ReferenceNode } from '../types/ReferenceNode';
+import { ObjectUtils, ArrayUtils } from '@studio/pure-functions';
 import { replaceStart } from 'app-shared/utils/stringUtils';
 import {
   createDefinitionPointer,
@@ -33,7 +39,6 @@ import {
   defaultReferenceNode,
 } from '../config/default-nodes';
 import { convertPropToType } from './mutations/convert-node';
-import { ArrayUtils } from '@studio/pure-functions';
 
 export class SchemaModel {
   private readonly nodeMap: NodeMap;
@@ -52,7 +57,7 @@ export class SchemaModel {
   }
 
   public deepClone(): SchemaModel {
-    const nodes = deepCopy(this.asArray());
+    const nodes = ObjectUtils.deepCopy(this.asArray());
     return SchemaModel.fromArray(nodes);
   }
 
@@ -64,9 +69,10 @@ export class SchemaModel {
     return this.nodeMap.size <= 1;
   }
 
-  public getRootNode(): FieldNode {
+  public getRootNode(): FieldNode | CombinationNode {
     const rootNode = this.getNode(ROOT_POINTER);
-    if (!isField(rootNode)) throw new Error('Root node is not a field.');
+    if (!isFieldOrCombination(rootNode))
+      throw new Error('Root node is not a field nor a combination.');
     return rootNode;
   }
 
@@ -261,13 +267,12 @@ export class SchemaModel {
     parent: CombinationNode,
     index: number,
   ): UiSchemaNode => {
-    const finalIndex = ArrayUtils.getValidIndex(parent.children, index);
     const currentParent = this.getParentNode(pointer);
     if (currentParent.pointer === parent.pointer) {
       const fromIndex = this.getIndexOfChildNode(pointer);
-      return this.moveNodeWithinCombination(parent, fromIndex, finalIndex);
+      return this.moveNodeWithinCombination(parent, fromIndex, index);
     } else {
-      return this.moveNodeToCombinationFromAnotherParent(pointer, parent, finalIndex);
+      return this.moveNodeToCombinationFromAnotherParent(pointer, parent, index);
     }
   };
 
@@ -276,7 +281,8 @@ export class SchemaModel {
     fromIndex: number,
     toIndex: number,
   ): UiSchemaNode => {
-    parent.children = moveArrayItem(parent.children, fromIndex, toIndex);
+    const finalIndex = ArrayUtils.getValidIndex(parent.children, toIndex);
+    parent.children = moveArrayItem(parent.children, fromIndex, finalIndex);
     this.synchronizeCombinationChildPointers(parent);
     return this.getNode(parent.children[toIndex]);
   };
@@ -325,8 +331,9 @@ export class SchemaModel {
     newIndex: number,
   ): UiSchemaNode => {
     const currentIndex = this.getIndexOfChildNode(pointer);
-    parent.children = moveArrayItem(parent.children, currentIndex, newIndex);
-    return this.getNode(parent.children[newIndex]);
+    const finalIndex = ArrayUtils.getValidIndex(parent.children, newIndex);
+    parent.children = moveArrayItem(parent.children, currentIndex, finalIndex);
+    return this.getNode(parent.children[finalIndex]);
   };
 
   private moveNodeToObjectFromAnotherParent = (
@@ -416,6 +423,7 @@ export class SchemaModel {
         referringNodes.push(node);
       }
     }
+
     return referringNodes;
   }
 
@@ -432,7 +440,7 @@ export class SchemaModel {
 
   public deleteNode(pointer: string): SchemaModel {
     if (pointer === ROOT_POINTER) throw new Error('It is not possible to delete the root node.');
-    if (this.isDefinitionInUse(pointer))
+    if (this.hasReferringNodes(pointer))
       throw new Error('Cannot delete a definition that is in use.');
     return this.deleteNodeWithChildrenRecursively(pointer);
   }
@@ -447,6 +455,7 @@ export class SchemaModel {
   private isDefinitionInUse(pointer: string): boolean {
     const node = this.getNode(pointer);
     if (!isDefinition(node)) return false;
+
     return this.hasReferringNodes(pointer) || this.areDefinitionParentsInUse(pointer);
   }
 
@@ -455,7 +464,7 @@ export class SchemaModel {
     return !!referringNodes.length;
   }
 
-  private areDefinitionParentsInUse(pointer: string): boolean {
+  public areDefinitionParentsInUse(pointer: string): boolean {
     const parent = this.getParentNode(pointer);
     return this.isDefinitionInUse(parent.pointer);
   }
@@ -512,6 +521,7 @@ export class SchemaModel {
   }
 
   public isChildOfCombination(pointer: string): boolean {
+    if (isDefinitionPointer(pointer)) return false; // Todo: This is necessary because definitions are in the same list as the root object properties in our internal structure. Remove this check when the data structure is fixed: https://github.com/Altinn/altinn-studio/issues/11824
     const parent = this.getParentNode(pointer);
     return !!parent && isCombination(parent);
   }

@@ -5,8 +5,10 @@ import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { AccessListDetail, AccessListDetailProps } from './AccessListDetail';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { AccessListDetailProps } from './AccessListDetail';
+import { AccessListDetail } from './AccessListDetail';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const mockedNavigate = jest.fn();
@@ -46,9 +48,10 @@ describe('AccessListDetail', () => {
     await act(() => user.type(nameField, ' change'));
     await act(() => nameField.blur());
 
-    expect(updateAccessListMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, [
-      { op: 'replace', path: '/name', value: 'Test-list change' },
-    ]);
+    expect(updateAccessListMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, {
+      ...defaultProps.list,
+      name: 'Test-list change',
+    });
   });
 
   it('should call service to update description', async () => {
@@ -61,9 +64,10 @@ describe('AccessListDetail', () => {
     await act(() => user.type(descriptionField, ' change'));
     await act(() => descriptionField.blur());
 
-    expect(updateAccessListMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, [
-      { op: 'replace', path: '/description', value: 'This is a description change' },
-    ]);
+    expect(updateAccessListMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, {
+      ...defaultProps.list,
+      description: 'This is a description change',
+    });
   });
 
   it('should call service to remove description', async () => {
@@ -76,9 +80,10 @@ describe('AccessListDetail', () => {
     await act(() => user.clear(descriptionField));
     await act(() => descriptionField.blur());
 
-    expect(updateAccessListMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, [
-      { op: 'remove', path: '/description' },
-    ]);
+    expect(updateAccessListMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, {
+      ...defaultProps.list,
+      description: '',
+    });
   });
 
   it('should navigate back after list is deleted', async () => {

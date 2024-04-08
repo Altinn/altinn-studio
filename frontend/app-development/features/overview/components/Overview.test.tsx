@@ -29,11 +29,6 @@ describe('Overview', () => {
     expect(screen.queryByRole('heading', { name: app })).not.toBeInTheDocument();
   });
 
-  it('should display spinner while loading', () => {
-    render();
-    expect(screen.getByText(textMock('general.loading')));
-  });
-
   it('should display error message if fetching goes wrong', async () => {
     render({
       getAppConfig: () => Promise.reject(),
@@ -42,7 +37,7 @@ describe('Overview', () => {
     expect(await screen.findByText(textMock('overview.fetch_title_error_message')));
   });
 
-  it('should display AppLogs if environments exist', async () => {
+  it('should display DeploymentLogList if environments exist', async () => {
     render({
       getOrgList: jest.fn().mockImplementation(() =>
         Promise.resolve({
@@ -68,7 +63,7 @@ describe('Overview', () => {
     ).toBeInTheDocument();
   });
 
-  it('should not display AppLogs if environments do not exist for repo owned by org', async () => {
+  it('should not display DeploymentLogList if environments do not exist for repo owned by org', async () => {
     render({
       getRepoMetadata: jest.fn().mockImplementation(() =>
         Promise.resolve({
@@ -89,7 +84,7 @@ describe('Overview', () => {
         }),
       ),
     });
-    expect(await screen.findByText(textMock('app_publish.no_env_title'))).toBeInTheDocument();
+    expect(await screen.findByText(textMock('app_deployment.no_env_title'))).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', { name: textMock('overview.activity') }),
     ).not.toBeInTheDocument();
@@ -97,7 +92,9 @@ describe('Overview', () => {
 
   it('should display RepoOwnedByPersonInfo if repo is not owned by an org', async () => {
     render();
-    expect(await screen.findByText(textMock('app_publish.private_app_owner'))).toBeInTheDocument();
+    expect(
+      await screen.findByText(textMock('app_deployment.private_app_owner')),
+    ).toBeInTheDocument();
   });
 });
 

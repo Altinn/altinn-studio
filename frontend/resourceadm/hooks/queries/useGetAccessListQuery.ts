@@ -1,4 +1,5 @@
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import type { UseQueryResult } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { AccessList } from 'app-shared/types/ResourceAdm';
@@ -20,7 +21,7 @@ export const useGetAccessListQuery = (
   const { getAccessList } = useServicesContext();
 
   return useQuery<AccessList>({
-    queryKey: [QueryKey.AccessList, listIdentifier, env],
+    queryKey: [QueryKey.AccessList, env, listIdentifier],
     queryFn: () => getAccessList(org, listIdentifier, env),
     enabled: !!org && !!listIdentifier && !!env,
   });

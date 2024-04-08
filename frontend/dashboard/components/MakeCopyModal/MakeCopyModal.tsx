@@ -10,7 +10,7 @@ import classes from './MakeCopyModal.module.css';
 import { SimpleContainer } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { useCopyAppMutation } from 'dashboard/hooks/mutations/useCopyAppMutation';
-import { AxiosError } from 'axios';
+import type { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 export interface IMakeCopyModalProps {
@@ -117,7 +117,9 @@ export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeC
           />
           {errorMessage && <div className={classes.errorMessage}>{errorMessage}</div>}
         </div>
-        {isCopyAppPending && <StudioSpinner spinnerText={t('dashboard.creating_your_copy')} />}
+        {isCopyAppPending && (
+          <StudioSpinner showSpinnerTitle spinnerTitle={t('dashboard.creating_your_copy')} />
+        )}
       </SimpleContainer>
     </AltinnPopoverSimple>
   );

@@ -1,30 +1,35 @@
 import { renderHookWithProviders } from '../../../../test/renderHookWithProviders';
 import { useMoveProperty } from './useMoveProperty';
-import { SchemaEditorAppContextProps } from '../../../contexts/SchemaEditorAppContext';
-import { HandleMove, ItemPosition } from 'app-shared/types/dndTypes';
+import type { SchemaEditorAppContextProps } from '../../../contexts/SchemaEditorAppContext';
+import type { HandleMove, ItemPosition } from 'app-shared/types/dndTypes';
 import {
   extractNameFromPointer,
   ROOT_POINTER,
   SchemaModel,
   validateTestUiSchema,
-} from '../../../../../schema-model';
+} from '@altinn/schema-model';
 import {
   combinationNodeMock,
   fieldNode1Mock,
   nodeWithSameNameAsObjectChildMock,
   objectChildMock,
   objectNodeMock,
-  rootNodeMock, 
+  rootNodeMock,
   toggableNodeMock,
   uiSchemaNodesMock,
 } from '../../../../test/mocks/uiSchemaMock';
-import { SavableSchemaModel } from '@altinn/schema-editor/classes/SavableSchemaModel';
+import type { SavableSchemaModel } from '../../../classes/SavableSchemaModel';
+import { ArrayUtils } from '@studio/pure-functions';
 
 describe('useMoveProperty', () => {
   const setup = (schemaEditorAppContextProps?: Partial<SchemaEditorAppContextProps>) => {
     const save = jest.fn();
     const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock).deepClone();
-    const appContextProps: Partial<SchemaEditorAppContextProps> = { schemaModel, save, ...schemaEditorAppContextProps };
+    const appContextProps: Partial<SchemaEditorAppContextProps> = {
+      schemaModel,
+      save,
+      ...schemaEditorAppContextProps,
+    };
     const { result } = renderHookWithProviders({ appContextProps })(useMoveProperty);
     const move: HandleMove = result.current;
     return { move, save };
@@ -94,6 +99,22 @@ describe('useMoveProperty', () => {
     validateTestUiSchema(savedModel.asArray());
   });
 
+  it('Moves the node to the end when the given target index is -1 and the parent is the root node', () => {
+    const { move, save } = setup();
+    const pointerOfNodeToMove = objectNodeMock.pointer;
+    const index = -1;
+    const target: ItemPosition = { parentId: ROOT_POINTER, index };
+    move(pointerOfNodeToMove, target);
+    expect(save).toHaveBeenCalledTimes(1);
+    const savedModel: SavableSchemaModel = save.mock.lastCall[0];
+    const rootChildren = savedModel.getRootChildren();
+    const addedRootChild = ArrayUtils.last(rootChildren);
+    const nameOfMovedNode = extractNameFromPointer(pointerOfNodeToMove);
+    const nameOfAddedChild = extractNameFromPointer(addedRootChild.pointer);
+    expect(nameOfAddedChild).toEqual(nameOfMovedNode);
+    validateTestUiSchema(savedModel.asArray());
+  });
+
   it('Moves a property to the given combination node', () => {
     const { move, save } = setup();
     const pointerOfNodeToMove = objectChildMock.pointer;
@@ -135,7 +156,10 @@ describe('useMoveProperty', () => {
 
   it('Updates the selected node pointer if moving a node that is selected into an object', () => {
     const setSelectedNodePointerMock = jest.fn();
-    const { move, save } = setup({ selectedNodePointer: fieldNode1Mock.pointer, setSelectedNodePointer: setSelectedNodePointerMock });
+    const { move, save } = setup({
+      selectedNodePointer: fieldNode1Mock.pointer,
+      setSelectedNodePointer: setSelectedNodePointerMock,
+    });
     const pointerOfNodeToMove = fieldNode1Mock.pointer;
     const index = rootNodeMock.children.length;
     const target: ItemPosition = { parentId: ROOT_POINTER, index };
@@ -149,13 +173,18 @@ describe('useMoveProperty', () => {
 
   it('Updates the selected node pointer if moving a node that is selected into a combination node', () => {
     const setSelectedNodePointerMock = jest.fn();
-    const { move } = setup({ selectedNodePointer: toggableNodeMock.pointer, setSelectedNodePointer: setSelectedNodePointerMock });
+    const { move } = setup({
+      selectedNodePointer: toggableNodeMock.pointer,
+      setSelectedNodePointer: setSelectedNodePointerMock,
+    });
     const pointerOfNodeToMove = toggableNodeMock.pointer;
     const pointerOfNewParent = combinationNodeMock.pointer;
     const indexInNewParent = 0;
     const target: ItemPosition = { parentId: pointerOfNewParent, index: indexInNewParent };
     move(pointerOfNodeToMove, target);
     expect(setSelectedNodePointerMock).toHaveBeenCalledTimes(1);
-    expect(setSelectedNodePointerMock).toHaveBeenCalledWith(`${combinationNodeMock.pointer}/anyOf/${indexInNewParent}`);
+    expect(setSelectedNodePointerMock).toHaveBeenCalledWith(
+      `${combinationNodeMock.pointer}/anyOf/${indexInNewParent}`,
+    );
   });
 });

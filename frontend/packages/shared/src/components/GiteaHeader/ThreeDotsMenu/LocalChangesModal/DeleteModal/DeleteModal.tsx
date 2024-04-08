@@ -6,6 +6,7 @@ import { TrashIcon } from '@navikt/aksel-icons';
 import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
 import { toast } from 'react-toastify';
 import { Heading, Paragraph, Textfield } from '@digdir/design-system-react';
+import { useQueryClient } from '@tanstack/react-query';
 
 export type DeleteModalProps = {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export const DeleteModal = ({ isOpen, onClose, app, org }: DeleteModalProps): JS
     useResetRepositoryMutation(org, app);
 
   const [nameToDelete, setNameToDelete] = useState('');
+  const queryClient = useQueryClient();
 
   const handleClose = () => {
     setNameToDelete('');
@@ -32,6 +34,7 @@ export const DeleteModal = ({ isOpen, onClose, app, org }: DeleteModalProps): JS
       onSuccess: () => {
         handleClose();
         toast.success(t('local_changes.modal_deleted_success'));
+        queryClient.invalidateQueries();
       },
     });
   };
@@ -48,6 +51,7 @@ export const DeleteModal = ({ isOpen, onClose, app, org }: DeleteModalProps): JS
           </Heading>
         </div>
       }
+      closeButtonLabel={t('local_changes.modal_close_delete_modal')}
     >
       <div className={classes.contentWrapper}>
         <Paragraph size='small' spacing>
@@ -64,7 +68,10 @@ export const DeleteModal = ({ isOpen, onClose, app, org }: DeleteModalProps): JS
         />
         <div className={classes.buttonWrapper}>
           {isPendingDeleteLocalChanges ? (
-            <StudioSpinner />
+            <StudioSpinner
+              showSpinnerTitle={false}
+              spinnerTitle={t('local_changes.modal_loading_delete_local_changes')}
+            />
           ) : (
             <>
               <StudioButton

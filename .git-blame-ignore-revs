@@ -1,0 +1,8 @@
+# Apply import/no-duplicates Eslint rule:
+b393695948c95150b114193ec5b9602cebdc8ad9
+
+# Format all frontend code with Prettier:
+a41e3b9d016bd1b824c0e793484e2d6d6e2b1e20
+
+# Apply type import on all type imports in Typescript:
+690b2f16d3f6389c36e64c6a7357f8f0c28a10cc

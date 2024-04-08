@@ -3,6 +3,7 @@ import classes from './ResourcePageInputs.module.css';
 import { Checkbox } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
+import { ResourceFieldHeader } from './ResourceFieldHeader';
 
 type ResourceCheckboxGroupProps = {
   /**
@@ -36,6 +37,10 @@ type ResourceCheckboxGroupProps = {
    * The selected options
    */
   value: string[];
+  /**
+   * Whether this field is required or not
+   */
+  required?: boolean;
 };
 
 /**
@@ -49,6 +54,7 @@ type ResourceCheckboxGroupProps = {
  * @property {function}[onChange] - Fucntion to execute on change
  * @property {function}[onFocus] - Function to be executed when the field is focused
  * @property {string[]}[value] - The selected options
+ * @property {boolean}[required] - Whether this field is required or not
  *
  * @returns {React.JSX.Element} - The rendered component
  */
@@ -60,6 +66,7 @@ export const ResourceCheckboxGroup = ({
   onFocus,
   onChange,
   value,
+  required,
 }: ResourceCheckboxGroupProps): React.JSX.Element => {
   const { t } = useTranslation();
 
@@ -72,27 +79,24 @@ export const ResourceCheckboxGroup = ({
   };
 
   return (
-    <>
-      <div className={classes.divider} />
-      <div className={classes.inputWrapper}>
-        <Checkbox.Group
-          legend={legend}
-          description={description}
-          size='small'
-          error={
-            showErrors && value.length === 0 ? (
-              <InputFieldErrorMessage
-                message={t('resourceadm.about_resource_available_for_error_message')}
-              />
-            ) : undefined
-          }
-          onChange={onChange}
-          onFocus={onFocus}
-          value={value}
-        >
-          {displayAvailableForCheckboxes()}
-        </Checkbox.Group>
-      </div>
-    </>
+    <div className={classes.inputWrapper}>
+      <Checkbox.Group
+        legend={<ResourceFieldHeader label={legend} required={required} />}
+        description={description}
+        size='small'
+        error={
+          showErrors && value.length === 0 ? (
+            <InputFieldErrorMessage
+              message={t('resourceadm.about_resource_available_for_error_message')}
+            />
+          ) : undefined
+        }
+        onChange={onChange}
+        onFocus={onFocus}
+        value={value}
+      >
+        {displayAvailableForCheckboxes()}
+      </Checkbox.Group>
+    </div>
   );
 };

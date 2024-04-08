@@ -3,21 +3,37 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import { PageLoading } from './components/PageLoading';
 import { Canvas } from './components/Canvas';
-import { BpmnContextProvider } from './contexts/BpmnContext';
+import { BpmnContextProvider, useBpmnContext } from './contexts/BpmnContext';
+import {
+  BpmnConfigPanelFormContextProvider,
+  type MetaDataForm,
+  useBpmnConfigPanelFormContext,
+} from './contexts/BpmnConfigPanelContext';
 import { ConfigPanel } from './components/ConfigPanel';
+import { ConfigViewerPanel } from './components/ConfigViewerPanel';
 
 import classes from './ProcessEditor.module.css';
+import type { BpmnApiContextProps } from './contexts/BpmnApiContext';
+import { BpmnApiContextProvider } from './contexts/BpmnApiContext';
 
 export type ProcessEditorProps = {
-  bpmnXml: string | undefined | null;
-  onSave: (bpmnXml: string) => void;
   appLibVersion: string;
+  bpmnXml: string | undefined | null;
+  onSave: (bpmnXml: string, metaData?: MetaDataForm) => void;
+  layoutSets: BpmnApiContextProps['layoutSets'];
+  existingCustomReceiptLayoutSetName: BpmnApiContextProps['existingCustomReceiptLayoutSetName'];
+  addLayoutSet: BpmnApiContextProps['addLayoutSet'];
+  mutateLayoutSet: BpmnApiContextProps['mutateLayoutSet'];
 };
 
 export const ProcessEditor = ({
+  appLibVersion,
   bpmnXml,
   onSave,
-  appLibVersion,
+  layoutSets,
+  existingCustomReceiptLayoutSetName,
+  addLayoutSet,
+  mutateLayoutSet,
 }: ProcessEditorProps): JSX.Element => {
   const { t } = useTranslation();
 
@@ -31,15 +47,39 @@ export const ProcessEditor = ({
 
   return (
     <BpmnContextProvider bpmnXml={bpmnXml} appLibVersion={appLibVersion}>
-      <div className={classes.container}>
-        <Canvas onSave={onSave} />
-        <ConfigPanel />
-      </div>
+      <BpmnApiContextProvider
+        layoutSets={layoutSets}
+        existingCustomReceiptLayoutSetName={existingCustomReceiptLayoutSetName}
+        addLayoutSet={addLayoutSet}
+        mutateLayoutSet={mutateLayoutSet}
+      >
+        <BpmnConfigPanelFormContextProvider>
+          <BpmnCanvas onSave={onSave} />
+        </BpmnConfigPanelFormContextProvider>
+      </BpmnApiContextProvider>
     </BpmnContextProvider>
   );
 };
 
-const NoBpmnFoundAlert = (): JSX.Element => {
+type BpmnCanvasProps = Pick<ProcessEditorProps, 'onSave'>;
+const BpmnCanvas = ({ onSave }: BpmnCanvasProps): React.ReactElement | null => {
+  const { isEditAllowed } = useBpmnContext();
+  const { metaDataForm, resetForm } = useBpmnConfigPanelFormContext();
+
+  const handleSave = (bpmnXml: string): void => {
+    onSave(bpmnXml, metaDataForm || null);
+    resetForm();
+  };
+
+  return (
+    <div className={classes.container}>
+      <Canvas onSave={handleSave} />
+      {isEditAllowed ? <ConfigPanel /> : <ConfigViewerPanel />}
+    </div>
+  );
+};
+
+const NoBpmnFoundAlert = (): React.ReactElement => {
   const { t } = useTranslation();
   return (
     <Alert severity='danger' style={{ height: 'min-content' }}>

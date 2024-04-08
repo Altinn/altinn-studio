@@ -1,5 +1,5 @@
 import { stringify as s } from 'qs';
-import { APP_DEVELOPMENT_BASENAME } from '../constants';
+import { APP_DEVELOPMENT_BASENAME, PREVIEW_MOCK_PARTY_ID, PREVIEW_MOCK_INSTANCE_GUID } from '../constants';
 
 // Base path
 const basePath = '/designer/api';
@@ -7,6 +7,9 @@ const basePath = '/designer/api';
 // ApplicationMetaData
 export const appMetadataPath = (org, app) => `${basePath}/${org}/${app}/metadata`; // Get, Put, Post
 export const appMetadataAttachmentPath = (org, app) => `${basePath}/${org}/${app}/metadata/attachment-component`; // Post, Put, Delete
+
+// App version
+export const appVersionPath = (org, app) => `${basePath}/${org}/${app}/app-development/app-version`; // Get
 
 // Config
 export const serviceConfigPath = (org, app) => `${basePath}/${org}/${app}/config`; // Get, Post
@@ -28,8 +31,10 @@ export const ruleHandlerPath = (org, app, layoutSetName) => `${basePath}/${org}/
 export const widgetSettingsPath = (org, app) => `${basePath}/${org}/${app}/app-development/widget-settings`; // Get
 export const optionListIdsPath = (org, app) => `${basePath}/${org}/${app}/app-development/option-list-ids`; // Get
 export const ruleConfigPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/rule-config?${s({ layoutSetName })}`; // Get, Post
-export const layoutSetPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/layout-sets?${s({ layoutSetName })}`; // Put, Post
+export const datamodelMetadataPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/model-metadata?${s({ layoutSetName })}`; // Get
+export const layoutNamesPath = (org, app) => `${basePath}/${org}/${app}/app-development/layout-names`; // Get
 export const layoutSetsPath = (org, app) => `${basePath}/${org}/${app}/app-development/layout-sets`; // Get
+export const layoutSetPath = (org, app, layoutSetIdToUpdate) => `${basePath}/${org}/${app}/app-development/layout-set/${layoutSetIdToUpdate}`; // Put, Delete
 export const layoutSettingsPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/layout-settings?${s({ layoutSetName })}`; // Get, Post
 export const formLayoutsPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/form-layouts?${s({ layoutSetName })}`; // Get
 export const formLayoutPath = (org, app, layout, layoutSetName) => `${basePath}/${org}/${app}/app-development/form-layout/${layout}?${s({ layoutSetName })}`; // Post, Delete
@@ -54,15 +59,13 @@ export const userLogoutAfterPath = () => `/Home/Logout`;
 // Languages - new text-format
 export const languagesPath = (org, app) => `${basePath}/${org}/${app}/languages`; // Get
 
-// Model
-export const datamodelMetadataPath = (org, app) => `${basePath}/${org}/${app}/model/metadata`; // Get
-
 // Organizations
 export const orgsListPath = () => `${basePath}/orgs`; // Get
 
 // Preview
 export const instanceIdForPreviewPath = (org, app) => `${basePath}/${org}/${app}/mock-instance-id`; // Get
-export const previewPage = (org, app, selectedLayoutSet) => `/designer/html/preview.html?${s({ org, app, selectedLayoutSet })}`;
+export const previewHash = (taskId, selectedLayout) => `#/instance/${PREVIEW_MOCK_PARTY_ID}/${PREVIEW_MOCK_INSTANCE_GUID}/${taskId}/${selectedLayout}`;
+export const previewPage = (org, app, selectedLayoutSet, taskId, selectedLayout) => `/app-specific-preview/${org}/${app}?${s({ selectedLayoutSet })}${taskId && selectedLayout ? previewHash(taskId, selectedLayout) : ''}`;
 
 // Preview - SignalR Hub
 export const previewSignalRHubSubPath = () => `/previewHub`;
@@ -134,12 +137,14 @@ export const resourceValidateResourcePath = (org, repo, id) => `${basePath}/${or
 export const publishResourcePath = (org, repo, id, env) => `${basePath}/${org}/resources/publish/${repo}/${id}?env=${env}`; // Get
 export const altinn2LinkServicesPath = (org, env) => `${basePath}/${org}/resources/altinn2linkservices/${env}`; // Get
 export const importResourceFromAltinn2Path = (org, env, serviceCode, serviceEdition) => `${basePath}/${org}/resources/importresource/${serviceCode}/${serviceEdition}/${env}`; // Post
-export const accessListsPath = (org, env) => `${basePath}/${org}/resources/accesslist/?env=${env}`; // Get, Post
+export const accessListsPath = (org, env, page) => `${basePath}/${org}/resources/accesslist/?env=${env}&page=${page}`; // Get
+export const createAccessListsPath = (org, env) => `${basePath}/${org}/resources/accesslist/?env=${env}`; //  Post
 export const accessListPath = (org, listId, env) => `${basePath}/${org}/resources/accesslist/${listId}?env=${env}`; // Get, Patch, Delete
 export const accessListMemberPath = (org, listId, orgnr, env) => `${basePath}/${org}/resources/accesslist/${listId}/members/${orgnr}?env=${env}`; // Post, Delete
-export const resourceAccessListsPath = (org, resourceId, env) => `${basePath}/${org}/resources/${resourceId}/accesslists/?env=${env}`; // Get
+export const resourceAccessListsPath = (org, resourceId, env, page) => `${basePath}/${org}/resources/${resourceId}/accesslists/?env=${env}&page=${page}`; // Get
 export const resourceAccessListPath = (org, resourceId, listId, env) => `${basePath}/${org}/resources/${resourceId}/accesslists/${listId}?env=${env}`; // Post, Delete, Patch
 
 // Process Editor
 export const processEditorPath = (org, repo) => `${basePath}/${org}/${repo}/process-modelling/process-definition`;
-export const appLibVersionPath = (org, app) => `${basePath}/${org}/${app}/app-development/app-lib-version`;
+export const processEditorWebSocketHub = () => '/sync-hub';
+export const processEditorPathPut = (org, repo) => `${basePath}/${org}/${repo}/process-modelling/process-definition-latest`;

@@ -1,4 +1,5 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './LocalChangesActionButton.module.css';
 import { Label, Link, Paragraph } from '@digdir/design-system-react';
 import { StudioButton } from '@studio/components';
@@ -120,8 +121,8 @@ export const LocalChangesActionButton = ({
 
   return (
     <div>
-      <Label as='p' size='small' spacing>
-        {label}
+      <Label asChild size='small' spacing>
+        <p>{label}</p>
       </Label>
       <Paragraph className={classes.paragraph} size='small'>
         {description}

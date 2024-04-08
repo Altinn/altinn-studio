@@ -10,8 +10,8 @@
     var(--margin-horizontal) - var(--buttons-width) - var(--buttons-distance)
   );
   --margin-top: 50px;
-  --elements-width-fraction: 1;
-  --structure-width-fraction: 2;
+  --elements-width-fraction: 1.5;
+  --structure-width-fraction: 1.5;
   --properties-width-fraction: 2;
   --preview-width-fraction: 3;
 
@@ -29,7 +29,6 @@
 }
 
 .container > * {
-  min-width: 240px;
   padding: 0;
   overflow-y: auto;
   max-height: calc(100vh - var(--header-height));

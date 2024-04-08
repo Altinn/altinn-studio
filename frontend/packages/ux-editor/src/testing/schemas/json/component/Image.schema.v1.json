@@ -1,119 +1,81 @@
 {
   "$id": "https://altinncdn.no/schemas/json/component/Image.schema.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Image component",
-  "description": "Schema that describes the layout configuration for a Image component.",
-  "type": "object",
   "properties": {
     "id": {
-      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
-    },
-    "type": {
+      "title": "ID",
+      "description": "The component ID. Must be unique within all layouts/pages in a layout-set. Cannot end with <dash><number>.",
       "type": "string",
-      "title": "Type",
-      "description": "The component type.",
-      "const": "Image"
-    },
-    "textResourceBindings": {
-      "type": "object",
-      "title": "Text resource bindings",
-      "description": "Text resource bindings for a component.",
-      "properties": {
-        "altTextImg": {
-          "type": "string",
-          "title": "Alternate text",
-          "description": "Alternate text is read aloud to someone using assistive technology, but is hidden from a sighted user."
-        }
-      },
-      "required": [
-        "altTextImg"
-      ],
-      "additionalProperties": true
-    },
-    "image": {
-      "type": "object",
-      "title": "Image properties",
-      "description": "Set of options for image field.",
-      "properties": {
-        "src": {
-          "title": "Image source",
-          "description": "",
-          "type": "object",
-          "properties": {
-            "nb": {
-              "type": "string",
-              "title": "Bokmål"
-            },
-            "nn": {
-              "type": "string",
-              "title": "Nynorsk"
-            },
-            "en": {
-              "type": "string",
-              "title": "English"
-            }
-          },
-          "additionalProperties": true
-        },
-        "width": {
-          "type": "string",
-          "title": "Image width",
-          "examples": [
-            "100%"
-          ]
-        },
-        "align": {
-          "type": "string",
-          "title": "Align image",
-          "enum": [
-            "flex-start",
-            "center",
-            "flex-end",
-            "space-between",
-            "space-around",
-            "space-evenly"
-          ]
-        }
-      },
-      "required": [
-        "src",
-        "width",
-        "align"
-      ]
-    },
-    "renderAsSummary": {
-      "title": "Render as summary",
-      "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
-      "default": false,
-      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+      "pattern": "^[0-9a-zA-Z][0-9a-zA-Z-]*(-?[a-zA-Z]+|[a-zA-Z][0-9]+|-[0-9]{6,})$"
     },
     "hidden": {
       "title": "Hidden",
       "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
       "default": false,
-      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
     },
     "grid": {
-      "type": "object",
-      "title": "Grid",
-      "description": "Settings for the components grid. Used for controlling horizontal alignment.",
-      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridSettings",
-      "examples": [
-        {
-          "xs": 12
-        }
-      ]
+      "properties": {
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
+      }
     },
     "pageBreak": {
-      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
+      "title": "Page break",
+      "description": "Optionally insert page-break before/after component when rendered in PDF",
+      "type": "object",
+      "properties": {
+        "breakBefore": {
+          "title": "Page break before",
+          "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
+          "examples": ["auto", "always", "avoid"],
+          "default": "auto",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "breakAfter": {
+          "title": "Page break after",
+          "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
+          "examples": ["auto", "always", "avoid"],
+          "default": "auto",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "type": { "const": "Image" },
+    "textResourceBindings": {
+      "type": "object",
+      "properties": {
+        "help": {
+          "title": "Help text",
+          "description": "Help text for the image (shown in help text tooltip/popup)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "altTextImg": {
+          "title": "Alt text",
+          "description": "Alternative text for the image (for screen readers).",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "image": {
+      "title": "IImage",
+      "type": "object",
+      "properties": {
+        "src": { "$ref": "#/definitions/IImageSrc" },
+        "width": { "title": "Image width", "examples": ["100%"], "type": "string" },
+        "align": { "$ref": "#/definitions/GridJustification" }
+      },
+      "required": ["src", "width", "align"],
+      "additionalProperties": false
     }
   },
-  "required": [
-    "id",
-    "type",
-    "src",
-    "width",
-    "align"
-  ],
-  "additionalProperties": false
+  "required": ["id", "type"],
+  "title": "Image component schema"
 }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TextTableRowEntry, UpsertTextResourceMutation } from './types';
+import type { TextTableRowEntry, UpsertTextResourceMutation } from './types';
 import { Textarea } from '@digdir/design-system-react';
 import { Variables } from './Variables';
 import { useAutoSizeTextArea } from './hooks/useAutoSizeTextArea';
@@ -48,7 +48,10 @@ export const TextEntry = ({
         renderField={({ fieldProps }) => (
           <Textarea
             {...fieldProps}
-            aria-label={lang + ' translation'}
+            aria-label={t('text_editor.table_row_input_label', {
+              lang: t(`language.${lang}`),
+              textKey: textId,
+            })}
             value={textEntryValue}
             onBlur={handleTextEntryBlur}
             onChange={handleTextEntryChange}

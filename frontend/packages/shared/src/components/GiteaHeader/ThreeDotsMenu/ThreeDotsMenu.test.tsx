@@ -1,13 +1,14 @@
 import React from 'react';
 import { render as rtlRender, act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ThreeDotsMenu, ThreeDotsMenuProps } from './ThreeDotsMenu';
+import type { ThreeDotsMenuProps } from './ThreeDotsMenu';
+import { ThreeDotsMenu } from './ThreeDotsMenu';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 const threeDotsButtonMock = textMock('sync_header.gitea_menu');
 const cloneTextMock = textMock('sync_header.clone');
-const repositoryTextMock = textMock('dashboard.repository');
+const repositoryTextMock = textMock('sync_header.repository');
 const localChangesTextMock = textMock('sync_header.local_changes');
 const localChangesModalMock = 'LocalChangesModal';
 
@@ -30,10 +31,10 @@ describe('ThreeDotsMenu', () => {
     const cloneText = screen.getByRole('button', { name: cloneTextMock });
     expect(cloneText).toBeInTheDocument();
 
-    const repoText = screen.getByText(repositoryTextMock);
+    const repoText = screen.getByRole('link', { name: repositoryTextMock });
     expect(repoText).toBeInTheDocument();
 
-    const localchangeText = screen.getByText(localChangesTextMock);
+    const localchangeText = screen.getByRole('button', { name: localChangesTextMock });
     expect(localchangeText).toBeInTheDocument();
   });
 

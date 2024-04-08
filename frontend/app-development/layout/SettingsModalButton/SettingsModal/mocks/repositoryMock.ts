@@ -1,5 +1,5 @@
 import { repository } from 'app-shared/mocks/mocks';
-import { Repository } from 'app-shared/types/Repository';
+import type { Repository } from 'app-shared/types/Repository';
 
 export const mockRepository1: Repository = {
   ...repository,

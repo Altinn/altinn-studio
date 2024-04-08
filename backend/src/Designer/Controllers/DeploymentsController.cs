@@ -1,16 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.ModelBinding.Constants;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
+using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -27,16 +29,19 @@ namespace Altinn.Studio.Designer.Controllers
     {
         private readonly IDeploymentService _deploymentService;
         private readonly IGitea _giteaService;
+        private readonly IKubernetesDeploymentsService _kubernetesDeploymentsService;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="deploymentService">IDeploymentService</param>
         /// <param name="giteaService">IGiteaService</param>
-        public DeploymentsController(IDeploymentService deploymentService, IGitea giteaService)
+        /// <param name="kubernetesDeploymentsService">IKubernetesDeploymentsService</param>
+        public DeploymentsController(IDeploymentService deploymentService, IGitea giteaService, IKubernetesDeploymentsService kubernetesDeploymentsService)
         {
             _deploymentService = deploymentService;
             _giteaService = giteaService;
+            _kubernetesDeploymentsService = kubernetesDeploymentsService;
         }
 
         /// <summary>
@@ -45,20 +50,27 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Organisation</param>
         /// <param name="app">Application name</param>
         /// <param name="query">Document query model</param>
-        /// <returns>SearchResults of type DeploymentEntity</returns>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>List of Pipeline deployments and Kubernete deployments</returns>
         [HttpGet]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
-        public async Task<SearchResults<DeploymentEntity>> Get(string org, string app, [FromQuery] DocumentQueryModel query)
+        public async Task<DeploymentsResponse> Get(string org, string app, [FromQuery] DocumentQueryModel query, CancellationToken cancellationToken)
         {
-            SearchResults<DeploymentEntity> deployments = await _deploymentService.GetAsync(org, app, query);
-            List<DeploymentEntity> laggingDeployments = deployments.Results.Where(d => d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.Value.AddMinutes(5) < DateTime.UtcNow).ToList();
+            SearchResults<DeploymentEntity> deployments = await _deploymentService.GetAsync(org, app, query, cancellationToken);
 
-            foreach (DeploymentEntity deployment in laggingDeployments)
+            List<DeploymentEntity> laggingDeployments = deployments.Results.Where(d => d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.HasValue && d.Build.Started.Value.AddMinutes(5) < DateTime.UtcNow).ToList();
+            foreach (DeploymentEntity laggingDeployment in laggingDeployments)
             {
-                await _deploymentService.UpdateAsync(deployment.Build.Id, deployment.Org);
+                await _deploymentService.UpdateAsync(laggingDeployment.Build.Id, laggingDeployment.Org, cancellationToken);
             }
 
-            return deployments;
+            List<KubernetesDeployment> kubernetesDeploymentList = await _kubernetesDeploymentsService.GetAsync(org, app);
+
+            return new DeploymentsResponse
+            {
+                PipelineDeploymentList = deployments.Results.ToList(),
+                KubernetesDeploymentList = kubernetesDeploymentList,
+            };
         }
 
         /// <summary>
@@ -87,17 +99,18 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Organisation</param>
         /// <param name="app">Application name</param>
         /// <param name="createDeployment">Release model</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>Created deployment</returns>
         [HttpPost]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
-        public async Task<ActionResult<DeploymentEntity>> Create(string org, string app, [FromBody] CreateDeploymentRequestViewModel createDeployment)
+        public async Task<ActionResult<DeploymentEntity>> Create(string org, string app, [FromBody] CreateDeploymentRequestViewModel createDeployment, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            return Created(string.Empty, await _deploymentService.CreateAsync(org, app, createDeployment.ToDomainModel()));
+            return Created(string.Empty, await _deploymentService.CreateAsync(org, app, createDeployment.ToDomainModel(), cancellationToken));
         }
     }
 }

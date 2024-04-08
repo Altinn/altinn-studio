@@ -1,7 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { ResourceTable, ResourceTableProps } from './ResourceTable';
-import { ResourceListItem } from 'app-shared/types/ResourceAdm';
+import type { ResourceTableProps } from './ResourceTable';
+import { ResourceTable } from './ResourceTable';
+import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { act } from 'react-dom/test-utils';
 import userEvent from '@testing-library/user-event';
@@ -9,21 +10,21 @@ import userEvent from '@testing-library/user-event';
 const mockResourceListItem1: ResourceListItem = {
   title: { nb: 'tittel 1', en: '', nn: '' },
   createdBy: 'John Doe',
-  lastChanged: '2023-08-28',
+  lastChanged: new Date('2023-08-28'),
   hasPolicy: true,
   identifier: 'resource-1',
 };
 const mockResourceListItem2: ResourceListItem = {
   title: { nb: 'tittel 2', en: '', nn: '' },
   createdBy: 'John Doe',
-  lastChanged: '2023-08-29',
+  lastChanged: new Date('2023-08-29'),
   hasPolicy: false,
   identifier: 'resource-2',
 };
 const mockResourceListItem3: ResourceListItem = {
   title: { nb: '', en: '', nn: '' },
   createdBy: 'John Doe',
-  lastChanged: '2023-08-30',
+  lastChanged: new Date('2023-08-30'),
   hasPolicy: true,
   identifier: 'resource-3',
 };
@@ -84,7 +85,7 @@ describe('ResourceTable', () => {
   it('displays last changed date', () => {
     render(<ResourceTable {...defaultProps} />);
 
-    const lastChangedCell = screen.getByText(mockResourceListItem1.lastChanged);
+    const lastChangedCell = screen.getByText('28.08.2023');
     expect(lastChangedCell).toBeInTheDocument();
   });
 

@@ -1,32 +1,60 @@
-import {
-  AppDeploymentsResponse,
+import type {
   AppReleasesResponse,
   CreateRepoCommitPayload,
   DatamodelMetadataResponse,
   SearchRepositoryResponse,
 } from 'app-shared/types/api';
-import { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import { NewsList } from 'app-shared/types/api/NewsList';
-import { BranchStatus } from 'app-shared/types/BranchStatus';
-import { Commit } from 'app-shared/types/Commit';
-import { OrgsState } from 'app-shared/types/OrgsState';
-import { RepoStatus } from 'app-shared/types/RepoStatus';
-import { RuleConfig } from 'app-shared/types/RuleConfig';
-import { ITextResourcesWithLanguage } from 'app-shared/types/global';
-import { User } from 'app-shared/types/Repository';
-import { AppConfig } from 'app-shared/types/AppConfig';
-import { Policy } from '@altinn/policy-editor';
-import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
-import { Resource, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
-import { AppLibVersion } from 'app-shared/types/AppLibVersion';
+import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { NewsList } from 'app-shared/types/api/NewsList';
+import type { BranchStatus } from 'app-shared/types/BranchStatus';
+import type { Commit } from 'app-shared/types/Commit';
+import type { OrgList } from 'app-shared/types/OrgList';
+import type { RepoStatus } from 'app-shared/types/RepoStatus';
+import type { RuleConfig } from 'app-shared/types/RuleConfig';
+import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
+import type { User, Repository } from 'app-shared/types/Repository';
+import type { AppConfig } from 'app-shared/types/AppConfig';
+import type { Policy } from '@altinn/policy-editor';
+import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import type { Resource, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
+import type { AppVersion } from 'app-shared/types/AppVersion';
+import type { Build } from 'app-shared/types/Build';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
-import { AppDeployment } from 'app-shared/types/AppDeployment';
-import { DeployEnvironment } from 'app-shared/types/DeployEnvironment';
-import { Organization } from 'app-shared/types/Organization';
-import { Repository } from 'app-shared/types/Repository';
+import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
+import type { Environment } from 'app-shared/types/Environment';
+import type { Organization } from 'app-shared/types/Organization';
+import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
+import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
+import type { AppRelease } from 'app-shared/types/AppRelease';
+
+export const build: Build = {
+  id: '',
+  status: BuildStatus.none,
+  result: BuildResult.none,
+  started: '',
+  finished: '',
+};
 
 export const appReleasesResponse: AppReleasesResponse = {
   results: [],
+};
+
+export const appRelease: AppRelease = {
+  id: '',
+  tagName: '',
+  name: '',
+  body: '',
+  app: '',
+  org: '',
+  targetCommitish: '',
+  createdBy: '',
+  created: '',
+  build,
+};
+
+export const appVersion: AppVersion = {
+  backendVersion: '',
+  frontendVersion: '',
 };
 
 export const branchStatus: BranchStatus = {
@@ -42,29 +70,29 @@ export const datamodelMetadataResponse: DatamodelMetadataResponse = {
   elements: {},
 };
 
-export const appDeploymentsResponse: AppDeploymentsResponse = {
-  results: [],
+export const deploymentsResponse: DeploymentsResponse = {
+  pipelineDeploymentList: [],
+  kubernetesDeploymentList: [],
 };
 
-export const appDeployment: AppDeployment = {
+export const pipelineDeployment: PipelineDeployment = {
   id: '',
   tagName: '',
   app: '',
   org: '',
   envName: '',
-  deployedInEnv: false,
   createdBy: '',
   created: '',
-  build: {
-    id: '',
-    status: BuildStatus.completed,
-    result: BuildResult.succeeded,
-    started: '',
-    finished: '',
-  },
+  build,
 };
 
-export const deployEnvironment: DeployEnvironment = {
+export const kubernetesDeployment: KubernetesDeployment = {
+  envName: '',
+  release: '',
+  version: '',
+};
+
+export const environment: Environment = {
   appsUrl: '',
   platformUrl: '',
   hostname: '',
@@ -82,7 +110,7 @@ export const newsList: NewsList = {
   news: [],
 };
 
-export const orgsState: OrgsState = {
+export const orgList: OrgList = {
   orgs: {},
 };
 
@@ -149,10 +177,6 @@ export const resourceVersionStatus: ResourceVersionStatus = {
 export const validation: Validation = {
   status: 200,
   errors: [],
-};
-
-export const appLibVersion: AppLibVersion = {
-  version: '',
 };
 
 export const repository: Repository = {

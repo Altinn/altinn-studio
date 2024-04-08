@@ -30,6 +30,10 @@ export type ResourceReferenceFieldsProps = {
    * If the error should be shown
    */
   showErrors: boolean;
+  /**
+   * Whether this field is required or not
+   */
+  required?: boolean;
 };
 
 /**
@@ -40,6 +44,7 @@ export type ResourceReferenceFieldsProps = {
  * @property {function}[onResourceReferenceFieldChanged] - Function to be executed when resource references are changed
  * @property {function}[onFocus] - Function to be executed when the field is focused
  * @property {boolean}[showErrors] - If the error should be shown
+ * @property {boolean}[required] - Whether this field is required or not
  *
  * @returns {React.JSX.Element} - The rendered component
  */
@@ -48,6 +53,7 @@ export const ResourceReferenceFields = ({
   onResourceReferenceFieldChanged,
   onFocus,
   showErrors,
+  required,
 }: ResourceReferenceFieldsProps): React.JSX.Element => {
   return (
     <FieldsetWrapper<ResourceReference>
@@ -61,13 +67,19 @@ export const ResourceReferenceFields = ({
         deleteConfirmationButton: 'resourceadm.about_resource_reference_confirm_delete_button',
         addButton: 'resourceadm.about_resource_reference_add_reference',
       }}
-      renderItem={(item: ResourceReference, onChange: (changedItem: ResourceReference) => void) => {
+      renderItem={(
+        item: ResourceReference,
+        index: number,
+        onChange: (changedItem: ResourceReference) => void,
+      ) => {
         return (
           <ResourceReferenceFieldset
             resourceReference={item}
             onChangeResourceReferenceField={onChange}
             onFocus={onFocus}
             showErrors={showErrors}
+            required={required}
+            index={index}
           />
         );
       }}

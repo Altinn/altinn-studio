@@ -6,7 +6,7 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using Altinn.App.Core.Models;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
@@ -14,6 +14,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
@@ -39,9 +40,12 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly ISchemaModelService _schemaModelService;
         private readonly IPreviewService _previewService;
         private readonly ITextsService _textsService;
+        private readonly IAppDevelopmentService _appDevelopmentService;
 
         // This value will be overridden to act as the task number for apps that use layout sets
         private const int PartyId = 51001;
+        private const string MINIMUM_NUGET_VERSION = "8.0.0.0";
+        private const int MINIMUM_PREVIEW_NUGET_VERSION = 15;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PreviewController"/> class.
@@ -51,14 +55,21 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="schemaModelService">Schema Model Service</param>
         /// <param name="previewService">Preview Service</param>
         /// <param name="textsService">Texts Service</param>
+        /// <param name="appDevelopmentService">App Development Service</param>
         /// Factory class that knows how to create types of <see cref="AltinnGitRepository"/>
-        public PreviewController(IHttpContextAccessor httpContextAccessor, IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ISchemaModelService schemaModelService, IPreviewService previewService, ITextsService textsService)
+        public PreviewController(IHttpContextAccessor httpContextAccessor,
+            IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+            ISchemaModelService schemaModelService,
+            IPreviewService previewService,
+            ITextsService textsService,
+            IAppDevelopmentService appDevelopmentService)
         {
             _httpContextAccessor = httpContextAccessor;
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _schemaModelService = schemaModelService;
             _previewService = previewService;
             _textsService = textsService;
+            _appDevelopmentService = appDevelopmentService;
         }
 
         /// <summary>
@@ -70,6 +81,24 @@ namespace Altinn.Studio.Designer.Controllers
         public IActionResult Index(string org, string app)
         {
             return View();
+        }
+
+        /// <summary>
+        /// Endpoint to fetch the cshtml to render app-frontend specific to what is defined in the app-repo
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>The cshtml modified to ignore this route path added in the iframe.</returns>
+        [HttpGet]
+        [Route("/app-specific-preview/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}")]
+        public async Task<IActionResult> AppFrontendSpecificPreview(string org, string app)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            var appFrontendCshtml = await altinnAppGitRepository.GetAppFrontendCshtml();
+            var modifiedContent = ReplaceIndexToFetchCorrectOrgAppInCshtml(appFrontendCshtml);
+
+            return Content(modifiedContent, "text/html");
         }
 
         /// <summary>
@@ -118,6 +147,9 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
+            string appNugetVersionString = _appDevelopmentService.GetAppLibVersion(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer)).ToString();
+            // This property is populated at runtime by the apps, so we need to mock it here
+            applicationMetadata.AltinnNugetVersion = GetMockedAltinnNugetBuildFromVersion(appNugetVersionString);
             return Ok(applicationMetadata);
         }
 
@@ -336,7 +368,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("api/v1/parties/validateInstantiation")]
         public IActionResult ValidateInstantiation()
         {
-            return Content(@"{""valid"": true}");
+            return Content("""{"valid": true}""");
         }
 
         /// <summary>
@@ -484,13 +516,21 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The processState</returns>
         [HttpGet]
         [Route("instances/{partyId}/{instanceGuId}/process")]
-        public async Task<ActionResult> Process(string org, string app, [FromRoute] int partyId, CancellationToken cancellationToken)
+        public async Task<ActionResult<AppProcessState>> Process(string org, string app, [FromRoute] int partyId, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string refererHeader = Request.Headers["Referer"];
             string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
             Instance mockInstance = await _previewService.GetMockInstance(org, app, developer, partyId, layoutSetName, cancellationToken);
-            return Ok(mockInstance.Process);
+            List<string> tasks = await _previewService.GetTasksForAllLayoutSets(org, app, developer, cancellationToken);
+            AppProcessState processState = new AppProcessState(mockInstance.Process)
+            {
+                ProcessTasks = tasks != null
+                    ? new List<AppProcessTaskTypeInfo>(tasks?.ConvertAll(task => new AppProcessTaskTypeInfo { ElementId = task, AltinnTaskType = "data" }))
+                    : null
+            };
+
+            return Ok(processState);
         }
 
         /// <summary>
@@ -540,7 +580,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("instances/{partyId}/{instanceGuId}/data/test-datatask-id/validate")]
         public ActionResult ValidateInstanceForDataTask()
         {
-            return Ok();
+            return Ok(new List<string>());
         }
 
         /// <summary>
@@ -570,7 +610,7 @@ namespace Altinn.Studio.Designer.Controllers
             string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
             if (string.IsNullOrEmpty(layoutSetName))
             {
-                string endProcess = @"{""ended"": ""ended""}";
+                string endProcess = """{"ended": "ended"}""";
                 return Ok(endProcess);
             }
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
@@ -801,7 +841,8 @@ namespace Altinn.Studio.Designer.Controllers
             }
             catch (NotFoundException)
             {
-                return NoContent();
+                // Return empty list since app-frontend don't handle a null result
+                return Ok(new List<string>());
             }
         }
 
@@ -829,7 +870,8 @@ namespace Altinn.Studio.Designer.Controllers
             }
             catch (NotFoundException)
             {
-                return NoContent();
+                // Return empty list since app-frontend don't handle a null result
+                return Ok(new List<string>());
             }
         }
 
@@ -868,12 +910,88 @@ namespace Altinn.Studio.Designer.Controllers
             return Ok();
         }
 
+        /// <summary>
+        /// Action for mocking the GET method for app footer
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>Empty response</returns>
+        [HttpGet]
+        [Route("api/v1/footer")]
+        public IActionResult Footer(string org, string app)
+        {
+            return Ok();
+        }
+
+        /// <summary>
+        /// Action for mocking the GET method for app validation config
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="modelname">The name of the model to validate</param>
+        /// <returns>Empty response</returns>
+        [HttpGet]
+        [Route("api/validationconfig/{modelname}")]
+        public IActionResult ValidationConfig(string org, string app, string modelname)
+        {
+            return Ok();
+        }
+
         private string GetSelectedLayoutSetInEditorFromRefererHeader(string refererHeader)
         {
             Uri refererUri = new(refererHeader);
             string layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
 
             return string.IsNullOrEmpty(layoutSetName) ? null : layoutSetName;
+        }
+
+        private string ReplaceIndexToFetchCorrectOrgAppInCshtml(string originalContent)
+        {
+            // Replace the array indexes in the script in the cshtml that retrieves the org and app name since
+            // /app-specific-preview/ is added when fetching the cshtml file from endpoint instead of designer wwwroot
+            string modifiedContent = originalContent.Replace("window.org = appId[1];", "window.org = appId[2];");
+            modifiedContent = modifiedContent.Replace("window.app = appId[2];", "window.app = appId[3];");
+
+            return modifiedContent;
+        }
+
+        /// <summary>
+        /// Method to get the mocked altinn nuget build from the version
+        /// We are returnning the minimum BUILD version of the nuget package that is required for app frontend to work
+        /// from v4 and above.
+        /// </summary>
+        /// <param name="version">The version of the nuget package</param>
+        /// <returns>The minimum build version of the nuget package</returns>
+        private string GetMockedAltinnNugetBuildFromVersion(string version)
+        {
+
+            string[] versionParts = version.Split('.');
+            if (!IsValidSemVerVersion(versionParts))
+            {
+                return string.Empty;
+            }
+
+            if (IsPreviewVersion(versionParts) && GetPreviewVersion(versionParts) < MINIMUM_PREVIEW_NUGET_VERSION)
+            {
+                return string.Empty;
+            }
+
+            return MINIMUM_NUGET_VERSION;
+        }
+
+        private bool IsValidSemVerVersion(string[] versionParts)
+        {
+            return versionParts.Length >= 3 && Convert.ToInt32(versionParts[0]) >= 8;
+        }
+
+        private bool IsPreviewVersion(string[] versionParts)
+        {
+            return versionParts[2].Contains("-preview") && versionParts.Length == 4;
+        }
+
+        private int GetPreviewVersion(string[] versionParts)
+        {
+            return Convert.ToInt32(versionParts[3]);
         }
     }
 }

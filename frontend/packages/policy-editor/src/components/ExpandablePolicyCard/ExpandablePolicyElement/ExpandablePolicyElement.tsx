@@ -1,4 +1,5 @@
-import React, { ReactNode, useState } from 'react';
+import type { ReactNode } from 'react';
+import React, { useState } from 'react';
 import classes from './ExpandablePolicyElement.module.css';
 import { ChevronDownIcon, ChevronUpIcon } from '@navikt/aksel-icons';
 import { PolicyEditorDropdownMenu } from './PolicyEditorDropdownMenu';
@@ -92,8 +93,8 @@ export const ExpandablePolicyElement = ({
           onFocus={() => setIsButtonFocused(true)}
           onBlur={() => setIsButtonFocused(false)}
         >
-          <Label as='p' size='small'>
-            {title}
+          <Label asChild size='small'>
+            <p>{title}</p>
           </Label>
           {isOpen ? (
             <ChevronUpIcon

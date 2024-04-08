@@ -7,13 +7,6 @@
 export const prepend = <T>(array: T[], item: T): T[] => [item, ...array];
 
 /**
- * Returns the last item in an array.
- * @param array The array of interest.
- * @returns The last item in the given array.
- */
-export const last = <T>(array: T[]): T => array[array.length - 1];
-
-/**
  * Replaces the last item in an array.
  * @param array The array of interest.
  * @param replaceWith The item to replace the last item with.
@@ -32,15 +25,6 @@ export const replaceLastItem = <T>(array: T[], replaceWith: T): T[] => {
  */
 export const removeItemByValue = <T>(array: T[], value: T): T[] =>
   array.filter((item) => item !== value);
-
-/**
- * Removes item from array by index.
- * @param array Array to delete item from.
- * @param indexToRemove Index of element to remove.
- * @returns Array without the element at the given index.
- */
-export const removeItemByIndex = <T>(array: T[], indexToRemove: number): T[] =>
-  array.filter((_, index) => index !== indexToRemove);
 
 /**
  * Checks if all items in the given array are unique.
@@ -149,13 +133,3 @@ export const generateUniqueStringWithNumber = (array: string[], prefix: string =
 
 /** Removes empty strings from a string array */
 export const removeEmptyStrings = (array: string[]): string[] => removeItemByValue(array, '');
-
-/** Replaces an element in an array with a new value */
-export const replaceByIndex = <T>(array: T[], index: number, newValue: T): T[] => {
-  if (index < 0 || index >= array.length) return array;
-
-  const newArray = [...array];
-  newArray[index] = newValue;
-
-  return newArray;
-};

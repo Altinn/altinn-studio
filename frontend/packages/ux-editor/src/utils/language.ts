@@ -1,9 +1,7 @@
 import type { ITextResource } from 'app-shared/types/global';
 import { CollapsableMenus } from '../types/global';
-import { ComponentType } from 'app-shared/types/ComponentType';
-import i18next from 'i18next';
-import { UseText } from '../hooks';
-import { TranslationKey } from 'app-shared/types/language';
+import type { ComponentType } from 'app-shared/types/ComponentType';
+import type i18next from 'i18next';
 
 /**
  * Get the help text for a given component type
@@ -68,9 +66,3 @@ export function getTextResource(resourceKey: string, textResources: ITextResourc
   const textResource = textResources.find((resource) => resource.id === resourceKey);
   return textResource?.value;
 }
-
-export const getComponentPropertyLabel = (propertyKey: string, t: UseText): string => {
-  const translationKey: string = `ux_editor.component_properties.${propertyKey}`;
-  const translation = t(translationKey as TranslationKey);
-  return translation === translationKey ? propertyKey : translation;
-};

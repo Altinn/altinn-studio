@@ -9,8 +9,8 @@ type NotificationProps = {
 export const Notification = ({ numChanges }: NotificationProps) => {
   return (
     <span className={classes.wrapper} aria-hidden>
-      <Paragraph as='span' size='xsmall' short className={classes.number}>
-        {numChanges}
+      <Paragraph asChild size='xsmall' short className={classes.number}>
+        <span>{numChanges}</span>
       </Paragraph>
     </span>
   );

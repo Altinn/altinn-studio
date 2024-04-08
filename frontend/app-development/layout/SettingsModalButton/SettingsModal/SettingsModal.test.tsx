@@ -6,12 +6,14 @@ import {
   waitForElementToBeRemoved,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { SettingsModal, SettingsModalProps } from './SettingsModal';
+import type { SettingsModalProps } from './SettingsModal';
+import { SettingsModal } from './SettingsModal';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryClient, UseMutationResult } from '@tanstack/react-query';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { AppConfig } from 'app-shared/types/AppConfig';
+import type { QueryClient, UseMutationResult } from '@tanstack/react-query';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { AppConfig } from 'app-shared/types/AppConfig';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -53,7 +55,9 @@ describe('SettingsModal', () => {
   it('closes the modal when the close button is clicked', async () => {
     render(defaultProps);
 
-    const closeButton = screen.getByRole('button', { name: textMock('modal.close_icon') });
+    const closeButton = screen.getByRole('button', {
+      name: textMock('settings_modal.close_button_label'),
+    });
     await act(() => user.click(closeButton));
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);

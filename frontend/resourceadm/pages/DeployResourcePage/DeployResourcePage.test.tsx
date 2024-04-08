@@ -1,14 +1,15 @@
 import React from 'react';
 import { act, render, screen, waitForElementToBeRemoved } from '@testing-library/react';
-import { DeployResourcePage, DeployResourcePageProps } from './DeployResourcePage';
+import type { DeployResourcePageProps } from './DeployResourcePage';
+import { DeployResourcePage } from './DeployResourcePage';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { QueryClient, UseMutationResult } from '@tanstack/react-query';
-import { usePublishResourceMutation } from '../../hooks/mutations';
-import { RepoStatus } from 'app-shared/types/RepoStatus';
-import { Validation } from 'app-shared/types/ResourceAdm';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { QueryClient } from '@tanstack/react-query';
+import type { RepoStatus } from 'app-shared/types/RepoStatus';
+import type { Validation } from 'app-shared/types/ResourceAdm';
 import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 
@@ -33,6 +34,11 @@ const mockValidatePolicyData3: Validation = {
   errors: ['policyerror.missingpolicy'],
 };
 
+const mockValidatePolicyData4: Validation = {
+  status: 500,
+  errors: ['policyerror.missingpolicy'],
+};
+
 const mockValidateResourceData2: Validation = { status: 400, errors: ['resource.title'] };
 
 const mockResourceVersionText: string = '2';
@@ -46,15 +52,6 @@ jest.mock('react-router-dom', () => ({
     selectedContext: mockSelectedContext,
   }),
 }));
-
-jest.mock('../../hooks/mutations/usePublishResourceMutation');
-const publishResource = jest.fn();
-const mockPublishResource = usePublishResourceMutation as jest.MockedFunction<
-  typeof usePublishResourceMutation
->;
-mockPublishResource.mockReturnValue({
-  mutate: publishResource,
-} as unknown as UseMutationResult<void, Error, string, unknown>);
 
 const defaultProps: DeployResourcePageProps = {
   navigateToPageWithError: mockNavigateToPageWithError,
@@ -120,26 +117,8 @@ describe('DeployResourcePage', () => {
     );
     expect(statusCardTitle).toBeInTheDocument();
 
-    const errorMessage = textMock('resourceadm.deploy_status_card_error_resource_page', {
-      num: mockValidateResourceData2.errors.length,
-    });
+    const errorMessage = textMock('resourceadm.deploy_status_card_error_resource_page');
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
-  });
-
-  it('calls "navigateToPageWithError" when navigating to resource page with errors', async () => {
-    const user = userEvent.setup();
-    await resolveAndWaitForSpinnerToDisappear({
-      getValidateResource: () => Promise.resolve(mockValidateResourceData2),
-    });
-
-    const linkButton = screen.getByRole('button', {
-      name: textMock('resourceadm.about_resource_title'),
-    });
-    expect(linkButton).toBeInTheDocument();
-
-    await act(() => user.click(linkButton));
-    expect(mockNavigateToPageWithError).toHaveBeenCalledTimes(1);
-    expect(mockNavigateToPageWithError).toHaveBeenCalledWith('about');
   });
 
   it('renders status card with missing policy error when policy validation fails with missing policy', async () => {
@@ -156,6 +135,20 @@ describe('DeployResourcePage', () => {
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
   });
 
+  it('renders status card with default policy error when policy validation fails with server error', async () => {
+    await resolveAndWaitForSpinnerToDisappear({
+      getValidatePolicy: () => Promise.resolve(mockValidatePolicyData4),
+    });
+
+    const statusCardTitle = screen.getByText(
+      textMock('resourceadm.deploy_status_card_error_title'),
+    );
+    expect(statusCardTitle).toBeInTheDocument();
+
+    const errorMessage = textMock('resourceadm.deploy_status_card_error_policy_page_default');
+    expect(screen.getByText(errorMessage)).toBeInTheDocument();
+  });
+
   it('renders status card with policy errors when policy validation fails', async () => {
     await resolveAndWaitForSpinnerToDisappear({
       getValidatePolicy: () => Promise.resolve(mockValidatePolicyData2),
@@ -166,31 +159,27 @@ describe('DeployResourcePage', () => {
     );
     expect(statusCardTitle).toBeInTheDocument();
 
-    const errorMessage = textMock('resourceadm.deploy_status_card_error_policy_page', {
-      num: mockValidatePolicyData2.errors.length,
-    });
+    const errorMessage = textMock('resourceadm.deploy_status_card_error_policy_page');
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
-  });
-
-  it('calls "navigateToPageWithError" when navigating to policy page with errors', async () => {
-    const user = userEvent.setup();
-    await resolveAndWaitForSpinnerToDisappear({
-      getValidatePolicy: () => Promise.resolve(mockValidatePolicyData2),
-    });
-
-    const linkButton = screen.getByRole('button', {
-      name: textMock('resourceadm.policy_editor_title'),
-    });
-    expect(linkButton).toBeInTheDocument();
-
-    await act(() => user.click(linkButton));
-    expect(mockNavigateToPageWithError).toHaveBeenCalledTimes(1);
-    expect(mockNavigateToPageWithError).toHaveBeenCalledWith('policy');
   });
 
   it('renders status card with repo not in sync errors when repo is behind or ahead of master', async () => {
     await resolveAndWaitForSpinnerToDisappear({
       getRepoStatus: () => Promise.resolve(mockRepoStatusAhead),
+    });
+
+    const statusCardTitle = screen.getByText(
+      textMock('resourceadm.deploy_status_card_error_title'),
+    );
+    expect(statusCardTitle).toBeInTheDocument();
+
+    const errorMessage = textMock('resourceadm.deploy_status_card_error_repo');
+    expect(screen.getByText(errorMessage)).toBeInTheDocument();
+  });
+
+  it('renders status card errors when repo status could not be found', async () => {
+    await resolveAndWaitForSpinnerToDisappear({
+      getRepoStatus: () => Promise.reject(),
     });
 
     const statusCardTitle = screen.getByText(
@@ -323,38 +312,6 @@ describe('DeployResourcePage', () => {
 
     expect(tt02Button).toBeDisabled();
     expect(prodButton).toBeDisabled();
-  });
-
-  it('calls "handlePublish" when publishing a resource to tt02', async () => {
-    const user = userEvent.setup();
-    await resolveAndWaitForSpinnerToDisappear();
-
-    const tt02 = textMock('resourceadm.deploy_test_env');
-
-    const tt02Button = screen.getByRole('button', {
-      name: textMock('resourceadm.deploy_card_publish', { env: tt02 }),
-    });
-
-    expect(tt02Button).not.toBeDisabled();
-
-    await act(() => user.click(tt02Button));
-    expect(publishResource).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls "handlePublish" when publishing a resource to prod', async () => {
-    const user = userEvent.setup();
-    await resolveAndWaitForSpinnerToDisappear();
-
-    const prod = textMock('resourceadm.deploy_prod_env');
-
-    const prodButton = screen.getByRole('button', {
-      name: textMock('resourceadm.deploy_card_publish', { env: prod }),
-    });
-
-    expect(prodButton).not.toBeDisabled();
-
-    await act(() => user.click(prodButton));
-    expect(publishResource).toHaveBeenCalledTimes(1);
   });
 });
 

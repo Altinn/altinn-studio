@@ -1,7 +1,7 @@
 name: Playwright tests on pr
 on:
   pull_request:
-    branches: [master]
+    branches: [main]
     types: [opened, synchronize, reopened]
     paths:
       - 'frontend/**'
@@ -69,3 +69,10 @@ jobs:
       - name: Stop compose file
         if: always()
         run: docker-compose down
+
+      - name: Store artifacts
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-screenshots
+          path: frontend/testing/playwright/test-results
