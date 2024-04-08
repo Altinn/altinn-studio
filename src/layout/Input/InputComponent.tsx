@@ -21,16 +21,27 @@ interface InputComponentProps extends TextfieldProps {
   textOnly?: boolean;
 }
 
-const TextOnly: React.FunctionComponent<TextfieldProps> = ({ className, id, value }) => (
-  <Paragraph
-    id={id}
-    size='small'
-    className={`${classes['text-padding']} ${classes['focusable']}  ${className}`}
-    tabindex='0'
-  >
-    {value}
-  </Paragraph>
-);
+const TextOnly: React.FunctionComponent<TextfieldProps> = ({ className, id, value }) => {
+  // If the value is null or empty string, we dont render anything to prevent an empty tabbable paragraph
+  if (value === null) {
+    return null;
+  }
+
+  if (typeof value === 'string' && value.length === 0) {
+    return null;
+  }
+
+  return (
+    <Paragraph
+      id={id}
+      size='small'
+      className={`${classes['text-padding']} ${classes['focusable']}  ${className}`}
+      tabindex='0'
+    >
+      {value}
+    </Paragraph>
+  );
+};
 
 // We need to use this wrapped Textfield component because we have a conflict between the 'size' prop
 // of the TextField and the react-number-format components which also have a 'size' prop
