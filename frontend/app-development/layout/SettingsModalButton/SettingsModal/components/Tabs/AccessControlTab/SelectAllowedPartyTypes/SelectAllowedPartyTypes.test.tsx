@@ -5,17 +5,12 @@ import {
 } from './SelectAllowedPartyTypes';
 import { mockAppMetadata } from '../../../../mocks/applicationMetadataMock';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
-import {
-  ServicesContextProvider,
-  type ServicesContextProps,
-} from 'app-shared/contexts/ServicesContext';
 import { act, render as rtlRender, screen, waitFor } from '@testing-library/react';
 import type { QueryClient } from '@tanstack/react-query';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import userEvent from '@testing-library/user-event';
-
-const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
-const updateAppMetadataMock = jest.fn();
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const org = 'org';
 const app = 'app';
@@ -62,7 +57,7 @@ describe('SelectAllowedPartyTypes', () => {
 
   it('render the warning modal when user tries to uncheck all checkboxes, and close it', async () => {
     const user = userEvent.setup();
-    const getAppMetadataMock = jest.fn().mockResolvedValue({
+    const appMetadataMock = {
       ...mockAppMetadata,
       partyTypesAllowed: {
         person: false,
@@ -70,15 +65,15 @@ describe('SelectAllowedPartyTypes', () => {
         subUnit: false,
         bankruptcyEstate: true,
       },
-    });
-    renderSelectAllowedPartyTypes({ getAppMetadata: getAppMetadataMock });
+    };
+    renderSelectAllowedPartyTypes({ appMetadata: appMetadataMock });
     const bankruptcyEstateCheckbox = screen.getByRole('checkbox', {
       name: textMock('settings_modal.access_control_tab_option_bankruptcy_estate'),
     });
     expect(bankruptcyEstateCheckbox).toBeChecked();
     await waitFor(() => user.click(bankruptcyEstateCheckbox));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(updateAppMetadataMock).not.toHaveBeenCalled();
+    expect(queriesMock.updateAppMetadata).not.toHaveBeenCalled();
     const closeButton = screen.getByRole('button', { name: textMock('general.close') });
     await act(() => user.click(closeButton));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -104,8 +99,8 @@ describe('SelectAllowedPartyTypes', () => {
       name: textMock('settings_modal.access_control_tab_option_all_types'),
     });
     await act(() => user.click(allTypeCheckbox));
-    expect(updateAppMetadataMock).toHaveBeenCalledTimes(1);
-    expect(updateAppMetadataMock).toHaveBeenCalledWith(org, app, {
+    expect(queriesMock.updateAppMetadata).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateAppMetadata).toHaveBeenCalledWith(org, app, {
       ...mockAppMetadata,
       partyTypesAllowed: {
         person: true,
@@ -117,7 +112,7 @@ describe('SelectAllowedPartyTypes', () => {
   });
 
   it('all checkboxes should be checked by default when all partytypes are false', async () => {
-    const getAppMetadataMock = jest.fn().mockResolvedValue({
+    const appMetadataMock = {
       ...mockAppMetadata,
       partyTypesAllowed: {
         person: false,
@@ -125,8 +120,8 @@ describe('SelectAllowedPartyTypes', () => {
         subUnit: false,
         bankruptcyEstate: false,
       },
-    });
-    renderSelectAllowedPartyTypes({ getAppMetadata: getAppMetadataMock });
+    };
+    renderSelectAllowedPartyTypes({ appMetadata: appMetadataMock });
     const checkboxes = screen.getAllByRole('checkbox');
     checkboxes.forEach((checkbox) => {
       expect(checkbox).toBeChecked();
@@ -140,23 +135,15 @@ describe('SelectAllowedPartyTypes', () => {
       name: textMock('settings_modal.access_control_tab_option_person'),
     });
     await act(() => user.click(checkboxes));
-    expect(updateAppMetadataMock).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateAppMetadata).toHaveBeenCalledTimes(1);
   });
 });
 
-const renderSelectAllowedPartyTypes = (
-  queries: Partial<ServicesContextProps> = {},
-  queryClient: QueryClient = createQueryClientMock(),
-) => {
-  const allQueries: ServicesContextProps = {
-    getAppMetadata,
-    updateAppMetadata: updateAppMetadataMock,
-    ...queries,
-  };
-
+const renderSelectAllowedPartyTypes = (props: Partial<SelectAllowedPartyTypesProps> = {}) => {
+  const queryClient: QueryClient = createQueryClientMock();
   return rtlRender(
-    <ServicesContextProvider {...allQueries} client={queryClient}>
-      <SelectAllowedPartyTypes {...defaultProps}></SelectAllowedPartyTypes>
+    <ServicesContextProvider {...queriesMock} client={queryClient}>
+      <SelectAllowedPartyTypes {...defaultProps} {...props}></SelectAllowedPartyTypes>
     </ServicesContextProvider>,
   );
 };
