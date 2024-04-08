@@ -25,7 +25,7 @@ public static class DeploymentMapper
             Tagname = deploymentEntity.TagName,
             Org = deploymentEntity.Org,
             App = deploymentEntity.App,
-            Buildresult = deploymentEntity.Build.Status.ToEnumMemberAttributeValue(),
+            Buildresult = deploymentEntity.Build.Result.ToEnumMemberAttributeValue(),
             Created = deploymentEntity.Created,
             Entity = JsonSerializer.Serialize(deploymentEntity, s_jsonOptions)
         };

@@ -16,6 +16,7 @@ public class DesignerdbContext : DbContext
     public virtual DbSet<Release> Releases { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.UseSerialColumns();
         modelBuilder.ApplyConfiguration(new DeploymentConfiguration());
         modelBuilder.ApplyConfiguration(new ReleaseConfiguration());
         base.OnModelCreating(modelBuilder);
