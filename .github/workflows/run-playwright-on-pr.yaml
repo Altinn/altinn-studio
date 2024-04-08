@@ -57,10 +57,6 @@ jobs:
           yarn setup:playwright
           yarn playwright:test:all
 
-      - name: Stop compose file
-        if: always()
-        run: docker-compose down
-
       - name: Store artifacts
         uses: actions/upload-artifact@v4
         if: failure()
