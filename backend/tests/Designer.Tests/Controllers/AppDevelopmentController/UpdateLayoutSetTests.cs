@@ -45,10 +45,9 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             LayoutSets layoutSetsAfter = await GetLayoutSetsFile(org, targetRepository, developer);
 
             layoutSetsBefore.Schema.Should().NotBeNull();
-            layoutSetsBefore.Sets.Should().HaveCount(3);
             Assert.False(layoutSetsBefore.Sets.Exists(set => set.DataType == newLayoutSetConfig.DataType));
             layoutSetsAfter.Schema.Should().NotBeNull();
-            layoutSetsAfter.Sets.Should().HaveCount(3);
+            layoutSetsBefore.Sets.Should().HaveCount(layoutSetsAfter.Sets.Count);
             Assert.True(layoutSetsAfter.Sets.Exists(set => set.DataType == newLayoutSetConfig.DataType));
         }
 
@@ -75,10 +74,9 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             LayoutSets layoutSetsAfter = await GetLayoutSetsFile(org, targetRepository, developer);
 
             layoutSetsBefore.Schema.Should().NotBeNull();
-            layoutSetsBefore.Sets.Should().HaveCount(3);
             Assert.False(layoutSetsBefore.Sets.Exists(set => set.Id == newLayoutSetConfig.Id));
+            layoutSetsBefore.Sets.Should().HaveCount(layoutSetsAfter.Sets.Count);
             layoutSetsAfter.Schema.Should().NotBeNull();
-            layoutSetsAfter.Sets.Should().HaveCount(3);
             Assert.True(layoutSetsAfter.Sets.Exists(set => set.Id == newLayoutSetConfig.Id));
         }
 

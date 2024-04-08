@@ -15,6 +15,8 @@ namespace Designer.Tests.Controllers.PreviewController
         protected const string Developer = "testUser";
         protected const string LayoutSetName = "layoutSet1";
         protected const string LayoutSetName2 = "layoutSet2";
+        protected const string CustomReceiptLayoutSetName2 = "receipt";
+        protected const string DataTypeForCustomReceipt = "receiptDataType";
         protected const string PartyId = "51001";
         protected const string InstanceGuId = "f1e23d45-6789-1bcd-8c34-56789abcdef0";
         protected const string AttachmentGuId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
