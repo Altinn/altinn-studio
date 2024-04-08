@@ -4,19 +4,14 @@ using System.Linq;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 
-namespace Designer.Tests.DbIntegrationTests.DeploymentEntityRepository;
+namespace Designer.Tests.DbIntegrationTests;
 
-public static class DeploymentEntityGenerator
+public static partial class EntityGenerationUtils
 {
     public static DeploymentEntity GenerateDeploymentEntity(string org, string app = null, string buildId = null, string tagname = null, BuildStatus buildStatus = BuildStatus.Completed, BuildResult buildResult = BuildResult.Succeeded)
     {
-        BuildEntity build = new()
-        {
-            Id = buildId ?? Guid.NewGuid().ToString(),
-            Status = buildStatus,
-            Result = buildResult,
+        BuildEntity build = GenerateBuildEntity(buildId, buildStatus, buildResult);
 
-        };
         return new DeploymentEntity
         {
             Org = org,

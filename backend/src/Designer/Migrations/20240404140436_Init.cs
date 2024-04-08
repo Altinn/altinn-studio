@@ -1,8 +1,5 @@
-﻿using System;
-using System.IO;
-using Altinn.Studio.Designer.Migrations.InitialSqlScripts;
+﻿using Altinn.Studio.Designer.Migrations.InitialSqlScripts;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 

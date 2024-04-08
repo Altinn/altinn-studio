@@ -18,13 +18,6 @@ namespace Designer.Tests.DbIntegrationTests.DeploymentEntityRepository;
 
 public class GetIntegrationTests : DbIntegrationTestsBase
 {
-    private JsonSerializerOptions _jsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false,
-        Converters = { new JsonStringEnumConverter() }
-    };
-
     public GetIntegrationTests(DesignerDbFixture dbFixture) : base(dbFixture)
     {
     }
@@ -34,12 +27,12 @@ public class GetIntegrationTests : DbIntegrationTestsBase
     public async Task Get_ShouldReturnCorrectRecordsFromDatabase(string org, string app, int top, SortDirection sortDirection)
     {
         int allEntitiesCount = 10;
-        var deploymentEntities = DeploymentEntityGenerator.GenerateDeploymentEntities(org, app, allEntitiesCount).ToList();
+        var deploymentEntities = EntityGenerationUtils.GenerateDeploymentEntities(org, app, allEntitiesCount).ToList();
         await PrepareEntitiesInDatabase(deploymentEntities);
 
         var repository = new ORMDeploymentRepository(DbFixture.DbContext);
         var query = new DocumentQueryModel() { Top = top, SortDirection = sortDirection };
-        var result = await repository.Get(org, app, query);
+        var result = (await repository.Get(org, app, query)).ToList();
 
         var expectedEntities = (sortDirection == SortDirection.Ascending
                 ? deploymentEntities.OrderBy(d => d.Created)
@@ -47,7 +40,7 @@ public class GetIntegrationTests : DbIntegrationTestsBase
             .Take(top)
             .ToList();
 
-        result.Count().Should().Be(top);
+        result.Count.Should().Be(top);
         result.Should().BeEquivalentTo(expectedEntities);
     }
 
@@ -57,11 +50,11 @@ public class GetIntegrationTests : DbIntegrationTestsBase
         SortDirection sortDirection)
     {
         int allEntitiesCount = 10;
-        var deploymentEntities = DeploymentEntityGenerator.GenerateDeploymentEntities(org, app, allEntitiesCount).ToList();
+        var deploymentEntities = EntityGenerationUtils.GenerateDeploymentEntities(org, app, allEntitiesCount).ToList();
         await PrepareEntitiesInDatabase(deploymentEntities);
 
         var repository = new ORMDeploymentRepository(DbFixture.DbContext);
-        var query = new DocumentQueryModel()
+        var query = new DocumentQueryModel
         {
             Top = null,
             SortDirection = sortDirection
@@ -89,7 +82,7 @@ public class GetIntegrationTests : DbIntegrationTestsBase
                 App = deploymentEntity.App,
                 Buildresult = deploymentEntity.Build.Result.ToEnumMemberAttributeValue(),
                 Created = deploymentEntity.Created,
-                Entity = JsonSerializer.Serialize(deploymentEntity, _jsonOptions)
+                Entity = JsonSerializer.Serialize(deploymentEntity, JsonOptions)
             });
 
         await DbFixture.DbContext.Deployments.AddRangeAsync(dbObjects);
@@ -102,13 +95,13 @@ public class GetIntegrationTests : DbIntegrationTestsBase
 
     public static IEnumerable<object[]> TopAndSortTestData()
     {
-        yield return new object[] { "ttd", Guid.NewGuid().ToString(), 3, SortDirection.Ascending };
-        yield return new object[] { "ttd", Guid.NewGuid().ToString(), 3, SortDirection.Descending };
+        yield return ["ttd", Guid.NewGuid().ToString(), 3, SortDirection.Ascending];
+        yield return ["ttd", Guid.NewGuid().ToString(), 3, SortDirection.Descending];
     }
 
     public static IEnumerable<object[]> SortTestData()
     {
-        yield return new object[] { "ttd", Guid.NewGuid().ToString(), SortDirection.Ascending };
-        yield return new object[] { "ttd", Guid.NewGuid().ToString(), SortDirection.Descending };
+        yield return ["ttd", Guid.NewGuid().ToString(), SortDirection.Ascending];
+        yield return ["ttd", Guid.NewGuid().ToString(), SortDirection.Descending];
     }
 }

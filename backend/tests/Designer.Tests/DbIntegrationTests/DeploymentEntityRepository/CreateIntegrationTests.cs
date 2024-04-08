@@ -1,6 +1,5 @@
 using System;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
@@ -13,13 +12,6 @@ namespace Designer.Tests.DbIntegrationTests.DeploymentEntityRepository;
 
 public class CreateIntegrationTests : DbIntegrationTestsBase
 {
-    private JsonSerializerOptions _jsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false,
-        Converters = { new JsonStringEnumConverter() }
-    };
-
     public CreateIntegrationTests(DesignerDbFixture dbFixture) : base(dbFixture)
     {
     }
@@ -30,19 +22,14 @@ public class CreateIntegrationTests : DbIntegrationTestsBase
     {
         var repository = new ORMDeploymentRepository(DbFixture.DbContext);
         var buildId = Guid.NewGuid();
-        var deploymentEntity = DeploymentEntityGenerator.GenerateDeploymentEntity(org, buildId: buildId.ToString());
+        var deploymentEntity = EntityGenerationUtils.GenerateDeploymentEntity(org, buildId: buildId.ToString());
         await repository.Create(deploymentEntity);
         var dbRecord = await DbFixture.DbContext.Deployments.AsNoTracking().FirstOrDefaultAsync(d =>
             d.Org == org &&
             d.App == deploymentEntity.App &&
             d.Buildid == buildId.ToString());
-        dbRecord.App.Should().BeEquivalentTo(deploymentEntity.App);
-        dbRecord.Org.Should().BeEquivalentTo(org);
-        dbRecord.Buildid.Should().BeEquivalentTo(buildId.ToString());
-        dbRecord.Buildresult.Should().BeEquivalentTo(deploymentEntity.Build.Result.ToString());
-        dbRecord.Tagname.Should().BeEquivalentTo(deploymentEntity.TagName);
-        var entityFromColumn = JsonSerializer.Deserialize<DeploymentEntity>(dbRecord.Entity, _jsonOptions);
-        entityFromColumn.Should().BeEquivalentTo(deploymentEntity);
+
+        EntityAssertions.AssertEqual(deploymentEntity, dbRecord);
     }
 
 }

@@ -24,7 +24,7 @@ public class CreateGetCompatibilityTests : DbIntegrationTestsBase
     {
         var oldRepository = CreateOldRepository();
         string buildId = Guid.NewGuid().ToString();
-        var deploymentEntity = DeploymentEntityGenerator.GenerateDeploymentEntity(org, buildId: buildId);
+        var deploymentEntity = EntityGenerationUtils.GenerateDeploymentEntity(org, buildId: buildId);
         await oldRepository.Create(deploymentEntity);
         var newRepository = new ORMDeploymentRepository(DbFixture.DbContext);
         var queriedEntity = await newRepository.Get(org, buildId);
@@ -37,7 +37,7 @@ public class CreateGetCompatibilityTests : DbIntegrationTestsBase
     {
         var newRepository = new ORMDeploymentRepository(DbFixture.DbContext);
         string buildId = Guid.NewGuid().ToString();
-        var deploymentEntity = DeploymentEntityGenerator.GenerateDeploymentEntity(org, buildId: buildId);
+        var deploymentEntity = EntityGenerationUtils.GenerateDeploymentEntity(org, buildId: buildId);
         await newRepository.Create(deploymentEntity);
         var oldRepository = CreateOldRepository();
         var queriedEntity = await oldRepository.Get(org, buildId);

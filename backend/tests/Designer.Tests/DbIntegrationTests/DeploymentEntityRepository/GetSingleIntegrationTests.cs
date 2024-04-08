@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
@@ -13,12 +12,6 @@ namespace Designer.Tests.DbIntegrationTests.DeploymentEntityRepository;
 
 public class GetSingleIntegrationTests : DbIntegrationTestsBase
 {
-    private JsonSerializerOptions _jsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false,
-        Converters = { new JsonStringEnumConverter() }
-    };
     public GetSingleIntegrationTests(DesignerDbFixture dbFixture) : base(dbFixture)
     {
     }
@@ -27,7 +20,7 @@ public class GetSingleIntegrationTests : DbIntegrationTestsBase
     [InlineData("ttd")]
     public async Task Get_ShouldReturnRecordFromDatabase(string org)
     {
-        var deploymentEntity = DeploymentEntityGenerator.GenerateDeploymentEntity(org);
+        var deploymentEntity = EntityGenerationUtils.GenerateDeploymentEntity(org);
         await PrepareEntityInDatabase(deploymentEntity);
 
         var repository = new ORMDeploymentRepository(DbFixture.DbContext);
@@ -45,7 +38,7 @@ public class GetSingleIntegrationTests : DbIntegrationTestsBase
             App = deploymentEntity.App,
             Buildresult = deploymentEntity.Build.Result.ToEnumMemberAttributeValue(),
             Created = deploymentEntity.Created,
-            Entity = JsonSerializer.Serialize(deploymentEntity, _jsonOptions)
+            Entity = JsonSerializer.Serialize(deploymentEntity, JsonOptions)
         };
 
         await DbFixture.DbContext.Deployments.AddAsync(dbObject);

@@ -114,7 +114,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="DbIntegrationTests\ReleaseEntityRepository\" />
     <Folder Include="_TestData\DataNorge\" />
     <Folder Include="_TestData\Repositories\testUser\ttd\model-namespace\" />
   </ItemGroup>
