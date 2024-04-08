@@ -20,7 +20,7 @@ public class CreateIntegrationTests : DbIntegrationTestsBase
         Converters = { new JsonStringEnumConverter() }
     };
 
-    public CreateIntegrationTests(PostgreSqlFixture dbFixture) : base(dbFixture)
+    public CreateIntegrationTests(DesignerDbFixture dbFixture) : base(dbFixture)
     {
     }
 
@@ -28,11 +28,11 @@ public class CreateIntegrationTests : DbIntegrationTestsBase
     [InlineData("ttd")]
     public async Task Create_ShouldInsertRecordInDatabase(string org)
     {
-        var repository = new ORMDeploymentRepository(DbContext);
+        var repository = new ORMDeploymentRepository(DbFixture.DbContext);
         var buildId = Guid.NewGuid();
         var deploymentEntity = DeploymentEntityGenerator.GenerateDeploymentEntity(org, buildId: buildId.ToString());
         await repository.Create(deploymentEntity);
-        var dbRecord = await DbContext.Deployments.AsNoTracking().FirstOrDefaultAsync(d =>
+        var dbRecord = await DbFixture.DbContext.Deployments.AsNoTracking().FirstOrDefaultAsync(d =>
             d.Org == org &&
             d.App == deploymentEntity.App &&
             d.Buildid == buildId.ToString());

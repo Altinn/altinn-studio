@@ -19,7 +19,7 @@ public class GetSingleIntegrationTests : DbIntegrationTestsBase
         WriteIndented = false,
         Converters = { new JsonStringEnumConverter() }
     };
-    public GetSingleIntegrationTests(PostgreSqlFixture dbFixture) : base(dbFixture)
+    public GetSingleIntegrationTests(DesignerDbFixture dbFixture) : base(dbFixture)
     {
     }
 
@@ -30,7 +30,7 @@ public class GetSingleIntegrationTests : DbIntegrationTestsBase
         var deploymentEntity = DeploymentEntityGenerator.GenerateDeploymentEntity(org);
         await PrepareEntityInDatabase(deploymentEntity);
 
-        var repository = new ORMDeploymentRepository(DbContext);
+        var repository = new ORMDeploymentRepository(DbFixture.DbContext);
         var result = await repository.Get(deploymentEntity.Org, deploymentEntity.Build.Id);
         result.Should().BeEquivalentTo(deploymentEntity);
     }
@@ -48,9 +48,9 @@ public class GetSingleIntegrationTests : DbIntegrationTestsBase
             Entity = JsonSerializer.Serialize(deploymentEntity, _jsonOptions)
         };
 
-        await DbContext.Deployments.AddAsync(dbObject);
-        await DbContext.SaveChangesAsync();
-        DbContext.Entry(dbObject).State = EntityState.Detached;
+        await DbFixture.DbContext.Deployments.AddAsync(dbObject);
+        await DbFixture.DbContext.SaveChangesAsync();
+        DbFixture.DbContext.Entry(dbObject).State = EntityState.Detached;
 
     }
 }
