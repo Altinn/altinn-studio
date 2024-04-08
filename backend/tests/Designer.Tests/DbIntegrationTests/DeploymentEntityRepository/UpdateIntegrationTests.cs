@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
+using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Designer.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -11,39 +12,50 @@ using Xunit;
 
 namespace Designer.Tests.DbIntegrationTests.DeploymentEntityRepository;
 
-public class OrmDeploymentsRepositoryTests : DbIntegrationTestsBase
+public class UpdateIntegrationTests : DbIntegrationTestsBase
 {
-    private JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+    private JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
         Converters = { new JsonStringEnumConverter() }
     };
 
-    public OrmDeploymentsRepositoryTests(PostgreSqlFixture dbFixture) : base(dbFixture)
+    public UpdateIntegrationTests(PostgreSqlFixture dbFixture) : base(dbFixture)
     {
     }
 
     [Theory]
     [InlineData("ttd")]
-    public async Task OrmDeploymentsRepo_CreateDeployment(string org)
+    public async Task Update_ShouldUpdateRecordInDatabase(string org)
     {
         var repository = new ORMDeploymentRepository(DbContext);
         var buildId = Guid.NewGuid();
-        string app = Guid.NewGuid().ToString();
-        var deploymentEntity = DeploymentEntityGenerator.GenerateDeploymentEntity(org, app, buildId.ToString());
+        var deploymentEntity = DeploymentEntityGenerator.GenerateDeploymentEntity(
+            org,
+            buildId: buildId.ToString(),
+            buildStatus: BuildStatus.InProgress,
+            buildResult: BuildResult.None);
         await repository.Create(deploymentEntity);
+
+        deploymentEntity.Build.Status = BuildStatus.Completed;
+        deploymentEntity.Build.Result = BuildResult.Failed;
+        deploymentEntity.Build.Finished = DateTime.Now;
+
+        DbContext.ChangeTracker.Clear();
+
+        await repository.Update(deploymentEntity);
+
         var dbRecord = await DbContext.Deployments.AsNoTracking().FirstOrDefaultAsync(d =>
             d.Org == org &&
-            d.App == app &&
+            d.App == deploymentEntity.App &&
             d.Buildid == buildId.ToString());
-        dbRecord.App.Should().BeEquivalentTo(app);
-        dbRecord.Org.Should().BeEquivalentTo(org);
-        dbRecord.Buildid.Should().BeEquivalentTo(buildId.ToString());
+
         dbRecord.Buildresult.Should().BeEquivalentTo(deploymentEntity.Build.Result.ToString());
-        dbRecord.Tagname.Should().BeEquivalentTo(deploymentEntity.TagName);
         var entityFromColumn = JsonSerializer.Deserialize<DeploymentEntity>(dbRecord.Entity, _jsonOptions);
         entityFromColumn.Should().BeEquivalentTo(deploymentEntity);
-    }
 
+
+
+    }
 }

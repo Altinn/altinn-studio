@@ -6,7 +6,7 @@ namespace Designer.Tests.DbIntegrationTests.DeploymentEntityRepository;
 
 public static class DeploymentEntityGenerator
 {
-    public static DeploymentEntity GenerateDeploymentEntity(string org, string app, string buildId = null, string tagname = null, BuildStatus buildStatus = BuildStatus.Completed, BuildResult buildResult = BuildResult.Succeeded)
+    public static DeploymentEntity GenerateDeploymentEntity(string org, string app = null, string buildId = null, string tagname = null, BuildStatus buildStatus = BuildStatus.Completed, BuildResult buildResult = BuildResult.Succeeded)
     {
         BuildEntity build = new()
         {
@@ -18,7 +18,7 @@ public static class DeploymentEntityGenerator
         return new DeploymentEntity
         {
             Org = org,
-            App = app,
+            App = app ?? Guid.NewGuid().ToString(),
             Build = build,
             TagName = tagname ?? Guid.NewGuid().ToString(),
             EnvName = Guid.NewGuid().ToString(),
