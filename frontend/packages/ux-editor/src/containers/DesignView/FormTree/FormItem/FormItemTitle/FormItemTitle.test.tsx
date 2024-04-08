@@ -16,10 +16,6 @@ jest.mock('./useDeleteItem', () => ({
   useDeleteItem: () => mockDeleteItem,
 }));
 
-jest.mock('../../../../../../../ux-editor/src/containers/FormItemContext', () => ({
-  useFormItemContext: () => ({ handleDiscard: mockHandleDiscard }),
-}));
-
 describe('FormItemTitle', () => {
   afterEach(jest.clearAllMocks);
 
