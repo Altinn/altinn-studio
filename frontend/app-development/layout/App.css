@@ -20,11 +20,6 @@ h3 {
   letter-spacing: 2px;
 }
 
-a {
-  color: var(--studio-link-color);
-  text-decoration: none;
-}
-
 button[class*='Button-module_small__'] svg {
   --fdsc-icon-size: var(--fds-sizing-5);
 }

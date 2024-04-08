@@ -17,29 +17,24 @@ export const StudioDropdownMenu = ({
 }: StudioDropdownMenuProps) => {
   const anchorRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState<boolean>(false);
+
   return (
-    <>
-      <StudioButton
-        aria-expanded={open}
-        aria-haspopup='menu'
-        ref={anchorRef}
-        size={rest.size}
-        onClick={() => setOpen(!open)}
-        {...anchorButtonProps}
-      />
-      <DropdownMenu
-        portal
-        {...rest}
-        anchorEl={anchorRef.current}
-        onClose={() => setOpen(false)}
-        open={open}
-      >
-        <DropdownMenu.Content>
-          <StudioDropdownMenuContext.Provider value={{ setOpen }}>
-            {children}
-          </StudioDropdownMenuContext.Provider>
-        </DropdownMenu.Content>
-      </DropdownMenu>
-    </>
+    <DropdownMenu open={open} onClose={() => setOpen(false)}>
+      <DropdownMenu.Trigger asChild>
+        <StudioButton
+          aria-expanded={open}
+          aria-haspopup='menu'
+          ref={anchorRef}
+          size={rest.size}
+          onClick={() => setOpen(!open)}
+          {...anchorButtonProps}
+        />
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content>
+        <StudioDropdownMenuContext.Provider value={{ setOpen }}>
+          {children}
+        </StudioDropdownMenuContext.Provider>
+      </DropdownMenu.Content>
+    </DropdownMenu>
   );
 };

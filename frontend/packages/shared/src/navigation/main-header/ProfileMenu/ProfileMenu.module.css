@@ -10,6 +10,12 @@
   font-size: 16px;
   justify-content: flex-end;
   padding-right: 25px;
+  text-decoration: none;
+}
+
+.menuItem a {
+  color: var(--studio-link-color);
+  text-decoration: none;
 }
 
 .userAvatar {
