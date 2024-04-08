@@ -8692,7 +8692,7 @@ __metadata:
     ajv-formats: "npm:2.1.1"
     clean-webpack-plugin: "npm:4.0.0"
     cross-env: "npm:7.0.3"
-    css-loader: "npm:6.11.0"
+    css-loader: "npm:7.0.0"
     css-minimizer-webpack-plugin: "npm:^6.0.0"
     eslint: "npm:8.57.0"
     eslint-config-prettier: "npm:9.1.0"
@@ -10737,9 +10737,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"css-loader@npm:6.11.0":
-  version: 6.11.0
-  resolution: "css-loader@npm:6.11.0"
+"css-loader@npm:7.0.0":
+  version: 7.0.0
+  resolution: "css-loader@npm:7.0.0"
   dependencies:
     icss-utils: "npm:^5.1.0"
     postcss: "npm:^8.4.33"
@@ -10751,13 +10751,13 @@ __metadata:
     semver: "npm:^7.5.4"
   peerDependencies:
     "@rspack/core": 0.x || 1.x
-    webpack: ^5.0.0
+    webpack: ^5.27.0
   peerDependenciesMeta:
     "@rspack/core":
       optional: true
     webpack:
       optional: true
-  checksum: 10/9e3665509f6786d46683de5c5f5c4bdd4aa62396b4017b41dbbb41ea5ada4012c80ee1e3302b79b504bc24da7fa69e3552d99006cecc953e0d9eef4a3053b929
+  checksum: 10/dfd916dc9d7ecdda6d17a4798ef6f96cc61a3ed2f640c27ae17cfa2cbf534826ef402927e0650171d5a690945f98cc052ee7d6214146eb6f4ee917f98d726652
   languageName: node
   linkType: hard
 
