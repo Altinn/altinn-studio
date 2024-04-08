@@ -22,7 +22,10 @@ namespace Altinn.Studio.Designer.Enums
         [PgName("altinnapp")]
         AltinnApp = 8,
 
-        [PgName("GenericAccessResource")]
+        [PgName("genericaccessresource")]
         GenericAccessResource = 16,
+
+        [PgName("brokerservice")]
+        BrokerService = 32,
     }
 }
