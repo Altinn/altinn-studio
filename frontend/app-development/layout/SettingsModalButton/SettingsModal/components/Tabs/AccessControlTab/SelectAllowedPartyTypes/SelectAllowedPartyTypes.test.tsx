@@ -79,7 +79,7 @@ describe('SelectAllowedPartyTypes', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('should all checkboxes be checked when all-types checkbox has aria-checked true', async () => {
+  it('should check all checkboxes when all-types checkbox is clicked', async () => {
     const user = userEvent.setup();
     renderSelectAllowedPartyTypes();
     const allTypeCheckbox = screen.getByRole('checkbox', {

@@ -17,7 +17,6 @@ import userEvent from '@testing-library/user-event';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
-const updateAppMetadataMock = jest.fn();
 
 const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 
@@ -92,7 +91,6 @@ const render = (
 ) => {
   const allQueries: ServicesContextProps = {
     getAppMetadata,
-    updateAppMetadata: updateAppMetadataMock,
     ...queries,
   };
 

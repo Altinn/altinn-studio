@@ -50,7 +50,7 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
           <>
             <TabHeader text={t('settings_modal.access_control_tab_checkbox_legend_label')} />
             <Paragraph size='medium'>
-              <span>{t('settings_modal.access_control_tab_checkbox_description')}</span>
+              {t('settings_modal.access_control_tab_checkbox_description')}
             </Paragraph>
             <SelectAllowedPartyTypes org={org} app={app} appMetadata={appMetadata} />
           </>
