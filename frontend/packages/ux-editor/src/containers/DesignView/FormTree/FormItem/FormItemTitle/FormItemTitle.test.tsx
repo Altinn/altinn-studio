@@ -11,8 +11,13 @@ import userEvent from '@testing-library/user-event';
 
 // Mocks:
 const mockDeleteItem = jest.fn();
+const mockHandleDiscard = jest.fn();
 jest.mock('./useDeleteItem', () => ({
   useDeleteItem: () => mockDeleteItem,
+}));
+
+jest.mock('../../../../../../../ux-editor/src/containers/FormItemContext', () => ({
+  useFormItemContext: () => ({ handleDiscard: mockHandleDiscard }),
 }));
 
 describe('FormItemTitle', () => {
@@ -39,7 +44,7 @@ describe('FormItemTitle', () => {
     await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
 
     expect(mockDeleteItem).toHaveBeenCalledTimes(1);
-    expect(mockDeleteItem).toHaveBeenCalledWith(component.id, expect.any(Object));
+    expect(mockDeleteItem).toHaveBeenCalledWith(component.id, { onSuccess: expect.any(Function) });
   });
 
   it('Does not call deleteItem when delete button is clicked, but deletion is not confirmed', async () => {
@@ -53,6 +58,7 @@ describe('FormItemTitle', () => {
     await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
 
     expect(mockDeleteItem).not.toHaveBeenCalled();
+    expect(mockHandleDiscard).not.toHaveBeenCalled();
   });
 
   it('should prompt the user for confirmation before deleting the component', async () => {
