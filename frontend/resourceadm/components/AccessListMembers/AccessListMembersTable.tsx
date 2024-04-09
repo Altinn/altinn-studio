@@ -4,10 +4,11 @@ import { Table } from '@digdir/design-system-react';
 import type { AccessListMember } from 'app-shared/types/ResourceAdm';
 import { StudioButton } from '@studio/components';
 import classes from './AccessListMembers.module.css';
+import { PlusCircleIcon, MinusCircleIcon } from '@studio/icons';
 
 interface AccessListMembersTableProps {
   listItems: AccessListMember[];
-  buttonNode: React.JSX.Element;
+  isAdd: boolean;
   isHeaderHidden?: boolean;
   disableButtonFn?: (member: AccessListMember) => boolean;
   onButtonClick: (member: AccessListMember) => void;
@@ -15,7 +16,7 @@ interface AccessListMembersTableProps {
 
 export const AccessListMembersTable = ({
   listItems,
-  buttonNode,
+  isAdd,
   isHeaderHidden,
   disableButtonFn,
   onButtonClick,
@@ -42,7 +43,7 @@ export const AccessListMembersTable = ({
         {listItems.map((item) => {
           return (
             <Table.Row key={item.orgNr}>
-              <Table.Cell>{item.orgNr}</Table.Cell>
+              <Table.Cell aria-label={item.orgNr.split('').join(' ')}>{item.orgNr}</Table.Cell>
               <Table.Cell>{item.orgName || t('resourceadm.listadmin_empty_name')}</Table.Cell>
               <Table.Cell>
                 {item.isSubParty
@@ -51,12 +52,27 @@ export const AccessListMembersTable = ({
               </Table.Cell>
               <Table.Cell>
                 <StudioButton
+                  aria-label={
+                    isAdd
+                      ? t('resourceadm.listadmin_add_to_list_org', { org: item.orgName })
+                      : t('resourceadm.listadmin_remove_from_list_org', { org: item.orgName })
+                  }
                   onClick={() => onButtonClick(item)}
                   disabled={disableButtonFn ? disableButtonFn(item) : false}
                   variant='tertiary'
                   size='small'
                 >
-                  {buttonNode}
+                  {isAdd ? (
+                    <>
+                      {t('resourceadm.listadmin_add_to_list')}
+                      <PlusCircleIcon className={classes.buttonIcon} />
+                    </>
+                  ) : (
+                    <>
+                      {t('resourceadm.listadmin_remove_from_list')}
+                      <MinusCircleIcon className={classes.buttonIcon} />
+                    </>
+                  )}
                 </StudioButton>
               </Table.Cell>
             </Table.Row>

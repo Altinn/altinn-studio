@@ -11,7 +11,7 @@ import { usePartiesRegistryQuery } from '../../hooks/queries/usePartiesRegistryQ
 import { useSubPartiesRegistryQuery } from '../../hooks/queries/useSubPartiesRegistryQuery';
 import { getPartiesQueryUrl } from '../../utils/urlUtils';
 import { StudioSpinner, StudioButton } from '@studio/components';
-import { PlusIcon, PlusCircleIcon, MinusCircleIcon } from '@studio/icons';
+import { PlusIcon } from '@studio/icons';
 import { AccessListMembersPaging } from './AccessListMembersPaging';
 import { AccessListMembersTable } from './AccessListMembersTable';
 
@@ -71,12 +71,7 @@ export const AccessListMembers = ({
     >
       <AccessListMembersTable
         listItems={listItems}
-        buttonNode={
-          <>
-            {t('resourceadm.listadmin_remove_from_list')}
-            <MinusCircleIcon className={classes.buttonIcon} />
-          </>
-        }
+        isAdd={false}
         onButtonClick={(item: AccessListMember) => handleRemoveMember(item.orgNr)}
       />
       {listItems.length === 0 && (
@@ -118,12 +113,7 @@ export const AccessListMembers = ({
             disableButtonFn={(disableItem: AccessListMember) =>
               !!listItems.find((listItem) => disableItem.orgNr === listItem.orgNr)
             }
-            buttonNode={
-              <>
-                {t('resourceadm.listadmin_add_to_list')}
-                <PlusCircleIcon className={classes.buttonIcon} />
-              </>
-            }
+            isAdd={true}
             onButtonClick={handleAddMember}
           />
           {(isLoadingParties || isLoadingSubParties) && (
