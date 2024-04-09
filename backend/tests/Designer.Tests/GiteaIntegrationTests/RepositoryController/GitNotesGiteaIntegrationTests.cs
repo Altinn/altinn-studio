@@ -21,7 +21,6 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
         {
         }
         [Theory]
-        [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task Commit_AndPush_Separate_Should_Create_GitNote(string org)
         {
@@ -41,7 +40,6 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
         }
 
         [Theory]
-        [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task Commit_AndPush_AndContents_Should_Create_GitNote(string org)
         {
@@ -59,7 +57,6 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
         }
 
         [Theory]
-        [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task Commit_AndPush_AndContents_WorksAfterResetOfRepo(string org)
         {
@@ -94,7 +91,6 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
         }
 
         [Theory]
-        [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task LocalAndStudioDevelopment_PullLocalCommitFirst_BehaveAsExpected(string org)
         {
@@ -120,7 +116,6 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
         }
 
         [Theory]
-        [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task LocalAndStudioDevelopment_BeginEditAndPullLocalCommit(string org)
         {
