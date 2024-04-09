@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -34,8 +35,27 @@ public class PreviewService : IPreviewService
         Application applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
         DataType dataType = await GetDataTypeForLayoutSetName(org, app, developer, layoutSetName, cancellationToken);
         string task = await GetTaskForLayoutSetName(org, app, developer, layoutSetName, cancellationToken);
+        bool shouldProcessActAsReceipt = task == "CustomReceipt";
         // RegEx for instance guid in app-frontend: [\da-f]{8}-[\da-f]{4}-[1-5][\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}
         string instanceGuid = "f1e23d45-6789-1bcd-8c34-56789abcdef0";
+        string dataTypeForDataElement = shouldProcessActAsReceipt ? await GetDataTypeForCustomReceipt(org, app, developer, cancellationToken) : dataType?.Id;
+        ProcessState processState = shouldProcessActAsReceipt
+            ? new()
+            {
+                CurrentTask = null,
+                EndEvent = "EndEvent_1",
+                Ended = DateTime.Now,
+                StartEvent = "StartEvent_1",
+                Started = DateTime.Now,
+            }
+            : new()
+            {
+                CurrentTask = new()
+                {
+                    AltinnTaskType = "data",
+                    ElementId = task
+                }
+            };
         Instance instance = new()
         {
             InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId == null ? "undefined" : instanceOwnerPartyId.Value.ToString() },
@@ -45,19 +65,12 @@ public class PreviewService : IPreviewService
             { new ()
                 // All data types attached to the current task in the process model should be added here
                     {
-                        DataType = dataType?.Id,
+                        DataType = dataTypeForDataElement,
                         Id = "test-datatask-id"
                     }
                 },
             Org = applicationMetadata.Org == developer ? "ttd" : applicationMetadata.Org,
-            Process = new()
-            {
-                CurrentTask = new()
-                {
-                    AltinnTaskType = "data",
-                    ElementId = task
-                }
-            }
+            Process = processState,
         };
         return instance;
     }
@@ -89,6 +102,11 @@ public class PreviewService : IPreviewService
             {
                 foreach (LayoutSetConfig layoutSet in layoutSets.Sets.Where(ls => !tasks.Contains(ls.Tasks[0])))
                 {
+                    if (layoutSet.Tasks[0] == "CustomReceipt")
+                    {
+                        continue;
+                    }
+
                     tasks.Add(layoutSet.Tasks[0]);
                 }
             }
@@ -120,5 +138,14 @@ public class PreviewService : IPreviewService
             task = layoutSets?.Sets?.Find(element => element.Id == layoutSetName).Tasks[0];
         }
         return task;
+    }
+
+    private async Task<string> GetDataTypeForCustomReceipt(string org, string app, string developer, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+        LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+        string dataType = layoutSets?.Sets?.Find(set => set.Tasks[0] == "CustomReceipt")?.DataType;
+        return dataType ?? string.Empty;
     }
 }

@@ -442,6 +442,21 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Delete layout set folder
+        /// </summary>
+        public void DeleteLayoutSetFolder(string oldLayoutSetName, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            string relativePath = GetPathToLayoutSet(oldLayoutSetName, true);
+            if (DirectoryExistsByRelativePath(relativePath))
+            {
+                string absolutePath = GetAbsoluteFileOrDirectoryPathSanitized(relativePath);
+                Directory.Delete(absolutePath, true);
+            }
+        }
+
+        /// <summary>
         /// Check if app uses layout sets or not based on whether
         /// the list of layout set names actually are layout set names
         /// or only the default folder for layouts

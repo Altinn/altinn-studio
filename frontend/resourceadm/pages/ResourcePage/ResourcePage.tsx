@@ -286,7 +286,7 @@ export const ResourcePage = (): React.JSX.Element => {
               onSaveVersion={(version: string) =>
                 handleSaveResource({
                   ...resourceData,
-                  version,
+                  version: version?.trim(), // empty version is not allowed
                 })
               }
               id='page-content-deploy'

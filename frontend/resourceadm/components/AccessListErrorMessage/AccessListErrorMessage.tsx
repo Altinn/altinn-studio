@@ -2,8 +2,8 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AxiosError } from 'axios';
 import { Alert } from '@digdir/design-system-react';
-import { getEnvLabel } from 'resourceadm/utils/resourceUtils';
-import { type EnvId } from 'resourceadm/utils/resourceUtils';
+import { getEnvLabel } from '../../utils/resourceUtils';
+import { type EnvId } from '../../utils/resourceUtils';
 
 interface AccessListErrorMessageProps {
   error: AxiosError;

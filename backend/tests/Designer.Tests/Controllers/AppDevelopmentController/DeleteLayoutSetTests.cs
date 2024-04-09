@@ -1,3 +1,4 @@
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -23,7 +24,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet2")]
-        public async Task DeleteLayoutSets_SetWithoutDataTypeConnection_ReturnsOk(string org, string app, string developer,
+        public async Task DeleteLayoutSet_SetWithoutDataTypeConnection_ReturnsOk(string org, string app, string developer,
             string layoutSetToDeleteId)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
@@ -39,15 +40,14 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             LayoutSets layoutSetsAfter = await GetLayoutSetsFile(org, targetRepository, developer);
 
-            layoutSetsBefore.Sets.Should().HaveCount(3);
             Assert.True(layoutSetsBefore.Sets.Exists(set => set.Id == layoutSetToDeleteId));
-            layoutSetsAfter.Sets.Should().HaveCount(2);
+            layoutSetsAfter.Sets.Should().HaveCount(layoutSetsBefore.Sets.Count - 1);
             Assert.False(layoutSetsAfter.Sets.Exists(set => set.Id == layoutSetToDeleteId));
         }
 
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1")]
-        public async Task DeleteLayoutSets_SetWithDataTypeConnection_ReturnsOk(string org, string app, string developer,
+        public async Task DeleteLayoutSet_SetWithDataTypeConnection_ReturnsOk(string org, string app, string developer,
             string layoutSetToDeleteId)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
@@ -67,13 +67,32 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             LayoutSets layoutSetsAfter = await GetLayoutSetsFile(org, targetRepository, developer);
             Application appMetadataAfter = await GetApplicationMetadataFile(org, targetRepository, developer);
 
-            layoutSetsBefore.Sets.Should().HaveCount(3);
             appMetadataBefore.DataTypes.Find(dataType => dataType.Id == connectedDataType).TaskId.Should()
                 .Be(connectedTaskId);
             Assert.True(layoutSetsBefore.Sets.Exists(set => set.Id == layoutSetToDeleteId));
-            layoutSetsAfter.Sets.Should().HaveCount(2);
+            layoutSetsAfter.Sets.Should().HaveCount(layoutSetsBefore.Sets.Count - 1);
             appMetadataAfter.DataTypes.Find(dataType => dataType.Id == connectedDataType).TaskId.Should().BeNull();
             Assert.False(layoutSetsAfter.Sets.Exists(set => set.Id == layoutSetToDeleteId));
+        }
+
+        [Theory]
+        [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet2")]
+        public async Task DeleteLayoutSet_DeletesRelatedLayoutSetFolder_ReturnsOk(string org, string app, string developer,
+            string layoutSetToDeleteId)
+        {
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
+
+            Assert.True(LayoutSetFolderExists(org, targetRepository, developer, layoutSetToDeleteId));
+
+            string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetToDeleteId}";
+
+            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
+
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            Assert.False(LayoutSetFolderExists(org, targetRepository, developer, layoutSetToDeleteId));
         }
 
         [Theory]
@@ -100,7 +119,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         [Theory]
         [InlineData("ttd", "app-without-layoutsets", "testUser", null)]
-        public async Task AddLayoutSet_AppWithoutLayoutSets_ReturnsNotFound(string org, string app, string developer,
+        public async Task DeleteLayoutSet_AppWithoutLayoutSets_ReturnsNotFound(string org, string app, string developer,
             string layoutSetToDeleteId)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
@@ -132,6 +151,16 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
                 altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
 
             return await altinnAppGitRepository.GetApplicationMetadata();
+        }
+
+        private bool LayoutSetFolderExists(string org, string app, string developer, string layoutSetName)
+        {
+            AltinnGitRepositoryFactory altinnGitRepositoryFactory =
+                new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+            AltinnAppGitRepository altinnAppGitRepository =
+                altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+
+            return altinnAppGitRepository.DirectoryExistsByRelativePath($"App/ui/{layoutSetName}");
         }
     }
 }

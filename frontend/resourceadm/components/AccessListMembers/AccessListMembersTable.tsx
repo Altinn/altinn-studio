@@ -4,23 +4,56 @@ import { Table } from '@digdir/design-system-react';
 import type { AccessListMember } from 'app-shared/types/ResourceAdm';
 import { StudioButton } from '@studio/components';
 import classes from './AccessListMembers.module.css';
+import { PlusCircleIcon, MinusCircleIcon } from '@studio/icons';
+import { stringNumberToAriaLabel } from '../../utils/stringUtils';
 
 interface AccessListMembersTableProps {
   listItems: AccessListMember[];
-  buttonNode: React.JSX.Element;
+  isAdd?: boolean;
   isHeaderHidden?: boolean;
-  disableButtonFn?: (member: AccessListMember) => boolean;
+  disabledItems?: AccessListMember[];
   onButtonClick: (member: AccessListMember) => void;
 }
 
 export const AccessListMembersTable = ({
   listItems,
-  buttonNode,
+  isAdd,
   isHeaderHidden,
-  disableButtonFn,
+  disabledItems,
   onButtonClick,
 }: AccessListMembersTableProps): React.JSX.Element => {
   const { t } = useTranslation();
+
+  const renderActionButton = (item: AccessListMember): React.JSX.Element => {
+    let buttonAriaLabel: string;
+    let buttonIcon: React.JSX.Element;
+    let buttonText: string;
+    if (isAdd) {
+      buttonAriaLabel = t('resourceadm.listadmin_add_to_list_org', { org: item.orgName });
+      buttonIcon = <PlusCircleIcon className={classes.buttonIcon} />;
+      buttonText = t('resourceadm.listadmin_add_to_list');
+    } else {
+      buttonAriaLabel = t('resourceadm.listadmin_remove_from_list_org', {
+        org: item.orgName,
+      });
+      buttonIcon = <MinusCircleIcon className={classes.buttonIcon} />;
+      buttonText = t('resourceadm.listadmin_remove_from_list');
+    }
+    return (
+      <StudioButton
+        aria-label={buttonAriaLabel}
+        onClick={() => onButtonClick(item)}
+        disabled={
+          disabledItems && disabledItems.some((existingItem) => existingItem.orgNr === item.orgNr)
+        }
+        variant='tertiary'
+        size='small'
+      >
+        {buttonText}
+        {buttonIcon}
+      </StudioButton>
+    );
+  };
 
   return (
     <Table size='small' className={classes.membersTable}>
@@ -42,23 +75,14 @@ export const AccessListMembersTable = ({
         {listItems.map((item) => {
           return (
             <Table.Row key={item.orgNr}>
-              <Table.Cell>{item.orgNr}</Table.Cell>
+              <Table.Cell aria-label={stringNumberToAriaLabel(item.orgNr)}>{item.orgNr}</Table.Cell>
               <Table.Cell>{item.orgName || t('resourceadm.listadmin_empty_name')}</Table.Cell>
               <Table.Cell>
                 {item.isSubParty
                   ? t('resourceadm.listadmin_sub_party')
                   : t('resourceadm.listadmin_party')}
               </Table.Cell>
-              <Table.Cell>
-                <StudioButton
-                  onClick={() => onButtonClick(item)}
-                  disabled={disableButtonFn ? disableButtonFn(item) : false}
-                  variant='tertiary'
-                  size='small'
-                >
-                  {buttonNode}
-                </StudioButton>
-              </Table.Cell>
+              <Table.Cell>{renderActionButton(item)}</Table.Cell>
             </Table.Row>
           );
         })}

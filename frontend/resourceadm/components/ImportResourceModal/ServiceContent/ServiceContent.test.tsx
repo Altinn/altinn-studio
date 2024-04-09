@@ -15,11 +15,13 @@ const mockSelectedContext: string = 'selectedContext';
 const mockEnv: string = 'env1';
 
 const mockAltinn2LinkService: Altinn2LinkService = {
+  serviceOwnerCode: 'ttd',
   externalServiceCode: 'code1',
   externalServiceEditionCode: 'edition1',
   serviceName: 'TestService',
 };
 const mockAltinn2HyphenLinkService: Altinn2LinkService = {
+  serviceOwnerCode: 'ttd',
   externalServiceCode: 'code2',
   externalServiceEditionCode: 'edition2',
   serviceName: 'test-med---hyphens',
@@ -28,8 +30,8 @@ const mockAltinn2LinkServices: Altinn2LinkService[] = [
   mockAltinn2LinkService,
   mockAltinn2HyphenLinkService,
 ];
-const mockOption: string = `${mockAltinn2LinkService.externalServiceCode}-${mockAltinn2LinkService.externalServiceEditionCode}-${mockAltinn2LinkService.serviceName}`;
-const mockHyphenOption: string = `${mockAltinn2HyphenLinkService.externalServiceCode}-${mockAltinn2HyphenLinkService.externalServiceEditionCode}-${mockAltinn2HyphenLinkService.serviceName}`;
+const mockOption: string = `${mockAltinn2LinkService.serviceOwnerCode}: ${mockAltinn2LinkService.externalServiceCode}-${mockAltinn2LinkService.externalServiceEditionCode}-${mockAltinn2LinkService.serviceName}`;
+const mockHyphenOption: string = `${mockAltinn2HyphenLinkService.serviceOwnerCode}: ${mockAltinn2HyphenLinkService.externalServiceCode}-${mockAltinn2HyphenLinkService.externalServiceEditionCode}-${mockAltinn2HyphenLinkService.serviceName}`;
 
 const mockOnSelectService = jest.fn();
 

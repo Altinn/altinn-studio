@@ -6,14 +6,13 @@ import { componentMocks } from '../../../../../testing/componentMocks';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 import { type FormContainer } from '../../../../../types/FormContainer';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { act, screen } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { FormItemContext } from '../../../../FormItemContext';
+import { formItemContextProviderMock } from '../../../../../testing/formItemContextMocks';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
-// Mocks:
-const mockDeleteItem = jest.fn();
-jest.mock('./useDeleteItem', () => ({
-  useDeleteItem: () => mockDeleteItem,
-}));
+const mockHandleDiscard = jest.fn();
 
 describe('FormItemTitle', () => {
   afterEach(jest.clearAllMocks);
@@ -38,8 +37,21 @@ describe('FormItemTitle', () => {
 
     await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
 
-    expect(mockDeleteItem).toHaveBeenCalledTimes(1);
-    expect(mockDeleteItem).toHaveBeenCalledWith(component.id);
+    expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
+    expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
+      'org',
+      'app',
+      'Side1',
+      'test-layout-set',
+      expect.objectContaining({
+        data: {
+          layout: [],
+        },
+      }),
+    );
+    await waitFor(() => {
+      expect(mockHandleDiscard).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('Does not call deleteItem when delete button is clicked, but deletion is not confirmed', async () => {
@@ -52,7 +64,8 @@ describe('FormItemTitle', () => {
 
     await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
 
-    expect(mockDeleteItem).not.toHaveBeenCalled();
+    expect(queriesMock.saveFormLayout).not.toHaveBeenCalled();
+    expect(mockHandleDiscard).not.toHaveBeenCalled();
   });
 
   it('should prompt the user for confirmation before deleting the component', async () => {
@@ -85,4 +98,16 @@ describe('FormItemTitle', () => {
 });
 
 const render = (formItem: FormComponent | FormContainer, label: string) =>
-  renderWithProviders(<FormItemTitle formItem={formItem}>{label}</FormItemTitle>);
+  renderWithProviders(
+    <FormItemContext.Provider
+      value={{
+        ...formItemContextProviderMock,
+        ...{ handleDiscard: mockHandleDiscard },
+      }}
+    >
+      <FormItemTitle formItem={formItem}>{label}</FormItemTitle>
+    </FormItemContext.Provider>,
+    {
+      appContextProps: {},
+    },
+  );
