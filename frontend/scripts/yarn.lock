@@ -394,7 +394,7 @@ __metadata:
     eslint-config-prettier: "npm:9.1.0"
     eslint-plugin-import: "npm:2.29.1"
     eslint-plugin-prettier: "npm:5.1.3"
-    glob: "npm:10.3.10"
+    glob: "npm:10.3.12"
     husky: "npm:9.0.11"
     lint-staged: "npm:15.2.2"
     prettier: "npm:^3.0.3"
