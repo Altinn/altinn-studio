@@ -14,15 +14,7 @@ export type BpmnContextProps = {
   setBpmnDetails: React.Dispatch<React.SetStateAction<BpmnDetails>>;
 };
 
-export const BpmnContext = createContext<BpmnContextProps>({
-  bpmnXml: '',
-  modelerRef: null,
-  getUpdatedXml: async () => '',
-  isEditAllowed: true,
-  appLibVersion: '',
-  bpmnDetails: null,
-  setBpmnDetails: () => {},
-});
+export const BpmnContext = createContext<Partial<BpmnContextProps>>(undefined);
 
 export type BpmnContextProviderProps = {
   children: React.ReactNode;
@@ -33,7 +25,7 @@ export const BpmnContextProvider = ({
   bpmnXml,
   children,
   appLibVersion,
-}: BpmnContextProviderProps) => {
+}: Partial<BpmnContextProviderProps>) => {
   const [bpmnDetails, setBpmnDetails] = useState<BpmnDetails>(null);
 
   const isEditAllowed =
@@ -70,7 +62,7 @@ export const BpmnContextProvider = ({
   );
 };
 
-export const useBpmnContext = (): BpmnContextProps => {
+export const useBpmnContext = (): Partial<BpmnContextProps> => {
   const context = useContext(BpmnContext);
   if (context === undefined) {
     throw new Error('useBpmnContext must be used within a BpmnContextProvider');
