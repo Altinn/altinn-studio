@@ -33,8 +33,6 @@ public class UpdateIntegrationTests : DeploymentEntityIntegrationTestsBase
         deploymentEntity.Build.Result = BuildResult.Failed;
         deploymentEntity.Build.Finished = DateTime.UtcNow;
 
-        DbFixture.DbContext.ChangeTracker.Clear();
-
         await repository.Update(deploymentEntity);
 
         var dbRecord = await DbFixture.DbContext.Deployments.AsNoTracking().FirstOrDefaultAsync(d =>

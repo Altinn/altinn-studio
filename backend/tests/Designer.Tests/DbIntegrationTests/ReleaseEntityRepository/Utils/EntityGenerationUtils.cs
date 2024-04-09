@@ -6,7 +6,7 @@ namespace Designer.Tests.DbIntegrationTests;
 
 public static partial class EntityGenerationUtils
 {
-    public static ReleaseEntity GenerateReleaseEntity(string org, string app = null, string buildId = null, string targetCommitish = null, string tagname = null, BuildStatus buildStatus = BuildStatus.Completed, BuildResult buildResult = BuildResult.Succeeded)
+    public static ReleaseEntity GenerateReleaseEntity(string org, string app = null, string buildId = null, string body = "build message", string targetCommitish = null, string tagname = null, BuildStatus buildStatus = BuildStatus.Completed, BuildResult buildResult = BuildResult.Succeeded)
     {
         BuildEntity build = GenerateBuildEntity(buildId, buildStatus, buildResult);
 
@@ -18,6 +18,7 @@ public static partial class EntityGenerationUtils
             TagName = tagname ?? Guid.NewGuid().ToString(),
             Created = DateTime.UtcNow,
             TargetCommitish = targetCommitish ?? Guid.NewGuid().ToString(),
+            Body = body
         };
     }
 }
