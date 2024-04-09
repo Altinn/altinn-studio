@@ -9,6 +9,7 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Repository;
+using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
@@ -43,8 +44,17 @@ namespace Altinn.Studio.Designer.Infrastructure
 
             services.AddSingleton(configuration);
 
-            services.AddScoped<IReleaseRepository, ReleaseRepository>();
-            services.AddScoped<IDeploymentRepository, DeploymentRepository>();
+            services.AddDbContext<DesignerdbContext>(options =>
+            {
+                PostgreSQLSettings postgresSettings = configuration.GetSection(nameof(PostgreSQLSettings)).Get<PostgreSQLSettings>();
+                string connectionString = string.Format(
+                    postgresSettings.ConnectionString,
+                    postgresSettings.DesignerDbPwd);
+                options.UseNpgsql(connectionString);
+            });
+
+            services.AddScoped<IReleaseRepository, ORMReleaseRepository>();
+            services.AddScoped<IDeploymentRepository, ORMDeploymentRepository>();
             services.AddTransient<IReleaseService, ReleaseService>();
             services.AddTransient<IDeploymentService, DeploymentService>();
             services.AddTransient<IKubernetesDeploymentsService, KubernetesDeploymentsService>();
@@ -64,11 +74,6 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IProcessModelingService, ProcessModelingService>();
             services.RegisterDatamodeling(configuration);
             services.RegisterUserRequestSynchronization(configuration);
-
-            services.AddDbContext<DesignerdbContext>(options =>
-            {
-                options.UseNpgsql("Host=localhost;Database=designerdb;Username=designer_admin;Password=kyeDIG@eip");
-            });
 
             return services;
         }
