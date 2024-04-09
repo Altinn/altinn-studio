@@ -50,8 +50,9 @@ public class ORMReleaseRepository : IReleaseRepository
         var query = _dbContext.Releases
             .Where(r => r.Org == org && r.App == app && r.Tagname == tagName);
 
-        query = query.Where(r => buildStatus.Any(bs => r.Buildresult.Equals(bs, StringComparison.OrdinalIgnoreCase))
-                                 || buildResult.Any(br => r.Buildresult.Equals(br, StringComparison.OrdinalIgnoreCase)));
+        query = query.Where(r =>
+            (buildStatus != null && buildStatus.Any(bs => r.Buildstatus.Equals(bs))) ||
+            (buildResult != null && buildResult.Any(br => r.Buildresult.Equals(br))));
 
         var dbObjects = await query.ToListAsync();
         return ReleaseMapper.MapToModels(dbObjects);
