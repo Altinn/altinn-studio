@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 
 import type { IGenericEditComponent } from '../../componentConfig';
 import { ImageComponent } from './ImageComponent';
-import { renderHookWithMockStore, renderWithMockStore } from '../../../../testing/mocks';
+import { renderHookWithProviders, renderWithProviders } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
@@ -33,8 +33,7 @@ const texts = {
 };
 
 const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
-    .renderHookResult.result;
+  const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
@@ -47,7 +46,7 @@ const render = async (props: Partial<IGenericEditComponent<ComponentType.Image>>
 
   await waitForData();
 
-  return renderWithMockStore()(<ImageComponent {...allProps} />);
+  return renderWithProviders(<ImageComponent {...allProps} />);
 };
 
 // Mocks:

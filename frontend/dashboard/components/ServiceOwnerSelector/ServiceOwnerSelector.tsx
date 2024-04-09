@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { Organization } from 'app-shared/types/Organization';
 import type { User } from 'app-shared/types/Repository';
 
-type ServiceOwnerSelectorProps = {
+export type ServiceOwnerSelectorProps = {
   selectedOrgOrUser: string;
   user: User;
   organizations: Organization[];
@@ -26,12 +26,22 @@ export const ServiceOwnerSelector = ({
   const selectableOrganizations: SelectableItem[] = mapOrganizationToSelectableItems(organizations);
   const selectableOptions: SelectableItem[] = [selectableUser, ...selectableOrganizations];
 
+  const defaultValue: string =
+    selectableOptions.find((item) => item.value === selectedOrgOrUser)?.value ??
+    selectableUser.value;
+
   return (
     <div>
       <Label spacing htmlFor={serviceOwnerId}>
         {t('general.service_owner')}
       </Label>
-      <NativeSelect hideLabel error={errorMessage} id={serviceOwnerId} name={name}>
+      <NativeSelect
+        hideLabel
+        error={errorMessage}
+        id={serviceOwnerId}
+        name={name}
+        defaultValue={defaultValue}
+      >
         {selectableOptions.map(({ value, label }) => (
           <option key={value} value={value}>
             {label}

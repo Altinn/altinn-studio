@@ -1,6 +1,6 @@
 using System.IO;
 using System.Runtime.InteropServices;
-using AltinnCore.Authentication.Constants;
+using Altinn.Common.AccessToken.Configuration;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

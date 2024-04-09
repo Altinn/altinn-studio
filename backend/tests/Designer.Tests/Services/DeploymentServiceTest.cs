@@ -14,7 +14,6 @@ using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
-using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using AltinnCore.Authentication.Constants;
@@ -35,7 +34,6 @@ namespace Designer.Tests.Services
         private readonly Mock<IApplicationInformationService> _applicationInformationService;
         private readonly Mock<IEnvironmentsService> _environementsService;
         private readonly Mock<IAzureDevOpsBuildClient> _azureDevOpsBuildClient;
-        private readonly Mock<IKubernetesWrapperClient> _kubernetesWrapperClient;
 
         public DeploymentServiceTest()
         {
@@ -49,9 +47,6 @@ namespace Designer.Tests.Services
             _environementsService.Setup(req => req.GetEnvironments())
                 .ReturnsAsync(GetEnvironments("environments.json"));
             _applicationInformationService = new Mock<IApplicationInformationService>();
-            _kubernetesWrapperClient = new Mock<IKubernetesWrapperClient>();
-            _kubernetesWrapperClient.Setup(req => req.GetDeploymentsInEnvAsync("ttd", It.IsAny<EnvironmentModel>()))
-                .ReturnsAsync(new List<Deployment>());
         }
 
         [Fact]
@@ -86,7 +81,6 @@ namespace Designer.Tests.Services
                 _deploymentRepository.Object,
                 _releaseRepository.Object,
                 _environementsService.Object,
-                _kubernetesWrapperClient.Object,
                 _applicationInformationService.Object,
                 _deploymentLogger.Object);
 
@@ -112,23 +106,16 @@ namespace Designer.Tests.Services
             _deploymentRepository.Verify(r => r.Create(It.IsAny<DeploymentEntity>()), Times.Once);
         }
 
-        [Fact]
-        public async Task GetAsync_OK()
+        [Theory]
+        [InlineData("ttd", "issue-6094")]
+        public async Task GetAsync_OK(string org, string app)
         {
             // Arrange
-            var testDeployments = GetDeployments("completedDeployments.json");
-            _deploymentRepository.Setup(r => r.Get("ttd", "issue-6094", It.IsAny<DocumentQueryModel>()))
-                .ReturnsAsync(testDeployments);
-
-            var kubernetesDeployments = testDeployments.Take(4).Select(deployment => new Deployment()
-            {
-                Release = $"{deployment.Org}-{deployment.App}",
-                Version = deployment.TagName,
-            }).ToList();
-            _kubernetesWrapperClient.Setup(req => req.GetDeploymentsInEnvAsync("ttd", It.IsAny<EnvironmentModel>()))
-                .ReturnsAsync(kubernetesDeployments);
-            _environementsService.Setup(e => e.GetOrganizationEnvironments("ttd")).ReturnsAsync(GetEnvironments("environments.json"));
-
+            var environments = GetEnvironments("environments.json");
+            _environementsService.Setup(e => e.GetOrganizationEnvironments(org)).ReturnsAsync(environments);
+            var pipelineDeployments = GetDeployments("completedDeployments.json");
+            _deploymentRepository.Setup(r => r.Get(org, app, It.IsAny<DocumentQueryModel>()))
+                .ReturnsAsync(pipelineDeployments);
 
             DeploymentService deploymentService = new(
                 GetAzureDevOpsSettings(),
@@ -137,48 +124,16 @@ namespace Designer.Tests.Services
                 _deploymentRepository.Object,
                 _releaseRepository.Object,
                 _environementsService.Object,
-                _kubernetesWrapperClient.Object,
                 _applicationInformationService.Object,
                 _deploymentLogger.Object);
 
             // Act
             SearchResults<DeploymentEntity> results =
-                await deploymentService.GetAsync("ttd", "issue-6094", new DocumentQueryModel());
+                await deploymentService.GetAsync(org, app, new DocumentQueryModel());
 
             // Assert
             Assert.Equal(8, results.Results.Count());
-            Assert.Equal(4, results.Results.Count(x => x.DeployedInEnv));
-            //Assert.True(results.Results.ToArray()[0].Reachable);
-            _deploymentRepository.Verify(r => r.Get("ttd", "issue-6094", It.IsAny<DocumentQueryModel>()), Times.Once);
-        }
-
-        [Fact]
-        public async Task GetAsync_DeploymentNotReachable()
-        {
-            // Arrange
-            _deploymentRepository.Setup(r => r.Get("ttd", "issue-6094", It.IsAny<DocumentQueryModel>()))
-                .ReturnsAsync(GetDeployments("completedDeployments.json"));
-
-
-            DeploymentService deploymentService = new(
-                GetAzureDevOpsSettings(),
-                _azureDevOpsBuildClient.Object,
-                _httpContextAccessor.Object,
-                _deploymentRepository.Object,
-                _releaseRepository.Object,
-                _environementsService.Object,
-                _kubernetesWrapperClient.Object,
-                _applicationInformationService.Object,
-                _deploymentLogger.Object);
-
-            // Act
-            SearchResults<DeploymentEntity> results =
-                await deploymentService.GetAsync("ttd", "issue-6094", new DocumentQueryModel());
-
-            // Assert
-            Assert.Equal(8, results.Results.Count());
-            Assert.False(results.Results.ToArray()[0].DeployedInEnv);
-            _deploymentRepository.Verify(r => r.Get("ttd", "issue-6094", It.IsAny<DocumentQueryModel>()), Times.Once);
+            _deploymentRepository.Verify(r => r.Get(org, app, It.IsAny<DocumentQueryModel>()), Times.Once);
         }
 
         [Fact]
@@ -199,7 +154,6 @@ namespace Designer.Tests.Services
                 _deploymentRepository.Object,
                 _releaseRepository.Object,
                 _environementsService.Object,
-                _kubernetesWrapperClient.Object,
                 _applicationInformationService.Object,
                 _deploymentLogger.Object);
 

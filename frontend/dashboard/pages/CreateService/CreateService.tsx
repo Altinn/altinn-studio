@@ -16,8 +16,7 @@ import type { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useCreateAppFormValidation } from './hooks/useCreateAppFormValidation';
 import { navigateToAppDevelopment } from './utils/navigationUtils';
-
-const DASHBOARD_ROOT_ROUTE: string = '/';
+import { DASHBOARD_ROOT_ROUTE } from 'app-shared/constants';
 
 const initialFormError: CreateAppForm = {
   org: '',
@@ -51,7 +50,9 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
   });
 
   const defaultSelectedOrgOrUser: string =
-    selectedContext === SelectedContextType.Self ? user.login : selectedContext;
+    selectedContext === SelectedContextType.Self || selectedContext === SelectedContextType.All
+      ? user.login
+      : selectedContext;
   const createAppRepo = async (createAppForm: CreateAppForm) => {
     addRepoMutation(
       {
@@ -144,7 +145,11 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
             <StudioButton type='submit' color='first' size='small'>
               {t('dashboard.create_service_btn')}
             </StudioButton>
-            <Link to={DASHBOARD_ROOT_ROUTE}>{t('general.cancel')}</Link>
+            <Link
+              to={`${DASHBOARD_ROOT_ROUTE}${selectedContext === SelectedContextType.Self ? '' : selectedContext}`}
+            >
+              {t('general.cancel')}
+            </Link>
           </>
         )}
       </div>

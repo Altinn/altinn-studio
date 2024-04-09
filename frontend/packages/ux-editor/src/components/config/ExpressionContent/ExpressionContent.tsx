@@ -5,12 +5,11 @@ import type { Expression, DataLookupOptions } from '@studio/components';
 import { DataLookupFuncName, StudioDeleteButton } from '@studio/components';
 import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from '../../../hooks/useAppContext';
 import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
 import { Paragraph } from '@digdir/design-system-react';
 import classes from './ExpressionContent.module.css';
-import { useText } from '../../../hooks';
 import { Expression as ExpressionWithTexts } from 'app-shared/components/Expression';
+import { useText, useAppContext } from '../../../hooks';
 
 export interface ExpressionContentProps {
   expression: Expression;
@@ -27,9 +26,13 @@ export const ExpressionContent = ({
 }: ExpressionContentProps) => {
   const t = useText();
   const { org, app } = useStudioUrlParams();
-  const { selectedLayoutSet } = useAppContext();
-  const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedLayoutSet);
-  const { data: datamodelMetadata } = useDatamodelMetadataQuery(org, app, selectedLayoutSet);
+  const { selectedFormLayoutSetName } = useAppContext();
+  const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
+  const { data: datamodelMetadata } = useDatamodelMetadataQuery(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
 
   const dataLookupOptions: DataLookupOptions = useMemo(
     () => ({

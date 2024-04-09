@@ -23,9 +23,15 @@ export const sortResourceListByDate = (resourceList: ResourceListItem[]): Resour
  * @returns an object that looks like this: { value: string, label: string }
  */
 export const mapAltinn2LinkServiceToSelectOption = (linkServices: Altinn2LinkService[]) => {
-  return linkServices.map((ls: Altinn2LinkService) => ({
+  const sortedServices = [...linkServices].sort((a, b) => {
+    const serviceOwnerValue = a.serviceOwnerCode.localeCompare(b.serviceOwnerCode);
+    return serviceOwnerValue === 0
+      ? a.externalServiceCode.localeCompare(b.externalServiceCode)
+      : serviceOwnerValue;
+  });
+  return sortedServices.map((ls: Altinn2LinkService) => ({
     value: JSON.stringify(ls),
-    label: `${ls.externalServiceCode}-${ls.externalServiceEditionCode}-${ls.serviceName}`,
+    label: `${ls.serviceOwnerCode}: ${ls.externalServiceCode}-${ls.externalServiceEditionCode}-${ls.serviceName}`,
   }));
 };
 

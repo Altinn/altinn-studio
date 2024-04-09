@@ -1,26 +1,19 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import type { RenderOptions } from '@testing-library/react';
-import configureStore from 'redux-mock-store';
-import type { IAppState } from '../types/global';
-import { Provider } from 'react-redux';
-import type { PreloadedState } from '@reduxjs/toolkit';
 import { render, renderHook } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { ILayoutSettings } from 'app-shared/types/global';
-import { BrowserRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewConnectionContext';
 import { layout1NameMock, layout2NameMock } from './layoutMock';
-import { appStateMock } from './stateMocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { QueryClient } from '@tanstack/react-query';
 import type { AppContextProps } from '../AppContext';
 import { AppContext } from '../AppContext';
 import { appContextMock } from './appContextMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import type { AppStore, RootState } from '../store';
-import { setupStore } from '../store';
 
 export const formLayoutSettingsMock: ILayoutSettings = {
   pages: {
@@ -34,120 +27,67 @@ export const textLanguagesMock = ['nb', 'nn', 'en'];
 export const optionListIdsMock: string[] = ['test-1', 'test-2'];
 
 type WrapperArgs = {
-  appContextProps: Partial<AppContextProps>;
   queries: Partial<ServicesContextProps>;
   queryClient: QueryClient;
-  state: Partial<IAppState>;
-  storeCreator: ReturnType<typeof configureStore>;
+  appContextProps: Partial<AppContextProps>;
 };
 
 const wrapper = ({
-  appContextProps = {},
   queries = {},
   queryClient = queryClientMock,
-  state = {},
-  storeCreator,
+  appContextProps = {},
 }: WrapperArgs) => {
-  const store = storeCreator({ ...appStateMock, ...state });
   const renderComponent = (component: ReactNode) => (
-    <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
-      <PreviewConnectionContextProvider>
-        <Provider store={store}>
+    <MemoryRouter>
+      <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
+        <PreviewConnectionContextProvider>
           <AppContext.Provider value={{ ...appContextMock, ...appContextProps }}>
-            <BrowserRouter>{component}</BrowserRouter>
+            {component}
           </AppContext.Provider>
-        </Provider>
-      </PreviewConnectionContextProvider>
-    </ServicesContextProvider>
+        </PreviewConnectionContextProvider>
+      </ServicesContextProvider>
+    </MemoryRouter>
   );
-  return { store, renderComponent };
+  return renderComponent;
 };
 
-/**
- *
- * @deprecated Use renderWithProviders instead
- */
-export const renderWithMockStore =
-  (
-    state: Partial<IAppState> = {},
-    queries: Partial<ServicesContextProps> = {},
-    queryClient: QueryClient = queryClientMock,
-    appContextProps: Partial<AppContextProps> = {},
-  ) =>
-  (component: ReactNode) => {
-    const storeCreator = configureStore();
-    const { renderComponent, store } = wrapper({
-      appContextProps,
-      queries,
-      queryClient,
-      state,
-      storeCreator,
-    });
-    const renderResult = render(renderComponent(component));
-    const rerender = (rerenderedComponent) =>
-      renderResult.rerender(renderComponent(rerenderedComponent));
-    return { renderResult: { ...renderResult, rerender }, store };
-  };
-
-export const renderHookWithMockStore =
-  (
-    state: Partial<IAppState> = {},
-    queries: Partial<ServicesContextProps> = {},
-    queryClient: QueryClient = queryClientMock,
-    appContextProps: Partial<AppContextProps> = {},
-  ) =>
-  (hook: () => any) => {
-    const storeCreator = configureStore();
-    const { renderComponent, store } = wrapper({
-      appContextProps,
-      queries,
-      queryClient,
-      state,
-      storeCreator,
-    });
-    const renderHookResult = renderHook(hook, {
-      wrapper: ({ children }) => renderComponent(children),
-    });
-    return { renderHookResult, store };
-  };
-
-interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
-  preloadedState?: PreloadedState<RootState>;
-  store?: AppStore;
+export interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   queries?: Partial<ServicesContextProps>;
   queryClient?: QueryClient;
   appContextProps?: Partial<AppContextProps>;
 }
 
+export const renderHookWithProviders = (
+  hook: () => any,
+  { queries = {}, queryClient = queryClientMock, appContextProps = {} }: ExtendedRenderOptions = {},
+) => {
+  return renderHook(hook, {
+    wrapper: ({ children }) =>
+      wrapper({
+        queries,
+        queryClient,
+        appContextProps,
+      })(children),
+  });
+};
+
 export const renderWithProviders = (
   component: ReactNode,
   {
-    preloadedState = {},
     queries = {},
     queryClient = queryClientMock,
-    store = setupStore(preloadedState),
     appContextProps = {},
     ...renderOptions
   }: Partial<ExtendedRenderOptions> = {},
 ) => {
-  function Wrapper({ children }: React.PropsWithChildren<unknown>) {
-    return (
-      <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
-        <PreviewConnectionContextProvider>
-          <Provider store={store}>
-            <AppContext.Provider value={{ ...appContextMock, ...appContextProps }}>
-              <BrowserRouter>{children}</BrowserRouter>
-            </AppContext.Provider>
-          </Provider>
-        </PreviewConnectionContextProvider>
-      </ServicesContextProvider>
-    );
-  }
-
   return {
-    store,
     ...render(component, {
-      wrapper: Wrapper,
+      wrapper: ({ children }) =>
+        wrapper({
+          queries,
+          queryClient,
+          appContextProps,
+        })(children),
       ...renderOptions,
     }),
   };

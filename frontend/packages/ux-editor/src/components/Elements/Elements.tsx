@@ -1,24 +1,22 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
 import { Heading, Paragraph } from '@digdir/design-system-react';
-import { useText } from '../../hooks';
-import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
+import { useText, useAppContext } from '../../hooks';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
 
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import classes from './Elements.module.css';
-import { useAppContext } from '../../hooks/useAppContext';
+
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 
 export const Elements = () => {
   const { org, app } = useStudioUrlParams();
-  const selectedLayout: string = useSelector(selectedLayoutNameSelector);
-  const { selectedLayoutSet } = useAppContext();
+  const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
   const existingCustomReceiptName: string | undefined = useCustomReceiptLayoutSetName(org, app);
 
-  const hideComponents = selectedLayout === 'default' || selectedLayout === undefined;
+  const hideComponents =
+    selectedFormLayoutName === 'default' || selectedFormLayoutName === undefined;
 
   const t = useText();
 
@@ -32,7 +30,7 @@ export const Elements = () => {
         <Paragraph className={classes.noPageSelected} size='small'>
           {t('left_menu.no_components_selected')}
         </Paragraph>
-      ) : existingCustomReceiptName === selectedLayoutSet ? (
+      ) : existingCustomReceiptName === selectedFormLayoutSetName ? (
         <ConfPageToolbar />
       ) : (
         <DefaultToolbar />

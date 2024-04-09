@@ -4,8 +4,10 @@ import {
   getMissingInputLanguageString,
   mapLanguageKeyToLanguageText,
   deepCompare,
+  getEnvLabel,
+  mapKeywordStringToKeywordTypeArray,
 } from './';
-import { mapKeywordStringToKeywordTypeArray } from './resourceUtils';
+import type { EnvId } from './resourceUtils';
 import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { TestFlaskIcon } from '@studio/icons';
 import React from 'react';
@@ -191,5 +193,17 @@ describe('deepCompare', () => {
   it('should return false when comparing empty object with empty array', () => {
     const areEqual = deepCompare([], {});
     expect(areEqual).toBeFalsy();
+  });
+
+  describe('getEnvLabel', () => {
+    it('should return label for selected environment when environment exists', () => {
+      const envLabel = getEnvLabel('tt02');
+      expect(envLabel).toEqual('resourceadm.deploy_test_env');
+    });
+
+    it('should return empty label for selected environment when environment with given id does not exist', () => {
+      const envLabel = getEnvLabel('mu01' as EnvId);
+      expect(envLabel).toEqual('');
+    });
   });
 });

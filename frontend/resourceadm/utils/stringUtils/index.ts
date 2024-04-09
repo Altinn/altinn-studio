@@ -1,1 +1,1 @@
-export { formatIdString, isAppPrefix, isSePrefix } from './stringUtils';
+export { formatIdString, isAppPrefix, isSePrefix, stringNumberToAriaLabel } from './stringUtils';

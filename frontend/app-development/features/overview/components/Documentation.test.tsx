@@ -18,7 +18,6 @@ describe('Documentation', () => {
     expect(
       screen.getByRole('heading', { name: textMock('overview.documentation.title') }),
     ).toBeInTheDocument();
-    expect(screen.getByText(textMock('overview.documentation.content'))).toBeInTheDocument();
     expect(
       screen.getByRole('link', { name: textMock('overview.documentation.link') }),
     ).toBeInTheDocument();

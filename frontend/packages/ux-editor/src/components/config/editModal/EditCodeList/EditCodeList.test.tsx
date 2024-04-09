@@ -3,8 +3,8 @@ import { EditCodeList } from './EditCodeList';
 import { screen, waitFor, act } from '@testing-library/react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import {
-  renderWithMockStore,
-  renderHookWithMockStore,
+  renderWithProviders,
+  renderHookWithProviders,
   optionListIdsMock,
 } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
@@ -67,8 +67,7 @@ describe('EditCodeList', () => {
 });
 
 const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
-    .renderHookResult.result;
+  const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
@@ -79,10 +78,7 @@ const render = async ({
 } = {}) => {
   await waitForData();
 
-  renderWithMockStore(
-    {},
-    queries,
-  )(
+  renderWithProviders(
     <EditCodeList
       handleComponentChange={handleComponentChange}
       component={{
@@ -97,5 +93,8 @@ const render = async ({
         ...componentProps,
       }}
     />,
+    {
+      queries,
+    },
   );
 };

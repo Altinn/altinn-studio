@@ -19,6 +19,7 @@ export const resourceTypeMap: Record<ResourceTypeOption, string> = {
   GenericAccessResource: 'resourceadm.about_resource_resource_type_generic_access_resource',
   Systemresource: 'resourceadm.about_resource_resource_type_system_resource',
   MaskinportenSchema: 'resourceadm.about_resource_resource_type_maskinporten',
+  BrokerService: 'resourceadm.about_resource_resource_type_brokerservice',
 };
 
 /**
@@ -49,34 +50,39 @@ export type Environment = {
   label: string;
   envType: EnvType;
 };
+
+const environments: Record<EnvId, Environment> = {
+  ['at22']: {
+    id: 'at22' as EnvId,
+    label: 'resourceadm.deploy_at22_env',
+    envType: 'test' as EnvType,
+  },
+  ['at23']: {
+    id: 'at23' as EnvId,
+    label: 'resourceadm.deploy_at23_env',
+    envType: 'test' as EnvType,
+  },
+  ['tt02']: {
+    id: 'tt02' as EnvId,
+    label: 'resourceadm.deploy_test_env',
+    envType: 'test' as EnvType,
+  },
+  ['prod']: {
+    id: 'prod' as EnvId,
+    label: 'resourceadm.deploy_prod_env',
+    envType: 'prod' as EnvType,
+  },
+};
+
 export const getAvailableEnvironments = (org: string): Environment[] => {
-  const availableEnvs = [
-    {
-      id: 'tt02' as EnvId,
-      label: 'resourceadm.deploy_test_env',
-      envType: 'test' as EnvType,
-    },
-    {
-      id: 'prod' as EnvId,
-      label: 'resourceadm.deploy_prod_env',
-      envType: 'prod' as EnvType,
-    },
-  ];
+  const availableEnvs = [environments['tt02'], environments['prod']];
   if (org === 'ttd') {
-    availableEnvs.push(
-      {
-        id: 'at22' as EnvId,
-        label: 'resourceadm.deploy_at22_env',
-        envType: 'test' as EnvType,
-      },
-      {
-        id: 'at23' as EnvId,
-        label: 'resourceadm.deploy_at23_env',
-        envType: 'test' as EnvType,
-      },
-    );
+    availableEnvs.push(environments['at22'], environments['at23']);
   }
   return availableEnvs;
+};
+export const getEnvLabel = (env: EnvId): string => {
+  return environments[env]?.label || '';
 };
 
 /**

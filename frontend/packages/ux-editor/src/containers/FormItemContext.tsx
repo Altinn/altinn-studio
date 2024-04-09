@@ -7,16 +7,14 @@ import React, {
   useEffect,
   useContext,
 } from 'react';
-import { useSelector } from 'react-redux';
 import type { FormContainer } from '../types/FormContainer';
 import type { FormComponent } from '../types/FormComponent';
 import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
 import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateFormComponentMutation';
-import { selectedLayoutNameSelector } from '../selectors/formLayoutSelectors';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { LayoutItemType } from '../types/global';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from '../hooks/useAppContext';
+import { useAppContext } from '../hooks';
 
 export type FormItemContext = {
   formItemId: string;
@@ -54,10 +52,9 @@ export const FormItemContextProvider = ({
   children,
 }: FormItemContextProviderProps): React.JSX.Element => {
   const { org, app } = useStudioUrlParams();
-  const { selectedLayoutSet } = useAppContext();
-  const selectedLayoutName = useSelector(selectedLayoutNameSelector);
-  const prevSelectedLayoutSetNameRef = useRef(selectedLayoutSet);
-  const prevSelectedLayoutNameRef = useRef(selectedLayoutName);
+  const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
+  const prevSelectedFormLayoutSetNameRef = useRef(selectedFormLayoutSetName);
+  const prevSelectedFormLayoutNameRef = useRef(selectedFormLayoutName);
 
   const autoSaveTimeoutRef = useRef(undefined);
 
@@ -69,14 +66,14 @@ export const FormItemContextProvider = ({
   const { mutateAsync: updateFormContainer } = useUpdateFormContainerMutation(
     org,
     app,
-    prevSelectedLayoutNameRef.current,
-    selectedLayoutSet,
+    prevSelectedFormLayoutNameRef.current,
+    selectedFormLayoutSetName,
   );
   const { mutateAsync: updateFormComponent } = useUpdateFormComponentMutation(
     org,
     app,
-    prevSelectedLayoutNameRef.current,
-    selectedLayoutSet,
+    prevSelectedFormLayoutNameRef.current,
+    selectedFormLayoutSetName,
   );
 
   useEffect(() => {
@@ -150,18 +147,18 @@ export const FormItemContextProvider = ({
   useEffect(() => {
     const autoSaveOnLayoutChange = async () => {
       if (
-        prevSelectedLayoutSetNameRef.current === selectedLayoutSet &&
-        prevSelectedLayoutNameRef.current === selectedLayoutName
+        prevSelectedFormLayoutSetNameRef.current === selectedFormLayoutSetName &&
+        prevSelectedFormLayoutNameRef.current === selectedFormLayoutName
       )
         return;
       await handleSave();
       handleDiscard();
-      prevSelectedLayoutSetNameRef.current = selectedLayoutName;
-      prevSelectedLayoutNameRef.current = selectedLayoutName;
+      prevSelectedFormLayoutSetNameRef.current = selectedFormLayoutName;
+      prevSelectedFormLayoutNameRef.current = selectedFormLayoutName;
     };
 
     autoSaveOnLayoutChange();
-  }, [handleDiscard, handleSave, selectedLayoutSet, selectedLayoutName]);
+  }, [handleDiscard, handleSave, selectedFormLayoutSetName, selectedFormLayoutName]);
 
   const value = useMemo(
     () => ({

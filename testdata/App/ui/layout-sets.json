@@ -1,4 +1,5 @@
 {
+  "$schema": "",
   "sets": [{
     "id": "message",
     "dataType": "message",

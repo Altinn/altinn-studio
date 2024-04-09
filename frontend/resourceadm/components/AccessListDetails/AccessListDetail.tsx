@@ -84,7 +84,7 @@ export const AccessListDetail = ({
         label={t('resourceadm.listadmin_list_id')}
         description={t('resourceadm.listadmin_list_id_description')}
       >
-        <Textfield value={list.identifier} disabled />
+        <Textfield value={list.identifier} readOnly />
       </FieldWrapper>
       <FieldWrapper
         fieldId='listname'

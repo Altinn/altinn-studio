@@ -6,7 +6,7 @@ import { textMock } from '../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import type { QueryClient } from '@tanstack/react-query';
-import type { Environment } from '../../utils/resourceUtils/resourceUtils';
+import type { Environment } from '../../utils/resourceUtils';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -40,7 +40,11 @@ describe('ResourceDeployEnvCard', () => {
     await act(() => user.click(deployButton));
     await waitFor(() => {
       expect(
-        screen.getByText(textMock('resourceadm.resource_published_success')),
+        screen.getByText(
+          textMock('resourceadm.resource_published_success', {
+            envName: textMock(mockTestEnv.label),
+          }),
+        ),
       ).toBeInTheDocument();
     });
   });
@@ -89,11 +93,39 @@ describe('ResourceDeployEnvCard', () => {
     await act(() => user.click(deployButton));
     expect(queriesMock.publishResource).toHaveBeenCalledTimes(1);
   });
+
+  it('should show error if publish fails with error 403', async () => {
+    const user = userEvent.setup();
+    renderResourceDeployEnvCard(
+      {},
+      {
+        publishResource: jest
+          .fn()
+          .mockImplementation(() => Promise.reject({ response: { status: 403 } })),
+      },
+    );
+
+    const deployButton = screen.getByRole('button', {
+      name: textMock('resourceadm.deploy_card_publish', { env: textMock(mockTestEnv.label) }),
+    });
+
+    await act(() => user.click(deployButton));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          textMock('resourceadm.resource_publish_no_access', {
+            envName: textMock(mockTestEnv.label),
+          }),
+        ),
+      ).toBeInTheDocument();
+    });
+  });
 });
 
 const renderResourceDeployEnvCard = (
   props: Partial<ResourceDeployEnvCardProps> = {},
-  queries: Partial<ResourceDeployEnvCardProps> = {},
+  queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
   const allQueries: ServicesContextProps = {

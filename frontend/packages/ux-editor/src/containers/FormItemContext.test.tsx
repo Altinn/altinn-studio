@@ -7,7 +7,7 @@ import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateForm
 import type { UpdateFormComponentMutationArgs } from '../hooks/mutations/useUpdateFormComponentMutation';
 import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateFormComponentMutation';
 import type { UseMutationResult } from '@tanstack/react-query';
-import { renderWithMockStore } from '../testing/mocks';
+import { renderWithProviders } from '../testing/mocks';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormContainer } from '../types/FormContainer';
@@ -44,7 +44,7 @@ mockUseUpdateFormComponentMutation.mockReturnValue({
 >);
 
 const render = (ChildComponent: React.ElementType) => {
-  return renderWithMockStore()(
+  return renderWithProviders(
     <FormItemContextProvider>
       <ChildComponent />
     </FormItemContextProvider>,

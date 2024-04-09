@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { GridSortModel } from '@mui/x-data-grid';
 import { useSearchReposQuery } from '../queries';
 import type { SearchRepositoryResponse } from 'app-shared/types/api/SearchRepositoryResponse';
-import { useSearchParamsState } from '../useSearchParamsState';
+import { useSearchParamsState } from '../../../packages/shared/src/hooks/useSearchParamsState';
 import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import { DATAGRID_PAGE_SIZE_OPTIONS, DATAGRID_DEFAULT_PAGE_SIZE } from '../../constants';
 

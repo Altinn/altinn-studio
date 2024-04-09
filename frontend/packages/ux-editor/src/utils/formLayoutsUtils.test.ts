@@ -263,13 +263,11 @@ describe('formLayoutsUtils', () => {
 
   describe('convertExternalLayoutsToInternalFormat', () => {
     it('Converts external layouts to internal format', () => {
-      const { convertedLayouts, invalidLayouts } =
-        convertExternalLayoutsToInternalFormat(externalLayoutsMock);
+      const convertedLayouts = convertExternalLayoutsToInternalFormat(externalLayoutsMock);
       expect(convertedLayouts).toEqual({
         [layout1NameMock]: expect.any(Object),
         [layout2NameMock]: expect.any(Object),
       });
-      expect(invalidLayouts).toEqual([]);
     });
   });
 

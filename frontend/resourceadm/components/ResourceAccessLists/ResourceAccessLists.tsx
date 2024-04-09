@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Alert, Checkbox, Heading, Link as DigdirLink, Button } from '@digdir/design-system-react';
+import type { AxiosError } from 'axios';
+import { Checkbox, Heading, Link as DigdirLink, Button } from '@digdir/design-system-react';
 import classes from './ResourceAccessLists.module.css';
 import { StudioSpinner, StudioButton } from '@studio/components';
 import { PencilWritingIcon, PlusIcon } from '@studio/icons';
@@ -12,9 +13,11 @@ import { getResourcePageURL } from '../../utils/urlUtils';
 import { NewAccessListModal } from '../NewAccessListModal';
 import type { Resource } from 'app-shared/types/ResourceAdm';
 import { useUrlParams } from '../../hooks/useSelectedContext';
+import type { EnvId } from '../../utils/resourceUtils';
+import { AccessListErrorMessage } from '../AccessListErrorMessage';
 
 export interface ResourceAccessListsProps {
-  env: string;
+  env: EnvId;
   resourceData: Resource;
 }
 
@@ -74,7 +77,7 @@ export const ResourceAccessLists = ({
   }
 
   if (accessListsError) {
-    return <Alert severity='danger'>{t('resourceadm.listadmin_load_list_error')}</Alert>;
+    return <AccessListErrorMessage error={accessListsError as AxiosError} env={env} />;
   }
 
   return (

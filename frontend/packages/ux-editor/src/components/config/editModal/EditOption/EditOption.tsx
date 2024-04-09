@@ -54,10 +54,8 @@ type OpenOptionProps = EditOptionProps & { onClose: () => void };
 const OpenOption = ({ legend, onChange, option, onDelete, onClose }: OpenOptionProps) => {
   const { t } = useTranslation();
 
-  const handleValueChange = (event: React.FocusEvent<HTMLInputElement>) => {
-    const updatedValue = event.target.value;
-    onChange(setValue(option, updatedValue));
-  };
+  const handleValueChange = (event: React.ChangeEvent<HTMLInputElement>) =>
+    onChange(setValue(option, event.target.value));
 
   const handleLabelChange = (textResourceId: string) => onChange(setLabel(option, textResourceId));
 
@@ -78,7 +76,7 @@ const OpenOption = ({ legend, onChange, option, onDelete, onClose }: OpenOptionP
       <StudioTextfield
         className={classes.valueField}
         label={t('general.value')}
-        onBlur={handleValueChange}
+        onChange={handleValueChange}
         placeholder={t('general.value')}
         value={option.value.toString()}
       />

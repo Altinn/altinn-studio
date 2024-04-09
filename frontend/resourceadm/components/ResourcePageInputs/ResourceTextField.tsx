@@ -44,6 +44,10 @@ type ResourceTextFieldProps = {
    * Whether this field is required or not
    */
   required?: boolean;
+  /**
+   * Whether this field is read only or not
+   */
+  readOnly?: boolean;
 };
 
 /**
@@ -59,6 +63,7 @@ type ResourceTextFieldProps = {
  * @property {boolean}[showErrorMessage] - Flag for if the error message should be shown
  * @property {string}[errorText] - The text to be shown
  * @property {boolean}[required] - Whether this field is required or not
+ * @property {boolean}[readOnly] - Whether this field is read only or not
  *
  * @returns {React.JSX.Element} - The rendered component
  */
@@ -74,6 +79,7 @@ export const ResourceTextField = forwardRef<HTMLInputElement, ResourceTextFieldP
       showErrorMessage = false,
       errorText,
       required,
+      readOnly,
     },
     ref,
   ): React.JSX.Element => {
@@ -94,6 +100,7 @@ export const ResourceTextField = forwardRef<HTMLInputElement, ResourceTextFieldP
           ref={ref}
           onBlur={() => onBlur(val)}
           required={required}
+          readOnly={readOnly}
         />
         {showErrorMessage && <InputFieldErrorMessage message={errorText} />}
       </div>

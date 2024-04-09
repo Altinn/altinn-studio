@@ -28,6 +28,7 @@ import {
 } from '@studio/icons';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
 import { createNavigationTab, deepCompare } from '../../utils/resourceUtils';
+import type { EnvId } from '../../utils/resourceUtils';
 import { ResourceAccessLists } from '../../components/ResourceAccessLists';
 import { AccessListDetail } from '../../components/AccessListDetails';
 import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery';
@@ -285,7 +286,7 @@ export const ResourcePage = (): React.JSX.Element => {
               onSaveVersion={(version: string) =>
                 handleSaveResource({
                   ...resourceData,
-                  version,
+                  version: version?.trim(), // empty version is not allowed
                 })
               }
               id='page-content-deploy'
@@ -298,7 +299,7 @@ export const ResourcePage = (): React.JSX.Element => {
             />
           )}
           {currentPage === accessListsPageId && env && !accessListId && (
-            <ResourceAccessLists env={env} resourceData={resourceData} />
+            <ResourceAccessLists env={env as EnvId} resourceData={resourceData} />
           )}
           {currentPage === accessListsPageId && env && accessList && (
             <AccessListDetail

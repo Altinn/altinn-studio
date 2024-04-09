@@ -9,6 +9,7 @@ import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 import { BpmnConfigPanelFormContextProvider } from '../../contexts/BpmnConfigPanelContext';
 import type Modeler from 'bpmn-js/lib/Modeler';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { BpmnApiContextProvider } from '../../contexts/BpmnApiContext';
 
 jest.mock('app-shared/utils/featureToggleUtils', () => ({
   shouldDisplayFeature: jest.fn().mockReturnValue(false),
@@ -69,7 +70,6 @@ describe('ConfigPanel', () => {
   it('should display the details about the end event when bpmnDetails.type is "EndEvent" and customizeEndEvent feature flag is enabled', () => {
     (shouldDisplayFeature as jest.Mock).mockReturnValue(true);
     renderConfigPanel({ bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.EndEvent } });
-
     expect(
       screen.getByText(textMock('process_editor.configuration_panel_end_event')),
     ).toBeInTheDocument();
@@ -104,9 +104,16 @@ describe('ConfigPanel', () => {
 const renderConfigPanel = (rootContextProps: Partial<BpmnContextProps> = {}) => {
   return render(
     <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
-      <BpmnConfigPanelFormContextProvider>
-        <ConfigPanel existingCustomReceiptName={undefined} onUpdateLayoutSet={jest.fn()} />
-      </BpmnConfigPanelFormContextProvider>
+      <BpmnApiContextProvider
+        layoutSets={{ sets: [] }}
+        existingCustomReceiptLayoutSetName={undefined}
+        addLayoutSet={jest.fn()}
+        mutateLayoutSet={jest.fn()}
+      >
+        <BpmnConfigPanelFormContextProvider>
+          <ConfigPanel />
+        </BpmnConfigPanelFormContextProvider>
+      </BpmnApiContextProvider>
     </BpmnContext.Provider>,
   );
 };

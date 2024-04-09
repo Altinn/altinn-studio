@@ -13,12 +13,13 @@ import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 const mockAltinn2LinkService: Altinn2LinkService = {
+  serviceOwnerCode: 'ttd',
   externalServiceCode: 'code1',
   externalServiceEditionCode: 'edition1',
   serviceName: 'TestService',
 };
 const mockAltinn2LinkServices: Altinn2LinkService[] = [mockAltinn2LinkService];
-const mockOption: string = `${mockAltinn2LinkService.externalServiceCode}-${mockAltinn2LinkService.externalServiceEditionCode}-${mockAltinn2LinkService.serviceName}`;
+const mockOption: string = `${mockAltinn2LinkService.serviceOwnerCode}: ${mockAltinn2LinkService.externalServiceCode}-${mockAltinn2LinkService.externalServiceEditionCode}-${mockAltinn2LinkService.serviceName}`;
 
 const mockOnClose = jest.fn();
 const getAltinn2LinkServices = jest

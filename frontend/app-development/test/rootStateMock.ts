@@ -1,13 +1,7 @@
-import { mockDeployments } from './appDeploymentsMock';
 import type { RootState } from '../store';
-import { applicationMetadataMock } from './applicationMetadataMock';
 import { repository } from 'app-shared/mocks/mocks';
 
 export const rootStateMock: RootState = {
-  applicationMetadataState: {
-    applicationMetadata: applicationMetadataMock,
-    error: null,
-  },
   serviceInformation: {
     repositoryInfo: repository,
     error: null,
@@ -24,11 +18,6 @@ export const rootStateMock: RootState = {
       serviceId: 'mockId',
       saving: false,
     },
-  },
-  appDeployments: {
-    deployments: mockDeployments,
-    createAppDeploymentErrors: [],
-    getAppDeploymentsError: null,
   },
   userState: {
     session: {

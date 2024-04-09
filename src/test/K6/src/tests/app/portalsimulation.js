@@ -52,7 +52,7 @@ export default function (data) {
   res = altinnCdn.getToolkits();
   for (var i = 0; i < res.length; i++) {
     success = check(res[i], {
-      'Altinn CDN Toolkits': (r) => r.status === 200,
+      'Altinn CDN Toolkits': (r) => r.status === 200 || r.status === 304,
     });
     addErrorCount(success);
   }
@@ -60,7 +60,7 @@ export default function (data) {
   res = altinnCdn.getFonts();
   for (var i = 0; i < res.length; i++) {
     success = check(res[i], {
-      'Altinn CDN Fonts': (r) => r.status === 200,
+      'Altinn CDN Fonts': (r) => r.status === 200 || r.status === 304,
     });
     addErrorCount(success);
   }
@@ -68,7 +68,7 @@ export default function (data) {
   res = altinnCdn.getImg();
   for (var i = 0; i < res.length; i++) {
     success = check(res[i], {
-      'Altinn CDN Images': (r) => r.status === 200,
+      'Altinn CDN Images': (r) => r.status === 200 || r.status === 304,
     });
     addErrorCount(success);
   }
