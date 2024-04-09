@@ -5,18 +5,18 @@ import type { StudioButtonProps } from '../StudioButton';
 import { StudioButton } from '../StudioButton';
 import { StudioDropdownMenuContext } from './StudioDropdownMenuContext';
 
-export interface StudioDropdownMenuProps
-  extends Omit<DropdownMenuProps, 'anchorEl' | 'open' | 'onClose'> {
+export interface StudioDropdownMenuProps extends Omit<DropdownMenuProps, 'anchorEl' | 'onClose'> {
   anchorButtonProps?: StudioButtonProps;
 }
 
 export const StudioDropdownMenu = ({
   anchorButtonProps,
   children,
+  open: isControlledOpen,
   ...rest
 }: StudioDropdownMenuProps) => {
   const anchorRef = useRef<HTMLButtonElement>(null);
-  const [open, setOpen] = useState<boolean>(false);
+  const [open, setOpen] = useState<boolean>(isControlledOpen || false);
 
   return (
     <DropdownMenu open={open} onClose={() => setOpen(false)}>

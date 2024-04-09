@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DropdownMenu } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon, ArrowUpIcon, ArrowDownIcon } from '@navikt/aksel-icons';
@@ -41,10 +41,13 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
 
   const [searchParams, setSearchParams] = useSearchParams();
 
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
   const moveLayout = (action: 'up' | 'down') => {
     if (action === 'up' || action === 'down') {
       updateLayoutOrder({ layoutName: pageName, direction: action });
     }
+    setDropdownOpen(false);
   };
 
   const handleSaveNewName = (newName: string) => {
@@ -54,6 +57,7 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
 
   return (
     <StudioDropdownMenu
+      open={dropdownOpen}
       portal
       size='small'
       anchorButtonProps={{
