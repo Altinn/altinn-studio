@@ -8,7 +8,7 @@ import { LocalChangesModal } from '../../components/LocalChangesModal';
 import { UiEditorPage } from '../../pages/UiEditorPage';
 import { GiteaPage } from '../../pages/GiteaPage';
 import { Gitea } from '../../helpers/Gitea';
-import { ComponentType } from 'testing/playwright/enum/ComponentType';
+import { ComponentType } from '../../enum/ComponentType';
 
 // Before the tests starts, we need to create the data model app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
