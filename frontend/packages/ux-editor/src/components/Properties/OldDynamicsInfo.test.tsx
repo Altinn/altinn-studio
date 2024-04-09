@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-import { renderWithMockStore } from '../../testing/mocks';
+import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { OldDynamicsInfo } from './OldDynamicsInfo';
 import type { AppContextProps } from '../../AppContext';
@@ -20,19 +20,19 @@ describe('OldDynamicsInfo', () => {
     const editLink = screen.getByText(textMock('right_menu.dynamics_edit'));
     expect(editLink).toHaveAttribute(
       'href',
-      expect.stringContaining(appContextMock.selectedLayoutSet),
+      expect.stringContaining(appContextMock.selectedFormLayoutSetName),
     );
   });
 
   it('should have simple url to edit file in gitea when app does not have layout sets', async () => {
-    await render({ selectedLayoutSet: null });
+    await render({ selectedFormLayoutSetName: null });
     const editLink = screen.getByText(textMock('right_menu.dynamics_edit'));
     expect(editLink).toHaveAttribute('href', expect.stringContaining('App/ui/RuleHandler.js'));
   });
 });
 
 const render = async (props: Partial<AppContextProps> = {}) => {
-  return renderWithMockStore({})(
+  return renderWithProviders(
     <AppContext.Provider
       value={{
         ...appContextMock,

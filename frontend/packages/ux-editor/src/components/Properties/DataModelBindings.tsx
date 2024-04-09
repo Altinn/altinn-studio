@@ -1,21 +1,17 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
 import { EditDataModelBindings } from '../config/editModal/EditDataModelBindings/EditDataModelBindings';
 import { StudioProperty, StudioSpinner } from '@studio/components';
 import { Alert, Switch } from '@digdir/design-system-react';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { useFormItemContext } from '../../containers/FormItemContext';
-import { useText } from '../../hooks';
+import { useText, useSelectedFormLayout } from '../../hooks';
 import classes from './DataModelBindings.module.css';
-import { useFormLayout } from '../../hooks/useFormLayoutsSelector';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { isItemChildOfContainer } from '../../utils/formLayoutUtils';
-import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import type { FormItem } from '../../types/FormItem';
 
 export const DataModelBindings = (): React.JSX.Element => {
-  const selectedLayout = useSelector(selectedLayoutNameSelector);
-  const layout = useFormLayout(selectedLayout);
+  const layout = useSelectedFormLayout();
   const { formItemId, formItem, handleUpdate, debounceSave } = useFormItemContext();
   const { data: schema } = useComponentSchemaQuery(formItem.type);
   const [multipleAttachments, setMultipleAttachments] = useState<boolean>(false);

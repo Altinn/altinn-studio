@@ -1,5 +1,5 @@
 import type { TranslationKey } from 'language/type';
-import { validateLayoutNameAndLayoutSetName } from '../../utils/validationUtils/validateLayoutNameAndLayoutSetName';
+import { validateLayoutNameAndLayoutSetName } from 'app-shared/utils/LayoutAndLayoutSetNameValidationUtils/validateLayoutNameAndLayoutSetName';
 
 /**
  * Checks if the new written page name already exists

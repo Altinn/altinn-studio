@@ -5,9 +5,8 @@ import { renderWithProviders } from '../../../testing/mocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { HiddenExpressionOnLayout } from './HiddenExpressionOnLayout';
-import { formDesignerMock } from '../../../testing/stateMocks';
 import type { IFormLayouts } from '../../../types/global';
-import { layout1NameMock, layoutMock } from '../../../testing/layoutMock';
+import { layout1NameMock, layoutMock, layoutSetsMock } from '../../../testing/layoutMock';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import type { BooleanExpression } from '@studio/components';
 import { GeneralRelationOperator } from '@studio/components';
@@ -16,8 +15,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 // Test data
 const app = 'app';
 const org = 'org';
-const selectedLayout = 'Side1';
-const layoutSet = 'test-layout-set';
+const layoutSet = layoutSetsMock.sets[0].id;
 
 const defaultLayouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
@@ -90,19 +88,5 @@ describe('HiddenExpressionOnLayout', () => {
 const renderHiddenExpressionOnLayout = (layouts = defaultLayouts) => {
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet], layouts);
   queryClientMock.setQueryData([QueryKey.DatamodelMetadata, org, app, layoutSet], []);
-  return renderWithProviders(<HiddenExpressionOnLayout />, {
-    preloadedState: {
-      formDesigner: {
-        ...formDesignerMock,
-        layout: {
-          error: null,
-          saving: false,
-          unSavedChanges: false,
-          selectedLayoutSet: 'test-layout-set',
-          selectedLayout: selectedLayout,
-          invalidLayouts: [],
-        },
-      },
-    },
-  });
+  return renderWithProviders(<HiddenExpressionOnLayout />);
 };

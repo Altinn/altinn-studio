@@ -2,7 +2,7 @@ import React from 'react';
 import { act, screen, within } from '@testing-library/react';
 
 import { EditOptions } from './EditOptions';
-import { renderWithMockStore } from '../../../testing/mocks';
+import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
@@ -15,6 +15,7 @@ const mockComponent: FormComponent<ComponentType.RadioButtons> = {
   textResourceBindings: {
     title: 'ServiceName',
   },
+  options: [],
   maxLength: 10,
   itemType: 'COMPONENT',
   dataModelBindings: { simpleBinding: '' },
@@ -24,7 +25,7 @@ const renderEditOptions = <T extends ComponentType.Checkboxes | ComponentType.Ra
   component = mockComponent as FormItem<T>,
   handleComponentChange = jest.fn(),
 }: { component?: FormItem<T>; handleComponentChange?: () => void } = {}) =>
-  renderWithMockStore()(
+  renderWithProviders(
     <EditOptions handleComponentChange={handleComponentChange} component={component} />,
   );
 
@@ -121,13 +122,16 @@ describe('EditOptions', () => {
       handleComponentChange,
       component: {
         ...mockComponent,
-        options: [{ label: 'option1', value: 'option1' }],
+        options: [],
         optionsId: undefined,
       },
     });
     const switchElement = screen.getByRole('checkbox');
     await act(() => switchElement.click());
-    expect(handleComponentChange).toHaveBeenCalledWith({ ...mockComponent, optionsId: '' });
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...mockComponent,
+      options: [],
+    });
   });
 
   it('should update component options when adding new option', async () => {

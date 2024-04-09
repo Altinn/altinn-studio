@@ -10,6 +10,7 @@ using Altinn.ResourceRegistry.Core.Models.Altinn2;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
@@ -52,6 +53,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = AltinnPolicy.MustHaveGiteaResourceAccessListPermission)]
         [Route("designer/api/{org}/resources/accesslist/")]
         public async Task<ActionResult<AccessList>> CreateAccessList(string org, string env, [FromBody] AccessList accessList)
         {
@@ -60,6 +62,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = AltinnPolicy.MustHaveGiteaResourceAccessListPermission)]
         [Route("designer/api/{org}/resources/accesslist/")]
         public async Task<ActionResult<PagedAccessListResponse>> GetAccessLists(string org, string env, int page)
         {
@@ -67,6 +70,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = AltinnPolicy.MustHaveGiteaResourceAccessListPermission)]
         [Route("designer/api/{org}/resources/accesslist/{identifier}")]
         public async Task<ActionResult<AccessList>> GetAccessList(string org, string identifier, string env)
         {
@@ -74,6 +78,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpDelete]
+        [Authorize(Policy = AltinnPolicy.MustHaveGiteaResourceAccessListPermission)]
         [Route("designer/api/{org}/resources/accesslist/{identifier}")]
         public async Task<ActionResult> DeleteAccessList(string org, string identifier, string env)
         {
@@ -82,6 +87,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpPut]
+        [Authorize(Policy = AltinnPolicy.MustHaveGiteaResourceAccessListPermission)]
         [Route("designer/api/{org}/resources/accesslist/{identifier}")]
         public async Task<ActionResult<AccessList>> UpdateAccessList(string org, string identifier, string env, [FromBody] AccessList accessList)
         {
@@ -89,6 +95,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = AltinnPolicy.MustHaveGiteaResourceAccessListPermission)]
         [Route("designer/api/{org}/resources/accesslist/{identifier}/members/{memberOrgNr}")]
         public async Task<ActionResult> AddAccessListMember(string org, string identifier, string memberOrgNr, string env)
         {
@@ -97,6 +104,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpDelete]
+        [Authorize(Policy = AltinnPolicy.MustHaveGiteaResourceAccessListPermission)]
         [Route("designer/api/{org}/resources/accesslist/{identifier}/members/{memberOrgNr}")]
         public async Task<ActionResult> RemoveAccessListMember(string org, string identifier, string memberOrgNr, string env)
         {
@@ -105,6 +113,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = AltinnPolicy.MustHaveGiteaResourceAccessListPermission)]
         [Route("designer/api/{org}/resources/{id}/accesslists/")]
         public async Task<ActionResult<PagedAccessListResponse>> GetResourceAccessLists(string org, string id, string env, int page)
         {
@@ -112,6 +121,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = AltinnPolicy.MustHaveGiteaResourceAccessListPermission)]
         [Route("designer/api/{org}/resources/{id}/accesslists/{listId}")]
         public async Task<ActionResult<ResourceAccessList>> AddResourceAccessList(string org, string id, string listId, string env)
         {
@@ -120,6 +130,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpDelete]
+        [Authorize(Policy = AltinnPolicy.MustHaveGiteaResourceAccessListPermission)]
         [Route("designer/api/{org}/resources/{id}/accesslists/{listId}")]
         public async Task<ActionResult> RemoveResourceAccessList(string org, string id, string listId, string env)
         {
@@ -458,6 +469,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = AltinnPolicy.MustHaveGiteaPublishResourcePermission)]
         [Route("designer/api/{org}/resources/publish/{repository}/{id}")]
         public async Task<ActionResult> PublishResource(string org, string repository, string id, string env)
         {

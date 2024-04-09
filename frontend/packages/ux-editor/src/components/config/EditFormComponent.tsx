@@ -2,16 +2,16 @@ import React from 'react';
 import { ComponentSpecificContent } from './componentSpecificContent';
 import { Fieldset } from '@digdir/design-system-react';
 import classes from './EditFormComponent.module.css';
-import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { StudioSpinner } from '@studio/components';
 import { FormComponentConfig } from './FormComponentConfig';
-import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';
 import type { FormItem } from '../../types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
+import { useAppContext } from '../../hooks';
+
 export interface IEditFormComponentProps<T extends ComponentType = ComponentType> {
   editFormId: string;
   component: FormItem<T>;
@@ -23,7 +23,7 @@ export const EditFormComponent = ({
   component,
   handleComponentUpdate,
 }: IEditFormComponentProps) => {
-  const selectedLayout = useSelector(selectedLayoutNameSelector);
+  const { selectedFormLayoutName } = useAppContext();
   const { t } = useTranslation();
 
   const formItemConfig = formItemConfigs[component.type];
@@ -54,7 +54,7 @@ export const EditFormComponent = ({
       <ComponentSpecificContent
         component={component}
         handleComponentChange={handleComponentUpdate}
-        layoutName={selectedLayout}
+        layoutName={selectedFormLayoutName}
       />
     </Fieldset>
   );

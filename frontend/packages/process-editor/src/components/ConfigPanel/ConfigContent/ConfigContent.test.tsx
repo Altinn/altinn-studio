@@ -55,7 +55,7 @@ describe('ConfigContent', () => {
   });
   it('should render heading for selected task', () => {
     renderConfigContent({
-      modelerRef: { current: '<div></div>' as unknown as Modeler },
+      modelerRef: { current: { get: () => {} } as unknown as Modeler },
       bpmnDetails: { ...mockBpmnDetails, taskType: 'data' as BpmnTaskType },
     });
 
@@ -68,7 +68,7 @@ describe('ConfigContent', () => {
   it('should render helpText for selected task', async () => {
     const user = userEvent.setup();
     renderConfigContent({
-      modelerRef: { current: '<div></div>' as unknown as Modeler },
+      modelerRef: { current: { get: () => {} } as unknown as Modeler },
       bpmnDetails: { ...mockBpmnDetails, taskType: 'data' as BpmnTaskType },
     });
 
@@ -82,7 +82,7 @@ describe('ConfigContent', () => {
 
   it('should render EditTaskId component', () => {
     renderConfigContent({
-      modelerRef: { current: '<div></div>' as unknown as Modeler },
+      modelerRef: { current: { get: () => {} } as unknown as Modeler },
       bpmnDetails: { ...mockBpmnDetails, taskType: 'data' as BpmnTaskType },
     });
 
@@ -95,7 +95,7 @@ describe('ConfigContent', () => {
     'should render correct header config for each taskType',
     (taskType) => {
       renderConfigContent({
-        modelerRef: { current: '<div></div>' as unknown as Modeler },
+        modelerRef: { current: { get: () => {} } as unknown as Modeler },
         bpmnDetails: { ...mockBpmnDetails, taskType: taskType as BpmnTaskType },
       });
 

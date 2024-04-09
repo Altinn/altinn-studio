@@ -17,7 +17,7 @@ import {
   mapKeywordStringToKeywordTypeArray,
   mapKeywordsArrayToString,
   resourceTypeMap,
-} from '../../utils/resourceUtils/resourceUtils';
+} from '../../utils/resourceUtils';
 import { useTranslation } from 'react-i18next';
 import {
   ResourceCheckboxGroup,

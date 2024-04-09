@@ -11,6 +11,7 @@ import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { appContextMock } from '../../testing/appContextMock';
 
 const user = userEvent.setup();
 
@@ -190,7 +191,7 @@ describe('TextResource', () => {
   it('Mutates text resource when value is changed', async () => {
     const label = 'Test';
     const textResourceId = textResources[0].id;
-    const upsertTextResources = jest.fn();
+    const upsertTextResources = jest.fn().mockImplementation(() => Promise.resolve());
     renderTextResource({ label, textResourceId }, textResources, { upsertTextResources });
     await act(() => user.click(screen.getByRole('button', { name: label })));
     const textboxLabel = textMock('ux_editor.text_resource_binding_text');
@@ -201,6 +202,8 @@ describe('TextResource', () => {
     expect(upsertTextResources).toHaveBeenCalledWith(org, app, DEFAULT_LANGUAGE, {
       [textResourceId]: textResources[0].value + 'a',
     });
+    expect(appContextMock.refetchTexts).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchTexts).toHaveBeenCalledWith(DEFAULT_LANGUAGE);
   });
 });
 

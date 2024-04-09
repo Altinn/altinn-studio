@@ -8,7 +8,11 @@ import { useBpmnConfigPanelFormContext } from '../../../../contexts/BpmnConfigPa
 jest.mock('../../../../contexts/BpmnContext', () => ({
   useBpmnContext: () => ({
     modelerRef: {
-      current: '<div></div>',
+      current: {
+        get: () => ({
+          updateProperties: jest.fn(),
+        }),
+      },
     },
     setBpmnDetails: jest.fn(),
     bpmnDetails: {
@@ -17,16 +21,6 @@ jest.mock('../../../../contexts/BpmnContext', () => ({
       taskType: 'data',
       type: 'task',
     },
-  }),
-}));
-
-jest.mock('../../../../hooks/useBpmnModeler', () => ({
-  useBpmnModeler: () => ({
-    getModeler: () => ({
-      get: () => ({
-        updateProperties: jest.fn(),
-      }),
-    }),
   }),
 }));
 

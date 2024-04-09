@@ -62,9 +62,8 @@ const NoSelectedPageMessage = () => {
 const PreviewFrame = () => {
   const { org, app } = useStudioUrlParams();
   const [viewportToSimulate, setViewportToSimulate] = useState<SupportedView>('desktop');
-  const { selectedLayoutSet } = useAppContext();
   const { t } = useTranslation();
-  const { previewIframeRef } = useAppContext();
+  const { previewIframeRef, selectedLayoutSet } = useAppContext();
   const layoutName = useSelector(selectedLayoutNameSelector);
 
   useUpdate(() => {

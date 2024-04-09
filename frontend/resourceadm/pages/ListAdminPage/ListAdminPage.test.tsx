@@ -109,15 +109,34 @@ describe('ListAdminPage', () => {
 
     expect(await screen.findByText('Test-list2')).toBeInTheDocument();
   });
+
+  it('should show error when user does not have permission to edit access lists', async () => {
+    (useParams as jest.Mock).mockReturnValue({
+      selectedContext: 'ttd',
+      env: 'tt02',
+    });
+
+    renderListAdminPage(true);
+
+    expect(
+      await screen.findByText(
+        textMock('resourceadm.loading_access_list_permission_denied', {
+          envName: textMock('resourceadm.deploy_test_env'),
+        }),
+      ),
+    ).toBeInTheDocument();
+  });
 });
 
-const renderListAdminPage = () => {
+const renderListAdminPage = (isError?: boolean) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
-    getAccessLists: jest
-      .fn()
-      .mockImplementationOnce(() => Promise.resolve(accessListResults))
-      .mockImplementationOnce(() => Promise.resolve(accessListResultsPage2)),
+    getAccessLists: isError
+      ? jest.fn().mockImplementationOnce(() => Promise.reject({ response: { status: 403 } }))
+      : jest
+          .fn()
+          .mockImplementationOnce(() => Promise.resolve(accessListResults))
+          .mockImplementationOnce(() => Promise.resolve(accessListResultsPage2)),
   };
 
   return render(
