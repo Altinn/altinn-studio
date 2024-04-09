@@ -268,13 +268,6 @@ void Configure(IConfiguration configuration)
         app.UseExceptionHandler("/error");
     }
 
-    if (configuration.GetValue<bool>("PostgreSQLSettings:EnableDBConnection"))
-    {
-        string adminConnectionString = string.Format(
-            configuration.GetValue<string>("PostgreSQLSettings:AdminConnectionString"),
-            configuration.GetValue<string>("PostgreSQLSettings:DesignerDbAdminPwd"));
-    }
-
     app.UseDefaultFiles();
     app.UseStaticFiles();
     app.UseStaticFiles(new StaticFileOptions
