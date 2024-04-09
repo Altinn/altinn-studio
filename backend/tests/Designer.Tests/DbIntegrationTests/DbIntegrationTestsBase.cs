@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Designer.Tests.DbIntegrationTests;
 
-[Trait("Category", "IntegrationTest")]
+[Trait("Category", "DbIntegrationTest")]
 [Collection(nameof(DesignerDbCollection))]
 public abstract class DbIntegrationTestsBase
 {
