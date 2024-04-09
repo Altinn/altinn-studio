@@ -57,8 +57,9 @@ export function EditOptions<T extends SelectionComponentType>({
   const initialSelectedOptionType = getSelectedOptionsType(component.optionsId, component.options);
   const [selectedOptionsType, setSelectedOptionsType] = useState(initialSelectedOptionType);
   const { t } = useTranslation();
+
   const mappedOptionIds = useMemo(
-    () => component.options.map((_, index) => `option_${index}`),
+    () => component.options?.map((_, index) => `option_${index}`),
     [component.options],
   );
 
