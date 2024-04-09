@@ -734,7 +734,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     var cacheEntryOptions = new MemoryCacheEntryOptions();
                     _cache.Set(cacheKey, giteaUser, cacheEntryOptions);
                 }
-                catch (Exception) {
+                catch (Exception)
+                {
                     // User not found in Gitea
                 }
             }
