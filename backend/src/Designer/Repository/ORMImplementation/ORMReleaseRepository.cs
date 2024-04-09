@@ -31,12 +31,14 @@ public class ORMReleaseRepository : IReleaseRepository
 
     public async Task<IEnumerable<ReleaseEntity>> Get(string org, string app, DocumentQueryModel query)
     {
-        var releasesQuery = _dbContext.Releases.AsNoTracking().Where(x => x.Org == org && x.App == app)
-            .Take(query.Top ?? int.MaxValue);
+        var releasesQuery = _dbContext.Releases.AsNoTracking().Where(x => x.Org == org && x.App == app);
 
         releasesQuery = query.SortDirection == SortDirection.Descending
             ? releasesQuery.OrderByDescending(r => r.Created)
             : releasesQuery.OrderBy(r => r.Created);
+
+        releasesQuery = releasesQuery
+            .Take(query.Top ?? int.MaxValue);
 
         var dbObjects = await releasesQuery.ToListAsync();
         return ReleaseMapper.MapToModels(dbObjects);
