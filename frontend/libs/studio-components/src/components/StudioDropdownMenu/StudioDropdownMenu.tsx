@@ -19,22 +19,24 @@ export const StudioDropdownMenu = ({
   const [open, setOpen] = useState<boolean>(isControlledOpen || false);
 
   return (
-    <DropdownMenu open={open} onClose={() => setOpen(false)}>
-      <DropdownMenu.Trigger asChild>
-        <StudioButton
-          aria-expanded={open}
-          aria-haspopup='menu'
-          ref={anchorRef}
-          size={rest.size}
-          onClick={() => setOpen(!open)}
-          {...anchorButtonProps}
-        />
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Content>
-        <StudioDropdownMenuContext.Provider value={{ setOpen }}>
-          {children}
-        </StudioDropdownMenuContext.Provider>
-      </DropdownMenu.Content>
-    </DropdownMenu>
+    <>
+      <DropdownMenu open={open} onClose={() => setOpen(false)}>
+        <DropdownMenu.Trigger asChild>
+          <StudioButton
+            aria-expanded={open}
+            aria-haspopup='menu'
+            ref={anchorRef}
+            size={rest.size}
+            onClick={() => setOpen(!open)}
+            {...anchorButtonProps}
+          />
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content>
+          <StudioDropdownMenuContext.Provider value={{ setOpen }}>
+            {children}
+          </StudioDropdownMenuContext.Provider>
+        </DropdownMenu.Content>
+      </DropdownMenu>
+    </>
   );
 };
