@@ -87,7 +87,7 @@ public class GetBuildStatusAndResultsFilterIntegrationTests : ReleaseEntityInteg
                 (BuildStatus.NotStarted, BuildResult.Canceled)
             },
             null,
-            new List<string> { "succeeded"},
+            new List<string> { "succeeded" },
             1
         ];
         yield return [
@@ -100,8 +100,8 @@ public class GetBuildStatusAndResultsFilterIntegrationTests : ReleaseEntityInteg
                 (BuildStatus.InProgress, BuildResult.Canceled),
                 (BuildStatus.NotStarted, BuildResult.Canceled)
             },
-            new List<string> { "completed"},
-            new List<string> { "canceled", "succeeded"},
+            new List<string> { "completed" },
+            new List<string> { "canceled", "succeeded" },
             3
         ];
         yield return [
@@ -114,8 +114,8 @@ public class GetBuildStatusAndResultsFilterIntegrationTests : ReleaseEntityInteg
                 (BuildStatus.InProgress, BuildResult.Succeeded),
                 (BuildStatus.NotStarted, BuildResult.Canceled)
             },
-            new List<string> { "cancelling"},
-            new List<string> { "partiallySucceeded"},
+            new List<string> { "cancelling" },
+            new List<string> { "partiallySucceeded" },
             0
         ];
     }

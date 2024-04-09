@@ -44,7 +44,6 @@ public class GetSucceededReleaseFromDbIntegrationTests : ReleaseEntityIntegratio
         result.Should().BeEquivalentTo(exptectedEntity);
     }
 
-
     public static IEnumerable<object[]> TestData()
     {
         yield return [
