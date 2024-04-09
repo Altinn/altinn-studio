@@ -55,5 +55,6 @@
     <PackageReference Update="Testcontainers" Version="3.8.0" />
     <PackageReference Update="Testcontainers.PostgreSql" Version="3.8.0" />
     <PackageReference Update="Microsoft.AspNetCore.SignalR.Client" Version="8.0.3" />
+    <PackageReference Update="Microsoft.Extensions.DependencyModel" Version="8.0.0" />
   </ItemGroup>
 </Project>
