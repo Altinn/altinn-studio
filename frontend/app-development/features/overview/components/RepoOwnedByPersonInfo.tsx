@@ -7,17 +7,17 @@ export const RepoOwnedByPersonInfo = () => {
   const { t } = useTranslation();
   return (
     <>
-      <Alert>{t('app_publish.private_app_owner')}</Alert>
+      <Alert>{t('app_deployment.private_app_owner')}</Alert>
       <div className={classes.infoContainer}>
         <div className={classes.textContainer}>
-          <Paragraph>{t('app_publish.private_app_owner_info')}</Paragraph>
+          <Paragraph>{t('app_deployment.private_app_owner_info')}</Paragraph>
           <Paragraph>
             <Trans
-              i18nKey={'app_publish.private_app_owner_help'}
+              i18nKey={'app_deployment.private_app_owner_help'}
               components={{ a: <Link href='/contact'> </Link> }}
             />
           </Paragraph>
-          <Paragraph>{t('app_publish.private_app_owner_options')}</Paragraph>
+          <Paragraph>{t('app_deployment.private_app_owner_options')}</Paragraph>
         </div>
       </div>
     </>

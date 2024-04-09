@@ -1,6 +1,6 @@
 import { waitFor } from '@testing-library/react';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderHookWithMockStore } from '../../testing/mocks';
+import { renderHookWithProviders } from '../../testing/mocks';
 import { useFrontEndSettingsQuery } from './useFrontEndSettingsQuery';
 
 // Test data:
@@ -15,7 +15,7 @@ describe('useFrontEndSettingsQuery', () => {
 });
 
 const render = async () => {
-  const { renderHookResult } = renderHookWithMockStore()(() => useFrontEndSettingsQuery(org, app));
-  await waitFor(() => expect(renderHookResult.result.current.isSuccess).toBe(true));
-  return renderHookResult;
+  const { result } = renderHookWithProviders(() => useFrontEndSettingsQuery(org, app));
+  await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  return result;
 };

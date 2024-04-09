@@ -9,7 +9,7 @@ import {
   container1IdMock,
   layoutMock,
 } from '../../testing/layoutMock';
-import { renderWithMockStore } from '../../testing/mocks';
+import { renderWithProviders } from '../../testing/mocks';
 import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -185,7 +185,7 @@ const render = ({ props = {}, editId }: { props: Partial<FormItemContext>; editI
   );
   queryClientMock.setQueryData([QueryKey.TextResources, org, app], textResources);
 
-  return renderWithMockStore()(
+  return renderWithProviders(
     <FormItemContext.Provider
       value={{
         ...formItemContextProviderMock,

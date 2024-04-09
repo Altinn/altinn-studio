@@ -37,4 +37,4 @@ const router = createBrowserRouter(
 /**
  * Displays the routes for app development pages
  */
-export const PageRoutes = () => <RouterProvider router={router} />;
+export const PageRoutes = (): React.ReactElement => <RouterProvider router={router} />;

@@ -1,0 +1,78 @@
+.appReleaseWrapper {
+  background: white;
+  border-bottom: 1px solid #bcc7cc;
+  border-left: 1px solid #bcc7cc;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--header-height));
+  overflow-y: scroll;
+  width: 35%;
+  max-width: 500px;
+}
+
+.appReleaseCreateRelease {
+  flex-grow: 1;
+}
+
+.appReleaseHistoryTitle {
+  font-size: 1.2rem;
+  font-weight: 500;
+  padding: 2rem 1.2rem 2rem 1.2rem;
+}
+
+.appCreateReleaseWrapper {
+  min-height: 400px;
+}
+
+.appCreateReleaseTitle {
+  font-weight: 500;
+  font-size: 1.2rem;
+  line-height: 2.2rem;
+}
+
+.appCreateReleaseStatusButton {
+  color: #1eaef7;
+}
+
+.popover {
+  pointer-events: none;
+}
+
+.cannotCreateReleaseContainer {
+  background-color: #f9cad3;
+  height: 100%;
+  margin: 1.2rem;
+}
+
+.cannotCreateReleaseTitle {
+  padding: 1.2rem;
+}
+
+.cannotCreateReleaseSubTitle {
+  font-size: 1.4rem;
+  padding: 1.2rem;
+}
+
+.renderCannotCreateReleaseIcon {
+  padding-top: 2rem;
+  color: var(--fds-semantic-text-danger-default);
+}
+
+.versionHeader {
+  border-bottom: 1px solid #bcc7cc;
+  padding: 1rem 2rem 0;
+}
+
+.versionHeaderTitle {
+  border-bottom: 2px solid #1eaef7;
+  display: inline-block;
+  font-weight: 500;
+  margin-bottom: -2px;
+  padding: 0;
+}
+
+.versionSubHeader {
+  display: flex;
+  padding: 1.2rem;
+  justify-content: space-between;
+}

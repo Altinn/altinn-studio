@@ -23,7 +23,7 @@ import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useTranslation, Trans } from 'react-i18next';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { useUrlParams } from '../../hooks/useSelectedContext';
-import { getAvailableEnvironments } from '../../utils/resourceUtils/resourceUtils';
+import { getAvailableEnvironments } from '../../utils/resourceUtils';
 
 export type DeployResourcePageProps = {
   navigateToPageWithError: (page: NavigationBarPage) => void;

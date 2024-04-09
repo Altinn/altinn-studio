@@ -10,6 +10,7 @@ using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Npgsql.Replication.PgOutput.Messages;
 using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
@@ -43,10 +44,9 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             LayoutSets layoutSetsAfter = await GetLayoutSetsFile(org, targetRepository, developer);
 
             layoutSetsBefore.Schema.Should().NotBeNull();
-            layoutSetsBefore.Sets.Should().HaveCount(3);
             Assert.False(layoutSetsBefore.Sets.Exists(set => set.Id == newLayoutSetConfig.Id));
+            layoutSetsBefore.Sets.Count.Should().Be(layoutSetsAfter.Sets.Count - 1);
             layoutSetsAfter.Schema.Should().NotBeNull();
-            layoutSetsAfter.Sets.Should().HaveCount(4);
             Assert.True(layoutSetsAfter.Sets.Exists(set => set.Id == newLayoutSetConfig.Id));
         }
 

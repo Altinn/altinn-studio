@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
-import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import React from 'react';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
@@ -8,16 +7,12 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { Accordion } from '@digdir/design-system-react';
 import type { IFormLayouts } from '../../types/global';
 import type { FormLayoutPage } from '../../types/FormLayoutPage';
-import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
-import { useInstanceIdQuery } from 'app-shared/hooks/queries';
-import { useSearchParams } from 'react-router-dom';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 import { PlusIcon } from '@navikt/aksel-icons';
 import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
-import { setSelectedLayoutInLocalStorage } from '../../utils/localStorageUtils';
 import { PageAccordion } from './PageAccordion';
 import { ReceiptContent } from './ReceiptContent';
-import { useAppContext } from '../../hooks/useAppContext';
+import { useAppContext } from '../../hooks';
 import { FormLayout } from './FormLayout';
 import { StudioButton } from '@studio/components';
 
@@ -38,44 +33,26 @@ const mapFormLayoutsToFormLayoutPages = (formLayouts: IFormLayouts): FormLayoutP
  * @returns {ReactNode} - The rendered component
  */
 export const DesignView = (): ReactNode => {
-  const dispatch = useDispatch();
   const { org, app } = useStudioUrlParams();
-  const { selectedLayoutSet } = useAppContext();
+  const { selectedFormLayoutSetName, selectedFormLayoutName, setSelectedFormLayoutName } =
+    useAppContext();
   const { mutate: addLayoutMutation, isPending: isAddLayoutMutationPending } = useAddLayoutMutation(
     org,
     app,
-    selectedLayoutSet,
+    selectedFormLayoutSetName,
   );
-  const { data: layouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
-  const { data: instanceId } = useInstanceIdQuery(org, app);
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
+  const { data: layouts } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
   const receiptName = formLayoutSettings?.receiptLayoutName;
   const layoutOrder = formLayoutSettings?.pages?.order;
 
-  const [searchParams, setSearchParams] = useSearchParams();
-  const searchParamsLayout = searchParams.get('layout');
-  const [openAccordion, setOpenAccordion] = useState(searchParamsLayout);
-
   const { t } = useTranslation();
 
-  useEffect(() => {
-    setOpenAccordion(searchParamsLayout);
-  }, [searchParamsLayout]);
-
   const formLayoutData = mapFormLayoutsToFormLayoutPages(layouts);
-
-  /**
-   * Checks if the layout name provided is valid
-   *
-   * @param layoutName the name to check
-   *
-   * @returns boolean value for the validity
-   */
-  const isValidLayout = (layoutName: string): boolean => {
-    const isExistingLayout = formLayoutData.map((el) => el.page).includes(layoutName);
-    const isReceipt = formLayoutSettings?.receiptLayoutName === layoutName;
-    return isExistingLayout || isReceipt;
-  };
 
   /**
    * Handles the click of an accordion. It updates the URL and sets the
@@ -84,18 +61,10 @@ export const DesignView = (): ReactNode => {
    * @param pageName the name of the accordion clicked
    */
   const handleClickAccordion = (pageName: string) => {
-    if (isValidLayout(pageName)) {
-      if (searchParamsLayout !== pageName) {
-        setSelectedLayoutInLocalStorage(instanceId, pageName);
-        dispatch(FormLayoutActions.updateSelectedLayout(pageName));
-        setSearchParams((prevParams) => ({ ...prevParams, layout: pageName }));
-        setOpenAccordion(pageName);
-      } else {
-        setSelectedLayoutInLocalStorage(instanceId, undefined);
-        dispatch(FormLayoutActions.updateSelectedLayout(undefined));
-        setSearchParams(undefined);
-        setOpenAccordion('');
-      }
+    if (selectedFormLayoutName !== pageName) {
+      setSelectedFormLayoutName(pageName);
+    } else {
+      setSelectedFormLayoutName(undefined);
     }
   };
 
@@ -107,12 +76,7 @@ export const DesignView = (): ReactNode => {
       newNum += 1;
       newLayoutName = `${t('ux_editor.page')}${newNum}`;
     }
-
     addLayoutMutation({ layoutName: newLayoutName, isReceiptPage: false });
-    setSearchParams((prevParams) => ({ ...prevParams, layout: newLayoutName }));
-    setSelectedLayoutInLocalStorage(instanceId, newLayoutName);
-    dispatch(FormLayoutActions.updateSelectedLayout(newLayoutName));
-    setOpenAccordion(newLayoutName);
   };
 
   /**
@@ -128,10 +92,10 @@ export const DesignView = (): ReactNode => {
       <PageAccordion
         pageName={layout.page}
         key={i}
-        isOpen={layout.page === openAccordion}
+        isOpen={layout.page === selectedFormLayoutName}
         onClick={() => handleClickAccordion(layout.page)}
       >
-        {layout.page === openAccordion && <FormLayout layout={layout.data} />}
+        {layout.page === selectedFormLayoutName && <FormLayout layout={layout.data} />}
       </PageAccordion>
     );
   });
@@ -146,7 +110,7 @@ export const DesignView = (): ReactNode => {
         </div>
         <ReceiptContent
           receiptName={receiptName}
-          selectedAccordion={openAccordion}
+          selectedAccordion={selectedFormLayoutName}
           formLayoutData={formLayoutData}
           onClickAccordion={() => handleClickAccordion(receiptName)}
         />

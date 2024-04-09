@@ -16,7 +16,7 @@ export const useFormLayoutMutation = (
   const previewConnection = usePreviewConnection();
   const { saveFormLayout } = useServicesContext();
   const queryClient = useQueryClient();
-  const { previewIframeRef } = useAppContext();
+  const { refetchLayouts } = useAppContext();
 
   return useMutation({
     mutationFn: (layout: IInternalLayout) => {
@@ -32,12 +32,12 @@ export const useFormLayoutMutation = (
         });
       }
 
-      previewIframeRef.current?.contentWindow.location.reload();
-
       queryClient.setQueryData(
         [QueryKey.FormLayouts, org, app, layoutSetName],
         (oldData: IFormLayouts) => ({ ...oldData, [layoutName]: savedLayout }),
       );
+
+      await refetchLayouts(layoutSetName);
     },
   });
 };
