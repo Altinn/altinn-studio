@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { IOption } from '../../../types/global';
 import { Paragraph, Switch, ErrorMessage } from '@digdir/design-system-react';
 import classes from './EditOptions.module.css';
@@ -57,6 +57,10 @@ export function EditOptions<T extends SelectionComponentType>({
   const initialSelectedOptionType = getSelectedOptionsType(component.optionsId, component.options);
   const [selectedOptionsType, setSelectedOptionsType] = useState(initialSelectedOptionType);
   const { t } = useTranslation();
+  const mappedOptionIds = useMemo(
+    () => component.options.map((_, index) => `option_${index}`),
+    [component.options],
+  );
 
   const errorMessage = useComponentErrorMessage(component);
 
@@ -126,7 +130,7 @@ export function EditOptions<T extends SelectionComponentType>({
         <StudioProperty.Group>
           {component.options?.map((option, index) => {
             const removeItem = () => handleRemoveOption(index);
-            const key = `${option.value}-${index}`; // Figure out a way to remove index from key.
+            const key = mappedOptionIds[index];
             const optionNumber = index + 1;
             const legend =
               component.type === 'RadioButtons'
