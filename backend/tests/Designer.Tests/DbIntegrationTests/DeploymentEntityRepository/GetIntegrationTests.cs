@@ -1,22 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
-using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Request.Enums;
+using Designer.Tests.DbIntegrationTests.DeploymentEntityRepository.Base;
 using Designer.Tests.Fixtures;
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace Designer.Tests.DbIntegrationTests.DeploymentEntityRepository;
 
-public class GetIntegrationTests : DbIntegrationTestsBase
+public class GetIntegrationTests : DeploymentEntityIntegrationTestsBase
 {
     public GetIntegrationTests(DesignerDbFixture dbFixture) : base(dbFixture)
     {
@@ -31,7 +27,7 @@ public class GetIntegrationTests : DbIntegrationTestsBase
         await PrepareEntitiesInDatabase(deploymentEntities);
 
         var repository = new ORMDeploymentRepository(DbFixture.DbContext);
-        var query = new DocumentQueryModel() { Top = top, SortDirection = sortDirection };
+        var query = new DocumentQueryModel { Top = top, SortDirection = sortDirection };
         var result = (await repository.Get(org, app, query)).ToList();
 
         var expectedEntities = (sortDirection == SortDirection.Ascending
@@ -59,7 +55,7 @@ public class GetIntegrationTests : DbIntegrationTestsBase
             Top = null,
             SortDirection = sortDirection
         };
-        var result = await repository.Get(org, app, query);
+        var result = (await repository.Get(org, app, query)).ToList();
 
         var expectedEntities = (sortDirection == SortDirection.Ascending
                 ? deploymentEntities.OrderBy(d => d.Created)
@@ -69,28 +65,6 @@ public class GetIntegrationTests : DbIntegrationTestsBase
         result.Count().Should().Be(allEntitiesCount);
         result.Should().BeEquivalentTo(expectedEntities);
 
-    }
-
-    private async Task PrepareEntitiesInDatabase(IEnumerable<DeploymentEntity> deploymentEntities)
-    {
-        var dbObjects = deploymentEntities.Select(
-            deploymentEntity => new Altinn.Studio.Designer.Repository.ORMImplementation.Models.Deployment
-            {
-                Buildid = deploymentEntity.Build.Id,
-                Tagname = deploymentEntity.TagName,
-                Org = deploymentEntity.Org,
-                App = deploymentEntity.App,
-                Buildresult = deploymentEntity.Build.Result.ToEnumMemberAttributeValue(),
-                Created = deploymentEntity.Created,
-                Entity = JsonSerializer.Serialize(deploymentEntity, JsonOptions)
-            });
-
-        await DbFixture.DbContext.Deployments.AddRangeAsync(dbObjects);
-        await DbFixture.DbContext.SaveChangesAsync();
-        foreach (var dbObject in dbObjects)
-        {
-            DbFixture.DbContext.Entry(dbObject).State = EntityState.Detached;
-        }
     }
 
     public static IEnumerable<object[]> TopAndSortTestData()

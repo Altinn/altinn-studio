@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
+using Designer.Tests.DbIntegrationTests.DeploymentEntityRepository.Base;
 using Designer.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -11,7 +12,7 @@ using Xunit;
 
 namespace Designer.Tests.DbIntegrationTests.DeploymentEntityRepository.OldRepositoryCompatibility;
 
-public class CreateGetCompatibilityTests : DbIntegrationTestsBase
+public class CreateGetCompatibilityTests : DeploymentEntityIntegrationTestsBase
 {
     public CreateGetCompatibilityTests(DesignerDbFixture dbFixture) : base(dbFixture)
     {

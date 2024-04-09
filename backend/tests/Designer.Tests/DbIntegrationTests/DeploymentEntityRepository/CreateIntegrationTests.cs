@@ -1,16 +1,14 @@
 using System;
-using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
+using Designer.Tests.DbIntegrationTests.DeploymentEntityRepository.Base;
 using Designer.Tests.Fixtures;
-using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace Designer.Tests.DbIntegrationTests.DeploymentEntityRepository;
 
-public class CreateIntegrationTests : DbIntegrationTestsBase
+public class CreateIntegrationTests : DeploymentEntityIntegrationTestsBase
 {
     public CreateIntegrationTests(DesignerDbFixture dbFixture) : base(dbFixture)
     {

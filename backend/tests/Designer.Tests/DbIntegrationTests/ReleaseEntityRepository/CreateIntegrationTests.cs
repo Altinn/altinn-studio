@@ -1,16 +1,14 @@
 using System;
-using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
+using Designer.Tests.DbIntegrationTests.ReleaseEntityRepository.Base;
 using Designer.Tests.Fixtures;
-using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace Designer.Tests.DbIntegrationTests.ReleaseEntityRepository;
 
-public class CreateIntegrationTests : DbIntegrationTestsBase
+public class CreateIntegrationTests : ReleaseEntityIntegrationTestsBase
 {
     public CreateIntegrationTests(DesignerDbFixture dbFixture) : base(dbFixture)
     {
@@ -28,14 +26,7 @@ public class CreateIntegrationTests : DbIntegrationTestsBase
             d.Org == org &&
             d.App == releaseEntity.App &&
             d.Buildid == buildId.ToString());
-        dbRecord.App.Should().BeEquivalentTo(releaseEntity.App);
-        dbRecord.Org.Should().BeEquivalentTo(org);
-        dbRecord.Buildid.Should().BeEquivalentTo(buildId.ToString());
-        dbRecord.Buildresult.Should().BeEquivalentTo(releaseEntity.Build.Result.ToString());
-        dbRecord.Tagname.Should().BeEquivalentTo(releaseEntity.TagName);
-        dbRecord.Created.Should().Be(releaseEntity.Created);
-        var entityFromColumn = JsonSerializer.Deserialize<ReleaseEntity>(dbRecord.Entity, JsonOptions);
-        entityFromColumn.Should().BeEquivalentTo(releaseEntity);
+        EntityAssertions.AssertEqual(releaseEntity, dbRecord);
     }
 
 }
