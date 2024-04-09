@@ -7,7 +7,6 @@ using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Designer.Tests.DbIntegrationTests.ReleaseEntityRepository.Base;
 using Designer.Tests.Fixtures;
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace Designer.Tests.DbIntegrationTests.ReleaseEntityRepository;
@@ -35,21 +34,16 @@ public class GetBuildStatusAndResultsFilterIntegrationTests : ReleaseEntityInteg
 
         await PrepareEntitiesInDatabase(releaseEntities);
 
-        var expectedEntites = releaseEntities.Where(r =>
+        var exptectedEntities = releaseEntities.Where(r =>
             r.Org == org && r.App == app && r.TagName == tagName)
             .Where(r =>
             (buildStatuses is not null && buildStatuses.Contains(r.Build.Status.ToEnumMemberAttributeValue())) ||
             (buildResults is not null && buildResults.Contains(r.Build.Result.ToEnumMemberAttributeValue()))).ToList();
 
-
-        var allRecords = DbFixture.DbContext.Releases.AsNoTracking()
-            .Where(d => d.Org == org && d.App == app && d.Tagname == tagName).ToList();
-
-
         var results = (await repository.Get(org, app, tagName, buildStatuses, buildResults)).ToList();
 
         results.Should().HaveCount(expectedFoundNumber);
-        results.Should().BeEquivalentTo(expectedEntites);
+        results.Should().BeEquivalentTo(exptectedEntities);
     }
 
     public static IEnumerable<object[]> TestData()
@@ -61,7 +55,7 @@ public class GetBuildStatusAndResultsFilterIntegrationTests : ReleaseEntityInteg
             {
                 (BuildStatus.Completed, BuildResult.Succeeded),
                 (BuildStatus.Completed, BuildResult.Failed),
-                (BuildStatus.InProgress, BuildResult.Succeeded),
+                (BuildStatus.InProgress, BuildResult.Canceled),
                 (BuildStatus.NotStarted, BuildResult.Canceled)
             },
             new List<string> { "completed", "inProgress" },
@@ -75,7 +69,7 @@ public class GetBuildStatusAndResultsFilterIntegrationTests : ReleaseEntityInteg
             {
                 (BuildStatus.Completed, BuildResult.Succeeded),
                 (BuildStatus.Completed, BuildResult.Failed),
-                (BuildStatus.InProgress, BuildResult.Succeeded),
+                (BuildStatus.InProgress, BuildResult.Canceled),
                 (BuildStatus.NotStarted, BuildResult.Canceled)
             },
             null,
@@ -89,12 +83,12 @@ public class GetBuildStatusAndResultsFilterIntegrationTests : ReleaseEntityInteg
             {
                 (BuildStatus.Completed, BuildResult.Succeeded),
                 (BuildStatus.Completed, BuildResult.Failed),
-                (BuildStatus.InProgress, BuildResult.Succeeded),
+                (BuildStatus.InProgress, BuildResult.Canceled),
                 (BuildStatus.NotStarted, BuildResult.Canceled)
             },
             null,
             new List<string> { "succeeded"},
-            2
+            1
         ];
         yield return [
             "ttd",
@@ -102,12 +96,12 @@ public class GetBuildStatusAndResultsFilterIntegrationTests : ReleaseEntityInteg
             new List<(BuildStatus status, BuildResult result)>
             {
                 (BuildStatus.Completed, BuildResult.Succeeded),
-                (BuildStatus.Completed, BuildResult.Failed),
-                (BuildStatus.InProgress, BuildResult.Succeeded),
+                (BuildStatus.InProgress, BuildResult.Failed),
+                (BuildStatus.InProgress, BuildResult.Canceled),
                 (BuildStatus.NotStarted, BuildResult.Canceled)
             },
             new List<string> { "completed"},
-            new List<string> { "succeeded"},
+            new List<string> { "canceled", "succeeded"},
             3
         ];
         yield return [
@@ -124,8 +118,5 @@ public class GetBuildStatusAndResultsFilterIntegrationTests : ReleaseEntityInteg
             new List<string> { "partiallySucceeded"},
             0
         ];
-
     }
-
-
 }
