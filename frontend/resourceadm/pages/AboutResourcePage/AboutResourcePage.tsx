@@ -102,6 +102,14 @@ export const AboutResourcePage = ({
         <Heading size='large' level={1}>
           {t('resourceadm.about_resource_title')}
         </Heading>
+        <ResourceTextField
+          label={t('resourceadm.about_resource_identifier_label')}
+          description={t('resourceadm.about_resource_identifier_description')}
+          value={resourceData.identifier}
+          readOnly
+          onFocus={() => setTranslationType('none')}
+          onBlur={() => {}}
+        />
         <ResourceRadioGroup
           label={t('resourceadm.about_resource_resource_type')}
           description={t('resourceadm.about_resource_resource_type_label')}
