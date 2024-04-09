@@ -727,12 +727,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string cacheKey = $"giteauser:{username}";
             if (!_cache.TryGetValue(cacheKey, out GiteaUser giteaUser))
             {
-                HttpResponseMessage response = await _httpClient.GetAsync($"users/{username}/");
-                response.EnsureSuccessStatusCode();
-                giteaUser = await response.Content.ReadAsAsync<GiteaUser>();
-                var cacheEntryOptions = new MemoryCacheEntryOptions();
-
-                _cache.Set(cacheKey, giteaUser, cacheEntryOptions);
+                try
+                {
+                    HttpResponseMessage response = await _httpClient.GetAsync($"users/{username}/");
+                    giteaUser = await response.Content.ReadAsAsync<GiteaUser>();
+                    var cacheEntryOptions = new MemoryCacheEntryOptions();
+                    _cache.Set(cacheKey, giteaUser, cacheEntryOptions);
+                }
+                catch (Exception) {
+                    // User not found in Gitea
+                }
             }
 
             return giteaUser;
