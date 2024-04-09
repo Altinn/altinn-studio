@@ -71,7 +71,6 @@ export const AccessListMembers = ({
     >
       <AccessListMembersTable
         listItems={listItems}
-        isAdd={false}
         onButtonClick={(item: AccessListMember) => handleRemoveMember(item.orgNr)}
       />
       {listItems.length === 0 && (
@@ -110,10 +109,8 @@ export const AccessListMembers = ({
           <AccessListMembersTable
             isHeaderHidden
             listItems={resultData?.parties ?? []}
-            disableButtonFn={(disableItem: AccessListMember) =>
-              !!listItems.find((listItem) => disableItem.orgNr === listItem.orgNr)
-            }
-            isAdd={true}
+            disabledItems={listItems}
+            isAdd
             onButtonClick={handleAddMember}
           />
           {(isLoadingParties || isLoadingSubParties) && (

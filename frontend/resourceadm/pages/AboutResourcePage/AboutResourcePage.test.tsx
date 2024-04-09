@@ -91,6 +91,7 @@ describe('AboutResourcePage', () => {
 
     const idInput = screen.getByLabelText(textMock('resourceadm.about_resource_identifier_label'));
 
+    await act(() => idInput.focus());
     await act(() => idInput.blur());
 
     expect(mockOnSaveResource).not.toHaveBeenCalled();
