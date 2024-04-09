@@ -15,6 +15,7 @@ const mockComponent: FormComponent<ComponentType.RadioButtons> = {
   textResourceBindings: {
     title: 'ServiceName',
   },
+  options: [],
   maxLength: 10,
   itemType: 'COMPONENT',
   dataModelBindings: { simpleBinding: '' },
@@ -121,13 +122,16 @@ describe('EditOptions', () => {
       handleComponentChange,
       component: {
         ...mockComponent,
-        options: [{ label: 'option1', value: 'option1' }],
+        options: [],
         optionsId: undefined,
       },
     });
     const switchElement = screen.getByRole('checkbox');
     await act(() => switchElement.click());
-    expect(handleComponentChange).toHaveBeenCalledWith({ ...mockComponent, optionsId: '' });
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...mockComponent,
+      options: [],
+    });
   });
 
   it('should update component options when adding new option', async () => {
