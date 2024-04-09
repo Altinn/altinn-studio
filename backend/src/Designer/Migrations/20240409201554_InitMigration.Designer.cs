@@ -12,18 +12,18 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Altinn.Studio.Designer.Migrations
 {
     [DbContext(typeof(DesignerdbContext))]
-    [Migration("20240404140436_Init")]
-    partial class Init
+    [Migration("20240409201554_InitMigration")]
+    partial class InitMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.3")
+                .HasAnnotation("ProductVersion", "8.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+            NpgsqlModelBuilderExtensions.UseSerialColumns(modelBuilder);
 
             modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.Deployment", b =>
                 {
@@ -32,7 +32,7 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("BIGSERIAL")
                         .HasColumnName("sequenceno");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Sequenceno"));
+                    NpgsqlPropertyBuilderExtensions.UseSerialColumn(b.Property<long>("Sequenceno"));
 
                     b.Property<string>("App")
                         .HasColumnType("character varying")
@@ -77,7 +77,7 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("BIGSERIAL")
                         .HasColumnName("sequenceno");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Sequenceno"));
+                    NpgsqlPropertyBuilderExtensions.UseSerialColumn(b.Property<long>("Sequenceno"));
 
                     b.Property<string>("App")
                         .HasColumnType("character varying")

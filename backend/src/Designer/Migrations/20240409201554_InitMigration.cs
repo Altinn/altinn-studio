@@ -1,12 +1,14 @@
-﻿using Altinn.Studio.Designer.Migrations.InitialSqlScripts;
+﻿using System;
+using Altinn.Studio.Designer.Migrations.InitialSqlScripts;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace Altinn.Studio.Designer.Migrations
 {
     /// <inheritdoc />
-    public partial class Init : Migration
+    public partial class InitMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
