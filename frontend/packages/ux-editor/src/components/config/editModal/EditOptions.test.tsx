@@ -15,6 +15,7 @@ const mockComponent: FormComponent<ComponentType.RadioButtons> = {
   textResourceBindings: {
     title: 'ServiceName',
   },
+  options: [],
   maxLength: 10,
   itemType: 'COMPONENT',
   dataModelBindings: { simpleBinding: '' },
