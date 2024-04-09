@@ -24,7 +24,10 @@ const mockComponent: FormComponent<ComponentType.RadioButtons> = {
 const renderEditOptions = <T extends ComponentType.Checkboxes | ComponentType.RadioButtons>({
   component = mockComponent as FormItem<T>,
   handleComponentChange = jest.fn(),
-}: { component?: FormItem<T>; handleComponentChange?: () => void } = {}) =>
+}: {
+  component?: FormItem<T>;
+  handleComponentChange?: () => void;
+} = {}) =>
   renderWithProviders(
     <EditOptions handleComponentChange={handleComponentChange} component={component} />,
   );
@@ -34,6 +37,16 @@ describe('EditOptions', () => {
     renderEditOptions();
     expect(
       screen.getByText(textMock('ux_editor.properties_panel.options.use_code_list_label')),
+    ).toBeInTheDocument();
+  });
+
+  it('should render component when options is undefined', () => {
+    const mockedComponentWithoutOptions = { ...mockComponent, options: undefined };
+    renderEditOptions({
+      component: mockedComponentWithoutOptions,
+    });
+    expect(
+      screen.getByText(textMock('ux_editor.modal_properties_custom_code_list_id')),
     ).toBeInTheDocument();
   });
 
