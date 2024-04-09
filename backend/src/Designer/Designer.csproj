@@ -49,8 +49,6 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Polly" />
     <PackageReference Include="Scrutor" />
-    <PackageReference Include="Yuniql.AspNetCore" />
-    <PackageReference Include="Yuniql.PostgreSql" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.5.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="4.5.0" />
@@ -159,7 +157,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Services\Implementation\ProcessModeling\Templates\**\*.*" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <EmbeddedResource Include="Migrations/InitialSqlScripts/*.sql" />
   </ItemGroup>

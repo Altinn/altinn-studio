@@ -272,22 +272,9 @@ void Configure(IConfiguration configuration)
 
     if (configuration.GetValue<bool>("PostgreSQLSettings:EnableDBConnection"))
     {
-        ConsoleTraceService traceService = new() { IsDebugEnabled = true };
-
-        string connectionString = string.Format(
+        string adminConnectionString = string.Format(
             configuration.GetValue<string>("PostgreSQLSettings:AdminConnectionString"),
             configuration.GetValue<string>("PostgreSQLSettings:DesignerDbAdminPwd"));
-        app.UseYuniql(
-            new PostgreSqlDataService(traceService),
-            new PostgreSqlBulkImportService(traceService),
-            traceService,
-            new Yuniql.AspNetCore.Configuration
-            {
-                Workspace = Path.Combine(Environment.CurrentDirectory, configuration.GetValue<string>("PostgreSQLSettings:WorkspacePath")),
-                ConnectionString = connectionString,
-                IsAutoCreateDatabase = false,
-                IsDebug = true
-            });
     }
 
     app.UseDefaultFiles();
