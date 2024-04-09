@@ -31,7 +31,7 @@ public class CreateGetCompatibilityTests : ReleaseEntityIntegrationTestsBase
         var queriedEntity = (await newRepository.Get(org, buildId)).Single();
         queriedEntity.Should().BeEquivalentTo(releaseEntity);
     }
-    
+
     [Theory]
     [InlineData("ttd")]
     public async Task CreateNew_ShouldBeCompatibleWithOldGet(string org)
