@@ -72,6 +72,11 @@ export const ResourceTable = ({
       width: 200,
     },
     {
+      field: 'identifier',
+      headerName: t('resourceadm.dashboard_table_header_resourceid'),
+      width: 200,
+    },
+    {
       field: 'createdBy',
       headerName: t('resourceadm.dashboard_table_header_createdby'),
       width: 180,
