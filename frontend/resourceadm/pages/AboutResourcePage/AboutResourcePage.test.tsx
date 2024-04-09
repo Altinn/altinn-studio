@@ -86,6 +86,16 @@ describe('AboutResourcePage', () => {
     id: mockId,
   };
 
+  it('handles resource id field blur', async () => {
+    render(<AboutResourcePage {...defaultProps} />);
+
+    const idInput = screen.getByLabelText(textMock('resourceadm.about_resource_identifier_label'));
+
+    await act(() => idInput.blur());
+
+    expect(mockOnSaveResource).not.toHaveBeenCalled();
+  });
+
   it('handles resource type change', async () => {
     const user = userEvent.setup();
     render(<AboutResourcePage {...defaultProps} />);
