@@ -18,7 +18,6 @@ public class CreateGetCompatibilityTests : DeploymentEntityIntegrationTestsBase
     {
     }
 
-
     [Theory]
     [InlineData("ttd")]
     public async Task CreateOld_ShouldBeCompatibleWithNewGet(string org)
