@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
-using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -21,7 +20,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "layoutFile1InSet1")]
         [InlineData("ttd", "app-without-layoutsets", "testUser", null, "layoutFile1")]
-        public async Task DeleteFormLayout_ShouldDeleteLayoutFile_AndReturnOk(string org, string app, string developer, [CanBeNull] string layoutSetName, string layoutName)
+        public async Task DeleteFormLayout_ShouldDeleteLayoutFile_AndReturnOk(string org, string app, string developer, string layoutSetName, string layoutName)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);

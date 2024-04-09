@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Models;
-using JetBrains.Annotations;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
 {
@@ -83,7 +82,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The model metadata for a given layout set.</returns>
         public Task<ModelMetadata> GetModelMetadata(
-            AltinnRepoEditingContext altinnRepoEditingContext, [CanBeNull] string layoutSetName,
+            AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName,
             CancellationToken cancellationToken = default);
 
 

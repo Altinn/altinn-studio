@@ -13,7 +13,6 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using JetBrains.Annotations;
 using Microsoft.AspNetCore.Http;
 using NuGet.Versioning;
 using LayoutSets = Altinn.Studio.Designer.Models.LayoutSets;
@@ -200,7 +199,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return modelMetadata;
         }
 
-        private string GetModelName(ApplicationMetadata applicationMetadata, [CanBeNull] string taskId)
+        private string GetModelName(ApplicationMetadata applicationMetadata, string taskId)
         {
             // fallback to first model if no task_id is provided (no layout sets)
             if (taskId == null)
@@ -214,7 +213,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return data?.Id ?? string.Empty;
         }
 
-        private bool DoesDataTaskMatchTaskId(PlatformStorageModels.DataType data, [CanBeNull] string taskId)
+        private bool DoesDataTaskMatchTaskId(PlatformStorageModels.DataType data, string taskId)
         {
             return string.IsNullOrEmpty(taskId) || data.TaskId == taskId;
         }
