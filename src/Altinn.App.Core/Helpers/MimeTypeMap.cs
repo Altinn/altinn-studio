@@ -160,6 +160,7 @@ namespace Altinn.App.Core.Helpers
                 { ".fsx", new("application/fsharp-script") },
                 { ".generictest", new("application/xml") },
                 { ".gif", new("image/gif") },
+                { ".gml", new ("application/gml+xml") },
                 { ".gpx", new("application/gpx+xml") },
                 { ".group", new("text/x-ms-group") },
                 { ".gsm", new("audio/x-gsm") },
