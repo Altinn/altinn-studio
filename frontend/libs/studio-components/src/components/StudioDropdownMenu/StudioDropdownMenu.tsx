@@ -1,9 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { DropdownMenu } from '@digdir/design-system-react';
 import type { DropdownMenuProps } from '@digdir/design-system-react';
-import type { StudioButtonProps } from '../StudioButton';
-import { StudioButton } from '../StudioButton';
 import { StudioDropdownMenuContext } from './StudioDropdownMenuContext';
+import type { StudioButtonProps } from '../StudioButton';
 
 export interface StudioDropdownMenuProps extends Omit<DropdownMenuProps, 'anchorEl' | 'onClose'> {
   anchorButtonProps?: StudioButtonProps;
@@ -21,15 +20,15 @@ export const StudioDropdownMenu = ({
   return (
     <>
       <DropdownMenu open={open} onClose={() => setOpen(false)}>
-        <DropdownMenu.Trigger asChild>
-          <StudioButton
-            aria-expanded={open}
-            aria-haspopup='menu'
-            ref={anchorRef}
-            size={rest.size}
-            onClick={() => setOpen(!open)}
-            {...anchorButtonProps}
-          />
+        <DropdownMenu.Trigger
+          aria-expanded={open}
+          aria-haspopup='menu'
+          ref={anchorRef}
+          size={rest.size}
+          onClick={() => setOpen(!open)}
+          {...anchorButtonProps}
+        >
+          {anchorButtonProps.icon} {anchorButtonProps.children}
         </DropdownMenu.Trigger>
         <DropdownMenu.Content>
           <StudioDropdownMenuContext.Provider value={{ setOpen }}>

@@ -22,7 +22,7 @@ export const PolicyEditorDropdownMenu = ({
       anchorButtonProps={{
         className: isError ? classes.errorButton : '',
         color: isError ? 'danger' : 'second',
-        icon: <MenuElipsisVerticalIcon fontSize='1.8rem' />,
+        icon: <MenuElipsisVerticalIcon />,
         size: 'small',
         'aria-label': t('policy_editor.more'),
         variant: 'tertiary',

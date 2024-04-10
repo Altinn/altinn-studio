@@ -4,7 +4,7 @@ import { PlusIcon } from '@navikt/aksel-icons';
 import { useText } from '../../../hooks';
 import type { ExpressionProperty } from '../../../types/Expressions';
 import { expressionPropertyTexts } from '../../../types/Expressions';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioDropdownMenu } from '@studio/components';
 
 export interface NewExpressionButtonProps {
   options: ExpressionProperty[];
@@ -32,7 +32,7 @@ export const NewExpressionButton = ({ options, onAddExpression }: NewExpressionB
       >
         {t('right_menu.expressions_add')}
       </StudioButton>
-      <DropdownMenu
+      <StudioDropdownMenu
         anchorEl={anchorEl.current}
         onClose={() => setShowDropdown(false)}
         open={showDropdown}
@@ -55,7 +55,7 @@ export const NewExpressionButton = ({ options, onAddExpression }: NewExpressionB
             ))}
           </DropdownMenu.Group>
         </DropdownMenu.Content>
-      </DropdownMenu>
+      </StudioDropdownMenu>
     </>
   );
 };

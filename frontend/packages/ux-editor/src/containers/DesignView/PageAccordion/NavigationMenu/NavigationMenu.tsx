@@ -49,7 +49,7 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
       anchorButtonProps={{
         icon: <MenuElipsisVerticalIcon />,
         'aria-label': t('general.options'),
-        variant: 'secondary',
+        variant: 'tertiary',
       }}
     >
       <DropdownMenu.Content>
