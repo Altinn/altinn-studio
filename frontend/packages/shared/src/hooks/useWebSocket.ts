@@ -7,19 +7,19 @@ type UseWebSocketResult = {
 
 type UseWebsocket = {
   webSocketUrl: string;
-  socketMessageListeners: string[];
+  clientsName: string[];
   webSocketConnector: typeof WSConnector;
 };
 
 export const useWebSocket = ({
   webSocketUrl,
-  socketMessageListeners,
+  clientsName,
   webSocketConnector,
 }: UseWebsocket): UseWebSocketResult => {
   const wsConnectionRef = useRef(null);
   useEffect(() => {
-    wsConnectionRef.current = webSocketConnector.getInstance(webSocketUrl, socketMessageListeners);
-  }, [webSocketConnector, webSocketUrl, socketMessageListeners]);
+    wsConnectionRef.current = webSocketConnector.getInstance(webSocketUrl, clientsName);
+  }, [webSocketConnector, webSocketUrl, clientsName]);
 
   const onWSMessageReceived = <T>(callback: (message: T) => void): void => {
     wsConnectionRef.current?.onMessageReceived(callback);

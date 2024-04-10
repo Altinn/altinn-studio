@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react';
 import { useWebSocket } from './useWebSocket';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 
-const socketMessageListenersMock = ['MessageClientOne', 'MessageClientTwo'];
+const clientsNameMock = ['MessageClientOne', 'MessageClientTwo'];
 
 jest.mock('app-shared/websockets/WSConnector', () => ({
   WSConnector: {
@@ -17,7 +17,7 @@ describe('useWebSocket', () => {
     renderHook(() =>
       useWebSocket({
         webSocketUrl: 'ws://jest-test-mocked-url.com',
-        socketMessageListeners: socketMessageListenersMock,
+        clientsName: clientsNameMock,
         webSocketConnector: WSConnector,
       }),
     );
@@ -31,15 +31,14 @@ describe('useWebSocket', () => {
     const { result } = renderHook(() =>
       useWebSocket({
         webSocketUrl: 'ws://jest-test-mocked-url.com',
-        socketMessageListeners: socketMessageListenersMock,
+        clientsName: clientsNameMock,
         webSocketConnector: WSConnector,
       }),
     );
     const callback = jest.fn();
     result.current.onWSMessageReceived(callback);
     expect(
-      WSConnector.getInstance('ws://jest-test-mocked-url.com', socketMessageListenersMock)
-        .onMessageReceived,
+      WSConnector.getInstance('ws://jest-test-mocked-url.com', clientsNameMock).onMessageReceived,
     ).toHaveBeenCalledWith(callback);
   });
 });

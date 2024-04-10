@@ -17,7 +17,7 @@ import { type MetaDataForm } from '@altinn/process-editor/src/contexts/BpmnConfi
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 
-enum SyncEventListenersName {
+enum SyncClientsName {
   FileSyncSuccess = 'FileSyncSuccess',
   FileSyncError = 'FileSyncError',
 }
@@ -35,10 +35,7 @@ export const ProcessEditor = (): React.ReactElement => {
 
   const { onWSMessageReceived } = useWebSocket({
     webSocketUrl: processEditorWebSocketHub(),
-    socketMessageListeners: [
-      SyncEventListenersName.FileSyncSuccess,
-      SyncEventListenersName.FileSyncError,
-    ],
+    clientsName: [SyncClientsName.FileSyncSuccess, SyncClientsName.FileSyncError],
     webSocketConnector: WSConnector,
   });
 
