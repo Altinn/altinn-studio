@@ -25,7 +25,7 @@ namespace Altinn.Studio.Designer.Repository.Models
             List<Claim> claims = httpContext.User.Claims.ToList();
             entity.Org = org;
             entity.App = app;
-            entity.Created = DateTime.Now;
+            entity.Created = DateTime.UtcNow;
             entity.CreatedBy = claims.FirstOrDefault(x => x.Type == AltinnCoreClaimTypes.Developer)?.Value;
 
             return entity;
