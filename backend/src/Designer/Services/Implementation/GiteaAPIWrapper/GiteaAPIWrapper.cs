@@ -234,8 +234,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 if (commitResponse != null)
                 {
                     string commitUserName = commitResponse.LastOrDefault().Commit?.Author?.Name;
-                    GiteaUser user = await GetCachedUser(commitUserName);
-                    listviewResource.CreatedBy = string.IsNullOrEmpty(user.FullName) ? commitUserName : user.FullName;
+                    string userFullName = await GetCachedUserFullName(commitUserName);
+                    listviewResource.CreatedBy = userFullName;
                     listviewResource.LastChanged = DateTime.Parse(commitResponse.FirstOrDefault().Created);
                 }
             }
@@ -243,8 +243,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (string.IsNullOrEmpty(listviewResource.CreatedBy))
             {
                 string localUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-                GiteaUser localUser = await GetCachedUser(localUserName);
-                listviewResource.CreatedBy = string.IsNullOrEmpty(localUser.FullName) ? localUserName : localUser.FullName;
+                string userFullName = await GetCachedUserFullName(localUserName);
+                listviewResource.CreatedBy = userFullName;
             }
 
             if (listviewResource.LastChanged.Year.Equals(1))
@@ -722,25 +722,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return null;
         }
 
-        private async Task<GiteaUser> GetCachedUser(string username)
+        private async Task<string> GetCachedUserFullName(string username)
         {
-            string cacheKey = $"giteauser:{username}";
-            if (!_cache.TryGetValue(cacheKey, out GiteaUser giteaUser))
+            string cacheKey = $"giteauser_fullname:{username}";
+            var cacheEntryOptions = new MemoryCacheEntryOptions();
+            if (!_cache.TryGetValue(cacheKey, out string giteaUserFullName))
             {
-                try
-                {
-                    HttpResponseMessage response = await _httpClient.GetAsync($"users/{username}/");
-                    giteaUser = await response.Content.ReadAsAsync<GiteaUser>();
-                    var cacheEntryOptions = new MemoryCacheEntryOptions();
-                    _cache.Set(cacheKey, giteaUser, cacheEntryOptions);
-                }
-                catch (Exception)
-                {
-                    // User not found in Gitea
-                }
+                HttpResponseMessage response = await _httpClient.GetAsync($"users/{username}/");
+                GiteaUser giteaUser = await response.Content.ReadAsAsync<GiteaUser>();
+                giteaUserFullName = string.IsNullOrEmpty(giteaUser.FullName) ? username : giteaUser.FullName;
+                _cache.Set(cacheKey, giteaUserFullName, cacheEntryOptions);
             }
 
-            return giteaUser;
+            return giteaUserFullName;
         }
 
         private async Task<Organization> GetCachedOrg(string org)
