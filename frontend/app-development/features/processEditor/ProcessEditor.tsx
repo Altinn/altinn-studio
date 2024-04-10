@@ -17,6 +17,11 @@ import { type MetaDataForm } from '@altinn/process-editor/src/contexts/BpmnConfi
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 
+enum SyncEventListenersName {
+  FileSyncSuccess = 'FileSyncSuccess',
+  FileSyncError = 'FileSyncError',
+}
+
 export const ProcessEditor = (): React.ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
@@ -30,7 +35,10 @@ export const ProcessEditor = (): React.ReactElement => {
 
   const { onWSMessageReceived } = useWebSocket({
     webSocketUrl: processEditorWebSocketHub(),
-    socketMessageListeners: ['FileSyncSuccess', 'FileSyncError'],
+    socketMessageListeners: [
+      SyncEventListenersName.FileSyncSuccess,
+      SyncEventListenersName.FileSyncError,
+    ],
     webSocketConnector: WSConnector,
   });
 
