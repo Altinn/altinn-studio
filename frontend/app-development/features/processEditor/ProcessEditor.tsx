@@ -30,6 +30,7 @@ export const ProcessEditor = (): React.ReactElement => {
 
   const { onWSMessageReceived } = useWebSocket({
     webSocketUrl: processEditorWebSocketHub(),
+    socketMessageListeners: ['FileSyncSuccess', 'FileSyncError'],
     webSocketConnector: WSConnector,
   });
 
