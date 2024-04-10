@@ -23,7 +23,7 @@ export const ProcessEditor = (): React.ReactElement => {
   const { org, app } = useStudioUrlParams();
   const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
   const { data: appLibData, isLoading: appLibDataLoading } = useAppVersionQuery(org, app);
-  const { mutate: mutationBpmn, isPending: mutateBpmnPending } = useBpmnMutation(org, app);
+  const { mutate: mutateBpmn, isPending: mutateBpmnPending } = useBpmnMutation(org, app);
   const { mutate: mutateLayoutSet, isPending: mutateLayoutSetPending } = useUpdateLayoutSetMutation(
     org,
     app,
@@ -65,7 +65,7 @@ export const ProcessEditor = (): React.ReactElement => {
     formData.append('content', new Blob([xml]), 'process.bpmn');
     formData.append('metadata', JSON.stringify(metaData));
 
-    mutationBpmn(
+    mutateBpmn(
       { form: formData },
       {
         onError: () => {
