@@ -7,6 +7,7 @@ import { ConfigContent } from './ConfigContent';
 import { ConfigEndEvent } from './ConfigEndEvent';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { ConfigSurface } from '../ConfigSurface/ConfigSurface';
+import { ConfigExclusiveGateway } from './ConfigExclusiveGateway';
 
 export const ConfigPanel = (): React.ReactElement => {
   return (
@@ -34,6 +35,11 @@ const ConfigPanelContent = (): React.ReactElement => {
     shouldDisplayFeature('customizeEndEvent') && bpmnDetails.type === BpmnTypeEnum.EndEvent;
   if (shouldDisplayEndEventConfig) {
     return <ConfigEndEvent />;
+  }
+
+  const shouldDisplayGatewayConfig = bpmnDetails.type === BpmnTypeEnum.ExclusiveGateway;
+  if (shouldDisplayGatewayConfig) {
+    return <ConfigExclusiveGateway />;
   }
 
   const isSupportedConfig = bpmnDetails.type === BpmnTypeEnum.Task;

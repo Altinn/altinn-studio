@@ -33,7 +33,7 @@ export const ExpressionContent = ({
     app,
     selectedFormLayoutSetName,
   );
-
+  console.log(expression);
   const dataLookupOptions: DataLookupOptions = useMemo(
     () => ({
       [DataLookupFuncName.Component]: getComponentIds(formLayoutsData),
