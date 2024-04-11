@@ -1,9 +1,8 @@
 .navigationMenu {
   display: flex;
-  justify-content: flex-start;
-  align-items: stretch;
+  align-items: center;
   padding-block: 12px;
-  margin-left: 10px;
+  padding: 3px;
   background-color: var(--background-color);
 }
 
@@ -31,5 +30,4 @@
 
 .accordionHeaderRow {
   display: flex;
-  background-color: var(--background-color);
 }
