@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import { ExpressionContent } from '../../config/ExpressionContent';
 import type { Expression } from '@studio/components';
 import type { IInternalLayout } from '../../../types/global';
@@ -7,6 +7,7 @@ import { useFormLayoutMutation } from '../../../hooks/mutations/useFormLayoutMut
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useSelectedFormLayoutWithName, useAppContext } from '../../../hooks';
 import { Trans } from 'react-i18next';
+import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 
 export const HiddenExpressionOnLayout = () => {
   const { app, org } = useStudioUrlParams();
@@ -18,15 +19,22 @@ export const HiddenExpressionOnLayout = () => {
     layoutName,
     selectedFormLayoutSetName,
   );
-  const handleChangeHiddenExpressionOnLayout = async (expression: Expression) => {
-    const updatedLayout: IInternalLayout = ObjectUtils.deepCopy(layout);
-    saveLayout({ ...updatedLayout, hidden: expression });
-  };
+  const autoSaveTimeoutRef = useRef(undefined);
 
   const handleDeleteHiddenExpressionOnLayout = async () => {
     const updatedLayout: IInternalLayout = ObjectUtils.deepCopy(layout);
     saveLayout({ ...updatedLayout, hidden: undefined });
   };
+
+  const handleChangeHiddenExpressionOnLayout = useCallback(
+    async (expression: Expression): Promise<void> => {
+      const updatedLayout: IInternalLayout = ObjectUtils.deepCopy(layout);
+      autoSaveTimeoutRef.current = setTimeout(() => {
+        saveLayout({ ...updatedLayout, hidden: expression });
+      }, AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
+    },
+    [layout, saveLayout],
+  );
 
   return (
     <ExpressionContent

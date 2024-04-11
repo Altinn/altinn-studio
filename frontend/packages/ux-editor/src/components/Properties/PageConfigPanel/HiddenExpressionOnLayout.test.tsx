@@ -11,6 +11,7 @@ import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import type { BooleanExpression } from '@studio/components';
 import { GeneralRelationOperator } from '@studio/components';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 
 // Test data
 const app = 'app';
@@ -20,6 +21,8 @@ const layoutSet = layoutSetsMock.sets[0].id;
 const defaultLayouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };
+
+jest.useFakeTimers({ advanceTimers: true });
 
 describe('HiddenExpressionOnLayout', () => {
   afterEach(() => jest.clearAllMocks());
@@ -48,6 +51,7 @@ describe('HiddenExpressionOnLayout', () => {
       name: textMock('expression.addSubexpression'),
     });
     await act(() => user.click(addSubExpressionButton));
+
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
   });
 
@@ -66,6 +70,9 @@ describe('HiddenExpressionOnLayout', () => {
       name: textMock('expression.saveAndClose'),
     });
     await act(() => user.click(saveExpressionButton));
+
+    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
+
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
   });
 
