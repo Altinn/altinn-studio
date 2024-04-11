@@ -299,8 +299,8 @@ export const RepoList = ({
       )}
       {copyCurrentRepoName && (
         <MakeCopyModal
-          anchorEl={copyModalAnchorRef.current}
-          handleClose={handleCloseCopyModal}
+          open={copyModalAnchorRef.current}
+          onClose={handleCloseCopyModal}
           serviceFullName={copyCurrentRepoName}
         />
       )}
