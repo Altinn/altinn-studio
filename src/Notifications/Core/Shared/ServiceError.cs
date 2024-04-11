@@ -1,5 +1,5 @@
 ﻿#nullable enable
-namespace Altinn.Notifications.Core.Models;
+namespace Altinn.Notifications.Core.Shared;
 
 /// <summary>
 /// A class representing a service error object used to transfere error information from service to controller.

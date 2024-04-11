@@ -25,31 +25,32 @@ using Swashbuckle.AspNetCore.Filters;
 namespace Altinn.Notifications.Controllers;
 
 /// <summary>
-/// Controller for all operations related to email notification orders
+/// Controller for all operations related to SMS notification orders
 /// </summary>
-[Route("notifications/api/v1/orders/email")]
+[Route("notifications/api/v1/orders/sms")]
 [ApiController]
 #if !LOCALTEST
 [Authorize(Policy = AuthorizationConstants.POLICY_CREATE_SCOPE_OR_PLATFORM_ACCESS)]
 [SwaggerResponse(401, "Caller is unauthorized")]
 [SwaggerResponse(403, "Caller is not authorized to access the requested resource")]
 # endif
-public class EmailNotificationOrdersController : ControllerBase
+
+public class SmsNotificationOrdersController : ControllerBase
 {
-    private readonly IValidator<EmailNotificationOrderRequestExt> _validator;
+    private readonly IValidator<SmsNotificationOrderRequestExt> _validator;
     private readonly IOrderRequestService _orderRequestService;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="EmailNotificationOrdersController"/> class.
+    /// Initializes a new instance of the <see cref="SmsNotificationOrdersController"/> class.
     /// </summary>
-    public EmailNotificationOrdersController(IValidator<EmailNotificationOrderRequestExt> validator, IOrderRequestService orderRequestService)
+    public SmsNotificationOrdersController(IValidator<SmsNotificationOrderRequestExt> validator, IOrderRequestService orderRequestService)
     {
         _validator = validator;
         _orderRequestService = orderRequestService;
     }
 
     /// <summary>
-    /// Add an email notification order.
+    /// Add an SMS notification order.
     /// </summary>
     /// <remarks>
     /// The API will accept the request after som basic validation of the request.
@@ -64,12 +65,12 @@ public class EmailNotificationOrdersController : ControllerBase
     [SwaggerResponse(400, "The notification order is invalid", typeof(ValidationProblemDetails))]
     [SwaggerResponseHeader(202, "Location", "string", "Link to access the newly created notification order.")]
 #endif
-    public async Task<ActionResult<OrderIdExt>> Post(EmailNotificationOrderRequestExt emailNotificationOrderRequest)
+    public async Task<ActionResult<OrderIdExt>> Post(SmsNotificationOrderRequestExt smsNotificationOrderRequest)
     {
-        var validationResult = _validator.Validate(emailNotificationOrderRequest);
+        FluentValidation.Results.ValidationResult validationResult = _validator.Validate(smsNotificationOrderRequest);
         if (!validationResult.IsValid)
         {
-            validationResult.AddToModelState(ModelState);
+            validationResult.AddToModelState(this.ModelState);
             return ValidationProblem(ModelState);
         }
 
@@ -84,15 +85,15 @@ public class EmailNotificationOrdersController : ControllerBase
         }
 #endif
 
-        var orderRequest = emailNotificationOrderRequest.MapToOrderRequest(creator);
+        NotificationOrderRequest orderRequest = smsNotificationOrderRequest.MapToOrderRequest(creator);
         Result<NotificationOrder, ServiceError> result = await _orderRequestService.RegisterNotificationOrder(orderRequest);
 
         return result.Match(
-            order =>
-            {
-                string selfLink = order.GetSelfLink();
-                return Accepted(selfLink, new OrderIdExt(order.Id));
-            },
-            error => StatusCode(error.ErrorCode, error.ErrorMessage));
+             registeredOrder =>
+             {
+                 string selfLink = registeredOrder!.GetSelfLink();
+                 return Accepted(selfLink, new OrderIdExt(registeredOrder!.Id));
+             },
+             error => StatusCode(error.ErrorCode, error.ErrorMessage));
     }
 }

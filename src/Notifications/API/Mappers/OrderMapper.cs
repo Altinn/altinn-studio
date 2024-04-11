@@ -2,6 +2,7 @@
 using Altinn.Notifications.Core.Enums;
 using Altinn.Notifications.Core.Models;
 using Altinn.Notifications.Core.Models.Address;
+using Altinn.Notifications.Core.Models.Notification;
 using Altinn.Notifications.Core.Models.NotificationTemplate;
 using Altinn.Notifications.Core.Models.Orders;
 using Altinn.Notifications.Extensions;
@@ -24,14 +25,35 @@ public static class OrderMapper
         var recipients = new List<Recipient>();
 
         recipients.AddRange(
-            extRequest.Recipients.Select(r => new Recipient(string.Empty, new List<IAddressPoint>() { new EmailAddressPoint(r.EmailAddress!) })));
+            extRequest.Recipients.Select(r => new Recipient(new List<IAddressPoint>() { new EmailAddressPoint(r.EmailAddress!) })));
 
         return new NotificationOrderRequest(
             extRequest.SendersReference,
             creator,
-            new List<INotificationTemplate>() { emailTemplate },
-            extRequest.RequestedSendTime,
+            new(){ emailTemplate },
+            extRequest.RequestedSendTime.ToUniversalTime(),
             NotificationChannel.Email,
+            recipients);
+    }
+
+    /// <summary>
+    /// Maps a <see cref="SmsNotificationOrderRequestExt"/> to a <see cref="NotificationOrderRequest"/>
+    /// </summary>
+    public static NotificationOrderRequest MapToOrderRequest(this SmsNotificationOrderRequestExt extRequest, string creator)
+    {
+        INotificationTemplate smsTemplate = new SmsTemplate(extRequest.SenderNumber, extRequest.Body);
+
+        List<Recipient> recipients = new();
+
+        recipients.AddRange(
+            extRequest.Recipients.Select(r => new Recipient(new List<IAddressPoint>() { new SmsAddressPoint(r.MobileNumber!) })));
+
+        return new NotificationOrderRequest(
+            extRequest.SendersReference,
+            creator,
+            new(){ smsTemplate },
+            extRequest.RequestedSendTime.ToUniversalTime(),
+            NotificationChannel.Sms,
             recipients);
     }
 
@@ -61,7 +83,13 @@ public static class OrderMapper
                     };
 
                     break;
-                default:
+                case NotificationTemplateType.Sms:
+                    var smsTemplate = template! as SmsTemplate;
+                    orderExt.SmsTemplate = new()
+                    {
+                        Body = smsTemplate!.Body,
+                        SenderNumber = smsTemplate.SenderNumber
+                    };
                     break;
             }
         }
@@ -85,7 +113,7 @@ public static class OrderMapper
             StatusDescription = order.ProcessingStatus.StatusDescription
         };
 
-        if (order.NotificationStatuses.Any())
+        if (order.NotificationStatuses.Count != 0)
         {
             orderExt.NotificationsStatusSummary = new();
             foreach (var entry in order.NotificationStatuses)
@@ -97,6 +125,13 @@ public static class OrderMapper
                 {
                     case NotificationTemplateType.Email:
                         orderExt.NotificationsStatusSummary.Email = new()
+                        {
+                            Generated = status.Generated,
+                            Succeeded = status.Succeeded
+                        };
+                        break;
+                    case NotificationTemplateType.Sms:
+                        orderExt.NotificationsStatusSummary.Sms = new()
                         {
                             Generated = status.Generated,
                             Succeeded = status.Succeeded
@@ -139,7 +174,10 @@ public static class OrderMapper
         recipientExt.AddRange(
             recipients.Select(r => new RecipientExt
             {
-                EmailAddress = GetEmailFromAddressList(r.AddressInfo)
+                OrganisationNumber = r.OrganisationNumber,
+                NationalIdentityNumber = r.NationalIdentityNumber,
+                EmailAddress = GetEmailFromAddressList(r.AddressInfo),
+                MobileNumber = GetMobileNumberFromAddressList(r.AddressInfo)
             }));
 
         return recipientExt;
@@ -164,5 +202,14 @@ public static class OrderMapper
             as EmailAddressPoint;
 
         return emailAddressPoint?.EmailAddress;
+    }
+
+    private static string? GetMobileNumberFromAddressList(List<IAddressPoint> addressPoints)
+    {
+        var smsAddressPoint = addressPoints
+            .Find(a => a.AddressType.Equals(AddressType.Sms))
+            as SmsAddressPoint;
+
+        return smsAddressPoint?.MobileNumber;
     }
 }

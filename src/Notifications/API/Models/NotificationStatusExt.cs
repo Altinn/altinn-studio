@@ -36,3 +36,13 @@ public abstract class NotificationStatusExt
 public class EmailNotificationStatusExt : NotificationStatusExt
 {
 }
+
+/// <summary>
+/// A class representing a status overview for sms notifications 
+/// </summary>
+/// <remarks>
+/// External representaion to be used in the API.
+/// </remarks>
+public class SmsNotificationStatusExt : NotificationStatusExt
+{
+}

@@ -9,6 +9,7 @@ namespace Altinn.Notifications.Core.Models.Address;
 /// Interface describing an address point
 /// </summary>
 [JsonDerivedType(typeof(EmailAddressPoint), "email")]
+[JsonDerivedType(typeof(SmsAddressPoint), "sms")]
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$")]
 public interface IAddressPoint
 {

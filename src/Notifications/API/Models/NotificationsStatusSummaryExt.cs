@@ -16,4 +16,10 @@ public class NotificationsStatusSummaryExt
     /// </summary>
     [JsonPropertyName("email")]
     public EmailNotificationStatusExt? Email { get; set; }
+
+    /// <summary>
+    /// Gets or sets the status of the sms notifications
+    /// </summary>
+    [JsonPropertyName("sms")]
+    public SmsNotificationStatusExt? Sms { get; set; }
 }

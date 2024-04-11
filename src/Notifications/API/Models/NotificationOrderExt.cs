@@ -49,6 +49,12 @@ public class NotificationOrderExt : IBaseNotificationOrderExt
     public EmailTemplateExt? EmailTemplate { get; set; }
 
     /// <summary>
+    /// Gets or sets the smsTemplate
+    /// </summary>
+    [JsonPropertyName("smsTemplate")]
+    public SmsTemplateExt? SmsTemplate { get; set; }
+
+    /// <summary>
     /// Gets or sets the link of the order
     /// </summary>
     [JsonPropertyName("links")]

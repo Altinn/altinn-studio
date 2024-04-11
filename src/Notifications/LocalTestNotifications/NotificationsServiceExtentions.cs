@@ -22,9 +22,10 @@ public static class NotificationsServiceExtentions
 
         services
             .AddSingleton<IValidator<EmailNotificationOrderRequestExt>, EmailNotificationOrderRequestValidator>()
+            .AddSingleton<IValidator<SmsNotificationOrderRequestExt>, SmsNotificationOrderRequestValidator>()
             .AddSingleton<IOrderRepository, LocalOrderRepository>()
             .AddSingleton<IGuidService, GuidService>()
             .AddSingleton<IDateTimeService, DateTimeService>()
-            .AddSingleton<IEmailNotificationOrderService, EmailNotificationOrderService>();
+            .AddSingleton<IOrderRequestService, OrderRequestService>();
     }
 }
