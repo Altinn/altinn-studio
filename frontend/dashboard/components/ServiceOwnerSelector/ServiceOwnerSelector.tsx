@@ -30,6 +30,7 @@ export const ServiceOwnerSelector = ({
     selectableOptions.find((item) => item.value === selectedOrgOrUser)?.value ??
     selectableUser.value;
 
+  // MAKE COMBOBOX
   return (
     <div>
       <Label spacing htmlFor={serviceOwnerId}>

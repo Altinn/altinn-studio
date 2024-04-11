@@ -3,17 +3,7 @@
 }
 
 .modalContent {
-  width: 400px;
+  width: 500px;
   padding-block: 1rem;
   padding-inline: 2rem;
-}
-
-.buttonWrapper {
-  display: flex;
-  padding-top: 1rem;
-  gap: 1rem;
-}
-
-.errorMessage {
-  color: #d5203b;
 }
