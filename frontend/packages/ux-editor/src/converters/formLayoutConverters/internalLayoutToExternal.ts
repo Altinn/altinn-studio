@@ -13,9 +13,9 @@ import type { FormComponent } from '../../types/FormComponent';
 export const internalLayoutToExternal = (internalLayout: IInternalLayout): ExternalFormLayout => ({
   $schema: layoutSchemaUrl(),
   data: {
+    ...internalLayout.customDataProperties,
     hidden: internalLayout.hidden,
     layout: generateExternalComponents(internalLayout),
-    ...internalLayout.customDataProperties,
   },
   ...internalLayout.customRootProperties,
 });

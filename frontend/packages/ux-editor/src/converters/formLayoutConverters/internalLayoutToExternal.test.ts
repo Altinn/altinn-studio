@@ -70,6 +70,22 @@ describe('internalLayoutToExternal', () => {
     expect(result).toBe('unknownComponentId');
   });
 
+  it('Overrides hidden property on data-level if an expression is set', () => {
+    const layoutMockWithHiddenAsCustomProperty = {
+      ...layoutMock,
+      customDataProperties: { hidden: true },
+    };
+    const externalFormLayout = internalLayoutToExternal({
+      hidden: ['contains', 'test', 't'],
+      ...layoutMockWithHiddenAsCustomProperty,
+    });
+    expect(externalFormLayout).toEqual(
+      expect.objectContaining({
+        data: expect.objectContaining({ hidden: ['contains', 'test', 't'] }),
+      }),
+    );
+  });
+
   it('Includes custom root properties', () => {
     expect(result).toEqual(
       expect.objectContaining(internalLayoutWithMultiPageGroup.customRootProperties),
