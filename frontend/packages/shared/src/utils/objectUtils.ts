@@ -1,5 +1,4 @@
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { areItemsUnique } from 'app-shared/utils/arrayUtils';
 
 /**
  * Checks if two objects are equal (shallow comparison).
@@ -19,19 +18,26 @@ export const areObjectsEqual = <T extends object>(obj1: T, obj2: T): boolean => 
 
 /**
  * Maps an array of objects to a key-value pair object, where the key is the value of the given property.
- * Requires that the values of the given property are unique.
  * @param objectList
  * @param property
+ * @returns An object with the values of the given property as keys and the objects as values.
  */
 export const mapByProperty = <T extends object>(
   objectList: T[],
   property: keyof T,
 ): KeyValuePairs<T> => {
-  const keys = objectList.map((object) => object[property]);
-  if (!areItemsUnique(keys)) {
-    throw new Error(
-      'The values of the given property in the mapByProperty function should be unique.',
-    );
-  }
   return Object.fromEntries(objectList.map((object) => [object[property], object]));
+};
+
+/**
+ * Flattens the values of an object.
+ * @param object The object to flatten.
+ * @returns An array of the values of the object.
+ */
+export const flattenObjectValues = <T extends object>(object: T): string[] => {
+  return Object.entries(object)
+    .map(([, value]) => {
+      return value;
+    })
+    .flat();
 };
