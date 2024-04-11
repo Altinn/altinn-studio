@@ -4,7 +4,7 @@ import { useExpressionTexts } from 'app-shared/components/Expression/useExpressi
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { StudioModeller } from '../../../utils/ModellerHelper';
 
-export const ConfigExclusiveGateway = (): React.ReactElement => {
+export const ConfigSequenceFlow = (): React.ReactElement => {
   const texts = useExpressionTexts();
   const expression: any = ['equals', 0, 0];
   const { bpmnDetails } = useBpmnContext();

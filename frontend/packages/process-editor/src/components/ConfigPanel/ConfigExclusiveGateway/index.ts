@@ -1,1 +1,0 @@
-export { ConfigExclusiveGateway } from './ConfigExclusiveGateway';
