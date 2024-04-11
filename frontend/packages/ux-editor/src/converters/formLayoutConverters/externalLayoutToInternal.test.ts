@@ -23,7 +23,7 @@ describe('externalLayoutToInternal', () => {
       },
     };
     const result = externalLayoutToInternal(externalLayout);
-    expect(result.customRootProperties).toEqual({}); // Check if customRootProperties is an empty object
+    expect(result.customRootProperties).toEqual({});
     expect(result.customDataProperties).toEqual({});
   });
 
