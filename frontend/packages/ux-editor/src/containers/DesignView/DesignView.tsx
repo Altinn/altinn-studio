@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import React from 'react';
-import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
@@ -12,9 +11,10 @@ import { PlusIcon } from '@navikt/aksel-icons';
 import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
 import { PageAccordion } from './PageAccordion';
 import { ReceiptContent } from './ReceiptContent';
-import { useAppContext } from '../../hooks';
+import { useAppContext, useFormLayouts } from '../../hooks';
 import { FormLayout } from './FormLayout';
 import { StudioButton } from '@studio/components';
+import { haveComponentsUniqueIds } from '../../utils/formLayoutUtils';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
@@ -41,7 +41,7 @@ export const DesignView = (): ReactNode => {
     app,
     selectedFormLayoutSetName,
   );
-  const { data: layouts } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
+  const layouts = useFormLayouts();
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
     org,
     app,
@@ -53,7 +53,6 @@ export const DesignView = (): ReactNode => {
   const { t } = useTranslation();
 
   const formLayoutData = mapFormLayoutsToFormLayoutPages(layouts);
-
   /**
    * Handles the click of an accordion. It updates the URL and sets the
    * local storage for which page view that is open
@@ -88,7 +87,10 @@ export const DesignView = (): ReactNode => {
     // If the layout does not exist, return null
     if (layout === undefined) return null;
 
-    return (
+    // Check if the layout has unique component IDs
+    const isValidLayout = haveComponentsUniqueIds(layout);
+
+    return isValidLayout ? (
       <PageAccordion
         pageName={layout.page}
         key={i}
@@ -97,6 +99,8 @@ export const DesignView = (): ReactNode => {
       >
         {layout.page === selectedFormLayoutName && <FormLayout layout={layout.data} />}
       </PageAccordion>
+    ) : (
+      'feil'
     );
   });
 

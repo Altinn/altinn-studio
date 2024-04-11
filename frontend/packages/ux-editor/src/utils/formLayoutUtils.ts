@@ -6,7 +6,11 @@ import type {
 } from '../types/global';
 import { BASE_CONTAINER_ID, MAX_NESTED_GROUP_LEVEL } from 'app-shared/constants';
 import { ObjectUtils } from '@studio/pure-functions';
-import { insertArrayElementAtPos, removeItemByValue } from 'app-shared/utils/arrayUtils';
+import {
+  insertArrayElementAtPos,
+  removeItemByValue,
+  areItemsUnique,
+} from 'app-shared/utils/arrayUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent } from '../types/FormComponent';
 import { generateFormItem } from './component';
@@ -16,6 +20,8 @@ import type { FormContainer } from '../types/FormContainer';
 import type { FormItem } from '../types/FormItem';
 import * as formItemUtils from './formItemUtils';
 import type { ContainerComponentType } from '../types/ContainerComponent';
+import type { FormLayoutPage } from '../types/FormLayoutPage';
+import { flattenObjectValues } from 'app-shared/utils/objectUtils';
 
 export const mapComponentToToolbarElement = <T extends ComponentType>(
   c: FormItemConfigs[T],
@@ -406,3 +412,23 @@ export const isItemChildOfContainer = (
 export const idExistsInLayout = (id: string, layout: IInternalLayout): boolean =>
   Object.keys(layout.components || {}).some((key) => key.toUpperCase() === id.toUpperCase()) ||
   Object.keys(layout.containers || {}).some((key) => key.toUpperCase() === id.toUpperCase());
+
+/**
+ * Checks if all components in the given layout have unique ids.
+ * @param layout The layout to check.
+ * @returns True if all items in the array are unique and false otherwise.
+ */
+export const haveComponentsUniqueIds = (layout: FormLayoutPage): boolean => {
+  const idsInLayout = flattenObjectValues(layout.data.order);
+  return areItemsUnique(idsInLayout);
+};
+
+/**
+ * Get the duplicated ids in the layout
+ * @param layout The layout to check
+ * @returns An array of duplicated ids
+ */
+export const getDuplicatedIds = (layout: FormLayoutPage): string[] => {
+  const idsInLayout = flattenObjectValues(layout.data.order);
+  return idsInLayout.filter((id, index) => idsInLayout.indexOf(id) !== index);
+};
