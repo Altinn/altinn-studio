@@ -4,5 +4,4 @@ export enum BpmnTypeEnum {
   SequenceFlow = 'bpmn:SequenceFlow',
   StartEvent = 'bpmn:StartEvent',
   EndEvent = 'bpmn:EndEvent',
-  ExclusiveGateway = 'bpmn:ExclusiveGateway',
 }

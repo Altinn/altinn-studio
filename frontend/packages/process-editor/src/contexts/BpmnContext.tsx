@@ -64,7 +64,8 @@ export const BpmnContextProvider = ({
       const { xml } = await modelerRef.current.saveXML({ format: true });
       setNumberOfUnsavedChanges(0);
       return xml;
-    } catch {
+    } catch (e) {
+      console.error('Failed to generate new xml', e);
       throw new Error('Failed to generate new xml');
     }
   };

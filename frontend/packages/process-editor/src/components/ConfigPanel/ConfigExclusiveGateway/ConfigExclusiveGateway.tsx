@@ -1,38 +1,34 @@
 import React from 'react';
 import { StudioExpression, StudioSectionHeader } from '@studio/components';
 import { useExpressionTexts } from 'app-shared/components/Expression/useExpressionTexts';
-import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
-import _default from 'bpmn-js/lib/features/modeling';
-import bpmnFactory = _default.bpmnFactory;
-import { Moddle } from 'bpmn-js/lib/model/Types';
+import { StudioModeller } from '../../../utils/ModellerHelper';
 
 export const ConfigExclusiveGateway = (): React.ReactElement => {
   const texts = useExpressionTexts();
   const expression: any = ['equals', 0, 0];
-  const { modelerRef } = useBpmnContext();
+  const { bpmnDetails } = useBpmnContext();
 
-  const modelerInstance = modelerRef.current;
-  const modeling: Modeling = modelerInstance.get('modeling');
+  // TODO Should type Expression argument to be specific to the expression we support
+  const addExpressionToSequenceFlow = (expression: string): void => {
+    const studioModeller = new StudioModeller(bpmnDetails.element);
+    const parentElement = studioModeller.getElement();
 
-  const updateExpressionTest = () => {
-    const moddle: Moddle = modelerInstance.get('moddle');
+    const newExpressionElement = studioModeller.createExpressionElement(expression);
 
-    const elementRegistry = modelerInstance.get('elementRegistry') as any;
-    const connection = elementRegistry.get('Flow_1yj1b38');
-
-    const newElement = moddle.create('bpmn:ExtensionElements', {
-      body: 'some-expression',
-    });
-
-    modeling.updateProperties(connection, {
-      conditionExpression: newElement,
+    studioModeller.addChildElementToParent<{ conditionExpression: Element }>(parentElement, {
+      conditionExpression: newExpressionElement,
     });
   };
 
   return (
     <>
-      <button onClick={updateExpressionTest}>Update test</button>
+      {/* TODO remove this button that is used just for testing during development */}
+      <button
+        onClick={() => addExpressionToSequenceFlow('["equals", ["gatewayAction"], "reject"]')}
+      >
+        Update test
+      </button>
       <StudioSectionHeader
         heading={{
           text: 'Exclusive Gateway',
@@ -43,7 +39,8 @@ export const ConfigExclusiveGateway = (): React.ReactElement => {
           title: 'Help text title',
         }}
       />
-
+      // TODO use this editor to build the expression and send it to the addExpressionToSequenceFlow
+      function
       <StudioExpression
         expression={expression}
         onChange={() => {}}

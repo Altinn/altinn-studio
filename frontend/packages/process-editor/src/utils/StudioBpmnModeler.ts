@@ -7,7 +7,7 @@ export class StudioBpmnModeler {
   private static instance: BpmnModeler | null = null;
 
   // Singleton pattern to ensure only one instance of the StudioBpmnModeler is created
-  public static getInstance(canvasContainer: HTMLDivElement): BpmnModeler {
+  public static getInstance(canvasContainer?: HTMLDivElement): BpmnModeler {
     if (!StudioBpmnModeler.instance) {
       StudioBpmnModeler.instance = new BpmnModeler({
         container: canvasContainer,

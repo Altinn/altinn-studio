@@ -37,8 +37,8 @@ const ConfigPanelContent = (): React.ReactElement => {
     return <ConfigEndEvent />;
   }
 
-  const shouldDisplayGatewayConfig = bpmnDetails.type === BpmnTypeEnum.ExclusiveGateway;
-  if (shouldDisplayGatewayConfig) {
+  const shouldDisplaySequenceFlow = bpmnDetails.type === BpmnTypeEnum.SequenceFlow;
+  if (shouldDisplaySequenceFlow) {
     return <ConfigExclusiveGateway />;
   }
 
