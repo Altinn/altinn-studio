@@ -39,8 +39,7 @@ export const ConfigExclusiveGateway = (): React.ReactElement => {
           title: 'Help text title',
         }}
       />
-      // TODO use this editor to build the expression and send it to the addExpressionToSequenceFlow
-      function
+      {/*TODO use this editor to build the expression and send it to the addExpressionToSequenceFlow function*/}
       <StudioExpression
         expression={expression}
         onChange={() => {}}
