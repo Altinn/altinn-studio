@@ -20,7 +20,6 @@ import type { FormContainer } from '../types/FormContainer';
 import type { FormItem } from '../types/FormItem';
 import * as formItemUtils from './formItemUtils';
 import type { ContainerComponentType } from '../types/ContainerComponent';
-import type { FormLayoutPage } from '../types/FormLayoutPage';
 import { flattenObjectValues } from 'app-shared/utils/objectUtils';
 
 export const mapComponentToToolbarElement = <T extends ComponentType>(
@@ -418,8 +417,8 @@ export const idExistsInLayout = (id: string, layout: IInternalLayout): boolean =
  * @param layout The layout to check.
  * @returns True if all items in the array are unique and false otherwise.
  */
-export const haveComponentsUniqueIds = (layout: FormLayoutPage): boolean => {
-  const idsInLayout = flattenObjectValues(layout.data.order);
+export const haveComponentsUniqueIds = (layout: IInternalLayout): boolean => {
+  const idsInLayout = flattenObjectValues(layout.order);
   return areItemsUnique(idsInLayout);
 };
 
@@ -428,7 +427,7 @@ export const haveComponentsUniqueIds = (layout: FormLayoutPage): boolean => {
  * @param layout The layout to check
  * @returns An array of duplicated ids
  */
-export const getDuplicatedIds = (layout: FormLayoutPage): string[] => {
-  const idsInLayout = flattenObjectValues(layout.data.order);
+export const getDuplicatedIds = (layout: IInternalLayout): string[] => {
+  const idsInLayout = flattenObjectValues(layout.order);
   return idsInLayout.filter((id, index) => idsInLayout.indexOf(id) !== index);
 };

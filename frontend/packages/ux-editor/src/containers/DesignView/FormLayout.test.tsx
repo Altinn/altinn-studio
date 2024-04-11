@@ -12,6 +12,7 @@ import { internalLayoutWithMultiPageGroup } from '../../testing/layoutWithMultiP
 
 const defaultProps: FormLayoutProps = {
   layout: layoutMock,
+  isValid: true,
 };
 
 describe('FormLayout', () => {

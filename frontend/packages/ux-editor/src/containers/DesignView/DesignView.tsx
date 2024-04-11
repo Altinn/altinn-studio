@@ -88,19 +88,19 @@ export const DesignView = (): ReactNode => {
     if (layout === undefined) return null;
 
     // Check if the layout has unique component IDs
-    const isValidLayout = haveComponentsUniqueIds(layout);
-
-    return isValidLayout ? (
-      <PageAccordion
-        pageName={layout.page}
-        key={i}
-        isOpen={layout.page === selectedFormLayoutName}
-        onClick={() => handleClickAccordion(layout.page)}
-      >
-        {layout.page === selectedFormLayoutName && <FormLayout layout={layout.data} />}
-      </PageAccordion>
-    ) : (
-      'feil'
+    const isValidLayout = haveComponentsUniqueIds(layout.data);
+    return (
+      <Accordion key={i} color={isValidLayout ? 'neutral' : 'third'}>
+        <PageAccordion
+          pageName={layout.page}
+          isOpen={layout.page === selectedFormLayoutName}
+          onClick={() => handleClickAccordion(layout.page)}
+        >
+          {layout.page === selectedFormLayoutName && (
+            <FormLayout layout={layout.data} isValid={isValidLayout} />
+          )}
+        </PageAccordion>
+      </Accordion>
     );
   });
 
@@ -108,9 +108,7 @@ export const DesignView = (): ReactNode => {
     <div className={classes.root}>
       <div>
         <div className={classes.wrapper}>
-          <div className={classes.accordionWrapper}>
-            <Accordion color='neutral'>{displayPageAccordions}</Accordion>
-          </div>
+          <div className={classes.accordionWrapper}>{displayPageAccordions}</div>
         </div>
         <ReceiptContent
           receiptName={receiptName}
