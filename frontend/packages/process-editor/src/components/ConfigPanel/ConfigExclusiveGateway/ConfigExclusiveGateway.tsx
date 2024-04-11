@@ -12,11 +12,9 @@ export const ConfigExclusiveGateway = (): React.ReactElement => {
   // TODO Should type Expression argument to be specific to the expression we support
   const addExpressionToSequenceFlow = (expression: string): void => {
     const studioModeller = new StudioModeller(bpmnDetails.element);
-    const parentElement = studioModeller.getElement();
-
     const newExpressionElement = studioModeller.createExpressionElement(expression);
 
-    studioModeller.addChildElementToParent<{ conditionExpression: Element }>(parentElement, {
+    studioModeller.addChildElementToParent<{ conditionExpression: Element }>({
       conditionExpression: newExpressionElement,
     });
   };

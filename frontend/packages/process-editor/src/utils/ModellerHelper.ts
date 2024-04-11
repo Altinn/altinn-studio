@@ -1,9 +1,9 @@
-import { StudioBpmnModeler } from './StudioBpmnModeler';
 import type Modeler from 'bpmn-js/lib/Modeler';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type { Element } from 'bpmn-moddle';
 import ElementRegistry from 'diagram-js/lib/core/ElementRegistry';
 import { Moddle } from 'bpmn-js/lib/model/Types';
+import { StudioBpmnModeler } from './StudioBpmnModeler';
 
 // Short description: This class is used to interact with the bpmn-js modeler instance to create, update and delete elements in the bpmn diagram.
 enum AvailableInstanceGetters {
@@ -52,7 +52,7 @@ export class StudioModeller {
     });
   }
 
-  public addChildElementToParent<T>(element: Element, properties: T): void {
-    this.updateElementProperties(element, { ...properties });
+  public addChildElementToParent<T>(properties: T): void {
+    this.updateElementProperties(this.getElement(), { ...properties });
   }
 }

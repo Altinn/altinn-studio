@@ -83,7 +83,6 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
 
     events.forEach((event) => {
       eventBus.on(event, (event: any) => {
-        console.log(event);
         if (!event) return;
 
         const bpmnDetails = {
