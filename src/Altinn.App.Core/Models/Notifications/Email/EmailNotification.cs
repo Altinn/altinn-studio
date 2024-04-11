@@ -1,11 +1,12 @@
-using Altinn.App.Core.Infrastructure.Clients.Email;
+using Altinn.App.Core.Features;
 using System.Text.Json.Serialization;
 
-namespace Altinn.App.Core.Models.Email;
+namespace Altinn.App.Core.Models.Notifications.Email;
+
 /// <summary>
-/// Structure used by <see cref="EmailNotificationClient"/> to request an email notification to a list of recipients.
+/// Structure used by <see cref="IEmailNotificationClient"/> to request an email notification to a list of recipients.
 /// </summary>
-public sealed class EmailNotification
+public sealed record EmailNotification
 {
     private DateTime _requestedSendTime;
 
@@ -43,12 +44,15 @@ public sealed class EmailNotification
     [JsonPropertyName("requestedSendTime")]
     public DateTime? RequestedSendTime
     {
-        // The notifications API requires RequestedSendTime to be in the future, add 1 minute to account for any delays
-        get => _requestedSendTime == default ? DateTime.UtcNow.AddMinutes(1) : _requestedSendTime;
-
+        get => _requestedSendTime == default ? DateTime.UtcNow : _requestedSendTime;
         init
         {
-            _requestedSendTime = value is null ? DateTime.UtcNow.AddMinutes(1) : ((DateTime)value).ToUniversalTime();
+            _requestedSendTime = value switch
+            {
+                null => DateTime.UtcNow,
+                DateTime timestamp when timestamp <= DateTime.UtcNow.AddMinutes(-1) => DateTime.UtcNow,
+                DateTime timestamp => timestamp.ToUniversalTime(),
+            };
         }
     }
 }

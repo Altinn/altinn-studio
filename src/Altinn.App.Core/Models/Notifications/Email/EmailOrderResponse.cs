@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Altinn.App.Core.Models.Email;
+namespace Altinn.App.Core.Models.Notifications.Email;
 
 /// <summary>
 /// The response from the email notification API.

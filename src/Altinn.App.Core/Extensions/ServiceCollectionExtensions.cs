@@ -12,7 +12,6 @@ using Altinn.App.Core.Features.Validation.Default;
 using Altinn.App.Core.Implementation;
 using Altinn.App.Core.Infrastructure.Clients.Authentication;
 using Altinn.App.Core.Infrastructure.Clients.Authorization;
-using Altinn.App.Core.Infrastructure.Clients.Email;
 using Altinn.App.Core.Infrastructure.Clients.Events;
 using Altinn.App.Core.Infrastructure.Clients.KeyVault;
 using Altinn.App.Core.Infrastructure.Clients.Pdf;
@@ -23,7 +22,6 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
-using Altinn.App.Core.Internal.Email;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Instances;
@@ -59,6 +57,8 @@ using ProcessEngine = Altinn.App.Core.Internal.Process.ProcessEngine;
 using ProcessReader = Altinn.App.Core.Internal.Process.ProcessReader;
 using Altinn.App.Core.Internal.Sign;
 using Altinn.App.Core.Internal.Process.Authorization;
+using Altinn.App.Core.Features.Notifications.Email;
+using Altinn.App.Core.Features.Notifications.Sms;
 
 namespace Altinn.App.Core.Extensions
 {
@@ -170,7 +170,7 @@ namespace Altinn.App.Core.Extensions
             AddPdfServices(services);
             AddSignatureServices(services);
             AddEventServices(services);
-            AddEmailServices(services);
+            AddNotificationServices(services);
             AddProcessServices(services);
             AddFileAnalyserServices(services);
             AddFileValidatorServices(services);
@@ -238,9 +238,10 @@ namespace Altinn.App.Core.Extensions
             }
         }
 
-        private static void AddEmailServices(IServiceCollection services)
+        private static void AddNotificationServices(IServiceCollection services)
         {
-            services.TryAddTransient<IEmailNotificationClient, EmailNotificationClient>();
+            services.AddHttpClient<IEmailNotificationClient, EmailNotificationClient>();
+            services.AddHttpClient<ISmsNotificationClient, SmsNotificationClient>();
         }
 
         private static void AddPdfServices(IServiceCollection services)
