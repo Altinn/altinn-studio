@@ -95,6 +95,7 @@ describe('ProcessEditor', () => {
     renderProcessEditor();
 
     expect(useWebSocket).toHaveBeenCalledWith({
+      clientsName: ['FileSyncSuccess', 'FileSyncError'],
       webSocketUrl: processEditorWebSocketHub(),
       webSocketConnector: WSConnector,
     });

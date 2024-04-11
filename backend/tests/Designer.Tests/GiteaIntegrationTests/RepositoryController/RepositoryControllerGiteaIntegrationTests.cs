@@ -32,7 +32,6 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
         }
 
         [Theory]
-        [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task CreateRepo_ShouldBeAsExpected(string org)
         {
@@ -45,7 +44,6 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
         }
 
         [Theory]
-        [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task Commit_AndPush_AndContents_ShouldBeAsExpected(string org)
         {
@@ -69,7 +67,6 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
         }
 
         [Theory]
-        [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task Commit_AndPush_Separate_ShouldBeAsExpected(string org)
         {
@@ -91,7 +88,6 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
         }
 
         [Theory]
-        [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task Pull_ShouldBeAsExpected(string org)
         {
@@ -112,7 +108,6 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
         }
 
         [Theory]
-        [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task Initial_Commit_ShouldBeAsExpected(string org)
         {
@@ -127,7 +122,6 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
         }
 
         [Theory]
-        [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task MetadataAndStatus_ShouldBehaveAsExpected(string org)
         {
@@ -148,7 +142,6 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
         }
 
         [Theory]
-        [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task RepoStatus_ShouldReturn404NotFoundWhenInvalidRepo(string org)
         {
@@ -158,7 +151,6 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
         }
 
         [Theory]
-        [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task GetOrgRepos_ShouldBehaveAsExpected(string org)
         {
@@ -175,7 +167,6 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
 
         // Get branch endpoint test
         [Theory]
-        [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task GetBranches_And_Branch_ShouldBehaveAsExpected(string org)
         {
@@ -196,7 +187,6 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
 
 
         [Theory]
-        [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task Commit_AndPush_NonPulled_ShouldReturnConflict(string org)
         {
