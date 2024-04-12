@@ -4,12 +4,12 @@ import userEvent from '@testing-library/user-event';
 import { MakeCopyModal, type MakeCopyModalProps } from './MakeCopyModal';
 import { MockServicesContextWrapper } from '../../dashboardTestUtils';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { useUserQuery } from 'app-shared/hooks/queries';
-import { useOrganizationsQuery } from '../../hooks/queries';
 import { type User } from 'app-shared/types/Repository';
 import { type Organization } from 'app-shared/types/Organization';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 const org = 'org';
 const app = 'app';
@@ -31,14 +31,11 @@ const mockOrg: Organization = {
 };
 const mockOrganizations: Organization[] = [mockOrg];
 
-jest.mock('app-shared/hooks/queries', () => ({
-  useUserQuery: jest.fn(() => mockUser),
-}));
-jest.mock('../../hooks/queries', () => ({
-  useOrganizationsQuery: jest.fn(),
-}));
 jest.mock('../../hooks/mutations', () => ({
   useCopyAppMutation: jest.fn(),
+}));
+jest.mock('app-shared/navigation/PackagesRouter', () => ({
+  navigateToPackage: jest.fn(),
 }));
 
 const mockOnClose = jest.fn();
@@ -50,18 +47,18 @@ const defaultProps: MakeCopyModalProps = {
 };
 
 const renderWithMockServices = (services?: Partial<ServicesContextProps>) => {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.CurrentUser], () => mockUser);
+  queryClient.setQueryData([QueryKey.Organizations], () => mockOrganizations);
+
   render(
-    <MockServicesContextWrapper customServices={services}>
+    <MockServicesContextWrapper customServices={services} client={queryClient}>
       <MakeCopyModal {...defaultProps} />
     </MockServicesContextWrapper>,
   );
 };
 
 describe('MakeCopyModal', () => {
-  beforeEach(() => {
-    (useUserQuery as jest.Mock).mockReturnValue(mockUser);
-    (useOrganizationsQuery as jest.Mock).mockReturnValue(mockOrganizations);
-  });
   afterEach(jest.clearAllMocks);
 
   test('successfully adds the values and submits the copy of a new application', async () => {
@@ -81,15 +78,15 @@ describe('MakeCopyModal', () => {
     await act(() => user.click(copyButton));
 
     expect(queriesMock.copyApp).toHaveBeenCalledTimes(1);
-    expect(queriesMock.copyApp).toHaveBeenCalledWith(org, app, newRepoValue);
+    expect(queriesMock.copyApp).toHaveBeenCalledWith(mockUser.login, app, newRepoValue);
   });
 
-  /*test('should show error message when clicking confirm without adding name', async () => {
+  test('should show error message when clicking confirm without adding name', async () => {
     const user = userEvent.setup();
-    render(<MakeCopyModal {...defaultProps} />);
+    renderWithMockServices();
 
     const confirmButton = screen.getByRole('button', {
-      name: /dashboard\.make_copy/i,
+      name: textMock('dashboard.make_copy'),
     });
     await act(() => user.click(confirmButton));
     const errorMessageElement = screen.getAllByText(textMock('dashboard.field_cannot_be_empty'));
@@ -98,12 +95,12 @@ describe('MakeCopyModal', () => {
 
   test('should show error message when clicking confirm and name is too long', async () => {
     const user = userEvent.setup();
-    render(<MakeCopyModal {...defaultProps} />);
+    renderWithMockServices();
 
     const confirmButton = screen.getByRole('button', {
       name: textMock('dashboard.make_copy'),
     });
-    const inputField = screen.getByRole('textbox');
+    const inputField = screen.getByRole('textbox', { name: textMock('general.service_name') });
     await act(() => user.type(inputField, 'this-new-name-is-way-too-long-to-be-valid'));
     await act(() => user.click(confirmButton));
     const errorMessageElements = screen.getAllByText(
@@ -114,17 +111,17 @@ describe('MakeCopyModal', () => {
 
   test('should show error message when clicking confirm and name contains invalid characters', async () => {
     const user = userEvent.setup();
-    render(<MakeCopyModal {...defaultProps} />);
+    renderWithMockServices();
 
     const confirmButton = screen.getByRole('button', {
       name: textMock('dashboard.make_copy'),
     });
-    const inputField = screen.getByRole('textbox');
+    const inputField = screen.getByRole('textbox', { name: textMock('general.service_name') });
     await act(() => user.type(inputField, 'this name is invalid'));
     await act(() => user.click(confirmButton));
     const errorMessageElements = screen.getAllByText(
       textMock('dashboard.service_name_has_illegal_characters'),
     );
     expect(errorMessageElements.length).toBeGreaterThan(0);
-  });*/
+  });
 });
