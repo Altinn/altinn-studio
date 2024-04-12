@@ -11,11 +11,13 @@ import { textResourceByLanguageAndIdSelector } from '../../../selectors/textReso
 import type { ITextResource } from 'app-shared/types/global';
 import { haveComponentsUniqueIds, getDuplicatedIds } from '../../../utils/formLayoutUtils';
 import classes from './PageConfigPanel.module.css';
+import { repositoryLayoutPath } from 'app-shared/api/paths';
+import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 export const PageConfigPanel = () => {
   const { selectedFormLayoutName } = useAppContext();
   const t = useText();
-
+  const { org, app } = useStudioUrlParams();
   const layoutIsSelected =
     selectedFormLayoutName !== DEFAULT_SELECTED_LAYOUT_NAME && selectedFormLayoutName !== undefined;
 
@@ -56,7 +58,9 @@ export const PageConfigPanel = () => {
             <List.Ordered>
               <List.Item>Lagre endringene i Altinn Studio med `Last opp dine endringer`.</List.Item>
               <List.Item>
-                <Link>Gå til Gitea for å endre filen med feil.</Link>
+                <Link href={repositoryLayoutPath(org, app, selectedFormLayoutName)}>
+                  Gå til Gitea for å endre filen med feil.
+                </Link>
               </List.Item>
               <List.Item>I filen, velg blyanten øverst til høyre for å redigere filen.</List.Item>
               <List.Item>
