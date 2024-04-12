@@ -21,6 +21,7 @@ type CancelLink = {
   href: string;
   type: 'link';
 };
+export type CancelComponent = CancelButton | CancelLink;
 
 export type NewApplicationFormProps = {
   onSubmit: (newAppForm: NewAppForm) => Promise<void>;
@@ -30,7 +31,7 @@ export type NewApplicationFormProps = {
   submitButtonText: string;
   formError: NewAppForm;
   setFormError: React.Dispatch<React.SetStateAction<NewAppForm>>;
-  cancelComponent: CancelButton | CancelLink;
+  cancelComponent: CancelComponent;
 };
 
 export const NewApplicationForm = ({

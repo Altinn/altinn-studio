@@ -35,7 +35,7 @@ export const ServiceOwnerSelector = ({
   return (
     <Combobox
       label={t('general.service_owner')}
-      error={selectedValue.length === 0 && errorMessage}
+      error={errorMessage}
       size='small'
       name={name}
       id={serviceOwnerId}
