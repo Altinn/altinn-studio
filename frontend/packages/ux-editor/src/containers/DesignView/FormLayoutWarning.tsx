@@ -13,7 +13,7 @@ export const FormLayoutWarning = ({ layout }: FormLayoutWarningProps) => {
   return (
     <div className={classes.warningWrapper}>
       <Paragraph size='small'>
-        Denne IDen er brukt i flere komponenter:
+        Du har brukt samme ID på flere komponenter:
         <span className={classes.duplicatedId}> {duplicatedIds}</span>
       </Paragraph>
       <Paragraph size='small'>

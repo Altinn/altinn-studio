@@ -54,7 +54,7 @@ export const PageConfigPanel = () => {
           <Heading level={3} size='xxsmall' spacing>
             For å fikse problemet, må du gjøre dette:
           </Heading>
-          <List.Root className={classes.configWarningList}>
+          <List.Root className={classes.configWarningList} size='small'>
             <List.Ordered>
               <List.Item>Lagre endringene i Altinn Studio med `Last opp dine endringer`.</List.Item>
               <List.Item>
