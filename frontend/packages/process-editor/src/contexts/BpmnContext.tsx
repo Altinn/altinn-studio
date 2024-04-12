@@ -65,7 +65,6 @@ export const BpmnContextProvider = ({
       setNumberOfUnsavedChanges(0);
       return xml;
     } catch (e) {
-      console.error('Failed to generate new xml', e);
       throw new Error('Failed to generate new xml');
     }
   };

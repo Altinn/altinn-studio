@@ -1,7 +1,7 @@
 import type { Element } from 'bpmn-moddle';
-import { StudioModeller } from './StudioModeller';
+import { StudioModeler } from './StudioModeler';
 
-export class BpmnExpressionModeler extends StudioModeller {
+export class BpmnExpressionModeler extends StudioModeler {
   public get hasConditionExpression(): boolean {
     const element: Element = this.getElement();
     return !!element.di.bpmnElement.conditionExpression;

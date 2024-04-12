@@ -12,7 +12,7 @@ enum AvailableInstanceGetters {
   ElementRegistry = 'elementRegistry',
 }
 
-export class StudioModeller {
+export class StudioModeler {
   private readonly modellerInstance: Modeler = BpmnModelerInstance.getInstance();
   private readonly modeling: Modeling = this.modellerInstance.get(
     AvailableInstanceGetters.Modeling,
