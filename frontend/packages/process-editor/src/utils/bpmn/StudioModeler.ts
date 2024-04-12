@@ -13,13 +13,11 @@ enum AvailableInstanceGetters {
 }
 
 export class StudioModeler {
-  private readonly modellerInstance: Modeler = BpmnModelerInstance.getInstance();
-  private readonly modeling: Modeling = this.modellerInstance.get(
-    AvailableInstanceGetters.Modeling,
-  );
+  private readonly modelerInstance: Modeler = BpmnModelerInstance.getInstance();
+  private readonly modeling: Modeling = this.modelerInstance.get(AvailableInstanceGetters.Modeling);
 
-  private readonly moddle: Moddle = this.modellerInstance.get(AvailableInstanceGetters.Moddle);
-  private readonly elementRegistry: ElementRegistry = this.modellerInstance.get(
+  private readonly moddle: Moddle = this.modelerInstance.get(AvailableInstanceGetters.Moddle);
+  private readonly elementRegistry: ElementRegistry = this.modelerInstance.get(
     AvailableInstanceGetters.ElementRegistry,
   );
 

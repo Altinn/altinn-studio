@@ -10,17 +10,17 @@ import { BpmnExpressionModeler } from '../../../utils/bpmn/BpmnExpressionModeler
 export const ConfigSequenceFlow = (): React.ReactElement => {
   const { bpmnDetails } = useBpmnContext();
   const [openExpressionBuilder, setOpenExpressionBuilder] = React.useState(false);
-  const expressionModeller = new BpmnExpressionModeler(bpmnDetails.element);
+  const expressionModeler = new BpmnExpressionModeler(bpmnDetails.element);
   const addExpressionToSequenceFlow = (expression: string): void => {
-    const newExpressionElement = expressionModeller.createExpressionElement(expression);
+    const newExpressionElement = expressionModeler.createExpressionElement(expression);
 
-    expressionModeller.addChildElementToParent({
+    expressionModeler.addChildElementToParent({
       conditionExpression: newExpressionElement,
     });
   };
 
   const deleteExpression = (): void => {
-    expressionModeller.updateElementProperties({
+    expressionModeler.updateElementProperties({
       conditionExpression: null,
     });
   };
@@ -38,9 +38,9 @@ export const ConfigSequenceFlow = (): React.ReactElement => {
           Med Flytkontroll-verktøyet kan du kontrollere flyten ut av en gateway basert på
           brukerhandling utført ved hjelp av et utrykk.
         </Paragraph>
-        {expressionModeller.hasConditionExpression || openExpressionBuilder ? (
+        {expressionModeler.hasConditionExpression || openExpressionBuilder ? (
           <SequenceFlowExpressionBuilder
-            expression={expressionModeller.conditionExpression}
+            expression={expressionModeler.conditionExpression}
             onSave={addExpressionToSequenceFlow}
             onDelete={deleteExpression}
           />
