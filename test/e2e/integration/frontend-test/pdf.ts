@@ -222,4 +222,41 @@ describe('PDF', () => {
       cy.findByRole('heading', { name: /this is a custom pdf/i }).should('be.visible');
     });
   });
+
+  // Used to cause a crash, @see https://github.com/Altinn/app-frontend-react/pull/2019
+  it('Grid in Group should display correctly', () => {
+    cy.intercept('GET', '**/layouts/**', (req) => {
+      req.continue((res) => {
+        const body = JSON.parse(res.body);
+        res.body = JSON.stringify({
+          ...body,
+          grid: {
+            ...body.grid,
+            data: {
+              ...body.grid.data,
+              layout: [
+                {
+                  id: 'gridGroup',
+                  type: 'Group',
+                  textResourceBindings: {
+                    title: 'Grid gruppe',
+                  },
+                  children: ['page3-grid'],
+                },
+                ...body.grid.data.layout,
+              ],
+            },
+          },
+        });
+      });
+    });
+
+    cy.goto('changename');
+
+    cy.testPdf(() => {
+      cy.findByRole('heading', { name: /grid gruppe/i }).should('be.visible');
+      cy.findByText('Prosentandel av gjeld i boliglån').should('be.visible');
+      cy.findByText('Utregnet totalprosent').should('be.visible');
+    });
+  });
 });

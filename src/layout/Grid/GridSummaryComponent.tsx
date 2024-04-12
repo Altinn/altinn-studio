@@ -18,11 +18,11 @@ export function GridSummaryComponent({
           key={node.item.id}
           summaryNode={summaryNode}
           overrides={{
-            targetNode: node,
             ...overrides,
+            targetNode: node,
             display: {
-              hideBottomBorder: idx === nodes.length - 1,
               ...overrides?.display,
+              hideBottomBorder: idx === nodes.length - 1,
             },
           }}
         />
