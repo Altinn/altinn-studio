@@ -18,6 +18,7 @@ export const altinnCustomTasks = {
         {
           name: 'actions',
           isMany: false,
+          isAttr: false,
           type: 'Actions',
         },
         {

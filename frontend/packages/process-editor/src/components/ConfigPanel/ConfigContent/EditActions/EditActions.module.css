@@ -1,0 +1,25 @@
+.container {
+  padding: var(--fds-spacing-1) var(--fds-spacing-4);
+  box-sizing: border-box;
+}
+
+.action {
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--fds-semantic-surface-first-light);
+  padding-bottom: 1rem;
+}
+
+.editAction {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.actionType {
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
