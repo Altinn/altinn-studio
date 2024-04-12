@@ -58,7 +58,7 @@ export const PageConfigPanel = () => {
             <List.Ordered>
               <List.Item>Lagre endringene i Altinn Studio med `Last opp dine endringer`.</List.Item>
               <List.Item>
-                <Link href={repositoryLayoutPath(org, app, selectedFormLayoutName)}>
+                <Link href={repositoryLayoutPath(org, app, selectedFormLayoutName)} target='_blank'>
                   Gå til Gitea for å endre filen med feil.
                 </Link>
               </List.Item>
