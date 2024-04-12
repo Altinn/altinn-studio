@@ -418,6 +418,7 @@ export const idExistsInLayout = (id: string, layout: IInternalLayout): boolean =
  * @returns True if all items in the array are unique and false otherwise.
  */
 export const haveComponentsUniqueIds = (layout: IInternalLayout): boolean => {
+  if (!layout?.order) return;
   const idsInLayout = flattenObjectValues(layout.order);
   return areItemsUnique(idsInLayout);
 };

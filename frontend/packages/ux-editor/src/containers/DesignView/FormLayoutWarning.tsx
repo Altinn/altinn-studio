@@ -8,20 +8,15 @@ interface FormLayoutWarningProps {
 }
 
 export const FormLayoutWarning = ({ layout }: FormLayoutWarningProps) => {
-  const duplicatedIds = getDuplicatedIds(layout);
-  const severalDuplicatedIds = duplicatedIds.length > 1;
+  const duplicatedIds = getDuplicatedIds(layout).join(', ');
 
   return (
     <div className={classes.warningWrapper}>
-      <Paragraph>
+      <Paragraph size='small'>
         Denne IDen er brukt i flere komponenter:
-        {duplicatedIds.map((id) => (
-          <span key={id} className={classes.duplicatedId}>
-            {` ${id}${severalDuplicatedIds && ', '}`}
-          </span>
-        ))}
+        <span className={classes.duplicatedId}> {duplicatedIds}</span>
       </Paragraph>
-      <Paragraph>
+      <Paragraph size='small'>
         Du kan ikke publisere appen eller konfigurere komponentene før du har rettet opp feilen.
       </Paragraph>
     </div>
