@@ -1,0 +1,27 @@
+import type { Element } from 'bpmn-moddle';
+import { StudioModeller } from './StudioModeller';
+
+export class BpmnExpressionModeler extends StudioModeller {
+  public get hasConditionExpression(): boolean {
+    const element: Element = this.getElement();
+    return !!element.di.bpmnElement.conditionExpression;
+  }
+
+  public get conditionExpression(): string {
+    return this.getElement().di.bpmnElement.conditionExpression?.body;
+  }
+
+  constructor(element: Element) {
+    super(element);
+  }
+
+  public createExpressionElement(expression: string): Element {
+    return this.createElement('bpmn:FormalExpression', {
+      body: expression,
+    });
+  }
+
+  public addChildElementToParent<T>(properties: T): void {
+    this.updateElementProperties({ ...properties });
+  }
+}

@@ -1,49 +1,55 @@
 import React from 'react';
-import { StudioExpression, StudioSectionHeader } from '@studio/components';
-import { useExpressionTexts } from 'app-shared/components/Expression/useExpressionTexts';
+import { StudioButton, StudioSectionHeader } from '@studio/components';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
-import { StudioModeller } from '../../../utils/ModellerHelper';
+import { SequenceFlowExpressionBuilder } from './SequenceFlowExpressionBuilder';
+
+import classes from './ConfigSequenceFlow.module.css';
+import { Paragraph } from '@digdir/design-system-react';
+import { BpmnExpressionModeler } from '../../../utils/bpmn/BpmnExpressionModeler';
 
 export const ConfigSequenceFlow = (): React.ReactElement => {
-  const texts = useExpressionTexts();
-  const expression: any = ['equals', 0, 0];
   const { bpmnDetails } = useBpmnContext();
-
-  // TODO Should type Expression argument to be specific to the expression we support
+  const [openExpressionBuilder, setOpenExpressionBuilder] = React.useState(false);
+  const expressionModeller = new BpmnExpressionModeler(bpmnDetails.element);
   const addExpressionToSequenceFlow = (expression: string): void => {
-    const studioModeller = new StudioModeller(bpmnDetails.element);
-    const newExpressionElement = studioModeller.createExpressionElement(expression);
+    const newExpressionElement = expressionModeller.createExpressionElement(expression);
 
-    studioModeller.addChildElementToParent<{ conditionExpression: Element }>({
+    expressionModeller.addChildElementToParent({
       conditionExpression: newExpressionElement,
+    });
+  };
+
+  const deleteExpression = (): void => {
+    expressionModeller.updateElementProperties({
+      conditionExpression: null,
     });
   };
 
   return (
     <>
-      {/* TODO remove this button that is used just for testing during development */}
-      <button
-        onClick={() => addExpressionToSequenceFlow('["equals", ["gatewayAction"], "reject"]')}
-      >
-        Update test
-      </button>
       <StudioSectionHeader
         heading={{
-          text: 'Exclusive Gateway',
+          text: 'Flytkontroll',
           level: 2,
         }}
-        helpText={{
-          text: 'This is the help text',
-          title: 'Help text title',
-        }}
       />
-      {/*TODO use this editor to build the expression and send it to the addExpressionToSequenceFlow function*/}
-      <StudioExpression
-        expression={expression}
-        onChange={() => {}}
-        texts={texts}
-        dataLookupOptions={null}
-      ></StudioExpression>
+      <div className={classes.container}>
+        <Paragraph spacing>
+          Med Flytkontroll-verktøyet kan du kontrollere flyten ut av en gateway basert på
+          brukerhandling utført ved hjelp av et utrykk.
+        </Paragraph>
+        {expressionModeller.hasConditionExpression || openExpressionBuilder ? (
+          <SequenceFlowExpressionBuilder
+            expression={expressionModeller.conditionExpression}
+            onSave={addExpressionToSequenceFlow}
+            onDelete={deleteExpression}
+          />
+        ) : (
+          <StudioButton variant='primary' onClick={() => setOpenExpressionBuilder(true)}>
+            Legg til dynamikk
+          </StudioButton>
+        )}
+      </div>
     </>
   );
 };

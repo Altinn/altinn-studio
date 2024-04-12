@@ -3,7 +3,7 @@ import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type { Element } from 'bpmn-moddle';
 import ElementRegistry from 'diagram-js/lib/core/ElementRegistry';
 import { Moddle } from 'bpmn-js/lib/model/Types';
-import { StudioBpmnModeler } from './StudioBpmnModeler';
+import { BpmnModelerInstance } from './BpmnModelerInstance';
 
 // Short description: This class is used to interact with the bpmn-js modeler instance to create, update and delete elements in the bpmn diagram.
 enum AvailableInstanceGetters {
@@ -13,7 +13,7 @@ enum AvailableInstanceGetters {
 }
 
 export class StudioModeller {
-  private readonly modellerInstance: Modeler = StudioBpmnModeler.getInstance();
+  private readonly modellerInstance: Modeler = BpmnModelerInstance.getInstance();
   private readonly modeling: Modeling = this.modellerInstance.get(
     AvailableInstanceGetters.Modeling,
   );
@@ -41,18 +41,7 @@ export class StudioModeller {
     return this.moddle.create(elementType, { ...options });
   }
 
-  public updateElementProperties<T>(element: Element, properties: T): void {
-    this.modeling.updateProperties(element, { ...properties });
-  }
-
-  // TODO expression should be a type that match our supported expressions
-  public createExpressionElement(expression: string): Element {
-    return this.createElement('bpmn:FormalExpression', {
-      body: expression,
-    });
-  }
-
-  public addChildElementToParent<T>(properties: T): void {
-    this.updateElementProperties(this.getElement(), { ...properties });
+  public updateElementProperties<T>(properties: T): void {
+    this.modeling.updateProperties(this.getElement(), { ...properties });
   }
 }
