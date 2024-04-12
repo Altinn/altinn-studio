@@ -17,6 +17,7 @@
 
 .accordionContent {
   padding: 0;
+  background-color: var(--fds-semantic-surface-neutral-default);
 }
 
 .accordionItem {

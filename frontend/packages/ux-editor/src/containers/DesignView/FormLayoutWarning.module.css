@@ -1,0 +1,11 @@
+.warningWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 15px;
+}
+
+.duplicatedId {
+  color: var(--fds-semantic-text-danger-default);
+  text-wrap: nowrap;
+}
