@@ -133,7 +133,13 @@
     { "id": "messageTitle", "value": "## Appen for test av app frontend" },
     {
       "id": "messageTitleHelp",
-      "value": "Bruk denne appen for test av app frontend"
+      "value": "Bruk denne appen for test av <b>app frontend</b> <br/> Her kan du: <ul><li>Endre navn</li><li>Legge til vedlegg</li><li>Endre dato</li><li>Legge til kontaktinformasjon</li><li>Og mer</li></ul>Trykk [her]({0}) for å starte på nytt.",
+      "variables": [
+        {
+          "key": "appUrl",
+          "dataSource": "applicationSettings"
+        }
+      ]
     },
     { "id": "summaryTitle", "value": "## Oppsummering" },
     {
