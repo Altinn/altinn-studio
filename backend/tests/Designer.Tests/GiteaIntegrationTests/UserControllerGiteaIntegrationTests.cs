@@ -21,7 +21,6 @@ namespace Designer.Tests.GiteaIntegrationTests
         }
 
         [Theory]
-        [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestUser, GiteaConstants.TestUserEmail)]
         public async Task GetCurrentUser_ShouldReturnOk(string expectedUserName, string expectedEmail)
         {
@@ -43,7 +42,6 @@ namespace Designer.Tests.GiteaIntegrationTests
         }
 
         [Theory]
-        [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task UserRepos_ShouldReturnOk(string org)
         {
@@ -59,7 +57,6 @@ namespace Designer.Tests.GiteaIntegrationTests
         }
 
         [Theory]
-        [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task StarredEndpoints_ShouldBehaveAsExpected(string org)
         {
