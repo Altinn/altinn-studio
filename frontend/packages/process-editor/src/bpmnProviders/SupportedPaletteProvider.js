@@ -164,6 +164,14 @@ class SupportedPaletteProvider {
             dragstart: createCustomTask('feedback'),
           },
         },
+        'create.altinn-confirmation-task': {
+          group: 'activity',
+          className: 'bpmn-icon-task-generic bpmn-icon-confirmation-task',
+          title: translate('Create Altinn Confirm Task'),
+          action: {
+            dragstart: createCustomConfirmationTask(),
+          },
+        },
         'create.altinn-signing-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-signing-task',

@@ -8,6 +8,9 @@ import { getConfigTitleKey, getConfigTitleHelpTextKey } from '../../../utils/con
 import { ConfigIcon } from './ConfigIcon';
 import { EditDataType } from './EditDataType/EditDataType';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
+import { Accordion } from '@digdir/design-system-react';
+import classes from './ConfigContent.module.css';
+import { EditActions } from './EditActions/EditActions';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -17,7 +20,7 @@ export const ConfigContent = (): React.ReactElement => {
     title: bpmnDetails?.taskType && t(getConfigTitleKey(bpmnDetails.taskType)),
     helpText: bpmnDetails?.taskType && t(getConfigTitleHelpTextKey(bpmnDetails.taskType)),
   };
-
+  
   const taskHasConnectedLayoutSet = layoutSets?.sets?.some((set) => set.tasks[0] == bpmnDetails.id);
 
   return (
@@ -42,6 +45,16 @@ export const ConfigContent = (): React.ReactElement => {
         className={classes.configContent}
       />
       {taskHasConnectedLayoutSet && <EditDataType />}
+      <Accordion color='neutral'>
+        <Accordion.Item>
+          <Accordion.Header>
+            {t('process_editor.configuration_panel_actions_title')}
+          </Accordion.Header>
+          <Accordion.Content>
+            <EditActions />
+          </Accordion.Content>
+        </Accordion.Item>
+      </Accordion>
     </>
   );
 };
