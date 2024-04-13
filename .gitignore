@@ -11,9 +11,6 @@ syntax: glob
 *.userosscache
 *.sln.docstates
 
-# Entity Framework
-Migrations/
-
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/

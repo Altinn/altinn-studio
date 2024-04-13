@@ -15,87 +15,88 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace Designer.Tests.GiteaIntegrationTests
+namespace Designer.Tests.GiteaIntegrationTests;
+
+[Trait("Category", "GiteaIntegrationTest")]
+[Collection(nameof(GiteaCollection))]
+public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<TControllerTest>
+    where TControllerTest : class
 {
-    [Collection(nameof(GiteaCollection))]
-    public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<TControllerTest>
-        where TControllerTest : class
+    protected readonly GiteaFixture GiteaFixture;
+
+    protected string CreatedFolderPath { get; set; }
+
+    private CookieContainer CookieContainer { get; } = new CookieContainer();
+
+    /// On some systems path too long error occurs if repo is nested deep in file system.
+    protected override string TestRepositoriesLocation =>
+        Path.Combine(Path.GetTempPath(), "altinn", "tests", "repos");
+
+
+    protected override void Dispose(bool disposing)
     {
-        protected readonly GiteaFixture GiteaFixture;
-
-        protected string CreatedFolderPath { get; set; }
-
-        private CookieContainer CookieContainer { get; } = new CookieContainer();
-
-        /// On some systems path too long error occurs if repo is nested deep in file system.
-        protected override string TestRepositoriesLocation =>
-            Path.Combine(Path.GetTempPath(), "altinn", "tests", "repos");
-
-
-        protected override void Dispose(bool disposing)
+        base.Dispose(disposing);
+        if (!disposing)
         {
-            base.Dispose(disposing);
-            if (!disposing)
-            {
-                return;
-            }
-
-            DeleteDirectoryIfExists(CreatedFolderPath);
+            return;
         }
 
-        protected static void DeleteDirectoryIfExists(string directoryPath)
+        DeleteDirectoryIfExists(CreatedFolderPath);
+    }
+
+    protected static void DeleteDirectoryIfExists(string directoryPath)
+    {
+        if (string.IsNullOrWhiteSpace(directoryPath) || !Directory.Exists(directoryPath))
         {
-            if (string.IsNullOrWhiteSpace(directoryPath) || !Directory.Exists(directoryPath))
-            {
-                return;
-            }
-
-            var directory = new DirectoryInfo(directoryPath)
-            {
-                Attributes = FileAttributes.Normal
-            };
-
-            foreach (var info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
-            {
-                info.Attributes = FileAttributes.Normal;
-            }
-
-            directory.Delete(true);
+            return;
         }
 
-        protected override void ConfigureTestServices(IServiceCollection services)
+        var directory = new DirectoryInfo(directoryPath)
         {
+            Attributes = FileAttributes.Normal
+        };
 
+        foreach (var info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
+        {
+            info.Attributes = FileAttributes.Normal;
         }
 
-        protected GiteaIntegrationTestsBase(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture) : base(factory)
-        {
-            GiteaFixture = giteaFixture;
-        }
+        directory.Delete(true);
+    }
 
-        protected override HttpClient GetTestClient()
-        {
-            string configPath = GetConfigPath();
+    protected override void ConfigureTestServices(IServiceCollection services)
+    {
 
-            var client = Factory.WithWebHostBuilder(builder =>
+    }
+
+    protected GiteaIntegrationTestsBase(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture) : base(factory)
+    {
+        GiteaFixture = giteaFixture;
+    }
+
+    protected override HttpClient GetTestClient()
+    {
+        string configPath = GetConfigPath();
+
+        var client = Factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureAppConfiguration((_, conf) =>
             {
-                builder.ConfigureAppConfiguration((_, conf) =>
-                {
-                    conf.AddJsonFile(configPath);
-                    conf.AddJsonStream(GenerateGiteaOverrideConfigStream());
-                });
+                conf.AddJsonFile(configPath);
+                conf.AddJsonStream(GenerateGiteaOverrideConfigStream());
+            });
 
-                builder.ConfigureTestServices(ConfigureTestServices);
-            }).CreateDefaultClient(new GiteaAuthDelegatingHandler(GiteaFixture.GiteaUrl), new CookieContainerHandler(CookieContainer));
-            return client;
-        }
+            builder.ConfigureTestServices(ConfigureTestServices);
+        }).CreateDefaultClient(new GiteaAuthDelegatingHandler(GiteaFixture.GiteaUrl), new CookieContainerHandler(CookieContainer));
+        return client;
+    }
 
-        protected Stream GenerateGiteaOverrideConfigStream()
-        {
-            string reposLocation = new Uri(TestRepositoriesLocation).AbsolutePath;
-            string templateLocationPath = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "testdata", "AppTemplates", "AspNet");
-            string templateLocation = new Uri(templateLocationPath).AbsolutePath;
-            string configOverride = $@"
+    protected Stream GenerateGiteaOverrideConfigStream()
+    {
+        string reposLocation = new Uri(TestRepositoriesLocation).AbsolutePath;
+        string templateLocationPath = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "testdata", "AppTemplates", "AspNet");
+        string templateLocation = new Uri(templateLocationPath).AbsolutePath;
+        string configOverride = $@"
               {{
                     ""ServiceRepositorySettings"": {{
                         ""RepositoryLocation"": ""{reposLocation}"",
@@ -111,31 +112,31 @@ namespace Designer.Tests.GiteaIntegrationTests
                     }}
               }}
             ";
-            var configStream = new MemoryStream(Encoding.UTF8.GetBytes(configOverride));
-            configStream.Seek(0, SeekOrigin.Begin);
-            return configStream;
-        }
-        protected async Task CreateAppUsingDesigner(string org, string repoName)
-        {
-            CreatedFolderPath = $"{TestRepositoriesLocation}/{GiteaConstants.TestUser}/{org}/{repoName}";
-            // Create repo with designer
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
-                HttpMethod.Post,
-                $"designer/api/repos/create-app?org={org}&repository={repoName}");
+        var configStream = new MemoryStream(Encoding.UTF8.GetBytes(configOverride));
+        configStream.Seek(0, SeekOrigin.Begin);
+        return configStream;
+    }
+    protected async Task CreateAppUsingDesigner(string org, string repoName)
+    {
+        CreatedFolderPath = $"{TestRepositoriesLocation}/{GiteaConstants.TestUser}/{org}/{repoName}";
+        // Create repo with designer
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"designer/api/repos/create-app?org={org}&repository={repoName}");
 
-            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.Created);
-        }
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+    }
 
-        protected static string GetCommitInfoJson(string text, string org, string repository) =>
-            @$"{{
+    protected static string GetCommitInfoJson(string text, string org, string repository) =>
+        @$"{{
                     ""message"": ""{text}"",
                     ""org"": ""{org}"",
                     ""repository"": ""{repository}""
                 }}";
 
-        protected static string GenerateCommitJsonPayload(string text, string message) =>
-            @$"{{
+    protected static string GenerateCommitJsonPayload(string text, string message) =>
+        @$"{{
                  ""author"": {{
                      ""email"": ""{GiteaConstants.AdminEmail}"",
                      ""name"": ""{GiteaConstants.AdminUser}""
@@ -152,5 +153,4 @@ namespace Designer.Tests.GiteaIntegrationTests
                  ""message"": ""{message}"",
                  ""signoff"": true
             }}";
-    }
 }
