@@ -2,6 +2,7 @@ import React from 'react';
 import type { IInternalLayout } from '../../types/global';
 import { getDuplicatedIds } from '../../utils/formLayoutUtils';
 import { Paragraph } from '@digdir/design-system-react';
+import { useTranslation } from 'react-i18next';
 import classes from './FormLayoutWarning.module.css';
 interface FormLayoutWarningProps {
   layout: IInternalLayout;
@@ -9,16 +10,14 @@ interface FormLayoutWarningProps {
 
 export const FormLayoutWarning = ({ layout }: FormLayoutWarningProps) => {
   const duplicatedIds = getDuplicatedIds(layout).join(', ');
-
+  const { t } = useTranslation();
   return (
     <div className={classes.warningWrapper}>
       <Paragraph size='small'>
-        Du har brukt samme ID på flere komponenter:
+        {t('ux_editor.formLayout.warning_duplicates.text1')}
         <span className={classes.duplicatedId}> {duplicatedIds}</span>
       </Paragraph>
-      <Paragraph size='small'>
-        Du kan ikke publisere appen eller konfigurere komponentene før du har rettet opp feilen.
-      </Paragraph>
+      <Paragraph size='small'>{t('ux_editor.formLayout.warning_duplicates.text2')}</Paragraph>
     </div>
   );
 };

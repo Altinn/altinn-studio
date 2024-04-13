@@ -3,8 +3,9 @@ import { List, Link, Heading, Alert } from '@digdir/design-system-react';
 import { repositoryLayoutPath } from 'app-shared/api/paths';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { getDuplicatedIds } from '../../../utils/formLayoutUtils';
-import classes from './PageConfigWarning.module.css';
 import type { IInternalLayout } from '../../../types/global';
+import { useTranslation } from 'react-i18next';
+import classes from './PageConfigWarning.module.css';
 
 type PageConfigWarningProps = {
   layout: IInternalLayout;
@@ -13,7 +14,7 @@ type PageConfigWarningProps = {
 
 export const PageConfigWarning = ({ layout, selectedFormLayoutName }: PageConfigWarningProps) => {
   const { org, app } = useStudioUrlParams();
-
+  const { t } = useTranslation();
   const duplicatedIds = getDuplicatedIds(layout)
     .map((id) => `<${id}>`)
     .join(', ');
@@ -22,32 +23,29 @@ export const PageConfigWarning = ({ layout, selectedFormLayoutName }: PageConfig
     <div className={classes.configWarningWrapper}>
       <Alert severity='danger' className={classes.configWarningHeader}>
         <Heading size='xxsmall' level={2}>
-          Du har den samme ID-en på flere komponenter
+          {t('ux_editor.config.warning_duplicates.heading')}
         </Heading>
       </Alert>
       <div className={classes.configWarningContent}>
         <Heading level={3} size='xxsmall' spacing>
-          For å fikse problemet, må du gjøre dette:
+          {t('ux_editor.config.warning_duplicates.heading2')}
         </Heading>
         <List.Root className={classes.configWarningList} size='small'>
           <List.Ordered>
-            <List.Item>Lagre endringene i Altinn Studio med `Last opp dine endringer`.</List.Item>
+            <List.Item>{t('ux_editor.config.warning_duplicates.list1')}</List.Item>
             <List.Item>
               <Link href={repositoryLayoutPath(org, app, selectedFormLayoutName)} target='_blank'>
-                Gå til Gitea for å endre filen med feil.
+                {t('ux_editor.config.warning_duplicates.list2')}
               </Link>
             </List.Item>
-            <List.Item>I filen, velg blyanten øverst til høyre for å redigere filen.</List.Item>
+            <List.Item>{t('ux_editor.config.warning_duplicates.list3')}</List.Item>
             <List.Item>
-              Finn de ID-ene som er like flere steder:
+              {t('ux_editor.config.warning_duplicates.list4')}
               <span className={classes.duplicatedId}> {duplicatedIds}</span>.
             </List.Item>
-            <List.Item>Endre en eller flere ID-er, slik at hver av dem blir unike.</List.Item>
-            <List.Item>Klikk på `Commit endringer` nederst på siden.</List.Item>
-            <List.Item>
-              Gå tilbake til Altinn Studio og velg `Hent endringer` for å laste inn endringene du
-              har gjort i koden.
-            </List.Item>
+            <List.Item>{t('ux_editor.config.warning_duplicates.list5')}</List.Item>
+            <List.Item>{t('ux_editor.config.warning_duplicates.list6')}</List.Item>
+            <List.Item>{t('ux_editor.config.warning_duplicates.list7')}</List.Item>
           </List.Ordered>
         </List.Root>
       </div>
