@@ -7,5 +7,4 @@
 
 .duplicatedId {
   color: var(--fds-semantic-text-danger-default);
-  text-wrap: nowrap;
 }

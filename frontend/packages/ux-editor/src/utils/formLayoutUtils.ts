@@ -426,9 +426,11 @@ export const haveComponentsUniqueIds = (layout: IInternalLayout): boolean => {
 /**
  * Get the duplicated ids in the layout
  * @param layout The layout to check
- * @returns An array of duplicated ids
+ * @returns An array of unique duplicated ids
  */
 export const getDuplicatedIds = (layout: IInternalLayout): string[] => {
   const idsInLayout = flattenObjectValues(layout.order);
-  return idsInLayout.filter((id, index) => idsInLayout.indexOf(id) !== index);
+  const duplicatedIds = idsInLayout.filter((id, index) => idsInLayout.indexOf(id) !== index);
+  const uniqueDuplicatedIds = Array.from(new Set(duplicatedIds));
+  return uniqueDuplicatedIds;
 };
