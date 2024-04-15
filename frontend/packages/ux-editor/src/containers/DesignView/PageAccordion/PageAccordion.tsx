@@ -18,7 +18,7 @@ export type PageAccordionProps = {
   isOpen: boolean;
   onClick: () => void;
   pageIsReceipt?: boolean;
-  isValid: boolean;
+  isValid?: boolean;
 };
 
 /**
