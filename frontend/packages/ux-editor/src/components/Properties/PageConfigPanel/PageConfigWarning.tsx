@@ -37,7 +37,6 @@ export const PageConfigWarning = ({ layout, selectedFormLayoutName }: PageConfig
         </Heading>
         <List.Root className={classes.configWarningList} size='small'>
           <List.Ordered>
-            <List.Item>{t('ux_editor.config.warning_duplicates.list1')}</List.Item>
             <List.Item>
               <Link href={repositoryLayoutPath(org, app, selectedFormLayoutName)} target='_blank'>
                 {t('ux_editor.config.warning_duplicates.list2')}
