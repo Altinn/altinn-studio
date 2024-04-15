@@ -90,11 +90,12 @@ export const DesignView = (): ReactNode => {
     // Check if the layout has unique component IDs
     const isValidLayout = haveComponentsUniqueIds(layout.data);
     return (
-      <Accordion key={i} color={isValidLayout ? 'neutral' : 'third'}>
+      <Accordion key={i} color={'neutral'}>
         <PageAccordion
           pageName={layout.page}
           isOpen={layout.page === selectedFormLayoutName}
           onClick={() => handleClickAccordion(layout.page)}
+          isValid={isValidLayout}
         >
           {layout.page === selectedFormLayoutName && (
             <FormLayout layout={layout.data} isValid={isValidLayout} />

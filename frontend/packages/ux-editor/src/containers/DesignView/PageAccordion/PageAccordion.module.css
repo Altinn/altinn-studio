@@ -6,13 +6,13 @@
   background-color: var(--background-color);
 }
 
-.accordionHeader {
+.accordionHeader,
+.accordionHeaderWarning {
   flex: 1;
 }
 
-.accordionHeader button {
-  border: none;
-  background-color: var(--background-color);
+.accordionHeaderWarning button {
+  background-color: var(--fds-semantic-surface-danger-subtle) !important;
 }
 
 .accordionContent {

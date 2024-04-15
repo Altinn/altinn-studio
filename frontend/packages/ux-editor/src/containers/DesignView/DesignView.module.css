@@ -37,3 +37,11 @@
 .accordionWrapper {
   flex: 1;
 }
+/* 
+.accordionNeutralColor {
+  background-color: var(--fds-semantic-surface-neutral-default);
+}
+
+.accordionWarningColor {
+  background-color: var(--fds-semantic-surface-danger-subtle) !important;
+} */

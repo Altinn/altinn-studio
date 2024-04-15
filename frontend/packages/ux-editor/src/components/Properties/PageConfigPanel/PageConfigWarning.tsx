@@ -1,10 +1,12 @@
 import React from 'react';
-import { List, Link, Heading, Alert } from '@digdir/design-system-react';
+import { List, Link, Heading } from '@digdir/design-system-react';
 import { repositoryLayoutPath } from 'app-shared/api/paths';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { getDuplicatedIds } from '../../../utils/formLayoutUtils';
 import type { IInternalLayout } from '../../../types/global';
 import { useTranslation } from 'react-i18next';
+import { StudioSectionHeader } from '@studio/components';
+import { SectionHeaderWarningIcon } from '@studio/icons';
 import classes from './PageConfigWarning.module.css';
 
 type PageConfigWarningProps = {
@@ -21,11 +23,14 @@ export const PageConfigWarning = ({ layout, selectedFormLayoutName }: PageConfig
 
   return (
     <div className={classes.configWarningWrapper}>
-      <Alert severity='danger' className={classes.configWarningHeader}>
-        <Heading size='xxsmall' level={2}>
-          {t('ux_editor.config.warning_duplicates.heading')}
-        </Heading>
-      </Alert>
+      <StudioSectionHeader
+        icon={<SectionHeaderWarningIcon />}
+        heading={{
+          text: t('ux_editor.config.warning_duplicates.heading'),
+          level: 2,
+        }}
+        className={classes.configWarningHeader}
+      />
       <div className={classes.configWarningContent}>
         <Heading level={3} size='xxsmall' spacing>
           {t('ux_editor.config.warning_duplicates.heading2')}
