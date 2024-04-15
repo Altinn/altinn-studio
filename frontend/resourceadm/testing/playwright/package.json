@@ -1,0 +1,22 @@
+{
+  "name": "playwright-resourceadm",
+  "private": true,
+  "version": "1.0.0",
+  "packageManager": "yarn@4.1.1",
+  "dependencies": {
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.43.1",
+    "@types/dotenv": "^8.2.0",
+    "@types/node": "^20.10.5",
+    "ts-node": "^10.9.2"
+  },
+  "scripts": {
+    "setup:resourceadm:playwright": "playwright install --with-deps && yarn setup:resourceadm:local:env",
+    "setup:resourceadm:playwright:ci": "playwright install --with-deps",
+    "setup:resourceadm:local:env": "ts-node ./scripts/setup.ts",
+    "test:resourceadm:all": "playwright test --config ./playwright.config.ts",
+    "test:resourceadm:ui": "playwright test --ui"
+  }
+}
