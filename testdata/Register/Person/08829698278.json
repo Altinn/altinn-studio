@@ -1,20 +1,19 @@
 {
-    "SSN": "08829698278",
-    "Name": "Rik Forelder",
-    "FirstName": "Rik",
-    "MiddleName": "",
-    "LastName": "Forelder",
-    "TelephoneNumber": "12345678",
-    "MobileNumber": "87654321",
-    "MailingAddress": "Bjønnkamvegen 14",
-    "MailingPostalCode": "3735",
-    "MailingPostalCity": "SKIEN",
-    "AddressMunicipalNumber": "3807",
-    "AddressMunicipalName": "Skien",
-    "AddressStreetName": "Bjønnkamvegen",
-    "AddressHouseNumber": "14",
-    "AddressHouseLetter": null,
-    "AddressPostalCode": "3735",
-    "AddressCity": "SKIEN"
-  }
-  
+  "SSN": "08829698278",
+  "Name": "Rik Forelder",
+  "FirstName": "Rik",
+  "MiddleName": "",
+  "LastName": "Forelder",
+  "TelephoneNumber": "12345678",
+  "MobileNumber": "87654321",
+  "MailingAddress": "Bjønnkamvegen 14 3735 SKIEN",
+  "MailingPostalCode": "3735",
+  "MailingPostalCity": "SKIEN",
+  "AddressMunicipalNumber": "3807",
+  "AddressMunicipalName": "Skien",
+  "AddressStreetName": "Bjønnkamvegen",
+  "AddressHouseNumber": "14",
+  "AddressHouseLetter": null,
+  "AddressPostalCode": "3735",
+  "AddressCity": "SKIEN"
+}

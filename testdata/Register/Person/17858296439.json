@@ -1,20 +1,19 @@
 {
-    "SSN": "17858296439",
-    "Name": "Gjentagende Forelder",
-    "FirstName": "Gjentagende",
-    "MiddleName": "",
-    "LastName": "Forelder",
-    "TelephoneNumber": "12345678",
-    "MobileNumber": "87654321",
-    "MailingAddress": "Ørneveien 36",
-    "MailingPostalCode": "1640",
-    "MailingPostalCity": "RÅDE",
-    "AddressMunicipalNumber": "3017",
-    "AddressMunicipalName": "Råde",
-    "AddressStreetName": "Ørneveien",
-    "AddressHouseNumber": "36",
-    "AddressHouseLetter": null,
-    "AddressPostalCode": "1640",
-    "AddressCity": "RÅDE"
-  }
-  
+  "SSN": "17858296439",
+  "Name": "Gjentagende Forelder",
+  "FirstName": "Gjentagende",
+  "MiddleName": "",
+  "LastName": "Forelder",
+  "TelephoneNumber": "12345678",
+  "MobileNumber": "87654321",
+  "MailingAddress": "Ørneveien 36 1640 RÅDE",
+  "MailingPostalCode": "1640",
+  "MailingPostalCity": "RÅDE",
+  "AddressMunicipalNumber": "3017",
+  "AddressMunicipalName": "Råde",
+  "AddressStreetName": "Ørneveien",
+  "AddressHouseNumber": "36",
+  "AddressHouseLetter": null,
+  "AddressPostalCode": "1640",
+  "AddressCity": "RÅDE"
+}
