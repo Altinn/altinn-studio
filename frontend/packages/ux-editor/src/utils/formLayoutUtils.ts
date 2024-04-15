@@ -413,14 +413,14 @@ export const idExistsInLayout = (id: string, layout: IInternalLayout): boolean =
   Object.keys(layout.containers || {}).some((key) => key.toUpperCase() === id.toUpperCase());
 
 /**
- * Checks if all components in the given layout have unique ids.
+ * Checks if there are components with duplicated ids in the layout.
  * @param layout The layout to check.
- * @returns True if all items in the array are unique and false otherwise.
+ * @returns True if some items in the array are duplicated and false otherwise.
  */
-export const haveComponentsUniqueIds = (layout: IInternalLayout): boolean => {
-  if (!layout?.order) return;
+export const duplicatedIdsExistsInLayout = (layout: IInternalLayout): boolean => {
+  if (!layout?.order) return false;
   const idsInLayout = flattenObjectValues(layout.order);
-  return areItemsUnique(idsInLayout);
+  return !areItemsUnique(idsInLayout);
 };
 
 /**

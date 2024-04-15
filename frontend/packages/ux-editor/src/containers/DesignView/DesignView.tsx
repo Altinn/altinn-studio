@@ -14,7 +14,7 @@ import { ReceiptContent } from './ReceiptContent';
 import { useAppContext, useFormLayouts } from '../../hooks';
 import { FormLayout } from './FormLayout';
 import { StudioButton } from '@studio/components';
-import { haveComponentsUniqueIds } from '../../utils/formLayoutUtils';
+import { duplicatedIdsExistsInLayout } from '../../utils/formLayoutUtils';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
@@ -88,7 +88,7 @@ export const DesignView = (): ReactNode => {
     if (layout === undefined) return null;
 
     // Check if the layout has unique component IDs
-    const isValidLayout = haveComponentsUniqueIds(layout.data);
+    const isValidLayout = !duplicatedIdsExistsInLayout(layout.data);
     return (
       <Accordion key={i} color={'neutral'}>
         <PageAccordion

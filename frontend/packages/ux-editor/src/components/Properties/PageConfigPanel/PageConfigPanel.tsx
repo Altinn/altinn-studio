@@ -9,7 +9,7 @@ import { TextResource } from '../../TextResource/TextResource';
 import { EditPageId } from './EditPageId';
 import { textResourceByLanguageAndIdSelector } from '../../../selectors/textResourceSelectors';
 import type { ITextResource } from 'app-shared/types/global';
-import { haveComponentsUniqueIds } from '../../../utils/formLayoutUtils';
+import { duplicatedIdsExistsInLayout } from '../../../utils/formLayoutUtils';
 import { PageConfigWarning } from './PageConfigWarning';
 
 export const PageConfigPanel = () => {
@@ -33,7 +33,7 @@ export const PageConfigPanel = () => {
     : layoutNameText ?? selectedFormLayoutName;
 
   const layout = useFormLayouts()[selectedFormLayoutName];
-  const hasDuplicatedIds = !haveComponentsUniqueIds(layout);
+  const hasDuplicatedIds = duplicatedIdsExistsInLayout(layout);
 
   if (layoutIsSelected && hasDuplicatedIds) {
     return <PageConfigWarning selectedFormLayoutName={selectedFormLayoutName} layout={layout} />;
