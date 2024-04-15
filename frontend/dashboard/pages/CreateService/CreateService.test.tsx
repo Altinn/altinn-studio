@@ -25,6 +25,16 @@ jest.mock('react-router-dom', () => ({
   useParams: jest.fn().mockReturnValue(''),
 }));
 
+const mockUserLogin: string = 'test';
+const mockUser: User = {
+  id: 1,
+  avatar_url: '',
+  email: '',
+  full_name: '',
+  login: mockUserLogin,
+  userType: 0,
+};
+
 const renderWithMockServices = (
   services?: Partial<ServicesContextProps>,
   organizations?: Organization[],
@@ -32,19 +42,7 @@ const renderWithMockServices = (
 ) => {
   render(
     <MockServicesContextWrapper client={null} customServices={services}>
-      <CreateService
-        organizations={organizations || []}
-        user={
-          user || {
-            id: 1,
-            avatar_url: '',
-            email: '',
-            full_name: '',
-            login: '',
-            userType: 0,
-          }
-        }
-      />
+      <CreateService organizations={organizations || []} user={user || mockUser} />
     </MockServicesContextWrapper>,
   );
 };
@@ -68,7 +66,7 @@ describe('CreateService', () => {
 
   it('should show error messages when clicking create and no owner or name is filled in', async () => {
     const user = userEvent.setup();
-    renderWithMockServices();
+    renderWithMockServices({}, [], { ...mockUser, login: '' });
 
     const createBtn: HTMLElement = screen.getByRole('button', {
       name: textMock('dashboard.create_service_btn'),
@@ -161,9 +159,10 @@ describe('CreateService', () => {
 
     renderWithMockServices({ addRepo: addRepoMock }, [orgMock]);
 
-    await act(() =>
-      user.selectOptions(screen.getByLabelText(textMock('general.service_owner')), 'unit-test'),
-    );
+    const select = screen.getByLabelText(textMock('general.service_owner'));
+    await act(() => user.click(select));
+    const orgOption = screen.getByRole('option', { name: mockUserLogin });
+    await act(() => user.click(orgOption));
 
     await act(() =>
       user.type(screen.getByLabelText(textMock('general.service_name')), 'this-app-name-exists'),
@@ -184,9 +183,11 @@ describe('CreateService', () => {
     const addRepoMock = jest.fn(() => Promise.reject({ response: { status: 500 } }));
     renderWithMockServices({ addRepo: addRepoMock }, [orgMock]);
 
-    await act(() =>
-      user.selectOptions(screen.getByLabelText(textMock('general.service_owner')), 'unit-test'),
-    );
+    const select = screen.getByLabelText(textMock('general.service_owner'));
+    await act(() => user.click(select));
+    const orgOption = screen.getByRole('option', { name: mockUserLogin });
+    await act(() => user.click(orgOption));
+
     await act(() => user.type(screen.getByLabelText(textMock('general.service_name')), 'new-app'));
 
     const createButton = await screen.findByText(textMock('dashboard.create_service_btn'));
@@ -241,9 +242,10 @@ describe('CreateService', () => {
 
     renderWithMockServices({ addRepo: addRepoMock }, [orgMock]);
 
-    await act(() =>
-      user.selectOptions(screen.getByLabelText(textMock('general.service_owner')), 'unit-test'),
-    );
+    const select = screen.getByLabelText(textMock('general.service_owner'));
+    await act(() => user.click(select));
+    const orgOption = screen.getByRole('option', { name: mockUserLogin });
+    await act(() => user.click(orgOption));
 
     await act(() =>
       user.type(screen.getByLabelText(textMock('general.service_name')), 'this-app-name-exists'),
