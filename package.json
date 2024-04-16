@@ -28,7 +28,7 @@
     "@swc/jest": "0.2.36",
     "@testing-library/dom": "10.0.0",
     "@testing-library/jest-dom": "6.4.2",
-    "@testing-library/react": "14.3.1",
+    "@testing-library/react": "15.0.2",
     "@testing-library/user-event": "14.5.2",
     "@types/css-modules": "1.0.5",
     "@types/jest": "29.5.12",
