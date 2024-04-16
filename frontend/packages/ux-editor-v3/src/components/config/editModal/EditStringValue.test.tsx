@@ -51,7 +51,7 @@ describe('EditStringValue', () => {
     const handleComponentChange = jest.fn();
     await render({ handleComponentChange });
     const inputElement = screen.getByLabelText('maxLength');
-    await act(() => user.type(inputElement, 'new value'));
+    await user.type(inputElement, 'new value');
     expect(handleComponentChange).toHaveBeenCalledWith({
       id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
       type: ComponentTypeV3.Input,

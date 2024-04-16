@@ -34,7 +34,7 @@ describe('StudioIconTextfield', () => {
     const input = screen.getByLabelText('Your ID');
 
     const inputValue = 'my id is 123';
-    await act(() => user.type(input, inputValue));
+    await user.type(input, inputValue);
     expect(onChangeMock).toHaveBeenCalledTimes(inputValue.length);
   });
 

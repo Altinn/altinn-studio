@@ -18,13 +18,11 @@ describe('useUpdateLayoutSetMutation', () => {
     const updateLayoutSetResult = renderHookWithMockStore()(() =>
       useUpdateLayoutSetMutation(org, app),
     ).renderHookResult.result;
-    await act(() =>
-      updateLayoutSetResult.current.mutateAsync({
-        layoutSetIdToUpdate: layoutSetIdToUpdate,
-        layoutSetConfig: layoutSet,
-      }),
-    );
-    expect(updateLayoutSetResult.current.isSuccess).toBe(true);
+    await updateLayoutSetResult.current.mutateAsync({
+      layoutSetIdToUpdate: layoutSetIdToUpdate,
+      layoutSetConfig: layoutSet,
+    }),
+      expect(updateLayoutSetResult.current.isSuccess).toBe(true);
 
     expect(queriesMock.updateLayoutSet).toHaveBeenCalledTimes(1);
     expect(queriesMock.updateLayoutSet).toHaveBeenCalledWith(

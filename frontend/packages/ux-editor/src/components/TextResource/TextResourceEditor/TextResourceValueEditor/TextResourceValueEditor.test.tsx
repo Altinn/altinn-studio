@@ -50,8 +50,8 @@ describe('TextResourceValueEditor', () => {
 
     const textboxLabel = textMock('ux_editor.text_resource_binding_text');
     const textbox = screen.getByRole('textbox', { name: textboxLabel });
-    await act(() => user.type(textbox, 'a'));
-    await act(() => user.tab());
+    await user.type(textbox, 'a');
+    await user.tab();
 
     expect(upsertTextResources).toHaveBeenCalledTimes(1);
     expect(upsertTextResources).toHaveBeenCalledWith(org, app, DEFAULT_LANGUAGE, {

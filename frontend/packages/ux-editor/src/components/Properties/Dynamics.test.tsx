@@ -56,7 +56,7 @@ describe('Dynamics', () => {
     const oldDynamicsSwitch = screen.getByRole('checkbox', {
       name: textMock('right_menu.show_old_dynamics'),
     });
-    await act(() => user.click(oldDynamicsSwitch));
+    await user.click(oldDynamicsSwitch);
     expect(screen.queryByTestId(expressionsTestId)).not.toBeInTheDocument();
     expect(screen.getByTestId(conditionalRenderingTestId)).toBeInTheDocument();
   });

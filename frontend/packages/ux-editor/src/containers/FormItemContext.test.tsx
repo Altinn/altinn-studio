@@ -74,7 +74,7 @@ describe('FormItemContext', () => {
     });
 
     const button = screen.getByTestId('button');
-    await act(() => user.click(button));
+    await user.click(button);
 
     await waitFor(async () =>
       expect((await screen.findByTestId('formItem.id')).textContent).toEqual(mockFormItem.id),
@@ -107,7 +107,7 @@ describe('FormItemContext', () => {
     });
 
     const button = screen.getByTestId('button');
-    await act(() => user.click(button));
+    await user.click(button);
 
     await waitFor(async () =>
       expect((await screen.findByTestId('formItemId')).textContent).toEqual(mockFormItem.id),
@@ -142,7 +142,7 @@ describe('FormItemContext', () => {
     });
 
     const button = screen.getByTestId('button');
-    await act(() => user.click(button));
+    await user.click(button);
 
     expect(screen.getByTestId('formItemId')).toBeInTheDocument();
     expect(screen.getByTestId('formItem.id')).toBeInTheDocument();
@@ -174,7 +174,7 @@ describe('FormItemContext', () => {
     });
 
     const button = screen.getByTestId('button');
-    await act(() => user.click(button));
+    await user.click(button);
 
     await waitFor(async () =>
       expect((await screen.findByTestId('formItemId')).textContent).toBe(''),
@@ -203,7 +203,7 @@ describe('FormItemContext', () => {
     });
 
     const button = screen.getByTestId('button');
-    await act(() => user.click(button));
+    await user.click(button);
 
     expect(mockUpdateFormContainer).toHaveBeenCalledTimes(1);
   });
@@ -230,7 +230,7 @@ describe('FormItemContext', () => {
     });
 
     const button = screen.getByTestId('button');
-    await act(() => user.click(button));
+    await user.click(button);
 
     await waitFor(async () =>
       expect((await screen.findByTestId('formItemId')).textContent).toEqual(mockFormItem.id),
@@ -254,7 +254,7 @@ describe('FormItemContext', () => {
     });
 
     const button = screen.getByTestId('button');
-    await act(() => user.click(button));
+    await user.click(button);
 
     jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
 
@@ -278,7 +278,7 @@ describe('FormItemContext', () => {
     });
 
     const button = screen.getByTestId('button');
-    await act(() => user.click(button));
+    await user.click(button);
 
     expect(mockUpdateFormComponent).toHaveBeenCalledTimes(1);
   });
@@ -306,7 +306,7 @@ describe('FormItemContext', () => {
     });
 
     const button = screen.getByTestId('button');
-    await act(() => user.click(button));
+    await user.click(button);
 
     await waitFor(async () =>
       expect((await screen.findByTestId('formItemId')).textContent).toEqual(mockFormItem.id),
@@ -331,7 +331,7 @@ describe('FormItemContext', () => {
     });
 
     const button = screen.getByTestId('button');
-    await act(() => user.click(button));
+    await user.click(button);
 
     jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
 

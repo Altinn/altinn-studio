@@ -31,7 +31,7 @@ describe('LandingPage', () => {
     const previewLimitationsAlert = screen.getByText(textMock('preview.limitations_info'));
     const alert = within(previewLimitationsAlert);
     const hidePreviewLimitationsAlertButton = alert.getByRole('button');
-    await act(() => user.click(hidePreviewLimitationsAlertButton));
+    await user.click(hidePreviewLimitationsAlertButton);
     const hidePreviewLimitationsPopover = screen.getByText(textMock('session.reminder'));
     expect(hidePreviewLimitationsPopover).toBeInTheDocument();
     const hidePreviewLimitationsTemporaryButton = screen.getByRole('button', {

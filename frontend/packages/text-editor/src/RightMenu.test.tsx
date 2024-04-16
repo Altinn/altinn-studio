@@ -38,7 +38,7 @@ describe('RightMenu', () => {
       await render();
 
       const deleteButton = screen.getByTestId(testids.deleteButton('en'));
-      await act(() => user.click(deleteButton));
+      await user.click(deleteButton);
 
       const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
@@ -61,12 +61,12 @@ describe('RightMenu', () => {
       await render();
 
       const deleteButton = screen.getByTestId(testids.deleteButton('en'));
-      await act(() => user.click(deleteButton));
+      await user.click(deleteButton);
 
       const confirmButton = screen.getByRole('button', {
         name: textMock('schema_editor.language_confirm_deletion'),
       });
-      await act(() => user.click(confirmButton));
+      await user.click(confirmButton);
 
       expect(defaultProps.deleteLanguage).toHaveBeenCalledWith('en');
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
@@ -76,10 +76,10 @@ describe('RightMenu', () => {
       await render();
 
       const deleteButton = screen.getByTestId(testids.deleteButton('en'));
-      await act(() => user.click(deleteButton));
+      await user.click(deleteButton);
 
       const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
-      await act(() => user.click(cancelButton));
+      await user.click(cancelButton);
 
       expect(defaultProps.deleteLanguage).toHaveBeenCalledTimes(0);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
@@ -89,9 +89,9 @@ describe('RightMenu', () => {
       await render();
 
       const deleteButton = screen.getByTestId(testids.deleteButton('en'));
-      await act(() => user.click(deleteButton));
+      await user.click(deleteButton);
 
-      await act(() => user.click(document.body));
+      await user.click(document.body);
 
       expect(defaultProps.deleteLanguage).toHaveBeenCalledTimes(0);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());

@@ -116,7 +116,7 @@ describe('AboutTab', () => {
     const appName = screen.getByLabelText(textMock('settings_modal.about_tab_name_label'));
     expect(appName).toHaveValue(mockAppConfig.serviceName);
 
-    await act(() => user.type(appName, mockNewText));
+    await user.type(appName, mockNewText);
 
     expect(appName).toHaveValue(`${mockAppConfig.serviceName}${mockNewText}`);
   });
@@ -128,7 +128,7 @@ describe('AboutTab', () => {
     const altId = screen.getByLabelText(textMock('settings_modal.about_tab_alt_id_label'));
     expect(altId).toHaveValue(mockAppConfig.serviceId);
 
-    await act(() => user.type(altId, mockNewText));
+    await user.type(altId, mockNewText);
 
     expect(altId).toHaveValue(`${mockAppConfig.serviceId}${mockNewText}`);
   });
@@ -138,8 +138,8 @@ describe('AboutTab', () => {
     await resolveAndWaitForSpinnerToDisappear();
 
     const altId = screen.getByLabelText(textMock('settings_modal.about_tab_alt_id_label'));
-    await act(() => user.type(altId, mockNewText));
-    await act(() => user.tab());
+    await user.type(altId, mockNewText);
+    await user.tab();
 
     expect(updateAppConfigMutation).toHaveBeenCalledTimes(1);
   });

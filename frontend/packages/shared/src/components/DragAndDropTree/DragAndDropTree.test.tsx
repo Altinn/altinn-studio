@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render as renderRtl, screen } from '@testing-library/react';
+import { render as renderRtl, screen } from '@testing-library/react';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import userEvent from '@testing-library/user-event';
 
@@ -54,7 +54,7 @@ describe('DragAndDropTree', () => {
   it('Expands an item when clicked', async () => {
     render();
     const firstItem = screen.getByRole('treeitem', { name: rootNodeLabel1, expanded: false });
-    await act(() => user.click(firstItem));
+    await user.click(firstItem);
     expect(screen.getByRole('treeitem', { name: subNodeLabel1_1 })).toBeInTheDocument();
     expect(screen.getByRole('treeitem', { name: subNodeLabel1_2 })).toBeInTheDocument();
   });
@@ -62,14 +62,14 @@ describe('DragAndDropTree', () => {
   it('Focuses on first node when user presses the tab key', async () => {
     render();
     expect(screen.getByRole('treeitem', { name: rootNodeLabel1 })).not.toHaveFocus();
-    await act(() => user.tab());
+    await user.tab();
     expect(screen.getByRole('treeitem', { name: rootNodeLabel1 })).toHaveFocus();
   });
 
   it('Focuses on next node when user presses the down arrow key', async () => {
     render();
     const firstItem = screen.getByRole('treeitem', { name: rootNodeLabel1 });
-    await act(() => user.type(firstItem, '{arrowdown}'));
+    await user.type(firstItem, '{arrowdown}');
     expect(screen.getByRole('treeitem', { name: rootNodeLabel2 })).toHaveFocus();
   });
 

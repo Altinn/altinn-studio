@@ -96,7 +96,7 @@ describe('EditFormComponent', () => {
     };
 
     const linkIcon = screen.getByText(/ux_editor.modal_properties_data_model_link/i);
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
 
     Object.keys(labels).map(async (label) =>
       expect(await screen.findByRole(labels[label], { name: label })),
@@ -151,7 +151,7 @@ describe('EditFormComponent', () => {
 
     const maxFilesInput = screen.getByLabelText('ux_editor.modal_properties_maximum_files');
 
-    await act(() => user.clear(maxFilesInput));
+    await user.clear(maxFilesInput);
     expect(handleUpdate).toHaveBeenCalledWith({
       ...allComponentProps,
       maxNumberOfAttachments: 1,
@@ -171,7 +171,7 @@ describe('EditFormComponent', () => {
 
     const minFilesInput = screen.getByLabelText('ux_editor.modal_properties_minimum_files');
 
-    await act(() => user.clear(minFilesInput));
+    await user.clear(minFilesInput);
     expect(handleUpdate).toHaveBeenCalledWith({
       ...allComponentProps,
       required: false,

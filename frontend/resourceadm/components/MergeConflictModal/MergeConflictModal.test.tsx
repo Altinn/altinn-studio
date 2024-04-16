@@ -21,17 +21,17 @@ describe('MergeConflictModal', () => {
     const resetChangesButton = await screen.findByRole('button', {
       name: textMock('merge_conflict.remove_my_changes'),
     });
-    await act(() => user.click(resetChangesButton));
+    await user.click(resetChangesButton);
 
     const repoTextfield = await screen.findByLabelText(
       textMock('resourceadm.reset_repo_confirm_repo_name'),
     );
-    await act(() => user.type(repoTextfield, repoName));
+    await user.type(repoTextfield, repoName);
 
     const confirmResetButton = await screen.findByRole('button', {
       name: textMock('local_changes.modal_confirm_delete_button'),
     });
-    await act(() => user.click(confirmResetButton));
+    await user.click(confirmResetButton);
 
     expect(queriesMock.resetRepoChanges).toHaveBeenCalled();
   });
@@ -43,17 +43,17 @@ describe('MergeConflictModal', () => {
     const resetChangesButton = await screen.findByRole('button', {
       name: textMock('merge_conflict.remove_my_changes'),
     });
-    await act(() => user.click(resetChangesButton));
+    await user.click(resetChangesButton);
 
     const repoTextfield = await screen.findByLabelText(
       textMock('resourceadm.reset_repo_confirm_repo_name'),
     );
-    await act(() => user.type(repoTextfield, 'not-correct-text'));
+    await user.type(repoTextfield, 'not-correct-text');
 
     const confirmResetButton = await screen.findByRole('button', {
       name: textMock('local_changes.modal_confirm_delete_button'),
     });
-    await act(() => user.click(confirmResetButton));
+    await user.click(confirmResetButton);
 
     expect(queriesMock.resetRepoChanges).not.toHaveBeenCalled();
   });
@@ -65,12 +65,12 @@ describe('MergeConflictModal', () => {
     const resetChangesButton = await screen.findByRole('button', {
       name: textMock('merge_conflict.remove_my_changes'),
     });
-    await act(() => user.click(resetChangesButton));
+    await user.click(resetChangesButton);
 
     const cancelButton = await screen.findByRole('button', {
       name: textMock('general.cancel'),
     });
-    await act(() => user.click(cancelButton));
+    await user.click(cancelButton);
 
     expect(
       screen.queryByText(textMock('local_changes.modal_delete_modal_title')),

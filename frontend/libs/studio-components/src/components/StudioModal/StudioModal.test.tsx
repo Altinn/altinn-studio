@@ -37,7 +37,7 @@ describe('Modal', () => {
     render(<StudioModal {...defaultProps} />);
 
     const closeButton = screen.getByRole('button', { name: closeButtonLabel });
-    await act(() => user.click(closeButton));
+    await user.click(closeButton);
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 

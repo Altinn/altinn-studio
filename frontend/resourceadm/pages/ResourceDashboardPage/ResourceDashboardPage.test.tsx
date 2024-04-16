@@ -145,7 +145,7 @@ describe('ResourceDashBoardPage', () => {
     const importButton = screen.getByRole('button', {
       name: textMock('resourceadm.dashboard_import_resource'),
     });
-    await act(() => user.click(importButton));
+    await user.click(importButton);
 
     expect(
       screen.getByRole('heading', {
@@ -174,7 +174,7 @@ describe('ResourceDashBoardPage', () => {
     const createButton = screen.getByRole('button', {
       name: textMock('resourceadm.dashboard_create_resource'),
     });
-    await act(() => user.click(createButton));
+    await user.click(createButton);
 
     expect(
       screen.getByRole('heading', {
@@ -198,7 +198,7 @@ describe('ResourceDashBoardPage', () => {
     expect(resourceRowsBeforeFilter.length).toEqual(mockResourceList.length + 1); // Adding the <th />
 
     const searchInput = screen.getByLabelText(textMock('resourceadm.dashboard_searchbox'));
-    await act(() => user.type(searchInput, mockResourceListItem1.title.nb));
+    await user.type(searchInput, mockResourceListItem1.title.nb);
 
     const resourceRowsAfterFilter = screen.getAllByRole('row'); // Also selects the <th />
     expect(resourceRowsAfterFilter.length).toBe(2); // The one data row + 1 <th />
@@ -232,7 +232,7 @@ describe('ResourceDashBoardPage', () => {
     expect(resourceRowsBeforeFilter.length).toEqual(mockResourceList.length + 1); // Adding the <th />
 
     const searchInput = screen.getByLabelText(textMock('resourceadm.dashboard_searchbox'));
-    await act(() => user.type(searchInput, 'text not in the list'));
+    await user.type(searchInput, 'text not in the list');
 
     const resourceRowsAfterFilter = screen.getAllByRole('row'); // Also selects the <th />
     expect(resourceRowsAfterFilter.length).toBe(1); // Only the <th />

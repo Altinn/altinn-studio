@@ -124,7 +124,7 @@ describe('MigrationPage', () => {
       expect(screen.getByLabelText(textMock('resourceadm.deploy_test_env'))).toBeInTheDocument();
     });
     const tt02Radio = screen.getByLabelText(textMock('resourceadm.deploy_test_env'));
-    await act(() => user.click(tt02Radio));
+    await user.click(tt02Radio);
 
     expect(
       screen.getByText(textMock('resourceadm.migration_migrate_delegations')),

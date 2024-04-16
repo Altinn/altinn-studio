@@ -62,7 +62,7 @@ describe('RepoList', () => {
     const sortBtn = document.querySelector(
       'button[aria-label="' + localeText.columnHeaderSortIconLabel + '"]',
     );
-    await act(() => user.click(sortBtn));
+    await user.click(sortBtn);
 
     expect(handleSortMock).not.toHaveBeenCalled();
   });
@@ -78,7 +78,7 @@ describe('RepoList', () => {
     const sortBtn = document.querySelector(
       'button[aria-label="' + localeText.columnHeaderSortIconLabel + '"]',
     );
-    await act(() => user.click(sortBtn));
+    await user.click(sortBtn);
 
     expect(handleSortMock).toHaveBeenCalledWith([{ field: 'name', sort: 'asc' }], {
       reason: undefined,
@@ -113,7 +113,7 @@ describe('RepoList', () => {
       name: localeText.MuiTablePagination.getItemAriaLabel('next'),
     });
     expect(nextPageButton).toBeInTheDocument();
-    await act(() => user.click(nextPageButton));
+    await user.click(nextPageButton);
 
     expect(onPageChange).toHaveBeenCalledWith(1);
 
@@ -121,7 +121,7 @@ describe('RepoList', () => {
       name: localeText.MuiTablePagination.getItemAriaLabel('previous'),
     });
     expect(previousPageButton).toBeInTheDocument();
-    await act(() => user.click(previousPageButton));
+    await user.click(previousPageButton);
 
     expect(onPageChange).toHaveBeenCalledWith(1);
   });
@@ -138,10 +138,10 @@ describe('RepoList', () => {
     const pageSizeSelect = screen.getByRole('combobox', {
       name: localeText.MuiTablePagination.labelRowsPerPage.toString(),
     });
-    await act(() => user.click(pageSizeSelect));
+    await user.click(pageSizeSelect);
 
     const pageSizeOption = screen.getByRole('option', { name: newPageSize.toString() });
-    await act(() => user.click(pageSizeOption));
+    await user.click(pageSizeOption);
 
     expect(onPageSizeChange).toHaveBeenCalledWith(newPageSize);
   });

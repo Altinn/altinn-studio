@@ -53,8 +53,8 @@ describe('ResourceTable', () => {
 
     expect(sortButton).toBeInTheDocument();
 
-    await act(() => user.click(sortButton)); // click twice; default sort is same as default order
-    await act(() => user.click(sortButton));
+    await user.click(sortButton); // click twice; default sort is same as default order
+    await user.click(sortButton);
 
     const listItemsAfterSort = screen.getAllByRole('row').map((row) => row.textContent);
 
@@ -101,7 +101,7 @@ describe('ResourceTable', () => {
     render(<ResourceTable {...defaultProps} />);
 
     const [editButton] = screen.getAllByText(textMock('resourceadm.dashboard_table_row_edit'));
-    await act(() => user.click(editButton));
+    await user.click(editButton);
 
     expect(mockOnClickEditResource).toHaveBeenCalled();
   });

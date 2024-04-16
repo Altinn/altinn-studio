@@ -16,7 +16,7 @@ describe('StudioTextfieldToggleView', () => {
 
     renderStudioTextfieldToggleView({ children: 'My awesome button text', onClick: onClickMock });
 
-    await act(() => user.click(screen.getByRole('button', { name: 'My awesome button text' })));
+    await user.click(screen.getByRole('button', { name: 'My awesome button text' }));
     expect(onClickMock).toHaveBeenCalledTimes(1);
   });
 

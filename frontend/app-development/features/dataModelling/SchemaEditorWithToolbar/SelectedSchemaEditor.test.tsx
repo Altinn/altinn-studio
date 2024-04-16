@@ -101,7 +101,7 @@ describe('SelectedSchemaEditor', () => {
     );
 
     const button = screen.getByTestId(saveButtonTestId);
-    await act(() => user.click(button));
+    await user.click(button);
     expect(saveDatamodel).not.toHaveBeenCalled();
 
     act(() => jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS));

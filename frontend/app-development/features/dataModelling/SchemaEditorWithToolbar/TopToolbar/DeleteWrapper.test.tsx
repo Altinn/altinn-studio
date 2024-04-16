@@ -57,23 +57,23 @@ describe('DeleteWrapper', () => {
   it('should open the delete dialog when clicking delete button and schemaName is set', async () => {
     render();
     expect(queryDeleteMessage()).not.toBeInTheDocument();
-    await act(() => user.click(getDeleteButton()));
+    await user.click(getDeleteButton());
     expect(getDeleteMessage()).toBeInTheDocument();
   });
 
   it('should call deleteAction callback and close dialog when clicking continue button', async () => {
     render();
-    await act(() => user.click(getDeleteButton()));
-    await act(() => user.click(getContinueButton()));
+    await user.click(getDeleteButton());
+    await user.click(getContinueButton());
     expect(queryDeleteMessage()).not.toBeInTheDocument();
   });
 
   it('should close the delete dialog when clicking cancel', async () => {
     render();
     expect(queryDeleteMessage()).not.toBeInTheDocument();
-    await act(() => user.click(getDeleteButton()));
+    await user.click(getDeleteButton());
     expect(getDeleteMessage()).toBeInTheDocument();
-    await act(() => user.click(getCancelButton()));
+    await user.click(getCancelButton());
     expect(queryDeleteMessage()).not.toBeInTheDocument();
   });
 });

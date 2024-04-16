@@ -52,7 +52,7 @@ describe('StudioPropertyButton', () => {
     const user = userEvent.setup();
     const onClick = jest.fn();
     renderButton({ onClick });
-    await act(() => user.click(screen.getByRole('button')));
+    await user.click(screen.getByRole('button'));
     expect(onClick).toHaveBeenCalled();
   });
 

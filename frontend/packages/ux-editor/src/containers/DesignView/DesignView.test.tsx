@@ -48,7 +48,7 @@ describe('DesignView', () => {
     await render();
 
     const accordionButton1 = screen.getByRole('button', { name: mockPageName1 });
-    await act(() => user.click(accordionButton1));
+    await user.click(accordionButton1);
 
     expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledTimes(1);
     expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledWith(undefined);
@@ -59,7 +59,7 @@ describe('DesignView', () => {
     await render();
 
     const accordionButton2 = screen.getByRole('button', { name: mockPageName2 });
-    await act(() => user.click(accordionButton2));
+    await user.click(accordionButton2);
 
     expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledTimes(1);
     expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledWith(mockPageName2);
@@ -70,7 +70,7 @@ describe('DesignView', () => {
     await render();
 
     const addButton = screen.getByRole('button', { name: textMock('ux_editor.pages_add') });
-    await act(() => user.click(addButton));
+    await user.click(addButton);
 
     expect(queriesMock.saveFormLayout).toHaveBeenCalled();
   });

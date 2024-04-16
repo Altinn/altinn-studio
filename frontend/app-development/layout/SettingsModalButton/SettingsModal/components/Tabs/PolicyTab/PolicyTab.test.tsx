@@ -113,7 +113,7 @@ describe('PolicyTab', () => {
     await resolveAndWaitForSpinnerToDisappear();
 
     // Fix to remove act error
-    await act(() => user.tab());
+    await user.tab();
 
     const elementInPolicyEditor = screen.getByText(
       textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_app') }),
@@ -129,7 +129,7 @@ describe('PolicyTab', () => {
       name: textMock('policy_editor.card_button_text'),
     });
 
-    await act(() => user.click(addButton));
+    await user.click(addButton);
 
     expect(updateAppPolicyMutation).toHaveBeenCalledTimes(1);
   });

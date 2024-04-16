@@ -25,7 +25,7 @@ describe('NewExpressionButton', () => {
     render({});
 
     const addButton = screen.getByText(textMock('right_menu.expressions_add'));
-    await act(() => user.click(addButton));
+    await user.click(addButton);
     const dropdown = screen.getByRole('heading', {
       name: textMock('right_menu.expressions_property'),
     });
@@ -41,11 +41,11 @@ describe('NewExpressionButton', () => {
     });
 
     const addButton = screen.getByText(textMock('right_menu.expressions_add'));
-    await act(() => user.click(addButton));
+    await user.click(addButton);
     const dropdownOption = screen.getByRole('menuitem', {
       name: textMock('right_menu.expressions_property_read_only'),
     });
-    await act(() => user.click(dropdownOption));
+    await user.click(dropdownOption);
 
     expect(onAddExpressionMock).toHaveBeenCalledWith(optionsMock[1]);
     expect(onAddExpressionMock).toHaveBeenCalledTimes(1);

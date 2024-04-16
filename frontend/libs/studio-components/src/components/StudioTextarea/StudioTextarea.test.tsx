@@ -43,7 +43,7 @@ describe('StudioTextarea', () => {
     renderTextarea();
     const textarea = screen.getByRole('textbox');
     const newValue = 'new value';
-    await act(() => user.type(textarea, newValue));
+    await user.type(textarea, newValue);
     expect(textarea).toHaveValue(newValue);
   });
 
@@ -53,7 +53,7 @@ describe('StudioTextarea', () => {
     renderTextarea({ onChange });
     const textarea = screen.getByRole('textbox');
     const newValue = 'new value';
-    await act(() => user.type(textarea, newValue));
+    await user.type(textarea, newValue);
     expect(onChange).toHaveBeenCalledTimes(newValue.length);
     const expectedTarget = expect.objectContaining({ value: newValue });
     const expectedEvent = expect.objectContaining({ target: expectedTarget });
@@ -65,8 +65,8 @@ describe('StudioTextarea', () => {
     const onBlur = jest.fn();
     renderTextarea({ onBlur });
     const textarea = screen.getByRole('textbox');
-    await act(() => user.click(textarea));
-    await act(() => user.tab());
+    await user.click(textarea);
+    await user.tab();
     expect(onBlur).toHaveBeenCalledTimes(1);
   });
 
@@ -81,8 +81,8 @@ describe('StudioTextarea', () => {
     const errorAfterBlur = 'error message';
     renderTextarea({ errorAfterBlur });
     const textarea = screen.getByRole('textbox');
-    await act(() => user.click(textarea));
-    await act(() => user.tab());
+    await user.click(textarea);
+    await user.tab();
     expect(screen.queryByText(errorAfterBlur)).not.toBeInTheDocument();
   });
 
@@ -91,7 +91,7 @@ describe('StudioTextarea', () => {
     const errorAfterBlur = 'error message';
     renderTextarea({ errorAfterBlur });
     const textarea = screen.getByRole('textbox');
-    await act(() => user.type(textarea, 'test'));
+    await user.type(textarea, 'test');
     expect(screen.queryByText(errorAfterBlur)).not.toBeInTheDocument();
   });
 
@@ -100,8 +100,8 @@ describe('StudioTextarea', () => {
     const errorAfterBlur = 'error message';
     renderTextarea({ errorAfterBlur });
     const textarea = screen.getByRole('textbox');
-    await act(() => user.type(textarea, 'test'));
-    await act(() => user.tab());
+    await user.type(textarea, 'test');
+    await user.tab();
     expect(screen.getByText(errorAfterBlur)).toBeInTheDocument();
   });
 
@@ -110,9 +110,9 @@ describe('StudioTextarea', () => {
     const errorAfterBlur = 'error message';
     renderTextarea({ errorAfterBlur });
     const textarea = screen.getByRole('textbox');
-    await act(() => user.type(textarea, 'test'));
-    await act(() => user.tab());
-    await act(() => user.type(textarea, 'test'));
+    await user.type(textarea, 'test');
+    await user.tab();
+    await user.type(textarea, 'test');
     expect(screen.getByText(errorAfterBlur)).toBeInTheDocument();
   });
 
@@ -121,11 +121,11 @@ describe('StudioTextarea', () => {
     const errorAfterBlur = 'error message';
     renderTextarea({ errorAfterBlur });
     const textarea = screen.getByRole('textbox');
-    await act(() => user.type(textarea, 'test'));
-    await act(() => user.tab());
-    await act(() => user.clear(textarea));
+    await user.type(textarea, 'test');
+    await user.tab();
+    await user.clear(textarea);
     expect(screen.queryByText(errorAfterBlur)).not.toBeInTheDocument();
-    await act(() => user.type(textarea, 'test'));
+    await user.type(textarea, 'test');
     expect(screen.queryByText(errorAfterBlur)).not.toBeInTheDocument();
   });
 
@@ -135,10 +135,10 @@ describe('StudioTextarea', () => {
     renderTextarea({ error });
     expect(screen.getByText(error)).toBeInTheDocument();
     const textarea = screen.getByRole('textbox');
-    await act(() => user.type(textarea, 'test'));
+    await user.type(textarea, 'test');
     expect(screen.getByText(error)).toBeInTheDocument();
-    await act(() => user.tab());
-    await act(() => user.clear(textarea));
+    await user.tab();
+    await user.clear(textarea);
     expect(screen.getByText(error)).toBeInTheDocument();
   });
 

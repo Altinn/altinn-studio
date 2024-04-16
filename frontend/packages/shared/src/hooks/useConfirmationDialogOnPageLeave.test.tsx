@@ -90,9 +90,7 @@ describe('useConfirmationDialogOnPageLeave', () => {
     const showConfirmationDialog = false;
     const { router } = render(showConfirmationDialog);
 
-    await act(async () => {
-      await router.navigate('/test');
-    });
+    await router.navigate('/test');
 
     expect(window.confirm).toHaveBeenCalledTimes(0);
     expect(router.state.location.pathname).toBe('/test');
@@ -104,9 +102,7 @@ describe('useConfirmationDialogOnPageLeave', () => {
     const showConfirmationDialog = true;
     const { router } = render(showConfirmationDialog);
 
-    await act(async () => {
-      await router.navigate('/test');
-    });
+    await router.navigate('/test');
 
     expect(window.confirm).toHaveBeenCalledTimes(1);
     expect(router.state.location.pathname).toBe('/');
@@ -118,9 +114,7 @@ describe('useConfirmationDialogOnPageLeave', () => {
     const showConfirmationDialog = true;
     const { router } = render(showConfirmationDialog);
 
-    await act(async () => {
-      await router.navigate('/test');
-    });
+    await router.navigate('/test');
 
     expect(window.confirm).toHaveBeenCalledTimes(1);
     expect(router.state.location.pathname).toBe('/');
@@ -132,9 +126,7 @@ describe('useConfirmationDialogOnPageLeave', () => {
     const showConfirmationDialog = true;
     const { router } = render(showConfirmationDialog);
 
-    await act(async () => {
-      await router.navigate('/test');
-    });
+    await router.navigate('/test');
 
     expect(window.confirm).toHaveBeenCalledTimes(1);
     expect(router.state.location.pathname).toBe('/test');

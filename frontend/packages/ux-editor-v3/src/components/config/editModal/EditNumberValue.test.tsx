@@ -49,13 +49,13 @@ describe('EditNumberValue', () => {
     await render({ handleComponentChange: mockhHandleComponentChange });
 
     const input = screen.getByRole('textbox');
-    await act(() => user.type(input, '12'));
+    await user.type(input, '12');
     // The component is updated for each keystroke, so we expect the mock to be called twice -
     // I think it should prevent this behavior with this new issue: https://github.com/Altinn/altinn-studio/issues/11989
     expect(mockhHandleComponentChange).toHaveBeenCalledTimes(2);
 
     mockhHandleComponentChange.mockClear();
-    await act(() => user.clear(input));
+    await user.clear(input);
     expect(mockhHandleComponentChange).toHaveBeenCalledTimes(1);
   });
 });

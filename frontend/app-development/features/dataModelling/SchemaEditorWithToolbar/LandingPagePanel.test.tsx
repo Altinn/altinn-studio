@@ -38,7 +38,7 @@ describe('LandingPagePanel', () => {
     const button = screen.getByRole('button', {
       name: textMock('app_data_modelling.landing_dialog_create'),
     });
-    await act(() => user.click(button));
+    await user.click(button);
 
     expect(landingPagePropsMock.openCreateNew).toHaveBeenCalledTimes(1);
   });

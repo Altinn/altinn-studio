@@ -66,7 +66,7 @@ describe('PanelComponent', () => {
 
     const checkbox = screen.getByLabelText(textMock('ux_editor.show_icon'));
 
-    await act(() => user.click(checkbox));
+    await user.click(checkbox);
 
     expect(mockHandleComponentChange).toHaveBeenCalledTimes(1);
     expect(mockHandleComponentChange).toHaveBeenCalledWith({ ...component, showIcon: true });
@@ -78,8 +78,8 @@ describe('PanelComponent', () => {
     const select = screen.getByRole('combobox', {
       name: textMock('ux_editor.choose_variant'),
     });
-    await act(() => user.click(select));
-    await act(() => user.click(screen.getAllByRole('option')[1]));
+    await user.click(select);
+    await user.click(screen.getAllByRole('option')[1]);
 
     expect(mockHandleComponentChange).toHaveBeenCalledTimes(1);
     expect(mockHandleComponentChange).toHaveBeenCalledWith({

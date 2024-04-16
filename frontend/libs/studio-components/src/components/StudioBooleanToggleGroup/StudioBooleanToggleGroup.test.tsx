@@ -35,7 +35,7 @@ describe('StudioBooleanToggleGroup', () => {
     const user = userEvent.setup();
     const onChange = jest.fn();
     renderBooleanToggle({ onChange, value: false });
-    await act(() => user.click(getTrueToggle()));
+    await user.click(getTrueToggle());
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith(true);
   });
@@ -43,7 +43,7 @@ describe('StudioBooleanToggleGroup', () => {
   it('Switches the toggle when the user checks the true toggle', async () => {
     const user = userEvent.setup();
     renderBooleanToggle({ value: false });
-    await act(() => user.click(getTrueToggle()));
+    await user.click(getTrueToggle());
     expect(getTrueToggle()).toBeChecked();
     expect(getFalseToggle()).not.toBeChecked();
   });
@@ -52,7 +52,7 @@ describe('StudioBooleanToggleGroup', () => {
     const user = userEvent.setup();
     const onChange = jest.fn();
     renderBooleanToggle({ onChange, value: true });
-    await act(() => user.click(getFalseToggle()));
+    await user.click(getFalseToggle());
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith(false);
   });
@@ -60,7 +60,7 @@ describe('StudioBooleanToggleGroup', () => {
   it('Switches the toggle when the user checks the false toggle', async () => {
     const user = userEvent.setup();
     renderBooleanToggle({ value: true });
-    await act(() => user.click(getFalseToggle()));
+    await user.click(getFalseToggle());
     expect(getFalseToggle()).toBeChecked();
     expect(getTrueToggle()).not.toBeChecked();
   });

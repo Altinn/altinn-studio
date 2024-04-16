@@ -59,7 +59,7 @@ describe('SetupTabContent', () => {
       textMock('settings_modal.setup_tab_switch_autoDeleteOnProcessEnd'),
     );
     expect(switchInput).toBeChecked();
-    await act(() => user.click(switchInput));
+    await user.click(switchInput);
 
     expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1);
   });
@@ -81,7 +81,7 @@ describe('SetupTabContent', () => {
       textMock('settings_modal.setup_tab_switch_messageBoxConfig_hideSettings_hideAlways'),
     );
     expect(switchInput).toBeChecked();
-    await act(() => user.click(switchInput));
+    await user.click(switchInput);
 
     expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1);
   });
@@ -103,7 +103,7 @@ describe('SetupTabContent', () => {
       textMock('settings_modal.setup_tab_switch_copyInstanceSettings_enabled'),
     );
     expect(switchInput).toBeChecked();
-    await act(() => user.click(switchInput));
+    await user.click(switchInput);
 
     expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1);
   });
@@ -125,7 +125,7 @@ describe('SetupTabContent', () => {
       textMock('settings_modal.setup_tab_switch_onEntry_show'),
     );
     expect(switchInput).toBeChecked();
-    await act(() => user.click(switchInput));
+    await user.click(switchInput);
 
     expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1);
   });

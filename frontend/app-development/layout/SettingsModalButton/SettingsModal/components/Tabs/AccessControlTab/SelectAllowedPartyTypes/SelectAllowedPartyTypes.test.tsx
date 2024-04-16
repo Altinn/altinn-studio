@@ -75,7 +75,7 @@ describe('SelectAllowedPartyTypes', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(queriesMock.updateAppMetadata).not.toHaveBeenCalled();
     const closeButton = screen.getByRole('button', { name: textMock('general.close') });
-    await act(() => user.click(closeButton));
+    await user.click(closeButton);
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
@@ -85,7 +85,7 @@ describe('SelectAllowedPartyTypes', () => {
     const allTypeCheckbox = screen.getByRole('checkbox', {
       name: textMock('settings_modal.access_control_tab_option_all_types'),
     });
-    await act(() => user.click(allTypeCheckbox));
+    await user.click(allTypeCheckbox);
     const checkboxes = screen.getAllByRole('checkbox');
     checkboxes.forEach((checkbox) => {
       expect(checkbox).toBeChecked();
@@ -98,7 +98,7 @@ describe('SelectAllowedPartyTypes', () => {
     const allTypeCheckbox = screen.getByRole('checkbox', {
       name: textMock('settings_modal.access_control_tab_option_all_types'),
     });
-    await act(() => user.click(allTypeCheckbox));
+    await user.click(allTypeCheckbox);
     expect(queriesMock.updateAppMetadata).toHaveBeenCalledTimes(1);
     expect(queriesMock.updateAppMetadata).toHaveBeenCalledWith(org, app, {
       ...mockAppMetadata,
@@ -134,7 +134,7 @@ describe('SelectAllowedPartyTypes', () => {
     const checkboxes = screen.getByRole('checkbox', {
       name: textMock('settings_modal.access_control_tab_option_person'),
     });
-    await act(() => user.click(checkboxes));
+    await user.click(checkboxes);
     expect(queriesMock.updateAppMetadata).toHaveBeenCalledTimes(1);
   });
 });

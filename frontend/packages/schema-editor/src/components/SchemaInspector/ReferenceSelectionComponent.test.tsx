@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import type { IReferenceSelectionProps } from './ReferenceSelectionComponent';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
@@ -69,13 +69,13 @@ describe('ReferenceSelectionComponent', () => {
 
   test('All types should appear as options', async () => {
     renderReferenceSelectionComponent();
-    await act(() => user.click(screen.getByRole('combobox')));
+    await user.click(screen.getByRole('combobox'));
     expect(screen.queryAllByRole('option')).toHaveLength(2);
   });
 
   test('Type options should have correct values and labels', async () => {
     renderReferenceSelectionComponent();
-    await act(() => user.click(screen.getByRole('combobox')));
+    await user.click(screen.getByRole('combobox'));
     expect(screen.getByRole('option', { name: type1Name })).toHaveAttribute('value', type1.pointer);
     expect(screen.getByRole('option', { name: type2Name })).toHaveAttribute('value', type2.pointer);
   });
@@ -89,15 +89,15 @@ describe('ReferenceSelectionComponent', () => {
 
   test('onChange handler is called with correct parameters when value changes', async () => {
     renderReferenceSelectionComponent();
-    await act(() => user.click(screen.getByRole('combobox')));
-    await act(() => user.click(screen.getByRole('option', { name: type1Name })));
+    await user.click(screen.getByRole('combobox'));
+    await user.click(screen.getByRole('option', { name: type1Name }));
     expect(onChangeRef).toHaveBeenCalledTimes(1);
     expect(onChangeRef).toHaveBeenCalledWith(selectedNode.pointer, type1.pointer);
   });
 
   test('onGoToDefButtonClick handler is called when "go to type" button is clicked', async () => {
     renderReferenceSelectionComponent();
-    await act(() => user.click(screen.getByText(buttonText)));
+    await user.click(screen.getByText(buttonText));
     expect(onGoToDefButtonClick).toHaveBeenCalledTimes(1);
   });
 });

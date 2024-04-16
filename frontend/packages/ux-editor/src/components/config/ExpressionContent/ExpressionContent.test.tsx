@@ -45,7 +45,7 @@ describe('ExpressionContent', () => {
     renderExpressionContent({ expression: parsableLogicalExpression, onChange });
     const orButtonName = textMock('expression.logicalTupleOperator.or');
     const orButton = screen.getByRole('radio', { name: orButtonName });
-    await act(() => user.click(orButton));
+    await user.click(orButton);
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith([
       LogicalTupleOperator.Or,
@@ -60,7 +60,7 @@ describe('ExpressionContent', () => {
     renderExpressionContent({ onDelete });
     const deleteButtonName = textMock('right_menu.expression_delete');
     const deleteButton = screen.getByRole('button', { name: deleteButtonName });
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
     expect(onDelete).toHaveBeenCalledTimes(1);
   });
 });

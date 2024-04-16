@@ -27,7 +27,7 @@ describe('Preview', () => {
 
     expect(switchButton).not.toBeChecked();
 
-    await act(() => user.click(switchButton));
+    await user.click(switchButton);
     expect(switchButton).toBeChecked();
   });
 
@@ -64,13 +64,13 @@ describe('Preview', () => {
     const hidePreviewButton = screen.getByRole('button', {
       name: textMock('ux_editor.close_preview'),
     });
-    await act(() => user.click(hidePreviewButton));
+    await user.click(hidePreviewButton);
     expect(hidePreviewButton).not.toBeInTheDocument();
 
     const showPreviewButton = screen.getByRole('button', {
       name: textMock('ux_editor.open_preview'),
     });
-    await act(() => user.click(showPreviewButton));
+    await user.click(showPreviewButton);
     expect(showPreviewButton).not.toBeInTheDocument();
   });
 

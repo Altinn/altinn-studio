@@ -50,8 +50,8 @@ describe('EditCodeList', () => {
 
     await waitFor(() => screen.findByRole('combobox'));
 
-    await act(() => user.click(screen.getByRole('combobox')));
-    await act(() => user.click(screen.getByRole('option', { name: 'test-1' })));
+    await user.click(screen.getByRole('combobox'));
+    await user.click(screen.getByRole('option', { name: 'test-1' }));
     await waitFor(() => expect(handleComponentChangeMock).toHaveBeenCalled());
   });
 

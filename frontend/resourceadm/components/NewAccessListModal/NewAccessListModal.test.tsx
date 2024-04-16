@@ -45,7 +45,7 @@ describe('NewAccessListModal', () => {
     await renderAndOpenModal(user);
 
     const closeButton = screen.getByText(textMock('general.cancel'));
-    await act(() => user.click(closeButton));
+    await user.click(closeButton);
 
     expect(closeModalMock).toHaveBeenCalled();
   });
@@ -55,10 +55,10 @@ describe('NewAccessListModal', () => {
     await renderAndOpenModal(user);
 
     const nameField = screen.getByLabelText(textMock('resourceadm.listadmin_list_name'));
-    await act(() => user.type(nameField, 'nytt navn'));
+    await user.type(nameField, 'nytt navn');
 
     const createButton = screen.getByText(textMock('resourceadm.listadmin_confirm_create_list'));
-    await act(() => user.click(createButton));
+    await user.click(createButton);
 
     await waitFor(() => {
       expect(mockedNavigate).toHaveBeenCalledWith('/accesslists/tt02/nytt-navn');
@@ -74,10 +74,10 @@ describe('NewAccessListModal', () => {
     });
 
     const nameField = screen.getByLabelText(textMock('resourceadm.listadmin_list_name'));
-    await act(() => user.type(nameField, 'nytt navn'));
+    await user.type(nameField, 'nytt navn');
 
     const createButton = screen.getByText(textMock('resourceadm.listadmin_confirm_create_list'));
-    await act(() => user.click(createButton));
+    await user.click(createButton);
 
     expect(
       await screen.findByText(textMock('resourceadm.listadmin_identifier_conflict')),
@@ -107,7 +107,7 @@ const renderAndOpenModal = async (
   renderNewAccessListModal(queryMocks);
 
   const openModalButton = screen.getByRole('button', { name: mockButtonText });
-  await act(() => user.click(openModalButton));
+  await user.click(openModalButton);
 };
 
 const TestComponentWithButton = () => {

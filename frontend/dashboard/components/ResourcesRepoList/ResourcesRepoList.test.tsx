@@ -141,7 +141,7 @@ describe('RepoList', () => {
       expect(screen.getByTestId('resource-table-wrapper')).toBeInTheDocument();
     });
 
-    await act(() => user.click(screen.getByText(textMock('resourceadm.dashboard_table_row_edit'))));
+    await user.click(screen.getByText(textMock('resourceadm.dashboard_table_row_edit')));
 
     expect(window.location.assign).toHaveBeenCalledWith(
       '/resourceadm/ttd/ttd-resources/resource/test-ressurs/about',

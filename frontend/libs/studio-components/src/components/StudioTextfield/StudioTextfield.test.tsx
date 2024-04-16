@@ -44,7 +44,7 @@ describe('StudioTextfield', () => {
     renderTextfield();
     const textfield = screen.getByRole('textbox');
     const newValue = 'new value';
-    await act(() => user.type(textfield, newValue));
+    await user.type(textfield, newValue);
     expect(textfield).toHaveValue(newValue);
   });
 
@@ -54,7 +54,7 @@ describe('StudioTextfield', () => {
     renderTextfield({ onChange });
     const textfield = screen.getByRole('textbox');
     const newValue = 'new value';
-    await act(() => user.type(textfield, newValue));
+    await user.type(textfield, newValue);
     expect(onChange).toHaveBeenCalledTimes(newValue.length);
     const expectedTarget = expect.objectContaining({ value: newValue });
     const expectedEvent = expect.objectContaining({ target: expectedTarget });
@@ -66,8 +66,8 @@ describe('StudioTextfield', () => {
     const onBlur = jest.fn();
     renderTextfield({ onBlur });
     const textfield = screen.getByRole('textbox');
-    await act(() => user.click(textfield));
-    await act(() => user.tab());
+    await user.click(textfield);
+    await user.tab();
     expect(onBlur).toHaveBeenCalledTimes(1);
   });
 
@@ -82,8 +82,8 @@ describe('StudioTextfield', () => {
     const errorAfterBlur = 'error message';
     renderTextfield({ errorAfterBlur });
     const textfield = screen.getByRole('textbox');
-    await act(() => user.click(textfield));
-    await act(() => user.tab());
+    await user.click(textfield);
+    await user.tab();
     expect(screen.queryByText(errorAfterBlur)).not.toBeInTheDocument();
   });
 
@@ -92,7 +92,7 @@ describe('StudioTextfield', () => {
     const errorAfterBlur = 'error message';
     renderTextfield({ errorAfterBlur });
     const textfield = screen.getByRole('textbox');
-    await act(() => user.type(textfield, 'test'));
+    await user.type(textfield, 'test');
     expect(screen.queryByText(errorAfterBlur)).not.toBeInTheDocument();
   });
 
@@ -101,8 +101,8 @@ describe('StudioTextfield', () => {
     const errorAfterBlur = 'error message';
     renderTextfield({ errorAfterBlur });
     const textfield = screen.getByRole('textbox');
-    await act(() => user.type(textfield, 'test'));
-    await act(() => user.tab());
+    await user.type(textfield, 'test');
+    await user.tab();
     expect(screen.getByText(errorAfterBlur)).toBeInTheDocument();
   });
 
@@ -111,9 +111,9 @@ describe('StudioTextfield', () => {
     const errorAfterBlur = 'error message';
     renderTextfield({ errorAfterBlur });
     const textfield = screen.getByRole('textbox');
-    await act(() => user.type(textfield, 'test'));
-    await act(() => user.tab());
-    await act(() => user.type(textfield, 'test'));
+    await user.type(textfield, 'test');
+    await user.tab();
+    await user.type(textfield, 'test');
     expect(screen.getByText(errorAfterBlur)).toBeInTheDocument();
   });
 
@@ -122,11 +122,11 @@ describe('StudioTextfield', () => {
     const errorAfterBlur = 'error message';
     renderTextfield({ errorAfterBlur });
     const textfield = screen.getByRole('textbox');
-    await act(() => user.type(textfield, 'test'));
-    await act(() => user.tab());
-    await act(() => user.clear(textfield));
+    await user.type(textfield, 'test');
+    await user.tab();
+    await user.clear(textfield);
     expect(screen.queryByText(errorAfterBlur)).not.toBeInTheDocument();
-    await act(() => user.type(textfield, 'test'));
+    await user.type(textfield, 'test');
     expect(screen.queryByText(errorAfterBlur)).not.toBeInTheDocument();
   });
 
@@ -136,10 +136,10 @@ describe('StudioTextfield', () => {
     renderTextfield({ error });
     expect(screen.getByText(error)).toBeInTheDocument();
     const textfield = screen.getByRole('textbox');
-    await act(() => user.type(textfield, 'test'));
+    await user.type(textfield, 'test');
     expect(screen.getByText(error)).toBeInTheDocument();
-    await act(() => user.tab());
-    await act(() => user.clear(textfield));
+    await user.tab();
+    await user.clear(textfield);
     expect(screen.getByText(error)).toBeInTheDocument();
   });
 

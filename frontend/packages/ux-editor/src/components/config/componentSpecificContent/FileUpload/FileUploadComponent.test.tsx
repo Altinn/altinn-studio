@@ -127,9 +127,7 @@ describe('FileUploadComponent', () => {
     });
     expect(radioButtonForCustomFile).not.toBeChecked();
 
-    await act(async () => {
-      await user.click(radioButtonForCustomFile);
-    });
+    await user.click(radioButtonForCustomFile);
 
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...component,

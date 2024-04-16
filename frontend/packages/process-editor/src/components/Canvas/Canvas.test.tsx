@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Canvas } from './Canvas';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
@@ -50,7 +50,7 @@ describe('Canvas', () => {
     renderCanvas({ appLibVersion: mockAppLibVersion7 });
 
     // Fix to remove act error
-    await act(() => user.tab());
+    await user.tab();
 
     const editButton = screen.queryByRole('button', { name: textMock('process_editor.save') });
     expect(editButton).not.toBeInTheDocument;
@@ -74,7 +74,7 @@ describe('Canvas', () => {
     renderCanvas({ appLibVersion: mockAppLibVersion8 });
 
     const saveButton = screen.getByRole('button', { name: textMock('process_editor.save') });
-    await act(() => user.click(saveButton));
+    await user.click(saveButton);
 
     expect(getUpdatedXmlMock).toHaveBeenCalled();
     expect(mockOnSave).toHaveBeenCalledTimes(1);

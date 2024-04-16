@@ -224,7 +224,7 @@ describe('DeployResourcePage', () => {
     const versionInput = screen.getByLabelText(textMock('resourceadm.deploy_version_label'));
     expect(versionInput).toHaveValue(mockResourceVersionText);
 
-    await act(() => user.type(versionInput, '1'));
+    await user.type(versionInput, '1');
 
     expect(versionInput).toHaveValue(`${mockResourceVersionText}1`);
   });
@@ -234,8 +234,8 @@ describe('DeployResourcePage', () => {
     await resolveAndWaitForSpinnerToDisappear();
 
     const versionInput = screen.getByLabelText(textMock('resourceadm.deploy_version_label'));
-    await act(() => user.type(versionInput, '1'));
-    await act(() => user.tab());
+    await user.type(versionInput, '1');
+    await user.tab();
 
     expect(mockOnSaveVersion).toHaveBeenCalledTimes(1);
     expect(mockOnSaveVersion).toHaveBeenCalledWith(`${mockResourceVersionText}1`);

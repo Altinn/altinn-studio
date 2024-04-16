@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import type { ProcessEditorProps } from './ProcessEditor';
 import { ProcessEditor } from './ProcessEditor';
 import { textMock } from '../../../testing/mocks/i18nMock';
@@ -53,10 +53,7 @@ describe('ProcessEditor', () => {
   });
 
   it('should render "canvas" when bpmnXml is provided and default render is edit-mode', async () => {
-    // eslint-disable-next-line testing-library/no-unnecessary-act
-    await act(() => {
-      renderProcessEditor();
-    });
+    renderProcessEditor();
 
     expect(
       screen.getByRole('button', { name: textMock('process_editor.save') }),
@@ -68,7 +65,7 @@ describe('ProcessEditor', () => {
     renderProcessEditor();
 
     // Fix to remove act error
-    await act(() => user.tab());
+    await user.tab();
 
     const alertHeader = screen.queryByRole('heading', {
       name: textMock('process_editor.too_old_version_title'),
@@ -82,7 +79,7 @@ describe('ProcessEditor', () => {
     renderProcessEditor({ appLibVersion: mockAppLibVersion7 });
 
     // Fix to remove act error
-    await act(() => user.tab());
+    await user.tab();
 
     const tooOldText = screen.getByText(textMock('process_editor.too_old_version_title'));
     expect(tooOldText).toBeInTheDocument();

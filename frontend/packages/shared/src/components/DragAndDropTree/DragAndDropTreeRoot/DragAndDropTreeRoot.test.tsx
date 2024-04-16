@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import React, { useContext } from 'react';
-import { act, render as renderRtl, renderHook, screen } from '@testing-library/react';
+import { render as renderRtl, renderHook, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DragAndDropTreeRoot } from './DragAndDropTreeRoot';
 import { DragAndDrop } from 'app-shared/components/dragAndDrop';
@@ -37,11 +37,11 @@ describe('DragAndDropTreeRoot', () => {
     expect(result.current.hoveredNodeParent).toBeNull(); // Should be null by default
 
     const hoveredNodeParent = 'hoveredNodeParent';
-    await act(() => user.hover(item));
-    await act(() => result.current.setHoveredNodeParent(hoveredNodeParent)); // Simulate setHoveredNodeParent call from somewhere inside the children
+    await user.hover(item);
+    await result.current.setHoveredNodeParent(hoveredNodeParent); // Simulate setHoveredNodeParent call from somewhere inside the children
     expect(result.current.hoveredNodeParent).toBe(hoveredNodeParent);
 
-    await act(() => user.unhover(item)); // Simulate mouse leave
+    await user.unhover(item); // Simulate mouse leave
     expect(result.current.hoveredNodeParent).toBeNull();
   });
 });

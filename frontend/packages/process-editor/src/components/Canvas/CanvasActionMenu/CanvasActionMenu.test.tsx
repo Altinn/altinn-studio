@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { CanvasActionMenuProps } from './CanvasActionMenu';
 import { CanvasActionMenu } from './CanvasActionMenu';
@@ -41,7 +41,7 @@ describe('CanvasActionMenu', () => {
     renderCanvasActionMenu({ isEditAllowed: false });
 
     // Fix to remove act error
-    await act(() => user.tab());
+    await user.tab();
 
     const editButton = screen.queryByRole('button', { name: textMock('process_editor.save') });
     expect(editButton).not.toBeInTheDocument();
@@ -53,7 +53,7 @@ describe('CanvasActionMenu', () => {
     renderCanvasActionMenu({ numberOfUnsavedChanges: 1 }, { onSave });
 
     const editButton = screen.getByRole('button', { name: textMock('process_editor.save') });
-    await act(() => user.click(editButton));
+    await user.click(editButton);
 
     expect(onSave).toHaveBeenCalledTimes(1);
   });

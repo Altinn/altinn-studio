@@ -74,7 +74,7 @@ describe('ReceiptContent', () => {
     await render();
 
     const receiptButton = screen.getByRole('button', { name: mockReceiptName });
-    await act(() => user.click(receiptButton));
+    await user.click(receiptButton);
 
     expect(mockOnClickAccordion).toHaveBeenCalledTimes(1);
   });
@@ -84,7 +84,7 @@ describe('ReceiptContent', () => {
     await render({ selectedAccordion: mockPageName1 });
 
     const receiptButton = screen.getByRole('button', { name: mockReceiptName });
-    await act(() => user.click(receiptButton));
+    await user.click(receiptButton);
 
     expect(mockOnClickAccordion).toHaveBeenCalledTimes(1);
   });

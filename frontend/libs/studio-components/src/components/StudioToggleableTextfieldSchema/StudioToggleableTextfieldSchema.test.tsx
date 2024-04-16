@@ -73,7 +73,7 @@ describe('StudioToggleableTextfieldSchema', () => {
       },
     });
 
-    await act(() => user.click(screen.getByRole('button', { name: 'Edit id' })));
+    await user.click(screen.getByRole('button', { name: 'Edit id' }));
     expect(screen.getByLabelText('Your id')).toBeInTheDocument();
   });
 
@@ -90,7 +90,7 @@ describe('StudioToggleableTextfieldSchema', () => {
       },
     });
 
-    await act(() => user.click(screen.getByRole('button', { name: 'Edit id' })));
+    await user.click(screen.getByRole('button', { name: 'Edit id' }));
     expect(screen.queryByRole('button', { name: 'Edit id' })).not.toBeInTheDocument();
 
     fireEvent.blur(screen.getByLabelText('Your id'));
@@ -111,7 +111,7 @@ describe('StudioToggleableTextfieldSchema', () => {
       },
     });
 
-    await act(() => user.click(screen.getByRole('button', { name: 'Edit id' })));
+    await user.click(screen.getByRole('button', { name: 'Edit id' }));
     expect(screen.queryByRole('button', { name: 'Edit id' })).not.toBeInTheDocument();
 
     fireEvent.blur(screen.getByLabelText('Your id'));
@@ -130,9 +130,9 @@ describe('StudioToggleableTextfieldSchema', () => {
         label: 'Your id',
       },
     });
-    await act(() => user.click(screen.getByRole('button', { name: 'Edit id' })));
+    await user.click(screen.getByRole('button', { name: 'Edit id' }));
 
-    await act(() => user.type(screen.getByLabelText('Your id'), 'invalid-value-01'));
+    await user.type(screen.getByLabelText('Your id'), 'invalid-value-01');
     expect(defaultProps.onError).toHaveBeenCalledWith({
       errorCode: 'pattern',
       details: 'Result of validate property',
@@ -151,10 +151,10 @@ describe('StudioToggleableTextfieldSchema', () => {
         label: 'Your id',
       },
     });
-    await act(() => user.click(screen.getByRole('button', { name: 'Edit id' })));
+    await user.click(screen.getByRole('button', { name: 'Edit id' }));
 
-    await act(() => user.type(screen.getByLabelText('Your id'), 'first-id'));
-    await act(() => user.clear(screen.getByLabelText('Your id')));
+    await user.type(screen.getByLabelText('Your id'), 'first-id');
+    await user.clear(screen.getByLabelText('Your id'));
 
     expect(defaultProps.onError).toHaveBeenCalledWith({
       errorCode: 'required',
@@ -179,10 +179,10 @@ describe('StudioToggleableTextfieldSchema', () => {
       },
     });
 
-    await act(() => user.click(screen.getByRole('button', { name: 'Edit id' })));
+    await user.click(screen.getByRole('button', { name: 'Edit id' }));
 
     const invalidValue = '1';
-    await act(() => user.type(screen.getByLabelText('Your id'), invalidValue));
+    await user.type(screen.getByLabelText('Your id'), invalidValue);
     expect(onErrorMock).toHaveBeenCalledWith({
       details: 'Result of validate property',
       errorCode: 'pattern',

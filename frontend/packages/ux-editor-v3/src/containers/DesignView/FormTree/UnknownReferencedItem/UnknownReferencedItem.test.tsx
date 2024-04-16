@@ -23,7 +23,7 @@ describe('UnknownReferencedItem', () => {
       name: textMock('ux_editor.unknown_group_reference_help_text_title'),
     });
 
-    await act(() => user.click(helpTextButton));
+    await user.click(helpTextButton);
 
     expect(screen.getByText('unknown-component-reference'));
     expect(
@@ -48,7 +48,7 @@ describe('UnknownReferencedItem', () => {
       },
     });
 
-    await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
+    await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
     expect(mockedSaveFormLayout).toHaveBeenCalled();
   });
 });

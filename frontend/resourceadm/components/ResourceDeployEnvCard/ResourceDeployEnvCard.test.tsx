@@ -37,7 +37,7 @@ describe('ResourceDeployEnvCard', () => {
       name: textMock('resourceadm.deploy_card_publish', { env: textMock(mockTestEnv.label) }),
     });
 
-    await act(() => user.click(deployButton));
+    await user.click(deployButton);
     await waitFor(() => {
       expect(
         screen.getByText(
@@ -90,7 +90,7 @@ describe('ResourceDeployEnvCard', () => {
 
     expect(deployButton).not.toBeDisabled();
 
-    await act(() => user.click(deployButton));
+    await user.click(deployButton);
     expect(queriesMock.publishResource).toHaveBeenCalledTimes(1);
   });
 
@@ -109,7 +109,7 @@ describe('ResourceDeployEnvCard', () => {
       name: textMock('resourceadm.deploy_card_publish', { env: textMock(mockTestEnv.label) }),
     });
 
-    await act(() => user.click(deployButton));
+    await user.click(deployButton);
 
     await waitFor(() => {
       expect(

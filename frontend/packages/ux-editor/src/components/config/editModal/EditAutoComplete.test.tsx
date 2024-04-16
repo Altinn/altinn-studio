@@ -36,7 +36,7 @@ describe('EditAutoComplete', () => {
     const handleComponentChange = jest.fn();
     renderEditAutocomplete(handleComponentChange);
     const combobox = screen.getByRole('combobox');
-    await act(() => user.selectOptions(combobox, 'name'));
+    await user.selectOptions(combobox, 'name');
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...componentMock,
@@ -57,7 +57,7 @@ describe('EditAutoComplete', () => {
     const user = userEvent.setup();
     renderEditAutocomplete(handleComponentChange, { ...componentMock, autocomplete });
     const combobox = screen.getByRole('combobox');
-    await act(() => user.selectOptions(combobox, ''));
+    await user.selectOptions(combobox, '');
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
     expect(handleComponentChange).toHaveBeenLastCalledWith({
       ...componentMock,

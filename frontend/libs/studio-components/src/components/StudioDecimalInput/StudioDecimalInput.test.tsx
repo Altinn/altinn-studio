@@ -40,8 +40,8 @@ describe('StudioDecimalInput', () => {
     const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
-    await act(() => user.type(inputElement, '123'));
-    await act(() => user.click(document.body));
+    await user.type(inputElement, '123');
+    await user.click(document.body);
     expect(screen.queryByText('validation_errors.numbers_only')).not.toBeInTheDocument();
   });
 
@@ -49,8 +49,8 @@ describe('StudioDecimalInput', () => {
     const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
-    await act(() => user.type(inputElement, '123.456'));
-    await act(() => user.click(document.body));
+    await user.type(inputElement, '123.456');
+    await user.click(document.body);
     expect(screen.queryByText('validation_errors.numbers_only')).not.toBeInTheDocument();
   });
 
@@ -58,7 +58,7 @@ describe('StudioDecimalInput', () => {
     const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
-    await act(() => user.type(inputElement, '123.456'));
+    await user.type(inputElement, '123.456');
     expect(screen.queryByText('validation_errors.numbers_only')).not.toBeInTheDocument();
   });
 
@@ -66,8 +66,8 @@ describe('StudioDecimalInput', () => {
     const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
-    await act(() => user.type(inputElement, 'abc'));
-    await act(() => user.click(document.body));
+    await user.type(inputElement, 'abc');
+    await user.click(document.body);
     expect(screen.getByText(validationErrorMessage)).toBeInTheDocument();
   });
 
@@ -75,7 +75,7 @@ describe('StudioDecimalInput', () => {
     const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
-    await act(() => user.type(inputElement, '123,456'));
+    await user.type(inputElement, '123,456');
     expect(inputElement).toHaveValue('123,456');
   });
 
@@ -83,12 +83,12 @@ describe('StudioDecimalInput', () => {
     const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
-    await act(() => user.type(inputElement, '123.456'));
+    await user.type(inputElement, '123.456');
     expect(inputElement).toHaveValue('123.456');
-    await act(() => user.clear(inputElement));
+    await user.clear(inputElement);
     expect(inputElement).toHaveValue('');
     const newInputElement = screen.getByRole('textbox');
-    await act(() => user.type(newInputElement, '789.123'));
+    await user.type(newInputElement, '789.123');
     expect(inputElement).toHaveValue('789.123');
   });
 
@@ -96,7 +96,7 @@ describe('StudioDecimalInput', () => {
     const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
-    await act(() => user.type(inputElement, '123.456'));
+    await user.type(inputElement, '123.456');
     expect(defaultProps.onChange).toHaveBeenCalledWith(123.456);
   });
 
@@ -104,7 +104,7 @@ describe('StudioDecimalInput', () => {
     const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
-    await act(() => user.type(inputElement, '123'));
+    await user.type(inputElement, '123');
     expect(inputElement).toHaveValue('123');
   });
 
@@ -112,8 +112,8 @@ describe('StudioDecimalInput', () => {
     const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
-    await act(() => user.type(inputElement, '123!'));
-    await act(() => user.click(document.body));
+    await user.type(inputElement, '123!');
+    await user.click(document.body);
     expect(screen.getByText(validationErrorMessage)).toBeInTheDocument();
   });
 
@@ -121,8 +121,8 @@ describe('StudioDecimalInput', () => {
     const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
-    await act(() => user.type(inputElement, '!@#'));
-    await act(() => user.click(document.body));
+    await user.type(inputElement, '!@#');
+    await user.click(document.body);
     expect(screen.getByText(validationErrorMessage)).toBeInTheDocument();
   });
 
@@ -130,8 +130,8 @@ describe('StudioDecimalInput', () => {
     const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
-    await act(() => user.type(inputElement, '123abc'));
-    await act(() => user.click(document.body));
+    await user.type(inputElement, '123abc');
+    await user.click(document.body);
     expect(screen.getByText(validationErrorMessage)).toBeInTheDocument();
   });
 
@@ -139,7 +139,7 @@ describe('StudioDecimalInput', () => {
     const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
-    await act(() => user.type(inputElement, '1,2'));
+    await user.type(inputElement, '1,2');
     expect(onChange).toHaveBeenLastCalledWith(1.2);
   });
 
@@ -147,7 +147,7 @@ describe('StudioDecimalInput', () => {
     const user = userEvent.setup();
     render();
     const inputElement = screen.getByRole('textbox');
-    await act(() => user.type(inputElement, 'abc'));
+    await user.type(inputElement, 'abc');
     expect(onChange).not.toHaveBeenCalled();
   });
 

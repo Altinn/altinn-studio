@@ -45,7 +45,7 @@ describe('ResourceReferenceFields', () => {
     render(<ResourceReferenceFields {...defaultProps} />);
 
     const referenceField = screen.getByLabelText(textMock('resourceadm.about_resource_reference'));
-    await act(() => user.type(referenceField, mockReferenceInput));
+    await user.type(referenceField, mockReferenceInput);
 
     expect(referenceField).toHaveValue(`${mockReference1.reference}${mockReferenceInput}`);
   });
@@ -60,7 +60,7 @@ describe('ResourceReferenceFields', () => {
 
     expect(sourceField).toHaveValue('Default');
 
-    await act(() => user.selectOptions(sourceField, 'Altinn3'));
+    await user.selectOptions(sourceField, 'Altinn3');
 
     expect(sourceField).toHaveValue('Altinn3');
   });
@@ -73,7 +73,7 @@ describe('ResourceReferenceFields', () => {
 
     expect(typeField).toHaveValue('Default');
 
-    await act(() => user.selectOptions(typeField, 'MaskinportenScope'));
+    await user.selectOptions(typeField, 'MaskinportenScope');
 
     expect(typeField).toHaveValue('MaskinportenScope');
   });
@@ -83,8 +83,8 @@ describe('ResourceReferenceFields', () => {
     render(<ResourceReferenceFields {...defaultProps} />);
 
     const referenceField = screen.getByLabelText(textMock('resourceadm.about_resource_reference'));
-    await act(() => user.type(referenceField, mockReferenceInput));
-    await act(() => referenceField.blur());
+    await user.type(referenceField, mockReferenceInput);
+    await referenceField.blur();
 
     expect(mockOnResourceReferenceFieldChanged).toHaveBeenCalledWith([
       {
@@ -99,8 +99,8 @@ describe('ResourceReferenceFields', () => {
     render(<ResourceReferenceFields {...defaultProps} />);
 
     const typeField = screen.getByLabelText(textMock('resourceadm.about_resource_reference_type'));
-    await act(() => user.selectOptions(typeField, 'ServiceEditionCode'));
-    await act(() => typeField.blur());
+    await user.selectOptions(typeField, 'ServiceEditionCode');
+    await typeField.blur();
 
     expect(mockOnResourceReferenceFieldChanged).toHaveBeenCalledWith([
       {
@@ -117,8 +117,8 @@ describe('ResourceReferenceFields', () => {
     const sourceField = screen.getByLabelText(
       textMock('resourceadm.about_resource_reference_source'),
     );
-    await act(() => user.selectOptions(sourceField, 'Altinn3'));
-    await act(() => sourceField.blur());
+    await user.selectOptions(sourceField, 'Altinn3');
+    await sourceField.blur();
 
     expect(mockOnResourceReferenceFieldChanged).toHaveBeenCalledWith([
       {

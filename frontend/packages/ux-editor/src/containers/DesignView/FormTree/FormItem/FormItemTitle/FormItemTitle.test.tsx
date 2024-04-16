@@ -35,7 +35,7 @@ describe('FormItemTitle', () => {
 
     render(component, label);
 
-    await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
+    await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
 
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
     expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
@@ -62,7 +62,7 @@ describe('FormItemTitle', () => {
     jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => false));
     render(component, label);
 
-    await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
+    await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
 
     expect(queriesMock.saveFormLayout).not.toHaveBeenCalled();
     expect(mockHandleDiscard).not.toHaveBeenCalled();
@@ -78,7 +78,7 @@ describe('FormItemTitle', () => {
 
     render(component, label);
 
-    await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
+    await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
     expect(mockedConfirm).toBeCalledWith(textMock('ux_editor.component_deletion_text'));
   });
 
@@ -92,7 +92,7 @@ describe('FormItemTitle', () => {
 
     render(groupComponent, label);
 
-    await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
+    await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
     expect(mockedConfirm).toBeCalledWith(textMock('ux_editor.component_group_deletion_text'));
   });
 });

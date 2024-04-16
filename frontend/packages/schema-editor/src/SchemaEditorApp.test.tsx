@@ -32,7 +32,7 @@ describe('SchemaEditorApp', () => {
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
     const deleteButtonName = textMock('general.delete');
     const firstDeleteButton = screen.getAllByRole('button', { name: deleteButtonName })[0];
-    await act(() => user.click(firstDeleteButton));
+    await user.click(firstDeleteButton);
     expect(saveMock).toHaveBeenCalledTimes(1);
   });
 });

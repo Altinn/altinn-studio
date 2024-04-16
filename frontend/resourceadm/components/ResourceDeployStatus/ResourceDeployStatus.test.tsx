@@ -89,7 +89,7 @@ describe('ResourceDeployStatus', () => {
       name: textMock(mockDeployError1.message),
     });
 
-    await act(() => user.click(linkButton));
+    await user.click(linkButton);
 
     expect(mockOnNavigateToPageWithError).toHaveBeenCalledWith(mockDeployError1.pageWithError);
   });

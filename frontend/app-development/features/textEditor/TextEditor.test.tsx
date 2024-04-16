@@ -58,7 +58,7 @@ describe('TextEditor', () => {
 
     const search = '1';
     const searchInput = screen.getByTestId('text-editor-search-default');
-    await act(() => user.type(searchInput, search));
+    await user.type(searchInput, search);
 
     expect(mockSetSearchParams).toHaveBeenCalledWith({ search });
   });
@@ -69,7 +69,7 @@ describe('TextEditor', () => {
     renderTextEditor();
 
     const addButton = screen.getByRole('button', { name: textMock('text_editor.new_text') });
-    await act(() => user.click(addButton));
+    await user.click(addButton);
 
     expect(queriesMock.upsertTextResources).toHaveBeenCalledTimes(2);
   });
@@ -85,9 +85,9 @@ describe('TextEditor', () => {
         textKey: testTextResourceKey,
       }),
     });
-    await act(() => user.clear(textarea));
-    await act(() => user.type(textarea, 'test'));
-    await act(() => user.tab());
+    await user.clear(textarea);
+    await user.type(textarea, 'test');
+    await user.tab();
 
     expect(queriesMock.upsertTextResources).toHaveBeenCalledWith(org, app, 'nb', {
       [testTextResourceKey]: 'test',
@@ -102,14 +102,14 @@ describe('TextEditor', () => {
     const editButton = screen.getByRole('button', {
       name: textMock('text_editor.toggle_edit_mode', { textKey: testTextResourceKey }),
     });
-    await act(() => user.click(editButton));
+    await user.click(editButton);
 
     const textarea = screen.getByRole('textbox', {
       name: textMock('text_editor.key.edit', { textKey: testTextResourceKey }),
     });
-    await act(() => user.clear(textarea));
-    await act(() => user.type(textarea, 'test'));
-    await act(() => user.tab());
+    await user.clear(textarea);
+    await user.type(textarea, 'test');
+    await user.tab();
 
     expect(queriesMock.updateTextId).toHaveBeenCalledWith(org, app, [
       { newId: 'test', oldId: testTextResourceKey },
@@ -127,7 +127,7 @@ describe('TextEditor', () => {
     const confirmButton = await screen.findByRole('button', {
       name: textMock('schema_editor.textRow-deletion-confirm'),
     });
-    await act(() => user.click(confirmButton));
+    await user.click(confirmButton);
 
     expect(queriesMock.updateTextId).toHaveBeenCalledWith(org, app, [
       { oldId: testTextResourceKey },
@@ -145,11 +145,11 @@ describe('TextEditor', () => {
     expect(addBtn).toBeDisabled();
     const select = screen.getByRole('combobox');
 
-    await act(() => user.type(select, 'nordsamisk'));
-    await act(() => user.click(screen.getByText('nordsamisk')));
+    await user.type(select, 'nordsamisk');
+    await user.click(screen.getByText('nordsamisk'));
 
     expect(addBtn).not.toBeDisabled();
-    await act(() => user.click(addBtn));
+    await user.click(addBtn);
 
     expect(queriesMock.addLanguageCode).toHaveBeenCalledWith(org, app, 'se', {
       language: 'se',
@@ -163,12 +163,12 @@ describe('TextEditor', () => {
     renderTextEditor();
 
     const deleteButton = screen.getByTestId(testids.deleteButton('en'));
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
 
     const confirmButton = await screen.findByRole('button', {
       name: textMock('schema_editor.language_confirm_deletion'),
     });
-    await act(() => user.click(confirmButton));
+    await user.click(confirmButton);
 
     expect(queriesMock.deleteLanguageCode).toHaveBeenCalledWith(org, app, 'en');
 

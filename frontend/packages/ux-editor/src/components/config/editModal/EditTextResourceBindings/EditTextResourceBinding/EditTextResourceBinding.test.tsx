@@ -59,7 +59,7 @@ describe('EditTextResourceBindings component', () => {
       textKey: 'does-not-exist',
     });
     const button = screen.getByRole('button', { name: textMock('ux_editor.modal_text') });
-    await act(() => user.click(button));
+    await user.click(button);
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
   });
 
@@ -69,13 +69,13 @@ describe('EditTextResourceBindings component', () => {
       handleComponentChange,
     });
     const button = screen.getByRole('button', { name: textMock('ux_editor.modal_text') });
-    await act(() => user.click(button));
+    await user.click(button);
     const searchTabLabel = textMock('ux_editor.text_resource_binding_search');
     const searchTab = screen.getByRole('tab', { name: searchTabLabel });
-    await act(() => user.click(searchTab));
+    await user.click(searchTab);
     const select = screen.getByRole('combobox');
-    await act(() => user.click(select));
-    await act(() => user.click(screen.getByRole('option', { name: textResources[1].id })));
+    await user.click(select);
+    await user.click(screen.getByRole('option', { name: textResources[1].id }));
 
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
     expect(handleComponentChange).toHaveBeenCalledWith({
@@ -96,8 +96,8 @@ describe('EditTextResourceBindings component', () => {
       removeTextResourceBinding,
     });
     const button = screen.getByRole('button', { name: textMock('ux_editor.modal_text') });
-    await act(() => user.click(button));
-    await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
+    await user.click(button);
+    await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...mockComponent,

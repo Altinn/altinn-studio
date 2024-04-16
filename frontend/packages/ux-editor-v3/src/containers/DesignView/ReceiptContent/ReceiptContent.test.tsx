@@ -86,7 +86,7 @@ describe('ReceiptContent', () => {
     await render();
 
     const receiptButton = screen.getByRole('button', { name: mockReceiptName });
-    await act(() => user.click(receiptButton));
+    await user.click(receiptButton);
 
     expect(mockOnClickAccordion).toHaveBeenCalledTimes(1);
   });
@@ -96,7 +96,7 @@ describe('ReceiptContent', () => {
     await render({ selectedAccordion: mockPageName1 });
 
     const receiptButton = screen.getByRole('button', { name: mockReceiptName });
-    await act(() => user.click(receiptButton));
+    await user.click(receiptButton);
 
     expect(mockOnClickAccordion).toHaveBeenCalledTimes(1);
   });
@@ -106,7 +106,7 @@ describe('ReceiptContent', () => {
     await render({ receiptName: undefined });
 
     const addButton = screen.getByRole('button', { name: textMock('receipt.create') });
-    await act(() => user.click(addButton));
+    await user.click(addButton);
 
     expect(mockOnClickAddPage).toHaveBeenCalled();
   });

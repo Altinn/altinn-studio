@@ -25,7 +25,7 @@ describe('RightTranslationBar', () => {
     const nnText: string = 'Nynorsk tekst';
 
     const nnInput = screen.getByLabelText(`${defaultProps.title} (${textMock('language.nn')})`);
-    await act(() => user.type(nnInput, nnText));
+    await user.type(nnInput, nnText);
 
     expect(mockOnLanguageChange).toHaveBeenLastCalledWith({
       nb: '',
@@ -41,7 +41,7 @@ describe('RightTranslationBar', () => {
     const nnText: string = 'Nynorsk tekst';
 
     const nnInput = screen.getByLabelText(`${defaultProps.title} (${textMock('language.nn')})`);
-    await act(() => user.type(nnInput, nnText));
+    await user.type(nnInput, nnText);
 
     expect(mockOnLanguageChange).toHaveBeenLastCalledWith({
       nb: '',
@@ -55,8 +55,8 @@ describe('RightTranslationBar', () => {
     render(<RightTranslationBar {...defaultProps} />);
 
     const nnInput = screen.getByLabelText(`${defaultProps.title} (${textMock('language.nn')})`);
-    await act(() => user.click(nnInput));
-    await act(() => user.tab());
+    await user.click(nnInput);
+    await user.tab();
 
     expect(mockOnBlur).toHaveBeenCalled();
   });

@@ -47,7 +47,7 @@ describe('PolicyEditor', () => {
     );
 
     // Fix to remove act error
-    await act(() => user.tab());
+    await user.tab();
 
     expect(alertTextApp).toBeInTheDocument();
     expect(alertTextResource).not.toBeInTheDocument();
@@ -65,7 +65,7 @@ describe('PolicyEditor', () => {
     );
 
     // Fix to remove act error
-    await act(() => user.tab());
+    await user.tab();
 
     expect(alertTextApp).not.toBeInTheDocument();
     expect(alertTextResource).toBeInTheDocument();
@@ -80,10 +80,10 @@ describe('PolicyEditor', () => {
     );
     expect(selectElement).toHaveValue(mockRequiredAuthLevelLabel);
 
-    await act(() => user.click(selectElement));
+    await user.click(selectElement);
 
     const mockOption2 = textMock(authlevelOptions[2].label);
-    await act(() => user.click(screen.getByRole('option', { name: mockOption2 })));
+    await user.click(screen.getByRole('option', { name: mockOption2 }));
 
     const [selectElementAfter] = screen.getAllByLabelText(
       textMock('policy_editor.select_auth_level_label'),
@@ -98,11 +98,11 @@ describe('PolicyEditor', () => {
     const [selectElement] = screen.getAllByLabelText(
       textMock('policy_editor.select_auth_level_label'),
     );
-    await act(() => user.click(selectElement));
+    await user.click(selectElement);
 
     const mockOption2 = textMock(authlevelOptions[2].label);
-    await act(() => user.click(screen.getByRole('option', { name: mockOption2 })));
-    await act(() => user.tab());
+    await user.click(screen.getByRole('option', { name: mockOption2 }));
+    await user.tab();
 
     expect(mockOnSave).toHaveBeenCalledTimes(1);
   });
@@ -116,7 +116,7 @@ describe('PolicyEditor', () => {
     );
 
     // Fix to remove act error
-    await act(() => user.tab());
+    await user.tab();
 
     expect(aLabelFromPolicyCard.length).toEqual(mockPolicy.rules.length);
   });
@@ -130,7 +130,7 @@ describe('PolicyEditor', () => {
     );
 
     // Fix to remove act error
-    await act(() => user.tab());
+    await user.tab();
 
     expect(aLabelFromPolicyCard.length).toEqual(0);
   });
@@ -145,7 +145,7 @@ describe('PolicyEditor', () => {
       name: textMock('policy_editor.card_button_text'),
     });
 
-    await act(() => user.click(addButton));
+    await user.click(addButton);
 
     const aLabelFromPolicyCard = screen.queryAllByText(
       textMock('policy_editor.rule_card_sub_resource_title'),
@@ -162,7 +162,7 @@ describe('PolicyEditor', () => {
       name: textMock('policy_editor.card_button_text'),
     });
 
-    await act(() => user.click(addButton));
+    await user.click(addButton);
 
     expect(mockOnSave).toHaveBeenCalledTimes(1);
   });
@@ -178,10 +178,10 @@ describe('PolicyEditor', () => {
     expect(modalTitle).not.toBeInTheDocument();
 
     const [moreButton] = screen.getAllByRole('button', { name: textMock('policy_editor.more') });
-    await act(() => user.click(moreButton));
+    await user.click(moreButton);
 
     const deleteButton = screen.getByRole('menuitem', { name: textMock('general.delete') });
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
 
     const modalTitleAfter = screen.getByRole('heading', {
       name: textMock('policy_editor.verification_modal_heading'),

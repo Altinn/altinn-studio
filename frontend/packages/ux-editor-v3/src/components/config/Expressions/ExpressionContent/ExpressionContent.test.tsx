@@ -105,7 +105,7 @@ describe('ExpressionContent', () => {
     const deleteButton = screen.getByRole('button', {
       name: textMock('right_menu.expression_delete'),
     });
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
     expect(mockOnDeleteExpression).toHaveBeenCalledTimes(1);
     expect(mockOnDeleteExpression).toHaveBeenCalledWith(ExpressionPropertyBase.Hidden);
   });
@@ -123,7 +123,7 @@ describe('ExpressionContent', () => {
     const deleteButton = screen.getByRole('button', {
       name: textMock('right_menu.expression_delete'),
     });
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
     expect(mockOnDeleteExpression).toHaveBeenCalledTimes(1);
     expect(mockOnDeleteExpression).toHaveBeenCalledWith(ExpressionPropertyBase.Hidden);
   });
@@ -140,7 +140,7 @@ describe('ExpressionContent', () => {
     const deleteButtons = screen.getAllByRole('button', {
       name: textMock('right_menu.expression_sub_expression_delete'),
     });
-    await act(() => user.click(deleteButtons[0]));
+    await user.click(deleteButtons[0]);
     const newDeleteButtons = screen.getAllByRole('button', {
       name: textMock('right_menu.expression_sub_expression_delete'),
     });
@@ -156,7 +156,7 @@ describe('ExpressionContent', () => {
     });
 
     const saveButton = screen.getByRole('button', { name: textMock('right_menu.expression_save') });
-    await act(() => user.click(saveButton));
+    await user.click(saveButton);
     expect(saveButton).not.toBeInTheDocument();
   });
 });

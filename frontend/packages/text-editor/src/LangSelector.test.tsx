@@ -34,11 +34,11 @@ it('fires onAddLang when add button is clicked', async () => {
     name: textMock('schema_editor.language_add_language'),
   });
 
-  await act(() => user.type(select, 'nordsamisk'));
-  await act(() => user.click(screen.getByText('nordsamisk')));
+  await user.type(select, 'nordsamisk');
+  await user.click(screen.getByText('nordsamisk'));
 
   expect(addBtn).not.toBeDisabled();
-  await act(() => user.click(addBtn));
+  await user.click(addBtn);
 
   expect(handleAddLang).toHaveBeenCalledWith('se');
 });

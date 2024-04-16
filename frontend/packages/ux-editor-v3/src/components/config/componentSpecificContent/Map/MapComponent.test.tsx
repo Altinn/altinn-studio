@@ -66,7 +66,7 @@ describe('MapComponent', () => {
     });
 
     const latitudeInput = screen.getByLabelText('Latitude');
-    await act(() => user.type(latitudeInput, '40'));
+    await user.type(latitudeInput, '40');
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
       centerLocation: { latitude: 40 },
@@ -80,7 +80,7 @@ describe('MapComponent', () => {
     });
 
     const longitudeInput = screen.getByLabelText('Longitude');
-    await act(() => user.type(longitudeInput, '21'));
+    await user.type(longitudeInput, '21');
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
       centerLocation: { longitude: 21 },
@@ -94,7 +94,7 @@ describe('MapComponent', () => {
     });
 
     const zoomInput = screen.getByLabelText('Standard zoom');
-    await act(() => user.type(zoomInput, '2'));
+    await user.type(zoomInput, '2');
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({ zoom: 2 });
   });
@@ -137,7 +137,7 @@ describe('AddMapLayer', () => {
     await renderMapComponent({ component: componentMock });
 
     const input = screen.getByLabelText(texts['ux_editor.url_label']);
-    await act(() => user.type(input, 'test'));
+    await user.type(input, 'test');
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
       layers: [
@@ -155,7 +155,7 @@ describe('AddMapLayer', () => {
     await renderMapComponent({ component: componentMock });
 
     const input = screen.getByLabelText(texts['ux_editor.attribution_label']);
-    await act(() => user.type(input, 'test'));
+    await user.type(input, 'test');
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
       layers: [
@@ -173,7 +173,7 @@ describe('AddMapLayer', () => {
     await renderMapComponent({ component: componentMock });
 
     const input = screen.getByLabelText(texts['ux_editor.subdomains_label']);
-    await act(() => user.type(input, 'test'));
+    await user.type(input, 'test');
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
       layers: [
@@ -192,7 +192,7 @@ describe('AddMapLayer', () => {
 
     const button = screen.getByRole('button');
 
-    await act(() => user.click(button));
+    await user.click(button);
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
       layers: [

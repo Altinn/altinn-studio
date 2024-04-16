@@ -108,8 +108,8 @@ describe('ServiceContent', () => {
     const select = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_service'),
     );
-    await act(() => user.click(select));
-    await act(() => user.click(screen.getByRole('option', { name: mockOption })));
+    await user.click(select);
+    await user.click(screen.getByRole('option', { name: mockOption }));
     await waitFor(() => expect(select).toHaveValue(mockOption));
 
     expect(mockOnSelectService).toHaveBeenCalledWith(mockAltinn2LinkService);
@@ -122,8 +122,8 @@ describe('ServiceContent', () => {
     const select = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_service'),
     );
-    await act(() => user.click(select));
-    await act(() => user.click(screen.getByRole('option', { name: mockHyphenOption })));
+    await user.click(select);
+    await user.click(screen.getByRole('option', { name: mockHyphenOption }));
     await waitFor(() => expect(select).toHaveValue(mockHyphenOption));
 
     expect(mockOnSelectService).toHaveBeenCalledWith(mockAltinn2HyphenLinkService);

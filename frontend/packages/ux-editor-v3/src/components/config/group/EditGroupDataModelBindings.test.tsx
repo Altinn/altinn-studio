@@ -52,9 +52,9 @@ describe('EditDataModelBindings', () => {
     render({ onDataModelChange });
 
     const selectElement = screen.getByRole('combobox');
-    await act(() => user.click(selectElement));
+    await user.click(selectElement);
     const selectItem = screen.getByText('testModel.group');
-    await act(() => user.click(selectItem));
+    await user.click(selectItem);
 
     expect(onDataModelChange).toHaveBeenCalledWith('testModel.group', 'group');
   });

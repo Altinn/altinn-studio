@@ -37,7 +37,7 @@ describe('AddressComponent', () => {
   it('Handles switch toggle correctly', async () => {
     await render();
     const switchElement = screen.getByRole('checkbox');
-    await act(() => user.click(switchElement));
+    await user.click(switchElement);
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...component,
       simplified: true,

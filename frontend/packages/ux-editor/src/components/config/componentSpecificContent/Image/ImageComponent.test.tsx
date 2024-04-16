@@ -62,7 +62,7 @@ describe('ImageComponent', () => {
       name: /source/i,
     });
 
-    await act(() => user.type(srcInput, imgSrc));
+    await user.type(srcInput, imgSrc);
 
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentData,
@@ -83,8 +83,8 @@ describe('ImageComponent', () => {
       name: /placement/i,
     });
 
-    await act(() => user.type(placementInput, 'L')); // Type something to trigger showing Select options
-    await act(() => user.click(screen.getByText('Left')));
+    await user.type(placementInput, 'L'); // Type something to trigger showing Select options
+    await user.click(screen.getByText('Left'));
 
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentData,

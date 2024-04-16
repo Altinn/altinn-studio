@@ -53,7 +53,7 @@ describe('AppPreviewSubMenu', () => {
     setQueryData(layoutSetsMock);
     renderWithProviders(<AppPreviewSubMenu {...props} />);
     const layoutSetSelector = screen.getByRole('combobox');
-    await act(() => user.click(layoutSetSelector));
+    await user.click(layoutSetSelector);
     const options = screen.getAllByRole('option');
     expect(options.length).toBe(layoutSetsMock.sets.length);
   });

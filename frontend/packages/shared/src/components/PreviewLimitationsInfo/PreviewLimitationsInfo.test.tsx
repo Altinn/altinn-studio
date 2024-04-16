@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, act, screen, within } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PreviewLimitationsInfo } from './PreviewLimitationsInfo';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
@@ -14,7 +14,7 @@ describe('PreviewLimitationsInfo', () => {
     const previewLimitationsAlert = screen.getByText(textMock('preview.limitations_info'));
     const alert = within(previewLimitationsAlert);
     const hidePreviewLimitationsAlertButton = alert.getByRole('button');
-    await act(() => user.click(hidePreviewLimitationsAlertButton));
+    await user.click(hidePreviewLimitationsAlertButton);
     const hidePreviewLimitationsPopover = screen.getByText(textMock('session.reminder'));
     expect(hidePreviewLimitationsPopover).toBeInTheDocument();
     const hidePreviewLimitationsTemporaryButton = screen.getByRole('button', {
@@ -22,7 +22,7 @@ describe('PreviewLimitationsInfo', () => {
     });
 
     // Click hide temporary button
-    await act(() => user.click(hidePreviewLimitationsTemporaryButton));
+    await user.click(hidePreviewLimitationsTemporaryButton);
 
     expect(hidePreviewLimitationsPopover).not.toBeInTheDocument();
     expect(window.localStorage.getItem('showPreviewLimitationsInfo')).toBeNull();
@@ -37,7 +37,7 @@ describe('PreviewLimitationsInfo', () => {
     const previewLimitationsAlert = screen.getByText(textMock('preview.limitations_info'));
     const alert = within(previewLimitationsAlert);
     const hidePreviewLimitationsAlertButton = alert.getByRole('button');
-    await act(() => user.click(hidePreviewLimitationsAlertButton));
+    await user.click(hidePreviewLimitationsAlertButton);
     const hidePreviewLimitationsPopover = screen.getByText(textMock('session.reminder'));
     expect(hidePreviewLimitationsPopover).toBeInTheDocument();
     const hidePreviewLimitationsForSessionButton = screen.getByRole('button', {
@@ -45,7 +45,7 @@ describe('PreviewLimitationsInfo', () => {
     });
 
     // Click hide forever button
-    await act(() => user.click(hidePreviewLimitationsForSessionButton));
+    await user.click(hidePreviewLimitationsForSessionButton);
 
     expect(hidePreviewLimitationsPopover).not.toBeInTheDocument();
     expect(window.localStorage.getItem('showPreviewLimitationsInfo')).toBe('false');

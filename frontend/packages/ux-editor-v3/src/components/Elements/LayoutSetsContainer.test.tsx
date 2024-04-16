@@ -37,7 +37,7 @@ describe('LayoutSetsContainer', () => {
   it('Should update selected layout set when set is clicked in native select', async () => {
     render();
     const user = userEvent.setup();
-    await act(() => user.selectOptions(screen.getByRole('combobox'), layoutSetName2));
+    await user.selectOptions(screen.getByRole('combobox'), layoutSetName2);
     expect(setSelectedLayoutSetMock).toHaveBeenCalledTimes(1);
   });
 });

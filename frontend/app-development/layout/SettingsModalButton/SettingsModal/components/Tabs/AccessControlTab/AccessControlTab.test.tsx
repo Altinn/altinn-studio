@@ -65,7 +65,7 @@ describe('AccessControlTab', () => {
     const helpButton = screen.getByRole('button', {
       name: textMock('settings_modal.access_control_tab_help_text_title'),
     });
-    await act(() => user.click(helpButton));
+    await user.click(helpButton);
     screen.getByText(textMock('settings_modal.access_control_tab_help_text_heading'));
   });
 

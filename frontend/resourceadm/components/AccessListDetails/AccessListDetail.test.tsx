@@ -2,7 +2,6 @@ import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { AccessListDetailProps } from './AccessListDetail';
@@ -45,8 +44,8 @@ describe('AccessListDetail', () => {
     renderAccessListDetail({}, { updateAccessList: updateAccessListMock });
 
     const nameField = screen.getByLabelText(textMock('resourceadm.listadmin_list_name'));
-    await act(() => user.type(nameField, ' change'));
-    await act(() => nameField.blur());
+    await user.type(nameField, ' change');
+    await nameField.blur();
 
     expect(updateAccessListMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, {
       ...defaultProps.list,
@@ -61,8 +60,8 @@ describe('AccessListDetail', () => {
     const descriptionField = screen.getByLabelText(
       textMock('resourceadm.listadmin_list_description'),
     );
-    await act(() => user.type(descriptionField, ' change'));
-    await act(() => descriptionField.blur());
+    await user.type(descriptionField, ' change');
+    await descriptionField.blur();
 
     expect(updateAccessListMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, {
       ...defaultProps.list,
@@ -77,8 +76,8 @@ describe('AccessListDetail', () => {
     const descriptionField = screen.getByLabelText(
       textMock('resourceadm.listadmin_list_description'),
     );
-    await act(() => user.clear(descriptionField));
-    await act(() => descriptionField.blur());
+    await user.clear(descriptionField);
+    await descriptionField.blur();
 
     expect(updateAccessListMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, {
       ...defaultProps.list,
@@ -91,10 +90,10 @@ describe('AccessListDetail', () => {
     renderAccessListDetail({}, { addAccessListMember: addAccessListMemberMock });
 
     const deleteListButton = screen.getByText(textMock('resourceadm.listadmin_delete_list'));
-    await act(() => user.click(deleteListButton));
+    await user.click(deleteListButton);
 
     const confirmDeleteButton = screen.getAllByText(textMock('resourceadm.listadmin_delete_list'));
-    await act(() => user.click(confirmDeleteButton[0]));
+    await user.click(confirmDeleteButton[0]);
 
     expect(mockedNavigate).toHaveBeenCalledWith('/listadmin');
   });
@@ -104,10 +103,10 @@ describe('AccessListDetail', () => {
     renderAccessListDetail({}, { addAccessListMember: addAccessListMemberMock });
 
     const deleteListButton = screen.getByText(textMock('resourceadm.listadmin_delete_list'));
-    await act(() => user.click(deleteListButton));
+    await user.click(deleteListButton);
 
     const cancelDeleteButton = screen.getByText(textMock('general.cancel'));
-    await act(() => user.click(cancelDeleteButton));
+    await user.click(cancelDeleteButton);
 
     expect(
       screen.queryByText(textMock('resourceadm.listadmin_delete_list_header')),

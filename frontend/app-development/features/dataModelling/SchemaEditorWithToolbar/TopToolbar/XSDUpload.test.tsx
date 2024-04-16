@@ -1,7 +1,7 @@
 import React from 'react';
 import axios from 'axios';
 import { XSDUpload } from './XSDUpload';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import type { QueryClient } from '@tanstack/react-query';
@@ -22,7 +22,7 @@ const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 const clickUploadButton = async () => {
   const btn = screen.getByText(textMock('app_data_modelling.upload_xsd'));
-  await act(() => user.click(btn));
+  await user.click(btn);
 };
 
 const render = (queryClient: QueryClient = createQueryClientMock()) =>
@@ -54,7 +54,7 @@ describe('XSDUpload', () => {
 
     const fileInput = screen.getByTestId(testids.fileSelectorInput);
 
-    await act(() => user.upload(fileInput, file));
+    await user.upload(fileInput, file);
 
     expect(
       screen.getByText(textMock('form_filler.file_uploader_validation_error_upload')),
@@ -73,7 +73,7 @@ describe('XSDUpload', () => {
 
     const fileInput = screen.getByTestId(testids.fileSelectorInput);
 
-    await act(() => user.upload(fileInput, file));
+    await user.upload(fileInput, file);
 
     expect(invalidateQueriesSpy).toHaveBeenCalledTimes(2);
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({

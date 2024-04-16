@@ -17,12 +17,10 @@ describe('useAddLayoutSetMutation', () => {
   it('Calls useAddLayoutSetMutation with correct arguments and payload', async () => {
     const addLayoutSetResult = renderHookWithMockStore()(() => useAddLayoutSetMutation(org, app))
       .renderHookResult.result;
-    await act(() =>
-      addLayoutSetResult.current.mutateAsync({
-        layoutSetIdToUpdate: layoutSetIdToUpdate,
-        layoutSetConfig: layoutSet,
-      }),
-    );
+    await addLayoutSetResult.current.mutateAsync({
+      layoutSetIdToUpdate: layoutSetIdToUpdate,
+      layoutSetConfig: layoutSet,
+    });
     expect(addLayoutSetResult.current.isSuccess).toBe(true);
 
     expect(queriesMock.addLayoutSet).toHaveBeenCalledTimes(1);

@@ -26,7 +26,7 @@ describe('useUpdateLayoutNameMutation', () => {
       useUpdateLayoutNameMutation(org, app, selectedLayoutSet),
     ).result;
 
-    await act(() => updateLayoutNameResult.current.mutateAsync(args));
+    await updateLayoutNameResult.current.mutateAsync(args);
 
     expect(queriesMock.updateFormLayoutName).toHaveBeenCalledTimes(1);
     expect(queriesMock.updateFormLayoutName).toHaveBeenCalledWith(

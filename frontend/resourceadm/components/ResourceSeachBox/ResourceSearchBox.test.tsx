@@ -18,7 +18,7 @@ describe('SearchBox', () => {
     render(<SearchBox {...defaultProps} />);
 
     const searchInput = screen.getByLabelText(textMock('resourceadm.dashboard_searchbox'));
-    await act(() => user.type(searchInput, 'example text'));
+    await user.type(searchInput, 'example text');
 
     expect(mockOnChange).toHaveBeenCalledWith('example text');
   });

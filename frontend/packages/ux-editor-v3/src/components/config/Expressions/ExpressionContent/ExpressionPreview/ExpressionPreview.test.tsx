@@ -60,7 +60,7 @@ describe('ExpressionPreview', () => {
     const deleteExpressionButton = screen.getByRole('button', {
       name: textMock('right_menu.expression_delete'),
     });
-    await act(() => user.click(deleteExpressionButton));
+    await user.click(deleteExpressionButton);
     expect(mockOnDeleteExpression).toHaveBeenCalledWith(simpleInternalExpression);
     expect(mockOnDeleteExpression).toHaveBeenCalledTimes(1);
   });

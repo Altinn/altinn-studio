@@ -54,7 +54,7 @@ describe('ContentTab', () => {
       await render({ props });
 
       const idInput = screen.getByLabelText(textMock('ux_editor.modal_properties_group_change_id'));
-      await act(() => user.type(idInput, 'test'));
+      await user.type(idInput, 'test');
 
       expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalledTimes(4);
       expect(formItemContextProviderMock.debounceSave).toHaveBeenCalledTimes(4);
@@ -81,7 +81,7 @@ describe('ContentTab', () => {
       const idInput = screen.getByLabelText(
         textMock('ux_editor.modal_properties_component_change_id'),
       );
-      await act(() => user.type(idInput, 'test'));
+      await user.type(idInput, 'test');
 
       expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalledTimes(4);
       expect(formItemContextProviderMock.debounceSave).toHaveBeenCalledTimes(4);

@@ -71,12 +71,12 @@ describe('BpmnConfigPanelContext', () => {
         <TestComponent />
       </BpmnConfigPanelFormContextProvider>,
     );
-    await act(() => user.click(screen.getByRole('button', { name: 'Set meta data' })));
+    await user.click(screen.getByRole('button', { name: 'Set meta data' }));
     expect(screen.getByTestId('context')).toHaveTextContent(
       '{"taskIdChanges":[{"oldId":"old","newId":"new"}]}',
     );
 
-    await act(() => user.click(screen.getByRole('button', { name: 'Reset meta data' })));
+    await user.click(screen.getByRole('button', { name: 'Reset meta data' }));
     expect(screen.getByTestId('context')).toHaveTextContent('Empty');
   });
 });

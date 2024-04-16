@@ -105,7 +105,7 @@ describe('ResourceAccessLists', () => {
     await waitForElementToBeRemoved(spinnerTitle);
 
     const createButton = screen.getByText(textMock('resourceadm.listadmin_create_list'));
-    await act(() => user.click(createButton));
+    await user.click(createButton);
 
     expect(
       screen.getByText(
@@ -124,7 +124,7 @@ describe('ResourceAccessLists', () => {
     await waitForElementToBeRemoved(spinnerTitle);
 
     const checkbox1 = screen.getByLabelText(list1Name);
-    await act(() => user.click(checkbox1));
+    await user.click(checkbox1);
 
     expect(checkListMock).toHaveBeenCalledWith(org, resourceId, list1Id, env);
   });
@@ -137,7 +137,7 @@ describe('ResourceAccessLists', () => {
     await waitForElementToBeRemoved(spinnerTitle);
 
     const checkbox2 = screen.getByLabelText(list2Name);
-    await act(() => user.click(checkbox2));
+    await user.click(checkbox2);
 
     expect(uncheckListMock).toHaveBeenCalledWith(org, resourceId, list2Id, env);
   });
@@ -154,7 +154,7 @@ describe('ResourceAccessLists', () => {
     await waitForElementToBeRemoved(spinnerTitle);
 
     await waitFor(() => screen.findByText(textMock('resourceadm.listadmin_load_more')));
-    await act(() => user.click(screen.getByText(textMock('resourceadm.listadmin_load_more'))));
+    await user.click(screen.getByText(textMock('resourceadm.listadmin_load_more')));
 
     expect(await screen.findByText(page2ListName)).toBeInTheDocument();
   });
