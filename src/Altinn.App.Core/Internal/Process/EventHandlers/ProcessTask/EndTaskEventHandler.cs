@@ -2,7 +2,6 @@
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Process.ServiceTasks;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask
@@ -25,16 +24,17 @@ namespace Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask
         public EndTaskEventHandler(
             IProcessTaskDataLocker processTaskDataLocker,
             IProcessTaskFinalizer processTaskFinisher,
-            [FromKeyedServices("pdfService")] IServiceTask pdfServiceTask,
-            [FromKeyedServices("eFormidlingService")] IServiceTask eformidlingServiceTask,
+            IEnumerable<IServiceTask> serviceTasks,
             IEnumerable<IProcessTaskEnd> processTaskEnds,
             ILogger<EndTaskEventHandler> logger
         )
         {
             _processTaskDataLocker = processTaskDataLocker;
             _processTaskFinisher = processTaskFinisher;
-            _pdfServiceTask = pdfServiceTask;
-            _eformidlingServiceTask = eformidlingServiceTask;
+            _pdfServiceTask = serviceTasks.FirstOrDefault(x => x is IPdfServiceTask)
+                ?? throw new InvalidOperationException("PdfServiceTask not found in serviceTasks");
+            _eformidlingServiceTask = serviceTasks.FirstOrDefault(x => x is IEformidlingServiceTask)
+                ?? throw new InvalidOperationException("EformidlingServiceTask not found in serviceTasks");
             _processTaskEnds = processTaskEnds;
             _logger = logger;
         }

@@ -298,8 +298,8 @@ namespace Altinn.App.Core.Extensions
             services.AddTransient<IProcessTask, NullTypeProcessTask>();
 
             //SERVICE TASKS
-            services.AddKeyedTransient<IServiceTask, PdfServiceTask>("pdfService");
-            services.AddKeyedTransient<IServiceTask, EformidlingServiceTask>("eFormidlingService");
+            services.AddTransient<IServiceTask, PdfServiceTask>();
+            services.AddTransient<IServiceTask, EformidlingServiceTask>();
         }
 
         private static void AddActionServices(IServiceCollection services)

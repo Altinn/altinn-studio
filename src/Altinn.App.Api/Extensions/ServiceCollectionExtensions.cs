@@ -73,7 +73,13 @@ namespace Altinn.App.Api.Extensions
             services.AddMetricsServer(config);
         }
 
-        private static void AddApplicationInsights(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
+        /// <summary>
+        /// Adds Application Insights to the service collection.
+        /// </summary>
+        /// <param name="services">Services</param>
+        /// <param name="config">Config</param>
+        /// <param name="env">Environment</param>
+        internal static void AddApplicationInsights(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
         {
             string? applicationInsightsKey = env.IsDevelopment()
                 ? config["ApplicationInsights:InstrumentationKey"]
