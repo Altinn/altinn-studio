@@ -39,17 +39,17 @@ export const PageConfigWarning = ({ layout, selectedFormLayoutName }: PageConfig
           <List.Ordered>
             <List.Item>
               <Link href={repositoryLayoutPath(org, app, selectedFormLayoutName)} target='_blank'>
-                {t('ux_editor.config.warning_duplicates.list2')}
+                {t('ux_editor.config.warning_duplicates.list1')}
               </Link>
             </List.Item>
-            <List.Item>{t('ux_editor.config.warning_duplicates.list3')}</List.Item>
+            <List.Item>{t('ux_editor.config.warning_duplicates.list2')}</List.Item>
             <List.Item>
-              {t('ux_editor.config.warning_duplicates.list4')}
+              {t('ux_editor.config.warning_duplicates.list3')}
               <span className={classes.duplicatedId}> {duplicatedIds}</span>.
             </List.Item>
+            <List.Item>{t('ux_editor.config.warning_duplicates.list4')}</List.Item>
             <List.Item>{t('ux_editor.config.warning_duplicates.list5')}</List.Item>
             <List.Item>{t('ux_editor.config.warning_duplicates.list6')}</List.Item>
-            <List.Item>{t('ux_editor.config.warning_duplicates.list7')}</List.Item>
           </List.Ordered>
         </List.Root>
       </div>
