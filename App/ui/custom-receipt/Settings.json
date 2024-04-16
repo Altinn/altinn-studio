@@ -1,0 +1,11 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layoutSettings.schema.v1.json",
+  "pages": {
+    "order": [
+      "payment"
+    ],
+    "pdfLayoutName": "paymentReceipt",
+    "showProgress": true,
+    "showLanguageSelector": true
+  }
+}

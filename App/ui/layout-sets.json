@@ -7,6 +7,13 @@
       "tasks": [
         "Task_1"
       ]
+    },
+    {
+      "id": "custom-receipt",
+      "dataType": "model",
+      "tasks": [
+        "Task_2"
+      ]
     }
   ]
 }
