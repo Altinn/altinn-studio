@@ -26,8 +26,7 @@ const textResources: ITextResource[] = [
 ];
 
 const textResourceId = textResources[0].id;
-const onReferenceChange = jest.fn();
-const defaultProps: TextResourceValueEditorProps = { textResourceId, onReferenceChange };
+const defaultProps: TextResourceValueEditorProps = { textResourceId };
 
 describe('TextResourceValueEditor', () => {
   afterEach(() => {

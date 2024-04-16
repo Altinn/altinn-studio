@@ -30,10 +30,7 @@ export const TextResourceEditor = ({ onReferenceChange, textResourceId }: TextRe
         </Tabs.Tab>
       </Tabs.List>
       <Tabs.Content value={TextResourceTab.Type} className={classes.tabContent}>
-        <TextResourceValueEditor
-          onReferenceChange={onReferenceChange}
-          textResourceId={textResourceId}
-        />
+        <TextResourceValueEditor textResourceId={textResourceId} />
       </Tabs.Content>
       <Tabs.Content value={TextResourceTab.Search}>
         <TextResourcePicker onReferenceChange={onReferenceChange} textResourceId={textResourceId} />
