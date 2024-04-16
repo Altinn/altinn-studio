@@ -32,6 +32,7 @@ public class OrderDetailsCalculator : IOrderDetailsCalculator
             instanceIdentifier.InstanceOwnerPartyId, new Guid(modelData.Id));
         
         List<PaymentOrderLine> paymentOrderLines = formData.GoodsAndServicesProperties.Inventory.InventoryProperties
+            .Where(x => !string.IsNullOrEmpty(x.NiceClassification))
             .Select((x, index) =>
                 new PaymentOrderLine
                 {
