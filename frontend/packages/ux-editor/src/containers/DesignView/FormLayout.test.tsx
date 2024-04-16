@@ -30,6 +30,31 @@ describe('FormLayout', () => {
     render();
     expect(screen.queryByText(textMock('ux_editor.multi_page_warning'))).not.toBeInTheDocument();
   });
+
+  it('Displays warning about duplicated ids when the layout has such ids', () => {
+    const layoutWithDuplicatedIds = {
+      ...layoutMock,
+      order: {
+        ['idContainer']: ['idContainer1', 'idContainer2', 'idContainer3'],
+        ['idContainer1']: ['idContainer1', 'idContainer2', 'idContainer2'],
+      },
+    };
+
+    render({ layout: layoutWithDuplicatedIds, isValid: false });
+
+    expect(
+      screen.getByText(textMock('ux_editor.formLayout.warning_duplicates.text1')),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('ux_editor.formLayout.warning_duplicates.text2')),
+    ).toBeInTheDocument();
+
+    const duplicatedIds = screen.getByText(/idContainer1, idContainer2/i);
+    expect(duplicatedIds).toBeInTheDocument();
+
+    const uniqueIds = screen.queryByText(/idContainer3/i);
+    expect(uniqueIds).not.toBeInTheDocument();
+  });
 });
 
 const render = (props?: Partial<FormLayoutProps>) =>
