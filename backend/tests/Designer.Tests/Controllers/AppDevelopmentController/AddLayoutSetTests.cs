@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -72,9 +73,8 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             string responseContent = await response.Content.ReadAsStringAsync();
-            ProblemDetails problemDetails = JsonSerializer.Deserialize<ProblemDetails>(responseContent, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
-            Assert.Equal(HttpStatusCode.Conflict, (HttpStatusCode)problemDetails.Status);
-            problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode].ToString().Should().Be(AppDevelopmentErrorCodes.NonUniqueLayoutSetIdError);
+            Dictionary<string, string> responseMessage = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
+            Assert.Equal($"Layout set name, {layoutSetId}, already exists.", responseMessage["infoMessage"]);
         }
 
         [Theory]
@@ -84,7 +84,8 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
-            var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["Task_1"] };
+            const string existingTaskId = "Task_1";
+            var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = [existingTaskId] };
 
             string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
 
@@ -96,9 +97,8 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             string responseContent = await response.Content.ReadAsStringAsync();
-            ProblemDetails problemDetails = JsonSerializer.Deserialize<ProblemDetails>(responseContent, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
-            Assert.Equal(HttpStatusCode.Conflict, (HttpStatusCode)problemDetails.Status);
-            problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode].ToString().Should().Be(AppDevelopmentErrorCodes.NonUniqueTaskForLayoutSetError);
+            Dictionary<string, string> responseMessage = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
+            Assert.Equal($"Layout set with task, {existingTaskId}, already exists.", responseMessage["infoMessage"]);
         }
 
         [Theory]

@@ -21,13 +21,9 @@ namespace Altinn.Studio.Designer.Filters.AppDevelopment
             {
                 context.Result = new StatusCodeResult((int)HttpStatusCode.OK);
             }
-            if (context.Exception is NonUniqueLayoutSetIdException)
+            if (context.Exception is NonUniqueLayoutSetIdException or NonUniqueTaskForLayoutSetException)
             {
-                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, AppDevelopmentErrorCodes.NonUniqueLayoutSetIdError, HttpStatusCode.Conflict)) { StatusCode = (int)HttpStatusCode.OK };
-            }
-            if (context.Exception is NonUniqueTaskForLayoutSetException)
-            {
-                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, AppDevelopmentErrorCodes.NonUniqueTaskForLayoutSetError, HttpStatusCode.Conflict)) { StatusCode = (int)HttpStatusCode.OK };
+                context.Result = new ObjectResult(new { infoMessage = context.Exception.Message }) { StatusCode = (int)HttpStatusCode.OK };
             }
             if (context.Exception is InvalidLayoutSetIdException)
             {

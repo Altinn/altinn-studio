@@ -77,49 +77,34 @@ const overrideUseBpmnModeler = (currentEventName: string) => {
   });
 };
 
+const wrapper = ({ children }) => (
+  <BpmnContextProvider appLibVersion={'8.0.0'}>
+    <BpmnApiContextProvider
+      addLayoutSet={addLayoutSetMock}
+      deleteLayoutSet={deleteLayoutSetMock}
+      saveBpmn={saveBpmnMock}
+    >
+      {children}
+    </BpmnApiContextProvider>
+  </BpmnContextProvider>
+);
+
+const saveBpmnMock = jest.fn();
+const addLayoutSetMock = jest.fn();
+const deleteLayoutSetMock = jest.fn();
+
 describe('useBpmnEditor', () => {
   afterEach(jest.clearAllMocks);
   it('should call saveBpmn when "commandStack.changed" event is triggered on modelerInstance', async () => {
-    const saveBpmnMock = jest.fn();
-    const addLayoutSetMock = jest.fn();
-    const deleteLayoutSetMock = jest.fn();
     const currentEventName = 'commandStack.changed';
-    const wrapper = ({ children }) => (
-      <BpmnContextProvider appLibVersion={'8.0.0'}>
-        <BpmnApiContextProvider
-          addLayoutSet={addLayoutSetMock}
-          deleteLayoutSet={deleteLayoutSetMock}
-          saveBpmn={saveBpmnMock}
-        >
-          {children}
-        </BpmnApiContextProvider>
-      </BpmnContextProvider>
-    );
-    overrideUseBpmnModeler(currentEventName);
-    renderHook(() => useBpmnEditor(), { wrapper });
+    renderUseBpmnEditor(false, currentEventName);
 
     await waitFor(() => expect(saveBpmnMock).toHaveBeenCalledTimes(1));
   });
 
   it('should call saveBpmn when "shape.add" event is triggered on modelerInstance', () => {
-    const saveBpmnMock = jest.fn();
-    const addLayoutSetMock = jest.fn();
-    const deleteLayoutSetMock = jest.fn();
     const currentEventName = 'shape.add';
-    const wrapper = ({ children }) => (
-      <BpmnContextProvider appLibVersion={'8.0.0'}>
-        <BpmnApiContextProvider
-          addLayoutSet={addLayoutSetMock}
-          deleteLayoutSet={deleteLayoutSetMock}
-          saveBpmn={saveBpmnMock}
-        >
-          {children}
-        </BpmnApiContextProvider>
-      </BpmnContextProvider>
-    );
-    overrideUseBpmnContext();
-    overrideUseBpmnModeler(currentEventName);
-    renderHook(() => useBpmnEditor(), { wrapper });
+    renderUseBpmnEditor(true, currentEventName);
 
     expect(addLayoutSetMock).toHaveBeenCalledTimes(1);
     expect(addLayoutSetMock).toHaveBeenCalledWith({
@@ -131,24 +116,8 @@ describe('useBpmnEditor', () => {
   });
 
   it('should call deleteLayoutSet when "shape.remove" event is triggered on modelerInstance', () => {
-    const saveBpmnMock = jest.fn();
-    const addLayoutSetMock = jest.fn();
-    const deleteLayoutSetMock = jest.fn();
     const currentEventName = 'shape.remove';
-    const wrapper = ({ children }) => (
-      <BpmnContextProvider appLibVersion={'8.0.0'}>
-        <BpmnApiContextProvider
-          addLayoutSet={addLayoutSetMock}
-          deleteLayoutSet={deleteLayoutSetMock}
-          saveBpmn={saveBpmnMock}
-        >
-          {children}
-        </BpmnApiContextProvider>
-      </BpmnContextProvider>
-    );
-    overrideUseBpmnContext();
-    overrideUseBpmnModeler(currentEventName);
-    renderHook(() => useBpmnEditor(), { wrapper });
+    renderUseBpmnEditor(true, currentEventName);
 
     expect(deleteLayoutSetMock).toHaveBeenCalledTimes(1);
     expect(deleteLayoutSetMock).toHaveBeenCalledWith({ layoutSetIdToUpdate: bpmnDetailsMock.id });
@@ -157,24 +126,8 @@ describe('useBpmnEditor', () => {
   });
 
   it('should call setBpmnDetails when "element.click" event is triggered on eventBus', () => {
-    const saveBpmnMock = jest.fn();
-    const addLayoutSetMock = jest.fn();
-    const deleteLayoutSetMock = jest.fn();
     const currentEventName = 'element.click';
-    const wrapper = ({ children }) => (
-      <BpmnContextProvider appLibVersion={'8.0.0'}>
-        <BpmnApiContextProvider
-          addLayoutSet={addLayoutSetMock}
-          deleteLayoutSet={deleteLayoutSetMock}
-          saveBpmn={saveBpmnMock}
-        >
-          {children}
-        </BpmnApiContextProvider>
-      </BpmnContextProvider>
-    );
-    overrideUseBpmnContext();
-    overrideUseBpmnModeler(currentEventName);
-    renderHook(() => useBpmnEditor(), { wrapper });
+    renderUseBpmnEditor(true, currentEventName);
 
     expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1);
     expect(setBpmnDetailsMock).toHaveBeenCalledWith({
@@ -184,3 +137,9 @@ describe('useBpmnEditor', () => {
     });
   });
 });
+
+const renderUseBpmnEditor = (overrideBpmnContext: boolean, currentEventName: string) => {
+  overrideBpmnContext && overrideUseBpmnContext();
+  overrideUseBpmnModeler(currentEventName);
+  renderHook(() => useBpmnEditor(), { wrapper });
+};

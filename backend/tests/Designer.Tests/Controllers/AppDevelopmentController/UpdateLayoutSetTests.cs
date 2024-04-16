@@ -91,7 +91,8 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
-            var newLayoutSetConfig = new LayoutSetConfig() { Id = "layoutSet2", Tasks = ["newTask"] };
+            const string existingLayoutSetName = "layoutSet2";
+            var newLayoutSetConfig = new LayoutSetConfig() { Id = existingLayoutSetName, Tasks = ["newTask"] };
 
             string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetIdToUpdate}";
 
@@ -103,9 +104,8 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             string responseContent = await response.Content.ReadAsStringAsync();
-            ProblemDetails problemDetails = JsonSerializer.Deserialize<ProblemDetails>(responseContent, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
-            Assert.Equal(HttpStatusCode.Conflict, (HttpStatusCode)problemDetails.Status);
-            problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode].ToString().Should().Be(AppDevelopmentErrorCodes.NonUniqueLayoutSetIdError);
+            Dictionary<string, string> responseMessage = JsonSerializer.Deserialize<Dictionary<string, string>>(responseContent);
+            Assert.Equal($"Layout set name, {existingLayoutSetName}, already exists.", responseMessage["infoMessage"]);
         }
 
         [Theory]

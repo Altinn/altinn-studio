@@ -12,28 +12,27 @@ jest.mock('../../../hooks/useBpmnEditor', () => ({
 }));
 
 describe('BPMNEditor', () => {
+  afterEach(jest.clearAllMocks);
   it('render spinner when pendingApiOperations is true', () => {
-    render(
-      <BpmnApiContextProvider pendingApiOperations={true}>
-        <BpmnConfigPanelFormContextProvider>
-          <BPMNEditor />
-        </BpmnConfigPanelFormContextProvider>
-      </BpmnApiContextProvider>,
-    );
+    renderBpmnEditor({ pendingApiOperations: true });
 
     screen.getByText(textMock('process_editor.loading'));
   });
 
   it('does not render spinner when pendingApiOperations is false', () => {
-    render(
-      <BpmnApiContextProvider pendingApiOperations={false}>
-        <BpmnConfigPanelFormContextProvider>
-          <BPMNEditor />
-        </BpmnConfigPanelFormContextProvider>
-      </BpmnApiContextProvider>,
-    );
+    renderBpmnEditor({ pendingApiOperations: false });
 
     const spinner = screen.queryByText(textMock('process_editor.loading'));
     expect(spinner).not.toBeInTheDocument();
   });
 });
+
+const renderBpmnEditor = ({ pendingApiOperations }) => {
+  render(
+    <BpmnApiContextProvider pendingApiOperations={pendingApiOperations}>
+      <BpmnConfigPanelFormContextProvider>
+        <BPMNEditor />
+      </BpmnConfigPanelFormContextProvider>
+    </BpmnApiContextProvider>,
+  );
+};

@@ -30,8 +30,6 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   const handleShapeRemove = (e) => {
     const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
     if (bpmnDetails.type === BpmnTypeEnum.Task) {
-      // call remove layout set from bpmnApiContext. Make sure potentially updated task-id
-      // from metadata is used in order to remove correct connection in app-metadata
       deleteLayoutSet({
         layoutSetIdToUpdate: bpmnDetails.id,
       });
@@ -79,7 +77,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
     };
 
     initializeEditor();
-  }, []);
+  }, [modelerRef]); // Missing dependencies are not added due to resulting wierd behaviour in the process editor
 
   useEffect(() => {
     const initializeBpmnChanges = () => {
@@ -99,13 +97,13 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
     };
 
     initializeBpmnChanges();
-  }, []);
+  }, []); // Missing dependencies are not added due to resulting wierd behaviour in the process editor
 
   useEffect(() => {
     const modelerInstance: BpmnModeler = getModeler(canvasRef.current);
     const eventBus: BpmnModeler = modelerInstance.get('eventBus');
     eventBus.on('element.click', handleSetBpmnDetails);
-  }, []);
+  }, [getModeler, handleSetBpmnDetails]);
 
   return { canvasRef, modelerRef };
 };
