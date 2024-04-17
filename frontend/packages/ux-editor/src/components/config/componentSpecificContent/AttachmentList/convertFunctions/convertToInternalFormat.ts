@@ -27,18 +27,16 @@ const getSelectedDataTypes = (
     availableAttachments,
   );
   const includeAllDataTypes = shouldIncludeAllDataTypes(dataTypeIds, availableDataTypes);
+  const selectedDataTypeIds = ArrayUtils.intersection(dataTypeIds, availableDataTypes);
 
-  return includeAllDataTypes ? availableDataTypes : removeReservedTypes(dataTypeIds);
+  return includeAllDataTypes ? availableDataTypes : selectedDataTypeIds;
 };
-
-const removeReservedTypes = (dataTypeIds: string[]): string[] =>
-  ArrayUtils.intersection(dataTypeIds, Object.values(reservedDataTypes), false);
 
 const shouldIncludeAllDataTypes = (
   dataTypeIds: string[],
   availableDataTypes: string[],
 ): boolean => {
-  const selectedDataTypeIds = removeReservedTypes(dataTypeIds);
+  const selectedDataTypeIds = ArrayUtils.intersection(dataTypeIds, availableDataTypes);
   const allDataTypesSelected = selectedDataTypeIds.length === availableDataTypes.length;
   //In cases when reserved data types are the only ones selected or no attachments (except pdf), we should include all data types
   const noAttachmentsAndNoPdf =

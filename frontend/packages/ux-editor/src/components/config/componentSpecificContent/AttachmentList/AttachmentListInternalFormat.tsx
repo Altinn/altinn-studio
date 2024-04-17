@@ -85,7 +85,7 @@ export const AttachmentListInternalFormat = ({
       </Switch>
       <AttachmentListContent
         currentAvailableAttachments={currentAvailableAttachments}
-        selectedDataTypes={selectedDataTypes}
+        selectedDataTypes={ArrayUtils.intersection(selectedDataTypes, currentAvailableAttachments)}
         onChange={handleSelectedDataTypesChange}
       />
     </Fieldset>
