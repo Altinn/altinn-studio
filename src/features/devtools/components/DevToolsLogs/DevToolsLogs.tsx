@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { Button, Textfield } from '@digdir/design-system-react';
+import { Button, Textfield } from '@digdir/designsystemet-react';
 import {
   DownloadIcon,
   ExclamationmarkTriangleFillIcon,
@@ -54,7 +54,10 @@ export const DevToolsLogs = () => {
           size='small'
           icon={true}
         >
-          <TrashIcon title='slett alle logger' />
+          <TrashIcon
+            fontSize='1rem'
+            title='slett alle logger'
+          />
         </Button>
         <Button
           onClick={saveLogs}
@@ -62,7 +65,10 @@ export const DevToolsLogs = () => {
           size='small'
           icon={true}
         >
-          <DownloadIcon title='lagre logger til fil' />
+          <DownloadIcon
+            fontSize='1rem'
+            title='lagre logger til fil'
+          />
         </Button>
         <div className={classes.filterField}>
           <Textfield
@@ -79,7 +85,10 @@ export const DevToolsLogs = () => {
           color={showLevels.error ? 'second' : 'inverted'}
           icon={true}
         >
-          <XMarkOctagonFillIcon title='vis/skjul error' />
+          <XMarkOctagonFillIcon
+            fontSize='1rem'
+            title='vis/skjul error'
+          />
         </Button>
         <Button
           onClick={() => toggleShow('warn')}
@@ -87,7 +96,10 @@ export const DevToolsLogs = () => {
           color={showLevels.warn ? 'second' : 'inverted'}
           icon={true}
         >
-          <ExclamationmarkTriangleFillIcon title='vis/skjul advarsler' />
+          <ExclamationmarkTriangleFillIcon
+            fontSize='1rem'
+            title='vis/skjul advarsler'
+          />
         </Button>
         <Button
           onClick={() => toggleShow('info')}
@@ -95,7 +107,10 @@ export const DevToolsLogs = () => {
           color={showLevels.info ? 'second' : 'inverted'}
           icon={true}
         >
-          <InformationSquareFillIcon title='vis/skjul informasjon' />
+          <InformationSquareFillIcon
+            fontSize='1rem'
+            title='vis/skjul informasjon'
+          />
         </Button>
       </div>
       <div className={classes.logContainer}>

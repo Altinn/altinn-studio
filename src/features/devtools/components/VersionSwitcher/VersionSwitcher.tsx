@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { Button, Fieldset, LegacySelect, Spinner } from '@digdir/design-system-react';
+import { LegacySelect } from '@digdir/design-system-react';
+import { Button, Fieldset, Spinner } from '@digdir/designsystemet-react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 

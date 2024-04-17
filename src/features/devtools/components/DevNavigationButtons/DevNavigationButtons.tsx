@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { Chip, Fieldset, LegacySelect } from '@digdir/design-system-react';
+import { LegacySelect } from '@digdir/design-system-react';
+import { Chip, Fieldset } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/DevNavigationButtons/DevNavigationButtons.module.css';

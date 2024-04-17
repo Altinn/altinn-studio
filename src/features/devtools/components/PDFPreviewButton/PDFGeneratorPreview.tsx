@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, Modal, Spinner } from '@digdir/design-system-react';
+import { Button, Modal, Spinner } from '@digdir/designsystemet-react';
 import { FilePdfIcon } from '@navikt/aksel-icons';
 
 import classes from 'src/features/devtools/components/PDFPreviewButton/PDFPreview.module.css';
@@ -63,7 +63,12 @@ export function PDFGeneratorPreview() {
         disabled={disabled}
         color='second'
       >
-        {<FilePdfIcon aria-hidden />}
+        {
+          <FilePdfIcon
+            fontSize='1rem'
+            aria-hidden
+          />
+        }
         Generer PDF
       </Button>
       <Modal

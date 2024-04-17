@@ -137,7 +137,12 @@ export function ReceiptComponent({
           variant='body1'
           className={classes.paddingTop24}
         >
-          <a href={subtitleurl}>{subtitle}</a>
+          <a
+            className={'altinnLink'}
+            href={subtitleurl}
+          >
+            {subtitle}
+          </a>
         </Typography>
       )}
 

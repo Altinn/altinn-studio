@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ReactNode } from 'react';
 
-import { Button } from '@digdir/design-system-react';
+import { Button } from '@digdir/designsystemet-react';
 import { PencilIcon } from '@navikt/aksel-icons';
 
 import classes from 'src/components/EditIconButton.module.css';
@@ -20,7 +20,10 @@ export function EditIconButton({ id, label, onClick }: IEditIconButtonProps) {
       variant='tertiary'
       onClick={onClick}
     >
-      <PencilIcon aria-hidden />
+      <PencilIcon
+        fontSize={'1rem'}
+        aria-hidden
+      />
       {label}
     </Button>
   );

@@ -46,13 +46,13 @@ Altinn, and making sure they are consistent. */
 }
 
 .repeatingGroupTable > tbody > tr > td {
-  border-bottom: 1px solid #dde3e5;
+  border-bottom-color: #dde3e5;
   padding-top: 12px;
   padding-bottom: 12px;
 }
 /* ==== */
 
-.repeatingGroupTable > tbody > tr:hover {
+.repeatingGroupTable > tbody > tr:hover td {
   background-color: unset;
 }
 
@@ -95,17 +95,13 @@ Altinn, and making sure they are consistent. */
   margin: 0;
 }
 
-.editingRow {
-  border-top: 2px dotted var(--repeating-group-edit-border-color);
+.editingRow > td {
   background-color: var(--repeating-group-edit-surface-color);
+  border-bottom: 0;
 }
 
 table > tbody > tr.editingRow:hover {
   background-color: var(--repeating-group-edit-surface-color);
-}
-
-.editingRow > td {
-  border-bottom: 0;
 }
 
 .editingBorder {
@@ -187,7 +183,7 @@ table > tbody > tr.editingRow:hover {
   width: 100%;
 }
 
-.tableRowError {
+.tableRowError > td {
   background-color: var(--repeating-group-error-color);
 }
 

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Fieldset, ToggleGroup } from '@digdir/design-system-react';
+import { Fieldset, ToggleGroup } from '@digdir/designsystemet-react';
 
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { useComponentRefs } from 'src/features/devtools/hooks/useComponentRefs';

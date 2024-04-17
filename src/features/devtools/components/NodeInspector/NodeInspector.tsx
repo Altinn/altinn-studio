@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React from 'react';
 
-import { Button, Tabs } from '@digdir/design-system-react';
+import { Button, Tabs } from '@digdir/designsystemet-react';
 import { Close } from '@navikt/ds-icons';
 
 import reusedClasses from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
@@ -44,7 +44,10 @@ export const NodeInspector = () => {
               aria-label={'close'}
               icon={true}
             >
-              <Close aria-hidden />
+              <Close
+                fontSize='1rem'
+                aria-hidden
+              />
             </Button>
           </div>
           <NodeInspectorContextProvider

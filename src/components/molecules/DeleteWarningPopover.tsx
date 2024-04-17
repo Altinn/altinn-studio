@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { Button, LegacyPopover } from '@digdir/design-system-react';
+import { LegacyPopover } from '@digdir/design-system-react';
+import { Button } from '@digdir/designsystemet-react';
 
 import classes from 'src/components/molecules/DeleteWarningPopover.module.css';
 import { Lang } from 'src/features/language/Lang';

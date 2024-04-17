@@ -1,6 +1,6 @@
 .label {
   display: flex;
-  justify-content: center;
+  align-content: center;
   gap: var(--fds-spacing-1);
 }
 

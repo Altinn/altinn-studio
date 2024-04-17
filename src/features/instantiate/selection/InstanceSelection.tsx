@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 import { Pagination } from '@altinn/altinn-design-system';
-import { Button, Heading, Paragraph, Table } from '@digdir/design-system-react';
+import { Button, Heading, Paragraph, Table } from '@digdir/designsystemet-react';
 import { Edit as EditIcon } from '@navikt/ds-icons';
 import type { DescriptionText } from '@altinn/altinn-design-system/dist/types/src/components/Pagination/Pagination';
 
@@ -116,7 +116,7 @@ function InstanceSelection() {
                       onMouseDown={handleOpenInstance}
                       aria-label={`${langAsString('instance_selection.continue')}`}
                     >
-                      <EditIcon />
+                      <EditIcon fontSize='1rem' />
                     </Button>
                   </div>
                 </Table.Cell>
@@ -183,7 +183,12 @@ function InstanceSelection() {
                     }}
                   >
                     <Lang id={'instance_selection.continue'} />
-                    {<EditIcon title={langAsString('instance_selection.continue')} />}
+                    {
+                      <EditIcon
+                        fontSize='1rem'
+                        title={langAsString('instance_selection.continue')}
+                      />
+                    }
                   </Button>
                 </div>
               </Table.Cell>

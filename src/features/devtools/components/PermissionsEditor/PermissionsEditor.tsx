@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Checkbox } from '@digdir/design-system-react';
+import { Checkbox } from '@digdir/designsystemet-react';
 
 import classes from 'src/features/devtools/components/PermissionsEditor/PermissionsEditor.module.css';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';

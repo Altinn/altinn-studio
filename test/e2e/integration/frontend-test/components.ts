@@ -20,12 +20,24 @@ describe('UI Components', () => {
         .parentsUntil(appFrontend.message.logoFormContent)
         .eq(1)
         .should('have.css', 'justify-content', 'center');
-      cy.wrap(image).parent().siblings().find(appFrontend.helpText.button).click();
-      cy.get(appFrontend.helpText.alert).should('contain.text', 'Altinn logo');
-      cy.get(appFrontend.helpText.alert).trigger('keydown', { keyCode: 27 }); // Press ESC key
-      cy.get(appFrontend.helpText.alert).should('not.exist');
     });
+    cy.findByRole('button', { name: /Hjelpetekst for Altinn logo/i }).click();
+    cy.get(appFrontend.helpText.alert).should('contain.text', 'Altinn logo');
+    cy.get(appFrontend.helpText.alert).trigger('keydown', { keyCode: 27 }); // Press ESC key
+    cy.get(appFrontend.helpText.alert).should('not.exist');
     cy.get('body').should('have.css', 'background-color', 'rgb(239, 239, 239)');
+  });
+
+  it('Text component with helptext containing markdown', () => {
+    cy.goto('message');
+    cy.findByRole('button', { name: /Hjelpetekst for Appen for test av app frontend/i }).click();
+    // check that the markdown is rendered correctly with a list, bold text and a link
+    cy.get(appFrontend.helpText.alert).then((alert) => {
+      cy.wrap(alert).find('li').should('have.length', 5);
+      cy.wrap(alert).find('b').should('have.length', 1);
+      cy.wrap(alert).find('a').should('have.length', 1);
+    });
+    cy.snapshot('helptext');
   });
 
   it('while file upload is in progress, the animation should be visible', () => {

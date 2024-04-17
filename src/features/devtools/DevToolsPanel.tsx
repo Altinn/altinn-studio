@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { Button } from '@digdir/design-system-react';
+import { Button } from '@digdir/designsystemet-react';
 import { Close } from '@navikt/ds-icons';
 
 import classes from 'src/features/devtools/DevTools.module.css';
@@ -86,7 +86,10 @@ export const DevToolsPanel = ({ isOpen, close, children }: IDevToolsPanelProps) 
                 aria-label={'close'}
                 icon={true}
               >
-                <Close aria-hidden />
+                <Close
+                  fontSize='1rem'
+                  aria-hidden
+                />
               </Button>
             </div>
             <DevToolsControls />

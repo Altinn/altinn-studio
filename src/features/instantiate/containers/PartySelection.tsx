@@ -1,7 +1,8 @@
 import React from 'react';
 import { useMatch, useNavigate } from 'react-router-dom';
 
-import { Button, LegacyCheckbox, Textfield } from '@digdir/design-system-react';
+import { LegacyCheckbox } from '@digdir/design-system-react';
+import { Button, Textfield } from '@digdir/designsystemet-react';
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 import { PlusIcon } from '@navikt/aksel-icons';
 
@@ -132,7 +133,12 @@ export const PartySelection = () => {
               dashedBorder={true}
               onClick={() => setNumberOfPartiesShown(numberOfPartiesShown + 4)}
             >
-              {<PlusIcon aria-hidden />}
+              {
+                <PlusIcon
+                  fontSize='1rem'
+                  aria-hidden
+                />
+              }
               {langAsString('party_selection.load_more')}
             </Button>
           </Grid>

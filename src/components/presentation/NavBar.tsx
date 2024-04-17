@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button } from '@digdir/design-system-react';
+import { Button } from '@digdir/designsystemet-react';
 import { Close, FullscreenEnter, FullscreenExit, Left } from '@navikt/ds-icons';
 import cn from 'classnames';
 
@@ -78,7 +78,10 @@ export const NavBar = ({ type }: INavBarProps) => {
             aria-label={langAsString('general.back')}
             icon={true}
           >
-            <Left aria-hidden />
+            <Left
+              fontSize='1rem'
+              aria-hidden
+            />
           </Button>
         )}
       </div>
@@ -98,11 +101,13 @@ export const NavBar = ({ type }: INavBarProps) => {
           >
             {expandedWidth ? (
               <FullscreenExit
+                fontSize='1rem'
                 style={expandIconStyle}
                 aria-hidden
               />
             ) : (
               <FullscreenEnter
+                fontSize='1rem'
                 style={expandIconStyle}
                 aria-hidden
               />
@@ -120,7 +125,10 @@ export const NavBar = ({ type }: INavBarProps) => {
             aria-label={langAsString('general.close_schema')}
             icon={true}
           >
-            <Close aria-hidden />
+            <Close
+              fontSize='1rem'
+              aria-hidden
+            />
           </Button>
         )}
       </div>

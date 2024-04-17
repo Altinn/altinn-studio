@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-import { Textfield } from '@digdir/design-system-react';
+import { Textfield } from '@digdir/designsystemet-react';
 
 import { Label } from 'src/components/form/Label';
 import { FD } from 'src/features/formData/FormDataWrite';

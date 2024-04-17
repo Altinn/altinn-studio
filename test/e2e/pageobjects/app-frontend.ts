@@ -129,6 +129,7 @@ export class AppFrontend {
     header: '#appen-for-test-av-app-frontend',
     logo: '#altinnLogo',
     logoFormContent: '#form-content-altinnLogo',
+    title: '#form-content-messageTitle',
   };
 
   //change of name - task_2

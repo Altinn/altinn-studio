@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Fieldset, Heading } from '@digdir/design-system-react';
+import { Fieldset, Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import { Lang } from 'src/features/language/Lang';

@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 
-import { Button } from '@digdir/design-system-react';
+import { Button } from '@digdir/designsystemet-react';
 import { Grid } from '@material-ui/core';
 import { Add as AddIcon } from '@navikt/ds-icons';
 
@@ -145,7 +145,10 @@ function AddButton() {
       disabled={currentlyAddingRow}
       fullWidth
     >
-      <AddIcon aria-hidden='true' />
+      <AddIcon
+        fontSize='1.5rem'
+        aria-hidden='true'
+      />
       {add_button_full ? lang(add_button_full) : `${langAsString('general.add_new')} ${langAsString(add_button)}`}
     </Button>
   );

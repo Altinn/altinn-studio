@@ -14,7 +14,7 @@
 
 .download {
   display: flex;
-  padding: 0;
+  gap: 0;
 }
 
 .truncate {

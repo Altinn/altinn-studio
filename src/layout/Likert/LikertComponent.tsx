@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Table } from '@digdir/design-system-react';
+import { Table } from '@digdir/designsystemet-react';
 import { Grid, Typography } from '@material-ui/core';
 import cn from 'classnames';
 

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Link, List } from '@digdir/design-system-react';
+import { Link, List } from '@digdir/designsystemet-react';
 
 import classes from 'src/components/atoms/AltinnAttachment.module.css';
 import { Lang } from 'src/features/language/Lang';

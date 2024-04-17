@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 
-import { Checkbox, Fieldset, LegacySelect, Tabs } from '@digdir/design-system-react';
+import { LegacySelect } from '@digdir/design-system-react';
+import { Checkbox, Fieldset, Tabs } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/ExpressionPlayground/ExpressionPlayground.module.css';

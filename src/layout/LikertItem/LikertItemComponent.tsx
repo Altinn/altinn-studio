@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 
-import { Radio, Table } from '@digdir/design-system-react';
+import { Radio, Table } from '@digdir/designsystemet-react';
 import { Typography } from '@material-ui/core';
 
 import { Lang } from 'src/features/language/Lang';

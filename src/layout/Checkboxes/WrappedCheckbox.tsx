@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Checkbox, HelpText } from '@digdir/design-system-react';
+import { Checkbox, HelpText } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';

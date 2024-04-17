@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Accordion as DesignSystemAccordion } from '@digdir/design-system-react';
+import { Accordion as DesignSystemAccordion } from '@digdir/designsystemet-react';
 
 import { SummaryAccordionComponent } from 'src/layout/Accordion/SummaryAccordion';
 import type { ISummaryComponent } from 'src/layout/Summary/SummaryComponent';

@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import type { ReactNode } from 'react';
 
-import { Button } from '@digdir/design-system-react';
+import { Button } from '@digdir/designsystemet-react';
 import Grid from '@material-ui/core/Grid';
 
 import { Form, FormFirstPage } from 'src/components/form/Form';

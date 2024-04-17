@@ -1,7 +1,7 @@
 import React from 'react';
 import type { HtmlHTMLAttributes } from 'react';
 
-import { Label } from '@digdir/design-system-react';
+import { Label } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import classes from 'src/components/form/Caption.module.css';

@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 
-import { Button, Checkbox, Heading, Label, Paragraph } from '@digdir/design-system-react';
+import { Button, Checkbox, Heading, Label, Paragraph } from '@digdir/designsystemet-react';
 
 import classes from 'src/features/devtools/components/FeatureToggles/FeatureToggles.module.css';
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';

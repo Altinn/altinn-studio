@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Heading } from '@digdir/design-system-react';
+import { Heading } from '@digdir/designsystemet-react';
 import DOMPurify from 'dompurify';
 import parseHtmlToReact, { domToReact } from 'html-react-parser';
 import { marked } from 'marked';
@@ -15,6 +15,7 @@ marked.use(mangle());
 
 DOMPurify.addHook('afterSanitizeAttributes', (node) => {
   if (node.tagName === 'A') {
+    node.classList.add('altinnLink');
     const url = node.getAttribute('href') || '';
     if (url.startsWith('http') && !url.match(/(local\.altinn|altinn\.no|altinn\.cloud|basefarm\.net)/)) {
       node.classList.add('target-external');

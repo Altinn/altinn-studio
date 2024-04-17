@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Accordion as DesignSystemAccordion } from '@digdir/design-system-react';
+import { Accordion as DesignSystemAccordion } from '@digdir/designsystemet-react';
 import { Grid } from '@material-ui/core';
 
 import { useLanguage } from 'src/features/language/useLanguage';

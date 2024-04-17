@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Alert as AlertDesignSystem } from '@digdir/design-system-react';
+import { Alert as AlertDesignSystem } from '@digdir/designsystemet-react';
 
 import styles from 'src/layout/Alert/Alert.module.css';
 import type { AlertSeverity } from 'src/layout/Alert/config.generated';

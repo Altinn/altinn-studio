@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 
-import { HelpText, Radio } from '@digdir/design-system-react';
-import type { RadioProps } from '@digdir/design-system-react';
+import { HelpText, Radio } from '@digdir/designsystemet-react';
+import type { RadioProps } from '@digdir/designsystemet-react';
 
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import classes from 'src/components/form/RadioButton.module.css';

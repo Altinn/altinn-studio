@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Accordion as DesignSystemAccordion } from '@digdir/design-system-react';
+import { Accordion as DesignSystemAccordion } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import classes from 'src/layout/Accordion/Accordion.module.css';

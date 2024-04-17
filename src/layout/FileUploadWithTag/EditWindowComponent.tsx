@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
-import { Button, LegacySelect } from '@digdir/design-system-react';
+import { LegacySelect } from '@digdir/design-system-react';
+import { Button } from '@digdir/designsystemet-react';
 import { Grid } from '@material-ui/core';
 import { CheckmarkCircleFillIcon } from '@navikt/aksel-icons';
 

@@ -58,7 +58,12 @@ export const AltinnError = ({
         </p>
       )}
       <div>
-        <a href={url}>{urlText}</a>
+        <a
+          className={'altinnLink'}
+          href={url}
+        >
+          {urlText}
+        </a>
       </div>
       <div>
         <span>{urlTextSuffix}</span>

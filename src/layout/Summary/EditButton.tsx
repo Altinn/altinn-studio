@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button } from '@digdir/design-system-react';
+import { Button } from '@digdir/designsystemet-react';
 import { Edit } from '@navikt/ds-icons';
 
 import classes from 'src/layout/Summary/EditButton.module.css';
@@ -22,7 +22,10 @@ export function EditButton(props: IEditButtonProps) {
       aria-label={`${props.editText}: ${props.label}`}
     >
       {props.editText}
-      <Edit aria-hidden={true} />
+      <Edit
+        fontSize='1rem'
+        aria-hidden={true}
+      />
     </Button>
   );
 }

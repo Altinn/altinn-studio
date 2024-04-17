@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Checkbox, HelpText } from '@digdir/design-system-react';
+import { Checkbox, HelpText } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
@@ -67,7 +67,7 @@ export const CheckboxContainerComponent = ({ node, isValid, overrideDisplay }: I
       <Checkbox.Group
         className={cn({ [classes.horizontal]: horizontal }, classes.checkboxGroup)}
         legend={labelTextGroup}
-        description={<Lang id={textResourceBindings?.description} />}
+        description={textResourceBindings?.description && <Lang id={textResourceBindings?.description} />}
         disabled={readOnly}
         hideLegend={overrideDisplay?.renderLegend === false}
         error={!isValid}

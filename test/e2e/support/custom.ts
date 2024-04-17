@@ -134,12 +134,6 @@ const knownWcagViolations: KnownViolation[] = [
   },
   {
     spec: 'frontend-test/group.ts',
-    test: 'Validation on group',
-    id: 'list',
-    nodeLength: 1,
-  },
-  {
-    spec: 'frontend-test/group.ts',
     test: 'Opens delete warning popup when alertOnDelete is true and deletes on confirm',
     id: 'aria-dialog-name',
     nodeLength: 1,

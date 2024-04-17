@@ -110,7 +110,10 @@ export function AltinnAppHeaderMenu({ party, logoColor }: IAltinnAppHeaderMenuPr
           className={classes.menuItem}
           id='logout-menu-item'
         >
-          <a href={logoutUrlAltinn(window.location.origin)}>
+          <a
+            className={'altinnLink'}
+            href={logoutUrlAltinn(window.location.origin)}
+          >
             <Lang id='general.log_out' />
           </a>
         </MenuItem>

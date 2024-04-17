@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ErrorMessage } from '@digdir/design-system-react';
+import { ErrorMessage } from '@digdir/designsystemet-react';
 
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -59,24 +59,22 @@ export function ComponentValidations({ validations, node }: Props) {
 
 function ErrorValidations({ validations, node }: { validations: NodeValidation<'error'>[]; node?: LayoutNode }) {
   return (
-    <div style={{ paddingTop: '0.375rem' }}>
-      <ErrorMessage size='small'>
-        <ol style={{ padding: 0, margin: 0, listStyleType: 'none' }}>
-          {validations.map((validation) => (
-            <li
-              role='alert'
-              key={`validationMessage-${validation.message.key}`}
-            >
-              <Lang
-                id={validation.message.key}
-                params={validation.message.params}
-                node={node}
-              />
-            </li>
-          ))}
-        </ol>
-      </ErrorMessage>
-    </div>
+    <ol style={{ padding: 0, margin: 0, listStyleType: 'none' }}>
+      {validations.map((validation) => (
+        <li key={`validationMessage-${validation.message.key}`}>
+          <ErrorMessage
+            role='alert'
+            size='small'
+          >
+            <Lang
+              id={validation.message.key}
+              params={validation.message.params}
+              node={node}
+            />
+          </ErrorMessage>
+        </li>
+      ))}
+    </ol>
   );
 }
 

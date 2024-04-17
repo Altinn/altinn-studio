@@ -2,7 +2,7 @@ import React from 'react';
 import { NumericFormat, PatternFormat } from 'react-number-format';
 
 import { SearchField } from '@altinn/altinn-design-system';
-import { Paragraph, Textfield } from '@digdir/design-system-react';
+import { Paragraph, Textfield } from '@digdir/designsystemet-react';
 
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -15,7 +15,7 @@ import type { IInputFormatting } from 'src/layout/Input/config.generated';
 
 export type IInputProps = PropsFromGenericComponent<'Input'>;
 
-import type { TextfieldProps } from '@digdir/design-system-react/dist/types/components/form/Textfield/Textfield';
+import type { TextfieldProps } from '@digdir/designsystemet-react/dist/types/components/form/Textfield/Textfield';
 
 interface InputComponentProps extends TextfieldProps {
   textOnly?: boolean;

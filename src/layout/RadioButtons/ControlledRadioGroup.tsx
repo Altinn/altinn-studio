@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { HelpText, Radio } from '@digdir/design-system-react';
+import { HelpText, Radio } from '@digdir/designsystemet-react';
 
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { OptionalIndicator } from 'src/components/form/OptionalIndicator';

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, Fieldset } from '@digdir/design-system-react';
+import { Button, Fieldset } from '@digdir/designsystemet-react';
 import { FilePdfIcon } from '@navikt/aksel-icons';
 
 import { PDFGeneratorPreview } from 'src/features/devtools/components/PDFPreviewButton/PDFGeneratorPreview';
@@ -36,7 +36,12 @@ export const PDFPreviewButton = () => {
         disabled={taskType !== ProcessTaskType.Data}
         color='second'
       >
-        {<FilePdfIcon aria-hidden />}
+        {
+          <FilePdfIcon
+            fontSize='1rem'
+            aria-hidden
+          />
+        }
         Forhåndsvis PDF
       </Button>
       {isLocalOrStaging && <PDFGeneratorPreview />}

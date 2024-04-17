@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button } from '@digdir/design-system-react';
+import { Button } from '@digdir/designsystemet-react';
 import { CodeIcon, XMarkOctagonFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
@@ -56,7 +56,10 @@ export const OpenDevToolsButton = ({ isHidden, onClick }: IOpenDevToolsButtonPro
           aria-label='åpne utviklerverkøy'
           icon={true}
         >
-          <CodeIcon aria-hidden />
+          <CodeIcon
+            fontSize='1rem'
+            aria-hidden
+          />
         </Button>
       </div>
     </div>

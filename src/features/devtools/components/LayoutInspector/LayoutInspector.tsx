@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useEffect, useRef, useState } from 'react';
 
-import { Alert, Button } from '@digdir/design-system-react';
+import { Alert, Button } from '@digdir/designsystemet-react';
 import { Close } from '@navikt/ds-icons';
 
 import classes from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
@@ -153,7 +153,10 @@ export const LayoutInspector = () => {
               aria-label={'close'}
               icon={true}
             >
-              <Close aria-hidden />
+              <Close
+                fontSize='1rem'
+                aria-hidden
+              />
             </Button>
           </div>
           <textarea

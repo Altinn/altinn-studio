@@ -1,7 +1,7 @@
 import React from 'react';
 import type { JSX } from 'react';
 
-import { Button } from '@digdir/design-system-react';
+import { Button } from '@digdir/designsystemet-react';
 import { Grid } from '@material-ui/core';
 import { Back, Delete as DeleteIcon, Next } from '@navikt/ds-icons';
 import cn from 'classnames';
@@ -148,7 +148,7 @@ function RepeatingGroupsEditContainerInternal({
               data-testid='delete-button'
             >
               <Lang id={'general.delete'} />
-              <DeleteIcon />
+              <DeleteIcon fontSize='1rem' />
             </Button>
           </Grid>
         </Grid>
@@ -184,7 +184,10 @@ function RepeatingGroupsEditContainerInternal({
                     color='second'
                     onClick={() => prevMultiPage()}
                   >
-                    <Back aria-hidden='true' />
+                    <Back
+                      fontSize='1rem'
+                      aria-hidden='true'
+                    />
                     <Lang id={'general.back'} />
                   </Button>
                 </Grid>
@@ -198,7 +201,10 @@ function RepeatingGroupsEditContainerInternal({
                     onClick={() => nextMultiPage()}
                   >
                     <Lang id={'general.next'} />
-                    <Next aria-hidden='true' />
+                    <Next
+                      fontSize='1rem'
+                      aria-hidden='true'
+                    />
                   </Button>
                 </Grid>
               )}

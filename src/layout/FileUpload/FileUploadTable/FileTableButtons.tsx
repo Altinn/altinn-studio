@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button } from '@digdir/design-system-react';
+import { Button } from '@digdir/designsystemet-react';
 import { PencilIcon, TrashIcon } from '@navikt/aksel-icons';
 
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
@@ -88,7 +88,17 @@ export function FileTableButtons({ node, attachment, mobileView, editWindowIsOpe
         icon={mobileView}
       >
         {!mobileView && <Lang id={showEditButton ? 'general.edit_alt' : 'form_filler.file_uploader_list_delete'} />}
-        {showEditButton ? <PencilIcon aria-hidden={true} /> : <TrashIcon aria-hidden={true} />}
+        {showEditButton ? (
+          <PencilIcon
+            fontSize='1rem'
+            aria-hidden={true}
+          />
+        ) : (
+          <TrashIcon
+            fontSize='1rem'
+            aria-hidden={true}
+          />
+        )}
       </Button>
     </ConditionalWrapper>
   );

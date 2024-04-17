@@ -1,7 +1,7 @@
 import React from 'react';
 import Dropzone from 'react-dropzone';
 
-import { Button, Fieldset } from '@digdir/design-system-react';
+import { Button, Fieldset } from '@digdir/designsystemet-react';
 import { DownloadIcon, UploadIcon } from '@navikt/aksel-icons';
 import axios from 'axios';
 
@@ -58,7 +58,12 @@ const InnerDownloadXMLButton = () => {
           size='small'
           onClick={downloadXML}
         >
-          {<DownloadIcon aria-hidden={true} />}
+          {
+            <DownloadIcon
+              fontSize='1rem'
+              aria-hidden={true}
+            />
+          }
           Last ned XML
         </Button>
         <Dropzone
@@ -74,7 +79,12 @@ const InnerDownloadXMLButton = () => {
               variant='secondary'
               size='small'
             >
-              {<UploadIcon aria-hidden={true} />}
+              {
+                <UploadIcon
+                  fontSize='1rem'
+                  aria-hidden={true}
+                />
+              }
               <input {...getInputProps()} />
               Last opp XML
             </Button>

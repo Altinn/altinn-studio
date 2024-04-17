@@ -46,17 +46,26 @@ export const AltinnAppHeader = ({ profile }: IHeaderProps) => {
           {party && (
             <ul className={classes.headerLinkList}>
               <li className={classes.headerLink}>
-                <a href={returnUrlToMessagebox(window.location.origin, party?.partyId) || '#'}>
+                <a
+                  className={'altinnLink'}
+                  href={returnUrlToMessagebox(window.location.origin, party?.partyId) || '#'}
+                >
                   <Lang id='instantiate.inbox' />
                 </a>
               </li>
               <li className={classes.headerLink}>
-                <a href={returnUrlToAllSchemas(window.location.origin) || '#'}>
+                <a
+                  className={'altinnLink'}
+                  href={returnUrlToAllSchemas(window.location.origin) || '#'}
+                >
                   <Lang id='instantiate.all_forms' />
                 </a>
               </li>
               <li className={classes.headerLink}>
-                <a href={returnUrlToProfile(window.location.origin, party?.partyId) || '#'}>
+                <a
+                  className={'altinnLink'}
+                  href={returnUrlToProfile(window.location.origin, party?.partyId) || '#'}
+                >
                   <Lang id='instantiate.profile' />
                 </a>
               </li>

@@ -1,7 +1,7 @@
 import React from 'react';
 import type { HTMLAttributes } from 'react';
 
-import { Fieldset as DSFieldset } from '@digdir/design-system-react';
+import { Fieldset as DSFieldset } from '@digdir/designsystemet-react';
 
 import { Description } from 'src/components/form/Description';
 import classes from 'src/components/form/Fieldset.module.css';
