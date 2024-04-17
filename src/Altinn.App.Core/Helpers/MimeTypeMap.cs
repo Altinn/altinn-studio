@@ -454,6 +454,7 @@ namespace Altinn.App.Core.Helpers
                 { ".snp", new("application/octet-stream") },
                 { ".sol", new("text/plain") },
                 { ".sor", new("text/plain") },
+                { ".sos", new("text/vnd.sosi") },
                 { ".spc", new("application/x-pkcs7-certificates") },
                 { ".spl", new("application/futuresplash") },
                 { ".spx", new("audio/ogg") },
