@@ -9,7 +9,6 @@ import { ConfigIcon } from './ConfigIcon';
 import { EditDataType } from './EditDataType/EditDataType';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { Accordion } from '@digdir/design-system-react';
-import classes from './ConfigContent.module.css';
 import { EditActions } from './EditActions/EditActions';
 
 export const ConfigContent = (): React.ReactElement => {
