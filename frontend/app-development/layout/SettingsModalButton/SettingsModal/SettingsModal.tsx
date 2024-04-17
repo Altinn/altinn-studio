@@ -5,7 +5,7 @@ import { Heading } from '@digdir/design-system-react';
 import {
   CogIcon,
   InformationSquareIcon,
-  PersonSuitIcon,
+  TimerStartIcon,
   ShieldLockIcon,
   SidebarBothIcon,
 } from '@navikt/aksel-icons';
@@ -72,7 +72,7 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
       currentTab,
     ),
     createNavigationTab(
-      <PersonSuitIcon className={classes.icon} />,
+      <TimerStartIcon className={classes.icon} />,
       accessControlTabId,
       () => changeTabTo(accessControlTabId),
       currentTab,

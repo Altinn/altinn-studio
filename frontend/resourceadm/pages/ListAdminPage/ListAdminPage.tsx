@@ -12,7 +12,7 @@ import { getAccessListPageUrl, getResourceDashboardURL } from '../../utils/urlUt
 import { useUrlParams } from '../../hooks/useSelectedContext';
 import type { EnvId } from '../../utils/resourceUtils';
 import { getAvailableEnvironments, getEnvLabel } from '../../utils/resourceUtils';
-import { AccessListErrorMessage } from 'resourceadm/components/AccessListErrorMessage';
+import { AccessListErrorMessage } from '../../components/AccessListErrorMessage';
 
 export const ListAdminPage = (): React.JSX.Element => {
   const { t } = useTranslation();

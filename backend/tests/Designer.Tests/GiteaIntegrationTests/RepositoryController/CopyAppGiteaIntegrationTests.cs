@@ -20,7 +20,6 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
         }
 
         [Theory]
-        [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task Copy_Repo_Should_Return_Created(string org)
         {
