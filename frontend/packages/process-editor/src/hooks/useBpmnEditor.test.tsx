@@ -4,10 +4,16 @@ import { useBpmnEditor } from './useBpmnEditor';
 import { BpmnContextProvider, useBpmnContext } from '../contexts/BpmnContext';
 import { BpmnApiContextProvider } from '../contexts/BpmnApiContext';
 import { useBpmnModeler } from './useBpmnModeler';
+import { getBpmnEditorDetailsFromBusinessObject } from '../utils/hookUtils';
+import type { BpmnDetails } from '../types/BpmnDetails';
+import { BpmnTypeEnum } from '../enum/BpmnTypeEnum';
+import type { BpmnTaskType } from '../types/BpmnTaskType';
 
-const bpmnDetailsMock = {
+const bpmnDetailsMock: BpmnDetails = {
   id: 'testId',
-  type: 'bpmn:Task',
+  name: 'mockName',
+  type: BpmnTypeEnum.Task,
+  taskType: 'data',
 };
 
 class BpmnModelerMockImpl {
@@ -36,7 +42,9 @@ class BpmnModelerMockImpl {
 jest.mock('../utils/hookUtils', () => ({
   getBpmnEditorDetailsFromBusinessObject: jest.fn().mockReturnValue({
     id: 'testId',
+    name: 'mockName',
     type: 'bpmn:Task',
+    taskType: 'data',
   }),
 }));
 
@@ -94,7 +102,10 @@ const addLayoutSetMock = jest.fn();
 const deleteLayoutSetMock = jest.fn();
 
 describe('useBpmnEditor', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should call saveBpmn when "commandStack.changed" event is triggered on modelerInstance', async () => {
     const currentEventName = 'commandStack.changed';
     renderUseBpmnEditor(false, currentEventName);
@@ -102,7 +113,7 @@ describe('useBpmnEditor', () => {
     await waitFor(() => expect(saveBpmnMock).toHaveBeenCalledTimes(1));
   });
 
-  it('should call saveBpmn when "shape.add" event is triggered on modelerInstance', () => {
+  it('should call saveBpmn when "shape.add" event is triggered on modelerInstance and taskType is data', () => {
     const currentEventName = 'shape.add';
     renderUseBpmnEditor(true, currentEventName);
 
@@ -115,7 +126,27 @@ describe('useBpmnEditor', () => {
     expect(setBpmnDetailsMock).toHaveBeenCalledWith(bpmnDetailsMock);
   });
 
+  it.each(['confirmation', 'signing', 'feedback', 'endEvent'])(
+    'should not call saveBpmn when "shape.add" event is triggered on modelerInstance when taskType is not data',
+    (taskType: BpmnTaskType) => {
+      const mockBpmnDetailsConfirm: BpmnDetails = {
+        id: 'otherTestId',
+        name: 'mockName',
+        type: BpmnTypeEnum.Task,
+        taskType: taskType,
+      };
+      (getBpmnEditorDetailsFromBusinessObject as jest.Mock).mockReturnValue(mockBpmnDetailsConfirm);
+      const currentEventName = 'shape.add';
+      renderUseBpmnEditor(true, currentEventName);
+
+      expect(addLayoutSetMock).not.toHaveBeenCalled();
+      expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1);
+      expect(setBpmnDetailsMock).toHaveBeenCalledWith(mockBpmnDetailsConfirm);
+    },
+  );
+
   it('should call deleteLayoutSet when "shape.remove" event is triggered on modelerInstance', () => {
+    (getBpmnEditorDetailsFromBusinessObject as jest.Mock).mockReturnValue(bpmnDetailsMock);
     const currentEventName = 'shape.remove';
     renderUseBpmnEditor(true, currentEventName);
 
@@ -126,13 +157,13 @@ describe('useBpmnEditor', () => {
   });
 
   it('should call setBpmnDetails when "element.click" event is triggered on eventBus', () => {
+    (getBpmnEditorDetailsFromBusinessObject as jest.Mock).mockReturnValue(bpmnDetailsMock);
     const currentEventName = 'element.click';
     renderUseBpmnEditor(true, currentEventName);
 
     expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1);
     expect(setBpmnDetailsMock).toHaveBeenCalledWith({
-      id: bpmnDetailsMock.id,
-      type: bpmnDetailsMock.type,
+      ...bpmnDetailsMock,
       element: 'someElement',
     });
   });
