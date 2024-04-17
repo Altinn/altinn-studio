@@ -1,42 +1,171 @@
 {
-    "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
-    "data": {
-      "layout": [
-        {
-            "id": "test",
-            "type": "Payment",
-            "renderAsSummary": true,
-            "textResourceBindings": {
-              "title": "test",
-              "receiptOrgName": "Test Org",
-              "receiptOrgNumber": "123456789",
-              "receiptBankAcountNumber": "12345678901",
-              "receiptEmailAdress": "123@123.no",
-              "receiptPhoneNumber": "12345678",
-              "receiptSupportPhoneNumber": "12345678",
-              "receiptStreetAdress": "Testveien 1",
-              "receiptZipCode": "1234",
-              "receiptCity": "Testby",
-              "receiptCountry": "Testland"
-            },
-            "paymentSettings": {
-              "autoForwardToPayment": true
-            }
-          },
-        {
-          "id": "test3",
-          "type": "Paragraph",
-          "textResourceBindings": {
-            "title": "<b>Advarsel mot falske fakturaer</b></br>Bare Patentstyret kan kreve betaling for denne søknaden. Ikke betal hvis du mottar fakturaer knyttet til søknaden fra andre enn oss. Er du usikker, ta kontakt med kundesenteret vårt (telefon 22 38 73 00)."
-          }
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "test",
+        "type": "Payment",
+        "renderAsSummary": true,
+        "textResourceBindings": {
+          "title": "test",
+          "receiptOrgName": "Test Org",
+          "receiptOrgNumber": "123456789",
+          "receiptBankAcountNumber": "12345678901",
+          "receiptEmailAdress": "123@123.no",
+          "receiptPhoneNumber": "12345678",
+          "receiptSupportPhoneNumber": "12345678",
+          "receiptStreetAdress": "Testveien 1",
+          "receiptZipCode": "1234",
+          "receiptCity": "Testby",
+          "receiptCountry": "Testland"
         },
-        {
-          "id": "test2",
-          "type": "Paragraph",
-          "textResourceBindings": {
-            "title": "<b>Kvittering</b></br>Patentstyret sender ikke kvittering for betalingen. Du finner kvitteringen på kvitteringssiden (som kommer opp rett etter at du har betalt), eller i arkivet ditt i Altinn. Her kan du velge mellom 'Send kopi av kvittering i e-post' til høyre i bildet for å få kvitteringen tilsendt, eller klikke nede til høyre på 'Skriv ut kvittering' for å skrive ut eller lagre kvitteringen på egen PC."
-          }
+        "paymentSettings": {
+          "autoForwardToPayment": true
         }
-      ]
-    }
+      },
+      {
+        "id": "RecipientGroup",
+        "type": "Group",
+        "textResourceBindings": {
+          "title": "Mottaker"
+        },
+        "groupingIndicator": "indented",
+        "children": ["recipientName", "recipientPhone", "recipientAddress", "recipientOrgNumber", "recipientAccountNumber", "recipientEmail"]
+      },
+      {
+        "id": "SenderGroup",
+        "type": "Group",
+        "textResourceBindings": {
+          "title": "Sender"
+        },
+        "groupingIndicator": "indented",
+        "children": ["senderName", "senderPhone", "senderAddress", "senderOrgNumber", "senderAltinnReference", "senderEmail"]
+      },
+      {
+        "id": "recipientName",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "<b>Navn:</b><br/>Patentstyret"
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "recipientPhone",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "<b>Telefon:</b><br/>22 38 73 00"
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "recipientAddress",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "<b>Adresse:</b><br/>Postboks 8160 Dep, 0033 Oslo"
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "recipientOrgNumber",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "<b>Organisasjonsnummer:</b><br/>910065203"
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "recipientAccountNumber",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "<b>Kontonummer:</b><br/>8276.03.00078 "
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "recipientEmail",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "<b>E-post:</b><br/>post@patentstyret.no"
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "senderName",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "<b>Navn:</b><br/>Test Testesen"
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "senderPhone",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "<b>Telefon:</b><br/>12345678"
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "senderAddress",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "<b>Adresse:</b><br/>Testveien 1, 1234 Testby"
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "recipientOrgNumber",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "<b>Organisasjonsnummer:</b><br/>910065203"
+        }
+      },
+      {
+        "id": "senderEmail",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "<b>E-post:</b><br/>post@patentstyret.no"
+        }
+      },
+      {
+        "id": "senderAltinnReference",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "<b>Altinn-referanse:</b><br/>ALTINN2454"
+        }
+      },
+      {
+        "id": "test3",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "<b>Advarsel mot falske fakturaer</b></br>Bare Patentstyret kan kreve betaling for denne søknaden. Ikke betal hvis du mottar fakturaer knyttet til søknaden fra andre enn oss. Er du usikker, ta kontakt med kundesenteret vårt (telefon 22 38 73 00)."
+        }
+      },
+      {
+        "id": "test2",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "<b>Kvittering</b></br>Patentstyret sender ikke kvittering for betalingen. Du finner kvitteringen på kvitteringssiden (som kommer opp rett etter at du har betalt), eller i arkivet ditt i Altinn. Her kan du velge mellom 'Send kopi av kvittering i e-post' til høyre i bildet for å få kvitteringen tilsendt, eller klikke nede til høyre på 'Skriv ut kvittering' for å skrive ut eller lagre kvitteringen på egen PC."
+        }
+      }
+    ]
   }
+}
