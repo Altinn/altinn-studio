@@ -164,14 +164,6 @@ class SupportedPaletteProvider {
             dragstart: createCustomTask('feedback'),
           },
         },
-        'create.altinn-confirmation-task': {
-          group: 'activity',
-          className: 'bpmn-icon-task-generic bpmn-icon-confirmation-task',
-          title: translate('Create Altinn Confirm Task'),
-          action: {
-            dragstart: createCustomConfirmationTask(),
-          },
-        },
         'create.altinn-signing-task': {
           group: 'activity',
           className: 'bpmn-icon-task-generic bpmn-icon-signing-task',
@@ -182,10 +174,10 @@ class SupportedPaletteProvider {
         },
         'create.altinn-confirmation-task': {
           group: 'activity',
-          title: translate('Create Altinn Confirm Task'),
           className: 'bpmn-icon-task-generic bpmn-icon-confirmation-task',
+          title: translate('Create Altinn Confirm Task'),
           action: {
-            dragstart: createCustomConfirmationTask('confirmation'),
+            dragstart: createCustomConfirmationTask(),
           },
         },
         'create.altinn-payment-task': {

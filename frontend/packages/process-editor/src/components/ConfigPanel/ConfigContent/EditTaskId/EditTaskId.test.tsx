@@ -8,6 +8,7 @@ import {
   type BpmnApiContextProps,
   BpmnApiContextProvider,
 } from '../../../../contexts/BpmnApiContext';
+import { mockBpmnDetails } from '../../../../../test/mocks/bpmnDetailsMock';
 
 const mockBpmnApiContextValue: Partial<BpmnApiContextProps> = {
   layoutSets: {
@@ -24,12 +25,6 @@ const mockBpmnApiContextValue: Partial<BpmnApiContextProps> = {
       },
     ],
   },
-  pendingApiOperations: false,
-  existingCustomReceiptLayoutSetName: undefined,
-  addLayoutSet: jest.fn(),
-  deleteLayoutSet: jest.fn(),
-  mutateLayoutSet: jest.fn(),
-  saveBpmn: jest.fn(),
 };
 
 const renderEditTaskId = (children: React.ReactNode) => {
@@ -49,12 +44,7 @@ jest.mock('../../../../contexts/BpmnContext', () => ({
       },
     },
     setBpmnDetails: setBpmnDetailsMock,
-    bpmnDetails: {
-      id: 'testId',
-      name: 'testName',
-      taskType: 'data',
-      type: 'task',
-    },
+    bpmnDetails: mockBpmnDetails,
   }),
 }));
 

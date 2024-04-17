@@ -32,7 +32,7 @@ export const EditActions = () => {
   const { t } = useTranslation();
   const { bpmnDetails, modelerRef } = useBpmnContext();
   const actionElements: ModdleElement[] =
-    bpmnDetails.element.businessObject.extensionElements.values[0].actions?.action ?? [];
+    bpmnDetails?.element?.businessObject?.extensionElements?.values[0]?.actions?.action ?? [];
   const modelerInstance = modelerRef.current;
   const modeling: Modeling = modelerInstance.get('modeling');
   const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
