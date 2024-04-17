@@ -243,7 +243,24 @@
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationMetadata"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationMetadata"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationMetadata"
+                }
+              }
+            }
           }
         }
       }
@@ -273,7 +290,34 @@
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
@@ -303,7 +347,34 @@
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
@@ -4297,6 +4368,145 @@
         },
         "additionalProperties": false
       },
+      "ApplicationLogic": {
+        "type": "object",
+        "properties": {
+          "autoCreate": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "classRef": {
+            "type": "string",
+            "nullable": true
+          },
+          "schemaRef": {
+            "type": "string",
+            "nullable": true
+          },
+          "allowAnonymousOnStateless": {
+            "type": "boolean"
+          },
+          "autoDeleteOnProcessEnd": {
+            "type": "boolean"
+          },
+          "shadowFields": {
+            "$ref": "#/components/schemas/ShadowFields"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ApplicationMetadata": {
+        "type": "object",
+        "properties": {
+          "created": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastChanged": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastChangedBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "versionId": {
+            "type": "string",
+            "nullable": true
+          },
+          "org": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "nullable": true
+            },
+            "nullable": true
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "validTo": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "processId": {
+            "type": "string",
+            "nullable": true
+          },
+          "dataTypes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DataType"
+            },
+            "nullable": true
+          },
+          "partyTypesAllowed": {
+            "$ref": "#/components/schemas/PartyTypesAllowed"
+          },
+          "autoDeleteOnProcessEnd": {
+            "type": "boolean"
+          },
+          "presentationFields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DataField"
+            },
+            "nullable": true
+          },
+          "dataFields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DataField"
+            },
+            "nullable": true
+          },
+          "eFormidling": {
+            "$ref": "#/components/schemas/EFormidlingContract"
+          },
+          "onEntry": {
+            "$ref": "#/components/schemas/OnEntry"
+          },
+          "messageBoxConfig": {
+            "$ref": "#/components/schemas/MessageBoxConfig"
+          },
+          "copyInstanceSettings": {
+            "$ref": "#/components/schemas/CopyInstanceSettings"
+          },
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "features": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "nullable": true
+          },
+          "logo": {
+            "$ref": "#/components/schemas/Logo"
+          },
+          "altinnNugetVersion": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": { }
+      },
       "CalculationResult": {
         "type": "object",
         "properties": {
@@ -4500,6 +4710,29 @@
         },
         "additionalProperties": false
       },
+      "CopyInstanceSettings": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "excludedDataTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "excludedDataFields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "DataElement": {
         "type": "object",
         "properties": {
@@ -4606,6 +4839,24 @@
         },
         "additionalProperties": false
       },
+      "DataField": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "path": {
+            "type": "string",
+            "nullable": true
+          },
+          "dataTypeId": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "DataPatchRequest": {
         "type": "object",
         "properties": {
@@ -4641,6 +4892,86 @@
         },
         "additionalProperties": false
       },
+      "DataType": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "allowedContentTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "allowedContributers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "appLogic": {
+            "$ref": "#/components/schemas/ApplicationLogic"
+          },
+          "taskId": {
+            "type": "string",
+            "nullable": true
+          },
+          "maxSize": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "maxCount": {
+            "type": "integer",
+            "format": "int32",
+            "default": 1
+          },
+          "minCount": {
+            "type": "integer",
+            "format": "int32",
+            "default": 1
+          },
+          "grouping": {
+            "type": "string",
+            "nullable": true
+          },
+          "enablePdfCreation": {
+            "type": "boolean"
+          },
+          "enableFileScan": {
+            "type": "boolean"
+          },
+          "validationErrorOnPendingFileScan": {
+            "type": "boolean"
+          },
+          "enabledFileAnalysers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "enabledFileValidators": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "DeleteStatus": {
         "type": "object",
         "properties": {
@@ -4655,6 +4986,55 @@
         },
         "additionalProperties": false
       },
+      "EFormidlingContract": {
+        "type": "object",
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "nullable": true
+          },
+          "dpfShipmentType": {
+            "type": "string",
+            "nullable": true
+          },
+          "receiver": {
+            "type": "string",
+            "nullable": true
+          },
+          "sendAfterTaskId": {
+            "type": "string",
+            "nullable": true
+          },
+          "process": {
+            "type": "string",
+            "nullable": true
+          },
+          "standard": {
+            "type": "string",
+            "nullable": true
+          },
+          "typeVersion": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "securityLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dataTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "FileScanResult": {
         "enum": [
           "NotApplicable",
@@ -4663,6 +5043,22 @@
           "Infected"
         ],
         "type": "string"
+      },
+      "HideSettings": {
+        "type": "object",
+        "properties": {
+          "hideAlways": {
+            "type": "boolean"
+          },
+          "hideOnTask": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
       },
       "Instance": {
         "type": "object",
@@ -4796,6 +5192,34 @@
         },
         "additionalProperties": false
       },
+      "InstanceSelection": {
+        "type": "object",
+        "properties": {
+          "rowsPerPageOptions": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "nullable": true
+          },
+          "defaultRowsPerPage": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "defaultSelectedOption": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "sortDirection": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "InstanceStatus": {
         "type": "object",
         "properties": {
@@ -4914,6 +5338,55 @@
         },
         "additionalProperties": false
       },
+      "Logo": {
+        "type": "object",
+        "properties": {
+          "displayAppOwnerNameInHeader": {
+            "type": "boolean"
+          },
+          "source": {
+            "type": "string",
+            "nullable": true
+          },
+          "size": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "MessageBoxConfig": {
+        "type": "object",
+        "properties": {
+          "hideSettings": {
+            "$ref": "#/components/schemas/HideSettings"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OnEntry": {
+        "type": "object",
+        "properties": {
+          "show": {
+            "type": "string",
+            "nullable": true
+          },
+          "instanceSelection": {
+            "$ref": "#/components/schemas/InstanceSelection"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OnEntryConfig": {
+        "type": "object",
+        "properties": {
+          "show": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "OperationType": {
         "enum": [
           "Unknown",
@@ -4925,6 +5398,24 @@
           "test"
         ],
         "type": "string"
+      },
+      "PartyTypesAllowed": {
+        "type": "object",
+        "properties": {
+          "bankruptcyEstate": {
+            "type": "boolean"
+          },
+          "organisation": {
+            "type": "boolean"
+          },
+          "person": {
+            "type": "boolean"
+          },
+          "subUnit": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
       },
       "PatchOperation": {
         "type": "object",
@@ -5105,6 +5596,20 @@
             "nullable": true
           },
           "platform": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ShadowFields": {
+        "type": "object",
+        "properties": {
+          "prefix": {
+            "type": "string",
+            "nullable": true
+          },
+          "saveToDataType": {
             "type": "string",
             "nullable": true
           }

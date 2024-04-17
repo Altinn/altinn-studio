@@ -37,7 +37,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="checkOrgApp">Boolean get parameter to skip verification of correct org/app</param>
         /// <returns>Application metadata</returns>
         [HttpGet("{org}/{app}/api/v1/applicationmetadata")]
-        public async Task<IActionResult> GetAction(string org, string app, [FromQuery] bool checkOrgApp = true)
+        public async Task<ActionResult<ApplicationMetadata>> GetAction(string org, string app, [FromQuery] bool checkOrgApp = true)
         {
             ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
 
@@ -60,7 +60,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>XACML policy file</returns>
         [HttpGet("{org}/{app}/api/v1/meta/authorizationpolicy")]
-        public async Task<IActionResult> GetPolicy(string org, string app)
+        public async Task<ActionResult<string>> GetPolicy(string org, string app)
         {
             ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
             try
@@ -90,7 +90,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>BPMN process file</returns>
         [HttpGet("{org}/{app}/api/v1/meta/process")]
-        public async Task<IActionResult> GetProcess(string org, string app)
+        public async Task<ActionResult<string>> GetProcess(string org, string app)
         {
             ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
             string wantedAppId = $"{org}/{app}";
