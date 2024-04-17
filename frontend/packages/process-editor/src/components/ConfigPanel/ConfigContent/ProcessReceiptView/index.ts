@@ -1,0 +1,1 @@
+export { ProcessReceiptView } from './ProcessReceiptView';

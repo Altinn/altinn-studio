@@ -7,10 +7,12 @@ import { getConfigTitleKey, getConfigTitleHelpTextKey } from '../../../utils/con
 import { ConfigIcon } from './ConfigIcon';
 
 import classes from './ConfigContent.module.css';
+import { ProcessReceiptView } from './ProcessReceiptView';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
+  console.log('bpmnDetails', bpmnDetails);
 
   const configHeaderTexts: Record<'title' | 'helpText', string> = {
     title: bpmnDetails?.taskType && t(getConfigTitleKey(bpmnDetails.taskType)),
@@ -30,14 +32,19 @@ export const ConfigContent = (): React.ReactElement => {
           title: t('process_editor.configuration_panel_header_help_text_title'),
         }}
       />
-
-      <EditTaskId className={classes.editTaskId} />
-
-      <StudioDisplayTile
-        label={t('process_editor.configuration_panel_name_label')}
-        value={bpmnDetails.name}
-        className={classes.displayTile}
-      />
+      {/* TODO - Change content when endEvent */}
+      {bpmnDetails.taskType === 'endEvent' ? (
+        <ProcessReceiptView />
+      ) : (
+        <>
+          <EditTaskId className={classes.editTaskId} />
+          <StudioDisplayTile
+            label={t('process_editor.configuration_panel_name_label')}
+            value={bpmnDetails.name}
+            className={classes.displayTile}
+          />
+        </>
+      )}
     </>
   );
 };

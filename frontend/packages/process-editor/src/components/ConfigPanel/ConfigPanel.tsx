@@ -36,7 +36,8 @@ const ConfigPanelContent = (): React.ReactElement => {
     return <ConfigEndEvent />;
   }
 
-  const isSupportedConfig = bpmnDetails.type === BpmnTypeEnum.Task;
+  const isSupportedConfig =
+    bpmnDetails.type === BpmnTypeEnum.Task || bpmnDetails.type === BpmnTypeEnum.EndEvent;
   if (isSupportedConfig) {
     return <ConfigContent />;
   }

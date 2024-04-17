@@ -53,6 +53,7 @@ describe('hookUtils', () => {
 
   describe('getBpmnEditorDetailsFromBusinessObject', () => {
     const mockTypeTask: BpmnTypeEnum = BpmnTypeEnum.Task;
+    const mockTypeEndEvent: BpmnTypeEnum = BpmnTypeEnum.EndEvent;
     const mockId: string = 'mockId';
     const mockName: string = 'mockName';
     const mockTaskTypeData: BpmnTaskType = 'data';
@@ -101,6 +102,19 @@ describe('hookUtils', () => {
           ...mockBpmnExtensionElements,
           values: undefined,
         },
+      };
+      const bpmnDetails: BpmnDetails = getBpmnEditorDetailsFromBusinessObject(bpmnBusinessObject);
+      expect(bpmnDetails.id).toEqual(mockId);
+      expect(bpmnDetails.name).toEqual(mockName);
+      expect(bpmnDetails.type).toEqual(mockTypeTask);
+      expect(bpmnDetails.taskType).toBeNull();
+    });
+
+    it('returns taskType with value "endEvent" when etensionElements are not present and $type is endEvent', () => {
+      const bpmnBusinessObject: BpmnBusinessObjectEditor = {
+        ...mockBpmnBusinessObject,
+        $type: mockTypeEndEvent,
+        extensionElements: undefined,
       };
       const bpmnDetails: BpmnDetails = getBpmnEditorDetailsFromBusinessObject(bpmnBusinessObject);
       expect(bpmnDetails.id).toEqual(mockId);
