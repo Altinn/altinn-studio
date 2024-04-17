@@ -14,16 +14,16 @@ namespace Altinn.App.Core.Features.Validation.Default;
 /// </summary>
 public class ExpressionValidator : IFormDataValidator
 {
-    private readonly ILogger<ExpressionValidator> _logger;
-    private readonly IAppResources _appResourceService;
-    private readonly LayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
-    private readonly IAppMetadata _appMetadata;
-
-    private static readonly JsonSerializerOptions _jsonOptions = new()
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         ReadCommentHandling = JsonCommentHandling.Skip,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
+
+    private readonly ILogger<ExpressionValidator> _logger;
+    private readonly IAppResources _appResourceService;
+    private readonly LayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
+    private readonly IAppMetadata _appMetadata;
 
     /// <summary>
     /// Constructor for the expression validator
@@ -124,7 +124,7 @@ public class ExpressionValidator : IFormDataValidator
     {
         var resolvedDefinition = new RawExpressionValidation();
 
-        var rawDefinition = definition.Deserialize<RawExpressionValidation>(_jsonOptions);
+        var rawDefinition = definition.Deserialize<RawExpressionValidation>(_jsonSerializerOptions);
         if (rawDefinition == null)
         {
             logger.LogError("Validation definition {name} could not be parsed", name);
@@ -199,7 +199,7 @@ public class ExpressionValidator : IFormDataValidator
         }
         else
         {
-            var expressionDefinition = definition.Deserialize<RawExpressionValidation>(_jsonOptions);
+            var expressionDefinition = definition.Deserialize<RawExpressionValidation>(_jsonSerializerOptions);
             if (expressionDefinition == null)
             {
                 logger.LogError("Validation for field {field} could not be parsed", field);

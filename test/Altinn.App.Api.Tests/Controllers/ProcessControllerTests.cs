@@ -27,18 +27,17 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     private static readonly Guid InstanceGuid = new("5a2fa5ec-f97c-4816-b57a-dc78a981917e");
     private static readonly string InstanceId = $"{InstanceOwnerPartyId}/{InstanceGuid}";
     private static readonly Guid DataGuid = new("cd691c32-ae36-4555-8aee-0b7054a413e4");
-
-    // Define mocks
-    private readonly Mock<IDataProcessor> _dataProcessorMock = new(MockBehavior.Strict);
-    private readonly Mock<IFormDataValidator> _formDataValidatorMock = new(MockBehavior.Strict);
-
-    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = true,
         UnknownTypeHandling = JsonUnknownTypeHandling.JsonElement,
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
+
+    // Define mocks
+    private readonly Mock<IDataProcessor> _dataProcessorMock = new(MockBehavior.Strict);
+    private readonly Mock<IFormDataValidator> _formDataValidatorMock = new(MockBehavior.Strict);
 
     // Constructor with common setup
     public ProcessControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper) : base(factory, outputHelper)
@@ -197,7 +196,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
 
             // Verify that data element is locked while pdf is being generated
             var lockedInstanceString = await File.ReadAllTextAsync(dataElementPath);
-            var lockedInstance = JsonSerializer.Deserialize<DataElement>(lockedInstanceString, JsonSerializerOptions)!;
+            var lockedInstance = JsonSerializer.Deserialize<DataElement>(lockedInstanceString, _jsonSerializerOptions)!;
             lockedInstance.Locked.Should().BeTrue();
 
             sendAsyncCalled = true;
@@ -214,7 +213,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
 
         // Verify that the instance is not locked after pdf failed
         var unLockedInstanceString = await File.ReadAllTextAsync(dataElementPath);
-        var unLockedInstance = JsonSerializer.Deserialize<DataElement>(unLockedInstanceString, JsonSerializerOptions)!;
+        var unLockedInstance = JsonSerializer.Deserialize<DataElement>(unLockedInstanceString, _jsonSerializerOptions)!;
         unLockedInstance.Locked.Should().BeFalse();
     }
 

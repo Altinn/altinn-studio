@@ -25,6 +25,14 @@ namespace Altinn.App.Api.Tests.Controllers;
 
 public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true,
+        UnknownTypeHandling = JsonUnknownTypeHandling.JsonElement,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    };
+
     // Define constants
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
@@ -36,15 +44,6 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     // Define mocks
     private readonly Mock<IDataProcessor> _dataProcessorMock = new(MockBehavior.Strict);
     private readonly Mock<IFormDataValidator> _formDataValidatorMock = new(MockBehavior.Strict);
-
-    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = true,
-        UnknownTypeHandling = JsonUnknownTypeHandling.JsonElement,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-    };
-
 
     // Constructor with common setup
     public DataControllerPatchTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
@@ -76,7 +75,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         {
             Patch = patch,
             IgnoredValidators = ignoredValidators,
-        }, JsonSerializerOptions);
+        }, _jsonSerializerOptions);
         _outputHelper.WriteLine(serializedPatch);
         using var updateDataElementContent =
             new StringContent(serializedPatch, System.Text.Encoding.UTF8, "application/json");
@@ -84,9 +83,9 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         var responseString = await response.Content.ReadAsStringAsync();
         using var responseParsedRaw = JsonDocument.Parse(responseString);
         _outputHelper.WriteLine("\nResponse:");
-        _outputHelper.WriteLine(JsonSerializer.Serialize(responseParsedRaw, JsonSerializerOptions));
+        _outputHelper.WriteLine(JsonSerializer.Serialize(responseParsedRaw, _jsonSerializerOptions));
         response.Should().HaveStatusCode(expectedStatus);
-        var responseObject = JsonSerializer.Deserialize<TResponse>(responseString, JsonSerializerOptions)!;
+        var responseObject = JsonSerializer.Deserialize<TResponse>(responseString, _jsonSerializerOptions)!;
         return (response, responseString, responseObject);
     }
 
@@ -465,9 +464,9 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         var responseString = await response.Content.ReadAsStringAsync();
         using var responseParsedRaw = JsonDocument.Parse(responseString);
         _outputHelper.WriteLine("\nResponse:");
-        _outputHelper.WriteLine(JsonSerializer.Serialize(responseParsedRaw, JsonSerializerOptions));
+        _outputHelper.WriteLine(JsonSerializer.Serialize(responseParsedRaw, _jsonSerializerOptions));
         response.Should().HaveStatusCode(HttpStatusCode.OK);
-        var responseObject = JsonSerializer.Deserialize<Skjema>(responseString, JsonSerializerOptions)!;
+        var responseObject = JsonSerializer.Deserialize<Skjema>(responseString, _jsonSerializerOptions)!;
 
         responseObject.Melding!.Random.Should().Be("randomFromDataRead");
 

@@ -19,17 +19,17 @@ namespace Altinn.App.Core.Implementation
     /// </summary>
     public class AppResourcesSI : IAppResources
     {
-        private readonly AppSettings _settings;
-        private readonly IAppMetadata _appMetadata;
-        private readonly IWebHostEnvironment _hostingEnvironment;
-        private readonly ILogger _logger;
-
-        private static readonly JsonSerializerOptions DESERIALIZER_OPTIONS = new()
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
             AllowTrailingCommas = true,
             ReadCommentHandling = JsonCommentHandling.Skip,
             PropertyNameCaseInsensitive = true,
         };
+
+        private readonly AppSettings _settings;
+        private readonly IAppMetadata _appMetadata;
+        private readonly IWebHostEnvironment _hostingEnvironment;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AppResourcesSI"/> class.
@@ -71,7 +71,7 @@ namespace Altinn.App.Core.Implementation
 
             using (FileStream fileStream = new(fullFileName, FileMode.Open, FileAccess.Read))
             {
-                TextResource textResource = (await System.Text.Json.JsonSerializer.DeserializeAsync<TextResource>(fileStream, DESERIALIZER_OPTIONS))!;
+                TextResource textResource = (await System.Text.Json.JsonSerializer.DeserializeAsync<TextResource>(fileStream, _jsonSerializerOptions))!;
                 textResource.Id = $"{org}-{app}-{language}";
                 textResource.Org = org;
                 textResource.Language = language;
@@ -249,7 +249,7 @@ namespace Altinn.App.Core.Implementation
             string? layoutSetsString = GetLayoutSets();
             if (layoutSetsString is not null)
             {
-                return System.Text.Json.JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, DESERIALIZER_OPTIONS);
+                return System.Text.Json.JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, _jsonSerializerOptions);
             }
 
             return null;
@@ -297,7 +297,7 @@ namespace Altinn.App.Core.Implementation
                 var pageBytes = File.ReadAllBytes(Path.Join(folder, page + ".json"));
                 // Set the PageName using AsyncLocal before deserializing.
                 PageComponentConverter.SetAsyncLocalPageName(page);
-                layoutModel.Pages[page] = System.Text.Json.JsonSerializer.Deserialize<PageComponent>(pageBytes.RemoveBom(), DESERIALIZER_OPTIONS) ?? throw new InvalidDataException(page + ".json is \"null\"");
+                layoutModel.Pages[page] = System.Text.Json.JsonSerializer.Deserialize<PageComponent>(pageBytes.RemoveBom(), _jsonSerializerOptions) ?? throw new InvalidDataException(page + ".json is \"null\"");
             }
 
             return layoutModel;

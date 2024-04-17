@@ -15,6 +15,11 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
     /// </summary>
     public class EventsSubscriptionClient : IEventsSubscription
     {
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
         private readonly PlatformSettings _platformSettings;
         private readonly GeneralSettings _generalSettings;
         private readonly HttpClient _client;
@@ -70,7 +75,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                Subscription? subscription = JsonSerializer.Deserialize<Subscription>(content, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+                Subscription? subscription = JsonSerializer.Deserialize<Subscription>(content, _jsonSerializerOptions);
 
                 return subscription ?? throw new NullReferenceException("Successfully added a subscription, but the returned subscription deserialized to null!");
             }

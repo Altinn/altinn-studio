@@ -25,7 +25,7 @@ public class PatchService : IPatchService
     private readonly IValidationService _validationService;
     private readonly IEnumerable<IDataProcessor> _dataProcessors;
 
-    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
         PropertyNameCaseInsensitive = true,
@@ -119,7 +119,7 @@ public class PatchService : IPatchService
     {
         try
         {
-            var model = patchResult.Deserialize(type, JsonSerializerOptions);
+            var model = patchResult.Deserialize(type, _jsonSerializerOptions);
             if (model is null)
             {
                 return "Deserialize patched model returned null";

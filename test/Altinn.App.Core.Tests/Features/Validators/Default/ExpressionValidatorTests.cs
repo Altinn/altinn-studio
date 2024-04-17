@@ -88,7 +88,7 @@ public class ExpressionValidatorTests
 
 public class ExpressionTestAttribute : DataAttribute
 {
-    private static readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         ReadCommentHandling = JsonCommentHandling.Skip,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -105,7 +105,7 @@ public class ExpressionTestAttribute : DataAttribute
             var data = File.ReadAllText(file);
             ExpressionValidationTestModel testCase = JsonSerializer.Deserialize<ExpressionValidationTestModel>(
                 data,
-                JsonSerializerOptions)!;
+                _jsonSerializerOptions)!;
             yield return new object[] { testCase };
         }
     }

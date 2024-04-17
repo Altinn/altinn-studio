@@ -45,6 +45,7 @@ public class ShadowFieldsConverterTests
         Assert.Contains("AltinnSF_", serializedDataWithoutModifier);
 
         var modifier = new IgnorePropertiesWithPrefix("AltinnSF_");
+
         JsonSerializerOptions options = new()
         {
             TypeInfoResolver = new DefaultJsonTypeInfoResolver

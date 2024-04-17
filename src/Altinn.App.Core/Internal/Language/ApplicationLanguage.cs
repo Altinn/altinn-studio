@@ -11,6 +11,11 @@ namespace Altinn.App.Core.Internal.Language
     /// </summary>
     public class ApplicationLanguage : IApplicationLanguage
     {
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
         private readonly AppSettings _settings;
         private readonly ILogger _logger;
 
@@ -34,13 +39,12 @@ namespace Altinn.App.Core.Internal.Language
             var directoryInfo = new DirectoryInfo(pathTextsResourceFolder);
             var textResourceFilesInDirectory = directoryInfo.GetFiles();
             var applicationLanguages = new List<Models.ApplicationLanguage>();
-            JsonSerializerOptions options = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
             foreach (var fileInfo in textResourceFilesInDirectory)
             {
                 await using (FileStream fileStream = new(fileInfo.FullName, FileMode.Open, FileAccess.Read))
                 {
-                    var applicationLanguage = (await JsonSerializer.DeserializeAsync<Models.ApplicationLanguage>(fileStream, options))!;
+                    var applicationLanguage = (await JsonSerializer.DeserializeAsync<Models.ApplicationLanguage>(fileStream, _jsonSerializerOptions))!;
                     applicationLanguages.Add(applicationLanguage);
                 }
             }

@@ -19,6 +19,11 @@ namespace Altinn.App.Api.Controllers
     [ApiController]
     public class PdfController : ControllerBase
     {
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
         private readonly IInstanceClient _instanceClient;
 #pragma warning disable CS0618 // Type or member is obsolete
         private readonly IPdfFormatter _pdfFormatter;
@@ -117,14 +122,12 @@ namespace Altinn.App.Api.Controllers
             string appModelclassRef = _resources.GetClassRefForLogicDataType(dataElement.DataType);
             Type dataType = _appModel.GetModelType(appModelclassRef);
 
-            JsonSerializerOptions options = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-
             string layoutSetsString = _resources.GetLayoutSets();
             LayoutSets? layoutSets = null;
             LayoutSet? layoutSet = null;
             if (!string.IsNullOrEmpty(layoutSetsString))
             {
-                layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, options)!;
+                layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, _jsonSerializerOptions)!;
                 layoutSet = layoutSets.Sets?.FirstOrDefault(t => t.DataType.Equals(dataElement.DataType) && t.Tasks.Contains(taskId));
             }
 
@@ -133,7 +136,7 @@ namespace Altinn.App.Api.Controllers
             LayoutSettings? layoutSettings = null;
             if (!string.IsNullOrEmpty(layoutSettingsFileContent))
             {
-                layoutSettings = JsonSerializer.Deserialize<LayoutSettings>(layoutSettingsFileContent, options)!;
+                layoutSettings = JsonSerializer.Deserialize<LayoutSettings>(layoutSettingsFileContent, _jsonSerializerOptions)!;
             }
 
             // Ensure layoutsettings are initialized in FormatPdf

@@ -53,6 +53,12 @@ public class PageComponentConverterTests
 
 public class PageComponentConverterTestAttribute : DataAttribute
 {
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     public override IEnumerable<object[]> GetData(MethodInfo methodInfo)
     {
         var files = Directory.GetFiles(Path.Join("Models", "page-component-converter-tests"));
@@ -60,7 +66,7 @@ public class PageComponentConverterTestAttribute : DataAttribute
         foreach (var file in files)
         {
             var data = File.ReadAllText(file);
-            var testCase = JsonSerializer.Deserialize<PageComponentConverterTestModel>(data, new JsonSerializerOptions { ReadCommentHandling = JsonCommentHandling.Skip, PropertyNamingPolicy = JsonNamingPolicy.CamelCase })!;
+            var testCase = JsonSerializer.Deserialize<PageComponentConverterTestModel>(data, _jsonSerializerOptions)!;
             yield return new object[] { testCase };
         }
     }

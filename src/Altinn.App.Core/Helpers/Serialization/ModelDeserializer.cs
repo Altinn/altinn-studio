@@ -12,7 +12,7 @@ namespace Altinn.App.Core.Helpers.Serialization
     /// </summary>
     public class ModelDeserializer
     {
-        private static readonly JsonSerializerOptions JSON_SERIALIZER_OPTIONS = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
 
         private readonly ILogger _logger;
         private readonly Type _modelType;
@@ -71,7 +71,7 @@ namespace Altinn.App.Core.Helpers.Serialization
             {
                 using StreamReader reader = new StreamReader(stream, Encoding.UTF8);
                 string content = await reader.ReadToEndAsync();
-                return JsonSerializer.Deserialize(content, _modelType, JSON_SERIALIZER_OPTIONS)!;
+                return JsonSerializer.Deserialize(content, _modelType, _jsonSerializerOptions)!;
             }
             catch (JsonException jsonReaderException)
             {

@@ -9,6 +9,13 @@ namespace Altinn.App.Api.Tests.Data;
 
 public static class TestData
 {
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
+        Converters = { new JsonStringEnumConverter() }
+    };
+
     public static string GetTestDataRootDirectory()
     {
         var assemblyPath = new Uri(typeof(TestData).Assembly.Location).LocalPath;
@@ -185,17 +192,10 @@ public static class TestData
         }
     }
 
-    private static JsonSerializerOptions JsonSerializerOptions => new(JsonSerializerDefaults.Web)
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true,
-        Converters = { new JsonStringEnumConverter() }
-    };
-
     public static async Task<Instance> GetInstance(string org, string app, int instanceOwnerPartyId, Guid instanceGuid)
     {
         var path = GetInstancePath(org, app, instanceOwnerPartyId, instanceGuid);
         var instanceJson = await File.ReadAllTextAsync(path);
-        return JsonSerializer.Deserialize<Instance>(instanceJson, JsonSerializerOptions)!;
+        return JsonSerializer.Deserialize<Instance>(instanceJson, _jsonSerializerOptions)!;
     }
 }

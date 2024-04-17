@@ -18,6 +18,17 @@ namespace Altinn.App.Core.Internal.Process
     /// </summary>
     public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
     {
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+        {
+            AllowTrailingCommas = true,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            PropertyNameCaseInsensitive = true,
+        };
+        private static readonly JsonSerializerOptions _jsonSerializerOptionsCamelCase = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
         private readonly LayoutEvaluatorStateInitializer _layoutStateInit;
         private readonly IAppResources _resources;
         private readonly IAppMetadata _appMetadata;
@@ -101,29 +112,22 @@ namespace Altinn.App.Core.Internal.Process
 
         private static Expression GetExpressionFromCondition(string condition)
         {
-            JsonSerializerOptions options = new()
-            {
-                AllowTrailingCommas = true,
-                ReadCommentHandling = JsonCommentHandling.Skip,
-                PropertyNameCaseInsensitive = true,
-            };
             Utf8JsonReader reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(condition));
             reader.Read();
-            var expressionFromCondition = ExpressionConverter.ReadNotNull(ref reader, options);
+            var expressionFromCondition = ExpressionConverter.ReadNotNull(ref reader, _jsonSerializerOptions);
             return expressionFromCondition;
         }
 
         private LayoutSet? GetLayoutSet(Instance instance)
         {
             string taskId = instance.Process.CurrentTask.ElementId;
-            JsonSerializerOptions options = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
 
             string layoutSetsString = _resources.GetLayoutSets();
             LayoutSet? layoutSet = null;
             if (!string.IsNullOrEmpty(layoutSetsString))
             {
-                LayoutSets? layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, options);
+                LayoutSets? layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, _jsonSerializerOptionsCamelCase);
                 layoutSet = layoutSets?.Sets?.Find(t => t.Tasks.Contains(taskId));
             }
 

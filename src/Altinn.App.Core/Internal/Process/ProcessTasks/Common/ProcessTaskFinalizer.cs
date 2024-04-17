@@ -113,6 +113,7 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
         {
             var modifier = new IgnorePropertiesWithPrefix(dataType.AppLogic.ShadowFields.Prefix);
 
+            // TODO: should cache, like comment says below
 #pragma warning disable CA1869 //Not caching options since dynamic param is being used. Consider dict cache.
             JsonSerializerOptions options = new()
 #pragma warning restore CA1869

@@ -190,6 +190,12 @@ public class TestFunctions
 
 public class SharedTestAttribute : DataAttribute
 {
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
+
     private readonly string _folder;
 
     public SharedTestAttribute(string folder)
@@ -206,13 +212,7 @@ public class SharedTestAttribute : DataAttribute
             var data = File.ReadAllText(file);
             try
             {
-                testCase = JsonSerializer.Deserialize<ExpressionTestCaseRoot>(
-                    data,
-                    new JsonSerializerOptions
-                    {
-                        ReadCommentHandling = JsonCommentHandling.Skip,
-                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    })!;
+                testCase = JsonSerializer.Deserialize<ExpressionTestCaseRoot>(data, _jsonSerializerOptions)!;
             }
             catch (Exception e)
             {

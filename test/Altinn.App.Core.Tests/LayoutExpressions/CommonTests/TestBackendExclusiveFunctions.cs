@@ -95,6 +95,12 @@ public class TestBackendExclusiveFunctions
 
 public class ExclusiveTestAttribute : DataAttribute
 {
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
+
     private readonly string _folder;
 
     public ExclusiveTestAttribute(string folder)
@@ -111,13 +117,7 @@ public class ExclusiveTestAttribute : DataAttribute
             var data = File.ReadAllText(file);
             try
             {
-                testCase = JsonSerializer.Deserialize<ExpressionTestCaseRoot>(
-                    data,
-                    new JsonSerializerOptions
-                    {
-                        ReadCommentHandling = JsonCommentHandling.Skip,
-                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    })!;
+                testCase = JsonSerializer.Deserialize<ExpressionTestCaseRoot>(data, _jsonSerializerOptions)!;
             }
             catch (Exception e)
             {

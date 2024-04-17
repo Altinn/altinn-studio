@@ -12,7 +12,7 @@ namespace Altinn.App.Api.Controllers
     [ApiController]
     public class ApplicationSettingsController : ControllerBase
     {
-        private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
             DictionaryKeyPolicy = JsonNamingPolicy.CamelCase
         };
@@ -43,7 +43,7 @@ namespace Altinn.App.Api.Controllers
                 frontEndSettings.Add(nameof(_appSettings.AppOidcProvider), _appSettings.AppOidcProvider);
             }
 
-            return new JsonResult(frontEndSettings, _serializerOptions);
+            return new JsonResult(frontEndSettings, _jsonSerializerOptions);
         }
     }
 }

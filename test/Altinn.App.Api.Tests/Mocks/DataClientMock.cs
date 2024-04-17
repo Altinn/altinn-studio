@@ -16,7 +16,7 @@ namespace App.IntegrationTests.Mocks.Services
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IAppMetadata _appMetadata;
-        private static readonly JsonSerializerOptions _serializerOptions = new()
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
             WriteIndented = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
@@ -48,7 +48,7 @@ namespace App.IntegrationTests.Mocks.Services
 
                 }
 
-                if (JsonSerializer.Deserialize<DataElement>(fileContent, _serializerOptions) is not DataElement dataElement)
+                if (JsonSerializer.Deserialize<DataElement>(fileContent, _jsonSerializerOptions) is not DataElement dataElement)
                 {
                     throw new Exception($"Unable to deserialize data element for org: {org}/{app} party: {instanceOwnerPartyId} instance: {instanceGuid} data: {dataGuid}. Tried path: {dataElementPath}");
                 }
@@ -373,7 +373,7 @@ namespace App.IntegrationTests.Mocks.Services
         {
             string dataElementPath = TestData.GetDataElementPath(org, app, instanceOwnerPartyId, Guid.Parse(dataElement.InstanceGuid), Guid.Parse(dataElement.Id));
 
-            string jsonData = JsonSerializer.Serialize(dataElement, _serializerOptions);
+            string jsonData = JsonSerializer.Serialize(dataElement, _jsonSerializerOptions);
 
             using StreamWriter sw = new(dataElementPath);
 
@@ -396,7 +396,7 @@ namespace App.IntegrationTests.Mocks.Services
             foreach (string file in files)
             {
                 string content = File.ReadAllText(Path.Combine(path, file));
-                DataElement? dataElement = JsonSerializer.Deserialize<DataElement>(content, _serializerOptions);
+                DataElement? dataElement = JsonSerializer.Deserialize<DataElement>(content, _jsonSerializerOptions);
 
                 if (dataElement != null)
                 {

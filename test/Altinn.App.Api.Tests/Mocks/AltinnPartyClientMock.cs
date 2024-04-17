@@ -8,16 +8,18 @@ namespace Altinn.App.Api.Tests.Mocks;
 
 public class AltinnPartyClientMock : IAltinnPartyClient
 {
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
+    {
+        Converters = { new JsonStringEnumConverter() }
+    };
+
     private readonly string _partyFolder = TestData.GetAltinnProfilePath();
 
     public async Task<Party?> GetParty(int partyId)
     {
         var file = Path.Join(_partyFolder, $"{partyId}.json");
         await using var fileHandle = File.OpenRead(file); // Throws exception if missing (helps with debugging tests)
-        return await JsonSerializer.DeserializeAsync<Party>(fileHandle, new JsonSerializerOptions(JsonSerializerDefaults.Web)
-        {
-            Converters = { new JsonStringEnumConverter() }
-        });
+        return await JsonSerializer.DeserializeAsync<Party>(fileHandle, _jsonSerializerOptions);
     }
 
     public async Task<Party> LookupParty(PartyLookup partyLookup)

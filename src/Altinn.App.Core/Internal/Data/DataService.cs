@@ -8,10 +8,10 @@ namespace Altinn.App.Core.Internal.Data
     /// <inheritdoc/>
     internal class DataService : IDataService
     {
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
+
         private readonly IDataClient _dataClient;
         private readonly IAppMetadata _appMetadata;
-
-        private readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
 
 
         /// <summary>

@@ -11,17 +11,17 @@ namespace Altinn.App.Core.Tests.Helpers;
 
 public class MultiDecisionHelperTests
 {
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        WriteIndented = true
+    };
+
     private readonly ITestOutputHelper _output;
 
     public MultiDecisionHelperTests(ITestOutputHelper output)
     {
         _output = output;
     }
-
-    private static readonly JsonSerializerOptions SerializerOptions = new()
-    {
-        WriteIndented = true
-    };
 
     [Fact]
     public void CreateMultiDecisionRequest_generates_multidecisionrequest_with_all_actions_current_task_elemtnId()
@@ -248,7 +248,7 @@ public class MultiDecisionHelperTests
 
     private static string XacmlJsonRequestRootToString(XacmlJsonRequestRoot request)
     {
-        return JsonSerializer.Serialize(request, SerializerOptions);
+        return JsonSerializer.Serialize(request, _jsonSerializerOptions);
     }
 
     private void CompareWithOrUpdateGoldenFile(string testId, XacmlJsonRequestRoot xacmlJsonRequestRoot)

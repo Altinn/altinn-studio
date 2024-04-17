@@ -18,16 +18,16 @@ namespace Altinn.App.Core.Infrastructure.Clients.Pdf;
 /// </summary>
 public class PdfGeneratorClient : IPdfGeneratorClient
 {
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     private readonly HttpClient _httpClient;
     private readonly PdfGeneratorSettings _pdfGeneratorSettings;
     private readonly PlatformSettings _platformSettings;
     private readonly IUserTokenProvider _userTokenProvider;
     private readonly IHttpContextAccessor _httpContextAccessor;
-
-    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfGeneratorClient"/> class.

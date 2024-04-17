@@ -3,7 +3,6 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
@@ -13,6 +12,8 @@ namespace Altinn.App.Api.Tests.Controllers;
 
 public class ApplicationMetadataControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
+
     private readonly Mock<IAppMetadata> _appMetadataMock = new();
 
     public ApplicationMetadataControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper) : base(factory, outputHelper)
@@ -25,7 +26,7 @@ public class ApplicationMetadataControllerTests : ApiTestBase, IClassFixture<Web
         var org = "tdd";
         var appId = "contributer-restriction";
         var appMetadataSample = $"{{\"id\":\"{org}/{appId}\",\"org\":\"{org}\",\"title\":{{\"nb\":\"Bestillingseksempelapp\"}},\"dataTypes\":[],\"partyTypesAllowed\":{{}},\"extra_Unknown_list\":[3,\"tre\",{{\"verdi\":3}}]}}";
-        var application = JsonSerializer.Deserialize<ApplicationMetadata>(appMetadataSample, new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
+        var application = JsonSerializer.Deserialize<ApplicationMetadata>(appMetadataSample, _jsonSerializerOptions)!;
         _appMetadataMock.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(application);
         OverrideServicesForThisTest = (services) =>
         {

@@ -22,16 +22,16 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
     /// </summary>
     public class PersonClient : IPersonClient
     {
-        private readonly HttpClient _httpClient;
-        private readonly IAppMetadata _appMetadata;
-        private readonly IAccessTokenGenerator _accessTokenGenerator;
-        private readonly IUserTokenProvider _userTokenProvider;
-
-        private readonly JsonSerializerOptions _jsonSerializerOptions = new()
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             PropertyNameCaseInsensitive = true
         };
+
+        private readonly HttpClient _httpClient;
+        private readonly IAppMetadata _appMetadata;
+        private readonly IAccessTokenGenerator _accessTokenGenerator;
+        private readonly IUserTokenProvider _userTokenProvider;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PersonClient"/> class.

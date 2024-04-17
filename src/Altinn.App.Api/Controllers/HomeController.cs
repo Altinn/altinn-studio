@@ -15,6 +15,11 @@ namespace Altinn.App.Api.Controllers
     /// </summary>
     public class HomeController : Controller
     {
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
         private readonly IAntiforgery _antiforgery;
         private readonly PlatformSettings _platformSettings;
         private readonly IWebHostEnvironment _env;
@@ -132,12 +137,11 @@ namespace Altinn.App.Api.Controllers
         private DataType? GetStatelessDataType(ApplicationMetadata application)
         {
             string layoutSetsString = _appResources.GetLayoutSets();
-            JsonSerializerOptions options = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
             // Stateless apps only work with layousets
             if (!string.IsNullOrEmpty(layoutSetsString))
             {
-                LayoutSets? layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, options);
+                LayoutSets? layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, _jsonSerializerOptions);
                 string? dataTypeId = layoutSets?.Sets?.Find(set => set.Id == application.OnEntry?.Show)?.DataType;
                 return application.DataTypes.Find(d => d.Id == dataTypeId);
             }

@@ -27,17 +27,16 @@ public class ValidateControllerValidateInstanceTests : ApiTestBase, IClassFixtur
     private static readonly Guid InstanceGuid = new("3102f61d-1446-4ca5-9fed-3c7c7d67249c");
     private static readonly string InstanceId = $"{InstanceOwnerPartyId}/{InstanceGuid}";
     private static readonly Guid DataGuid = new("5240d834-dca6-44d3-b99a-1b7ca9b862af");
-
-    private readonly Mock<IDataProcessor> _dataProcessorMock = new(MockBehavior.Strict);
-    private readonly Mock<IFormDataValidator> _formDataValidatorMock = new(MockBehavior.Strict);
-
-    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = true,
         UnknownTypeHandling = JsonUnknownTypeHandling.JsonElement,
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
+
+    private readonly Mock<IDataProcessor> _dataProcessorMock = new(MockBehavior.Strict);
+    private readonly Mock<IFormDataValidator> _formDataValidatorMock = new(MockBehavior.Strict);
 
     public ValidateControllerValidateInstanceTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper) : base(factory, outputHelper)
     {
@@ -73,13 +72,13 @@ public class ValidateControllerValidateInstanceTests : ApiTestBase, IClassFixtur
     {
         var responseString = await response.Content.ReadAsStringAsync();
         using var responseParsedRaw = JsonDocument.Parse(responseString);
-        _outputHelper.WriteLine(JsonSerializer.Serialize(responseParsedRaw, JsonSerializerOptions));
+        _outputHelper.WriteLine(JsonSerializer.Serialize(responseParsedRaw, _jsonSerializerOptions));
         return responseString;
 
     }
     private static TResponse ParseResponse<TResponse>(string responseString)
     {
-        return JsonSerializer.Deserialize<TResponse>(responseString, JsonSerializerOptions)!;
+        return JsonSerializer.Deserialize<TResponse>(responseString, _jsonSerializerOptions)!;
     }
 
     [Fact]
