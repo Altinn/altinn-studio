@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Fieldset, Switch } from '@digdir/design-system-react';
 import { AttachmentListContent } from './AttachmentListContent';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +20,11 @@ export const AttachmentListInternalFormat = ({
   const [dataTypesState, setDataTypesState] = useState<InternalDataTypesFormat>(internalDataFormat);
   const [isValid, setIsValid] = useState<boolean>(true);
   const { t } = useTranslation();
+
+  useEffect(() => {
+    setDataTypesState(internalDataFormat);
+    setIsValid(true);
+  }, [internalDataFormat]);
 
   const handleChange = (dataTypes: InternalDataTypesFormat) => {
     setDataTypesState((prev) => ({ ...prev, ...dataTypes }));
