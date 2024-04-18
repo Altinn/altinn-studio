@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, act, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import type { InputPopoverProps } from './InputPopover';
 import { InputPopover } from './InputPopover';
 import userEvent from '@testing-library/user-event';

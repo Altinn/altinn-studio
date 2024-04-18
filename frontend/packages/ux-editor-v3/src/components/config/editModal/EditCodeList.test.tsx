@@ -1,6 +1,6 @@
 import React from 'react';
 import { EditCodeList } from './EditCodeList';
-import { screen, waitFor, act } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import {
   renderWithMockStore,

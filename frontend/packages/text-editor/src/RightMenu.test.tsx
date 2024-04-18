@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitFor, render as rtlRender, act } from '@testing-library/react';
+import { screen, waitFor, render as rtlRender } from '@testing-library/react';
 import { RightMenu } from './RightMenu';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../testing/mocks/i18nMock';
