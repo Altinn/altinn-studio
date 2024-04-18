@@ -438,7 +438,7 @@ namespace Altinn.Studio.Designer.Controllers
                 ModelState.AddModelError($"{resource.Identifier}.availableForType", "resourceerror.missingavailablefortype");
             }
 
-            if (resource.ResourceType == ResourceType.MaskinportenSchema && !(resource.ResourceReferences?.Count((x) => x.ReferenceType == ReferenceType.MaskinportenScope) >= 1))
+            if (resource.ResourceType == ResourceType.MaskinportenSchema && (resource.ResourceReferences == null || resource.ResourceReferences.Count((x) => x.ReferenceType == ReferenceType.MaskinportenScope) < 1))
             {
                 ModelState.AddModelError($"{resource.Identifier}.resourceReferences", "resourceerror.missingmaskinportenscope");
             }
