@@ -234,8 +234,10 @@ export const DeployResourcePage = ({
                   description={t('resourceadm.deploy_version_text')}
                   size='small'
                   value={newVersionText}
-                  onChange={(e) => setNewVersionText(e.target.value)}
-                  onBlur={() => onSaveVersion(newVersionText)}
+                  onChange={(e) => {
+                    setNewVersionText(e.target.value);
+                    onSaveVersion(e.target.value);
+                  }}
                   error={resourceVersionText === ''}
                 />
               </div>
