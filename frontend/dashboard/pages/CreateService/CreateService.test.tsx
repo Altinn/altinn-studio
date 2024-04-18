@@ -247,7 +247,7 @@ describe('CreateService', () => {
     const createBtn: HTMLElement = screen.getByRole('button', {
       name: textMock('dashboard.create_service_btn'),
     });
-    await user.click(createBtn);
+    user.click(createBtn);
 
     expect(addRepoMock).rejects.toEqual({ response: { status: 409 } });
 

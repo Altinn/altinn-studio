@@ -71,7 +71,7 @@ describe('StudioAnimateHeight', () => {
     const { container, rerender } = render({ open: false });
     rerender(<StudioAnimateHeight open />);
     expect(container.firstChild).toHaveClass('openingOrClosing');
-    jest.runAllTimers;
+    act(jest.runAllTimers);
     await waitFor(() => {
       expect(container.firstChild).not.toHaveClass('openingOrClosing');
     });
@@ -82,7 +82,7 @@ describe('StudioAnimateHeight', () => {
     const { container, rerender } = render({ open: true });
     rerender(<StudioAnimateHeight open={false} />);
     expect(container.firstChild).toHaveClass('openingOrClosing');
-    jest.runAllTimers;
+    act(jest.runAllTimers);
     await waitFor(() => {
       expect(container.firstChild).not.toHaveClass('openingOrClosing');
     });
