@@ -144,6 +144,7 @@ export const ResourceNameAndId = ({
                 size='small'
                 icon={<PencilWritingIcon />}
                 iconPlacement='right'
+                aria-label={`${t('general.edit')} ${idLabel}`}
               >
                 {t('general.edit')}
               </StudioButton>
