@@ -1,6 +1,6 @@
 import React from 'react';
 import { EditCodeList } from './EditCodeList';
-import { screen, waitFor, act } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import {
   renderWithProviders,

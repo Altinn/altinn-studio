@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  act,
-  render as rtlRender,
-  screen,
-  waitForElementToBeRemoved,
-} from '@testing-library/react';
+import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { AboutTabProps } from './AboutTab';
 import { AboutTab } from './AboutTab';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';

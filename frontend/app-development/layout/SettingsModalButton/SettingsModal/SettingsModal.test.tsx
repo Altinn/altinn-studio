@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  render as rtlRender,
-  screen,
-  act,
-  waitForElementToBeRemoved,
-} from '@testing-library/react';
+import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { SettingsModalProps } from './SettingsModal';
 import { SettingsModal } from './SettingsModal';

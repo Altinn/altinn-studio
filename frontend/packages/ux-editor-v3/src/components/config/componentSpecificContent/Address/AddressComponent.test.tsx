@@ -5,7 +5,7 @@ import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQ
 import { AddressComponent } from './AddressComponent';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { FormAddressComponent } from '../../../../types/FormComponent';
-import { waitFor, screen, act } from '@testing-library/react';
+import { waitFor, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 // Test data:
