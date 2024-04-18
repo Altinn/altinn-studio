@@ -133,14 +133,17 @@ export const ResourceReferenceFieldset = ({
       >
         <NativeSelect
           size='small'
-          onChange={(event) => setReferenceSource(event.target.value as ResourceReferenceSource)}
+          onChange={(event) => {
+            setReferenceSource(event.target.value as ResourceReferenceSource);
+            onChangeResourceReferenceField({
+              ...resourceReference,
+              referenceSource: event.target.value as ResourceReferenceSource,
+            });
+          }}
           value={referenceSource}
           label={t('resourceadm.about_resource_reference_source')}
           error={hasError}
           onFocus={onFocus}
-          onBlur={() => {
-            onChangeResourceReferenceField({ ...resourceReference, referenceSource });
-          }}
         >
           {referenceSourceOptions.map((opt) => {
             return (
@@ -152,14 +155,17 @@ export const ResourceReferenceFieldset = ({
         </NativeSelect>
         <NativeSelect
           size='small'
-          onChange={(event) => setReferenceType(event.target.value as ResourceReferenceType)}
+          onChange={(event) => {
+            setReferenceType(event.target.value as ResourceReferenceType);
+            onChangeResourceReferenceField({
+              ...resourceReference,
+              referenceType: event.target.value as ResourceReferenceType,
+            });
+          }}
           value={referenceType}
           label={t('resourceadm.about_resource_reference_type')}
           error={hasError}
           onFocus={onFocus}
-          onBlur={() => {
-            onChangeResourceReferenceField({ ...resourceReference, referenceType });
-          }}
         >
           {referenceTypeOptions.map((opt) => {
             return (
