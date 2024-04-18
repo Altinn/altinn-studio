@@ -39,6 +39,23 @@ export const altinnCustomTasks = {
           name: 'action',
           isMany: true,
           isAttr: false,
+          type: 'Action',
+        },
+      ],
+    },
+    {
+      name: 'Action',
+      properties: [
+        {
+          name: 'action',
+          isMany: false,
+          isBody: true,
+          type: 'String',
+        },
+        {
+          name: 'type',
+          isMany: false,
+          isAttr: true,
           type: 'String',
         },
       ],
