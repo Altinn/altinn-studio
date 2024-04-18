@@ -47,12 +47,48 @@ class SupportedPaletteProvider {
             bpmnFactory.create('altinn:TaskExtension', {
               taskType: taskType,
               actions: bpmnFactory.create('altinn:Actions', {
-                action: ['sign', 'reject'],
+                action: [
+                  bpmnFactory.create('altinn:Action', {
+                    action: 'sign',
+                  }),
+                  bpmnFactory.create('altinn:Action', {
+                    action: 'reject',
+                  }),
+                ],
               }),
               signatureConfig: bpmnFactory.create('altinn:SignatureConfig', {
                 dataTypesToSign: bpmnFactory.create('altinn:DataTypesToSign', {
                   dataType: ['Model'],
                 }),
+              }),
+            }),
+          ],
+        });
+
+        modeling.updateProperties(task, {
+          extensionElements,
+        });
+
+        create.start(event, task);
+      };
+    }
+
+    function createCustomConfirmationTask() {
+      const taskType = 'confirmation';
+
+      return function (event) {
+        const task = buildAltinnTask(taskType);
+
+        const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
+          values: [
+            bpmnFactory.create('altinn:TaskExtension', {
+              taskType: taskType,
+              actions: bpmnFactory.create('altinn:Actions', {
+                action: [
+                  bpmnFactory.create('altinn:Action', {
+                    action: 'confirm',
+                  }),
+                ],
               }),
             }),
           ],
@@ -120,14 +156,6 @@ class SupportedPaletteProvider {
             dragstart: createCustomTask('data'),
           },
         },
-        'create.altinn-confirmation-task': {
-          group: 'activity',
-          title: translate('Create Altinn Confirm Task'),
-          className: 'bpmn-icon-task-generic bpmn-icon-confirmation-task',
-          action: {
-            dragstart: createCustomTask('confirmation'),
-          },
-        },
         'create.altinn-feedback-task': {
           group: 'activity',
           title: translate('Create Altinn Feedback Task'),
@@ -142,6 +170,14 @@ class SupportedPaletteProvider {
           title: translate('Create Altinn signing Task'),
           action: {
             dragstart: createCustomSigningTask(),
+          },
+        },
+        'create.altinn-confirmation-task': {
+          group: 'activity',
+          title: translate('Create Altinn Confirm Task'),
+          className: 'bpmn-icon-task-generic bpmn-icon-confirmation-task',
+          action: {
+            dragstart: createCustomConfirmationTask('confirmation'),
           },
         },
         'create.altinn-payment-task': {
