@@ -87,11 +87,11 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
         await handleCommandStackChanged();
       });
 
-      modelerInstance.on('shape.add', (e) => {
+      modelerInstance.on('commandStack.elements.create.postExecuted', (e) => {
         handleShapeAdd(e);
       });
 
-      modelerInstance.on('shape.remove', (e) => {
+      modelerInstance.on('commandStack.elements.delete.postExecuted', (e) => {
         handleShapeRemove(e);
       });
     };

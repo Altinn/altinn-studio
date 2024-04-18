@@ -113,8 +113,8 @@ describe('useBpmnEditor', () => {
     await waitFor(() => expect(saveBpmnMock).toHaveBeenCalledTimes(1));
   });
 
-  it('should call saveBpmn when "shape.add" event is triggered on modelerInstance and taskType is data', () => {
-    const currentEventName = 'shape.add';
+  it('should call saveBpmn when "commandStack.elements.create.postExecuted" event is triggered on modelerInstance and taskType is data', () => {
+    const currentEventName = 'commandStack.elements.create.postExecuted';
     renderUseBpmnEditor(true, currentEventName);
 
     expect(addLayoutSetMock).toHaveBeenCalledTimes(1);
@@ -127,16 +127,14 @@ describe('useBpmnEditor', () => {
   });
 
   it.each(['confirmation', 'signing', 'feedback', 'endEvent'])(
-    'should not call saveBpmn when "shape.add" event is triggered on modelerInstance when taskType is not data',
+    'should not call saveBpmn when "commandStack.elements.create.postExecuted" event is triggered on modelerInstance when taskType is not data',
     (taskType: BpmnTaskType) => {
       const mockBpmnDetailsConfirm: BpmnDetails = {
-        id: 'otherTestId',
-        name: 'mockName',
-        type: BpmnTypeEnum.Task,
+        ...bpmnDetailsMock,
         taskType: taskType,
       };
       (getBpmnEditorDetailsFromBusinessObject as jest.Mock).mockReturnValue(mockBpmnDetailsConfirm);
-      const currentEventName = 'shape.add';
+      const currentEventName = 'commandStack.elements.create.postExecuted';
       renderUseBpmnEditor(true, currentEventName);
 
       expect(addLayoutSetMock).not.toHaveBeenCalled();
@@ -145,9 +143,9 @@ describe('useBpmnEditor', () => {
     },
   );
 
-  it('should call deleteLayoutSet when "shape.remove" event is triggered on modelerInstance', () => {
+  it('should call deleteLayoutSet when "commandStack.elements.delete.postExecuted" event is triggered on modelerInstance', () => {
     (getBpmnEditorDetailsFromBusinessObject as jest.Mock).mockReturnValue(bpmnDetailsMock);
-    const currentEventName = 'shape.remove';
+    const currentEventName = 'commandStack.elements.delete.postExecuted';
     renderUseBpmnEditor(true, currentEventName);
 
     expect(deleteLayoutSetMock).toHaveBeenCalledTimes(1);
