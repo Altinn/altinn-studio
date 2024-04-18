@@ -1,7 +1,6 @@
 using System;
-using System.Runtime.Serialization;
 
-namespace Altinn.Studio.Designer.Exceptions
+namespace Altinn.Studio.Designer.Exceptions.AppDevelopment
 {
     /// <summary>
     /// Indicates that an error occurred during C# code generation.
@@ -23,11 +22,5 @@ namespace Altinn.Studio.Designer.Exceptions
         public InvalidLayoutSetIdException(string message, Exception innerException) : base(message, innerException)
         {
         }
-
-        /// <inheritdoc/>
-        protected InvalidLayoutSetIdException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-        }
-
     }
 }

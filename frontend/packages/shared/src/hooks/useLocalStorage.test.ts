@@ -11,6 +11,15 @@ describe('useLocalStorage', () => {
     expect(result.current[0]).toBe(value);
   });
 
+  it('Gets and parses value on first render only', () => {
+    const key = 'someKey';
+    const getItemSpy = jest.spyOn(window.Storage.prototype, 'getItem').mockImplementation();
+    const { rerender } = renderHook(() => useLocalStorage(key));
+    rerender();
+    expect(getItemSpy).toHaveBeenCalledTimes(1);
+    getItemSpy.mockRestore();
+  });
+
   it('Provides a function that sets the stored value', async () => {
     const key = 'keyThatIsNotYetSet';
     const { result } = renderHook(() => useLocalStorage(key));

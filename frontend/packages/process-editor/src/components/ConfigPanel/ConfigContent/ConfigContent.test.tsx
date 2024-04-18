@@ -27,16 +27,10 @@ const mockBpmnDetails: BpmnDetails = {
 const mockBpmnContextValue: BpmnContextProps = {
   bpmnXml: mockBPMNXML,
   appLibVersion: mockAppLibVersion8,
-  numberOfUnsavedChanges: 0,
-  setNumberOfUnsavedChanges: jest.fn(),
   getUpdatedXml: jest.fn(),
   isEditAllowed: true,
   bpmnDetails: mockBpmnDetails,
   setBpmnDetails: jest.fn(),
-  dataTasksAdded: [],
-  setDataTasksAdded: jest.fn(),
-  dataTasksRemoved: [],
-  setDataTasksRemoved: jest.fn(),
 };
 
 jest.mock('../../../hooks/useBpmnModeler', () => ({

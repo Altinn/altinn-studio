@@ -5,6 +5,7 @@ import { StudioToggleableTextfield } from '@studio/components';
 import { KeyVerticalIcon } from '@studio/icons';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 
+import type { MetaDataForm } from '../../../../contexts/BpmnConfigPanelContext';
 import { useBpmnConfigPanelFormContext } from '../../../../contexts/BpmnConfigPanelContext';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 
@@ -14,7 +15,7 @@ type EditTaskIdProps = HTMLAttributes<HTMLDivElement>;
 export const EditTaskId = ({ ...rest }: EditTaskIdProps): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails, modelerRef, setBpmnDetails } = useBpmnContext();
-  const { setMetaDataForm } = useBpmnConfigPanelFormContext();
+  const { metaDataFormRef } = useBpmnConfigPanelFormContext();
 
   const modelerInstance = modelerRef.current;
   const modeling: Modeling = modelerInstance.get('modeling');
@@ -34,15 +35,19 @@ export const EditTaskId = ({ ...rest }: EditTaskIdProps): React.ReactElement => 
 
     if (newId === bpmnDetails.id) return;
 
-    setMetaDataForm((prevMetaData) => ({
-      ...prevMetaData,
+    const newMetadata: MetaDataForm = {
       taskIdChanges: [
         {
           newId,
           oldId: bpmnDetails.id,
         },
       ],
-    }));
+    };
+    metaDataFormRef.current = Object.assign(
+      {},
+      metaDataFormRef.current, // Current value of metaDataFormRef
+      newMetadata, // New metadata to merge
+    );
     updateId(newId);
   };
 
