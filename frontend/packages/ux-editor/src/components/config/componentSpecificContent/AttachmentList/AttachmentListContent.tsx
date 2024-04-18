@@ -40,7 +40,7 @@ export const AttachmentListContent = ({
         value={selectedDataTypes}
         onValueChange={onChange}
       >
-        {currentAvailableAttachments?.map((attachment, index) => {
+        {currentAvailableAttachments?.map((attachment) => {
           return (
             <Combobox.Option
               key={attachment}
