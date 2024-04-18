@@ -867,6 +867,7 @@
   "resourceadm.about_resource_reference_confirm_delete_button": "Slett referansen",
   "resourceadm.about_resource_reference_delete": "Slett referanse",
   "resourceadm.about_resource_reference_error": "Du må fylle ut alle referanse-feltene",
+  "resourceadm.about_resource_reference_maskinporten_missing": "Minst en referense må være MaskinportenScope",
   "resourceadm.about_resource_reference_source": "Referansekilde",
   "resourceadm.about_resource_reference_type": "Referansetype",
   "resourceadm.about_resource_references": "Ressursreferanse {{index}}",

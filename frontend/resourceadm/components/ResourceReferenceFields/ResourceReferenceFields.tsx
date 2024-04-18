@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import type { ResourceReference } from 'app-shared/types/ResourceAdm';
 import { ResourceReferenceFieldset } from './ResourceReferenceFieldset';
 import { FieldsetWrapper } from '../FieldsetWrapper';
@@ -56,6 +57,8 @@ export const ResourceReferenceFields = ({
   showErrors,
   required,
 }: ResourceReferenceFieldsProps): React.JSX.Element => {
+  const { t } = useTranslation();
+
   const hasMaskinportenScope = resourceReferenceList?.some(
     (ref) => ref.referenceType === 'MaskinportenScope',
   );
@@ -90,7 +93,9 @@ export const ResourceReferenceFields = ({
         }}
       />
       {showErrors && !hasMaskinportenScope && (
-        <InputFieldErrorMessage message='Minst en referense må være maskinportenScope' />
+        <InputFieldErrorMessage
+          message={t('resourceadm.about_resource_reference_maskinporten_missing')}
+        />
       )}
     </div>
   );

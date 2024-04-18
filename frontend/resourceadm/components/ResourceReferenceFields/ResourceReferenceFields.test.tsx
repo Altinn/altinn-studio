@@ -127,4 +127,12 @@ describe('ResourceReferenceFields', () => {
       },
     ]);
   });
+
+  it('should show maskinporten error if no reference is MaskinportenScope', () => {
+    render(<ResourceReferenceFields {...defaultProps} showErrors={true} />);
+
+    expect(
+      screen.getByText(textMock('resourceadm.about_resource_reference_maskinporten_missing')),
+    ).toBeVisible();
+  });
 });
