@@ -120,7 +120,7 @@ describe('AttachmentListComponent', () => {
       'layoutSetId3',
     );
 
-    // Todo: Remove these 2 lines after fixing combobox onChangeValue trigger on initial render, https://github.com/digdir/designsystemet/issues/1640
+    // Todo: Combobox onChangeValue trigger on initial render, this can be fixed when we start to use >v0.55.0 of designsystem. Replace value prop with initialValue prop in combobox
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
     handleComponentChange.mockClear();
 
@@ -156,7 +156,7 @@ describe('AttachmentListComponent', () => {
       'layoutSetId3',
     );
 
-    // Todo: Remove these 2 lines after fixing combobox onChangeValue trigger on initial render, https://github.com/digdir/designsystemet/issues/1640
+    // Todo: Combobox onChangeValue trigger on initial render, this can be fixed when we start to use >v0.55.0 of designsystem. Replace value prop with initialValue prop in combobox
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
     handleComponentChange.mockClear();
 
@@ -194,7 +194,7 @@ describe('AttachmentListComponent', () => {
       'layoutSetId3',
     );
 
-    // Todo: Remove these 2 lines after fixing combobox onChangeValue trigger on initial render, https://github.com/digdir/designsystemet/issues/1640
+    // Todo: Combobox onChangeValue trigger on initial render, this can be fixed when we start to use >v0.55.0 of designsystem. Replace value prop with initialValue prop in combobox
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
     handleComponentChange.mockClear();
 
@@ -219,7 +219,7 @@ describe('AttachmentListComponent', () => {
       'layoutSetId3',
     );
 
-    // Todo: Remove these 2 lines after fixing combobox onChangeValue trigger on initial render, https://github.com/digdir/designsystemet/issues/1640
+    // Todo: Combobox onChangeValue trigger on initial render, this can be fixed when we start to use >v0.55.0 of designsystem. Replace value prop with initialValue prop in combobox
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
     handleComponentChange.mockClear();
 
