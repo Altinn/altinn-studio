@@ -14,6 +14,8 @@ const mockResourceIdInitial: string = 'resource-123';
 const mockResourceTitleAfterChange: string = 'resource 1234';
 const mockResourceIdAfterChange: string = 'resource-1230';
 
+const editLabelText = `${textMock('general.edit')} ${mockIdLabel}`;
+
 describe('ResourceNameAndId', () => {
   const mockHandleEditTitle = jest.fn();
   const mockHandleIdInput = jest.fn();
@@ -42,7 +44,7 @@ describe('ResourceNameAndId', () => {
   it('displays the edit button when isEditOpen is false, and hides the two icon buttons', () => {
     render(<ResourceNameAndId {...defaultProps} />);
 
-    const editButton = screen.getByRole('button', { name: textMock('general.edit') });
+    const editButton = screen.getByRole('button', { name: editLabelText });
     expect(editButton).toBeInTheDocument();
 
     const iconButtonCancel = screen.queryByRole('button', {
@@ -60,7 +62,7 @@ describe('ResourceNameAndId', () => {
     const user = userEvent.setup();
     render(<ResourceNameAndId {...defaultProps} />);
 
-    const editButton = screen.queryByRole('button', { name: textMock('general.edit') });
+    const editButton = screen.queryByRole('button', { name: editLabelText });
     await act(() => user.click(editButton));
 
     const iconButtonCancel = screen.getByRole('button', {
@@ -80,7 +82,7 @@ describe('ResourceNameAndId', () => {
     const user = userEvent.setup();
     render(<ResourceNameAndId {...defaultProps} />);
 
-    const editButton = screen.queryByRole('button', { name: textMock('general.edit') });
+    const editButton = screen.queryByRole('button', { name: editLabelText });
     await act(() => user.click(editButton));
 
     const idInput = screen.getByLabelText(mockIdLabel);
@@ -94,7 +96,7 @@ describe('ResourceNameAndId', () => {
     const user = userEvent.setup();
     render(<ResourceNameAndId {...defaultProps} />);
 
-    const editButton = screen.queryByRole('button', { name: textMock('general.edit') });
+    const editButton = screen.queryByRole('button', { name: editLabelText });
     await act(() => user.click(editButton));
 
     const idInput = screen.getByLabelText(mockIdLabel);
@@ -112,7 +114,7 @@ describe('ResourceNameAndId', () => {
     const user = userEvent.setup();
     render(<ResourceNameAndId {...defaultProps} />);
 
-    const editButton = screen.queryByRole('button', { name: textMock('general.edit') });
+    const editButton = screen.queryByRole('button', { name: editLabelText });
     await act(() => user.click(editButton));
 
     const idInput = screen.getByLabelText(mockIdLabel);
