@@ -1,6 +1,5 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithMockStore } from '../../test/mocks';
-import { act } from '@testing-library/react';
 import { useUpdateLayoutSetMutation } from './useUpdateLayoutSetMutation';
 import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render as rtlRender, screen } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import { SchemaEditorApp } from './SchemaEditorApp';
 import { jsonMetadataMock } from 'app-shared/mocks/datamodelMetadataMocks';
 import { jsonSchemaMock } from '../test/mocks/jsonSchemaMock';

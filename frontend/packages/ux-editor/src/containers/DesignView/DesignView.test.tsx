@@ -1,7 +1,7 @@
 import React from 'react';
 import { formLayoutSettingsMock, renderWithProviders } from '../../testing/mocks';
 import { DesignView } from './DesignView';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { FormItemContextProvider } from '../FormItemContext';
 import { DragAndDrop } from 'app-shared/components/dragAndDrop';

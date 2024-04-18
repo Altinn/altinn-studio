@@ -4,7 +4,6 @@ import userEvent from '@testing-library/user-event';
 import type { NavigationModalProps } from './NavigationModal';
 import { NavigationModal } from './NavigationModal';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { act } from 'react-dom/test-utils';
 
 describe('NavigationModal', () => {
   const mockOnClose = jest.fn();

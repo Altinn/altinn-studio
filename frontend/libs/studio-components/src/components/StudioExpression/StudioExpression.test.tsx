@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen, within } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import type { Expression, LogicalTupleFunc } from './types/Expression';
 import { dataLookupOptions } from './test-data/dataLookupOptions';
 import { texts } from './test-data/texts';

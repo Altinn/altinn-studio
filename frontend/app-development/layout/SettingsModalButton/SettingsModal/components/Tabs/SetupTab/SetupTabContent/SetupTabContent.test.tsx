@@ -11,7 +11,6 @@ import { MemoryRouter } from 'react-router-dom';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { mockAppMetadata } from '../../../../mocks/applicationMetadataMock';
-import { act } from 'react-dom/test-utils';
 import userEvent from '@testing-library/user-event';
 
 const mockOrg: string = 'testOrg';

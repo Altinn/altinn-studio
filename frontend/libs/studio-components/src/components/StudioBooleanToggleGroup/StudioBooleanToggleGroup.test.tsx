@@ -1,6 +1,6 @@
 import type { RefObject } from 'react';
 import React, { createRef } from 'react';
-import { act, render, screen, within } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import type { StudioBooleanToggleGroupProps } from './StudioBooleanToggleGroup';
 import { StudioBooleanToggleGroup } from './StudioBooleanToggleGroup';
 import userEvent from '@testing-library/user-event';

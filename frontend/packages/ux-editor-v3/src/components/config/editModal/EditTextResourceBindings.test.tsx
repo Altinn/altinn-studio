@@ -1,7 +1,7 @@
 import React from 'react';
 import type { EditTextResourceBindingsProps } from './EditTextResourceBindings';
 import { EditTextResourceBindings } from './EditTextResourceBindings';
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import {
   renderHookWithMockStore,
   renderWithMockStore,

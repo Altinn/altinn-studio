@@ -1,6 +1,6 @@
 import React from 'react';
 import { Content } from './Content';
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { FormItemContext } from '../../containers/FormItemContext';

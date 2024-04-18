@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen, render } from '@testing-library/react';
+import { screen, render } from '@testing-library/react';
 import type { TextEntryProps } from './TextEntry';
 import { TextEntry } from './TextEntry';
 import userEvent from '@testing-library/user-event';

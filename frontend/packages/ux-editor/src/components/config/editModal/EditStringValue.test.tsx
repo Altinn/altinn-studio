@@ -6,7 +6,6 @@ import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
 
 const user = userEvent.setup();
 

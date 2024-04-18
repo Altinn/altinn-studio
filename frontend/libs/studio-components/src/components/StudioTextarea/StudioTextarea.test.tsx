@@ -1,6 +1,6 @@
 import type { StudioTextareaProps } from './StudioTextarea';
 import { StudioTextarea } from './StudioTextarea';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import type { RefObject } from 'react';
 import React from 'react';
 import userEvent from '@testing-library/user-event';

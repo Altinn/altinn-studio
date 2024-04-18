@@ -4,7 +4,6 @@ import userEvent from '@testing-library/user-event';
 import type { ImportResourceModalProps } from './ImportResourceModal';
 import { ImportResourceModal } from './ImportResourceModal';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { act } from 'react-dom/test-utils';
 import { MemoryRouter } from 'react-router-dom';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';

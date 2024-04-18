@@ -1,7 +1,7 @@
 import React from 'react';
 import type { StudioTreeViewItemProps } from './StudioTreeViewItem';
 import type { ByRoleOptions } from '@testing-library/react';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { StudioTreeViewItem } from './StudioTreeViewItem';
 import type { TreeViewRootContextProps } from '../StudioTreeViewRoot';
 import { StudioTreeViewRootContext } from '../StudioTreeViewRoot';

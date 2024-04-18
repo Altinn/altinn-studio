@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import type { NewExpressionButtonProps } from './NewExpressionButton';
 import { NewExpressionButton } from './NewExpressionButton';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';

@@ -5,7 +5,7 @@ import {
 } from './SelectAllowedPartyTypes';
 import { mockAppMetadata } from '../../../../mocks/applicationMetadataMock';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
-import { act, render as rtlRender, screen, waitFor } from '@testing-library/react';
+import { render as rtlRender, screen, waitFor } from '@testing-library/react';
 import type { QueryClient } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';

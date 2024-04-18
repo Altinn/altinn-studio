@@ -5,7 +5,7 @@ import { layoutSetsMock } from '../../../../frontend/packages/ux-editor/src/test
 import type { AppPreviewSubMenuProps } from './AppPreviewSubMenu';
 import { AppPreviewSubMenu } from './AppPreviewSubMenu';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryKey } from 'app-shared/types/QueryKey';
 

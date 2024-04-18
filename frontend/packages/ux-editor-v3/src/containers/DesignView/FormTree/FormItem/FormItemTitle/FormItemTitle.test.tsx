@@ -6,7 +6,7 @@ import { componentMocks } from '../../../../../testing/componentMocks';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 import { type FormContainer } from '../../../../../types/FormContainer';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 // Mocks:

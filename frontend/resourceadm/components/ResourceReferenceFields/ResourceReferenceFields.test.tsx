@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import type { ResourceReference } from 'app-shared/types/ResourceAdm';
 import type { ResourceReferenceFieldsProps } from './ResourceReferenceFields';

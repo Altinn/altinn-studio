@@ -2,7 +2,7 @@ import React from 'react';
 import type { StudioTreeViewRootProps } from './';
 import { StudioTreeView } from './';
 import type { ByRoleOptions } from '@testing-library/react';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();

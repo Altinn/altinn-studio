@@ -7,7 +7,6 @@ import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuer
 import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => mockUseTranslation({}),

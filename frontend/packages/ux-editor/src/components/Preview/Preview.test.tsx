@@ -1,6 +1,6 @@
 import React from 'react';
 import { Preview } from './Preview';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import type { ExtendedRenderOptions } from '../../testing/mocks';
 import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '../../../../../testing/mocks/i18nMock';

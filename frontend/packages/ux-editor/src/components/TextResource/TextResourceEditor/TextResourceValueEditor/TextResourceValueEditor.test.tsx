@@ -5,7 +5,7 @@ import { createQueryClientMock, queryClientMock } from 'app-shared/mocks/queryCl
 import type { TextResourceValueEditorProps } from './TextResourceValueEditor';
 import { TextResourceValueEditor } from './TextResourceValueEditor';
 import { renderWithProviders } from '../../../../testing/mocks';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';

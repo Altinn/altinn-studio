@@ -1,7 +1,7 @@
 import React from 'react';
 import type { IResetRepoModalProps } from './ResetRepoModal';
 import { ResetRepoModal } from './ResetRepoModal';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithMockStore } from 'app-development/test/mocks';
 

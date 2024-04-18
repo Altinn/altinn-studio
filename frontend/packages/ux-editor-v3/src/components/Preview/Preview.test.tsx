@@ -1,6 +1,6 @@
 import React, { createRef } from 'react';
 import { Preview } from './Preview';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithMockStore } from '../../testing/mocks';
 import type { IAppState } from '../../types/global';

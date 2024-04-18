@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 
 import { EditNumberValue } from './EditNumberValue';
 import { renderWithProviders, renderHookWithProviders } from '../../../testing/mocks';

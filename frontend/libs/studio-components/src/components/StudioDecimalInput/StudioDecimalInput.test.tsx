@@ -1,6 +1,6 @@
 import type { RefObject } from 'react';
 import React from 'react';
-import { act, render as rtlRender, screen } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import type { StudioDecimalInputProps } from './StudioDecimalInput';
 import { StudioDecimalInput } from './StudioDecimalInput';
 import userEvent from '@testing-library/user-event';

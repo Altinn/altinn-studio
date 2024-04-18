@@ -3,7 +3,6 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { PolicyEditorProps } from './PolicyEditor';
 import { PolicyEditor } from './PolicyEditor';
-import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import type { Policy, RequiredAuthLevel, PolicyEditorUsage } from './types';
 import { mockActions, mockPolicyRules, mockResourecId1, mockSubjects } from './data-mocks';

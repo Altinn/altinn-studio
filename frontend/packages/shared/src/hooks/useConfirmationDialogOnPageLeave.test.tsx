@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render as rtlRender } from '@testing-library/react';
+import { render as rtlRender } from '@testing-library/react';
 import { useConfirmationDialogOnPageLeave } from './useConfirmationDialogOnPageLeave';
 import { RouterProvider, createMemoryRouter, useBeforeUnload } from 'react-router-dom';
 

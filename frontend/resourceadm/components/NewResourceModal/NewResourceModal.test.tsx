@@ -3,7 +3,6 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { NewResourceModalProps } from './NewResourceModal';
 import { NewResourceModal } from './NewResourceModal';
-import { act } from 'react-dom/test-utils'; // Import act if needed
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { MemoryRouter } from 'react-router-dom';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

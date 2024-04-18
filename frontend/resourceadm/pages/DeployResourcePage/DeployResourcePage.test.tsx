@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { DeployResourcePageProps } from './DeployResourcePage';
 import { DeployResourcePage } from './DeployResourcePage';
 import { textMock } from '../../../testing/mocks/i18nMock';
