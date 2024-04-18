@@ -21,7 +21,6 @@ import {
   generateUniqueStringWithNumber,
   insertArrayElementAtPos,
   moveArrayItem,
-  removeItemByValue,
   replaceItemsByValue,
 } from 'app-shared/utils/arrayUtils';
 import { ROOT_POINTER } from './constants';
@@ -356,7 +355,7 @@ export class SchemaModel {
 
   private removeNodeFromParent = (pointer: string): void => {
     const parent = this.getParentNode(pointer);
-    parent.children = removeItemByValue(parent.children, pointer);
+    parent.children = ArrayUtils.removeItemByValue(parent.children, pointer);
   };
 
   public getParentNode(pointer: string): FieldNode | CombinationNode | undefined {
