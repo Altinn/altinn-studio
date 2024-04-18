@@ -43,7 +43,7 @@ export const AttachmentListContent = ({
         {currentAvailableAttachments?.map((attachment, index) => {
           return (
             <Combobox.Option
-              key={index}
+              key={attachment}
               value={attachment}
               description={attachment}
               displayValue={attachment}
