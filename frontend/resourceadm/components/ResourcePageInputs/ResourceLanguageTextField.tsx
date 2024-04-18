@@ -90,8 +90,16 @@ export const ResourceLanguageTextField = ({
 
   const [translations, setTranslations] = useState<SupportedLanguage>(value ?? emptyLanguages);
 
+  const getTrimmedTranslations = (): SupportedLanguage => {
+    return Object.keys(translations).reduce((acc: SupportedLanguage, key) => {
+      return {
+        ...acc,
+        [key]: translations[key].trim(),
+      };
+    }, {} as SupportedLanguage);
+  };
   const onBlurField = () => {
-    onBlur(translations);
+    onBlur(getTrimmedTranslations());
   };
 
   const onChangeNbField = (event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
@@ -111,7 +119,9 @@ export const ResourceLanguageTextField = ({
             value={translations['nb']}
             onChange={onChangeNbField}
             onFocus={onFocus}
-            error={errorText ? getMissingInputLanguageString(translations, errorText, t) : ''}
+            error={
+              errorText ? getMissingInputLanguageString(getTrimmedTranslations(), errorText, t) : ''
+            }
             onBlur={onBlurField}
             rows={5}
             required={required}
@@ -124,7 +134,9 @@ export const ResourceLanguageTextField = ({
             value={translations['nb']}
             onChange={onChangeNbField}
             onFocus={onFocus}
-            error={errorText ? getMissingInputLanguageString(translations, errorText, t) : ''}
+            error={
+              errorText ? getMissingInputLanguageString(getTrimmedTranslations(), errorText, t) : ''
+            }
             onBlur={onBlurField}
             required={required}
           />
