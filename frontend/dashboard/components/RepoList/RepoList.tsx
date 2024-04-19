@@ -154,6 +154,16 @@ export const RepoList = ({
         headerName: t('dashboard.name'),
         width: 200,
         renderCell: TextWithTooltip,
+        valueGetter: (params: GridValueGetterParams) => {
+          const repoFullName = params.row.full_name as string;
+          const [org, repo] = repoFullName.split('/');
+          const editUrl = getRepoEditUrl({ org, repo });
+          return (
+            <a className={classes.nameLink} href={editUrl} title={repo}>
+              {repo}
+            </a>
+          );
+        },
       },
       {
         field: 'owner.created_by',

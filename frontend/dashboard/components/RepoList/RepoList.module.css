@@ -1,7 +1,7 @@
 .actionLink {
   align-items: center;
   display: flex;
-  margin-right: 1rem;
+  margin-right: 0.5rem;
   min-width: 40px;
 }
 
@@ -17,13 +17,26 @@
   font-size: 2rem;
 }
 
+.nameLink {
+  color: rgba(0, 0, 0, 0.87);
+}
+
 .editLink {
-  color: #165db8;
+  margin-right: -0.02rem;
+  color: var(--fds-semantic-text-action-first-default);
 }
 
 .editLink:hover {
-  color: #165db8;
+  color: var(--fds-semantic-text-action-first-default);
 }
+
+/*.editLink {*/
+/*  color: #165db8;*/
+/*}*/
+
+/*.editLink:hover {*/
+/*  color: #165db8;*/
+/*}*/
 
 .favoriteIcon {
   font-size: 26px;
@@ -37,17 +50,26 @@
 }
 
 .repoLink {
-  color: #57823d;
+  color: var(--fds-semantic-text-success-default);
 }
 
 .repoLink:hover {
-  color: #57823d;
+  color: var(--fds-semantic-text-success-default);
 }
+
+/*.repoLink {*/
+/*  color: #57823d;*/
+/*}*/
+
+/*.repoLink:hover {*/
+/*  color: #57823d;*/
+/*}*/
 
 .textWithTooltip {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .columnHeader {
   background-color: white !important;
 }
