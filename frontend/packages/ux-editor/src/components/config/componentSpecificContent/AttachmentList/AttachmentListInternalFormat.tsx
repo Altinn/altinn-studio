@@ -10,12 +10,14 @@ type AttachmentListInternalFormatProps = {
   onChange: (selectedDataTypes: InternalDataTypesFormat) => void;
   availableAttachments: AvailableAttachementLists;
   internalDataFormat: InternalDataTypesFormat;
+  isTaskCustomReceipt: boolean;
 };
 
 export const AttachmentListInternalFormat = ({
   onChange,
   availableAttachments,
   internalDataFormat,
+  isTaskCustomReceipt,
 }: AttachmentListInternalFormatProps) => {
   const [dataTypesState, setDataTypesState] = useState<InternalDataTypesFormat>(internalDataFormat);
   const [isValid, setIsValid] = useState<boolean>(true);
@@ -69,10 +71,15 @@ export const AttachmentListInternalFormat = ({
     availableAttachments,
   );
   const { includePdf, currentTask, selectedDataTypes } = dataTypesState;
+
+  const errorMessage = isTaskCustomReceipt
+    ? t('ux_editor.component_title.AttachmentListOrPdf_error')
+    : t('ux_editor.component_title.AttachmentList_error');
+
   return (
     <Fieldset
       legend={t('ux_editor.component_title.AttachmentList_legend')}
-      error={!isValid && t('ux_editor.component_title.AttachmentList_error')}
+      error={!isValid && errorMessage}
     >
       <Switch
         onChange={(e) => handleCurrentTaskChange(e.target.checked)}
@@ -81,13 +88,15 @@ export const AttachmentListInternalFormat = ({
       >
         {t('ux_editor.component_properties.current_task')}
       </Switch>
-      <Switch
-        onChange={(e) => handleIncludePdfChange(e.target.checked)}
-        size='small'
-        checked={includePdf}
-      >
-        {t('ux_editor.component_properties.select_pdf')}
-      </Switch>
+      {isTaskCustomReceipt && (
+        <Switch
+          onChange={(e) => handleIncludePdfChange(e.target.checked)}
+          size='small'
+          checked={includePdf}
+        >
+          {t('ux_editor.component_properties.select_pdf')}
+        </Switch>
+      )}
       <AttachmentListContent
         currentAvailableAttachments={currentAvailableAttachments}
         selectedDataTypes={ArrayUtils.intersection(selectedDataTypes, currentAvailableAttachments)}

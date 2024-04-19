@@ -34,6 +34,11 @@ const defaultLayoutSets: LayoutSets = {
       dataTypes: 'layoutSetId3',
       tasks: ['Task_3'],
     },
+    {
+      id: 'layoutSetId4',
+      dataTypes: 'layoutSetId4',
+      tasks: ['CustomReceipt'],
+    },
   ],
 };
 
@@ -117,7 +122,7 @@ describe('AttachmentListComponent', () => {
           dataTypeIds: ['test3', 'test4'],
         },
       },
-      'layoutSetId3',
+      'layoutSetId4',
     );
 
     // Todo: Combobox onChangeValue trigger on initial render, this can be fixed when we start to use >v0.55.0 of designsystem. Replace value prop with initialValue prop in combobox
@@ -143,6 +148,23 @@ describe('AttachmentListComponent', () => {
       dataTypeIds: ['test3', 'test4'],
     });
     expect(handleComponentChange).toHaveBeenCalledTimes(2);
+  });
+
+  it('should not display pdf checkbox when current task is not CustomReceipt', async () => {
+    await render(
+      {
+        component: {
+          ...defaultComponent,
+        },
+      },
+      'layoutSetId3',
+    );
+
+    expect(
+      screen.queryByRole('checkbox', {
+        name: textMock('ux_editor.component_properties.select_pdf'),
+      }),
+    ).not.toBeInTheDocument();
   });
 
   it('should save to backend when toggle of current task and output is valid', async () => {
