@@ -4,7 +4,7 @@ namespace AnsattportenPOC;
 
 internal static class ServiceConstants
 {
-    public static string AnsattportenAuthenticationScheme => "oidc";
+    public static string AnsattportenAuthenticationScheme => "AnsattportenOidc";
     public static string AnsattportenAuthorizationPolicy => "AnsattportenAuth";
     public static string CookieScheme => CookieAuthenticationDefaults.AuthenticationScheme;
 

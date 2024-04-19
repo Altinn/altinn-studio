@@ -76,7 +76,6 @@ builder.Services.AddAuthorization(options =>
     );
 });
 
-// OpenIdConnectDefaults.AuthenticationScheme
 builder.Services.AddOpenIdConnectAccessTokenManagement();
 builder
     .Services.AddHttpClient<MaskinportenIntegrationsClient>(client =>
