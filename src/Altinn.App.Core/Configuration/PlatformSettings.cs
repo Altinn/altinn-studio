@@ -44,7 +44,7 @@ namespace Altinn.App.Core.Configuration
         /// <summary>
         /// Gets or sets the url for the Notification API endpoint.
         /// </summary>
-        public string NotificationEndpoint { get; set; } = "http://localhost:5101/notifications/api/v1/";
+        public string ApiNotificationEndpoint { get; set; } = "http://localhost:5101/notifications/api/v1/";
 
         /// <summary>
         /// Gets or sets the subscription key value to use in requests against the platform.
