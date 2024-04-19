@@ -1,6 +1,7 @@
 import type { BpmnDetails } from '../../types/BpmnDetails';
 import type { BpmnBusinessObjectViewer } from '../../types/BpmnBusinessObjectViewer';
 import type { BpmnBusinessObjectEditor } from '../../types/BpmnBusinessObjectEditor';
+import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
 /**
  * Gets the bpmn details from the business object in viewer mode
@@ -43,4 +44,9 @@ export const getBpmnEditorDetailsFromBusinessObject = (
     type: businessObject?.$type,
   };
   return bpmnDetails;
+};
+
+export const getLayoutSetIdFromTaskId = (bpmnDetails: BpmnDetails, layoutSets: LayoutSets) => {
+  const layoutSet = layoutSets.sets.find((set) => set.tasks[0] === bpmnDetails.id);
+  return layoutSet?.id;
 };
