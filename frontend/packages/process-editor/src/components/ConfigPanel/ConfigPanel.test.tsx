@@ -1,6 +1,6 @@
 import React from 'react';
 import { ConfigPanel } from './ConfigPanel';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import type { BpmnContextProps } from '../../contexts/BpmnContext';
 import { BpmnContext } from '../../contexts/BpmnContext';
@@ -10,16 +10,13 @@ import type Modeler from 'bpmn-js/lib/Modeler';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { BpmnApiContextProvider } from '../../contexts/BpmnApiContext';
 import { mockBpmnDetails } from '../../../test/mocks/bpmnDetailsMock';
+import {mockBpmnApiContextValue, mockBpmnContextValue} from "../../../test/mocks/bpmnContextMock";
 
 jest.mock('app-shared/utils/featureToggleUtils', () => ({
   shouldDisplayFeature: jest.fn().mockReturnValue(false),
 }));
 
 describe('ConfigPanel', () => {
-  beforeEach(() => {
-    jest.resetAllMocks();
-  });
-
   it('should render no selected task message', () => {
     renderConfigPanel({ bpmnDetails: null });
     const title = screen.getByRole('heading', {
@@ -34,7 +31,7 @@ describe('ConfigPanel', () => {
     expect(message).toBeInTheDocument();
   });
 
-  it('should render ConfigPanel if bpmn type is task', () => {
+  it('should render ConfigPanel if bpmn type is task', async () => {
     renderConfigPanel({
       modelerRef: { current: { get: () => {} } as unknown as Modeler },
       bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.Task },
@@ -42,7 +39,7 @@ describe('ConfigPanel', () => {
     const editTaskIdButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_change_task_id'),
     });
-    expect(editTaskIdButton).toBeInTheDocument();
+    await act(() => expect(editTaskIdButton).toBeInTheDocument());
   });
 
   it('should display the details about the end event when bpmnDetails.type is "EndEvent" and customizeEndEvent feature flag is enabled', () => {
@@ -71,6 +68,7 @@ describe('ConfigPanel', () => {
       expectedText: 'process_editor.configuration_panel_element_not_supported_message',
     },
   ])('should display correct message based on selected bpmn type', ({ task, expectedText }) => {
+    (shouldDisplayFeature as jest.Mock).mockReturnValue(false);
     renderConfigPanel({
       modelerRef: { current: '' as unknown as Modeler },
       bpmnDetails: { ...mockBpmnDetails, type: task },
