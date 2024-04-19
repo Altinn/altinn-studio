@@ -157,9 +157,14 @@ export const RepoList = ({
         valueGetter: (params: GridValueGetterParams) => {
           const repoFullName = params.row.full_name as string;
           const [org, repo] = repoFullName.split('/');
+          const isDatamodelling = repoFullName.endsWith('-datamodels');
           const editUrl = getRepoEditUrl({ org, repo });
+          const editTextKey = t(
+            isDatamodelling ? 'dashboard.edit_datamodels' : 'dashboard.edit_service',
+          );
+
           return (
-            <a className={classes.nameLink} href={editUrl} title={repo}>
+            <a className={classes.nameLink} href={editUrl} title={editTextKey}>
               {repo}
             </a>
           );
