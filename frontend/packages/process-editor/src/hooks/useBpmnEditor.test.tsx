@@ -8,12 +8,24 @@ import { getBpmnEditorDetailsFromBusinessObject } from '../utils/hookUtils';
 import type { BpmnDetails } from '../types/BpmnDetails';
 import { BpmnTypeEnum } from '../enum/BpmnTypeEnum';
 import type { BpmnTaskType } from '../types/BpmnTaskType';
+import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
+const taskId = 'testId';
+const layoutSetId = 'someLayoutSetId';
 const bpmnDetailsMock: BpmnDetails = {
-  id: 'testId',
+  id: taskId,
   name: 'mockName',
   type: BpmnTypeEnum.Task,
   taskType: 'data',
+};
+
+const layoutSetsMock: LayoutSets = {
+  sets: [
+    {
+      id: layoutSetId,
+      tasks: [taskId],
+    },
+  ],
 };
 
 class BpmnModelerMockImpl {
@@ -40,12 +52,7 @@ class BpmnModelerMockImpl {
 }
 
 jest.mock('../utils/hookUtils', () => ({
-  getBpmnEditorDetailsFromBusinessObject: jest.fn().mockReturnValue({
-    id: 'testId',
-    name: 'mockName',
-    type: 'bpmn:Task',
-    taskType: 'data',
-  }),
+  getBpmnEditorDetailsFromBusinessObject: jest.fn().mockReturnValue({}),
 }));
 
 jest.mock('../contexts/BpmnConfigPanelContext', () => ({
@@ -74,9 +81,7 @@ const overrideUseBpmnContext = () => {
 };
 
 jest.mock('./useBpmnModeler', () => ({
-  useBpmnModeler: jest.fn().mockReturnValue({
-    getModeler: jest.fn(),
-  }),
+  useBpmnModeler: jest.fn().mockReturnValue({}),
 }));
 
 const overrideUseBpmnModeler = (currentEventName: string) => {
@@ -85,12 +90,17 @@ const overrideUseBpmnModeler = (currentEventName: string) => {
   });
 };
 
+const overrideGetBpmnEditorDetailsFromBusinessObject = (bpmnDetails: BpmnDetails) => {
+  (getBpmnEditorDetailsFromBusinessObject as jest.Mock).mockReturnValue(bpmnDetails);
+};
+
 const wrapper = ({ children }) => (
   <BpmnContextProvider appLibVersion={'8.0.0'}>
     <BpmnApiContextProvider
       addLayoutSet={addLayoutSetMock}
       deleteLayoutSet={deleteLayoutSetMock}
       saveBpmn={saveBpmnMock}
+      layoutSets={layoutSetsMock}
     >
       {children}
     </BpmnApiContextProvider>
@@ -129,35 +139,56 @@ describe('useBpmnEditor', () => {
   it.each(['confirmation', 'signing', 'feedback', 'endEvent'])(
     'should not call saveBpmn when "shape.add" event is triggered on modelerInstance when taskType is not data',
     (taskType: BpmnTaskType) => {
-      const mockBpmnDetailsConfirm: BpmnDetails = {
+      const mockBpmnDetailsNotData: BpmnDetails = {
         id: 'otherTestId',
         name: 'mockName',
         type: BpmnTypeEnum.Task,
         taskType: taskType,
       };
-      (getBpmnEditorDetailsFromBusinessObject as jest.Mock).mockReturnValue(mockBpmnDetailsConfirm);
       const currentEventName = 'shape.add';
-      renderUseBpmnEditor(true, currentEventName);
+      renderUseBpmnEditor(true, currentEventName, mockBpmnDetailsNotData);
 
       expect(addLayoutSetMock).not.toHaveBeenCalled();
       expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1);
-      expect(setBpmnDetailsMock).toHaveBeenCalledWith(mockBpmnDetailsConfirm);
+      expect(setBpmnDetailsMock).toHaveBeenCalledWith(mockBpmnDetailsNotData);
     },
   );
 
-  it('should call deleteLayoutSet when "shape.remove" event is triggered on modelerInstance', () => {
-    (getBpmnEditorDetailsFromBusinessObject as jest.Mock).mockReturnValue(bpmnDetailsMock);
-    const currentEventName = 'shape.remove';
-    renderUseBpmnEditor(true, currentEventName);
+  it.each(['data', 'confirmation', 'signing', 'feedback', 'endEvent'])(
+    'should call deleteLayoutSet when "shape.remove" event is triggered on modelerInstance and the task has a connected layout set',
+    (taskType: BpmnTaskType) => {
+      const mockBpmnDetailsWithConnectedLayoutSet: BpmnDetails = {
+        id: taskId,
+        name: 'mockName',
+        type: BpmnTypeEnum.Task,
+        taskType: taskType,
+      };
+      const currentEventName = 'shape.remove';
+      renderUseBpmnEditor(true, currentEventName, mockBpmnDetailsWithConnectedLayoutSet);
 
-    expect(deleteLayoutSetMock).toHaveBeenCalledTimes(1);
-    expect(deleteLayoutSetMock).toHaveBeenCalledWith({ layoutSetIdToUpdate: bpmnDetailsMock.id });
+      expect(deleteLayoutSetMock).toHaveBeenCalledTimes(1);
+      expect(deleteLayoutSetMock).toHaveBeenCalledWith({ layoutSetIdToUpdate: layoutSetId });
+      expect(setBpmnDetailsMock).toHaveBeenCalled();
+      expect(setBpmnDetailsMock).toHaveBeenCalledWith(null);
+    },
+  );
+
+  it('should not call deleteLayoutSet when "shape.remove" event is triggered on modelerInstance and deleted task has no layoutSet', () => {
+    const mockBpmnDetailsWithoutConnectedLayoutSet: BpmnDetails = {
+      id: 'TaskIdNotPresetInLayoutSets',
+      name: 'mockName',
+      type: BpmnTypeEnum.Task,
+      taskType: 'data',
+    };
+    const currentEventName = 'shape.remove';
+    renderUseBpmnEditor(true, currentEventName, mockBpmnDetailsWithoutConnectedLayoutSet);
+
+    expect(deleteLayoutSetMock).not.toHaveBeenCalled();
     expect(setBpmnDetailsMock).toHaveBeenCalled();
     expect(setBpmnDetailsMock).toHaveBeenCalledWith(null);
   });
 
   it('should call setBpmnDetails when "element.click" event is triggered on eventBus', () => {
-    (getBpmnEditorDetailsFromBusinessObject as jest.Mock).mockReturnValue(bpmnDetailsMock);
     const currentEventName = 'element.click';
     renderUseBpmnEditor(true, currentEventName);
 
@@ -169,8 +200,13 @@ describe('useBpmnEditor', () => {
   });
 });
 
-const renderUseBpmnEditor = (overrideBpmnContext: boolean, currentEventName: string) => {
+const renderUseBpmnEditor = (
+  overrideBpmnContext: boolean,
+  currentEventName: string,
+  bpmnDetails = bpmnDetailsMock,
+) => {
   overrideBpmnContext && overrideUseBpmnContext();
+  overrideGetBpmnEditorDetailsFromBusinessObject(bpmnDetails);
   overrideUseBpmnModeler(currentEventName);
   renderHook(() => useBpmnEditor(), { wrapper });
 };
