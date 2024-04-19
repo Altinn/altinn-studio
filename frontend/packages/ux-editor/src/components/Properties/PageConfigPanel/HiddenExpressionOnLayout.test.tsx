@@ -21,6 +21,12 @@ const defaultLayouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };
 
+jest.mock('app-shared/hooks/useDebounce', () => ({
+  useDebounce: jest.fn().mockReturnValue({
+    debounce: jest.fn((fn) => fn()),
+  }),
+}));
+
 describe('HiddenExpressionOnLayout', () => {
   afterEach(() => jest.clearAllMocks());
   it('renders expression builder when layout has no expression set on hidden prop', () => {
@@ -48,7 +54,19 @@ describe('HiddenExpressionOnLayout', () => {
       name: textMock('expression.addSubexpression'),
     });
     await act(() => user.click(addSubExpressionButton));
+
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
+    expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
+      org,
+      app,
+      layout1NameMock,
+      layoutSet,
+      expect.objectContaining({
+        data: expect.objectContaining({
+          hidden: ['equals', 0, 0],
+        }),
+      }),
+    );
   });
 
   it('calls saveLayout when existing expression is changed', async () => {
@@ -66,7 +84,19 @@ describe('HiddenExpressionOnLayout', () => {
       name: textMock('expression.saveAndClose'),
     });
     await act(() => user.click(saveExpressionButton));
+
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
+    expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
+      org,
+      app,
+      layout1NameMock,
+      layoutSet,
+      expect.objectContaining({
+        data: expect.objectContaining({
+          hidden: expression,
+        }),
+      }),
+    );
   });
 
   it('calls saveLayout when expression is deleted', async () => {

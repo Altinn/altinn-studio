@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Models;
 using Altinn.Studio.DataModeling.Metamodel;
-using Altinn.Studio.Designer.Exceptions;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
@@ -17,7 +16,6 @@ using JetBrains.Annotations;
 using Microsoft.AspNetCore.Http;
 using NuGet.Versioning;
 using LayoutSets = Altinn.Studio.Designer.Models.LayoutSets;
-using NonUniqueLayoutSetIdException = Altinn.Studio.Designer.Exceptions.NonUniqueLayoutSetIdException;
 using PlatformStorageModels = Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -271,6 +269,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (layoutSets.Sets.Exists(set => set.Id == newLayoutSet.Id))
             {
                 throw new NonUniqueLayoutSetIdException($"Layout set name, {newLayoutSet.Id}, already exists.");
+            }
+            if (layoutSets.Sets.Exists(set => set.Tasks[0] == newLayoutSet.Tasks[0]))
+            {
+                throw new NonUniqueTaskForLayoutSetException($"Layout set with task, {newLayoutSet.Tasks[0]}, already exists.");
             }
 
             return await AddNewLayoutSet(altinnAppGitRepository, layoutSets, newLayoutSet);
