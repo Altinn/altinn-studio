@@ -3,6 +3,24 @@
   "data": {
     "layout": [
       {
+        "id": "receiptHeader",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Kvittering for betaling for registrering av varemerke"
+        },
+        "size": "h2"
+      },
+      {
+        "id": "instanceInfo",
+        "type": "InstanceInformation",
+        "elements": {
+          "referenceNumber": true,
+          "receiver": true,
+          "sender": true,
+          "dateSent": false
+        }
+      },
+      {
         "id": "test",
         "type": "Payment",
         "renderAsSummary": true,
@@ -21,135 +39,6 @@
         },
         "paymentSettings": {
           "autoForwardToPayment": true
-        }
-      },
-      {
-        "id": "RecipientGroup",
-        "type": "Group",
-        "textResourceBindings": {
-          "title": "Mottaker"
-        },
-        "groupingIndicator": "indented",
-        "children": ["recipientName", "recipientPhone", "recipientAddress", "recipientOrgNumber", "recipientAccountNumber", "recipientEmail"]
-      },
-      {
-        "id": "SenderGroup",
-        "type": "Group",
-        "textResourceBindings": {
-          "title": "Sender"
-        },
-        "groupingIndicator": "indented",
-        "children": ["senderName", "senderPhone", "senderAddress", "senderOrgNumber", "senderAltinnReference", "senderEmail"]
-      },
-      {
-        "id": "recipientName",
-        "type": "Paragraph",
-        "textResourceBindings": {
-          "title": "<b>Navn:</b><br/>Patentstyret"
-        },
-        "grid": {
-          "md": 6
-        }
-      },
-      {
-        "id": "recipientPhone",
-        "type": "Paragraph",
-        "textResourceBindings": {
-          "title": "<b>Telefon:</b><br/>22 38 73 00"
-        },
-        "grid": {
-          "md": 6
-        }
-      },
-      {
-        "id": "recipientAddress",
-        "type": "Paragraph",
-        "textResourceBindings": {
-          "title": "<b>Adresse:</b><br/>Postboks 8160 Dep, 0033 Oslo"
-        },
-        "grid": {
-          "md": 6
-        }
-      },
-      {
-        "id": "recipientOrgNumber",
-        "type": "Paragraph",
-        "textResourceBindings": {
-          "title": "<b>Organisasjonsnummer:</b><br/>910065203"
-        },
-        "grid": {
-          "md": 6
-        }
-      },
-      {
-        "id": "recipientAccountNumber",
-        "type": "Paragraph",
-        "textResourceBindings": {
-          "title": "<b>Kontonummer:</b><br/>8276.03.00078 "
-        },
-        "grid": {
-          "md": 6
-        }
-      },
-      {
-        "id": "recipientEmail",
-        "type": "Paragraph",
-        "textResourceBindings": {
-          "title": "<b>E-post:</b><br/>post@patentstyret.no"
-        },
-        "grid": {
-          "md": 6
-        }
-      },
-      {
-        "id": "senderName",
-        "type": "Paragraph",
-        "textResourceBindings": {
-          "title": "<b>Navn:</b><br/>Test Testesen"
-        },
-        "grid": {
-          "md": 6
-        }
-      },
-      {
-        "id": "senderPhone",
-        "type": "Paragraph",
-        "textResourceBindings": {
-          "title": "<b>Telefon:</b><br/>12345678"
-        },
-        "grid": {
-          "md": 6
-        }
-      },
-      {
-        "id": "senderAddress",
-        "type": "Paragraph",
-        "textResourceBindings": {
-          "title": "<b>Adresse:</b><br/>Testveien 1, 1234 Testby"
-        },
-        "grid": {
-          "md": 6
-        }
-      },
-      {
-        "id": "recipientOrgNumber",
-        "type": "Paragraph",
-        "textResourceBindings": {
-          "title": "<b>Organisasjonsnummer:</b><br/>910065203"
-        }
-      },
-      {
-        "id": "senderEmail",
-        "type": "Paragraph",
-        "textResourceBindings": {
-          "title": "<b>E-post:</b><br/>post@patentstyret.no"
-        }
-      },
-      {
-        "id": "senderAltinnReference",
-        "type": "Paragraph",
-        "textResourceBindings": {
-          "title": "<b>Altinn-referanse:</b><br/>ALTINN2454"
         }
       },
       {
