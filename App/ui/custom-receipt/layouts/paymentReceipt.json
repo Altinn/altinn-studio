@@ -25,7 +25,7 @@
         "type": "Payment",
         "renderAsSummary": true,
         "textResourceBindings": {
-          "title": "test",
+          "title": "Oppsummering",
           "receiptOrgName": "Test Org",
           "receiptOrgNumber": "123456789",
           "receiptBankAcountNumber": "12345678901",
