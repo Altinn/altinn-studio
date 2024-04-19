@@ -50,9 +50,6 @@ jest.mock('../../../hooks/useBpmnModeler', () => ({
 }));
 
 describe('ConfigContent', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
   it('should render heading for selected task', () => {
     renderConfigContent();
     expect(

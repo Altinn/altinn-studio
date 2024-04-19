@@ -9,6 +9,7 @@ import {
   BpmnApiContextProvider,
 } from '../../../../contexts/BpmnApiContext';
 import { mockBpmnDetails } from '../../../../../test/mocks/bpmnDetailsMock';
+import {mockModelerRef} from "../../../../../test/mocks/bpmnModelerMock";
 
 const mockBpmnApiContextValue: Partial<BpmnApiContextProps> = {
   layoutSets: {
@@ -36,13 +37,7 @@ const renderEditTaskId = (children: React.ReactNode) => {
 const setBpmnDetailsMock = jest.fn();
 jest.mock('../../../../contexts/BpmnContext', () => ({
   useBpmnContext: () => ({
-    modelerRef: {
-      current: {
-        get: () => ({
-          updateProperties: jest.fn(),
-        }),
-      },
-    },
+    modelerRef: mockModelerRef,
     setBpmnDetails: setBpmnDetailsMock,
     bpmnDetails: mockBpmnDetails,
   }),

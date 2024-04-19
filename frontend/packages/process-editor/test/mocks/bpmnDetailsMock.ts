@@ -10,15 +10,17 @@ export const mockBpmnElement: ModdleElement = {
     extensionElements: {
       values: [
         {
-          actions: [
-            {
-              action: 'write',
-            },
-            {
-              action: 'myServerAction',
-              type: 'serverAction',
-            },
-          ],
+          actions: {
+            action: [
+              {
+                action: 'write',
+              },
+              {
+                action: 'myServerAction',
+                type: 'serverAction',
+              },
+            ]
+          }
         },
       ],
     },
