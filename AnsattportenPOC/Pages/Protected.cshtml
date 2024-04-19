@@ -1,0 +1,49 @@
+﻿@page
+@using Microsoft.AspNetCore.Authentication
+@using System.Text.Json
+@using System.Xml
+@model ProtectedModel
+@{
+    ViewData["Title"] = "Protected page";
+    var jsonFormatter = new JsonSerializerOptions() { WriteIndented = true };
+}
+<h1>@ViewData["Title"]</h1>
+
+<p>🔐 This page is protected with Ansattporten</p>
+
+<h2>Identity</h2>
+<div class="group">
+    <h4>User claims</h4>
+    <pre>
+        @{
+            var claims = User.Claims.ToDictionary(x => x.Type, y => y.Value);
+            <text>@JsonSerializer.Serialize(claims, jsonFormatter)</text>
+        }
+    </pre>
+    
+    <h4>Authentication properties</h4>
+    <pre>
+        @{
+            var props = (await HttpContext.AuthenticateAsync()).Properties.Items;
+            <text>@JsonSerializer.Serialize(props, jsonFormatter)</text>
+        }
+    </pre>
+</div>
+
+<h2>API calls</h2>
+<div class="group">
+    <p>The below calls were completed using the access_token from the current authentication (above)</p>
+    <h4>Available Maskinporten scopes</h4>
+    <pre>
+    @{
+        if (Model.AvailableScopes.Count == 0)
+        {
+            <text>error</text>
+        }
+        else
+        {
+            <text>@JsonSerializer.Serialize(Model.AvailableScopes, jsonFormatter)</text>
+        }
+    }
+    </pre>
+</div>
