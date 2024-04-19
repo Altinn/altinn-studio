@@ -46,6 +46,10 @@ export const AttachmentListComponent = ({
     });
   };
 
+  const isTaskCustomReceipt = layoutSets?.sets
+    .find((layoutSet) => layoutSet.id === selectedFormLayoutSetName)
+    ?.tasks.includes('CustomReceipt');
+
   const { dataTypeIds = [] } = component || {};
   const internalDataFormat = convertExternalToInternalFormat(availableAttachments, dataTypeIds);
 
@@ -54,6 +58,7 @@ export const AttachmentListComponent = ({
       onChange={handleChange}
       availableAttachments={availableAttachments}
       internalDataFormat={internalDataFormat}
+      isTaskCustomReceipt={isTaskCustomReceipt}
     />
   );
 };
