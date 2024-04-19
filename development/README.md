@@ -2,7 +2,7 @@
 
 ## Setup script
 
-Run the setup script in this folder with node. This script should be immutable, so that it can be run multiple times
+Run the setup script in this folder with node. This script should be idempotent, so that it can be run multiple times
 without breaking anything. This is great for introducing new environment variables and so on. It will not overwrite
 any changes you do to the `.env`-file, and it's wise to run this after you change something.
 Then, for instance, it will update passwords and ownership in Gitea for that user.
