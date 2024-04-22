@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
@@ -73,15 +74,51 @@ namespace Altinn.Studio.Designer.Controllers
         [Authorize]
         [HttpPost]
         [Route("repo/{org}/copy-app")]
-        public async Task<ActionResult<RepositoryModel>> CopyApp(string org, [FromQuery] string sourceRepository, [FromQuery] string targetRepository)
+        public async Task<IActionResult> CopyApp(string org, [FromQuery] string sourceRepository, [FromQuery] string targetRepository, [FromQuery] string targetOrg = null)
         {
+            (bool isValid, IActionResult errorResponse) = await IsValidCopyAppRequestAsync(org, sourceRepository, targetRepository, targetOrg);
+            if (!isValid)
+            {
+                return errorResponse;
+            }
+
+            targetOrg ??= org;
+
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+            try
+            {
+                RepositoryModel repo = await _repository.CopyRepository(org, sourceRepository, targetRepository, developer, targetOrg);
+
+                if (repo.RepositoryCreatedStatus == HttpStatusCode.Created)
+                {
+                    return Created(repo.CloneUrl, repo);
+                }
+
+                await _repository.DeleteRepository(targetOrg, targetRepository);
+                return StatusCode((int)repo.RepositoryCreatedStatus);
+            }
+            catch (Exception e)
+            {
+                await _repository.DeleteRepository(targetOrg, targetRepository);
+                return StatusCode(500, e);
+            }
+        }
+
+
+        private async Task<(bool IsValid, IActionResult ErrorResponse)> IsValidCopyAppRequestAsync(string org, string sourceRepository, string targetRepository, string targetOrg)
+        {
+            if (!string.IsNullOrWhiteSpace(targetOrg) && !Regex.IsMatch(org, "^[a-zA-Z0-9][a-zA-Z0-9-_\\.]*$"))
+            {
+                return (false, BadRequest($"{targetOrg} is not a valid name for an organization."));
+            }
             try
             {
                 Guard.AssertValidAppRepoName(targetRepository);
             }
             catch (ArgumentException)
             {
-                return BadRequest($"{targetRepository} is an invalid repository name.");
+                return (false, BadRequest($"{targetRepository} is an invalid repository name."));
             }
 
             try
@@ -90,35 +127,19 @@ namespace Altinn.Studio.Designer.Controllers
             }
             catch (ArgumentException)
             {
-                return BadRequest($"{sourceRepository} is an invalid repository name.");
+                return (false, BadRequest($"{sourceRepository} is an invalid repository name."));
             }
 
-            var existingRepo = await _giteaApi.GetRepository(org, targetRepository);
+            string repoToCheck = targetOrg ?? org;
+
+            var existingRepo = await _giteaApi.GetRepository(repoToCheck, targetRepository);
 
             if (existingRepo != null)
             {
-                return StatusCode(409);
+                return (false, Conflict());
             }
 
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
-            try
-            {
-                RepositoryModel repo = await _repository.CopyRepository(org, sourceRepository, targetRepository, developer);
-
-                if (repo.RepositoryCreatedStatus == HttpStatusCode.Created)
-                {
-                    return Created(repo.CloneUrl, repo);
-                }
-
-                await _repository.DeleteRepository(org, targetRepository);
-                return StatusCode((int)repo.RepositoryCreatedStatus);
-            }
-            catch (Exception e)
-            {
-                await _repository.DeleteRepository(org, targetRepository);
-                return StatusCode(500, e);
-            }
+            return (true, null);
         }
 
         /// <summary>
