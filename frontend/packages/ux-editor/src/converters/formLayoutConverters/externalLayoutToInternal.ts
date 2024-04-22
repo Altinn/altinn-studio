@@ -56,6 +56,7 @@ const convertExternalData = (externalData: ExternalData): InternalLayoutData => 
 const getCustomDataProperties = (externalData: ExternalData) => {
   const customProperties = { ...externalData };
   delete customProperties.layout;
+  delete customProperties.hidden;
   return customProperties;
 };
 

@@ -14,6 +14,19 @@ describe('externalLayoutToInternal', () => {
     expect(result).toEqual(internalLayoutWithMultiPageGroup);
   });
 
+  it('Does not convert set properties as custom properties', () => {
+    const externalLayout: ExternalFormLayout = {
+      $schema: layoutSchemaUrl(),
+      data: {
+        layout: [],
+        hidden: true,
+      },
+    };
+    const result = externalLayoutToInternal(externalLayout);
+    expect(result.customRootProperties).toEqual({});
+    expect(result.customDataProperties).toEqual({});
+  });
+
   it('Returns an empty layout if the external layout is null', () => {
     const result = externalLayoutToInternal(null);
     expect(result).toEqual(createEmptyLayout());
