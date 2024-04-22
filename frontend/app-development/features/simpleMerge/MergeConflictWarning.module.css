@@ -6,6 +6,6 @@
   border: 1px solid #c9c9c9;
   border-radius: 3px;
 }
-.buttonContainer {
+.actionButtonContainer {
   justify-content: flex-end;
 }

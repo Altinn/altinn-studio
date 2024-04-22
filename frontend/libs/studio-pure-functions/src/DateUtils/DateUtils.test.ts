@@ -11,7 +11,7 @@ test('that formatTimeHHmm works', () => {
 });
 
 test('that formatDateDDMMYY works', () => {
-  const formatted = DateUtils.formatDateDDMMYY(
+  const formatted = DateUtils.formatDateDDMMYYYY(
     'Tue Jan 10 2023 13:23:45 GMT+0100 (Central European Standard Time)',
     'Europe/Oslo',
   );

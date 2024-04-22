@@ -214,8 +214,8 @@ export const RepoList = ({
 
           return [
             <GridActionsCellItem
-              className={cn(classes.actionLink, classes.repoLink)}
-              icon={<i className={cn('fa fa-gitea', classes.linkIcon, classes.repoLink)} />}
+              className={cn(classes.actionLink, classes.repoIcon)}
+              icon={<i className={cn('fa fa-gitea', classes.linkIcon, classes.repoIcon)} />}
               key={`dashboard.repository${params.row.id}`}
               label={t('dashboard.repository_in_list', { appName: repo })}
               onClick={() => (window.location.href = params.row.html_url)}
@@ -238,7 +238,7 @@ export const RepoList = ({
               <a
                 key={params.row.id}
                 href={params.row.html_url}
-                className={cn(classes.actionLink, classes.repoLink)}
+                className={cn(classes.actionLink, classes.repoIcon)}
               >
                 <span>{t(editTextKey)}</span>
                 <PencilIcon className={classes.linkIcon} />

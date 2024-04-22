@@ -9,7 +9,7 @@
   margin-top: 0;
 }
 
-.buttonContainer {
+.actionButtonContainer {
   display: flex;
   flex-direction: row;
   gap: var(--fds-spacing-2);

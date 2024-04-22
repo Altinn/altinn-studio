@@ -1,69 +1,59 @@
-.actionLink {
-  align-items: center;
-  display: flex;
-  margin-right: 0.5rem;
-  min-width: 40px;
+.repoList {
+  width: 100%;
+
+  > * > * > * {
+    border-color: var(--fds-semantic-border-action-second-subtle);
+  }
+
+  /*To be removed*/
+  margin-bottom: 100px;
 }
 
-.actionLink:hover {
-  text-decoration: none;
+.bodyRow {
+  cursor: pointer;
 }
-
-.actionLink:hover span {
-  text-decoration: underline;
-}
-
-.dropdownIcon {
-  font-size: 2rem;
-}
-
-.nameLink {
-  color: rgba(0, 0, 0, 0.87);
-}
-
-.editLink {
-  margin-right: -0.02rem;
-  color: var(--fds-semantic-text-action-first-default);
-}
-
-.editLink:hover {
-  color: var(--fds-semantic-text-action-first-default);
-}
-
-/*.editLink {*/
-/*  color: #165db8;*/
-/*}*/
-
-/*.editLink:hover {*/
-/*  color: #165db8;*/
-/*}*/
 
 .favoriteIcon {
   font-size: 26px;
   color: #000000;
 }
 
-.linkIcon {
+.favoriteCell {
+  width: 40px;
+}
+
+.actionButtonContainer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.repoButton {
+  margin-right: 9px;
+}
+
+.repoIcon {
   font-size: 2rem;
-  height: 32px;
-  width: 32px;
+  color: #57823d;
+  padding-right: 7px;
+  padding-bottom: 5px;
 }
 
-.repoLink {
-  color: var(--fds-semantic-text-success-default);
+.repoIcon:hover {
+  color: #57823d;
 }
 
-.repoLink:hover {
-  color: var(--fds-semantic-text-success-default);
+.dropdownIcon,
+.dropdownText {
+  color: var(--fds-semantic-text-neutral-subtle);
+
+  a {
+    color: var(--fds-semantic-text-neutral-subtle);
+  }
 }
 
-/*.repoLink {*/
-/*  color: #57823d;*/
-/*}*/
-
-/*.repoLink:hover {*/
-/*  color: #57823d;*/
-/*}*/
+.dropdownText:hover {
+  color: var(--fds-semantic-text-neutral-subtle);
+}
 
 .textWithTooltip {
   overflow: hidden;

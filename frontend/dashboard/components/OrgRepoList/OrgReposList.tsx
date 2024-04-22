@@ -11,6 +11,7 @@ import { Heading } from '@digdir/design-system-react';
 import { DATAGRID_DEFAULT_PAGE_SIZE } from 'dashboard/constants';
 import { useAugmentReposWithStarred } from 'dashboard/hooks/useAugmentReposWithStarred';
 import { useStarredReposQuery } from 'dashboard/hooks/queries';
+import { NewRepoList } from '../RepoList/NewRepoList';
 
 type OrgReposListProps = {
   user: User;
@@ -42,6 +43,7 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
       <Heading level={2} size='small' spacing>
         {getReposLabel({ selectedContext, orgs: organizations, t })}
       </Heading>
+      <NewRepoList repos={reposWithStarred.filter((repo) => !repo.name.endsWith('-datamodels'))} />
       <RepoList
         repos={reposWithStarred.filter((repo) => !repo.name.endsWith('-datamodels'))}
         isLoading={isLoadingSearchResults || areStarredReposPending}
