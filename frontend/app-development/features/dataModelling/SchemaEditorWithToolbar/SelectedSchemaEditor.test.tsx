@@ -3,7 +3,7 @@ import { renderWithMockStore } from '../../../test/mocks';
 import type { SelectedSchemaEditorProps } from './SelectedSchemaEditor';
 import { SelectedSchemaEditor } from './SelectedSchemaEditor';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { act, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import {
@@ -104,7 +104,7 @@ describe('SelectedSchemaEditor', () => {
     await user.click(button);
     expect(saveDatamodel).not.toHaveBeenCalled();
 
-    act(() => jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS));
+    await waitFor(() => jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS));
     await waitFor(() => expect(saveDatamodel).toHaveBeenCalledTimes(1));
     expect(saveDatamodel).toHaveBeenCalledWith(org, app, model1Path, dataMock);
   });

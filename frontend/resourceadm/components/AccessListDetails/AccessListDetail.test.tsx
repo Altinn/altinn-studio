@@ -1,6 +1,6 @@
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -45,7 +45,7 @@ describe('AccessListDetail', () => {
 
     const nameField = screen.getByLabelText(textMock('resourceadm.listadmin_list_name'));
     await user.type(nameField, ' change');
-    await nameField.blur();
+    await waitFor(() => nameField.blur());
 
     expect(updateAccessListMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, {
       ...defaultProps.list,
@@ -61,7 +61,7 @@ describe('AccessListDetail', () => {
       textMock('resourceadm.listadmin_list_description'),
     );
     await user.type(descriptionField, ' change');
-    await descriptionField.blur();
+    await waitFor(() => descriptionField.blur());
 
     expect(updateAccessListMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, {
       ...defaultProps.list,
@@ -77,7 +77,7 @@ describe('AccessListDetail', () => {
       textMock('resourceadm.listadmin_list_description'),
     );
     await user.clear(descriptionField);
-    await descriptionField.blur();
+    await waitFor(() => descriptionField.blur());
 
     expect(updateAccessListMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, {
       ...defaultProps.list,

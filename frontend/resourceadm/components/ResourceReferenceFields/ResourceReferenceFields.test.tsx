@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import type { ResourceReference } from 'app-shared/types/ResourceAdm';
@@ -83,7 +83,7 @@ describe('ResourceReferenceFields', () => {
 
     const referenceField = screen.getByLabelText(textMock('resourceadm.about_resource_reference'));
     await user.type(referenceField, mockReferenceInput);
-    await referenceField.blur();
+    await waitFor(() => referenceField.blur());
 
     expect(mockOnResourceReferenceFieldChanged).toHaveBeenCalledWith([
       {
@@ -99,7 +99,7 @@ describe('ResourceReferenceFields', () => {
 
     const typeField = screen.getByLabelText(textMock('resourceadm.about_resource_reference_type'));
     await user.selectOptions(typeField, 'ServiceEditionCode');
-    await typeField.blur();
+    await waitFor(() => typeField.blur());
 
     expect(mockOnResourceReferenceFieldChanged).toHaveBeenCalledWith([
       {
@@ -117,7 +117,7 @@ describe('ResourceReferenceFields', () => {
       textMock('resourceadm.about_resource_reference_source'),
     );
     await user.selectOptions(sourceField, 'Altinn3');
-    await sourceField.blur();
+    await waitFor(() => sourceField.blur());
 
     expect(mockOnResourceReferenceFieldChanged).toHaveBeenCalledWith([
       {

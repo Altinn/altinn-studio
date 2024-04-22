@@ -1,6 +1,6 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithMockStore } from '../../test/mocks';
-import { act, waitFor } from '@testing-library/react';
+import { waitFor } from '@testing-library/react';
 import { useAddLayoutSetMutation } from './useAddLayoutSetMutation';
 import type { LayoutSetConfig, LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -19,10 +19,12 @@ describe('useAddLayoutSetMutation', () => {
   it('Calls useAddLayoutSetMutation with correct arguments and payload', async () => {
     const addLayoutSetResult = renderHookWithMockStore()(() => useAddLayoutSetMutation(org, app))
       .renderHookResult.result;
-    await addLayoutSetResult.current.mutateAsync({
-      layoutSetIdToUpdate: layoutSetIdToUpdate,
-      layoutSetConfig: layoutSet,
-    });
+    await waitFor(() =>
+      addLayoutSetResult.current.mutateAsync({
+        layoutSetIdToUpdate: layoutSetIdToUpdate,
+        layoutSetConfig: layoutSet,
+      }),
+    );
     expect(addLayoutSetResult.current.isSuccess).toBe(true);
 
     expect(queriesMock.addLayoutSet).toHaveBeenCalledTimes(1);
@@ -41,12 +43,10 @@ describe('useAddLayoutSetMutation', () => {
       queryClientMock,
     )(() => useAddLayoutSetMutation(org, app)).renderHookResult.result;
     await waitFor(() =>
-      act(() =>
-        addLayoutSetResult.current.mutateAsync({
-          layoutSetIdToUpdate: layoutSetIdToUpdate,
-          layoutSetConfig: layoutSet,
-        }),
-      ),
+      addLayoutSetResult.current.mutateAsync({
+        layoutSetIdToUpdate: layoutSetIdToUpdate,
+        layoutSetConfig: layoutSet,
+      }),
     );
     expect(addLayoutSetResult.current.isSuccess).toBe(true);
 
@@ -65,12 +65,10 @@ describe('useAddLayoutSetMutation', () => {
       queryClientMock,
     )(() => useAddLayoutSetMutation(org, app)).renderHookResult.result;
     await waitFor(() =>
-      act(() =>
-        addLayoutSetResult.current.mutateAsync({
-          layoutSetIdToUpdate: layoutSetIdToUpdate,
-          layoutSetConfig: layoutSet,
-        }),
-      ),
+      addLayoutSetResult.current.mutateAsync({
+        layoutSetIdToUpdate: layoutSetIdToUpdate,
+        layoutSetConfig: layoutSet,
+      }),
     );
     expect(addLayoutSetResult.current.isSuccess).toBe(true);
 
@@ -87,12 +85,10 @@ describe('useAddLayoutSetMutation', () => {
       queryClientMock,
     )(() => useAddLayoutSetMutation(org, app)).renderHookResult.result;
     await waitFor(() =>
-      act(() =>
-        addLayoutSetResult.current.mutateAsync({
-          layoutSetIdToUpdate: layoutSetIdToUpdate,
-          layoutSetConfig: layoutSet,
-        }),
-      ),
+      addLayoutSetResult.current.mutateAsync({
+        layoutSetIdToUpdate: layoutSetIdToUpdate,
+        layoutSetConfig: layoutSet,
+      }),
     );
     expect(addLayoutSetResult.current.isSuccess).toBe(true);
 

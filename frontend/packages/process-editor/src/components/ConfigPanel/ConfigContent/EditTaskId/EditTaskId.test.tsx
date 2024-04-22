@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EditTaskId } from './EditTaskId';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
@@ -80,9 +80,9 @@ describe('EditTaskId', () => {
       textMock('process_editor.configuration_panel_change_task_id'),
     );
 
-    await act(() => user.clear(input));
-    await act(() => user.type(input, newId));
-    await act(() => user.tab());
+    await user.clear(input);
+    await user.type(input, newId);
+    await user.tab();
 
     expect(metaDataFormRefMock.current).toEqual(
       expect.objectContaining({ taskIdChanges: [{ newId: newId, oldId: 'testId' }] }),
@@ -103,8 +103,8 @@ describe('EditTaskId', () => {
       textMock('process_editor.configuration_panel_change_task_id'),
     );
 
-    await act(() => user.clear(input));
-    await act(() => user.tab());
+    await user.clear(input);
+    await user.tab();
 
     expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
   });

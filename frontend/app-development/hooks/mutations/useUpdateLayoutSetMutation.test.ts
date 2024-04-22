@@ -2,6 +2,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithMockStore } from '../../test/mocks';
 import { useUpdateLayoutSetMutation } from './useUpdateLayoutSetMutation';
 import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
+import { waitFor } from '@testing-library/react';
 
 // Test data:
 const org = 'org';
@@ -17,11 +18,13 @@ describe('useUpdateLayoutSetMutation', () => {
     const updateLayoutSetResult = renderHookWithMockStore()(() =>
       useUpdateLayoutSetMutation(org, app),
     ).renderHookResult.result;
-    await updateLayoutSetResult.current.mutateAsync({
-      layoutSetIdToUpdate: layoutSetIdToUpdate,
-      layoutSetConfig: layoutSet,
-    }),
-      expect(updateLayoutSetResult.current.isSuccess).toBe(true);
+    await waitFor(() =>
+      updateLayoutSetResult.current.mutateAsync({
+        layoutSetIdToUpdate: layoutSetIdToUpdate,
+        layoutSetConfig: layoutSet,
+      }),
+    );
+    expect(updateLayoutSetResult.current.isSuccess).toBe(true);
 
     expect(queriesMock.updateLayoutSet).toHaveBeenCalledTimes(1);
     expect(queriesMock.updateLayoutSet).toHaveBeenCalledWith(

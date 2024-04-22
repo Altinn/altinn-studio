@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import React, { useContext } from 'react';
-import { render as renderRtl, renderHook, screen } from '@testing-library/react';
+import { render as renderRtl, renderHook, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DragAndDropTreeRoot } from './DragAndDropTreeRoot';
 import { DragAndDrop } from 'app-shared/components/dragAndDrop';
@@ -38,7 +38,7 @@ describe('DragAndDropTreeRoot', () => {
 
     const hoveredNodeParent = 'hoveredNodeParent';
     await user.hover(item);
-    await result.current.setHoveredNodeParent(hoveredNodeParent); // Simulate setHoveredNodeParent call from somewhere inside the children
+    await waitFor(() => result.current.setHoveredNodeParent(hoveredNodeParent)); // Simulate setHoveredNodeParent call from somewhere inside the children
     expect(result.current.hoveredNodeParent).toBe(hoveredNodeParent);
 
     await user.unhover(item); // Simulate mouse leave

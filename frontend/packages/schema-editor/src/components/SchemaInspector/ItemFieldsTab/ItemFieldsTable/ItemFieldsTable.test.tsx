@@ -81,7 +81,6 @@ describe('ItemFieldsTable', () => {
       }),
     ).toHaveLength(children.length);
 
-    // Added to avoid the "Warning: An update to Select inside a test was not wrapped in act(...)." bug
     await user.tab();
   });
 

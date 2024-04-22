@@ -1,6 +1,6 @@
 import { renderWithProviders } from '../../test/testUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
-import { act, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import React from 'react';
 import { TextEditor } from './TextEditor';
 import { textMock } from '../../../testing/mocks/i18nMock';
@@ -122,7 +122,7 @@ describe('TextEditor', () => {
     renderTextEditor();
 
     const deleteButton = screen.getByRole('button', { name: textMock('schema_editor.delete') });
-    act(() => deleteButton.click());
+    await waitFor(() => deleteButton.click());
 
     const confirmButton = await screen.findByRole('button', {
       name: textMock('schema_editor.textRow-deletion-confirm'),

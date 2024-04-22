@@ -276,13 +276,13 @@ describe('ResourcePage', () => {
     const deployButton = screen.getByRole('tab', {
       name: textMock('resourceadm.left_nav_bar_deploy'),
     });
-    await user.click(deployButton);
+    await waitFor(() => user.click(deployButton));
 
     const deployFieldLabel = textMock('resourceadm.deploy_version_label');
     await waitFor(() => screen.findByText(deployFieldLabel));
     const deployResourceVersionField = screen.getByLabelText(deployFieldLabel);
     await user.type(deployResourceVersionField, '1.2');
-    await deployResourceVersionField.blur();
+    await waitFor(() => deployResourceVersionField.blur());
 
     await waitFor(() => expect(queriesMock.updateResource).toHaveBeenCalledTimes(1));
   });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import type { ResourceContactPointFieldsProps } from './ResourceContactPointFields';
 import { ResourceContactPointFields } from './ResourceContactPointFields';
 import userEvent from '@testing-library/user-event';
@@ -188,13 +188,13 @@ describe('ResourceContactPointFields', () => {
     );
 
     await user.type(categoryLabel, mockNewInput);
-    await categoryLabel.blur();
+    await waitFor(() => categoryLabel.blur());
     await user.type(emailLabel, mockNewInput);
-    await emailLabel.blur();
+    await waitFor(() => emailLabel.blur());
     await user.type(telephoneLabel, mockNewInput);
-    await telephoneLabel.blur();
+    await waitFor(() => telephoneLabel.blur());
     await user.type(contactPageLabel, mockNewInput);
-    await contactPageLabel.blur();
+    await waitFor(() => contactPageLabel.blur());
 
     expect(mockOnContactPointsChanged).toHaveBeenCalledWith([
       {

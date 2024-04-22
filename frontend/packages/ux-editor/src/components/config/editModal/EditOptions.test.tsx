@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 
 import { EditOptions } from './EditOptions';
 import { renderWithProviders } from '../../../testing/mocks';
@@ -71,7 +71,7 @@ describe('EditOptions', () => {
       screen.queryByText(textMock('ux_editor.radios_error_NoOptions')),
     ).not.toBeInTheDocument();
     const switchElement = screen.getByRole('checkbox');
-    await switchElement.click();
+    await waitFor(() => switchElement.click());
     screen.getByText(textMock('ux_editor.radios_error_NoOptions'));
   });
 
@@ -93,7 +93,7 @@ describe('EditOptions', () => {
       screen.queryByText(textMock('ux_editor.checkboxes_error_NoOptions')),
     ).not.toBeInTheDocument();
     const switchElement = screen.getByRole('checkbox');
-    await switchElement.click();
+    await waitFor(() => switchElement.click());
     screen.getByText(textMock('ux_editor.checkboxes_error_NoOptions'));
   });
 
@@ -125,7 +125,7 @@ describe('EditOptions', () => {
     const handleComponentChange = jest.fn();
     renderEditOptions({ handleComponentChange });
     const switchElement = screen.getByRole('checkbox');
-    await switchElement.click();
+    await waitFor(() => switchElement.click());
     expect(handleComponentChange).toHaveBeenCalledWith({ ...mockComponent, options: [] });
   });
 
@@ -140,7 +140,7 @@ describe('EditOptions', () => {
       },
     });
     const switchElement = screen.getByRole('checkbox');
-    await switchElement.click();
+    await waitFor(() => switchElement.click());
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...mockComponent,
       options: [],

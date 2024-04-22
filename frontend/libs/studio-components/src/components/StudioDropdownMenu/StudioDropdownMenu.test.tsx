@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { StudioDropdownMenu } from './';
 import React, { createRef } from 'react';
 import userEvent from '@testing-library/user-event';
@@ -67,7 +67,7 @@ describe('StudioDropdownMenu', () => {
   });
 
   const openDropdown = (user: UserEvent) =>
-    act(() => user.click(screen.getByRole('button', { name: buttonLabel })));
+    user.click(screen.getByRole('button', { name: buttonLabel }));
 });
 
 const buttonLabel = 'Open';
