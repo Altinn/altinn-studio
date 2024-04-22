@@ -23,7 +23,7 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
         [InlineData(GiteaConstants.TestOrgUsername, GiteaConstants.TestOrgUsername)]
         [InlineData(GiteaConstants.TestOrgUsername, GiteaConstants.TestUser)]
         [InlineData(GiteaConstants.TestOrgUsername, GiteaConstants.SecondaryTestOrgUsername)]
-        public async Task Copy_Repo_FromOrg_ToSameOrg_Should_Return_Created(string org, string targetOrg)
+        public async Task Copy_Repo_Should_Return_Created(string org, string targetOrg)
         {
             string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
             await CreateAppUsingDesigner(org, targetRepo);
