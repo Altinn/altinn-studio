@@ -1,14 +1,14 @@
-import { useUpsertTextResourcesMutation } from 'app-shared/hooks/mutations';
+import { useUpsertTextResourceMutation as useUpsertSingleTextResourceMutation } from 'app-shared/hooks/mutations';
 import { useMutation } from '@tanstack/react-query';
-import type { UpsertTextResourceMutation } from '@altinn/text-editor/src/types';
+import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 import { useAppContext } from '..';
 
 export const useUpsertTextResourceMutation = (owner: string, app: string) => {
-  const { mutateAsync: upsertTextResources } = useUpsertTextResourcesMutation(owner, app);
+  const { mutateAsync: upsertTextResource } = useUpsertSingleTextResourceMutation(owner, app);
   const { refetchTexts } = useAppContext();
   return useMutation({
     mutationFn: ({ textId, language, translation }: UpsertTextResourceMutation) =>
-      upsertTextResources({ language, textResources: [{ id: textId, value: translation }] }),
+      upsertTextResource({ textId, language, translation }),
     onSuccess: async ({ language }) => {
       await refetchTexts(language);
     },
