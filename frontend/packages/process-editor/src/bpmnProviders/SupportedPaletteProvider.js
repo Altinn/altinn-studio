@@ -113,7 +113,14 @@ class SupportedPaletteProvider {
             bpmnFactory.create('altinn:TaskExtension', {
               taskType: taskType,
               actions: bpmnFactory.create('altinn:Actions', {
-                action: ['pay', 'reject'],
+                action: [
+                  bpmnFactory.create('altinn:Action', {
+                    action: 'pay',
+                  }),
+                  bpmnFactory.create('altinn:Action', {
+                    action: 'reject',
+                  }),
+                ],
               }),
               paymentConfig: bpmnFactory.create('altinn:PaymentConfig', {
                 paymentDataType: bpmnFactory.create('altinn:PaymentDataType', {

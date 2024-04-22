@@ -59,8 +59,7 @@ export const setActionTypeOnAction = (
   modeling: Modeling,
 ) => {
   const actionsElement = bpmnDetails.element.businessObject.extensionElements.values[0].actions;
-  actionElement.$attrs.type = actionType;
-  if (actionElement.type) delete actionElement.type;
+  actionElement['type'] = actionType;
   updateExistingActionsOnTask(modeling, bpmnDetails, actionsElement);
 };
 
@@ -114,6 +113,7 @@ export const getTypeForAction = (actionElement: ModdleElement) => {
 
 export const isActionRequiredForTask = (action: string, bpmnDetails: BpmnDetails): boolean => {
   if (bpmnDetails.taskType === 'signing' && action === 'sign') return true;
+  if (bpmnDetails.taskType === 'signing' && action === 'reject') return true;
   return bpmnDetails.taskType === 'confirmation' && action === 'confirm';
 };
 

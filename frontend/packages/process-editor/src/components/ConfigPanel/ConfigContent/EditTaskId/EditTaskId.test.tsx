@@ -9,7 +9,7 @@ import {
   BpmnApiContextProvider,
 } from '../../../../contexts/BpmnApiContext';
 import { mockBpmnDetails } from '../../../../../test/mocks/bpmnDetailsMock';
-import {mockModelerRef} from "../../../../../test/mocks/bpmnModelerMock";
+import { mockModelerRef } from '../../../../../test/mocks/bpmnModelerMock';
 
 const mockBpmnApiContextValue: Partial<BpmnApiContextProps> = {
   layoutSets: {

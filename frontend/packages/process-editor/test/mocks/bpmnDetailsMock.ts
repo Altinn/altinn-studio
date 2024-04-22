@@ -19,8 +19,12 @@ export const mockBpmnElement: ModdleElement = {
                 action: 'myServerAction',
                 type: 'serverAction',
               },
-            ]
-          }
+              {
+                action: 'myProcessAction',
+                type: 'processAction',
+              },
+            ],
+          },
         },
       ],
     },
@@ -33,4 +37,43 @@ export const mockBpmnDetails: BpmnDetails = {
   taskType: 'data',
   type: BpmnTypeEnum.Task,
   element: mockBpmnElement,
+};
+
+export const confirmationActions = {
+  actions: {
+    action: [
+      {
+        action: 'confirm',
+      },
+    ],
+  },
+};
+
+export const signingActions = {
+  actions: {
+    action: [
+      {
+        action: 'sign',
+      },
+      {
+        action: 'reject',
+      },
+    ],
+  },
+};
+
+export const paymentActions = {
+  actions: {
+    action: [
+      {
+        action: 'pay',
+      },
+      {
+        action: 'reject',
+      },
+      {
+        action: 'confirm',
+      },
+    ],
+  },
 };

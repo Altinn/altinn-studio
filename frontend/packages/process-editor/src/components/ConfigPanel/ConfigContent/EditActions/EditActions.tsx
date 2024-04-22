@@ -37,6 +37,7 @@ export const EditActions = () => {
   const modeling: Modeling = modelerInstance.get('modeling');
   const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
 
+  const allPredefinedActions = ['write', 'reject', 'confirm', 'sign'];
   const availablePredefinedActions =
     filterAvailableActions(getPredefinedActions(bpmnDetails.taskType), actionElements) ?? [];
 
@@ -71,21 +72,36 @@ export const EditActions = () => {
 
   return (
     <div className={classes.container}>
-      {actionElements.map((actionElement: ModdleElement, index: number) => (
-        <div key={index} className={classes.action}>
+      {actionElements.map((actionElement: ModdleElement) => (
+        <div key={actionElement.action} className={classes.action}>
           <div className={classes.editAction}>
             <Combobox
+              title={`combobox_${actionElement.action}`}
               label={t('process_editor.configuration_panel_actions_combobox_label')}
               size='small'
               inputValue={actionElement.action}
               readOnly={isActionRequiredForTask(actionElement.action, bpmnDetails)}
-              onBlur={({ target }) => handleUpdateAction(actionElement, target.value)}
+              onBlur={({ target }) => {
+                const skip = allPredefinedActions.some((action) => action.startsWith(target.value));
+                if (!skip) {
+                  handleUpdateAction(actionElement, target.value);
+                }
+              }}
             >
               <Combobox.Empty>
                 {t('process_editor.configuration_panel_actions_custom_action')}
               </Combobox.Empty>
+              {allPredefinedActions.includes(actionElement.action) && (
+                <Combobox.Option key={actionElement.action} value={actionElement.action}>
+                  {actionElement.action}
+                </Combobox.Option>
+              )}
               {availablePredefinedActions.map((predefinedAction: string) => (
-                <Combobox.Option key={predefinedAction} value={predefinedAction}>
+                <Combobox.Option
+                  key={predefinedAction}
+                  value={predefinedAction}
+                  onClick={() => handleUpdateAction(actionElement, predefinedAction)}
+                >
                   {predefinedAction}
                 </Combobox.Option>
               ))}
@@ -94,6 +110,7 @@ export const EditActions = () => {
               onDelete={() => handleDeleteAction(actionElement)}
               size='small'
               disabled={isActionRequiredForTask(actionElement.action, bpmnDetails)}
+              title={t('general.delete').concat(' ', actionElement.action)}
             />
           </div>
           {allowSettingServerAction(actionElement.action) && (
