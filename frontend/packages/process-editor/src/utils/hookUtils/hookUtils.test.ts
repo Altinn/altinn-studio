@@ -11,7 +11,7 @@ import {
   getBpmnViewerDetailsFromBusinessObject,
   getLayoutSetIdFromTaskId,
 } from './hookUtils';
-import {mockBpmnDetails} from "../../../test/mocks/bpmnDetailsMock";
+import { mockBpmnDetails } from '../../../test/mocks/bpmnDetailsMock';
 
 describe('hookUtils', () => {
   afterEach(jest.clearAllMocks);

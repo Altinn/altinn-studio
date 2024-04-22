@@ -10,7 +10,7 @@ import type Modeler from 'bpmn-js/lib/Modeler';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { BpmnApiContextProvider } from '../../contexts/BpmnApiContext';
 import { mockBpmnDetails } from '../../../test/mocks/bpmnDetailsMock';
-import {mockBpmnApiContextValue, mockBpmnContextValue} from "../../../test/mocks/bpmnContextMock";
+import { mockBpmnApiContextValue, mockBpmnContextValue } from '../../../test/mocks/bpmnContextMock';
 
 jest.mock('app-shared/utils/featureToggleUtils', () => ({
   shouldDisplayFeature: jest.fn().mockReturnValue(false),
