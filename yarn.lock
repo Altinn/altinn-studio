@@ -8405,7 +8405,7 @@ __metadata:
     redux-saga: "npm:1.3.0"
     redux-saga-test-plan: "npm:4.0.6"
     source-map-loader: "npm:4.0.2"
-    style-loader: "npm:3.3.4"
+    style-loader: "npm:4.0.0"
     svg-inline-loader: "npm:0.8.2"
     swc-loader: "npm:0.2.6"
     terser-webpack-plugin: "npm:5.3.10"
@@ -20814,7 +20814,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"style-loader@npm:3.3.4, style-loader@npm:^3.3.1":
+"style-loader@npm:4.0.0":
+  version: 4.0.0
+  resolution: "style-loader@npm:4.0.0"
+  peerDependencies:
+    webpack: ^5.27.0
+  checksum: 10/93f25b7e70cfca9d1d8427170384262b59a5b0e84e7191a5a26636a77799caeed46d9a3e45ee7b9afa0f69176e3b98d5a6c5e81593ff1fd0946f1c5682fd2a68
+  languageName: node
+  linkType: hard
+
+"style-loader@npm:^3.3.1":
   version: 3.3.4
   resolution: "style-loader@npm:3.3.4"
   peerDependencies:
