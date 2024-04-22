@@ -32,12 +32,7 @@ builder
 
             options.ResponseType = OidcConstants.ResponseTypes.Code;
             options.SignInScheme = ServiceConstants.CookieScheme;
-            options.AuthenticationMethod = Microsoft
-                .AspNetCore
-                .Authentication
-                .OpenIdConnect
-                .OpenIdConnectRedirectBehavior
-                .RedirectGet;
+            options.AuthenticationMethod = OpenIdConnectRedirectBehavior.RedirectGet;
 
             options.Scope.Clear();
             foreach (var scope in config.OidcScopes)
