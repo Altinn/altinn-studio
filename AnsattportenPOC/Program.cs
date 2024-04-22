@@ -73,7 +73,7 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddOpenIdConnectAccessTokenManagement();
 builder
-    .Services.AddHttpClient<MaskinportenIntegrationsClient>(client =>
+    .Services.AddHttpClient<IMaskinportenIntegrationsClient, MaskinportenIntegrationsClient>(client =>
     {
         client.BaseAddress = new Uri(config.MaskinportenApiUri);
     })

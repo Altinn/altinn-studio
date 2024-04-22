@@ -1,6 +1,11 @@
 namespace AnsattportenPOC;
 
-internal sealed class MaskinportenIntegrationsClient(HttpClient client)
+internal interface IMaskinportenIntegrationsClient
+{
+    Task<List<ScopeAccess>> GetAvailableScopes(CancellationToken cancellationToken = default);
+}
+
+internal sealed class MaskinportenIntegrationsClient(HttpClient client) : IMaskinportenIntegrationsClient
 {
     public async Task<List<ScopeAccess>> GetAvailableScopes(CancellationToken cancellationToken = default)
     {
