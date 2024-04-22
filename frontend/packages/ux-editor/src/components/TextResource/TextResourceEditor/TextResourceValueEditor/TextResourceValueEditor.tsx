@@ -12,7 +12,6 @@ import { useAppContext } from '../../../../hooks';
 
 export type TextResourceValueEditorProps = {
   textResourceId: string;
-  onReferenceChange: (id: string) => void;
 };
 
 const language = DEFAULT_LANGUAGE;
@@ -23,10 +22,7 @@ const findTextResource = (textResources: ITextResources, id: string) =>
 const getTextResourceValue = (textResources: ITextResources, id: string) =>
   findTextResource(textResources, id)?.value || '';
 
-export const TextResourceValueEditor = ({
-  onReferenceChange,
-  textResourceId,
-}: TextResourceValueEditorProps) => {
+export const TextResourceValueEditor = ({ textResourceId }: TextResourceValueEditorProps) => {
   const { org, app } = useStudioUrlParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
   const { refetchTexts } = useAppContext();

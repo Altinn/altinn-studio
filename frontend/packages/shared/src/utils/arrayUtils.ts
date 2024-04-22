@@ -1,3 +1,5 @@
+import { ArrayUtils } from '@studio/pure-functions';
+
 /**
  * Adds an item to the beginning of an array..
  * @param array The array of interest.
@@ -16,15 +18,6 @@ export const replaceLastItem = <T>(array: T[], replaceWith: T): T[] => {
   array[array.length - 1] = replaceWith;
   return array;
 };
-
-/**
- * Removes item from array by value.
- * @param array Array to delete item from.
- * @param value Value to delete.
- * @returns Array without the given value.
- */
-export const removeItemByValue = <T>(array: T[], value: T): T[] =>
-  array.filter((item) => item !== value);
 
 /**
  * Checks if all items in the given array are unique.
@@ -62,14 +55,6 @@ export const insertArrayElementAtPos = <T>(array: T[], item: T, targetPos: numbe
   else out.splice(targetPos, 0, item);
   return out;
 };
-
-/**
- * Returns an array of which the elements are present in both given arrays.
- * @param arrA First array.
- * @param arrB Second array.
- * @returns Array of which the elements are present in both given arrays.
- */
-export const arrayIntersection = <T>(arrA: T[], arrB: T[]) => arrA.filter((x) => arrB.includes(x));
 
 /**
  * Maps an array of objects by a given key.
@@ -132,4 +117,5 @@ export const generateUniqueStringWithNumber = (array: string[], prefix: string =
 };
 
 /** Removes empty strings from a string array */
-export const removeEmptyStrings = (array: string[]): string[] => removeItemByValue(array, '');
+export const removeEmptyStrings = (array: string[]): string[] =>
+  ArrayUtils.removeItemByValue(array, '');

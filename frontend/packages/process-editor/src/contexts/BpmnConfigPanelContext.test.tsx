@@ -1,5 +1,5 @@
-import React from 'react';
-import { render, screen, act } from '@testing-library/react';
+import React, { useState } from 'react';
+import { render, screen, act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   BpmnConfigPanelFormContextProvider,
@@ -22,8 +22,8 @@ describe('BpmnConfigPanelContext', () => {
 
   it('should provide a useBpmnConfigPanelFormContext hook', () => {
     const TestComponent = () => {
-      const { metaDataForm } = useBpmnConfigPanelFormContext();
-      return <div data-testid='context'>{JSON.stringify(metaDataForm)}</div>;
+      const { metaDataFormRef } = useBpmnConfigPanelFormContext();
+      return <div data-testid='context'>{JSON.stringify(metaDataFormRef.current)}</div>;
     };
 
     render(
@@ -43,25 +43,36 @@ describe('BpmnConfigPanelContext', () => {
       return <div data-testid='context'>Test</div>;
     };
 
-    expect(() => render(<TestComponent />)).toThrowError(
+    expect(() => render(<TestComponent />)).toThrow(
       'useBpmnConfigPanelFormContext must be used within a BpmnConfigPanelContextProvider',
     );
     expect(consoleError).toHaveBeenCalled();
   });
 
-  it('should provide methods for update and reset meta data', async () => {
+  it('should provide method to reset meta data', async () => {
     const user = userEvent.setup();
     const TestComponent = () => {
-      const { metaDataForm, setMetaDataForm, resetForm } = useBpmnConfigPanelFormContext();
+      const { metaDataFormRef, resetForm } = useBpmnConfigPanelFormContext();
+      // Need to update state to trigger a rerender since metaDataFormRef is a mutable object that does not trigger rerender
+      const [, setState] = useState(undefined);
+
+      const handleSetMetaData = () => {
+        setState('test');
+        metaDataFormRef.current = { taskIdChanges: [{ oldId: 'old', newId: 'new' }] };
+      };
+
+      const handleResetMetaData = () => {
+        setState(undefined);
+        resetForm();
+      };
+
       return (
-        <div data-testid='context'>
-          <button
-            onClick={() => setMetaDataForm({ taskIdChanges: [{ oldId: 'old', newId: 'new' }] })}
-          >
-            Set meta data
-          </button>
-          <button onClick={resetForm}>Reset meta data</button>
-          <div>{metaDataForm ? JSON.stringify(metaDataForm) : 'Empty'}</div>
+        <div>
+          <button onClick={handleSetMetaData}>Set meta data</button>
+          <button onClick={handleResetMetaData}>Reset meta data</button>
+          <div data-testid='context'>
+            {metaDataFormRef.current ? JSON.stringify(metaDataFormRef.current) : 'Empty'}
+          </div>
         </div>
       );
     };
@@ -72,8 +83,10 @@ describe('BpmnConfigPanelContext', () => {
       </BpmnConfigPanelFormContextProvider>,
     );
     await act(() => user.click(screen.getByRole('button', { name: 'Set meta data' })));
-    expect(screen.getByTestId('context')).toHaveTextContent(
-      '{"taskIdChanges":[{"oldId":"old","newId":"new"}]}',
+    await waitFor(() =>
+      expect(screen.getByTestId('context')).toHaveTextContent(
+        '{"taskIdChanges":[{"oldId":"old","newId":"new"}]}',
+      ),
     );
 
     await act(() => user.click(screen.getByRole('button', { name: 'Reset meta data' })));
