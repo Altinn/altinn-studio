@@ -19,9 +19,8 @@
 
 .wrapper {
   display: flex;
-  flex: 1;
+  flex: 3;
   height: 100%;
-  margin-top: 18px;
 }
 
 div[class*='bpmn-icon-task-generic'] {

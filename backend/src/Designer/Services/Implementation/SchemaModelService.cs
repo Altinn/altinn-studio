@@ -96,24 +96,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task UpdateSchema(AltinnRepoEditingContext altinnRepoEditingContext, string relativeFilePath, string jsonContent, bool saveOnly = false, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
             var jsonSchema = Json.Schema.JsonSchema.FromText(jsonContent);
             var serializedJsonContent = SerializeJson(jsonSchema);
+            altinnAppGitRepository.DeleteModelMetadata(relativeFilePath.Replace(".schema.json", ".metadata.json"));
             if (saveOnly)
             {
                 // Only save updated JSON schema - no model file generation
-                await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, serializedJsonContent, true, cancellationToken);
+                await altinnAppGitRepository.WriteTextByRelativePathAsync(relativeFilePath, serializedJsonContent, true, cancellationToken);
                 return;
             }
 
-            var repositoryType = await altinnGitRepository.GetRepositoryType();
+            var repositoryType = await altinnAppGitRepository.GetRepositoryType();
 
             if (repositoryType == AltinnRepositoryType.Datamodels)
             {
                 // Datamodels repository - save JSON and update XSD
-                await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, serializedJsonContent, true, cancellationToken);
+                await altinnAppGitRepository.WriteTextByRelativePathAsync(relativeFilePath, serializedJsonContent, true, cancellationToken);
                 XmlSchema xsd = _jsonSchemaToXmlSchemaConverter.Convert(jsonSchema);
-                await altinnGitRepository.SaveXsd(xsd, relativeFilePath.Replace(".schema.json", ".xsd"));
+                await altinnAppGitRepository.SaveXsd(xsd, relativeFilePath.Replace(".schema.json", ".xsd"));
                 return;
             }
 

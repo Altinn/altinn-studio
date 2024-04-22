@@ -20,9 +20,10 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
         }
 
         [Theory]
-        [Trait("Category", "GiteaIntegrationTest")]
-        [InlineData(GiteaConstants.TestOrgUsername)]
-        public async Task Copy_Repo_Should_Return_Created(string org)
+        [InlineData(GiteaConstants.TestOrgUsername, GiteaConstants.TestOrgUsername)]
+        [InlineData(GiteaConstants.TestOrgUsername, GiteaConstants.TestUser)]
+        [InlineData(GiteaConstants.TestOrgUsername, GiteaConstants.SecondaryTestOrgUsername)]
+        public async Task Copy_Repo_FromOrg_ToSameOrg_Should_Return_Created(string org, string targetOrg)
         {
             string targetRepo = TestDataHelper.GenerateTestRepoName("-gitea");
             await CreateAppUsingDesigner(org, targetRepo);
@@ -30,8 +31,12 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
             CopyRepoName = TestDataHelper.GenerateTestRepoName("-gitea-copy");
 
             // Copy app
-            using HttpResponseMessage commitResponse = await HttpClient.PostAsync($"designer/api/repos/repo/{org}/copy-app?sourceRepository={targetRepo}&targetRepository={CopyRepoName}", null);
+            using HttpResponseMessage commitResponse = await HttpClient.PostAsync($"designer/api/repos/repo/{org}/copy-app?sourceRepository={targetRepo}&targetRepository={CopyRepoName}&targetOrg={targetOrg}", null);
             commitResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+            // Check if repo exists in git
+            using HttpResponseMessage response = await GiteaFixture.GiteaClient.Value.GetAsync($"repos/{targetOrg}/{CopyRepoName}");
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
 
         protected override void Dispose(bool disposing)

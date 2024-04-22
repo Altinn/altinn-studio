@@ -185,4 +185,58 @@ describe('DeploymentEnvironmentLogList', () => {
       ),
     ).toBeInTheDocument();
   });
+
+  it('does not render build log link when started date is null', () => {
+    render({
+      pipelineDeploymentList: [
+        {
+          ...pipelineDeployment,
+          build: {
+            ...pipelineDeployment.build,
+            started: null,
+          },
+        },
+      ],
+    });
+    expect(
+      screen.queryByText(`${textMock('app_deployment.table.build_log_active_link')}`),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(`${textMock('app_deployment.table.build_log_expired_link')}`),
+    ).not.toBeInTheDocument();
+  });
+
+  it('renders expired text when build log link is expired (> 30 days)', () => {
+    render({
+      pipelineDeploymentList: [
+        {
+          ...pipelineDeployment,
+          build: {
+            ...pipelineDeployment.build,
+            started: new Date(null).toDateString(),
+          },
+        },
+      ],
+    });
+    expect(
+      screen.getByText(`${textMock('app_deployment.table.build_log_expired_link')}`),
+    ).toBeInTheDocument();
+  });
+
+  it('renders build log link when started date is valid (< 30 days)', () => {
+    render({
+      pipelineDeploymentList: [
+        {
+          ...pipelineDeployment,
+          build: {
+            ...pipelineDeployment.build,
+            started: new Date().toDateString(),
+          },
+        },
+      ],
+    });
+    expect(
+      screen.getByText(`${textMock('app_deployment.table.build_log_active_link')}`),
+    ).toBeInTheDocument();
+  });
 });
