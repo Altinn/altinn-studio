@@ -21,7 +21,7 @@ import {
   useSelectedFormLayoutName,
   useSelectedFormLayoutSetName,
   useSelectedTaskId,
-} from '@altinn/ux-editor/src/hooks';
+} from '@altinn/ux-editor/hooks';
 
 export interface LandingPageProps {
   variant?: AltinnHeaderVariant;
