@@ -16,7 +16,7 @@ class SupportedContextPadProvider {
             }
 
             const isConfirmed = confirm(
-              'Prosessteget du ønsker å slette er knyttet til en sidegruppe, som kan inneholde konfigureringer du selv har lagt til. Hvis du sletter dette prosessteget, sletter du også tilhørende sidegruppe.',
+              'Prosess-steget du vil slette kan være knyttet til en sidegruppe. Den kan inneholde konfigurasjoner du har satt opp. Hvis du sletter steget, sletter du også hele sidegruppen og alt som ligger under den.',
             );
 
             if (isConfirmed) {
