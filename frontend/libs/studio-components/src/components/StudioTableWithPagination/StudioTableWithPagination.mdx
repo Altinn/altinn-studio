@@ -1,0 +1,15 @@
+import { Canvas, Meta } from '@storybook/blocks';
+import { Heading, Paragraph } from '@digdir/design-system-react';
+import * as StudioTableWithPaginationStories from './StudioTableWithPagination.stories';
+
+<Meta of={StudioTableWithPaginationStories} />
+
+<Heading level={1} size='small'>
+  StudioTableWithPagination
+</Heading>
+<Paragraph>
+  StudioTableWithPagination is a extension of the digdir-designsystemet `Table` and `Pagination` components, that simplifies the
+  combination of the two components
+</Paragraph>
+
+<Canvas of={StudioTableWithPaginationStories.Preview} />

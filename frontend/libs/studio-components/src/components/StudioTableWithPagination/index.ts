@@ -1,0 +1,1 @@
+export { StudioTableWithPagination } from './StudioTableWithPagination';
