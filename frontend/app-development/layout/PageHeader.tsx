@@ -13,7 +13,7 @@ import { RepositoryType } from 'app-shared/types/global';
 import {
   useSelectedFormLayoutSetName,
   useSelectedFormLayoutName,
-} from '../../packages/ux-editor/src/hooks';
+} from '@altinn/ux-editor/src/hooks';
 
 type SubMenuContentProps = {
   org: string;
