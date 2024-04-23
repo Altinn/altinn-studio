@@ -36,16 +36,16 @@ export const MakeCopyModal = forwardRef<HTMLDialogElement, MakeCopyModalProps>(
     const { t } = useTranslation();
 
     const createClonedRepo = async (newAppForm: NewAppForm) => {
-      const { org, repoName } = newAppForm;
-      const [, app] = serviceFullName.split('/');
+      const { org: newOrg, repoName: newRepoName } = newAppForm;
+      const [org, app] = serviceFullName.split('/');
 
       copyAppMutate(
-        { org, app, repoName },
+        { org, app, newRepoName, newOrg: newOrg },
         {
           onSuccess: () => {
             const packagesRouter = new PackagesRouter({
-              org,
-              app: repoName,
+              org: newOrg,
+              app: newRepoName,
             });
             packagesRouter.navigateToPackage('editorOverview', '?copiedApp=true');
           },
