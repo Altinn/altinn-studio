@@ -1,6 +1,6 @@
 import React from 'react';
 import { Preview } from './Preview';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import type { ExtendedRenderOptions } from '../../testing/mocks';
 import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
@@ -27,7 +27,7 @@ describe('Preview', () => {
 
     expect(switchButton).not.toBeChecked();
 
-    await act(() => user.click(switchButton));
+    await user.click(switchButton);
     expect(switchButton).toBeChecked();
   });
 
@@ -64,13 +64,13 @@ describe('Preview', () => {
     const hidePreviewButton = screen.getByRole('button', {
       name: textMock('ux_editor.close_preview'),
     });
-    await act(() => user.click(hidePreviewButton));
+    await user.click(hidePreviewButton);
     expect(hidePreviewButton).not.toBeInTheDocument();
 
     const showPreviewButton = screen.getByRole('button', {
       name: textMock('ux_editor.open_preview'),
     });
-    await act(() => user.click(showPreviewButton));
+    await user.click(showPreviewButton);
     expect(showPreviewButton).not.toBeInTheDocument();
   });
 

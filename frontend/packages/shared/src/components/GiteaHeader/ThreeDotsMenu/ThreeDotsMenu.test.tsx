@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as rtlRender, act, screen } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ThreeDotsMenuProps } from './ThreeDotsMenu';
 import { ThreeDotsMenu } from './ThreeDotsMenu';
@@ -27,7 +27,7 @@ describe('ThreeDotsMenu', () => {
     const threeDotsMenu = screen.getByRole('button', { name: threeDotsButtonMock });
     expect(threeDotsMenu).toBeInTheDocument();
 
-    await act(() => user.click(threeDotsMenu));
+    await user.click(threeDotsMenu);
     const cloneText = screen.getByRole('button', { name: cloneTextMock });
     expect(cloneText).toBeInTheDocument();
 
@@ -44,7 +44,7 @@ describe('ThreeDotsMenu', () => {
     const threeDotsMenu = screen.getByRole('button', { name: threeDotsButtonMock });
     expect(threeDotsMenu).toBeInTheDocument();
 
-    await act(() => user.click(threeDotsMenu));
+    await user.click(threeDotsMenu);
 
     const cloneText = screen.queryByText(cloneTextMock);
     expect(cloneText).not.toBeInTheDocument();
@@ -55,9 +55,9 @@ describe('ThreeDotsMenu', () => {
     const threeDotsMenu = screen.getByRole('button', { name: threeDotsButtonMock });
     expect(threeDotsMenu).toBeInTheDocument();
 
-    await act(() => user.click(threeDotsMenu));
+    await user.click(threeDotsMenu);
     const localChangesText = screen.getByText(localChangesTextMock);
-    await act(() => user.click(localChangesText));
+    await user.click(localChangesText);
     const localChangesModal = screen.getByTestId(localChangesModalMock);
     expect(localChangesModal).toBeInTheDocument();
   });

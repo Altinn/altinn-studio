@@ -3,7 +3,6 @@ import { render, screen } from '@testing-library/react';
 import type { CardButtonProps } from './CardButton';
 import { CardButton } from './CardButton';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { act } from 'react-dom/test-utils';
 import userEvent from '@testing-library/user-event';
 
 const mockButtonText = textMock('policy_editor.card_button_text');
@@ -23,7 +22,7 @@ describe('CardButton', () => {
     render(<CardButton {...defaultProps} />);
 
     const buttonElement = screen.getByRole('button', { name: mockButtonText });
-    await act(() => user.click(buttonElement));
+    await user.click(buttonElement);
 
     expect(mockOnClick).toHaveBeenCalledTimes(1);
   });

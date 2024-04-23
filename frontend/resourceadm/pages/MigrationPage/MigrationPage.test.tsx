@@ -2,7 +2,6 @@ import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
 import type { MigrationPageProps } from './MigrationPage';
 import { MigrationPage } from './MigrationPage';
 import { textMock } from '../../../testing/mocks/i18nMock';
@@ -124,7 +123,7 @@ describe('MigrationPage', () => {
       expect(screen.getByLabelText(textMock('resourceadm.deploy_test_env'))).toBeInTheDocument();
     });
     const tt02Radio = screen.getByLabelText(textMock('resourceadm.deploy_test_env'));
-    await act(() => user.click(tt02Radio));
+    await user.click(tt02Radio);
 
     expect(
       screen.getByText(textMock('resourceadm.migration_migrate_delegations')),

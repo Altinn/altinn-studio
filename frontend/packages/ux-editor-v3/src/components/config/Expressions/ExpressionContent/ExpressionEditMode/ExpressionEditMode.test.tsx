@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   componentId,
@@ -128,7 +128,7 @@ describe('ExpressionEditMode', () => {
     const saveExpressionButton = screen.getByRole('button', {
       name: textMock('right_menu.expression_save'),
     });
-    await act(() => user.click(saveExpressionButton));
+    await user.click(saveExpressionButton);
     expect(mockOnSaveExpression).toHaveBeenCalledWith(simpleInternalExpression);
     expect(mockOnSaveExpression).toHaveBeenCalledTimes(1);
   });
@@ -143,7 +143,7 @@ describe('ExpressionEditMode', () => {
     const deleteExpressionButton = screen.getByRole('button', {
       name: textMock('right_menu.expression_delete'),
     });
-    await act(() => user.click(deleteExpressionButton));
+    await user.click(deleteExpressionButton);
     expect(mockOnDeleteExpression).toHaveBeenCalledWith(simpleInternalExpression);
     expect(mockOnDeleteExpression).toHaveBeenCalledTimes(1);
   });
@@ -158,11 +158,11 @@ describe('ExpressionEditMode', () => {
     const functionDropDown = screen.getByRole('combobox', {
       name: textMock('right_menu.expressions_function'),
     });
-    await act(() => user.click(functionDropDown));
+    await user.click(functionDropDown);
     const functionOption = screen.getByRole('option', {
       name: textMock('right_menu.expressions_function_less_than'),
     });
-    await act(() => user.click(functionOption));
+    await user.click(functionOption);
     const simpleInternalExpressionCopy = ObjectUtils.deepCopy(simpleInternalExpression);
     simpleInternalExpressionCopy.subExpressions[0].function = ExpressionFunction.LessThan;
     expect(mockOnSetExpression).toHaveBeenCalledWith(simpleInternalExpressionCopy);
@@ -179,7 +179,7 @@ describe('ExpressionEditMode', () => {
     const addSubExpressionButton = screen.getByRole('button', {
       name: textMock('right_menu.expressions_add_sub_expression'),
     });
-    await act(() => user.click(addSubExpressionButton));
+    await user.click(addSubExpressionButton);
     const simpleInternalExpressionCopy = ObjectUtils.deepCopy(simpleInternalExpression);
     simpleInternalExpressionCopy.subExpressions.push({});
     simpleInternalExpressionCopy.operator = Operator.And;
@@ -198,7 +198,7 @@ describe('ExpressionEditMode', () => {
     const andOperatorToggleButton = screen.getByRole('button', {
       name: textMock('right_menu.expressions_operator_and'),
     });
-    await act(() => user.click(andOperatorToggleButton));
+    await user.click(andOperatorToggleButton);
     internalExpressionWithMultipleSubExpressions.operator = Operator.And;
     expect(mockOnSetExpression).toHaveBeenCalledWith(internalExpressionWithMultipleSubExpressions);
     expect(mockOnSetExpression).toHaveBeenCalledTimes(1);
@@ -243,7 +243,7 @@ describe('ExpressionEditMode', () => {
       name: textMock('right_menu.expression_enable_free_style_editing'),
     });
     expect(enableFreeStyleEditingSwitch).toBeChecked();
-    await act(() => user.click(enableFreeStyleEditingSwitch));
+    await user.click(enableFreeStyleEditingSwitch);
     expect(enableFreeStyleEditingSwitch).not.toBeChecked();
   });
 });

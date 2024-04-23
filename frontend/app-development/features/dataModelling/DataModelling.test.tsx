@@ -1,11 +1,6 @@
 import React from 'react';
 import { DataModelling } from './DataModelling';
-import {
-  act,
-  render as rtlRender,
-  screen,
-  waitForElementToBeRemoved,
-} from '@testing-library/react';
+import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
@@ -112,7 +107,7 @@ describe('DataModelling', () => {
     const generateModelButton = screen.getByRole('button', {
       name: textMock('schema_editor.generate_model_files'),
     });
-    await act(() => user.click(generateModelButton));
+    await user.click(generateModelButton);
     const errorsPanelWithErrors = screen.getByText(textMock('api_errors.DM_01'));
     expect(errorsPanelWithErrors).toBeInTheDocument();
   });
@@ -136,13 +131,13 @@ describe('DataModelling', () => {
     const generateModelButton = screen.getByRole('button', {
       name: textMock('schema_editor.generate_model_files'),
     });
-    await act(() => user.click(generateModelButton));
+    await user.click(generateModelButton);
     const errorsPanelWithErrors = screen.getByText(textMock('api_errors.DM_01'));
     expect(errorsPanelWithErrors).toBeInTheDocument();
     const closeSchemaErrorsPanelButton = screen.getByRole('button', {
       name: textMock('general.close'),
     });
-    await act(() => user.click(closeSchemaErrorsPanelButton));
+    await user.click(closeSchemaErrorsPanelButton);
     const errorsPanel = screen.queryByText(textMock('api_errors.DM_01'));
     expect(errorsPanel).not.toBeInTheDocument();
   });

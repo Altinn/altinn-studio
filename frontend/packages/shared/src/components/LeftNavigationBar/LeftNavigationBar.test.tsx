@@ -5,7 +5,6 @@ import type { LeftNavigationBarProps } from './LeftNavigationBar';
 import { LeftNavigationBar } from './LeftNavigationBar';
 import type { LeftNavigationTab, TabAction } from 'app-shared/types/LeftNavigationTab';
 import { TestFlaskIcon } from '@navikt/aksel-icons';
-import { act } from 'react-dom/test-utils';
 import { MemoryRouter } from 'react-router-dom';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 
@@ -78,7 +77,7 @@ describe('LeftNavigationBar', () => {
     const nextTab = mockTabs[1];
 
     const tab2 = screen.getByRole('tab', { name: textMock(nextTab.tabName) });
-    await act(() => user.click(tab2));
+    await user.click(tab2);
     expect(nextTab.action.onClick).toHaveBeenCalledTimes(1);
   });
 
@@ -88,11 +87,11 @@ describe('LeftNavigationBar', () => {
 
     const nextTab = mockTabs[1];
     const tab2 = screen.getByRole('tab', { name: textMock(nextTab.tabName) });
-    await act(() => user.click(tab2));
+    await user.click(tab2);
 
     const newNextTab = mockTabs[0];
     const tab1 = screen.getByRole('tab', { name: textMock(newNextTab.tabName) });
-    await act(() => user.click(tab1));
+    await user.click(tab1);
 
     expect(newNextTab.action.onClick).toHaveBeenCalledTimes(1);
   });
@@ -104,7 +103,7 @@ describe('LeftNavigationBar', () => {
     const nextTab = mockTabs[2];
 
     const tab3 = screen.getByRole('tab', { name: textMock(nextTab.tabName) });
-    await act(() => user.click(tab3));
+    await user.click(tab3);
     expect(mockOnClick).not.toHaveBeenCalled();
   });
 
@@ -115,7 +114,7 @@ describe('LeftNavigationBar', () => {
     const currentTab = mockTabs[0];
 
     const tab1 = screen.getByRole('tab', { name: textMock(currentTab.tabName) });
-    await act(() => user.click(tab1));
+    await user.click(tab1);
     expect(currentTab.action.onClick).toHaveBeenCalledTimes(0);
   });
 
@@ -137,17 +136,17 @@ describe('LeftNavigationBar', () => {
     const user = userEvent.setup();
     render({ tabs: mockTabs, selectedTab: mockTabId1 });
 
-    await act(() => user.tab());
+    await user.tab();
     expect(getTabItem(mockTabId1)).toHaveFocus();
-    await act(() => user.keyboard('{arrowdown}'));
+    await user.keyboard('{arrowdown}');
     expect(getTabItem(mockTabId2)).toHaveFocus();
-    await act(() => user.keyboard('{arrowdown}'));
+    await user.keyboard('{arrowdown}');
     expect(getTabItem(mockTabId3)).toHaveFocus();
-    await act(() => user.keyboard('{arrowdown}'));
+    await user.keyboard('{arrowdown}');
     expect(getTabItem(mockTabId1)).toHaveFocus();
-    await act(() => user.keyboard('{arrowup}'));
+    await user.keyboard('{arrowup}');
     expect(getTabItem(mockTabId3)).toHaveFocus();
-    await act(() => user.keyboard('{arrowup}'));
+    await user.keyboard('{arrowup}');
     expect(getTabItem(mockTabId2)).toHaveFocus();
   });
 
@@ -155,12 +154,12 @@ describe('LeftNavigationBar', () => {
     const user = userEvent.setup();
     render({ tabs: mockTabs, selectedTab: mockTabId1 });
 
-    await act(() => user.tab());
+    await user.tab();
     expect(getTabItem(mockTabId1)).toHaveFocus();
-    await act(() => user.keyboard('{arrowdown}'));
+    await user.keyboard('{arrowdown}');
     expect(getTabItem(mockTabId2)).toHaveFocus();
 
-    await act(() => user.keyboard('{enter}'));
+    await user.keyboard('{enter}');
     expect(mockTabs[1].action.onClick).toHaveBeenCalledTimes(1);
   });
 });
