@@ -3,7 +3,6 @@ import { MemoryRouter } from 'react-router-dom';
 import { render, screen, waitFor } from '@testing-library/react';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { NewAccessListModalProps } from './NewAccessListModal';
@@ -45,7 +44,7 @@ describe('NewAccessListModal', () => {
     await renderAndOpenModal(user);
 
     const closeButton = screen.getByText(textMock('general.cancel'));
-    await act(() => user.click(closeButton));
+    await user.click(closeButton);
 
     expect(closeModalMock).toHaveBeenCalled();
   });
@@ -55,10 +54,10 @@ describe('NewAccessListModal', () => {
     await renderAndOpenModal(user);
 
     const nameField = screen.getByLabelText(textMock('resourceadm.listadmin_list_name'));
-    await act(() => user.type(nameField, 'nytt navn'));
+    await user.type(nameField, 'nytt navn');
 
     const createButton = screen.getByText(textMock('resourceadm.listadmin_confirm_create_list'));
-    await act(() => user.click(createButton));
+    await user.click(createButton);
 
     await waitFor(() => {
       expect(mockedNavigate).toHaveBeenCalledWith('/accesslists/tt02/nytt-navn');
@@ -74,10 +73,10 @@ describe('NewAccessListModal', () => {
     });
 
     const nameField = screen.getByLabelText(textMock('resourceadm.listadmin_list_name'));
-    await act(() => user.type(nameField, 'nytt navn'));
+    await user.type(nameField, 'nytt navn');
 
     const createButton = screen.getByText(textMock('resourceadm.listadmin_confirm_create_list'));
-    await act(() => user.click(createButton));
+    await user.click(createButton);
 
     expect(
       await screen.findByText(textMock('resourceadm.listadmin_identifier_conflict')),
@@ -107,7 +106,7 @@ const renderAndOpenModal = async (
   renderNewAccessListModal(queryMocks);
 
   const openModalButton = screen.getByRole('button', { name: mockButtonText });
-  await act(() => user.click(openModalButton));
+  await user.click(openModalButton);
 };
 
 const TestComponentWithButton = () => {

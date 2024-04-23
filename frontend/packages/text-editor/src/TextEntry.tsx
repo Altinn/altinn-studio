@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import type { TextTableRowEntry, UpsertTextResourceMutation } from './types';
+import type { TextTableRowEntry } from './types';
+import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 import { Textarea } from '@digdir/design-system-react';
 import { Variables } from './Variables';
 import { useAutoSizeTextArea } from './hooks/useAutoSizeTextArea';

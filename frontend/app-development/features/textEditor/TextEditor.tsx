@@ -10,10 +10,10 @@ import {
   useAddLanguageMutation,
   useDeleteLanguageMutation,
   useTextIdMutation,
-  useUpsertTextResourceMutation,
 } from '../../hooks/mutations';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useTranslation } from 'react-i18next';
+import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 
 export const TextEditor = () => {
   const { t } = useTranslation();

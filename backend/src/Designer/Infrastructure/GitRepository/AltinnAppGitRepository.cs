@@ -18,7 +18,6 @@ using LibGit2Sharp;
 using Microsoft.IdentityModel.Tokens;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 using LayoutSets = Altinn.Studio.Designer.Models.LayoutSets;
-using NonUniqueLayoutSetIdException = Altinn.Studio.Designer.Exceptions.NonUniqueLayoutSetIdException;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 {

@@ -5,7 +5,7 @@ import { createQueryClientMock, queryClientMock } from 'app-shared/mocks/queryCl
 import type { TextResourceProps } from './TextResource';
 import { TextResource } from './TextResource';
 import { renderWithProviders } from '../../testing/mocks';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
@@ -44,14 +44,14 @@ describe('TextResource', () => {
   it('Calls handleIdChange when the button is clicked', async () => {
     const label = 'Lorem ipsum';
     renderTextResource({ label });
-    await act(() => user.click(screen.getByRole('button', { name: label })));
+    await user.click(screen.getByRole('button', { name: label }));
     expect(handleIdChange).toHaveBeenCalledTimes(1);
   });
 
   it('Opens the text resource fieldset when the text resource button is clicked', async () => {
     const label = 'Lorem ipsum';
     renderTextResource({ label });
-    await act(() => user.click(screen.getByRole('button', { name: label })));
+    await user.click(screen.getByRole('button', { name: label }));
     expect(screen.getByRole('group', { name: label })).toBeInTheDocument();
   });
 
@@ -66,7 +66,7 @@ describe('TextResource', () => {
       },
     });
     const addButton = screen.getByRole('button', { name: label });
-    await act(() => user.click(addButton));
+    await user.click(addButton);
     expect(handleIdChange).toHaveBeenCalledTimes(1);
     expect(handleIdChange).toHaveBeenCalledWith('Page1.test-id.title');
   });
@@ -95,7 +95,7 @@ describe('TextResource', () => {
     const value = 'Lorem ipsum dolor sit amet';
     const textResource: ITextResource = { id: textResourceId, value };
     renderTextResource({ label, textResourceId }, [textResource]);
-    await act(() => user.click(screen.getByRole('button', { name: label })));
+    await user.click(screen.getByRole('button', { name: label }));
     expect(handleIdChange).not.toHaveBeenCalled();
   });
 
@@ -113,33 +113,28 @@ describe('TextResource', () => {
     await renderAndOpenSearchSection();
     const combobox = screen.getByRole('combobox');
     expect(combobox).toBeInTheDocument();
-    await act(() => user.click(combobox));
+    await user.click(combobox);
     expect(screen.getAllByRole('option')).toHaveLength(textResources.length + 1); // + 1 because of the "none" option
   });
 
   it('Calls handleIdChange when selection in search section is changed', async () => {
     await renderAndOpenSearchSection();
-    await act(() =>
-      user.click(
-        screen.getByRole('combobox', { name: textMock('ux_editor.search_text_resources_label') }),
-      ),
+    await user.click(
+      screen.getByRole('combobox', { name: textMock('ux_editor.search_text_resources_label') }),
     );
-    await act(() => user.click(screen.getByRole('option', { name: textResources[1].id })));
+
+    await user.click(screen.getByRole('option', { name: textResources[1].id }));
     expect(handleIdChange).toHaveBeenCalledTimes(1);
     expect(handleIdChange).toHaveBeenCalledWith(textResources[1].id);
   });
 
   it('Calls handleIdChange with undefined when "none" is selected', async () => {
     await renderAndOpenSearchSection();
-    await act(() =>
-      user.click(
-        screen.getByRole('combobox', { name: textMock('ux_editor.search_text_resources_label') }),
-      ),
+    await user.click(
+      screen.getByRole('combobox', { name: textMock('ux_editor.search_text_resources_label') }),
     );
-    await act(() =>
-      user.click(
-        screen.getByRole('option', { name: textMock('ux_editor.search_text_resources_none') }),
-      ),
+    await user.click(
+      screen.getByRole('option', { name: textMock('ux_editor.search_text_resources_none') }),
     );
     expect(handleIdChange).toHaveBeenCalledTimes(1);
     expect(handleIdChange).toHaveBeenCalledWith(undefined);
@@ -149,8 +144,8 @@ describe('TextResource', () => {
     jest.spyOn(window, 'confirm').mockReturnValue(true);
     const label = 'Test';
     renderTextResource({ label, textResourceId: 'test' });
-    await act(() => user.click(screen.getByRole('button', { name: label })));
-    await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
+    await user.click(screen.getByRole('button', { name: label }));
+    await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
     expect(handleRemoveTextResource).toHaveBeenCalledTimes(1);
   });
 
@@ -158,23 +153,23 @@ describe('TextResource', () => {
     jest.spyOn(window, 'confirm').mockReturnValue(false);
     const label = 'Test';
     renderTextResource({ label, textResourceId: 'test' });
-    await act(() => user.click(screen.getByRole('button', { name: label })));
-    await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
+    await user.click(screen.getByRole('button', { name: label }));
+    await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
     expect(handleRemoveTextResource).not.toHaveBeenCalled();
   });
 
   it('Renders delete button as disabled when no handleRemoveTextResource is given', async () => {
     const label = 'Test';
     renderTextResource({ label, handleRemoveTextResource: undefined });
-    await act(() => user.click(screen.getByRole('button', { name: label })));
+    await user.click(screen.getByRole('button', { name: label }));
     expect(screen.getByRole('button', { name: textMock('general.delete') })).toBeDisabled();
   });
 
   it('Closes the text resource fieldset when the close button is clicked', async () => {
     const label = 'Test';
     renderTextResource({ label });
-    await act(() => user.click(screen.getByRole('button', { name: label })));
-    await act(() => user.click(screen.getByRole('button', { name: textMock('general.close') })));
+    await user.click(screen.getByRole('button', { name: label }));
+    await user.click(screen.getByRole('button', { name: textMock('general.close') }));
     expect(screen.queryByRole('group', { name: label })).not.toBeInTheDocument();
   });
 
@@ -182,7 +177,7 @@ describe('TextResource', () => {
     const label = 'Test';
     const textResourceId = textResources[0].id;
     renderTextResource({ label, textResourceId }, textResources);
-    await act(() => user.click(screen.getByRole('button', { name: label })));
+    await user.click(screen.getByRole('button', { name: label }));
     const textboxLabel = textMock('ux_editor.text_resource_binding_text');
     const textbox = screen.getByRole('textbox', { name: textboxLabel });
     expect(textbox).toHaveValue(textResources[0].value);
@@ -193,11 +188,11 @@ describe('TextResource', () => {
     const textResourceId = textResources[0].id;
     const upsertTextResources = jest.fn().mockImplementation(() => Promise.resolve());
     renderTextResource({ label, textResourceId }, textResources, { upsertTextResources });
-    await act(() => user.click(screen.getByRole('button', { name: label })));
+    await user.click(screen.getByRole('button', { name: label }));
     const textboxLabel = textMock('ux_editor.text_resource_binding_text');
     const textbox = screen.getByRole('textbox', { name: textboxLabel });
-    await act(() => user.type(textbox, 'a'));
-    await act(() => user.tab());
+    await user.type(textbox, 'a');
+    await user.tab();
     expect(upsertTextResources).toHaveBeenCalledTimes(1);
     expect(upsertTextResources).toHaveBeenCalledWith(org, app, DEFAULT_LANGUAGE, {
       [textResourceId]: textResources[0].value + 'a',
@@ -212,11 +207,11 @@ const renderAndOpenSearchSection = async () => {
   const textResourceId = textResources[0].id;
   renderTextResource({ label, textResourceId }, textResources);
   const textResourceButton = screen.getByRole('button', { name: label });
-  await act(() => user.click(textResourceButton));
+  await user.click(textResourceButton);
   const searchTab = screen.getByRole('tab', {
     name: textMock('ux_editor.text_resource_binding_search'),
   });
-  await act(() => user.click(searchTab));
+  await user.click(searchTab);
 };
 
 const renderTextResource = (

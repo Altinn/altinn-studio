@@ -15,8 +15,12 @@ const createWebStorage = (storage: WebStorage): TypedStorage => {
     console.warn('Storage API not available. The browser might not support the provided storage.');
   }
 
+  const removeItem = (key: string): void => storage.removeItem(key);
+
   return {
-    setItem: <T>(key: string, value: T): void => storage.setItem(key, JSON.stringify(value)),
+    setItem: <T>(key: string, value: T): void => {
+      if (value !== undefined) storage.setItem(key, JSON.stringify(value));
+    },
     getItem: <T>(key: string): T | undefined => {
       const storedItem = storage.getItem(key);
       if (!storedItem) {
@@ -29,9 +33,10 @@ const createWebStorage = (storage: WebStorage): TypedStorage => {
         console.warn(
           `Failed to parse stored item with key ${key}. Ensure that the item is a valid JSON string. Error: ${error}`,
         );
+        removeItem(key);
       }
     },
-    removeItem: (key: string): void => storage.removeItem(key),
+    removeItem,
   };
 };
 

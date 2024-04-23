@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as rtlRender, act, screen } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { ConfigEndEvent } from './ConfigEndEvent';
 import userEvent from '@testing-library/user-event';
@@ -63,12 +63,12 @@ describe('ConfigEndEvent', () => {
     const inputFieldButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_custom_receipt_add'),
     });
-    await act(() => user.click(inputFieldButton));
+    await user.click(inputFieldButton);
     const inputField = screen.getByRole('textbox', {
       name: textMock('process_editor.configuration_panel_custom_receipt_add_button_title'),
     });
-    await act(() => user.type(inputField, customReceiptLayoutSetName));
-    await act(() => user.tab());
+    await user.type(inputField, customReceiptLayoutSetName);
+    await user.tab();
     expect(addLayoutSetMock).toHaveBeenCalledTimes(1);
     expect(addLayoutSetMock).toHaveBeenCalledWith({
       layoutSetIdToUpdate: undefined,
@@ -92,13 +92,13 @@ describe('ConfigEndEvent', () => {
     const inputFieldButton = screen.getByRole('button', {
       name: existingCustomReceiptLayoutSetName,
     });
-    await act(() => user.click(inputFieldButton));
+    await user.click(inputFieldButton);
     const inputField = screen.getByRole('textbox', {
       name: textMock('process_editor.configuration_panel_custom_receipt_add_button_title'),
     });
-    await act(() => user.clear(inputField));
-    await act(() => user.type(inputField, newCustomReceiptLayoutSetName));
-    await act(() => user.tab());
+    await user.clear(inputField);
+    await user.type(inputField, newCustomReceiptLayoutSetName);
+    await user.tab();
     expect(updateLayoutSetMock).toHaveBeenCalledTimes(1);
     expect(updateLayoutSetMock).toHaveBeenCalledWith({
       layoutSetIdToUpdate: existingCustomReceiptLayoutSetName,
@@ -125,18 +125,18 @@ describe('ConfigEndEvent', () => {
     const inputFieldButton = screen.getByRole('button', {
       name: existingCustomReceiptLayoutSetName,
     });
-    await act(() => user.click(inputFieldButton));
+    await user.click(inputFieldButton);
     const inputField = screen.getByRole('textbox', {
       name: textMock('process_editor.configuration_panel_custom_receipt_add_button_title'),
     });
     if (invalidLayoutSetId === emptyLayoutSetName) {
-      await act(() => user.clear(inputField));
-      await act(() => user.tab());
+      await user.clear(inputField);
+      await user.tab();
       screen.getByText(textMock('validation_errors.required'));
     } else {
-      await act(() => user.clear(inputField));
-      await act(() => user.type(inputField, invalidLayoutSetId));
-      await act(() => user.tab());
+      await user.clear(inputField);
+      await user.type(inputField, invalidLayoutSetId);
+      await user.tab();
     }
     if (invalidLayoutSetId === invalidFormatLayoutSetName)
       screen.getByText(textMock('ux_editor.pages_error_format'));

@@ -9,6 +9,7 @@ import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 import { BpmnConfigPanelFormContextProvider } from '../../contexts/BpmnConfigPanelContext';
 import type Modeler from 'bpmn-js/lib/Modeler';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import type { BpmnApiContextProps } from '../../contexts/BpmnApiContext';
 import { BpmnApiContextProvider } from '../../contexts/BpmnApiContext';
 
 jest.mock('app-shared/utils/featureToggleUtils', () => ({
@@ -25,16 +26,20 @@ const mockBpmnDetails: BpmnDetails = {
 const mockBpmnContextValue: BpmnContextProps = {
   bpmnXml: `<?xml version="1.0" encoding="UTF-8"?></xml>`,
   appLibVersion: '8.0.3',
-  numberOfUnsavedChanges: 0,
-  setNumberOfUnsavedChanges: jest.fn(),
   getUpdatedXml: jest.fn(),
   isEditAllowed: true,
   bpmnDetails: mockBpmnDetails,
   setBpmnDetails: jest.fn(),
-  dataTasksAdded: [],
-  setDataTasksAdded: jest.fn(),
-  dataTasksRemoved: [],
-  setDataTasksRemoved: jest.fn(),
+};
+
+const mockBpmnApiContextValue: BpmnApiContextProps = {
+  layoutSets: { sets: [] },
+  pendingApiOperations: false,
+  existingCustomReceiptLayoutSetName: undefined,
+  addLayoutSet: jest.fn(),
+  deleteLayoutSet: jest.fn(),
+  mutateLayoutSet: jest.fn(),
+  saveBpmn: jest.fn(),
 };
 
 describe('ConfigPanel', () => {
@@ -104,12 +109,7 @@ describe('ConfigPanel', () => {
 const renderConfigPanel = (rootContextProps: Partial<BpmnContextProps> = {}) => {
   return render(
     <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
-      <BpmnApiContextProvider
-        layoutSets={{ sets: [] }}
-        existingCustomReceiptLayoutSetName={undefined}
-        addLayoutSet={jest.fn()}
-        mutateLayoutSet={jest.fn()}
-      >
+      <BpmnApiContextProvider {...mockBpmnApiContextValue}>
         <BpmnConfigPanelFormContextProvider>
           <ConfigPanel />
         </BpmnConfigPanelFormContextProvider>

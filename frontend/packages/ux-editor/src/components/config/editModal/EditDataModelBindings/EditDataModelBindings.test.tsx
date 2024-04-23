@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { EditDataModelBindings } from './EditDataModelBindings';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
@@ -111,7 +111,7 @@ describe('EditDataModelBindings', () => {
     const linkIcon = screen.getByRole('button', {
       name: textMock('ux_editor.component_title.Input'),
     });
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     const combobox = screen.getByRole('combobox', {
       name: textMock('ux_editor.component_title.Input'),
     });
@@ -124,7 +124,7 @@ describe('EditDataModelBindings', () => {
     const linkIcon = screen.getByRole('button', {
       name: textMock('ux_editor.component_title.Input'),
     });
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     screen.getByRole('combobox', { name: textMock('ux_editor.component_title.Input') });
     screen.getByText('testModel.field1');
   });
@@ -143,7 +143,7 @@ describe('EditDataModelBindings', () => {
     const linkIcon = screen.getByRole('button', {
       name: textMock('ux_editor.component_title.Input'),
     });
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     const select = screen.getByRole('combobox');
     expect(select).toBeInTheDocument();
   });
@@ -155,7 +155,7 @@ describe('EditDataModelBindings', () => {
     const linkIcon = screen.getByRole('button', {
       name: textMock('ux_editor.component_title.Input'),
     });
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
 
@@ -166,9 +166,9 @@ describe('EditDataModelBindings', () => {
     const linkIcon = screen.getByRole('button', {
       name: textMock('ux_editor.component_title.Input'),
     });
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     const option = screen.getByText('testModel');
-    await act(() => user.click(option));
+    await user.click(option);
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...defaultComponent,
       dataModelBindings: { simpleBinding: 'testModel' },
@@ -188,9 +188,9 @@ describe('EditDataModelBindings', () => {
     const linkIcon = screen.getByRole('button', {
       name: textMock('ux_editor.component_title.Datepicker'),
     });
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     const option = screen.getByText('datePickerField');
-    await act(() => user.click(option));
+    await user.click(option);
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...defaultComponent,
       type: ComponentType.Datepicker,
@@ -207,7 +207,7 @@ describe('EditDataModelBindings', () => {
     const linkIcon = screen.getByRole('button', {
       name: textMock('ux_editor.component_title.Input'),
     });
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     const saveButton = screen.getByRole('button', { name: textMock('general.close') });
     expect(saveButton).toBeInTheDocument();
   });
@@ -218,7 +218,7 @@ describe('EditDataModelBindings', () => {
     const linkIcon = screen.getByRole('button', {
       name: textMock('ux_editor.component_title.Input'),
     });
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
     expect(deleteButton).toBeInTheDocument();
   });
@@ -229,14 +229,14 @@ describe('EditDataModelBindings', () => {
     const linkIcon = screen.getByRole('button', {
       name: textMock('ux_editor.component_title.Input'),
     });
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     const combobox = screen.getByRole('combobox', {
       name: textMock('ux_editor.component_title.Input'),
     });
     expect(combobox.getAttribute('value')).toEqual('');
 
     const saveButton = screen.getByRole('button', { name: textMock('general.close') });
-    await act(() => user.click(saveButton));
+    await user.click(saveButton);
 
     expect(
       screen.getByRole('button', { name: textMock('ux_editor.component_title.Input') }),
@@ -264,11 +264,11 @@ describe('EditDataModelBindings', () => {
         binding: textMock('ux_editor.component_title.Input'),
       }),
     });
-    await act(() => user.click(editButton));
+    await user.click(editButton);
 
     screen.getByText(dataModelBindingKey);
     const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...defaultComponent,
       dataModelBindings: { simpleBinding: '' },
@@ -291,7 +291,7 @@ describe('EditDataModelBindings', () => {
         binding: textMock('ux_editor.component_title.Input'),
       }),
     });
-    await act(() => user.click(editIcon));
+    await user.click(editIcon);
 
     expect(screen.getByRole('group', { name: textMock('ux_editor.component_title.Input') }));
     expect(screen.getByRole('combobox').getAttribute('value')).toEqual(dataModelBindingKey);
@@ -319,13 +319,13 @@ describe('EditDataModelBindings', () => {
     const dataModelBinding = screen.getByRole('button', {
       name: textMock('ux_editor.modal_properties_data_model_label.group'),
     });
-    await act(() => user.click(dataModelBinding));
+    await user.click(dataModelBinding);
     const dataModelBindingSelector = screen.getByRole('combobox', {
       name: textMock(`ux_editor.modal_properties_data_model_label.group`),
     });
-    await act(() => user.click(dataModelBindingSelector));
+    await user.click(dataModelBindingSelector);
     const dataModelOption = screen.getByRole('option', { name: dataBindingNameMock });
-    await act(() => user.click(dataModelOption));
+    await user.click(dataModelOption);
 
     expect(mockHandleComponentUpdate).toHaveBeenCalled();
     expect(mockHandleComponentUpdate).toHaveBeenCalledWith(

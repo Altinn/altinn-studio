@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 
 import { EditOptions } from './EditOptions';
 import { renderWithProviders } from '../../../testing/mocks';
@@ -71,7 +71,7 @@ describe('EditOptions', () => {
       screen.queryByText(textMock('ux_editor.radios_error_NoOptions')),
     ).not.toBeInTheDocument();
     const switchElement = screen.getByRole('checkbox');
-    await act(() => switchElement.click());
+    await waitFor(() => switchElement.click());
     screen.getByText(textMock('ux_editor.radios_error_NoOptions'));
   });
 
@@ -93,7 +93,7 @@ describe('EditOptions', () => {
       screen.queryByText(textMock('ux_editor.checkboxes_error_NoOptions')),
     ).not.toBeInTheDocument();
     const switchElement = screen.getByRole('checkbox');
-    await act(() => switchElement.click());
+    await waitFor(() => switchElement.click());
     screen.getByText(textMock('ux_editor.checkboxes_error_NoOptions'));
   });
 
@@ -125,7 +125,7 @@ describe('EditOptions', () => {
     const handleComponentChange = jest.fn();
     renderEditOptions({ handleComponentChange });
     const switchElement = screen.getByRole('checkbox');
-    await act(() => switchElement.click());
+    await waitFor(() => switchElement.click());
     expect(handleComponentChange).toHaveBeenCalledWith({ ...mockComponent, options: [] });
   });
 
@@ -140,7 +140,7 @@ describe('EditOptions', () => {
       },
     });
     const switchElement = screen.getByRole('checkbox');
-    await act(() => switchElement.click());
+    await waitFor(() => switchElement.click());
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...mockComponent,
       options: [],
@@ -159,7 +159,7 @@ describe('EditOptions', () => {
     const addOptionButton = screen.getByRole('button', {
       name: textMock('ux_editor.modal_new_option'),
     });
-    await act(() => addOptionButton.click());
+    await addOptionButton.click();
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...mockComponent,
       options: expect.arrayContaining([
@@ -181,13 +181,13 @@ describe('EditOptions', () => {
     });
     const optionLabel = textMock('ux_editor.radios_option', { optionNumber: 1 });
     const optionButton = screen.getByRole('button', { name: optionLabel });
-    await act(() => user.click(optionButton));
+    await user.click(optionButton);
     const optionFieldset = screen.getByRole('group', { name: optionLabel });
     const removeButtonLabel = textMock('general.delete');
     const removeOptionButton = within(optionFieldset).getByRole('button', {
       name: removeButtonLabel,
     });
-    await act(() => user.click(removeOptionButton));
+    await user.click(removeOptionButton);
     expect(handleComponentChange).toHaveBeenCalledWith({ ...mockComponent, options: [] });
   });
 });

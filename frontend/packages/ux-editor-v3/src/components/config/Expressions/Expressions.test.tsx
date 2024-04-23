@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../testing/mocks';
@@ -117,11 +117,11 @@ describe('Expressions', () => {
     const addExpressionButton = screen.getByRole('button', {
       name: textMock('right_menu.expressions_add'),
     });
-    await act(() => user.click(addExpressionButton));
+    await user.click(addExpressionButton);
     const propertyDropDownMenuItem = screen.getByRole('menuitem', {
       name: textMock('right_menu.expressions_property_read_only'),
     });
-    await act(() => user.click(propertyDropDownMenuItem));
+    await user.click(propertyDropDownMenuItem);
 
     const newExpression = screen.getByText(
       textMock('right_menu.expressions_property_preview_read_only'),
@@ -141,7 +141,7 @@ describe('Expressions', () => {
     const editExpressionButton = screen.getByRole('button', {
       name: textMock('right_menu.expression_edit'),
     });
-    await act(() => user.click(editExpressionButton));
+    await user.click(editExpressionButton);
 
     expect(expressionInPreview).not.toBeInTheDocument();
   });
@@ -154,7 +154,7 @@ describe('Expressions', () => {
       name: textMock('right_menu.expression_delete'),
     });
     expect(deleteExpressionButton).toBeInTheDocument();
-    await act(() => user.click(deleteExpressionButton));
+    await user.click(deleteExpressionButton);
 
     expect(deleteExpressionButton).not.toBeInTheDocument();
   });
