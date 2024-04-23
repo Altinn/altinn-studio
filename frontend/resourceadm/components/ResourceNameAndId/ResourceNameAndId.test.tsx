@@ -68,7 +68,7 @@ describe('ResourceNameAndId', () => {
   it('displays the two icon buttons for save and cancel when id edit is enabled, and hides the edit button', async () => {
     const user = userEvent.setup();
     render(<ResourceNameAndId {...defaultProps} />);
-    
+
     const editButton = screen.queryByRole('button', { name: editLabelButtonText });
     await user.click(editButton);
 
@@ -104,7 +104,7 @@ describe('ResourceNameAndId', () => {
     render(<ResourceNameAndId {...defaultProps} />);
 
     const editButton = screen.queryByRole('button', { name: editLabelButtonText });
-    awaituser.click(editButton);
+    await user.click(editButton);
 
     const idInput = screen.getByLabelText(mockIdLabel);
 
