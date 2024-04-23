@@ -95,19 +95,6 @@ export const NewApplicationForm = ({
     return isOrgValid && isRepoNameValid;
   };
 
-  const renderCancelComponent = () => {
-    switch (cancelComponent.type) {
-      case 'button':
-        return (
-          <StudioButton onClick={cancelComponent.onClick} variant='tertiary' size='small'>
-            {t('general.cancel')}
-          </StudioButton>
-        );
-      case 'link':
-        return <Link to={cancelComponent.href}>{t('general.cancel')}</Link>;
-    }
-  };
-
   return (
     <form onSubmit={handleSubmit} className={classes.form}>
       <ServiceOwnerSelector
@@ -130,10 +117,28 @@ export const NewApplicationForm = ({
             <StudioButton type='submit' variant='primary' size='small'>
               {submitButtonText}
             </StudioButton>
-            {renderCancelComponent()}
+            <CancelComponent cancelComponent={cancelComponent} />
           </>
         )}
       </div>
     </form>
   );
+};
+
+type CancelComponentProps = {
+  cancelComponent: CancelComponent;
+};
+const CancelComponent = ({ cancelComponent }: CancelComponentProps) => {
+  const { t } = useTranslation();
+
+  switch (cancelComponent.type) {
+    case 'button':
+      return (
+        <StudioButton onClick={cancelComponent.onClick} variant='tertiary' size='small'>
+          {t('general.cancel')}
+        </StudioButton>
+      );
+    case 'link':
+      return <Link to={cancelComponent.href}>{t('general.cancel')}</Link>;
+  }
 };

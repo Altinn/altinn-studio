@@ -65,11 +65,6 @@ describe('MakeCopyModal', () => {
     const user = userEvent.setup();
     renderWithMockServices();
 
-    const select = screen.getByLabelText(textMock('general.service_owner'));
-    await user.click(select);
-    const orgOption = screen.getByRole('option', { name: mockUser.full_name });
-    await user.click(orgOption);
-
     const repoTextfield = screen.getByLabelText(textMock('general.service_name'));
     const newRepoValue: string = 'new-repo-name';
     await user.type(repoTextfield, newRepoValue);

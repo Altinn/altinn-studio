@@ -3,15 +3,15 @@ import classes from './CreateService.module.css';
 import { useTranslation } from 'react-i18next';
 import type { Organization } from 'app-shared/types/Organization';
 import type { User } from 'app-shared/types/Repository';
-import { useAddRepoMutation } from 'dashboard/hooks/mutations/useAddRepoMutation';
+import { useAddRepoMutation } from '../../hooks/mutations/useAddRepoMutation';
 import { DatamodelFormat } from 'app-shared/types/DatamodelFormat';
 import type { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { NewApplicationForm } from 'dashboard/components/NewApplicationForm';
+import { NewApplicationForm } from '../../components/NewApplicationForm';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { type NewAppForm } from '../../types/NewAppForm';
 import { DASHBOARD_ROOT_ROUTE } from 'app-shared/constants';
-import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
+import { useSelectedContext } from '../../hooks/useSelectedContext';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 
 const initialFormError: NewAppForm = {
