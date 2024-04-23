@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import type { DeleteModalProps } from './DeleteModal';
 import { DeleteModal } from './DeleteModal';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
@@ -30,7 +30,7 @@ describe('DeleteModal', () => {
     renderDeleteModal();
 
     const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
-    await act(() => user.click(cancelButton));
+    await user.click(cancelButton);
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
@@ -43,7 +43,7 @@ describe('DeleteModal', () => {
     );
     expect(textfield).toHaveValue('');
 
-    await act(() => user.type(textfield, 'a'));
+    await user.type(textfield, 'a');
 
     const textfieldAfter = screen.getByLabelText(
       textMock('local_changes.modal_delete_modal_textfield_label'),
@@ -66,11 +66,11 @@ describe('DeleteModal', () => {
     const textfield = screen.getByLabelText(
       textMock('local_changes.modal_delete_modal_textfield_label'),
     );
-    await act(() => user.type(textfield, mockApp));
+    await user.type(textfield, mockApp);
     expect(deleteButton).not.toBeDisabled();
 
     expect(mockDelete).toHaveBeenCalledTimes(0);
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
     expect(mockDelete).toHaveBeenCalledTimes(1);
 
     const toastSuccessText = await screen.findByText(
@@ -95,11 +95,11 @@ describe('DeleteModal', () => {
     const textfield = screen.getByLabelText(
       textMock('local_changes.modal_delete_modal_textfield_label'),
     );
-    await act(() => user.type(textfield, mockApp));
+    await user.type(textfield, mockApp);
     expect(deleteButton).not.toBeDisabled();
 
     expect(mockDelete).toHaveBeenCalledTimes(0);
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
 
     expect(mockDelete).toHaveBeenCalledTimes(1);
     expect(mockOnClose).toHaveBeenCalledTimes(0);

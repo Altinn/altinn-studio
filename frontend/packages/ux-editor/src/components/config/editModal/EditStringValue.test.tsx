@@ -6,7 +6,6 @@ import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
 
 const user = userEvent.setup();
 
@@ -40,7 +39,7 @@ describe('EditStringValue', () => {
     const inputElement = screen.getByLabelText(
       textMock('ux_editor.component_properties.maxLength'),
     );
-    await act(() => user.type(inputElement, 'new value'));
+    await user.type(inputElement, 'new value');
     expect(handleComponentChange).toHaveBeenCalledWith({
       id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
       type: ComponentType.Input,

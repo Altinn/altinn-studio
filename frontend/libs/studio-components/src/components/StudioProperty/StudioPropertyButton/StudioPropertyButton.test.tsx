@@ -2,7 +2,7 @@ import type { RefObject } from 'react';
 import React from 'react';
 import type { StudioPropertyButtonProps } from './StudioPropertyButton';
 import { StudioPropertyButton } from './StudioPropertyButton';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 // Test data:
@@ -52,7 +52,7 @@ describe('StudioPropertyButton', () => {
     const user = userEvent.setup();
     const onClick = jest.fn();
     renderButton({ onClick });
-    await act(() => user.click(screen.getByRole('button')));
+    await user.click(screen.getByRole('button'));
     expect(onClick).toHaveBeenCalled();
   });
 

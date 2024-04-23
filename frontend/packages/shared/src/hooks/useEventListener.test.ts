@@ -1,6 +1,5 @@
 import { renderHook } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
 
 import { useEventListener } from './useEventListener';
 
@@ -15,14 +14,14 @@ describe('useEventListener', () => {
   it('Calls action when given event happens', async () => {
     const action = jest.fn();
     renderUseEventListener('click', action);
-    await act(() => user.click(document.body));
+    await user.click(document.body);
     expect(action).toHaveBeenCalledTimes(1);
   });
 
   it('Does not call action when another event is given', async () => {
     const action = jest.fn();
     renderUseEventListener('click', action);
-    await act(() => user.keyboard('{Enter}'));
+    await user.keyboard('{Enter}');
     expect(action).not.toHaveBeenCalled();
   });
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen, render } from '@testing-library/react';
+import { screen, render } from '@testing-library/react';
 import type { TextEntryProps } from './TextEntry';
 import { TextEntry } from './TextEntry';
 import userEvent from '@testing-library/user-event';
@@ -22,7 +22,7 @@ describe('TextEntry', () => {
     const user = userEvent.setup();
     renderTextEntry();
     const inputText1 = getTextArea();
-    await act(() => user.clear(inputText1));
+    await user.clear(inputText1);
     expect(mockUpsertTextResource).toHaveBeenCalledTimes(0);
   });
 
@@ -30,7 +30,7 @@ describe('TextEntry', () => {
     const user = userEvent.setup();
     renderTextEntry();
     const inputText2 = getTextArea();
-    await act(() => user.clear(inputText2));
+    await user.clear(inputText2);
     expect(textEntryValue).toEqual('');
   });
 
@@ -38,10 +38,10 @@ describe('TextEntry', () => {
     const user = userEvent.setup();
     renderTextEntry();
     const inputText3 = getTextArea();
-    await act(() => user.clear(inputText3));
+    await user.clear(inputText3);
     expect(textId).toEqual(APP_NAME);
     expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
-    await act(() => user.type(inputText3, 'Hello'));
+    await user.type(inputText3, 'Hello');
     expect(screen.queryByText(textMock('validation_errors.required'))).not.toBeInTheDocument();
   });
 
@@ -49,7 +49,7 @@ describe('TextEntry', () => {
     const user = userEvent.setup();
     renderTextEntry();
     const inputText4 = getTextArea();
-    await act(() => user.type(inputText4, 'Hello'));
+    await user.type(inputText4, 'Hello');
     expect(textId).toEqual(APP_NAME);
     expect(screen.queryByText(textMock('validation_errors.required'))).not.toBeInTheDocument();
   });

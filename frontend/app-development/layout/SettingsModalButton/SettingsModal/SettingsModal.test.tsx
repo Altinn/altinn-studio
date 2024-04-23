@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  render as rtlRender,
-  screen,
-  act,
-  waitForElementToBeRemoved,
-} from '@testing-library/react';
+import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { SettingsModalProps } from './SettingsModal';
 import { SettingsModal } from './SettingsModal';
@@ -58,7 +53,7 @@ describe('SettingsModal', () => {
     const closeButton = screen.getByRole('button', {
       name: textMock('settings_modal.close_button_label'),
     });
-    await act(() => user.click(closeButton));
+    await user.click(closeButton);
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
@@ -112,7 +107,7 @@ describe('SettingsModal', () => {
     const policyTab = screen.getByRole('tab', {
       name: textMock('settings_modal.left_nav_tab_policy'),
     });
-    await act(() => user.click(policyTab));
+    await user.click(policyTab);
 
     expect(
       screen.getByRole('heading', {
@@ -131,12 +126,12 @@ describe('SettingsModal', () => {
     const policyTab = screen.getByRole('tab', {
       name: textMock('settings_modal.left_nav_tab_policy'),
     });
-    await act(() => user.click(policyTab));
+    await user.click(policyTab);
 
     const aboutTab = screen.getByRole('tab', {
       name: textMock('settings_modal.left_nav_tab_about'),
     });
-    await act(() => user.click(aboutTab));
+    await user.click(aboutTab);
 
     expect(
       screen.queryByRole('heading', {
@@ -161,7 +156,7 @@ describe('SettingsModal', () => {
     const accessControlTab = screen.getByRole('tab', {
       name: textMock('settings_modal.left_nav_tab_accessControl'),
     });
-    await act(() => user.click(accessControlTab));
+    await user.click(accessControlTab);
 
     expect(
       screen.getByRole('heading', {
@@ -188,7 +183,7 @@ describe('SettingsModal', () => {
     const setupTab = screen.getByRole('tab', {
       name: textMock('settings_modal.left_nav_tab_setup'),
     });
-    await act(() => user.click(setupTab));
+    await user.click(setupTab);
 
     expect(
       screen.getByRole('heading', {

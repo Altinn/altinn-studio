@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import React from 'react';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { StudioModalProps } from './StudioModal';
 import { StudioModal } from './StudioModal';
@@ -37,7 +37,7 @@ describe('Modal', () => {
     render(<StudioModal {...defaultProps} />);
 
     const closeButton = screen.getByRole('button', { name: closeButtonLabel });
-    await act(() => user.click(closeButton));
+    await user.click(closeButton);
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 

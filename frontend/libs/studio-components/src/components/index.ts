@@ -10,6 +10,7 @@ export * from './StudioDisplayTile';
 export * from './StudioExpression';
 export * from './StudioGridSelector';
 export * from './StudioIconTextfield';
+export * from './StudioLabelAsParagraph';
 export * from './StudioLabelWrapper';
 export * from './StudioModal';
 export * from './StudioNotFoundPage';

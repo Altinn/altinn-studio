@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { StringRestrictions } from './StringRestrictions';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import type { RestrictionItemProps } from '../ItemRestrictions';
@@ -79,7 +79,7 @@ describe('StringRestrictions', () => {
     expect(screen.getByText(texts[`schema_editor.format`])).toBeDefined();
     const select = screen.getByRole('combobox', { name: texts[`schema_editor.format`] });
     expect(select).toBeInTheDocument();
-    await act(() => user.click(select));
+    await user.click(select);
     Object.values(StringFormat).forEach((format) => {
       expect(
         screen.getByRole('option', { name: texts[`schema_editor.format_${format}`] }),
@@ -93,7 +93,7 @@ describe('StringRestrictions', () => {
   test('Empty format option is selected by default', async () => {
     renderStringRestrictions();
     const select = screen.getByRole('combobox', { name: texts[`schema_editor.format`] });
-    await act(() => user.click(select));
+    await user.click(select);
     expect(
       screen.getByRole('option', { name: texts['schema_editor.format_none'] }),
     ).toHaveAttribute('aria-selected', 'true');
@@ -108,23 +108,19 @@ describe('StringRestrictions', () => {
   test('onChangeRestrictions is called with correct input when format is changed', async () => {
     const { rerender } = renderStringRestrictions();
     const formatSelect = await getFormatSelect();
-    await act(() => user.click(formatSelect));
-    await act(() =>
-      user.click(
-        screen.getByRole('option', { name: texts[`schema_editor.format_${StringFormat.Date}`] }),
-      ),
-    );
-    expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
+    await user.click(formatSelect);
+    await user.click(
+      screen.getByRole('option', { name: texts[`schema_editor.format_${StringFormat.Date}`] }),
+    ),
+      expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
       expect.objectContaining({ [StrRestrictionKey.format]: StringFormat.Date }),
     );
     onChangeRestrictions.mockReset();
     rerender(<StringRestrictions {...defaultProps} />);
-    await act(() => user.click(formatSelect));
-    await act(() =>
-      user.click(screen.getByRole('option', { name: texts[`schema_editor.format_none`] })),
-    );
+    await user.click(formatSelect);
+    await user.click(screen.getByRole('option', { name: texts[`schema_editor.format_none`] }));
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
@@ -212,9 +208,7 @@ describe('StringRestrictions', () => {
   test('onChangeRestrictions is called with correct arguments when "earliest" field is changed', async () => {
     renderStringRestrictions({ restrictions: { format: StringFormat.Date } });
     const input = '2';
-    await act(() =>
-      user.type(screen.getByLabelText(texts['schema_editor.format_date_after_incl']), input),
-    );
+    await user.type(screen.getByLabelText(texts['schema_editor.format_date_after_incl']), input);
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
@@ -225,9 +219,7 @@ describe('StringRestrictions', () => {
   test('onChangeRestrictions is called with correct arguments when "latest" field is changed', async () => {
     renderStringRestrictions({ restrictions: { format: StringFormat.Date } });
     const input = '2';
-    await act(() =>
-      user.type(screen.getByLabelText(texts['schema_editor.format_date_before_incl']), input),
-    );
+    await user.type(screen.getByLabelText(texts['schema_editor.format_date_before_incl']), input);
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
@@ -239,7 +231,7 @@ describe('StringRestrictions', () => {
     const format = StringFormat.Date;
     const formatMinimum = '1000-01-01';
     renderStringRestrictions({ restrictions: { format, formatMinimum } });
-    await act(() => user.click(getMinimumInclusiveCheckbox()));
+    await user.click(getMinimumInclusiveCheckbox());
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
@@ -254,7 +246,7 @@ describe('StringRestrictions', () => {
     const format = StringFormat.Date;
     const formatMaximum = '3000-01-01';
     renderStringRestrictions({ restrictions: { format, formatMaximum } });
-    await act(() => user.click(getMaximumInclusiveCheckbox()));
+    await user.click(getMaximumInclusiveCheckbox());
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
@@ -269,7 +261,7 @@ describe('StringRestrictions', () => {
     const format = StringFormat.Date;
     const formatExclusiveMinimum = '1000-01-01';
     renderStringRestrictions({ restrictions: { format, formatExclusiveMinimum } });
-    await act(() => user.click(getMinimumInclusiveCheckbox()));
+    await user.click(getMinimumInclusiveCheckbox());
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
@@ -284,7 +276,7 @@ describe('StringRestrictions', () => {
     const format = StringFormat.Date;
     const formatExclusiveMaximum = '3000-01-01';
     renderStringRestrictions({ restrictions: { format, formatExclusiveMaximum } });
-    await act(() => user.click(getMaximumInclusiveCheckbox()));
+    await user.click(getMaximumInclusiveCheckbox());
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
@@ -304,7 +296,7 @@ describe('StringRestrictions', () => {
 
   test('onChangeRestrictions is called with correct input when minimum length is changed', async () => {
     renderStringRestrictions({ restrictions: { minLength: '1' } });
-    await act(() => user.type(screen.getByLabelText(texts[`schema_editor.minLength`]), '2'));
+    await user.type(screen.getByLabelText(texts[`schema_editor.minLength`]), '2');
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
@@ -321,7 +313,7 @@ describe('StringRestrictions', () => {
 
   test('onChangeRestrictions is called with correct input when maximum length is changed', async () => {
     renderStringRestrictions({ restrictions: { maxLength: '14' } });
-    await act(() => user.type(screen.getByLabelText(texts[`schema_editor.maxLength`]), '4'));
+    await user.type(screen.getByLabelText(texts[`schema_editor.maxLength`]), '4');
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
@@ -338,7 +330,7 @@ describe('StringRestrictions', () => {
 
   test('onChangeRestrictionValue is called with correct input when pattern is changed', async () => {
     renderStringRestrictions({ restrictions: { pattern: '[a-z' } });
-    await act(() => user.type(screen.getByLabelText(texts[`schema_editor.pattern`]), ']'));
+    await user.type(screen.getByLabelText(texts[`schema_editor.pattern`]), ']');
     expect(onChangeRestrictionValue).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictionValue).toHaveBeenCalledWith(path, StrRestrictionKey.pattern, '[a-z]');
   });
