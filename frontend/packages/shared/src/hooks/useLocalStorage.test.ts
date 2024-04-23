@@ -1,5 +1,5 @@
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
-import { act, renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
 
 describe('useLocalStorage', () => {

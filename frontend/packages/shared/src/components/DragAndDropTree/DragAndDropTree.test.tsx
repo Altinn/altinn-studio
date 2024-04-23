@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render as renderRtl, screen } from '@testing-library/react';
+import { fireEvent, render as renderRtl, screen } from '@testing-library/react';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import userEvent from '@testing-library/user-event';
 
@@ -69,8 +69,10 @@ describe('DragAndDropTree', () => {
   it('Focuses on next node when user presses the down arrow key', async () => {
     render();
     const firstItem = screen.getByRole('treeitem', { name: rootNodeLabel1 });
-    await user.type(firstItem, '{arrowdown}');
-    expect(screen.getByRole('treeitem', { name: rootNodeLabel2 })).toHaveFocus();
+    fireEvent.keyDown(firstItem, { key: 'ArrowDown' });
+
+    const secondItem = screen.getByRole('treeitem', { name: rootNodeLabel2 });
+    expect(secondItem).toHaveFocus();
   });
 
   it('Does not display empty message when there are items', () => {
