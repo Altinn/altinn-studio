@@ -15,8 +15,8 @@ describe('useDeleteLayoutSetMutation', () => {
     ).renderHookResult.result;
     await deleteLayoutSetResult.current.mutateAsync({
       layoutSetIdToUpdate: layoutSetToDeleteId,
-    }),
-      await waitFor(() => expect(deleteLayoutSetResult.current.isSuccess).toBe(true));
+    });
+    await waitFor(() => expect(deleteLayoutSetResult.current.isSuccess).toBe(true));
 
     expect(queriesMock.deleteLayoutSet).toHaveBeenCalledTimes(1);
     expect(queriesMock.deleteLayoutSet).toHaveBeenCalledWith(org, app, layoutSetToDeleteId);
