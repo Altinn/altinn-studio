@@ -4,8 +4,9 @@ import classes from './ResourceDeployStatus.module.css';
 import { ArrowRightIcon } from '@studio/icons';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import type { DeployError } from '../../types/DeployError';
-import { Alert, Label, Paragraph } from '@digdir/design-system-react';
+import { Alert, Paragraph } from '@digdir/design-system-react';
 import { LinkButton } from '../LinkButton';
+import { StudioLabelAsParagraph } from '@studio/components';
 
 export type ResourceDeployStatusProps = {
   /**
@@ -53,9 +54,9 @@ export const ResourceDeployStatus = ({
 }: ResourceDeployStatusProps): React.JSX.Element => {
   return (
     <Alert severity={isSuccess ? 'success' : 'danger'}>
-      <Label size='small' asChild className={classes.title}>
-        <p>{title}</p>
-      </Label>
+      <StudioLabelAsParagraph size='small' className={classes.title}>
+        {title}
+      </StudioLabelAsParagraph>
       {error.map((errorItem, index) => {
         return (
           <div className={classes.cardElement} key={index + resourceId}>
