@@ -1,10 +1,10 @@
 {
-  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "$schema": "http://localhost:3000/layout/layout.schema.v1.json",
   "data": {
     "hidden": false,
     "layout": [
       {
-        "size": "L",
+        "size": "M",
         "id": "Header-GPW9rL",
         "type": "Header",
         "textResourceBindings": {
@@ -26,7 +26,7 @@
         "required": true
       },
       {
-        "size": "L",
+        "size": "M",
         "id": "Header-vzkx0K",
         "type": "Header",
         "textResourceBindings": {
@@ -48,18 +48,45 @@
         "required": true
       },
       {
-        "id": "submit",
-        "type": "Button",
+        "size": "M",
+        "id": "Header-adresse",
+        "type": "Header",
         "textResourceBindings": {
-          "title": "Send inn"
+          "title": "En god blanding"
         }
+      },
+      {
+        "id": "Address-xdZ7PE",
+        "type": "Address",
+        "textResourceBindings": {
+          "title": "Side2.Address-xdZ7PE.title"
+        },
+        "dataModelBindings": {
+          "address": {
+            "dataType": "modell1",
+            "property": "gateadresse"
+          },
+          "zipCode": {
+            "dataType": "modell2",
+            "property": "postnummer"
+          },
+          "postPlace": {
+            "dataType": "modell1",
+            "property": "poststed"
+          }
+        },
+        "simplified": true
       },
       {
         "id": "NavigationButtons-U4X9sD",
         "showBackButton": true,
-        "textResourceBindings": {},
+        "textResourceBindings": {
+          "next": "Neste",
+          "back": "Forrige"
+        },
         "type": "NavigationButtons"
       }
     ]
   }
 }
+
