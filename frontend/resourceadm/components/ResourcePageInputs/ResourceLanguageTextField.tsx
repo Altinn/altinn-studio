@@ -108,6 +108,10 @@ export const ResourceLanguageTextField = ({
     });
   };
 
+  const fieldError = errorText
+    ? getMissingInputLanguageString(getTrimmedTranslations(), errorText, t)
+    : '';
+
   return (
     <>
       <div className={classes.inputWrapper}>
@@ -119,9 +123,7 @@ export const ResourceLanguageTextField = ({
             value={translations['nb']}
             onChange={onChangeNbField}
             onFocus={onFocus}
-            error={
-              errorText ? getMissingInputLanguageString(getTrimmedTranslations(), errorText, t) : ''
-            }
+            error={fieldError}
             onBlur={onBlurField}
             rows={5}
             required={required}
@@ -134,9 +136,7 @@ export const ResourceLanguageTextField = ({
             value={translations['nb']}
             onChange={onChangeNbField}
             onFocus={onFocus}
-            error={
-              errorText ? getMissingInputLanguageString(getTrimmedTranslations(), errorText, t) : ''
-            }
+            error={fieldError}
             onBlur={onBlurField}
             required={required}
           />

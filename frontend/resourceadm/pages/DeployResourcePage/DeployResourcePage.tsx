@@ -79,6 +79,11 @@ export const DeployResourcePage = ({
     (repoStatus.aheadBy === 0 || repoStatus.aheadBy === null) &&
     repoStatus.contentStatus.length === 0;
 
+  const onVersionFieldChanged = (newVersion: string): void => {
+    setNewVersionText(newVersion);
+    onSaveVersion(newVersion);
+  };
+
   /**
    * Gets either danger or success for the card type
    *
@@ -234,10 +239,7 @@ export const DeployResourcePage = ({
                   description={t('resourceadm.deploy_version_text')}
                   size='small'
                   value={newVersionText}
-                  onChange={(e) => {
-                    setNewVersionText(e.target.value);
-                    onSaveVersion(e.target.value);
-                  }}
+                  onChange={(e) => onVersionFieldChanged(e.target.value)}
                   error={resourceVersionText === ''}
                 />
               </div>
