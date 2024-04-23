@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { renderWithMockStore } from '../../../testing/mocks';
 import { appDataMock, textResourcesMock } from '../../../testing/stateMocks';
 import type { IAppDataState } from '../../../features/appData/appDataReducers';
@@ -201,7 +201,7 @@ describe('EditDataModelBindings', () => {
     await user.hover(datamodelText);
 
     const editIcon = screen.getByRole('button', { name: textMock('general.edit') });
-    await user.click(editIcon);
+    fireEvent.click(editIcon);
 
     expect(await screen.findByText(dataModelBindingKey)).toBeInTheDocument();
     const deleteButton = await screen.findByRole('button', { name: /general.delete/i });
@@ -227,15 +227,17 @@ describe('EditDataModelBindings', () => {
     const datamodelText = screen.getByText(dataModelBindingKey);
     expect(datamodelText).toBeInTheDocument();
 
-    await user.hover(datamodelText);
+    user.hover(datamodelText);
 
-    const editIcon = screen.getByRole('button', { name: textMock('general.edit') });
-    await user.click(editIcon);
+    const editIcon = await screen.findByRole('button', { name: textMock('general.edit') });
+    expect(editIcon).toBeInTheDocument();
 
-    expect(
-      screen.getByText(textMock('ux_editor.modal_properties_data_model_helper')),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('combobox').getAttribute('value')).toEqual(dataModelBindingKey);
+    fireEvent.click(editIcon);
+    const helperText = screen.queryByText(textMock('ux_editor.modal_properties_data_model_helper'));
+    expect(helperText).toBeInTheDocument();
+
+    const combobox = screen.getByRole('combobox');
+    expect(combobox.getAttribute('value')).toEqual(dataModelBindingKey);
   });
 
   it('show right data model when switching component', async () => {
