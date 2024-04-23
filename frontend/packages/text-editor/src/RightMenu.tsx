@@ -5,11 +5,11 @@ import { LangSelector } from './LangSelector';
 import { getLangName, langOptions } from './utils';
 import { Checkbox, Fieldset, Heading } from '@digdir/design-system-react';
 import { defaultLangCode } from './constants';
-import { removeItemByValue } from 'app-shared/utils/arrayUtils';
 import { useTranslation } from 'react-i18next';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import * as testids from '../../../testing/testids';
 import { StudioButton } from '@studio/components';
+import { ArrayUtils } from '@studio/pure-functions';
 
 export interface RightMenuProps {
   addLanguage: (langCode: LangCode) => void;
@@ -34,11 +34,11 @@ export const RightMenu = ({
   const handleSelectChange = async ({ target }: React.ChangeEvent<HTMLInputElement>) => {
     target.checked
       ? setSelectedLanguages([...selectedLanguages, target.name])
-      : setSelectedLanguages(removeItemByValue(selectedLanguages, target.name));
+      : setSelectedLanguages(ArrayUtils.removeItemByValue(selectedLanguages, target.name));
   };
 
   const handleDeleteLanguage = (langCode: LangCode) => {
-    setSelectedLanguages(removeItemByValue(selectedLanguages, langCode));
+    setSelectedLanguages(ArrayUtils.removeItemByValue(selectedLanguages, langCode));
     deleteLanguage(langCode);
   };
 
