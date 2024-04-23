@@ -16,6 +16,7 @@ module.exports = {
       '@altinn/schema-editor': path.resolve(__dirname, 'packages/schema-editor/src'),
       '@altinn/schema-model': path.resolve(__dirname, 'packages/schema-model/src'),
       'app-shared': path.resolve(__dirname, 'packages/shared/src'),
+      '@altinn/text-editor': path.resolve(__dirname, 'packages/text-editor/src'),
       '@altinn/ux-editor': path.resolve(__dirname, 'packages/ux-editor/src'),
       '@altinn/ux-editor-v3': path.resolve(__dirname, 'packages/ux-editor-v3/src'),
     },
