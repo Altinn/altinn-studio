@@ -1,6 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Text.Json.Serialization.Metadata;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
@@ -111,21 +109,7 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
         // Remove shadow fields
         if (dataType.AppLogic?.ShadowFields?.Prefix != null)
         {
-            var modifier = new IgnorePropertiesWithPrefix(dataType.AppLogic.ShadowFields.Prefix);
-
-            // TODO: should cache, like comment says below
-#pragma warning disable CA1869 //Not caching options since dynamic param is being used. Consider dict cache.
-            JsonSerializerOptions options = new()
-#pragma warning restore CA1869
-            {
-                TypeInfoResolver = new DefaultJsonTypeInfoResolver
-                {
-                    Modifiers = { modifier.ModifyPrefixInfo }
-                },
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            };
-
-            string serializedData = JsonSerializer.Serialize(data, options);
+            string serializedData = JsonSerializerIgnorePrefix.Serialize(data, dataType.AppLogic.ShadowFields.Prefix);
             if (dataType.AppLogic.ShadowFields.SaveToDataType != null)
             {
                 // Save the shadow fields to another data type

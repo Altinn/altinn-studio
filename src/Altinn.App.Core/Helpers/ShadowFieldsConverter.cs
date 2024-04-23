@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Helpers
     /// <summary>
     /// This class is used to remove shadow fields from the JSON serialization.
     /// </summary>
+    [Obsolete("This functionality will be removed in the future")]
     public class IgnorePropertiesWithPrefix
     {
         private readonly string _ignorePrefix;
