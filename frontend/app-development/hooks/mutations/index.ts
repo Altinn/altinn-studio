@@ -13,5 +13,4 @@ export { useGenerateModelsMutation } from './useGenerateModelsMutation';
 export { useRepoPushMutation } from './useRepoPushMutation';
 export { useSchemaMutation } from './useSchemaMutation';
 export { useTextIdMutation } from './useTextIdMutation';
-export { useUpsertTextResourceMutation } from './useUpsertTextResourceMutation';
 export { useUpsertTextResourcesMutation } from 'app-shared/hooks/mutations/useUpsertTextResourcesMutation';
