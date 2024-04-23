@@ -1,9 +1,3 @@
 .editTaskId {
   margin-bottom: var(--fds-spacing-4);
 }
-
-.configContent {
-  margin-bottom: var(--fds-spacing-4);
-  padding: var(--fds-spacing-1) var(--fds-spacing-4);
-  box-sizing: border-box;
-}

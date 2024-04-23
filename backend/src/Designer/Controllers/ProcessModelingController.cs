@@ -106,6 +106,18 @@ namespace Altinn.Studio.Designer.Controllers
                 }
             }
 
+            if (metadataObject?.DataTypeChange is not null)
+            {
+
+                await _mediator.Publish(new ProcessDataTypeChangedEvent
+                {
+                    OldDataType = metadataObject.DataTypeChange.OldDataType,
+                    NewDataType = metadataObject.DataTypeChange.NewDataType,
+                    ConnectedTaskId = metadataObject.DataTypeChange.ConnectedTaskId,
+                    EditingContext = editingContext
+                }, cancellationToken);
+            }
+
             return Accepted();
         }
 

@@ -5,6 +5,11 @@ export type MetaDataForm = {
     oldId: string;
     newId: string;
   }>;
+  dataTypeChange?: {
+    oldDataType: string;
+    newDataType: string;
+    connectedTaskId: string;
+  };
 };
 
 type BpmnConfigPanelContextType = {
