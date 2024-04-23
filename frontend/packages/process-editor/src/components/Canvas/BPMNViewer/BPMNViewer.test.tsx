@@ -13,7 +13,6 @@ describe('Viewer', () => {
       </BpmnContextProvider>,
     );
 
-    // Fix to remove act error
     await user.tab();
 
     const alertTitle = screen.getByRole('link', { name: 'Powered by bpmn.io' });

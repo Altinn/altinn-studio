@@ -107,7 +107,6 @@ describe('PolicyTab', () => {
     const user = userEvent.setup();
     await resolveAndWaitForSpinnerToDisappear();
 
-    // Fix to remove act error
     await user.tab();
 
     const elementInPolicyEditor = screen.getByText(

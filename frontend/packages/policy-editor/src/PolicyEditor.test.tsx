@@ -45,7 +45,6 @@ describe('PolicyEditor', () => {
       textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_resource') }),
     );
 
-    // Fix to remove act error
     await user.tab();
 
     expect(alertTextApp).toBeInTheDocument();
@@ -63,7 +62,6 @@ describe('PolicyEditor', () => {
       textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_resource') }),
     );
 
-    // Fix to remove act error
     await user.tab();
 
     expect(alertTextApp).not.toBeInTheDocument();
@@ -114,7 +112,6 @@ describe('PolicyEditor', () => {
       textMock('policy_editor.rule_card_sub_resource_title'),
     );
 
-    // Fix to remove act error
     await user.tab();
 
     expect(aLabelFromPolicyCard.length).toEqual(mockPolicy.rules.length);
@@ -128,7 +125,6 @@ describe('PolicyEditor', () => {
       textMock('policy_editor.rule_card_sub_resource_title'),
     );
 
-    // Fix to remove act error
     await user.tab();
 
     expect(aLabelFromPolicyCard.length).toEqual(0);

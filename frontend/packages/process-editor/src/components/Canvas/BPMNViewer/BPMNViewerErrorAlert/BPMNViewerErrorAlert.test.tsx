@@ -11,7 +11,6 @@ describe('Viewer', () => {
     const user = userEvent.setup();
     render(<BPMNViewerErrorAlert bpmnViewerError='noDiagram' />);
 
-    // Fix to remove act error
     await user.tab();
 
     const heading = screen.getByRole('heading', {
@@ -27,7 +26,6 @@ describe('Viewer', () => {
     const user = userEvent.setup();
     render(<BPMNViewerErrorAlert bpmnViewerError='noProcess' />);
 
-    // Fix to remove act error
     await user.tab();
 
     const heading = screen.getByRole('heading', {
@@ -43,7 +41,6 @@ describe('Viewer', () => {
     const user = userEvent.setup();
     render(<BPMNViewerErrorAlert bpmnViewerError='unknown' />);
 
-    // Fix to remove act error
     await user.tab();
 
     const heading = screen.getByRole('heading', {

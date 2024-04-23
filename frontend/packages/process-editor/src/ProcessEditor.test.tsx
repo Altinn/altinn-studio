@@ -57,7 +57,6 @@ describe('ProcessEditor', () => {
     const user = userEvent.setup();
     renderProcessEditor();
 
-    // Fix to remove act error
     await user.tab();
 
     const alertHeader = screen.queryByRole('heading', {
