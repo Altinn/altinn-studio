@@ -32,7 +32,7 @@ describe('StudioNotFoundPage', () => {
     });
     expect(link).toBeInTheDocument();
 
-    const image = screen.getByRole('img');
+    const image = screen.getByTestId('404-error');
     expect(image).toBeInTheDocument();
 
     expect(image.tagName).toBe('IMG');

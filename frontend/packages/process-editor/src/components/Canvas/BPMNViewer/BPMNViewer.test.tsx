@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BPMNViewer } from './BPMNViewer';
 import { BpmnContextProvider } from '../../../contexts/BpmnContext';
@@ -13,8 +13,7 @@ describe('Viewer', () => {
       </BpmnContextProvider>,
     );
 
-    // Fix to remove act error
-    await act(() => user.tab());
+    await user.tab();
 
     const alertTitle = screen.getByRole('link', { name: 'Powered by bpmn.io' });
     expect(alertTitle).toBeInTheDocument;

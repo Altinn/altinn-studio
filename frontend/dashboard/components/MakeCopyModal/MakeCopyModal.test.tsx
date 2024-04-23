@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MakeCopyModal } from './MakeCopyModal';
 import { MockServicesContextWrapper } from 'dashboard/dashboardTestUtils';
@@ -34,16 +34,15 @@ describe('MakeCopyModal', () => {
   test('should not show error message when clicking confirm and name is added', async () => {
     renderWithMockServices();
 
-    await act(() => user.type(screen.getByRole('textbox'), 'new-repo-name'));
-    await act(() =>
-      user.click(
-        screen.getByRole('button', {
-          name: textMock('dashboard.make_copy'),
-        }),
-      ),
-    );
-
-    expect(screen.queryByText(textMock('dashboard.field_cannot_be_empty'))).not.toBeInTheDocument();
+    await user.type(screen.getByRole('textbox'), 'new-repo-name');
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock('dashboard.make_copy'),
+      }),
+    ),
+      expect(
+        screen.queryByText(textMock('dashboard.field_cannot_be_empty')),
+      ).not.toBeInTheDocument();
     expect(queriesMock.copyApp).toHaveBeenCalledTimes(1);
     expect(queriesMock.copyApp).toHaveBeenCalledWith('org', 'app', 'new-repo-name');
   });
@@ -53,7 +52,7 @@ describe('MakeCopyModal', () => {
     const confirmButton = screen.getByRole('button', {
       name: /dashboard\.make_copy/i,
     });
-    await act(() => user.click(confirmButton));
+    await user.click(confirmButton);
     const errorMessageElement = screen.getAllByText(textMock('dashboard.field_cannot_be_empty'));
     expect(errorMessageElement.length).toBeGreaterThan(0);
   });
@@ -64,8 +63,8 @@ describe('MakeCopyModal', () => {
       name: textMock('dashboard.make_copy'),
     });
     const inputField = screen.getByRole('textbox');
-    await act(() => user.type(inputField, 'this-new-name-is-way-too-long-to-be-valid'));
-    await act(() => user.click(confirmButton));
+    await user.type(inputField, 'this-new-name-is-way-too-long-to-be-valid');
+    await user.click(confirmButton);
     const errorMessageElements = screen.getAllByText(
       textMock('dashboard.service_name_is_too_long'),
     );
@@ -78,8 +77,8 @@ describe('MakeCopyModal', () => {
       name: textMock('dashboard.make_copy'),
     });
     const inputField = screen.getByRole('textbox');
-    await act(() => user.type(inputField, 'this name is invalid'));
-    await act(() => user.click(confirmButton));
+    await user.type(inputField, 'this name is invalid');
+    await user.click(confirmButton);
     const errorMessageElements = screen.getAllByText(
       textMock('dashboard.service_name_has_illegal_characters'),
     );

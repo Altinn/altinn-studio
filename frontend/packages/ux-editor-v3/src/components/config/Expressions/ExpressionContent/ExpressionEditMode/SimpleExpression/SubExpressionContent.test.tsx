@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { SubExpressionContentProps } from './SubExpressionContent';
 import { SubExpressionContent } from './SubExpressionContent';
@@ -93,13 +93,11 @@ describe('SubExpressionContent', () => {
     });
     expect(referenceSelector).toHaveValue(subExpression0.value as string);
     // Click component/dataSource dropdown
-    await act(() => user.click(selectDataSourceComponent));
-    await act(() =>
-      user.click(
-        screen.getByRole('option', {
-          name: textMock('right_menu.expressions_data_source_data_model'),
-        }),
-      ),
+    await user.click(selectDataSourceComponent);
+    await user.click(
+      screen.getByRole('option', {
+        name: textMock('right_menu.expressions_data_source_data_model'),
+      }),
     );
     expect(onUpdateSubExpression).toHaveBeenCalledTimes(1);
     expect(onUpdateSubExpression).toHaveBeenCalledWith({
@@ -133,7 +131,7 @@ describe('SubExpressionContent', () => {
     });
     expect(comparableValueInputField).toHaveValue(subExpression0.comparableValue as string);
     // Type new value to string comparable data source value
-    await act(() => user.clear(comparableValueInputField));
+    await user.clear(comparableValueInputField);
 
     expect(onUpdateSubExpression).toHaveBeenCalledTimes(1);
     expect(onUpdateSubExpression).toHaveBeenCalledWith({
@@ -174,7 +172,7 @@ describe('SubExpressionContent', () => {
     const deleteSubExpressionButton = screen.getByTitle(
       textMock('right_menu.expression_sub_expression_delete'),
     );
-    await act(() => user.click(deleteSubExpressionButton));
+    await user.click(deleteSubExpressionButton);
     expect(onRemoveSubExpression).toHaveBeenCalledTimes(1);
   });
 });

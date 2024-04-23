@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, act, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import type { InputFieldsProps } from './InputFields';
 import { InputFields } from './InputFields';
 import { mockAppConfig } from 'app-development/layout/SettingsModalButton/SettingsModal/mocks/appConfigMock';
@@ -33,7 +33,7 @@ describe('InputFields', () => {
     const appName = screen.getByLabelText(textMock('settings_modal.about_tab_name_label'));
     expect(appName).toHaveValue(mockAppConfig.serviceName);
 
-    await act(() => user.type(appName, mockNewText));
+    await user.type(appName, mockNewText);
 
     expect(appName).toHaveValue(`${mockAppConfig.serviceName}${mockNewText}`);
   });
@@ -45,7 +45,7 @@ describe('InputFields', () => {
     const altId = screen.getByLabelText(textMock('settings_modal.about_tab_alt_id_label'));
     expect(altId).toHaveValue(mockAppConfig.serviceId);
 
-    await act(() => user.type(altId, mockNewText));
+    await user.type(altId, mockNewText);
 
     expect(altId).toHaveValue(`${mockAppConfig.serviceId}${mockNewText}`);
   });
@@ -58,8 +58,8 @@ describe('InputFields', () => {
       render(<InputFields {...defaultProps} />);
       const appName = screen.getByLabelText(appNameLabel);
 
-      await act(() => user.type(appName, mockNewText));
-      await act(() => user.tab());
+      await user.type(appName, mockNewText);
+      await user.tab();
       expect(mockOnSave).toHaveBeenCalledTimes(1);
     });
 
@@ -67,8 +67,8 @@ describe('InputFields', () => {
       render(<InputFields {...defaultProps} />);
       const appName = screen.getByLabelText(appNameLabel);
 
-      await act(() => user.clear(appName));
-      await act(() => user.tab());
+      await user.clear(appName);
+      await user.tab();
       expect(mockOnSave).toHaveBeenCalledTimes(0);
     });
 
@@ -77,12 +77,12 @@ describe('InputFields', () => {
       const appName = screen.getByLabelText(appNameLabel);
       const errorMessage = textMock('settings_modal.about_tab_name_error');
 
-      await act(() => user.clear(appName));
-      await act(() => user.tab());
+      await user.clear(appName);
+      await user.tab();
       expect(screen.getByText(errorMessage)).toBeInTheDocument();
 
-      await act(() => user.type(appName, mockNewText));
-      await act(() => user.tab());
+      await user.type(appName, mockNewText);
+      await user.tab();
       expect(screen.queryByText(errorMessage)).not.toBeInTheDocument();
     });
   });

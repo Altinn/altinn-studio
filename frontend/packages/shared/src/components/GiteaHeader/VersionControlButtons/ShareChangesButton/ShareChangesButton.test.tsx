@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render as rtlRender, screen } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import type { IShareChangesButtonProps } from './ShareChangesButton';
@@ -15,7 +15,7 @@ describe('shareChanges', () => {
     const shareButton = screen.getByRole('button', {
       name: textMock('sync_header.changes_to_share'),
     });
-    await act(() => user.click(shareButton));
+    await user.click(shareButton);
 
     expect(handleShareChanges).toHaveBeenCalled();
   });

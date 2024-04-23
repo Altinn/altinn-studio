@@ -3,7 +3,6 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { PolicyResourceFieldsProps } from './PolicyResourceFields';
 import { PolicyResourceFields } from './PolicyResourceFields';
-import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 
 const mockValueId: string = 'Test123';
@@ -54,7 +53,7 @@ describe('PolicyResourceFields', () => {
 
     const idInput = screen.getByLabelText(textMock('policy_editor.narrowing_list_field_id'));
 
-    await act(() => user.type(idInput, mockValudNewText));
+    await user.type(idInput, mockValudNewText);
 
     expect(mockOnChangeId).toHaveBeenCalledTimes(mockValudNewText.length);
   });
@@ -65,7 +64,7 @@ describe('PolicyResourceFields', () => {
 
     const typeInput = screen.getByLabelText(textMock('policy_editor.narrowing_list_field_type'));
 
-    await act(() => user.type(typeInput, mockValudNewText));
+    await user.type(typeInput, mockValudNewText);
 
     expect(mockOnChangeType).toHaveBeenCalledTimes(mockValudNewText.length);
   });
@@ -76,8 +75,8 @@ describe('PolicyResourceFields', () => {
 
     const typeInput = screen.getByLabelText(textMock('policy_editor.narrowing_list_field_type'));
 
-    await act(() => user.type(typeInput, mockValudNewText));
-    await act(() => user.tab());
+    await user.type(typeInput, mockValudNewText);
+    await user.tab();
     expect(mockOnBlur).toHaveBeenCalledTimes(1);
   });
 
@@ -101,7 +100,7 @@ describe('PolicyResourceFields', () => {
 
     expect(deleteButton).toBeInTheDocument();
 
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
 
     expect(mockOnRemove).toHaveBeenCalledTimes(1);
   });

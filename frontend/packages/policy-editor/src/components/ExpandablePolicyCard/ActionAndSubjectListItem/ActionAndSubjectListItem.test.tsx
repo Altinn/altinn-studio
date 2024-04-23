@@ -3,7 +3,6 @@ import { render, screen } from '@testing-library/react';
 import type { ActionAndSubjectListItemProps } from './ActionAndSubjectListItem';
 import { ActionAndSubjectListItem } from './ActionAndSubjectListItem';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
 
 const mockChipTitle: string = 'Test';
 
@@ -22,7 +21,7 @@ describe('ActionAndSubjectListItem', () => {
     render(<ActionAndSubjectListItem {...defaultProps} />);
 
     const chipElement = screen.getByText(mockChipTitle);
-    await act(() => user.click(chipElement));
+    await user.click(chipElement);
 
     expect(mockOnRemove).toHaveBeenCalledTimes(1);
   });
