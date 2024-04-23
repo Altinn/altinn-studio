@@ -36,7 +36,7 @@ public class OrderDetailsCalculator : IOrderDetailsCalculator
                 })
             .ToList();
 
-        return new OrderDetails { PaymentProcessorId = "Nets Easy", Currency = "NOK", OrderLines = paymentOrderLines, Receiver = };
+        return new OrderDetails { PaymentProcessorId = "Nets Easy", Currency = "NOK", OrderLines = paymentOrderLines, Receiver = GetReceiverDetails()};
     }
 
     private async Task<Form> GetFormData(Instance instance)
@@ -59,5 +59,23 @@ public class OrderDetailsCalculator : IOrderDetailsCalculator
             default:
                 return 500.00M;
         }
+    }
+    
+    private PaymentReceiver GetReceiverDetails()
+    {
+        return new PaymentReceiver
+        {
+            Name = "Patentstyret",
+            OrganisationNumber = "971 526 157",
+            PostalAddress = new Address
+            {
+                Name = "Patentstyret",
+                AddressLine1 = "Postboks 4863 Nydalen",
+                AddressLine2 = "",
+                PostalCode = "N-0422",
+                City = "Oslo",
+                Country = "Norway",
+            }
+        };
     }
 }
