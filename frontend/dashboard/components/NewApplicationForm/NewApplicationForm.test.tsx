@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import {
   NewApplicationForm,
   type NewApplicationFormProps,
@@ -59,18 +59,18 @@ describe('NewApplicationForm', () => {
     render(<NewApplicationForm {...defaultProps} />);
 
     const select = screen.getByLabelText(textMock('general.service_owner'));
-    await act(() => user.click(select));
+    await user.click(select);
     const orgOption = screen.getByRole('option', { name: mockUser.full_name });
-    await act(() => user.click(orgOption));
+    await user.click(orgOption);
 
     const repoTextField = screen.getByLabelText(textMock('general.service_name'));
     expect(repoTextField).toHaveValue('');
     const newRepoValue: string = 'repo';
-    await act(() => user.type(repoTextField, newRepoValue));
+    await user.type(repoTextField, newRepoValue);
     expect(screen.getByLabelText(textMock('general.service_name'))).toHaveValue(newRepoValue);
 
     const submitButton = screen.getByRole('button', { name: mockSubmitbuttonText });
-    await act(() => user.click(submitButton));
+    await user.click(submitButton);
 
     expect(mockOnSubmit).toHaveBeenCalledTimes(1);
     expect(mockOnSubmit).toHaveBeenCalledWith({
@@ -84,15 +84,15 @@ describe('NewApplicationForm', () => {
     render(<NewApplicationForm {...defaultProps} />);
 
     const select = screen.getByLabelText(textMock('general.service_owner'));
-    await act(() => user.click(select));
+    await user.click(select);
     const orgOption = screen.getByRole('option', { name: mockUser.full_name });
-    await act(() => user.click(orgOption));
+    await user.click(orgOption);
 
     const repoTextField = screen.getByLabelText(textMock('general.service_name'));
-    await act(() => user.click(repoTextField));
+    await user.click(repoTextField);
 
     const submitButton = screen.getByRole('button', { name: mockSubmitbuttonText });
-    await act(() => user.click(submitButton));
+    await user.click(submitButton);
 
     expect(mockOnSubmit).toHaveBeenCalledTimes(0);
   });

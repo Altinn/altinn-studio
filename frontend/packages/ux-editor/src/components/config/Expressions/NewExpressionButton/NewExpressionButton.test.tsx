@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { NewExpressionButton } from './NewExpressionButton';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
@@ -39,14 +39,14 @@ describe('NewExpressionButton', () => {
     const formItem = testComponents[key];
     renderAddButton({ formItem, formItemId: formItem.id });
     const button = screen.getByRole('button', { name: textMock('right_menu.expressions_add') });
-    await act(() => user.click(button));
+    await user.click(button);
     screen.getByRole('dialog');
   });
 
   it('renders dropdown when button is clicked', async () => {
     renderAddButton();
     const addButton = screen.getByText(textMock('right_menu.expressions_add'));
-    await act(() => user.click(addButton));
+    await user.click(addButton);
     const dropdown = screen.getByRole('dialog');
     expect(dropdown).toBeInTheDocument();
   });
@@ -62,11 +62,11 @@ describe('NewExpressionButton', () => {
     renderAddButton({ formItem, handleUpdate });
 
     const addButton = screen.getByText(textMock('right_menu.expressions_add'));
-    await act(() => user.click(addButton));
+    await user.click(addButton);
     const dropdownOption = screen.getByRole('menuitem', {
       name: textMock('right_menu.expressions_property_read_only'),
     });
-    await act(() => user.click(dropdownOption));
+    await user.click(dropdownOption);
 
     expect(handleUpdate).toHaveBeenCalledTimes(1);
     expect(handleUpdate).toHaveBeenCalledWith({ ...formItem, readOnly: null });

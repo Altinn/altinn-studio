@@ -1,6 +1,5 @@
 import React from 'react';
 import { render as renderRtl, screen, waitFor } from '@testing-library/react';
-import { act } from 'react-dom/test-utils';
 
 import * as useMediaQuery from '../../hooks/useMediaQuery';
 
@@ -71,7 +70,7 @@ describe('StudioAnimateHeight', () => {
     const { container, rerender } = render({ open: false });
     rerender(<StudioAnimateHeight open />);
     expect(container.firstChild).toHaveClass('openingOrClosing');
-    await act(jest.runAllTimers);
+    await waitFor(() => jest.runAllTimers);
     await waitFor(() => {
       expect(container.firstChild).not.toHaveClass('openingOrClosing');
     });
@@ -82,7 +81,7 @@ describe('StudioAnimateHeight', () => {
     const { container, rerender } = render({ open: true });
     rerender(<StudioAnimateHeight open={false} />);
     expect(container.firstChild).toHaveClass('openingOrClosing');
-    await act(jest.runAllTimers);
+    await waitFor(() => jest.runAllTimers);
     await waitFor(() => {
       expect(container.firstChild).not.toHaveClass('openingOrClosing');
     });

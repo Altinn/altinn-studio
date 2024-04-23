@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { IconImage } from './Icon';
 import type { IActionMenuProps } from './ActionMenu';
 import { ActionMenu } from './ActionMenu';
@@ -33,7 +33,7 @@ describe('ActionMenu', () => {
   test('All menu item buttons call their respective action on click', async () => {
     renderActionMenu();
     for (const { action, text } of items) {
-      await act(() => user.click(screen.getByRole('menuitem', { name: text })));
+      await user.click(screen.getByRole('menuitem', { name: text }));
       expect(action).toHaveBeenCalledTimes(1);
     }
   });
@@ -41,7 +41,7 @@ describe('ActionMenu', () => {
   test('Menu item button loses focus when clicked', async () => {
     renderActionMenu();
     const { text } = items[0];
-    await act(() => user.click(screen.getByRole('menuitem', { name: text })));
+    await user.click(screen.getByRole('menuitem', { name: text }));
     expect(screen.getByText(text)).not.toHaveFocus();
   });
 

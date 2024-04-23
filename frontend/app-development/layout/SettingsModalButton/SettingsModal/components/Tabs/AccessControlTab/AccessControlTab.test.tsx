@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  act,
-  render as rtlRender,
-  screen,
-  waitForElementToBeRemoved,
-} from '@testing-library/react';
+import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { AccessControlTabProps } from './AccessControlTab';
 import { AccessControlTab } from './AccessControlTab';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
@@ -65,7 +60,7 @@ describe('AccessControlTab', () => {
     const helpButton = screen.getByRole('button', {
       name: textMock('settings_modal.access_control_tab_help_text_title'),
     });
-    await act(() => user.click(helpButton));
+    await user.click(helpButton);
     screen.getByText(textMock('settings_modal.access_control_tab_help_text_heading'));
   });
 

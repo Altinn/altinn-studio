@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render as rtlRender, screen } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IFileSelectorProps } from './FileSelector';
 import FileSelector from './FileSelector';
@@ -31,7 +31,7 @@ describe('FileSelector', () => {
     render({ submitHandler: handleSubmit });
 
     const fileInput = screen.getByTestId(testids.fileSelectorInput);
-    await act(() => user.upload(fileInput, null));
+    await user.upload(fileInput, null);
 
     expect(handleSubmit).not.toHaveBeenCalled();
   });
@@ -42,7 +42,7 @@ describe('FileSelector', () => {
     render({ submitHandler: handleSubmit });
 
     const fileInput = screen.getByTestId(testids.fileSelectorInput);
-    await act(() => user.upload(fileInput, file));
+    await user.upload(fileInput, file);
 
     expect(handleSubmit).toHaveBeenCalledWith(expect.any(FormData), 'hello.png');
   });
@@ -64,7 +64,7 @@ describe('FileSelector', () => {
     const button = screen.getByRole('button', { name: textMock('app_data_modelling.upload_xsd') });
     const fileInput = screen.getByTestId(testids.fileSelectorInput);
     fileInput.onclick = jest.fn();
-    await act(() => user.click(button));
+    await user.click(button);
     expect(fileInput.onclick).toHaveBeenCalled();
   });
 
@@ -73,7 +73,7 @@ describe('FileSelector', () => {
     const button = screen.getByRole('button', { name: customButtonText });
     const fileInput = screen.getByTestId(testids.fileSelectorInput);
     fileInput.onclick = jest.fn();
-    await act(() => user.click(button));
+    await user.click(button);
     expect(fileInput.onclick).toHaveBeenCalled();
   });
 });

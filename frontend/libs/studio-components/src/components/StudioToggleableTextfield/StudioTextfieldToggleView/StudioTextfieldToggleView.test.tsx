@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { StudioTextfieldToggleView } from './StudioTextfieldToggleView';
 import type { StudioTextfieldToggleViewProps } from './StudioTextfieldToggleView';
 import userEvent from '@testing-library/user-event';
@@ -16,7 +16,7 @@ describe('StudioTextfieldToggleView', () => {
 
     renderStudioTextfieldToggleView({ children: 'My awesome button text', onClick: onClickMock });
 
-    await act(() => user.click(screen.getByRole('button', { name: 'My awesome button text' })));
+    await user.click(screen.getByRole('button', { name: 'My awesome button text' }));
     expect(onClickMock).toHaveBeenCalledTimes(1);
   });
 

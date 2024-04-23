@@ -18,7 +18,7 @@ import {
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import { useTranslation } from 'react-i18next';
 import { useUrlParams } from '../../hooks/useSelectedContext';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 import type { EnvId } from '../../utils/resourceUtils';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';
 
@@ -163,9 +163,9 @@ export const MigrationPage = ({
           </Radio.Group>
           {selectedEnv && (
             <>
-              <Label asChild size='medium' spacing>
-                <p>{t('resourceadm.migration_select_migration_time_header')}</p>
-              </Label>
+              <StudioLabelAsParagraph size='medium' spacing>
+                {t('resourceadm.migration_select_migration_time_header')}
+              </StudioLabelAsParagraph>
               <Paragraph size='small'>
                 {t('resourceadm.migration_select_migration_time_body')}
               </Paragraph>
@@ -190,9 +190,9 @@ export const MigrationPage = ({
                 </div>
               </div>
               <div className={classes.numDelegations}>
-                <Label asChild size='medium' spacing>
-                  <p>{t('resourceadm.migration_number_of_delegations')}</p>
-                </Label>
+                <StudioLabelAsParagraph size='medium' spacing>
+                  {t('resourceadm.migration_number_of_delegations')}
+                </StudioLabelAsParagraph>
                 <StudioButton
                   onClick={() => {
                     // TODO - replace with API call
@@ -217,9 +217,9 @@ export const MigrationPage = ({
                   </div>
                 )}
               </div>
-              <Label asChild size='medium' spacing>
-                <p>{t('resourceadm.migration_finish_migration')}</p>
-              </Label>
+              <StudioLabelAsParagraph size='medium' spacing>
+                {t('resourceadm.migration_finish_migration')}
+              </StudioLabelAsParagraph>
               <Paragraph size='small'>{t('resourceadm.migration_delegation_info')}</Paragraph>
               <div className={classes.buttonWrapper}>
                 <StudioButton

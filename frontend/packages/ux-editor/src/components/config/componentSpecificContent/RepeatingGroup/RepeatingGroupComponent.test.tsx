@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
@@ -53,7 +53,7 @@ describe('RepeatingGroupComponent', () => {
 
     const firstCheckbox = screen.getByRole('checkbox', { name: component2IdMock });
     expect(firstCheckbox).toBeInTheDocument();
-    await act(() => user.click(firstCheckbox));
+    await user.click(firstCheckbox);
 
     expect(handleComponentUpdateMock).toHaveBeenCalled();
   });
@@ -63,8 +63,8 @@ describe('RepeatingGroupComponent', () => {
 
     const firstCheckbox = screen.getByRole('checkbox', { name: component2IdMock });
     // Needs two clicks to trigger the code
-    await act(() => user.click(firstCheckbox));
-    await act(() => user.click(firstCheckbox));
+    await user.click(firstCheckbox);
+    await user.click(firstCheckbox);
 
     expect(handleComponentUpdateMock).toHaveBeenCalledTimes(2);
     expect(handleComponentUpdateMock).toHaveBeenLastCalledWith({

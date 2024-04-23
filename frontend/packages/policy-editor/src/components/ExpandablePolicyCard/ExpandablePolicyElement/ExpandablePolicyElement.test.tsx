@@ -3,7 +3,6 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ExpandablePolicyElementProps } from './ExpandablePolicyElement';
 import { ExpandablePolicyElement } from './ExpandablePolicyElement';
-import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 
 const mockTitle: string = 'Test';
@@ -50,7 +49,7 @@ describe('ExpandablePolicyElement', () => {
     expect(expandButtonClosedBefore).toBeInTheDocument();
     expect(expandButtonOpenedBefore).not.toBeInTheDocument();
 
-    await act(() => user.click(expandButtonClosedBefore));
+    await user.click(expandButtonClosedBefore);
 
     const expandButtonClosedAfter = screen.queryByRole('button', {
       name: `${mockTitle} ${textMock('policy_editor.expandable_card_close_icon')}`,
@@ -63,7 +62,7 @@ describe('ExpandablePolicyElement', () => {
     expect(expandButtonClosedAfter).not.toBeInTheDocument();
     expect(expandButtonOpenedAfter).toBeInTheDocument();
 
-    await act(() => user.click(expandButtonOpenedAfter));
+    await user.click(expandButtonOpenedAfter);
 
     expect(screen.getByText(mockTextChildren)).toBeInTheDocument();
   });
@@ -75,10 +74,10 @@ describe('ExpandablePolicyElement', () => {
     const moreButton = screen.getByRole('button', {
       name: textMock('policy_editor.more'),
     });
-    await act(() => user.click(moreButton));
+    await user.click(moreButton);
 
     const deleteOption = screen.getByRole('menuitem', { name: textMock('general.delete') });
-    await act(() => user.click(deleteOption));
+    await user.click(deleteOption);
 
     expect(mockHandleRemoveElement).toHaveBeenCalledTimes(1);
   });
@@ -90,12 +89,12 @@ describe('ExpandablePolicyElement', () => {
     const moreButton = screen.getByRole('button', {
       name: textMock('policy_editor.more'),
     });
-    await act(() => user.click(moreButton));
+    await user.click(moreButton);
 
     const cloneOption = screen.getByRole('menuitem', {
       name: textMock('policy_editor.expandable_card_dropdown_copy'),
     });
-    await act(() => user.click(cloneOption));
+    await user.click(cloneOption);
 
     expect(mockHandleCloneElement).toHaveBeenCalledTimes(1);
   });

@@ -3,8 +3,8 @@ import React, { useState } from 'react';
 import classes from './ExpandablePolicyElement.module.css';
 import { ChevronDownIcon, ChevronUpIcon } from '@navikt/aksel-icons';
 import { PolicyEditorDropdownMenu } from './PolicyEditorDropdownMenu';
-import { Label } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
+import { StudioLabelAsParagraph } from '@studio/components';
 
 export type ExpandablePolicyElementProps = {
   title: string;
@@ -93,9 +93,7 @@ export const ExpandablePolicyElement = ({
           onFocus={() => setIsButtonFocused(true)}
           onBlur={() => setIsButtonFocused(false)}
         >
-          <Label asChild size='small'>
-            <p>{title}</p>
-          </Label>
+          <StudioLabelAsParagraph size='small'>{title}</StudioLabelAsParagraph>
           {isOpen ? (
             <ChevronUpIcon
               title={t('policy_editor.expandable_card_close_icon')}
