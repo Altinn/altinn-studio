@@ -16,7 +16,7 @@ export const StudioTableWithPagination = forwardRef<
   const [currentPage, setCurrentPage] = useState(1);
   const [currentRows, setCurrentRows] = useState(rows);
 
-  let totalPages = 1;
+  let totalPages = 0;
   if (rowsPerPage > 0) {
     totalPages = Math.ceil(rows.length / rowsPerPage);
   }
@@ -31,7 +31,7 @@ export const StudioTableWithPagination = forwardRef<
 
   return (
     <div className={classes.component}>
-      <Table size={size}>
+      <Table size={size} className={classes.table}>
         <Table.Head>
           <Table.Row>
             {columns.map((cell, i) => (
@@ -51,6 +51,7 @@ export const StudioTableWithPagination = forwardRef<
       </Table>
       {rowsPerPage > 0 && (
         <Pagination
+          className={classes.pagination}
           size={size}
           currentPage={currentPage}
           totalPages={totalPages}
