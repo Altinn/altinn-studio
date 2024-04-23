@@ -22,7 +22,6 @@
     "uuid": "9.0.1"
   },
   "devDependencies": {
-    "@redux-devtools/extension": "3.3.0",
     "jest": "29.7.0"
   },
   "license": "3-Clause BSD",
