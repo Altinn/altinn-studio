@@ -2,13 +2,12 @@ import type { ChangeEvent } from 'react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { StudioCodeFragment, StudioTextarea } from '@studio/components';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useUpsertTextResourcesMutation } from 'app-shared/hooks/mutations';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import type { ITextResource, ITextResources } from 'app-shared/types/global';
+import type { ITextResources } from 'app-shared/types/global';
 import classes from './TextResourceValueEditor.module.css';
 import { Trans, useTranslation } from 'react-i18next';
-import { useAppContext } from '../../../../hooks';
+import { useUpsertTextResourceMutation } from '../../../../hooks/mutations/useUpsertTextResourceMutation';
 
 export type TextResourceValueEditorProps = {
   textResourceId: string;
@@ -25,8 +24,7 @@ const getTextResourceValue = (textResources: ITextResources, id: string) =>
 export const TextResourceValueEditor = ({ textResourceId }: TextResourceValueEditorProps) => {
   const { org, app } = useStudioUrlParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
-  const { refetchTexts } = useAppContext();
-  const { mutate } = useUpsertTextResourcesMutation(org, app);
+  const { mutate } = useUpsertTextResourceMutation(org, app);
   const value = getTextResourceValue(textResources, textResourceId);
   const [valueState, setValueState] = useState<string>(value);
   const { t } = useTranslation();
@@ -37,17 +35,9 @@ export const TextResourceValueEditor = ({ textResourceId }: TextResourceValueEdi
 
   const handleChange = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>) => {
-      const textResource: ITextResource = { id: textResourceId, value: event.target.value };
-      mutate(
-        { language, textResources: [textResource] },
-        {
-          onSuccess: async () => {
-            await refetchTexts(language);
-          },
-        },
-      );
+      mutate({ textId: textResourceId, language, translation: event.target.value });
     },
-    [textResourceId, mutate, refetchTexts],
+    [textResourceId, mutate],
   );
 
   return (
