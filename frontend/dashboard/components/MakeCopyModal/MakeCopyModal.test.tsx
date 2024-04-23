@@ -78,7 +78,7 @@ describe('MakeCopyModal', () => {
     await act(() => user.click(copyButton));
 
     expect(queriesMock.copyApp).toHaveBeenCalledTimes(1);
-    expect(queriesMock.copyApp).toHaveBeenCalledWith(mockUser.login, app, newRepoValue);
+    expect(queriesMock.copyApp).toHaveBeenCalledWith(org, app, newRepoValue, mockUser.login);
   });
 
   test('should show error message when clicking confirm without adding name', async () => {
