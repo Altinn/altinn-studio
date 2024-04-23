@@ -11,13 +11,13 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss', '.svg'],
     alias: {
-      'app-shared': path.resolve(__dirname, 'packages/shared/src'),
+      '@altinn/policy-editor': path.resolve(__dirname, 'packages/policy-editor/src'),
+      '@altinn/process-editor': path.resolve(__dirname, 'packages/process-editor/src'),
       '@altinn/schema-editor': path.resolve(__dirname, 'packages/schema-editor/src'),
       '@altinn/schema-model': path.resolve(__dirname, 'packages/schema-model/src'),
+      'app-shared': path.resolve(__dirname, 'packages/shared/src'),
       '@altinn/ux-editor': path.resolve(__dirname, 'packages/ux-editor/src'),
       '@altinn/ux-editor-v3': path.resolve(__dirname, 'packages/ux-editor-v3/src'),
-      '@altinn/process-editor': path.resolve(__dirname, 'packages/process-editor/src'),
-      '@altinn/policy-editor': path.resolve(__dirname, 'packages/policy-editor/src'),
     },
     fallback: {
       'react/jsx-runtime': 'react/jsx-runtime.js',
