@@ -39,7 +39,6 @@
           </altinn:actions>
           <altinn:paymentConfig>
             <altinn:paymentDataType>paymentInformation</altinn:paymentDataType>
-            <altinn:paymentProcessorId>Nets Easy</altinn:paymentProcessorId>
           </altinn:paymentConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>

@@ -25,14 +25,10 @@ public class OrderDetailsCalculator : IOrderDetailsCalculator
     
     public async Task<OrderDetails> CalculateOrderDetails(Instance instance)
     {
-        DataElement modelData = instance.Data.Single(x => x.DataType == "model");
-        InstanceIdentifier instanceIdentifier = new(instance);
-        
-        var formData = (Form) await _dataClient.GetFormData(instanceIdentifier.InstanceGuid, typeof(Form), instance.Org, instance.AppId,
-            instanceIdentifier.InstanceOwnerPartyId, new Guid(modelData.Id));
-        
+        Form formData = await GetFormData(instance);
+
         List<PaymentOrderLine> paymentOrderLines = formData.GoodsAndServicesProperties.Inventory.InventoryProperties
-            .Where(x => !string.IsNullOrEmpty(x.NiceClassification))
+            .Where(x => !string.IsNullOrEmpty(x.NiceClassification) && !string.IsNullOrEmpty(x.GoodsAndServices))
             .Select((x, index) =>
                 new PaymentOrderLine
                 {
@@ -40,9 +36,16 @@ public class OrderDetailsCalculator : IOrderDetailsCalculator
                 })
             .ToList();
 
-        var orderDetails = new OrderDetails { Currency = "NOK", OrderLines = paymentOrderLines };
+        return new OrderDetails { PaymentProcessorId = "Nets Easy", Currency = "NOK", OrderLines = paymentOrderLines, Receiver = GetReceiverDetails()};
+    }
 
-        return orderDetails;
+    private async Task<Form> GetFormData(Instance instance)
+    {
+        DataElement modelData = instance.Data.Single(x => x.DataType == "model");
+        InstanceIdentifier instanceIdentifier = new(instance);
+        
+        return (Form) await _dataClient.GetFormData(instanceIdentifier.InstanceGuid, typeof(Form), instance.Org, instance.AppId,
+            instanceIdentifier.InstanceOwnerPartyId, new Guid(modelData.Id));
     }
 
     private decimal GetPriceForNiceClassification(InventoryProperties inventoryProperties)
@@ -56,5 +59,23 @@ public class OrderDetailsCalculator : IOrderDetailsCalculator
             default:
                 return 500.00M;
         }
+    }
+    
+    private PaymentReceiver GetReceiverDetails()
+    {
+        return new PaymentReceiver
+        {
+            Name = "Patentstyret",
+            OrganisationNumber = "971 526 157",
+            PostalAddress = new Address
+            {
+                Name = "Patentstyret",
+                AddressLine1 = "Postboks 4863 Nydalen",
+                AddressLine2 = "",
+                PostalCode = "N-0422",
+                City = "Oslo",
+                Country = "Norway",
+            }
+        };
     }
 }
