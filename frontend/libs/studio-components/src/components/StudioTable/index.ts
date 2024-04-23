@@ -1,0 +1,1 @@
+export { StudioTable } from './StudioTable';
