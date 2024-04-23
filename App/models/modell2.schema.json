@@ -18,12 +18,16 @@
   "@xsdRootElement": "modell2",
   "type": "object",
   "required": [
-    "tekstfelt"
+    "tekstfelt",
+    "postnummer"
   ],
   "properties": {
     "tekstfelt": {
       "type": "string",
       "maxLength": 10
+    },
+    "postnummer": {
+      "type": "string"
     }
   }
 }

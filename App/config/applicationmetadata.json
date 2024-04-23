@@ -7,7 +7,9 @@
   "dataTypes": [
     {
       "id": "ref-data-as-pdf",
-      "allowedContentTypes": ["application/pdf"],
+      "allowedContentTypes": [
+        "application/pdf"
+      ],
       "maxCount": 0,
       "minCount": 0,
       "enablePdfCreation": true,
@@ -18,7 +20,9 @@
     },
     {
       "id": "modell1",
-      "allowedContentTypes": ["application/xml"],
+      "allowedContentTypes": [
+        "application/xml"
+      ],
       "appLogic": {
         "autoCreate": true,
         "classRef": "Altinn.App.Models.modell1.modell1",
@@ -36,7 +40,9 @@
     },
     {
       "id": "modell2",
-      "allowedContentTypes": ["application/xml"],
+      "allowedContentTypes": [
+        "application/xml"
+      ],
       "appLogic": {
         "autoCreate": true,
         "classRef": "Altinn.App.Models.modell2.modell2",

@@ -18,12 +18,20 @@
   "@xsdRootElement": "modell1",
   "type": "object",
   "required": [
-    "tekstfelt"
+    "tekstfelt",
+    "gateadresse",
+    "poststed"
   ],
   "properties": {
     "tekstfelt": {
       "type": "string",
       "maxLength": 10
+    },
+    "gateadresse": {
+      "type": "string"
+    },
+    "poststed": {
+      "type": "string"
     }
   }
 }

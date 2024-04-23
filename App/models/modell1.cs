@@ -17,5 +17,15 @@ namespace Altinn.App.Models.modell1
     [JsonPropertyName("tekstfelt")]
     public string tekstfelt { get; set; }
 
+    [XmlElement("gateadresse", Order = 2)]
+    [JsonProperty("gateadresse")]
+    [JsonPropertyName("gateadresse")]
+    public string gateadresse { get; set; }
+
+    [XmlElement("poststed", Order = 3)]
+    [JsonProperty("poststed")]
+    [JsonPropertyName("poststed")]
+    public string poststed { get; set; }
+
   }
 }

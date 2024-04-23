@@ -2,6 +2,10 @@
   "language": "nb",
   "resources": [
     {
+      "id": "Side2.Address-xdZ7PE.title",
+      "value": "Adresse"
+    },
+    {
       "id": "Side1.Input-aWlSF3.title",
       "value": "Tekstfelt"
     },

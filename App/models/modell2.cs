@@ -17,5 +17,10 @@ namespace Altinn.App.Models.modell2
     [JsonPropertyName("tekstfelt")]
     public string tekstfelt { get; set; }
 
+    [XmlElement("postnummer", Order = 2)]
+    [JsonProperty("postnummer")]
+    [JsonPropertyName("postnummer")]
+    public string postnummer { get; set; }
+
   }
 }
