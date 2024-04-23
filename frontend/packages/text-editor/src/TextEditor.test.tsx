@@ -1,7 +1,7 @@
 import React from 'react';
 import { TextEditor } from './TextEditor';
 import type { TextEditorProps } from './TextEditor';
-import { act, render as rtlRender, screen } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
@@ -68,7 +68,7 @@ describe('TextEditor', () => {
       name: textMock('text_editor.new_text'),
     });
 
-    await act(() => user.click(addBtn));
+    await user.click(addBtn);
 
     expect(upsertTextResource).toHaveBeenCalledWith({
       language: 'nb',
@@ -85,14 +85,12 @@ describe('TextEditor', () => {
     });
     const deleteBtn = screen.getByTestId(testids.deleteButton('en'));
 
-    await act(() => user.click(deleteBtn));
+    await user.click(deleteBtn);
     await screen.findByRole('dialog');
-    await act(() =>
-      user.click(
-        screen.getByRole('button', {
-          name: textMock('schema_editor.language_confirm_deletion'),
-        }),
-      ),
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock('schema_editor.language_confirm_deletion'),
+      }),
     );
 
     expect(handleDeleteLang).toHaveBeenCalledWith('en');
@@ -108,16 +106,13 @@ describe('TextEditor', () => {
     });
     const deleteBtn = screen.getByTestId(testids.deleteButton('en'));
 
-    await act(() => user.click(deleteBtn));
+    await user.click(deleteBtn);
     await screen.findByRole('dialog');
-    await act(() =>
-      user.click(
-        screen.getByRole('button', {
-          name: textMock('schema_editor.language_confirm_deletion'),
-        }),
-      ),
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock('schema_editor.language_confirm_deletion'),
+      }),
     );
-
     expect(handleDeleteLang).toHaveBeenCalledWith('en');
     expect(setSelectedLangCodes).toHaveBeenCalledWith(['nb']);
   });
@@ -136,7 +131,7 @@ describe('TextEditor', () => {
     expect(norwegianCheckbox).toBeChecked();
     expect(englishCheckbox).not.toBeChecked();
 
-    await act(() => user.click(englishCheckbox));
+    await user.click(englishCheckbox);
 
     expect(setSelectedLangCodes).toHaveBeenCalledWith(['nb', 'en']);
   });
@@ -149,7 +144,7 @@ describe('TextEditor', () => {
     const kurdishCheckbox = screen.getByRole('checkbox', {
       name: /kurdisk/i,
     });
-    await act(() => user.click(kurdishCheckbox));
+    await user.click(kurdishCheckbox);
 
     expect(mockScrollIntoView).toHaveBeenCalledTimes(1);
   });
@@ -161,7 +156,7 @@ describe('TextEditor', () => {
     expect(textEntries[1]).toHaveValue(textValue1);
 
     const sortAlphabeticallyButton = screen.getByText(textMock('text_editor.sort_alphabetically'));
-    await act(() => user.click(sortAlphabeticallyButton));
+    await user.click(sortAlphabeticallyButton);
 
     const sortedTranslations = screen.getAllByRole('textbox');
     expect(sortedTranslations[1]).toHaveValue(textValue2);
@@ -180,9 +175,9 @@ describe('TextEditor', () => {
     });
 
     const newValue: string = 'new translation';
-    await act(() => user.clear(nbTextarea));
-    await act(() => user.type(nbTextarea, newValue));
-    await act(() => user.tab());
+    await user.clear(nbTextarea);
+    await user.type(nbTextarea, newValue);
+    await user.tab();
     expect(upsertTextResource).toHaveBeenCalledWith({
       language: 'nb',
       textId: textId1,
@@ -200,14 +195,12 @@ describe('TextEditor', () => {
       });
       expect(result).toHaveLength(2);
 
-      await act(() => user.click(result[0]));
+      await user.click(result[0]);
       await screen.findByRole('dialog');
-      await act(() =>
-        user.click(
-          screen.getByRole('button', {
-            name: textMock('schema_editor.textRow-deletion-confirm'),
-          }),
-        ),
+      await user.click(
+        screen.getByRole('button', {
+          name: textMock('schema_editor.textRow-deletion-confirm'),
+        }),
       );
 
       await expect(onTextIdChange).toHaveBeenCalledWith({ oldId: nb[0].id });
@@ -221,14 +214,14 @@ describe('TextEditor', () => {
       const editKeyButton = await screen.getAllByRole('button', {
         name: textMock('text_editor.toggle_edit_mode', { textKey: textId1 }),
       })[0];
-      await act(() => user.click(editKeyButton));
+      await user.click(editKeyButton);
 
       const textIdInput = screen.getByRole('textbox', {
         name: textMock('text_editor.key.edit', { textKey: textId1 }),
       });
 
       await user.tripleClick(textIdInput);
-      await act(() => user.keyboard('new-key{TAB}')); // type new text and blur
+      await user.keyboard('new-key{TAB}'); // type new text and blur
 
       await expect(onTextIdChange).toHaveBeenCalledWith({
         oldId: nb[0].id,

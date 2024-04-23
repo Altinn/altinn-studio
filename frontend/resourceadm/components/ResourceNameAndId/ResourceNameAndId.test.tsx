@@ -3,7 +3,6 @@ import { render, screen } from '@testing-library/react';
 import type { ResourceNameAndIdProps } from './ResourceNameAndId';
 import { ResourceNameAndId } from './ResourceNameAndId';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
 
 const mockTitleLabel = 'TitleLabel';
@@ -45,7 +44,7 @@ describe('ResourceNameAndId', () => {
     const titleInput = screen.getByLabelText(mockTitleLabel);
     expect(titleInput).toHaveValue(mockResourceTitleInitial);
 
-    await act(() => user.type(titleInput, '4'));
+    await user.type(titleInput, '4');
     expect(mockHandleEditTitle).toHaveBeenCalledWith(mockResourceTitleAfterChange);
   });
 
@@ -69,9 +68,9 @@ describe('ResourceNameAndId', () => {
   it('displays the two icon buttons for save and cancel when id edit is enabled, and hides the edit button', async () => {
     const user = userEvent.setup();
     render(<ResourceNameAndId {...defaultProps} />);
-
+    
     const editButton = screen.queryByRole('button', { name: editLabelButtonText });
-    await act(() => user.click(editButton));
+    await user.click(editButton);
 
     const iconButtonCancel = screen.getByRole('button', {
       name: cancelEditButtonText,
@@ -91,12 +90,12 @@ describe('ResourceNameAndId', () => {
     render(<ResourceNameAndId {...defaultProps} />);
 
     const editButton = screen.queryByRole('button', { name: editLabelButtonText });
-    await act(() => user.click(editButton));
+    await user.click(editButton);
 
     const idInput = screen.getByLabelText(mockIdLabel);
     expect(idInput).toHaveValue(mockResourceIdInitial);
 
-    await act(() => user.type(idInput, '0'));
+    await user.type(idInput, '0');
     expect(mockHandleIdInput).toHaveBeenCalledWith(mockResourceIdAfterChange);
   });
 
@@ -105,15 +104,15 @@ describe('ResourceNameAndId', () => {
     render(<ResourceNameAndId {...defaultProps} />);
 
     const editButton = screen.queryByRole('button', { name: editLabelButtonText });
-    await act(() => user.click(editButton));
+    awaituser.click(editButton);
 
     const idInput = screen.getByLabelText(mockIdLabel);
 
-    await act(() => user.type(idInput, 'newId'));
+    await user.type(idInput, 'newId');
     const iconButtonCancel = screen.getByRole('button', {
       name: cancelEditButtonText,
     });
-    await act(() => user.click(iconButtonCancel));
+    await user.click(iconButtonCancel);
 
     expect(screen.getByText(mockResourceIdInitial)).toBeInTheDocument();
   });
@@ -123,17 +122,17 @@ describe('ResourceNameAndId', () => {
     render(<ResourceNameAndId {...defaultProps} />);
 
     const editButton = screen.queryByRole('button', { name: editLabelButtonText });
-    await act(() => user.click(editButton));
+    await user.click(editButton);
 
     const idInput = screen.getByLabelText(mockIdLabel);
 
-    await act(() => user.type(idInput, 'newId'));
+    await user.type(idInput, 'newId');
 
     const iconButtonSave = screen.queryByRole('button', {
       name: saveEditButtonText,
     });
 
-    await act(() => user.click(iconButtonSave));
+    await user.click(iconButtonSave);
     expect(idInput).not.toBeInTheDocument();
   });
 
@@ -148,7 +147,7 @@ describe('ResourceNameAndId', () => {
     render(<ResourceNameAndId {...defaultProps} title='test/\\?: #=name' />);
 
     const titleInput = screen.getByLabelText(mockTitleLabel);
-    await act(() => user.type(titleInput, '1'));
+    await user.type(titleInput, '1');
 
     expect(mockHandleIdInput).toHaveBeenCalledWith('test-name1');
   });

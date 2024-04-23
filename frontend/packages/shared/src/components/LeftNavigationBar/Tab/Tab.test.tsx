@@ -2,7 +2,6 @@ import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { LeftNavigationTab, TabAction } from 'app-shared/types/LeftNavigationTab';
-import { act } from 'react-dom/test-utils';
 import { TestFlaskIcon } from '@navikt/aksel-icons';
 import type { TabProps } from './Tab';
 import { Tab } from './Tab';
@@ -70,7 +69,7 @@ describe('Tab', () => {
     render(defaultProps);
 
     const tabLink = screen.getByRole('tab', { name: textMock(mockTab1.tabName) });
-    await act(() => user.click(tabLink));
+    await user.click(tabLink);
 
     expect(mockTab1.action.onClick).toHaveBeenCalledTimes(1);
   });
@@ -80,7 +79,7 @@ describe('Tab', () => {
     render({ ...defaultProps, tab: mockTab2 });
 
     const tabLink = screen.getByRole('tab', { name: textMock(mockTab2.tabName) });
-    await act(() => user.click(tabLink));
+    await user.click(tabLink);
 
     expect(mockOnClick).not.toHaveBeenCalled();
   });
@@ -90,7 +89,7 @@ describe('Tab', () => {
     render({ ...defaultProps, tab: mockTab3 });
 
     const tabButton = screen.getByRole('tab', { name: textMock(mockTab3.tabName) });
-    await act(() => user.click(tabButton));
+    await user.click(tabButton);
 
     expect(mockTab3.action.onClick).toHaveBeenCalledTimes(1);
   });
@@ -100,8 +99,8 @@ describe('Tab', () => {
     render({ ...defaultProps, tab: mockTab3 });
 
     const tabButton = screen.getByRole('tab', { name: textMock(mockTab3.tabName) });
-    await act(() => user.click(tabButton));
-    await act(() => user.keyboard('{Tab}'));
+    await user.click(tabButton);
+    await user.keyboard('{Tab}');
     expect(mockOnKeyDown).toHaveBeenCalledTimes(1);
   });
 
@@ -110,8 +109,8 @@ describe('Tab', () => {
     render(defaultProps);
 
     const tabLink = screen.getByRole('tab', { name: textMock(mockTab1.tabName) });
-    await act(() => user.click(tabLink));
-    await act(() => user.tab());
+    await user.click(tabLink);
+    await user.tab();
 
     expect(mockOnBlur).toHaveBeenCalledTimes(1);
   });

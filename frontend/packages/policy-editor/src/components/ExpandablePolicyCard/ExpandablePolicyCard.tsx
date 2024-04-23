@@ -26,7 +26,7 @@ import {
   getUpdatedRules,
 } from '../../utils/ExpandablePolicyCardUtils';
 import { useTranslation } from 'react-i18next';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 
 const wellKnownActionsIds: string[] = [
   'complete',
@@ -447,9 +447,9 @@ export const ExpandablePolicyCard = ({
         handleRemoveElement={handleDeleteRule}
         hasError={showErrors && getHasRuleError()}
       >
-        <Label asChild className={classes.label} size='small'>
-          <p>{t('policy_editor.rule_card_sub_resource_title')}</p>
-        </Label>
+        <StudioLabelAsParagraph className={classes.label} size='small'>
+          {t('policy_editor.rule_card_sub_resource_title')}
+        </StudioLabelAsParagraph>
         {displayResources}
         <div className={classes.addResourceButton}>
           <StudioButton

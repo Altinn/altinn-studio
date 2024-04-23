@@ -2,7 +2,7 @@ import React from 'react';
 import type { StudioTreeViewRootProps } from './';
 import { StudioTreeView } from './';
 import type { ByRoleOptions } from '@testing-library/react';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();
@@ -111,7 +111,7 @@ describe('StudioTreeView', () => {
 
     it('Displays child nodes when clicked', async () => {
       renderTreeView();
-      await act(() => user.click(getTreeitem({ label: rootNodeLabel2, expanded: false })));
+      await user.click(getTreeitem({ label: rootNodeLabel2, expanded: false }));
       expect(getTreeitem({ label: rootNodeLabel1, expanded: false })).toBeInTheDocument();
       expect(getTreeitem({ label: rootNodeLabel2, expanded: true })).toBeInTheDocument();
       expect(getTreeitem({ label: subNodeLabel2_1 })).toBeInTheDocument();
@@ -135,7 +135,7 @@ describe('StudioTreeView', () => {
 
     it('Selects a node and calls the `onSelect` callback with the id when clicked', async () => {
       renderTreeView();
-      await act(() => user.click(getTreeitem({ label: rootNodeLabel2 })));
+      await user.click(getTreeitem({ label: rootNodeLabel2 }));
       expect(getTreeitem({ label: rootNodeLabel2, selected: true })).toBeInTheDocument();
       expect(onSelect).toHaveBeenCalledTimes(1);
       expect(onSelect).toHaveBeenCalledWith(rootNodeId2);
@@ -143,60 +143,60 @@ describe('StudioTreeView', () => {
 
     it('Focuses on first node when the user presses the tab key and nothing is selected', async () => {
       renderTreeView();
-      await act(() => user.tab());
+      await user.tab();
       expect(getTreeitem({ label: rootNodeLabel1 })).toHaveFocus();
     });
 
     it('Focuses on the selected node when the user presses the tab key', async () => {
       renderTreeView({ selectedId: rootNodeId2 });
-      await act(() => user.tab());
+      await user.tab();
       expect(getTreeitem({ label: rootNodeLabel2 })).toHaveFocus();
     });
 
     test('Arrow key interactions', async () => {
       renderTreeView();
-      await act(() => user.tab()); // Focuses on first node
+      await user.tab(); // Focuses on first node
       expect(getTreeitem({ label: rootNodeLabel1, expanded: false })).toHaveFocus();
-      await act(() => user.keyboard('{arrowup}')); // Should do nothing because the focused node is the first one
+      await user.keyboard('{arrowup}'); // Should do nothing because the focused node is the first one
       expect(getTreeitem({ label: rootNodeLabel1, expanded: false })).toHaveFocus();
-      await act(() => user.keyboard('{arrowright}')); // Should open the node
+      await user.keyboard('{arrowright}'); // Should open the node
       expect(getTreeitem({ label: rootNodeLabel1, expanded: true })).toHaveFocus();
-      await act(() => user.keyboard('{arrowright}')); // Should focus on first child
+      await user.keyboard('{arrowright}'); // Should focus on first child
       expect(getTreeitem({ label: subNodeLabel1_1 })).toHaveFocus();
-      await act(() => user.keyboard('{arrowdown}')); // Should focus on next child
+      await user.keyboard('{arrowdown}'); // Should focus on next child
       expect(getTreeitem({ label: subNodeLabel1_2, expanded: false })).toHaveFocus();
-      await act(() => user.keyboard('{arrowdown}')); // Should focus on next visible node
+      await user.keyboard('{arrowdown}'); // Should focus on next visible node
       expect(getTreeitem({ label: rootNodeLabel2, expanded: false })).toHaveFocus();
-      await act(() => user.keyboard('{arrowdown}')); // Should not do anything because there are no more visible nodes
+      await user.keyboard('{arrowdown}'); // Should not do anything because there are no more visible nodes
       expect(getTreeitem({ label: rootNodeLabel2, expanded: false })).toHaveFocus();
-      await act(() => user.keyboard('{arrowup}')); // Should focus on previous visible node
+      await user.keyboard('{arrowup}'); // Should focus on previous visible node
       expect(getTreeitem({ label: subNodeLabel1_2, expanded: false })).toHaveFocus();
-      await act(() => user.keyboard('{arrowleft}')); // Should focus on parent node
+      await user.keyboard('{arrowleft}'); // Should focus on parent node
       expect(getTreeitem({ label: rootNodeLabel1, expanded: true })).toHaveFocus();
-      await act(() => user.keyboard('{arrowleft}')); // Should close the node
+      await user.keyboard('{arrowleft}'); // Should close the node
       expect(getTreeitem({ label: rootNodeLabel1, expanded: false })).toHaveFocus();
-      await act(() => user.keyboard('{arrowleft}')); // Should do nothing because the focused node is already closed and has no parent
+      await user.keyboard('{arrowleft}'); // Should do nothing because the focused node is already closed and has no parent
       expect(getTreeitem({ label: rootNodeLabel1, expanded: false })).toHaveFocus();
     });
 
     test('Home and End key interactions', async () => {
       renderTreeView();
-      await act(() => user.tab()); // Focuses on first node
+      await user.tab(); // Focuses on first node
       expect(getTreeitem({ label: rootNodeLabel1, expanded: false })).toHaveFocus();
-      await act(() => user.keyboard('{end}')); // Should focus on last visible node
+      await user.keyboard('{end}'); // Should focus on last visible node
       expect(getTreeitem({ label: rootNodeLabel2, expanded: false })).toHaveFocus();
-      await act(() => user.keyboard('{home}')); // Should focus on first visible node
+      await user.keyboard('{home}'); // Should focus on first visible node
       expect(getTreeitem({ label: rootNodeLabel1, expanded: false })).toHaveFocus();
-      await act(() => user.click(getTreeitem({ label: rootNodeLabel2 }))); // Expands the node
-      await act(() => user.keyboard('{end}')); // Should focus on last visible node, which is now within the expanded node
+      await user.click(getTreeitem({ label: rootNodeLabel2 })); // Expands the node
+      await user.keyboard('{end}'); // Should focus on last visible node, which is now within the expanded node
       expect(getTreeitem({ label: subNodeLabel2_1 })).toHaveFocus();
     });
 
     test('Enter key interaction', async () => {
       renderTreeView();
-      await act(() => user.tab());
+      await user.tab();
       expect(getTreeitem({ label: rootNodeLabel1, expanded: false })).toHaveFocus();
-      await act(() => user.keyboard('{enter}')); // Should select the node
+      await user.keyboard('{enter}'); // Should select the node
       expect(getTreeitem({ label: rootNodeLabel1, selected: true })).toHaveFocus();
       expect(onSelect).toHaveBeenCalledTimes(1);
       expect(onSelect).toHaveBeenCalledWith(rootNodeId1);

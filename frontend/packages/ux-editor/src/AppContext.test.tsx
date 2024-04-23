@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { render, act, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import type { WindowWithQueryClient } from './AppContext';
 import { AppContextProvider } from './AppContext';
 import userEvent from '@testing-library/user-event';
@@ -60,7 +60,7 @@ describe('AppContext', () => {
     });
 
     const button = screen.getByTestId('button');
-    await act(() => user.click(button));
+    await user.click(button);
 
     await waitFor(async () =>
       expect((await screen.findByTestId('selectedFormLayoutSetName')).textContent).toEqual(
@@ -88,7 +88,7 @@ describe('AppContext', () => {
     expect((await screen.findByTestId('selectedFormLayoutName')).textContent).toEqual('');
 
     const button = screen.getByTestId('button');
-    await act(() => user.click(button));
+    await user.click(button);
 
     await waitFor(async () =>
       expect((await screen.findByTestId('selectedFormLayoutName')).textContent).toEqual(
@@ -120,7 +120,7 @@ describe('AppContext', () => {
     });
 
     const button = screen.getByTestId('button');
-    await act(() => user.click(button));
+    await user.click(button);
 
     await waitFor(async () => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
     await waitFor(async () =>
@@ -157,7 +157,7 @@ describe('AppContext', () => {
     });
 
     const button = screen.getByTestId('button');
-    await act(() => user.click(button));
+    await user.click(button);
 
     await waitFor(async () => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
     await waitFor(async () =>
@@ -192,7 +192,7 @@ describe('AppContext', () => {
     });
 
     const button = screen.getByTestId('button');
-    await act(() => user.click(button));
+    await user.click(button);
 
     await waitFor(async () => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
     await waitFor(async () =>

@@ -2,7 +2,6 @@ import React from 'react';
 import { render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { ResourcePage } from './ResourcePage';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import type { Resource } from 'app-shared/types/ResourceAdm';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -137,7 +136,7 @@ describe('ResourcePage', () => {
     const migrationTab = screen.getByRole('tab', {
       name: textMock('resourceadm.left_nav_bar_migration'),
     });
-    await act(() => user.click(migrationTab));
+    await user.click(migrationTab);
     expect(mockedNavigate).toHaveBeenCalledWith(
       `/${mockSelectedContext}/${mockSelectedContext}-resources/resource/${mockResource1.identifier}/migration`,
     );
@@ -180,7 +179,7 @@ describe('ResourcePage', () => {
     const policyButton = screen.getByRole('tab', {
       name: textMock('resourceadm.left_nav_bar_policy'),
     });
-    await act(() => user.click(policyButton));
+    await user.click(policyButton);
 
     expect(
       screen.getByRole('heading', {
@@ -192,7 +191,7 @@ describe('ResourcePage', () => {
     const navigateButton = screen.getByRole('button', {
       name: textMock('resourceadm.resource_navigation_modal_button_move_on'),
     });
-    await act(() => user.click(navigateButton));
+    await user.click(navigateButton);
     expect(mockedNavigate).toHaveBeenCalledWith(
       `/${mockSelectedContext}/${mockSelectedContext}-resources/resource/${mockResource1.identifier}/policy`,
     );
@@ -218,7 +217,7 @@ describe('ResourcePage', () => {
     const policyButton = screen.getByRole('tab', {
       name: textMock('resourceadm.left_nav_bar_policy'),
     });
-    await act(() => user.click(policyButton));
+    await user.click(policyButton);
 
     await waitFor(() =>
       expect(mockedNavigate).toHaveBeenCalledWith(
@@ -247,7 +246,7 @@ describe('ResourcePage', () => {
     const aboutButton = screen.getByRole('tab', {
       name: textMock('resourceadm.left_nav_bar_about'),
     });
-    await act(() => user.click(aboutButton));
+    await user.click(aboutButton);
 
     expect(
       screen.getByRole('heading', {
@@ -277,13 +276,13 @@ describe('ResourcePage', () => {
     const deployButton = screen.getByRole('tab', {
       name: textMock('resourceadm.left_nav_bar_deploy'),
     });
-    await act(() => user.click(deployButton));
+    await waitFor(() => user.click(deployButton));
 
     const deployFieldLabel = textMock('resourceadm.deploy_version_label');
     await waitFor(() => screen.findByText(deployFieldLabel));
     const deployResourceVersionField = screen.getByLabelText(deployFieldLabel);
-    await act(() => user.type(deployResourceVersionField, '1.2'));
-    await act(() => deployResourceVersionField.blur());
+    await user.type(deployResourceVersionField, '1.2');
+    await waitFor(() => deployResourceVersionField.blur());
 
     await waitFor(() => expect(queriesMock.updateResource).toHaveBeenCalledTimes(1));
   });

@@ -4,7 +4,6 @@ import type { ResourceDeployEnvCardProps } from './ResourceDeployEnvCard';
 import { ResourceDeployEnvCard } from './ResourceDeployEnvCard';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
 import type { QueryClient } from '@tanstack/react-query';
 import type { Environment } from '../../utils/resourceUtils';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -37,7 +36,7 @@ describe('ResourceDeployEnvCard', () => {
       name: textMock('resourceadm.deploy_card_publish', { env: textMock(mockTestEnv.label) }),
     });
 
-    await act(() => user.click(deployButton));
+    await user.click(deployButton);
     await waitFor(() => {
       expect(
         screen.getByText(
@@ -90,7 +89,7 @@ describe('ResourceDeployEnvCard', () => {
 
     expect(deployButton).not.toBeDisabled();
 
-    await act(() => user.click(deployButton));
+    await user.click(deployButton);
     expect(queriesMock.publishResource).toHaveBeenCalledTimes(1);
   });
 
@@ -109,7 +108,7 @@ describe('ResourceDeployEnvCard', () => {
       name: textMock('resourceadm.deploy_card_publish', { env: textMock(mockTestEnv.label) }),
     });
 
-    await act(() => user.click(deployButton));
+    await user.click(deployButton);
 
     await waitFor(() => {
       expect(

@@ -1,9 +1,9 @@
 import React from 'react';
 import classes from './PolicyResourceFields.module.css';
-import { Label, Textfield } from '@digdir/design-system-react';
+import { Textfield } from '@digdir/design-system-react';
 import { MultiplyIcon } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 
 export type PolicyResourceFieldsProps = {
   /**
@@ -74,9 +74,9 @@ export const PolicyResourceFields = ({
       <div className={classes.inputWrapper}>
         <div className={classes.textfieldWrapper}>
           {!canEditTypeAndId && (
-            <Label asChild spacing size='small' className={classes.label}>
-              <p> Type </p>
-            </Label>
+            <StudioLabelAsParagraph spacing size='small' className={classes.label}>
+              Type
+            </StudioLabelAsParagraph>
           )}
           <Textfield
             value={valueType}
@@ -89,9 +89,9 @@ export const PolicyResourceFields = ({
         </div>
         <div className={classes.textfieldWrapper}>
           {!canEditTypeAndId && (
-            <Label spacing size='small' asChild className={classes.label}>
-              <p>Id</p>
-            </Label>
+            <StudioLabelAsParagraph spacing size='small' className={classes.label}>
+              Id
+            </StudioLabelAsParagraph>
           )}
           <Textfield
             value={valueId}

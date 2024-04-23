@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import type { ProcessEditorProps } from './ProcessEditor';
 import { ProcessEditor } from './ProcessEditor';
 import { textMock } from '../../../testing/mocks/i18nMock';
@@ -57,8 +57,7 @@ describe('ProcessEditor', () => {
     const user = userEvent.setup();
     renderProcessEditor();
 
-    // Fix to remove act error
-    await act(() => user.tab());
+    await user.tab();
 
     const alertHeader = screen.queryByRole('heading', {
       name: textMock('process_editor.too_old_version_title'),

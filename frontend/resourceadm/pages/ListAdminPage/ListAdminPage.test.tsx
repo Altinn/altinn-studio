@@ -2,7 +2,6 @@ import React from 'react';
 import { MemoryRouter, useParams } from 'react-router-dom';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ListAdminPage } from './ListAdminPage';
@@ -69,7 +68,7 @@ describe('ListAdminPage', () => {
     renderListAdminPage();
 
     const prodEnvButton = screen.getByText(textMock('resourceadm.deploy_prod_env'));
-    await act(() => user.click(prodEnvButton));
+    await user.click(prodEnvButton);
 
     expect(mockedNavigate).toHaveBeenCalledWith(`/ttd/ttd-resources/accesslists/prod/`, {
       replace: undefined,
@@ -85,7 +84,7 @@ describe('ListAdminPage', () => {
     renderListAdminPage();
 
     const createNewButton = screen.getByText(textMock('resourceadm.listadmin_create_list'));
-    await act(() => user.click(createNewButton));
+    await user.click(createNewButton);
 
     expect(
       screen.getByText(
@@ -105,7 +104,7 @@ describe('ListAdminPage', () => {
     renderListAdminPage();
 
     await waitFor(() => screen.findByText(textMock('resourceadm.listadmin_load_more')));
-    await act(() => user.click(screen.getByText(textMock('resourceadm.listadmin_load_more'))));
+    await user.click(screen.getByText(textMock('resourceadm.listadmin_load_more')));
 
     expect(await screen.findByText('Test-list2')).toBeInTheDocument();
   });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../testing/mocks';
 import type { IFormLayouts } from '../../../types/global';
@@ -107,10 +107,10 @@ describe('Expressions', () => {
     const handleUpdate = jest.fn();
     renderExpressions({ handleUpdate });
     const addButton = screen.getByRole('button', { name: textMock('right_menu.expressions_add') });
-    await act(() => user.click(addButton));
+    await user.click(addButton);
     const menuitemName = textMock('right_menu.expressions_property_read_only');
     const menuitem = screen.getByRole('menuitem', { name: menuitemName });
-    await act(() => user.click(menuitem));
+    await user.click(menuitem);
     expect(handleUpdate).toHaveBeenCalledTimes(1);
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentWithExpression,
@@ -127,7 +127,7 @@ describe('Expressions', () => {
     const expression = screen.getByRole('group', { name: expressionName });
     const deleteButtonName = textMock('right_menu.expression_delete');
     const deleteButton = within(expression).getByRole('button', { name: deleteButtonName });
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
     expect(handleUpdate).toHaveBeenCalledTimes(1);
     const expectedUpdatedComponent = ObjectUtils.deepCopy(componentWithExpression);
     delete expectedUpdatedComponent.hidden;
@@ -142,7 +142,7 @@ describe('Expressions', () => {
     const expression = screen.getByRole('group', { name: expressionName });
     const orButtonName = textMock('expression.logicalTupleOperator.or');
     const orButton = within(expression).getByRole('radio', { name: orButtonName });
-    await act(() => user.click(orButton));
+    await user.click(orButton);
     expect(handleUpdate).toHaveBeenCalledTimes(1);
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentWithExpression,

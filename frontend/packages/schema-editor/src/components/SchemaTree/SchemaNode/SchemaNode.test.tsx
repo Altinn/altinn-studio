@@ -17,7 +17,7 @@ import {
   uiSchemaNodesMock,
 } from '../../../../test/mocks/uiSchemaMock';
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { getSavedModel } from '../../../../test/test-utils';
 
@@ -41,10 +41,10 @@ describe('SchemaNode', () => {
     const save = jest.fn();
     const numberOfChildren = objectNodeMock.children.length;
     render({ schemaModel, save, pointer });
-    await act(() => user.click(getAddButton()));
+    await user.click(getAddButton());
     const addFieldButtonName = textMock('schema_editor.add_field');
     const addFieldButton = screen.getByRole('menuitem', { name: addFieldButtonName });
-    await act(() => user.click(addFieldButton));
+    await user.click(addFieldButton);
     expect(save).toHaveBeenCalledTimes(1);
     const savedModel = getSavedModel(save);
     const updatedNode = savedModel.getNode(pointer) as FieldNode;
@@ -57,10 +57,10 @@ describe('SchemaNode', () => {
     const save = jest.fn();
     const numberOfChildren = objectNodeMock.children.length;
     render({ schemaModel, save, pointer });
-    await act(() => user.click(getAddButton()));
+    await user.click(getAddButton());
     const addCombinationButtonName = textMock('schema_editor.add_combination');
     const addCombinationButton = screen.getByRole('menuitem', { name: addCombinationButtonName });
-    await act(() => user.click(addCombinationButton));
+    await user.click(addCombinationButton);
     expect(save).toHaveBeenCalledTimes(1);
     const savedModel = getSavedModel(save);
     const updatedNode = savedModel.getNode(pointer) as FieldNode;
@@ -76,10 +76,10 @@ describe('SchemaNode', () => {
     const definitionName = extractNameFromPointer(definitionPointer);
     jest.spyOn(window, 'prompt').mockImplementation(() => definitionName);
     render({ schemaModel, save, pointer });
-    await act(() => user.click(getAddButton()));
+    await user.click(getAddButton());
     const addReferenceButtonName = textMock('schema_editor.add_reference');
     const addReferenceButton = screen.getByRole('menuitem', { name: addReferenceButtonName });
-    await act(() => user.click(addReferenceButton));
+    await user.click(addReferenceButton);
     expect(save).toHaveBeenCalledTimes(1);
     const savedModel = getSavedModel(save);
     const updatedNode = savedModel.getNode(pointer) as FieldNode;
@@ -109,7 +109,7 @@ describe('SchemaNode', () => {
 
     const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
     expect(save).toHaveBeenCalledTimes(1);
   });
 
@@ -120,7 +120,7 @@ describe('SchemaNode', () => {
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
     render({ schemaModel, save, pointer });
     const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
     expect(save).toHaveBeenCalledTimes(1);
     const savedModel = getSavedModel(save);
     expect(savedModel.hasNode(pointer)).toBe(false);
@@ -134,7 +134,7 @@ describe('SchemaNode', () => {
     jest.spyOn(window, 'confirm').mockImplementation(() => false);
     render({ schemaModel, save, pointer });
     const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
     expect(save).not.toHaveBeenCalled();
     expect(schemaModel.getNodeMap()).toEqual(schemaModelBefore.getNodeMap());
   });
@@ -145,7 +145,7 @@ describe('SchemaNode', () => {
     const save = jest.fn();
     render({ schemaModel, save, pointer });
     const promoteButton = screen.getByRole('button', { name: textMock('schema_editor.promote') });
-    await act(() => user.click(promoteButton));
+    await user.click(promoteButton);
     expect(save).toHaveBeenCalledTimes(1);
     const savedModel = getSavedModel(save);
     const updatedNode = savedModel.getNode(pointer);
@@ -159,7 +159,7 @@ describe('SchemaNode', () => {
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
     render({ schemaModel, pointer, selectedNodePointer: pointer, setSelectedNodePointer });
     const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
     expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
     expect(setSelectedNodePointer).toHaveBeenCalledWith(null);
   });

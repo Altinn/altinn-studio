@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SchemaEditor } from './SchemaEditor';
 import {
@@ -34,20 +34,20 @@ const renderEditor = (data: Partial<RenderWithProvidersData> = {}) => {
 
 const clickMenuItem = async (name: string) => {
   const item = screen.getByRole('menuitem', { name });
-  await act(() => user.click(item));
+  await user.click(item);
 };
 
 const addNodeButtonTitle = textMock('schema_editor.add_node_of_type');
 
 const clickOpenAddNodeButton = async () => {
   const buttons = screen.getAllByRole('button', { name: addNodeButtonTitle });
-  await act(() => user.click(buttons[0]));
+  await user.click(buttons[0]);
 };
 
 const clickOpenAddNodeButtonInTree = async () => {
   const tree = screen.getByRole('tree');
   const buttons = within(tree).getAllByRole('button', { name: addNodeButtonTitle });
-  await act(() => user.click(buttons[0]));
+  await user.click(buttons[0]);
 };
 
 const typeName = 'TestType';
@@ -118,7 +118,7 @@ describe('SchemaEditor', () => {
       name: textMock('general.delete'),
     });
     const firstDeleteButton = deleteButtons[0];
-    await act(() => user.click(firstDeleteButton));
+    await user.click(firstDeleteButton);
     expect(save).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(save);
     const updatedNumberOfRootNodes = updatedModel.getRootChildren().length;
@@ -134,7 +134,7 @@ describe('SchemaEditor', () => {
       name: textMock('general.delete'),
     });
     const firstDeleteButton = deleteButtons[0];
-    await act(() => user.click(firstDeleteButton));
+    await user.click(firstDeleteButton);
     expect(save).not.toHaveBeenCalled();
   });
 
@@ -223,7 +223,7 @@ describe('SchemaEditor', () => {
       },
     });
     const type = screen.getByTestId(testids.typeItem(selectedTypePointer));
-    await act(() => user.click(type));
+    await user.click(type);
     expect(screen.getByRole('heading', { name: typeName, level: 1 })).toBeInTheDocument();
   });
 
@@ -246,7 +246,7 @@ describe('SchemaEditor', () => {
     const backButton = screen.getByRole('button', {
       name: textMock('schema_editor.back_to_datamodel'),
     });
-    await act(() => user.click(backButton));
+    await user.click(backButton);
     expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
     expect(setSelectedTypePointer).toHaveBeenCalledWith(undefined);
     expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
@@ -276,7 +276,7 @@ describe('SchemaEditor', () => {
     });
 
     const deleteButton = screen.getAllByRole('button', { name: textMock('general.delete') });
-    await act(() => user.click(deleteButton[0]));
+    await user.click(deleteButton[0]);
     expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
     expect(setSelectedTypePointer).toHaveBeenCalledWith(null);
     expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
@@ -302,7 +302,7 @@ describe('SchemaEditor', () => {
     const deleteButton = within(prop1).getByRole('button', {
       name: textMock('general.delete'),
     });
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
 
     expect(setSelectedTypePointer).not.toHaveBeenCalled();
     expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);

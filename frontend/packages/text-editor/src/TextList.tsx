@@ -1,11 +1,7 @@
 import React, { useMemo } from 'react';
 import { TextRow } from './TextRow';
-import type {
-  TextResourceEntryDeletion,
-  TextResourceIdMutation,
-  UpsertTextResourceMutation,
-  TextTableRow,
-} from './types';
+import type { TextResourceEntryDeletion, TextResourceIdMutation, TextTableRow } from './types';
+import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 import { filterFunction, getLangName } from './utils';
 
 import {

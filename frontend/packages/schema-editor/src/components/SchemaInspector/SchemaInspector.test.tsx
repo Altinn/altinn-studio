@@ -1,7 +1,7 @@
 import React from 'react';
 import { SchemaInspector } from './SchemaInspector';
 import { dataMock } from '../../mockData';
-import { act, screen, waitFor, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { CombinationNode, FieldNode, UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import {
@@ -49,9 +49,9 @@ describe('SchemaInspector', () => {
     const textboxes = screen.getAllByRole('textbox');
 
     for (const textbox of textboxes) {
-      await act(() => user.clear(textbox));
-      await act(() => user.type(textbox, 'new-value'));
-      await act(() => user.tab());
+      await user.clear(textbox);
+      await user.type(textbox, 'new-value');
+      await user.tab();
     }
 
     expect(setSelectedTypePointer).toHaveBeenCalledWith('#/$defs/new-value');
@@ -73,9 +73,9 @@ describe('SchemaInspector', () => {
     const maxLength = '666';
 
     const minLengthTextField = await screen.findByLabelText(textMock('schema_editor.minLength'));
-    await act(() => user.clear(minLengthTextField));
-    await act(() => user.type(minLengthTextField, minLength));
-    await act(() => user.tab());
+    await user.clear(minLengthTextField);
+    await user.type(minLengthTextField, minLength);
+    await user.tab();
 
     expect(saveDatamodel).toHaveBeenCalled();
     let updatedModel = getSavedModel(saveDatamodel, 3);
@@ -83,9 +83,9 @@ describe('SchemaInspector', () => {
     expect(updatedNode.restrictions.minLength).toEqual(parseInt(minLength));
 
     const maxLengthTextField = await screen.findByLabelText(textMock('schema_editor.maxLength'));
-    await act(() => user.clear(maxLengthTextField));
-    await act(() => user.type(maxLengthTextField, maxLength));
-    await act(() => user.tab());
+    await user.clear(maxLengthTextField);
+    await user.type(maxLengthTextField, maxLength);
+    await user.tab();
 
     updatedModel = getSavedModel(saveDatamodel, 7);
     updatedNode = updatedModel.getNode(pointer) as FieldNode;
@@ -113,15 +113,14 @@ describe('SchemaInspector', () => {
     const testUiSchema: UiSchemaNodes = [rootNode, parentNode, childNode];
     validateTestUiSchema(testUiSchema);
     renderSchemaInspector(testUiSchema, parentNode);
-    await act(() => user.click(getFieldsTab()));
-    await act(() => user.click(screen.getByDisplayValue('abc')));
-    await act(() => user.keyboard('{Enter}'));
+    await user.click(getFieldsTab());
+    await user.click(screen.getByDisplayValue('abc'));
+    await user.keyboard('{Enter}');
     // eslint-disable-next-line testing-library/no-unnecessary-act
-    await act(async () => {
-      // eslint-disable-next-line testing-library/await-async-utils
-      waitFor(() => {
-        expect(saveDatamodel).toHaveBeenCalledTimes(1);
-      });
+
+    // eslint-disable-next-line testing-library/await-async-utils
+    waitFor(() => {
+      expect(saveDatamodel).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -146,8 +145,8 @@ describe('SchemaInspector', () => {
     const enumField = within(enumFieldset).getAllByRole('textbox');
     expect(enumField).toHaveLength(item.enum.length);
 
-    await act(() => user.click(enumField[0]));
-    await act(() => user.keyboard('{Enter}'));
+    await user.click(enumField[0]);
+    await user.keyboard('{Enter}');
 
     const enumFieldAfter = within(enumFieldset).getAllByRole('textbox');
     expect(enumFieldAfter).toHaveLength(item.enum.length + 1);
@@ -170,7 +169,7 @@ describe('SchemaInspector', () => {
     const testUiSchema: UiSchemaNodes = [rootNode, item];
     validateTestUiSchema(testUiSchema);
     renderSchemaInspector(testUiSchema, item);
-    await act(() => user.click(getFieldsTab()));
+    await user.click(getFieldsTab());
     expect(screen.getByText(textMock('app_data_modelling.fields_information'))).toBeInTheDocument();
   });
 

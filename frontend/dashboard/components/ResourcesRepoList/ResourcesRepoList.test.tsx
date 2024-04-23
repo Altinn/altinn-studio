@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ResourcesRepoList } from './ResourcesRepoList';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -141,7 +141,7 @@ describe('RepoList', () => {
       expect(screen.getByTestId('resource-table-wrapper')).toBeInTheDocument();
     });
 
-    await act(() => user.click(screen.getByText(textMock('resourceadm.dashboard_table_row_edit'))));
+    await user.click(screen.getByText(textMock('resourceadm.dashboard_table_row_edit')));
 
     expect(window.location.assign).toHaveBeenCalledWith(
       '/resourceadm/ttd/ttd-resources/resource/test-ressurs/about',
