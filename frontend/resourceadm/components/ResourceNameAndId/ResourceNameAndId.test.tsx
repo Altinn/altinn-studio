@@ -13,6 +13,16 @@ const mockResourceIdInitial: string = 'resource-123';
 const mockResourceTitleAfterChange: string = 'resource 1234';
 const mockResourceIdAfterChange: string = 'resource-1230';
 
+const editLabelButtonText = textMock('resourceadm.dashboard_resource_name_and_id_change', {
+  objectType: mockIdLabel,
+});
+const saveEditButtonText = textMock('resourceadm.dashboard_resource_name_and_id_checkmark_icon', {
+  objectType: mockIdLabel,
+});
+const cancelEditButtonText = textMock('resourceadm.dashboard_resource_name_and_id_delete_icon', {
+  objectType: mockIdLabel,
+});
+
 describe('ResourceNameAndId', () => {
   const mockHandleEditTitle = jest.fn();
   const mockHandleIdInput = jest.fn();
@@ -41,16 +51,16 @@ describe('ResourceNameAndId', () => {
   it('displays the edit button when isEditOpen is false, and hides the two icon buttons', () => {
     render(<ResourceNameAndId {...defaultProps} />);
 
-    const editButton = screen.getByRole('button', { name: textMock('general.edit') });
+    const editButton = screen.getByRole('button', { name: editLabelButtonText });
     expect(editButton).toBeInTheDocument();
 
     const iconButtonCancel = screen.queryByRole('button', {
-      name: textMock('resourceadm.dashboard_resource_name_and_id_delete_icon'),
+      name: cancelEditButtonText,
     });
     expect(iconButtonCancel).not.toBeInTheDocument();
 
     const iconButtonSave = screen.queryByRole('button', {
-      name: textMock('resourceadm.dashboard_resource_name_and_id_checkmark_icon'),
+      name: saveEditButtonText,
     });
     expect(iconButtonSave).not.toBeInTheDocument();
   });
@@ -59,16 +69,16 @@ describe('ResourceNameAndId', () => {
     const user = userEvent.setup();
     render(<ResourceNameAndId {...defaultProps} />);
 
-    const editButton = screen.queryByRole('button', { name: textMock('general.edit') });
+    const editButton = screen.queryByRole('button', { name: editLabelButtonText });
     await user.click(editButton);
 
     const iconButtonCancel = screen.getByRole('button', {
-      name: textMock('resourceadm.dashboard_resource_name_and_id_delete_icon'),
+      name: cancelEditButtonText,
     });
     expect(iconButtonCancel).toBeInTheDocument();
 
     const iconButtonSave = screen.getByRole('button', {
-      name: textMock('resourceadm.dashboard_resource_name_and_id_checkmark_icon'),
+      name: saveEditButtonText,
     });
     expect(iconButtonSave).toBeInTheDocument();
 
@@ -79,7 +89,7 @@ describe('ResourceNameAndId', () => {
     const user = userEvent.setup();
     render(<ResourceNameAndId {...defaultProps} />);
 
-    const editButton = screen.queryByRole('button', { name: textMock('general.edit') });
+    const editButton = screen.queryByRole('button', { name: editLabelButtonText });
     await user.click(editButton);
 
     const idInput = screen.getByLabelText(mockIdLabel);
@@ -93,14 +103,14 @@ describe('ResourceNameAndId', () => {
     const user = userEvent.setup();
     render(<ResourceNameAndId {...defaultProps} />);
 
-    const editButton = screen.queryByRole('button', { name: textMock('general.edit') });
+    const editButton = screen.queryByRole('button', { name: editLabelButtonText });
     await user.click(editButton);
 
     const idInput = screen.getByLabelText(mockIdLabel);
 
     await user.type(idInput, 'newId');
     const iconButtonCancel = screen.getByRole('button', {
-      name: textMock('resourceadm.dashboard_resource_name_and_id_delete_icon'),
+      name: cancelEditButtonText,
     });
     await user.click(iconButtonCancel);
 
@@ -111,7 +121,7 @@ describe('ResourceNameAndId', () => {
     const user = userEvent.setup();
     render(<ResourceNameAndId {...defaultProps} />);
 
-    const editButton = screen.queryByRole('button', { name: textMock('general.edit') });
+    const editButton = screen.queryByRole('button', { name: editLabelButtonText });
     await user.click(editButton);
 
     const idInput = screen.getByLabelText(mockIdLabel);
@@ -119,7 +129,7 @@ describe('ResourceNameAndId', () => {
     await user.type(idInput, 'newId');
 
     const iconButtonSave = screen.queryByRole('button', {
-      name: textMock('resourceadm.dashboard_resource_name_and_id_checkmark_icon'),
+      name: saveEditButtonText,
     });
 
     await user.click(iconButtonSave);
