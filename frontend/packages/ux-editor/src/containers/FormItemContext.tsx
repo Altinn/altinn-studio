@@ -153,7 +153,7 @@ export const FormItemContextProvider = ({
         return;
       await handleSave();
       handleDiscard();
-      prevSelectedFormLayoutSetNameRef.current = selectedFormLayoutName;
+      prevSelectedFormLayoutSetNameRef.current = selectedFormLayoutSetName;
       prevSelectedFormLayoutNameRef.current = selectedFormLayoutName;
     };
 
