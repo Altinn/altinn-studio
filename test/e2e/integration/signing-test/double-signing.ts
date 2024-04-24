@@ -13,6 +13,7 @@ function login(user: CyUser) {
     if (partyId) {
       // Intercepting party list to only return the party we want to use. This will be automatically used by
       // app-frontend when it starts.
+      let correctParty: IParty | undefined = undefined;
       cy.intercept(
         {
           method: 'GET',
@@ -22,11 +23,26 @@ function login(user: CyUser) {
         (req) => {
           req.on('response', (res) => {
             const parties = res.body as IParty[];
-            const correctParty = parties.find((party: IParty) => party.partyId == partyId);
+            correctParty = parties.find((party: IParty) => party.partyId == partyId);
             if (!correctParty) {
               throw new Error(`Could not find party with id ${partyId}`);
             }
-            res.send({ ...res, body: [correctParty] });
+            res.send([correctParty]);
+          });
+        },
+      );
+      cy.intercept(
+        {
+          method: 'GET',
+          url: `**/api/authorization/parties/current?returnPartyObject=true`,
+          times: 1,
+        },
+        (req) => {
+          req.on('response', (res) => {
+            if (!correctParty) {
+              throw new Error(`Could not find party with id ${partyId}`);
+            }
+            res.send(correctParty);
           });
         },
       );

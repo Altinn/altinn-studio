@@ -16,7 +16,7 @@ const useActiveInstancesQuery = () => {
   const utils = useQuery({
     queryKey: ['getActiveInstances', currentParty?.partyId],
     queryFn: async () => {
-      const simpleInstances = await fetchActiveInstances(currentParty?.partyId ?? '');
+      const simpleInstances = await fetchActiveInstances(currentParty?.partyId ?? -1);
 
       // Sort array by last changed date
       simpleInstances.sort((a, b) => new Date(a.lastChanged).getTime() - new Date(b.lastChanged).getTime());

@@ -13,6 +13,7 @@ import {
 } from 'src/features/devtools/layoutValidation/useLayoutValidation';
 import { ensureAppsDirIsSet, getAllLayoutSets } from 'src/test/allApps';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+import type { ShowTypes } from 'src/features/applicationMetadata';
 
 describe('All known apps should work with layout validation', () => {
   const dir = ensureAppsDirIsSet();
@@ -33,7 +34,7 @@ describe('All known apps should work with layout validation', () => {
         fetchApplicationMetadata: async () =>
           getApplicationMetadataMock((a) => {
             a.onEntry = {
-              show: setName,
+              show: setName as ShowTypes,
             };
           }),
       },

@@ -23,7 +23,6 @@ export function usePromptForParty(): boolean | null {
   if (parties.length === 1) {
     return false;
   }
-
   return !profile.profileSettingPreference.doNotPromptForParty;
 }
 

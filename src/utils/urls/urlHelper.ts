@@ -12,7 +12,7 @@ const prodRegex = new RegExp(baseHostnameAltinnProd);
 const testRegex = new RegExp(baseHostnameAltinnTest);
 const localRegex = new RegExp(baseHostnameAltinnLocal);
 
-export const returnUrlToMessagebox = (url: string, partyId?: string | undefined): string | null => {
+export const returnUrlToMessagebox = (url: string, partyId?: number | undefined): string | null => {
   const baseUrl = returnBaseUrlToAltinn(url);
   if (!baseUrl) {
     return null;
@@ -39,7 +39,7 @@ export const returnUrlToArchive = (url: string): string | null => {
   return baseUrl + pathToArchive;
 };
 
-export const returnUrlToProfile = (url: string, partyId?: string | undefined): string | null => {
+export const returnUrlToProfile = (url: string, partyId?: number | undefined): string | null => {
   const baseUrl = returnBaseUrlToAltinn(url);
   if (!baseUrl) {
     return null;

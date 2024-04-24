@@ -9,7 +9,7 @@ describe('returnConfirmSummaryObject', () => {
     const result = returnConfirmSummaryObject({
       langTools,
       instanceOwnerParty: {
-        partyId: '50001',
+        partyId: 50001,
         name: 'Ola Privatperson',
         ssn: '01017512345',
       } as IParty,
@@ -26,10 +26,10 @@ describe('returnConfirmSummaryObject', () => {
     const result = returnConfirmSummaryObject({
       langTools,
       instanceOwnerParty: {
-        partyId: '50001',
+        partyId: 50001,
         name: 'Ola Privatperson',
         ssn: '01017512345',
-        orgNumber: 987654321,
+        orgNumber: '987654321',
       } as IParty,
     });
 
@@ -44,9 +44,9 @@ describe('returnConfirmSummaryObject', () => {
     const result = returnConfirmSummaryObject({
       langTools,
       instanceOwnerParty: {
-        partyId: '50001',
+        partyId: 50001,
         name: 'Ola Bedrift',
-        orgNumber: 987654321,
+        orgNumber: '987654321',
       } as IParty,
     });
 
@@ -61,7 +61,7 @@ describe('returnConfirmSummaryObject', () => {
     const result = returnConfirmSummaryObject({
       langTools,
       instanceOwnerParty: {
-        partyId: '50001',
+        partyId: 50001,
         name: 'Ola Bedrift',
       } as IParty,
     });
@@ -87,7 +87,7 @@ describe('returnConfirmSummaryObject', () => {
     const result = returnConfirmSummaryObject({
       langTools: staticUseLanguageForTests({ textResources: { 'confirm.sender': { value: 'Some custom value' } } }),
       instanceOwnerParty: {
-        partyId: '50001',
+        partyId: 50001,
         name: 'Ola Privatperson',
         ssn: '01017512345',
       } as IParty,

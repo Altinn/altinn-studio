@@ -6,6 +6,7 @@ import {
   getLayoutSetIdForApplication,
   isStatelessApp,
 } from 'src/features/applicationMetadata/appMetadataUtils';
+import type { IApplicationMetadata } from 'src/features/applicationMetadata/index';
 import type { ILayoutSets } from 'src/layout/common.generated';
 import type { IData } from 'src/types/shared';
 
@@ -105,7 +106,7 @@ describe('appMetadata.ts', () => {
     });
 
     it('should return correct data type if we have a stateless app', () => {
-      const statelessApplication = {
+      const statelessApplication: IApplicationMetadata = {
         ...application,
         onEntry: { show: 'stateless' },
       };
@@ -119,7 +120,7 @@ describe('appMetadata.ts', () => {
     });
 
     it('should return correct data type if instance not set', () => {
-      const statelessApplication = {
+      const statelessApplication: IApplicationMetadata = {
         ...application,
         onEntry: { show: 'stateless' },
       };
@@ -141,7 +142,7 @@ describe('appMetadata.ts', () => {
     });
 
     it('should return correct layout set id if we have a stateless app', () => {
-      const statelessApplication = {
+      const statelessApplication: IApplicationMetadata = {
         ...application,
         onEntry: { show: 'stateless' },
       };
@@ -157,7 +158,7 @@ describe('appMetadata.ts', () => {
 
   describe('isStatelessApp', () => {
     it('should return true if enEntry with layout set is specified', () => {
-      const statelessApplication = {
+      const statelessApplication: IApplicationMetadata = {
         ...application,
         onEntry: { show: 'stateless' },
       };

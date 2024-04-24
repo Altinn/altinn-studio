@@ -10,17 +10,19 @@ import { InstanceSelectionWrapper } from 'src/features/instantiate/selection/Ins
 export const App = () => (
   <Routes>
     <Route
-      path='*'
+      path={'*'}
       element={<Entrypoint />}
     />
     <Route
       path='/instance-selection/*'
       element={<InstanceSelectionWrapper />}
     />
+
     <Route
       path='/party-selection/*'
       element={<PartySelection />}
     />
+
     <Route
       path='/instance/:partyId/:instanceGuid/*'
       element={

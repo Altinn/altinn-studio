@@ -24,7 +24,7 @@ export interface Instantiation {
 }
 
 interface InstantiationContext {
-  instantiate: (node: LayoutNode | undefined, instanceOwnerPartyId: string) => void;
+  instantiate: (node: LayoutNode | undefined, instanceOwnerPartyId: number) => void;
   instantiateWithPrefill: (node: LayoutNode | undefined, instantiation: Instantiation) => void;
 
   busyWithId: string | undefined;
@@ -39,7 +39,7 @@ function useInstantiateMutation() {
   const { doInstantiate } = useAppMutations();
 
   return useMutation({
-    mutationFn: (instanceOwnerPartyId: string) => doInstantiate(instanceOwnerPartyId),
+    mutationFn: (instanceOwnerPartyId: number) => doInstantiate(instanceOwnerPartyId),
     onError: (error: HttpClientError) => {
       window.logError('Instantiation failed:\n', error);
     },

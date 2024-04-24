@@ -109,6 +109,9 @@ export interface IAppLanguage {
   language: string; // Language code
 }
 
+/**
+ * @see https://github.com/Altinn/altinn-platform/blob/main/Altinn.Platform.Models/src/Register/Models/Organization.cs
+ */
 export interface IOrganisation {
   orgNumber: string;
   name: string;
@@ -116,34 +119,43 @@ export interface IOrganisation {
   telephoneNumber: string;
   mobileNumber: string;
   faxNumber: string;
-  emailAdress: string;
-  internetAdress: string;
-  mailingAdress: string;
+  emailAddress: string;
+  internetAddress: string;
+  mailingAddress: string;
   mailingPostalCode: string;
   mailingPostalCity: string;
   businessPostalCode: string;
   businessPostalCity: string;
+  // unitStatus: string; // This exists in the model but is not clearly defined, and not used in the frontend
 }
 
+/**
+ * @see https://github.com/Altinn/altinn-platform/blob/main/Altinn.Platform.Models/src/Register/Models/Party.cs
+ */
 export interface IParty {
-  partyId: string;
-  partyTypeName?: number | null;
-  orgNumber?: number | string | null;
-  ssn: string;
+  partyId: number;
+  partyUuid?: string | null;
+  partyTypeName: PartyType;
+  orgNumber?: string | null;
+  ssn: string | null;
   unitType?: string | null;
   name: string;
   isDeleted: boolean;
   onlyHierarchyElementWithNoAccess: boolean;
-  person?: IPerson;
-  organization?: IOrganisation;
-  childParties?: IParty[];
+  person?: IPerson | null;
+  organization?: IOrganisation | null;
+  childParties?: IParty[] | null;
 }
 
-export interface IPartyTypesAllowed {
-  bankruptcyEstate: boolean;
-  organisation: boolean;
-  person: boolean;
-  subUnit: boolean;
+/**
+ * @see https://github.com/Altinn/altinn-platform/blob/main/Altinn.Platform.Models/src/Register/Enums/PartyType.cs
+ */
+export enum PartyType {
+  Person = 1,
+  Organisation = 2,
+  SelfIdentified = 3,
+  SubUnit = 4,
+  BankruptcyEstate = 5,
 }
 
 export interface IPerson {

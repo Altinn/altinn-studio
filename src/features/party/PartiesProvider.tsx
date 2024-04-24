@@ -11,7 +11,6 @@ import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
 import { useShouldFetchProfile } from 'src/features/profile/ProfileProvider';
-import { useForcePromptForParty, usePromptForParty } from 'src/hooks/usePromptForParty';
 import type { IParty } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
@@ -72,7 +71,10 @@ const { Provider: PartiesProvider, useCtx: usePartiesCtx } = delayedContext(() =
 
 interface CurrentParty {
   party: IParty | undefined;
+  validParties: IParty[] | undefined;
   currentIsValid: boolean | undefined;
+  userHasSelectedParty: boolean | undefined;
+  setUserHasSelectedParty: (hasSelected: boolean) => void;
   setParty: (party: IParty) => Promise<IParty | undefined>;
 }
 
@@ -81,52 +83,25 @@ const { Provider: RealCurrentPartyProvider, useCtx: useCurrentPartyCtx } = creat
   required: false,
   default: {
     party: undefined,
+    validParties: undefined,
     currentIsValid: undefined,
+    userHasSelectedParty: undefined,
+    setUserHasSelectedParty: () => {
+      throw new Error('CurrentPartyProvider not initialized');
+    },
     setParty: () => {
       throw new Error('CurrentPartyProvider not initialized');
     },
   },
 });
 
-function FixedCurrentPartyProvider({
-  value,
-  mutateAsync,
-  children,
-}: PropsWithChildren<{
-  value: IParty;
-  mutateAsync: (party: IParty) => Promise<unknown>;
-}>) {
-  useEffect(() => {
-    (async () => {
-      await mutateAsync(value);
-    })();
-  }, [mutateAsync, value]);
-
-  return (
-    <RealCurrentPartyProvider
-      value={{
-        party: value,
-        currentIsValid: true,
-        setParty: async () => {
-          throw new Error('Not possible to choose another party when only one is available');
-        },
-      }}
-    >
-      {children}
-    </RealCurrentPartyProvider>
-  );
-}
-
 const CurrentPartyProvider = ({ children }: PropsWithChildren) => {
   const validParties = usePartiesCtx() as IParty[];
-  const prompt = usePromptForParty();
-  const forcePrompt = useForcePromptForParty();
   const [sentToMutation, setSentToMutation] = useState<IParty | undefined>(undefined);
   const { mutateAsync, data: dataFromMutation, error: errorFromMutation } = useSetCurrentPartyMutation();
-  const queryEnabled = validParties.length > 1 && !prompt;
-  const { data: partyFromQuery, isLoading, error: errorFromQuery } = useCurrentPartyQuery(queryEnabled);
-
-  if (queryEnabled && isLoading) {
+  const { data: partyFromQuery, isLoading, error: errorFromQuery } = useCurrentPartyQuery(true);
+  const [userHasSelectedParty, setUserHasSelectedParty] = useState(false);
+  if (isLoading) {
     return <Loader reason={'current-party'} />;
   }
 
@@ -139,17 +114,6 @@ const CurrentPartyProvider = ({ children }: PropsWithChildren) => {
     return <NoValidPartiesError />;
   }
 
-  if (validParties.length === 1 && !forcePrompt) {
-    return (
-      <FixedCurrentPartyProvider
-        value={validParties[0]}
-        mutateAsync={mutateAsync}
-      >
-        {children}
-      </FixedCurrentPartyProvider>
-    );
-  }
-
   const partyFromMutation = dataFromMutation === 'Party successfully updated' ? sentToMutation : undefined;
   const currentParty = partyFromMutation ?? partyFromQuery;
   const currentIsValid = currentParty && validParties.some((party) => party.partyId === currentParty.partyId);
@@ -158,7 +122,10 @@ const CurrentPartyProvider = ({ children }: PropsWithChildren) => {
     <RealCurrentPartyProvider
       value={{
         party: currentParty,
+        validParties,
         currentIsValid,
+        userHasSelectedParty,
+        setUserHasSelectedParty: (hasSelected: boolean) => setUserHasSelectedParty(hasSelected),
         setParty: async (party) => {
           try {
             setSentToMutation(party);
@@ -202,3 +169,9 @@ export const useParties = () => usePartiesCtx();
 export const useCurrentParty = () => useCurrentPartyCtx().party;
 export const useCurrentPartyIsValid = () => useCurrentPartyCtx().currentIsValid;
 export const useSetCurrentParty = () => useCurrentPartyCtx().setParty;
+
+export const useValidParties = () => useCurrentPartyCtx().validParties;
+
+export const useHasSelectedParty = () => useCurrentPartyCtx().userHasSelectedParty;
+
+export const useSetHasSelectedParty = () => useCurrentPartyCtx().setUserHasSelectedParty;

@@ -17,7 +17,7 @@ export const instantiateUrl = `${appPath}/instances/create`;
 export const refreshJwtTokenUrl = `${appPath}/api/authentication/keepAlive`;
 export const applicationLanguagesUrl = `${appPath}/api/v1/applicationlanguages`;
 
-export const getSetCurrentPartyUrl = (partyId: string) => `${appPath}/api/v1/parties/${partyId}`;
+export const getSetCurrentPartyUrl = (partyId: number) => `${appPath}/api/v1/parties/${partyId}`;
 
 export const textResourcesUrl = (language: string) => `${origin}/${org}/${app}/api/v1/texts/${language}`;
 
@@ -45,7 +45,7 @@ export const getProcessStateUrl = (instanceId: string) => `${appPath}/instances/
 export const getActionsUrl = (partyId: string, instanceId: string) =>
   `${appPath}/instances/${partyId}/${instanceId}/actions`;
 
-export const getCreateInstancesUrl = (partyId: string) => `${appPath}/instances?instanceOwnerPartyId=${partyId}`;
+export const getCreateInstancesUrl = (partyId: number) => `${appPath}/instances?instanceOwnerPartyId=${partyId}`;
 
 export const getValidationUrl = (instanceId: string) => `${appPath}/instances/${instanceId}/validate`;
 
@@ -132,7 +132,7 @@ export const getFooterLayoutUrl = () => `${appPath}/api/v1/footer`;
 export const getFetchFormDynamicsUrl = (layoutSetId: string) => `${appPath}/api/ruleconfiguration/${layoutSetId}`;
 export const getLayoutsUrl = (layoutSetId: string) => `${appPath}/api/layouts/${layoutSetId}`;
 export const getRulehandlerUrl = (layoutSet: string) => `${appPath}/api/rulehandler/${layoutSet}`;
-export const getActiveInstancesUrl = (partyId: string) => `${appPath}/instances/${partyId}/active`;
+export const getActiveInstancesUrl = (partyId: number) => `${appPath}/instances/${partyId}/active`;
 export const getInstanceUiUrl = (instanceId: string) => `${appPath}#/instance/${instanceId}`;
 
 export const appFrontendCDNPath = 'https://altinncdn.no/toolkits/altinn-app-frontend';

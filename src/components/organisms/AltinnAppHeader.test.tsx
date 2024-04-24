@@ -8,6 +8,7 @@ import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { LogoColor } from 'src/components/logo/AltinnLogo';
 import { AltinnAppHeader } from 'src/components/organisms/AltinnAppHeader';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+import { PartyType } from 'src/types/shared';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
 import type { IParty } from 'src/types/shared';
 
@@ -15,13 +16,15 @@ describe('organisms/AltinnAppHeader', () => {
   const partyPerson = {
     name: 'Test Testesen',
     ssn: '01010000000',
-    partyId: '12345',
+    partyId: 12345,
+    partyTypeName: PartyType.Person,
   } as IParty;
 
   const partyOrg = {
-    orgNumber: 12345678,
-    partyId: '54321',
+    orgNumber: '12345678',
+    partyId: 54321,
     name: 'Bedrift',
+    partyTypeName: PartyType.Organisation,
   } as IParty;
 
   const headerBackgroundColor = 'blue';

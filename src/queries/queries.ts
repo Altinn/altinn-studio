@@ -74,13 +74,13 @@ const cleanUpInstanceData = async (_instance: IInstance | Promise<IInstance>) =>
   return instance;
 };
 
-export const doSetCurrentParty = (partyId: string) =>
+export const doSetCurrentParty = (partyId: number) =>
   putWithoutConfig<'Party successfully updated' | string | null>(getSetCurrentPartyUrl(partyId));
 
 export const doInstantiateWithPrefill = async (data: Instantiation): Promise<IInstance> =>
   cleanUpInstanceData((await httpPost(instantiateUrl, undefined, data)).data);
 
-export const doInstantiate = async (partyId: string): Promise<IInstance> =>
+export const doInstantiate = async (partyId: number): Promise<IInstance> =>
   cleanUpInstanceData((await httpPost(getCreateInstancesUrl(partyId))).data);
 
 export const doProcessNext = async (instanceId: string, language?: string, action?: IActionType): Promise<IProcess> =>
@@ -158,7 +158,7 @@ export const doPostStatelessFormData = async (url: string, data: object): Promis
 export const fetchLogo = async (): Promise<string> =>
   (await axios.get('https://altinncdn.no/img/Altinn-logo-blue.svg')).data;
 
-export const fetchActiveInstances = (partyId: string): Promise<ISimpleInstance[]> =>
+export const fetchActiveInstances = (partyId: number): Promise<ISimpleInstance[]> =>
   httpGet(getActiveInstancesUrl(partyId));
 
 export const fetchInstanceData = (partyId: string, instanceGuid: string): Promise<IInstance> =>

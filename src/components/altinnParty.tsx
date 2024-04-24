@@ -7,6 +7,7 @@ import cn from 'classnames';
 import { AltinnCollapsableList } from 'src/components/AltinnCollapsableList';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { PartyType } from 'src/types/shared';
 import type { IParty } from 'src/types/shared';
 
 const useStyles = makeStyles((theme) => ({
@@ -106,7 +107,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
   const { langAsString } = useLanguage();
 
   const [subUnitsExpanded, setSubUnitsExpanded] = React.useState<boolean>(false);
-  const isOrg: boolean = party.orgNumber != null;
+  const isOrg = party.partyTypeName === PartyType.Organisation;
 
   function onClickParty(selectedParty: IParty, event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
     event.stopPropagation();

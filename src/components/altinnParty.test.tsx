@@ -15,12 +15,12 @@ const partyWithChildParties = {
   childParties: [
     {
       ...getPartyMock(),
-      partyId: '1',
+      partyId: 1,
       name: 'Child party 1',
     },
     {
       ...getPartyMock(),
-      partyId: '2',
+      partyId: 2,
       name: 'Child party 2',
     },
   ],
@@ -86,7 +86,8 @@ describe('altinnParty', () => {
       await render({
         party: {
           ...getPartyMock(),
-          orgNumber: 1000000,
+          orgNumber: '1000000',
+          partyTypeName: 2,
         },
       });
       expect(screen.getByTestId('org-icon')).toBeVisible();

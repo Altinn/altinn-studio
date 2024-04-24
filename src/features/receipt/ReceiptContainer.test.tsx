@@ -10,6 +10,7 @@ import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
 import { getSummaryDataObject, ReceiptContainer } from 'src/features/receipt/ReceiptContainer';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
+import { PartyType } from 'src/types/shared';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IParty } from 'src/types/shared';
 
@@ -197,8 +198,9 @@ describe('getSummaryDataObject', () => {
           language: {},
         }),
         instanceOwnerParty: {
-          partyId: '50001',
+          partyId: 50001,
           name: 'Ola Privatperson',
+          partyTypeName: PartyType.Person,
           ssn: '01017512345',
           isDeleted: false,
           onlyHierarchyElementWithNoAccess: false,
