@@ -16,7 +16,6 @@ export const EditTaskId = ({ ...rest }: EditTaskIdProps): React.ReactElement => 
   const { t } = useTranslation();
   const { bpmnDetails, modelerRef, setBpmnDetails } = useBpmnContext();
   const { metaDataFormRef } = useBpmnConfigPanelFormContext();
-  console.log(bpmnDetails);
   const modelerInstance = modelerRef.current;
   const modeling: Modeling = modelerInstance.get('modeling');
 
@@ -60,11 +59,14 @@ export const EditTaskId = ({ ...rest }: EditTaskIdProps): React.ReactElement => 
       return t('validation_errors.invalid_task_id.too_long');
     }
 
+    if (newId.toLowerCase().startsWith('custom')) {
+      return 'Ikke tillatt å starte med "Custom"';
+    }
+
     const regexLetters = /[a-zA-Z]+$/;
     const regexSymbol = /^[0-9_-]+$/;
 
     for (const char of newId) {
-      console.log(char);
       if (char.toUpperCase() !== char.toLowerCase()) {
         if (!regexLetters.test(char)) {
           return 'Bokstavene A-Z og a-z er tillatt';
