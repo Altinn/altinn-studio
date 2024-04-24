@@ -1,16 +1,28 @@
-.repoList {
-  width: 100%;
-
-  > * > * > * {
-    border-color: var(--fds-semantic-border-action-second-subtle);
-  }
-
-  /*To be removed*/
-  margin-bottom: 100px;
+.actionLink {
+  align-items: center;
+  display: flex;
+  margin-right: 1rem;
+  min-width: 40px;
 }
 
-.bodyRow {
-  cursor: pointer;
+.actionLink:hover {
+  text-decoration: none;
+}
+
+.actionLink:hover span {
+  text-decoration: underline;
+}
+
+.dropdownIcon {
+  font-size: 2rem;
+}
+
+.editLink {
+  color: #165db8;
+}
+
+.editLink:hover {
+  color: #165db8;
 }
 
 .favoriteIcon {
@@ -18,48 +30,24 @@
   color: #000000;
 }
 
-.favoriteCell {
-  width: 40px;
-}
-
-.actionButtonContainer {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.repoButton {
-  margin-right: 9px;
-}
-
-.repoIcon {
+.linkIcon {
   font-size: 2rem;
+  height: 32px;
+  width: 32px;
+}
+
+.repoLink {
   color: #57823d;
-  padding-right: 7px;
-  padding-bottom: 5px;
 }
 
-.repoIcon:hover {
+.repoLink:hover {
   color: #57823d;
-}
-
-.dropdownIcon,
-.dropdownText {
-  color: var(--fds-semantic-text-neutral-subtle);
-
-  a {
-    color: var(--fds-semantic-text-neutral-subtle);
-  }
-}
-
-.dropdownText:hover {
-  color: var(--fds-semantic-text-neutral-subtle);
 }
 
 .textWithTooltip {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
 .columnHeader {
   background-color: white !important;
 }

@@ -1,6 +1,6 @@
 import { Button, DropdownMenu } from '@digdir/design-system-react';
 import React from 'react';
-import classes from './RepoList.module.css';
+import classes from './NewRepoList.module.css';
 import cn from 'classnames';
 import {
   ExternalLinkIcon,
@@ -26,7 +26,7 @@ export const ActionLinks: React.FC<ActionLinksProps> = ({ repo }) => {
   const editTextKey = t(isDatamodelling ? 'dashboard.edit_datamodels' : 'dashboard.edit_service');
 
   return (
-    <>
+    <div className={classes.actionLinks}>
       <Button
         onClick={(e) => e.stopPropagation()}
         variant={'tertiary'}
@@ -60,6 +60,6 @@ export const ActionLinks: React.FC<ActionLinksProps> = ({ repo }) => {
           </DropdownMenu.Item>
         </DropdownMenu.Content>
       </DropdownMenu>
-    </>
+    </div>
   );
 };

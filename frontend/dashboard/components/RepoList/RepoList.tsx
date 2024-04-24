@@ -154,21 +154,6 @@ export const RepoList = ({
         headerName: t('dashboard.name'),
         width: 200,
         renderCell: TextWithTooltip,
-        valueGetter: (params: GridValueGetterParams) => {
-          const repoFullName = params.row.full_name as string;
-          const [org, repo] = repoFullName.split('/');
-          const isDatamodelling = repoFullName.endsWith('-datamodels');
-          const editUrl = getRepoEditUrl({ org, repo });
-          const editTextKey = t(
-            isDatamodelling ? 'dashboard.edit_datamodels' : 'dashboard.edit_service',
-          );
-
-          return (
-            <a className={classes.nameLink} href={editUrl} title={editTextKey}>
-              {repo}
-            </a>
-          );
-        },
       },
       {
         field: 'owner.created_by',
@@ -214,8 +199,8 @@ export const RepoList = ({
 
           return [
             <GridActionsCellItem
-              className={cn(classes.actionLink, classes.repoIcon)}
-              icon={<i className={cn('fa fa-gitea', classes.linkIcon, classes.repoIcon)} />}
+              className={cn(classes.actionLink, classes.repoLink)}
+              icon={<i className={cn('fa fa-gitea', classes.linkIcon, classes.repoLink)} />}
               key={`dashboard.repository${params.row.id}`}
               label={t('dashboard.repository_in_list', { appName: repo })}
               onClick={() => (window.location.href = params.row.html_url)}
@@ -238,7 +223,7 @@ export const RepoList = ({
               <a
                 key={params.row.id}
                 href={params.row.html_url}
-                className={cn(classes.actionLink, classes.repoIcon)}
+                className={cn(classes.actionLink, classes.repoLink)}
               >
                 <span>{t(editTextKey)}</span>
                 <PencilIcon className={classes.linkIcon} />

@@ -18,6 +18,7 @@
   display: flex;
   gap: var(--fds-spacing-3);
   margin: auto 0;
+  margin-bottom: 100px;
 }
 
 .selector {

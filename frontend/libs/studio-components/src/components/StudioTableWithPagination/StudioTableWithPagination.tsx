@@ -9,9 +9,9 @@ import { SelectRowsPerPage } from './SelectRowsPerPage';
 type StudioTableWithPaginationProps = {
   columns: string[];
   rows: React.ReactNode[][];
-  sortable: boolean;
-  size: 'small' | 'medium' | 'large';
-  initialRowsPerPage: number;
+  sortable?: boolean;
+  size?: 'small' | 'medium' | 'large';
+  initialRowsPerPage?: number;
 };
 
 export const StudioTableWithPagination = forwardRef<
