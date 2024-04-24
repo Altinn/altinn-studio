@@ -1,5 +1,5 @@
-import React, { useId, useState } from 'react';
-import { Combobox } from '@digdir/design-system-react';
+import React, { useId } from 'react';
+import { NativeSelect } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import type { Organization } from 'app-shared/types/Organization';
 import type { User } from 'app-shared/types/Repository';
@@ -30,25 +30,21 @@ export const ServiceOwnerSelector = ({
     selectableOptions.find((item) => item.value === selectedOrgOrUser)?.value ??
     selectableUser.value;
 
-  const [selectedValue, setSelectedValue] = useState<string[]>([defaultValue]);
-
   return (
-    <Combobox
+    <NativeSelect
       label={t('general.service_owner')}
       error={errorMessage}
       size='small'
       name={name}
       id={serviceOwnerId}
-      // Below is temporary until we get the 'initialValue' prop from Designsystemet
-      value={selectedValue}
-      onValueChange={(newValue: string[]) => setSelectedValue(newValue)}
+      defaultValue={defaultValue}
     >
       {selectableOptions.map(({ value, label }) => (
-        <Combobox.Option key={value} value={value}>
+        <option key={value} value={value}>
           {label}
-        </Combobox.Option>
+        </option>
       ))}
-    </Combobox>
+    </NativeSelect>
   );
 };
 
