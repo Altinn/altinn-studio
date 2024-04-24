@@ -1,5 +1,5 @@
 import { Pagination } from '@digdir/design-system-react';
-import React, { forwardRef, useEffect, useState } from 'react';
+import React, { forwardRef, useState } from 'react';
 import classes from './StudioTableWithPagination.module.css';
 import { StudioTable } from './StudioTable';
 import { calcCurrentRows } from './utils';
