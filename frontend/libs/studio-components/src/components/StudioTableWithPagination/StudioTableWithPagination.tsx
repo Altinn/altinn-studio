@@ -24,13 +24,7 @@ export const StudioTableWithPagination = forwardRef<
 
   const totalPages = Math.ceil(sortedRows.length / rowsPerPage);
   const currentRows = calcCurrentRows(currentPage, rowsPerPage, sortedRows);
-
-  useEffect(() => {
-    // If user is out of bounds, move them to page 1
-    if (currentRows.length === 0) {
-      setCurrentPage(1);
-    }
-  }, [currentRows, currentPage]);
+  if (currentRows.length === 0) setCurrentPage(1);
 
   return (
     <>
