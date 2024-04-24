@@ -2,7 +2,7 @@ import { StarFillIcon, StarIcon } from '@navikt/aksel-icons';
 import { Button } from '@digdir/design-system-react';
 import React from 'react';
 import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from '../../hooks/mutations';
-import { RepositoryWithStarred } from '../../utils/repoUtils/repoUtils';
+import type { RepositoryWithStarred } from '../../utils/repoUtils/repoUtils';
 
 type FavoriteButtonProps = {
   repo: RepositoryWithStarred;

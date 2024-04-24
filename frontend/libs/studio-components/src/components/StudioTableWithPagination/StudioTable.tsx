@@ -33,8 +33,8 @@ export const StudioTable: React.FC<StudioTableProps> = ({
         </Table.Row>
       </Table.Head>
       <Table.Body>
-        {rows?.map((row, i) => (
-          <Table.Row key={i}>
+        {rows?.map((row, index) => (
+          <Table.Row key={index}>
             {row.map((cell, i) => (
               <Table.Cell key={i}>{cell}</Table.Cell>
             ))}

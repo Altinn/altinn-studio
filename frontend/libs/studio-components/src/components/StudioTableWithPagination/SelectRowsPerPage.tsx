@@ -3,6 +3,11 @@ import { Label, NativeSelect } from '@digdir/design-system-react';
 import React from 'react';
 import { labelSizeMap } from './utils';
 
+type SelectRowsPerPageProps = {
+  setRowPerPage: (value: ((prevState: number) => number) | number) => void;
+  size: 'small' | 'medium' | 'large';
+};
+
 export const SelectRowsPerPage = ({ setRowPerPage, size }) => {
   const labelSize = labelSizeMap[size];
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StudioTableWithPagination } from '@studio/components/src/components/StudioTableWithPagination';
 import { DateUtils } from '@studio/pure-functions';
-import { RepositoryWithStarred } from '../../utils/repoUtils/repoUtils';
+import type { RepositoryWithStarred } from '../../utils/repoUtils/repoUtils';
 import { ActionLinks } from './ActionLinks';
 import { FavoriteButton } from './FavoriteButton';
 import { Paragraph } from '@digdir/design-system-react';

@@ -10,7 +10,7 @@ import {
 } from '@navikt/aksel-icons';
 import { useTranslation } from 'react-i18next';
 import { getRepoEditUrl } from '../../utils/urlUtils';
-import { Repository } from 'app-shared/types/Repository';
+import type { Repository } from 'app-shared/types/Repository';
 
 type ActionLinksProps = {
   repo: Repository;
