@@ -19,13 +19,7 @@ export const StudioTableWithPagination = forwardRef<
   StudioTableWithPaginationProps
 >(
   (
-    {
-      columns,
-      rows,
-      sortable = true,
-      size = 'medium',
-      initialRowsPerPage = 5,
-    }: StudioTableWithPaginationProps,
+    { columns, rows, sortable = true, size = 'medium', initialRowsPerPage = 5 },
     ref,
   ): React.ReactElement => {
     const [currentPage, setCurrentPage] = useState(1);
