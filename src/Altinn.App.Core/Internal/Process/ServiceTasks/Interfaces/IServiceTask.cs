@@ -10,8 +10,5 @@ public interface IServiceTask
     /// <summary>
     /// Executes the service task.
     /// </summary>
-    /// <param name="taskId"></param>
-    /// <param name="instance"></param>
-    /// <returns></returns>
     public Task Execute(string taskId, Instance instance);
 }

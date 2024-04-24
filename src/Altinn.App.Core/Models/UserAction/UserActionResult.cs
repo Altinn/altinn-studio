@@ -28,7 +28,12 @@ public class UserActionResult
     /// <summary>
     /// Gets or sets a value indicating whether the user action was a success
     /// </summary>
-    public ResultType ResultType { get; init; }
+    public bool Success { get; init; }
+
+    /// <summary>
+    /// Indicates the type of result
+    /// </summary>
+    public ResultType ResultType { get; set; }
 
     /// <summary>
     /// Gets or sets a dictionary of updated data models. Key should be elementId and value should be the updated data model
@@ -61,12 +66,12 @@ public class UserActionResult
     /// <returns></returns>
     public static UserActionResult SuccessResult(List<ClientAction>? clientActions = null)
     {
-        var userActionResult = new UserActionResult
+        return new UserActionResult
         {
+            Success = true,
             ResultType = ResultType.Success,
             ClientActions = clientActions
         };
-        return userActionResult;
     }
 
     /// <summary>
@@ -93,6 +98,7 @@ public class UserActionResult
     {
         return new UserActionResult
         {
+            Success = true,
             ResultType = ResultType.Redirect,
             RedirectUrl = redirectUrl
         };

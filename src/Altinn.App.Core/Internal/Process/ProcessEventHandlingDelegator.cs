@@ -40,10 +40,6 @@ namespace Altinn.App.Core.Internal.Process
         /// <summary>
         /// Loops through all events and delegates the event to the correct event handler.
         /// </summary>
-        /// <param name="instance"></param>
-        /// <param name="events"></param>
-        /// <param name="prefill"></param>
-        /// <returns></returns>
         public async Task HandleEvents(Instance instance, Dictionary<string, string>? prefill, List<InstanceEvent>? events)
         {
             if (events == null)
@@ -94,7 +90,6 @@ namespace Altinn.App.Core.Internal.Process
         /// <summary>
         /// Identify the correct task implementation
         /// </summary>
-        /// <returns></returns>
         private IProcessTask GetProcessTaskInstance(string? altinnTaskType)
         {
             if (string.IsNullOrEmpty(altinnTaskType))

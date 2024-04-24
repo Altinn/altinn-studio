@@ -10,9 +10,6 @@ namespace Altinn.App.Core.Internal.Process.EventHandlers
         /// <summary>
         /// Execute the end event handler
         /// </summary>
-        /// <param name="instanceEvent"></param>
-        /// <param name="instance"></param>
-        /// <returns></returns>
         Task Execute(InstanceEvent instanceEvent, Instance instance);
     }
 }

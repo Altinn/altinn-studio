@@ -42,10 +42,6 @@ namespace Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask
         /// <summary>
         /// Execute the event handler logic.
         /// </summary>
-        /// <param name="processTask"></param>
-        /// <param name="taskId"></param>
-        /// <param name="instance"></param>
-        /// <returns></returns>
         public async Task Execute(IProcessTask processTask, string taskId, Instance instance)
         {
             await processTask.End(taskId, instance);
@@ -71,9 +67,6 @@ namespace Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask
         /// <summary>
         /// Runs IProcessTaskEnds defined in the app.
         /// </summary>
-        /// <param name="endEvent"></param>
-        /// <param name="instance"></param>
-        /// <returns></returns>
         private async Task RunAppDefinedProcessTaskEndHandlers(string endEvent, Instance instance)
         {
             foreach (IProcessTaskEnd taskEnd in _processTaskEnds)

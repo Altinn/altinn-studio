@@ -30,11 +30,6 @@ namespace Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask
         /// <summary>
         /// Execute the event handler logic.
         /// </summary>
-        /// <param name="processTask"></param>
-        /// <param name="taskId"></param>
-        /// <param name="instance"></param>
-        /// <param name="prefill"></param>
-        /// <returns></returns>
         public async Task Execute(IProcessTask processTask, string taskId, Instance instance,
             Dictionary<string, string>? prefill)
         {
@@ -47,10 +42,6 @@ namespace Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask
         /// <summary>
         /// Runs IProcessTaskStarts defined in the app.
         /// </summary>
-        /// <param name="taskId"></param>
-        /// <param name="instance"></param>
-        /// <param name="prefill"></param>
-        /// <returns></returns>
         private async Task RunAppDefinedProcessTaskStartHandlers(string taskId, Instance instance,
             Dictionary<string, string>? prefill)
         {
