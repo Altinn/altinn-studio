@@ -1,12 +1,11 @@
 import { StarFillIcon, StarIcon } from '@navikt/aksel-icons';
-import classes from './RepoList.module.css';
 import { Button } from '@digdir/design-system-react';
 import React from 'react';
 import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from '../../hooks/mutations';
-import { Repository } from 'app-shared/types/Repository';
+import { RepositoryWithStarred } from '../../utils/repoUtils/repoUtils';
 
 type FavoriteButtonProps = {
-  repo: Repository;
+  repo: RepositoryWithStarred;
 };
 
 export const FavoriteButton = ({ repo }: FavoriteButtonProps): React.ReactElement => {
