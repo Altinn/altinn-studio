@@ -16,7 +16,7 @@ export const EditTaskId = ({ ...rest }: EditTaskIdProps): React.ReactElement => 
   const { t } = useTranslation();
   const { bpmnDetails, modelerRef, setBpmnDetails } = useBpmnContext();
   const { metaDataFormRef } = useBpmnConfigPanelFormContext();
-
+  console.log(bpmnDetails);
   const modelerInstance = modelerRef.current;
   const modeling: Modeling = modelerInstance.get('modeling');
 
@@ -52,9 +52,33 @@ export const EditTaskId = ({ ...rest }: EditTaskIdProps): React.ReactElement => 
   };
 
   const validateTaskId = (newId: string): string => {
-    if (newId?.length === 0) {
+    if (newId.length === 0) {
       return t('validation_errors.required');
     }
+
+    if (newId.length > 50) {
+      return t('validation_errors.invalid_task_id.too_long');
+    }
+
+    const regexLetters = /[a-zA-Z]+$/;
+    const regexSymbol = /^[0-9_-]+$/;
+
+    for (const char of newId) {
+      console.log(char);
+      if (char.toUpperCase() !== char.toLowerCase()) {
+        if (!regexLetters.test(char)) {
+          return 'Kun bokstavene A-Z og a-z er tillatt';
+        }
+      }
+
+      if (char.toUpperCase() === char.toLowerCase()) {
+        if (!regexSymbol.test(char)) {
+          return 'Kun tallene 0-9 og symbolene - og _ er tillatt';
+        }
+      }
+    }
+
+    return '';
   };
 
   return (
