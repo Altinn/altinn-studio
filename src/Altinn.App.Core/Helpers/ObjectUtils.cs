@@ -53,7 +53,7 @@ public static class ObjectUtils
             {
                 var value = prop.GetValue(model);
 
-                if (value is "")
+                if (value is string s && string.IsNullOrWhiteSpace(s))
                 {
                     // Initialize string with null value (xml serialization does not always preserve "")
                     prop.SetValue(model, null);
