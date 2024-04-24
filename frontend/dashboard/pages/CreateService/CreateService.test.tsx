@@ -159,26 +159,30 @@ describe('CreateService', () => {
     renderWithMockServices({ addRepo: addRepoMock }, [orgMock]);
 
     const select = screen.getByLabelText(textMock('general.service_owner'));
-    await user.click(select);
-    const orgOption = screen.getByRole('option', { name: mockUserLogin });
-    await user.click(orgOption);
+    user.click(select);
+    const orgOption = await screen.findByRole('option', { name: mockUserLogin });
+    user.click(orgOption);
 
-    await user.type(
-      screen.getByLabelText(textMock('general.service_name')),
-      'this-app-name-exists',
-    );
+    const serviceNameInput = screen.getByLabelText(textMock('general.service_name'));
+    await waitFor(() => user.click(serviceNameInput));
+    await waitFor(() => user.type(serviceNameInput, 'this-app-name-exists'));
 
-    // Adding a tab so that we are sure that the combobox is closed
-    await user.tab();
+    user.tab();
 
-    const createBtn: HTMLElement = screen.getByRole('button', {
+    const createBtn: HTMLElement = await screen.findByRole('button', {
       name: textMock('dashboard.create_service_btn'),
     });
-    await user.click(createBtn);
+    user.click(createBtn);
 
     expect(addRepoMock).rejects.toEqual({ response: { status: 409 } });
+    await waitFor(() => {
+      expect(addRepoMock).toHaveBeenCalled();
+    });
 
-    await screen.findByText(textMock('dashboard.app_already_exists'));
+    await waitFor(() => {
+      const errorMessage = screen.getByText(textMock('dashboard.app_already_exists'));
+      expect(errorMessage).toBeInTheDocument();
+    });
   });
 
   it('should show generic error message when trying to create an app and something unknown went wrong', async () => {
@@ -187,19 +191,30 @@ describe('CreateService', () => {
     renderWithMockServices({ addRepo: addRepoMock }, [orgMock]);
 
     const select = screen.getByLabelText(textMock('general.service_owner'));
-    await user.click(select);
-    const orgOption = screen.getByRole('option', { name: mockUserLogin });
-    await user.click(orgOption);
+    user.click(select);
+    const orgOption = await screen.findByRole('option', { name: mockUserLogin });
 
-    await user.type(screen.getByLabelText(textMock('general.service_name')), 'new-app');
+    user.click(orgOption);
 
-    const createButton = await screen.findByText(textMock('dashboard.create_service_btn'));
-    await user.click(createButton);
+    const serviceNameInput = screen.getByLabelText(textMock('general.service_name'));
+
+    await waitFor(() => user.click(serviceNameInput));
+    await waitFor(() => user.type(serviceNameInput, 'new-app'));
+
+    user.tab();
+
+    const createBtn: HTMLElement = await screen.findByRole('button', {
+      name: textMock('dashboard.create_service_btn'),
+    });
+    await waitFor(() => user.click(createBtn));
 
     await expect(addRepoMock).rejects.toEqual({ response: { status: 500 } });
+    expect(addRepoMock).toHaveBeenCalled();
 
-    const emptyFieldErrors = await screen.findAllByText(textMock('general.error_message'));
-    expect(emptyFieldErrors.length).toBe(1);
+    await waitFor(() => {
+      const emptyFieldErrors = screen.getByText(textMock('general.error_message'));
+      expect(emptyFieldErrors).toBeInTheDocument();
+    });
   });
 
   it('should display loading while the form is processing', async () => {
