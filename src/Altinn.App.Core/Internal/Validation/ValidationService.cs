@@ -138,6 +138,7 @@ public class ValidationService : IValidationService
 
         // Locate the relevant data validator services from normal and keyed services
         var dataValidators = _validatorFactory.GetFormDataValidators(dataType.Id)
+            .Where(dv => ignoredValidators?.Contains(dv.ValidationSource) != true) // Filter out ignored validators
             .Where(dv => previousData is null || dv.HasRelevantChanges(data, previousData))
             .ToArray();
 
