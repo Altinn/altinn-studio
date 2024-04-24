@@ -45,7 +45,7 @@ export function mapValidationIssueToFieldValidation(issue: BackendValidationIssu
 
   if (!field) {
     // Unmapped error (task validation)
-    return { severity, message, category, source };
+    return { severity, message, category: 0, source };
   }
 
   return { field, severity, message, category, source };

@@ -370,6 +370,14 @@ Cypress.Commands.add('reloadAndWait', () => {
   cy.injectAxe();
 });
 
+Cypress.Commands.add('waitForLoad', () => {
+  cy.get('#readyForPrint').should('exist');
+  cy.findByRole('progressbar').should('not.exist');
+  // An initialOption can cause a save to occur immediately after loading is finished, wait for this to finish as well
+  cy.waitUntilSaved();
+  cy.log('App finished loading');
+});
+
 Cypress.Commands.add(
   'addItemToGroup',
   (oldValue: number, newValue: number, comment: string, openByDefault?: boolean) => {

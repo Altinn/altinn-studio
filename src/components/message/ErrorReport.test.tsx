@@ -2,6 +2,7 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import type { AxiosError } from 'axios';
 
 import { Form } from 'src/components/form/Form';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
@@ -56,15 +57,27 @@ describe('ErrorReport', () => {
     expect(screen.queryByTestId('ErrorReport')).not.toBeInTheDocument();
   });
 
-  it('should list unmapped errors as unclickable', async () => {
-    await render([
-      {
-        code: 'some unmapped error',
-        severity: BackendValidationSeverity.Error,
-      } as BackendValidationIssue,
-    ]);
+  it('should list task errors as unclickable', async () => {
+    const { mutations } = await render();
 
     await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
+
+    mutations.doProcessNext.reject({
+      name: 'AxiosError',
+      message: 'Request failed with status code 409',
+      response: {
+        status: 409,
+        data: {
+          validationIssues: [
+            {
+              customTextKey: 'some unmapped error',
+              source: 'taskValidator',
+              severity: BackendValidationSeverity.Error,
+            } as BackendValidationIssue,
+          ],
+        },
+      },
+    } as AxiosError);
 
     await screen.findByTestId('ErrorReport');
 

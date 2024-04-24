@@ -56,6 +56,11 @@ declare global {
       reloadAndWait(): Chainable<null>;
 
       /**
+       * Wait for app to finish loading
+       */
+      waitForLoad(): Chainable<null>;
+
+      /**
        * Start an app instance based on the environment selected
        * @example cy.startAppInstance('appName')
        */

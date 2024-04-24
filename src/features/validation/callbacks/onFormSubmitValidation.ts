@@ -6,7 +6,6 @@ import { ContextNotProvided } from 'src/core/contexts/context';
 import {
   getValidationsForNode,
   getVisibilityMask,
-  hasValidationErrors,
   selectValidations,
   shouldValidateNode,
 } from 'src/features/validation/utils';
@@ -78,7 +77,7 @@ export function useOnFormSubmitValidation() {
     const hasFieldErrors =
       Object.values(state.fields).flatMap((field) => selectValidations(field, backendMask, 'error')).length > 0;
 
-    if (hasFieldErrors || hasValidationErrors(state.task)) {
+    if (hasFieldErrors) {
       setShowAllErrors(true);
       return true;
     }

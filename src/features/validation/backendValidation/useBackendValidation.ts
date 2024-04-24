@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useImmer } from 'use-immer';
 
-import type { BackendValidationIssueGroups, BackendValidations, BackendValidatorGroups } from '..';
+import type { BackendValidationIssueGroups, BackendValidatorGroups, FieldValidations } from '..';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { useCurrentDataModelGuid } from 'src/features/datamodel/useBindingSchema';
@@ -13,7 +13,7 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { mapValidationIssueToFieldValidation } from 'src/features/validation/backendValidation/backendValidationUtils';
 
 interface RetVal {
-  validations: BackendValidations;
+  validations: FieldValidations;
   processedLast: BackendValidationIssueGroups | undefined;
   initialValidationDone: boolean;
 }
@@ -84,21 +84,21 @@ export function useBackendValidation({ enabled = true }: UseBackendValidationPro
    * Map validator groups to validations per field
    */
   const validations = useMemo(() => {
-    const validations: BackendValidations = {
-      task: [],
-      fields: {},
-    };
+    const validations: FieldValidations = {};
 
-    for (const group of Object.values(validatorGroups)) {
+    for (const [key, group] of Object.entries(validatorGroups)) {
       for (const validation of group) {
         if ('field' in validation) {
-          if (!validations.fields[validation.field]) {
-            validations.fields[validation.field] = [];
+          if (!validations[validation.field]) {
+            validations[validation.field] = [];
           }
-          validations.fields[validation.field].push(validation);
+          validations[validation.field].push(validation);
         } else {
           // Unmapped error (task validation)
-          validations.task.push(validation);
+          window.logWarn(
+            `When validating the datamodel, validator ${key} returned a validation error without a field\n`,
+            validation,
+          );
         }
       }
     }
