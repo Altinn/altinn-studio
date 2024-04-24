@@ -16,7 +16,7 @@ class SupportedContextPadProvider {
             }
 
             const isConfirmed = confirm(
-              'Prosess-steget du vil slette kan være knyttet til en sidegruppe. Den kan inneholde konfigurasjoner du har satt opp. Hvis du sletter steget, sletter du også hele sidegruppen og alt som ligger under den.',
+              'Prosess-steget du vil slette kan være knyttet til en sidegruppe. Den kan inneholde visningsoppsett eller skjema du har satt opp. Hvis du sletter steget, sletter du også hele sidegruppen og alt som hører til.',
             );
 
             if (isConfirmed) {
