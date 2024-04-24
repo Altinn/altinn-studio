@@ -1,5 +1,25 @@
 .paginationContainer {
   display: flex;
   justify-content: space-between;
-  margin-top: 16px;
+  margin-top: var(--fds-spacing-4);
+}
+
+.pagination {
+  * {
+    margin-right: 0;
+  }
+}
+
+.selectorContainer {
+  display: flex;
+  gap: var(--fds-spacing-3);
+  margin: auto 0;
+}
+
+.selector {
+  min-width: 70px;
+}
+
+.label {
+  margin: auto 0;
 }

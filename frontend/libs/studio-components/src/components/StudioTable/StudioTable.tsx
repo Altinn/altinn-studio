@@ -7,14 +7,25 @@ type StudioTableProps = {
   columns: string[];
   rows: React.ReactNode[][];
   width?: string;
+  handleSorting: (number) => void;
 };
 
-export const StudioTable: React.FC<StudioTableProps> = ({ size, columns, rows, width }) => {
+export const StudioTable: React.FC<StudioTableProps> = ({
+  size,
+  columns,
+  rows,
+  width,
+  handleSorting,
+}) => {
   return (
     <Table size={size} className={classes.table} style={{ width: width }}>
       <Table.Head>
         <Table.Row>
-          {columns?.map((cell, i) => <Table.HeaderCell key={i}>{cell}</Table.HeaderCell>)}
+          {columns?.map((cell, i) => (
+            <Table.HeaderCell key={i} sortable={Boolean(cell)} onSortClick={() => handleSorting(i)}>
+              {cell}
+            </Table.HeaderCell>
+          ))}
         </Table.Row>
       </Table.Head>
       <Table.Body>

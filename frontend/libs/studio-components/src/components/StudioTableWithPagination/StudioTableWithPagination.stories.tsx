@@ -22,6 +22,6 @@ Preview.args = {
   rows: rows,
   size: 'small',
   initialRowPerPage: 5,
-  width: '700px',
+  width: '900px',
 };
 export default meta;

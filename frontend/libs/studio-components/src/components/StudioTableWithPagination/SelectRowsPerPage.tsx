@@ -1,0 +1,28 @@
+import classes from './StudioTableWithPagination.module.css';
+import { Label, NativeSelect } from '@digdir/design-system-react';
+import React from 'react';
+import { getLabelSize } from './utils';
+
+export const SelectRowsPerPage = ({ setRowPerPage, size }) => {
+  const labelSize = getLabelSize(size);
+
+  return (
+    <div className={classes.selectorContainer}>
+      <NativeSelect
+        className={classes.selector}
+        name={'rowsPerPage'}
+        onChange={(e) => setRowPerPage(Number(e.target.value))}
+        size={size}
+      >
+        <option value='5'>5</option>
+        <option value='10'>10</option>
+        <option value='20'>20</option>
+        <option value='50'>50</option>
+        <option value='100'>100</option>
+      </NativeSelect>
+      <Label htmlFor={'rowsPerPage'} size={labelSize} className={classes.label}>
+        Rows per page
+      </Label>
+    </div>
+  );
+};
