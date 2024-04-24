@@ -25,6 +25,7 @@ export type ProcessEditorProps = {
   addLayoutSet: BpmnApiContextProps['addLayoutSet'];
   deleteLayoutSet: BpmnApiContextProps['deleteLayoutSet'];
   mutateLayoutSet: BpmnApiContextProps['mutateLayoutSet'];
+  updateDataType: (metaData: MetaDataForm) => void;
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
 };
 
@@ -38,6 +39,7 @@ export const ProcessEditor = ({
   addLayoutSet,
   deleteLayoutSet,
   mutateLayoutSet,
+  updateDataType,
   saveBpmn,
 }: ProcessEditorProps): JSX.Element => {
   const { t } = useTranslation();
@@ -60,6 +62,7 @@ export const ProcessEditor = ({
         addLayoutSet={addLayoutSet}
         deleteLayoutSet={deleteLayoutSet}
         mutateLayoutSet={mutateLayoutSet}
+        updateDataType={updateDataType}
         saveBpmn={saveBpmn}
       >
         <BpmnConfigPanelFormContextProvider>

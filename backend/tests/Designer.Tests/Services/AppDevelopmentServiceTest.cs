@@ -103,33 +103,11 @@ public class AppDevelopmentServiceTest : IDisposable
     }
 
     [Fact]
-    public async Task UpdateLayoutSet_WhenLayoutSetExistsWithSameId_ShouldUpdateLayoutSet()
-    {
-        // Arrange
-        string layoutSetToUpdateId = "layoutSet1";
-        string newDataTypeName = "unUsedDatamodel";
-        string connectedTask = "Task_1";
-        var newLayoutSet = new LayoutSetConfig { Id = layoutSetToUpdateId, DataType = newDataTypeName, Tasks = [connectedTask] };
-        string targetRepository = TestDataHelper.GenerateTestRepoName();
-
-        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(_org, _repository, _developer, targetRepository);
-
-        // Act
-        var updatedLayoutSets = await _appDevelopmentService.UpdateLayoutSet(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), layoutSetToUpdateId, newLayoutSet);
-
-        // Assert
-        updatedLayoutSets.Should().NotBeNull();
-        updatedLayoutSets.Sets.Should().HaveCount(4);
-        updatedLayoutSets.Sets.Should().Contain(newLayoutSet);
-    }
-
-    [Fact]
     public async Task UpdateLayoutSet_WhenUpdatingSetIdToAnExistingId_ShouldThrowError()
     {
         // Arrange
-        string layoutSetIdToUpdate = "layoutSet1";
+        string oldLayoutSetName = "layoutSet1";
         string existingLayoutSetName = "layoutSet2";
-        var newLayoutSet = new LayoutSetConfig { Id = existingLayoutSetName };
         string targetRepository = TestDataHelper.GenerateTestRepoName();
 
         CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(_org, _repository, _developer, targetRepository);
@@ -137,7 +115,7 @@ public class AppDevelopmentServiceTest : IDisposable
         // Act and Assert
         await Assert.ThrowsAsync<NonUniqueLayoutSetIdException>(async () =>
         {
-            await _appDevelopmentService.UpdateLayoutSet(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), layoutSetIdToUpdate, newLayoutSet);
+            await _appDevelopmentService.UpdateLayoutSetName(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), oldLayoutSetName, existingLayoutSetName);
         });
     }
 
@@ -145,11 +123,8 @@ public class AppDevelopmentServiceTest : IDisposable
     public async Task UpdateLayoutSet_WhenLayoutSetExistsAndNewIdIsProvided_ShouldUpdateLayoutSetWithNewIdAndChangeFolderName()
     {
         // Arrange
-        string layoutSetToUpdateId = "layoutSet1";
-        string updatedLayoutSetId = "newLayoutSet";
-        string newDataTypeName = "unUsedDatamodel";
-        string connectedTask = "Task_1";
-        var newLayoutSet = new LayoutSetConfig { Id = updatedLayoutSetId, DataType = newDataTypeName, Tasks = [connectedTask] };
+        string oldLayoutSetName = "layoutSet1";
+        string newLayoutSetName = "newLayoutSet";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         AltinnRepoEditingContext altinnRepoEditingContext =
             AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer);
@@ -157,15 +132,14 @@ public class AppDevelopmentServiceTest : IDisposable
 
         // Act
 
-        List<string> layoutSetFileNamesBeforeUpdate = GetFileNamesInLayoutSet(layoutSetToUpdateId);
+        List<string> layoutSetFileNamesBeforeUpdate = GetFileNamesInLayoutSet(oldLayoutSetName);
 
-        var updatedLayoutSets = await _appDevelopmentService.UpdateLayoutSet(altinnRepoEditingContext, layoutSetToUpdateId, newLayoutSet);
-        List<string> layoutSetFileNamesAfterUpdate = GetFileNamesInLayoutSet(newLayoutSet.Id);
+        var updatedLayoutSets = await _appDevelopmentService.UpdateLayoutSetName(altinnRepoEditingContext, oldLayoutSetName, newLayoutSetName);
+        List<string> layoutSetFileNamesAfterUpdate = GetFileNamesInLayoutSet(newLayoutSetName);
 
         // Assert
-        updatedLayoutSets.Should().NotBeNull();
         updatedLayoutSets.Sets.Should().HaveCount(4);
-        updatedLayoutSets.Sets.Should().Contain(newLayoutSet);
+        updatedLayoutSets.Sets.Find(set => set.Id == newLayoutSetName).Should().NotBeNull();
         layoutSetFileNamesBeforeUpdate.Should().BeEquivalentTo(layoutSetFileNamesAfterUpdate);
     }
 
@@ -213,7 +187,7 @@ public class AppDevelopmentServiceTest : IDisposable
         CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(_org, repository, _developer, targetRepository);
 
         // Act
-        Func<Task> act = async () => await _appDevelopmentService.UpdateLayoutSet(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), "layoutSet1", new LayoutSetConfig());
+        Func<Task> act = async () => await _appDevelopmentService.UpdateLayoutSetName(AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer), "layoutSet1", "someName");
 
         // Assert
         await act.Should().ThrowAsync<NoLayoutSetsFileFoundException>();

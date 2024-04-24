@@ -7,14 +7,18 @@ import { StudioDisplayTile, StudioSectionHeader } from '@studio/components';
 import { getConfigTitleKey, getConfigTitleHelpTextKey } from '../../../utils/configPanelUtils';
 import { ConfigIcon } from './ConfigIcon';
 import { EditDataType } from './EditDataType/EditDataType';
+import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
+  const { layoutSets } = useBpmnApiContext();
   const configHeaderTexts: Record<'title' | 'helpText', string> = {
     title: bpmnDetails?.taskType && t(getConfigTitleKey(bpmnDetails.taskType)),
     helpText: bpmnDetails?.taskType && t(getConfigTitleHelpTextKey(bpmnDetails.taskType)),
   };
+
+  const taskHasConnectedLayoutSet = layoutSets?.sets?.some((set) => set.tasks[0] == bpmnDetails.id);
 
   return (
     <>
@@ -37,7 +41,7 @@ export const ConfigContent = (): React.ReactElement => {
         value={bpmnDetails.name}
         className={classes.configContent}
       />
-      <EditDataType />
+      {taskHasConnectedLayoutSet && <EditDataType />}
     </>
   );
 };

@@ -222,4 +222,5 @@ export const queriesMock: ServicesContextProps = {
 
   // Mutations - ProcessEditor
   updateBpmnXml: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateProcessDataType: jest.fn().mockImplementation(() => Promise.resolve()),
 };

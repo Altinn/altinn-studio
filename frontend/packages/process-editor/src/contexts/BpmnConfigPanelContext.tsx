@@ -5,8 +5,7 @@ export type MetaDataForm = {
     oldId: string;
     newId: string;
   }>;
-  dataTypeChange?: {
-    oldDataType: string;
+  dataTypeChangeDetails?: {
     newDataType: string;
     connectedTaskId: string;
   };

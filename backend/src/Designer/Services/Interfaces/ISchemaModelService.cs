@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.DataModeling.Metamodel;
-using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
@@ -44,9 +43,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="saveOnly">Optional. If this flag is set to true, only json schema model is saved, no other model files are updated.</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         Task UpdateSchema(AltinnRepoEditingContext altinnRepoEditingContext, string relativeFilePath, string jsonContent, bool saveOnly = false, CancellationToken cancellationToken = default);
-
-        Task UpdateApplicationMetadata(AltinnAppGitRepository altinnAppGitRepository, string schemaName,
-            string fullTypeName);
 
         /// <summary>
         /// Builds a JSON schema based on the uploaded XSD.

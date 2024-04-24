@@ -315,7 +315,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return separateNamespace ? $"Altinn.App.Models.{modelName}.{modelName}" : $"Altinn.App.Models.{modelName}";
         }
 
-        public async Task UpdateApplicationMetadata(AltinnAppGitRepository altinnAppGitRepository, string schemaName, string fullTypeName)
+        private static async Task UpdateApplicationMetadata(AltinnAppGitRepository altinnAppGitRepository, string schemaName, string fullTypeName)
         {
             ApplicationMetadata application = await altinnAppGitRepository.GetApplicationMetadata();
 

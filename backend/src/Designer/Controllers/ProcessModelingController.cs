@@ -106,14 +106,22 @@ namespace Altinn.Studio.Designer.Controllers
                 }
             }
 
-            if (metadataObject?.DataTypeChange is not null)
+            return Accepted();
+        }
+
+        [HttpPut("data-type")]
+        public async Task<IActionResult> ProcessDataTypeChangedNotify(string org, string repo, [FromBody] ProcessDefinitionMetadata metadata, CancellationToken cancellationToken)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
+
+            if (metadata.DataTypeChangeDetails is not null)
             {
 
                 await _mediator.Publish(new ProcessDataTypeChangedEvent
                 {
-                    OldDataType = metadataObject.DataTypeChange.OldDataType,
-                    NewDataType = metadataObject.DataTypeChange.NewDataType,
-                    ConnectedTaskId = metadataObject.DataTypeChange.ConnectedTaskId,
+                    NewDataType = metadata.DataTypeChangeDetails.NewDataType,
+                    ConnectedTaskId = metadata.DataTypeChangeDetails.ConnectedTaskId,
                     EditingContext = editingContext
                 }, cancellationToken);
             }

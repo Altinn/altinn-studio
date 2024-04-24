@@ -2,24 +2,18 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { BpmnApiContextProps } from '../../../../contexts/BpmnApiContext';
 import { BpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import type { BpmnContextProps } from '../../../../contexts/BpmnContext';
 import { BpmnContext } from '../../../../contexts/BpmnContext';
-import { toast } from 'react-toastify';
 import type { BpmnDetails } from '../../../../types/BpmnDetails';
 import { BpmnTypeEnum } from '../../../../enum/BpmnTypeEnum';
 import type Modeler from 'bpmn-js/lib/Modeler';
 import { EditDataType } from './EditDataType';
 import { BpmnConfigPanelFormContextProvider } from '../../../../contexts/BpmnConfigPanelContext';
 
-const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
-
 const mockTaskId: string = 'testId';
 const mockName: string = 'testName';
-const noModelKey: string = 'noModel';
-const layoutSetIdToUpdate: string = 'layoutSet1';
 
 const modelerRefMock = {
   current: {
@@ -35,241 +29,130 @@ const mockBpmnDetails: BpmnDetails = {
 };
 
 const mockBpmnApiContextValue: Partial<BpmnApiContextProps> = {
-  layoutSets: { sets: [] },
+  layoutSets: {
+    sets: [
+      {
+        id: 'layoutSetName',
+        tasks: [mockTaskId],
+      },
+    ],
+  },
   availableDataModelIds: [],
 };
 
 const mockBpmnContextValue: Partial<BpmnContextProps> = {
-  bpmnXml: mockBPMNXML,
   bpmnDetails: mockBpmnDetails,
+  modelerRef: modelerRefMock,
 };
 
 describe('EditDataType', () => {
-  it('should display the default text as selected in the select list when no data type is connected to task and there are available data types', () => {
-    const availableDataTypes = ['dataModel1', 'dataModel2'];
-    renderEditDataType(
-      { availableDataModelIds: availableDataTypes },
-      { modelerRef: modelerRefMock },
-    );
-    const selectDataModel = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_datamodel'),
+  it('should display a button to add datamodel when task has no datamodel', () => {
+    renderEditDataType();
+    screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_set_datamodel_link'),
     });
-    expect(selectDataModel).toBeInTheDocument();
-    expect(selectDataModel).toHaveValue(noModelKey);
-    expect(
-      screen.getByRole('option', {
-        name: textMock('process_editor.configuration_panel_no_datamodel'),
-      }),
-    ).toBeInTheDocument();
   });
 
-  it('should display all available data types including existing and no-model-option as options for data type select', () => {
-    const availableDataTypes = ['dataModel1', 'dataModel2'];
-    const connectedDataType = 'dataModel0';
-    const existingLayoutSets: LayoutSets = {
-      sets: [
-        {
-          id: 'layoutSet1',
-          tasks: [mockTaskId],
-          dataType: connectedDataType,
-        },
-      ],
-    };
-    renderEditDataType(
-      {
-        availableDataModelIds: availableDataTypes,
-        layoutSets: existingLayoutSets,
-      },
-      { modelerRef: modelerRefMock },
-    );
-    const selectDataModel = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_datamodel'),
-    });
-    expect(selectDataModel).toBeInTheDocument();
-    expect(selectDataModel).toHaveValue(connectedDataType);
-    expect(
-      screen.getByRole('option', {
-        name: textMock('process_editor.configuration_panel_no_datamodel'),
-      }),
-    ).toBeInTheDocument();
-
-    availableDataTypes.forEach((dataType) =>
-      expect(screen.getByRole('option', { name: dataType })).toBeInTheDocument(),
-    );
-  });
-
-  it('should call saveBpmn with new data type when new option is clicked', async () => {
+  it('should display a native select with default value when clicking "add datamodel"', async () => {
     const user = userEvent.setup();
-    const saveBpmnMock = jest.fn();
-    const dataTypeToConnect = 'datamodel0';
-    const availableDataTypes = [dataTypeToConnect, 'dataModel1', 'dataModel2'];
-    const existingLayoutSets: LayoutSets = {
-      sets: [
-        {
-          id: layoutSetIdToUpdate,
-          tasks: [mockTaskId],
-        },
-      ],
-    };
-    renderEditDataType(
-      {
-        availableDataModelIds: availableDataTypes,
-        layoutSets: existingLayoutSets,
-        saveBpmn: saveBpmnMock,
-      },
-      { modelerRef: modelerRefMock },
-    );
-    const selectDataModel = screen.getByRole('combobox', {
+    renderEditDataType();
+    const addDataModelButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_set_datamodel_link'),
+    });
+    await user.click(addDataModelButton);
+    const nativeSelect = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
-    await user.selectOptions(selectDataModel, dataTypeToConnect);
-    expect(saveBpmnMock).toHaveBeenCalledWith(mockBPMNXML, {
-      dataTypeChange: {
-        connectedTaskId: mockTaskId,
-        newDataType: dataTypeToConnect,
-        oldDataType: undefined,
+    expect(nativeSelect).toHaveValue('noModelKey');
+  });
+
+  it('should display all available data types including existing and no-model-key as options for data type select', async () => {
+    const user = userEvent.setup();
+    const availableDataModelIds = ['dataModel1', 'dataModel2'];
+    const existingDataType = 'dataModel0';
+    renderEditDataType({
+      layoutSets: {
+        sets: [{ id: 'setWithDataType', dataType: existingDataType, tasks: [mockTaskId] }],
       },
+      availableDataModelIds,
+    });
+    const updateDataTypeButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_set_datamodel'),
+    });
+    await user.click(updateDataTypeButton);
+
+    screen.getByRole('option', {
+      name: textMock('process_editor.configuration_panel_select_datamodel'),
+    });
+    screen.getByRole('option', { name: existingDataType });
+
+    availableDataModelIds.forEach((dataType) => screen.getByRole('option', { name: dataType }));
+  });
+
+  it('should display the existing data type in preview as a button to edit when task has connected data model', async () => {
+    const user = userEvent.setup();
+    const existingDataType = 'dataType';
+    renderEditDataType({
+      layoutSets: {
+        sets: [{ id: 'setWithDataType', dataType: existingDataType, tasks: [mockTaskId] }],
+      },
+    });
+    const updateDataTypeButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_set_datamodel'),
+    });
+    screen.getByText(existingDataType);
+
+    await user.click(updateDataTypeButton);
+    const nativeSelect = screen.getByRole('combobox', {
+      name: textMock('process_editor.configuration_panel_set_datamodel'),
+    });
+    expect(nativeSelect).toHaveValue(existingDataType);
+  });
+
+  it('should display the existing data type in preview when clicking the close button after edit mode and task has data type', async () => {
+    const user = userEvent.setup();
+    const existingDataType = 'dataType';
+    renderEditDataType({
+      layoutSets: {
+        sets: [
+          {
+            id: 'setWithDataType',
+            dataType: existingDataType,
+            tasks: [mockTaskId],
+          },
+        ],
+      },
+    });
+    const updateDataTypeButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_set_datamodel'),
+    });
+    await user.click(updateDataTypeButton);
+    const closeButton = screen.getByRole('button', { name: textMock('general.close') });
+    await user.click(closeButton);
+    screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
   });
 
-  it('should call saveBpmn with new data type when data type is changed', async () => {
+  it('should display the button to add datamodel when clicking the close button after edit mode and task has no data type', async () => {
     const user = userEvent.setup();
-    const saveBpmnMock = jest.fn();
-    const dataTypeToConnect = 'datamodel1';
-    const availableDataTypes = [dataTypeToConnect, 'dataModel2'];
-    const connectedDataType = 'dataModel0';
-    const existingLayoutSets: LayoutSets = {
-      sets: [
-        {
-          id: layoutSetIdToUpdate,
-          tasks: [mockTaskId],
-          dataType: connectedDataType,
-        },
-      ],
-    };
-    renderEditDataType(
-      {
-        availableDataModelIds: availableDataTypes,
-        layoutSets: existingLayoutSets,
-        saveBpmn: saveBpmnMock,
-      },
-      { modelerRef: modelerRefMock },
-    );
-    const selectDataModel = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_datamodel'),
+    renderEditDataType();
+    const addDataModelButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_set_datamodel_link'),
     });
-    await user.selectOptions(selectDataModel, dataTypeToConnect);
-    expect(saveBpmnMock).toHaveBeenCalledWith(mockBPMNXML, {
-      dataTypeChange: {
-        connectedTaskId: mockTaskId,
-        newDataType: dataTypeToConnect,
-        oldDataType: connectedDataType,
-      },
+    await user.click(addDataModelButton);
+    const closeButton = screen.getByRole('button', { name: textMock('general.close') });
+    await user.click(closeButton);
+    screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_set_datamodel_link'),
     });
-  });
-
-  it('should call saveBpmn with no data type when data type is set to noModel', async () => {
-    const user = userEvent.setup();
-    const saveBpmnMock = jest.fn();
-    const availableDataTypes = ['datamodel1', 'dataModel2'];
-    const connectedDataType = 'dataModel0';
-    const existingLayoutSets: LayoutSets = {
-      sets: [
-        {
-          id: layoutSetIdToUpdate,
-          tasks: [mockTaskId],
-          dataType: connectedDataType,
-        },
-      ],
-    };
-    renderEditDataType(
-      {
-        availableDataModelIds: availableDataTypes,
-        layoutSets: existingLayoutSets,
-        saveBpmn: saveBpmnMock,
-      },
-      { modelerRef: modelerRefMock },
-    );
-    const selectDataModel = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_datamodel'),
-    });
-    await user.selectOptions(selectDataModel, noModelKey);
-    expect(saveBpmnMock).toHaveBeenCalledWith(mockBPMNXML, {
-      dataTypeChange: {
-        connectedTaskId: mockTaskId,
-        newDataType: undefined,
-        oldDataType: connectedDataType,
-      },
-    });
-  });
-
-  it('should not call saveBpmn when data type is set to existing', async () => {
-    const user = userEvent.setup();
-    const saveBpmnMock = jest.fn();
-    const availableDataTypes = ['datamodel1', 'dataModel2'];
-    const connectedDataType = 'dataModel0';
-    const existingLayoutSets: LayoutSets = {
-      sets: [
-        {
-          id: layoutSetIdToUpdate,
-          tasks: [mockTaskId],
-          dataType: connectedDataType,
-        },
-      ],
-    };
-    renderEditDataType(
-      {
-        availableDataModelIds: availableDataTypes,
-        layoutSets: existingLayoutSets,
-        saveBpmn: saveBpmnMock,
-      },
-      { modelerRef: modelerRefMock },
-    );
-    const selectDataModel = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_datamodel'),
-    });
-    await user.selectOptions(selectDataModel, connectedDataType);
-    expect(saveBpmnMock).not.toHaveBeenCalled();
-  });
-
-  it('should show toast error and not call saveBpmn when connected layout set is not found', async () => {
-    const user = userEvent.setup();
-    jest.spyOn(toast, 'error');
-    const saveBpmnMock = jest.fn();
-    const dataTypeToConnect = 'dataModel0';
-    const availableDataTypes = [dataTypeToConnect, 'datamodel1', 'dataModel2'];
-    const existingLayoutSets: LayoutSets = {
-      sets: [
-        {
-          id: 'someOtherLayoutSet',
-          tasks: ['someOtherTask'],
-        },
-      ],
-    };
-    renderEditDataType(
-      {
-        availableDataModelIds: availableDataTypes,
-        layoutSets: existingLayoutSets,
-        saveBpmn: saveBpmnMock,
-      },
-      { modelerRef: modelerRefMock },
-    );
-    const selectDataModel = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_datamodel'),
-    });
-    await user.selectOptions(selectDataModel, dataTypeToConnect);
-    expect(toast.error).toHaveBeenCalledWith(textMock('process_editor.layout_set_not_found_error'));
-    expect(saveBpmnMock).not.toHaveBeenCalled();
   });
 });
 
-const renderEditDataType = (
-  bpmnApiContextProps: Partial<BpmnApiContextProps> = {},
-  rootContextProps: Partial<BpmnContextProps> = {},
-) => {
+const renderEditDataType = (bpmnApiContextProps: Partial<BpmnApiContextProps> = {}) => {
   return render(
     <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
-      <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
+      <BpmnContext.Provider value={{ ...mockBpmnContextValue }}>
         <BpmnConfigPanelFormContextProvider>
           <EditDataType />
         </BpmnConfigPanelFormContextProvider>

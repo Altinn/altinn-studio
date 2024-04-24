@@ -1,17 +1,13 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithMockStore } from '../../test/mocks';
 import { useUpdateLayoutSetMutation } from './useUpdateLayoutSetMutation';
-import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { waitFor } from '@testing-library/react';
 
 // Test data:
 const org = 'org';
 const app = 'app';
 const layoutSetIdToUpdate = 'oldLayoutSetName';
-const layoutSet: LayoutSetConfig = {
-  id: 'newLayoutSetName',
-  tasks: ['task_2'],
-};
+const newLayoutSetId: string = 'newLayoutSetName';
 
 describe('useUpdateLayoutSetMutation', () => {
   it('Calls updateLayoutSetMutation with correct arguments and payload', async () => {
@@ -20,8 +16,8 @@ describe('useUpdateLayoutSetMutation', () => {
     ).renderHookResult.result;
     await waitFor(() =>
       updateLayoutSetResult.current.mutateAsync({
-        layoutSetIdToUpdate: layoutSetIdToUpdate,
-        layoutSetConfig: layoutSet,
+        layoutSetIdToUpdate,
+        newLayoutSetId,
       }),
     );
     expect(updateLayoutSetResult.current.isSuccess).toBe(true);
@@ -31,7 +27,7 @@ describe('useUpdateLayoutSetMutation', () => {
       org,
       app,
       layoutSetIdToUpdate,
-      layoutSet,
+      newLayoutSetId,
     );
   });
 });

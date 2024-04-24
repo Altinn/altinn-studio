@@ -24,7 +24,7 @@ public class ProcessDataTypeChangedApplicationMetadataHandler : INotificationHan
     {
         await _fileSyncHandlerExecutor.ExecuteWithExceptionHandling(
             notification.EditingContext,
-            SyncErrorCodes.ApplicationMetadataTaskIdSyncError,
+            SyncErrorCodes.ApplicationMetadataDataTypeSyncError,
             "App/config/applicationmetadata.json", async () =>
             {
                 var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
@@ -46,25 +46,20 @@ public class ProcessDataTypeChangedApplicationMetadataHandler : INotificationHan
     /// If there are changes, the application metadata is updated and the method returns true.
     /// Otherwise, the method returns false.
     /// </summary>
-    private static bool TryChangeDataType(Application applicationMetadata, string newdataType, string connectedTaskId)
+    private static bool TryChangeDataType(Application applicationMetadata, string newDataType, string connectedTaskId)
     {
         bool hasChanges = false;
-        if (string.IsNullOrEmpty(newdataType))
+
+
+        var dataTypeToDisconnect = applicationMetadata.DataTypes.Find(dataType => dataType.TaskId == connectedTaskId);
+        if (dataTypeToDisconnect is not null)
         {
-            var dataType = applicationMetadata.DataTypes.Find(dataType => dataType.TaskId == connectedTaskId);
-            dataType.TaskId = null;
+            dataTypeToDisconnect.TaskId = null;
             hasChanges = true;
         }
-        else
+        if (!string.IsNullOrEmpty(newDataType))
         {
-            var dataTypeToDisConnect = applicationMetadata.DataTypes.Find(dataType => dataType.TaskId == connectedTaskId);
-            if (dataTypeToDisConnect is not null)
-            {
-                dataTypeToDisConnect.TaskId = null;
-                hasChanges = true;
-            }
-
-            var dataTypeToUpdate = applicationMetadata.DataTypes.Find(dataType => dataType.Id == newdataType);
+            var dataTypeToUpdate = applicationMetadata.DataTypes.Find(dataType => dataType.Id == newDataType);
             // Only update taskId on appMetaData dataType if the new connected dataType for the layout set exists in appMetaData
             if (dataTypeToUpdate is not null)
             {

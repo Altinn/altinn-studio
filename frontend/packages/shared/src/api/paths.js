@@ -146,6 +146,7 @@ export const resourceAccessListsPath = (org, resourceId, env, page) => `${basePa
 export const resourceAccessListPath = (org, resourceId, listId, env) => `${basePath}/${org}/resources/${resourceId}/accesslists/${listId}?env=${env}`; // Post, Delete, Patch
 
 // Process Editor
-export const processEditorPath = (org, repo) => `${basePath}/${org}/${repo}/process-modelling/process-definition`;
+export const processEditorPath = (org, app) => `${basePath}/${org}/${app}/process-modelling/process-definition`;
 export const processEditorWebSocketHub = () => '/sync-hub';
-export const processEditorPathPut = (org, repo) => `${basePath}/${org}/${repo}/process-modelling/process-definition-latest`;
+export const processEditorPathPut = (org, app) => `${basePath}/${org}/${app}/process-modelling/process-definition-latest`;
+export const processEditorDataTypeChangePath = (org, app) => `${basePath}/${org}/${app}/process-modelling/data-type`;

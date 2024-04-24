@@ -18,12 +18,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController.FileSync.TaskIdChangeTests;
 
-public class ApplicationMetadataFileSyncTests : DisagnerEndpointsTestsBase<UpsertProcessDefinitionAndNotifyTests>, IClassFixture<WebApplicationFactory<Program>>
+public class ApplicationMetadataFileSyncTaskIdTests : DisagnerEndpointsTestsBase<UpsertProcessDefinitionAndNotifyTests>, IClassFixture<WebApplicationFactory<Program>>
 {
 
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/process-modelling/process-definition-latest";
 
-    public ApplicationMetadataFileSyncTests(WebApplicationFactory<Program> factory) : base(factory)
+    public ApplicationMetadataFileSyncTaskIdTests(WebApplicationFactory<Program> factory) : base(factory)
     {
     }
 
@@ -70,7 +70,7 @@ public class ApplicationMetadataFileSyncTests : DisagnerEndpointsTestsBase<Upser
             } };
     }
 
-    private async Task<string> AddFileToRepo(string fileToCopyPath, string relativeCopyRepoLocation)
+    private async Task AddFileToRepo(string fileToCopyPath, string relativeCopyRepoLocation)
     {
         string fileContent = SharedResourcesHelper.LoadTestDataAsString(fileToCopyPath);
         string filePath = Path.Combine(TestRepoPath, relativeCopyRepoLocation);
@@ -80,7 +80,6 @@ public class ApplicationMetadataFileSyncTests : DisagnerEndpointsTestsBase<Upser
             Directory.CreateDirectory(folderPath);
         }
         await File.WriteAllTextAsync(filePath, fileContent);
-        return fileContent;
     }
 
 

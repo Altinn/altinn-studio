@@ -10,11 +10,10 @@ const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 
 const mockAppLibVersion8: string = '8.0.3';
 
-const mockSaveBpmn = jest.fn();
-
 const defaultProps: ProcessEditorProps = {
   bpmnXml: mockBPMNXML,
-  saveBpmn: mockSaveBpmn,
+  updateDataType: jest.fn(),
+  saveBpmn: jest.fn(),
   appLibVersion: mockAppLibVersion8,
   availableDataModelIds: [],
   layoutSets: { sets: [] },
@@ -25,8 +24,8 @@ const defaultProps: ProcessEditorProps = {
   mutateLayoutSet: jest.fn(),
 };
 
-const renderProcessEditor = (props: Partial<ProcessEditorProps> = {}) => {
-  const allProps = { ...defaultProps, ...props };
+const renderProcessEditor = (bpmnXml: string) => {
+  const allProps = { ...defaultProps, bpmnXml };
   const router = createMemoryRouter([
     {
       path: '/',
@@ -40,12 +39,12 @@ const renderProcessEditor = (props: Partial<ProcessEditorProps> = {}) => {
 describe('ProcessEditor', () => {
   beforeEach(jest.clearAllMocks);
   it('should render loading while bpmnXml is undefined', () => {
-    renderProcessEditor({ bpmnXml: undefined });
+    renderProcessEditor(undefined);
     expect(screen.getByText(textMock('process_editor.loading'))).toBeInTheDocument();
   });
 
   it('should render "NoBpmnFoundAlert" when bpmnXml is null', () => {
-    renderProcessEditor({ bpmnXml: null });
+    renderProcessEditor(null);
     expect(
       screen.getByRole('heading', {
         name: textMock('process_editor.fetch_bpmn_error_title'),
@@ -56,7 +55,7 @@ describe('ProcessEditor', () => {
 
   it('does not display the information about too old version when the version is 8 or newer', async () => {
     const user = userEvent.setup();
-    renderProcessEditor();
+    renderProcessEditor(mockBPMNXML);
 
     await user.tab();
 

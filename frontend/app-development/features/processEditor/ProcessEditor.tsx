@@ -18,6 +18,7 @@ import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceipt
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useDeleteLayoutSetMutation } from '../../hooks/mutations/useDeleteLayoutSetMutation';
 import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
+import { useUpdateProcessDataTypeMutation } from '../../hooks/mutations/useUpdateProcessDataTypeMutation';
 
 enum SyncClientsName {
   FileSyncSuccess = 'FileSyncSuccess',
@@ -42,11 +43,19 @@ export const ProcessEditor = (): React.ReactElement => {
     org,
     app,
   );
+  const { mutate: mutateDataType, isPending: updateDataTypePending } =
+    useUpdateProcessDataTypeMutation(org, app);
   const existingCustomReceiptName: string | undefined = useCustomReceiptLayoutSetName(org, app);
-  const { data: availableDataModelIds } = useAppMetadataModelIdsQuery(org, app);
+  const { data: availableDataModelIds, isPending: availableDataModelIdsPending } =
+    useAppMetadataModelIdsQuery(org, app);
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
   const pendingApiOperations: boolean =
-    mutateBpmnPending || mutateLayoutSetPending || addLayoutSetPending || deleteLayoutSetPending;
+    mutateBpmnPending ||
+    mutateLayoutSetPending ||
+    addLayoutSetPending ||
+    deleteLayoutSetPending ||
+    updateDataTypePending ||
+    availableDataModelIdsPending;
 
   const { onWSMessageReceived } = useWebSocket({
     webSocketUrl: processEditorWebSocketHub(),
@@ -83,6 +92,17 @@ export const ProcessEditor = (): React.ReactElement => {
     );
   };
 
+  const updateDataType = async (metaData: MetaDataForm): Promise<void> => {
+    mutateDataType(
+      { form: metaData },
+      {
+        onError: () => {
+          toast.error(t('process_editor.update_data_type_error'));
+        },
+      },
+    );
+  };
+
   if (appLibDataLoading) {
     return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} showSpinnerTitle />;
   }
@@ -99,6 +119,7 @@ export const ProcessEditor = (): React.ReactElement => {
       mutateLayoutSet={mutateLayoutSet}
       appLibVersion={appLibData.backendVersion}
       bpmnXml={hasBpmnQueryError ? null : bpmnXml}
+      updateDataType={updateDataType}
       saveBpmn={saveBpmnXml}
     />
   );

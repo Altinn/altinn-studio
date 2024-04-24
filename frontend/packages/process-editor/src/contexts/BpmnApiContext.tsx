@@ -9,10 +9,8 @@ export type BpmnApiContextProps = {
   existingCustomReceiptLayoutSetName: string | undefined;
   addLayoutSet: (data: { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig }) => void;
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
-  mutateLayoutSet: (data: {
-    layoutSetIdToUpdate: string;
-    layoutSetConfig: LayoutSetConfig;
-  }) => void;
+  mutateLayoutSet: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
+  updateDataType: (metaData: MetaDataForm) => void;
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
 };
 
@@ -26,10 +24,8 @@ export type BpmnApiContextProviderProps = {
   existingCustomReceiptLayoutSetName: string | undefined;
   addLayoutSet: (data: { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig }) => void;
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
-  mutateLayoutSet: (data: {
-    layoutSetIdToUpdate: string;
-    layoutSetConfig: LayoutSetConfig;
-  }) => void;
+  mutateLayoutSet: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
+  updateDataType: (metaData: MetaDataForm) => void;
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
 };
 export const BpmnApiContextProvider = ({
@@ -41,6 +37,7 @@ export const BpmnApiContextProvider = ({
   addLayoutSet,
   deleteLayoutSet,
   mutateLayoutSet,
+  updateDataType,
   saveBpmn,
 }: Partial<BpmnApiContextProviderProps>) => {
   return (
@@ -53,6 +50,7 @@ export const BpmnApiContextProvider = ({
         addLayoutSet,
         deleteLayoutSet,
         mutateLayoutSet,
+        updateDataType,
         saveBpmn,
       }}
     >

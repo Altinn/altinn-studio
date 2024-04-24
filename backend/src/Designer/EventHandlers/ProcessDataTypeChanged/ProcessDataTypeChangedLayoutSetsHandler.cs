@@ -1,8 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.App.Core.Models;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Hubs.SyncHub;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;
 
@@ -24,7 +24,7 @@ public class ProcessDataTypeChangedLayoutSetsHandler : INotificationHandler<Proc
     {
         await _fileSyncHandlerExecutor.ExecuteWithExceptionHandling(
             notification.EditingContext,
-            SyncErrorCodes.LayoutSetsTaskIdSyncError,
+            SyncErrorCodes.LayoutSetsDataTypeSyncError,
             "App/ui/layout-sets.json",
             async () =>
             {
@@ -39,17 +39,17 @@ public class ProcessDataTypeChangedLayoutSetsHandler : INotificationHandler<Proc
                 }
 
                 var layoutSets = await repository.GetLayoutSetsFile(cancellationToken);
-                if (TryChangeDataType(layoutSets, notification.OldDataType, notification.NewDataType))
+                if (TryChangeDataType(layoutSets, notification.NewDataType, notification.ConnectedTaskId))
                 {
                     await repository.SaveLayoutSetsFile(layoutSets);
                 }
             });
     }
 
-    private static bool TryChangeDataType(LayoutSets layoutSets, string oldDataType, string newDataType)
+    private static bool TryChangeDataType(LayoutSets layoutSets, string newDataType, string connectedTaskId)
     {
         bool hasChanges = false;
-        var layoutSet = layoutSets.Sets?.Find(layoutSet => layoutSet.DataType == oldDataType);
+        var layoutSet = layoutSets.Sets?.Find(layoutSet => layoutSet.Tasks[0] == connectedTaskId);
         if (layoutSet is not null)
         {
             layoutSet.DataType = newDataType;

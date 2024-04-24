@@ -1,4 +1,4 @@
-.dataTypeSelect {
-  margin-bottom: var(--fds-spacing-4);
-  padding: var(--fds-spacing-3);
+.datamodelUndefined,
+.datamodelDefined {
+  padding-left: var(--fds-spacing-3);
 }

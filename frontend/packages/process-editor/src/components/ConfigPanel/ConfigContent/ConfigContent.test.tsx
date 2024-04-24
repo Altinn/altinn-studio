@@ -45,6 +45,7 @@ const mockBpmnContextValue: BpmnContextProps = {
   isEditAllowed: true,
   bpmnDetails: mockBpmnDetails,
   setBpmnDetails: jest.fn(),
+  modelerRef: modelerRefMock,
 };
 
 jest.mock('../../../hooks/useBpmnModeler', () => ({
@@ -62,13 +63,7 @@ describe('ConfigContent', () => {
     jest.clearAllMocks();
   });
   it('should render heading for selected task', () => {
-    renderConfigContent(
-      {},
-      {
-        modelerRef: { current: { get: () => {} } as unknown as Modeler },
-        bpmnDetails: { ...mockBpmnDetails, taskType: 'data' as BpmnTaskType },
-      },
-    );
+    renderConfigContent();
     screen.getByRole('heading', {
       name: textMock('process_editor.configuration_panel_data_task'),
       level: 2,
@@ -77,13 +72,7 @@ describe('ConfigContent', () => {
 
   it('should render helpText for selected task', async () => {
     const user = userEvent.setup();
-    renderConfigContent(
-      {},
-      {
-        modelerRef: { current: { get: () => {} } as unknown as Modeler },
-        bpmnDetails: { ...mockBpmnDetails, taskType: 'data' as BpmnTaskType },
-      },
-    );
+    renderConfigContent();
 
     const helpTextButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_header_help_text_title'),
@@ -94,13 +83,7 @@ describe('ConfigContent', () => {
   });
 
   it('should render EditTaskId component', () => {
-    renderConfigContent(
-      {},
-      {
-        modelerRef: modelerRefMock,
-        bpmnDetails: { ...mockBpmnDetails, taskType: 'data' as BpmnTaskType },
-      },
-    );
+    renderConfigContent();
 
     screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_change_task_id'),
@@ -113,7 +96,6 @@ describe('ConfigContent', () => {
       renderConfigContent(
         {},
         {
-          modelerRef: modelerRefMock,
           bpmnDetails: { ...mockBpmnDetails, taskType: taskType as BpmnTaskType },
         },
       );
@@ -123,21 +105,38 @@ describe('ConfigContent', () => {
       });
       expect(screen.getByText(mockBpmnDetails.id)).toBeInTheDocument();
       expect(screen.getByText(mockBpmnDetails.name)).toBeInTheDocument();
-      expect(
-        screen.getByText(textMock('process_editor.configuration_panel_no_datamodel')),
-      ).toBeInTheDocument();
     },
   );
 
+  it.each(['confirmation', 'feedback', 'signing'])(
+    'should not render data type selector for task type %s',
+    (taskType) => {
+      renderConfigContent(
+        {},
+        {
+          bpmnDetails: { ...mockBpmnDetails, taskType: taskType as BpmnTaskType },
+        },
+      );
+      expect(
+        screen.queryByRole('button', {
+          name: textMock('process_editor.configuration_panel_set_datamodel_link'),
+        }),
+      ).not.toBeInTheDocument();
+    },
+  );
+
+  it('should render data type selector for task type data', () => {
+    renderConfigContent();
+    expect(
+      screen.queryByRole('button', {
+        name: textMock('process_editor.configuration_panel_set_datamodel_link'),
+      }),
+    ).not.toBeInTheDocument();
+  });
+
   it('should render helpText for selected task', async () => {
     const user = userEvent.setup();
-    renderConfigContent(
-      {},
-      {
-        modelerRef: modelerRefMock,
-        bpmnDetails: { ...mockBpmnDetails, taskType: 'data' as BpmnTaskType },
-      },
-    );
+    renderConfigContent();
     const helpTextButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_header_help_text_title'),
     });
@@ -146,7 +145,7 @@ describe('ConfigContent', () => {
     screen.getByText(textMock('process_editor.configuration_panel_header_help_text_data'));
   });
 
-  it('should display the connected data model as selected in the select list by default when data type is connected to task and no available data types exists', () => {
+  it('should display the connected data model as selected by default when data type is connected to task', () => {
     const connectedDataType = 'dataModel0';
     const existingLayoutSets: LayoutSets = {
       sets: [
@@ -157,27 +156,11 @@ describe('ConfigContent', () => {
         },
       ],
     };
-    renderConfigContent({ layoutSets: existingLayoutSets }, { modelerRef: modelerRefMock });
-    const selectDataModel = screen.getByRole('combobox', {
+    renderConfigContent({ layoutSets: existingLayoutSets });
+    screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
-    expect(selectDataModel).toHaveValue(connectedDataType);
-  });
-
-  it('should display the data type details about the selected task when a "data" task is selected', () => {
-    renderConfigContent(
-      {},
-      {
-        modelerRef: modelerRefMock,
-        bpmnDetails: { ...mockBpmnDetails, taskType: 'data' },
-      },
-    );
-    screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_datamodel'),
-    });
-    screen.getByText(mockBpmnDetails.id);
-    screen.getByText(mockBpmnDetails.name);
-    screen.getByText(textMock('process_editor.configuration_panel_no_datamodel'));
+    screen.getByText(connectedDataType);
   });
 });
 
