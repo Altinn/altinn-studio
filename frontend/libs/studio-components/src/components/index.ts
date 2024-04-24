@@ -17,6 +17,7 @@ export * from './StudioPageSpinner';
 export * from './StudioProperty';
 export * from './StudioSectionHeader';
 export * from './StudioSpinner';
+export * from './StudioTableWithPagination';
 export * from './StudioTextarea';
 export * from './StudioTextfield';
 export * from './StudioToggleableTextfield';

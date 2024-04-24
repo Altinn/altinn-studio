@@ -9,6 +9,7 @@ import { SelectRowsPerPage } from './SelectRowsPerPage';
 type StudioTableWithPaginationProps = {
   columns: string[];
   rows: React.ReactNode[][];
+  sortable: boolean;
   size: 'small' | 'medium' | 'large';
   initialRowsPerPage: number;
 };
@@ -16,7 +17,7 @@ type StudioTableWithPaginationProps = {
 export const StudioTableWithPagination = forwardRef<
   HTMLTableElement,
   StudioTableWithPaginationProps
->(({ columns, rows, size = 'medium', initialRowsPerPage = 5 }, ref) => {
+>(({ columns, rows, sortable = true, size = 'medium', initialRowsPerPage = 5 }, ref) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(initialRowsPerPage);
   const { sortedRows, handleSorting } = useSortedRows(rows);
@@ -33,7 +34,13 @@ export const StudioTableWithPagination = forwardRef<
 
   return (
     <>
-      <StudioTable columns={columns} rows={currentRows} size={size} handleSorting={handleSorting} />
+      <StudioTable
+        columns={columns}
+        rows={currentRows}
+        size={size}
+        sortable={sortable}
+        handleSorting={handleSorting}
+      />
       {initialRowsPerPage > 0 && (
         <div className={classes.paginationContainer}>
           <SelectRowsPerPage setRowPerPage={setRowsPerPage} size={size} />

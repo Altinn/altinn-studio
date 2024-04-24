@@ -6,16 +6,27 @@ type StudioTableProps = {
   size: 'small' | 'medium' | 'large';
   columns: string[];
   rows: React.ReactNode[][];
-  handleSorting?: (number) => void;
+  sortable: boolean;
+  handleSorting?: (arg: number) => void;
 };
 
-export const StudioTable: React.FC<StudioTableProps> = ({ size, columns, rows, handleSorting }) => {
+export const StudioTable: React.FC<StudioTableProps> = ({
+  size,
+  columns,
+  rows,
+  sortable,
+  handleSorting,
+}) => {
   return (
     <Table size={size} className={classes.table}>
       <Table.Head>
         <Table.Row>
           {columns?.map((cell, i) => (
-            <Table.HeaderCell key={i} sortable={Boolean(cell)} onSortClick={() => handleSorting(i)}>
+            <Table.HeaderCell
+              key={i}
+              sortable={sortable && Boolean(cell)}
+              onSortClick={() => handleSorting(i)}
+            >
               {cell}
             </Table.HeaderCell>
           ))}
