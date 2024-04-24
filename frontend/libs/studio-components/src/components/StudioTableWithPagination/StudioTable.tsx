@@ -1,4 +1,4 @@
-import classes from './StudioTable.module.css';
+import classes from './StudioTableWithPagination.module.css';
 import { Table } from '@digdir/design-system-react';
 import React from 'react';
 
@@ -6,19 +6,12 @@ type StudioTableProps = {
   size: 'small' | 'medium' | 'large';
   columns: string[];
   rows: React.ReactNode[][];
-  width?: string;
-  handleSorting: (number) => void;
+  handleSorting?: (number) => void;
 };
 
-export const StudioTable: React.FC<StudioTableProps> = ({
-  size,
-  columns,
-  rows,
-  width,
-  handleSorting,
-}) => {
+export const StudioTable: React.FC<StudioTableProps> = ({ size, columns, rows, handleSorting }) => {
   return (
-    <Table size={size} className={classes.table} style={{ width: width }}>
+    <Table size={size} className={classes.table}>
       <Table.Head>
         <Table.Row>
           {columns?.map((cell, i) => (

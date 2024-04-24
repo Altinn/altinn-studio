@@ -1,3 +1,7 @@
+.table {
+  width: 100%;
+}
+
 .paginationContainer {
   display: flex;
   justify-content: space-between;

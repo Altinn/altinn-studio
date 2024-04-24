@@ -1,7 +1,7 @@
 import { Pagination } from '@digdir/design-system-react';
 import React, { forwardRef, useEffect, useState } from 'react';
 import classes from './StudioTableWithPagination.module.css';
-import { StudioTable } from '../StudioTable';
+import { StudioTable } from './StudioTable';
 import { calcCurrentRows } from './utils';
 import { useSortedRows } from '../../hooks/useSortedRows';
 import { SelectRowsPerPage } from './SelectRowsPerPage';
@@ -10,39 +10,33 @@ type StudioTableWithPaginationProps = {
   columns: string[];
   rows: React.ReactNode[][];
   size: 'small' | 'medium' | 'large';
-  initialRowPerPage: number;
-  width?: string;
+  initialRowsPerPage: number;
 };
 
 export const StudioTableWithPagination = forwardRef<
   HTMLTableElement,
   StudioTableWithPaginationProps
->(({ columns, rows, size = 'medium', initialRowPerPage = 5, width }, ref) => {
+>(({ columns, rows, size = 'medium', initialRowsPerPage = 5 }, ref) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowPerPage, setRowPerPage] = useState(initialRowPerPage);
+  const [rowsPerPage, setRowsPerPage] = useState(initialRowsPerPage);
   const { sortedRows, handleSorting } = useSortedRows(rows);
 
-  const totalPages = Math.ceil(sortedRows.length / rowPerPage);
-  const currentRows = calcCurrentRows(currentPage, rowPerPage, sortedRows);
+  const totalPages = Math.ceil(sortedRows.length / rowsPerPage);
+  const currentRows = calcCurrentRows(currentPage, rowsPerPage, sortedRows);
 
   useEffect(() => {
-    if (currentRows.length === 0 && currentPage > 1) {
+    // If user is out of bounds, move them to page 1
+    if (currentRows.length === 0) {
       setCurrentPage(1);
     }
   }, [currentRows, currentPage]);
 
   return (
     <>
-      <StudioTable
-        columns={columns}
-        rows={currentRows}
-        size={size}
-        width={width}
-        handleSorting={handleSorting}
-      />
-      {initialRowPerPage > 0 && (
+      <StudioTable columns={columns} rows={currentRows} size={size} handleSorting={handleSorting} />
+      {initialRowsPerPage > 0 && (
         <div className={classes.paginationContainer}>
-          <SelectRowsPerPage setRowPerPage={setRowPerPage} size={size} />
+          <SelectRowsPerPage setRowPerPage={setRowsPerPage} size={size} />
           {totalPages > 1 && (
             <Pagination
               className={classes.pagination}
