@@ -1,20 +1,7 @@
-export const getLabelSize = (size: string) => {
-  let labelSize;
-  switch (size) {
-    case 'xsmall':
-      labelSize = 'xsmall';
-      break;
-    case 'small':
-      labelSize = 'xsmall';
-      break;
-    case 'large':
-      labelSize = 'medium';
-      break;
-    default:
-      labelSize = 'small';
-  }
-
-  return labelSize;
+export const labelSizeMap = {
+  small: 'xsmall',
+  medium: 'small',
+  large: 'medium',
 };
 
 export const calcCurrentRows = (currentPage, rowPerPage, rows) => {

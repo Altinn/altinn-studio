@@ -1,10 +1,10 @@
 import classes from './StudioTableWithPagination.module.css';
 import { Label, NativeSelect } from '@digdir/design-system-react';
 import React from 'react';
-import { getLabelSize } from './utils';
+import { labelSizeMap } from './utils';
 
 export const SelectRowsPerPage = ({ setRowPerPage, size }) => {
-  const labelSize = getLabelSize(size);
+  const labelSize = labelSizeMap[size];
 
   return (
     <div className={classes.selectorContainer}>

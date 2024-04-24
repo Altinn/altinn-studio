@@ -4,6 +4,7 @@ import { DateUtils } from '@studio/pure-functions';
 import { RepositoryWithStarred } from '../../utils/repoUtils/repoUtils';
 import { ActionLinks } from './ActionLinks';
 import { FavoriteButton } from './FavoriteButton';
+import { Paragraph } from '@digdir/design-system-react';
 
 type NewRepoListProps = {
   repos: RepositoryWithStarred[];
@@ -30,11 +31,17 @@ export const NewRepoList = ({ repos }: NewRepoListProps): React.ReactElement => 
   const columns = ['', 'Navn', 'Opprettet av', 'Sist Endret', 'Beskrivelse', ''];
 
   return (
-    <StudioTableWithPagination
-      columns={columns}
-      rows={rows}
-      size={'small'}
-      initialRowsPerPage={1000}
-    />
+    <>
+      {rows.length > 0 ? (
+        <StudioTableWithPagination
+          columns={columns}
+          rows={rows}
+          size={'small'}
+          initialRowsPerPage={1000}
+        />
+      ) : (
+        <Paragraph>Ingen applikasjoner funnet</Paragraph>
+      )}
+    </>
   );
 };
