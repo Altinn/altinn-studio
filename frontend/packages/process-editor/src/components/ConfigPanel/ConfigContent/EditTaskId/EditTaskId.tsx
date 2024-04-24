@@ -67,13 +67,13 @@ export const EditTaskId = ({ ...rest }: EditTaskIdProps): React.ReactElement => 
       console.log(char);
       if (char.toUpperCase() !== char.toLowerCase()) {
         if (!regexLetters.test(char)) {
-          return 'Kun bokstavene A-Z og a-z er tillatt';
+          return 'Bokstavene A-Z og a-z er tillatt';
         }
       }
 
       if (char.toUpperCase() === char.toLowerCase()) {
         if (!regexSymbol.test(char)) {
-          return 'Kun tallene 0-9 og symbolene - og _ er tillatt';
+          return 'Tall og symbolene - og _ er tillatt';
         }
       }
     }
