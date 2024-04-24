@@ -12,11 +12,11 @@ import { useTranslation } from 'react-i18next';
 import { getRepoEditUrl } from '../../utils/urlUtils';
 import { Repository } from 'app-shared/types/Repository';
 
-interface ActionLinksProps {
+type ActionLinksProps = {
   repo: Repository;
-}
+};
 
-export const ActionLinks: React.FC<ActionLinksProps> = ({ repo }) => {
+export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
   const { t } = useTranslation();
 
   const repoFullName = repo.full_name as string;

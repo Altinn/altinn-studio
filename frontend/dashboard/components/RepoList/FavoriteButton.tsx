@@ -3,8 +3,13 @@ import classes from './RepoList.module.css';
 import { Button } from '@digdir/design-system-react';
 import React from 'react';
 import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from '../../hooks/mutations';
+import { Repository } from 'app-shared/types/Repository';
 
-export const FavoriteButton = ({ repo }) => {
+type FavoriteButtonProps = {
+  repo: Repository;
+};
+
+export const FavoriteButton = ({ repo }: FavoriteButtonProps): React.ReactElement => {
   const { mutate: setStarredRepo } = useSetStarredRepoMutation();
   const { mutate: unsetStarredRepo } = useUnsetStarredRepoMutation();
 
