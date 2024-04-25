@@ -14,7 +14,7 @@
     <PackageReference Include="Altinn.Common.PEP" Version="4.0.0" />
     <PackageReference Include="Altinn.Platform.Models" Version="1.5.0" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.24.0" />
-    <PackageReference Include="JsonPatch.Net" Version="3.0.0" />
+    <PackageReference Include="JsonPatch.Net" Version="3.0.0.2" />
     <PackageReference Include="JWTCookieAuthentication" Version="3.0.1" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="3.2.0" />
