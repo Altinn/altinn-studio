@@ -47,14 +47,16 @@ public static class LinqExpressionHelpers
                 // Special case for handling indexers (eg m=>m.Children![0].Age)
                 case MethodCallExpression
                 {
-                    Method.Name: "get_Item", Arguments: [{ } indexExpression],
+                    Method.Name: "get_Item",
+                    Arguments: [{ } indexExpression],
                     Object: MemberExpression memberExpression
                 }:
                     var index = GetValueFromExpression(indexExpression);
                     if (index is not int)
                     {
                         throw new ArgumentException(
-                            $"Invalid indexer expression: Expected int, but got {index?.GetType().Name}: {index}");
+                            $"Invalid indexer expression: Expected int, but got {index?.GetType().Name}: {index}"
+                        );
                     }
 
                     path.Add($"{GetJsonPropertyName(memberExpression.Member)}[{index}]");
@@ -62,10 +64,7 @@ public static class LinqExpressionHelpers
                     break;
 
                 // Special case for selecting all children of a list using Select ( m => m.Children.Select(c=>c.Age) )
-                case MethodCallExpression
-                {
-                    Method.Name: "Select", Arguments: [{ } root, { } selectorFunction]
-                }:
+                case MethodCallExpression { Method.Name: "Select", Arguments: [{ } root, { } selectorFunction] }:
                     path.Add(GetJsonPath_internal(selectorFunction));
                     current = root;
                     break;
@@ -98,10 +97,12 @@ public static class LinqExpressionHelpers
                 return propertyInfo.GetValue(evaluatedMember2);
             // Support for evaluating binary expressions in indexers (eg: m=>m.Children[model.Children.Count + 1)
             case BinaryExpression { Left: { } leftExpr, Right: { } rightExpr } be:
-                var left = GetValueFromExpression(leftExpr) as int? ?? throw new ArgumentException(
-                    $"Missing implementation for {be}.");
-                var right = GetValueFromExpression(rightExpr) as int? ?? throw new ArgumentException(
-                    $"Missing implementation for {be}.");
+                var left =
+                    GetValueFromExpression(leftExpr) as int?
+                    ?? throw new ArgumentException($"Missing implementation for {be}.");
+                var right =
+                    GetValueFromExpression(rightExpr) as int?
+                    ?? throw new ArgumentException($"Missing implementation for {be}.");
                 return be.NodeType switch
                 {
                     ExpressionType.Add => left + right,
@@ -109,14 +110,12 @@ public static class LinqExpressionHelpers
                     ExpressionType.Divide => left / right,
                     ExpressionType.Multiply => left * right,
                     ExpressionType.Modulo => left % right,
-                    _ => throw new ArgumentException(
-                        $"Missing implementation for {be}.")
+                    _ => throw new ArgumentException($"Missing implementation for {be}.")
                 };
 
             // Currently we just error on unknown expressions
             default:
-                throw new ArgumentException(
-                    $"Missing implementation for {expression.GetType()} {expression}.");
+                throw new ArgumentException($"Missing implementation for {expression.GetType()} {expression}.");
         }
     }
 

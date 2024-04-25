@@ -25,11 +25,8 @@ public class PatchService : IPatchService
     private readonly IValidationService _validationService;
     private readonly IEnumerable<IDataProcessor> _dataProcessors;
 
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
-        PropertyNameCaseInsensitive = true,
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions =
+        new() { UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow, PropertyNameCaseInsensitive = true, };
 
     /// <summary>
     /// Creates a new instance of the <see cref="PatchService"/> class
@@ -39,7 +36,13 @@ public class PatchService : IPatchService
     /// <param name="validationService"></param>
     /// <param name="dataProcessors"></param>
     /// <param name="appModel"></param>
-    public PatchService(IAppMetadata appMetadata, IDataClient dataClient, IValidationService validationService, IEnumerable<IDataProcessor> dataProcessors, IAppModel appModel)
+    public PatchService(
+        IAppMetadata appMetadata,
+        IDataClient dataClient,
+        IValidationService validationService,
+        IEnumerable<IDataProcessor> dataProcessors,
+        IAppModel appModel
+    )
     {
         _appMetadata = appMetadata;
         _dataClient = dataClient;
@@ -49,14 +52,26 @@ public class PatchService : IPatchService
     }
 
     /// <inheritdoc />
-    public async Task<ServiceResult<DataPatchResult, DataPatchError>> ApplyPatch(Instance instance, DataType dataType,
-        DataElement dataElement, JsonPatch jsonPatch, string? language, List<string>? ignoredValidators = null)
+    public async Task<ServiceResult<DataPatchResult, DataPatchError>> ApplyPatch(
+        Instance instance,
+        DataType dataType,
+        DataElement dataElement,
+        JsonPatch jsonPatch,
+        string? language,
+        List<string>? ignoredValidators = null
+    )
     {
         InstanceIdentifier instanceIdentifier = new InstanceIdentifier(instance);
         AppIdentifier appIdentifier = (await _appMetadata.GetApplicationMetadata()).AppIdentifier;
         var modelType = _appModel.GetModelType(dataType.AppLogic.ClassRef);
-        var oldModel =
-            await _dataClient.GetFormData(instanceIdentifier.InstanceGuid, modelType, appIdentifier.Org, appIdentifier.App, instanceIdentifier.InstanceOwnerPartyId, Guid.Parse(dataElement.Id));
+        var oldModel = await _dataClient.GetFormData(
+            instanceIdentifier.InstanceGuid,
+            modelType,
+            appIdentifier.Org,
+            appIdentifier.App,
+            instanceIdentifier.InstanceOwnerPartyId,
+            Guid.Parse(dataElement.Id)
+        );
         var oldModelNode = JsonSerializer.SerializeToNode(oldModel);
         var patchResult = jsonPatch.Apply(oldModelNode);
         if (!patchResult.IsSuccess)
@@ -70,10 +85,10 @@ public class PatchService : IPatchService
                     ? DataPatchErrorType.PatchTestFailed
                     : DataPatchErrorType.DeserializationFailed,
                 Extensions = new Dictionary<string, object?>()
-                    {
-                        { "previousModel", oldModel },
-                        { "patchOperationIndex", patchResult.Operation },
-                    }
+                {
+                    { "previousModel", oldModel },
+                    { "patchOperationIndex", patchResult.Operation },
+                }
             };
         }
 
@@ -96,23 +111,28 @@ public class PatchService : IPatchService
         // Ensure that all lists are changed from null to empty list.
         ObjectUtils.InitializeAltinnRowId(result.Ok);
 
-        var validationIssues = await _validationService.ValidateFormData(instance, dataElement, dataType, result.Ok, oldModel, ignoredValidators, language);
+        var validationIssues = await _validationService.ValidateFormData(
+            instance,
+            dataElement,
+            dataType,
+            result.Ok,
+            oldModel,
+            ignoredValidators,
+            language
+        );
 
         // Save Formdata to database
         await _dataClient.UpdateData(
-                result.Ok,
-                instanceIdentifier.InstanceGuid,
-                modelType,
-                appIdentifier.Org,
-                appIdentifier.App,
-                instanceIdentifier.InstanceOwnerPartyId,
-                dataElementId);
+            result.Ok,
+            instanceIdentifier.InstanceGuid,
+            modelType,
+            appIdentifier.Org,
+            appIdentifier.App,
+            instanceIdentifier.InstanceOwnerPartyId,
+            dataElementId
+        );
 
-        return new DataPatchResult
-        {
-            NewDataModel = result.Ok,
-            ValidationIssues = validationIssues
-        };
+        return new DataPatchResult { NewDataModel = result.Ok, ValidationIssues = validationIssues };
     }
 
     private static ServiceResult<object, string> DeserializeModel(Type type, JsonNode patchResult)

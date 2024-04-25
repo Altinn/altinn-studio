@@ -30,14 +30,15 @@ namespace Altinn.App.Core.Tests.Implementation
             _platformSettingsOptions.Setup(s => s.Value).Returns(platformSettings);
 
             _appMetadata = new Mock<IAppMetadata>();
-            _appMetadata.Setup(s => s.GetApplicationMetadata())
+            _appMetadata
+                .Setup(s => s.GetApplicationMetadata())
                 .ReturnsAsync(new ApplicationMetadata("ttd/app") { Org = "ttd", Id = "ttd/app" });
 
             _accessTokenGenerator = new Mock<IAccessTokenGenerator>();
             _accessTokenGenerator
-                .Setup(s => s.GenerateAccessToken(
-                    It.Is<string>(org => org == "ttd"),
-                    It.Is<string>(app => app == "app")))
+                .Setup(s =>
+                    s.GenerateAccessToken(It.Is<string>(org => org == "ttd"), It.Is<string>(app => app == "app"))
+                )
                 .Returns("accesstoken");
 
             _userTokenProvider = new Mock<IUserTokenProvider>();
@@ -49,19 +50,23 @@ namespace Altinn.App.Core.Tests.Implementation
         {
             // Arrange
             HttpRequestMessage? platformRequest = null;
-            DelegatingHandlerStub messageHandler = new(async (HttpRequestMessage request, CancellationToken token) =>
-            {
-                platformRequest = request;
-                Person person = new Person { LastName = "Lastname" };
-                return await CreateHttpResponseMessage(person);
-            });
+            DelegatingHandlerStub messageHandler =
+                new(
+                    async (HttpRequestMessage request, CancellationToken token) =>
+                    {
+                        platformRequest = request;
+                        Person person = new Person { LastName = "Lastname" };
+                        return await CreateHttpResponseMessage(person);
+                    }
+                );
 
             var target = new PersonClient(
                 new HttpClient(messageHandler),
                 _platformSettingsOptions.Object,
                 _appMetadata.Object,
                 _accessTokenGenerator.Object,
-                _userTokenProvider.Object);
+                _userTokenProvider.Object
+            );
 
             // Act
             var actual = await target.GetPerson("personnummer", "lastname", CancellationToken.None);
@@ -89,18 +94,24 @@ namespace Altinn.App.Core.Tests.Implementation
         {
             // Arrange
             HttpRequestMessage? platformRequest = null;
-            DelegatingHandlerStub messageHandler = new(async (HttpRequestMessage request, CancellationToken token) =>
-            {
-                platformRequest = request;
-                return await Task.FromResult(new HttpResponseMessage() { StatusCode = HttpStatusCode.NotFound });
-            });
+            DelegatingHandlerStub messageHandler =
+                new(
+                    async (HttpRequestMessage request, CancellationToken token) =>
+                    {
+                        platformRequest = request;
+                        return await Task.FromResult(
+                            new HttpResponseMessage() { StatusCode = HttpStatusCode.NotFound }
+                        );
+                    }
+                );
 
             var target = new PersonClient(
                 new HttpClient(messageHandler),
                 _platformSettingsOptions.Object,
                 _appMetadata.Object,
                 _accessTokenGenerator.Object,
-                _userTokenProvider.Object);
+                _userTokenProvider.Object
+            );
 
             // Act
             var actual = await target.GetPerson("personnummer", "lastname", CancellationToken.None);
@@ -115,22 +126,26 @@ namespace Altinn.App.Core.Tests.Implementation
         {
             // Arrange
             HttpRequestMessage? platformRequest = null;
-            DelegatingHandlerStub messageHandler = new(async (HttpRequestMessage request, CancellationToken token) =>
-            {
-                platformRequest = request;
-                HttpResponseMessage responseMessage = new HttpResponseMessage
-                {
-                    StatusCode = HttpStatusCode.TooManyRequests
-                };
-                return await Task.FromResult(responseMessage);
-            });
+            DelegatingHandlerStub messageHandler =
+                new(
+                    async (HttpRequestMessage request, CancellationToken token) =>
+                    {
+                        platformRequest = request;
+                        HttpResponseMessage responseMessage = new HttpResponseMessage
+                        {
+                            StatusCode = HttpStatusCode.TooManyRequests
+                        };
+                        return await Task.FromResult(responseMessage);
+                    }
+                );
 
             var target = new PersonClient(
                 new HttpClient(messageHandler),
                 _platformSettingsOptions.Object,
                 _appMetadata.Object,
                 _accessTokenGenerator.Object,
-                _userTokenProvider.Object);
+                _userTokenProvider.Object
+            );
 
             PlatformHttpException? actual = null;
 

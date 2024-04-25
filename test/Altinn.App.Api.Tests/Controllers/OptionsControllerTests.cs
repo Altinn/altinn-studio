@@ -1,21 +1,19 @@
-﻿using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
-using System.Net;
+﻿using System.Net;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
 using FluentAssertions;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
 using Xunit.Abstractions;
-using Moq;
 
 namespace Altinn.App.Api.Tests.Controllers
 {
     public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
     {
-
-        public OptionsControllerTests(ITestOutputHelper outputHelper, WebApplicationFactory<Program> factory) : base(factory, outputHelper)
-        {
-        }
+        public OptionsControllerTests(ITestOutputHelper outputHelper, WebApplicationFactory<Program> factory)
+            : base(factory, outputHelper) { }
 
         [Fact]
         public async Task Get_ShouldReturnParametersInHeader()
@@ -47,18 +45,14 @@ namespace Altinn.App.Api.Tests.Controllers
             {
                 Options = new List<AppOption>()
                 {
-                    new()
-                    {
-                        Value = "",
-                        Label = ""
-                    }
+                    new() { Value = "", Label = "" }
                 },
                 Parameters = new Dictionary<string, string?>
                 {
                     { "language", "español" },
                     { "level", "1" },
-                    { "variant", "Småviltjakt"},
-                    { "special", ",\".%"}
+                    { "variant", "Småviltjakt" },
+                    { "special", ",\".%" }
                 },
             };
             var provider = new Mock<IAppOptionsProvider>(MockBehavior.Strict);
@@ -66,10 +60,7 @@ namespace Altinn.App.Api.Tests.Controllers
                 .Setup(p => p.GetAppOptionsAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
                 .ReturnsAsync(options)
                 .Verifiable(Times.Once);
-            provider
-                .Setup(p => p.Id)
-                .Returns("test")
-                .Verifiable(Times.Once);
+            provider.Setup(p => p.Id).Returns("test").Verifiable(Times.Once);
 
             OverrideServicesForThisTest = (services) =>
             {
@@ -85,15 +76,26 @@ namespace Altinn.App.Api.Tests.Controllers
             var content = await response.Content.ReadAsStringAsync();
             response.StatusCode.Should().Be(HttpStatusCode.OK, content);
 
-            var headerValue = response.Headers.Should().Contain((header) => header.Key == "Altinn-DownstreamParameters").Which.Value; ;
+            var headerValue = response
+                .Headers.Should()
+                .Contain((header) => header.Key == "Altinn-DownstreamParameters")
+                .Which.Value;
+            ;
             response.Should().HaveStatusCode(HttpStatusCode.OK);
-            headerValue.Should().ContainSingle().Which.Split(',').Should().Contain(new List<string>()
-            {
-                "language=espa%C3%B1ol",
-                "level=1",
-                "variant=Sm%C3%A5viltjakt",
-                "special=%2C%22.%25"
-            });
+            headerValue
+                .Should()
+                .ContainSingle()
+                .Which.Split(',')
+                .Should()
+                .Contain(
+                    new List<string>()
+                    {
+                        "language=espa%C3%B1ol",
+                        "level=1",
+                        "variant=Sm%C3%A5viltjakt",
+                        "special=%2C%22.%25"
+                    }
+                );
             provider.Verify();
         }
 
@@ -132,10 +134,11 @@ namespace Altinn.App.Api.Tests.Controllers
             var content = await response.Content.ReadAsStringAsync();
             _outputHelper.WriteLine(content);
             response.Should().HaveStatusCode(HttpStatusCode.OK);
-            content.Should()
+            content
+                .Should()
                 .Be(
-                    """[{"value":null,"label":""},{"value":"string-value","label":"string-label"},{"value":3,"label":"number"},{"value":true,"label":"boolean-true"},{"value":false,"label":"boolean-false"}]""");
-
+                    """[{"value":null,"label":""},{"value":"string-value","label":"string-label"},{"value":3,"label":"number"},{"value":true,"label":"boolean-true"},{"value":false,"label":"boolean-false"}]"""
+                );
         }
 
         [Fact]
@@ -170,7 +173,11 @@ namespace Altinn.App.Api.Tests.Controllers
             _outputHelper.WriteLine(content);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-            content.Should().Be("[{\"value\":null,\"label\":\"\"},{\"value\":\"SomeString\",\"label\":\"False\"},{\"value\":true,\"label\":\"True\"},{\"value\":0,\"label\":\"Zero\"},{\"value\":1,\"label\":\"One\",\"description\":\"This is a description\",\"helpText\":\"This is a help text\"}]");
+            content
+                .Should()
+                .Be(
+                    "[{\"value\":null,\"label\":\"\"},{\"value\":\"SomeString\",\"label\":\"False\"},{\"value\":true,\"label\":\"True\"},{\"value\":0,\"label\":\"Zero\"},{\"value\":1,\"label\":\"One\",\"description\":\"This is a description\",\"helpText\":\"This is a help text\"}]"
+                );
         }
     }
 
@@ -182,35 +189,24 @@ namespace Altinn.App.Api.Tests.Controllers
         {
             AppOptions appOptions = new AppOptions()
             {
-                Parameters = new()
-                {
-                    { "lang", language }
-                },
+                Parameters = new() { { "lang", language } },
                 Options = new List<AppOption>()
                 {
+                    new() { Value = null, Label = "", },
+                    new() { Value = "SomeString", Label = "False", },
                     new()
-                    {
-                        Value  = null,
-                        Label = "",
-                    },
-                    new ()
-                    {
-                        Value = "SomeString",
-                        Label = "False",
-                    },
-                    new ()
                     {
                         Value = "true",
                         ValueType = AppOptionValueType.Boolean,
                         Label = "True",
                     },
-                    new ()
+                    new()
                     {
                         Value = "0",
                         ValueType = AppOptionValueType.Number,
                         Label = "Zero",
                     },
-                    new ()
+                    new()
                     {
                         Value = "1",
                         ValueType = AppOptionValueType.Number,

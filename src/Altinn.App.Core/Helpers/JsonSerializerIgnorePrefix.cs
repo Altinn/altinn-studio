@@ -25,14 +25,12 @@ internal static class JsonSerializerIgnorePrefix
                 ti.Properties.RemoveAll(prop => prop.Name.StartsWith(prefix));
             };
 
-            JsonSerializerOptions newOptions = new()
-            {
-                TypeInfoResolver = new DefaultJsonTypeInfoResolver
+            JsonSerializerOptions newOptions =
+                new()
                 {
-                    Modifiers = { modifier }
-                },
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            };
+                    TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { modifier } },
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                };
             _ignorePrefixOptions.Add(prefix, newOptions);
             return newOptions;
         }

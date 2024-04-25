@@ -18,26 +18,27 @@ public class DefaultTaskValidatorTests
     private const string UnlimitedDataType = "UnlimitedDataId";
     private const string OneRequiredDataType = "OneRequiredDataId";
 
-    private readonly ApplicationMetadata _applicationMetadata = new(AppId)
-    {
-        DataTypes = new List<DataType>()
+    private readonly ApplicationMetadata _applicationMetadata =
+        new(AppId)
         {
-            new()
+            DataTypes = new List<DataType>()
             {
-                Id = UnlimitedDataType,
-                TaskId = UnlimitedTaskId,
-                MaxCount = 0,
-                MinCount = 0,
-            },
-            new()
-            {
-                Id = OneRequiredDataType,
-                TaskId = OneRequiredElementTaskId,
-                MinCount = 1,
-                MaxCount = 1,
+                new()
+                {
+                    Id = UnlimitedDataType,
+                    TaskId = UnlimitedTaskId,
+                    MaxCount = 0,
+                    MinCount = 0,
+                },
+                new()
+                {
+                    Id = OneRequiredDataType,
+                    TaskId = OneRequiredElementTaskId,
+                    MinCount = 1,
+                    MaxCount = 1,
+                }
             }
-        }
-    };
+        };
 
     private readonly Instance _instance = new Instance()
     {
@@ -51,9 +52,7 @@ public class DefaultTaskValidatorTests
 
     public DefaultTaskValidatorTests()
     {
-        _appMetadataMock
-            .Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(_applicationMetadata);
+        _appMetadataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(_applicationMetadata);
         _sut = new DefaultTaskValidator(_appMetadataMock.Object);
     }
 
@@ -67,10 +66,7 @@ public class DefaultTaskValidatorTests
     [Fact]
     public async Task UnknownTask_UnknownData_ReturnsNoErrors()
     {
-        _instance.Data.Add(new DataElement
-        {
-            DataType = "unknownDataType"
-        });
+        _instance.Data.Add(new DataElement { DataType = "unknownDataType" });
         var issues = await _sut.ValidateTask(_instance, "unknownTask", null);
         issues.Should().BeEmpty();
     }
@@ -87,10 +83,7 @@ public class DefaultTaskValidatorTests
     {
         for (var i = 0; i < 100; i++)
         {
-            _instance.Data.Add(new DataElement
-            {
-                DataType = UnlimitedDataType
-            });
+            _instance.Data.Add(new DataElement { DataType = UnlimitedDataType });
         }
 
         var issues = await _sut.ValidateTask(_instance, UnlimitedTaskId, null);
@@ -100,10 +93,7 @@ public class DefaultTaskValidatorTests
     [Fact]
     public async Task OneRequired_TheOneRequired_ReturnsNoErrors()
     {
-        _instance.Data.Add(new()
-        {
-            DataType = OneRequiredDataType
-        });
+        _instance.Data.Add(new() { DataType = OneRequiredDataType });
         var issues = await _sut.ValidateTask(_instance, OneRequiredElementTaskId, null);
         issues.Should().BeEmpty();
     }
@@ -121,14 +111,8 @@ public class DefaultTaskValidatorTests
     [Fact]
     public async Task OneRequired_2Data_ReturnsError()
     {
-        _instance.Data.Add(new()
-        {
-            DataType = OneRequiredDataType
-        });
-        _instance.Data.Add(new()
-        {
-            DataType = OneRequiredDataType
-        });
+        _instance.Data.Add(new() { DataType = OneRequiredDataType });
+        _instance.Data.Add(new() { DataType = OneRequiredDataType });
         var issues = await _sut.ValidateTask(_instance, OneRequiredElementTaskId, null);
         var issue = issues.Should().ContainSingle().Which;
         issue.Code.Should().Be("TooManyDataElementsOfType");

@@ -34,7 +34,9 @@ public static class EmbeddedResource
 
         if (resourceStream == null)
         {
-            throw new InvalidOperationException($"Unable to find resource {resourceName} embedded in assembly {assembly.FullName}.");
+            throw new InvalidOperationException(
+                $"Unable to find resource {resourceName} embedded in assembly {assembly.FullName}."
+            );
         }
 
         resourceStream.Seek(0, SeekOrigin.Begin);

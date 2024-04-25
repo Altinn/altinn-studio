@@ -27,10 +27,7 @@ namespace Altinn.App.Core.Features.Options
         public async Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)
         {
             // This will get static options if it exists
-            var appOptions = new AppOptions
-            {
-                Options = await _appOptionsFileHandler.ReadOptionsFromFileAsync(Id)
-            };
+            var appOptions = new AppOptions { Options = await _appOptionsFileHandler.ReadOptionsFromFileAsync(Id) };
 
             return appOptions;
         }
@@ -43,10 +40,7 @@ namespace Altinn.App.Core.Features.Options
         /// <returns></returns>
         internal IAppOptionsProvider CloneDefaultTo(string cloneToOptionId)
         {
-            var clone = new DefaultAppOptionsProvider(_appOptionsFileHandler)
-            {
-                Id = cloneToOptionId
-            };
+            var clone = new DefaultAppOptionsProvider(_appOptionsFileHandler) { Id = cloneToOptionId };
             return clone;
         }
     }

@@ -26,8 +26,6 @@ namespace Altinn.App.Api.Controllers
         /// Called after resource is processed. Does nothing.
         /// </summary>
         /// <param name="context">the execution context</param>
-        public void OnResourceExecuted(ResourceExecutedContext context)
-        {
-        }
+        public void OnResourceExecuted(ResourceExecutedContext context) { }
     }
 }

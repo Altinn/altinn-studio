@@ -22,7 +22,13 @@ public class LayoutEvaluatorState
     /// <summary>
     /// Constructor for LayoutEvaluatorState. Usually called via <see cref="LayoutEvaluatorStateInitializer" /> that can be fetched from dependency injection.
     /// </summary>
-    public LayoutEvaluatorState(IDataModelAccessor dataModel, LayoutModel componentModel, FrontEndSettings frontEndSettings, Instance instance, string? gatewayAction = null)
+    public LayoutEvaluatorState(
+        IDataModelAccessor dataModel,
+        LayoutModel componentModel,
+        FrontEndSettings frontEndSettings,
+        Instance instance,
+        string? gatewayAction = null
+    )
     {
         _dataModel = dataModel;
         _componentModel = componentModel;
@@ -49,26 +55,27 @@ public class LayoutEvaluatorState
         return _pageContexts;
     }
 
-    private static ComponentContext[] GenerateComponentContexts(IDataModelAccessor dataModel, LayoutModel componentModel)
+    private static ComponentContext[] GenerateComponentContexts(
+        IDataModelAccessor dataModel,
+        LayoutModel componentModel
+    )
     {
-        return componentModel
-            .Pages
-            .Values
-            .Select((
-            (page) => GeneratePageContext(page, dataModel)
-        )).ToArray();
+        return componentModel.Pages.Values.Select(((page) => GeneratePageContext(page, dataModel))).ToArray();
     }
 
-    private static ComponentContext GeneratePageContext(PageComponent page, IDataModelAccessor dataModel) => new ComponentContext
-            (
-                page,
-                null,
-                null,
-                page.Children.Select(c => GenerateComponentContextsRecurs(c, dataModel, Array.Empty<int>())).ToArray()
-            );
+    private static ComponentContext GeneratePageContext(PageComponent page, IDataModelAccessor dataModel) =>
+        new ComponentContext(
+            page,
+            null,
+            null,
+            page.Children.Select(c => GenerateComponentContextsRecurs(c, dataModel, Array.Empty<int>())).ToArray()
+        );
 
-
-    private static ComponentContext GenerateComponentContextsRecurs(BaseComponent component, IDataModelAccessor dataModel, ReadOnlySpan<int> indexes)
+    private static ComponentContext GenerateComponentContextsRecurs(
+        BaseComponent component,
+        IDataModelAccessor dataModel,
+        ReadOnlySpan<int> indexes
+    )
     {
         var children = new List<ComponentContext>();
         int? rowLength = null;
@@ -125,7 +132,7 @@ public class LayoutEvaluatorState
     }
 
     /// <summary>
-    /// Get a specific component context based on 
+    /// Get a specific component context based on
     /// </summary>
     public ComponentContext GetComponentContext(string pageName, string componentId, int[]? rowIndicies = null)
     {
@@ -140,28 +147,44 @@ public class LayoutEvaluatorState
             throw new ArgumentException($"Unknown page name {pageName}");
         }
         // Find all decendent contexts that matches componentId and all the given rowIndicies
-        var matches = pageContext.Decendants.Where(
-                            context =>
-                                context.Component?.Id == componentId &&
-                                (context.RowIndices?.Zip(rowIndicies ?? Enumerable.Empty<int>()).All((i) => i.First == i.Second) ?? true)).ToArray();
+        var matches = pageContext
+            .Decendants.Where(context =>
+                context.Component?.Id == componentId
+                && (
+                    context.RowIndices?.Zip(rowIndicies ?? Enumerable.Empty<int>()).All((i) => i.First == i.Second)
+                    ?? true
+                )
+            )
+            .ToArray();
         if (matches.Length == 1)
         {
             return matches[0];
         }
         else if (matches.Length > 1)
         {
-            throw new ArgumentException($"Expected 1 matching component context for [\"component\"] lookup on page {pageName}. Found {matches.Length}");
+            throw new ArgumentException(
+                $"Expected 1 matching component context for [\"component\"] lookup on page {pageName}. Found {matches.Length}"
+            );
         }
 
         // If no components was found on the same page, look for component on all pages
         // Find all decendent contexts that matches componentId and all the given rowIndicies
-        matches = _pageContexts.SelectMany(p => p.Decendants.Where(
-                            context =>
-                                context.Component?.Id == componentId &&
-                                (context.RowIndices?.Zip(rowIndicies ?? Enumerable.Empty<int>()).All((i) => i.First == i.Second) ?? true))).ToArray();
+        matches = _pageContexts
+            .SelectMany(p =>
+                p.Decendants.Where(context =>
+                    context.Component?.Id == componentId
+                    && (
+                        context.RowIndices?.Zip(rowIndicies ?? Enumerable.Empty<int>()).All((i) => i.First == i.Second)
+                        ?? true
+                    )
+                )
+            )
+            .ToArray();
         if (matches.Length != 1)
         {
-            throw new ArgumentException("Expected 1 matching component context for [\"component\"] lookup. Found " + matches.Length);
+            throw new ArgumentException(
+                "Expected 1 matching component context for [\"component\"] lookup. Found " + matches.Length
+            );
         }
         return matches[0];
     }
@@ -206,16 +229,16 @@ public class LayoutEvaluatorState
             "instanceOwnerPartyId" => _instanceContext.InstanceOwner.PartyId,
             "appId" => _instanceContext.AppId,
             "instanceId" => _instanceContext.Id,
-            "instanceOwnerPartyType" =>
-            (
-                !string.IsNullOrWhiteSpace(_instanceContext.InstanceOwner.OrganisationNumber)
-                ? "org"
-                : !string.IsNullOrWhiteSpace(_instanceContext.InstanceOwner.PersonNumber)
-                ? "person"
-                : !string.IsNullOrWhiteSpace(_instanceContext.InstanceOwner.Username)
-                ? "selfIdentified"
-                : "unknown"
-            ),
+            "instanceOwnerPartyType"
+                => (
+                    !string.IsNullOrWhiteSpace(_instanceContext.InstanceOwner.OrganisationNumber)
+                        ? "org"
+                        : !string.IsNullOrWhiteSpace(_instanceContext.InstanceOwner.PersonNumber)
+                            ? "person"
+                            : !string.IsNullOrWhiteSpace(_instanceContext.InstanceOwner.Username)
+                                ? "selfIdentified"
+                                : "unknown"
+                ),
             _ => throw new ExpressionEvaluatorTypeErrorException($"Unknown Instance context property {key}"),
         };
     }
@@ -283,7 +306,9 @@ public class LayoutEvaluatorState
         {
             if (expr.Args.Count != 1 || expr.Args[0].Value is not string binding)
             {
-                errors.Add($"function \"dataModel\" requires a single string argument on component {component.PageId}.{component.Id}");
+                errors.Add(
+                    $"function \"dataModel\" requires a single string argument on component {component.PageId}.{component.Id}"
+                );
                 return;
             }
             if (!_dataModel.VerifyKey(binding))
@@ -313,7 +338,11 @@ public class LayoutEvaluatorState
         var hidden = parentIsHidden || ExpressionEvaluator.EvaluateBooleanExpression(this, context, "hidden", false);
         context.IsHidden = hidden;
 
-        if (context.Component is RepeatingGroupComponent repGroup && context.RowLength is not null && repGroup.HiddenRow is not null)
+        if (
+            context.Component is RepeatingGroupComponent repGroup
+            && context.RowLength is not null
+            && repGroup.HiddenRow is not null
+        )
         {
             var hiddenRows = new List<int>();
             foreach (var index in Enumerable.Range(0, context.RowLength.Value))
@@ -329,7 +358,6 @@ public class LayoutEvaluatorState
             }
             context.HiddenRows = hiddenRows.ToArray();
         }
-
 
         foreach (var childContext in context.ChildContexts)
         {

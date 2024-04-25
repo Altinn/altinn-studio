@@ -13,6 +13,7 @@ public class ServiceResult<T, TU>
     /// The value returned when the result is Ok
     /// </summary>
     public T? Ok { get; }
+
     /// <summary>
     /// The error returned when the result is an error
     /// </summary>

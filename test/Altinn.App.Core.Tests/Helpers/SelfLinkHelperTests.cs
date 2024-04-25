@@ -1,8 +1,6 @@
 ﻿using Altinn.App.Core.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
-
 using Microsoft.AspNetCore.Http;
-
 using Moq;
 using Xunit;
 
@@ -17,11 +15,7 @@ namespace Altinn.App.Core.Tests.Helpers
         {
             // Arrange
             Guid instanceGuid = Guid.NewGuid();
-            Instance instance = new()
-            {
-                Id = $"{partyId}/{instanceGuid}",
-                AppId = appId
-            };
+            Instance instance = new() { Id = $"{partyId}/{instanceGuid}", AppId = appId };
 
             Mock<HttpRequest> requestMock = new();
             requestMock.Setup(r => r.Host).Returns(new HostString(host));

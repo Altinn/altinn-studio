@@ -12,11 +12,11 @@ public static class AppOptionsServiceExtentions
     /// </summary>
     public static void AddJoinedAppOptions(this IServiceCollection services, string id, params string[] subLists)
     {
-        services.AddTransient<IAppOptionsProvider>(sp =>
-            new JoinedAppOptionsProvider(
-                id,
-                subLists,
-                sp.GetRequiredService<AppOptionsFactory>));
+        services.AddTransient<IAppOptionsProvider>(sp => new JoinedAppOptionsProvider(
+            id,
+            subLists,
+            sp.GetRequiredService<AppOptionsFactory>
+        ));
         // Note the missing () on GetRequiredService in order to inject a function that captures the service collection
         // to lazily initialize the option provider list to avoid a cyclic depencency.
     }

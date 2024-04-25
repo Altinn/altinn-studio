@@ -45,7 +45,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
             IAccessTokenGenerator accessTokenGenerator,
             IAppMetadata appMetadata,
             IOptionsMonitor<AppSettings> settings,
-            IOptions<GeneralSettings> generalSettings)
+            IOptions<GeneralSettings> generalSettings
+        )
         {
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;
@@ -53,7 +54,10 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
             _accessTokenGenerator = accessTokenGenerator;
             _appMetadata = appMetadata;
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiEventsEndpoint);
-            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
+            httpClient.DefaultRequestHeaders.Add(
+                General.SubscriptionKeyHeaderName,
+                platformSettings.Value.SubscriptionKey
+            );
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _client = httpClient;
         }
@@ -86,8 +90,10 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
             Application app = await _appMetadata.GetApplicationMetadata();
             string accessToken = _accessTokenGenerator.GenerateAccessToken(app?.Org, app?.Id.Split("/")[1]);
 
-            string token =
-                JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+            string token = JwtTokenUtil.GetTokenFromContext(
+                _httpContextAccessor.HttpContext,
+                _settings.RuntimeCookieName
+            );
 
             string serializedCloudEvent = JsonSerializer.Serialize(cloudEvent);
 
@@ -95,7 +101,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
                 token,
                 "app",
                 new StringContent(serializedCloudEvent, Encoding.UTF8, "application/json"),
-                accessToken);
+                accessToken
+            );
 
             if (response.IsSuccessStatusCode)
             {

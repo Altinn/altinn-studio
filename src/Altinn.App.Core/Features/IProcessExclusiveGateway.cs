@@ -5,7 +5,7 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Features;
 
 /// <summary>
-/// Interface for defining custom decision logic for exclusive gateways 
+/// Interface for defining custom decision logic for exclusive gateways
 /// </summary>
 public interface IProcessExclusiveGateway
 {
@@ -21,5 +21,9 @@ public interface IProcessExclusiveGateway
     /// <param name="instance">Instance where process is about to move next</param>
     /// <param name="processGatewayInformation">Information connected with the current gateway under evaluation</param>
     /// <returns>List of possible SequenceFlows to choose out of the gateway</returns>
-    public Task<List<SequenceFlow>> FilterAsync(List<SequenceFlow> outgoingFlows, Instance instance, ProcessGatewayInformation processGatewayInformation);
+    public Task<List<SequenceFlow>> FilterAsync(
+        List<SequenceFlow> outgoingFlows,
+        Instance instance,
+        ProcessGatewayInformation processGatewayInformation
+    );
 }

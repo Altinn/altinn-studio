@@ -12,10 +12,8 @@ namespace Altinn.App.Api.Controllers
     [ApiController]
     public class ApplicationSettingsController : ControllerBase
     {
-        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-        {
-            DictionaryKeyPolicy = JsonNamingPolicy.CamelCase
-        };
+        private static readonly JsonSerializerOptions _jsonSerializerOptions =
+            new() { DictionaryKeyPolicy = JsonNamingPolicy.CamelCase };
 
         private readonly AppSettings _appSettings;
         private readonly FrontEndSettings _frontEndSettings;
@@ -23,7 +21,10 @@ namespace Altinn.App.Api.Controllers
         /// <summary>
         /// Controller that exposes a subset of app setings
         /// </summary>
-        public ApplicationSettingsController(IOptions<AppSettings> appSettings, IOptions<FrontEndSettings> frontEndSettings)
+        public ApplicationSettingsController(
+            IOptions<AppSettings> appSettings,
+            IOptions<FrontEndSettings> frontEndSettings
+        )
         {
             _appSettings = appSettings.Value;
             _frontEndSettings = frontEndSettings.Value;
@@ -38,7 +39,10 @@ namespace Altinn.App.Api.Controllers
             FrontEndSettings frontEndSettings = _frontEndSettings;
 
             // Adding key from _appSettings to be backwards compatible.
-            if (!frontEndSettings.ContainsKey(nameof(_appSettings.AppOidcProvider)) && !string.IsNullOrEmpty(_appSettings.AppOidcProvider))
+            if (
+                !frontEndSettings.ContainsKey(nameof(_appSettings.AppOidcProvider))
+                && !string.IsNullOrEmpty(_appSettings.AppOidcProvider)
+            )
             {
                 frontEndSettings.Add(nameof(_appSettings.AppOidcProvider), _appSettings.AppOidcProvider);
             }

@@ -2,23 +2,21 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Text;
+using System.Xml;
 using System.Xml.Serialization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
-using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Helpers.Serialization;
+using Altinn.App.Core.Internal.Auth;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
-
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-
 using Newtonsoft.Json;
-using System.Xml;
-using Altinn.App.Core.Internal.Auth;
-using Altinn.App.Core.Internal.Data;
 
 namespace Altinn.App.Core.Infrastructure.Clients.Storage
 {
@@ -43,7 +41,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             IOptions<PlatformSettings> platformSettings,
             ILogger<DataClient> logger,
             HttpClient httpClient,
-            IUserTokenProvider userTokenProvider)
+            IUserTokenProvider userTokenProvider
+        )
         {
             _platformSettings = platformSettings.Value;
             _logger = logger;
@@ -57,18 +56,28 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         }
 
         /// <inheritdoc />
-        public async Task<DataElement> InsertFormData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, string dataType)
+        public async Task<DataElement> InsertFormData<T>(
+            T dataToSerialize,
+            Guid instanceGuid,
+            Type type,
+            string org,
+            string app,
+            int instanceOwnerPartyId,
+            string dataType
+        )
         {
-            Instance instance = new Instance
-            {
-                Id = $"{instanceOwnerPartyId}/{instanceGuid}",
-            };
+            Instance instance = new Instance { Id = $"{instanceOwnerPartyId}/{instanceGuid}", };
 
             return await InsertFormData(instance, dataType, dataToSerialize, type);
         }
 
         /// <inheritdoc />
-        public async Task<DataElement> InsertFormData<T>(Instance instance, string dataType, T dataToSerialize, Type type)
+        public async Task<DataElement> InsertFormData<T>(
+            Instance instance,
+            string dataType,
+            T dataToSerialize,
+            Type type
+        )
         {
             string apiUrl = $"instances/{instance.Id}/data?dataType={dataType}";
             string token = _userTokenProvider.GetUserToken();
@@ -90,12 +99,25 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
                 return dataElement;
             }
 
-            _logger.Log(LogLevel.Error, "unable to save form data for instance{0} due to response {1}", instance.Id, response.StatusCode);
+            _logger.Log(
+                LogLevel.Error,
+                "unable to save form data for instance{0} due to response {1}",
+                instance.Id,
+                response.StatusCode
+            );
             throw await PlatformHttpException.CreateAsync(response);
         }
 
         /// <inheritdoc />
-        public async Task<DataElement> UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, Guid dataId)
+        public async Task<DataElement> UpdateData<T>(
+            T dataToSerialize,
+            Guid instanceGuid,
+            Type type,
+            string org,
+            string app,
+            int instanceOwnerPartyId,
+            Guid dataId
+        )
         {
             string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
@@ -136,7 +158,13 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         }
 
         /// <inheritdoc />
-        public async Task<Stream> GetBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataId)
+        public async Task<Stream> GetBinaryData(
+            string org,
+            string app,
+            int instanceOwnerPartyId,
+            Guid instanceGuid,
+            Guid dataId
+        )
         {
             string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
@@ -158,7 +186,14 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         }
 
         /// <inheritdoc />
-        public async Task<object> GetFormData(Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, Guid dataId)
+        public async Task<object> GetFormData(
+            Guid instanceGuid,
+            Type type,
+            string org,
+            string app,
+            int instanceOwnerPartyId,
+            Guid dataId
+        )
         {
             string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
@@ -174,7 +209,10 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
                 if (deserializer.Error != null || model is null)
                 {
                     _logger.LogError($"Cannot deserialize XML form data read from storage: {deserializer.Error}");
-                    throw new ServiceException(HttpStatusCode.Conflict, $"Cannot deserialize XML form data from storage {deserializer.Error}");
+                    throw new ServiceException(
+                        HttpStatusCode.Conflict,
+                        $"Cannot deserialize XML form data from storage {deserializer.Error}"
+                    );
                 }
 
                 return model;
@@ -184,7 +222,12 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         }
 
         /// <inheritdoc />
-        public async Task<List<AttachmentList>> GetBinaryDataList(string org, string app, int instanceOwnerPartyId, Guid instanceGuid)
+        public async Task<List<AttachmentList>> GetBinaryDataList(
+            string org,
+            string app,
+            int instanceOwnerPartyId,
+            Guid instanceGuid
+        )
         {
             string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/dataelements";
@@ -221,18 +264,22 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
                 {
                     if (data.DataType != "default" && data.DataType == attachmentType.DataType)
                     {
-                        attachments.Add(new Attachment
-                        {
-                            Id = data.Id,
-                            Name = data.Filename,
-                            Size = data.Size,
-                        });
+                        attachments.Add(
+                            new Attachment
+                            {
+                                Id = data.Id,
+                                Name = data.Filename,
+                                Size = data.Size,
+                            }
+                        );
                     }
                 }
 
                 if (attachments.Count > 0)
                 {
-                    attachmentList.Add(new AttachmentList { Type = attachmentType.DataType, Attachments = attachments });
+                    attachmentList.Add(
+                        new AttachmentList { Type = attachmentType.DataType, Attachments = attachments }
+                    );
                 }
             }
 
@@ -243,13 +290,26 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         }
 
         /// <inheritdoc />
-        public async Task<bool> DeleteBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid)
+        public async Task<bool> DeleteBinaryData(
+            string org,
+            string app,
+            int instanceOwnerPartyId,
+            Guid instanceGuid,
+            Guid dataGuid
+        )
         {
             return await DeleteData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, false);
         }
 
         /// <inheritdoc />
-        public async Task<bool> DeleteData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, bool delay)
+        public async Task<bool> DeleteData(
+            string org,
+            string app,
+            int instanceOwnerPartyId,
+            Guid instanceGuid,
+            Guid dataGuid,
+            bool delay
+        )
         {
             string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataGuid}?delay={delay}";
@@ -262,15 +322,25 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
                 return true;
             }
 
-            _logger.LogError($"Deleting data element {dataGuid} for instance {instanceIdentifier} failed with status code {response.StatusCode}");
+            _logger.LogError(
+                $"Deleting data element {dataGuid} for instance {instanceIdentifier} failed with status code {response.StatusCode}"
+            );
             throw await PlatformHttpException.CreateAsync(response);
         }
 
         /// <inheritdoc />
-        public async Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, string dataType, HttpRequest request)
+        public async Task<DataElement> InsertBinaryData(
+            string org,
+            string app,
+            int instanceOwnerPartyId,
+            Guid instanceGuid,
+            string dataType,
+            HttpRequest request
+        )
         {
             string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
-            string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data?dataType={dataType}";
+            string apiUrl =
+                $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data?dataType={dataType}";
             string token = _userTokenProvider.GetUserToken();
             DataElement dataElement;
 
@@ -286,12 +356,21 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
                 return dataElement;
             }
 
-            _logger.LogError($"Storing attachment for instance {instanceGuid} failed with status code {response.StatusCode}");
+            _logger.LogError(
+                $"Storing attachment for instance {instanceGuid} failed with status code {response.StatusCode}"
+            );
             throw await PlatformHttpException.CreateAsync(response);
         }
 
         /// <inheritdoc />
-        public async Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string? filename, Stream stream, string? generatedFromTask = null)
+        public async Task<DataElement> InsertBinaryData(
+            string instanceId,
+            string dataType,
+            string contentType,
+            string? filename,
+            Stream stream,
+            string? generatedFromTask = null
+        )
         {
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceId}/data?dataType={dataType}";
             if (!string.IsNullOrEmpty(generatedFromTask))
@@ -322,12 +401,21 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
                 return dataElement;
             }
 
-            _logger.LogError($"Storing attachment for instance {instanceId} failed with status code {response.StatusCode} - content {await response.Content.ReadAsStringAsync()}");
+            _logger.LogError(
+                $"Storing attachment for instance {instanceId} failed with status code {response.StatusCode} - content {await response.Content.ReadAsStringAsync()}"
+            );
             throw await PlatformHttpException.CreateAsync(response);
         }
 
         /// <inheritdoc />
-        public async Task<DataElement> UpdateBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, HttpRequest request)
+        public async Task<DataElement> UpdateBinaryData(
+            string org,
+            string app,
+            int instanceOwnerPartyId,
+            Guid instanceGuid,
+            Guid dataGuid,
+            HttpRequest request
+        )
         {
             string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}";
@@ -345,12 +433,20 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
                 return dataElement;
             }
 
-            _logger.LogError($"Updating attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}");
+            _logger.LogError(
+                $"Updating attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}"
+            );
             throw await PlatformHttpException.CreateAsync(response);
         }
 
         /// <inheritdoc />
-        public async Task<DataElement> UpdateBinaryData(InstanceIdentifier instanceIdentifier, string? contentType, string filename, Guid dataGuid, Stream stream)
+        public async Task<DataElement> UpdateBinaryData(
+            InstanceIdentifier instanceIdentifier,
+            string? contentType,
+            string filename,
+            Guid dataGuid,
+            Stream stream
+        )
         {
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}";
             string token = _userTokenProvider.GetUserToken();
@@ -376,15 +472,22 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         /// <inheritdoc />
         public async Task<DataElement> Update(Instance instance, DataElement dataElement)
         {
-            string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instance.Id}/dataelements/{dataElement.Id}";
+            string apiUrl =
+                $"{_platformSettings.ApiStorageEndpoint}instances/{instance.Id}/dataelements/{dataElement.Id}";
             string token = _userTokenProvider.GetUserToken();
 
-            StringContent jsonString = new StringContent(JsonConvert.SerializeObject(dataElement), Encoding.UTF8, "application/json");
+            StringContent jsonString = new StringContent(
+                JsonConvert.SerializeObject(dataElement),
+                Encoding.UTF8,
+                "application/json"
+            );
             HttpResponseMessage response = await _client.PutAsync(token, apiUrl, jsonString);
 
             if (response.IsSuccessStatusCode)
             {
-                DataElement result = JsonConvert.DeserializeObject<DataElement>(await response.Content.ReadAsStringAsync())!;
+                DataElement result = JsonConvert.DeserializeObject<DataElement>(
+                    await response.Content.ReadAsStringAsync()
+                )!;
 
                 return result;
             }
@@ -395,32 +498,58 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         /// <inheritdoc />
         public async Task<DataElement> LockDataElement(InstanceIdentifier instanceIdentifier, Guid dataGuid)
         {
-            string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}/lock";
+            string apiUrl =
+                $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}/lock";
             string token = _userTokenProvider.GetUserToken();
-            _logger.LogDebug("Locking data element {DataGuid} for instance {InstanceIdentifier} URL: {Url}", dataGuid, instanceIdentifier, apiUrl);
+            _logger.LogDebug(
+                "Locking data element {DataGuid} for instance {InstanceIdentifier} URL: {Url}",
+                dataGuid,
+                instanceIdentifier,
+                apiUrl
+            );
             HttpResponseMessage response = await _client.PutAsync(token, apiUrl, content: null);
             if (response.IsSuccessStatusCode)
             {
-                DataElement result = JsonConvert.DeserializeObject<DataElement>(await response.Content.ReadAsStringAsync())!;
+                DataElement result = JsonConvert.DeserializeObject<DataElement>(
+                    await response.Content.ReadAsStringAsync()
+                )!;
                 return result;
             }
-            _logger.LogError("Locking data element {DataGuid} for instance {InstanceIdentifier} failed with status code {StatusCode}", dataGuid, instanceIdentifier, response.StatusCode);
+            _logger.LogError(
+                "Locking data element {DataGuid} for instance {InstanceIdentifier} failed with status code {StatusCode}",
+                dataGuid,
+                instanceIdentifier,
+                response.StatusCode
+            );
             throw await PlatformHttpException.CreateAsync(response);
         }
 
         /// <inheritdoc />
         public async Task<DataElement> UnlockDataElement(InstanceIdentifier instanceIdentifier, Guid dataGuid)
         {
-            string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}/lock";
+            string apiUrl =
+                $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}/lock";
             string token = _userTokenProvider.GetUserToken();
-            _logger.LogDebug("Unlocking data element {DataGuid} for instance {InstanceIdentifier} URL: {Url}", dataGuid, instanceIdentifier, apiUrl);
+            _logger.LogDebug(
+                "Unlocking data element {DataGuid} for instance {InstanceIdentifier} URL: {Url}",
+                dataGuid,
+                instanceIdentifier,
+                apiUrl
+            );
             HttpResponseMessage response = await _client.DeleteAsync(token, apiUrl);
             if (response.IsSuccessStatusCode)
             {
-                DataElement result = JsonConvert.DeserializeObject<DataElement>(await response.Content.ReadAsStringAsync())!;
+                DataElement result = JsonConvert.DeserializeObject<DataElement>(
+                    await response.Content.ReadAsStringAsync()
+                )!;
                 return result;
             }
-            _logger.LogError("Unlocking data element {DataGuid} for instance {InstanceIdentifier} failed with status code {StatusCode}", dataGuid, instanceIdentifier, response.StatusCode);
+            _logger.LogError(
+                "Unlocking data element {DataGuid} for instance {InstanceIdentifier} failed with status code {StatusCode}",
+                dataGuid,
+                instanceIdentifier,
+                response.StatusCode
+            );
             throw await PlatformHttpException.CreateAsync(response);
         }
     }

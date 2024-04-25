@@ -35,7 +35,8 @@ namespace Altinn.App.Api.Controllers
         public async Task<IActionResult> Get(
             [FromRoute] string optionsId,
             [FromQuery] Dictionary<string, string> queryParams,
-            [FromQuery] string? language = null)
+            [FromQuery] string? language = null
+        )
         {
             AppOptions appOptions = await _appOptionsService.GetOptionsAsync(optionsId, language, queryParams);
             if (appOptions?.Options == null)
@@ -43,7 +44,10 @@ namespace Altinn.App.Api.Controllers
                 return NotFound();
             }
 
-            HttpContext.Response.Headers.Append("Altinn-DownstreamParameters", appOptions.Parameters.ToUrlEncodedNameValueString(','));
+            HttpContext.Response.Headers.Append(
+                "Altinn-DownstreamParameters",
+                appOptions.Parameters.ToUrlEncodedNameValueString(',')
+            );
 
             return Ok(appOptions.Options);
         }
@@ -71,11 +75,17 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] Guid instanceGuid,
             [FromRoute] string optionsId,
             [FromQuery] string? language,
-            [FromQuery] Dictionary<string, string> queryParams)
+            [FromQuery] Dictionary<string, string> queryParams
+        )
         {
             var instanceIdentifier = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
 
-            AppOptions appOptions = await _appOptionsService.GetOptionsAsync(instanceIdentifier, optionsId, language ?? "nb", queryParams);
+            AppOptions appOptions = await _appOptionsService.GetOptionsAsync(
+                instanceIdentifier,
+                optionsId,
+                language ?? "nb",
+                queryParams
+            );
 
             // Only return NotFound if we can't find an options provider.
             // If we find the options provider, but it doesnt' have values, return empty list.
@@ -84,7 +94,10 @@ namespace Altinn.App.Api.Controllers
                 return NotFound();
             }
 
-            HttpContext.Response.Headers.Append("Altinn-DownstreamParameters", appOptions.Parameters.ToUrlEncodedNameValueString(','));
+            HttpContext.Response.Headers.Append(
+                "Altinn-DownstreamParameters",
+                appOptions.Parameters.ToUrlEncodedNameValueString(',')
+            );
 
             return Ok(appOptions.Options);
         }

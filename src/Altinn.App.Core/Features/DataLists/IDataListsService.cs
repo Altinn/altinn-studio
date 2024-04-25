@@ -1,9 +1,9 @@
-﻿using Altinn.App.Core.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.App.Core.Models;
 
 namespace Altinn.App.Core.Features.DataLists
 {
@@ -31,6 +31,11 @@ namespace Altinn.App.Core.Features.DataLists
         /// <param name="language">The language code requested.</param>
         /// <param name="keyValuePairs">Optional list of key/value pairs to use for filtering and further lookup.</param>
         /// <returns>The list of options</returns>
-        Task<DataList> GetDataListAsync(InstanceIdentifier instanceIdentifier, string dataListId, string? language, Dictionary<string, string> keyValuePairs);
+        Task<DataList> GetDataListAsync(
+            InstanceIdentifier instanceIdentifier,
+            string dataListId,
+            string? language,
+            Dictionary<string, string> keyValuePairs
+        );
     }
 }

@@ -1,5 +1,4 @@
 using System.Security.Claims;
-
 using AltinnCore.Authentication.Constants;
 
 namespace Altinn.App.Core.Extensions
@@ -32,8 +31,7 @@ namespace Altinn.App.Core.Extensions
         /// <summary>
         /// Get the org identifier string or null if it is not an org.
         /// </summary>
-        public static string? GetOrg(this ClaimsPrincipal user) =>
-            user.GetFirstOfType(AltinnCoreClaimTypes.Org);
+        public static string? GetOrg(this ClaimsPrincipal user) => user.GetFirstOfType(AltinnCoreClaimTypes.Org);
 
         /// <summary>
         /// Returns the organisation number of an org user or null if claim does not exist.

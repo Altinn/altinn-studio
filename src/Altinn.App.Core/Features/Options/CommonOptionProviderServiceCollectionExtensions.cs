@@ -32,14 +32,33 @@ namespace Altinn.App.Core.Features.Options
         /// <param name="filter">Filter function in case you only want a subset of the altinn2 codelist</param>
         /// <param name="metadataApiId">id for use in altinn2 api (will use <paramref name="id"/>, if this is null)</param>
         /// <param name="codeListVersion">version of the code list in the altinn2 metadata api</param>
-        public static IServiceCollection AddAltinn2CodeList(this IServiceCollection serviceCollection, string id, Func<MetadataCodeListCodes, AppOption> transform, Func<MetadataCodeListCodes, bool>? filter = null, string? metadataApiId = null, int? codeListVersion = null)
+        public static IServiceCollection AddAltinn2CodeList(
+            this IServiceCollection serviceCollection,
+            string id,
+            Func<MetadataCodeListCodes, AppOption> transform,
+            Func<MetadataCodeListCodes, bool>? filter = null,
+            string? metadataApiId = null,
+            int? codeListVersion = null
+        )
         {
-            if (!serviceCollection.Any(serviceDescriptor => serviceDescriptor.ServiceType == typeof(Altinn2MetadataApiClient)))
+            if (
+                !serviceCollection.Any(serviceDescriptor =>
+                    serviceDescriptor.ServiceType == typeof(Altinn2MetadataApiClient)
+                )
+            )
             {
                 serviceCollection.AddHttpClient<Altinn2MetadataApiClient>();
             }
 
-            serviceCollection.AddTransient<IAppOptionsProvider>(sp => new Altinn2CodeListProvider(sp.GetRequiredService<IMemoryCache>(), sp.GetRequiredService<Altinn2MetadataApiClient>(), id, transform, filter, metadataApiId, codeListVersion));
+            serviceCollection.AddTransient<IAppOptionsProvider>(sp => new Altinn2CodeListProvider(
+                sp.GetRequiredService<IMemoryCache>(),
+                sp.GetRequiredService<Altinn2MetadataApiClient>(),
+                id,
+                transform,
+                filter,
+                metadataApiId,
+                codeListVersion
+            ));
             return serviceCollection;
         }
     }

@@ -53,8 +53,8 @@ public class LayoutModel
             var node = nodes.Pop();
             yield return node;
             if (node is GroupComponent groupNode)
-                foreach (var n in groupNode.Children) nodes.Push(n);
+                foreach (var n in groupNode.Children)
+                    nodes.Push(n);
         }
     }
 }
-

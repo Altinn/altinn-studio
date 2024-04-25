@@ -1,6 +1,5 @@
 using Altinn.App.Core.Internal.Secrets;
 using AltinnCore.Authentication.Constants;
-
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Azure.KeyVault.WebKey;
@@ -25,9 +24,10 @@ namespace Altinn.App.Core.Infrastructure.Clients.KeyVault
         /// </param>
         public SecretsClient(IOptions<KeyVaultSettings> keyVaultSettings)
         {
-            string connectionString = $"RunAs=App;AppId={keyVaultSettings.Value.ClientId};" +
-                                 $"TenantId={keyVaultSettings.Value.TenantId};" +
-                                 $"AppKey={keyVaultSettings.Value.ClientSecret}";
+            string connectionString =
+                $"RunAs=App;AppId={keyVaultSettings.Value.ClientId};"
+                + $"TenantId={keyVaultSettings.Value.TenantId};"
+                + $"AppKey={keyVaultSettings.Value.ClientSecret}";
             _vaultUri = keyVaultSettings.Value.SecretUri;
             _azureServiceTokenProvider = new AzureServiceTokenProvider(connectionString);
         }
@@ -35,7 +35,9 @@ namespace Altinn.App.Core.Infrastructure.Clients.KeyVault
         /// <inheritdoc />
         public async Task<byte[]> GetCertificateAsync(string certificateName)
         {
-            using KeyVaultClient client = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(_azureServiceTokenProvider.KeyVaultTokenCallback));
+            using KeyVaultClient client = new KeyVaultClient(
+                new KeyVaultClient.AuthenticationCallback(_azureServiceTokenProvider.KeyVaultTokenCallback)
+            );
             CertificateBundle cert = await client.GetCertificateAsync(_vaultUri, certificateName);
 
             return cert.Cer;
@@ -44,7 +46,9 @@ namespace Altinn.App.Core.Infrastructure.Clients.KeyVault
         /// <inheritdoc />
         public async Task<JsonWebKey> GetKeyAsync(string keyName)
         {
-            using KeyVaultClient client = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(_azureServiceTokenProvider.KeyVaultTokenCallback));
+            using KeyVaultClient client = new KeyVaultClient(
+                new KeyVaultClient.AuthenticationCallback(_azureServiceTokenProvider.KeyVaultTokenCallback)
+            );
             KeyBundle kb = await client.GetKeyAsync(_vaultUri, keyName);
 
             return kb.Key;
@@ -53,14 +57,18 @@ namespace Altinn.App.Core.Infrastructure.Clients.KeyVault
         /// <inheritdoc />
         public KeyVaultClient GetKeyVaultClient()
         {
-            KeyVaultClient client = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(_azureServiceTokenProvider.KeyVaultTokenCallback));
+            KeyVaultClient client = new KeyVaultClient(
+                new KeyVaultClient.AuthenticationCallback(_azureServiceTokenProvider.KeyVaultTokenCallback)
+            );
             return client;
         }
 
         /// <inheritdoc />
         public async Task<string> GetSecretAsync(string secretName)
         {
-            using KeyVaultClient client = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(_azureServiceTokenProvider.KeyVaultTokenCallback));
+            using KeyVaultClient client = new KeyVaultClient(
+                new KeyVaultClient.AuthenticationCallback(_azureServiceTokenProvider.KeyVaultTokenCallback)
+            );
             SecretBundle sb = await client.GetSecretAsync(_vaultUri, secretName);
 
             return sb.Value;

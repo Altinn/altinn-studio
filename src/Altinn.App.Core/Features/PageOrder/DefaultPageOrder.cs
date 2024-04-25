@@ -21,7 +21,14 @@ namespace Altinn.App.Core.Features.PageOrder
         }
 
         /// <inheritdoc />
-        public async Task<List<string>> GetPageOrder(AppIdentifier appIdentifier, InstanceIdentifier instanceIdentifier, string layoutSetId, string currentPage, string dataTypeId, object formData)
+        public async Task<List<string>> GetPageOrder(
+            AppIdentifier appIdentifier,
+            InstanceIdentifier instanceIdentifier,
+            string layoutSetId,
+            string currentPage,
+            string dataTypeId,
+            object formData
+        )
         {
             LayoutSettings? layoutSettings;
 

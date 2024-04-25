@@ -1,9 +1,9 @@
-﻿using Altinn.App.Core.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.App.Core.Models;
 
 namespace Altinn.App.Core.Features.DataLists
 {

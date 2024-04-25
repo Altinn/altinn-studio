@@ -12,6 +12,7 @@ public class MimeType
     /// The mime type
     /// </summary>
     public string Type { get; }
+
     /// <summary>
     /// The aliases for the mime type
     /// </summary>
@@ -35,7 +36,11 @@ public class MimeType
     /// <param name="comparisonType"><see cref="StringComparison"/> to use for checking equality to type. Default: <see cref="StringComparison.InvariantCultureIgnoreCase"/></param>
     /// <param name="comparer"><see cref="IEqualityComparer"/> to use for checking equality to aliases. Default: <see cref="StringComparer.InvariantCultureIgnoreCase"/></param>
     /// <returns>true if type or any aliases matches the string in mimeType</returns>
-    public bool IsMatch(string mimeType, StringComparison comparisonType = StringComparison.InvariantCultureIgnoreCase, IEqualityComparer<string>? comparer = null)
+    public bool IsMatch(
+        string mimeType,
+        StringComparison comparisonType = StringComparison.InvariantCultureIgnoreCase,
+        IEqualityComparer<string>? comparer = null
+    )
     {
         if (Type.Equals(mimeType, comparisonType))
         {
@@ -64,7 +69,6 @@ public class MimeType
         return other != null && Type == other.Type && Aliases.SequenceEqual(other.Aliases);
     }
 
-
     /// <summary>
     /// Check if the mime type matches the given object
     /// Supported types are:
@@ -76,9 +80,14 @@ public class MimeType
     /// <param name="comparisonType"><see cref="StringComparison"/> to use for checking equality to type. Default: <see cref="StringComparison.InvariantCultureIgnoreCase"/></param>
     /// <param name="comparer"><see cref="IEqualityComparer"/> to use for checking equality to aliases. Default: <see cref="StringComparer.InvariantCultureIgnoreCase"/></param>
     /// <returns>true if type or any aliases matches</returns>
-    public bool Equals(object? obj, StringComparison comparisonType = StringComparison.InvariantCultureIgnoreCase, IEqualityComparer<string>? comparer = null)
+    public bool Equals(
+        object? obj,
+        StringComparison comparisonType = StringComparison.InvariantCultureIgnoreCase,
+        IEqualityComparer<string>? comparer = null
+    )
     {
-        if (obj is null) return false;
+        if (obj is null)
+            return false;
 
         return obj switch
         {

@@ -37,7 +37,14 @@ public class UniqueSignatureAuthorizerTests : IDisposable
     {
         ProcessElement processTask = new ProcessTask();
         UniqueSignatureAuthorizer authorizer = CreateUniqueSignatureAuthorizer(processTask);
-        bool result = await authorizer.AuthorizeAction(new UserActionAuthorizerContext(new ClaimsPrincipal(), new InstanceIdentifier("500001/abba2e90-f86f-4881-b0e8-38334408bcb4"), "Task_2", "sign"));
+        bool result = await authorizer.AuthorizeAction(
+            new UserActionAuthorizerContext(
+                new ClaimsPrincipal(),
+                new InstanceIdentifier("500001/abba2e90-f86f-4881-b0e8-38334408bcb4"),
+                "Task_2",
+                "sign"
+            )
+        );
         _processReaderMock.Verify(p => p.GetFlowElement("Task_2"));
         result.Should().BeTrue();
     }
@@ -47,7 +54,14 @@ public class UniqueSignatureAuthorizerTests : IDisposable
     {
         ProcessElement? processTask = null;
         UniqueSignatureAuthorizer authorizer = CreateUniqueSignatureAuthorizer(processTask);
-        bool result = await authorizer.AuthorizeAction(new UserActionAuthorizerContext(new ClaimsPrincipal(), new InstanceIdentifier("500001/abba2e90-f86f-4881-b0e8-38334408bcb4"), "Task_2", "sign"));
+        bool result = await authorizer.AuthorizeAction(
+            new UserActionAuthorizerContext(
+                new ClaimsPrincipal(),
+                new InstanceIdentifier("500001/abba2e90-f86f-4881-b0e8-38334408bcb4"),
+                "Task_2",
+                "sign"
+            )
+        );
         _processReaderMock.Verify(p => p.GetFlowElement("Task_2"));
         result.Should().BeTrue();
     }
@@ -57,23 +71,28 @@ public class UniqueSignatureAuthorizerTests : IDisposable
     {
         ProcessElement processTask = new ProcessTask()
         {
-            ExtensionElements = new()
-            {
-                TaskExtension = new()
-                {
-                    SignatureConfiguration = null
-                }
-            }
+            ExtensionElements = new() { TaskExtension = new() { SignatureConfiguration = null } }
         };
         UniqueSignatureAuthorizer authorizer = CreateUniqueSignatureAuthorizer(processTask);
-        var user = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>()
-        {
-            new(AltinnCoreClaimTypes.UserId, "1000"),
-            new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
-            new(AltinnCoreClaimTypes.Org, "tdd")
-        }));
+        var user = new ClaimsPrincipal(
+            new ClaimsIdentity(
+                new List<Claim>()
+                {
+                    new(AltinnCoreClaimTypes.UserId, "1000"),
+                    new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
+                    new(AltinnCoreClaimTypes.Org, "tdd")
+                }
+            )
+        );
 
-        bool result = await authorizer.AuthorizeAction(new UserActionAuthorizerContext(user, new InstanceIdentifier("500001/abba2e90-f86f-4881-b0e8-38334408bcb4"), "Task_2", "sign"));
+        bool result = await authorizer.AuthorizeAction(
+            new UserActionAuthorizerContext(
+                user,
+                new InstanceIdentifier("500001/abba2e90-f86f-4881-b0e8-38334408bcb4"),
+                "Task_2",
+                "sign"
+            )
+        );
         _processReaderMock.Verify(p => p.GetFlowElement("Task_2"));
         result.Should().BeTrue();
     }
@@ -81,22 +100,27 @@ public class UniqueSignatureAuthorizerTests : IDisposable
     [Fact]
     public async Task AuthorizeAction_returns_true_if_TaskExtension_is_null()
     {
-        ProcessElement processTask = new ProcessTask()
-        {
-            ExtensionElements = new()
-            {
-                TaskExtension = null
-            }
-        };
+        ProcessElement processTask = new ProcessTask() { ExtensionElements = new() { TaskExtension = null } };
         UniqueSignatureAuthorizer authorizer = CreateUniqueSignatureAuthorizer(processTask);
-        var user = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>()
-        {
-            new(AltinnCoreClaimTypes.UserId, "1000"),
-            new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
-            new(AltinnCoreClaimTypes.Org, "tdd")
-        }));
+        var user = new ClaimsPrincipal(
+            new ClaimsIdentity(
+                new List<Claim>()
+                {
+                    new(AltinnCoreClaimTypes.UserId, "1000"),
+                    new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
+                    new(AltinnCoreClaimTypes.Org, "tdd")
+                }
+            )
+        );
 
-        bool result = await authorizer.AuthorizeAction(new UserActionAuthorizerContext(user, new InstanceIdentifier("500001/abba2e90-f86f-4881-b0e8-38334408bcb4"), "Task_2", "sign"));
+        bool result = await authorizer.AuthorizeAction(
+            new UserActionAuthorizerContext(
+                user,
+                new InstanceIdentifier("500001/abba2e90-f86f-4881-b0e8-38334408bcb4"),
+                "Task_2",
+                "sign"
+            )
+        );
         _processReaderMock.Verify(p => p.GetFlowElement("Task_2"));
         result.Should().BeTrue();
     }
@@ -110,29 +134,44 @@ public class UniqueSignatureAuthorizerTests : IDisposable
             {
                 TaskExtension = new()
                 {
-                    SignatureConfiguration = new()
-                    {
-                        UniqueFromSignaturesInDataTypes = new()
-                        {
-                            "signature"
-                        }
-                    }
+                    SignatureConfiguration = new() { UniqueFromSignaturesInDataTypes = new() { "signature" } }
                 }
             }
         };
         UniqueSignatureAuthorizer authorizer = CreateUniqueSignatureAuthorizer(processTask);
-        var user = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>()
-        {
-            new(AltinnCoreClaimTypes.UserId, "1000"),
-            new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
-            new(AltinnCoreClaimTypes.Org, "tdd")
-        }));
+        var user = new ClaimsPrincipal(
+            new ClaimsIdentity(
+                new List<Claim>()
+                {
+                    new(AltinnCoreClaimTypes.UserId, "1000"),
+                    new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
+                    new(AltinnCoreClaimTypes.Org, "tdd")
+                }
+            )
+        );
 
-        bool result = await authorizer.AuthorizeAction(new UserActionAuthorizerContext(user, new InstanceIdentifier("500001/abba2e90-f86f-4881-b0e8-38334408bcb4"), "Task_2", "sign"));
+        bool result = await authorizer.AuthorizeAction(
+            new UserActionAuthorizerContext(
+                user,
+                new InstanceIdentifier("500001/abba2e90-f86f-4881-b0e8-38334408bcb4"),
+                "Task_2",
+                "sign"
+            )
+        );
         _processReaderMock.Verify(p => p.GetFlowElement("Task_2"));
-        _instanceClientMock.Verify(i => i.GetInstance("xunit-app", "ttd", 500001, Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4")));
+        _instanceClientMock.Verify(i =>
+            i.GetInstance("xunit-app", "ttd", 500001, Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4"))
+        );
         _appMetadataMock.Verify(a => a.GetApplicationMetadata());
-        _dataClientMock.Verify(d => d.GetBinaryData("ttd", "xunit-app", 500001, Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4"), Guid.Parse("ca62613c-f058-4899-b962-89dd6496a751")));
+        _dataClientMock.Verify(d =>
+            d.GetBinaryData(
+                "ttd",
+                "xunit-app",
+                500001,
+                Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4"),
+                Guid.Parse("ca62613c-f058-4899-b962-89dd6496a751")
+            )
+        );
         result.Should().BeTrue();
     }
 
@@ -145,29 +184,44 @@ public class UniqueSignatureAuthorizerTests : IDisposable
             {
                 TaskExtension = new()
                 {
-                    SignatureConfiguration = new()
-                    {
-                        UniqueFromSignaturesInDataTypes = new()
-                        {
-                            "signature"
-                        }
-                    }
+                    SignatureConfiguration = new() { UniqueFromSignaturesInDataTypes = new() { "signature" } }
                 }
             }
         };
         UniqueSignatureAuthorizer authorizer = CreateUniqueSignatureAuthorizer(processTask);
-        var user = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>()
-        {
-            new(AltinnCoreClaimTypes.UserId, "1337"),
-            new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
-            new(AltinnCoreClaimTypes.Org, "tdd")
-        }));
+        var user = new ClaimsPrincipal(
+            new ClaimsIdentity(
+                new List<Claim>()
+                {
+                    new(AltinnCoreClaimTypes.UserId, "1337"),
+                    new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
+                    new(AltinnCoreClaimTypes.Org, "tdd")
+                }
+            )
+        );
 
-        bool result = await authorizer.AuthorizeAction(new UserActionAuthorizerContext(user, new InstanceIdentifier("500001/abba2e90-f86f-4881-b0e8-38334408bcb4"), "Task_2", "sign"));
+        bool result = await authorizer.AuthorizeAction(
+            new UserActionAuthorizerContext(
+                user,
+                new InstanceIdentifier("500001/abba2e90-f86f-4881-b0e8-38334408bcb4"),
+                "Task_2",
+                "sign"
+            )
+        );
         _processReaderMock.Verify(p => p.GetFlowElement("Task_2"));
-        _instanceClientMock.Verify(i => i.GetInstance("xunit-app", "ttd", 500001, Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4")));
+        _instanceClientMock.Verify(i =>
+            i.GetInstance("xunit-app", "ttd", 500001, Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4"))
+        );
         _appMetadataMock.Verify(a => a.GetApplicationMetadata());
-        _dataClientMock.Verify(d => d.GetBinaryData("ttd", "xunit-app", 500001, Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4"), Guid.Parse("ca62613c-f058-4899-b962-89dd6496a751")));
+        _dataClientMock.Verify(d =>
+            d.GetBinaryData(
+                "ttd",
+                "xunit-app",
+                500001,
+                Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4"),
+                Guid.Parse("ca62613c-f058-4899-b962-89dd6496a751")
+            )
+        );
         result.Should().BeFalse();
     }
 
@@ -180,25 +234,30 @@ public class UniqueSignatureAuthorizerTests : IDisposable
             {
                 TaskExtension = new()
                 {
-                    SignatureConfiguration = new()
-                    {
-                        UniqueFromSignaturesInDataTypes = new()
-                        {
-                            "signature"
-                        }
-                    }
+                    SignatureConfiguration = new() { UniqueFromSignaturesInDataTypes = new() { "signature" } }
                 }
             }
         };
         UniqueSignatureAuthorizer authorizer = CreateUniqueSignatureAuthorizer(processTask);
-        var user = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>()
-        {
-            new(AltinnCoreClaimTypes.UserId, "1337"),
-            new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
-            new(AltinnCoreClaimTypes.Org, "tdd")
-        }));
+        var user = new ClaimsPrincipal(
+            new ClaimsIdentity(
+                new List<Claim>()
+                {
+                    new(AltinnCoreClaimTypes.UserId, "1337"),
+                    new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
+                    new(AltinnCoreClaimTypes.Org, "tdd")
+                }
+            )
+        );
 
-        bool result = await authorizer.AuthorizeAction(new UserActionAuthorizerContext(user, new InstanceIdentifier("500001/abba2e90-f86f-4881-b0e8-38334408bcb4"), null, "sign"));
+        bool result = await authorizer.AuthorizeAction(
+            new UserActionAuthorizerContext(
+                user,
+                new InstanceIdentifier("500001/abba2e90-f86f-4881-b0e8-38334408bcb4"),
+                null,
+                "sign"
+            )
+        );
         result.Should().BeTrue();
     }
 
@@ -211,29 +270,47 @@ public class UniqueSignatureAuthorizerTests : IDisposable
             {
                 TaskExtension = new()
                 {
-                    SignatureConfiguration = new()
-                    {
-                        UniqueFromSignaturesInDataTypes = new()
-                        {
-                            "signature"
-                        }
-                    }
+                    SignatureConfiguration = new() { UniqueFromSignaturesInDataTypes = new() { "signature" } }
                 }
             }
         };
-        UniqueSignatureAuthorizer authorizer = CreateUniqueSignatureAuthorizer(processTask, "signing-task-process.bpmn");
-        var user = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>()
-        {
-            new(AltinnCoreClaimTypes.UserId, "1337"),
-            new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
-            new(AltinnCoreClaimTypes.Org, "tdd")
-        }));
+        UniqueSignatureAuthorizer authorizer = CreateUniqueSignatureAuthorizer(
+            processTask,
+            "signing-task-process.bpmn"
+        );
+        var user = new ClaimsPrincipal(
+            new ClaimsIdentity(
+                new List<Claim>()
+                {
+                    new(AltinnCoreClaimTypes.UserId, "1337"),
+                    new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
+                    new(AltinnCoreClaimTypes.Org, "tdd")
+                }
+            )
+        );
 
-        bool result = await authorizer.AuthorizeAction(new UserActionAuthorizerContext(user, new InstanceIdentifier("500001/abba2e90-f86f-4881-b0e8-38334408bcb4"), "Task_2", "sign"));
+        bool result = await authorizer.AuthorizeAction(
+            new UserActionAuthorizerContext(
+                user,
+                new InstanceIdentifier("500001/abba2e90-f86f-4881-b0e8-38334408bcb4"),
+                "Task_2",
+                "sign"
+            )
+        );
         _processReaderMock.Verify(p => p.GetFlowElement("Task_2"));
-        _instanceClientMock.Verify(i => i.GetInstance("xunit-app", "ttd", 500001, Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4")));
+        _instanceClientMock.Verify(i =>
+            i.GetInstance("xunit-app", "ttd", 500001, Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4"))
+        );
         _appMetadataMock.Verify(a => a.GetApplicationMetadata());
-        _dataClientMock.Verify(d => d.GetBinaryData("ttd", "xunit-app", 500001, Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4"), Guid.Parse("ca62613c-f058-4899-b962-89dd6496a751")));
+        _dataClientMock.Verify(d =>
+            d.GetBinaryData(
+                "ttd",
+                "xunit-app",
+                500001,
+                Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4"),
+                Guid.Parse("ca62613c-f058-4899-b962-89dd6496a751")
+            )
+        );
         result.Should().BeTrue();
     }
 
@@ -246,29 +323,47 @@ public class UniqueSignatureAuthorizerTests : IDisposable
             {
                 TaskExtension = new()
                 {
-                    SignatureConfiguration = new()
-                    {
-                        UniqueFromSignaturesInDataTypes = new()
-                        {
-                            "signature"
-                        }
-                    }
+                    SignatureConfiguration = new() { UniqueFromSignaturesInDataTypes = new() { "signature" } }
                 }
             }
         };
-        UniqueSignatureAuthorizer authorizer = CreateUniqueSignatureAuthorizer(processTask, "signature-missing-signee.json");
-        var user = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>()
-        {
-            new(AltinnCoreClaimTypes.UserId, "1337"),
-            new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
-            new(AltinnCoreClaimTypes.Org, "tdd")
-        }));
+        UniqueSignatureAuthorizer authorizer = CreateUniqueSignatureAuthorizer(
+            processTask,
+            "signature-missing-signee.json"
+        );
+        var user = new ClaimsPrincipal(
+            new ClaimsIdentity(
+                new List<Claim>()
+                {
+                    new(AltinnCoreClaimTypes.UserId, "1337"),
+                    new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
+                    new(AltinnCoreClaimTypes.Org, "tdd")
+                }
+            )
+        );
 
-        bool result = await authorizer.AuthorizeAction(new UserActionAuthorizerContext(user, new InstanceIdentifier("500001/abba2e90-f86f-4881-b0e8-38334408bcb4"), "Task_2", "sign"));
+        bool result = await authorizer.AuthorizeAction(
+            new UserActionAuthorizerContext(
+                user,
+                new InstanceIdentifier("500001/abba2e90-f86f-4881-b0e8-38334408bcb4"),
+                "Task_2",
+                "sign"
+            )
+        );
         _processReaderMock.Verify(p => p.GetFlowElement("Task_2"));
-        _instanceClientMock.Verify(i => i.GetInstance("xunit-app", "ttd", 500001, Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4")));
+        _instanceClientMock.Verify(i =>
+            i.GetInstance("xunit-app", "ttd", 500001, Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4"))
+        );
         _appMetadataMock.Verify(a => a.GetApplicationMetadata());
-        _dataClientMock.Verify(d => d.GetBinaryData("ttd", "xunit-app", 500001, Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4"), Guid.Parse("ca62613c-f058-4899-b962-89dd6496a751")));
+        _dataClientMock.Verify(d =>
+            d.GetBinaryData(
+                "ttd",
+                "xunit-app",
+                500001,
+                Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4"),
+                Guid.Parse("ca62613c-f058-4899-b962-89dd6496a751")
+            )
+        );
         result.Should().BeTrue();
     }
 
@@ -281,29 +376,47 @@ public class UniqueSignatureAuthorizerTests : IDisposable
             {
                 TaskExtension = new()
                 {
-                    SignatureConfiguration = new()
-                    {
-                        UniqueFromSignaturesInDataTypes = new()
-                        {
-                            "signature"
-                        }
-                    }
+                    SignatureConfiguration = new() { UniqueFromSignaturesInDataTypes = new() { "signature" } }
                 }
             }
         };
-        UniqueSignatureAuthorizer authorizer = CreateUniqueSignatureAuthorizer(processTask, "signature-missing-signee-userid.json");
-        var user = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>()
-        {
-            new(AltinnCoreClaimTypes.UserId, "1337"),
-            new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
-            new(AltinnCoreClaimTypes.Org, "tdd")
-        }));
+        UniqueSignatureAuthorizer authorizer = CreateUniqueSignatureAuthorizer(
+            processTask,
+            "signature-missing-signee-userid.json"
+        );
+        var user = new ClaimsPrincipal(
+            new ClaimsIdentity(
+                new List<Claim>()
+                {
+                    new(AltinnCoreClaimTypes.UserId, "1337"),
+                    new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
+                    new(AltinnCoreClaimTypes.Org, "tdd")
+                }
+            )
+        );
 
-        bool result = await authorizer.AuthorizeAction(new UserActionAuthorizerContext(user, new InstanceIdentifier("500001/abba2e90-f86f-4881-b0e8-38334408bcb4"), "Task_2", "sign"));
+        bool result = await authorizer.AuthorizeAction(
+            new UserActionAuthorizerContext(
+                user,
+                new InstanceIdentifier("500001/abba2e90-f86f-4881-b0e8-38334408bcb4"),
+                "Task_2",
+                "sign"
+            )
+        );
         _processReaderMock.Verify(p => p.GetFlowElement("Task_2"));
-        _instanceClientMock.Verify(i => i.GetInstance("xunit-app", "ttd", 500001, Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4")));
+        _instanceClientMock.Verify(i =>
+            i.GetInstance("xunit-app", "ttd", 500001, Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4"))
+        );
         _appMetadataMock.Verify(a => a.GetApplicationMetadata());
-        _dataClientMock.Verify(d => d.GetBinaryData("ttd", "xunit-app", 500001, Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4"), Guid.Parse("ca62613c-f058-4899-b962-89dd6496a751")));
+        _dataClientMock.Verify(d =>
+            d.GetBinaryData(
+                "ttd",
+                "xunit-app",
+                500001,
+                Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4"),
+                Guid.Parse("ca62613c-f058-4899-b962-89dd6496a751")
+            )
+        );
         result.Should().BeTrue();
     }
 
@@ -316,50 +429,86 @@ public class UniqueSignatureAuthorizerTests : IDisposable
             {
                 TaskExtension = new()
                 {
-                    SignatureConfiguration = new()
-                    {
-                        UniqueFromSignaturesInDataTypes = new()
-                        {
-                            "signature"
-                        }
-                    }
+                    SignatureConfiguration = new() { UniqueFromSignaturesInDataTypes = new() { "signature" } }
                 }
             }
         };
-        UniqueSignatureAuthorizer authorizer = CreateUniqueSignatureAuthorizer(processTask, "signature-signee-userid-null.json");
-        var user = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>()
-        {
-            new(AltinnCoreClaimTypes.UserId, "1337"),
-            new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
-            new(AltinnCoreClaimTypes.Org, "tdd")
-        }));
+        UniqueSignatureAuthorizer authorizer = CreateUniqueSignatureAuthorizer(
+            processTask,
+            "signature-signee-userid-null.json"
+        );
+        var user = new ClaimsPrincipal(
+            new ClaimsIdentity(
+                new List<Claim>()
+                {
+                    new(AltinnCoreClaimTypes.UserId, "1337"),
+                    new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
+                    new(AltinnCoreClaimTypes.Org, "tdd")
+                }
+            )
+        );
 
-        bool result = await authorizer.AuthorizeAction(new UserActionAuthorizerContext(user, new InstanceIdentifier("500001/abba2e90-f86f-4881-b0e8-38334408bcb4"), "Task_2", "sign"));
+        bool result = await authorizer.AuthorizeAction(
+            new UserActionAuthorizerContext(
+                user,
+                new InstanceIdentifier("500001/abba2e90-f86f-4881-b0e8-38334408bcb4"),
+                "Task_2",
+                "sign"
+            )
+        );
         _processReaderMock.Verify(p => p.GetFlowElement("Task_2"));
-        _instanceClientMock.Verify(i => i.GetInstance("xunit-app", "ttd", 500001, Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4")));
+        _instanceClientMock.Verify(i =>
+            i.GetInstance("xunit-app", "ttd", 500001, Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4"))
+        );
         _appMetadataMock.Verify(a => a.GetApplicationMetadata());
-        _dataClientMock.Verify(d => d.GetBinaryData("ttd", "xunit-app", 500001, Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4"), Guid.Parse("ca62613c-f058-4899-b962-89dd6496a751")));
+        _dataClientMock.Verify(d =>
+            d.GetBinaryData(
+                "ttd",
+                "xunit-app",
+                500001,
+                Guid.Parse("abba2e90-f86f-4881-b0e8-38334408bcb4"),
+                Guid.Parse("ca62613c-f058-4899-b962-89dd6496a751")
+            )
+        );
         result.Should().BeTrue();
     }
 
-    private UniqueSignatureAuthorizer CreateUniqueSignatureAuthorizer(ProcessElement? task, string signatureFileToRead = "signature.json")
+    private UniqueSignatureAuthorizer CreateUniqueSignatureAuthorizer(
+        ProcessElement? task,
+        string signatureFileToRead = "signature.json"
+    )
     {
         _processReaderMock.Setup(sr => sr.GetFlowElement(It.IsAny<string>())).Returns(task);
         _appMetadataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata("ttd/xunit-app"));
-        _instanceClientMock.Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>())).ReturnsAsync(new Instance()
-        {
-            Data = new List<DataElement>()
-            {
-                new()
+        _instanceClientMock
+            .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
+            .ReturnsAsync(
+                new Instance()
                 {
-                    DataType = "signature",
-                    Id = "ca62613c-f058-4899-b962-89dd6496a751",
+                    Data = new List<DataElement>()
+                    {
+                        new() { DataType = "signature", Id = "ca62613c-f058-4899-b962-89dd6496a751", }
+                    }
                 }
-            }
-        });
+            );
         FileStream fileStream = File.OpenRead(Path.Combine("Features", "Action", "TestData", signatureFileToRead));
-        _dataClientMock.Setup(d => d.GetBinaryData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>(), It.IsAny<Guid>())).ReturnsAsync(fileStream);
-        return new UniqueSignatureAuthorizer(_processReaderMock.Object, _instanceClientMock.Object, _dataClientMock.Object, _appMetadataMock.Object);
+        _dataClientMock
+            .Setup(d =>
+                d.GetBinaryData(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<Guid>()
+                )
+            )
+            .ReturnsAsync(fileStream);
+        return new UniqueSignatureAuthorizer(
+            _processReaderMock.Object,
+            _instanceClientMock.Object,
+            _dataClientMock.Object,
+            _appMetadataMock.Object
+        );
     }
 
     public void Dispose()

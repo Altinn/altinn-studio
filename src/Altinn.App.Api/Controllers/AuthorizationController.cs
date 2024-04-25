@@ -23,10 +23,11 @@ namespace Altinn.App.Api.Controllers
         /// Initializes a new instance of the <see cref="AuthorizationController"/> class
         /// </summary>
         public AuthorizationController(
-                IAuthorizationClient authorization,
-                IProfileClient profileClient,
-                IAltinnPartyClient altinnPartyClientClient,
-                IOptions<GeneralSettings> settings)
+            IAuthorizationClient authorization,
+            IProfileClient profileClient,
+            IAltinnPartyClient altinnPartyClientClient,
+            IOptions<GeneralSettings> settings
+        )
         {
             _userHelper = new UserHelper(profileClient, altinnPartyClientClient, settings);
             _authorization = authorization;
@@ -81,12 +82,10 @@ namespace Altinn.App.Api.Controllers
             if (partyIdFromCookie != userContext.PartyId)
             {
                 Response.Cookies.Append(
-                _settings.GetAltinnPartyCookieName,
-                userContext.PartyId.ToString(),
-                new CookieOptions
-                {
-                    Domain = _settings.HostName
-                });
+                    _settings.GetAltinnPartyCookieName,
+                    userContext.PartyId.ToString(),
+                    new CookieOptions { Domain = _settings.HostName }
+                );
             }
 
             if (returnPartyObject)
@@ -120,7 +119,10 @@ namespace Altinn.App.Api.Controllers
             }
             else
             {
-                return StatusCode(500, $"Something went wrong when trying to validate party {partyId} for user {userId}");
+                return StatusCode(
+                    500,
+                    $"Something went wrong when trying to validate party {partyId} for user {userId}"
+                );
             }
         }
     }

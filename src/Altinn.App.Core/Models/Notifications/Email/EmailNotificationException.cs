@@ -5,9 +5,14 @@ namespace Altinn.App.Core.Models.Notifications.Email;
 /// </summary>
 public sealed class EmailNotificationException : Exception
 {
-    internal EmailNotificationException(string? message, HttpResponseMessage? response, string? content, Exception? innerException)
-    : base($"{message}: StatusCode={response?.StatusCode}\nReason={response?.ReasonPhrase}\nBody={content}\n", innerException)
-    {
-    }
+    internal EmailNotificationException(
+        string? message,
+        HttpResponseMessage? response,
+        string? content,
+        Exception? innerException
+    )
+        : base(
+            $"{message}: StatusCode={response?.StatusCode}\nReason={response?.ReasonPhrase}\nBody={content}\n",
+            innerException
+        ) { }
 }
-

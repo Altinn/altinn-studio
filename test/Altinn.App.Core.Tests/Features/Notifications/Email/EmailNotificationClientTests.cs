@@ -49,16 +49,21 @@ public class EmailNotificationClientTests
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent("{\"orderId\": \"order123\"}", Encoding.UTF8, "application/json")
-            })
-            .Callback<HttpRequestMessage, CancellationToken>(async (request, token) =>
-            {
-                capturedRequest = request;
-                capturedContent = await request.Content!.ReadAsStringAsync(token);
-            });
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(
+                new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("{\"orderId\": \"order123\"}", Encoding.UTF8, "application/json")
+                }
+            )
+            .Callback<HttpRequestMessage, CancellationToken>(
+                async (request, token) =>
+                {
+                    capturedRequest = request;
+                    capturedContent = await request.Content!.ReadAsStringAsync(token);
+                }
+            );
 
         using var httpClient = new HttpClient(handlerMock.Object);
 
@@ -84,24 +89,19 @@ public class EmailNotificationClientTests
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>())
+                ItExpr.IsAny<CancellationToken>()
+            )
             .ReturnsAsync(() =>
             {
                 var jsonContent = new StringContent("{\"orderId\": \"order123\"}", Encoding.UTF8, "application/json");
-                var response = new HttpResponseMessage(HttpStatusCode.OK)
-                {
-                    Content = jsonContent,
-                };
+                var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = jsonContent, };
                 return response;
             });
 
         using var httpClient = new HttpClient(handlerMock.Object);
 
         var emailNotificationClient = CreateEmailNotificationClient(httpClient);
-        var recipients = new List<EmailRecipient>()
-        {
-            new("test.testesen@testdirektoratet.no")
-        };
+        var recipients = new List<EmailRecipient>() { new("test.testesen@testdirektoratet.no") };
 
         var emailNotification = new EmailNotification
         {
@@ -129,24 +129,19 @@ public class EmailNotificationClientTests
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>())
+                ItExpr.IsAny<CancellationToken>()
+            )
             .ReturnsAsync(() =>
             {
                 var jsonContent = new StringContent(string.Empty, Encoding.UTF8, "application/json");
-                var response = new HttpResponseMessage(HttpStatusCode.BadRequest)
-                {
-                    Content = jsonContent,
-                };
+                var response = new HttpResponseMessage(HttpStatusCode.BadRequest) { Content = jsonContent, };
                 return response;
             });
 
         using var httpClient = new HttpClient(handlerMock.Object);
 
         var emailNotificationClient = CreateEmailNotificationClient(httpClient);
-        var recipients = new List<EmailRecipient>()
-        {
-            new("test.testesen@testdirektoratet.no")
-        };
+        var recipients = new List<EmailRecipient>() { new("test.testesen@testdirektoratet.no") };
 
         var emailNotification = new EmailNotification
         {
@@ -174,24 +169,19 @@ public class EmailNotificationClientTests
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>())
+                ItExpr.IsAny<CancellationToken>()
+            )
             .ReturnsAsync(() =>
             {
                 var jsonContent = new StringContent("{\"orderId\": 123}", Encoding.UTF8, "application/json");
-                var response = new HttpResponseMessage(HttpStatusCode.BadRequest)
-                {
-                    Content = jsonContent,
-                };
+                var response = new HttpResponseMessage(HttpStatusCode.BadRequest) { Content = jsonContent, };
                 return response;
             });
 
         using var httpClient = new HttpClient(handlerMock.Object);
 
         var emailNotificationClient = CreateEmailNotificationClient(httpClient);
-        var recipients = new List<EmailRecipient>()
-        {
-            new("test.testesen@testdirektoratet.no")
-        };
+        var recipients = new List<EmailRecipient>() { new("test.testesen@testdirektoratet.no") };
 
         var emailNotification = new EmailNotification
         {
@@ -249,26 +239,25 @@ public class EmailNotificationClientTests
         });
         services.AddTransient<IEmailNotificationClient, EmailNotificationClient>();
 
-        using var serviceProvider = services.BuildServiceProvider(new ServiceProviderOptions
-        {
-            ValidateOnBuild = true,
-            ValidateScopes = true,
-        });
+        using var serviceProvider = services.BuildServiceProvider(
+            new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true, }
+        );
         var smsNotificationClient = serviceProvider.GetRequiredService<IEmailNotificationClient>();
         smsNotificationClient.Should().NotBeNull();
     }
 
-    private static EmailNotificationClient CreateEmailNotificationClient(HttpClient httpClient, bool withTelemetryClient = false)
+    private static EmailNotificationClient CreateEmailNotificationClient(
+        HttpClient httpClient,
+        bool withTelemetryClient = false
+    )
     {
         using var loggerFactory = new NullLoggerFactory();
 
         var appDataMock = new Mock<IAppMetadata>();
-        appDataMock.Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("ttd/app-lib-test"));
+        appDataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata("ttd/app-lib-test"));
 
         var accessTokenGenerator = new Mock<IAccessTokenGenerator>();
-        accessTokenGenerator.Setup(a => a.GenerateAccessToken(It.IsAny<string>(), It.IsAny<string>()))
-            .Returns("token");
+        accessTokenGenerator.Setup(a => a.GenerateAccessToken(It.IsAny<string>(), It.IsAny<string>())).Returns("token");
 
         return new EmailNotificationClient(
             loggerFactory.CreateLogger<EmailNotificationClient>(),
@@ -276,6 +265,7 @@ public class EmailNotificationClientTests
             Options.Create(new PlatformSettings()),
             appDataMock.Object,
             accessTokenGenerator.Object,
-            withTelemetryClient ? new TelemetryClient() : null);
+            withTelemetryClient ? new TelemetryClient() : null
+        );
     }
 }

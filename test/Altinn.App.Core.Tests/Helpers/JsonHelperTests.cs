@@ -14,19 +14,44 @@ public class JsonHelperTests
     /// <summary>
     /// Helper method to setup and get the dictionary of the diffs
     /// </summary>
-    public async Task<Dictionary<string, object?>?> DoTest<TModel>(TModel model, Func<TModel, bool> processDataWriteImpl)
-                where TModel : class
+    public async Task<Dictionary<string, object?>?> DoTest<TModel>(
+        TModel model,
+        Func<TModel, bool> processDataWriteImpl
+    )
+        where TModel : class
     {
         var instance = new Instance();
         var logger = new Mock<ILogger>().Object;
         var guid = Guid.Empty;
         var dataProcessorMock = new Mock<IDataProcessor>();
-        Func<Instance, Guid, object, object?, string?, Task<bool>> dataProcessWrite = (instance, guid, model, previousModel, language) => Task.FromResult(processDataWriteImpl((TModel)model));
+        Func<Instance, Guid, object, object?, string?, Task<bool>> dataProcessWrite = (
+            instance,
+            guid,
+            model,
+            previousModel,
+            language
+        ) => Task.FromResult(processDataWriteImpl((TModel)model));
         dataProcessorMock
-            .Setup((d) => d.ProcessDataWrite(It.IsAny<Instance>(), It.IsAny<Guid>(), It.IsAny<object>(), It.IsAny<object?>(), null))
+            .Setup(
+                (d) =>
+                    d.ProcessDataWrite(
+                        It.IsAny<Instance>(),
+                        It.IsAny<Guid>(),
+                        It.IsAny<object>(),
+                        It.IsAny<object?>(),
+                        null
+                    )
+            )
             .Returns(dataProcessWrite);
 
-        return await JsonHelper.ProcessDataWriteWithDiff(instance, guid, model, language: null, new IDataProcessor[] { dataProcessorMock.Object }, logger);
+        return await JsonHelper.ProcessDataWriteWithDiff(
+            instance,
+            guid,
+            model,
+            language: null,
+            new IDataProcessor[] { dataProcessorMock.Object },
+            logger
+        );
     }
 
     public class TestModel
@@ -74,13 +99,16 @@ public class JsonHelperTests
     public async Task InitializingPropertiesLeadsToNoDiff()
     {
         var data = new TestModel();
-        var diff = await DoTest(data, (model) =>
-        {
-            model.ListTest = new();
-            model.PrimitiveList = new();
-            model.NullableListTest = new();
-            return true;
-        });
+        var diff = await DoTest(
+            data,
+            (model) =>
+            {
+                model.ListTest = new();
+                model.PrimitiveList = new();
+                model.NullableListTest = new();
+                return true;
+            }
+        );
 
         diff.Should().BeNull();
     }
@@ -89,33 +117,39 @@ public class JsonHelperTests
     public async Task InitializingNonNullablePropertiesCreatesDiff()
     {
         var data = new TestModel();
-        var diff = await DoTest(data, (model) =>
-        {
-            model.RecursiveTest = new();
-            return true;
-        });
+        var diff = await DoTest(
+            data,
+            (model) =>
+            {
+                model.RecursiveTest = new();
+                return true;
+            }
+        );
 
         // Not sure if RecursiveTest should be null here, but apparently it does not hurt
-        diff.Should().Equal(new Dictionary<string, object?>()
-        {
-            { "RecursiveTest.IntegerTest", 0 },
-            { "RecursiveTest.DecimalTest", 0M },
-            { "RecursiveTest", null },
-        });
+        diff.Should()
+            .Equal(
+                new Dictionary<string, object?>()
+                {
+                    { "RecursiveTest.IntegerTest", 0 },
+                    { "RecursiveTest.DecimalTest", 0M },
+                    { "RecursiveTest", null },
+                }
+            );
     }
 
     [Fact]
     public async Task NullIsNotZero()
     {
-        var data = new TestModel()
-        {
-            NullableIntTest = null,
-        };
-        var diff = await DoTest(data, (model) =>
-        {
-            model.NullableIntTest = 0;
-            return true;
-        });
+        var data = new TestModel() { NullableIntTest = null, };
+        var diff = await DoTest(
+            data,
+            (model) =>
+            {
+                model.NullableIntTest = 0;
+                return true;
+            }
+        );
 
         diff.Should().Contain("NullableIntTest", 0);
         diff.Should().HaveCount(1);
@@ -124,15 +158,15 @@ public class JsonHelperTests
     [Fact]
     public async Task ZeroIsNotNull()
     {
-        var data = new TestModel()
-        {
-            NullableIntTest = 0,
-        };
-        var diff = await DoTest(data, (model) =>
-        {
-            model.NullableIntTest = null;
-            return true;
-        });
+        var data = new TestModel() { NullableIntTest = 0, };
+        var diff = await DoTest(
+            data,
+            (model) =>
+            {
+                model.NullableIntTest = null;
+                return true;
+            }
+        );
 
         diff.Should().Contain("NullableIntTest", null);
         diff.Should().HaveCount(1);
@@ -141,20 +175,17 @@ public class JsonHelperTests
     [Fact]
     public async Task TestSystemTextJsonAnnotation()
     {
-        var data = new TestModel()
-        {
-            NotJsonPropertyNameTest = "Original Value",
-        };
-        var diff = await DoTest(data, (model) =>
-        {
-            model.NotJsonPropertyNameTest = "New Value";
-            return true;
-        });
+        var data = new TestModel() { NotJsonPropertyNameTest = "Original Value", };
+        var diff = await DoTest(
+            data,
+            (model) =>
+            {
+                model.NotJsonPropertyNameTest = "New Value";
+                return true;
+            }
+        );
 
-        diff.Should().Equal(new Dictionary<string, object?>
-        {
-            { "jsonPropertyName", "New Value" },
-        });
+        diff.Should().Equal(new Dictionary<string, object?> { { "jsonPropertyName", "New Value" }, });
     }
 
     [Theory]
@@ -165,30 +196,32 @@ public class JsonHelperTests
     [InlineData(int.MaxValue)]
     public async Task ChangeInteger(int value)
     {
-        var data = new TestModel()
-        {
-            RecursiveTest = new(),
-            PrimitiveList = new(),
-        };
+        var data = new TestModel() { RecursiveTest = new(), PrimitiveList = new(), };
 
-        var diff = await DoTest(data, (model) =>
-        {
-            model.IntegerTest = value;
-            model.NullableIntTest = value;
-            model.RecursiveTest ??= new();
-            model.RecursiveTest.IntegerTest = value;
-            model.PrimitiveList ??= new();
-            model.PrimitiveList.Add(value);
-            return true;
-        });
+        var diff = await DoTest(
+            data,
+            (model) =>
+            {
+                model.IntegerTest = value;
+                model.NullableIntTest = value;
+                model.RecursiveTest ??= new();
+                model.RecursiveTest.IntegerTest = value;
+                model.PrimitiveList ??= new();
+                model.PrimitiveList.Add(value);
+                return true;
+            }
+        );
 
-        diff.Should().BeEquivalentTo(new Dictionary<string, object?>()
-        {
-             { "IntegerTest", value },
-             { "NullableIntTest", value },
-             { "RecursiveTest.IntegerTest", value },
-             { "PrimitiveList[0]", value },
-        });
+        diff.Should()
+            .BeEquivalentTo(
+                new Dictionary<string, object?>()
+                {
+                    { "IntegerTest", value },
+                    { "NullableIntTest", value },
+                    { "RecursiveTest.IntegerTest", value },
+                    { "PrimitiveList[0]", value },
+                }
+            );
     }
 
     [Theory]
@@ -217,18 +250,21 @@ public class JsonHelperTests
             ListTest = new() { new() },
             NullableListTest = new() { new() },
         };
-        var diff = await DoTest(data, (model) =>
-        {
-            model.DecimalTest = value;
-            model.NullableDecimalTest = value;
-            model.RecursiveTest ??= new();
-            model.RecursiveTest.DecimalTest = value;
-            model.NullableListTest ??= new();
-            model.NullableListTest[0].DecimalTest = value;
-            model.ListTest ??= new();
-            model.ListTest[0].DecimalTest = value;
-            return true;
-        });
+        var diff = await DoTest(
+            data,
+            (model) =>
+            {
+                model.DecimalTest = value;
+                model.NullableDecimalTest = value;
+                model.RecursiveTest ??= new();
+                model.RecursiveTest.DecimalTest = value;
+                model.NullableListTest ??= new();
+                model.NullableListTest[0].DecimalTest = value;
+                model.ListTest ??= new();
+                model.ListTest[0].DecimalTest = value;
+                return true;
+            }
+        );
 
         // casting is weird (the current implementation of diff returns System.Numerics.BigInteger for large numbers)
         Func<object, bool> isMatch = x => (decimal?)(dynamic?)x == value;

@@ -9,7 +9,7 @@ namespace Altinn.App.Core.Internal.Process
     public interface IProcessNavigator
     {
         /// <summary>
-        /// Get the next task in the process from the current element based on the action and datadriven gateway decisions 
+        /// Get the next task in the process from the current element based on the action and datadriven gateway decisions
         /// </summary>
         /// <param name="instance">Instance data</param>
         /// <param name="currentElement">Current process element id</param>

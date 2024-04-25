@@ -30,11 +30,7 @@ public class InstanceEventExtensionsTests
                     Name = "Name",
                     Started = DateTime.Now,
                     Ended = DateTime.Now,
-                    Validated = new ValidationStatus
-                    {
-                        CanCompleteTask = true,
-                        Timestamp = DateTime.Now
-                    }
+                    Validated = new ValidationStatus { CanCompleteTask = true, Timestamp = DateTime.Now }
                 },
                 StartEvent = "StartEvent"
             },
@@ -114,11 +110,7 @@ public class InstanceEventExtensionsTests
                     Name = "Name",
                     Started = now,
                     Ended = now,
-                    Validated = new()
-                    {
-                        Timestamp = null,
-                        CanCompleteTask = false
-                    }
+                    Validated = new() { Timestamp = null, CanCompleteTask = false }
                 },
                 StartEvent = "StartEvent"
             },
@@ -189,11 +181,7 @@ public class InstanceEventExtensionsTests
                     Name = null,
                     Started = null,
                     Ended = null,
-                    Validated = new()
-                    {
-                        Timestamp = null,
-                        CanCompleteTask = false
-                    }
+                    Validated = new() { Timestamp = null, CanCompleteTask = false }
                 },
                 StartEvent = "StartEvent"
             },

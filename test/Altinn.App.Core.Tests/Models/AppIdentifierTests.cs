@@ -80,7 +80,11 @@ namespace Altinn.App.PlatformServices.Tests.Models
         }
 
         [Theory]
-        [InlineData("https://dihe.apps.tt02.altinn.no/dihe/redusert-foreldrebetaling-bhg/api/v1/eventsreceiver?code=16eda4f0-653a-4fdc-b516-c4702392a4eb", "dihe", "redusert-foreldrebetaling-bhg")]
+        [InlineData(
+            "https://dihe.apps.tt02.altinn.no/dihe/redusert-foreldrebetaling-bhg/api/v1/eventsreceiver?code=16eda4f0-653a-4fdc-b516-c4702392a4eb",
+            "dihe",
+            "redusert-foreldrebetaling-bhg"
+        )]
         public void CreateFromUrl_ValidUrl_ShouldConstruct(string url, string expectedOrg, string expectedApp)
         {
             AppIdentifier appIdentifier = AppIdentifier.CreateFromUrl(url);

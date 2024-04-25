@@ -39,7 +39,9 @@ public class PageComponentConverterTests
         {
             if (child is GroupComponent childGroup)
             {
-                children.Add(new HierarchyTestModel { Id = childGroup.Id, Children = GenerateTestHierarchy(childGroup) });
+                children.Add(
+                    new HierarchyTestModel { Id = childGroup.Id, Children = GenerateTestHierarchy(childGroup) }
+                );
             }
             else
             {
@@ -53,11 +55,8 @@ public class PageComponentConverterTests
 
 public class PageComponentConverterTestAttribute : DataAttribute
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions =
+        new() { ReadCommentHandling = JsonCommentHandling.Skip, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
     public override IEnumerable<object[]> GetData(MethodInfo methodInfo)
     {

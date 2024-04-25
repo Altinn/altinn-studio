@@ -12,14 +12,17 @@ public class ProcessStartRequest
     /// The instance to be started
     /// </summary>
     public Instance Instance { get; set; }
+
     /// <summary>
     /// The user that is starting the process
     /// </summary>
     public ClaimsPrincipal User { get; set; }
+
     /// <summary>
     /// The prefill data supplied when starting the process
     /// </summary>
     public Dictionary<string, string>? Prefill { get; set; }
+
     /// <summary>
     /// The start event id, only needed if multiple start events in process
     /// </summary>

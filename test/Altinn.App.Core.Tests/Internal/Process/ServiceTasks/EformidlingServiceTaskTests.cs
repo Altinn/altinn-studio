@@ -33,16 +33,10 @@ public class EformidlingServiceTaskTests
     public async Task Execute_EFormidlingIsEnabledAndSendAfterTaskIdMatchesCurrentTask_EFormidlingShipment_is_sent()
     {
         // Arrange
-        var appSettings = new AppSettings
-        {
-            EnableEFormidling = true
-        };
+        var appSettings = new AppSettings { EnableEFormidling = true };
         var applicationMetadata = new ApplicationMetadata("ttd/test")
         {
-            EFormidling = new EFormidlingContract()
-            {
-                SendAfterTaskId = "Task_1"
-            }
+            EFormidling = new EFormidlingContract() { SendAfterTaskId = "Task_1" }
         };
         var instance = new Instance();
         _appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
@@ -66,16 +60,10 @@ public class EformidlingServiceTaskTests
     public async Task Execute_EFormidlingIsEnabledAndSendAfterTaskIdMatchesCurrentTask_but_EformidlingService_is_null_EFormidlingShipment_is_not_sent()
     {
         // Arrange
-        var appSettings = new AppSettings
-        {
-            EnableEFormidling = true
-        };
+        var appSettings = new AppSettings { EnableEFormidling = true };
         var applicationMetadata = new ApplicationMetadata("ttd/test")
         {
-            EFormidling = new EFormidlingContract()
-            {
-                SendAfterTaskId = "Task_1"
-            }
+            EFormidling = new EFormidlingContract() { SendAfterTaskId = "Task_1" }
         };
         var instance = new Instance();
         _appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
@@ -95,16 +83,10 @@ public class EformidlingServiceTaskTests
     public async Task Execute_EFormidlingIsNotEnabledAndSendAfterTaskIdMatchesCurrentTask_EFormidlingShipment_is_not_sent()
     {
         // Arrange
-        var appSettings = new AppSettings
-        {
-            EnableEFormidling = false
-        };
+        var appSettings = new AppSettings { EnableEFormidling = false };
         var applicationMetadata = new ApplicationMetadata("ttd/test")
         {
-            EFormidling = new EFormidlingContract()
-            {
-                SendAfterTaskId = "Task_1"
-            }
+            EFormidling = new EFormidlingContract() { SendAfterTaskId = "Task_1" }
         };
         var instance = new Instance();
         _appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
@@ -124,16 +106,10 @@ public class EformidlingServiceTaskTests
     public async Task Execute_EFormidlingIsEnabledAndSendAfterTaskIdNotMatchingCurrentTask_EFormidlingShipment_is_not_sent()
     {
         // Arrange
-        var appSettings = new AppSettings
-        {
-            EnableEFormidling = true
-        };
+        var appSettings = new AppSettings { EnableEFormidling = true };
         var applicationMetadata = new ApplicationMetadata("ttd/test")
         {
-            EFormidling = new EFormidlingContract()
-            {
-                SendAfterTaskId = "Task_2"
-            }
+            EFormidling = new EFormidlingContract() { SendAfterTaskId = "Task_2" }
         };
         var instance = new Instance();
         _appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
@@ -149,13 +125,17 @@ public class EformidlingServiceTaskTests
         _eFormidlingService.VerifyNoOtherCalls();
     }
 
-    public EformidlingServiceTask GetEformidlingServiceTask(AppSettings? appSettings, IEFormidlingService? eFormidlingService = null)
+    public EformidlingServiceTask GetEformidlingServiceTask(
+        AppSettings? appSettings,
+        IEFormidlingService? eFormidlingService = null
+    )
     {
         return new EformidlingServiceTask(
             _logger,
             _appMetadata.Object,
             _instanceClient.Object,
             eFormidlingService,
-            appSettings == null ? null : Options.Create(appSettings));
+            appSettings == null ? null : Options.Create(appSettings)
+        );
     }
 }

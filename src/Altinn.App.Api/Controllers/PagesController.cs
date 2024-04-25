@@ -5,7 +5,6 @@ using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
 using Newtonsoft.Json;
 
 namespace Altinn.App.Api.Controllers
@@ -35,7 +34,8 @@ namespace Altinn.App.Api.Controllers
             IAppModel appModel,
             IAppResources resources,
             IPageOrder pageOrder,
-            ILogger<PagesController> logger)
+            ILogger<PagesController> logger
+        )
         {
             _appModel = appModel;
             _resources = resources;
@@ -56,7 +56,8 @@ namespace Altinn.App.Api.Controllers
             [FromQuery] string layoutSetId,
             [FromQuery] string currentPage,
             [FromQuery] string dataTypeId,
-            [FromBody] dynamic formData)
+            [FromBody] dynamic formData
+        )
         {
             if (string.IsNullOrEmpty(dataTypeId))
             {
@@ -66,7 +67,14 @@ namespace Altinn.App.Api.Controllers
             string classRef = _resources.GetClassRefForLogicDataType(dataTypeId);
 
             object data = JsonConvert.DeserializeObject(formData.ToString(), _appModel.GetModelType(classRef));
-            return await _pageOrder.GetPageOrder(new AppIdentifier(org, app), new InstanceIdentifier(instanceOwnerPartyId, instanceGuid), layoutSetId, currentPage, dataTypeId, data);
+            return await _pageOrder.GetPageOrder(
+                new AppIdentifier(org, app),
+                new InstanceIdentifier(instanceOwnerPartyId, instanceGuid),
+                layoutSetId,
+                currentPage,
+                dataTypeId,
+                data
+            );
         }
     }
 }

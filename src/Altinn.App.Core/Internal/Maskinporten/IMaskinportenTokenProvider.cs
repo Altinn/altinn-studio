@@ -2,7 +2,7 @@
 
 /// <summary>
 /// Defines the interface required for an implementation of a Maskinporte token provider.
-/// The provider is used by client implementations that needs the Maskinporten token in requests 
+/// The provider is used by client implementations that needs the Maskinporten token in requests
 /// against other systems.
 /// </summary>
 public interface IMaskinportenTokenProvider
@@ -13,7 +13,7 @@ public interface IMaskinportenTokenProvider
     Task<string> GetToken(string scopes);
 
     /// <summary>
-    /// Defines a method that returns a token that has been exchanged to an Altinn token.    
+    /// Defines a method that returns a token that has been exchanged to an Altinn token.
     /// </summary>
     Task<string> GetAltinnExchangedToken(string scopes);
 }

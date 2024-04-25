@@ -2,7 +2,7 @@ name: Verify dotnet format
 
 on:
   pull_request:
-    branches: 
+    branches:
       - "main"
 
 jobs:
@@ -17,5 +17,7 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-    - name: Verify dotnet format
-      run: dotnet format --verify-no-changes
+    - name: Install csharpier
+      run: dotnet tool restore
+    - name: Run csharpier
+      run: dotnet csharpier --check .

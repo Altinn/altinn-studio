@@ -26,19 +26,20 @@ public class ValidationServiceOldTests
     private readonly Mock<IAppMetadata> _appMetadataMock = new();
     private readonly ServiceCollection _serviceCollection = new();
 
-    private readonly ApplicationMetadata _applicationMetadata = new("tdd/test")
-    {
-        DataTypes = new List<DataType>()
+    private readonly ApplicationMetadata _applicationMetadata =
+        new("tdd/test")
         {
-            new DataType()
+            DataTypes = new List<DataType>()
             {
-                Id = "test",
-                TaskId = "Task_1",
-                EnableFileScan = false,
-                ValidationErrorOnPendingFileScan = false,
+                new DataType()
+                {
+                    Id = "test",
+                    TaskId = "Task_1",
+                    EnableFileScan = false,
+                    ValidationErrorOnPendingFileScan = false,
+                }
             }
-        }
-    };
+        };
 
     public ValidationServiceOldTests()
     {
@@ -61,13 +62,14 @@ public class ValidationServiceOldTests
 
         var instance = new Instance();
         var dataType = new DataType() { EnableFileScan = true };
-        var dataElement = new DataElement()
-        {
-            DataType = "test",
-            FileScanResult = FileScanResult.Infected
-        };
+        var dataElement = new DataElement() { DataType = "test", FileScanResult = FileScanResult.Infected };
 
-        List<ValidationIssue> validationIssues = await validationService.ValidateDataElement(instance, dataElement, dataType, null);
+        List<ValidationIssue> validationIssues = await validationService.ValidateDataElement(
+            instance,
+            dataElement,
+            dataType,
+            null
+        );
 
         validationIssues.FirstOrDefault(vi => vi.Code == "DataElementFileInfected").Should().NotBeNull();
     }
@@ -79,17 +81,21 @@ public class ValidationServiceOldTests
         IValidationService validationService = serviceProvider.GetRequiredService<IValidationService>();
 
         var dataType = new DataType()
-        { Id = "test", TaskId = "Task_1", AppLogic = null, EnableFileScan = true };
-        var instance = new Instance()
         {
+            Id = "test",
+            TaskId = "Task_1",
+            AppLogic = null,
+            EnableFileScan = true
         };
-        var dataElement = new DataElement()
-        {
-            DataType = "test",
-            FileScanResult = FileScanResult.Pending,
-        };
+        var instance = new Instance() { };
+        var dataElement = new DataElement() { DataType = "test", FileScanResult = FileScanResult.Pending, };
 
-        List<ValidationIssue> validationIssues = await validationService.ValidateDataElement(instance, dataElement, dataType, null);
+        List<ValidationIssue> validationIssues = await validationService.ValidateDataElement(
+            instance,
+            dataElement,
+            dataType,
+            null
+        );
 
         validationIssues.FirstOrDefault(vi => vi.Code == "DataElementFileScanPending").Should().BeNull();
     }
@@ -102,13 +108,14 @@ public class ValidationServiceOldTests
 
         var instance = new Instance();
         var dataType = new DataType() { EnableFileScan = true, ValidationErrorOnPendingFileScan = true };
-        var dataElement = new DataElement()
-        {
-            DataType = "test",
-            FileScanResult = FileScanResult.Pending
-        };
+        var dataElement = new DataElement() { DataType = "test", FileScanResult = FileScanResult.Pending };
 
-        List<ValidationIssue> validationIssues = await validationService.ValidateDataElement(instance, dataElement, dataType, null);
+        List<ValidationIssue> validationIssues = await validationService.ValidateDataElement(
+            instance,
+            dataElement,
+            dataType,
+            null
+        );
 
         validationIssues.FirstOrDefault(vi => vi.Code == "DataElementFileScanPending").Should().NotBeNull();
     }
@@ -121,13 +128,14 @@ public class ValidationServiceOldTests
 
         var instance = new Instance();
         var dataType = new DataType() { EnableFileScan = true, ValidationErrorOnPendingFileScan = true };
-        var dataElement = new DataElement()
-        {
-            DataType = "test",
-            FileScanResult = FileScanResult.Clean,
-        };
+        var dataElement = new DataElement() { DataType = "test", FileScanResult = FileScanResult.Clean, };
 
-        List<ValidationIssue> validationIssues = await validationService.ValidateDataElement(instance, dataElement, dataType, null);
+        List<ValidationIssue> validationIssues = await validationService.ValidateDataElement(
+            instance,
+            dataElement,
+            dataType,
+            null
+        );
 
         validationIssues.FirstOrDefault(vi => vi.Code == "DataElementFileInfected").Should().BeNull();
         validationIssues.FirstOrDefault(vi => vi.Code == "DataElementFileScanPending").Should().BeNull();
@@ -161,19 +169,9 @@ public class ValidationServiceOldTests
         {
             Data = new List<DataElement>()
             {
-                new()
-                {
-                    DataType = "data",
-                    ContentType = "application/json"
-                },
+                new() { DataType = "data", ContentType = "application/json" },
             },
-            Process = new ProcessState
-            {
-                CurrentTask = new ProcessElementInfo
-                {
-                    Name = "Task_1"
-                }
-            }
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { Name = "Task_1" } }
         };
 
         var issues = await validationService.ValidateInstanceAtTask(instance, taskId, null);
@@ -224,13 +222,7 @@ public class ValidationServiceOldTests
                     ContentType = "application/json"
                 },
             },
-            Process = new ProcessState
-            {
-                CurrentTask = new ProcessElementInfo
-                {
-                    Name = "Task_1"
-                }
-            }
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { Name = "Task_1" } }
         };
 
         var issues = await validationService.ValidateInstanceAtTask(instance, taskId, null);
@@ -280,68 +272,101 @@ public class ValidationServiceOldTests
     [Fact]
     public void ModelKeyToField_SubModelNullable_ReturnsMappedString()
     {
-        ModelStateHelpers.ModelKeyToField("SubTestModel.StringNullable", typeof(TestModel)).Should().Be("sub.nullableString");
+        ModelStateHelpers
+            .ModelKeyToField("SubTestModel.StringNullable", typeof(TestModel))
+            .Should()
+            .Be("sub.nullableString");
     }
 
     [Fact]
     public void ModelKeyToField_SubModelWithSubmodel_ReturnsMappedString()
     {
-        ModelStateHelpers.ModelKeyToField("SubTestModel.StringNullable", typeof(TestModel)).Should().Be("sub.nullableString");
+        ModelStateHelpers
+            .ModelKeyToField("SubTestModel.StringNullable", typeof(TestModel))
+            .Should()
+            .Be("sub.nullableString");
     }
 
     [Fact]
     public void ModelKeyToField_SubModelNull_ReturnsMappedString()
     {
-        ModelStateHelpers.ModelKeyToField("SubTestModelNull.DecimalNumber", typeof(TestModel)).Should().Be("subnull.decimal");
+        ModelStateHelpers
+            .ModelKeyToField("SubTestModelNull.DecimalNumber", typeof(TestModel))
+            .Should()
+            .Be("subnull.decimal");
     }
 
     [Fact]
     public void ModelKeyToField_SubModelNullNullable_ReturnsMappedString()
     {
-        ModelStateHelpers.ModelKeyToField("SubTestModelNull.StringNullable", typeof(TestModel)).Should().Be("subnull.nullableString");
+        ModelStateHelpers
+            .ModelKeyToField("SubTestModelNull.StringNullable", typeof(TestModel))
+            .Should()
+            .Be("subnull.nullableString");
     }
 
     [Fact]
     public void ModelKeyToField_SubModelNullWithSubmodel_ReturnsMappedString()
     {
-        ModelStateHelpers.ModelKeyToField("SubTestModelNull.StringNullable", typeof(TestModel)).Should().Be("subnull.nullableString");
+        ModelStateHelpers
+            .ModelKeyToField("SubTestModelNull.StringNullable", typeof(TestModel))
+            .Should()
+            .Be("subnull.nullableString");
     }
 
     // Test lists
     [Fact]
     public void ModelKeyToField_List_IgnoresMissingIndex()
     {
-        ModelStateHelpers.ModelKeyToField("SubTestModelList.StringNullable", typeof(TestModel)).Should().Be("subList.nullableString");
+        ModelStateHelpers
+            .ModelKeyToField("SubTestModelList.StringNullable", typeof(TestModel))
+            .Should()
+            .Be("subList.nullableString");
     }
 
     [Fact]
     public void ModelKeyToField_List_ProxiesIndex()
     {
-        ModelStateHelpers.ModelKeyToField("SubTestModelList[123].StringNullable", typeof(TestModel)).Should().Be("subList[123].nullableString");
+        ModelStateHelpers
+            .ModelKeyToField("SubTestModelList[123].StringNullable", typeof(TestModel))
+            .Should()
+            .Be("subList[123].nullableString");
     }
 
     [Fact]
     public void ModelKeyToField_ListOfList_ProxiesIndex()
     {
-        ModelStateHelpers.ModelKeyToField("SubTestModelList[123].ListOfDecimal[5]", typeof(TestModel)).Should().Be("subList[123].decimalList[5]");
+        ModelStateHelpers
+            .ModelKeyToField("SubTestModelList[123].ListOfDecimal[5]", typeof(TestModel))
+            .Should()
+            .Be("subList[123].decimalList[5]");
     }
 
     [Fact]
     public void ModelKeyToField_ListOfList_IgnoresMissing()
     {
-        ModelStateHelpers.ModelKeyToField("SubTestModelList[123].ListOfDecimal", typeof(TestModel)).Should().Be("subList[123].decimalList");
+        ModelStateHelpers
+            .ModelKeyToField("SubTestModelList[123].ListOfDecimal", typeof(TestModel))
+            .Should()
+            .Be("subList[123].decimalList");
     }
 
     [Fact]
     public void ModelKeyToField_ListOfListNullable_IgnoresMissing()
     {
-        ModelStateHelpers.ModelKeyToField("SubTestModelList[123].ListOfNullableDecimal", typeof(TestModel)).Should().Be("subList[123].nullableDecimalList");
+        ModelStateHelpers
+            .ModelKeyToField("SubTestModelList[123].ListOfNullableDecimal", typeof(TestModel))
+            .Should()
+            .Be("subList[123].nullableDecimalList");
     }
 
     [Fact]
     public void ModelKeyToField_ListOfListOfListNullable_IgnoresMissingButPropagatesOthers()
     {
-        ModelStateHelpers.ModelKeyToField("SubTestModelList[123].SubTestModelList.ListOfNullableDecimal[123456]", typeof(TestModel)).Should().Be("subList[123].subList.nullableDecimalList[123456]");
+        ModelStateHelpers
+            .ModelKeyToField("SubTestModelList[123].SubTestModelList.ListOfNullableDecimal[123456]", typeof(TestModel))
+            .Should()
+            .Be("subList[123].subList.nullableDecimalList[123456]");
     }
 
     public class TestModel

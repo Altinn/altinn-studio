@@ -39,7 +39,12 @@ public interface IValidationService
     /// <param name="dataType">The data type (from applicationmetadata) that the element is an instance of</param>
     /// <param name="language">The language to run validations in</param>
     /// <returns>List of validation issues for this data element</returns>
-    Task<List<ValidationIssue>> ValidateDataElement(Instance instance, DataElement dataElement, DataType dataType, string? language);
+    Task<List<ValidationIssue>> ValidateDataElement(
+        Instance instance,
+        DataElement dataElement,
+        DataType dataType,
+        string? language
+    );
 
     /// <summary>
     /// Validates a single data element. Used by frontend to continuously validate form data as it changes.
@@ -55,5 +60,13 @@ public interface IValidationService
     /// <param name="ignoredValidators">List validators that should not be run (for incremental validation). Typically known validators that frontend knows how to replicate</param>
     /// <param name="language">The language to run validations in</param>
     /// <returns>A dictionary containing lists of validation issues grouped by <see cref="IFormDataValidator.ValidationSource"/> and/or <see cref="ValidationIssue.Source"/></returns>
-    Task<Dictionary<string, List<ValidationIssue>>> ValidateFormData(Instance instance, DataElement dataElement, DataType dataType, object data, object? previousData, List<string>? ignoredValidators, string? language);
+    Task<Dictionary<string, List<ValidationIssue>>> ValidateFormData(
+        Instance instance,
+        DataElement dataElement,
+        DataType dataType,
+        object data,
+        object? previousData,
+        List<string>? ignoredValidators,
+        string? language
+    );
 }

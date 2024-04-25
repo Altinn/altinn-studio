@@ -19,17 +19,21 @@ namespace Altinn.App.Core.Internal.Maskinporten
 
         /// <summary>
         /// Creates an instance of the <see cref="MaskinportenJwkTokenProvider"/> using the provided services and settings.
-        /// From the settings, the ClientId and Environment properties are used to get the token. 
+        /// From the settings, the ClientId and Environment properties are used to get the token.
         /// The encoded Jwek is fetched from the secret store. Allthough possible, the Jwk should NOT be stored in the settings.
         /// Scopes defined in the settings are igonored as this is provided to the GetToken method.
         /// </summary>
-        public MaskinportenJwkTokenProvider(IMaskinportenService maskinportenService, IOptions<MaskinportenSettings> maskinportenSettings, ISecretsClient secretsClient, string secretKeyName)
+        public MaskinportenJwkTokenProvider(
+            IMaskinportenService maskinportenService,
+            IOptions<MaskinportenSettings> maskinportenSettings,
+            ISecretsClient secretsClient,
+            string secretKeyName
+        )
         {
             _maskinportenService = maskinportenService;
             _maskinportenSettings = maskinportenSettings.Value;
             _secretsClient = secretsClient;
             _secretKeyName = secretKeyName;
-
         }
 
         /// <summary>
@@ -38,7 +42,13 @@ namespace Altinn.App.Core.Internal.Maskinporten
         public async Task<string> GetToken(string scopes)
         {
             string base64EncodedJwk = await GetBase64EncodedJwk();
-            TokenResponse maskinportenToken = await _maskinportenService.GetToken(base64EncodedJwk, _maskinportenSettings.Environment, _maskinportenSettings.ClientId, scopes, string.Empty);
+            TokenResponse maskinportenToken = await _maskinportenService.GetToken(
+                base64EncodedJwk,
+                _maskinportenSettings.Environment,
+                _maskinportenSettings.ClientId,
+                scopes,
+                string.Empty
+            );
 
             return maskinportenToken.AccessToken;
         }
@@ -49,8 +59,17 @@ namespace Altinn.App.Core.Internal.Maskinporten
         public async Task<string> GetAltinnExchangedToken(string scopes)
         {
             string base64EncodedJwk = await GetBase64EncodedJwk();
-            TokenResponse maskinportenToken = await _maskinportenService.GetToken(base64EncodedJwk, _maskinportenSettings.Environment, _maskinportenSettings.ClientId, scopes, string.Empty);
-            TokenResponse altinnToken = await _maskinportenService.ExchangeToAltinnToken(maskinportenToken, _maskinportenSettings.Environment);
+            TokenResponse maskinportenToken = await _maskinportenService.GetToken(
+                base64EncodedJwk,
+                _maskinportenSettings.Environment,
+                _maskinportenSettings.ClientId,
+                scopes,
+                string.Empty
+            );
+            TokenResponse altinnToken = await _maskinportenService.ExchangeToAltinnToken(
+                maskinportenToken,
+                _maskinportenSettings.Environment
+            );
 
             return altinnToken.AccessToken;
         }

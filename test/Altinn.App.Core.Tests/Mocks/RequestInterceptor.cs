@@ -14,14 +14,17 @@ namespace Altinn.App.PlatformServices.Tests.Mocks
             _response = new HttpResponseMessage(responseCode) { Content = streamContent };
         }
 
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken
+        )
         {
             _request = request;
             return Task.FromResult(_response);
         }
 
         /// <summary>
-        /// Ensures that the request body is serialized. 
+        /// Ensures that the request body is serialized.
         /// </summary>
         /// <returns>A stringified version of the request body.</returns>
         public async Task<string> GetRequestContentAsStringAsync()
@@ -41,9 +44,8 @@ namespace Altinn.App.PlatformServices.Tests.Mocks
 
         internal class RequestInterceptorException : Exception
         {
-            internal RequestInterceptorException(string? message) : base(message)
-            {
-            }
+            internal RequestInterceptorException(string? message)
+                : base(message) { }
         }
     }
 }

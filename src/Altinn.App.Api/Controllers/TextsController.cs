@@ -1,6 +1,5 @@
 using Altinn.App.Core.Internal.App;
 using Altinn.Platform.Storage.Interface.Models;
-
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.App.Api.Controllers
@@ -34,7 +33,9 @@ namespace Altinn.App.Api.Controllers
         {
             if (!string.IsNullOrEmpty(language) && language.Length != 2)
             {
-                return BadRequest($"Provided language {language} is invalid. Language code should consists of two characters.");
+                return BadRequest(
+                    $"Provided language {language} is invalid. Language code should consists of two characters."
+                );
             }
 
             TextResource? textResource = await _appResources.GetTexts(org, app, language);

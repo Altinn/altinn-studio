@@ -8,5 +8,6 @@ namespace Altinn.App.Core.Helpers.DataModel;
 public class DataModelException : Exception
 {
     /// <inheritdoc />
-    public DataModelException(string msg) : base(msg) { }
+    public DataModelException(string msg)
+        : base(msg) { }
 }

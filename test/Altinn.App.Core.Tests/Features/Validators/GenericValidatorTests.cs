@@ -23,26 +23,32 @@ public class GenericValidatorTests
 
     private class TestValidator : GenericFormDataValidator<MyModel>
     {
-        public TestValidator() : base("MyType")
-        {
-        }
+        public TestValidator()
+            : base("MyType") { }
 
         protected override bool HasRelevantChanges(MyModel current, MyModel previous)
         {
             throw new NotImplementedException();
         }
 
-        protected override Task ValidateFormData(Instance instance, DataElement dataElement, MyModel data, string? language)
+        protected override Task ValidateFormData(
+            Instance instance,
+            DataElement dataElement,
+            MyModel data,
+            string? language
+        )
         {
-            AddValidationIssue(new ValidationIssue()
-            {
-                Severity = ValidationIssueSeverity.Informational,
-                Description = "Test info",
-            });
+            AddValidationIssue(
+                new ValidationIssue() { Severity = ValidationIssueSeverity.Informational, Description = "Test info", }
+            );
 
             CreateValidationIssue(c => c.Name, "Test warning", severity: ValidationIssueSeverity.Warning);
             var childIndex = 4;
-            CreateValidationIssue(c => c.Children![childIndex].Children![0].Name, "childrenError", severity: ValidationIssueSeverity.Error);
+            CreateValidationIssue(
+                c => c.Children![childIndex].Children![0].Name,
+                "childrenError",
+                severity: ValidationIssueSeverity.Error
+            );
 
             return Task.CompletedTask;
         }
@@ -59,7 +65,10 @@ public class GenericValidatorTests
         var validationIssues = await testValidator.ValidateFormData(instance, dataElement, data, null);
         validationIssues.Should().HaveCount(3);
 
-        var info = validationIssues.Should().ContainSingle(c => c.Severity == ValidationIssueSeverity.Informational).Which;
+        var info = validationIssues
+            .Should()
+            .ContainSingle(c => c.Severity == ValidationIssueSeverity.Informational)
+            .Which;
         info.Description.Should().Be("Test info");
 
         var warning = validationIssues.Should().ContainSingle(c => c.Severity == ValidationIssueSeverity.Warning).Which;

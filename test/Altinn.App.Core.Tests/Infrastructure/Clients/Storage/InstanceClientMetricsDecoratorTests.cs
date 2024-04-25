@@ -46,14 +46,21 @@ public class InstanceClientMetricsDecoratorTests
     {
         // Arrange
         var instanceClient = new Mock<IInstanceClient>();
-        var platformHttpException = new PlatformHttpException(new HttpResponseMessage(HttpStatusCode.BadRequest), "test");
-        instanceClient.Setup(i => i.CreateInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Instance>())).ThrowsAsync(platformHttpException);
+        var platformHttpException = new PlatformHttpException(
+            new HttpResponseMessage(HttpStatusCode.BadRequest),
+            "test"
+        );
+        instanceClient
+            .Setup(i => i.CreateInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Instance>()))
+            .ThrowsAsync(platformHttpException);
         var instanceClientMetricsDecorator = new InstanceClientMetricsDecorator(instanceClient.Object);
         var preUpdateMetrics = await PrometheusTestHelper.ReadPrometheusMetricsToString();
         var instanceTemplate = new Instance();
 
         // Act
-        var ex = await Assert.ThrowsAsync<PlatformHttpException>(async () => await instanceClientMetricsDecorator.CreateInstance("org", "app", instanceTemplate));
+        var ex = await Assert.ThrowsAsync<PlatformHttpException>(
+            async () => await instanceClientMetricsDecorator.CreateInstance("org", "app", instanceTemplate)
+        );
         ex.Should().BeSameAs(platformHttpException);
         var postUpdateMetrics = await PrometheusTestHelper.ReadPrometheusMetricsToString();
 
@@ -90,13 +97,20 @@ public class InstanceClientMetricsDecoratorTests
     {
         // Arrange
         var instanceClient = new Mock<IInstanceClient>();
-        var platformHttpException = new PlatformHttpException(new HttpResponseMessage(HttpStatusCode.BadRequest), "test");
-        instanceClient.Setup(i => i.AddCompleteConfirmation(It.IsAny<int>(), It.IsAny<Guid>())).ThrowsAsync(platformHttpException);
+        var platformHttpException = new PlatformHttpException(
+            new HttpResponseMessage(HttpStatusCode.BadRequest),
+            "test"
+        );
+        instanceClient
+            .Setup(i => i.AddCompleteConfirmation(It.IsAny<int>(), It.IsAny<Guid>()))
+            .ThrowsAsync(platformHttpException);
         var instanceClientMetricsDecorator = new InstanceClientMetricsDecorator(instanceClient.Object);
         var preUpdateMetrics = await PrometheusTestHelper.ReadPrometheusMetricsToString();
 
         // Act
-        var ex = await Assert.ThrowsAsync<PlatformHttpException>(async () => await instanceClientMetricsDecorator.AddCompleteConfirmation(1337, Guid.NewGuid()));
+        var ex = await Assert.ThrowsAsync<PlatformHttpException>(
+            async () => await instanceClientMetricsDecorator.AddCompleteConfirmation(1337, Guid.NewGuid())
+        );
         ex.Should().BeSameAs(platformHttpException);
         var postUpdateMetrics = await PrometheusTestHelper.ReadPrometheusMetricsToString();
 
@@ -153,13 +167,20 @@ public class InstanceClientMetricsDecoratorTests
     {
         // Arrange
         var instanceClient = new Mock<IInstanceClient>();
-        var platformHttpException = new PlatformHttpException(new HttpResponseMessage(HttpStatusCode.BadRequest), "test");
-        instanceClient.Setup(i => i.DeleteInstance(It.IsAny<int>(), It.IsAny<Guid>(), It.IsAny<bool>())).ThrowsAsync(platformHttpException);
+        var platformHttpException = new PlatformHttpException(
+            new HttpResponseMessage(HttpStatusCode.BadRequest),
+            "test"
+        );
+        instanceClient
+            .Setup(i => i.DeleteInstance(It.IsAny<int>(), It.IsAny<Guid>(), It.IsAny<bool>()))
+            .ThrowsAsync(platformHttpException);
         var instanceClientMetricsDecorator = new InstanceClientMetricsDecorator(instanceClient.Object);
         var preUpdateMetrics = await PrometheusTestHelper.ReadPrometheusMetricsToString();
 
         // Act
-        var ex = await Assert.ThrowsAsync<PlatformHttpException>(async () => await instanceClientMetricsDecorator.DeleteInstance(1337, Guid.NewGuid(), false));
+        var ex = await Assert.ThrowsAsync<PlatformHttpException>(
+            async () => await instanceClientMetricsDecorator.DeleteInstance(1337, Guid.NewGuid(), false)
+        );
         ex.Should().BeSameAs(platformHttpException);
         var postUpdateMetrics = await PrometheusTestHelper.ReadPrometheusMetricsToString();
 

@@ -28,7 +28,7 @@
         public string TaskValue { get; set; } = string.Empty;
 
         /// <summary>
-        /// Gets or sets the value for app resource. 
+        /// Gets or sets the value for app resource.
         /// </summary>
         public string AppResourceValue { get; set; } = string.Empty;
     }

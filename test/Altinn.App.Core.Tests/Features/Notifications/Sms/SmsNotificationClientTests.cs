@@ -50,16 +50,21 @@ public class SmsNotificationClientTests
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent("{\"orderId\": \"order123\"}", Encoding.UTF8, "application/json")
-            })
-            .Callback<HttpRequestMessage, CancellationToken>(async (request, token) =>
-            {
-                capturedRequest = request;
-                capturedContent = await request.Content!.ReadAsStringAsync(token);
-            });
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(
+                new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("{\"orderId\": \"order123\"}", Encoding.UTF8, "application/json")
+                }
+            )
+            .Callback<HttpRequestMessage, CancellationToken>(
+                async (request, token) =>
+                {
+                    capturedRequest = request;
+                    capturedContent = await request.Content!.ReadAsStringAsync(token);
+                }
+            );
 
         using var httpClient = new HttpClient(handlerMock.Object);
 
@@ -85,24 +90,19 @@ public class SmsNotificationClientTests
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>())
+                ItExpr.IsAny<CancellationToken>()
+            )
             .ReturnsAsync(() =>
             {
                 var jsonContent = new StringContent("{\"orderId\": \"order123\"}", Encoding.UTF8, "application/json");
-                var response = new HttpResponseMessage(HttpStatusCode.OK)
-                {
-                    Content = jsonContent,
-                };
+                var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = jsonContent, };
                 return response;
             });
 
         using var httpClient = new HttpClient(handlerMock.Object);
 
         var smsNotificationClient = CreateSmsNotificationClient(httpClient);
-        var recipients = new List<SmsRecipient>()
-        {
-            new("test.testesen@testdirektoratet.no")
-        };
+        var recipients = new List<SmsRecipient>() { new("test.testesen@testdirektoratet.no") };
 
         var smsNotification = new SmsNotification
         {
@@ -131,24 +131,19 @@ public class SmsNotificationClientTests
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>())
+                ItExpr.IsAny<CancellationToken>()
+            )
             .ReturnsAsync(() =>
             {
                 var jsonContent = new StringContent(string.Empty, Encoding.UTF8, "application/json");
-                var response = new HttpResponseMessage(HttpStatusCode.BadRequest)
-                {
-                    Content = jsonContent,
-                };
+                var response = new HttpResponseMessage(HttpStatusCode.BadRequest) { Content = jsonContent, };
                 return response;
             });
 
         using var httpClient = new HttpClient(handlerMock.Object);
 
         var smsNotificationClient = CreateSmsNotificationClient(httpClient);
-        var recipients = new List<SmsRecipient>()
-        {
-            new("test.testesen@testdirektoratet.no")
-        };
+        var recipients = new List<SmsRecipient>() { new("test.testesen@testdirektoratet.no") };
 
         var smsNotification = new SmsNotification
         {
@@ -176,24 +171,19 @@ public class SmsNotificationClientTests
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>())
+                ItExpr.IsAny<CancellationToken>()
+            )
             .ReturnsAsync(() =>
             {
                 var jsonContent = new StringContent("{\"orderId\": 1234}", Encoding.UTF8, "application/json");
-                var response = new HttpResponseMessage(HttpStatusCode.OK)
-                {
-                    Content = jsonContent,
-                };
+                var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = jsonContent, };
                 return response;
             });
 
         using var httpClient = new HttpClient(handlerMock.Object);
 
         var smsNotificationClient = CreateSmsNotificationClient(httpClient);
-        var recipients = new List<SmsRecipient>()
-        {
-            new("test.testesen@testdirektoratet.no")
-        };
+        var recipients = new List<SmsRecipient>() { new("test.testesen@testdirektoratet.no") };
 
         var smsNotification = new SmsNotification
         {
@@ -251,26 +241,25 @@ public class SmsNotificationClientTests
         });
         services.AddTransient<ISmsNotificationClient, SmsNotificationClient>();
 
-        using var serviceProvider = services.BuildServiceProvider(new ServiceProviderOptions
-        {
-            ValidateOnBuild = true,
-            ValidateScopes = true,
-        });
+        using var serviceProvider = services.BuildServiceProvider(
+            new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true, }
+        );
         var smsNotificationClient = serviceProvider.GetRequiredService<ISmsNotificationClient>();
         smsNotificationClient.Should().NotBeNull();
     }
 
-    private static SmsNotificationClient CreateSmsNotificationClient(HttpClient httpClient, bool withTelemetryClient = false)
+    private static SmsNotificationClient CreateSmsNotificationClient(
+        HttpClient httpClient,
+        bool withTelemetryClient = false
+    )
     {
         using var loggerFactory = new NullLoggerFactory();
 
         var appDataMock = new Mock<IAppMetadata>();
-        appDataMock.Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("ttd/app-lib-test"));
+        appDataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata("ttd/app-lib-test"));
 
         var accessTokenGenerator = new Mock<IAccessTokenGenerator>();
-        accessTokenGenerator.Setup(a => a.GenerateAccessToken(It.IsAny<string>(), It.IsAny<string>()))
-            .Returns("token");
+        accessTokenGenerator.Setup(a => a.GenerateAccessToken(It.IsAny<string>(), It.IsAny<string>())).Returns("token");
 
         return new SmsNotificationClient(
             loggerFactory.CreateLogger<SmsNotificationClient>(),
@@ -278,6 +267,7 @@ public class SmsNotificationClientTests
             Options.Create(new PlatformSettings()),
             appDataMock.Object,
             accessTokenGenerator.Object,
-            withTelemetryClient ? new TelemetryClient() : null);
+            withTelemetryClient ? new TelemetryClient() : null
+        );
     }
 }

@@ -1,12 +1,12 @@
 ﻿using Altinn.App.Api.Tests.Data;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
-using Altinn.App.Core.Internal.Instances;
 
 namespace Altinn.App.Api.Tests.Mocks
 {
@@ -26,15 +26,16 @@ namespace Altinn.App.Api.Tests.Mocks
             string partyId = instanceTemplate.InstanceOwner.PartyId;
             Guid instanceGuid = Guid.NewGuid();
 
-            Instance instance = new()
-            {
-                Id = $"{partyId}/{instanceGuid}",
-                AppId = $"{org}/{app}",
-                Org = org,
-                InstanceOwner = instanceTemplate.InstanceOwner,
-                Process = instanceTemplate.Process,
-                Data = new List<DataElement>(),
-            };
+            Instance instance =
+                new()
+                {
+                    Id = $"{partyId}/{instanceGuid}",
+                    AppId = $"{org}/{app}",
+                    Org = org,
+                    InstanceOwner = instanceTemplate.InstanceOwner,
+                    Process = instanceTemplate.Process,
+                    Data = new List<DataElement>(),
+                };
 
             if (instanceTemplate.DataValues != null)
             {
@@ -42,11 +43,18 @@ namespace Altinn.App.Api.Tests.Mocks
             }
 
             string instancePath = GetInstancePath(app, org, int.Parse(partyId), instanceGuid);
-            string directory = Path.GetDirectoryName(instancePath) ?? throw new IOException($"Could not get directory name of specified path {instancePath}");
+            string directory =
+                Path.GetDirectoryName(instancePath)
+                ?? throw new IOException($"Could not get directory name of specified path {instancePath}");
             _ = Directory.CreateDirectory(directory);
             File.WriteAllText(instancePath, instance.ToString());
 
-            _logger.LogInformation("Created instance for app {org}/{app}. writing to path: {instancePath}", org, app, instancePath);
+            _logger.LogInformation(
+                "Created instance for app {org}/{app}. writing to path: {instancePath}",
+                org,
+                app,
+                instancePath
+            );
 
             return Task.FromResult(instance);
         }
@@ -84,7 +92,12 @@ namespace Altinn.App.Api.Tests.Mocks
             string app = instance.AppId.Split("/")[1];
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
 
-            string instancePath = GetInstancePath(app, instance.Org, int.Parse(instance.InstanceOwner.PartyId), instanceGuid);
+            string instancePath = GetInstancePath(
+                app,
+                instance.Org,
+                int.Parse(instance.InstanceOwner.PartyId),
+                instanceGuid
+            );
 
             if (!File.Exists(instancePath))
             {
@@ -93,8 +106,11 @@ namespace Altinn.App.Api.Tests.Mocks
 
             string content = File.ReadAllText(instancePath);
 
-            Instance storedInstance = JsonConvert.DeserializeObject<Instance>(content) ??
-                throw new InvalidDataException($"Something went wrong deserializing json for instance {instance.Id} from path {instancePath}");
+            Instance storedInstance =
+                JsonConvert.DeserializeObject<Instance>(content)
+                ?? throw new InvalidDataException(
+                    $"Something went wrong deserializing json for instance {instance.Id} from path {instancePath}"
+                );
 
             // Archiving instance if process was ended
             if (storedInstance.Process?.Ended == null && process.Ended != null)
@@ -108,7 +124,6 @@ namespace Altinn.App.Api.Tests.Mocks
 
             File.WriteAllText(instancePath, JsonConvert.SerializeObject(storedInstance));
 
-
             return Task.FromResult(storedInstance);
         }
 
@@ -117,12 +132,17 @@ namespace Altinn.App.Api.Tests.Mocks
             string instancePath = GetInstancePath(app, org, instanceOwnerId, instanceId);
             if (!File.Exists(instancePath))
             {
-                throw new IOException($"Could not find file for instance {instanceId} on specified path {instancePath}.");
+                throw new IOException(
+                    $"Could not find file for instance {instanceId} on specified path {instancePath}."
+                );
             }
 
             string content = File.ReadAllText(instancePath);
-            Instance instance = JsonConvert.DeserializeObject<Instance>(content) ??
-                throw new InvalidDataException($"Something went wrong deserializing json for instance from path {instancePath}");
+            Instance instance =
+                JsonConvert.DeserializeObject<Instance>(content)
+                ?? throw new InvalidDataException(
+                    $"Something went wrong deserializing json for instance from path {instancePath}"
+                );
 
             return instance;
         }
@@ -130,7 +150,11 @@ namespace Altinn.App.Api.Tests.Mocks
         // Finds the path for the instance based on instanceId. Only works if guid is unique.
         private static string GetInstancePath(int instanceOwnerPartyId, Guid instanceGuid)
         {
-            string[] paths = Directory.GetFiles(TestData.GetInstancesDirectory(), instanceGuid + ".json", SearchOption.AllDirectories);
+            string[] paths = Directory.GetFiles(
+                TestData.GetInstancesDirectory(),
+                instanceGuid + ".json",
+                SearchOption.AllDirectories
+            );
             paths = paths.Where(p => p.Contains($"{instanceOwnerPartyId}")).ToArray();
             if (paths.Length == 1)
             {
@@ -142,12 +166,24 @@ namespace Altinn.App.Api.Tests.Mocks
 
         private static string GetInstancePath(string app, string org, int instanceOwnerId, Guid instanceId)
         {
-            return Path.Combine(TestData.GetInstancesDirectory(), org, app, instanceOwnerId.ToString(), instanceId + ".json");
+            return Path.Combine(
+                TestData.GetInstancesDirectory(),
+                org,
+                app,
+                instanceOwnerId.ToString(),
+                instanceId + ".json"
+            );
         }
 
         private static string GetDataPath(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
-            return Path.Combine(TestData.GetInstancesDirectory(), org, app, instanceOwnerId.ToString(), instanceGuid.ToString()) + Path.DirectorySeparatorChar;
+            return Path.Combine(
+                    TestData.GetInstancesDirectory(),
+                    org,
+                    app,
+                    instanceOwnerId.ToString(),
+                    instanceGuid.ToString()
+                ) + Path.DirectorySeparatorChar;
         }
 
         private List<DataElement> GetDataElements(string org, string app, int instanceOwnerId, Guid instanceId)
@@ -169,10 +205,16 @@ namespace Altinn.App.Api.Tests.Mocks
                 }
 
                 string content = File.ReadAllText(Path.Combine(path, file));
-                DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(content) ??
-                    throw new InvalidDataException($"Something went wrong deserializing json for data from path {file}");
+                DataElement dataElement =
+                    JsonConvert.DeserializeObject<DataElement>(content)
+                    ?? throw new InvalidDataException(
+                        $"Something went wrong deserializing json for data from path {file}"
+                    );
 
-                if (dataElement.DeleteStatus?.IsHardDeleted == true && string.IsNullOrEmpty(_httpContextAccessor?.HttpContext?.User?.GetOrg()))
+                if (
+                    dataElement.DeleteStatus?.IsHardDeleted == true
+                    && string.IsNullOrEmpty(_httpContextAccessor?.HttpContext?.User?.GetOrg())
+                )
                 {
                     continue;
                 }
@@ -207,7 +249,10 @@ namespace Altinn.App.Api.Tests.Mocks
                     break;
             }
 
-            instance.CompleteConfirmations = new List<CompleteConfirmation> { new CompleteConfirmation { StakeholderId = org } };
+            instance.CompleteConfirmations = new List<CompleteConfirmation>
+            {
+                new CompleteConfirmation { StakeholderId = org }
+            };
 
             return await Task.FromResult(instance);
         }
@@ -216,7 +261,10 @@ namespace Altinn.App.Api.Tests.Mocks
         {
             if (!Enum.TryParse(readStatus, true, out ReadStatus newStatus))
             {
-                throw new ArgumentOutOfRangeException(nameof(readStatus), $"Unable to parse argument as a valid ReadStatus enum.");
+                throw new ArgumentOutOfRangeException(
+                    nameof(readStatus),
+                    $"Unable to parse argument as a valid ReadStatus enum."
+                );
             }
 
             string instancePath = GetInstancePath(instanceOwnerPartyId, instanceGuid);
@@ -227,8 +275,11 @@ namespace Altinn.App.Api.Tests.Mocks
             }
 
             string content = File.ReadAllText(instancePath);
-            Instance storedInstance = JsonConvert.DeserializeObject<Instance>(content) ??
-                throw new InvalidDataException($"Something went wrong deserializing json for instance from path {instancePath}");
+            Instance storedInstance =
+                JsonConvert.DeserializeObject<Instance>(content)
+                ?? throw new InvalidDataException(
+                    $"Something went wrong deserializing json for instance from path {instancePath}"
+                );
 
             storedInstance.Status ??= new InstanceStatus();
             storedInstance.Status.ReadStatus = newStatus;
@@ -244,7 +295,8 @@ namespace Altinn.App.Api.Tests.Mocks
             if (substatus == null || string.IsNullOrEmpty(substatus.Label))
             {
                 throw await PlatformHttpException.CreateAsync(
-                    new HttpResponseMessage { StatusCode = System.Net.HttpStatusCode.BadRequest });
+                    new HttpResponseMessage { StatusCode = System.Net.HttpStatusCode.BadRequest }
+                );
             }
 
             string instancePath = GetInstancePath(instanceOwnerPartyId, instanceGuid);
@@ -255,8 +307,11 @@ namespace Altinn.App.Api.Tests.Mocks
             }
 
             string content = File.ReadAllText(instancePath);
-            Instance storedInstance = JsonConvert.DeserializeObject<Instance>(content) ??
-                throw new InvalidDataException($"Something went wrong deserializing json for instance from path {instancePath}");
+            Instance storedInstance =
+                JsonConvert.DeserializeObject<Instance>(content)
+                ?? throw new InvalidDataException(
+                    $"Something went wrong deserializing json for instance from path {instancePath}"
+                );
 
             storedInstance.Status ??= new InstanceStatus();
             storedInstance.Status.Substatus = substatus;
@@ -269,7 +324,11 @@ namespace Altinn.App.Api.Tests.Mocks
             return await GetInstance(storedInstance);
         }
 
-        public async Task<Instance> UpdatePresentationTexts(int instanceOwnerPartyId, Guid instanceGuid, PresentationTexts presentationTexts)
+        public async Task<Instance> UpdatePresentationTexts(
+            int instanceOwnerPartyId,
+            Guid instanceGuid,
+            PresentationTexts presentationTexts
+        )
         {
             string instancePath = GetInstancePath(instanceOwnerPartyId, instanceGuid);
             if (!File.Exists(instancePath))
@@ -278,8 +337,11 @@ namespace Altinn.App.Api.Tests.Mocks
             }
 
             string content = File.ReadAllText(instancePath);
-            Instance storedInstance = JsonConvert.DeserializeObject<Instance>(content) ??
-                throw new InvalidDataException($"Something went wrong deserializing json for instance from path {instancePath}");
+            Instance storedInstance =
+                JsonConvert.DeserializeObject<Instance>(content)
+                ?? throw new InvalidDataException(
+                    $"Something went wrong deserializing json for instance from path {instancePath}"
+                );
 
             storedInstance.PresentationTexts ??= new Dictionary<string, string>();
 
@@ -312,8 +374,11 @@ namespace Altinn.App.Api.Tests.Mocks
             }
 
             string content = File.ReadAllText(instancePath);
-            Instance storedInstance = JsonConvert.DeserializeObject<Instance>(content) ??
-                throw new InvalidDataException($"Something went wrong deserializing json for instance from path {instancePath}");
+            Instance storedInstance =
+                JsonConvert.DeserializeObject<Instance>(content)
+                ?? throw new InvalidDataException(
+                    $"Something went wrong deserializing json for instance from path {instancePath}"
+                );
 
             storedInstance.DataValues ??= new Dictionary<string, string>();
 
@@ -346,8 +411,11 @@ namespace Altinn.App.Api.Tests.Mocks
             }
 
             string content = File.ReadAllText(instancePath);
-            Instance storedInstance = JsonConvert.DeserializeObject<Instance>(content) ??
-                throw new InvalidDataException($"Something went wrong deserializing json for instance from path {instancePath}");
+            Instance storedInstance =
+                JsonConvert.DeserializeObject<Instance>(content)
+                ?? throw new InvalidDataException(
+                    $"Something went wrong deserializing json for instance from path {instancePath}"
+                );
 
             storedInstance.Status ??= new InstanceStatus();
 
@@ -373,40 +441,42 @@ namespace Altinn.App.Api.Tests.Mocks
         /// </summary>
         public async Task<List<Instance>> GetInstances(Dictionary<string, StringValues> queryParams)
         {
-            List<string> validQueryParams = new()
-            {
-                "org",
-                "appId",
-                "process.currentTask",
-                "process.isComplete",
-                "process.endEvent",
-                "process.ended",
-                "instanceOwner.partyId",
-                "lastChanged",
-                "created",
-                "visibleAfter",
-                "dueBefore",
-                "excludeConfirmedBy",
-                "size",
-                "language",
-                "status.isSoftDeleted",
-                "status.isArchived",
-                "status.isHardDeleted",
-                "status.isArchivedOrSoftDeleted",
-                "status.isActiveorSoftDeleted",
-                "sortBy",
-                "archiveReference"
-            };
+            List<string> validQueryParams =
+                new()
+                {
+                    "org",
+                    "appId",
+                    "process.currentTask",
+                    "process.isComplete",
+                    "process.endEvent",
+                    "process.ended",
+                    "instanceOwner.partyId",
+                    "lastChanged",
+                    "created",
+                    "visibleAfter",
+                    "dueBefore",
+                    "excludeConfirmedBy",
+                    "size",
+                    "language",
+                    "status.isSoftDeleted",
+                    "status.isArchived",
+                    "status.isHardDeleted",
+                    "status.isArchivedOrSoftDeleted",
+                    "status.isActiveorSoftDeleted",
+                    "sortBy",
+                    "archiveReference"
+                };
 
             string invalidKey = queryParams.FirstOrDefault(q => !validQueryParams.Contains(q.Key)).Key;
             if (!string.IsNullOrEmpty(invalidKey))
             {
                 // platform exceptions.
-                HttpResponseMessage res = new()
-                {
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Content = new StringContent($"Unknown query parameter: {invalidKey}")
-                };
+                HttpResponseMessage res =
+                    new()
+                    {
+                        StatusCode = System.Net.HttpStatusCode.BadRequest,
+                        Content = new StringContent($"Unknown query parameter: {invalidKey}")
+                    };
 
                 throw await PlatformHttpException.CreateAsync(res);
             }
@@ -419,10 +489,14 @@ namespace Altinn.App.Api.Tests.Mocks
 
             if (queryParams.TryGetValue("appId", out StringValues appIdQueryVal) && appIdQueryVal.Count > 0)
             {
-                instancesPath += Path.DirectorySeparatorChar + appIdQueryVal.First()?.Replace('/', Path.DirectorySeparatorChar);
+                instancesPath +=
+                    Path.DirectorySeparatorChar + appIdQueryVal.First()?.Replace('/', Path.DirectorySeparatorChar);
                 fileDepth -= 2;
 
-                if (queryParams.TryGetValue("instanceOwner.partyId", out StringValues partyIdQueryVal) && partyIdQueryVal.Count > 0)
+                if (
+                    queryParams.TryGetValue("instanceOwner.partyId", out StringValues partyIdQueryVal)
+                    && partyIdQueryVal.Count > 0
+                )
                 {
                     instancesPath += Path.DirectorySeparatorChar + partyIdQueryVal.First();
                     fileDepth -= 1;
@@ -435,7 +509,9 @@ namespace Altinn.App.Api.Tests.Mocks
                 int instancePathLenght = instancesPath.Split(Path.DirectorySeparatorChar).Length;
 
                 // only parse files at the correct level. Instances are places four levels [org/app/partyId/instance] below instance path.
-                List<string> instanceFiles = files.Where(f => f.Split(Path.DirectorySeparatorChar).Length == (instancePathLenght + fileDepth)).ToList();
+                List<string> instanceFiles = files
+                    .Where(f => f.Split(Path.DirectorySeparatorChar).Length == (instancePathLenght + fileDepth))
+                    .ToList();
 
                 foreach (var file in instanceFiles)
                 {
@@ -473,17 +549,26 @@ namespace Altinn.App.Api.Tests.Mocks
 
             bool match;
 
-            if (queryParams.ContainsKey("status.isArchived") && bool.TryParse(queryParams.GetValueOrDefault("status.isArchived"), out match))
+            if (
+                queryParams.ContainsKey("status.isArchived")
+                && bool.TryParse(queryParams.GetValueOrDefault("status.isArchived"), out match)
+            )
             {
                 instances.RemoveAll(i => i.Status.IsArchived != match);
             }
 
-            if (queryParams.ContainsKey("status.isHardDeleted") && bool.TryParse(queryParams.GetValueOrDefault("status.isHardDeleted"), out match))
+            if (
+                queryParams.ContainsKey("status.isHardDeleted")
+                && bool.TryParse(queryParams.GetValueOrDefault("status.isHardDeleted"), out match)
+            )
             {
                 instances.RemoveAll(i => i.Status.IsHardDeleted != match);
             }
 
-            if (queryParams.ContainsKey("status.isSoftDeleted") && bool.TryParse(queryParams.GetValueOrDefault("status.isSoftDeleted"), out match))
+            if (
+                queryParams.ContainsKey("status.isSoftDeleted")
+                && bool.TryParse(queryParams.GetValueOrDefault("status.isSoftDeleted"), out match)
+            )
             {
                 instances.RemoveAll(i => i.Status.IsSoftDeleted != match);
             }
@@ -504,7 +589,8 @@ namespace Altinn.App.Api.Tests.Mocks
             List<DataElement> newerDataElements = instance.Data.FindAll(dataElement =>
                 dataElement.LastChanged != null
                 && dataElement.LastChangedBy != null
-                && dataElement.LastChanged > instance.LastChanged);
+                && dataElement.LastChanged > instance.LastChanged
+            );
 
             if (newerDataElements.Count == 0)
             {
@@ -512,14 +598,16 @@ namespace Altinn.App.Api.Tests.Mocks
             }
 
             lastChanged = instance.LastChanged;
-            newerDataElements.ForEach((DataElement dataElement) =>
-            {
-                if (dataElement.LastChanged > lastChanged)
+            newerDataElements.ForEach(
+                (DataElement dataElement) =>
                 {
-                    lastChangedBy = dataElement.LastChangedBy;
-                    lastChanged = (DateTime)dataElement.LastChanged;
+                    if (dataElement.LastChanged > lastChanged)
+                    {
+                        lastChangedBy = dataElement.LastChangedBy;
+                        lastChanged = (DateTime)dataElement.LastChanged;
+                    }
                 }
-            });
+            );
 
             return (lastChangedBy, lastChanged);
         }

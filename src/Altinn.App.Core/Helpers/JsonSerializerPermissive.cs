@@ -12,22 +12,21 @@ public static class JsonSerializerPermissive
     /// <summary>
     /// <see cref="JsonSerializerOptions"/> for the most permissive parsing of JSON.
     /// </summary>
-    public static readonly JsonSerializerOptions JsonSerializerOptionsDefaults = new(JsonSerializerDefaults.Web)
-    {
-        AllowTrailingCommas = true,
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        Converters =
+    public static readonly JsonSerializerOptions JsonSerializerOptionsDefaults =
+        new(JsonSerializerDefaults.Web)
         {
-            new JsonStringEnumConverter(),
-        },
-    };
+            AllowTrailingCommas = true,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            Converters = { new JsonStringEnumConverter(), },
+        };
 
     /// <summary>
     /// Simple wrapper of <see cref="JsonSerializer.Deserialize{TValue}(string, JsonSerializerOptions?)"/> with permissive defaults.
     /// </summary>
     public static T Deserialize<T>(string content)
     {
-        return JsonSerializer.Deserialize<T>(content, JsonSerializerOptionsDefaults) ?? throw new JsonException("Could not deserialize json value \"null\" to type " + typeof(T).FullName);
+        return JsonSerializer.Deserialize<T>(content, JsonSerializerOptionsDefaults)
+            ?? throw new JsonException("Could not deserialize json value \"null\" to type " + typeof(T).FullName);
     }
 
     /// <summary>
@@ -36,7 +35,8 @@ public static class JsonSerializerPermissive
     public static async Task<T> DeserializeAsync<T>(HttpContent content, CancellationToken cancellationToken = default)
     {
         await using var stream = await content.ReadAsStreamAsync(cancellationToken);
-        return await JsonSerializer.DeserializeAsync<T>(stream, JsonSerializerOptionsDefaults, cancellationToken) ?? throw new JsonException("Could not deserialize json value \"null\" to type " + typeof(T).FullName);
+        return await JsonSerializer.DeserializeAsync<T>(stream, JsonSerializerOptionsDefaults, cancellationToken)
+            ?? throw new JsonException("Could not deserialize json value \"null\" to type " + typeof(T).FullName);
     }
 
     /// <summary>

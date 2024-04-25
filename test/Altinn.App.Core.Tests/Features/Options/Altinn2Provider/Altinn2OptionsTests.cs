@@ -54,7 +54,8 @@ namespace Altinn.App.Core.Tests.Features.Options.Altinn2Provider
                 id: "ASF_Land1",
                 transform: (code) => new() { Value = code.Code, Label = code.Value1 },
                 codeListVersion: 2758,
-                metadataApiId: "ASF_land");
+                metadataApiId: "ASF_land"
+            );
 
             var sp = services.BuildServiceProvider(validateScopes: true);
             using (var scope = sp.CreateScope())
@@ -76,7 +77,8 @@ namespace Altinn.App.Core.Tests.Features.Options.Altinn2Provider
                 id: "ASF_Land1",
                 transform: (code) => new() { Value = code.Code, Label = code.Value1 },
                 codeListVersion: 2758,
-                metadataApiId: "ASF_land");
+                metadataApiId: "ASF_land"
+            );
 
             var sp = services.BuildServiceProvider(validateScopes: true);
             using (var scope = sp.CreateScope())
@@ -99,7 +101,8 @@ namespace Altinn.App.Core.Tests.Features.Options.Altinn2Provider
                 transform: (code) => new() { Value = code.Code, Label = code.Value1 },
                 filter: (code) => code.Value2 == "NO",
                 codeListVersion: 2758,
-                metadataApiId: "ASF_land");
+                metadataApiId: "ASF_land"
+            );
 
             var sp = services.BuildServiceProvider(validateScopes: true);
             using (var scope = sp.CreateScope())
@@ -122,7 +125,8 @@ namespace Altinn.App.Core.Tests.Features.Options.Altinn2Provider
                 transform: (code) => new() { Value = code.Code, Label = code.Value1 },
                 filter: (code) => code.Value2 == "NO",
                 codeListVersion: null,
-                metadataApiId: "ASF_land");
+                metadataApiId: "ASF_land"
+            );
 
             var sp = services.BuildServiceProvider(validateScopes: true);
             using (var scope = sp.CreateScope())
@@ -146,9 +150,12 @@ namespace Altinn.App.Core.Tests.Features.Options.Altinn2Provider
                 transform: (code) => new() { Value = code.Code, Label = code.Value1 },
                 filter: (code) => code.Value2 == "NO",
                 codeListVersion: 2758,
-                metadataApiId: "ASF_land");
+                metadataApiId: "ASF_land"
+            );
 
-            services.Should().Contain(serviceDescriptor => serviceDescriptor.ServiceType == typeof(Altinn2MetadataApiClient));
+            services
+                .Should()
+                .Contain(serviceDescriptor => serviceDescriptor.ServiceType == typeof(Altinn2MetadataApiClient));
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System.Security.Claims;
-
 using Altinn.App.Api.Tests.Mocks;
 using AltinnCore.Authentication.Constants;
 
@@ -19,7 +18,9 @@ namespace Altinn.App.Api.Tests.Utils
             List<Claim> claims = new List<Claim>();
             string issuer = "www.altinn.no";
 
-            claims.Add(new Claim(ClaimTypes.NameIdentifier, $"user-{userId}-{partyId}", ClaimValueTypes.String, issuer));
+            claims.Add(
+                new Claim(ClaimTypes.NameIdentifier, $"user-{userId}-{partyId}", ClaimValueTypes.String, issuer)
+            );
             if (userId > 0)
             {
                 claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userId.ToString()!, ClaimValueTypes.String, issuer));
@@ -27,12 +28,21 @@ namespace Altinn.App.Api.Tests.Utils
 
             if (partyId > 0)
             {
-                claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userId.ToString()!, ClaimValueTypes.Integer32, issuer));
+                claims.Add(
+                    new Claim(AltinnCoreClaimTypes.PartyID, userId.ToString()!, ClaimValueTypes.Integer32, issuer)
+                );
             }
 
             claims.Add(new Claim(AltinnCoreClaimTypes.UserName, $"User{userId}", ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, "Mock", ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, authenticationLevel.ToString(), ClaimValueTypes.Integer32, issuer));
+            claims.Add(
+                new Claim(
+                    AltinnCoreClaimTypes.AuthenticationLevel,
+                    authenticationLevel.ToString(),
+                    ClaimValueTypes.Integer32,
+                    issuer
+                )
+            );
 
             ClaimsIdentity identity = new ClaimsIdentity("mock");
             identity.AddClaims(claims);
@@ -46,7 +56,14 @@ namespace Altinn.App.Api.Tests.Utils
             string issuer = "www.altinn.no";
             claims.Add(new Claim(AltinnCoreClaimTypes.Org, org, ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, "Mock", ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, authenticationLevel.ToString(), ClaimValueTypes.Integer32, issuer));
+            claims.Add(
+                new Claim(
+                    AltinnCoreClaimTypes.AuthenticationLevel,
+                    authenticationLevel.ToString(),
+                    ClaimValueTypes.Integer32,
+                    issuer
+                )
+            );
 
             ClaimsIdentity identity = new ClaimsIdentity("mock");
             identity.AddClaims(claims);
@@ -60,8 +77,7 @@ namespace Altinn.App.Api.Tests.Utils
             return JwtTokenMock.GenerateToken(principal, new TimeSpan(1, 1, 1));
         }
 
-        public static string GetSelfIdentifiedUserToken(
-            string username, string partyId, string userId)
+        public static string GetSelfIdentifiedUserToken(string username, string partyId, string userId)
         {
             List<Claim> claims = new List<Claim>();
             string issuer = "www.altinn.no";
@@ -87,7 +103,14 @@ namespace Altinn.App.Api.Tests.Utils
             claims.Add(new Claim(AltinnCoreClaimTypes.Org, org, ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.OrgNumber, orgNo, ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, "Mock", ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, authenticationLevel.ToString(), ClaimValueTypes.Integer32, issuer));
+            claims.Add(
+                new Claim(
+                    AltinnCoreClaimTypes.AuthenticationLevel,
+                    authenticationLevel.ToString(),
+                    ClaimValueTypes.Integer32,
+                    issuer
+                )
+            );
 
             ClaimsIdentity identity = new ClaimsIdentity("mock");
             identity.AddClaims(claims);

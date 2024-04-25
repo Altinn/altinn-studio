@@ -4,7 +4,6 @@ using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Internal.Auth;
 using AltinnCore.Authentication.Utils;
-
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -31,12 +30,16 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authentication
             IOptions<PlatformSettings> platformSettings,
             ILogger<AuthenticationClient> logger,
             IHttpContextAccessor httpContextAccessor,
-            HttpClient httpClient)
+            HttpClient httpClient
+        )
         {
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiAuthenticationEndpoint);
-            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
+            httpClient.DefaultRequestHeaders.Add(
+                General.SubscriptionKeyHeaderName,
+                platformSettings.Value.SubscriptionKey
+            );
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _client = httpClient;
         }
@@ -45,7 +48,10 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authentication
         public async Task<string> RefreshToken()
         {
             string endpointUrl = $"refresh";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, General.RuntimeCookieName);
+            string token = JwtTokenUtil.GetTokenFromContext(
+                _httpContextAccessor.HttpContext,
+                General.RuntimeCookieName
+            );
             HttpResponseMessage response = await _client.GetAsync(token, endpointUrl);
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)

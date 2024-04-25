@@ -27,6 +27,6 @@ public sealed class Expression
     /// </summary>
     /// <remarks>
     ///  If <see cref="Value" /> isn't null, <see cref="Function" /> and <see cref="Args" /> must be
-    /// </remarks>    
+    /// </remarks>
     public object? Value { get; set; }
 }

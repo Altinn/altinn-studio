@@ -23,7 +23,10 @@ public class SecurityHeadersMiddlewareTests
             {
                 webBuilder
                     .UseTestServer()
-                    .Configure(app => { app.UseMiddleware<SecurityHeadersMiddleware>(); });
+                    .Configure(app =>
+                    {
+                        app.UseMiddleware<SecurityHeadersMiddleware>();
+                    });
             })
             .StartAsync();
         // Act

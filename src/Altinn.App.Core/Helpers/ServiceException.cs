@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Altinn.App.Core.Helpers
 {
     /// <summary>
-    /// Exception that is thrown by service implementation. 
+    /// Exception that is thrown by service implementation.
     /// </summary>
     public class ServiceException : Exception
     {
@@ -18,7 +18,8 @@ namespace Altinn.App.Core.Helpers
         /// </summary>
         /// <param name="statusCode">the suggested return code</param>
         /// <param name="message">the message</param>
-        public ServiceException(HttpStatusCode statusCode, string message) : base(message)
+        public ServiceException(HttpStatusCode statusCode, string message)
+            : base(message)
         {
             StatusCode = statusCode;
         }
@@ -29,7 +30,8 @@ namespace Altinn.App.Core.Helpers
         /// <param name="statusCode">the suggested return code</param>
         /// <param name="message">the message</param>
         /// <param name="innerException">the inner exception</param>
-        public ServiceException(HttpStatusCode statusCode, string message, Exception innerException) : base(message, innerException)
+        public ServiceException(HttpStatusCode statusCode, string message, Exception innerException)
+            : base(message, innerException)
         {
             StatusCode = statusCode;
         }

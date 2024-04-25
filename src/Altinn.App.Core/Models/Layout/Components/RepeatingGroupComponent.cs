@@ -10,8 +10,20 @@ public class RepeatingGroupComponent : GroupComponent
     /// <summary>
     /// Constructor for RepeatingGroupComponent
     /// </summary>
-    public RepeatingGroupComponent(string id, string type, IReadOnlyDictionary<string, string>? dataModelBindings, IEnumerable<BaseComponent> children, IEnumerable<string>? childIDs, int maxCount, Expression? hidden, Expression? hiddenRow, Expression? required, Expression? readOnly, IReadOnlyDictionary<string, string>? additionalProperties) :
-        base(id, type, dataModelBindings, children, childIDs, hidden, required, readOnly, additionalProperties)
+    public RepeatingGroupComponent(
+        string id,
+        string type,
+        IReadOnlyDictionary<string, string>? dataModelBindings,
+        IEnumerable<BaseComponent> children,
+        IEnumerable<string>? childIDs,
+        int maxCount,
+        Expression? hidden,
+        Expression? hiddenRow,
+        Expression? required,
+        Expression? readOnly,
+        IReadOnlyDictionary<string, string>? additionalProperties
+    )
+        : base(id, type, dataModelBindings, children, childIDs, hidden, required, readOnly, additionalProperties)
     {
         MaxCount = maxCount;
         HiddenRow = hiddenRow;

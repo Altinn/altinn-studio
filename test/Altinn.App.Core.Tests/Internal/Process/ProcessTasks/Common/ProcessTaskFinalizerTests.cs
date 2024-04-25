@@ -30,7 +30,10 @@ namespace Altinn.App.Core.Tests.Internal.Process.ProcessTasks.Common
             _appModelMock = new Mock<IAppModel>();
             _appResourcesMock = new Mock<IAppResources>();
             var frontendSettingsMock = new Mock<IOptions<FrontEndSettings>>();
-            _layoutEvaluatorStateInitializerMock = new Mock<LayoutEvaluatorStateInitializer>(MockBehavior.Strict, [_appResourcesMock.Object, frontendSettingsMock.Object]);
+            _layoutEvaluatorStateInitializerMock = new Mock<LayoutEvaluatorStateInitializer>(
+                MockBehavior.Strict,
+                [_appResourcesMock.Object, frontendSettingsMock.Object]
+            );
             _appSettingsMock = Options.Create(new AppSettings());
 
             _processTaskFinalizer = new ProcessTaskFinalizer(
@@ -39,7 +42,8 @@ namespace Altinn.App.Core.Tests.Internal.Process.ProcessTasks.Common
                 _appModelMock.Object,
                 _appResourcesMock.Object,
                 _layoutEvaluatorStateInitializerMock.Object,
-                _appSettingsMock);
+                _appSettingsMock
+            );
         }
 
         [Fact]
@@ -48,7 +52,17 @@ namespace Altinn.App.Core.Tests.Internal.Process.ProcessTasks.Common
             // Arrange
             Instance instance = CreateInstance();
 
-            instance.Data = [new DataElement { Id = Guid.NewGuid().ToString(), References = [new Reference { ValueType = ReferenceType.Task, Value = instance.Process.CurrentTask.ElementId }] }];
+            instance.Data =
+            [
+                new DataElement
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    References =
+                    [
+                        new Reference { ValueType = ReferenceType.Task, Value = instance.Process.CurrentTask.ElementId }
+                    ]
+                }
+            ];
 
             var applicationMetadata = new ApplicationMetadata(instance.AppId)
             {
@@ -62,7 +76,18 @@ namespace Altinn.App.Core.Tests.Internal.Process.ProcessTasks.Common
 
             // Assert
             _appMetadataMock.Verify(x => x.GetApplicationMetadata(), Times.Once);
-            _dataClientMock.Verify(x => x.DeleteData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<bool>()), Times.AtLeastOnce);
+            _dataClientMock.Verify(
+                x =>
+                    x.DeleteData(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<int>(),
+                        It.IsAny<Guid>(),
+                        It.IsAny<Guid>(),
+                        It.IsAny<bool>()
+                    ),
+                Times.AtLeastOnce
+            );
         }
 
         private static Instance CreateInstance()
@@ -73,11 +98,7 @@ namespace Altinn.App.Core.Tests.Internal.Process.ProcessTasks.Common
                 AppId = "ttd/test",
                 Process = new ProcessState
                 {
-                    CurrentTask = new ProcessElementInfo
-                    {
-                        AltinnTaskType = "signing",
-                        ElementId = "EndEvent",
-                    },
+                    CurrentTask = new ProcessElementInfo { AltinnTaskType = "signing", ElementId = "EndEvent", },
                 },
             };
         }

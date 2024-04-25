@@ -23,8 +23,14 @@ public static class ModelStateHelpers
     /// <param name="objectType">Type of the object to map ModelStateDictionary key to the json path field (might be different)</param>
     /// <param name="source">issue.Source</param>
     /// <returns>A list of the issues as our standard ValidationIssue</returns>
-    public static List<ValidationIssue> ModelStateToIssueList(ModelStateDictionary modelState, Instance instance,
-        DataElement dataElement, GeneralSettings generalSettings, Type objectType, string source)
+    public static List<ValidationIssue> ModelStateToIssueList(
+        ModelStateDictionary modelState,
+        Instance instance,
+        DataElement dataElement,
+        GeneralSettings generalSettings,
+        Type objectType,
+        string source
+    )
     {
         var validationIssues = new List<ValidationIssue>();
 
@@ -37,15 +43,17 @@ public static class ModelStateHelpers
                 foreach (var error in entry.Errors)
                 {
                     var severityAndMessage = GetSeverityFromMessage(error.ErrorMessage, generalSettings);
-                    validationIssues.Add(new ValidationIssue
-                    {
-                        DataElementId = dataElement.Id,
-                        Source = source,
-                        Code = severityAndMessage.Message,
-                        Field = ModelKeyToField(modelKey, objectType)!,
-                        Severity = severityAndMessage.Severity,
-                        Description = severityAndMessage.Message
-                    });
+                    validationIssues.Add(
+                        new ValidationIssue
+                        {
+                            DataElementId = dataElement.Id,
+                            Source = source,
+                            Code = severityAndMessage.Message,
+                            Field = ModelKeyToField(modelKey, objectType)!,
+                            Severity = severityAndMessage.Severity,
+                            Description = severityAndMessage.Message
+                        }
+                    );
                 }
             }
         }
@@ -53,33 +61,43 @@ public static class ModelStateHelpers
         return validationIssues;
     }
 
-    private static (ValidationIssueSeverity Severity, string Message) GetSeverityFromMessage(string originalMessage,
-        GeneralSettings generalSettings)
+    private static (ValidationIssueSeverity Severity, string Message) GetSeverityFromMessage(
+        string originalMessage,
+        GeneralSettings generalSettings
+    )
     {
         if (originalMessage.StartsWith(generalSettings.SoftValidationPrefix))
         {
-            return (ValidationIssueSeverity.Warning,
-                originalMessage.Remove(0, generalSettings.SoftValidationPrefix.Length));
+            return (
+                ValidationIssueSeverity.Warning,
+                originalMessage.Remove(0, generalSettings.SoftValidationPrefix.Length)
+            );
         }
 
 #pragma warning disable CS0618 // Type or member is obsolete
         if (originalMessage.StartsWith(generalSettings.FixedValidationPrefix))
         {
-            return (ValidationIssueSeverity.Fixed,
-                originalMessage.Remove(0, generalSettings.FixedValidationPrefix.Length));
+            return (
+                ValidationIssueSeverity.Fixed,
+                originalMessage.Remove(0, generalSettings.FixedValidationPrefix.Length)
+            );
         }
 #pragma warning restore CS0618 // Type or member is obsolete
 
         if (originalMessage.StartsWith(generalSettings.InfoValidationPrefix))
         {
-            return (ValidationIssueSeverity.Informational,
-                originalMessage.Remove(0, generalSettings.InfoValidationPrefix.Length));
+            return (
+                ValidationIssueSeverity.Informational,
+                originalMessage.Remove(0, generalSettings.InfoValidationPrefix.Length)
+            );
         }
 
         if (originalMessage.StartsWith(generalSettings.SuccessValidationPrefix))
         {
-            return (ValidationIssueSeverity.Success,
-                originalMessage.Remove(0, generalSettings.SuccessValidationPrefix.Length));
+            return (
+                ValidationIssueSeverity.Success,
+                originalMessage.Remove(0, generalSettings.SuccessValidationPrefix.Length)
+            );
         }
 
         return (ValidationIssueSeverity.Error, originalMessage);
@@ -127,9 +145,11 @@ public static class ModelStateHelpers
         // Get the Parameter of IEnumerable properties, if they are not string
         if (childType is not null && childType != typeof(string) && childType.IsAssignableTo(typeof(IEnumerable)))
         {
-            childType = childType.GetInterfaces()
+            childType = childType
+                .GetInterfaces()
                 .Where(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                .Select(t => t.GetGenericArguments()[0]).FirstOrDefault();
+                .Select(t => t.GetGenericArguments()[0])
+                .FirstOrDefault();
         }
 
         if (childType is null)
@@ -145,8 +165,11 @@ public static class ModelStateHelpers
     /// Same as <see cref="ModelStateToIssueList"/>, but without information about a specific field
     /// used by <see cref="LegacyIInstanceValidatorTaskValidator"/>
     /// </summary>
-    public static List<ValidationIssue> MapModelStateToIssueList(ModelStateDictionary modelState, Instance instance,
-        GeneralSettings generalSettings)
+    public static List<ValidationIssue> MapModelStateToIssueList(
+        ModelStateDictionary modelState,
+        Instance instance,
+        GeneralSettings generalSettings
+    )
     {
         var validationIssues = new List<ValidationIssue>();
 
@@ -159,12 +182,14 @@ public static class ModelStateHelpers
                 foreach (var error in entry.Errors)
                 {
                     var severityAndMessage = GetSeverityFromMessage(error.ErrorMessage, generalSettings);
-                    validationIssues.Add(new ValidationIssue
-                    {
-                        Code = severityAndMessage.Message,
-                        Severity = severityAndMessage.Severity,
-                        Description = severityAndMessage.Message
-                    });
+                    validationIssues.Add(
+                        new ValidationIssue
+                        {
+                            Code = severityAndMessage.Message,
+                            Severity = severityAndMessage.Severity,
+                            Description = severityAndMessage.Message
+                        }
+                    );
                 }
             }
         }

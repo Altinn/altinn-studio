@@ -17,6 +17,7 @@ namespace Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties
             Value = string.Empty;
             ActionType = ActionType.ProcessAction;
         }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="AltinnAction"/> class with the given ID
         /// </summary>
@@ -61,6 +62,7 @@ namespace Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties
         /// </summary>
         [XmlEnum("processAction")]
         ProcessAction,
+
         /// <summary>
         /// The action is a generic server action
         /// </summary>

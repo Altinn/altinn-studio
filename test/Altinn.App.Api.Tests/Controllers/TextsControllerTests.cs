@@ -25,17 +25,12 @@ public class TextsControllerTests
             Org = org,
             Resources = new List<TextResourceElement>
             {
-                new TextResourceElement
-                {
-                    Id = "test",
-                    Value = "test"
-                }
+                new TextResourceElement { Id = "test", Value = "test" }
             }
         };
 
         var appResourceMock = new Mock<IAppResources>();
-        appResourceMock.Setup(a => a.GetTexts(org, app, language))
-            .Returns(Task.FromResult<TextResource?>(expected));
+        appResourceMock.Setup(a => a.GetTexts(org, app, language)).Returns(Task.FromResult<TextResource?>(expected));
 
         // Act
         var controller = new TextsController(appResourceMock.Object);
@@ -64,19 +59,13 @@ public class TextsControllerTests
             Org = org,
             Resources = new List<TextResourceElement>
             {
-                new TextResourceElement
-                {
-                    Id = "test",
-                    Value = "test"
-                }
+                new TextResourceElement { Id = "test", Value = "test" }
             }
         };
 
         var appResourceMock = new Mock<IAppResources>();
-        appResourceMock.Setup(a => a.GetTexts(org, app, language))
-            .Returns(Task.FromResult<TextResource?>(null));
-        appResourceMock.Setup(a => a.GetTexts(org, app, "nb"))
-            .Returns(Task.FromResult<TextResource?>(null));
+        appResourceMock.Setup(a => a.GetTexts(org, app, language)).Returns(Task.FromResult<TextResource?>(null));
+        appResourceMock.Setup(a => a.GetTexts(org, app, "nb")).Returns(Task.FromResult<TextResource?>(null));
         // Act
         var controller = new TextsController(appResourceMock.Object);
         var result = await controller.Get(org, app, language);

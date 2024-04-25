@@ -8,7 +8,6 @@ namespace Altinn.App.Core.Configuration
     /// </summary>
     public class AppSettings
     {
-
         /// <summary>
         /// Constant for the location of json schema file
         /// </summary>
@@ -132,7 +131,8 @@ namespace Altinn.App.Core.Configuration
         /// <summary>
         /// Gets or sets default Bootstrap url
         /// </summary>
-        public string DefaultBootstrapUrl { get; set; } = "https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css";
+        public string DefaultBootstrapUrl { get; set; } =
+            "https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css";
 
         /// <summary>
         /// Gets or sets the filename for the instantiation handler
@@ -184,7 +184,7 @@ namespace Altinn.App.Core.Configuration
         public string EFormidlingSender { get; set; } = "910075918";
 
         /// <summary>
-        /// Gets or sets the version of the application. 
+        /// Gets or sets the version of the application.
         /// </summary>
         public string AppVersion { get; set; }
 

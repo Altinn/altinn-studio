@@ -32,7 +32,6 @@ namespace Altinn.App.Core.Models
             }
         }
 
-
         /// <summary>
         /// List of features and status (enabled/disabled)
         /// </summary>
@@ -63,7 +62,8 @@ namespace Altinn.App.Core.Models
         /// Frontend sometimes need to have knowledge of the nuget package version for backwards compatibility
         /// </summary>
         [JsonProperty(PropertyName = "altinnNugetVersion")]
-        public string AltinnNugetVersion { get; set; } = typeof(ApplicationMetadata).Assembly!.GetName().Version!.ToString();
+        public string AltinnNugetVersion { get; set; } =
+            typeof(ApplicationMetadata).Assembly!.GetName().Version!.ToString();
 
         /// <summary>
         /// Holds properties that are not mapped to other properties

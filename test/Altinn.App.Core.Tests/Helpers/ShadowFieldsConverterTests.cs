@@ -17,23 +17,11 @@ public class ShadowFieldsConverterTests
             AltinnSF_test = "test",
             Property1 = 1,
             Property2 = 2,
-            AltinnSF_gruppeish = new AltinnSF_gruppeish()
-            {
-                F1 = "f1",
-                F2 = "f2",
-            },
+            AltinnSF_gruppeish = new AltinnSF_gruppeish() { F1 = "f1", F2 = "f2", },
             Gruppe = new List<Gruppe>()
             {
-                new()
-                {
-                    AltinnSF_gfhjelpefelt = "gfhjelpefelt",
-                    Gf1 = "gf1",
-                },
-                new()
-                {
-                    AltinnSF_gfhjelpefelt = "gfhjelpefelt2",
-                    Gf1 = "gf1-v2",
-                }
+                new() { AltinnSF_gfhjelpefelt = "gfhjelpefelt", Gf1 = "gf1", },
+                new() { AltinnSF_gfhjelpefelt = "gfhjelpefelt2", Gf1 = "gf1-v2", }
             }
         };
         return ("AltinnSF_", data);
@@ -49,14 +37,12 @@ public class ShadowFieldsConverterTests
         Assert.Contains(prefix, serializedDataWithoutModifier);
 
         var modifier = new IgnorePropertiesWithPrefix("AltinnSF_");
-        JsonSerializerOptions options = new()
-        {
-            TypeInfoResolver = new DefaultJsonTypeInfoResolver
+        JsonSerializerOptions options =
+            new()
             {
-                Modifiers = { modifier.ModifyPrefixInfo }
-            },
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        };
+                TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { modifier.ModifyPrefixInfo } },
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            };
 
         // Check that serialization with modifier removes shadow fields from result
         string serializedData = JsonSerializer.Serialize(data, options);

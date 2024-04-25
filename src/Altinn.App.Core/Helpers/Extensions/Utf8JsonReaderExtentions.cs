@@ -1,12 +1,10 @@
 using System.Text.Json;
+
 namespace Altinn.App.Core.Helpers.Extensions;
 
 internal static class Utf8JsonReaderExtensions
 {
-    private static readonly JsonWriterOptions OPTIONS = new()
-    {
-        Indented = true,
-    };
+    private static readonly JsonWriterOptions OPTIONS = new() { Indented = true, };
 
     internal static string SkipReturnString(this ref Utf8JsonReader reader)
     {

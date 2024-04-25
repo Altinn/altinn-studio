@@ -37,7 +37,11 @@ namespace Altinn.App.Api.Controllers
         /// <param name="checkOrgApp">Boolean get parameter to skip verification of correct org/app</param>
         /// <returns>Application metadata</returns>
         [HttpGet("{org}/{app}/api/v1/applicationmetadata")]
-        public async Task<ActionResult<ApplicationMetadata>> GetAction(string org, string app, [FromQuery] bool checkOrgApp = true)
+        public async Task<ActionResult<ApplicationMetadata>> GetAction(
+            string org,
+            string app,
+            [FromQuery] bool checkOrgApp = true
+        )
         {
             ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
 

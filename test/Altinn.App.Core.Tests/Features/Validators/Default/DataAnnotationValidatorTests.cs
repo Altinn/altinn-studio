@@ -20,7 +20,9 @@ public class DataAnnotationValidatorTests : IClassFixture<DataAnnotationsTestFix
 
     public DataAnnotationValidatorTests(DataAnnotationsTestFixture fixture)
     {
-        _validator = fixture.App.Services.GetRequiredKeyedService<DataAnnotationValidator>(DataAnnotationsTestFixture.DataType);
+        _validator = fixture.App.Services.GetRequiredKeyedService<DataAnnotationValidator>(
+            DataAnnotationsTestFixture.DataType
+        );
     }
 
     private class TestClass
@@ -101,60 +103,63 @@ public class DataAnnotationValidatorTests : IClassFixture<DataAnnotationsTestFix
         // Arrange
         var instance = new Instance();
         var dataElement = new DataElement();
-        var data = new TestClass()
-        {
-            NestedProperty = new(),
-        };
+        var data = new TestClass() { NestedProperty = new(), };
 
         // Act
         var result = await _validator.ValidateFormData(instance, dataElement, data, null);
 
         // Assert
         result.Should().NotBeNull();
-        result.Should().BeEquivalentTo(JsonSerializer.Deserialize<List<ValidationIssue>>("""
-            [
-              {
-                "severity": 1,
-                "instanceId": null,
-                "dataElementId": null,
-                "field": "range",
-                "code": "The field RangeProperty must be between 1 and 10.",
-                "description": "The field RangeProperty must be between 1 and 10.",
-                "source": "ModelState",
-                "customTextKey": null
-              },
-              {
-                "severity": 1,
-                "instanceId": null,
-                "dataElementId": null,
-                "field": "requiredProperty",
-                "code": "The RequiredProperty field is required.",
-                "description": "The RequiredProperty field is required.",
-                "source": "ModelState",
-                "customTextKey": null
-              },
-              {
-                "severity": 1,
-                "instanceId": null,
-                "dataElementId": null,
-                "field": "NestedProperty.range",
-                "code": "The field RangeProperty must be between 1 and 10.",
-                "description": "The field RangeProperty must be between 1 and 10.",
-                "source": "ModelState",
-                "customTextKey": null
-              },
-              {
-                "severity": 1,
-                "instanceId": null,
-                "dataElementId": null,
-                "field": "NestedProperty.requiredProperty",
-                "code": "The RequiredProperty field is required.",
-                "description": "The RequiredProperty field is required.",
-                "source": "ModelState",
-                "customTextKey": null
-              }
-            ]
-            """));
+        result
+            .Should()
+            .BeEquivalentTo(
+                JsonSerializer.Deserialize<List<ValidationIssue>>(
+                    """
+                    [
+                      {
+                        "severity": 1,
+                        "instanceId": null,
+                        "dataElementId": null,
+                        "field": "range",
+                        "code": "The field RangeProperty must be between 1 and 10.",
+                        "description": "The field RangeProperty must be between 1 and 10.",
+                        "source": "ModelState",
+                        "customTextKey": null
+                      },
+                      {
+                        "severity": 1,
+                        "instanceId": null,
+                        "dataElementId": null,
+                        "field": "requiredProperty",
+                        "code": "The RequiredProperty field is required.",
+                        "description": "The RequiredProperty field is required.",
+                        "source": "ModelState",
+                        "customTextKey": null
+                      },
+                      {
+                        "severity": 1,
+                        "instanceId": null,
+                        "dataElementId": null,
+                        "field": "NestedProperty.range",
+                        "code": "The field RangeProperty must be between 1 and 10.",
+                        "description": "The field RangeProperty must be between 1 and 10.",
+                        "source": "ModelState",
+                        "customTextKey": null
+                      },
+                      {
+                        "severity": 1,
+                        "instanceId": null,
+                        "dataElementId": null,
+                        "field": "NestedProperty.requiredProperty",
+                        "code": "The RequiredProperty field is required.",
+                        "description": "The RequiredProperty field is required.",
+                        "source": "ModelState",
+                        "customTextKey": null
+                      }
+                    ]
+                    """
+                )
+            );
     }
 }
 

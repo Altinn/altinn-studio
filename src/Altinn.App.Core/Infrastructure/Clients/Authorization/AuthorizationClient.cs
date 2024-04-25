@@ -47,7 +47,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
             HttpClient httpClient,
             IOptionsMonitor<AppSettings> settings,
             IPDP pdp,
-            ILogger<AuthorizationClient> logger)
+            ILogger<AuthorizationClient> logger
+        )
         {
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;
@@ -60,7 +61,10 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
                 string? clientIpAddress = _httpContextAccessor?.HttpContext?.Request?.Headers?[ForwardedForHeaderName];
                 httpClient.DefaultRequestHeaders.Add(ForwardedForHeaderName, clientIpAddress);
             }
-            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
+            httpClient.DefaultRequestHeaders.Add(
+                General.SubscriptionKeyHeaderName,
+                platformSettings.Value.SubscriptionKey
+            );
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _client = httpClient;
         }
@@ -70,7 +74,10 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
         {
             List<Party>? partyList = null;
             string apiUrl = $"parties?userid={userId}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+            string token = JwtTokenUtil.GetTokenFromContext(
+                _httpContextAccessor.HttpContext,
+                _settings.RuntimeCookieName
+            );
             try
             {
                 HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
@@ -94,7 +101,10 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
         {
             bool? result;
             string apiUrl = $"parties/{partyId}/validate?userid={userId}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+            string token = JwtTokenUtil.GetTokenFromContext(
+                _httpContextAccessor.HttpContext,
+                _settings.RuntimeCookieName
+            );
 
             HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
 
@@ -105,7 +115,9 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
             }
             else
             {
-                _logger.LogError($"Validating selected party {partyId} for user {userId} failed with statuscode {response.StatusCode}");
+                _logger.LogError(
+                    $"Validating selected party {partyId} for user {userId} failed with statuscode {response.StatusCode}"
+                );
                 result = null;
             }
 
@@ -113,13 +125,30 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
         }
 
         /// <inheritdoc />
-        public async Task<bool> AuthorizeAction(AppIdentifier appIdentifier, InstanceIdentifier instanceIdentifier, ClaimsPrincipal user, string action, string? taskId = null)
+        public async Task<bool> AuthorizeAction(
+            AppIdentifier appIdentifier,
+            InstanceIdentifier instanceIdentifier,
+            ClaimsPrincipal user,
+            string action,
+            string? taskId = null
+        )
         {
-            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(appIdentifier.Org, appIdentifier.App, user, action, instanceIdentifier.InstanceOwnerPartyId, instanceIdentifier.InstanceGuid, taskId);
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(
+                appIdentifier.Org,
+                appIdentifier.App,
+                user,
+                action,
+                instanceIdentifier.InstanceOwnerPartyId,
+                instanceIdentifier.InstanceGuid,
+                taskId
+            );
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
             if (response?.Response == null)
             {
-                _logger.LogWarning("Failed to get decision from pdp: {SerializeObject}", JsonConvert.SerializeObject(request));
+                _logger.LogWarning(
+                    "Failed to get decision from pdp: {SerializeObject}",
+                    JsonConvert.SerializeObject(request)
+                );
                 return false;
             }
 
@@ -128,13 +157,20 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
         }
 
         /// <inheritdoc />
-        public async Task<Dictionary<string, bool>> AuthorizeActions(Instance instance, ClaimsPrincipal user, List<string> actions)
+        public async Task<Dictionary<string, bool>> AuthorizeActions(
+            Instance instance,
+            ClaimsPrincipal user,
+            List<string> actions
+        )
         {
             XacmlJsonRequestRoot request = MultiDecisionHelper.CreateMultiDecisionRequest(user, instance, actions);
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
             if (response?.Response == null)
             {
-                _logger.LogWarning("Failed to get decision from pdp: {SerializeObject}", JsonConvert.SerializeObject(request));
+                _logger.LogWarning(
+                    "Failed to get decision from pdp: {SerializeObject}",
+                    JsonConvert.SerializeObject(request)
+                );
                 return new Dictionary<string, bool>();
             }
             Dictionary<string, bool> actionsResult = new Dictionary<string, bool>();
@@ -144,7 +180,5 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
             }
             return MultiDecisionHelper.ValidatePdpMultiDecision(actionsResult, response.Response, user);
         }
-
-
     }
 }

@@ -14,16 +14,13 @@ using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.Validation;
-
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Interface.Models;
-
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-
 using Moq;
 using Xunit;
 using IProcessEngine = Altinn.App.Core.Internal.Process.IProcessEngine;
@@ -53,10 +50,7 @@ public class InstancesController_CopyInstanceTests
 
     public InstancesController_CopyInstanceTests()
     {
-        ControllerContext controllerContext = new ControllerContext()
-        {
-            HttpContext = _httpContextMock.Object
-        };
+        ControllerContext controllerContext = new ControllerContext() { HttpContext = _httpContextMock.Object };
 
         SUT = new InstancesController(
             _logger.Object,
@@ -73,7 +67,8 @@ public class InstancesController_CopyInstanceTests
             _prefill.Object,
             _profile.Object,
             _processEngine.Object,
-            _oarganizationClientMock.Object)
+            _oarganizationClientMock.Object
+        )
         {
             ControllerContext = controllerContext
         };
@@ -116,7 +111,8 @@ public class InstancesController_CopyInstanceTests
         // Arrange
         const string Org = "ttd";
         const string AppName = "copy-instance";
-        _appMetadata.Setup(a => a.GetApplicationMetadata())
+        _appMetadata
+            .Setup(a => a.GetApplicationMetadata())
             .ReturnsAsync(CreateApplicationMetadata(Org, AppName, false));
 
         // Act
@@ -154,8 +150,7 @@ public class InstancesController_CopyInstanceTests
         const string Org = "ttd";
         const string AppName = "copy-instance";
         _httpContextMock.Setup(httpContext => httpContext.User).Returns(PrincipalUtil.GetUserPrincipal(1337, null));
-        _appMetadata.Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(CreateApplicationMetadata(Org, AppName, true));
+        _appMetadata.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(CreateApplicationMetadata(Org, AppName, true));
         _pdp.Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
             .ReturnsAsync(CreateXacmlResponse("Deny"));
 
@@ -180,18 +175,19 @@ public class InstancesController_CopyInstanceTests
         const string AppName = "copy-instance";
         int instanceOwnerPartyId = 343234;
         Guid instanceGuid = Guid.NewGuid();
-        Instance instance = new()
-        {
-            Id = $"{instanceOwnerPartyId}/{instanceGuid}",
-            Status = new InstanceStatus() { IsArchived = false }
-        };
+        Instance instance =
+            new()
+            {
+                Id = $"{instanceOwnerPartyId}/{instanceGuid}",
+                Status = new InstanceStatus() { IsArchived = false }
+            };
 
         _httpContextMock.Setup(httpContext => httpContext.User).Returns(PrincipalUtil.GetUserPrincipal(1337, null));
-        _appMetadata.Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(CreateApplicationMetadata(Org, AppName, true));
+        _appMetadata.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(CreateApplicationMetadata(Org, AppName, true));
         _pdp.Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
             .ReturnsAsync(CreateXacmlResponse("Permit"));
-        _instanceClient.Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
+        _instanceClient
+            .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
             .ReturnsAsync(instance);
 
         // Act
@@ -218,15 +214,16 @@ public class InstancesController_CopyInstanceTests
         Guid instanceGuid = Guid.NewGuid();
 
         // Storage returns Forbidden if the given instance id is wrong.
-        PlatformHttpException platformHttpException =
-            await PlatformHttpException.CreateAsync(new HttpResponseMessage(System.Net.HttpStatusCode.Forbidden));
+        PlatformHttpException platformHttpException = await PlatformHttpException.CreateAsync(
+            new HttpResponseMessage(System.Net.HttpStatusCode.Forbidden)
+        );
 
         _httpContextMock.Setup(httpContext => httpContext.User).Returns(PrincipalUtil.GetUserPrincipal(1337, null));
-        _appMetadata.Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(CreateApplicationMetadata(Org, AppName, true));
+        _appMetadata.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(CreateApplicationMetadata(Org, AppName, true));
         _pdp.Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
             .ReturnsAsync(CreateXacmlResponse("Permit"));
-        _instanceClient.Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
+        _instanceClient
+            .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
             .ThrowsAsync(platformHttpException);
 
         // Act
@@ -253,15 +250,16 @@ public class InstancesController_CopyInstanceTests
         Guid instanceGuid = Guid.NewGuid();
 
         // Simulate a BadGateway respons from Platform
-        PlatformHttpException platformHttpException =
-            await PlatformHttpException.CreateAsync(new HttpResponseMessage(System.Net.HttpStatusCode.BadGateway));
+        PlatformHttpException platformHttpException = await PlatformHttpException.CreateAsync(
+            new HttpResponseMessage(System.Net.HttpStatusCode.BadGateway)
+        );
 
         _httpContextMock.Setup(httpContext => httpContext.User).Returns(PrincipalUtil.GetUserPrincipal(1337, null));
-        _appMetadata.Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(CreateApplicationMetadata(Org, AppName, true));
+        _appMetadata.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(CreateApplicationMetadata(Org, AppName, true));
         _pdp.Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
             .ReturnsAsync(CreateXacmlResponse("Permit"));
-        _instanceClient.Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
+        _instanceClient
+            .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
             .ThrowsAsync(platformHttpException);
 
         PlatformHttpException? actual = null;
@@ -293,21 +291,24 @@ public class InstancesController_CopyInstanceTests
         const string AppName = "copy-instance";
         int instanceOwnerPartyId = 343234;
         Guid instanceGuid = Guid.NewGuid();
-        Instance instance = new()
-        {
-            Id = $"{instanceOwnerPartyId}/{instanceGuid}",
-            Status = new InstanceStatus() { IsArchived = true }
-        };
+        Instance instance =
+            new()
+            {
+                Id = $"{instanceOwnerPartyId}/{instanceGuid}",
+                Status = new InstanceStatus() { IsArchived = true }
+            };
         InstantiationValidationResult? instantiationValidationResult = new() { Valid = false };
 
         _httpContextMock.Setup(httpContext => httpContext.User).Returns(PrincipalUtil.GetUserPrincipal(1337, null));
-        _appMetadata.Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(CreateApplicationMetadata(Org, AppName, true));
+        _appMetadata.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(CreateApplicationMetadata(Org, AppName, true));
         _pdp.Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
             .ReturnsAsync(CreateXacmlResponse("Permit"));
-        _instanceClient.Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
+        _instanceClient
+            .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
             .ReturnsAsync(instance);
-        _instantiationValidator.Setup(v => v.Validate(It.IsAny<Instance>())).ReturnsAsync(instantiationValidationResult);
+        _instantiationValidator
+            .Setup(v => v.Validate(It.IsAny<Instance>()))
+            .ReturnsAsync(instantiationValidationResult);
 
         // Act
         ActionResult actual = await SUT.CopyInstance("ttd", "copy-instance", instanceOwnerPartyId, instanceGuid);
@@ -335,37 +336,64 @@ public class InstancesController_CopyInstanceTests
         Guid instanceGuid = Guid.NewGuid();
         Guid dataGuid = Guid.NewGuid();
         const string dataTypeId = "data_type_1";
-        Instance instance = new()
-        {
-            Id = $"{InstanceOwnerPartyId}/{instanceGuid}",
-            AppId = $"{Org}/{AppName}",
-            InstanceOwner = new InstanceOwner() { PartyId = InstanceOwnerPartyId.ToString() },
-            Status = new InstanceStatus() { IsArchived = true },
-            Process = new ProcessState() { CurrentTask = new ProcessElementInfo() { ElementId = "First" } },
-            Data = new List<DataElement>
+        Instance instance =
+            new()
             {
-                new DataElement { Id = dataGuid.ToString(), DataType = dataTypeId }
-            }
-        };
+                Id = $"{InstanceOwnerPartyId}/{instanceGuid}",
+                AppId = $"{Org}/{AppName}",
+                InstanceOwner = new InstanceOwner() { PartyId = InstanceOwnerPartyId.ToString() },
+                Status = new InstanceStatus() { IsArchived = true },
+                Process = new ProcessState() { CurrentTask = new ProcessElementInfo() { ElementId = "First" } },
+                Data = new List<DataElement>
+                {
+                    new DataElement { Id = dataGuid.ToString(), DataType = dataTypeId }
+                }
+            };
         InstantiationValidationResult? instantiationValidationResult = new() { Valid = true };
 
         _httpContextMock.Setup(hc => hc.User).Returns(PrincipalUtil.GetUserPrincipal(1337, null));
         _httpContextMock.Setup(hc => hc.Request).Returns(Mock.Of<HttpRequest>());
-        _appMetadata.Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(CreateApplicationMetadata(Org, AppName, true));
+        _appMetadata.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(CreateApplicationMetadata(Org, AppName, true));
         _pdp.Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
             .ReturnsAsync(CreateXacmlResponse("Permit"));
-        _instanceClient.Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
+        _instanceClient
+            .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
             .ReturnsAsync(instance);
-        _instanceClient.Setup(i => i.CreateInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Instance>())).ReturnsAsync(instance);
+        _instanceClient
+            .Setup(i => i.CreateInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Instance>()))
+            .ReturnsAsync(instance);
         _instanceClient.Setup(i => i.GetInstance(It.IsAny<Instance>())).ReturnsAsync(instance);
-        _instantiationValidator.Setup(v => v.Validate(It.IsAny<Instance>())).ReturnsAsync(instantiationValidationResult);
-        _processEngine.Setup(p => p.GenerateProcessStartEvents(It.IsAny<ProcessStartRequest>()))
-            .ReturnsAsync(() => { return new ProcessChangeResult() { Success = true }; });
-        _processEngine.Setup(p => p.HandleEventsAndUpdateStorage(It.IsAny<Instance>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<List<InstanceEvent>>()));
-        _data.Setup(p => p.GetFormData(instanceGuid, It.IsAny<Type?>()!, Org, AppName, InstanceOwnerPartyId, dataGuid))
+        _instantiationValidator
+            .Setup(v => v.Validate(It.IsAny<Instance>()))
+            .ReturnsAsync(instantiationValidationResult);
+        _processEngine
+            .Setup(p => p.GenerateProcessStartEvents(It.IsAny<ProcessStartRequest>()))
+            .ReturnsAsync(() =>
+            {
+                return new ProcessChangeResult() { Success = true };
+            });
+        _processEngine.Setup(p =>
+            p.HandleEventsAndUpdateStorage(
+                It.IsAny<Instance>(),
+                It.IsAny<Dictionary<string, string>>(),
+                It.IsAny<List<InstanceEvent>>()
+            )
+        );
+        _data
+            .Setup(p => p.GetFormData(instanceGuid, It.IsAny<Type?>()!, Org, AppName, InstanceOwnerPartyId, dataGuid))
             .ReturnsAsync(new { test = "test" });
-        _data.Setup(p => p.InsertFormData(It.IsAny<object>(), instanceGuid, It.IsAny<Type?>()!, Org, AppName, InstanceOwnerPartyId, dataTypeId))
+        _data
+            .Setup(p =>
+                p.InsertFormData(
+                    It.IsAny<object>(),
+                    instanceGuid,
+                    It.IsAny<Type?>()!,
+                    Org,
+                    AppName,
+                    InstanceOwnerPartyId,
+                    dataTypeId
+                )
+            )
             .ReturnsAsync(new DataElement());
 
         // Act
@@ -395,10 +423,7 @@ public class InstancesController_CopyInstanceTests
                 new DataType
                 {
                     Id = "data_type_1",
-                    AppLogic = new ApplicationLogic
-                    {
-                        ClassRef = "App.Models.Skjema",
-                    },
+                    AppLogic = new ApplicationLogic { ClassRef = "App.Models.Skjema", },
                     TaskId = "First"
                 }
             },

@@ -54,14 +54,17 @@ namespace Altinn.App.Core.Models
         /// Default value, will be serialized as a string if not specified
         /// </summary>
         String,
+
         /// <summary>
         /// The app option value is a number and can be bound to a numeric field
         /// </summary>
         Number,
+
         /// <summary>
         /// The app option value is a boolean and can be bound to a boolean field
         /// </summary>
         Boolean,
+
         /// <summary>
         /// The app option value is null and can be used to signal that the option is not set
         /// </summary>
@@ -140,7 +143,9 @@ namespace Altinn.App.Core.Models
                     valueType = AppOptionValueType.Null;
                     break;
                 default:
-                    throw new JsonException($"Unexpected token type {reader.TokenType} for property 'value' on AppOption");
+                    throw new JsonException(
+                        $"Unexpected token type {reader.TokenType} for property 'value' on AppOption"
+                    );
             }
         }
 
@@ -153,12 +158,18 @@ namespace Altinn.App.Core.Models
                     writer.WriteString("value", value.Value);
                     break;
                 case AppOptionValueType.Boolean:
-                    writer.WriteBoolean("value", value.Value switch
-                    {
-                        "true" => true,
-                        "false" => false,
-                        _ => throw new JsonException($"Unable to parse value {value.Value} as a boolean on AppOption")
-                    });
+                    writer.WriteBoolean(
+                        "value",
+                        value.Value switch
+                        {
+                            "true" => true,
+                            "false" => false,
+                            _
+                                => throw new JsonException(
+                                    $"Unable to parse value {value.Value} as a boolean on AppOption"
+                                )
+                        }
+                    );
                     break;
                 case AppOptionValueType.Number:
                     if (double.TryParse(value.Value, out double doubleValue))

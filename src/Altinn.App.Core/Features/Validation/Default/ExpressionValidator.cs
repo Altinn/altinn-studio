@@ -14,11 +14,8 @@ namespace Altinn.App.Core.Features.Validation.Default;
 /// </summary>
 public class ExpressionValidator : IFormDataValidator
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions =
+        new() { ReadCommentHandling = JsonCommentHandling.Skip, PropertyNamingPolicy = JsonNamingPolicy.CamelCase, };
 
     private readonly ILogger<ExpressionValidator> _logger;
     private readonly IAppResources _appResourceService;
@@ -28,7 +25,12 @@ public class ExpressionValidator : IFormDataValidator
     /// <summary>
     /// Constructor for the expression validator
     /// </summary>
-    public ExpressionValidator(ILogger<ExpressionValidator> logger, IAppResources appResourceService, LayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer, IAppMetadata appMetadata)
+    public ExpressionValidator(
+        ILogger<ExpressionValidator> logger,
+        IAppResources appResourceService,
+        LayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
+        IAppMetadata appMetadata
+    )
     {
         _logger = logger;
         _appResourceService = appResourceService;
@@ -50,7 +52,12 @@ public class ExpressionValidator : IFormDataValidator
     public bool HasRelevantChanges(object current, object previous) => true;
 
     /// <inheritdoc />
-    public async Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data, string? language)
+    public async Task<List<ValidationIssue>> ValidateFormData(
+        Instance instance,
+        DataElement dataElement,
+        object data,
+        string? language
+    )
     {
         var rawValidationConfig = _appResourceService.GetValidationConfiguration(dataElement.DataType);
         if (rawValidationConfig == null)
@@ -61,7 +68,9 @@ public class ExpressionValidator : IFormDataValidator
 
         using var validationConfig = JsonDocument.Parse(rawValidationConfig);
         var appMetadata = await _appMetadata.GetApplicationMetadata();
-        var layoutSet = _appResourceService.GetLayoutSetForTask(appMetadata.DataTypes.First(dt => dt.Id == dataElement.DataType).TaskId);
+        var layoutSet = _appResourceService.GetLayoutSetForTask(
+            appMetadata.DataTypes.First(dt => dt.Id == dataElement.DataType).TaskId
+        );
         var evaluatorState = await _layoutEvaluatorStateInitializer.Init(instance, data, layoutSet?.Id);
         var hiddenFields = LayoutEvaluator.GetHiddenFieldsForRemoval(evaluatorState, true);
 
@@ -78,7 +87,11 @@ public class ExpressionValidator : IFormDataValidator
                 {
                     continue;
                 }
-                var context = new ComponentContext(component: null, rowIndices: DataModel.GetRowIndices(resolvedField), rowLength: null);
+                var context = new ComponentContext(
+                    component: null,
+                    rowIndices: DataModel.GetRowIndices(resolvedField),
+                    rowLength: null
+                );
                 var positionalArguments = new[] { resolvedField };
                 foreach (var validation in validations)
                 {
@@ -89,10 +102,17 @@ public class ExpressionValidator : IFormDataValidator
                             continue;
                         }
 
-                        var isInvalid = ExpressionEvaluator.EvaluateExpression(evaluatorState, validation.Condition, context, positionalArguments);
+                        var isInvalid = ExpressionEvaluator.EvaluateExpression(
+                            evaluatorState,
+                            validation.Condition,
+                            context,
+                            positionalArguments
+                        );
                         if (isInvalid is not bool)
                         {
-                            throw new ArgumentException($"Validation condition for {resolvedField} did not evaluate to a boolean");
+                            throw new ArgumentException(
+                                $"Validation condition for {resolvedField} did not evaluate to a boolean"
+                            );
                         }
                         if ((bool)isInvalid)
                         {
@@ -109,18 +129,26 @@ public class ExpressionValidator : IFormDataValidator
                     }
                     catch (Exception e)
                     {
-                        _logger.LogError(e, "Error while evaluating expression validation for {resolvedField}", resolvedField);
+                        _logger.LogError(
+                            e,
+                            "Error while evaluating expression validation for {resolvedField}",
+                            resolvedField
+                        );
                         throw;
                     }
                 }
             }
         }
 
-
         return validationIssues;
     }
 
-    private static RawExpressionValidation? ResolveValidationDefinition(string name, JsonElement definition, Dictionary<string, RawExpressionValidation> resolvedDefinitions, ILogger logger)
+    private static RawExpressionValidation? ResolveValidationDefinition(
+        string name,
+        JsonElement definition,
+        Dictionary<string, RawExpressionValidation> resolvedDefinitions,
+        ILogger logger
+    )
     {
         var resolvedDefinition = new RawExpressionValidation();
 
@@ -135,9 +163,12 @@ public class ExpressionValidator : IFormDataValidator
             var reference = resolvedDefinitions.GetValueOrDefault(rawDefinition.Ref);
             if (reference == null)
             {
-                logger.LogError("Could not resolve reference {rawDefinitionRef} for validation {name}", rawDefinition.Ref, name);
+                logger.LogError(
+                    "Could not resolve reference {rawDefinitionRef} for validation {name}",
+                    rawDefinition.Ref,
+                    name
+                );
                 return null;
-
             }
             resolvedDefinition.Message = reference.Message;
             resolvedDefinition.Condition = reference.Condition;
@@ -174,9 +205,13 @@ public class ExpressionValidator : IFormDataValidator
         return resolvedDefinition;
     }
 
-    private static ExpressionValidation? ResolveExpressionValidation(string field, JsonElement definition, Dictionary<string, RawExpressionValidation> resolvedDefinitions, ILogger logger)
+    private static ExpressionValidation? ResolveExpressionValidation(
+        string field,
+        JsonElement definition,
+        Dictionary<string, RawExpressionValidation> resolvedDefinitions,
+        ILogger logger
+    )
     {
-
         var rawExpressionValidatıon = new RawExpressionValidation();
 
         if (definition.ValueKind == JsonValueKind.String)
@@ -190,7 +225,11 @@ public class ExpressionValidator : IFormDataValidator
             var reference = resolvedDefinitions.GetValueOrDefault(stringReference);
             if (reference == null)
             {
-                logger.LogError("Could not resolve reference {stringReference} for validation for field {field}", stringReference, field);
+                logger.LogError(
+                    "Could not resolve reference {stringReference} for validation for field {field}",
+                    stringReference,
+                    field
+                );
                 return null;
             }
             rawExpressionValidatıon.Message = reference.Message;
@@ -211,9 +250,12 @@ public class ExpressionValidator : IFormDataValidator
                 var reference = resolvedDefinitions.GetValueOrDefault(expressionDefinition.Ref);
                 if (reference == null)
                 {
-                    logger.LogError("Could not resolve reference {expressionDefinitionRef} for validation for field {field}", expressionDefinition.Ref, field);
+                    logger.LogError(
+                        "Could not resolve reference {expressionDefinitionRef} for validation for field {field}",
+                        expressionDefinition.Ref,
+                        field
+                    );
                     return null;
-
                 }
                 rawExpressionValidatıon.Message = reference.Message;
                 rawExpressionValidatıon.Condition = reference.Condition;
@@ -258,7 +300,10 @@ public class ExpressionValidator : IFormDataValidator
         return expressionValidation;
     }
 
-    private static Dictionary<string, List<ExpressionValidation>> ParseExpressionValidationConfig(JsonElement expressionValidationConfig, ILogger logger)
+    private static Dictionary<string, List<ExpressionValidation>> ParseExpressionValidationConfig(
+        JsonElement expressionValidationConfig,
+        ILogger logger
+    )
     {
         var expressionValidationDefinitions = new Dictionary<string, RawExpressionValidation>();
         JsonElement definitionsObject;
@@ -269,7 +314,12 @@ public class ExpressionValidator : IFormDataValidator
             {
                 var name = definitionObject.Name;
                 var definition = definitionObject.Value;
-                var resolvedDefinition = ResolveValidationDefinition(name, definition, expressionValidationDefinitions, logger);
+                var resolvedDefinition = ResolveValidationDefinition(
+                    name,
+                    definition,
+                    expressionValidationDefinitions,
+                    logger
+                );
                 if (resolvedDefinition == null)
                 {
                     logger.LogError("Validation definition {name} could not be resolved", name);
@@ -294,7 +344,12 @@ public class ExpressionValidator : IFormDataValidator
                         expressionValidation = new List<ExpressionValidation>();
                         expressionValidations[field] = expressionValidation;
                     }
-                    var resolvedExpressionValidation = ResolveExpressionValidation(field, validation, expressionValidationDefinitions, logger);
+                    var resolvedExpressionValidation = ResolveExpressionValidation(
+                        field,
+                        validation,
+                        expressionValidationDefinitions,
+                        logger
+                    );
                     if (resolvedExpressionValidation == null)
                     {
                         logger.LogError("Validation for field {field} could not be resolved", field);
@@ -306,5 +361,4 @@ public class ExpressionValidator : IFormDataValidator
         }
         return expressionValidations;
     }
-
 }

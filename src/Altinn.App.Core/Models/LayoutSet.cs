@@ -1,7 +1,7 @@
 namespace Altinn.App.Core.Models
 {
     /// <summary>
-    /// A specific layoutset 
+    /// A specific layoutset
     /// </summary>
     public class LayoutSet
     {

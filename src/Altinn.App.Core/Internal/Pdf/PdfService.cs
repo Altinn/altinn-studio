@@ -12,7 +12,6 @@ using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
-
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -55,7 +54,8 @@ public class PdfService : IPdfService
         IProfileClient profileClient,
         IPdfGeneratorClient pdfGeneratorClient,
         IOptions<PdfGeneratorSettings> pdfGeneratorSettings,
-        IOptions<GeneralSettings> generalSettings)
+        IOptions<GeneralSettings> generalSettings
+    )
     {
         _resourceService = appResources;
         _dataClient = dataClient;
@@ -65,7 +65,6 @@ public class PdfService : IPdfService
         _pdfGeneratorSettings = pdfGeneratorSettings.Value;
         _generalSettings = generalSettings.Value;
     }
-
 
     /// <inheritdoc/>
     public async Task GenerateAndStorePdf(Instance instance, string taskId, CancellationToken ct)
@@ -80,13 +79,7 @@ public class PdfService : IPdfService
 
         TextResource? textResource = await GetTextResource(appIdentifier.App, appIdentifier.Org, language);
         string fileName = GetFileName(instance, textResource);
-        await _dataClient.InsertBinaryData(
-            instance.Id,
-            PdfElementType,
-            PdfContentType,
-            fileName,
-            pdfContent,
-            taskId);
+        await _dataClient.InsertBinaryData(instance.Id, PdfElementType, PdfContentType, fileName, pdfContent, taskId);
     }
 
     /// <inheritdoc/>
@@ -99,10 +92,17 @@ public class PdfService : IPdfService
         return await GeneratePdfContent(instance, taskId, ct, language);
     }
 
-    private async Task<Stream> GeneratePdfContent(Instance instance, string taskId, CancellationToken ct, string language)
+    private async Task<Stream> GeneratePdfContent(
+        Instance instance,
+        string taskId,
+        CancellationToken ct,
+        string language
+    )
     {
         var baseUrl = _generalSettings.FormattedExternalAppBaseUrl(new AppIdentifier(instance));
-        var pagePath = _pdfGeneratorSettings.AppPdfPagePathTemplate.ToLowerInvariant().Replace("{instanceid}", instance.Id);
+        var pagePath = _pdfGeneratorSettings
+            .AppPdfPagePathTemplate.ToLowerInvariant()
+            .Replace("{instanceid}", instance.Id);
 
         Uri uri = BuildUri(baseUrl, pagePath, language);
 
@@ -127,7 +127,6 @@ public class PdfService : IPdfService
 
         return new Uri(url);
     }
-
 
     private async Task<string> GetLanguage()
     {
@@ -156,7 +155,9 @@ public class PdfService : IPdfService
         if (_httpContextAccessor.HttpContext != null)
         {
             StringValues queryLanguage;
-            bool hasQueryLanguage = _httpContextAccessor.HttpContext.Request.Query.TryGetValue("language", out queryLanguage) || _httpContextAccessor.HttpContext.Request.Query.TryGetValue("lang", out queryLanguage);
+            bool hasQueryLanguage =
+                _httpContextAccessor.HttpContext.Request.Query.TryGetValue("language", out queryLanguage)
+                || _httpContextAccessor.HttpContext.Request.Query.TryGetValue("lang", out queryLanguage);
             if (hasQueryLanguage)
             {
                 return queryLanguage.ToString();
@@ -192,8 +193,8 @@ public class PdfService : IPdfService
         }
 
         TextResourceElement? titleText =
-            textResource.Resources.Find(textResourceElement => textResourceElement.Id.Equals("appName")) ??
-            textResource.Resources.Find(textResourceElement => textResourceElement.Id.Equals("ServiceName"));
+            textResource.Resources.Find(textResourceElement => textResourceElement.Id.Equals("appName"))
+            ?? textResource.Resources.Find(textResourceElement => textResourceElement.Id.Equals("ServiceName"));
 
         if (titleText != null && !string.IsNullOrEmpty(titleText.Value))
         {

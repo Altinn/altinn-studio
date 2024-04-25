@@ -49,7 +49,10 @@ namespace Altinn.App.Core.Tests.Internal.Process.ProcessTasks
             await _processTaskDataLocker.Unlock(taskId, instance);
 
             // Assert
-            _dataClientMock.Verify(x => x.UnlockDataElement(It.IsAny<InstanceIdentifier>(), It.IsAny<Guid>()), Times.Exactly(2));
+            _dataClientMock.Verify(
+                x => x.UnlockDataElement(It.IsAny<InstanceIdentifier>(), It.IsAny<Guid>()),
+                Times.Exactly(2)
+            );
         }
 
         [Fact]
@@ -80,7 +83,10 @@ namespace Altinn.App.Core.Tests.Internal.Process.ProcessTasks
             await _processTaskDataLocker.Lock(taskId, instance);
 
             // Assert
-            _dataClientMock.Verify(x => x.LockDataElement(It.IsAny<InstanceIdentifier>(), It.IsAny<Guid>()), Times.Exactly(2));
+            _dataClientMock.Verify(
+                x => x.LockDataElement(It.IsAny<InstanceIdentifier>(), It.IsAny<Guid>()),
+                Times.Exactly(2)
+            );
         }
 
         [Fact]
@@ -111,7 +117,10 @@ namespace Altinn.App.Core.Tests.Internal.Process.ProcessTasks
             await _processTaskDataLocker.Unlock(taskId, instance);
 
             // Assert
-            _dataClientMock.Verify(x => x.UnlockDataElement(It.IsAny<InstanceIdentifier>(), It.IsAny<Guid>()), Times.Once);
+            _dataClientMock.Verify(
+                x => x.UnlockDataElement(It.IsAny<InstanceIdentifier>(), It.IsAny<Guid>()),
+                Times.Once
+            );
         }
 
         [Fact]
@@ -142,7 +151,10 @@ namespace Altinn.App.Core.Tests.Internal.Process.ProcessTasks
             await _processTaskDataLocker.Lock(taskId, instance);
 
             // Assert
-            _dataClientMock.Verify(x => x.LockDataElement(It.IsAny<InstanceIdentifier>(), It.IsAny<Guid>()), Times.Once);
+            _dataClientMock.Verify(
+                x => x.LockDataElement(It.IsAny<InstanceIdentifier>(), It.IsAny<Guid>()),
+                Times.Once
+            );
         }
 
         private static Instance CreateInstance()
@@ -153,11 +165,7 @@ namespace Altinn.App.Core.Tests.Internal.Process.ProcessTasks
                 AppId = "ttd/test",
                 Process = new ProcessState
                 {
-                    CurrentTask = new ProcessElementInfo
-                    {
-                        AltinnTaskType = "datatask",
-                        ElementId = "datatask",
-                    },
+                    CurrentTask = new ProcessElementInfo { AltinnTaskType = "datatask", ElementId = "datatask", },
                 },
             };
         }

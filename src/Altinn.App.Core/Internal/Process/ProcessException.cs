@@ -9,8 +9,7 @@ namespace Altinn.App.Core.Internal.Process
         /// Initializes a new instance of the <see cref="ProcessException"/> class with a specified error message.
         /// </summary>
         /// <param name="message">The message that describes the error.</param>
-        public ProcessException(string message) : base(message)
-        {
-        }
+        public ProcessException(string message)
+            : base(message) { }
     }
 }

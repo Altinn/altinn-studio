@@ -40,7 +40,8 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] string org,
             [FromRoute] string app,
             [FromRoute] int instanceOwnerPartyId,
-            [FromRoute] Guid instanceGuid)
+            [FromRoute] Guid instanceGuid
+        )
         {
             Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
             if (instance == null)
@@ -59,7 +60,13 @@ namespace Altinn.App.Api.Controllers
             {
                 foreach (var dataElement in instance.Data)
                 {
-                    instanceFileScanResult.AddFileScanResult(new DataElementFileScanResult() { Id = dataElement.Id, FileScanResult = dataElement.FileScanResult });
+                    instanceFileScanResult.AddFileScanResult(
+                        new DataElementFileScanResult()
+                        {
+                            Id = dataElement.Id,
+                            FileScanResult = dataElement.FileScanResult
+                        }
+                    );
                 }
             }
 

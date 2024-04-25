@@ -9,10 +9,12 @@ public class DataPatchError
     /// The title of the error.
     /// </summary>
     public string? Title { get; set; }
+
     /// <summary>
     /// A detailed description of the error.
     /// </summary>
     public string? Detail { get; set; }
+
     /// <summary>
     /// The type of error that occurred.
     /// </summary>
@@ -33,6 +35,7 @@ public enum DataPatchErrorType
     /// One or more of the JsonPatch tests failed.
     /// </summary>
     PatchTestFailed,
+
     /// <summary>
     /// The patch operation lead to an invalid data model.
     /// </summary>

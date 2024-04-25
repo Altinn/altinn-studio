@@ -18,7 +18,11 @@ namespace Altinn.App.Core.EFormidling
         /// <summary>
         /// Initializes a new instance of the <see cref="EformidlingStartup"/> class.
         /// </summary>
-        public EformidlingStartup(AppIdentifier appId, IEventsSubscription eventsSubscriptionClient, ILogger<EformidlingStartup> logger)
+        public EformidlingStartup(
+            AppIdentifier appId,
+            IEventsSubscription eventsSubscriptionClient,
+            ILogger<EformidlingStartup> logger
+        )
         {
             _appIdentifier = appId;
             _eventsSubscriptionClient = eventsSubscriptionClient;
@@ -31,14 +35,28 @@ namespace Altinn.App.Core.EFormidling
             var eventType = EformidlingConstants.CheckInstanceStatusEventType;
             try
             {
-                Subscription subscription = await _eventsSubscriptionClient.AddSubscription(_appIdentifier.Org, _appIdentifier.App, eventType);
+                Subscription subscription = await _eventsSubscriptionClient.AddSubscription(
+                    _appIdentifier.Org,
+                    _appIdentifier.App,
+                    eventType
+                );
 
-                _logger.LogInformation("Successfully subscribed to event {eventType} for app {appIdentifier}. Subscription {subscriptionId} is being used.", eventType, _appIdentifier, subscription.Id);
+                _logger.LogInformation(
+                    "Successfully subscribed to event {eventType} for app {appIdentifier}. Subscription {subscriptionId} is being used.",
+                    eventType,
+                    _appIdentifier,
+                    subscription.Id
+                );
             }
-
             catch (Exception ex)
             {
-                _logger.LogError("Unable to subscribe to event {eventType} for app {appIdentifier}. Received exception {exceptionMessage} with {stackTrace}", eventType, _appIdentifier, ex.Message, ex.StackTrace);
+                _logger.LogError(
+                    "Unable to subscribe to event {eventType} for app {appIdentifier}. Received exception {exceptionMessage} with {stackTrace}",
+                    eventType,
+                    _appIdentifier,
+                    ex.Message,
+                    ex.StackTrace
+                );
                 throw;
             }
         }

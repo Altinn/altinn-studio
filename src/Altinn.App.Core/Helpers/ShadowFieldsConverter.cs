@@ -13,8 +13,7 @@ namespace Altinn.App.Core.Helpers
         /// <summary>
         /// Initializes a new instance of the <see cref="IgnorePropertiesWithPrefix"/> class.
         /// </summary>
-        public IgnorePropertiesWithPrefix(string prefix)
-            => _ignorePrefix = prefix;
+        public IgnorePropertiesWithPrefix(string prefix) => _ignorePrefix = prefix;
 
         /// <summary>
         /// This method is called by the JSON serializer to remove all properties with the defined prefix.

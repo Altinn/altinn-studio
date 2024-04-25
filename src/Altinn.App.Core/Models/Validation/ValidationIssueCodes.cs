@@ -6,7 +6,7 @@ namespace Altinn.App.Core.Models.Validation
     public static class ValidationIssueCodes
     {
         /// <summary>
-        /// Represents unique codes for validation issues on the instance level. 
+        /// Represents unique codes for validation issues on the instance level.
         /// </summary>
         public static class InstanceCodes
         {
@@ -22,7 +22,7 @@ namespace Altinn.App.Core.Models.Validation
         }
 
         /// <summary>
-        /// Represents unique codes for validation issues on the data element level. 
+        /// Represents unique codes for validation issues on the data element level.
         /// </summary>
         public static class DataElementCodes
         {

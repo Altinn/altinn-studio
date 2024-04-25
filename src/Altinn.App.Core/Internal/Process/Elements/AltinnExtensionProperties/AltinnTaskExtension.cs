@@ -21,7 +21,6 @@ namespace Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties
         [XmlElement("taskType", Namespace = "http://altinn.no/process")]
         public string? TaskType { get; set; }
 
-
         /// <summary>
         /// Gets or sets the configuration for signature
         /// </summary>

@@ -1,7 +1,6 @@
 ﻿using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.Platform.Profile.Models;
-
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
@@ -20,7 +19,11 @@ namespace Altinn.App.Core.Infrastructure.Clients.Profile
         /// <summary>
         /// Initializes a new instance of the <see cref="ProfileClientCachingDecorator"/> class.
         /// </summary>
-        public ProfileClientCachingDecorator(IProfileClient decoratedService, IMemoryCache memoryCache, IOptions<CacheSettings> _settings)
+        public ProfileClientCachingDecorator(
+            IProfileClient decoratedService,
+            IMemoryCache memoryCache,
+            IOptions<CacheSettings> _settings
+        )
         {
             _decoratedService = decoratedService;
             _memoryCache = memoryCache;

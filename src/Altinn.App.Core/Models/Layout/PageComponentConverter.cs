@@ -1,15 +1,14 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-
-using Altinn.App.Core.Helpers.Extensions;
-using Altinn.App.Core.Models.Layout.Components;
-using Altinn.App.Core.Models.Expressions;
-using System.Runtime.CompilerServices;
-using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
-
+using Altinn.App.Core.Helpers.Extensions;
+using Altinn.App.Core.Models.Expressions;
+using Altinn.App.Core.Models.Layout.Components;
 
 namespace Altinn.App.Core.Models.Layout;
+
 /// <summary>
 /// Custom converter for parsing Layout files in json format to <see cref="LayoutModel" />
 /// </summary>
@@ -21,6 +20,7 @@ namespace Altinn.App.Core.Models.Layout;
 public class PageComponentConverter : JsonConverter<PageComponent>
 {
     private static readonly AsyncLocal<string?> PageName = new();
+
     /// <summary>
     /// Store pageName to be used for deserialization
     /// </summary>
@@ -35,7 +35,6 @@ public class PageComponentConverter : JsonConverter<PageComponent>
         PageName.Value = pageName;
     }
 
-
     /// <inheritdoc />
     public override PageComponent? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
@@ -45,6 +44,7 @@ public class PageComponentConverter : JsonConverter<PageComponent>
 
         return ReadNotNull(ref reader, pageName, options);
     }
+
     /// <summary>
     /// Similar to read, but not nullable, and no pageName hack.
     /// </summary>
@@ -101,7 +101,6 @@ public class PageComponentConverter : JsonConverter<PageComponent>
         // extra properties that are not stored in a specific class.
         Dictionary<string, string> additionalProperties = new();
 
-
         while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
         {
             if (reader.TokenType != JsonTokenType.PropertyName)
@@ -142,7 +141,10 @@ public class PageComponentConverter : JsonConverter<PageComponent>
         return new PageComponent(pageName, layout, componentLookup, hidden, required, readOnly, additionalProperties);
     }
 
-    private (List<BaseComponent>, Dictionary<string, BaseComponent>, Dictionary<string, GroupComponent>) ReadLayout(ref Utf8JsonReader reader, JsonSerializerOptions options)
+    private (List<BaseComponent>, Dictionary<string, BaseComponent>, Dictionary<string, GroupComponent>) ReadLayout(
+        ref Utf8JsonReader reader,
+        JsonSerializerOptions options
+    )
     {
         if (reader.TokenType != JsonTokenType.StartArray)
         {
@@ -169,7 +171,11 @@ public class PageComponentConverter : JsonConverter<PageComponent>
         return (componentListFlat, componentLookup, childToGroupMapping);
     }
 
-    private static List<BaseComponent> processLayout(List<BaseComponent> componentListFlat, Dictionary<string, BaseComponent> componentLookup, Dictionary<string, GroupComponent> childToGroupMapping)
+    private static List<BaseComponent> processLayout(
+        List<BaseComponent> componentListFlat,
+        Dictionary<string, BaseComponent> componentLookup,
+        Dictionary<string, GroupComponent> childToGroupMapping
+    )
     {
         var layout = new List<BaseComponent>();
         foreach (var component in componentListFlat)
@@ -197,20 +203,31 @@ public class PageComponentConverter : JsonConverter<PageComponent>
         componentLookup[component.Id] = component;
     }
 
-    private static readonly Regex MultiPageIndexRegex = new Regex(@"^(\d+:)?([^\s:]+)$", RegexOptions.None, TimeSpan.FromSeconds(1));
+    private static readonly Regex MultiPageIndexRegex = new Regex(
+        @"^(\d+:)?([^\s:]+)$",
+        RegexOptions.None,
+        TimeSpan.FromSeconds(1)
+    );
+
     private static string GetIdWithoutMultiPageIndex(string id)
     {
         var match = MultiPageIndexRegex.Match(id);
         return match.Groups[2].Value;
     }
 
-    private static void AddChildrenToMapping(GroupComponent component, IEnumerable<string> children, Dictionary<string, GroupComponent> childToGroupMapping)
+    private static void AddChildrenToMapping(
+        GroupComponent component,
+        IEnumerable<string> children,
+        Dictionary<string, GroupComponent> childToGroupMapping
+    )
     {
         foreach (var childId in children)
         {
             if (childToGroupMapping.TryGetValue(childId, out var existingMapping))
             {
-                throw new JsonException($"Component \"{component.Id}\" tried to claim \"{childId}\" as a child, but that child is already claimed by \"{existingMapping.Id}\"");
+                throw new JsonException(
+                    $"Component \"{component.Id}\" tried to claim \"{childId}\" as a child, but that child is already claimed by \"{existingMapping.Id}\""
+                );
             }
             childToGroupMapping[childId] = component;
         }
@@ -243,8 +260,6 @@ public class PageComponentConverter : JsonConverter<PageComponent>
         // extra properties that are not stored in a specific class.
         Dictionary<string, string> additionalProperties = new();
 
-
-
         while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
         {
             if (reader.TokenType != JsonTokenType.PropertyName)
@@ -269,7 +284,10 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                 // case "textresourcebindings":
                 //     break;
                 case "children":
-                    children = JsonSerializer.Deserialize<List<string>>(ref reader, options)?.Select(GetIdWithoutMultiPageIndex).ToList();
+                    children = JsonSerializer
+                        .Deserialize<List<string>>(ref reader, options)
+                        ?.Select(GetIdWithoutMultiPageIndex)
+                        .ToList();
                     break;
                 case "rows":
                     children = GridConfig.ReadGridChildren(ref reader, options);
@@ -318,36 +336,89 @@ public class PageComponentConverter : JsonConverter<PageComponent>
         switch (type.ToLowerInvariant())
         {
             case "repeatinggroup":
-                ThrowJsonExceptionIfNull(children, "Component with \"type\": \"Group\" requires a \"children\" property");
+                ThrowJsonExceptionIfNull(
+                    children,
+                    "Component with \"type\": \"Group\" requires a \"children\" property"
+                );
                 if (!(dataModelBindings?.ContainsKey("group") ?? false))
                 {
-                    throw new JsonException($"A repeating group id:\"{id}\" does not have a \"group\" dataModelBinding");
+                    throw new JsonException(
+                        $"A repeating group id:\"{id}\" does not have a \"group\" dataModelBinding"
+                    );
                 }
 
-                var directRepComponent = new RepeatingGroupComponent(id, type, dataModelBindings, new List<BaseComponent>(), children, maxCount, hidden, hiddenRow, required, readOnly, additionalProperties);
+                var directRepComponent = new RepeatingGroupComponent(
+                    id,
+                    type,
+                    dataModelBindings,
+                    new List<BaseComponent>(),
+                    children,
+                    maxCount,
+                    hidden,
+                    hiddenRow,
+                    required,
+                    readOnly,
+                    additionalProperties
+                );
                 return directRepComponent;
 
-
             case "group":
-                ThrowJsonExceptionIfNull(children, "Component with \"type\": \"Group\" requires a \"children\" property");
+                ThrowJsonExceptionIfNull(
+                    children,
+                    "Component with \"type\": \"Group\" requires a \"children\" property"
+                );
 
                 if (maxCount > 1)
                 {
                     if (!(dataModelBindings?.ContainsKey("group") ?? false))
                     {
-                        throw new JsonException($"A group id:\"{id}\" with maxCount: {maxCount} does not have a \"group\" dataModelBinding");
+                        throw new JsonException(
+                            $"A group id:\"{id}\" with maxCount: {maxCount} does not have a \"group\" dataModelBinding"
+                        );
                     }
 
-                    var repComponent = new RepeatingGroupComponent(id, type, dataModelBindings, new List<BaseComponent>(), children, maxCount, hidden, hiddenRow, required, readOnly, additionalProperties);
+                    var repComponent = new RepeatingGroupComponent(
+                        id,
+                        type,
+                        dataModelBindings,
+                        new List<BaseComponent>(),
+                        children,
+                        maxCount,
+                        hidden,
+                        hiddenRow,
+                        required,
+                        readOnly,
+                        additionalProperties
+                    );
                     return repComponent;
                 }
                 else
                 {
-                    var groupComponent = new GroupComponent(id, type, dataModelBindings, new List<BaseComponent>(), children, hidden, required, readOnly, additionalProperties);
+                    var groupComponent = new GroupComponent(
+                        id,
+                        type,
+                        dataModelBindings,
+                        new List<BaseComponent>(),
+                        children,
+                        hidden,
+                        required,
+                        readOnly,
+                        additionalProperties
+                    );
                     return groupComponent;
                 }
             case "grid":
-                var gridComponent = new GridComponent(id, type, dataModelBindings, new List<BaseComponent>(), children, hidden, required, readOnly, additionalProperties);
+                var gridComponent = new GridComponent(
+                    id,
+                    type,
+                    dataModelBindings,
+                    new List<BaseComponent>(),
+                    children,
+                    hidden,
+                    required,
+                    readOnly,
+                    additionalProperties
+                );
                 return gridComponent;
             case "summary":
                 ValidateSummary(componentRef);
@@ -356,18 +427,37 @@ public class PageComponentConverter : JsonConverter<PageComponent>
             case "radiobuttons":
             case "dropdown":
                 ValidateOptions(optionId, literalOptions, optionsSource, secure);
-                return new OptionsComponent(id, type, dataModelBindings, hidden, required, readOnly, optionId, literalOptions, optionsSource, secure, additionalProperties);
+                return new OptionsComponent(
+                    id,
+                    type,
+                    dataModelBindings,
+                    hidden,
+                    required,
+                    readOnly,
+                    optionId,
+                    literalOptions,
+                    optionsSource,
+                    secure,
+                    additionalProperties
+                );
         }
 
         // Most compoents are handled as BaseComponent
         return new BaseComponent(id, type, dataModelBindings, hidden, required, readOnly, additionalProperties);
     }
 
-    private static void ValidateOptions(string? optionId, List<AppOption>? literalOptions, OptionsSource? optionsSource, bool secure)
+    private static void ValidateOptions(
+        string? optionId,
+        List<AppOption>? literalOptions,
+        OptionsSource? optionsSource,
+        bool secure
+    )
     {
         if (optionId is null && literalOptions is null && optionsSource is null)
         {
-            throw new JsonException("\"optionId\" or \"options\" or \"source\" is required on checkboxes, radiobuttons and dropdowns");
+            throw new JsonException(
+                "\"optionId\" or \"options\" or \"source\" is required on checkboxes, radiobuttons and dropdowns"
+            );
         }
         if (optionId is not null && literalOptions is not null)
         {
@@ -387,7 +477,9 @@ public class PageComponentConverter : JsonConverter<PageComponent>
         }
         if (optionsSource is not null && secure)
         {
-            throw new JsonException("\"secure\": true is invalid for components that reference a repeating group \"source\"");
+            throw new JsonException(
+                "\"secure\": true is invalid for components that reference a repeating group \"source\""
+            );
         }
     }
 
@@ -402,7 +494,11 @@ public class PageComponentConverter : JsonConverter<PageComponent>
     /// <summary>
     /// Utility method to recduce so called Coginitve Complexity by writing if in the meth
     /// </summary>
-    private static void ThrowJsonExceptionIfNull([NotNull] object? obj, string? message = null, [CallerArgumentExpression("obj")] string? propertyName = null)
+    private static void ThrowJsonExceptionIfNull(
+        [NotNull] object? obj,
+        string? message = null,
+        [CallerArgumentExpression("obj")] string? propertyName = null
+    )
     {
         if (obj is null)
         {

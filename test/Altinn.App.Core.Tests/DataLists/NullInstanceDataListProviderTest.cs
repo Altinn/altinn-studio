@@ -14,7 +14,11 @@ namespace Altinn.App.PlatformServices.Tests.DataLists
             var provider = new NullInstanceDataListProvider();
 
             provider.Id.Should().Be(string.Empty);
-            var options = await provider.GetInstanceDataListAsync(new InstanceIdentifier(12345, Guid.NewGuid()), "nb", new Dictionary<string, string>());
+            var options = await provider.GetInstanceDataListAsync(
+                new InstanceIdentifier(12345, Guid.NewGuid()),
+                "nb",
+                new Dictionary<string, string>()
+            );
             options.ListItems.Should().BeNull();
         }
     }

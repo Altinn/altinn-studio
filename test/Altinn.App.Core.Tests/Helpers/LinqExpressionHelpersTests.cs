@@ -35,14 +35,18 @@ public class LinqExpressionHelpersTests
     [Fact()]
     public void GetJsonPath_TwoLevelsDeepUsingFirst()
     {
-        var propertyName = LinqExpressionHelpers.GetJsonPath<MyModel, IEnumerable<int?>>(m => m.Children!.Select(c => c.Age));
+        var propertyName = LinqExpressionHelpers.GetJsonPath<MyModel, IEnumerable<int?>>(m =>
+            m.Children!.Select(c => c.Age)
+        );
         propertyName.Should().Be("Children.age");
     }
 
     [Fact]
     public void GetJsonPath_ManyLevelsDeep()
     {
-        var propertyName = LinqExpressionHelpers.GetJsonPath<MyModel, IEnumerable<int?>>(m => m.Children![0].Children![2].Children!.Select(c => c.Children![44].Age));
+        var propertyName = LinqExpressionHelpers.GetJsonPath<MyModel, IEnumerable<int?>>(m =>
+            m.Children![0].Children![2].Children!.Select(c => c.Children![44].Age)
+        );
         propertyName.Should().Be("Children[0].Children[2].Children.Children[44].age");
     }
 
@@ -80,11 +84,7 @@ public class LinqExpressionHelpersTests
     [Fact]
     public void GetJsonPath_AritmeticExpression()
     {
-        var list = new List<string>
-        {
-            "one",
-            "two"
-        };
+        var list = new List<string> { "one", "two" };
         var propertyName = LinqExpressionHelpers.GetJsonPath<MyModel, int?>(m => m.Children![list.Count - 1].Age);
         propertyName.Should().Be("Children[1].age");
     }
@@ -96,17 +96,13 @@ public class LinqExpressionHelpersTests
         {
             Children = new()
             {
-                new()
-                {
-                    Age = 3
-                },
-                new()
-                {
-                    Age = 4
-                }
+                new() { Age = 3 },
+                new() { Age = 4 }
             }
         };
-        var propertyName = LinqExpressionHelpers.GetJsonPath<MyModel, int?>(m => m.Children![model.Children.Count + 1].Age);
+        var propertyName = LinqExpressionHelpers.GetJsonPath<MyModel, int?>(m =>
+            m.Children![model.Children.Count + 1].Age
+        );
         propertyName.Should().Be("Children[3].age");
     }
 }

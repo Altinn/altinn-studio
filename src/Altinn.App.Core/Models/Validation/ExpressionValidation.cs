@@ -1,10 +1,8 @@
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Models.Expressions;
 
-
 namespace Altinn.App.Core.Models.Validation
 {
-
     /// <summary>
     /// Resolved expression validation
     /// </summary>

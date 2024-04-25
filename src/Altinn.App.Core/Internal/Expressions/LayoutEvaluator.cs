@@ -13,14 +13,23 @@ public static class LayoutEvaluator
     /// <summary>
     /// Get a list of fields that are only referenced in hidden components in <see cref="LayoutEvaluatorState" />
     /// </summary>
-    public static List<string> GetHiddenFieldsForRemoval(LayoutEvaluatorState state, bool includeHiddenRowChildren = false)
+    public static List<string> GetHiddenFieldsForRemoval(
+        LayoutEvaluatorState state,
+        bool includeHiddenRowChildren = false
+    )
     {
         var hiddenModelBindings = new HashSet<string>();
         var nonHiddenModelBindings = new HashSet<string>();
 
         foreach (var context in state.GetComponentContexts())
         {
-            HiddenFieldsForRemovalRecurs(state, includeHiddenRowChildren, hiddenModelBindings, nonHiddenModelBindings, context);
+            HiddenFieldsForRemovalRecurs(
+                state,
+                includeHiddenRowChildren,
+                hiddenModelBindings,
+                nonHiddenModelBindings,
+                context
+            );
         }
 
         var forRemoval = hiddenModelBindings.Except(nonHiddenModelBindings);
@@ -28,9 +37,14 @@ public static class LayoutEvaluator
         return existsForRemoval.ToList();
     }
 
-    private static void HiddenFieldsForRemovalRecurs(LayoutEvaluatorState state, bool includeHiddenRowChildren, HashSet<string> hiddenModelBindings, HashSet<string> nonHiddenModelBindings, ComponentContext context)
+    private static void HiddenFieldsForRemovalRecurs(
+        LayoutEvaluatorState state,
+        bool includeHiddenRowChildren,
+        HashSet<string> hiddenModelBindings,
+        HashSet<string> nonHiddenModelBindings,
+        ComponentContext context
+    )
     {
-
         // Recurse children
         foreach (var childContext in context.ChildContexts)
         {
@@ -45,11 +59,21 @@ public static class LayoutEvaluator
                 }
             }
 
-            HiddenFieldsForRemovalRecurs(state, includeHiddenRowChildren, hiddenModelBindings, nonHiddenModelBindings, childContext);
+            HiddenFieldsForRemovalRecurs(
+                state,
+                includeHiddenRowChildren,
+                hiddenModelBindings,
+                nonHiddenModelBindings,
+                childContext
+            );
         }
 
         // Remove data for hidden rows
-        if (context.Component is RepeatingGroupComponent repGroup && context.RowLength is not null && context.HiddenRows is not null)
+        if (
+            context.Component is RepeatingGroupComponent repGroup
+            && context.RowLength is not null
+            && context.HiddenRows is not null
+        )
         {
             foreach (var index in Enumerable.Range(0, context.RowLength.Value).Reverse())
             {
@@ -105,7 +129,10 @@ public static class LayoutEvaluator
     /// <summary>
     /// Return a list of <see cref="ValidationIssue" /> for the given state and dataElementId
     /// </summary>
-    public static List<ValidationIssue> RunLayoutValidationsForRequired(LayoutEvaluatorState state, string dataElementId)
+    public static List<ValidationIssue> RunLayoutValidationsForRequired(
+        LayoutEvaluatorState state,
+        string dataElementId
+    )
     {
         var validationIssues = new List<ValidationIssue>();
 
@@ -117,7 +144,12 @@ public static class LayoutEvaluator
         return validationIssues;
     }
 
-    private static void RunLayoutValidationsForRequiredRecurs(List<ValidationIssue> validationIssues, LayoutEvaluatorState state, string dataElementId, ComponentContext context)
+    private static void RunLayoutValidationsForRequiredRecurs(
+        List<ValidationIssue> validationIssues,
+        LayoutEvaluatorState state,
+        string dataElementId,
+        ComponentContext context
+    )
     {
         if (context.IsHidden == false)
         {
@@ -134,15 +166,17 @@ public static class LayoutEvaluator
                     if (state.GetModelData(binding, context) is null)
                     {
                         var field = state.AddInidicies(binding, context);
-                        validationIssues.Add(new ValidationIssue()
-                        {
-                            Severity = ValidationIssueSeverity.Error,
-                            DataElementId = dataElementId,
-                            Field = field,
-                            Description = $"{field} is required in component with id {context.Component.Id}",
-                            Code = "required",
-                            Source = ValidationIssueSources.Required
-                        });
+                        validationIssues.Add(
+                            new ValidationIssue()
+                            {
+                                Severity = ValidationIssueSeverity.Error,
+                                DataElementId = dataElementId,
+                                Field = field,
+                                Description = $"{field} is required in component with id {context.Component.Id}",
+                                Code = "required",
+                                Source = ValidationIssueSources.Required
+                            }
+                        );
                     }
                 }
             }

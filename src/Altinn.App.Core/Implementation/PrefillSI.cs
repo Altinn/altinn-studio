@@ -6,10 +6,8 @@ using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
-
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-
 using Newtonsoft.Json.Linq;
 
 namespace Altinn.App.Core.Implementation
@@ -41,7 +39,8 @@ namespace Altinn.App.Core.Implementation
             IProfileClient profileClient,
             IAppResources appResourcesService,
             IAltinnPartyClient altinnPartyClientClient,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor
+        )
         {
             _logger = logger;
             _profileClient = profileClient;
@@ -51,13 +50,22 @@ namespace Altinn.App.Core.Implementation
         }
 
         /// <inheritdoc/>
-        public void PrefillDataModel(object dataModel, Dictionary<string, string> externalPrefill, bool continueOnError = false)
+        public void PrefillDataModel(
+            object dataModel,
+            Dictionary<string, string> externalPrefill,
+            bool continueOnError = false
+        )
         {
             LoopThroughDictionaryAndAssignValuesToDataModel(externalPrefill, null, dataModel, continueOnError);
         }
 
         /// <inheritdoc/>
-        public async Task PrefillDataModel(string partyId, string dataModelName, object dataModel, Dictionary<string, string>? externalPrefill = null)
+        public async Task PrefillDataModel(
+            string partyId,
+            string dataModelName,
+            object dataModel,
+            Dictionary<string, string>? externalPrefill = null
+        )
         {
             // Prefill from external input. Only available during instansiation
             if (externalPrefill != null && externalPrefill.Count > 0)
@@ -101,11 +109,16 @@ namespace Altinn.App.Core.Implementation
                     {
                         JObject userProfileJsonObject = JObject.FromObject(userProfile);
                         _logger.LogInformation($"Started prefill from {USER_PROFILE_KEY}");
-                        LoopThroughDictionaryAndAssignValuesToDataModel(SwapKeyValuesForPrefil(userProfileDict), userProfileJsonObject, dataModel);
+                        LoopThroughDictionaryAndAssignValuesToDataModel(
+                            SwapKeyValuesForPrefil(userProfileDict),
+                            userProfileJsonObject,
+                            dataModel
+                        );
                     }
                     else
                     {
-                        string errorMessage = $"Could not  prefill from {USER_PROFILE_KEY}, user profile is not defined.";
+                        string errorMessage =
+                            $"Could not  prefill from {USER_PROFILE_KEY}, user profile is not defined.";
                         _logger.LogError(errorMessage);
                     }
                 }
@@ -124,7 +137,11 @@ namespace Altinn.App.Core.Implementation
                     {
                         JObject orgJsonObject = JObject.FromObject(org);
                         _logger.LogInformation($"Started prefill from {ER_KEY}");
-                        LoopThroughDictionaryAndAssignValuesToDataModel(SwapKeyValuesForPrefil(enhetsregisterPrefill), orgJsonObject, dataModel);
+                        LoopThroughDictionaryAndAssignValuesToDataModel(
+                            SwapKeyValuesForPrefil(enhetsregisterPrefill),
+                            orgJsonObject,
+                            dataModel
+                        );
                     }
                     else
                     {
@@ -147,7 +164,11 @@ namespace Altinn.App.Core.Implementation
                     {
                         JObject personJsonObject = JObject.FromObject(person);
                         _logger.LogInformation($"Started prefill from {DSF_KEY}");
-                        LoopThroughDictionaryAndAssignValuesToDataModel(SwapKeyValuesForPrefil(folkeregisterPrefill), personJsonObject, dataModel);
+                        LoopThroughDictionaryAndAssignValuesToDataModel(
+                            SwapKeyValuesForPrefil(folkeregisterPrefill),
+                            personJsonObject,
+                            dataModel
+                        );
                     }
                     else
                     {
@@ -161,20 +182,28 @@ namespace Altinn.App.Core.Implementation
         /// <summary>
         /// Recursivly navigates through the datamodel, initiating objects if needed, and assigns the value to the target field
         /// </summary>
-        private void AssignValueToDataModel(string[] keys, JToken value, object currentObject, int index = 0, bool continueOnError = false)
+        private void AssignValueToDataModel(
+            string[] keys,
+            JToken value,
+            object currentObject,
+            int index = 0,
+            bool continueOnError = false
+        )
         {
             string key = keys[index];
             bool isLastKey = (keys.Length - 1) == index;
             Type current = currentObject.GetType();
             PropertyInfo? property = current.GetProperty(
                 key,
-                BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+                BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance
+            );
 
             if (property == null)
             {
                 if (!continueOnError)
                 {
-                    string errorMessage = $"Could not prefill the field {string.Join(".", keys)}, property {key} is not defined in the data model";
+                    string errorMessage =
+                        $"Could not prefill the field {string.Join(".", keys)}, property {key} is not defined in the data model";
                     _logger.LogError(errorMessage);
                     throw new Exception(errorMessage);
                 }
@@ -215,7 +244,12 @@ namespace Altinn.App.Core.Implementation
         /// <summary>
         /// Loops through the key-value dictionary and assigns each value to the datamodel target field
         /// </summary>
-        private void LoopThroughDictionaryAndAssignValuesToDataModel(Dictionary<string, string> dictionary, JObject? sourceObject, object serviceModel, bool continueOnError = false)
+        private void LoopThroughDictionaryAndAssignValuesToDataModel(
+            Dictionary<string, string> dictionary,
+            JObject? sourceObject,
+            object serviceModel,
+            bool continueOnError = false
+        )
         {
             foreach (KeyValuePair<string, string> keyValuePair in dictionary)
             {

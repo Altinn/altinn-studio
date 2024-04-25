@@ -5,8 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Altinn.App.Core.Features;
 
 /// <summary>
-/// Interface for handling validation of form data. 
-/// (i.e. dataElements with AppLogic defined 
+/// Interface for handling validation of form data.
+/// (i.e. dataElements with AppLogic defined
 /// </summary>
 public interface IFormDataValidator
 {
@@ -39,5 +39,10 @@ public interface IFormDataValidator
     /// <param name="data"></param>
     /// <param name="language">The currently used language by the user (or null if not available)</param>
     /// <returns>List of validation issues</returns>
-    Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data, string? language);
+    Task<List<ValidationIssue>> ValidateFormData(
+        Instance instance,
+        DataElement dataElement,
+        object data,
+        string? language
+    );
 }

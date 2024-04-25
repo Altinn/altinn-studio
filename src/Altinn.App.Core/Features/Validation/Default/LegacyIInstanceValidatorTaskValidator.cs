@@ -20,7 +20,10 @@ public class LegacyIInstanceValidatorTaskValidator : ITaskValidator
     /// <summary>
     /// Constructor
     /// </summary>
-    public LegacyIInstanceValidatorTaskValidator(IOptions<GeneralSettings> generalSettings, IInstanceValidator? instanceValidator = null)
+    public LegacyIInstanceValidatorTaskValidator(
+        IOptions<GeneralSettings> generalSettings,
+        IInstanceValidator? instanceValidator = null
+    )
     {
         _instanceValidator = instanceValidator;
         _generalSettings = generalSettings.Value;

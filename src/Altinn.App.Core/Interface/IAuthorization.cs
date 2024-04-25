@@ -34,6 +34,12 @@ namespace Altinn.App.Core.Interface
         /// <param name="action"></param>
         /// <param name="taskId"></param>
         /// <returns></returns>
-        Task<bool> AuthorizeAction(AppIdentifier appIdentifier, InstanceIdentifier instanceIdentifier, ClaimsPrincipal user, string action, string? taskId = null);
+        Task<bool> AuthorizeAction(
+            AppIdentifier appIdentifier,
+            InstanceIdentifier instanceIdentifier,
+            ClaimsPrincipal user,
+            string action,
+            string? taskId = null
+        );
     }
 }

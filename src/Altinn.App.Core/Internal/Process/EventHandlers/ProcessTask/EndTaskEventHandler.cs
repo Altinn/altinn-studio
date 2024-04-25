@@ -31,9 +31,11 @@ namespace Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask
         {
             _processTaskDataLocker = processTaskDataLocker;
             _processTaskFinisher = processTaskFinisher;
-            _pdfServiceTask = serviceTasks.FirstOrDefault(x => x is IPdfServiceTask)
+            _pdfServiceTask =
+                serviceTasks.FirstOrDefault(x => x is IPdfServiceTask)
                 ?? throw new InvalidOperationException("PdfServiceTask not found in serviceTasks");
-            _eformidlingServiceTask = serviceTasks.FirstOrDefault(x => x is IEformidlingServiceTask)
+            _eformidlingServiceTask =
+                serviceTasks.FirstOrDefault(x => x is IEformidlingServiceTask)
                 ?? throw new InvalidOperationException("EformidlingServiceTask not found in serviceTasks");
             _processTaskEnds = processTaskEnds;
             _logger = logger;

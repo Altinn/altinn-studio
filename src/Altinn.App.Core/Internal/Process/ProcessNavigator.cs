@@ -22,13 +22,16 @@ public class ProcessNavigator : IProcessNavigator
     /// <param name="processReader">The process reader</param>
     /// <param name="gatewayFactory">Service to fetch wanted gateway filter implementation</param>
     /// <param name="logger">The logger</param>
-    public ProcessNavigator(IProcessReader processReader, ExclusiveGatewayFactory gatewayFactory, ILogger<ProcessNavigator> logger)
+    public ProcessNavigator(
+        IProcessReader processReader,
+        ExclusiveGatewayFactory gatewayFactory,
+        ILogger<ProcessNavigator> logger
+    )
     {
         _processReader = processReader;
         _gatewayFactory = gatewayFactory;
         _logger = logger;
     }
-
 
     /// <inheritdoc/>
     public async Task<ProcessElement?> GetNextTask(Instance instance, string currentElement, string? action)
@@ -45,10 +48,16 @@ public class ProcessNavigator : IProcessNavigator
             return filteredNext[0];
         }
 
-        throw new ProcessException($"Multiple next elements found from {currentElement}. Please supply action and filters or define a default flow.");
+        throw new ProcessException(
+            $"Multiple next elements found from {currentElement}. Please supply action and filters or define a default flow."
+        );
     }
 
-    private async Task<List<ProcessElement>> NextFollowAndFilterGateways(Instance instance, List<ProcessElement?> originNextElements, string? action)
+    private async Task<List<ProcessElement>> NextFollowAndFilterGateways(
+        Instance instance,
+        List<ProcessElement?> originNextElements,
+        string? action
+    )
     {
         List<ProcessElement> filteredNext = new List<ProcessElement>();
         foreach (var directFlowTarget in originNextElements)
@@ -82,11 +91,12 @@ public class ProcessNavigator : IProcessNavigator
             }
             else
             {
-                ProcessGatewayInformation gatewayInformation = new()
-                {
-                    Action = action,
-                    DataTypeId = gateway.ExtensionElements?.GatewayExtension?.ConnectedDataTypeId
-                };
+                ProcessGatewayInformation gatewayInformation =
+                    new()
+                    {
+                        Action = action,
+                        DataTypeId = gateway.ExtensionElements?.GatewayExtension?.ConnectedDataTypeId
+                    };
 
                 filteredList = await gatewayFilter.FilterAsync(outgoingFlows, instance, gatewayInformation);
             }
@@ -94,7 +104,9 @@ public class ProcessNavigator : IProcessNavigator
             if (defaultSequenceFlow != null)
             {
                 var defaultTarget = _processReader.GetFlowElement(defaultSequenceFlow.TargetRef);
-                filteredNext.AddRange(await NextFollowAndFilterGateways(instance, new List<ProcessElement?> { defaultTarget }, action));
+                filteredNext.AddRange(
+                    await NextFollowAndFilterGateways(instance, new List<ProcessElement?> { defaultTarget }, action)
+                );
             }
             else
             {
@@ -102,10 +114,12 @@ public class ProcessNavigator : IProcessNavigator
                 filteredNext.AddRange(await NextFollowAndFilterGateways(instance, filteredTargets, action));
             }
         }
-        _logger.LogDebug("Filtered next elements: {FilteredNextElements}", string.Join(", ", filteredNext.Select(e => e.Id)));
+        _logger.LogDebug(
+            "Filtered next elements: {FilteredNextElements}",
+            string.Join(", ", filteredNext.Select(e => e.Id))
+        );
         return filteredNext;
     }
-
 
     private static bool IsGateway(ProcessElement processElement)
     {

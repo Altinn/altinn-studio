@@ -10,7 +10,9 @@ namespace Altinn.App.Core.Features;
 /// This interface has been changed and both methods now has default implementation for backwards compatibility.
 /// All users will call the method with the Instance parameter, and a user only needs to implement one
 /// </remarks>
-[Obsolete("This interface was used for the old PDF generator, and is used for backwards compatibility in the chromium based one. It will be removed in the future. Create a custom pdf layout instead if you need to customize the PDF layout.")]
+[Obsolete(
+    "This interface was used for the old PDF generator, and is used for backwards compatibility in the chromium based one. It will be removed in the future. Create a custom pdf layout instead if you need to customize the PDF layout."
+)]
 public interface IPdfFormatter
 {
     /// <summary>
@@ -24,7 +26,12 @@ public interface IPdfFormatter
     /// <summary>
     /// Method to format the PDF dynamically (new version with the instance)
     /// </summary>
-    async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data, Instance instance, LayoutSet? layoutSet)
+    async Task<LayoutSettings> FormatPdf(
+        LayoutSettings layoutSettings,
+        object data,
+        Instance instance,
+        LayoutSet? layoutSet
+    )
     {
         return await FormatPdf(layoutSettings, data);
     }

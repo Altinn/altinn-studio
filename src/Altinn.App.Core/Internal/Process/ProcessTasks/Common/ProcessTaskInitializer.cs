@@ -32,13 +32,15 @@ public class ProcessTaskInitializer : IProcessTaskInitializer
     /// <param name="appModel"></param>
     /// <param name="instantiationProcessor"></param>
     /// <param name="instanceClient"></param>
-    public ProcessTaskInitializer(ILogger<ProcessTaskInitializer> logger,
+    public ProcessTaskInitializer(
+        ILogger<ProcessTaskInitializer> logger,
         IAppMetadata appMetadata,
         IDataClient dataClient,
         IPrefill prefillService,
         IAppModel appModel,
         IInstantiationProcessor instantiationProcessor,
-        IInstanceClient instanceClient)
+        IInstanceClient instanceClient
+    )
     {
         _logger = logger;
         _appMetadata = appMetadata;
@@ -56,8 +58,11 @@ public class ProcessTaskInitializer : IProcessTaskInitializer
 
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
 
-        foreach (DataType dataType in applicationMetadata.DataTypes.Where(dt =>
-                     dt.TaskId == taskId && dt.AppLogic?.AutoCreate == true))
+        foreach (
+            DataType dataType in applicationMetadata.DataTypes.Where(dt =>
+                dt.TaskId == taskId && dt.AppLogic?.AutoCreate == true
+            )
+        )
         {
             _logger.LogDebug("Auto create data element: {DataTypeId}", dataType.Id);
 
@@ -95,14 +100,16 @@ public class ProcessTaskInitializer : IProcessTaskInitializer
             applicationMetadata?.PresentationFields,
             instance.PresentationTexts,
             dataType,
-            data);
+            data
+        );
 
         if (updatedValues.Count > 0)
         {
             Instance updatedInstance = await _instanceClient.UpdatePresentationTexts(
                 int.Parse(instance.Id.Split("/")[0]),
                 Guid.Parse(instance.Id.Split("/")[1]),
-                new PresentationTexts { Texts = updatedValues });
+                new PresentationTexts { Texts = updatedValues }
+            );
 
             instance.PresentationTexts = updatedInstance.PresentationTexts;
         }
@@ -115,14 +122,16 @@ public class ProcessTaskInitializer : IProcessTaskInitializer
             applicationMetadata?.DataFields,
             instance.DataValues,
             dataType,
-            data);
+            data
+        );
 
         if (updatedValues.Count > 0)
         {
             Instance updatedInstance = await _instanceClient.UpdateDataValues(
                 int.Parse(instance.Id.Split("/")[0]),
                 Guid.Parse(instance.Id.Split("/")[1]),
-                new DataValues { Values = updatedValues });
+                new DataValues { Values = updatedValues }
+            );
 
             instance.DataValues = updatedInstance.DataValues;
         }

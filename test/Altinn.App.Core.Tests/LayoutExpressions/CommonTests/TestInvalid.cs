@@ -1,6 +1,5 @@
 using System.Reflection;
 using System.Text.Json;
-
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Tests.Helpers;
 using FluentAssertions;
@@ -12,11 +11,8 @@ namespace Altinn.App.Core.Tests.LayoutExpressions;
 
 public class TestInvalid
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions =
+        new() { ReadCommentHandling = JsonCommentHandling.Skip, PropertyNamingPolicy = JsonNamingPolicy.CamelCase, };
 
     private readonly ITestOutputHelper _output;
 
@@ -39,8 +35,13 @@ public class TestInvalid
                 new JsonDataModel(test.DataModel),
                 test.ComponentModel,
                 test.FrontEndSettings ?? new(),
-                test.Instance ?? new());
-            ExpressionEvaluator.EvaluateExpression(state, test.Expression, test.Context?.ToContext(test.ComponentModel) ?? null!);
+                test.Instance ?? new()
+            );
+            ExpressionEvaluator.EvaluateExpression(
+                state,
+                test.Expression,
+                test.Context?.ToContext(test.ComponentModel) ?? null!
+            );
         };
         act.Should().Throw<Exception>().WithMessage(testCase.ExpectsFailure);
     }

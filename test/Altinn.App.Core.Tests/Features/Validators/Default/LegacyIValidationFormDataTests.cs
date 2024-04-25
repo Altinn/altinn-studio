@@ -21,8 +21,10 @@ namespace Altinn.App.Core.Tests.Features.Validators.Default
         public LegacyIValidationFormDataTests()
         {
             var generalSettings = new GeneralSettings();
-            _validator =
-                new LegacyIInstanceValidatorFormDataValidator(Microsoft.Extensions.Options.Options.Create(generalSettings), _instanceValidator.Object);
+            _validator = new LegacyIInstanceValidatorFormDataValidator(
+                Microsoft.Extensions.Options.Options.Create(generalSettings),
+                _instanceValidator.Object
+            );
         }
 
         [Fact]
@@ -31,7 +33,10 @@ namespace Altinn.App.Core.Tests.Features.Validators.Default
             // Arrange
             var data = new object();
 
-            var validator = new LegacyIInstanceValidatorFormDataValidator(Microsoft.Extensions.Options.Options.Create(new GeneralSettings()), null);
+            var validator = new LegacyIInstanceValidatorFormDataValidator(
+                Microsoft.Extensions.Options.Options.Create(new GeneralSettings()),
+                null
+            );
             validator.HasRelevantChanges(data, data).Should().BeFalse();
 
             // Act
@@ -49,41 +54,48 @@ namespace Altinn.App.Core.Tests.Features.Validators.Default
 
             _instanceValidator
                 .Setup(iv => iv.ValidateData(It.IsAny<object>(), It.IsAny<ModelStateDictionary>()))
-                .Callback((object _, ModelStateDictionary modelState) =>
-                {
-                    modelState.AddModelError("test", "test");
-                    modelState.AddModelError("ddd", "*FIXED*test");
-                });
+                .Callback(
+                    (object _, ModelStateDictionary modelState) =>
+                    {
+                        modelState.AddModelError("test", "test");
+                        modelState.AddModelError("ddd", "*FIXED*test");
+                    }
+                );
 
             // Act
             var result = await _validator.ValidateFormData(new Instance(), new DataElement(), data, null);
 
             // Assert
-            result.Should().BeEquivalentTo(
-                JsonSerializer.Deserialize<List<ValidationIssue>>("""
-                [
-                    {
-                        "severity": 4,
-                        "instanceId": null,
-                        "dataElementId": null,
-                        "field": "ddd",
-                        "code": "test",
-                        "description": "test",
-                        "source": "Custom",
-                        "customTextKey": null
-                    },
-                    {
-                        "severity": 1,
-                        "instanceId": null,
-                        "dataElementId": null,
-                        "field": "test",
-                        "code": "test",
-                        "description": "test",
-                        "source": "Custom",
-                        "customTextKey": null
-                    }
-                ]
-                """));
+            result
+                .Should()
+                .BeEquivalentTo(
+                    JsonSerializer.Deserialize<List<ValidationIssue>>(
+                        """
+                        [
+                            {
+                                "severity": 4,
+                                "instanceId": null,
+                                "dataElementId": null,
+                                "field": "ddd",
+                                "code": "test",
+                                "description": "test",
+                                "source": "Custom",
+                                "customTextKey": null
+                            },
+                            {
+                                "severity": 1,
+                                "instanceId": null,
+                                "dataElementId": null,
+                                "field": "test",
+                                "code": "test",
+                                "description": "test",
+                                "source": "Custom",
+                                "customTextKey": null
+                            }
+                        ]
+                        """
+                    )
+                );
         }
 
         private class TestModel
@@ -104,7 +116,11 @@ namespace Altinn.App.Core.Tests.Features.Validators.Default
         [InlineData("test", "test", "test with small case")]
         [InlineData("Test", "test", "test with capital case gets rewritten")]
         [InlineData("NotModelMatch", "NotModelMatch", "Error that does not mach model is kept as is")]
-        [InlineData("Child.TestList[2].child", "child.children[2].child", "TestList is renamed to children because of JsonPropertyName")]
+        [InlineData(
+            "Child.TestList[2].child",
+            "child.children[2].child",
+            "TestList is renamed to children because of JsonPropertyName"
+        )]
         [InlineData("test.children.child", "test.children.child", "valid JsonPropertyName based path is kept as is")]
         public async Task ValidateErrorAndMappingWithCustomModel(string errorKey, string field, string errorMessage)
         {
@@ -113,11 +129,13 @@ namespace Altinn.App.Core.Tests.Features.Validators.Default
 
             _instanceValidator
                 .Setup(iv => iv.ValidateData(It.IsAny<object>(), It.IsAny<ModelStateDictionary>()))
-                .Callback((object _, ModelStateDictionary modelState) =>
-                {
-                    modelState.AddModelError(errorKey, errorMessage);
-                    modelState.AddModelError(errorKey, "*FIXED*" + errorMessage + " Fixed");
-                });
+                .Callback(
+                    (object _, ModelStateDictionary modelState) =>
+                    {
+                        modelState.AddModelError(errorKey, errorMessage);
+                        modelState.AddModelError(errorKey, "*FIXED*" + errorMessage + " Fixed");
+                    }
+                );
 
             // Act
             var result = await _validator.ValidateFormData(new Instance(), new DataElement(), data, null);

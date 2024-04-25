@@ -22,7 +22,9 @@ public class ProcessReader : IProcessReader
         XmlSerializer serializer = new XmlSerializer(typeof(Definitions));
         Definitions? definitions = (Definitions?)serializer.Deserialize(processClient.GetProcessDefinition());
 
-        _definitions = definitions ?? throw new InvalidOperationException("Failed to deserialize BPMN definitions. Definitions was null");
+        _definitions =
+            definitions
+            ?? throw new InvalidOperationException("Failed to deserialize BPMN definitions. Definitions was null");
     }
 
     /// <inheritdoc />
@@ -177,7 +179,8 @@ public class ProcessReader : IProcessReader
 
         if (flowElement is ProcessTask processTask)
         {
-            return processTask.ExtensionElements?.TaskExtension ?? throw new ProcessException("No AltinnTaskExtension found on task");
+            return processTask.ExtensionElements?.TaskExtension
+                ?? throw new ProcessException("No AltinnTaskExtension found on task");
         }
 
         return null;

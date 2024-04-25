@@ -21,11 +21,13 @@ public class ProcessEventDispatcher : IProcessEventDispatcher
     /// <summary>
     /// Default implementation of the process event dispatcher
     /// </summary>
-    public ProcessEventDispatcher(IInstanceClient instanceClient,
+    public ProcessEventDispatcher(
+        IInstanceClient instanceClient,
         IInstanceEventClient instanceEventClient,
         IEventsClient eventsClient,
         IOptions<AppSettings> appSettings,
-        ILogger<ProcessEventDispatcher> logger)
+        ILogger<ProcessEventDispatcher> logger
+    )
     {
         _instanceClient = instanceClient;
         _instanceEventClient = instanceEventClient;
@@ -57,7 +59,9 @@ public class ProcessEventDispatcher : IProcessEventDispatcher
                 if (!string.IsNullOrWhiteSpace(instance.Process.CurrentTask?.ElementId))
                 {
                     await _eventsClient.AddEvent(
-                        $"app.instance.process.movedTo.{instance.Process.CurrentTask.ElementId}", instance);
+                        $"app.instance.process.movedTo.{instance.Process.CurrentTask.ElementId}",
+                        instance
+                    );
                 }
                 else if (instance.Process.EndEvent != null)
                 {
@@ -70,6 +74,7 @@ public class ProcessEventDispatcher : IProcessEventDispatcher
             }
         }
     }
+
     private async Task DispatchProcessEventsToStorage(Instance instance, List<InstanceEvent>? events)
     {
         string org = instance.Org;

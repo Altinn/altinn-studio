@@ -23,7 +23,11 @@ public class DataAnnotationValidator : IFormDataValidator
     /// <summary>
     /// Constructor
     /// </summary>
-    public DataAnnotationValidator(IHttpContextAccessor httpContextAccessor, IObjectModelValidator objectModelValidator, IOptions<GeneralSettings> generalSettings)
+    public DataAnnotationValidator(
+        IHttpContextAccessor httpContextAccessor,
+        IObjectModelValidator objectModelValidator,
+        IOptions<GeneralSettings> generalSettings
+    )
     {
         _httpContextAccessor = httpContextAccessor;
         _objectModelValidator = objectModelValidator;
@@ -46,7 +50,12 @@ public class DataAnnotationValidator : IFormDataValidator
     public bool HasRelevantChanges(object current, object previous) => true;
 
     /// <inheritdoc />
-    public Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data, string? language)
+    public Task<List<ValidationIssue>> ValidateFormData(
+        Instance instance,
+        DataElement dataElement,
+        object data,
+        string? language
+    )
     {
         try
         {
@@ -55,11 +64,21 @@ public class DataAnnotationValidator : IFormDataValidator
                 _httpContextAccessor.HttpContext!,
                 new Microsoft.AspNetCore.Routing.RouteData(),
                 new ActionDescriptor(),
-                modelState);
+                modelState
+            );
             ValidationStateDictionary validationState = new ValidationStateDictionary();
             _objectModelValidator.Validate(actionContext, validationState, null!, data);
 
-            return Task.FromResult(ModelStateHelpers.ModelStateToIssueList(modelState, instance, dataElement, _generalSettings, data.GetType(), ValidationIssueSources.ModelState));
+            return Task.FromResult(
+                ModelStateHelpers.ModelStateToIssueList(
+                    modelState,
+                    instance,
+                    dataElement,
+                    _generalSettings,
+                    data.GetType(),
+                    ValidationIssueSources.ModelState
+                )
+            );
         }
         catch (Exception e)
         {

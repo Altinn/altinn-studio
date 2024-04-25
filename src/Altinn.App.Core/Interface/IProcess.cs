@@ -15,7 +15,7 @@ namespace Altinn.App.Core.Interface
         Stream GetProcessDefinition();
 
         /// <summary>
-        /// Gets the instance process events related to the instance matching the instance id. 
+        /// Gets the instance process events related to the instance matching the instance id.
         /// </summary>
         Task<ProcessHistoryList> GetProcessHistory(string instanceGuid, string instanceOwnerPartyId);
     }

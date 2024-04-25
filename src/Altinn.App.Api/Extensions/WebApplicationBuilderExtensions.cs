@@ -42,7 +42,8 @@ public static class WebApplicationBuilderExtensions
 
     private static void UseAltinnPrometheus(this WebApplication webApp, string appId)
     {
-        var metricsSettings = webApp.Configuration.GetSection("MetricsSettings")?.Get<MetricsSettings>() ?? new MetricsSettings();
+        var metricsSettings =
+            webApp.Configuration.GetSection("MetricsSettings")?.Get<MetricsSettings>() ?? new MetricsSettings();
         if (!metricsSettings.Enabled)
         {
             return;
@@ -50,10 +51,8 @@ public static class WebApplicationBuilderExtensions
 
         webApp.UseHttpMetrics();
         var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown";
-        Metrics.DefaultRegistry.SetStaticLabels(new Dictionary<string, string>()
-        {
-            { "application_id", appId },
-            { "nuget_package_version", version }
-        });
+        Metrics.DefaultRegistry.SetStaticLabels(
+            new Dictionary<string, string>() { { "application_id", appId }, { "nuget_package_version", version } }
+        );
     }
 }

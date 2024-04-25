@@ -36,7 +36,8 @@ namespace Altinn.App.Api.Controllers
             IProfileClient profileClient,
             IAltinnPartyClient altinnPartyClientClient,
             IOptions<GeneralSettings> settings,
-            IAppMetadata appMetadata)
+            IAppMetadata appMetadata
+        )
         {
             _authorizationClient = authorizationClient;
             _userHelper = new UserHelper(profileClient, altinnPartyClientClient, settings);
@@ -62,7 +63,10 @@ namespace Altinn.App.Api.Controllers
             if (allowedToInstantiateFilter)
             {
                 Application application = await _appMetadata.GetApplicationMetadata();
-                List<Party> validParties = InstantiationHelper.FilterPartiesByAllowedPartyTypes(partyList, application.PartyTypesAllowed);
+                List<Party> validParties = InstantiationHelper.FilterPartiesByAllowedPartyTypes(
+                    partyList,
+                    application.PartyTypesAllowed
+                );
                 return Ok(validParties);
             }
 
@@ -95,12 +99,17 @@ namespace Altinn.App.Api.Controllers
                 if (represents == null)
                 {
                     // the user does not represent the chosen party id, is not allowed to initiate
-                    return Ok(new InstantiationValidationResult
-                    {
-                        Valid = false,
-                        Message = "The user does not represent the supplied party",
-                        ValidParties = InstantiationHelper.FilterPartiesByAllowedPartyTypes(partyList, partyTypesAllowed)
-                    });
+                    return Ok(
+                        new InstantiationValidationResult
+                        {
+                            Valid = false,
+                            Message = "The user does not represent the supplied party",
+                            ValidParties = InstantiationHelper.FilterPartiesByAllowedPartyTypes(
+                                partyList,
+                                partyTypesAllowed
+                            )
+                        }
+                    );
                 }
 
                 partyUserRepresents = represents;
@@ -113,22 +122,27 @@ namespace Altinn.App.Api.Controllers
             }
 
             // Check if the application can be initiated with the party chosen
-            bool canInstantiate = InstantiationHelper.IsPartyAllowedToInstantiate(partyUserRepresents, partyTypesAllowed);
+            bool canInstantiate = InstantiationHelper.IsPartyAllowedToInstantiate(
+                partyUserRepresents,
+                partyTypesAllowed
+            );
 
             if (!canInstantiate)
             {
-                return Ok(new InstantiationValidationResult
-                {
-                    Valid = false,
-                    Message = "The supplied party is not allowed to instantiate the application",
-                    ValidParties = InstantiationHelper.FilterPartiesByAllowedPartyTypes(partyList, partyTypesAllowed)
-                });
+                return Ok(
+                    new InstantiationValidationResult
+                    {
+                        Valid = false,
+                        Message = "The supplied party is not allowed to instantiate the application",
+                        ValidParties = InstantiationHelper.FilterPartiesByAllowedPartyTypes(
+                            partyList,
+                            partyTypesAllowed
+                        )
+                    }
+                );
             }
 
-            return Ok(new InstantiationValidationResult
-            {
-                Valid = true,
-            });
+            return Ok(new InstantiationValidationResult { Valid = true, });
         }
 
         /// <summary>
@@ -156,10 +170,8 @@ namespace Altinn.App.Api.Controllers
             Response.Cookies.Append(
                 _settings.GetAltinnPartyCookieName,
                 partyId.ToString(),
-                new CookieOptions
-                {
-                    Domain = _settings.HostName
-                });
+                new CookieOptions { Domain = _settings.HostName }
+            );
 
             return Ok("Party successfully updated");
         }

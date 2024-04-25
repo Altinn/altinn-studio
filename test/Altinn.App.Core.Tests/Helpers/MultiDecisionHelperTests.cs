@@ -11,10 +11,7 @@ namespace Altinn.App.Core.Tests.Helpers;
 
 public class MultiDecisionHelperTests
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        WriteIndented = true
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new() { WriteIndented = true };
 
     private readonly ITestOutputHelper _output;
 
@@ -32,27 +29,16 @@ public class MultiDecisionHelperTests
         {
             Id = "1337/1dd16477-187b-463c-8adf-592c7fa78459",
             Org = "tdd",
-            InstanceOwner = new InstanceOwner()
-            {
-                PartyId = "1337"
-            },
+            InstanceOwner = new InstanceOwner() { PartyId = "1337" },
             AppId = "tdd/test-app",
             Process = new ProcessState()
             {
-                CurrentTask = new ProcessElementInfo()
-                {
-                    AltinnTaskType = "Data",
-                    ElementId = "Task_1"
-                },
+                CurrentTask = new ProcessElementInfo() { AltinnTaskType = "Data", ElementId = "Task_1" },
                 EndEvent = "EndEvent_1"
             }
         };
 
-        var actions = new List<string>()
-        {
-            "sign",
-            "reject"
-        };
+        var actions = new List<string>() { "sign", "reject" };
 
         var result = MultiDecisionHelper.CreateMultiDecisionRequest(claimsPrincipal, instance, actions);
 
@@ -68,27 +54,16 @@ public class MultiDecisionHelperTests
         {
             Id = "1dd16477-187b-463c-8adf-592c7fa78459",
             Org = "tdd",
-            InstanceOwner = new InstanceOwner()
-            {
-                PartyId = "1337"
-            },
+            InstanceOwner = new InstanceOwner() { PartyId = "1337" },
             AppId = "tdd/test-app",
             Process = new ProcessState()
             {
-                CurrentTask = new ProcessElementInfo()
-                {
-                    AltinnTaskType = "Data",
-                    ElementId = "Task_1"
-                },
+                CurrentTask = new ProcessElementInfo() { AltinnTaskType = "Data", ElementId = "Task_1" },
                 EndEvent = "EndEvent_1"
             }
         };
 
-        var actions = new List<string>()
-        {
-            "sign",
-            "reject"
-        };
+        var actions = new List<string>() { "sign", "reject" };
 
         var result = MultiDecisionHelper.CreateMultiDecisionRequest(claimsPrincipal, instance, actions);
 
@@ -104,26 +79,16 @@ public class MultiDecisionHelperTests
         {
             Id = "1337/1dd16477-187b-463c-8adf-592c7fa78459",
             Org = "tdd",
-            InstanceOwner = new InstanceOwner()
-            {
-                PartyId = "1337"
-            },
+            InstanceOwner = new InstanceOwner() { PartyId = "1337" },
             AppId = "tdd/test-app",
             Process = new ProcessState()
             {
-                CurrentTask = new ProcessElementInfo()
-                {
-                    AltinnTaskType = "Task_1"
-                },
+                CurrentTask = new ProcessElementInfo() { AltinnTaskType = "Task_1" },
                 EndEvent = "EndEvent_1"
             }
         };
 
-        var actions = new List<string>()
-        {
-            "sign",
-            "reject"
-        };
+        var actions = new List<string>() { "sign", "reject" };
 
         var result = MultiDecisionHelper.CreateMultiDecisionRequest(claimsPrincipal, instance, actions);
 
@@ -137,26 +102,16 @@ public class MultiDecisionHelperTests
         {
             Id = "1337/1dd16477-187b-463c-8adf-592c7fa78459",
             Org = "tdd",
-            InstanceOwner = new InstanceOwner()
-            {
-                PartyId = "1337"
-            },
+            InstanceOwner = new InstanceOwner() { PartyId = "1337" },
             AppId = "tdd/test-app",
             Process = new ProcessState()
             {
-                CurrentTask = new ProcessElementInfo()
-                {
-                    AltinnTaskType = "Task_1"
-                },
+                CurrentTask = new ProcessElementInfo() { AltinnTaskType = "Task_1" },
                 EndEvent = "EndEvent_1"
             }
         };
 
-        var actions = new List<string>()
-        {
-            "sign",
-            "reject"
-        };
+        var actions = new List<string>() { "sign", "reject" };
         Action act = () => MultiDecisionHelper.CreateMultiDecisionRequest(null, instance, actions);
         act.Should().Throw<ArgumentNullException>().WithMessage("Value cannot be null. (Parameter 'user')");
     }
@@ -236,14 +191,18 @@ public class MultiDecisionHelperTests
 
     private static ClaimsPrincipal GetClaims(string partyId)
     {
-        return new ClaimsPrincipal(new List<ClaimsIdentity>()
-        {
-            new(new List<Claim>
+        return new ClaimsPrincipal(
+            new List<ClaimsIdentity>()
             {
-                new("urn:altinn:partyid", partyId, "#integer"),
-                new("urn:altinn:authlevel", "3", "#integer"),
-            })
-        });
+                new(
+                    new List<Claim>
+                    {
+                        new("urn:altinn:partyid", partyId, "#integer"),
+                        new("urn:altinn:authlevel", "3", "#integer"),
+                    }
+                )
+            }
+        );
     }
 
     private static string XacmlJsonRequestRootToString(XacmlJsonRequestRoot request)
@@ -272,7 +231,9 @@ public class MultiDecisionHelperTests
 
     private static List<XacmlJsonResult> GetXacmlJsonRespons(string filename)
     {
-        var xacmlJesonRespons = File.ReadAllText(Path.Join("Helpers", "TestData", "MultiDecisionHelper", filename + ".json"));
+        var xacmlJesonRespons = File.ReadAllText(
+            Path.Join("Helpers", "TestData", "MultiDecisionHelper", filename + ".json")
+        );
         return JsonSerializer.Deserialize<List<XacmlJsonResult>>(xacmlJesonRespons);
     }
 }

@@ -1,4 +1,7 @@
-﻿using Altinn.ApiClients.Maskinporten.Config;
+﻿using System.Net;
+using System.Net.Http.Headers;
+using System.Security.Cryptography.X509Certificates;
+using Altinn.ApiClients.Maskinporten.Config;
 using Altinn.ApiClients.Maskinporten.Interfaces;
 using Altinn.ApiClients.Maskinporten.Models;
 using Altinn.App.Core.Configuration;
@@ -15,9 +18,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using System.Net;
-using System.Net.Http.Headers;
-using System.Security.Cryptography.X509Certificates;
 
 namespace Altinn.App.Core.EFormidling.Implementation
 {
@@ -48,7 +48,7 @@ namespace Altinn.App.Core.EFormidling.Implementation
             IX509CertificateProvider x509CertificateProvider,
             IOptions<PlatformSettings> platformSettings,
             IOptions<GeneralSettings> generalSettings
-            )
+        )
         {
             _eFormidlingClient = eFormidlingClient;
             _logger = logger;
@@ -81,7 +81,7 @@ namespace Altinn.App.Core.EFormidling.Implementation
                 // Update status on instance if message is confirmed delivered to KS.
                 // The instance should wait in feedback step. This enforces a feedback step in the process in current version.
                 // Moving forward sending to Eformidling should considered as a ServiceTask with auto advance in the process
-                // when the message is confirmed.                
+                // when the message is confirmed.
 
                 await ProcessMoveNext(appIdentifier, instanceIdentifier);
                 _ = await AddCompleteConfirmation(instanceIdentifier);
@@ -90,11 +90,15 @@ namespace Altinn.App.Core.EFormidling.Implementation
             }
             else if (MessageMalformed(statusesForShipment, out string errorMalformed))
             {
-                throw new EformidlingDeliveryException($"The message with id {id} was not delivered by Eformidling to KS. Error from Eformidling: {errorMalformed}.");
+                throw new EformidlingDeliveryException(
+                    $"The message with id {id} was not delivered by Eformidling to KS. Error from Eformidling: {errorMalformed}."
+                );
             }
             else if (MessageTimedOutToKS(statusesForShipment, out string errorTimeout))
             {
-                throw new EformidlingDeliveryException($"The message with id {id} was not delivered by Eformidling to KS. The message lifetime has expired. Error from Eformidling: {errorTimeout}");
+                throw new EformidlingDeliveryException(
+                    $"The message with id {id} was not delivered by Eformidling to KS. The message lifetime has expired. Error from Eformidling: {errorTimeout}"
+                );
             }
             else
             {
@@ -116,7 +120,11 @@ namespace Altinn.App.Core.EFormidling.Implementation
             TokenResponse altinnToken = await GetOrganizationToken();
             HttpClient httpClient = _httpClientFactory.CreateClient();
 
-            HttpResponseMessage response = await httpClient.PutAsync(altinnToken.AccessToken, url, new StringContent(string.Empty));
+            HttpResponseMessage response = await httpClient.PutAsync(
+                altinnToken.AccessToken,
+                url,
+                new StringContent(string.Empty)
+            );
 
             if (response.IsSuccessStatusCode)
             {
@@ -124,7 +132,12 @@ namespace Altinn.App.Core.EFormidling.Implementation
             }
             else
             {
-                _logger.LogError("Failed moving instance {instanceId} to next step. Received error: {errorCode}. Received content: {content}", instanceIdentifier, response.StatusCode, await response.Content.ReadAsStringAsync());
+                _logger.LogError(
+                    "Failed moving instance {instanceId} to next step. Received error: {errorCode}. Received content: {content}",
+                    instanceIdentifier,
+                    response.StatusCode,
+                    await response.Content.ReadAsStringAsync()
+                );
             }
         }
 
@@ -137,7 +150,8 @@ namespace Altinn.App.Core.EFormidling.Implementation
         /// a logged on user/org.
         private async Task<Instance> AddCompleteConfirmation(InstanceIdentifier instanceIdentifier)
         {
-            string url = $"instances/{instanceIdentifier.InstanceOwnerPartyId}/{instanceIdentifier.InstanceGuid}/complete";
+            string url =
+                $"instances/{instanceIdentifier.InstanceOwnerPartyId}/{instanceIdentifier.InstanceGuid}/complete";
 
             TokenResponse altinnToken = await GetOrganizationToken();
 
@@ -146,7 +160,11 @@ namespace Altinn.App.Core.EFormidling.Implementation
             httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            HttpResponseMessage response = await httpClient.PostAsync(altinnToken.AccessToken, url, new StringContent(string.Empty));
+            HttpResponseMessage response = await httpClient.PostAsync(
+                altinnToken.AccessToken,
+                url,
+                new StringContent(string.Empty)
+            );
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
@@ -161,8 +179,17 @@ namespace Altinn.App.Core.EFormidling.Implementation
         private async Task<TokenResponse> GetOrganizationToken()
         {
             X509Certificate2 x509cert = await _x509CertificateProvider.GetCertificate();
-            var maskinportenToken = await _maskinportenService.GetToken(x509cert, _maskinportenSettings.Environment, _maskinportenSettings.ClientId, "altinn:serviceowner/instances.read altinn:serviceowner/instances.write", string.Empty);
-            var altinnToken = await _maskinportenService.ExchangeToAltinnToken(maskinportenToken, _maskinportenSettings.Environment);
+            var maskinportenToken = await _maskinportenService.GetToken(
+                x509cert,
+                _maskinportenSettings.Environment,
+                _maskinportenSettings.ClientId,
+                "altinn:serviceowner/instances.read altinn:serviceowner/instances.write",
+                string.Empty
+            );
+            var altinnToken = await _maskinportenService.ExchangeToAltinnToken(
+                maskinportenToken,
+                _maskinportenSettings.Environment
+            );
 
             return altinnToken;
         }
@@ -178,7 +205,11 @@ namespace Altinn.App.Core.EFormidling.Implementation
 
             if (statuses != null && statuses.Content != null)
             {
-                _logger.LogInformation("Received the following {count} statuses: {statusValues}.", statuses.Content.Count, string.Join(",", statuses.Content.Select(s => s.Status).ToArray()));
+                _logger.LogInformation(
+                    "Received the following {count} statuses: {statusValues}.",
+                    statuses.Content.Count,
+                    string.Join(",", statuses.Content.Select(s => s.Status).ToArray())
+                );
             }
             else
             {
@@ -192,7 +223,8 @@ namespace Altinn.App.Core.EFormidling.Implementation
 
         private static bool MessageDeliveredToKS(Statuses statuses)
         {
-            return statuses.Content.FirstOrDefault(s => s.Status.ToLower() == "levert" || s.Status.ToLower() == "lest") != null;
+            return statuses.Content.FirstOrDefault(s => s.Status.ToLower() == "levert" || s.Status.ToLower() == "lest")
+                != null;
         }
 
         private static bool MessageTimedOutToKS(Statuses statuses, out string errorMessage)

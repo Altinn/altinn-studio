@@ -44,7 +44,12 @@ namespace Altinn.App.Core.Internal.Data
         /// <param name="dataElementId"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        Task<DataElement> UpdateJsonObject(InstanceIdentifier instanceIdentifier, string dataTypeId, Guid dataElementId, object data);
+        Task<DataElement> UpdateJsonObject(
+            InstanceIdentifier instanceIdentifier,
+            string dataTypeId,
+            Guid dataElementId,
+            object data
+        );
 
         /// <summary>
         /// Deletes a data element by its ID.

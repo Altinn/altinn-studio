@@ -13,7 +13,11 @@ namespace Altinn.App.Core.Features.Options
         public string Id => string.Empty;
 
         /// <inheritdoc/>
-        public Task<AppOptions> GetInstanceAppOptionsAsync(InstanceIdentifier instanceIdentifier, string? language, Dictionary<string, string> keyValuePairs)
+        public Task<AppOptions> GetInstanceAppOptionsAsync(
+            InstanceIdentifier instanceIdentifier,
+            string? language,
+            Dictionary<string, string> keyValuePairs
+        )
         {
             return Task.FromResult<AppOptions>(new AppOptions() { IsCacheable = false, Options = null });
         }

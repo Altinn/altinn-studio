@@ -1,10 +1,8 @@
 using System.Collections.Immutable;
 using System.Text.Json;
-
 using Altinn.App.Core.Models.Expressions;
 
 namespace Altinn.App.Core.Models.Layout.Components;
-
 
 /// <summary>
 /// Inteface to be able to handle all most components same way.
@@ -19,7 +17,15 @@ public class BaseComponent
     /// <summary>
     /// Constructor for <see cref="BaseComponent" />
     /// </summary>
-    public BaseComponent(string id, string type, IReadOnlyDictionary<string, string>? dataModelBindings, Expression? hidden, Expression? required, Expression? readOnly, IReadOnlyDictionary<string, string>? additionalProperties)
+    public BaseComponent(
+        string id,
+        string type,
+        IReadOnlyDictionary<string, string>? dataModelBindings,
+        Expression? hidden,
+        Expression? required,
+        Expression? readOnly,
+        IReadOnlyDictionary<string, string>? additionalProperties
+    )
     {
         Id = id;
         Type = type;
@@ -29,6 +35,7 @@ public class BaseComponent
         ReadOnly = readOnly;
         AdditionalDebugProperties = additionalProperties;
     }
+
     /// <summary>
     /// ID of the component (or pagename for pages)
     /// </summary>

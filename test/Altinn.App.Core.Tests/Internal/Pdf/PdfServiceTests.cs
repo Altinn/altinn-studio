@@ -26,21 +26,29 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Pdf
         private readonly Mock<IHttpContextAccessor> _httpContextAccessor = new();
         private readonly Mock<IPdfGeneratorClient> _pdfGeneratorClient = new();
         private readonly Mock<IProfileClient> _profile = new();
-        private readonly IOptions<PdfGeneratorSettings> _pdfGeneratorSettingsOptions = Microsoft.Extensions.Options.Options.Create<PdfGeneratorSettings>(new() { });
+        private readonly IOptions<PdfGeneratorSettings> _pdfGeneratorSettingsOptions =
+            Microsoft.Extensions.Options.Options.Create<PdfGeneratorSettings>(new() { });
 
-        private readonly IOptions<GeneralSettings> _generalSettingsOptions = Microsoft.Extensions.Options.Options.Create<GeneralSettings>(new()
-        {
-            HostName = HostName
-        });
+        private readonly IOptions<GeneralSettings> _generalSettingsOptions =
+            Microsoft.Extensions.Options.Options.Create<GeneralSettings>(new() { HostName = HostName });
 
-        private readonly IOptions<PlatformSettings> _platformSettingsOptions = Microsoft.Extensions.Options.Options.Create<PlatformSettings>(new() { });
+        private readonly IOptions<PlatformSettings> _platformSettingsOptions =
+            Microsoft.Extensions.Options.Options.Create<PlatformSettings>(new() { });
 
         private readonly Mock<IUserTokenProvider> _userTokenProvider;
 
         public PdfServiceTests()
         {
-            var resource = new TextResource() { Id = "digdir-not-really-an-app-nb", Language = "nb", Org = "digdir", Resources = new List<TextResourceElement>() };
-            _appResources.Setup(s => s.GetTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(resource);
+            var resource = new TextResource()
+            {
+                Id = "digdir-not-really-an-app-nb",
+                Language = "nb",
+                Org = "digdir",
+                Resources = new List<TextResourceElement>()
+            };
+            _appResources
+                .Setup(s => s.GetTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(resource);
 
             DefaultHttpContext httpContext = new();
             httpContext.Request.Protocol = "https";
@@ -54,16 +62,35 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Pdf
         [Fact]
         public async Task ValidRequest_ShouldReturnPdf()
         {
-            DelegatingHandlerStub delegatingHandler = new(async (HttpRequestMessage request, CancellationToken token) =>
-            {
-                await Task.CompletedTask;
-                return new HttpResponseMessage() { Content = new StreamContent(EmbeddedResource.LoadDataAsStream("Altinn.App.Core.Tests.Internal.Pdf.TestData.example.pdf")) };
-            });
+            DelegatingHandlerStub delegatingHandler =
+                new(
+                    async (HttpRequestMessage request, CancellationToken token) =>
+                    {
+                        await Task.CompletedTask;
+                        return new HttpResponseMessage()
+                        {
+                            Content = new StreamContent(
+                                EmbeddedResource.LoadDataAsStream(
+                                    "Altinn.App.Core.Tests.Internal.Pdf.TestData.example.pdf"
+                                )
+                            )
+                        };
+                    }
+                );
 
             var httpClient = new HttpClient(delegatingHandler);
-            var pdfGeneratorClient = new PdfGeneratorClient(httpClient, _pdfGeneratorSettingsOptions, _platformSettingsOptions, _userTokenProvider.Object, _httpContextAccessor.Object);
+            var pdfGeneratorClient = new PdfGeneratorClient(
+                httpClient,
+                _pdfGeneratorSettingsOptions,
+                _platformSettingsOptions,
+                _userTokenProvider.Object,
+                _httpContextAccessor.Object
+            );
 
-            Stream pdf = await pdfGeneratorClient.GeneratePdf(new Uri(@"https://org.apps.hostName/appId/#/instance/instanceId"), CancellationToken.None);
+            Stream pdf = await pdfGeneratorClient.GeneratePdf(
+                new Uri(@"https://org.apps.hostName/appId/#/instance/instanceId"),
+                CancellationToken.None
+            );
 
             pdf.Length.Should().Be(17814L);
         }
@@ -71,16 +98,29 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Pdf
         [Fact]
         public async Task ValidRequest_PdfGenerationFails_ShouldThrowException()
         {
-            DelegatingHandlerStub delegatingHandler = new(async (HttpRequestMessage request, CancellationToken token) =>
-            {
-                await Task.CompletedTask;
-                return new HttpResponseMessage() { StatusCode = HttpStatusCode.RequestTimeout };
-            });
+            DelegatingHandlerStub delegatingHandler =
+                new(
+                    async (HttpRequestMessage request, CancellationToken token) =>
+                    {
+                        await Task.CompletedTask;
+                        return new HttpResponseMessage() { StatusCode = HttpStatusCode.RequestTimeout };
+                    }
+                );
 
             var httpClient = new HttpClient(delegatingHandler);
-            var pdfGeneratorClient = new PdfGeneratorClient(httpClient, _pdfGeneratorSettingsOptions, _platformSettingsOptions, _userTokenProvider.Object, _httpContextAccessor.Object);
+            var pdfGeneratorClient = new PdfGeneratorClient(
+                httpClient,
+                _pdfGeneratorSettingsOptions,
+                _platformSettingsOptions,
+                _userTokenProvider.Object,
+                _httpContextAccessor.Object
+            );
 
-            var func = async () => await pdfGeneratorClient.GeneratePdf(new Uri(@"https://org.apps.hostName/appId/#/instance/instanceId"), CancellationToken.None);
+            var func = async () =>
+                await pdfGeneratorClient.GeneratePdf(
+                    new Uri(@"https://org.apps.hostName/appId/#/instance/instanceId"),
+                    CancellationToken.None
+                );
 
             await func.Should().ThrowAsync<PdfGenerationException>();
         }
@@ -99,38 +139,47 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Pdf
                 _profile.Object,
                 _pdfGeneratorClient.Object,
                 _pdfGeneratorSettingsOptions,
-                _generalSettingsOptions);
+                _generalSettingsOptions
+            );
 
-            Instance instance = new()
-            {
-                Id = $"509378/{Guid.NewGuid()}",
-                AppId = "digdir/not-really-an-app",
-                Org = "digdir"
-            };
+            Instance instance =
+                new()
+                {
+                    Id = $"509378/{Guid.NewGuid()}",
+                    AppId = "digdir/not-really-an-app",
+                    Org = "digdir"
+                };
 
             // Act
             await target.GenerateAndStorePdf(instance, "Task_1", CancellationToken.None);
 
             // Asserts
             _pdfGeneratorClient.Verify(
-                s => s.GeneratePdf(
-                    It.Is<Uri>(
-                        u => u.Scheme == "https" &&
-                             u.Host == $"{instance.Org}.apps.{HostName}" &&
-                             u.AbsoluteUri.Contains(instance.AppId) &&
-                             u.AbsoluteUri.Contains(instance.Id)),
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
+                s =>
+                    s.GeneratePdf(
+                        It.Is<Uri>(u =>
+                            u.Scheme == "https"
+                            && u.Host == $"{instance.Org}.apps.{HostName}"
+                            && u.AbsoluteUri.Contains(instance.AppId)
+                            && u.AbsoluteUri.Contains(instance.Id)
+                        ),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
 
             _dataClient.Verify(
-                s => s.InsertBinaryData(
-                    It.Is<string>(s => s == instance.Id),
-                    It.Is<string>(s => s == "ref-data-as-pdf"),
-                    It.Is<string>(s => s == "application/pdf"),
-                    It.Is<string>(s => s == "not-really-an-app.pdf"),
-                    It.IsAny<Stream>(),
-                    It.Is<string>(s => s == "Task_1")),
-                Times.Once);
+                s =>
+                    s.InsertBinaryData(
+                        It.Is<string>(s => s == instance.Id),
+                        It.Is<string>(s => s == "ref-data-as-pdf"),
+                        It.Is<string>(s => s == "application/pdf"),
+                        It.Is<string>(s => s == "not-really-an-app.pdf"),
+                        It.IsAny<Stream>(),
+                        It.Is<string>(s => s == "Task_1")
+                    ),
+                Times.Once
+            );
         }
 
         [Fact]
@@ -148,61 +197,56 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Pdf
                 _profile.Object,
                 _pdfGeneratorClient.Object,
                 _pdfGeneratorSettingsOptions,
-                _generalSettingsOptions);
+                _generalSettingsOptions
+            );
 
             var dataModelId = Guid.NewGuid();
             var attachmentId = Guid.NewGuid();
 
-            Instance instance = new()
-            {
-                Id = $"509378/{Guid.NewGuid()}",
-                AppId = "digdir/not-really-an-app",
-                Org = "digdir",
-                Process = new()
+            Instance instance =
+                new()
                 {
-                    CurrentTask = new()
+                    Id = $"509378/{Guid.NewGuid()}",
+                    AppId = "digdir/not-really-an-app",
+                    Org = "digdir",
+                    Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+                    Data = new()
                     {
-                        ElementId = "Task_1"
+                        new() { Id = dataModelId.ToString(), DataType = "Model" },
+                        new() { Id = attachmentId.ToString(), DataType = "attachment" }
                     }
-                },
-                Data = new()
-                {
-                    new()
-                    {
-                        Id = dataModelId.ToString(),
-                        DataType = "Model"
-                    },
-                    new()
-                    {
-                        Id = attachmentId.ToString(),
-                        DataType = "attachment"
-                    }
-                }
-            };
+                };
 
             // Act
             await target.GenerateAndStorePdf(instance, "Task_1", CancellationToken.None);
 
             // Asserts
             _pdfGeneratorClient.Verify(
-                s => s.GeneratePdf(
-                    It.Is<Uri>(
-                        u => u.Scheme == "https" &&
-                             u.Host == $"{instance.Org}.apps.{HostName}" &&
-                             u.AbsoluteUri.Contains(instance.AppId) &&
-                             u.AbsoluteUri.Contains(instance.Id)),
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
+                s =>
+                    s.GeneratePdf(
+                        It.Is<Uri>(u =>
+                            u.Scheme == "https"
+                            && u.Host == $"{instance.Org}.apps.{HostName}"
+                            && u.AbsoluteUri.Contains(instance.AppId)
+                            && u.AbsoluteUri.Contains(instance.Id)
+                        ),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
 
             _dataClient.Verify(
-                s => s.InsertBinaryData(
-                    It.Is<string>(s => s == instance.Id),
-                    It.Is<string>(s => s == "ref-data-as-pdf"),
-                    It.Is<string>(s => s == "application/pdf"),
-                    It.Is<string>(s => s == "not-really-an-app.pdf"),
-                    It.IsAny<Stream>(),
-                    It.Is<string>(s => s == "Task_1")),
-                Times.Once);
+                s =>
+                    s.InsertBinaryData(
+                        It.Is<string>(s => s == instance.Id),
+                        It.Is<string>(s => s == "ref-data-as-pdf"),
+                        It.Is<string>(s => s == "application/pdf"),
+                        It.Is<string>(s => s == "not-really-an-app.pdf"),
+                        It.IsAny<Stream>(),
+                        It.Is<string>(s => s == "Task_1")
+                    ),
+                Times.Once
+            );
         }
     }
 }

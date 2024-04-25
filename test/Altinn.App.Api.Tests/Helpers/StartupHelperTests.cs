@@ -22,7 +22,13 @@ public class StartupHelperTests
         StartupHelper.IncludeXmlComments(testDouble.IncludeXmlCommentsTestDouble);
         testDouble.GetStrings().Should().HaveCount(2);
         testDouble.GetBools().Should().HaveCount(2);
-        testDouble.GetStrings().Should().Equal($"{AppContext.BaseDirectory}Altinn.App.Api.Tests.xml", $"{AppContext.BaseDirectory}Altinn.App.Api.xml");
+        testDouble
+            .GetStrings()
+            .Should()
+            .Equal(
+                $"{AppContext.BaseDirectory}Altinn.App.Api.Tests.xml",
+                $"{AppContext.BaseDirectory}Altinn.App.Api.xml"
+            );
         testDouble.GetBools().Should().Equal(false, false);
     }
 

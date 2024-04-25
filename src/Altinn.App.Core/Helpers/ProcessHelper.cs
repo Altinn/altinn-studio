@@ -17,7 +17,11 @@ namespace Altinn.App.Core.Helpers
         /// <param name="possibleStartEvents">List of possible start events <see cref="IProcessReader.GetStartEventIds"/></param>
         /// <param name="startEventError">Any error preventing the process from starting.</param>
         /// <returns>The name of the start event or null if start event wasn't found.</returns>
-        public static string? GetValidStartEventOrError(string? proposedStartEvent, List<string> possibleStartEvents, out ProcessError? startEventError)
+        public static string? GetValidStartEventOrError(
+            string? proposedStartEvent,
+            List<string> possibleStartEvents,
+            out ProcessError? startEventError
+        )
         {
             startEventError = null;
 
@@ -28,7 +32,9 @@ namespace Altinn.App.Core.Helpers
                     return proposedStartEvent;
                 }
 
-                startEventError = Conflict($"There is no such start event as '{proposedStartEvent}' in the process definition.");
+                startEventError = Conflict(
+                    $"There is no such start event as '{proposedStartEvent}' in the process definition."
+                );
                 return null;
             }
 
@@ -39,7 +45,9 @@ namespace Altinn.App.Core.Helpers
 
             if (possibleStartEvents.Count > 1)
             {
-                startEventError = Conflict($"There are more than one start events available. Chose one: [{string.Join(", ", possibleStartEvents)}]");
+                startEventError = Conflict(
+                    $"There are more than one start events available. Chose one: [{string.Join(", ", possibleStartEvents)}]"
+                );
                 return null;
             }
 
@@ -54,7 +62,11 @@ namespace Altinn.App.Core.Helpers
         /// <param name="possibleNextElements">List of possible next elements</param>
         /// <param name="nextElementError">Any error preventing the logic to identify next element.</param>
         /// <returns>The name of the next element.</returns>
-        public static string? GetValidNextElementOrError(string? proposedElementId, List<string> possibleNextElements, out ProcessError? nextElementError)
+        public static string? GetValidNextElementOrError(
+            string? proposedElementId,
+            List<string> possibleNextElements,
+            out ProcessError? nextElementError
+        )
         {
             nextElementError = null;
 
@@ -66,7 +78,9 @@ namespace Altinn.App.Core.Helpers
                 }
                 else
                 {
-                    nextElementError = Conflict($"The proposed next element id '{proposedElementId}' is not among the available next process elements");
+                    nextElementError = Conflict(
+                        $"The proposed next element id '{proposedElementId}' is not among the available next process elements"
+                    );
                     return null;
                 }
             }
@@ -78,13 +92,17 @@ namespace Altinn.App.Core.Helpers
 
             if (possibleNextElements.Count > 1)
             {
-                nextElementError = Conflict($"There are more than one outgoing sequence flows, please select one '{possibleNextElements}'");
+                nextElementError = Conflict(
+                    $"There are more than one outgoing sequence flows, please select one '{possibleNextElements}'"
+                );
                 return null;
             }
 
             if (possibleNextElements.Count == 0)
             {
-                nextElementError = Conflict($"There are no outgoing sequence flows from current element. Cannot find next process element. Error in bpmn file!");
+                nextElementError = Conflict(
+                    $"There are no outgoing sequence flows from current element. Cannot find next process element. Error in bpmn file!"
+                );
                 return null;
             }
 
@@ -92,13 +110,16 @@ namespace Altinn.App.Core.Helpers
         }
 
         /// <summary>
-        /// Find the flowtype between 
+        /// Find the flowtype between
         /// </summary>
         public static ProcessSequenceFlowType GetSequenceFlowType(List<SequenceFlow> flows)
         {
             foreach (SequenceFlow flow in flows)
             {
-                if (!string.IsNullOrEmpty(flow.FlowType) && Enum.TryParse(flow.FlowType, out ProcessSequenceFlowType flowType))
+                if (
+                    !string.IsNullOrEmpty(flow.FlowType)
+                    && Enum.TryParse(flow.FlowType, out ProcessSequenceFlowType flowType)
+                )
                 {
                     return flowType;
                 }
@@ -109,11 +130,7 @@ namespace Altinn.App.Core.Helpers
 
         private static ProcessError Conflict(string text)
         {
-            return new ProcessError
-            {
-                Code = "Conflict",
-                Text = text
-            };
+            return new ProcessError { Code = "Conflict", Text = text };
         }
     }
 }

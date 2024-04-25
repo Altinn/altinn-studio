@@ -5,7 +5,10 @@ namespace Altinn.App.Core.Interface
     /// <summary>
     /// Interface for the resident registration database (DSF: Det sentrale folkeregisteret)
     /// </summary>
-    [Obsolete(message: "Upstream API changed. Use Altinn.App.Core.Internal.Registers.IPersonClient instead", error: true)]
+    [Obsolete(
+        message: "Upstream API changed. Use Altinn.App.Core.Internal.Registers.IPersonClient instead",
+        error: true
+    )]
     public interface IDSF
     {
         /// <summary>

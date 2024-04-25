@@ -1,5 +1,5 @@
-﻿using Altinn.App.Core.Features;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
+using Altinn.App.Core.Features;
 
 namespace Altinn.App.Core.Models.Notifications.Sms;
 
@@ -23,7 +23,7 @@ public sealed record SmsNotification
     public required string Body { get; init; }
 
     /// <summary>
-    /// The Requested send time for the SMS. 
+    /// The Requested send time for the SMS.
     /// DateTime.UtcNow by default.
     /// </summary>
     [JsonPropertyName("requestedSendTime")]
@@ -48,7 +48,7 @@ public sealed record SmsNotification
     public required string SendersReference { get; init; }
 
     /// <summary>
-    /// The recipients of the SMS. 
+    /// The recipients of the SMS.
     /// </summary>
     [JsonPropertyName("recipients")]
     public required IReadOnlyList<SmsRecipient> Recipients { get; init; }

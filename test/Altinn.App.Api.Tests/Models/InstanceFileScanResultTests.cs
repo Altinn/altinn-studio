@@ -1,8 +1,8 @@
-﻿using Altinn.App.Api.Models;
+﻿using System;
+using Altinn.App.Api.Models;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Enums;
 using FluentAssertions;
-using System;
 using Xunit;
 
 namespace Altinn.App.Api.Tests.Models
@@ -27,7 +27,9 @@ namespace Altinn.App.Api.Tests.Models
         {
             var instanceFileScanResult = new InstanceFileScanResult(new InstanceIdentifier(12345, Guid.NewGuid()));
 
-            instanceFileScanResult.AddFileScanResult(new DataElementFileScanResult() { Id = Guid.NewGuid().ToString(), FileScanResult = fileScanResult });
+            instanceFileScanResult.AddFileScanResult(
+                new DataElementFileScanResult() { Id = Guid.NewGuid().ToString(), FileScanResult = fileScanResult }
+            );
 
             instanceFileScanResult.FileScanResult.Should().Be(fileScanResult);
         }
@@ -41,8 +43,16 @@ namespace Altinn.App.Api.Tests.Models
         {
             var instanceFileScanResult = new InstanceFileScanResult(new InstanceIdentifier(12345, Guid.NewGuid()));
 
-            instanceFileScanResult.AddFileScanResult(new DataElementFileScanResult() { Id = Guid.NewGuid().ToString(), FileScanResult = fileScanResult });
-            instanceFileScanResult.AddFileScanResult(new DataElementFileScanResult() { Id = Guid.NewGuid().ToString(), FileScanResult = FileScanResult.Infected });
+            instanceFileScanResult.AddFileScanResult(
+                new DataElementFileScanResult() { Id = Guid.NewGuid().ToString(), FileScanResult = fileScanResult }
+            );
+            instanceFileScanResult.AddFileScanResult(
+                new DataElementFileScanResult()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    FileScanResult = FileScanResult.Infected
+                }
+            );
 
             instanceFileScanResult.FileScanResult.Should().Be(FileScanResult.Infected);
         }
@@ -52,8 +62,20 @@ namespace Altinn.App.Api.Tests.Models
         {
             var instanceFileScanResult = new InstanceFileScanResult(new InstanceIdentifier(12345, Guid.NewGuid()));
 
-            instanceFileScanResult.AddFileScanResult(new DataElementFileScanResult() { Id = Guid.NewGuid().ToString(), FileScanResult = FileScanResult.Clean });
-            instanceFileScanResult.AddFileScanResult(new DataElementFileScanResult() { Id = Guid.NewGuid().ToString(), FileScanResult = FileScanResult.Clean });
+            instanceFileScanResult.AddFileScanResult(
+                new DataElementFileScanResult()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    FileScanResult = FileScanResult.Clean
+                }
+            );
+            instanceFileScanResult.AddFileScanResult(
+                new DataElementFileScanResult()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    FileScanResult = FileScanResult.Clean
+                }
+            );
 
             instanceFileScanResult.FileScanResult.Should().Be(FileScanResult.Clean);
         }
@@ -63,8 +85,20 @@ namespace Altinn.App.Api.Tests.Models
         {
             var instanceFileScanResult = new InstanceFileScanResult(new InstanceIdentifier(12345, Guid.NewGuid()));
 
-            instanceFileScanResult.AddFileScanResult(new DataElementFileScanResult() { Id = Guid.NewGuid().ToString(), FileScanResult = FileScanResult.Clean });
-            instanceFileScanResult.AddFileScanResult(new DataElementFileScanResult() { Id = Guid.NewGuid().ToString(), FileScanResult = FileScanResult.Pending });
+            instanceFileScanResult.AddFileScanResult(
+                new DataElementFileScanResult()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    FileScanResult = FileScanResult.Clean
+                }
+            );
+            instanceFileScanResult.AddFileScanResult(
+                new DataElementFileScanResult()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    FileScanResult = FileScanResult.Pending
+                }
+            );
 
             instanceFileScanResult.FileScanResult.Should().Be(FileScanResult.Pending);
         }
@@ -74,8 +108,20 @@ namespace Altinn.App.Api.Tests.Models
         {
             var instanceFileScanResult = new InstanceFileScanResult(new InstanceIdentifier(12345, Guid.NewGuid()));
 
-            instanceFileScanResult.AddFileScanResult(new DataElementFileScanResult() { Id = Guid.NewGuid().ToString(), FileScanResult = FileScanResult.Pending });
-            instanceFileScanResult.AddFileScanResult(new DataElementFileScanResult() { Id = Guid.NewGuid().ToString(), FileScanResult = FileScanResult.Pending });
+            instanceFileScanResult.AddFileScanResult(
+                new DataElementFileScanResult()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    FileScanResult = FileScanResult.Pending
+                }
+            );
+            instanceFileScanResult.AddFileScanResult(
+                new DataElementFileScanResult()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    FileScanResult = FileScanResult.Pending
+                }
+            );
 
             instanceFileScanResult.FileScanResult.Should().Be(FileScanResult.Pending);
         }
@@ -85,10 +131,34 @@ namespace Altinn.App.Api.Tests.Models
         {
             var instanceFileScanResult = new InstanceFileScanResult(new InstanceIdentifier(12345, Guid.NewGuid()));
 
-            instanceFileScanResult.AddFileScanResult(new DataElementFileScanResult() { Id = Guid.NewGuid().ToString(), FileScanResult = FileScanResult.Infected });
-            instanceFileScanResult.AddFileScanResult(new DataElementFileScanResult() { Id = Guid.NewGuid().ToString(), FileScanResult = FileScanResult.Pending });
-            instanceFileScanResult.AddFileScanResult(new DataElementFileScanResult() { Id = Guid.NewGuid().ToString(), FileScanResult = FileScanResult.Clean });
-            instanceFileScanResult.AddFileScanResult(new DataElementFileScanResult() { Id = Guid.NewGuid().ToString(), FileScanResult = FileScanResult.NotApplicable });
+            instanceFileScanResult.AddFileScanResult(
+                new DataElementFileScanResult()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    FileScanResult = FileScanResult.Infected
+                }
+            );
+            instanceFileScanResult.AddFileScanResult(
+                new DataElementFileScanResult()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    FileScanResult = FileScanResult.Pending
+                }
+            );
+            instanceFileScanResult.AddFileScanResult(
+                new DataElementFileScanResult()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    FileScanResult = FileScanResult.Clean
+                }
+            );
+            instanceFileScanResult.AddFileScanResult(
+                new DataElementFileScanResult()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    FileScanResult = FileScanResult.NotApplicable
+                }
+            );
 
             instanceFileScanResult.FileScanResult.Should().Be(FileScanResult.Infected);
         }

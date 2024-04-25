@@ -7,7 +7,11 @@ namespace Altinn.App.Core.Models.Validation
     public class FrontendSeverityConverter : JsonConverter<ValidationIssueSeverity>
     {
         /// <inheritdoc />
-        public override ValidationIssueSeverity Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override ValidationIssueSeverity Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options
+        )
         {
             if (reader.TokenType != JsonTokenType.String)
             {

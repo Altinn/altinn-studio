@@ -15,7 +15,11 @@ public class ProcessHelperTests
     public void GetValidStartEventOrError_returns_start_event_and_no_error_when_null_proposed_and_one_StartEvent()
     {
         List<string> possibleStartEvents = new List<string>() { "StartEvent" };
-        string? actual = ProcessHelper.GetValidStartEventOrError(null, possibleStartEvents, out ProcessError? processError);
+        string? actual = ProcessHelper.GetValidStartEventOrError(
+            null,
+            possibleStartEvents,
+            out ProcessError? processError
+        );
         actual.Should().Be("StartEvent");
         processError.Should().BeNull();
     }
@@ -24,7 +28,11 @@ public class ProcessHelperTests
     public void GetValidStartEventOrError_returns_start_event_and_no_error_when_proposed_in_possibleStartEvents()
     {
         List<string> possibleStartEvents = new List<string>() { "StartEvent", "StartEvent2" };
-        string? actual = ProcessHelper.GetValidStartEventOrError("StartEvent", possibleStartEvents, out ProcessError? processError);
+        string? actual = ProcessHelper.GetValidStartEventOrError(
+            "StartEvent",
+            possibleStartEvents,
+            out ProcessError? processError
+        );
         actual.Should().Be("StartEvent");
         processError.Should().BeNull();
     }
@@ -33,49 +41,74 @@ public class ProcessHelperTests
     public void GetValidStartEventOrError_returns_null_and_error_when_proposed_and_single_StartEvent_not_matches()
     {
         List<string> possibleStartEvents = new List<string>() { "StartEvent" };
-        string? actual = ProcessHelper.GetValidStartEventOrError("NotPossibleStart", possibleStartEvents, out ProcessError? processError);
+        string? actual = ProcessHelper.GetValidStartEventOrError(
+            "NotPossibleStart",
+            possibleStartEvents,
+            out ProcessError? processError
+        );
         actual.Should().BeNull();
-        processError.Should().BeEquivalentTo(
-            new ProcessError()
-            {
-                Code = "Conflict",
-                Text = "There is no such start event as 'NotPossibleStart' in the process definition."
-            });
+        processError
+            .Should()
+            .BeEquivalentTo(
+                new ProcessError()
+                {
+                    Code = "Conflict",
+                    Text = "There is no such start event as 'NotPossibleStart' in the process definition."
+                }
+            );
     }
 
     [Fact]
     public void GetValidStartEventOrError_returns_null_and_error_when_proposed_null_and_multiple_possibleStartEvents()
     {
         List<string> possibleStartEvents = new List<string>() { "StartEvent", "StartEvent2" };
-        string? actual = ProcessHelper.GetValidStartEventOrError(null, possibleStartEvents, out ProcessError? processError);
+        string? actual = ProcessHelper.GetValidStartEventOrError(
+            null,
+            possibleStartEvents,
+            out ProcessError? processError
+        );
         actual.Should().BeNull();
-        processError.Should().BeEquivalentTo(
-            new ProcessError()
-            {
-                Code = "Conflict",
-                Text = "There are more than one start events available. Chose one: [StartEvent, StartEvent2]"
-            });
+        processError
+            .Should()
+            .BeEquivalentTo(
+                new ProcessError()
+                {
+                    Code = "Conflict",
+                    Text = "There are more than one start events available. Chose one: [StartEvent, StartEvent2]"
+                }
+            );
     }
 
     [Fact]
     public void GetValidStartEventOrError_returns_null_and_error_when_possibleStartEvents_is_empty()
     {
         List<string> possibleStartEvents = new List<string>();
-        string? actual = ProcessHelper.GetValidStartEventOrError(null, possibleStartEvents, out ProcessError? processError);
+        string? actual = ProcessHelper.GetValidStartEventOrError(
+            null,
+            possibleStartEvents,
+            out ProcessError? processError
+        );
         actual.Should().BeNull();
-        processError.Should().BeEquivalentTo(
-            new ProcessError()
-            {
-                Code = "Conflict",
-                Text = "There is no start events in process definition. Cannot start process!"
-            });
+        processError
+            .Should()
+            .BeEquivalentTo(
+                new ProcessError()
+                {
+                    Code = "Conflict",
+                    Text = "There is no start events in process definition. Cannot start process!"
+                }
+            );
     }
 
     [Fact]
     public void GetValidNextElementOrError_returns_next_and_no_error_when_possibleNextElements_hase_one_element()
     {
         List<string> possibleNextElements = new List<string>() { "Task2" };
-        string? actual = ProcessHelper.GetValidNextElementOrError(null, possibleNextElements, out ProcessError? processError);
+        string? actual = ProcessHelper.GetValidNextElementOrError(
+            null,
+            possibleNextElements,
+            out ProcessError? processError
+        );
         actual.Should().Be("Task2");
         processError.Should().BeNull();
     }
@@ -84,21 +117,33 @@ public class ProcessHelperTests
     public void GetValidNextElementOrError_returns_next_null_and_error_when_possibleNextElements_hase_two_element()
     {
         List<string> possibleNextElements = new List<string>() { "Task2", "Task3" };
-        string? actual = ProcessHelper.GetValidNextElementOrError(null, possibleNextElements, out ProcessError? processError);
+        string? actual = ProcessHelper.GetValidNextElementOrError(
+            null,
+            possibleNextElements,
+            out ProcessError? processError
+        );
         actual.Should().BeNull();
-        processError.Should().BeEquivalentTo(
-            new ProcessError()
-            {
-                Code = "Conflict",
-                Text = $"There are more than one outgoing sequence flows, please select one 'System.Collections.Generic.List`1[System.String]'"
-            });
+        processError
+            .Should()
+            .BeEquivalentTo(
+                new ProcessError()
+                {
+                    Code = "Conflict",
+                    Text =
+                        $"There are more than one outgoing sequence flows, please select one 'System.Collections.Generic.List`1[System.String]'"
+                }
+            );
     }
 
     [Fact]
     public void GetValidNextElementOrError_returns_proposed_and_no_error_when_possibleNextElements_has_one_element_matching_proposal()
     {
         List<string> possibleNextElements = new List<string>() { "Task2", "Task3" };
-        string? actual = ProcessHelper.GetValidNextElementOrError("Task3", possibleNextElements, out ProcessError? processError);
+        string? actual = ProcessHelper.GetValidNextElementOrError(
+            "Task3",
+            possibleNextElements,
+            out ProcessError? processError
+        );
         actual.Should().Be("Task3");
         processError.Should().BeNull();
     }
@@ -107,28 +152,43 @@ public class ProcessHelperTests
     public void GetValidNextElementOrError_returns_null_and_error_when_possibleNextElements_has_no_elements_matching_proposal()
     {
         List<string> possibleNextElements = new List<string>() { "Task2", "Task3" };
-        string? actual = ProcessHelper.GetValidNextElementOrError("Foobar", possibleNextElements, out ProcessError? processError);
+        string? actual = ProcessHelper.GetValidNextElementOrError(
+            "Foobar",
+            possibleNextElements,
+            out ProcessError? processError
+        );
         actual.Should().BeNull();
-        processError.Should().BeEquivalentTo(
-            new ProcessError()
-            {
-                Code = "Conflict",
-                Text = "The proposed next element id 'Foobar' is not among the available next process elements"
-            });
+        processError
+            .Should()
+            .BeEquivalentTo(
+                new ProcessError()
+                {
+                    Code = "Conflict",
+                    Text = "The proposed next element id 'Foobar' is not among the available next process elements"
+                }
+            );
     }
 
     [Fact]
     public void GetValidNextElementOrError_returns_next_null_and_error_when_possibleNextElements_hase_no_element()
     {
         List<string> possibleNextElements = new List<string>();
-        string? actual = ProcessHelper.GetValidNextElementOrError(null, possibleNextElements, out ProcessError? processError);
+        string? actual = ProcessHelper.GetValidNextElementOrError(
+            null,
+            possibleNextElements,
+            out ProcessError? processError
+        );
         actual.Should().BeNull();
-        processError.Should().BeEquivalentTo(
-            new ProcessError()
-            {
-                Code = "Conflict",
-                Text = "There are no outgoing sequence flows from current element. Cannot find next process element. Error in bpmn file!"
-            });
+        processError
+            .Should()
+            .BeEquivalentTo(
+                new ProcessError()
+                {
+                    Code = "Conflict",
+                    Text =
+                        "There are no outgoing sequence flows from current element. Cannot find next process element. Error in bpmn file!"
+                }
+            );
     }
 
     [Fact]
@@ -151,7 +211,10 @@ public class ProcessHelperTests
                 TargetRef = "Task3",
             }
         };
-        ProcessHelper.GetSequenceFlowType(sequenceFlows).Should().Be(ProcessSequenceFlowType.AbandonCurrentReturnToNext);
+        ProcessHelper
+            .GetSequenceFlowType(sequenceFlows)
+            .Should()
+            .Be(ProcessSequenceFlowType.AbandonCurrentReturnToNext);
     }
 
     [Fact]
@@ -173,7 +236,10 @@ public class ProcessHelperTests
                 TargetRef = "Task3",
             }
         };
-        ProcessHelper.GetSequenceFlowType(sequenceFlows).Should().Be(ProcessSequenceFlowType.AbandonCurrentReturnToNext);
+        ProcessHelper
+            .GetSequenceFlowType(sequenceFlows)
+            .Should()
+            .Be(ProcessSequenceFlowType.AbandonCurrentReturnToNext);
     }
 
     [Fact]

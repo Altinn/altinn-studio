@@ -12,10 +12,12 @@ public class ProcessNextRequest
     /// The instance to be moved to the next task
     /// </summary>
     public Instance Instance { get; set; }
+
     /// <summary>
     /// The user that is performing the action
     /// </summary>
     public ClaimsPrincipal User { get; set; }
+
     /// <summary>
     /// The action that is performed
     /// </summary>

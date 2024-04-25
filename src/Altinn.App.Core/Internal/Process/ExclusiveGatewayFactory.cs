@@ -23,12 +23,14 @@ public class ExclusiveGatewayFactory
     }
 
     /// <summary>
-    /// Returns <see cref="IProcessExclusiveGateway"/> with same GatewayId as ExclusiveGateways Id in BPMN process 
+    /// Returns <see cref="IProcessExclusiveGateway"/> with same GatewayId as ExclusiveGateways Id in BPMN process
     /// </summary>
     /// <param name="gatewayId">Id of exclusive gateway in the process</param>
     /// <returns><see cref="IProcessExclusiveGateway"/> if found, null if not</returns>
     public IProcessExclusiveGateway? GetProcessExclusiveGateway(string gatewayId)
     {
-        return _gateways.FirstOrDefault(gateway => String.Equals(gateway.GatewayId, gatewayId, StringComparison.CurrentCultureIgnoreCase));
+        return _gateways.FirstOrDefault(gateway =>
+            String.Equals(gateway.GatewayId, gatewayId, StringComparison.CurrentCultureIgnoreCase)
+        );
     }
 }

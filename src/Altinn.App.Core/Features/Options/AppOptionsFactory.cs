@@ -39,7 +39,9 @@ namespace Altinn.App.Core.Features.Options
 
             if (isDefault)
             {
-                throw new KeyNotFoundException("No default app options provider found in the configures services. Please check your services configuration.");
+                throw new KeyNotFoundException(
+                    "No default app options provider found in the configures services. Please check your services configuration."
+                );
             }
 
             // In the case of no providers registred specifically for the requested id,

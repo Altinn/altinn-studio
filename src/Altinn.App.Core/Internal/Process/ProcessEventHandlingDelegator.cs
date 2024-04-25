@@ -22,12 +22,14 @@ namespace Altinn.App.Core.Internal.Process
         /// <summary>
         /// This class is responsible for delegating process events to the correct event handler.
         /// </summary>
-        public ProcessEventHandlingDelegator(ILogger<ProcessEventHandlingDelegator> logger,
+        public ProcessEventHandlingDelegator(
+            ILogger<ProcessEventHandlingDelegator> logger,
             IStartTaskEventHandler startTaskEventHandler,
             IEndTaskEventHandler endTaskEventHandler,
             IAbandonTaskEventHandler abandonTaskEventHandler,
             IEndEventEventHandler endEventHandler,
-            IEnumerable<IProcessTask> processTasks)
+            IEnumerable<IProcessTask> processTasks
+        )
         {
             _logger = logger;
             _startTaskEventHandler = startTaskEventHandler;
@@ -40,7 +42,11 @@ namespace Altinn.App.Core.Internal.Process
         /// <summary>
         /// Loops through all events and delegates the event to the correct event handler.
         /// </summary>
-        public async Task HandleEvents(Instance instance, Dictionary<string, string>? prefill, List<InstanceEvent>? events)
+        public async Task HandleEvents(
+            Instance instance,
+            Dictionary<string, string>? prefill,
+            List<InstanceEvent>? events
+        )
         {
             if (events == null)
             {
@@ -55,7 +61,8 @@ namespace Altinn.App.Core.Internal.Process
                     if (instanceEvent.ProcessInfo?.CurrentTask != null && string.IsNullOrEmpty(taskId))
                     {
                         throw new ProcessException(
-                            $"Unable to parse taskId from CurrentTask on instance event {eventType} ({instanceEvent.Id})");
+                            $"Unable to parse taskId from CurrentTask on instance event {eventType} ({instanceEvent.Id})"
+                        );
                     }
 
                     string? altinnTaskType = instanceEvent.ProcessInfo?.CurrentTask?.AltinnTaskType;
@@ -65,15 +72,27 @@ namespace Altinn.App.Core.Internal.Process
                         case InstanceEventType.process_StartEvent:
                             break;
                         case InstanceEventType.process_StartTask:
-                            await _startTaskEventHandler.Execute(GetProcessTaskInstance(altinnTaskType), taskId!,
-                                instance, prefill);
+                            await _startTaskEventHandler.Execute(
+                                GetProcessTaskInstance(altinnTaskType),
+                                taskId!,
+                                instance,
+                                prefill
+                            );
                             break;
                         case InstanceEventType.process_EndTask:
-                            await _endTaskEventHandler.Execute(GetProcessTaskInstance(altinnTaskType), taskId!, instance);
+                            await _endTaskEventHandler.Execute(
+                                GetProcessTaskInstance(altinnTaskType),
+                                taskId!,
+                                instance
+                            );
                             break;
                         case InstanceEventType.process_AbandonTask:
                             // InstanceEventType is set to Abandon when action performed is `Reject`. This is to keep backwards compatability with existing code that only should be run when a task is abandoned/rejected.
-                            await _abandonTaskEventHandler.Execute(GetProcessTaskInstance(altinnTaskType), taskId!, instance);
+                            await _abandonTaskEventHandler.Execute(
+                                GetProcessTaskInstance(altinnTaskType),
+                                taskId!,
+                                instance
+                            );
                             break;
                         case InstanceEventType.process_EndEvent:
                             await _endEventHandler.Execute(instanceEvent, instance);

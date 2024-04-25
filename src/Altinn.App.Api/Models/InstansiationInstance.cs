@@ -1,6 +1,5 @@
 #nullable disable
 using System.Text.Json;
-
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Api.Models
@@ -11,7 +10,7 @@ namespace Altinn.App.Api.Models
     public class InstansiationInstance
     {
         /// <summary>
-        /// Gets or sets the instance owner information. 
+        /// Gets or sets the instance owner information.
         /// </summary>
         public InstanceOwner InstanceOwner { get; set; }
 
@@ -26,7 +25,7 @@ namespace Altinn.App.Api.Models
         public DateTime? VisibleAfter { get; set; }
 
         /// <summary>
-        /// Gets or sets the prefill values for the instance.        
+        /// Gets or sets the prefill values for the instance.
         /// </summary>
         public Dictionary<string, string> Prefill { get; set; }
 

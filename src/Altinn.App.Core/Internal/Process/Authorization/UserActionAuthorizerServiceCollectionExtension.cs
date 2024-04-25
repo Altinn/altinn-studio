@@ -17,7 +17,12 @@ public static class UserActionAuthorizerServiceCollectionExtension
     /// <param name="action">Name of the action the authorizer should run for</param>
     /// <typeparam name="T">Implementation if <see cref="IUserActionAuthorizer"/> that should be executed</typeparam>
     /// <returns></returns>
-    public static IServiceCollection AddTransientUserActionAuthorizerForActionInTask<T>(this IServiceCollection services, string taskId, string action) where T : class, IUserActionAuthorizer
+    public static IServiceCollection AddTransientUserActionAuthorizerForActionInTask<T>(
+        this IServiceCollection services,
+        string taskId,
+        string action
+    )
+        where T : class, IUserActionAuthorizer
     {
         return services.RegisterUserActionAuthorizer<T>(taskId, action);
     }
@@ -29,7 +34,11 @@ public static class UserActionAuthorizerServiceCollectionExtension
     /// <param name="action">Name of the action the authorizer should run for</param>
     /// <typeparam name="T">Implementation if <see cref="IUserActionAuthorizer"/> that should be executed</typeparam>
     /// <returns></returns>
-    public static IServiceCollection AddTransientUserActionAuthorizerForActionInAllTasks<T>(this IServiceCollection services, string action) where T : class, IUserActionAuthorizer
+    public static IServiceCollection AddTransientUserActionAuthorizerForActionInAllTasks<T>(
+        this IServiceCollection services,
+        string action
+    )
+        where T : class, IUserActionAuthorizer
     {
         return services.RegisterUserActionAuthorizer<T>(null, action);
     }
@@ -41,7 +50,11 @@ public static class UserActionAuthorizerServiceCollectionExtension
     /// <param name="taskId">Name of the action the authorizer should run for</param>
     /// <typeparam name="T">Implementation if <see cref="IUserActionAuthorizer"/> that should be executed</typeparam>
     /// <returns></returns>
-    public static IServiceCollection AddTransientUserActionAuthorizerForAllActionsInTask<T>(this IServiceCollection services, string taskId) where T : class, IUserActionAuthorizer
+    public static IServiceCollection AddTransientUserActionAuthorizerForAllActionsInTask<T>(
+        this IServiceCollection services,
+        string taskId
+    )
+        where T : class, IUserActionAuthorizer
     {
         return services.RegisterUserActionAuthorizer<T>(taskId, null);
     }
@@ -52,15 +65,27 @@ public static class UserActionAuthorizerServiceCollectionExtension
     /// <param name="services">ServiceCollection</param>
     /// <typeparam name="T">Implementation if <see cref="IUserActionAuthorizer"/> that should be executed</typeparam>
     /// <returns></returns>
-    public static IServiceCollection AddTransientUserActionAuthorizerForAllActionsInAllTasks<T>(this IServiceCollection services) where T : class, IUserActionAuthorizer
+    public static IServiceCollection AddTransientUserActionAuthorizerForAllActionsInAllTasks<T>(
+        this IServiceCollection services
+    )
+        where T : class, IUserActionAuthorizer
     {
         return services.RegisterUserActionAuthorizer<T>(null, null);
     }
 
-    private static IServiceCollection RegisterUserActionAuthorizer<T>(this IServiceCollection services, string? taskId, string? action) where T : class, IUserActionAuthorizer
+    private static IServiceCollection RegisterUserActionAuthorizer<T>(
+        this IServiceCollection services,
+        string? taskId,
+        string? action
+    )
+        where T : class, IUserActionAuthorizer
     {
         services.TryAddTransient<T>();
-        services.AddTransient<IUserActionAuthorizerProvider>(sp => new UserActionAuthorizerProvider(taskId, action, sp.GetRequiredService<T>()));
+        services.AddTransient<IUserActionAuthorizerProvider>(sp => new UserActionAuthorizerProvider(
+            taskId,
+            action,
+            sp.GetRequiredService<T>()
+        ));
         return services;
     }
 }

@@ -31,7 +31,8 @@ namespace Altinn.App.Core.Helpers
         /// </summary>
         /// <param name="response">the response</param>
         /// <param name="message">A description of the cause of the exception.</param>
-        public PlatformHttpException(HttpResponseMessage response, string message) : base(message)
+        public PlatformHttpException(HttpResponseMessage response, string message)
+            : base(message)
         {
             this.Response = response;
         }

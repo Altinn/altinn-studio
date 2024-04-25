@@ -44,13 +44,17 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
             IOptionsMonitor<AppSettings> settings,
             HttpClient httpClient,
             IAccessTokenGenerator accessTokenGenerator,
-            IAppMetadata appMetadata)
+            IAppMetadata appMetadata
+        )
         {
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiRegisterEndpoint);
-            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
+            httpClient.DefaultRequestHeaders.Add(
+                General.SubscriptionKeyHeaderName,
+                platformSettings.Value.SubscriptionKey
+            );
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _client = httpClient;
             _accessTokenGenerator = accessTokenGenerator;
@@ -63,10 +67,17 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
             Organization? organization = null;
 
             string endpointUrl = $"organizations/{OrgNr}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+            string token = JwtTokenUtil.GetTokenFromContext(
+                _httpContextAccessor.HttpContext,
+                _settings.RuntimeCookieName
+            );
 
             ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
-            HttpResponseMessage response = await _client.GetAsync(token, endpointUrl, _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App));
+            HttpResponseMessage response = await _client.GetAsync(
+                token,
+                endpointUrl,
+                _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App)
+            );
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
@@ -74,7 +85,11 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
             }
             else
             {
-                _logger.LogError("Getting organisation with orgnr {OrgNr} failed with statuscode {StatusCode}", OrgNr, response.StatusCode);
+                _logger.LogError(
+                    "Getting organisation with orgnr {OrgNr} failed with statuscode {StatusCode}",
+                    OrgNr,
+                    response.StatusCode
+                );
             }
 
             return organization;

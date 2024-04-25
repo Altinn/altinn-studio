@@ -24,14 +24,15 @@ public static class MultiDecisionHelper
     /// <summary>
     /// Creates multi decision request.
     /// </summary>
-    public static XacmlJsonRequestRoot CreateMultiDecisionRequest(ClaimsPrincipal user, Instance instance, List<string> actionTypes)
+    public static XacmlJsonRequestRoot CreateMultiDecisionRequest(
+        ClaimsPrincipal user,
+        Instance instance,
+        List<string> actionTypes
+    )
     {
         ArgumentNullException.ThrowIfNull(user);
 
-        XacmlJsonRequest request = new()
-        {
-            AccessSubject = new List<XacmlJsonCategory>()
-        };
+        XacmlJsonRequest request = new() { AccessSubject = new List<XacmlJsonCategory>() };
 
         request.AccessSubject.Add(CreateMultipleSubjectCategory(user.Claims));
         request.Action = CreateMultipleActionCategory(actionTypes);
@@ -51,7 +52,11 @@ public static class MultiDecisionHelper
     /// <param name="user"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public static Dictionary<string, bool> ValidatePdpMultiDecision(Dictionary<string, bool> actions, List<XacmlJsonResult> results, ClaimsPrincipal user)
+    public static Dictionary<string, bool> ValidatePdpMultiDecision(
+        Dictionary<string, bool> actions,
+        List<XacmlJsonResult> results,
+        ClaimsPrincipal user
+    )
     {
         ArgumentNullException.ThrowIfNull(results);
         ArgumentNullException.ThrowIfNull(user);
@@ -107,32 +112,89 @@ public static class MultiDecisionHelper
 
         if (instanceProps.Task != null)
         {
-            resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(XacmlResourceTaskId, instanceProps.Task, DefaultType, DefaultIssuer));
+            resourceCategory.Attribute.Add(
+                DecisionHelper.CreateXacmlJsonAttribute(
+                    XacmlResourceTaskId,
+                    instanceProps.Task,
+                    DefaultType,
+                    DefaultIssuer
+                )
+            );
         }
         else if (instance.Process?.EndEvent != null)
         {
-            resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(XacmlResourceEndId, instance.Process.EndEvent, DefaultType, DefaultIssuer));
+            resourceCategory.Attribute.Add(
+                DecisionHelper.CreateXacmlJsonAttribute(
+                    XacmlResourceEndId,
+                    instance.Process.EndEvent,
+                    DefaultType,
+                    DefaultIssuer
+                )
+            );
         }
 
         if (!string.IsNullOrWhiteSpace(instanceProps.InstanceId))
         {
-            resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.InstanceId, instanceProps.InstanceId, DefaultType, DefaultIssuer, true));
+            resourceCategory.Attribute.Add(
+                DecisionHelper.CreateXacmlJsonAttribute(
+                    AltinnXacmlUrns.InstanceId,
+                    instanceProps.InstanceId,
+                    DefaultType,
+                    DefaultIssuer,
+                    true
+                )
+            );
         }
         else if (!string.IsNullOrEmpty(instanceProps.InstanceGuid))
         {
-            resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.InstanceId, instanceProps.InstanceOwnerPartyId + "/" + instanceProps.InstanceGuid, DefaultType, DefaultIssuer, true));
+            resourceCategory.Attribute.Add(
+                DecisionHelper.CreateXacmlJsonAttribute(
+                    AltinnXacmlUrns.InstanceId,
+                    instanceProps.InstanceOwnerPartyId + "/" + instanceProps.InstanceGuid,
+                    DefaultType,
+                    DefaultIssuer,
+                    true
+                )
+            );
         }
 
-        resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.PartyId, instanceProps.InstanceOwnerPartyId, DefaultType, DefaultIssuer));
-        resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.OrgId, instanceProps.appIdentifier.Org, DefaultType, DefaultIssuer));
-        resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.AppId, instanceProps.appIdentifier.App, DefaultType, DefaultIssuer));
+        resourceCategory.Attribute.Add(
+            DecisionHelper.CreateXacmlJsonAttribute(
+                AltinnXacmlUrns.PartyId,
+                instanceProps.InstanceOwnerPartyId,
+                DefaultType,
+                DefaultIssuer
+            )
+        );
+        resourceCategory.Attribute.Add(
+            DecisionHelper.CreateXacmlJsonAttribute(
+                AltinnXacmlUrns.OrgId,
+                instanceProps.appIdentifier.Org,
+                DefaultType,
+                DefaultIssuer
+            )
+        );
+        resourceCategory.Attribute.Add(
+            DecisionHelper.CreateXacmlJsonAttribute(
+                AltinnXacmlUrns.AppId,
+                instanceProps.appIdentifier.App,
+                DefaultType,
+                DefaultIssuer
+            )
+        );
         resourceCategory.Id = ResourceId + counter;
         resourcesCategories.Add(resourceCategory);
 
         return resourcesCategories;
     }
 
-    private static (string? InstanceId, string InstanceGuid, string? Task, string InstanceOwnerPartyId, AppIdentifier appIdentifier) GetInstanceProperties(Instance instance)
+    private static (
+        string? InstanceId,
+        string InstanceGuid,
+        string? Task,
+        string InstanceOwnerPartyId,
+        AppIdentifier appIdentifier
+    ) GetInstanceProperties(Instance instance)
     {
         string? instanceId = instance.Id.Contains('/') ? instance.Id : null;
         string instanceGuid = instance.Id.Contains('/') ? instance.Id.Split("/")[1] : instance.Id;
@@ -142,21 +204,27 @@ public static class MultiDecisionHelper
         return (instanceId, instanceGuid, task, instanceOwnerPartyId, appIdentifier);
     }
 
-    private static XacmlJsonMultiRequests CreateMultiRequestsCategory(List<XacmlJsonCategory> subjects, List<XacmlJsonCategory> actions, List<XacmlJsonCategory> resources)
+    private static XacmlJsonMultiRequests CreateMultiRequestsCategory(
+        List<XacmlJsonCategory> subjects,
+        List<XacmlJsonCategory> actions,
+        List<XacmlJsonCategory> resources
+    )
     {
         List<string> subjectIds = subjects.Select(s => s.Id).ToList();
         List<string> actionIds = actions.Select(a => a.Id).ToList();
         List<string> resourceIds = resources.Select(r => r.Id).ToList();
 
-        XacmlJsonMultiRequests multiRequests = new()
-        {
-            RequestReference = CreateRequestReference(subjectIds, actionIds, resourceIds)
-        };
+        XacmlJsonMultiRequests multiRequests =
+            new() { RequestReference = CreateRequestReference(subjectIds, actionIds, resourceIds) };
 
         return multiRequests;
     }
 
-    private static List<XacmlJsonRequestReference> CreateRequestReference(List<string> subjectIds, List<string> actionIds, List<string> resourceIds)
+    private static List<XacmlJsonRequestReference> CreateRequestReference(
+        List<string> subjectIds,
+        List<string> actionIds,
+        List<string> resourceIds
+    )
     {
         List<XacmlJsonRequestReference> references = new();
 
@@ -167,12 +235,7 @@ public static class MultiDecisionHelper
                 foreach (string subjectId in subjectIds)
                 {
                     XacmlJsonRequestReference reference = new();
-                    List<string> referenceId = new()
-                    {
-                        subjectId,
-                        actionId,
-                        resourceId
-                    };
+                    List<string> referenceId = new() { subjectId, actionId, resourceId };
                     reference.ReferenceId = referenceId;
                     references.Add(reference);
                 }
@@ -181,5 +244,4 @@ public static class MultiDecisionHelper
 
         return references;
     }
-
 }

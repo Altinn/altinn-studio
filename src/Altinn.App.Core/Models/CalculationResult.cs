@@ -3,16 +3,14 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Models
 {
     /// <summary>
-    /// The result of a calculation 
+    /// The result of a calculation
     /// </summary>
     public class CalculationResult : DataElement
     {
         /// <summary>
         /// Creates a instance of CalculationResult
         /// </summary>
-        public CalculationResult()
-        {
-        }
+        public CalculationResult() { }
 
         /// <summary>
         /// Creates a instance of CalculationResult

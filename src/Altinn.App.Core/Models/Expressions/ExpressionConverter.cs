@@ -51,11 +51,7 @@ public class ExpressionConverter : JsonConverter<Expression>
         {
             throw new JsonException($"Function \"{stringFunction}\" not implemented");
         }
-        var expr = new Expression()
-        {
-            Function = functionEnum,
-            Args = new List<Expression>()
-        };
+        var expr = new Expression() { Function = functionEnum, Args = new List<Expression>() };
 
         while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
         {

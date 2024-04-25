@@ -47,7 +47,10 @@ public class MimeTypeTests
     public void Equals_not_matches_mimetype_when_type_not_equal()
     {
         var mimeType = new MimeType("application/zip", "application/x-zip-compressed");
-        mimeType.Equals(new MimeType("application/x-zip-compressed", "application/x-zip-compressed")).Should().BeFalse();
+        mimeType
+            .Equals(new MimeType("application/x-zip-compressed", "application/x-zip-compressed"))
+            .Should()
+            .BeFalse();
     }
 
     [Fact]

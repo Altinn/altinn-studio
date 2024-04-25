@@ -14,6 +14,7 @@ public interface IProcessEventDispatcher
     /// <param name="events">Events that should be dispatched</param>
     /// <returns>Instance from storage after update</returns>
     Task<Instance> DispatchToStorage(Instance instance, List<InstanceEvent>? events);
+
     /// <summary>
     /// Dispatch events for instance to the events system if AppSettings.RegisterEventsWithEventsComponent is true
     /// </summary>

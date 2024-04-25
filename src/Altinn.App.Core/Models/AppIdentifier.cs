@@ -56,14 +56,17 @@ namespace Altinn.App.Core.Models
                 return;
             }
 
-            throw new ArgumentOutOfRangeException(nameof(id), "You must have exactly only one / (forward slash) in your id");
+            throw new ArgumentOutOfRangeException(
+                nameof(id),
+                "You must have exactly only one / (forward slash) in your id"
+            );
         }
 
         /// <summary>
         /// Get an AppIdentifier from an Instance.AppID
         /// </summary>
-        public AppIdentifier(Instance instance) : this(instance.AppId) { }
-
+        public AppIdentifier(Instance instance)
+            : this(instance.AppId) { }
 
         /// <summary>
         /// Deconstructs an app id into it's two logical parts - org and app.
@@ -88,9 +91,10 @@ namespace Altinn.App.Core.Models
         ///<inheritDoc/>
         public bool Equals(AppIdentifier? other)
         {
-            return Org != null && App != null
-               && Org.Equals(other?.Org, StringComparison.CurrentCultureIgnoreCase)
-               && App.Equals(other?.App, StringComparison.CurrentCultureIgnoreCase);
+            return Org != null
+                && App != null
+                && Org.Equals(other?.Org, StringComparison.CurrentCultureIgnoreCase)
+                && App.Equals(other?.App, StringComparison.CurrentCultureIgnoreCase);
         }
 
         ///<inheritDoc/>
@@ -120,7 +124,9 @@ namespace Altinn.App.Core.Models
 
             if (!Uri.IsWellFormedUriString(url, UriKind.Absolute))
             {
-                throw new ArgumentException($"The provided url ({url}) is not well formed. Please check that it is an absolute url with at least two path segments.");
+                throw new ArgumentException(
+                    $"The provided url ({url}) is not well formed. Please check that it is an absolute url with at least two path segments."
+                );
             }
 
             Uri uri = new(url, UriKind.Absolute);

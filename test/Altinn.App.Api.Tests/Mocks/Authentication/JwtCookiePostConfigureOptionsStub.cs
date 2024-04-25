@@ -1,6 +1,5 @@
 using System;
 using AltinnCore.Authentication.JwtCookie;
-
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols;
@@ -38,7 +37,8 @@ namespace Altinn.App.Api.Tests.Mocks.Authentication
             options.ConfigurationManager = new ConfigurationManagerStub(
                 options.MetadataAddress,
                 new OpenIdConnectConfigurationRetriever(),
-                new HttpDocumentRetriever());
+                new HttpDocumentRetriever()
+            );
         }
     }
 }

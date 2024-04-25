@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-
 using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.App.Api.Tests.Mocks.Authentication

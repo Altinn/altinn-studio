@@ -29,12 +29,21 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             object formData = new object();
 
             List<string> expected = new List<string> { "page2", "page3" };
-            appResourcesMock.Setup(ar => ar.GetLayoutSettingsForSet(layoutSetId)).Returns(new LayoutSettings { Pages = new Pages { Order = expected } });
+            appResourcesMock
+                .Setup(ar => ar.GetLayoutSettingsForSet(layoutSetId))
+                .Returns(new LayoutSettings { Pages = new Pages { Order = expected } });
 
             // Act
             DefaultPageOrder target = new DefaultPageOrder(appResourcesMock.Object);
 
-            List<string> actual = await target.GetPageOrder(appIdentifier, instanceIdentifier, layoutSetId, currentPage, dataTypeId, formData);
+            List<string> actual = await target.GetPageOrder(
+                appIdentifier,
+                instanceIdentifier,
+                layoutSetId,
+                currentPage,
+                dataTypeId,
+                formData
+            );
 
             // Assert
             Assert.Equal(expected, actual);
@@ -55,12 +64,21 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             object formData = new object();
 
             List<string> expected = new List<string> { "page2", "page3" };
-            appResourcesMock.Setup(ar => ar.GetLayoutSettings()).Returns(new LayoutSettings { Pages = new Pages { Order = expected } });
+            appResourcesMock
+                .Setup(ar => ar.GetLayoutSettings())
+                .Returns(new LayoutSettings { Pages = new Pages { Order = expected } });
 
             // Act
             DefaultPageOrder target = new DefaultPageOrder(appResourcesMock.Object);
 
-            List<string> actual = await target.GetPageOrder(appIdentifier, instanceIdentifier, layoutSetId, currentPage, dataTypeId, formData);
+            List<string> actual = await target.GetPageOrder(
+                appIdentifier,
+                instanceIdentifier,
+                layoutSetId,
+                currentPage,
+                dataTypeId,
+                formData
+            );
 
             // Assert
             Assert.Equal(expected, actual);

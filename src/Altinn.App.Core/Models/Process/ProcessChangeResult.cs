@@ -13,10 +13,12 @@ namespace Altinn.App.Core.Models.Process
         [MemberNotNullWhen(true, nameof(ProcessStateChange))]
         [MemberNotNullWhen(false, nameof(ErrorMessage), nameof(ErrorType))]
         public bool Success { get; init; }
+
         /// <summary>
         /// Gets or sets the error message if the process change was not successful
         /// </summary>
         public string? ErrorMessage { get; init; }
+
         /// <summary>
         /// Gets or sets the error type if the process change was not successful
         /// </summary>

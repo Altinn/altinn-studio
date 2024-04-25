@@ -68,7 +68,9 @@ public class UserActionServiceTests
 
         public Task<UserActionResult> HandleAction(UserActionContext context)
         {
-            return Task.FromResult(UserActionResult.SuccessResult(new List<ClientAction>() { ClientAction.NextPage() }));
+            return Task.FromResult(
+                UserActionResult.SuccessResult(new List<ClientAction>() { ClientAction.NextPage() })
+            );
         }
     }
 }

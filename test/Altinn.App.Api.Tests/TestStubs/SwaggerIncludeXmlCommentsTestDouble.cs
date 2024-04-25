@@ -8,6 +8,7 @@ public class SwaggerIncludeXmlCommentsTestDouble
     private readonly List<string> _strings = new();
 
     private readonly List<bool> _bools = new();
+
     public void IncludeXmlCommentsTestDouble(string s, bool b)
     {
         _strings.Add(s);
@@ -28,5 +29,4 @@ public class SwaggerIncludeXmlCommentsTestDouble
     {
         return _bools;
     }
-
 }

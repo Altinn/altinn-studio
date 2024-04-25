@@ -8,10 +8,8 @@ namespace Altinn.App.Api.Tests.Mocks;
 
 public class ProfileClientMock : IProfileClient
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
-    {
-        Converters = { new JsonStringEnumConverter() }
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions =
+        new(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
 
     public async Task<UserProfile> GetUserProfile(int userId)
     {

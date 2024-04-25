@@ -15,9 +15,11 @@ public static class WebHostBuilderExtensions
     /// <param name="args">Application arguments</param>
     public static void ConfigureAppWebHost(this IWebHostBuilder builder, string[] args)
     {
-        builder.ConfigureAppConfiguration((_, configBuilder) =>
-        {
-            configBuilder.LoadAppConfig(args);
-        });
+        builder.ConfigureAppConfiguration(
+            (_, configBuilder) =>
+            {
+                configBuilder.LoadAppConfig(args);
+            }
+        );
     }
 }

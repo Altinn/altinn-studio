@@ -10,8 +10,15 @@ public class InstanceEventClientMock : IInstanceEventClient
         return Task.FromResult(Guid.NewGuid().ToString());
     }
 
-    public Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerPartyId, string org, string app, string[] eventTypes,
-        string from, string to)
+    public Task<List<InstanceEvent>> GetInstanceEvents(
+        string instanceId,
+        string instanceOwnerPartyId,
+        string org,
+        string app,
+        string[] eventTypes,
+        string from,
+        string to
+    )
     {
         throw new NotImplementedException();
     }

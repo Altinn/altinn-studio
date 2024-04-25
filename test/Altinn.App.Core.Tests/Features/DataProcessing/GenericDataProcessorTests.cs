@@ -7,13 +7,9 @@ namespace Altinn.App.Core.Tests.Features.DataProcessing;
 
 public class GenericDataProcessorTests
 {
-    private class DummyModel
-    {
-    }
+    private class DummyModel { }
 
-    private class WrongModel
-    {
-    }
+    private class WrongModel { }
 
     private class DummyProcessor : GenericDataProcessor<DummyModel>
     {
@@ -27,7 +23,13 @@ public class GenericDataProcessorTests
             return Task.CompletedTask;
         }
 
-        public override Task ProcessDataWrite(Instance instance, Guid? dataId, DummyModel model, DummyModel? previousModel, string? language)
+        public override Task ProcessDataWrite(
+            Instance instance,
+            Guid? dataId,
+            DummyModel model,
+            DummyModel? previousModel,
+            string? language
+        )
         {
             WriteCalled = true;
             return Task.CompletedTask;

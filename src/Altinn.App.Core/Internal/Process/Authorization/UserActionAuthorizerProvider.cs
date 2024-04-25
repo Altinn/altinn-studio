@@ -7,7 +7,6 @@ namespace Altinn.App.Core.Internal.Process.Authorization;
 /// </summary>
 public class UserActionAuthorizerProvider : IUserActionAuthorizerProvider
 {
-
     /// <summary>
     /// Initializes a new instance of the <see cref="UserActionAuthorizerProvider"/> class
     /// </summary>

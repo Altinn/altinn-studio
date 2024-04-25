@@ -26,7 +26,8 @@ namespace Altinn.App.Api.Controllers
         public ValidateController(
             IInstanceClient instanceClient,
             IValidationService validationService,
-            IAppMetadata appMetadata)
+            IAppMetadata appMetadata
+        )
         {
             _instanceClient = instanceClient;
             _validationService = validationService;
@@ -49,7 +50,8 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] string app,
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
-            [FromQuery] string? language = null)
+            [FromQuery] string? language = null
+        )
         {
             Instance? instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
             if (instance == null)
@@ -65,7 +67,11 @@ namespace Altinn.App.Api.Controllers
 
             try
             {
-                List<ValidationIssue> messages = await _validationService.ValidateInstanceAtTask(instance, taskId, language);
+                List<ValidationIssue> messages = await _validationService.ValidateInstanceAtTask(
+                    instance,
+                    taskId,
+                    language
+                );
                 return Ok(messages);
             }
             catch (PlatformHttpException exception)
@@ -96,7 +102,8 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] int instanceOwnerId,
             [FromRoute] Guid instanceId,
             [FromRoute] Guid dataGuid,
-            [FromQuery] string? language = null)
+            [FromQuery] string? language = null
+        )
         {
             Instance? instance = await _instanceClient.GetInstance(app, org, instanceOwnerId, instanceId);
             if (instance == null)

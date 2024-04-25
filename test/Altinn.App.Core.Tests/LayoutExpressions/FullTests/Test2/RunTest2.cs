@@ -46,7 +46,11 @@ public class RunTest2
         var hidden = LayoutEvaluator.GetHiddenFieldsForRemoval(state);
 
         // Should try to remove "some.data[0].binding2", because it is not nullable int and the parent object exists
-        hidden.Should().BeEquivalentTo(new List<string> { "some.data[0].binding2", "some.data[1].binding", "some.data[1].binding2" });
+        hidden
+            .Should()
+            .BeEquivalentTo(
+                new List<string> { "some.data[0].binding2", "some.data[1].binding", "some.data[1].binding2" }
+            );
 
         // Verify before removing data
         data.Some.Data[0].Binding.Should().BeNull();
@@ -73,12 +77,13 @@ public class RunTest2
                     NotRepeating = "showGroup",
                     Data = new()
                     {
-                       new() { Binding = "binding" },
-                       new() { Binding2 = 2, Binding3 = "hidden" },
+                        new() { Binding = "binding" },
+                        new() { Binding2 = 2, Binding3 = "hidden" },
                     }
                 }
             },
-            "Test2");
+            "Test2"
+        );
         var hidden = LayoutEvaluator.GetHiddenFieldsForRemoval(state);
 
         hidden.Should().BeEquivalentTo(new List<string> { "some.data[1].binding2" });

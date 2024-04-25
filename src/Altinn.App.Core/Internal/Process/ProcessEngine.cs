@@ -41,7 +41,8 @@ public class ProcessEngine : IProcessEngine
         IProcessNavigator processNavigator,
         IProcessEventHandlerDelegator processEventsDelegator,
         IProcessEventDispatcher processEventDispatcher,
-        UserActionService userActionService)
+        UserActionService userActionService
+    )
     {
         _processReader = processReader;
         _profileClient = profileClient;
@@ -64,7 +65,11 @@ public class ProcessEngine : IProcessEngine
             };
         }
 
-        string? validStartElement = ProcessHelper.GetValidStartEventOrError(processStartRequest.StartEventId, _processReader.GetStartEventIds(), out ProcessError? startEventError);
+        string? validStartElement = ProcessHelper.GetValidStartEventOrError(
+            processStartRequest.StartEventId,
+            _processReader.GetStartEventIds(),
+            out ProcessError? startEventError
+        );
         if (startEventError != null)
         {
             return new ProcessChangeResult()
@@ -76,7 +81,11 @@ public class ProcessEngine : IProcessEngine
         }
 
         // start process
-        ProcessStateChange? startChange = await ProcessStart(processStartRequest.Instance, validStartElement!, processStartRequest.User);
+        ProcessStateChange? startChange = await ProcessStart(
+            processStartRequest.Instance,
+            validStartElement!,
+            processStartRequest.User
+        );
         InstanceEvent? startEvent = startChange?.Events?[0].CopyValues();
         ProcessStateChange? nextChange = await ProcessNext(processStartRequest.Instance, processStartRequest.User);
         InstanceEvent? goToNextEvent = nextChange?.Events?[0].CopyValues();
@@ -91,18 +100,15 @@ public class ProcessEngine : IProcessEngine
             events.Add(goToNextEvent);
         }
 
-        ProcessStateChange processStateChange = new()
-        {
-            OldProcessState = startChange?.OldProcessState,
-            NewProcessState = nextChange?.NewProcessState,
-            Events = events
-        };
+        ProcessStateChange processStateChange =
+            new()
+            {
+                OldProcessState = startChange?.OldProcessState,
+                NewProcessState = nextChange?.NewProcessState,
+                Events = events
+            };
 
-        return new ProcessChangeResult()
-        {
-            Success = true,
-            ProcessStateChange = processStateChange
-        };
+        return new ProcessChangeResult() { Success = true, ProcessStateChange = processStateChange };
     }
 
     /// <inheritdoc/>
@@ -125,7 +131,9 @@ public class ProcessEngine : IProcessEngine
 
         IUserAction? actionHandler = _userActionService.GetActionHandler(request.Action);
 
-        UserActionResult actionResult = actionHandler is null ? UserActionResult.SuccessResult() : await actionHandler.HandleAction(new UserActionContext(request.Instance, userId));
+        UserActionResult actionResult = actionHandler is null
+            ? UserActionResult.SuccessResult()
+            : await actionHandler.HandleAction(new UserActionContext(request.Instance, userId));
 
         if (actionResult.ResultType != ResultType.Success)
         {
@@ -139,15 +147,15 @@ public class ProcessEngine : IProcessEngine
 
         ProcessStateChange? nextResult = await HandleMoveToNext(instance, request.User, request.Action);
 
-        return new ProcessChangeResult()
-        {
-            Success = true,
-            ProcessStateChange = nextResult
-        };
+        return new ProcessChangeResult() { Success = true, ProcessStateChange = nextResult };
     }
 
     /// <inheritdoc/>
-    public async Task<Instance> HandleEventsAndUpdateStorage(Instance instance, Dictionary<string, string>? prefill, List<InstanceEvent>? events)
+    public async Task<Instance> HandleEventsAndUpdateStorage(
+        Instance instance,
+        Dictionary<string, string>? prefill,
+        List<InstanceEvent>? events
+    )
     {
         await _processEventHandlerDelegator.HandleEvents(instance, prefill, events);
         return await _processEventDispatcher.DispatchToStorage(instance, events);
@@ -164,12 +172,13 @@ public class ProcessEngine : IProcessEngine
         }
 
         DateTime now = DateTime.UtcNow;
-        ProcessState startState = new()
-        {
-            Started = now,
-            StartEvent = startEvent,
-            CurrentTask = new ProcessElementInfo { Flow = 1, ElementId = startEvent }
-        };
+        ProcessState startState =
+            new()
+            {
+                Started = now,
+                StartEvent = startEvent,
+                CurrentTask = new ProcessElementInfo { Flow = 1, ElementId = startEvent }
+            };
 
         instance.Process = startState;
 
@@ -184,38 +193,42 @@ public class ProcessEngine : IProcessEngine
             NewProcessState = startState,
             Events = events,
         };
-
     }
 
     /// <summary>
     /// Moves instance's process to nextElement id. Returns the instance together with process events.
     /// </summary>
-    private async Task<ProcessStateChange?> ProcessNext(Instance instance, ClaimsPrincipal userContext, string? action = null)
+    private async Task<ProcessStateChange?> ProcessNext(
+        Instance instance,
+        ClaimsPrincipal userContext,
+        string? action = null
+    )
     {
         if (instance.Process == null)
         {
             return null;
         }
 
-        ProcessStateChange result = new()
-        {
-            OldProcessState = new ProcessState()
+        ProcessStateChange result =
+            new()
             {
-                Started = instance.Process.Started,
-                CurrentTask = instance.Process.CurrentTask,
-                StartEvent = instance.Process.StartEvent
-            },
-            Events = await MoveProcessToNext(instance, userContext, action),
-            NewProcessState = instance.Process
-        };
+                OldProcessState = new ProcessState()
+                {
+                    Started = instance.Process.Started,
+                    CurrentTask = instance.Process.CurrentTask,
+                    StartEvent = instance.Process.StartEvent
+                },
+                Events = await MoveProcessToNext(instance, userContext, action),
+                NewProcessState = instance.Process
+            };
         return result;
-
     }
 
     private async Task<List<InstanceEvent>> MoveProcessToNext(
         Instance instance,
         ClaimsPrincipal user,
-        string? action = null)
+        string? action = null
+    )
     {
         List<InstanceEvent> events = [];
 
@@ -223,7 +236,11 @@ public class ProcessEngine : IProcessEngine
         ProcessState currentState = instance.Process;
         string? previousElementId = currentState.CurrentTask?.ElementId;
 
-        ProcessElement? nextElement = await _processNavigator.GetNextTask(instance, instance.Process.CurrentTask.ElementId, action);
+        ProcessElement? nextElement = await _processNavigator.GetNextTask(
+            instance,
+            instance.Process.CurrentTask.ElementId,
+            action
+        );
         DateTime now = DateTime.UtcNow;
         // ending previous element if task
         if (_processReader.IsProcessTask(previousElementId))
@@ -246,7 +263,9 @@ public class ProcessEngine : IProcessEngine
             currentState.Ended = now;
             currentState.EndEvent = nextElement!.Id;
 
-            events.Add(await GenerateProcessChangeEvent(InstanceEventType.process_EndEvent.ToString(), instance, now, user));
+            events.Add(
+                await GenerateProcessChangeEvent(InstanceEventType.process_EndEvent.ToString(), instance, now, user)
+            );
 
             // add submit event (to support Altinn2 SBL)
             events.Add(await GenerateProcessChangeEvent(InstanceEventType.Submited.ToString(), instance, now, user));
@@ -265,7 +284,9 @@ public class ProcessEngine : IProcessEngine
                 Validated = null,
             };
 
-            events.Add(await GenerateProcessChangeEvent(InstanceEventType.process_StartTask.ToString(), instance, now, user));
+            events.Add(
+                await GenerateProcessChangeEvent(InstanceEventType.process_StartTask.ToString(), instance, now, user)
+            );
         }
 
         // current state points to the instance's process object. The following statement is unnecessary, but clarifies logic.
@@ -274,23 +295,29 @@ public class ProcessEngine : IProcessEngine
         return events;
     }
 
-    private async Task<InstanceEvent> GenerateProcessChangeEvent(string eventType, Instance instance, DateTime now, ClaimsPrincipal user)
+    private async Task<InstanceEvent> GenerateProcessChangeEvent(
+        string eventType,
+        Instance instance,
+        DateTime now,
+        ClaimsPrincipal user
+    )
     {
         int? userId = user.GetUserIdAsInt();
-        InstanceEvent instanceEvent = new()
-        {
-            InstanceId = instance.Id,
-            InstanceOwnerPartyId = instance.InstanceOwner.PartyId,
-            EventType = eventType,
-            Created = now,
-            User = new PlatformUser
+        InstanceEvent instanceEvent =
+            new()
             {
-                UserId = userId,
-                AuthenticationLevel = user.GetAuthenticationLevel(),
-                OrgId = user.GetOrg()
-            },
-            ProcessInfo = instance.Process,
-        };
+                InstanceId = instance.Id,
+                InstanceOwnerPartyId = instance.InstanceOwner.PartyId,
+                EventType = eventType,
+                Created = now,
+                User = new PlatformUser
+                {
+                    UserId = userId,
+                    AuthenticationLevel = user.GetAuthenticationLevel(),
+                    OrgId = user.GetOrg()
+                },
+                ProcessInfo = instance.Process,
+            };
 
         if (string.IsNullOrEmpty(instanceEvent.User.OrgId) && userId != null)
         {

@@ -10,6 +10,7 @@ public interface IAppModel
     /// </summary>
     /// <returns>An instance of the service model</returns>
     public object Create(string classRef);
+
     /// <summary>
     /// Get the service Type
     /// </summary>

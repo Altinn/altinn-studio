@@ -1,5 +1,4 @@
 using System.Text.Json;
-
 using Altinn.App.Core.Models.Expressions;
 
 namespace Altinn.App.Core.Models.Layout.Components;
@@ -12,10 +11,19 @@ public class GroupComponent : BaseComponent
     /// <summary>
     /// Constructor for GroupComponent
     /// </summary>
-    public GroupComponent(string id, string type, IReadOnlyDictionary<string, string>? dataModelBindings, IEnumerable<BaseComponent> children, IEnumerable<string>? childIDs, Expression? hidden, Expression? required, Expression? readOnly, IReadOnlyDictionary<string, string>? additionalProperties) :
-        base(id, type, dataModelBindings, hidden, required, readOnly, additionalProperties)
+    public GroupComponent(
+        string id,
+        string type,
+        IReadOnlyDictionary<string, string>? dataModelBindings,
+        IEnumerable<BaseComponent> children,
+        IEnumerable<string>? childIDs,
+        Expression? hidden,
+        Expression? required,
+        Expression? readOnly,
+        IReadOnlyDictionary<string, string>? additionalProperties
+    )
+        : base(id, type, dataModelBindings, hidden, required, readOnly, additionalProperties)
     {
-
         Children = children;
         ChildIDs = childIDs ?? children.Select(c => c.Id);
         foreach (var child in Children)
@@ -41,11 +49,15 @@ public class GroupComponent : BaseComponent
     {
         if (!this.ChildIDs.Contains(child.Id))
         {
-            throw new ArgumentException($"Attempted to add child with id {child.Id} to group {this.Id}, but this child is not included in its list of child IDs");
+            throw new ArgumentException(
+                $"Attempted to add child with id {child.Id} to group {this.Id}, but this child is not included in its list of child IDs"
+            );
         }
         if (this.Children.FirstOrDefault(c => c.Id == child.Id) != null)
         {
-            throw new ArgumentException($"Attempted to add child with id {child.Id} to group {this.Id}, but a child with this id has already been added");
+            throw new ArgumentException(
+                $"Attempted to add child with id {child.Id} to group {this.Id}, but a child with this id has already been added"
+            );
         }
         child.Parent = this;
         this.Children = this.Children.Append(child);

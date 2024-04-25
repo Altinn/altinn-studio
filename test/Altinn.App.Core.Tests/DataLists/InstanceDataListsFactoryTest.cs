@@ -12,7 +12,9 @@ namespace Altinn.App.PlatformServices.Tests.DataLists
         [Fact]
         public void GetInstanceDataListProvider_CustomInstanceDataListProvider_ShouldReturnCustomType()
         {
-            var factory = new InstanceDataListsFactory(new List<IInstanceDataListProvider>() { new CountryDataListProvider() });
+            var factory = new InstanceDataListsFactory(
+                new List<IInstanceDataListProvider>() { new CountryDataListProvider() }
+            );
 
             IInstanceDataListProvider dataListProvider = factory.GetDataListProvider("country");
 
@@ -35,14 +37,28 @@ namespace Altinn.App.PlatformServices.Tests.DataLists
         {
             public string Id { get; set; } = "country";
 
-            public Task<DataList> GetInstanceDataListAsync(InstanceIdentifier instanceId, string language, Dictionary<string, string> keyValuePairs)
+            public Task<DataList> GetInstanceDataListAsync(
+                InstanceIdentifier instanceId,
+                string language,
+                Dictionary<string, string> keyValuePairs
+            )
             {
                 var dataList = new DataList
                 {
                     ListItems = new List<object>
                     {
-                        new { Name = "Norway", Code = "NO", Phone = 47 },
-                        new { Name = "Sweden", Code = "SE", Phone = 46 },
+                        new
+                        {
+                            Name = "Norway",
+                            Code = "NO",
+                            Phone = 47
+                        },
+                        new
+                        {
+                            Name = "Sweden",
+                            Code = "SE",
+                            Phone = 46
+                        },
                     }
                 };
 

@@ -21,7 +21,10 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <param name="applicationLanguage">An implementation with access to application languages.</param>
         /// <param name="logger">The logger.</param>
-        public ApplicationLanguageController(IApplicationLanguage applicationLanguage, ILogger<ApplicationLanguageController> logger)
+        public ApplicationLanguageController(
+            IApplicationLanguage applicationLanguage,
+            ILogger<ApplicationLanguageController> logger
+        )
         {
             _applicationLanguage = applicationLanguage;
             _logger = logger;

@@ -61,7 +61,10 @@ namespace Altinn.App.Api.Controllers
         [HttpPut("{org}/{app}/api/[controller]/invalidatecookie")]
         public IActionResult InvalidateCookie()
         {
-            HttpContext.Response.Cookies.Delete(General.RuntimeCookieName, new CookieOptions { Domain = _settings.HostName });
+            HttpContext.Response.Cookies.Delete(
+                General.RuntimeCookieName,
+                new CookieOptions { Domain = _settings.HostName }
+            );
             return Ok();
         }
     }

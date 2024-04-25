@@ -12,7 +12,12 @@ public sealed class ComponentContext
     /// <summary>
     /// Constructor for ComponentContext
     /// </summary>
-    public ComponentContext(BaseComponent? component, int[]? rowIndices, int? rowLength, IEnumerable<ComponentContext>? childContexts = null)
+    public ComponentContext(
+        BaseComponent? component,
+        int[]? rowIndices,
+        int? rowLength,
+        IEnumerable<ComponentContext>? childContexts = null
+    )
     {
         Component = component;
         RowIndices = rowIndices;
@@ -71,7 +76,8 @@ public sealed class ComponentContext
             {
                 var node = stack.Pop();
                 yield return node;
-                foreach (var child in node.ChildContexts) stack.Push(child);
+                foreach (var child in node.ChildContexts)
+                    stack.Push(child);
             }
         }
     }

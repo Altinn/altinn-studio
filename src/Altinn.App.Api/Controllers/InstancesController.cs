@@ -86,7 +86,8 @@ namespace Altinn.App.Api.Controllers
             IPrefill prefillService,
             IProfileClient profileClient,
             IProcessEngine processEngine,
-            IOrganizationClient orgClient)
+            IOrganizationClient orgClient
+        )
         {
             _logger = logger;
             _instanceClient = instanceClient;
@@ -122,9 +123,16 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] string org,
             [FromRoute] string app,
             [FromRoute] int instanceOwnerPartyId,
-            [FromRoute] Guid instanceGuid)
+            [FromRoute] Guid instanceGuid
+        )
         {
-            EnforcementResult enforcementResult = await AuthorizeAction(org, app, instanceOwnerPartyId, instanceGuid, "read");
+            EnforcementResult enforcementResult = await AuthorizeAction(
+                org,
+                app,
+                instanceOwnerPartyId,
+                instanceGuid,
+                "read"
+            );
 
             if (!enforcementResult.Authorized)
             {
@@ -170,7 +178,8 @@ namespace Altinn.App.Api.Controllers
         public async Task<ActionResult<Instance>> Post(
             [FromRoute] string org,
             [FromRoute] string app,
-            [FromQuery] int? instanceOwnerPartyId)
+            [FromQuery] int? instanceOwnerPartyId
+        )
         {
             if (string.IsNullOrEmpty(org))
             {
@@ -194,21 +203,30 @@ namespace Altinn.App.Api.Controllers
 
             if (instanceOwnerPartyId is null && instanceTemplate is null)
             {
-                return BadRequest("Cannot create an instance without an instanceOwner.partyId. Either provide instanceOwner party Id as a query parameter or an instanceTemplate object in the body.");
+                return BadRequest(
+                    "Cannot create an instance without an instanceOwner.partyId. Either provide instanceOwner party Id as a query parameter or an instanceTemplate object in the body."
+                );
             }
 
             if (instanceOwnerPartyId is not null && instanceTemplate?.InstanceOwner?.PartyId is not null)
             {
-                return BadRequest("You cannot provide an instanceOwnerPartyId as a query param as well as an instance template in the body. Choose one or the other.");
+                return BadRequest(
+                    "You cannot provide an instanceOwnerPartyId as a query param as well as an instance template in the body. Choose one or the other."
+                );
             }
 
             if (instanceTemplate is not null)
             {
                 InstanceOwner lookup = instanceTemplate.InstanceOwner;
 
-                if (lookup == null || (lookup.PersonNumber == null && lookup.OrganisationNumber == null && lookup.PartyId == null))
+                if (
+                    lookup == null
+                    || (lookup.PersonNumber == null && lookup.OrganisationNumber == null && lookup.PartyId == null)
+                )
                 {
-                    return BadRequest("Error: instanceOwnerPartyId query parameter is empty and InstanceOwner is missing from instance template. You must populate instanceOwnerPartyId or InstanceOwner");
+                    return BadRequest(
+                        "Error: instanceOwnerPartyId query parameter is empty and InstanceOwner is missing from instance template. You must populate instanceOwnerPartyId or InstanceOwner"
+                    );
                 }
             }
             else
@@ -256,7 +274,10 @@ namespace Altinn.App.Api.Controllers
 
             if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
             {
-                return StatusCode((int)HttpStatusCode.Forbidden, $"Party {party.PartyId} is not allowed to instantiate this application {org}/{app}");
+                return StatusCode(
+                    (int)HttpStatusCode.Forbidden,
+                    $"Party {party.PartyId} is not allowed to instantiate this application {org}/{app}"
+                );
             }
 
             // Run custom app logic to validate instantiation
@@ -276,11 +297,7 @@ namespace Altinn.App.Api.Controllers
             try
             {
                 // start process and goto next task
-                ProcessStartRequest processStartRequest = new()
-                {
-                    Instance = instanceTemplate,
-                    User = User
-                };
+                ProcessStartRequest processStartRequest = new() { Instance = instanceTemplate, User = User };
 
                 ProcessChangeResult result = await _processEngine.GenerateProcessStartEvents(processStartRequest);
                 if (!result.Success)
@@ -295,7 +312,10 @@ namespace Altinn.App.Api.Controllers
             }
             catch (Exception exception)
             {
-                return ExceptionResponse(exception, $"Instantiation of appId {org}/{app} failed for party {instanceTemplate.InstanceOwner?.PartyId}");
+                return ExceptionResponse(
+                    exception,
+                    $"Instantiation of appId {org}/{app} failed for party {instanceTemplate.InstanceOwner?.PartyId}"
+                );
             }
 
             try
@@ -303,7 +323,12 @@ namespace Altinn.App.Api.Controllers
                 await StorePrefillParts(instance, application, parsedRequest.Parts);
 
                 // get the updated instance
-                instance = await _instanceClient.GetInstance(app, org, int.Parse(instance.InstanceOwner.PartyId), Guid.Parse(instance.Id.Split("/")[1]));
+                instance = await _instanceClient.GetInstance(
+                    app,
+                    org,
+                    int.Parse(instance.InstanceOwner.PartyId),
+                    Guid.Parse(instance.Id.Split("/")[1])
+                );
 
                 // notify app and store events
                 _logger.LogInformation("Events sent to process engine: {Events}", change?.Events);
@@ -311,7 +336,10 @@ namespace Altinn.App.Api.Controllers
             }
             catch (Exception exception)
             {
-                return ExceptionResponse(exception, $"Instantiation of data elements failed for instance {instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}");
+                return ExceptionResponse(
+                    exception,
+                    $"Instantiation of data elements failed for instance {instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}"
+                );
             }
 
             await RegisterEvent("app.instance.created", instance);
@@ -338,7 +366,8 @@ namespace Altinn.App.Api.Controllers
         public async Task<ActionResult<Instance>> PostSimplified(
             [FromRoute] string org,
             [FromRoute] string app,
-            [FromBody] InstansiationInstance instansiationInstance)
+            [FromBody] InstansiationInstance instansiationInstance
+        )
         {
             if (string.IsNullOrEmpty(org))
             {
@@ -355,14 +384,21 @@ namespace Altinn.App.Api.Controllers
             bool copySourceInstance = !string.IsNullOrEmpty(instansiationInstance.SourceInstanceId);
             if (copySourceInstance && application.CopyInstanceSettings?.Enabled != true)
             {
-                return BadRequest("Creating instance based on a copy from an archived instance is not enabled for this app.");
+                return BadRequest(
+                    "Creating instance based on a copy from an archived instance is not enabled for this app."
+                );
             }
 
             InstanceOwner lookup = instansiationInstance.InstanceOwner;
 
-            if (lookup == null || (lookup.PersonNumber == null && lookup.OrganisationNumber == null && lookup.PartyId == null))
+            if (
+                lookup == null
+                || (lookup.PersonNumber == null && lookup.OrganisationNumber == null && lookup.PartyId == null)
+            )
             {
-                return BadRequest("Error: instanceOwnerPartyId query parameter is empty and InstanceOwner is missing from instance template. You must populate instanceOwnerPartyId or InstanceOwner");
+                return BadRequest(
+                    "Error: instanceOwnerPartyId query parameter is empty and InstanceOwner is missing from instance template. You must populate instanceOwnerPartyId or InstanceOwner"
+                );
             }
 
             Party party;
@@ -398,16 +434,20 @@ namespace Altinn.App.Api.Controllers
 
             if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
             {
-                return StatusCode((int)HttpStatusCode.Forbidden, $"Party {party.PartyId} is not allowed to instantiate this application {org}/{app}");
+                return StatusCode(
+                    (int)HttpStatusCode.Forbidden,
+                    $"Party {party.PartyId} is not allowed to instantiate this application {org}/{app}"
+                );
             }
 
-            Instance instanceTemplate = new()
-            {
-                InstanceOwner = instansiationInstance.InstanceOwner,
-                VisibleAfter = instansiationInstance.VisibleAfter,
-                DueBefore = instansiationInstance.DueBefore,
-                Org = application.Org
-            };
+            Instance instanceTemplate =
+                new()
+                {
+                    InstanceOwner = instansiationInstance.InstanceOwner,
+                    VisibleAfter = instansiationInstance.VisibleAfter,
+                    DueBefore = instansiationInstance.DueBefore,
+                    Org = application.Org
+                };
 
             ConditionallySetReadStatus(instanceTemplate);
 
@@ -447,7 +487,10 @@ namespace Altinn.App.Api.Controllers
                     }
                     catch (PlatformHttpException exception)
                     {
-                        return StatusCode(500, $"Retrieving source instance failed with status code {exception.Response.StatusCode}");
+                        return StatusCode(
+                            500,
+                            $"Retrieving source instance failed with status code {exception.Response.StatusCode}"
+                        );
                     }
 
                     if (!source.Status.IsArchived)
@@ -464,11 +507,18 @@ namespace Altinn.App.Api.Controllers
                 }
 
                 instance = await _instanceClient.GetInstance(instance);
-                await _processEngine.HandleEventsAndUpdateStorage(instance, instansiationInstance.Prefill, processResult.ProcessStateChange?.Events);
+                await _processEngine.HandleEventsAndUpdateStorage(
+                    instance,
+                    instansiationInstance.Prefill,
+                    processResult.ProcessStateChange?.Events
+                );
             }
             catch (Exception exception)
             {
-                return ExceptionResponse(exception, $"Instantiation of appId {org}/{app} failed for party {instanceTemplate.InstanceOwner?.PartyId}");
+                return ExceptionResponse(
+                    exception,
+                    $"Instantiation of appId {org}/{app} failed for party {instanceTemplate.InstanceOwner?.PartyId}"
+                );
             }
 
             await RegisterEvent("app.instance.created", instance);
@@ -501,7 +551,8 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] string org,
             [FromRoute] string app,
             [FromRoute] int instanceOwnerPartyId,
-            [FromRoute] Guid instanceGuid)
+            [FromRoute] Guid instanceGuid
+        )
         {
             // This endpoint should be used exclusively by end users. Ideally from a browser as a request after clicking
             // a button in the message box, but for now we simply just exclude app owner(s).
@@ -515,7 +566,9 @@ namespace Altinn.App.Api.Controllers
 
             if (application.CopyInstanceSettings?.Enabled is null or false)
             {
-                return BadRequest("Creating instance based on a copy from an archived instance is not enabled for this app.");
+                return BadRequest(
+                    "Creating instance based on a copy from an archived instance is not enabled for this app."
+                );
             }
 
             EnforcementResult readAccess = await AuthorizeAction(org, app, instanceOwnerPartyId, instanceGuid, "read");
@@ -532,7 +585,13 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest("The instance being copied must be archived.");
             }
 
-            EnforcementResult instantiateAccess = await AuthorizeAction(org, app, instanceOwnerPartyId, null, "instantiate");
+            EnforcementResult instantiateAccess = await AuthorizeAction(
+                org,
+                app,
+                instanceOwnerPartyId,
+                null,
+                "instantiate"
+            );
 
             if (!instantiateAccess.Authorized)
             {
@@ -540,12 +599,13 @@ namespace Altinn.App.Api.Controllers
             }
 
             // Multiple properties like Org and AppId will be set by Storage
-            Instance targetInstance = new()
-            {
-                InstanceOwner = sourceInstance.InstanceOwner,
-                VisibleAfter = sourceInstance.VisibleAfter,
-                Status = new() { ReadStatus = ReadStatus.Read }
-            };
+            Instance targetInstance =
+                new()
+                {
+                    InstanceOwner = sourceInstance.InstanceOwner,
+                    VisibleAfter = sourceInstance.VisibleAfter,
+                    Status = new() { ReadStatus = ReadStatus.Read }
+                };
 
             InstantiationValidationResult? validationResult = await _instantiationValidator.Validate(targetInstance);
             if (validationResult != null && !validationResult.Valid)
@@ -553,11 +613,7 @@ namespace Altinn.App.Api.Controllers
                 return StatusCode((int)HttpStatusCode.Forbidden, validationResult);
             }
 
-            ProcessStartRequest processStartRequest = new()
-            {
-                Instance = targetInstance,
-                User = User
-            };
+            ProcessStartRequest processStartRequest = new() { Instance = targetInstance, User = User };
 
             ProcessChangeResult startResult = await _processEngine.GenerateProcessStartEvents(processStartRequest);
 
@@ -567,7 +623,11 @@ namespace Altinn.App.Api.Controllers
 
             targetInstance = await _instanceClient.GetInstance(targetInstance);
 
-            await _processEngine.HandleEventsAndUpdateStorage(targetInstance, null, startResult.ProcessStateChange?.Events);
+            await _processEngine.HandleEventsAndUpdateStorage(
+                targetInstance,
+                null,
+                startResult.ProcessStateChange?.Events
+            );
 
             await RegisterEvent("app.instance.created", targetInstance);
 
@@ -593,7 +653,8 @@ namespace Altinn.App.Api.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<Instance>> AddCompleteConfirmation(
             [FromRoute] int instanceOwnerPartyId,
-            [FromRoute] Guid instanceGuid)
+            [FromRoute] Guid instanceGuid
+        )
         {
             try
             {
@@ -604,7 +665,10 @@ namespace Altinn.App.Api.Controllers
             }
             catch (Exception exception)
             {
-                return ExceptionResponse(exception, $"Adding complete confirmation to instance {instanceOwnerPartyId}/{instanceGuid} failed");
+                return ExceptionResponse(
+                    exception,
+                    $"Adding complete confirmation to instance {instanceOwnerPartyId}/{instanceGuid} failed"
+                );
             }
         }
 
@@ -627,11 +691,14 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] string app,
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
-            [FromBody] Substatus substatus)
+            [FromBody] Substatus substatus
+        )
         {
             if (substatus == null || string.IsNullOrEmpty(substatus.Label))
             {
-                return BadRequest($"Invalid sub status: {JsonConvert.SerializeObject(substatus)}. Substatus must be defined and include a label.");
+                return BadRequest(
+                    $"Invalid sub status: {JsonConvert.SerializeObject(substatus)}. Substatus must be defined and include a label."
+                );
             }
 
             Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
@@ -644,7 +711,11 @@ namespace Altinn.App.Api.Controllers
 
             try
             {
-                Instance updatedInstance = await _instanceClient.UpdateSubstatus(instanceOwnerPartyId, instanceGuid, substatus);
+                Instance updatedInstance = await _instanceClient.UpdateSubstatus(
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    substatus
+                );
                 SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
                 await RegisterEvent("app.instance.substatus.changed", instance);
@@ -653,7 +724,10 @@ namespace Altinn.App.Api.Controllers
             }
             catch (Exception exception)
             {
-                return ExceptionResponse(exception, $"Updating substatus for instance {instanceOwnerPartyId}/{instanceGuid} failed.");
+                return ExceptionResponse(
+                    exception,
+                    $"Updating substatus for instance {instanceOwnerPartyId}/{instanceGuid} failed."
+                );
             }
         }
 
@@ -671,11 +745,16 @@ namespace Altinn.App.Api.Controllers
         public async Task<ActionResult<Instance>> DeleteInstance(
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
-            [FromQuery] bool hard)
+            [FromQuery] bool hard
+        )
         {
             try
             {
-                Instance deletedInstance = await _instanceClient.DeleteInstance(instanceOwnerPartyId, instanceGuid, hard);
+                Instance deletedInstance = await _instanceClient.DeleteInstance(
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    hard
+                );
                 SelfLinkHelper.SetInstanceAppSelfLinks(deletedInstance, Request);
 
                 return Ok(deletedInstance);
@@ -697,15 +776,20 @@ namespace Altinn.App.Api.Controllers
         [HttpGet("{instanceOwnerPartyId:int}/active")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Produces("application/json")]
-        public async Task<ActionResult<List<SimpleInstance>>> GetActiveInstances([FromRoute] string org, [FromRoute] string app, int instanceOwnerPartyId)
+        public async Task<ActionResult<List<SimpleInstance>>> GetActiveInstances(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            int instanceOwnerPartyId
+        )
         {
-            Dictionary<string, StringValues> queryParams = new()
-            {
-                { "appId", $"{org}/{app}" },
-                { "instanceOwner.partyId", instanceOwnerPartyId.ToString() },
-                { "status.isArchived", "false" },
-                { "status.isSoftDeleted", "false" }
-            };
+            Dictionary<string, StringValues> queryParams =
+                new()
+                {
+                    { "appId", $"{org}/{app}" },
+                    { "instanceOwner.partyId", instanceOwnerPartyId.ToString() },
+                    { "status.isArchived", "false" },
+                    { "status.isSoftDeleted", "false" }
+                };
 
             List<Instance> activeInstances = await _instanceClient.GetInstances(queryParams);
 
@@ -774,7 +858,11 @@ namespace Altinn.App.Api.Controllers
             instance.Status.ReadStatus = ReadStatus.Read;
         }
 
-        private async Task CopyDataFromSourceInstance(ApplicationMetadata application, Instance targetInstance, Instance sourceInstance)
+        private async Task CopyDataFromSourceInstance(
+            ApplicationMetadata application,
+            Instance targetInstance,
+            Instance sourceInstance
+        )
         {
             string org = application.Org;
             string app = application.AppIdentifier.App;
@@ -783,8 +871,8 @@ namespace Altinn.App.Api.Controllers
             string[] sourceSplit = sourceInstance.Id.Split("/");
             Guid sourceInstanceGuid = Guid.Parse(sourceSplit[1]);
 
-            List<DataType> dts = application.DataTypes
-                .Where(dt => dt.AppLogic?.ClassRef != null)
+            List<DataType> dts = application
+                .DataTypes.Where(dt => dt.AppLogic?.ClassRef != null)
                 .Where(dt => dt.TaskId != null && dt.TaskId.Equals(targetInstance.Process.CurrentTask.ElementId))
                 .ToList();
             List<string> excludedDataTypes = application.CopyInstanceSettings.ExcludedDataTypes;
@@ -807,10 +895,21 @@ namespace Altinn.App.Api.Controllers
                     }
                     catch (Exception altinnAppException)
                     {
-                        throw new ServiceException(HttpStatusCode.InternalServerError, $"App.GetAppModelType failed: {altinnAppException.Message}", altinnAppException);
+                        throw new ServiceException(
+                            HttpStatusCode.InternalServerError,
+                            $"App.GetAppModelType failed: {altinnAppException.Message}",
+                            altinnAppException
+                        );
                     }
 
-                    object data = await _dataClient.GetFormData(sourceInstanceGuid, type, org, app, instanceOwnerPartyId, Guid.Parse(de.Id));
+                    object data = await _dataClient.GetFormData(
+                        sourceInstanceGuid,
+                        type,
+                        org,
+                        app,
+                        instanceOwnerPartyId,
+                        Guid.Parse(de.Id)
+                    );
 
                     if (application.CopyInstanceSettings.ExcludedDataFields != null)
                     {
@@ -830,9 +929,15 @@ namespace Altinn.App.Api.Controllers
                         org,
                         app,
                         instanceOwnerPartyId,
-                        dt.Id);
+                        dt.Id
+                    );
 
-                    await UpdatePresentationTextsOnInstance(application.PresentationFields, targetInstance, dt.Id, data);
+                    await UpdatePresentationTextsOnInstance(
+                        application.PresentationFields,
+                        targetInstance,
+                        dt.Id,
+                        data
+                    );
                     await UpdateDataValuesOnInstance(application.DataFields, targetInstance, dt.Id, data);
                 }
             }
@@ -861,16 +966,33 @@ namespace Altinn.App.Api.Controllers
             return StatusCode(500, $"{message}");
         }
 
-        private async Task<EnforcementResult> AuthorizeAction(string org, string app, int partyId, Guid? instanceGuid, string action)
+        private async Task<EnforcementResult> AuthorizeAction(
+            string org,
+            string app,
+            int partyId,
+            Guid? instanceGuid,
+            string action
+        )
         {
             EnforcementResult enforcementResult = new EnforcementResult();
-            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, action, partyId, instanceGuid);
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(
+                org,
+                app,
+                HttpContext.User,
+                action,
+                partyId,
+                instanceGuid
+            );
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
 
             if (response?.Response == null)
             {
                 string serializedRequest = JsonConvert.SerializeObject(request);
-                _logger.LogInformation("// Instances Controller // Authorization of action {action} failed with request: {serializedRequest}.", action, serializedRequest);
+                _logger.LogInformation(
+                    "// Instances Controller // Authorization of action {action} failed with request: {serializedRequest}.",
+                    action,
+                    serializedRequest
+                );
                 return enforcementResult;
             }
 
@@ -889,7 +1011,11 @@ namespace Altinn.App.Api.Controllers
                 catch (Exception e) when (e is not ServiceException)
                 {
                     _logger.LogWarning(e, "Failed to lookup party by partyId: {partyId}", instanceOwner.PartyId);
-                    throw new ServiceException(HttpStatusCode.BadRequest, $"Failed to lookup party by partyId: {instanceOwner.PartyId}. The exception was: {e.Message}", e);
+                    throw new ServiceException(
+                        HttpStatusCode.BadRequest,
+                        $"Failed to lookup party by partyId: {instanceOwner.PartyId}. The exception was: {e.Message}",
+                        e
+                    );
                 }
             }
             else
@@ -901,22 +1027,38 @@ namespace Altinn.App.Api.Controllers
                     if (!string.IsNullOrEmpty(instanceOwner.PersonNumber))
                     {
                         lookupNumber = "personNumber";
-                        return await _altinnPartyClientClient.LookupParty(new PartyLookup { Ssn = instanceOwner.PersonNumber });
+                        return await _altinnPartyClientClient.LookupParty(
+                            new PartyLookup { Ssn = instanceOwner.PersonNumber }
+                        );
                     }
                     else if (!string.IsNullOrEmpty(instanceOwner.OrganisationNumber))
                     {
                         lookupNumber = "organisationNumber";
-                        return await _altinnPartyClientClient.LookupParty(new PartyLookup { OrgNo = instanceOwner.OrganisationNumber });
+                        return await _altinnPartyClientClient.LookupParty(
+                            new PartyLookup { OrgNo = instanceOwner.OrganisationNumber }
+                        );
                     }
                     else
                     {
-                        throw new ServiceException(HttpStatusCode.BadRequest, "Neither personNumber or organisationNumber has value in instanceOwner");
+                        throw new ServiceException(
+                            HttpStatusCode.BadRequest,
+                            "Neither personNumber or organisationNumber has value in instanceOwner"
+                        );
                     }
                 }
                 catch (Exception e)
                 {
-                    _logger.LogWarning(e, "Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}", lookupNumber, personOrOrganisationNumber);
-                    throw new ServiceException(HttpStatusCode.BadRequest, $"Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}. The exception was: {e.Message}", e);
+                    _logger.LogWarning(
+                        e,
+                        "Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}",
+                        lookupNumber,
+                        personOrOrganisationNumber
+                    );
+                    throw new ServiceException(
+                        HttpStatusCode.BadRequest,
+                        $"Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}. The exception was: {e.Message}",
+                        e
+                    );
                 }
             }
         }
@@ -944,7 +1086,11 @@ namespace Altinn.App.Api.Controllers
                     }
                     catch (Exception altinnAppException)
                     {
-                        throw new ServiceException(HttpStatusCode.InternalServerError, $"App.GetAppModelType failed: {altinnAppException.Message}", altinnAppException);
+                        throw new ServiceException(
+                            HttpStatusCode.InternalServerError,
+                            $"App.GetAppModelType failed: {altinnAppException.Message}",
+                            altinnAppException
+                        );
                     }
 
                     ModelDeserializer deserializer = new ModelDeserializer(_logger, type);
@@ -968,16 +1114,26 @@ namespace Altinn.App.Api.Controllers
                         org,
                         app,
                         instanceOwnerIdAsInt,
-                        part.Name!);
+                        part.Name!
+                    );
                 }
                 else
                 {
-                    dataElement = await _dataClient.InsertBinaryData(instance.Id, part.Name!, part.ContentType, part.FileName, part.Stream);
+                    dataElement = await _dataClient.InsertBinaryData(
+                        instance.Id,
+                        part.Name!,
+                        part.ContentType,
+                        part.FileName,
+                        part.Stream
+                    );
                 }
 
                 if (dataElement == null)
                 {
-                    throw new ServiceException(HttpStatusCode.InternalServerError, $"Data service did not return a valid instance metadata when attempt to store data element {part.Name}");
+                    throw new ServiceException(
+                        HttpStatusCode.InternalServerError,
+                        $"Data service did not return a valid instance metadata when attempt to store data element {part.Name}"
+                    );
                 }
             }
         }
@@ -997,7 +1153,12 @@ namespace Altinn.App.Api.Controllers
             RequestPart? instancePart = reader.Parts.Find(part => part.Name == "instance");
 
             // assume that first part with no name is an instanceTemplate
-            if (instancePart == null && reader.Parts.Count == 1 && reader.Parts[0].ContentType.Contains("application/json") && reader.Parts[0].Name == null)
+            if (
+                instancePart == null
+                && reader.Parts.Count == 1
+                && reader.Parts[0].ContentType.Contains("application/json")
+                && reader.Parts[0].Name == null
+            )
             {
                 instancePart = reader.Parts[0];
             }
@@ -1040,37 +1201,46 @@ namespace Altinn.App.Api.Controllers
             return StatusCode((int)HttpStatusCode.Forbidden);
         }
 
-        private async Task UpdatePresentationTextsOnInstance(List<DataField> presentationFields, Instance instance, string dataType, object data)
+        private async Task UpdatePresentationTextsOnInstance(
+            List<DataField> presentationFields,
+            Instance instance,
+            string dataType,
+            object data
+        )
         {
             var updatedValues = DataHelper.GetUpdatedDataValues(
                 presentationFields,
                 instance.PresentationTexts,
                 dataType,
-                data);
+                data
+            );
 
             if (updatedValues.Count > 0)
             {
                 await _instanceClient.UpdatePresentationTexts(
                     int.Parse(instance.Id.Split("/")[0]),
                     Guid.Parse(instance.Id.Split("/")[1]),
-                    new PresentationTexts { Texts = updatedValues });
+                    new PresentationTexts { Texts = updatedValues }
+                );
             }
         }
 
-        private async Task UpdateDataValuesOnInstance(List<DataField> dataFields, Instance instance, string dataType, object data)
+        private async Task UpdateDataValuesOnInstance(
+            List<DataField> dataFields,
+            Instance instance,
+            string dataType,
+            object data
+        )
         {
-            var updatedValues = DataHelper.GetUpdatedDataValues(
-                dataFields,
-                instance.DataValues,
-                dataType,
-                data);
+            var updatedValues = DataHelper.GetUpdatedDataValues(dataFields, instance.DataValues, dataType, data);
 
             if (updatedValues.Count > 0)
             {
                 await _instanceClient.UpdateDataValues(
                     int.Parse(instance.Id.Split("/")[0]),
                     Guid.Parse(instance.Id.Split("/")[1]),
-                    new DataValues { Values = updatedValues });
+                    new DataValues { Values = updatedValues }
+                );
             }
         }
     }

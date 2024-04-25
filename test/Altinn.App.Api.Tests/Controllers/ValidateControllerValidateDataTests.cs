@@ -7,8 +7,8 @@ using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Mvc;
 using FluentAssertions;
+using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Xunit;
 
@@ -19,84 +19,48 @@ public class TestScenariosData : IEnumerable<object[]>
     // Add new test data in this list
     private readonly List<ValidateDataTestScenario> _data = new List<ValidateDataTestScenario>
     {
-        new ("returns_NotFound_when_GetInstance_returns_null")
+        new("returns_NotFound_when_GetInstance_returns_null")
         {
             ReceivedInstance = null,
             ExpectedResult = typeof(NotFoundResult)
         },
-        new ("thows_ValidationException_when_instance_process_is_null")
+        new("thows_ValidationException_when_instance_process_is_null")
         {
-            ReceivedInstance = new Instance
-            {
-                Process = null
-            },
+            ReceivedInstance = new Instance { Process = null },
             ExpectedExceptionMessage = "Unable to validate instance without a started process."
         },
-        new ("thows_ValidationException_when_Instance_Process_CurrentTask_is_null")
+        new("thows_ValidationException_when_Instance_Process_CurrentTask_is_null")
         {
-            ReceivedInstance = new Instance
-            {
-                Process = new ProcessState
-                {
-                    CurrentTask = null
-                }
-            },
+            ReceivedInstance = new Instance { Process = new ProcessState { CurrentTask = null } },
             ExpectedExceptionMessage = "Unable to validate instance without a started process."
         },
-        new ("thows_ValidationException_when_Instance_Data_is_empty")
+        new("thows_ValidationException_when_Instance_Data_is_empty")
         {
             ReceivedInstance = new Instance
             {
-                Process = new ProcessState
-                {
-                    CurrentTask = new ProcessElementInfo
-                    {
-                        ElementId = "1234"
-                    }
-                },
+                Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "1234" } },
                 Data = new List<DataElement>()
             },
             ExpectedExceptionMessage = "Unable to validate data element."
         },
-        new ("thows_ValidationException_when_Application_DataTypes_is_empty")
+        new("thows_ValidationException_when_Application_DataTypes_is_empty")
         {
             DataGuid = Guid.ParseExact("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd", "D"),
             ReceivedInstance = new Instance
             {
-                Process = new ProcessState
-                {
-                    CurrentTask = new ProcessElementInfo
-                    {
-                        ElementId = "1234"
-                    }
-                },
-                Data = new List<DataElement>
-                {
-                    new DataElement
-                    {
-                        Id = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd"
-                    }
-                }
+                Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "1234" } },
+                Data = new List<DataElement> { new DataElement { Id = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd" } }
             },
-            ReceivedApplication = new ApplicationMetadata("ttd/test")
-            {
-                DataTypes = new List<DataType>()
-            },
+            ReceivedApplication = new ApplicationMetadata("ttd/test") { DataTypes = new List<DataType>() },
             ExpectedExceptionMessage = "Unknown element type."
         },
-        new ("adds_ValidationIssue_when_DataType_TaskId_does_not_match_CurrentTask_ElementId")
+        new("adds_ValidationIssue_when_DataType_TaskId_does_not_match_CurrentTask_ElementId")
         {
             InstanceId = Guid.ParseExact("0fc98a23-fe31-4ef5-8fb9-dd3f479354ef", "D"),
             DataGuid = Guid.ParseExact("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd", "D"),
             ReceivedInstance = new Instance
             {
-                Process = new ProcessState
-                {
-                    CurrentTask = new ProcessElementInfo
-                    {
-                        ElementId = "1234"
-                    }
-                },
+                Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "1234" } },
                 Data = new List<DataElement>
                 {
                     new DataElement
@@ -110,11 +74,7 @@ public class TestScenariosData : IEnumerable<object[]>
             {
                 DataTypes = new List<DataType>
                 {
-                    new DataType
-                    {
-                        Id = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd",
-                        TaskId = "1234"
-                    }
+                    new DataType { Id = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd", TaskId = "1234" }
                 }
             },
             ReceivedValidationIssues = new List<ValidationIssue>(),
@@ -127,12 +87,15 @@ public class TestScenariosData : IEnumerable<object[]>
                     DataElementId = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd",
                     Description = AppTextHelper.GetAppText(
                         ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask,
-                        new Dictionary<string, Dictionary<string, string>>(), null, "nb")
+                        new Dictionary<string, Dictionary<string, string>>(),
+                        null,
+                        "nb"
+                    )
                 }
             },
             ExpectedResult = typeof(OkObjectResult)
         },
-        new ("returns_ValidationIssues_from_ValidationService")
+        new("returns_ValidationIssues_from_ValidationService")
         {
             InstanceId = Guid.ParseExact("0fc98a23-fe31-4ef5-8fb9-dd3f479354ef", "D"),
             DataGuid = Guid.ParseExact("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd", "D"),
@@ -140,10 +103,7 @@ public class TestScenariosData : IEnumerable<object[]>
             {
                 Process = new ProcessState
                 {
-                    CurrentTask = new ProcessElementInfo
-                    {
-                        ElementId = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd"
-                    }
+                    CurrentTask = new ProcessElementInfo { ElementId = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd" }
                 },
                 Data = new List<DataElement>
                 {
@@ -158,11 +118,7 @@ public class TestScenariosData : IEnumerable<object[]>
             {
                 DataTypes = new List<DataType>
                 {
-                    new DataType
-                    {
-                        Id = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd",
-                        TaskId = "1234"
-                    }
+                    new DataType { Id = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd", TaskId = "1234" }
                 }
             },
             ReceivedValidationIssues = new List<ValidationIssue>
@@ -218,52 +174,83 @@ public class ValidationControllerValidateDataTests
         // Act and Assert
         if (testScenario.ExpectedExceptionMessage == null)
         {
-            var result = await validateController.ValidateData(org, app, instanceOwnerId, testScenario.InstanceId,
-                testScenario.DataGuid);
+            var result = await validateController.ValidateData(
+                org,
+                app,
+                instanceOwnerId,
+                testScenario.InstanceId,
+                testScenario.DataGuid
+            );
             result.Should().BeOfType(testScenario.ExpectedResult);
         }
         else
         {
-            var exception = await Assert.ThrowsAsync<ValidationException>(() =>
-                validateController.ValidateData(org, app, instanceOwnerId, testScenario.InstanceId,
-                    testScenario.DataGuid));
+            var exception = await Assert.ThrowsAsync<ValidationException>(
+                () =>
+                    validateController.ValidateData(
+                        org,
+                        app,
+                        instanceOwnerId,
+                        testScenario.InstanceId,
+                        testScenario.DataGuid
+                    )
+            );
             Assert.Equal(testScenario.ExpectedExceptionMessage, exception.Message);
         }
     }
 
-    private static ValidateController SetupController(string app, string org, int instanceOwnerId,
-        ValidateDataTestScenario testScenario)
+    private static ValidateController SetupController(
+        string app,
+        string org,
+        int instanceOwnerId,
+        ValidateDataTestScenario testScenario
+    )
     {
-        (Mock<IInstanceClient> instanceMock, Mock<IAppMetadata> appResourceMock, Mock<IValidationService> validationMock) =
-            SetupMocks(app, org, instanceOwnerId, testScenario);
+        (
+            Mock<IInstanceClient> instanceMock,
+            Mock<IAppMetadata> appResourceMock,
+            Mock<IValidationService> validationMock
+        ) = SetupMocks(app, org, instanceOwnerId, testScenario);
 
         return new ValidateController(instanceMock.Object, validationMock.Object, appResourceMock.Object);
     }
 
-    private static (Mock<IInstanceClient>, Mock<IAppMetadata>, Mock<IValidationService>) SetupMocks(string app, string org,
-        int instanceOwnerId, ValidateDataTestScenario testScenario)
+    private static (Mock<IInstanceClient>, Mock<IAppMetadata>, Mock<IValidationService>) SetupMocks(
+        string app,
+        string org,
+        int instanceOwnerId,
+        ValidateDataTestScenario testScenario
+    )
     {
         var instanceMock = new Mock<IInstanceClient>();
         var appMetadataMock = new Mock<IAppMetadata>();
         var validationMock = new Mock<IValidationService>();
         if (testScenario.ReceivedInstance != null)
         {
-            instanceMock.Setup(i => i.GetInstance(app, org, instanceOwnerId, testScenario.InstanceId))
+            instanceMock
+                .Setup(i => i.GetInstance(app, org, instanceOwnerId, testScenario.InstanceId))
                 .Returns(Task.FromResult<Instance>(testScenario.ReceivedInstance));
         }
         if (testScenario.ReceivedApplication != null)
         {
-            appMetadataMock.Setup(a => a.GetApplicationMetadata())
-                .ReturnsAsync(testScenario.ReceivedApplication);
+            appMetadataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(testScenario.ReceivedApplication);
         }
 
-        if (testScenario.ReceivedInstance != null && testScenario.ReceivedApplication != null && testScenario.ReceivedValidationIssues != null)
+        if (
+            testScenario.ReceivedInstance != null
+            && testScenario.ReceivedApplication != null
+            && testScenario.ReceivedValidationIssues != null
+        )
         {
-            validationMock.Setup(v => v.ValidateDataElement(
-                    testScenario.ReceivedInstance,
-                    testScenario.ReceivedInstance.Data.First(),
-                    testScenario.ReceivedApplication.DataTypes.First(),
-                    null))
+            validationMock
+                .Setup(v =>
+                    v.ValidateDataElement(
+                        testScenario.ReceivedInstance,
+                        testScenario.ReceivedInstance.Data.First(),
+                        testScenario.ReceivedApplication.DataTypes.First(),
+                        null
+                    )
+                )
                 .Returns(Task.FromResult<List<ValidationIssue>>(testScenario.ReceivedValidationIssues));
         }
 
@@ -277,6 +264,7 @@ public class ValidateDataTestScenario
     {
         TestScenarioName = testScenarioName;
     }
+
     public string TestScenarioName { get; init; }
     public Guid InstanceId { get; init; } = Guid.NewGuid();
     public Guid DataGuid { get; init; } = Guid.NewGuid();

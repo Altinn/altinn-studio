@@ -28,10 +28,14 @@ namespace Altinn.App.Core.Features.Options.Altinn2Provider
         /// <param name="version">The version number for the list in the api</param>
         public async Task<MetadataCodelistResponse> GetAltinn2Codelist(string id, string langCode, int? version = null)
         {
-            var response = await _client.GetAsync($"https://www.altinn.no/api/metadata/codelists/{id}/{version?.ToString() ?? string.Empty}?language={langCode}");
+            var response = await _client.GetAsync(
+                $"https://www.altinn.no/api/metadata/codelists/{id}/{version?.ToString() ?? string.Empty}?language={langCode}"
+            );
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
-                response = await _client.GetAsync($"https://www.altinn.no/api/metadata/codelists/{id}/{version?.ToString() ?? string.Empty}");
+                response = await _client.GetAsync(
+                    $"https://www.altinn.no/api/metadata/codelists/{id}/{version?.ToString() ?? string.Empty}"
+                );
             }
             response.EnsureSuccessStatusCode();
             var codelist = await JsonSerializerPermissive.DeserializeAsync<MetadataCodelistResponse>(response.Content);

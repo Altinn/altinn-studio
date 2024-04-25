@@ -40,7 +40,9 @@ namespace Altinn.App.Api.Controllers
         {
             if (string.IsNullOrEmpty(url))
             {
-                return BadRequest($"Invalid value of query parameter {nameof(url)}. The query parameter {nameof(url)} must not be empty or null.");
+                return BadRequest(
+                    $"Invalid value of query parameter {nameof(url)}. The query parameter {nameof(url)} must not be empty or null."
+                );
             }
 
             try
@@ -60,7 +62,9 @@ namespace Altinn.App.Api.Controllers
             }
             catch (FormatException)
             {
-                return BadRequest($"Invalid format of query parameter {nameof(url)}. The query parameter {nameof(url)} must be a valid base64 encoded string");
+                return BadRequest(
+                    $"Invalid format of query parameter {nameof(url)}. The query parameter {nameof(url)} must be a valid base64 encoded string"
+                );
             }
         }
 
@@ -69,7 +73,11 @@ namespace Altinn.App.Api.Controllers
             string validHost = _settings.HostName;
             int segments = _settings.HostName.Split('.').Length;
 
-            List<string> goToList = Enumerable.Reverse(new List<string>(urlHost.Split('.'))).Take(segments).Reverse().ToList();
+            List<string> goToList = Enumerable
+                .Reverse(new List<string>(urlHost.Split('.')))
+                .Take(segments)
+                .Reverse()
+                .ToList();
             string redirectHost = string.Join(".", goToList);
 
             return validHost.Equals(redirectHost);

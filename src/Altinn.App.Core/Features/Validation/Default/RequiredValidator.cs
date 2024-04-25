@@ -17,7 +17,11 @@ public class RequiredLayoutValidator : IFormDataValidator
     /// <summary>
     /// Initializes a new instance of the <see cref="RequiredLayoutValidator"/> class.
     /// </summary>
-    public RequiredLayoutValidator(LayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer, IAppResources appResourcesService, IAppMetadata appMetadata)
+    public RequiredLayoutValidator(
+        LayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
+        IAppResources appResourcesService,
+        IAppMetadata appMetadata
+    )
     {
         _layoutEvaluatorStateInitializer = layoutEvaluatorStateInitializer;
         _appResourcesService = appResourcesService;
@@ -42,10 +46,17 @@ public class RequiredLayoutValidator : IFormDataValidator
     /// <summary>
     /// Validate the form data against the required rules in the layout
     /// </summary>
-    public async Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data, string? language)
+    public async Task<List<ValidationIssue>> ValidateFormData(
+        Instance instance,
+        DataElement dataElement,
+        object data,
+        string? language
+    )
     {
         var appMetadata = await _appMetadata.GetApplicationMetadata();
-        var layoutSet = _appResourcesService.GetLayoutSetForTask(appMetadata.DataTypes.First(dt => dt.Id == dataElement.DataType).TaskId);
+        var layoutSet = _appResourcesService.GetLayoutSetForTask(
+            appMetadata.DataTypes.First(dt => dt.Id == dataElement.DataType).TaskId
+        );
         var evaluationState = await _layoutEvaluatorStateInitializer.Init(instance, data, layoutSet?.Id);
         return LayoutEvaluator.RunLayoutValidationsForRequired(evaluationState, dataElement.Id);
     }

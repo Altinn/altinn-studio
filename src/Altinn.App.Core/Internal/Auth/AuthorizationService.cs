@@ -22,7 +22,10 @@ public class AuthorizationService : IAuthorizationService
     /// </summary>
     /// <param name="authorizationClient">The authorization client</param>
     /// <param name="userActionAuthorizers">The user action authorizers</param>
-    public AuthorizationService(IAuthorizationClient authorizationClient, IEnumerable<IUserActionAuthorizerProvider> userActionAuthorizers)
+    public AuthorizationService(
+        IAuthorizationClient authorizationClient,
+        IEnumerable<IUserActionAuthorizerProvider> userActionAuthorizers
+    )
     {
         _authorizationClient = authorizationClient;
         _userActionAuthorizers = userActionAuthorizers;
@@ -41,14 +44,24 @@ public class AuthorizationService : IAuthorizationService
     }
 
     /// <inheritdoc />
-    public async Task<bool> AuthorizeAction(AppIdentifier appIdentifier, InstanceIdentifier instanceIdentifier, ClaimsPrincipal user, string action, string? taskId = null)
+    public async Task<bool> AuthorizeAction(
+        AppIdentifier appIdentifier,
+        InstanceIdentifier instanceIdentifier,
+        ClaimsPrincipal user,
+        string action,
+        string? taskId = null
+    )
     {
         if (!await _authorizationClient.AuthorizeAction(appIdentifier, instanceIdentifier, user, action, taskId))
         {
             return false;
         }
 
-        foreach (var authorizerRegistrator in _userActionAuthorizers.Where(a => IsAuthorizerForTaskAndAction(a, taskId, action)))
+        foreach (
+            var authorizerRegistrator in _userActionAuthorizers.Where(a =>
+                IsAuthorizerForTaskAndAction(a, taskId, action)
+            )
+        )
         {
             var context = new UserActionAuthorizerContext(user, instanceIdentifier, taskId, action);
             if (!await authorizerRegistrator.Authorizer.AuthorizeAction(context))
@@ -61,29 +74,42 @@ public class AuthorizationService : IAuthorizationService
     }
 
     /// <inheritdoc />
-    public async Task<List<UserAction>> AuthorizeActions(Instance instance, ClaimsPrincipal user, List<AltinnAction> actions)
+    public async Task<List<UserAction>> AuthorizeActions(
+        Instance instance,
+        ClaimsPrincipal user,
+        List<AltinnAction> actions
+    )
     {
-        var authDecisions = await _authorizationClient.AuthorizeActions(instance, user, actions.Select(a => a.Value).ToList());
+        var authDecisions = await _authorizationClient.AuthorizeActions(
+            instance,
+            user,
+            actions.Select(a => a.Value).ToList()
+        );
         List<UserAction> authorizedActions = new();
         foreach (var action in actions)
         {
-            authorizedActions.Add(new UserAction()
-            {
-                Id = action.Value,
-                Authorized = authDecisions[action.Value],
-                ActionType = action.ActionType
-            });
-
+            authorizedActions.Add(
+                new UserAction()
+                {
+                    Id = action.Value,
+                    Authorized = authDecisions[action.Value],
+                    ActionType = action.ActionType
+                }
+            );
         }
 
         return authorizedActions;
     }
 
-    private static bool IsAuthorizerForTaskAndAction(IUserActionAuthorizerProvider authorizer, string? taskId, string action)
+    private static bool IsAuthorizerForTaskAndAction(
+        IUserActionAuthorizerProvider authorizer,
+        string? taskId,
+        string action
+    )
     {
         return (authorizer.TaskId == null && authorizer.Action == null)
-               || (authorizer.TaskId == null && authorizer.Action == action)
-               || (authorizer.TaskId == taskId && authorizer.Action == null)
-               || (authorizer.TaskId == taskId && authorizer.Action == action);
+            || (authorizer.TaskId == null && authorizer.Action == action)
+            || (authorizer.TaskId == taskId && authorizer.Action == null)
+            || (authorizer.TaskId == taskId && authorizer.Action == action);
     }
 }

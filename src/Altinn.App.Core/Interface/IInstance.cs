@@ -80,7 +80,11 @@ namespace Altinn.App.Core.Interface
         /// <param name="instanceGuid">The id of the instance to update presentation texts for.</param>
         /// <param name="presentationTexts">The presentation texts</param>
         /// <returns>Returns the updated instance.</returns>
-        Task<Instance> UpdatePresentationTexts(int instanceOwnerPartyId, Guid instanceGuid, PresentationTexts presentationTexts);
+        Task<Instance> UpdatePresentationTexts(
+            int instanceOwnerPartyId,
+            Guid instanceGuid,
+            PresentationTexts presentationTexts
+        );
 
         /// <summary>
         /// Update data values.
@@ -106,7 +110,11 @@ namespace Altinn.App.Core.Interface
         async Task<Instance> UpdateDataValues(Instance instance, Dictionary<string, string?> dataValues)
         {
             var id = new InstanceIdentifier(instance);
-            return await UpdateDataValues(id.InstanceOwnerPartyId, id.InstanceGuid, new DataValues { Values = dataValues });
+            return await UpdateDataValues(
+                id.InstanceOwnerPartyId,
+                id.InstanceGuid,
+                new DataValues { Values = dataValues }
+            );
         }
 
         /// <summary>

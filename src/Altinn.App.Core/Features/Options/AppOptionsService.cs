@@ -13,22 +13,36 @@ namespace Altinn.App.Core.Features.Options
         /// <summary>
         /// Initializes a new instance of the <see cref="AppOptionsService"/> class.
         /// </summary>
-        public AppOptionsService(AppOptionsFactory appOptionsFactory, InstanceAppOptionsFactory instanceAppOptionsFactory)
+        public AppOptionsService(
+            AppOptionsFactory appOptionsFactory,
+            InstanceAppOptionsFactory instanceAppOptionsFactory
+        )
         {
             _appOpptionsFactory = appOptionsFactory;
             _instanceAppOptionsFactory = instanceAppOptionsFactory;
         }
 
         /// <inheritdoc/>
-        public async Task<AppOptions> GetOptionsAsync(string optionId, string? language, Dictionary<string, string> keyValuePairs)
+        public async Task<AppOptions> GetOptionsAsync(
+            string optionId,
+            string? language,
+            Dictionary<string, string> keyValuePairs
+        )
         {
             return await _appOpptionsFactory.GetOptionsProvider(optionId).GetAppOptionsAsync(language, keyValuePairs);
         }
 
         /// <inheritdoc/>
-        public async Task<AppOptions> GetOptionsAsync(InstanceIdentifier instanceIdentifier, string optionId, string? language, Dictionary<string, string> keyValuePairs)
+        public async Task<AppOptions> GetOptionsAsync(
+            InstanceIdentifier instanceIdentifier,
+            string optionId,
+            string? language,
+            Dictionary<string, string> keyValuePairs
+        )
         {
-            return await _instanceAppOptionsFactory.GetOptionsProvider(optionId).GetInstanceAppOptionsAsync(instanceIdentifier, language, keyValuePairs);
+            return await _instanceAppOptionsFactory
+                .GetOptionsProvider(optionId)
+                .GetInstanceAppOptionsAsync(instanceIdentifier, language, keyValuePairs);
         }
     }
 }

@@ -28,7 +28,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         public SignClient(
             IOptions<PlatformSettings> platformSettings,
             HttpClient httpClient,
-            IUserTokenProvider userTokenProvider)
+            IUserTokenProvider userTokenProvider
+        )
         {
             var platformSettings1 = platformSettings.Value;
 
@@ -69,11 +70,13 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             };
             foreach (var dataElementSignature in signatureContext.DataElementSignatures)
             {
-                signRequest.DataElementSignatures.Add(new SignRequest.DataElementSignature()
-                {
-                    DataElementId = dataElementSignature.DataElementId,
-                    Signed = dataElementSignature.Signed
-                });
+                signRequest.DataElementSignatures.Add(
+                    new SignRequest.DataElementSignature()
+                    {
+                        DataElementId = dataElementSignature.DataElementId,
+                        Signed = dataElementSignature.Signed
+                    }
+                );
             }
 
             return JsonContent.Create(signRequest);

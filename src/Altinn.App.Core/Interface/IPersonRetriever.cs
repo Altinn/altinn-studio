@@ -12,7 +12,7 @@ namespace Altinn.App.Core.Interface
         /// Get the <see cref="Person"/> object for the person identified with the parameters.
         /// </summary>
         /// <remarks>
-        /// The method requires both the national identity number and the last name of the person. This is used to 
+        /// The method requires both the national identity number and the last name of the person. This is used to
         /// verify that entered information is correct and to prevent testing of random identity numbers.
         /// </remarks>
         /// <param name="nationalIdentityNumber">The national identity number of the person.</param>

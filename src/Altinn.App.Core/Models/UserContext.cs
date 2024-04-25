@@ -44,7 +44,7 @@ namespace Altinn.App.Core.Models
         public int PartyId { get; set; }
 
         /// <summary>
-        /// Gets or sets the current 
+        /// Gets or sets the current
         /// </summary>
         public int AuthenticationLevel { get; set; }
     }

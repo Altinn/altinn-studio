@@ -24,13 +24,13 @@ public class DefaultAppEvents : IAppEvents
         ILogger<DefaultAppEvents> logger,
         IAppMetadata appMetadata,
         IInstanceClient instanceClient,
-        IDataClient dataClient)
+        IDataClient dataClient
+    )
     {
         _logger = logger;
         _appMetadata = appMetadata;
         _instanceClient = instanceClient;
         _dataClient = dataClient;
-
     }
 
     /// <inheritdoc />
@@ -50,8 +50,10 @@ public class DefaultAppEvents : IAppEvents
     private async Task AutoDeleteDataElements(Instance instance)
     {
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
-        List<string> typesToDelete = applicationMetadata.DataTypes
-            .Where(dt => dt?.AppLogic?.AutoDeleteOnProcessEnd == true).Select(dt => dt.Id).ToList();
+        List<string> typesToDelete = applicationMetadata
+            .DataTypes.Where(dt => dt?.AppLogic?.AutoDeleteOnProcessEnd == true)
+            .Select(dt => dt.Id)
+            .ToList();
         if (typesToDelete.Count == 0)
         {
             return;
@@ -70,7 +72,9 @@ public class DefaultAppEvents : IAppEvents
                     int.Parse(instance.InstanceOwner.PartyId),
                     Guid.Parse(item.InstanceGuid),
                     Guid.Parse(item.Id),
-                    true));
+                    true
+                )
+            );
         }
 
         await Task.WhenAll(deleteTasks);

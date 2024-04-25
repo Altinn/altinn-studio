@@ -38,21 +38,19 @@ namespace Altinn.App.PlatformServices.Tests.Infrastructure.Clients
             IEventSecretCodeProvider secretCodeProvider = new TestSecretCodeProvider();
             Mock<ILogger<EventsSubscriptionClient>> loggerMock = new();
 
-            IOptions<PlatformSettings> platformSettings = Microsoft.Extensions.Options.Options.Create(new PlatformSettings()
-            {
-                ApiEventsEndpoint = "http://localhost:5101/events/api/v1/",
-                SubscriptionKey = "key"
-            });
+            IOptions<PlatformSettings> platformSettings = Microsoft.Extensions.Options.Options.Create(
+                new PlatformSettings()
+                {
+                    ApiEventsEndpoint = "http://localhost:5101/events/api/v1/",
+                    SubscriptionKey = "key"
+                }
+            );
 
-            IOptions<GeneralSettings> generalSettings = Microsoft.Extensions.Options.Options.Create(new GeneralSettings
-            {
-                HostName = "at22.altinn.cloud"
-            });
+            IOptions<GeneralSettings> generalSettings = Microsoft.Extensions.Options.Options.Create(
+                new GeneralSettings { HostName = "at22.altinn.cloud" }
+            );
 
-            Subscription subscriptionContent = new()
-            {
-                Id = 123
-            };
+            Subscription subscriptionContent = new() { Id = 123 };
 
             HttpResponseMessage httpResponseMessage = new HttpResponseMessage
             {
@@ -66,12 +64,19 @@ namespace Altinn.App.PlatformServices.Tests.Infrastructure.Clients
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
                     ItExpr.IsAny<HttpRequestMessage>(),
-                    ItExpr.IsAny<CancellationToken>())
+                    ItExpr.IsAny<CancellationToken>()
+                )
                 .ReturnsAsync(httpResponseMessage);
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
-            var client = new EventsSubscriptionClient(platformSettings, httpClient, generalSettings, secretCodeProvider, loggerMock.Object);
+            var client = new EventsSubscriptionClient(
+                platformSettings,
+                httpClient,
+                generalSettings,
+                secretCodeProvider,
+                loggerMock.Object
+            );
 
             return client;
         }

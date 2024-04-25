@@ -22,11 +22,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
     /// </summary>
     public class PersonClient : IPersonClient
     {
-        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            PropertyNameCaseInsensitive = true
-        };
+        private static readonly JsonSerializerOptions _jsonSerializerOptions =
+            new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, PropertyNameCaseInsensitive = true };
 
         private readonly HttpClient _httpClient;
         private readonly IAppMetadata _appMetadata;
@@ -46,13 +43,15 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
             IOptions<PlatformSettings> platformSettings,
             IAppMetadata appMetadata,
             IAccessTokenGenerator accessTokenGenerator,
-            IUserTokenProvider userTokenProvider)
+            IUserTokenProvider userTokenProvider
+        )
         {
             _httpClient = httpClient;
             _httpClient.BaseAddress = new Uri(platformSettings.Value.ApiRegisterEndpoint);
             _httpClient.DefaultRequestHeaders.Add(
                 General.SubscriptionKeyHeaderName,
-                platformSettings.Value.SubscriptionKey);
+                platformSettings.Value.SubscriptionKey
+            );
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _accessTokenGenerator = accessTokenGenerator;
             _userTokenProvider = userTokenProvider;
@@ -78,10 +77,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
             ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
             string issuer = application.Org;
             string appName = application.AppIdentifier.App;
-            request.Headers.Add(
-                "PlatformAccessToken", _accessTokenGenerator.GenerateAccessToken(issuer, appName));
-            request.Headers.Add(
-                "Authorization", "Bearer " + _userTokenProvider.GetUserToken());
+            request.Headers.Add("PlatformAccessToken", _accessTokenGenerator.GenerateAccessToken(issuer, appName));
+            request.Headers.Add("Authorization", "Bearer " + _userTokenProvider.GetUserToken());
         }
 
         private async Task<Person?> ReadResponse(HttpResponseMessage response, CancellationToken ct)

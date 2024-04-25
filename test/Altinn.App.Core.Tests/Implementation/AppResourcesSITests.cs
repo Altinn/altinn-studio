@@ -30,10 +30,7 @@ public class AppResourcesSITests
             Org = "tdd",
             Created = DateTime.Parse("2019-09-16T22:22:22"),
             CreatedBy = "username",
-            Title = new Dictionary<string, string>()
-            {
-                { "nb", "Bestillingseksempelapp" }
-            },
+            Title = new Dictionary<string, string>() { { "nb", "Bestillingseksempelapp" } },
             DataTypes = new List<DataType>()
             {
                 new()
@@ -58,10 +55,7 @@ public class AppResourcesSITests
                 Person = true,
                 SubUnit = true
             },
-            OnEntry = new OnEntry()
-            {
-                Show = "select-instance"
-            }
+            OnEntry = new OnEntry() { Show = "select-instance" }
         };
         var actual = appResources.GetApplication();
         actual.Should().NotBeNull();
@@ -81,10 +75,7 @@ public class AppResourcesSITests
             Org = "tdd",
             Created = DateTime.Parse("2019-09-16T22:22:22"),
             CreatedBy = "username",
-            Title = new Dictionary<string, string>()
-            {
-                { "nb", "Bestillingseksempelapp" }
-            },
+            Title = new Dictionary<string, string>() { { "nb", "Bestillingseksempelapp" } },
             DataTypes = new List<DataType>()
             {
                 new()
@@ -120,9 +111,14 @@ public class AppResourcesSITests
     {
         AppSettings appSettings = GetAppSettings("AppMetadata", "default.applicationmetadata.json");
         Mock<IFrontendFeatures> appFeaturesMock = new Mock<IFrontendFeatures>();
-        appFeaturesMock.Setup(af => af.GetFrontendFeatures()).ReturnsAsync(new Dictionary<string, bool>() { { "footer", true } });
+        appFeaturesMock
+            .Setup(af => af.GetFrontendFeatures())
+            .ReturnsAsync(new Dictionary<string, bool>() { { "footer", true } });
         var settings = Microsoft.Extensions.Options.Options.Create<AppSettings>(appSettings);
-        IAppMetadata appMetadata = SetupAppMedata(Microsoft.Extensions.Options.Options.Create(appSettings), appFeaturesMock.Object);
+        IAppMetadata appMetadata = SetupAppMedata(
+            Microsoft.Extensions.Options.Options.Create(appSettings),
+            appFeaturesMock.Object
+        );
         IAppResources appResources = new AppResourcesSI(settings, appMetadata, null, new NullLogger<AppResourcesSI>());
         Application expected = new Application()
         {
@@ -130,10 +126,7 @@ public class AppResourcesSITests
             Org = "tdd",
             Created = DateTime.Parse("2019-09-16T22:22:22"),
             CreatedBy = "username",
-            Title = new Dictionary<string, string>()
-            {
-                { "nb", "Bestillingseksempelapp" }
-            },
+            Title = new Dictionary<string, string>() { { "nb", "Bestillingseksempelapp" } },
             DataTypes = new List<DataType>()
             {
                 new()
@@ -158,10 +151,7 @@ public class AppResourcesSITests
                 Person = true,
                 SubUnit = true
             },
-            OnEntry = new OnEntry()
-            {
-                Show = "select-instance"
-            },
+            OnEntry = new OnEntry() { Show = "select-instance" },
         };
         var actual = appResources.GetApplication();
         var actual2 = appResources.GetApplication();
@@ -238,7 +228,12 @@ public class AppResourcesSITests
         actual.Should().BeNull();
     }
 
-    private AppSettings GetAppSettings(string subfolder, string appMetadataFilename = "", string bpmnFilename = "", string policyFilename = "")
+    private AppSettings GetAppSettings(
+        string subfolder,
+        string appMetadataFilename = "",
+        string bpmnFilename = "",
+        string policyFilename = ""
+    )
     {
         AppSettings appSettings = new AppSettings()
         {
@@ -253,7 +248,10 @@ public class AppResourcesSITests
         return appSettings;
     }
 
-    private static IAppMetadata SetupAppMedata(IOptions<AppSettings> appsettings, IFrontendFeatures frontendFeatures = null)
+    private static IAppMetadata SetupAppMedata(
+        IOptions<AppSettings> appsettings,
+        IFrontendFeatures frontendFeatures = null
+    )
     {
         var featureManagerMock = new Mock<IFeatureManager>();
 

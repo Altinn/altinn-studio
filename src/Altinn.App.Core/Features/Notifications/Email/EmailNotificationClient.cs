@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using System.Net.Http.Headers;
+using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models.Notifications.Email;
@@ -5,9 +8,6 @@ using Altinn.Common.AccessTokenClient.Services;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Diagnostics;
-using System.Net.Http.Headers;
-using System.Text.Json;
 
 namespace Altinn.App.Core.Features.Notifications.Email;
 
@@ -26,7 +26,8 @@ internal sealed class EmailNotificationClient : IEmailNotificationClient
         IOptions<PlatformSettings> platformSettings,
         IAppMetadata appMetadata,
         IAccessTokenGenerator accessTokenGenerator,
-        TelemetryClient? telemetryClient = null)
+        TelemetryClient? telemetryClient = null
+    )
     {
         _logger = logger;
         _platformSettings = platformSettings.Value;
@@ -87,7 +88,12 @@ internal sealed class EmailNotificationClient : IEmailNotificationClient
         {
             exception = e;
             Telemetry.OrderCount.WithLabels(Telemetry.Types.Email, Telemetry.Result.Error).Inc();
-            var ex = new EmailNotificationException($"Something went wrong when processing the email order", httpResponseMessage, httpContent, e);
+            var ex = new EmailNotificationException(
+                $"Something went wrong when processing the email order",
+                httpResponseMessage,
+                httpContent,
+                e
+            );
             _logger.LogError(ex, "Error when processing email notification order");
             throw ex;
         }

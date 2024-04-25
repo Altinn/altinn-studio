@@ -9,6 +9,7 @@ public class MetricsSettings
     /// Gets or sets a value indicating whether metrics is enabled or not
     /// </summary>
     public bool Enabled { get; set; } = true;
+
     /// <summary>
     /// Gets or sets the port for the metrics server is exposed
     /// </summary>

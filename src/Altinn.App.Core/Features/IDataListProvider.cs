@@ -1,9 +1,9 @@
-﻿using Altinn.App.Core.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.App.Core.Models;
 
 namespace Altinn.App.Core.Features
 {
@@ -14,7 +14,7 @@ namespace Altinn.App.Core.Features
     {
         /// <summary>
         /// The id/name of the options this provider supports ie. land, fylker, kommuner.
-        /// You can have as many providers as you like, but you should have only one per id. 
+        /// You can have as many providers as you like, but you should have only one per id.
         /// </summary>
         string Id { get; }
 

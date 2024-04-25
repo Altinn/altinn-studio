@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-
 using Altinn.App.Core.Models.Expressions;
 
 namespace Altinn.App.Core.Models.Layout.Components;
@@ -34,8 +33,20 @@ public class OptionsComponent : BaseComponent
     /// <summary>
     /// Constructor
     /// </summary>
-    public OptionsComponent(string id, string type, IReadOnlyDictionary<string, string>? dataModelBindings, Expression? hidden, Expression? required, Expression? readOnly, string? optionId, List<AppOption>? options, OptionsSource? optionsSource, bool secure, IReadOnlyDictionary<string, string>? additionalProperties) :
-        base(id, type, dataModelBindings, hidden, required, readOnly, additionalProperties)
+    public OptionsComponent(
+        string id,
+        string type,
+        IReadOnlyDictionary<string, string>? dataModelBindings,
+        Expression? hidden,
+        Expression? required,
+        Expression? readOnly,
+        string? optionId,
+        List<AppOption>? options,
+        OptionsSource? optionsSource,
+        bool secure,
+        IReadOnlyDictionary<string, string>? additionalProperties
+    )
+        : base(id, type, dataModelBindings, hidden, required, readOnly, additionalProperties)
     {
         OptionId = optionId;
         Options = options;
@@ -45,7 +56,7 @@ public class OptionsComponent : BaseComponent
 }
 
 /// <summary>
-/// This is an optional child element of <see cref="OptionsComponent" /> that specifies that  
+/// This is an optional child element of <see cref="OptionsComponent" /> that specifies that
 /// </summary>
 public class OptionsSource
 {
@@ -57,10 +68,12 @@ public class OptionsSource
         Group = group;
         Value = value;
     }
+
     /// <summary>
     /// the group field in the data model to base the options on
     /// </summary>
     public string Group { get; }
+
     /// <summary>
     /// a reference to a field in the group that should be used as the option value. Notice that we set up this [{0}] syntax. Here the {0} will be replaced by each index of the group.
     /// </summary>

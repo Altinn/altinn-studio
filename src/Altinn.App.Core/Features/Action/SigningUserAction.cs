@@ -29,7 +29,12 @@ public class SigningUserAction : IUserAction
     /// <param name="logger">The logger</param>
     /// <param name="profileClient">The profile client</param>
     /// <param name="signClient">The sign client</param>
-    public SigningUserAction(IProcessReader processReader, ILogger<SigningUserAction> logger, IProfileClient profileClient, ISignClient signClient)
+    public SigningUserAction(
+        IProcessReader processReader,
+        ILogger<SigningUserAction> logger,
+        IProfileClient profileClient,
+        ISignClient signClient
+    )
     {
         _logger = logger;
         _profileClient = profileClient;
@@ -48,41 +53,58 @@ public class SigningUserAction : IUserAction
         if (context.UserId == null)
         {
             return UserActionResult.FailureResult(
-                error: new ActionError()
-                {
-                    Code = "NoUserId",
-                    Message = "User id is missing in token"
-                },
-                errorType: ProcessErrorType.Unauthorized);
+                error: new ActionError() { Code = "NoUserId", Message = "User id is missing in token" },
+                errorType: ProcessErrorType.Unauthorized
+            );
         }
         if (_processReader.GetFlowElement(context.Instance.Process.CurrentTask.ElementId) is ProcessTask currentTask)
         {
-            _logger.LogInformation("Signing action handler invoked for instance {Id}. In task: {CurrentTaskId}", context.Instance.Id, currentTask.Id);
-            var dataTypes = currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration?.DataTypesToSign ?? new();
+            _logger.LogInformation(
+                "Signing action handler invoked for instance {Id}. In task: {CurrentTaskId}",
+                context.Instance.Id,
+                currentTask.Id
+            );
+            var dataTypes =
+                currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration?.DataTypesToSign ?? new();
             var connectedDataElements = GetDataElementSignatures(context.Instance.Data, dataTypes);
-            if (connectedDataElements.Count > 0 && currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration?.SignatureDataType != null)
+            if (
+                connectedDataElements.Count > 0
+                && currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration?.SignatureDataType != null
+            )
             {
-                SignatureContext signatureContext = new SignatureContext(new InstanceIdentifier(context.Instance), currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration?.SignatureDataType!, await GetSignee(context.UserId.Value), connectedDataElements);
+                SignatureContext signatureContext = new SignatureContext(
+                    new InstanceIdentifier(context.Instance),
+                    currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration?.SignatureDataType!,
+                    await GetSignee(context.UserId.Value),
+                    connectedDataElements
+                );
                 await _signClient.SignDataElements(signatureContext);
                 return UserActionResult.SuccessResult();
             }
 
-            throw new ApplicationConfigException("Missing configuration for signing. Check that the task has a signature configuration and that the data types to sign are defined.");
+            throw new ApplicationConfigException(
+                "Missing configuration for signing. Check that the task has a signature configuration and that the data types to sign are defined."
+            );
         }
 
-        return UserActionResult.FailureResult(new ActionError()
-        {
-            Code = "NoProcessTask",
-            Message = "Current task is not a process task."
-        });
+        return UserActionResult.FailureResult(
+            new ActionError() { Code = "NoProcessTask", Message = "Current task is not a process task." }
+        );
     }
 
-    private static List<DataElementSignature> GetDataElementSignatures(List<DataElement> dataElements, List<string> dataTypesToSign)
+    private static List<DataElementSignature> GetDataElementSignatures(
+        List<DataElement> dataElements,
+        List<string> dataTypesToSign
+    )
     {
         var connectedDataElements = new List<DataElementSignature>();
         foreach (var dataType in dataTypesToSign)
         {
-            connectedDataElements.AddRange(dataElements.Where(d => d.DataType.Equals(dataType, StringComparison.OrdinalIgnoreCase)).Select(d => new DataElementSignature(d.Id)));
+            connectedDataElements.AddRange(
+                dataElements
+                    .Where(d => d.DataType.Equals(dataType, StringComparison.OrdinalIgnoreCase))
+                    .Select(d => new DataElementSignature(d.Id))
+            );
         }
 
         return connectedDataElements;

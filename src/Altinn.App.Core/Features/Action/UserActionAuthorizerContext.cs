@@ -4,7 +4,7 @@ using Altinn.App.Core.Models;
 namespace Altinn.App.Core.Features.Action;
 
 /// <summary>
-/// Context for authorization of user actions 
+/// Context for authorization of user actions
 /// </summary>
 public class UserActionAuthorizerContext
 {
@@ -15,7 +15,12 @@ public class UserActionAuthorizerContext
     /// <param name="instanceIdentifier"><see cref="InstanceIdentifier"/> for the instance</param>
     /// <param name="taskId">The id of the task</param>
     /// <param name="action">The action to authorize</param>
-    public UserActionAuthorizerContext(ClaimsPrincipal user, InstanceIdentifier instanceIdentifier, string? taskId, string action)
+    public UserActionAuthorizerContext(
+        ClaimsPrincipal user,
+        InstanceIdentifier instanceIdentifier,
+        string? taskId,
+        string action
+    )
     {
         User = user;
         InstanceIdentifier = instanceIdentifier;

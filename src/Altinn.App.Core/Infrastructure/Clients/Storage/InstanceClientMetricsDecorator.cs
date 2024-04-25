@@ -12,9 +12,22 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage;
 public class InstanceClientMetricsDecorator : IInstanceClient
 {
     private readonly IInstanceClient _instanceClient;
-    private static readonly Counter InstancesCreatedCounter = Metrics.CreateCounter("altinn_app_instances_created", "Number of instances created", "result");
-    private static readonly Counter InstancesCompletedCounter = Metrics.CreateCounter("altinn_app_instances_completed", "Number of instances completed", "result");
-    private static readonly Counter InstancesDeletedCounter = Metrics.CreateCounter("altinn_app_instances_deleted", "Number of instances completed", "result", "mode");
+    private static readonly Counter InstancesCreatedCounter = Metrics.CreateCounter(
+        "altinn_app_instances_created",
+        "Number of instances created",
+        "result"
+    );
+    private static readonly Counter InstancesCompletedCounter = Metrics.CreateCounter(
+        "altinn_app_instances_completed",
+        "Number of instances completed",
+        "result"
+    );
+    private static readonly Counter InstancesDeletedCounter = Metrics.CreateCounter(
+        "altinn_app_instances_deleted",
+        "Number of instances completed",
+        "result",
+        "mode"
+    );
 
     /// <summary>
     /// Create a new instance of the <see cref="InstanceClientMetricsDecorator"/> class.
@@ -94,7 +107,11 @@ public class InstanceClientMetricsDecorator : IInstanceClient
     }
 
     /// <inheritdoc/>
-    public async Task<Instance> UpdatePresentationTexts(int instanceOwnerPartyId, Guid instanceGuid, PresentationTexts presentationTexts)
+    public async Task<Instance> UpdatePresentationTexts(
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        PresentationTexts presentationTexts
+    )
     {
         return await _instanceClient.UpdatePresentationTexts(instanceOwnerPartyId, instanceGuid, presentationTexts);
     }

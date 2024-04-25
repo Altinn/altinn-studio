@@ -1,19 +1,19 @@
-﻿using Altinn.Authorization.ABAC.Constants;
+﻿using System.Security.Claims;
+using System.Xml;
+using Altinn.App.Api.Tests.Constants;
+using Altinn.App.Api.Tests.Data;
+using Altinn.App.Api.Tests.Models;
+using Altinn.App.Core.Internal.Instances;
+using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Utils;
-using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Configuration;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Authorization.Platform.Authorization.Models;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using System.Security.Claims;
-using System.Xml;
-using Altinn.App.Api.Tests.Models;
-using Altinn.App.Api.Tests.Constants;
-using Altinn.App.Api.Tests.Data;
-using Altinn.App.Core.Internal.Instances;
 
 namespace Altinn.App.Api.Tests.Mocks
 {
@@ -65,7 +65,10 @@ namespace Altinn.App.Api.Tests.Mocks
             }
         }
 
-        public async Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user)
+        public async Task<bool> GetDecisionForUnvalidateRequest(
+            XacmlJsonRequestRoot xacmlJsonRequest,
+            ClaimsPrincipal user
+        )
         {
             XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
             return DecisionHelper.ValidatePdpDecision(response.Response, user);
@@ -85,30 +88,36 @@ namespace Altinn.App.Api.Tests.Mocks
 
             bool resourceAttributeComplete = false;
 
-            if (!string.IsNullOrEmpty(resourceAttributes.OrgValue) &&
-                !string.IsNullOrEmpty(resourceAttributes.AppValue) &&
-                !string.IsNullOrEmpty(resourceAttributes.InstanceValue) &&
-                !string.IsNullOrEmpty(resourceAttributes.ResourcePartyValue) &&
-                !string.IsNullOrEmpty(resourceAttributes.TaskValue))
+            if (
+                !string.IsNullOrEmpty(resourceAttributes.OrgValue)
+                && !string.IsNullOrEmpty(resourceAttributes.AppValue)
+                && !string.IsNullOrEmpty(resourceAttributes.InstanceValue)
+                && !string.IsNullOrEmpty(resourceAttributes.ResourcePartyValue)
+                && !string.IsNullOrEmpty(resourceAttributes.TaskValue)
+            )
             {
                 // The resource attributes are complete
                 resourceAttributeComplete = true;
             }
-            else if (!string.IsNullOrEmpty(resourceAttributes.OrgValue) &&
-                !string.IsNullOrEmpty(resourceAttributes.AppValue) &&
-                string.IsNullOrEmpty(resourceAttributes.InstanceValue) &&
-                !string.IsNullOrEmpty(resourceAttributes.ResourcePartyValue) &&
-                string.IsNullOrEmpty(resourceAttributes.TaskValue))
+            else if (
+                !string.IsNullOrEmpty(resourceAttributes.OrgValue)
+                && !string.IsNullOrEmpty(resourceAttributes.AppValue)
+                && string.IsNullOrEmpty(resourceAttributes.InstanceValue)
+                && !string.IsNullOrEmpty(resourceAttributes.ResourcePartyValue)
+                && string.IsNullOrEmpty(resourceAttributes.TaskValue)
+            )
             {
                 // The resource attributes are complete
                 resourceAttributeComplete = true;
             }
-            else if (!string.IsNullOrEmpty(resourceAttributes.OrgValue) &&
-                !string.IsNullOrEmpty(resourceAttributes.AppValue) &&
-                !string.IsNullOrEmpty(resourceAttributes.InstanceValue) &&
-                !string.IsNullOrEmpty(resourceAttributes.ResourcePartyValue) &&
-                !string.IsNullOrEmpty(resourceAttributes.AppResourceValue) &&
-                resourceAttributes.AppResourceValue.Equals("events"))
+            else if (
+                !string.IsNullOrEmpty(resourceAttributes.OrgValue)
+                && !string.IsNullOrEmpty(resourceAttributes.AppValue)
+                && !string.IsNullOrEmpty(resourceAttributes.InstanceValue)
+                && !string.IsNullOrEmpty(resourceAttributes.ResourcePartyValue)
+                && !string.IsNullOrEmpty(resourceAttributes.AppResourceValue)
+                && resourceAttributes.AppResourceValue.Equals("events")
+            )
             {
                 // The resource attributes are complete
                 resourceAttributeComplete = true;
@@ -116,23 +125,53 @@ namespace Altinn.App.Api.Tests.Mocks
 
             if (!resourceAttributeComplete)
             {
-                Instance instanceData = await _instanceClient.GetInstance(resourceAttributes.AppValue, resourceAttributes.OrgValue, Convert.ToInt32(resourceAttributes.InstanceValue.Split('/')[0]), new Guid(resourceAttributes.InstanceValue.Split('/')[1]));
+                Instance instanceData = await _instanceClient.GetInstance(
+                    resourceAttributes.AppValue,
+                    resourceAttributes.OrgValue,
+                    Convert.ToInt32(resourceAttributes.InstanceValue.Split('/')[0]),
+                    new Guid(resourceAttributes.InstanceValue.Split('/')[1])
+                );
 
                 if (instanceData != null)
                 {
-                    AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.OrgAttribute, resourceAttributes.OrgValue, instanceData.Org);
+                    AddIfValueDoesNotExist(
+                        resourceContextAttributes,
+                        XacmlRequestAttribute.OrgAttribute,
+                        resourceAttributes.OrgValue,
+                        instanceData.Org
+                    );
                     string app = instanceData.AppId.Split("/")[1];
-                    AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.AppAttribute, resourceAttributes.AppValue, app);
+                    AddIfValueDoesNotExist(
+                        resourceContextAttributes,
+                        XacmlRequestAttribute.AppAttribute,
+                        resourceAttributes.AppValue,
+                        app
+                    );
                     if (instanceData.Process?.CurrentTask != null)
                     {
-                        AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.TaskAttribute, resourceAttributes.TaskValue, instanceData.Process.CurrentTask.ElementId);
+                        AddIfValueDoesNotExist(
+                            resourceContextAttributes,
+                            XacmlRequestAttribute.TaskAttribute,
+                            resourceAttributes.TaskValue,
+                            instanceData.Process.CurrentTask.ElementId
+                        );
                     }
                     else if (instanceData.Process?.EndEvent != null)
                     {
-                        AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.EndEventAttribute, string.Empty, instanceData.Process.EndEvent);
+                        AddIfValueDoesNotExist(
+                            resourceContextAttributes,
+                            XacmlRequestAttribute.EndEventAttribute,
+                            string.Empty,
+                            instanceData.Process.EndEvent
+                        );
                     }
 
-                    AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.PartyAttribute, resourceAttributes.ResourcePartyValue, instanceData.InstanceOwner.PartyId);
+                    AddIfValueDoesNotExist(
+                        resourceContextAttributes,
+                        XacmlRequestAttribute.PartyAttribute,
+                        resourceAttributes.ResourcePartyValue,
+                        instanceData.InstanceOwner.PartyId
+                    );
                     resourceAttributes.ResourcePartyValue = instanceData.InstanceOwner.PartyId;
                 }
             }
@@ -140,7 +179,12 @@ namespace Altinn.App.Api.Tests.Mocks
             await EnrichSubjectAttributes(request, resourceAttributes.ResourcePartyValue);
         }
 
-        private static void AddIfValueDoesNotExist(XacmlContextAttributes resourceAttributes, string attributeId, string attributeValue, string newAttributeValue)
+        private static void AddIfValueDoesNotExist(
+            XacmlContextAttributes resourceAttributes,
+            string attributeId,
+            string attributeValue,
+            string newAttributeValue
+        )
         {
             if (string.IsNullOrEmpty(attributeValue))
             {
@@ -157,7 +201,9 @@ namespace Altinn.App.Api.Tests.Mocks
                 attribute.IncludeInResult = true;
             }
 
-            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), attributeValue));
+            attribute.AttributeValues.Add(
+                new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), attributeValue)
+            );
             return attribute;
         }
 
@@ -187,12 +233,15 @@ namespace Altinn.App.Api.Tests.Mocks
                 return;
             }
 
-            List<Role> roleList = await GetDecisionPointRolesForUser(subjectUserId, resourcePartyId) ?? new List<Role>();
+            List<Role> roleList =
+                await GetDecisionPointRolesForUser(subjectUserId, resourcePartyId) ?? new List<Role>();
 
             subjectContextAttributes.Attributes.Add(GetRoleAttribute(roleList));
         }
 
-        private static XacmlResourceAttributes GetResourceAttributeValues(XacmlContextAttributes resourceContextAttributes)
+        private static XacmlResourceAttributes GetResourceAttributeValues(
+            XacmlContextAttributes resourceContextAttributes
+        )
         {
             XacmlResourceAttributes resourceAttributes = new();
 
@@ -237,7 +286,9 @@ namespace Altinn.App.Api.Tests.Mocks
             XacmlAttribute attribute = new(new Uri(AltinnRoleAttributeId), false);
             foreach (Role role in roles)
             {
-                attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), role.Value));
+                attribute.AttributeValues.Add(
+                    new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), role.Value)
+                );
             }
 
             return attribute;
@@ -252,8 +303,11 @@ namespace Altinn.App.Api.Tests.Mocks
             if (File.Exists(rolesPath))
             {
                 string content = File.ReadAllText(rolesPath);
-                roles = JsonConvert.DeserializeObject<List<Role>>(content) ??
-                     throw new InvalidDataException($"Something went wrong deserializing json for roles from path {rolesPath}");
+                roles =
+                    JsonConvert.DeserializeObject<List<Role>>(content)
+                    ?? throw new InvalidDataException(
+                        $"Something went wrong deserializing json for roles from path {rolesPath}"
+                    );
             }
 
             return Task.FromResult(roles);
@@ -274,12 +328,18 @@ namespace Altinn.App.Api.Tests.Mocks
                 {
                     foreach (XacmlAttribute xacmlAttribute in attr.Attributes)
                     {
-                        if (xacmlAttribute.AttributeId.OriginalString.Equals(OrgAttributeId) && xacmlAttribute.AttributeValues.FirstOrDefault() != null)
+                        if (
+                            xacmlAttribute.AttributeId.OriginalString.Equals(OrgAttributeId)
+                            && xacmlAttribute.AttributeValues.FirstOrDefault() != null
+                        )
                         {
                             org = xacmlAttribute.AttributeValues.First().Value;
                         }
 
-                        if (xacmlAttribute.AttributeId.OriginalString.Equals(AppAttributeId) && xacmlAttribute.AttributeValues.FirstOrDefault() != null)
+                        if (
+                            xacmlAttribute.AttributeId.OriginalString.Equals(AppAttributeId)
+                            && xacmlAttribute.AttributeValues.FirstOrDefault() != null
+                        )
                         {
                             app = xacmlAttribute.AttributeValues.First().Value;
                         }

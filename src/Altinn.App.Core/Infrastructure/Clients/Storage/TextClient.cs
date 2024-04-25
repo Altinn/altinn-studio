@@ -6,7 +6,6 @@ using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.Utils;
-
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -42,21 +41,24 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             ILogger<TextClient> logger,
             IHttpContextAccessor httpContextAccessor,
             HttpClient httpClient,
-            IMemoryCache memoryCache)
+            IMemoryCache memoryCache
+        )
         {
             _settings = settings.Value;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiStorageEndpoint);
-            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
+            httpClient.DefaultRequestHeaders.Add(
+                General.SubscriptionKeyHeaderName,
+                platformSettings.Value.SubscriptionKey
+            );
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _client = httpClient;
 
             _memoryCache = memoryCache;
             cacheEntryOptions = new MemoryCacheEntryOptions()
                 .SetPriority(CacheItemPriority.High)
-                .SetAbsoluteExpiration(
-                    new TimeSpan(0, 0, settings.Value.CacheResourceLifeTimeInSeconds));
+                .SetAbsoluteExpiration(new TimeSpan(0, 0, settings.Value.CacheResourceLifeTimeInSeconds));
         }
 
         /// <inheritdoc />
@@ -67,9 +69,12 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
 
             if (!_memoryCache.TryGetValue(cacheKey, out textResource))
             {
-                // Key not in cache, so get text from Platform Storage     
+                // Key not in cache, so get text from Platform Storage
                 string url = $"applications/{org}/{app}/texts/{language}";
-                string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+                string token = JwtTokenUtil.GetTokenFromContext(
+                    _httpContextAccessor.HttpContext,
+                    _settings.RuntimeCookieName
+                );
 
                 HttpResponseMessage response = await _client.GetAsync(token, url);
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
@@ -79,7 +84,9 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
                 }
                 else
                 {
-                    _logger.LogError($"Getting text resource for {org}/{app} with language code: {language} failed with statuscode {response.StatusCode}");
+                    _logger.LogError(
+                        $"Getting text resource for {org}/{app} with language code: {language} failed with statuscode {response.StatusCode}"
+                    );
                 }
             }
 

@@ -7,20 +7,14 @@
     public class EformidlingDeliveryException : Exception
     {
         ///<inheritDoc/>
-        public EformidlingDeliveryException()
-        {
-        }
+        public EformidlingDeliveryException() { }
 
         ///<inheritDoc/>
         public EformidlingDeliveryException(string message)
-            : base(message)
-        {
-        }
+            : base(message) { }
 
         ///<inheritDoc/>
         public EformidlingDeliveryException(string message, Exception inner)
-            : base(message, inner)
-        {
-        }
+            : base(message, inner) { }
     }
 }

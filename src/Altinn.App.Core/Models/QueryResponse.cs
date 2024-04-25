@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 namespace Altinn.App.Core.Models
 {
     /// <summary>
-    /// Query response object 
+    /// Query response object
     /// </summary>
     public class QueryResponse<T>
     {
@@ -11,7 +11,6 @@ namespace Altinn.App.Core.Models
         /// The number of items in this response.
         /// </summary>
         [JsonProperty(PropertyName = "count")]
-
         public long Count { get; set; }
 
         /// <summary>

@@ -5,8 +5,14 @@
 /// </summary>
 public sealed class SmsNotificationException : Exception
 {
-    internal SmsNotificationException(string? message, HttpResponseMessage? response, string? content, Exception? innerException)
-    : base($"{message}: StatusCode={response?.StatusCode}\nReason={response?.ReasonPhrase}\nBody={content}\n", innerException)
-    {
-    }
+    internal SmsNotificationException(
+        string? message,
+        HttpResponseMessage? response,
+        string? content,
+        Exception? innerException
+    )
+        : base(
+            $"{message}: StatusCode={response?.StatusCode}\nReason={response?.ReasonPhrase}\nBody={content}\n",
+            innerException
+        ) { }
 }

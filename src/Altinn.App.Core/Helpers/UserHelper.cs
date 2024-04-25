@@ -25,7 +25,11 @@ namespace Altinn.App.Core.Helpers
         /// <param name="profileClient">The ProfileService (defined in Startup.cs)</param>
         /// <param name="altinnPartyClientService">The RegisterService (defined in Startup.cs)</param>
         /// <param name="settings">The general settings</param>
-        public UserHelper(IProfileClient profileClient, IAltinnPartyClient altinnPartyClientService, IOptions<GeneralSettings> settings)
+        public UserHelper(
+            IProfileClient profileClient,
+            IAltinnPartyClient altinnPartyClientService,
+            IOptions<GeneralSettings> settings
+        )
         {
             _profileClient = profileClient;
             _altinnPartyClientService = altinnPartyClientService;

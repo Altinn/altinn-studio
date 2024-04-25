@@ -47,7 +47,7 @@ public interface IDataModelAccessor
     void RemoveField(string key, RowRemovalOption rowRemovalOption);
 
     /// <summary>
-    /// Verify that a Key is a valid lookup for the datamodel 
+    /// Verify that a Key is a valid lookup for the datamodel
     /// </summary>
     bool VerifyKey(string key);
 }
@@ -72,6 +72,3 @@ public enum RowRemovalOption
     /// </summary>
     Ignore
 }
-
-
-

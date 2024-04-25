@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
-
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout.Components;
 
@@ -14,14 +13,20 @@ public static class ExpressionEvaluator
     /// <summary>
     /// Shortcut for evaluating a boolean expression on a given property on a <see cref="BaseComponent" />
     /// </summary>
-    public static bool EvaluateBooleanExpression(LayoutEvaluatorState state, ComponentContext context, string property, bool defaultReturn)
+    public static bool EvaluateBooleanExpression(
+        LayoutEvaluatorState state,
+        ComponentContext context,
+        string property,
+        bool defaultReturn
+    )
     {
         try
         {
             var expr = property switch
             {
                 "hidden" => context.Component?.Hidden,
-                "hiddenRow" => context.Component is RepeatingGroupComponent repeatingGroup ? repeatingGroup.HiddenRow : null,
+                "hiddenRow"
+                    => context.Component is RepeatingGroupComponent repeatingGroup ? repeatingGroup.HiddenRow : null,
                 "required" => context.Component?.Required,
                 _ => throw new ExpressionEvaluatorTypeErrorException($"unknown boolean expression property {property}")
             };
@@ -40,14 +45,22 @@ public static class ExpressionEvaluator
         }
         catch (Exception e)
         {
-            throw new ExpressionEvaluatorTypeErrorException($"Error while evaluating \"{property}\" on \"{context.Component?.PageId}.{context.Component?.Id}\"", e);
+            throw new ExpressionEvaluatorTypeErrorException(
+                $"Error while evaluating \"{property}\" on \"{context.Component?.PageId}.{context.Component?.Id}\"",
+                e
+            );
         }
     }
 
     /// <summary>
     /// Evaluate a <see cref="Expression" /> from a given <see cref="LayoutEvaluatorState" /> in a <see cref="ComponentContext" />
     /// </summary>
-    public static object? EvaluateExpression(LayoutEvaluatorState state, Expression expr, ComponentContext context, object[]? positionalArguments = null)
+    public static object? EvaluateExpression(
+        LayoutEvaluatorState state,
+        Expression expr,
+        ComponentContext context,
+        object[]? positionalArguments = null
+    )
     {
         if (expr is null)
         {
@@ -145,7 +158,16 @@ public static class ExpressionEvaluator
 
     private static string? Concat(object?[] args)
     {
-        return string.Join("", args.Select(a => a switch { string s => s, _ => ToStringForEquals(a) }));
+        return string.Join(
+            "",
+            args.Select(a =>
+                a switch
+                {
+                    string s => s,
+                    _ => ToStringForEquals(a)
+                }
+            )
+        );
     }
 
     private static bool Contains(object?[] args)
@@ -275,26 +297,35 @@ public static class ExpressionEvaluator
         {
             bool b => b,
             null => false,
-            string s => s switch
-            {
-                "true" => true,
-                "false" => false,
-                "1" => true,
-                "0" => false,
-                _ => parseNumber(s, throwException: false) switch
+            string s
+                => s switch
+                {
+                    "true" => true,
+                    "false" => false,
+                    "1" => true,
+                    "0" => false,
+                    _
+                        => parseNumber(s, throwException: false) switch
+                        {
+                            1 => true,
+                            0 => false,
+                            _
+                                => throw new ExpressionEvaluatorTypeErrorException(
+                                    $"Expected boolean, got value \"{s}\""
+                                ),
+                        }
+                },
+            double s
+                => s switch
                 {
                     1 => true,
                     0 => false,
-                    _ => throw new ExpressionEvaluatorTypeErrorException($"Expected boolean, got value \"{s}\""),
-                }
-            },
-            double s => s switch
-            {
-                1 => true,
-                0 => false,
-                _ => throw new ExpressionEvaluatorTypeErrorException($"Expected boolean, got value {s}"),
-            },
-            _ => throw new ExpressionEvaluatorTypeErrorException("Unknown data type encountered in expression: " + arg.GetType().Name),
+                    _ => throw new ExpressionEvaluatorTypeErrorException($"Expected boolean, got value {s}"),
+                },
+            _
+                => throw new ExpressionEvaluatorTypeErrorException(
+                    "Unknown data type encountered in expression: " + arg.GetType().Name
+                ),
         };
     }
 
@@ -349,7 +380,10 @@ public static class ExpressionEvaluator
     {
         return arg switch
         {
-            bool ab => throw new ExpressionEvaluatorTypeErrorException($"Expected number, got value {(ab ? "true" : "false")}"),
+            bool ab
+                => throw new ExpressionEvaluatorTypeErrorException(
+                    $"Expected number, got value {(ab ? "true" : "false")}"
+                ),
             string s => parseNumber(s),
             IConvertible c => Convert.ToDouble(c),
             _ => null
@@ -373,10 +407,13 @@ public static class ExpressionEvaluator
             return PrepareBooleanArg(args[0]) ? args[1] : args[3];
         }
 
-        throw new ExpressionEvaluatorTypeErrorException("Expected either 2 arguments (if) or 4 (if + else), got " + args.Length);
+        throw new ExpressionEvaluatorTypeErrorException(
+            "Expected either 2 arguments (if) or 4 (if + else), got " + args.Length
+        );
     }
 
     private static readonly Regex numberRegex = new Regex(@"^-?\d+(\.\d+)?$");
+
     private static double? parseNumber(string s, bool throwException = true)
     {
         if (numberRegex.IsMatch(s) && double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var d))
@@ -513,4 +550,3 @@ public static class ExpressionEvaluator
         return positionalArguments[index.Value];
     }
 }
-

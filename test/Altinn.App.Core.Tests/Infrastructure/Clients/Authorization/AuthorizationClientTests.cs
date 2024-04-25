@@ -26,7 +26,14 @@ public class AuthorizationClientTests
         Mock<IOptionsMonitor<AppSettings>> appSettingsMock = new();
         var pdpResponse = GetXacmlJsonRespons("one-action-denied");
         pdpMock.Setup(s => s.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>())).ReturnsAsync(pdpResponse);
-        AuthorizationClient client = new AuthorizationClient(Options.Create(new PlatformSettings()), httpContextAccessorMock.Object, httpClientMock.Object, appSettingsMock.Object, pdpMock.Object, NullLogger<AuthorizationClient>.Instance);
+        AuthorizationClient client = new AuthorizationClient(
+            Options.Create(new PlatformSettings()),
+            httpContextAccessorMock.Object,
+            httpClientMock.Object,
+            appSettingsMock.Object,
+            pdpMock.Object,
+            NullLogger<AuthorizationClient>.Instance
+        );
 
         var claimsPrincipal = GetClaims("1337");
 
@@ -34,18 +41,11 @@ public class AuthorizationClientTests
         {
             Id = "1337/1dd16477-187b-463c-8adf-592c7fa78459",
             Org = "tdd",
-            InstanceOwner = new InstanceOwner()
-            {
-                PartyId = "1337"
-            },
+            InstanceOwner = new InstanceOwner() { PartyId = "1337" },
             AppId = "tdd/test-app",
             Process = new ProcessState()
             {
-                CurrentTask = new ProcessElementInfo()
-                {
-                    AltinnTaskType = "Data",
-                    ElementId = "Task_1"
-                },
+                CurrentTask = new ProcessElementInfo() { AltinnTaskType = "Data", ElementId = "Task_1" },
                 EndEvent = "EndEvent_1"
             }
         };
@@ -57,13 +57,7 @@ public class AuthorizationClientTests
             { "complete", true },
             { "lookup", false }
         };
-        var actions = new List<string>()
-        {
-            "read",
-            "write",
-            "complete",
-            "lookup"
-        };
+        var actions = new List<string>() { "read", "write", "complete", "lookup" };
         var actual = await client.AuthorizeActions(instance, claimsPrincipal, actions);
         actual.Should().BeEquivalentTo(expected);
     }
@@ -75,8 +69,17 @@ public class AuthorizationClientTests
         Mock<HttpContextAccessor> httpContextAccessorMock = new();
         Mock<HttpClient> httpClientMock = new();
         Mock<IOptionsMonitor<AppSettings>> appSettingsMock = new();
-        pdpMock.Setup(s => s.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>())).ReturnsAsync(new XacmlJsonResponse());
-        AuthorizationClient client = new AuthorizationClient(Options.Create(new PlatformSettings()), httpContextAccessorMock.Object, httpClientMock.Object, appSettingsMock.Object, pdpMock.Object, NullLogger<AuthorizationClient>.Instance);
+        pdpMock
+            .Setup(s => s.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .ReturnsAsync(new XacmlJsonResponse());
+        AuthorizationClient client = new AuthorizationClient(
+            Options.Create(new PlatformSettings()),
+            httpContextAccessorMock.Object,
+            httpClientMock.Object,
+            appSettingsMock.Object,
+            pdpMock.Object,
+            NullLogger<AuthorizationClient>.Instance
+        );
 
         var claimsPrincipal = GetClaims("1337");
 
@@ -84,49 +87,42 @@ public class AuthorizationClientTests
         {
             Id = "1337/1dd16477-187b-463c-8adf-592c7fa78459",
             Org = "tdd",
-            InstanceOwner = new InstanceOwner()
-            {
-                PartyId = "1337"
-            },
+            InstanceOwner = new InstanceOwner() { PartyId = "1337" },
             AppId = "tdd/test-app",
             Process = new ProcessState()
             {
-                CurrentTask = new ProcessElementInfo()
-                {
-                    AltinnTaskType = "Data",
-                    ElementId = "Task_1"
-                },
+                CurrentTask = new ProcessElementInfo() { AltinnTaskType = "Data", ElementId = "Task_1" },
                 EndEvent = "EndEvent_1"
             }
         };
 
         var expected = new Dictionary<string, bool>();
-        var actions = new List<string>()
-        {
-            "read",
-            "write",
-            "complete",
-            "lookup"
-        };
+        var actions = new List<string>() { "read", "write", "complete", "lookup" };
         var actual = await client.AuthorizeActions(instance, claimsPrincipal, actions);
         actual.Should().BeEquivalentTo(expected);
     }
 
     private static ClaimsPrincipal GetClaims(string partyId)
     {
-        return new ClaimsPrincipal(new List<ClaimsIdentity>()
-        {
-            new(new List<Claim>
+        return new ClaimsPrincipal(
+            new List<ClaimsIdentity>()
             {
-                new("urn:altinn:partyid", partyId, "#integer"),
-                new("urn:altinn:authlevel", "3", "#integer"),
-            })
-        });
+                new(
+                    new List<Claim>
+                    {
+                        new("urn:altinn:partyid", partyId, "#integer"),
+                        new("urn:altinn:authlevel", "3", "#integer"),
+                    }
+                )
+            }
+        );
     }
 
     private static XacmlJsonResponse GetXacmlJsonRespons(string filename)
     {
-        var xacmlJesonRespons = File.ReadAllText(Path.Join("Infrastructure", "Clients", "Authorization", "TestData", $"{filename}.json"));
+        var xacmlJesonRespons = File.ReadAllText(
+            Path.Join("Infrastructure", "Clients", "Authorization", "TestData", $"{filename}.json")
+        );
         return JsonSerializer.Deserialize<XacmlJsonResponse>(xacmlJesonRespons);
     }
 }

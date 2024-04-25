@@ -14,7 +14,14 @@ namespace Altinn.App.Core.Helpers
         /// <summary>
         /// Run DataProcessWrite returning the dictionary of the changed fields.
         /// </summary>
-        public static async Task<Dictionary<string, object?>?> ProcessDataWriteWithDiff(Instance instance, Guid dataGuid, object serviceModel, string? language, IEnumerable<IDataProcessor> dataProcessors, ILogger logger)
+        public static async Task<Dictionary<string, object?>?> ProcessDataWriteWithDiff(
+            Instance instance,
+            Guid dataGuid,
+            object serviceModel,
+            string? language,
+            IEnumerable<IDataProcessor> dataProcessors,
+            ILogger logger
+        )
         {
             if (!dataProcessors.Any())
             {
@@ -24,7 +31,11 @@ namespace Altinn.App.Core.Helpers
             string serviceModelJsonString = System.Text.Json.JsonSerializer.Serialize(serviceModel);
             foreach (var dataProcessor in dataProcessors)
             {
-                logger.LogInformation("ProcessDataRead for {modelType} using {dataProcesor}", serviceModel.GetType().Name, dataProcessor.GetType().Name);
+                logger.LogInformation(
+                    "ProcessDataRead for {modelType} using {dataProcesor}",
+                    serviceModel.GetType().Name,
+                    dataProcessor.GetType().Name
+                );
                 await dataProcessor.ProcessDataWrite(instance, dataGuid, serviceModel, null, language);
             }
 
@@ -98,9 +109,18 @@ namespace Altinn.App.Core.Helpers
 
                     if (oldObj != null && currentObj != null)
                     {
-                        IEnumerable<string> addedKeys = currentObj.Properties().Select(c => c.Name).Except(oldObj.Properties().Select(c => c.Name));
-                        IEnumerable<string> removedKeys = oldObj.Properties().Select(c => c.Name).Except(currentObj.Properties().Select(c => c.Name));
-                        IEnumerable<string> unchangedKeys = currentObj.Properties().Where(c => JToken.DeepEquals(c.Value, oldObj[c.Name])).Select(c => c.Name);
+                        IEnumerable<string> addedKeys = currentObj
+                            .Properties()
+                            .Select(c => c.Name)
+                            .Except(oldObj.Properties().Select(c => c.Name));
+                        IEnumerable<string> removedKeys = oldObj
+                            .Properties()
+                            .Select(c => c.Name)
+                            .Except(currentObj.Properties().Select(c => c.Name));
+                        IEnumerable<string> unchangedKeys = currentObj
+                            .Properties()
+                            .Where(c => JToken.DeepEquals(c.Value, oldObj[c.Name]))
+                            .Select(c => c.Name);
                         foreach (string key in addedKeys)
                         {
                             FindDiff(dict, JValue.CreateNull(), currentObj[key], Join(prefix, key));
@@ -111,7 +131,11 @@ namespace Altinn.App.Core.Helpers
                             FindDiff(dict, oldObj[key], JValue.CreateNull(), Join(prefix, key));
                         }
 
-                        var potentiallyModifiedKeys = currentObj.Properties().Select(c => c.Name).Except(addedKeys).Except(unchangedKeys);
+                        var potentiallyModifiedKeys = currentObj
+                            .Properties()
+                            .Select(c => c.Name)
+                            .Except(addedKeys)
+                            .Except(unchangedKeys);
                         foreach (var key in potentiallyModifiedKeys)
                         {
                             FindDiff(dict, oldObj[key], currentObj[key], Join(prefix, key));
@@ -129,7 +153,8 @@ namespace Altinn.App.Core.Helpers
                                 dict,
                                 oldArray?.Count - 1 >= index ? oldArray?[index] : new JObject(),
                                 value,
-                                $"{prefix}[{index}]");
+                                $"{prefix}[{index}]"
+                            );
 
                             index++;
                         }
@@ -182,7 +207,10 @@ namespace Altinn.App.Core.Helpers
                     var convertedValue = (current as JValue)?.Value switch
                     {
                         // BigInteger is not supported in json, so try to reduce to decimal, if possible, or string if too big
-                        BigInteger bigInt => bigInt <= new BigInteger(decimal.MaxValue) ? (decimal)bigInt : bigInt.ToString(System.Globalization.NumberFormatInfo.InvariantInfo),
+                        BigInteger bigInt
+                            => bigInt <= new BigInteger(decimal.MaxValue)
+                                ? (decimal)bigInt
+                                : bigInt.ToString(System.Globalization.NumberFormatInfo.InvariantInfo),
                         _ => (current as JValue)?.Value
                     };
                     dict.Add(prefix, convertedValue);

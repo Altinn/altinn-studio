@@ -31,7 +31,7 @@ namespace Altinn.App.Core.Constants
         public const string SubscriptionKeyHeaderName = "Ocp-Apim-Subscription-Key";
 
         /// <summary>
-        /// Header key for access token for eFormidling Integration Point 
+        /// Header key for access token for eFormidling Integration Point
         /// </summary>
         public const string EFormidlingAccessTokenHeaderName = "AltinnIntegrationPointToken";
     }

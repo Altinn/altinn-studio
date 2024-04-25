@@ -12,6 +12,7 @@ public sealed record EmailOrderResponse
     /// </summary>
     [JsonPropertyName("orderId")]
     public string OrderId { get; init; }
+
     /// <summary>
     /// Initializes the EmailOrderResponse class.
     /// </summary>

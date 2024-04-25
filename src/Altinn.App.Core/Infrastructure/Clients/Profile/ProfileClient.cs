@@ -44,13 +44,17 @@ namespace Altinn.App.Core.Infrastructure.Clients.Profile
             IOptionsMonitor<AppSettings> settings,
             HttpClient httpClient,
             IAppMetadata appMetadata,
-            IAccessTokenGenerator accessTokenGenerator)
+            IAccessTokenGenerator accessTokenGenerator
+        )
         {
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiProfileEndpoint);
-            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
+            httpClient.DefaultRequestHeaders.Add(
+                General.SubscriptionKeyHeaderName,
+                platformSettings.Value.SubscriptionKey
+            );
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _client = httpClient;
             _appMetadata = appMetadata;
@@ -63,17 +67,31 @@ namespace Altinn.App.Core.Infrastructure.Clients.Profile
             UserProfile? userProfile = null;
 
             string endpointUrl = $"users/{userId}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+            string token = JwtTokenUtil.GetTokenFromContext(
+                _httpContextAccessor.HttpContext,
+                _settings.RuntimeCookieName
+            );
 
             ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
-            HttpResponseMessage response = await _client.GetAsync(token, endpointUrl, _accessTokenGenerator.GenerateAccessToken(applicationMetadata.Org, applicationMetadata.AppIdentifier.App));
+            HttpResponseMessage response = await _client.GetAsync(
+                token,
+                endpointUrl,
+                _accessTokenGenerator.GenerateAccessToken(
+                    applicationMetadata.Org,
+                    applicationMetadata.AppIdentifier.App
+                )
+            );
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 userProfile = await JsonSerializerPermissive.DeserializeAsync<UserProfile>(response.Content);
             }
             else
             {
-                _logger.LogError("Getting user profile with userId {UserId} failed with statuscode {StatusCode}", userId, response.StatusCode);
+                _logger.LogError(
+                    "Getting user profile with userId {UserId} failed with statuscode {StatusCode}",
+                    userId,
+                    response.StatusCode
+                );
             }
 
             return userProfile;

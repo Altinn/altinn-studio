@@ -30,35 +30,26 @@ public class StatelessPagesControllerTests
         string classRef = typeof(DummyModel).FullName!;
         List<string> expected = new List<string> { "pagetwo", "pagethree" };
         Type type = typeof(DummyModel);
-        appResourcesMock.Setup(r => r.GetClassRefForLogicDataType(dataTypeId))
-            .Returns(classRef);
+        appResourcesMock.Setup(r => r.GetClassRefForLogicDataType(dataTypeId)).Returns(classRef);
         appModelMock.Setup(a => a.GetModelType(classRef)).Returns(type);
-        pageOrderMock.Setup(p =>
+        pageOrderMock
+            .Setup(p =>
                 p.GetPageOrder(
                     It.IsAny<AppIdentifier>(),
                     InstanceIdentifier.NoInstance,
                     layoutSetId,
                     currentpage,
                     dataTypeId,
-                    new DummyModel()
-                    {
-                        Name = "test",
-                        Age = 20
-                    }
-                ))
-            .Returns(
-                Task.FromResult(
-                    new List<string>
-                    {
-                        "pagetwo",
-                        "pagethree"
-                    }
-                ));
+                    new DummyModel() { Name = "test", Age = 20 }
+                )
+            )
+            .Returns(Task.FromResult(new List<string> { "pagetwo", "pagethree" }));
 
         var controller = new StatelessPagesController(
             appModelMock.Object,
             appResourcesMock.Object,
-            pageOrderMock.Object);
+            pageOrderMock.Object
+        );
 
         // Act
 

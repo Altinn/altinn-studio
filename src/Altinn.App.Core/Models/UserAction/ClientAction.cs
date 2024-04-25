@@ -9,7 +9,7 @@ public class ClientAction
 {
     /// <summary>
     /// Id of the action. This is used in the frontend to identify
-    /// which action to run. 
+    /// which action to run.
     /// </summary>
     [JsonPropertyName("id")]
     public string Id { get; set; } = string.Empty;
@@ -26,10 +26,7 @@ public class ClientAction
     /// <returns></returns>
     public static ClientAction NextPage()
     {
-        var frontendAction = new ClientAction()
-        {
-            Id = "nextPage"
-        };
+        var frontendAction = new ClientAction() { Id = "nextPage" };
         return frontendAction;
     }
 
@@ -39,10 +36,7 @@ public class ClientAction
     /// <returns></returns>
     public static ClientAction PreviousPage()
     {
-        var frontendAction = new ClientAction()
-        {
-            Id = "previousPage"
-        };
+        var frontendAction = new ClientAction() { Id = "previousPage" };
         return frontendAction;
     }
 

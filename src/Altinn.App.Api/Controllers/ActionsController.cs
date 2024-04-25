@@ -50,7 +50,8 @@ public class ActionsController : ControllerBase
         UserActionService userActionService,
         IValidationService validationService,
         IDataClient dataClient,
-        IAppMetadata appMetadata)
+        IAppMetadata appMetadata
+    )
     {
         _authorization = authorization;
         _instanceClient = instanceClient;
@@ -83,18 +84,21 @@ public class ActionsController : ControllerBase
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
         [FromBody] UserActionRequest actionRequest,
-        [FromQuery] string? language = null)
+        [FromQuery] string? language = null
+    )
     {
         string? action = actionRequest.Action;
         if (action == null)
         {
-            return new BadRequestObjectResult(new ProblemDetails()
-            {
-                Instance = instanceGuid.ToString(),
-                Status = 400,
-                Title = "Action is missing",
-                Detail = "Action is missing in the request"
-            });
+            return new BadRequestObjectResult(
+                new ProblemDetails()
+                {
+                    Instance = instanceGuid.ToString(),
+                    Status = 400,
+                    Title = "Action is missing",
+                    Detail = "Action is missing in the request"
+                }
+            );
         }
 
         Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
@@ -114,24 +118,33 @@ public class ActionsController : ControllerBase
             return Unauthorized();
         }
 
-        bool authorized = await _authorization.AuthorizeAction(new AppIdentifier(org, app), new InstanceIdentifier(instanceOwnerPartyId, instanceGuid), HttpContext.User, action, instance.Process?.CurrentTask?.ElementId);
+        bool authorized = await _authorization.AuthorizeAction(
+            new AppIdentifier(org, app),
+            new InstanceIdentifier(instanceOwnerPartyId, instanceGuid),
+            HttpContext.User,
+            action,
+            instance.Process?.CurrentTask?.ElementId
+        );
         if (!authorized)
         {
             return Forbid();
         }
 
-        UserActionContext userActionContext = new(instance, userId.Value, actionRequest.ButtonId, actionRequest.Metadata);
+        UserActionContext userActionContext =
+            new(instance, userId.Value, actionRequest.ButtonId, actionRequest.Metadata);
         IUserAction? actionHandler = _userActionService.GetActionHandler(action);
         if (actionHandler == null)
         {
-            return new NotFoundObjectResult(new UserActionResponse()
-            {
-                Error = new ActionError()
+            return new NotFoundObjectResult(
+                new UserActionResponse()
                 {
-                    Code = "ActionNotFound",
-                    Message = $"Action handler with id {action} not found",
+                    Error = new ActionError()
+                    {
+                        Code = "ActionNotFound",
+                        Message = $"Action handler with id {action} not found",
+                    }
                 }
-            });
+            );
         }
 
         UserActionResult result = await actionHandler.HandleAction(userActionContext);
@@ -150,11 +163,8 @@ public class ActionsController : ControllerBase
                     ProcessErrorType.BadRequest => 400,
                     _ => 500
                 },
-                value: new UserActionResponse()
-                {
-                    ClientActions = result.ClientActions,
-                    Error = result.Error
-                });
+                value: new UserActionResponse() { ClientActions = result.ClientActions, Error = result.Error }
+            );
         }
 
         if (result.UpdatedDataModels is { Count: > 0 })
@@ -162,12 +172,19 @@ public class ActionsController : ControllerBase
             await SaveChangedModels(instance, result.UpdatedDataModels);
         }
 
-        return new OkObjectResult(new UserActionResponse()
-        {
-            ClientActions = result.ClientActions,
-            UpdatedDataModels = result.UpdatedDataModels,
-            UpdatedValidationIssues = await GetValidations(instance, result.UpdatedDataModels, actionRequest.IgnoredValidators, language),
-        });
+        return new OkObjectResult(
+            new UserActionResponse()
+            {
+                ClientActions = result.ClientActions,
+                UpdatedDataModels = result.UpdatedDataModels,
+                UpdatedValidationIssues = await GetValidations(
+                    instance,
+                    result.UpdatedDataModels,
+                    actionRequest.IgnoredValidators,
+                    language
+                ),
+            }
+        );
     }
 
     private async Task SaveChangedModels(Instance instance, Dictionary<string, object> resultUpdatedDataModels)
@@ -183,11 +200,24 @@ public class ActionsController : ControllerBase
             ObjectUtils.InitializeAltinnRowId(newModel);
 
             var dataElement = instance.Data.First(d => d.Id.Equals(elementId, StringComparison.OrdinalIgnoreCase));
-            await _dataClient.UpdateData(newModel, instanceIdentifier.InstanceGuid, newModel.GetType(), instance.Org, instance.AppId.Split('/')[1], instanceIdentifier.InstanceOwnerPartyId, Guid.Parse(dataElement.Id));
+            await _dataClient.UpdateData(
+                newModel,
+                instanceIdentifier.InstanceGuid,
+                newModel.GetType(),
+                instance.Org,
+                instance.AppId.Split('/')[1],
+                instanceIdentifier.InstanceOwnerPartyId,
+                Guid.Parse(dataElement.Id)
+            );
         }
     }
 
-    private async Task<Dictionary<string, Dictionary<string, List<ValidationIssue>>>?> GetValidations(Instance instance, Dictionary<string, object>? resultUpdatedDataModels, List<string>? ignoredValidators, string? language)
+    private async Task<Dictionary<string, Dictionary<string, List<ValidationIssue>>>?> GetValidations(
+        Instance instance,
+        Dictionary<string, object>? resultUpdatedDataModels,
+        List<string>? ignoredValidators,
+        string? language
+    )
     {
         if (resultUpdatedDataModels is null || resultUpdatedDataModels.Count < 1)
         {
@@ -208,12 +238,29 @@ public class ActionsController : ControllerBase
             }
 
             var dataElement = instance.Data.First(d => d.Id.Equals(elementId, StringComparison.OrdinalIgnoreCase));
-            var dataType = application.DataTypes.First(d => d.Id.Equals(dataElement.DataType, StringComparison.OrdinalIgnoreCase));
+            var dataType = application.DataTypes.First(d =>
+                d.Id.Equals(dataElement.DataType, StringComparison.OrdinalIgnoreCase)
+            );
 
             // TODO: Consider rewriting so that we get the original data the IUserAction have requested instead of fetching it again
-            var oldData = await _dataClient.GetFormData(instanceIdentifier.InstanceGuid, newModel.GetType(), instance.Org, instance.AppId.Split('/')[1], instanceIdentifier.InstanceOwnerPartyId, Guid.Parse(dataElement.Id));
+            var oldData = await _dataClient.GetFormData(
+                instanceIdentifier.InstanceGuid,
+                newModel.GetType(),
+                instance.Org,
+                instance.AppId.Split('/')[1],
+                instanceIdentifier.InstanceOwnerPartyId,
+                Guid.Parse(dataElement.Id)
+            );
 
-            var validationIssues = await _validationService.ValidateFormData(instance, dataElement, dataType, newModel, oldData, ignoredValidators, language);
+            var validationIssues = await _validationService.ValidateFormData(
+                instance,
+                dataElement,
+                dataType,
+                newModel,
+                oldData,
+                ignoredValidators,
+                language
+            );
             if (validationIssues.Count > 0)
             {
                 updatedValidationIssues.Add(elementId, validationIssues);

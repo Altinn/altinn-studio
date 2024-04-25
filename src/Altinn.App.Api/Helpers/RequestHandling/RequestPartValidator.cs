@@ -51,9 +51,11 @@ namespace Altinn.App.Api.Helpers.RequestHandling
                     string contentTypeWithoutEncoding = part.ContentType.Split(";")[0];
 
                     // restrict content type if allowedContentTypes is specified
-                    if (dataType.AllowedContentTypes != null &&
-                        dataType.AllowedContentTypes.Count > 0 &&
-                        !dataType.AllowedContentTypes.Contains(contentTypeWithoutEncoding))
+                    if (
+                        dataType.AllowedContentTypes != null
+                        && dataType.AllowedContentTypes.Count > 0
+                        && !dataType.AllowedContentTypes.Contains(contentTypeWithoutEncoding)
+                    )
                     {
                         return $"The multipart section named {part.Name} has a Content-Type '{part.ContentType}' which is invalid for element type '{dataType.Id}'";
                     }
@@ -66,7 +68,11 @@ namespace Altinn.App.Api.Helpers.RequestHandling
                     return $"The multipart section named {part.Name} has no data. Cannot process empty part.";
                 }
 
-                if (dataType.MaxSize.HasValue && dataType.MaxSize > 0 && contentSize > (long)dataType.MaxSize.Value * 1024 * 1024)
+                if (
+                    dataType.MaxSize.HasValue
+                    && dataType.MaxSize > 0
+                    && contentSize > (long)dataType.MaxSize.Value * 1024 * 1024
+                )
                 {
                     return $"The multipart section named {part.Name} exceeds the size limit of element type '{dataType.Id}'";
                 }

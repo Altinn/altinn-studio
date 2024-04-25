@@ -3,7 +3,6 @@ namespace Altinn.App.Core.Tests.Infrastructure.Clients.KeyVault;
 
 using System.Text.Json;
 using Altinn.App.Core.Infrastructure.Clients.KeyVault;
-
 using FluentAssertions;
 using Microsoft.Azure.KeyVault.WebKey;
 using Microsoft.Extensions.Configuration;
@@ -11,10 +10,8 @@ using Xunit;
 
 public class SecretsLocalClientTests
 {
-    public static IConfiguration GetConfiguration(params (string Key, string Value)[] keys)
-       => new ConfigurationBuilder()
-            .AddInMemoryCollection(keys.ToDictionary(k => k.Key, k => k.Value))
-            .Build();
+    public static IConfiguration GetConfiguration(params (string Key, string Value)[] keys) =>
+        new ConfigurationBuilder().AddInMemoryCollection(keys.ToDictionary(k => k.Key, k => k.Value)).Build();
 
     [Fact]
     public async Task TestMissingSecretId_ThrowsException()
@@ -50,10 +47,7 @@ public class SecretsLocalClientTests
     [Fact]
     public async Task TestKeyFoundInSecretsJson()
     {
-        var jwk = new JsonWebKey()
-        {
-            CurveName = "sillyCurveForTest"
-        };
+        var jwk = new JsonWebKey() { CurveName = "sillyCurveForTest" };
         var jwkSerialized = JsonSerializer.Serialize(jwk);
         var sut = new SecretsLocalClient(GetConfiguration(("jwk", jwkSerialized)));
 

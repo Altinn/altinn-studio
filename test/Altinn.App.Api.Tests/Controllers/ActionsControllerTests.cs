@@ -18,9 +18,8 @@ namespace Altinn.App.Api.Tests.Controllers;
 
 public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
-    public ActionsControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper) : base(factory, outputHelper)
-    {
-    }
+    public ActionsControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
+        : base(factory, outputHelper) { }
 
     [Fact]
     public async Task Perform_returns_403_if_user_not_authorized()
@@ -33,8 +32,15 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         TestData.PrepareInstance(org, app, 1337, guid);
         string token = PrincipalUtil.GetToken(1000, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        using var content = new StringContent("{\"action\":\"lookup_unauthorized\"}", Encoding.UTF8, "application/json");
-        using HttpResponseMessage response = await client.PostAsync($"/{org}/{app}/instances/1337/{guid}/actions", content);
+        using var content = new StringContent(
+            "{\"action\":\"lookup_unauthorized\"}",
+            Encoding.UTF8,
+            "application/json"
+        );
+        using HttpResponseMessage response = await client.PostAsync(
+            $"/{org}/{app}/instances/1337/{guid}/actions",
+            content
+        );
         // Cleanup testdata
         TestData.DeleteInstanceAndData(org, app, 1337, guid);
 
@@ -50,8 +56,15 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
         TestData.DeleteInstance(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
-        using var content = new StringContent("{\"action\":\"lookup_unauthorized\"}", Encoding.UTF8, "application/json");
-        using HttpResponseMessage response = await client.PostAsync($"/{org}/{app}/instances/1337/{guid}/actions", content);
+        using var content = new StringContent(
+            "{\"action\":\"lookup_unauthorized\"}",
+            Encoding.UTF8,
+            "application/json"
+        );
+        using HttpResponseMessage response = await client.PostAsync(
+            $"/{org}/{app}/instances/1337/{guid}/actions",
+            content
+        );
         // Cleanup testdata
         TestData.DeleteInstanceAndData(org, app, 1337, guid);
 
@@ -69,8 +82,15 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         TestData.PrepareInstance(org, app, 1337, guid);
         string token = PrincipalUtil.GetToken(null, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        using var content = new StringContent("{\"action\":\"lookup_unauthorized\"}", Encoding.UTF8, "application/json");
-        using HttpResponseMessage response = await client.PostAsync($"/{org}/{app}/instances/1337/{guid}/actions", content);
+        using var content = new StringContent(
+            "{\"action\":\"lookup_unauthorized\"}",
+            Encoding.UTF8,
+            "application/json"
+        );
+        using HttpResponseMessage response = await client.PostAsync(
+            $"/{org}/{app}/instances/1337/{guid}/actions",
+            content
+        );
         // Cleanup testdata
         TestData.DeleteInstanceAndData(org, app, 1337, guid);
 
@@ -89,7 +109,10 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         string token = PrincipalUtil.GetToken(1000, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         using var content = new StringContent("{\"action\":null}", Encoding.UTF8, "application/json");
-        using HttpResponseMessage response = await client.PostAsync($"/{org}/{app}/instances/1337/{guid}/actions", content);
+        using HttpResponseMessage response = await client.PostAsync(
+            $"/{org}/{app}/instances/1337/{guid}/actions",
+            content
+        );
         // Cleanup testdata
         TestData.DeleteInstanceAndData(org, app, 1337, guid);
 
@@ -108,7 +131,10 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         string token = PrincipalUtil.GetToken(1000, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         using var content = new StringContent("{\"action\":\"lookup\"}", Encoding.UTF8, "application/json");
-        using HttpResponseMessage response = await client.PostAsync($"/{org}/{app}/instances/1337/{guid}/actions", content);
+        using HttpResponseMessage response = await client.PostAsync(
+            $"/{org}/{app}/instances/1337/{guid}/actions",
+            content
+        );
         // Cleanup testdata
         TestData.DeleteInstanceAndData(org, app, 1337, guid);
 
@@ -127,7 +153,10 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         string token = PrincipalUtil.GetToken(1000, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         using var content = new StringContent("{\"action\":\"lookup\"}", Encoding.UTF8, "application/json");
-        using HttpResponseMessage response = await client.PostAsync($"/{org}/{app}/instances/1337/{guid}/actions", content);
+        using HttpResponseMessage response = await client.PostAsync(
+            $"/{org}/{app}/instances/1337/{guid}/actions",
+            content
+        );
         // Cleanup testdata
         TestData.DeleteInstanceAndData(org, app, 1337, guid);
 
@@ -137,7 +166,10 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     [Fact]
     public async Task Perform_returns_200_if_action_succeeded()
     {
-        OverrideServicesForThisTest = (services) => { services.AddTransient<IUserAction, LookupAction>(); };
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddTransient<IUserAction, LookupAction>();
+        };
         var org = "tdd";
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
@@ -147,31 +179,37 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         string token = PrincipalUtil.GetToken(1000, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         using var requestContent = new StringContent("{\"action\":\"lookup\"}", Encoding.UTF8, "application/json");
-        using HttpResponseMessage response = await client.PostAsync($"/{org}/{app}/instances/1337/{guid}/actions", requestContent);
+        using HttpResponseMessage response = await client.PostAsync(
+            $"/{org}/{app}/instances/1337/{guid}/actions",
+            requestContent
+        );
         // Cleanup testdata
         TestData.DeleteInstanceAndData(org, app, 1337, guid);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var content = await response.Content.ReadAsStringAsync();
         var expectedString = """
-                             {
-                               "updatedDataModels": null,
-                               "clientActions": [
-                                 {
-                                   "id": "nextPage",
-                                   "metadata": null
-                                 }
-                               ],
-                               "error": null
-                             }
-                             """;
+            {
+              "updatedDataModels": null,
+              "clientActions": [
+                {
+                  "id": "nextPage",
+                  "metadata": null
+                }
+              ],
+              "error": null
+            }
+            """;
         CompareResult<UserActionResponse>(expectedString, content);
     }
 
     [Fact]
     public async Task Perform_returns_400_if_action_failed_and_errorType_is_BadRequest()
     {
-        OverrideServicesForThisTest = (services) => { services.AddTransient<IUserAction, LookupAction>(); };
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddTransient<IUserAction, LookupAction>();
+        };
         var org = "tdd";
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
@@ -181,7 +219,10 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         string token = PrincipalUtil.GetToken(400, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         using var content = new StringContent("{\"action\":\"lookup\"}", Encoding.UTF8, "application/json");
-        using HttpResponseMessage response = await client.PostAsync($"/{org}/{app}/instances/1337/{guid}/actions", content);
+        using HttpResponseMessage response = await client.PostAsync(
+            $"/{org}/{app}/instances/1337/{guid}/actions",
+            content
+        );
         // Cleanup testdata
         TestData.DeleteInstanceAndData(org, app, 1337, guid);
 
@@ -191,7 +232,10 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     [Fact]
     public async Task Perform_returns_401_if_action_failed_and_errorType_is_Unauthorized()
     {
-        OverrideServicesForThisTest = (services) => { services.AddTransient<IUserAction, LookupAction>(); };
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddTransient<IUserAction, LookupAction>();
+        };
         var org = "tdd";
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
@@ -201,7 +245,10 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         string token = PrincipalUtil.GetToken(401, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         using var content = new StringContent("{\"action\":\"lookup\"}", Encoding.UTF8, "application/json");
-        using HttpResponseMessage response = await client.PostAsync($"/{org}/{app}/instances/1337/{guid}/actions", content);
+        using HttpResponseMessage response = await client.PostAsync(
+            $"/{org}/{app}/instances/1337/{guid}/actions",
+            content
+        );
         // Cleanup testdata
         TestData.DeleteInstanceAndData(org, app, 1337, guid);
 
@@ -211,7 +258,10 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     [Fact]
     public async Task Perform_returns_409_if_action_failed_and_errorType_is_Conflict()
     {
-        OverrideServicesForThisTest = (services) => { services.AddTransient<IUserAction, LookupAction>(); };
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddTransient<IUserAction, LookupAction>();
+        };
         var org = "tdd";
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
@@ -221,7 +271,10 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         string token = PrincipalUtil.GetToken(409, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         using var content = new StringContent("{\"action\":\"lookup\"}", Encoding.UTF8, "application/json");
-        using HttpResponseMessage response = await client.PostAsync($"/{org}/{app}/instances/1337/{guid}/actions", content);
+        using HttpResponseMessage response = await client.PostAsync(
+            $"/{org}/{app}/instances/1337/{guid}/actions",
+            content
+        );
         // Cleanup testdata
         TestData.DeleteInstanceAndData(org, app, 1337, guid);
 
@@ -231,7 +284,10 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     [Fact]
     public async Task Perform_returns_500_if_action_failed_and_errorType_is_Internal()
     {
-        OverrideServicesForThisTest = (services) => { services.AddTransient<IUserAction, LookupAction>(); };
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddTransient<IUserAction, LookupAction>();
+        };
         var org = "tdd";
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
@@ -241,7 +297,10 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         string token = PrincipalUtil.GetToken(500, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         using var content = new StringContent("{\"action\":\"lookup\"}", Encoding.UTF8, "application/json");
-        using HttpResponseMessage response = await client.PostAsync($"/{org}/{app}/instances/1337/{guid}/actions", content);
+        using HttpResponseMessage response = await client.PostAsync(
+            $"/{org}/{app}/instances/1337/{guid}/actions",
+            content
+        );
         // Cleanup testdata
         TestData.DeleteInstanceAndData(org, app, 1337, guid);
 
@@ -251,7 +310,10 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     [Fact]
     public async Task Perform_returns_404_if_action_implementation_not_found()
     {
-        OverrideServicesForThisTest = (services) => { services.AddTransient<IUserAction, LookupAction>(); };
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddTransient<IUserAction, LookupAction>();
+        };
         var org = "tdd";
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
@@ -261,13 +323,15 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         string token = PrincipalUtil.GetToken(1001, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         using var content = new StringContent("{\"action\":\"notfound\"}", Encoding.UTF8, "application/json");
-        using HttpResponseMessage response = await client.PostAsync($"/{org}/{app}/instances/1337/{guid}/actions", content);
+        using HttpResponseMessage response = await client.PostAsync(
+            $"/{org}/{app}/instances/1337/{guid}/actions",
+            content
+        );
         // Cleanup testdata
         TestData.DeleteInstanceAndData(org, app, 1337, guid);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
-
 
     //TODO: replace this assertion with a proper one once fluentassertions has a json compare feature scheduled for v7 https://github.com/fluentassertions/fluentassertions/issues/2205
     private static void CompareResult<T>(string expectedString, string actualString)

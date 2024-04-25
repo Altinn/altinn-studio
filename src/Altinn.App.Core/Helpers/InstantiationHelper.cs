@@ -19,7 +19,10 @@ namespace Altinn.App.Core.Helpers
         /// <param name="parties">The list of parties to be filtered</param>
         /// <param name="partyTypesAllowed">The allowed party types</param>
         /// <returns>A list with the filtered parties</returns>
-        public static List<Party> FilterPartiesByAllowedPartyTypes(List<Party>? parties, PartyTypesAllowed? partyTypesAllowed)
+        public static List<Party> FilterPartiesByAllowedPartyTypes(
+            List<Party>? parties,
+            PartyTypesAllowed? partyTypesAllowed
+        )
         {
             List<Party> allowed = new List<Party>();
             if (parties == null || partyTypesAllowed == null)
@@ -80,7 +83,15 @@ namespace Altinn.App.Core.Helpers
                 return false;
             }
 
-            if (partyTypesAllowed == null || (!partyTypesAllowed.BankruptcyEstate && !partyTypesAllowed.Organisation && !partyTypesAllowed.Person && !partyTypesAllowed.SubUnit))
+            if (
+                partyTypesAllowed == null
+                || (
+                    !partyTypesAllowed.BankruptcyEstate
+                    && !partyTypesAllowed.Organisation
+                    && !partyTypesAllowed.Person
+                    && !partyTypesAllowed.SubUnit
+                )
+            )
             {
                 // if party types not set, all parties are allowed to initiate
                 return true;
@@ -89,7 +100,9 @@ namespace Altinn.App.Core.Helpers
             PartyType partyType = party.PartyTypeName;
             bool isAllowed = false;
 
-            bool isSubUnit = party.UnitType != null && (SUB_UNIT_CODE.Equals(party.UnitType.Trim()) || SUB_UNIT_CODE_AAFY.Equals(party.UnitType.Trim()));
+            bool isSubUnit =
+                party.UnitType != null
+                && (SUB_UNIT_CODE.Equals(party.UnitType.Trim()) || SUB_UNIT_CODE_AAFY.Equals(party.UnitType.Trim()));
             bool isMainUnit = !isSubUnit;
             bool isKbo = party.UnitType != null && BANKRUPTCY_CODE.Equals(party.UnitType.Trim());
 
@@ -171,27 +184,15 @@ namespace Altinn.App.Core.Helpers
         {
             if (!string.IsNullOrEmpty(party.SSN))
             {
-                return new()
-                {
-                    PartyId = party.PartyId.ToString(),
-                    PersonNumber = party.SSN,
-                };
+                return new() { PartyId = party.PartyId.ToString(), PersonNumber = party.SSN, };
             }
             else if (!string.IsNullOrEmpty(party.OrgNumber))
             {
-                return new()
-                {
-                    PartyId = party.PartyId.ToString(),
-                    OrganisationNumber = party.OrgNumber,
-                };
+                return new() { PartyId = party.PartyId.ToString(), OrganisationNumber = party.OrgNumber, };
             }
             else if (party.PartyTypeName.Equals(PartyType.SelfIdentified))
             {
-                return new()
-                {
-                    PartyId = party.PartyId.ToString(),
-                    Username = party.Name,
-                };
+                return new() { PartyId = party.PartyId.ToString(), Username = party.Name, };
             }
             return new()
             {

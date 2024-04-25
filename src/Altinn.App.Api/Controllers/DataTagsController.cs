@@ -1,6 +1,5 @@
 using System.Net.Mime;
 using System.Text.RegularExpressions;
-
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Constants;
@@ -8,7 +7,6 @@ using Altinn.App.Core.Infrastructure.Clients;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.Platform.Storage.Interface.Models;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -32,9 +30,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <param name="instanceClient">A client that can be used to send instance requests to storage.</param>
         /// <param name="dataClient">A client that can be used to send data requests to storage.</param>
-        public DataTagsController(
-            IInstanceClient instanceClient,
-            IDataClient dataClient)
+        public DataTagsController(IInstanceClient instanceClient, IDataClient dataClient)
         {
             _instanceClient = instanceClient;
             _dataClient = dataClient;
@@ -57,7 +53,8 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] string app,
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
-            [FromRoute] Guid dataGuid)
+            [FromRoute] Guid dataGuid
+        )
         {
             Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
             if (instance == null)
@@ -72,10 +69,7 @@ namespace Altinn.App.Api.Controllers
                 return NotFound("Unable to find data element based on the given parameters.");
             }
 
-            TagsList tagsList = new TagsList
-            {
-                Tags = dataElement.Tags
-            };
+            TagsList tagsList = new TagsList { Tags = dataElement.Tags };
 
             return tagsList;
         }
@@ -99,7 +93,8 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
             [FromRoute] Guid dataGuid,
-            [FromBody] string tag)
+            [FromBody] string tag
+        )
         {
             if (tag == null || !Regex.Match(tag, "^[\\p{L}\\-_]+$").Success)
             {
@@ -125,13 +120,17 @@ namespace Altinn.App.Api.Controllers
                 dataElement = await _dataClient.Update(instance, dataElement);
             }
 
-            TagsList tagsList = new TagsList
-            {
-                Tags = dataElement.Tags
-            };
+            TagsList tagsList = new TagsList { Tags = dataElement.Tags };
 
             // There is no endpoint to GET a specific tag. Using the tags list endpoint.
-            var routeValues = new { org, app, instanceOwnerPartyId, instanceGuid, dataGuid };
+            var routeValues = new
+            {
+                org,
+                app,
+                instanceOwnerPartyId,
+                instanceGuid,
+                dataGuid
+            };
             return CreatedAtAction(nameof(Get), routeValues, tagsList);
         }
 
@@ -153,7 +152,8 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
             [FromRoute] Guid dataGuid,
-            [FromRoute] string tag)
+            [FromRoute] string tag
+        )
         {
             Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
             if (instance == null)

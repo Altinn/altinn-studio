@@ -34,11 +34,7 @@ public class ProcessStateExtensionTests
                 Flow = 1,
                 FlowType = "FlowType",
                 Name = "Name",
-                Validated = new ValidationStatus()
-                {
-                    Timestamp = DateTime.Now,
-                    CanCompleteTask = true
-                },
+                Validated = new ValidationStatus() { Timestamp = DateTime.Now, CanCompleteTask = true },
             }
         };
         ProcessState copy = original.Copy();

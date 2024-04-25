@@ -1,26 +1,26 @@
-using Microsoft.Extensions.Primitives;
 using Altinn.App.Api.Controllers;
+using Altinn.App.Api.Models;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Internal.AppModel;
-using Altinn.Common.PEP.Interfaces;
-using Altinn.Platform.Storage.Interface.Models;
-using FluentAssertions;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Moq;
-using Xunit;
-using Altinn.App.Api.Models;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
+using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
+using Altinn.Platform.Storage.Interface.Models;
+using FluentAssertions;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
+using Moq;
+using Xunit;
 using IProcessEngine = Altinn.App.Core.Internal.Process.IProcessEngine;
 
 namespace Altinn.App.Api.Tests.Controllers;
@@ -43,22 +43,24 @@ public class InstancesController_ActiveInstancesTest
     private readonly Mock<IProcessEngine> _processEngine = new();
     private readonly Mock<IOrganizationClient> _oarganizationClientMock = new();
 
-    private InstancesController SUT => new InstancesController(
-        _logger.Object,
-        _registrer.Object,
-        _instanceClient.Object,
-        _data.Object,
-        _appMetadata.Object,
-        _appModel.Object,
-        _instantiationProcessor.Object,
-        _instantiationValidator.Object,
-        _pdp.Object,
-        _eventsService.Object,
-        _appSettings,
-        _prefill.Object,
-        _profile.Object,
-        _processEngine.Object,
-        _oarganizationClientMock.Object);
+    private InstancesController SUT =>
+        new InstancesController(
+            _logger.Object,
+            _registrer.Object,
+            _instanceClient.Object,
+            _data.Object,
+            _appMetadata.Object,
+            _appModel.Object,
+            _instantiationProcessor.Object,
+            _instantiationValidator.Object,
+            _pdp.Object,
+            _eventsService.Object,
+            _appSettings,
+            _prefill.Object,
+            _profile.Object,
+            _processEngine.Object,
+            _oarganizationClientMock.Object
+        );
 
     private void VerifyNoOtherCalls()
     {
@@ -87,7 +89,9 @@ public class InstancesController_ActiveInstancesTest
         var instances = new List<Instance>();
         var expected = new List<SimpleInstance>();
 
-        _instanceClient.Setup(c => c.GetInstances(It.IsAny<Dictionary<string, StringValues>>())).ReturnsAsync(instances);
+        _instanceClient
+            .Setup(c => c.GetInstances(It.IsAny<Dictionary<string, StringValues>>()))
+            .ReturnsAsync(instances);
 
         // Act
         var controller = SUT;
@@ -98,9 +102,9 @@ public class InstancesController_ActiveInstancesTest
         resultValue.Should().NotBeNull();
         resultValue.Should().BeEquivalentTo(expected);
 
-        _instanceClient.Verify(c => c.GetInstances(It.Is<Dictionary<string, StringValues>>(query =>
-            query.ContainsKey("appId")
-        )));
+        _instanceClient.Verify(c =>
+            c.GetInstances(It.Is<Dictionary<string, StringValues>>(query => query.ContainsKey("appId")))
+        );
         VerifyNoOtherCalls();
     }
 
@@ -118,10 +122,7 @@ public class InstancesController_ActiveInstancesTest
                 DueBefore = DateTime.Today.AddDays(20),
                 LastChanged = DateTime.Now,
                 LastChangedBy = "12345",
-                PresentationTexts = new()
-                {
-                    { "periode", "1. halvår 2023" }
-                }
+                PresentationTexts = new() { { "periode", "1. halvår 2023" } }
             }
         };
         var expected = instances.Select(i => new SimpleInstance()
@@ -138,7 +139,9 @@ public class InstancesController_ActiveInstancesTest
             }
         });
 
-        _instanceClient.Setup(c => c.GetInstances(It.IsAny<Dictionary<string, StringValues>>())).ReturnsAsync(instances);
+        _instanceClient
+            .Setup(c => c.GetInstances(It.IsAny<Dictionary<string, StringValues>>()))
+            .ReturnsAsync(instances);
         // _profile.Setup(p=>p.GetUserProfile(12345)).ReturnsAsync(default(UserProfile)!);
 
         // Act
@@ -150,9 +153,9 @@ public class InstancesController_ActiveInstancesTest
         resultValue.Should().NotBeNull();
         resultValue.Should().BeEquivalentTo(expected);
 
-        _instanceClient.Verify(c => c.GetInstances(It.Is<Dictionary<string, StringValues>>(query =>
-            query.ContainsKey("appId")
-        )));
+        _instanceClient.Verify(c =>
+            c.GetInstances(It.Is<Dictionary<string, StringValues>>(query => query.ContainsKey("appId")))
+        );
         _profile.Verify(p => p.GetUserProfile(12345));
         VerifyNoOtherCalls();
     }
@@ -170,11 +173,7 @@ public class InstancesController_ActiveInstancesTest
                 Id = $"{1234}/{Guid.NewGuid()}",
                 LastChanged = DateTime.Now,
                 LastChangedBy = "12345",
-                PresentationTexts = new()
-                {
-                    { "periode", "1. halvår 2023" },
-                    { "kontaktperson", "Eirk Blodøks" }
-                }
+                PresentationTexts = new() { { "periode", "1. halvår 2023" }, { "kontaktperson", "Eirk Blodøks" } }
             }
         };
         var expected = instances.Select(i => new SimpleInstance()
@@ -191,7 +190,9 @@ public class InstancesController_ActiveInstancesTest
             }
         });
 
-        _instanceClient.Setup(c => c.GetInstances(It.IsAny<Dictionary<string, StringValues>>())).ReturnsAsync(instances);
+        _instanceClient
+            .Setup(c => c.GetInstances(It.IsAny<Dictionary<string, StringValues>>()))
+            .ReturnsAsync(instances);
         _profile.Setup(p => p.GetUserProfile(12345)).ReturnsAsync(new UserProfile());
 
         // Act
@@ -203,9 +204,9 @@ public class InstancesController_ActiveInstancesTest
         resultValue.Should().NotBeNull();
         resultValue.Should().BeEquivalentTo(expected);
 
-        _instanceClient.Verify(c => c.GetInstances(It.Is<Dictionary<string, StringValues>>(query =>
-            query.ContainsKey("appId")
-        )));
+        _instanceClient.Verify(c =>
+            c.GetInstances(It.Is<Dictionary<string, StringValues>>(query => query.ContainsKey("appId")))
+        );
         _profile.Verify(p => p.GetUserProfile(12345));
         VerifyNoOtherCalls();
     }
@@ -238,14 +239,12 @@ public class InstancesController_ActiveInstancesTest
             }
         });
 
-        _instanceClient.Setup(c => c.GetInstances(It.IsAny<Dictionary<string, StringValues>>())).ReturnsAsync(instances);
-        _profile.Setup(p => p.GetUserProfile(12345)).ReturnsAsync(new UserProfile()
-        {
-            Party = new()
-            {
-                Name = "Ola Olsen"
-            }
-        });
+        _instanceClient
+            .Setup(c => c.GetInstances(It.IsAny<Dictionary<string, StringValues>>()))
+            .ReturnsAsync(instances);
+        _profile
+            .Setup(p => p.GetUserProfile(12345))
+            .ReturnsAsync(new UserProfile() { Party = new() { Name = "Ola Olsen" } });
 
         // Act
         var controller = SUT;
@@ -256,9 +255,9 @@ public class InstancesController_ActiveInstancesTest
         resultValue.Should().NotBeNull();
         resultValue.Should().BeEquivalentTo(expected);
 
-        _instanceClient.Verify(c => c.GetInstances(It.Is<Dictionary<string, StringValues>>(query =>
-            query.ContainsKey("appId")
-        )));
+        _instanceClient.Verify(c =>
+            c.GetInstances(It.Is<Dictionary<string, StringValues>>(query => query.ContainsKey("appId")))
+        );
         _profile.Verify(p => p.GetUserProfile(12345));
         VerifyNoOtherCalls();
     }
@@ -292,7 +291,9 @@ public class InstancesController_ActiveInstancesTest
             }
         });
 
-        _instanceClient.Setup(c => c.GetInstances(It.IsAny<Dictionary<string, StringValues>>())).ReturnsAsync(instances);
+        _instanceClient
+            .Setup(c => c.GetInstances(It.IsAny<Dictionary<string, StringValues>>()))
+            .ReturnsAsync(instances);
         _oarganizationClientMock.Setup(er => er.GetOrganization("123456789")).ReturnsAsync(default(Organization));
 
         // Act
@@ -304,9 +305,9 @@ public class InstancesController_ActiveInstancesTest
         resultValue.Should().NotBeNull();
         resultValue.Should().BeEquivalentTo(expected);
 
-        _instanceClient.Verify(c => c.GetInstances(It.Is<Dictionary<string, StringValues>>(query =>
-            query.ContainsKey("appId")
-        )));
+        _instanceClient.Verify(c =>
+            c.GetInstances(It.Is<Dictionary<string, StringValues>>(query => query.ContainsKey("appId")))
+        );
         _oarganizationClientMock.Verify(er => er.GetOrganization("123456789"));
         VerifyNoOtherCalls();
     }
@@ -339,11 +340,12 @@ public class InstancesController_ActiveInstancesTest
             }
         });
 
-        _instanceClient.Setup(c => c.GetInstances(It.IsAny<Dictionary<string, StringValues>>())).ReturnsAsync(instances);
-        _oarganizationClientMock.Setup(er => er.GetOrganization("123456789")).ReturnsAsync(new Organization
-        {
-            Name = "Testdepartementet"
-        });
+        _instanceClient
+            .Setup(c => c.GetInstances(It.IsAny<Dictionary<string, StringValues>>()))
+            .ReturnsAsync(instances);
+        _oarganizationClientMock
+            .Setup(er => er.GetOrganization("123456789"))
+            .ReturnsAsync(new Organization { Name = "Testdepartementet" });
 
         // Act
         var controller = SUT;
@@ -354,9 +356,9 @@ public class InstancesController_ActiveInstancesTest
         resultValue.Should().NotBeNull();
         resultValue.Should().BeEquivalentTo(expected);
 
-        _instanceClient.Verify(c => c.GetInstances(It.Is<Dictionary<string, StringValues>>(query =>
-            query.ContainsKey("appId")
-        )));
+        _instanceClient.Verify(c =>
+            c.GetInstances(It.Is<Dictionary<string, StringValues>>(query => query.ContainsKey("appId")))
+        );
         _oarganizationClientMock.Verify(er => er.GetOrganization("123456789"));
         VerifyNoOtherCalls();
     }

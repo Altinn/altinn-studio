@@ -16,20 +16,23 @@ namespace Altinn.App.Api.Tests.Controllers;
 
 public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions =
+        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, };
 
     private readonly Mock<IDataProcessor> _dataProcessor = new();
 
-    public InstancesController_PostNewInstanceTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper) : base(factory, outputHelper)
+    public InstancesController_PostNewInstanceTests(
+        WebApplicationFactory<Program> factory,
+        ITestOutputHelper outputHelper
+    )
+        : base(factory, outputHelper)
     {
         OverrideServicesForAllTests = (services) =>
         {
             services.AddSingleton(_dataProcessor.Object);
         };
     }
+
     [Fact]
     public async Task PostNewInstanceWithContent_EnsureDataIsPresent()
     {
@@ -44,11 +47,20 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
         // Create instance data
         using var content = new MultipartFormDataContent();
-        content.Add(new StringContent($$$"""<Skjema><melding><name>{{{testName}}}</name></melding></Skjema>""", System.Text.Encoding.UTF8, "application/xml"), "default");
+        content.Add(
+            new StringContent(
+                $$$"""<Skjema><melding><name>{{{testName}}}</name></melding></Skjema>""",
+                System.Text.Encoding.UTF8,
+                "application/xml"
+            ),
+            "default"
+        );
 
         // Create instance
-        var createResponse =
-            await client.PostAsync($"{org}/{app}/instances/?instanceOwnerPartyId={instanceOwnerPartyId}", content);
+        var createResponse = await client.PostAsync(
+            $"{org}/{app}/instances/?instanceOwnerPartyId={instanceOwnerPartyId}",
+            content
+        );
         var createResponseContent = await createResponse.Content.ReadAsStringAsync();
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created, createResponseContent);
 
@@ -59,13 +71,11 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         createResponseParsed.Data.Should().HaveCount(1, "Create instance should create a data element");
         var dataGuid = createResponseParsed.Data.First().Id;
 
-
         // Verify stored data
         var readDataElementResponse = await client.GetAsync($"/{org}/{app}/instances/{instanceId}/data/{dataGuid}");
         readDataElementResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var readDataElementResponseContent = await readDataElementResponse.Content.ReadAsStringAsync();
-        var readDataElementResponseParsed =
-            JsonSerializer.Deserialize<Skjema>(readDataElementResponseContent)!;
+        var readDataElementResponseParsed = JsonSerializer.Deserialize<Skjema>(readDataElementResponseContent)!;
         readDataElementResponseParsed.Melding!.Name.Should().Be(testName);
     }
 
@@ -86,13 +96,14 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         content.Add(new StringContent("INVALID XML", System.Text.Encoding.UTF8, "application/xml"), "default");
 
         // Create instance
-        var createResponse =
-            await client.PostAsync($"{org}/{app}/instances/?instanceOwnerPartyId={instanceOwnerPartyId}", content);
+        var createResponse = await client.PostAsync(
+            $"{org}/{app}/instances/?instanceOwnerPartyId={instanceOwnerPartyId}",
+            content
+        );
         var createResponseContent = await createResponse.Content.ReadAsStringAsync();
         createResponse.StatusCode.Should().Be(HttpStatusCode.InternalServerError, createResponseContent);
         createResponseContent.Should().Contain("Instantiation of data elements failed");
     }
-
 
     [Fact]
     public async Task PostNewInstanceWithWrongPartname_EnsureBadRequest()
@@ -108,13 +119,24 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
         // Create instance data
         using var content = new MultipartFormDataContent();
-        content.Add(new StringContent($$$"""<Skjema><melding><name>{{{testName}}}</name></melding></Skjema>""", System.Text.Encoding.UTF8, "application/xml"), "wrongName");
+        content.Add(
+            new StringContent(
+                $$$"""<Skjema><melding><name>{{{testName}}}</name></melding></Skjema>""",
+                System.Text.Encoding.UTF8,
+                "application/xml"
+            ),
+            "wrongName"
+        );
 
         // Create instance
-        var createResponse =
-            await client.PostAsync($"{org}/{app}/instances/?instanceOwnerPartyId={instanceOwnerPartyId}", content);
+        var createResponse = await client.PostAsync(
+            $"{org}/{app}/instances/?instanceOwnerPartyId={instanceOwnerPartyId}",
+            content
+        );
         var createResponseContent = await createResponse.Content.ReadAsStringAsync();
         createResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest, createResponseContent);
-        createResponseContent.Should().Contain("Multipart section named, 'wrongName' does not correspond to an element");
+        createResponseContent
+            .Should()
+            .Contain("Multipart section named, 'wrongName' does not correspond to an element");
     }
 }

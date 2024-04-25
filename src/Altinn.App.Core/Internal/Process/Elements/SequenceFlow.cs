@@ -26,7 +26,7 @@ namespace Altinn.App.Core.Internal.Process.Elements
         public string TargetRef { get; set; }
 
         /// <summary>
-        /// Gets or sets the flowtype of a sequence flow. 
+        /// Gets or sets the flowtype of a sequence flow.
         /// </summary>
         [XmlAttribute("flowtype", Namespace = "http://altinn.no")]
         public string FlowType { get; set; }

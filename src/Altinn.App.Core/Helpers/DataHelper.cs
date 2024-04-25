@@ -16,14 +16,19 @@ namespace Altinn.App.Core.Helpers
         /// <param name="dataType">The type of the updated data objects</param>
         /// <param name="updatedData">The updated data object</param>
         /// <returns>A dictionary with the new or changed data values</returns>
-        public static Dictionary<string, string?> GetUpdatedDataValues(List<DataField>? dataFields, Dictionary<string, string?> currentDataValues, string dataType, object updatedData)
+        public static Dictionary<string, string?> GetUpdatedDataValues(
+            List<DataField>? dataFields,
+            Dictionary<string, string?> currentDataValues,
+            string dataType,
+            object updatedData
+        )
         {
             Dictionary<string, string?> dataFieldValues = GetDataFieldValues(dataFields, dataType, updatedData);
             return CompareDictionaries(currentDataValues, dataFieldValues);
         }
 
         /// <summary>
-        /// Re-sets the listed data fields to their default value in the data object. 
+        /// Re-sets the listed data fields to their default value in the data object.
         /// </summary>
         /// <param name="dataFields">The data fields to monitor</param>
         /// <param name="data">The data object</param>
@@ -44,8 +49,9 @@ namespace Altinn.App.Core.Helpers
             bool isLastKey = (keys.Length - 1) == index;
 
             PropertyInfo? property = current.GetProperty(
-               key,
-               BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+                key,
+                BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance
+            );
 
             if (property == null)
             {
@@ -61,7 +67,9 @@ namespace Altinn.App.Core.Helpers
 
             if (isLastKey)
             {
-                object? defaultValue = property.PropertyType.IsValueType ? Activator.CreateInstance(property.PropertyType) : null;
+                object? defaultValue = property.PropertyType.IsValueType
+                    ? Activator.CreateInstance(property.PropertyType)
+                    : null;
                 property.SetValue(data, defaultValue);
                 return;
             }
@@ -72,7 +80,11 @@ namespace Altinn.App.Core.Helpers
         /// <summary>
         /// Retrieves data values from a data object based on a list of data fields.
         /// </summary>
-        private static Dictionary<string, string?> GetDataFieldValues(List<DataField>? dataFields, string dataType, object data)
+        private static Dictionary<string, string?> GetDataFieldValues(
+            List<DataField>? dataFields,
+            string dataType,
+            object data
+        )
         {
             Dictionary<string, string?> dataFieldValues = new Dictionary<string, string?>();
 
@@ -104,7 +116,10 @@ namespace Altinn.App.Core.Helpers
         /// <param name="originalDictionary">The original dictionary</param>
         /// <param name="newDictionary">The updated dictionary</param>
         /// <returns>A dictionary containing changed and new entries not represented in the original dictionary.</returns>
-        private static Dictionary<string, string?> CompareDictionaries(Dictionary<string, string?>? originalDictionary, Dictionary<string, string?> newDictionary)
+        private static Dictionary<string, string?> CompareDictionaries(
+            Dictionary<string, string?>? originalDictionary,
+            Dictionary<string, string?> newDictionary
+        )
         {
             Dictionary<string, string?> updatedValues = new Dictionary<string, string?>();
 
@@ -138,12 +153,14 @@ namespace Altinn.App.Core.Helpers
             Type current = data.GetType();
 
             PropertyInfo? property = current.GetProperty(
-               key,
-               BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+                key,
+                BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance
+            );
 
             if (property == null)
             {
-                string errorMessage = $"Could not find the field {string.Join(".", keys)}, property {key} is not defined in the data model.";
+                string errorMessage =
+                    $"Could not find the field {string.Join(".", keys)}, property {key} is not defined in the data model.";
                 throw new IndexOutOfRangeException(errorMessage);
             }
             else

@@ -27,12 +27,16 @@ public class ValidateControllerTests
         const string app = "app";
         const int instanceOwnerPartyId = 1337;
         Guid instanceId = new Guid();
-        instanceMock.Setup(i => i.GetInstance(app, org, instanceOwnerPartyId, instanceId))
+        instanceMock
+            .Setup(i => i.GetInstance(app, org, instanceOwnerPartyId, instanceId))
             .Returns(Task.FromResult<Instance>(null!));
 
         // Act
-        var validateController =
-            new ValidateController(instanceMock.Object, validationMock.Object, appMetadataMock.Object);
+        var validateController = new ValidateController(
+            instanceMock.Object,
+            validationMock.Object,
+            appMetadataMock.Object
+        );
         var result = await validateController.ValidateInstance(org, app, instanceOwnerPartyId, instanceId);
 
         // Assert
@@ -52,22 +56,23 @@ public class ValidateControllerTests
         const int instanceOwnerPartyId = 1337;
         var instanceId = Guid.NewGuid();
 
-        Instance instance = new Instance
-        {
-            Id = "instanceId",
-            Process = null
-        };
+        Instance instance = new Instance { Id = "instanceId", Process = null };
 
-        instanceMock.Setup(i => i.GetInstance(app, org, instanceOwnerPartyId, instanceId))
+        instanceMock
+            .Setup(i => i.GetInstance(app, org, instanceOwnerPartyId, instanceId))
             .Returns(Task.FromResult<Instance>(instance));
 
         // Act
-        var validateController =
-            new ValidateController(instanceMock.Object, validationMock.Object, appMetadataMock.Object);
+        var validateController = new ValidateController(
+            instanceMock.Object,
+            validationMock.Object,
+            appMetadataMock.Object
+        );
 
         // Assert
-        var exception = await Assert.ThrowsAsync<ValidationException>(() =>
-            validateController.ValidateInstance(org, app, instanceOwnerPartyId, instanceId));
+        var exception = await Assert.ThrowsAsync<ValidationException>(
+            () => validateController.ValidateInstance(org, app, instanceOwnerPartyId, instanceId)
+        );
         Assert.Equal("Unable to validate instance without a started process.", exception.Message);
     }
 
@@ -87,22 +92,24 @@ public class ValidateControllerTests
         Instance instance = new Instance
         {
             Id = "instanceId",
-            Process = new ProcessState
-            {
-                CurrentTask = null
-            }
+            Process = new ProcessState { CurrentTask = null }
         };
 
-        instanceMock.Setup(i => i.GetInstance(app, org, instanceOwnerPartyId, instanceId))
+        instanceMock
+            .Setup(i => i.GetInstance(app, org, instanceOwnerPartyId, instanceId))
             .Returns(Task.FromResult<Instance>(instance));
 
         // Act
-        var validateController =
-            new ValidateController(instanceMock.Object, validationMock.Object, appMetadataMock.Object);
+        var validateController = new ValidateController(
+            instanceMock.Object,
+            validationMock.Object,
+            appMetadataMock.Object
+        );
 
         // Assert
-        var exception = await Assert.ThrowsAsync<ValidationException>(() =>
-            validateController.ValidateInstance(org, app, instanceOwnerPartyId, instanceId));
+        var exception = await Assert.ThrowsAsync<ValidationException>(
+            () => validateController.ValidateInstance(org, app, instanceOwnerPartyId, instanceId)
+        );
         Assert.Equal("Unable to validate instance without a started process.", exception.Message);
     }
 
@@ -122,33 +129,28 @@ public class ValidateControllerTests
         Instance instance = new Instance
         {
             Id = "instanceId",
-            Process = new ProcessState
-            {
-                CurrentTask = new ProcessElementInfo
-                {
-                    ElementId = "dummy"
-                }
-            }
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "dummy" } }
         };
 
         var validationResult = new List<ValidationIssue>
         {
-            new ValidationIssue
-            {
-                Field = "dummy",
-                Severity = ValidationIssueSeverity.Fixed
-            }
+            new ValidationIssue { Field = "dummy", Severity = ValidationIssueSeverity.Fixed }
         };
 
-        instanceMock.Setup(i => i.GetInstance(app, org, instanceOwnerPartyId, instanceId))
+        instanceMock
+            .Setup(i => i.GetInstance(app, org, instanceOwnerPartyId, instanceId))
             .Returns(Task.FromResult<Instance>(instance));
 
-        validationMock.Setup(v => v.ValidateInstanceAtTask(instance, "dummy", null))
+        validationMock
+            .Setup(v => v.ValidateInstanceAtTask(instance, "dummy", null))
             .Returns(Task.FromResult(validationResult));
 
         // Act
-        var validateController =
-            new ValidateController(instanceMock.Object, validationMock.Object, appMetadataMock.Object);
+        var validateController = new ValidateController(
+            instanceMock.Object,
+            validationMock.Object,
+            appMetadataMock.Object
+        );
         var result = await validateController.ValidateInstance(org, app, instanceOwnerPartyId, instanceId);
 
         // Assert
@@ -171,27 +173,24 @@ public class ValidateControllerTests
         Instance instance = new Instance
         {
             Id = "instanceId",
-            Process = new ProcessState
-            {
-                CurrentTask = new ProcessElementInfo
-                {
-                    ElementId = "dummy"
-                }
-            }
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "dummy" } }
         };
 
         var updateProcessResult = new HttpResponseMessage(HttpStatusCode.Forbidden);
         PlatformHttpException exception = await PlatformHttpException.CreateAsync(updateProcessResult);
 
-        instanceMock.Setup(i => i.GetInstance(app, org, instanceOwnerPartyId, instanceId))
+        instanceMock
+            .Setup(i => i.GetInstance(app, org, instanceOwnerPartyId, instanceId))
             .Returns(Task.FromResult<Instance>(instance));
 
-        validationMock.Setup(v => v.ValidateInstanceAtTask(instance, "dummy", null))
-            .Throws(exception);
+        validationMock.Setup(v => v.ValidateInstanceAtTask(instance, "dummy", null)).Throws(exception);
 
         // Act
-        var validateController =
-            new ValidateController(instanceMock.Object, validationMock.Object, appMetadataMock.Object);
+        var validateController = new ValidateController(
+            instanceMock.Object,
+            validationMock.Object,
+            appMetadataMock.Object
+        );
         var result = await validateController.ValidateInstance(org, app, instanceOwnerPartyId, instanceId);
 
         // Assert
@@ -214,32 +213,29 @@ public class ValidateControllerTests
         Instance instance = new Instance
         {
             Id = "instanceId",
-            Process = new ProcessState
-            {
-                CurrentTask = new ProcessElementInfo
-                {
-                    ElementId = "dummy"
-                }
-            }
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "dummy" } }
         };
 
         var updateProcessResult = new HttpResponseMessage(HttpStatusCode.BadRequest);
         PlatformHttpException exception = await PlatformHttpException.CreateAsync(updateProcessResult);
 
-        instanceMock.Setup(i => i.GetInstance(app, org, instanceOwnerPartyId, instanceId))
+        instanceMock
+            .Setup(i => i.GetInstance(app, org, instanceOwnerPartyId, instanceId))
             .Returns(Task.FromResult<Instance>(instance));
 
-        validationMock.Setup(v => v.ValidateInstanceAtTask(instance, "dummy", null))
-            .Throws(exception);
+        validationMock.Setup(v => v.ValidateInstanceAtTask(instance, "dummy", null)).Throws(exception);
 
         // Act
-        var validateController =
-            new ValidateController(instanceMock.Object, validationMock.Object, appMetadataMock.Object);
+        var validateController = new ValidateController(
+            instanceMock.Object,
+            validationMock.Object,
+            appMetadataMock.Object
+        );
 
         // Assert
-        var thrownException = await Assert.ThrowsAsync<PlatformHttpException>(() =>
-            validateController.ValidateInstance(org, app, instanceOwnerPartyId, instanceId));
+        var thrownException = await Assert.ThrowsAsync<PlatformHttpException>(
+            () => validateController.ValidateInstance(org, app, instanceOwnerPartyId, instanceId)
+        );
         Assert.Equal(exception, thrownException);
     }
-
 }

@@ -1,8 +1,6 @@
 #nullable disable
 using System.Diagnostics.CodeAnalysis;
-
 using Altinn.App.Core.Extensions;
-
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;

@@ -11,6 +11,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks
         /// The type is used to identify the correct task implementation for a given task type in the process config file.
         /// </summary>
         string Type { get; }
+
         /// <summary>
         /// Any logic to be executed when a task is started should be put in this method.
         /// </summary>

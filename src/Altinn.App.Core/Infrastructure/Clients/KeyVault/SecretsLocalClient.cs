@@ -51,13 +51,12 @@ namespace Altinn.App.Core.Infrastructure.Clients.KeyVault
             return await Task.FromResult(token);
         }
 
-        private string GetTokenFromSecrets(string secretId)
-            => GetTokenFromLocalSecrets(secretId) ??
-                GetTokenFromConfiguration(secretId) ??
-                throw new ArgumentException($"SecretId={secretId} does not exist in appsettings or secrets.json");
+        private string GetTokenFromSecrets(string secretId) =>
+            GetTokenFromLocalSecrets(secretId)
+            ?? GetTokenFromConfiguration(secretId)
+            ?? throw new ArgumentException($"SecretId={secretId} does not exist in appsettings or secrets.json");
 
-        private string? GetTokenFromConfiguration(string tokenId)
-            => _configuration[tokenId];
+        private string? GetTokenFromConfiguration(string tokenId) => _configuration[tokenId];
 
         private static string? GetTokenFromLocalSecrets(string secretId)
         {
@@ -65,7 +64,10 @@ namespace Altinn.App.Core.Infrastructure.Clients.KeyVault
             if (File.Exists(path))
             {
                 string jsonString = File.ReadAllText(path);
-                var document = JsonDocument.Parse(jsonString, new JsonDocumentOptions { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip });
+                var document = JsonDocument.Parse(
+                    jsonString,
+                    new JsonDocumentOptions { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip }
+                );
                 if (document.RootElement.TryGetProperty(secretId, out var jsonElement))
                 {
                     return jsonElement.GetString();

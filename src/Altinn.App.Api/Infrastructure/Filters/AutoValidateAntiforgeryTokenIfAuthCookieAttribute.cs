@@ -18,7 +18,7 @@ namespace Altinn.App.Api.Infrastructure.Filters
         /// Filters are executed in a sequence determined by an ascending sort of the <see cref="Order"/> property.
         /// </para>
         /// <para>
-        /// The default Order for this attribute is 1000 because it must run after any filter which does authentication 
+        /// The default Order for this attribute is 1000 because it must run after any filter which does authentication
         /// or login in order to allow them to behave as expected (ie Unauthenticated or Redirect instead of 400).
         /// </para>
         /// <para>

@@ -33,17 +33,20 @@ namespace Altinn.App.Core.Tests.Features.Options.Altinn2Provider
                 id: "ASF_Land3",
                 transform: (code) => new() { Value = code.Code, Label = code.Value1 },
                 codeListVersion: 2758,
-                metadataApiId: "ASF_land");
+                metadataApiId: "ASF_land"
+            );
             services.AddAltinn2CodeList(
                 id: "ASF_Land4",
                 transform: (code) => new() { Value = code.Code, Label = code.Value1 },
                 codeListVersion: 2758,
-                metadataApiId: "ASF_land");
+                metadataApiId: "ASF_land"
+            );
             services.AddAltinn2CodeList(
                 id: "ASF_Fylker",
                 transform: (code) => new() { Value = code.Code, Label = code.Value1 },
                 codeListVersion: 3063,
-                metadataApiId: "ASF_Fylker");
+                metadataApiId: "ASF_Fylker"
+            );
 
             var sp = services.BuildServiceProvider(validateScopes: true);
 
@@ -51,7 +54,8 @@ namespace Altinn.App.Core.Tests.Features.Options.Altinn2Provider
             using (var scope = sp.CreateScope())
             {
                 var providers = scope.ServiceProvider.GetRequiredService<IEnumerable<IAppOptionsProvider>>();
-                var messageHandler = scope.ServiceProvider.GetRequiredService<Altinn2MetadataApiClientHttpMessageHandlerMoq>();
+                var messageHandler =
+                    scope.ServiceProvider.GetRequiredService<Altinn2MetadataApiClientHttpMessageHandlerMoq>();
                 messageHandler.CallCounter.Should().Be(0);
                 providers.Count().Should().Be(3);
                 var optionsProvider = providers.Single(p => p.Id == "ASF_Land3");
@@ -68,7 +72,8 @@ namespace Altinn.App.Core.Tests.Features.Options.Altinn2Provider
             using (var scope = sp.CreateScope())
             {
                 var providers = scope.ServiceProvider.GetRequiredService<IEnumerable<IAppOptionsProvider>>();
-                var messageHandler = scope.ServiceProvider.GetRequiredService<Altinn2MetadataApiClientHttpMessageHandlerMoq>();
+                var messageHandler =
+                    scope.ServiceProvider.GetRequiredService<Altinn2MetadataApiClientHttpMessageHandlerMoq>();
                 var optionsProvider = providers.Single(p => p.Id == "ASF_Land3");
                 await optionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
                 await Task.Delay(5);
@@ -83,7 +88,8 @@ namespace Altinn.App.Core.Tests.Features.Options.Altinn2Provider
             using (var scope = sp.CreateScope())
             {
                 var providers = scope.ServiceProvider.GetRequiredService<IEnumerable<IAppOptionsProvider>>();
-                var messageHandler = scope.ServiceProvider.GetRequiredService<Altinn2MetadataApiClientHttpMessageHandlerMoq>();
+                var messageHandler =
+                    scope.ServiceProvider.GetRequiredService<Altinn2MetadataApiClientHttpMessageHandlerMoq>();
                 var optionsProvider = providers.Single(p => p.Id == "ASF_Fylker");
                 await optionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
                 await Task.Delay(5);

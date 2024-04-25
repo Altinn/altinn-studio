@@ -17,49 +17,37 @@ public class JoinedAppOptionsTests
     private readonly ServiceCollection _serviceCollection = new();
 
     private const string Language = "nb";
-    private static readonly List<AppOption> AppOptionsCountries = new()
-    {
-        new AppOption
+    private static readonly List<AppOption> AppOptionsCountries =
+        new()
         {
-            Value = "no",
-            Label = "Norway"
-        },
-        new AppOption
-        {
-            Value = "se",
-            Label = "Sweden"
-        }
-    };
+            new AppOption { Value = "no", Label = "Norway" },
+            new AppOption { Value = "se", Label = "Sweden" }
+        };
 
-    private static readonly List<AppOption> AppOptionsSentinel = new()
-    {
-        new AppOption
+    private static readonly List<AppOption> AppOptionsSentinel =
+        new()
         {
-            Value = null,
-            Label = "Sentinel"
-        }
-    };
+            new AppOption { Value = null, Label = "Sentinel" }
+        };
 
     public JoinedAppOptionsTests()
     {
         _countryAppOptionsMock.Setup(p => p.Id).Returns("country-no-sentinel");
         _countryAppOptionsMock
             .Setup(p => p.GetAppOptionsAsync(Language, It.IsAny<Dictionary<string, string>>()))
-            .ReturnsAsync((string language, Dictionary<string, string> keyValuePairs) => new AppOptions()
-            {
-                Options = AppOptionsCountries,
-                Parameters = keyValuePairs.ToDictionary()!,
-            });
+            .ReturnsAsync(
+                (string language, Dictionary<string, string> keyValuePairs) =>
+                    new AppOptions() { Options = AppOptionsCountries, Parameters = keyValuePairs.ToDictionary()!, }
+            );
         _serviceCollection.AddSingleton(_countryAppOptionsMock.Object);
 
         _sentinelOptionsProviderMock.Setup(p => p.Id).Returns("sentinel");
         _sentinelOptionsProviderMock
             .Setup(p => p.GetAppOptionsAsync(Language, It.IsAny<Dictionary<string, string>>()))
-            .ReturnsAsync((string language, Dictionary<string, string> keyValuePairs) => new AppOptions()
-            {
-                Options = AppOptionsSentinel,
-                Parameters = keyValuePairs.ToDictionary()!,
-            });
+            .ReturnsAsync(
+                (string language, Dictionary<string, string> keyValuePairs) =>
+                    new AppOptions() { Options = AppOptionsSentinel, Parameters = keyValuePairs.ToDictionary()!, }
+            );
         _serviceCollection.AddSingleton(_sentinelOptionsProviderMock.Object);
 
         // Registrer a mocked default handler
@@ -143,18 +131,15 @@ public class JoinedAppOptionsTests
         using var sp = _serviceCollection.BuildServiceProvider();
         var appOptionsService = sp.GetRequiredService<AppOptionsService>();
 
-        var parameters = new Dictionary<string, string>
-        {
-            { "key", "value" }
-        };
+        var parameters = new Dictionary<string, string> { { "key", "value" } };
 
         var options = await appOptionsService.GetOptionsAsync("country", Language, parameters);
 
-        options.Parameters.Should().BeEquivalentTo(new Dictionary<string, string>
-        {
-            { "country-no-sentinel_key", "value" },
-            { "sentinel_key", "value" },
-        });
+        options
+            .Parameters.Should()
+            .BeEquivalentTo(
+                new Dictionary<string, string> { { "country-no-sentinel_key", "value" }, { "sentinel_key", "value" }, }
+            );
 
         _neverUsedOptionsProviderMock.VerifyAll();
         _countryAppOptionsMock.VerifyAll();

@@ -1,4 +1,5 @@
-﻿using Altinn.ApiClients.Maskinporten.Config;
+﻿using System.Security.Cryptography.X509Certificates;
+using Altinn.ApiClients.Maskinporten.Config;
 using Altinn.ApiClients.Maskinporten.Interfaces;
 using Altinn.ApiClients.Maskinporten.Services;
 using Altinn.App.Core.Configuration;
@@ -13,7 +14,6 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using System.Security.Cryptography.X509Certificates;
 using Xunit;
 
 namespace Altinn.App.Api.Tests.EFormidling;
@@ -58,7 +58,9 @@ public class EformidlingStatusCheckEventHandlerTests
         return new()
         {
             Id = Guid.NewGuid().ToString(),
-            Source = new Uri("https://dihe.apps.altinn3local.no/dihe/redusert-foreldrebetaling-bhg/instances/510002/553a3ddc-4ca4-40af-9c2a-1e33e659c7e7"),
+            Source = new Uri(
+                "https://dihe.apps.altinn3local.no/dihe/redusert-foreldrebetaling-bhg/instances/510002/553a3ddc-4ca4-40af-9c2a-1e33e659c7e7"
+            ),
             SpecVersion = "1.0",
             Type = "app.eformidling.reminder.checkinstancestatus",
             Subject = "/party/510002",
@@ -71,16 +73,17 @@ public class EformidlingStatusCheckEventHandlerTests
     {
         var eFormidlingClientMock = new Mock<IEFormidlingClient>();
         Statuses statuses = GetStatues(delivered);
-        eFormidlingClientMock.Setup(e => e.GetMessageStatusById(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
+        eFormidlingClientMock
+            .Setup(e => e.GetMessageStatusById(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
             .ReturnsAsync(statuses);
 
         var httpClientMock = new Mock<HttpClient>();
-        httpClientMock.Setup(s => s.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
+        httpClientMock
+            .Setup(s => s.SendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new HttpResponseMessage(System.Net.HttpStatusCode.OK));
 
         var httpClientFactoryMock = new Mock<IHttpClientFactory>();
-        httpClientFactoryMock.Setup(s => s.CreateClient(It.IsAny<string>()))
-            .Returns(httpClientMock.Object);
+        httpClientFactoryMock.Setup(s => s.CreateClient(It.IsAny<string>())).Returns(httpClientMock.Object);
 
         var eFormidlingLoggerMock = new Mock<ILogger<EformidlingStatusCheckEventHandler>>();
         var eFormidlingLoggerMock2 = new Mock<ILogger<EformidlingStatusCheckEventHandler2>>();
@@ -88,7 +91,11 @@ public class EformidlingStatusCheckEventHandlerTests
         var maskinportenServiceLoggerMock = new Mock<ILogger<MaskinportenService>>();
         var tokenCacheProviderMock = new Mock<ITokenCacheProvider>();
 
-        var maskinportenServiceMock = new Mock<MaskinportenService>(httpClientMock.Object, maskinportenServiceLoggerMock.Object, tokenCacheProviderMock.Object);
+        var maskinportenServiceMock = new Mock<MaskinportenService>(
+            httpClientMock.Object,
+            maskinportenServiceLoggerMock.Object,
+            tokenCacheProviderMock.Object
+        );
 
         var maskinportenSettingsMock = new MaskinportenSettings()
         {
@@ -101,14 +108,17 @@ public class EformidlingStatusCheckEventHandlerTests
         x509CertificateProviderMock.Setup(s => s.GetCertificate().Result).Returns(x509CertificateMock);
 
         var maskinPortenTokenProviderMock = new Mock<IMaskinportenTokenProvider>();
-        maskinPortenTokenProviderMock.Setup(s => s.GetAltinnExchangedToken(It.IsAny<string>()))
+        maskinPortenTokenProviderMock
+            .Setup(s => s.GetAltinnExchangedToken(It.IsAny<string>()))
             .ReturnsAsync("myAltinnAccesstoken");
 
-        IOptions<PlatformSettings> platformSettingsMock = Options.Create(new PlatformSettings()
-        {
-            ApiEventsEndpoint = "http://localhost:5101/events/api/v1/",
-            SubscriptionKey = "key"
-        });
+        IOptions<PlatformSettings> platformSettingsMock = Options.Create(
+            new PlatformSettings()
+            {
+                ApiEventsEndpoint = "http://localhost:5101/events/api/v1/",
+                SubscriptionKey = "key"
+            }
+        );
         var generalSettingsMock = new Mock<GeneralSettings>();
 
         IEventHandler eventHandler;
@@ -141,16 +151,8 @@ public class EformidlingStatusCheckEventHandlerTests
 
     private static Statuses GetStatues(bool delivered)
     {
-        Statuses statuses = new()
-        {
-            Content = new List<Content>
-            {
-                new()
-                {
-                    Status = delivered ? "LEVERT" : "OPPRETTET"
-                }
-            }
-        };
+        Statuses statuses =
+            new() { Content = new List<Content> { new() { Status = delivered ? "LEVERT" : "OPPRETTET" } } };
 
         return statuses;
     }

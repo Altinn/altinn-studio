@@ -39,8 +39,15 @@ public class StatelessDataControllerTests
         var registerMock = new Mock<IAltinnPartyClient>();
         var pdpMock = new Mock<IPDP>();
         ILogger<DataController> logger = new NullLogger<DataController>();
-        var statelessDataController = new StatelessDataController(logger, altinnAppModelMock.Object, appResourcesMock.Object,
-             prefillMock.Object, registerMock.Object, pdpMock.Object, new IDataProcessor[] { dataProcessorMock.Object });
+        var statelessDataController = new StatelessDataController(
+            logger,
+            altinnAppModelMock.Object,
+            appResourcesMock.Object,
+            prefillMock.Object,
+            registerMock.Object,
+            pdpMock.Object,
+            new IDataProcessor[] { dataProcessorMock.Object }
+        );
 
         string dataType = null!; // this is what we're testing
 
@@ -48,8 +55,11 @@ public class StatelessDataControllerTests
         var result = await statelessDataController.Get("ttd", "demo-app", dataType, "partyId:123");
 
         // Assert
-        result.Should().BeOfType<BadRequestObjectResult>().Which.Value.Should().Be(
-            $"Invalid dataType {string.Empty} provided. Please provide a valid dataType as query parameter.");
+        result
+            .Should()
+            .BeOfType<BadRequestObjectResult>()
+            .Which.Value.Should()
+            .Be($"Invalid dataType {string.Empty} provided. Please provide a valid dataType as query parameter.");
         dataProcessorMock.VerifyNoOtherCalls();
         appResourcesMock.VerifyNoOtherCalls();
         prefillMock.VerifyNoOtherCalls();
@@ -69,17 +79,26 @@ public class StatelessDataControllerTests
         var pdpMock = new Mock<IPDP>();
         var dataType = "some-value";
         ILogger<DataController> logger = new NullLogger<DataController>();
-        var statelessDataController = new StatelessDataController(logger, appModelMock.Object, appResourcesMock.Object,
-             prefillMock.Object, registerMock.Object, pdpMock.Object, new IDataProcessor[] { dataProcessorMock.Object });
-
+        var statelessDataController = new StatelessDataController(
+            logger,
+            appModelMock.Object,
+            appResourcesMock.Object,
+            prefillMock.Object,
+            registerMock.Object,
+            pdpMock.Object,
+            new IDataProcessor[] { dataProcessorMock.Object }
+        );
 
         // Act
         appResourcesMock.Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(string.Empty);
         var result = await statelessDataController.Get("ttd", "demo-app", dataType, "partyId:123");
 
         // Assert
-        result.Should().BeOfType<BadRequestObjectResult>().Which.Value.Should().Be(
-            $"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter.");
+        result
+            .Should()
+            .BeOfType<BadRequestObjectResult>()
+            .Which.Value.Should()
+            .Be($"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter.");
         appResourcesMock.Verify(x => x.GetClassRefForLogicDataType(dataType), Times.Once);
         appResourcesMock.VerifyNoOtherCalls();
         dataProcessorMock.VerifyNoOtherCalls();
@@ -128,11 +147,12 @@ public class StatelessDataControllerTests
         using var request = new HttpRequestMessage(HttpMethod.Get, "/tdd/demo-app/v1/data?dataType=xml");
         request.Headers.Add("party", new string[] { "partyid:234", "partyid:234" }); // Double header
 
-        factory.AppResourcesMoq.Setup(ar => ar.GetClassRefForLogicDataType(It.IsAny<string>())).Returns("Not.In.Valid.Namespace.ClassRef");
-        factory.RegisterClientMoq.Setup(p => p.GetParty(234)).ReturnsAsync(new Platform.Register.Models.Party
-        {
-            PartyId = 234,
-        });
+        factory
+            .AppResourcesMoq.Setup(ar => ar.GetClassRefForLogicDataType(It.IsAny<string>()))
+            .Returns("Not.In.Valid.Namespace.ClassRef");
+        factory
+            .RegisterClientMoq.Setup(p => p.GetParty(234))
+            .ReturnsAsync(new Platform.Register.Models.Party { PartyId = 234, });
 
         // Act
         var response = await client.SendAsync(request);
@@ -155,12 +175,12 @@ public class StatelessDataControllerTests
         using var request = new HttpRequestMessage(HttpMethod.Get, "/tdd/demo-app/v1/data?dataType=xml");
         request.Headers.Add("party", new string[] { "partyid:234" });
 
-        factory.AppResourcesMoq.Setup(ar => ar.GetClassRefForLogicDataType(It.IsAny<string>())).Returns("Not.In.Valid.Namespace.ClassRef");
-        factory.RegisterClientMoq.Setup(p => p.GetParty(234)).ReturnsAsync(new Platform.Register.Models.Party
-        {
-            PartyId = 234,
-        });
-
+        factory
+            .AppResourcesMoq.Setup(ar => ar.GetClassRefForLogicDataType(It.IsAny<string>()))
+            .Returns("Not.In.Valid.Namespace.ClassRef");
+        factory
+            .RegisterClientMoq.Setup(p => p.GetParty(234))
+            .ReturnsAsync(new Platform.Register.Models.Party { PartyId = 234, });
 
         // Act
         var response = await client.SendAsync(request);
@@ -181,8 +201,15 @@ public class StatelessDataControllerTests
         var pdpMock = new Mock<IPDP>();
         var dataType = "some-value";
         ILogger<DataController> logger = new NullLogger<DataController>();
-        var statelessDataController = new StatelessDataController(logger, appModelMock.Object, appResourcesMock.Object,
-            prefillMock.Object, registerMock.Object, pdpMock.Object, new IDataProcessor[] { dataProcessorMock.Object });
+        var statelessDataController = new StatelessDataController(
+            logger,
+            appModelMock.Object,
+            appResourcesMock.Object,
+            prefillMock.Object,
+            registerMock.Object,
+            pdpMock.Object,
+            new IDataProcessor[] { dataProcessorMock.Object }
+        );
 
         // Act
         appResourcesMock.Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(typeof(DummyModel).FullName!);
@@ -212,19 +239,23 @@ public class StatelessDataControllerTests
         var pdpMock = new Mock<IPDP>();
         var dataType = "some-value";
         ILogger<DataController> logger = new NullLogger<DataController>();
-        var statelessDataController = new StatelessDataController(logger, appModelMock.Object, appResourcesMock.Object,
-            prefillMock.Object, registerMock.Object, pdpMock.Object, new IDataProcessor[] { dataProcessorMock.Object });
+        var statelessDataController = new StatelessDataController(
+            logger,
+            appModelMock.Object,
+            appResourcesMock.Object,
+            prefillMock.Object,
+            registerMock.Object,
+            pdpMock.Object,
+            new IDataProcessor[] { dataProcessorMock.Object }
+        );
         statelessDataController.ControllerContext = new ControllerContext();
         statelessDataController.ControllerContext.HttpContext = new DefaultHttpContext();
-        statelessDataController.ControllerContext.HttpContext.User = new ClaimsPrincipal(new List<ClaimsIdentity>()
-        {
-            new ClaimsIdentity(new List<Claim>
+        statelessDataController.ControllerContext.HttpContext.User = new ClaimsPrincipal(
+            new List<ClaimsIdentity>()
             {
-                new Claim(
-                    "urn:altinn:partyid", string.Empty, "#integer"
-                )
-            })
-        });
+                new ClaimsIdentity(new List<Claim> { new Claim("urn:altinn:partyid", string.Empty, "#integer") })
+            }
+        );
 
         // Act
         appResourcesMock.Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(typeof(DummyModel).FullName!);
@@ -252,34 +283,37 @@ public class StatelessDataControllerTests
         var pdpMock = new Mock<IPDP>();
         var dataType = "some-value";
         ILogger<DataController> logger = new NullLogger<DataController>();
-        var statelessDataController = new StatelessDataController(logger, appModelMock.Object, appResourcesMock.Object,
-            prefillMock.Object, registerMock.Object, pdpMock.Object, new IDataProcessor[] { dataProcessorMock.Object });
+        var statelessDataController = new StatelessDataController(
+            logger,
+            appModelMock.Object,
+            appResourcesMock.Object,
+            prefillMock.Object,
+            registerMock.Object,
+            pdpMock.Object,
+            new IDataProcessor[] { dataProcessorMock.Object }
+        );
         statelessDataController.ControllerContext = new ControllerContext();
         statelessDataController.ControllerContext.HttpContext = new DefaultHttpContext();
-        statelessDataController.ControllerContext.HttpContext.User = new ClaimsPrincipal(new List<ClaimsIdentity>()
-        {
-            new ClaimsIdentity(new List<Claim>
+        statelessDataController.ControllerContext.HttpContext.User = new ClaimsPrincipal(
+            new List<ClaimsIdentity>()
             {
-                new Claim(
-                    "urn:altinn:partyid", "12345", "#integer"
-                )
-            })
-        });
-        pdpMock.Setup(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
-            .ReturnsAsync(new XacmlJsonResponse()
-            {
-                Response = new List<XacmlJsonResult>()
+                new ClaimsIdentity(new List<Claim> { new Claim("urn:altinn:partyid", "12345", "#integer") })
+            }
+        );
+        pdpMock
+            .Setup(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .ReturnsAsync(
+                new XacmlJsonResponse()
                 {
-                    new XacmlJsonResult()
+                    Response = new List<XacmlJsonResult>()
                     {
-                        Decision = XacmlContextDecision.Deny.ToString()
+                        new XacmlJsonResult() { Decision = XacmlContextDecision.Deny.ToString() }
                     }
                 }
-            });
-        registerMock.Setup(r => r.GetParty(12345)).ReturnsAsync(new Platform.Register.Models.Party
-        {
-            PartyId = 12345,
-        });
+            );
+        registerMock
+            .Setup(r => r.GetParty(12345))
+            .ReturnsAsync(new Platform.Register.Models.Party { PartyId = 12345, });
 
         // Act
         appResourcesMock.Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(typeof(DummyModel).FullName!);
@@ -310,36 +344,38 @@ public class StatelessDataControllerTests
         var dataType = "some-value";
         var classRef = typeof(DummyModel).FullName!;
         ILogger<DataController> logger = new NullLogger<DataController>();
-        var statelessDataController = new StatelessDataController(logger, appModelMock.Object, appResourcesMock.Object,
-            prefillMock.Object, registerMock.Object, pdpMock.Object, new IDataProcessor[] { dataProcessorMock.Object });
+        var statelessDataController = new StatelessDataController(
+            logger,
+            appModelMock.Object,
+            appResourcesMock.Object,
+            prefillMock.Object,
+            registerMock.Object,
+            pdpMock.Object,
+            new IDataProcessor[] { dataProcessorMock.Object }
+        );
         statelessDataController.ControllerContext = new ControllerContext();
         statelessDataController.ControllerContext.HttpContext = new DefaultHttpContext();
-        statelessDataController.ControllerContext.HttpContext.User = new ClaimsPrincipal(new List<ClaimsIdentity>()
-        {
-            new ClaimsIdentity(new List<Claim>
+        statelessDataController.ControllerContext.HttpContext.User = new ClaimsPrincipal(
+            new List<ClaimsIdentity>()
             {
-                new Claim(
-                    "urn:altinn:partyid", "12345", "#integer"
-                )
-            })
-        });
-        pdpMock.Setup(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
-            .ReturnsAsync(new XacmlJsonResponse()
-            {
-                Response = new List<XacmlJsonResult>()
+                new ClaimsIdentity(new List<Claim> { new Claim("urn:altinn:partyid", "12345", "#integer") })
+            }
+        );
+        pdpMock
+            .Setup(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .ReturnsAsync(
+                new XacmlJsonResponse()
                 {
-                    new XacmlJsonResult()
+                    Response = new List<XacmlJsonResult>()
                     {
-                        Decision = XacmlContextDecision.Permit.ToString()
+                        new XacmlJsonResult() { Decision = XacmlContextDecision.Permit.ToString() }
                     }
                 }
-            });
-        appModelMock.Setup(a => a.Create(classRef))
-            .Returns(new DummyModel());
-        registerMock.Setup(r => r.GetParty(12345)).ReturnsAsync(new Platform.Register.Models.Party
-        {
-            PartyId = 12345,
-        });
+            );
+        appModelMock.Setup(a => a.Create(classRef)).Returns(new DummyModel());
+        registerMock
+            .Setup(r => r.GetParty(12345))
+            .ReturnsAsync(new Platform.Register.Models.Party { PartyId = 12345, });
 
         // Act
         appResourcesMock.Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(classRef);

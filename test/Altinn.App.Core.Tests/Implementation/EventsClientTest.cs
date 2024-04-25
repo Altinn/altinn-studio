@@ -8,13 +8,10 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Storage.Interface.Models;
-
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-
 using Moq;
 using Moq.Protected;
-
 using Xunit;
 
 namespace Altinn.App.Core.Tests.Implementation
@@ -33,10 +30,9 @@ namespace Altinn.App.Core.Tests.Implementation
         {
             platformSettingsOptions = Microsoft.Extensions.Options.Options.Create<PlatformSettings>(new());
             appSettingsOptions = new Mock<IOptionsMonitor<AppSettings>>();
-            generalSettingsOptions = Microsoft.Extensions.Options.Options.Create<GeneralSettings>(new()
-            {
-                ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}/"
-            });
+            generalSettingsOptions = Microsoft.Extensions.Options.Options.Create<GeneralSettings>(
+                new() { ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}/" }
+            );
             handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             contextAccessor = new Mock<IHttpContextAccessor>();
             accessTokenGeneratorMock = new Mock<IAccessTokenGenerator>();
@@ -51,11 +47,7 @@ namespace Altinn.App.Core.Tests.Implementation
             {
                 AppId = "ttd/best-app",
                 Org = "ttd",
-                InstanceOwner = new InstanceOwner
-                {
-                    OrganisationNumber = "org",
-                    PartyId = 123.ToString()
-                }
+                InstanceOwner = new InstanceOwner { OrganisationNumber = "org", PartyId = 123.ToString() }
             };
 
             HttpResponseMessage httpResponseMessage = new HttpResponseMessage
@@ -77,7 +69,8 @@ namespace Altinn.App.Core.Tests.Implementation
                 accessTokenGeneratorMock.Object,
                 _appMetadataMock.Object,
                 appSettingsOptions.Object,
-                generalSettingsOptions);
+                generalSettingsOptions
+            );
 
             // Act
             await target.AddEvent("created", instance);
@@ -106,11 +99,7 @@ namespace Altinn.App.Core.Tests.Implementation
             {
                 AppId = "ttd/best-app",
                 Org = "ttd",
-                InstanceOwner = new InstanceOwner
-                {
-                    PersonNumber = "43234123",
-                    PartyId = 321.ToString()
-                }
+                InstanceOwner = new InstanceOwner { PersonNumber = "43234123", PartyId = 321.ToString() }
             };
 
             HttpResponseMessage httpResponseMessage = new HttpResponseMessage
@@ -132,7 +121,8 @@ namespace Altinn.App.Core.Tests.Implementation
                 accessTokenGeneratorMock.Object,
                 _appMetadataMock.Object,
                 appSettingsOptions.Object,
-                generalSettingsOptions);
+                generalSettingsOptions
+            );
 
             // Act
             await target.AddEvent("created", instance);
@@ -183,7 +173,8 @@ namespace Altinn.App.Core.Tests.Implementation
                 accessTokenGeneratorMock.Object,
                 _appMetadataMock.Object,
                 appSettingsOptions.Object,
-                generalSettingsOptions);
+                generalSettingsOptions
+            );
 
             PlatformHttpException actual = null;
 
@@ -218,16 +209,20 @@ namespace Altinn.App.Core.Tests.Implementation
 
             contextAccessor.Setup(s => s.HttpContext).Returns(new DefaultHttpContext());
 
-            accessTokenGeneratorMock.Setup(at => at.GenerateAccessToken(It.IsAny<string>(), It.IsAny<string>())).Returns("dummy access token");
+            accessTokenGeneratorMock
+                .Setup(at => at.GenerateAccessToken(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns("dummy access token");
 
             ApplicationMetadata app = new ApplicationMetadata("ttd/best-app") { Id = "ttd/best-app", Org = "ttd" };
             _appMetadataMock.Setup(ar => ar.GetApplicationMetadata()).ReturnsAsync(app);
 
-            handlerMock.Protected()
+            handlerMock
+                .Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
                     ItExpr.IsAny<HttpRequestMessage>(),
-                    ItExpr.IsAny<CancellationToken>())
+                    ItExpr.IsAny<CancellationToken>()
+                )
                 .Callback<HttpRequestMessage, CancellationToken>((request, _) => callback(request))
                 .ReturnsAsync(httpResponseMessage)
                 .Verifiable();

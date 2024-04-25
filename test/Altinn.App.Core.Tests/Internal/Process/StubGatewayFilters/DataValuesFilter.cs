@@ -17,7 +17,11 @@ public class DataValuesFilter : IProcessExclusiveGateway
         _filterOnDataValue = filterOnDataValue;
     }
 
-    public async Task<List<SequenceFlow>> FilterAsync(List<SequenceFlow> outgoingFlows, Instance instance, ProcessGatewayInformation processGatewayInformation)
+    public async Task<List<SequenceFlow>> FilterAsync(
+        List<SequenceFlow> outgoingFlows,
+        Instance instance,
+        ProcessGatewayInformation processGatewayInformation
+    )
     {
         var targetFlow = instance.DataValues[_filterOnDataValue];
         return await Task.FromResult(outgoingFlows.FindAll(e => e.Id == targetFlow));

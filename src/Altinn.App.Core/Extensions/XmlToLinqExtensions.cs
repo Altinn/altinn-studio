@@ -67,7 +67,10 @@ namespace Altinn.App.Core.Extensions
         /// <returns>
         /// XML element
         /// </returns>
-        public static XElement AddPropertiesAsXElement<T>(this XElement element, params Expression<Func<T>>[] expressions)
+        public static XElement AddPropertiesAsXElement<T>(
+            this XElement element,
+            params Expression<Func<T>>[] expressions
+        )
         {
             foreach (Expression<Func<T>> expression in expressions)
             {

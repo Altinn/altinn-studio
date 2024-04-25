@@ -81,7 +81,19 @@ public class ProcessReaderTests
         var currentElement = "Task1";
         ProcessReader pr = ProcessTestUtils.SetupProcessReader("simple-gateway.bpmn");
         List<ProcessElement> nextElements = pr.GetNextElements(currentElement);
-        nextElements.Should().BeEquivalentTo(new List<ProcessElement>() { new ExclusiveGateway() { Id = "Gateway1", Incoming = new List<string>() { "Flow2" }, Outgoing = new List<string>() { "Flow3", "Flow4" } } });
+        nextElements
+            .Should()
+            .BeEquivalentTo(
+                new List<ProcessElement>()
+                {
+                    new ExclusiveGateway()
+                    {
+                        Id = "Gateway1",
+                        Incoming = new List<string>() { "Flow2" },
+                        Outgoing = new List<string>() { "Flow3", "Flow4" }
+                    }
+                }
+            );
     }
 
     [Fact]
@@ -91,17 +103,20 @@ public class ProcessReaderTests
         var currentElement = "Task1";
         ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
         List<ProcessElement> nextElements = pr.GetNextElements(currentElement);
-        nextElements.Should().BeEquivalentTo(
-            new List<ProcessElement>
-            {
-                new ProcessTask()
+        nextElements
+            .Should()
+            .BeEquivalentTo(
+                new List<ProcessElement>
                 {
-                    Id = "Task2",
-                    Incoming = new List<string> { "Flow2" },
-                    Outgoing = new List<string> { "Flow3" },
-                    Name = "Bekreft skjemadata",
+                    new ProcessTask()
+                    {
+                        Id = "Task2",
+                        Incoming = new List<string> { "Flow2" },
+                        Outgoing = new List<string> { "Flow3" },
+                        Name = "Bekreft skjemadata",
+                    }
                 }
-            });
+            );
     }
 
     [Fact]
@@ -111,22 +126,25 @@ public class ProcessReaderTests
         var currentElement = "Gateway1";
         ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
         List<ProcessElement> nextElements = pr.GetNextElements(currentElement);
-        nextElements.Should().BeEquivalentTo(
-            new List<ProcessElement>
-            {
-                new ProcessTask()
+        nextElements
+            .Should()
+            .BeEquivalentTo(
+                new List<ProcessElement>
                 {
-                    Id = "Task2",
-                    Incoming = new List<string>() { "Flow3" },
-                    Outgoing = new List<string>() { "Flow5" },
-                },
-                new EndEvent()
-                {
-                    Id = "EndEvent",
-                    Incoming = new List<string>() { "Flow4", "Flow5" },
-                    Outgoing = new List<string>()
+                    new ProcessTask()
+                    {
+                        Id = "Task2",
+                        Incoming = new List<string>() { "Flow3" },
+                        Outgoing = new List<string>() { "Flow5" },
+                    },
+                    new EndEvent()
+                    {
+                        Id = "EndEvent",
+                        Incoming = new List<string>() { "Flow4", "Flow5" },
+                        Outgoing = new List<string>()
+                    }
                 }
-            });
+            );
     }
 
     [Fact]
@@ -136,17 +154,20 @@ public class ProcessReaderTests
         var currentElement = "StartEvent";
         ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
         List<ProcessElement> nextElements = pr.GetNextElements(currentElement);
-        nextElements.Should().BeEquivalentTo(
-            new List<ProcessElement>()
-            {
-                new ProcessTask()
+        nextElements
+            .Should()
+            .BeEquivalentTo(
+                new List<ProcessElement>()
                 {
-                    Id = "Task1",
-                    Name = "Utfylling",
-                    Incoming = new List<string>() { "Flow1" },
-                    Outgoing = new List<string>() { "Flow2" },
+                    new ProcessTask()
+                    {
+                        Id = "Task1",
+                        Name = "Utfylling",
+                        Incoming = new List<string>() { "Flow1" },
+                        Outgoing = new List<string>() { "Flow2" },
+                    }
                 }
-            });
+            );
     }
 
     [Fact]
@@ -156,17 +177,20 @@ public class ProcessReaderTests
         var currentElement = "Task1";
         ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
         List<ProcessElement> nextElements = pr.GetNextElements(currentElement);
-        nextElements.Should().BeEquivalentTo(
-            new List<ProcessElement>()
-            {
-                new ProcessTask()
+        nextElements
+            .Should()
+            .BeEquivalentTo(
+                new List<ProcessElement>()
                 {
-                    Id = "Task2",
-                    Name = "Bekreft skjemadata",
-                    Incoming = new List<string>() { "Flow2" },
-                    Outgoing = new List<string>() { "Flow3" },
+                    new ProcessTask()
+                    {
+                        Id = "Task2",
+                        Name = "Bekreft skjemadata",
+                        Incoming = new List<string>() { "Flow2" },
+                        Outgoing = new List<string>() { "Flow3" },
+                    }
                 }
-            });
+            );
     }
 
     [Fact]
@@ -176,16 +200,19 @@ public class ProcessReaderTests
         var currentElement = "Task2";
         ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
         List<ProcessElement> nextElements = pr.GetNextElements(currentElement);
-        nextElements.Should().BeEquivalentTo(
-            new List<ProcessElement>()
-            {
-                new EndEvent()
+        nextElements
+            .Should()
+            .BeEquivalentTo(
+                new List<ProcessElement>()
                 {
-                    Id = "EndEvent",
-                    Incoming = new List<string>() { "Flow3" },
-                    Outgoing = new List<string>()
+                    new EndEvent()
+                    {
+                        Id = "EndEvent",
+                        Incoming = new List<string>() { "Flow3" },
+                        Outgoing = new List<string>()
+                    }
                 }
-            });
+            );
     }
 
     [Fact]
@@ -229,16 +256,20 @@ public class ProcessReaderTests
         var bpmnfile = "simple-gateway-default.bpmn";
         ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
         List<SequenceFlow> outgoingFLows = pr.GetOutgoingSequenceFlows(pr.GetFlowElement("Task1"));
-        outgoingFLows.Should().BeEquivalentTo(new List<SequenceFlow>
-        {
-            new SequenceFlow()
-            {
-                Id = "Flow2",
-                FlowType = null!,
-                SourceRef = "Task1",
-                TargetRef = "Gateway1"
-            }
-        });
+        outgoingFLows
+            .Should()
+            .BeEquivalentTo(
+                new List<SequenceFlow>
+                {
+                    new SequenceFlow()
+                    {
+                        Id = "Flow2",
+                        FlowType = null!,
+                        SourceRef = "Task1",
+                        TargetRef = "Gateway1"
+                    }
+                }
+            );
     }
 
     [Fact]
@@ -247,23 +278,27 @@ public class ProcessReaderTests
         var bpmnfile = "simple-gateway-default.bpmn";
         ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
         List<SequenceFlow> outgoingFLows = pr.GetOutgoingSequenceFlows(pr.GetFlowElement("Gateway1"));
-        outgoingFLows.Should().BeEquivalentTo(new List<SequenceFlow>
-        {
-            new SequenceFlow()
-            {
-                Id = "Flow3",
-                FlowType = null!,
-                SourceRef = "Gateway1",
-                TargetRef = "Task2"
-            },
-            new SequenceFlow()
-            {
-                Id = "Flow4",
-                FlowType = null!,
-                SourceRef = "Gateway1",
-                TargetRef = "EndEvent"
-            }
-        });
+        outgoingFLows
+            .Should()
+            .BeEquivalentTo(
+                new List<SequenceFlow>
+                {
+                    new SequenceFlow()
+                    {
+                        Id = "Flow3",
+                        FlowType = null!,
+                        SourceRef = "Gateway1",
+                        TargetRef = "Task2"
+                    },
+                    new SequenceFlow()
+                    {
+                        Id = "Flow4",
+                        FlowType = null!,
+                        SourceRef = "Gateway1",
+                        TargetRef = "EndEvent"
+                    }
+                }
+            );
     }
 
     [Fact]
@@ -286,13 +321,18 @@ public class ProcessReaderTests
     {
         var bpmnfile = "simple-gateway-default.bpmn";
         ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        pr.GetFlowElement("StartEvent").Should().BeOfType<StartEvent>().And.BeEquivalentTo(new StartEvent()
-        {
-            Id = "StartEvent",
-            Name = null!,
-            Incoming = new List<string>(),
-            Outgoing = new List<string> { "Flow1" }
-        });
+        pr.GetFlowElement("StartEvent")
+            .Should()
+            .BeOfType<StartEvent>()
+            .And.BeEquivalentTo(
+                new StartEvent()
+                {
+                    Id = "StartEvent",
+                    Name = null!,
+                    Incoming = new List<string>(),
+                    Outgoing = new List<string> { "Flow1" }
+                }
+            );
     }
 
     [Fact]
@@ -300,38 +340,36 @@ public class ProcessReaderTests
     {
         var bpmnfile = "simple-gateway-default.bpmn";
         ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        pr.GetFlowElement("Task1").Should().BeOfType<ProcessTask>().And.BeEquivalentTo(new ProcessTask()
-        {
-            Id = "Task1",
-            Name = null!,
-            Incoming = new List<string> { "Flow1" },
-            Outgoing = new List<string> { "Flow2" },
-            ExtensionElements = new ExtensionElements()
-            {
-                TaskExtension = new AltinnTaskExtension()
+        pr.GetFlowElement("Task1")
+            .Should()
+            .BeOfType<ProcessTask>()
+            .And.BeEquivalentTo(
+                new ProcessTask()
                 {
-                    AltinnActions = new List<AltinnAction>()
+                    Id = "Task1",
+                    Name = null!,
+                    Incoming = new List<string> { "Flow1" },
+                    Outgoing = new List<string> { "Flow2" },
+                    ExtensionElements = new ExtensionElements()
                     {
-                        new("submit", ActionType.ProcessAction),
-                        new("lookup", ActionType.ServerAction)
-                    },
-                    TaskType = "data",
-                    SignatureConfiguration = new()
-                    {
-                        DataTypesToSign = new()
+                        TaskExtension = new AltinnTaskExtension()
                         {
-                            "default",
-                            "default2"
-                        },
-                        SignatureDataType = "signature",
-                        UniqueFromSignaturesInDataTypes = new()
-                        {
-                            "signature1"
+                            AltinnActions = new List<AltinnAction>()
+                            {
+                                new("submit", ActionType.ProcessAction),
+                                new("lookup", ActionType.ServerAction)
+                            },
+                            TaskType = "data",
+                            SignatureConfiguration = new()
+                            {
+                                DataTypesToSign = new() { "default", "default2" },
+                                SignatureDataType = "signature",
+                                UniqueFromSignaturesInDataTypes = new() { "signature1" }
+                            }
                         }
                     }
                 }
-            }
-        });
+            );
     }
 
     [Fact]
@@ -339,13 +377,18 @@ public class ProcessReaderTests
     {
         var bpmnfile = "simple-gateway-default.bpmn";
         ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        pr.GetFlowElement("EndEvent").Should().BeOfType<EndEvent>().And.BeEquivalentTo(new EndEvent()
-        {
-            Id = "EndEvent",
-            Name = null!,
-            Incoming = new List<string> { "Flow4", "Flow5" },
-            Outgoing = new List<string>()
-        });
+        pr.GetFlowElement("EndEvent")
+            .Should()
+            .BeOfType<EndEvent>()
+            .And.BeEquivalentTo(
+                new EndEvent()
+                {
+                    Id = "EndEvent",
+                    Name = null!,
+                    Incoming = new List<string> { "Flow4", "Flow5" },
+                    Outgoing = new List<string>()
+                }
+            );
     }
 
     [Fact]
@@ -361,13 +404,18 @@ public class ProcessReaderTests
     {
         var bpmnfile = "simple-gateway-default.bpmn";
         ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
-        pr.GetFlowElement("Gateway1").Should().BeOfType<ExclusiveGateway>().And.BeEquivalentTo(new ExclusiveGateway()
-        {
-            Id = "Gateway1",
-            Name = null!,
-            Default = "Flow3",
-            Incoming = new List<string> { "Flow2" },
-            Outgoing = new List<string> { "Flow3", "Flow4" }
-        });
+        pr.GetFlowElement("Gateway1")
+            .Should()
+            .BeOfType<ExclusiveGateway>()
+            .And.BeEquivalentTo(
+                new ExclusiveGateway()
+                {
+                    Id = "Gateway1",
+                    Name = null!,
+                    Default = "Flow3",
+                    Incoming = new List<string> { "Flow2" },
+                    Outgoing = new List<string> { "Flow3", "Flow4" }
+                }
+            );
     }
 }

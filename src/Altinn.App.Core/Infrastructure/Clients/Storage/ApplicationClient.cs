@@ -4,10 +4,8 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Internal.App;
 using Altinn.Platform.Storage.Interface.Models;
-
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-
 using Newtonsoft.Json;
 
 namespace Altinn.App.Core.Infrastructure.Clients.Storage
@@ -29,11 +27,15 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         public ApplicationClient(
             IOptions<PlatformSettings> platformSettings,
             ILogger<ApplicationClient> logger,
-            HttpClient httpClient)
+            HttpClient httpClient
+        )
         {
             _logger = logger;
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiStorageEndpoint);
-            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
+            httpClient.DefaultRequestHeaders.Add(
+                General.SubscriptionKeyHeaderName,
+                platformSettings.Value.SubscriptionKey
+            );
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
             _client = httpClient;

@@ -31,13 +31,17 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             IOptions<AppSettings> appSettings,
             ILogger<ProcessClient> logger,
             IHttpContextAccessor httpContextAccessor,
-            HttpClient httpClient)
+            HttpClient httpClient
+        )
         {
             _appSettings = appSettings.Value;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiStorageEndpoint);
-            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
+            httpClient.DefaultRequestHeaders.Add(
+                General.SubscriptionKeyHeaderName,
+                platformSettings.Value.SubscriptionKey
+            );
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
             _client = httpClient;
@@ -46,7 +50,12 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         /// <inheritdoc/>
         public Stream GetProcessDefinition()
         {
-            string bpmnFilePath = Path.Join(_appSettings.AppBasePath, _appSettings.ConfigurationFolder, _appSettings.ProcessFolder, _appSettings.ProcessFileName);
+            string bpmnFilePath = Path.Join(
+                _appSettings.AppBasePath,
+                _appSettings.ConfigurationFolder,
+                _appSettings.ProcessFolder,
+                _appSettings.ProcessFileName
+            );
 
             try
             {
@@ -56,7 +65,9 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             }
             catch (Exception processDefinitionException)
             {
-                _logger.LogError($"Cannot find process definition file for this app. Have tried file location {bpmnFilePath}. Exception {processDefinitionException}");
+                _logger.LogError(
+                    $"Cannot find process definition file for this app. Have tried file location {bpmnFilePath}. Exception {processDefinitionException}"
+                );
                 throw;
             }
         }
@@ -65,7 +76,10 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         public async Task<ProcessHistoryList> GetProcessHistory(string instanceGuid, string instanceOwnerPartyId)
         {
             string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/process/history";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _appSettings.RuntimeCookieName);
+            string token = JwtTokenUtil.GetTokenFromContext(
+                _httpContextAccessor.HttpContext,
+                _appSettings.RuntimeCookieName
+            );
 
             HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
 

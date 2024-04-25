@@ -31,7 +31,7 @@
         public string? AlternativeSubjectFilter { get; set; }
 
         /// <summary>
-        /// Filter for type. The different sources has different types. 
+        /// Filter for type. The different sources has different types.
         /// </summary>
         public string? TypeFilter { get; set; }
 

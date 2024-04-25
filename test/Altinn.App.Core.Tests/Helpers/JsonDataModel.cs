@@ -46,15 +46,19 @@ public class JsonDataModel : IDataModelAccessor
         {
             return currentModel switch
             {
-                JsonValue jsonValue => jsonValue.GetValue<JsonElement>().ValueKind switch
-                {
-                    JsonValueKind.String => jsonValue.GetValue<string>(),
-                    JsonValueKind.Number => jsonValue.GetValue<double>(),
-                    JsonValueKind.True => true,
-                    JsonValueKind.False => false,
-                    JsonValueKind.Null => null,
-                    _ => throw new NotImplementedException($"Get Data is not implemented for {jsonValue.GetType()}"),
-                },
+                JsonValue jsonValue
+                    => jsonValue.GetValue<JsonElement>().ValueKind switch
+                    {
+                        JsonValueKind.String => jsonValue.GetValue<string>(),
+                        JsonValueKind.Number => jsonValue.GetValue<double>(),
+                        JsonValueKind.True => true,
+                        JsonValueKind.False => false,
+                        JsonValueKind.Null => null,
+                        _
+                            => throw new NotImplementedException(
+                                $"Get Data is not implemented for {jsonValue.GetType()}"
+                            ),
+                    },
                 JsonObject obj => obj,
                 JsonArray arr => arr,
                 _ => throw new NotImplementedException($"Get Data is not implemented for {currentModel.GetType()}"),
@@ -63,7 +67,10 @@ public class JsonDataModel : IDataModelAccessor
 
         var (key, groupIndex) = DataModel.ParseKeyPart(keys[index]);
 
-        if (currentModel is not JsonObject || !currentModel.AsObject().TryGetPropertyValue(key, out JsonNode? childModel))
+        if (
+            currentModel is not JsonObject
+            || !currentModel.AsObject().TryGetPropertyValue(key, out JsonNode? childModel)
+        )
         {
             return null;
         }
@@ -74,7 +81,7 @@ public class JsonDataModel : IDataModelAccessor
             {
                 if (indicies.Length == 0)
                 {
-                    return null; // Don't know index 
+                    return null; // Don't know index
                 }
 
                 groupIndex = indicies[0];
@@ -85,7 +92,12 @@ public class JsonDataModel : IDataModelAccessor
             }
 
             var arrayElement = childArray.ElementAt((int)groupIndex);
-            return GetModelDataRecursive(keys, index + 1, arrayElement, indicies.Length > 0 ? indicies.Slice(1) : indicies);
+            return GetModelDataRecursive(
+                keys,
+                index + 1,
+                arrayElement,
+                indicies.Length > 0 ? indicies.Slice(1) : indicies
+            );
         }
 
         return GetModelDataRecursive(keys, index + 1, childModel, indicies);
@@ -111,7 +123,10 @@ public class JsonDataModel : IDataModelAccessor
 
         var (key, groupIndex) = DataModel.ParseKeyPart(keys[index]);
 
-        if (currentModel is not JsonObject || !currentModel.AsObject().TryGetPropertyValue(key, out JsonNode? childModel))
+        if (
+            currentModel is not JsonObject
+            || !currentModel.AsObject().TryGetPropertyValue(key, out JsonNode? childModel)
+        )
         {
             return null;
         }
@@ -138,7 +153,12 @@ public class JsonDataModel : IDataModelAccessor
             }
 
             var arrayElement = childArray.ElementAt((int)groupIndex);
-            return GetModelDataCountRecurs(keys, index + 1, arrayElement, indicies.Length > 0 ? indicies.Slice(1) : indicies);
+            return GetModelDataCountRecurs(
+                keys,
+                index + 1,
+                arrayElement,
+                indicies.Length > 0 ? indicies.Slice(1) : indicies
+            );
         }
 
         return GetModelDataCountRecurs(keys, index + 1, childModel, indicies);
@@ -156,7 +176,12 @@ public class JsonDataModel : IDataModelAccessor
         return GetResolvedKeysRecursive(keyParts, _modelRoot);
     }
 
-    private string[] GetResolvedKeysRecursive(string[] keyParts, JsonNode? currentModel, int currentIndex = 0, string currentKey = "")
+    private string[] GetResolvedKeysRecursive(
+        string[] keyParts,
+        JsonNode? currentModel,
+        int currentIndex = 0,
+        string currentKey = ""
+    )
     {
         if (currentModel is null)
         {
@@ -169,7 +194,10 @@ public class JsonDataModel : IDataModelAccessor
         }
 
         var (key, groupIndex) = DataModel.ParseKeyPart(keyParts[currentIndex]);
-        if (currentModel is not JsonObject || !currentModel.AsObject().TryGetPropertyValue(key, out JsonNode? childModel))
+        if (
+            currentModel is not JsonObject
+            || !currentModel.AsObject().TryGetPropertyValue(key, out JsonNode? childModel)
+        )
         {
             return new string[0];
         }
@@ -184,7 +212,12 @@ public class JsonDataModel : IDataModelAccessor
                 var resolvedKeys = new List<string>();
                 foreach (var child in childArray)
                 {
-                    var newResolvedKeys = GetResolvedKeysRecursive(keyParts, child, currentIndex + 1, DataModel.JoinFieldKeyParts(currentKey, key + "[" + i + "]"));
+                    var newResolvedKeys = GetResolvedKeysRecursive(
+                        keyParts,
+                        child,
+                        currentIndex + 1,
+                        DataModel.JoinFieldKeyParts(currentKey, key + "[" + i + "]")
+                    );
                     resolvedKeys.AddRange(newResolvedKeys);
                     i++;
                 }
@@ -194,12 +227,22 @@ public class JsonDataModel : IDataModelAccessor
             else
             {
                 // Index specified, recurse on that element
-                return GetResolvedKeysRecursive(keyParts, childModel, currentIndex + 1, DataModel.JoinFieldKeyParts(currentKey, key + "[" + groupIndex + "]"));
+                return GetResolvedKeysRecursive(
+                    keyParts,
+                    childModel,
+                    currentIndex + 1,
+                    DataModel.JoinFieldKeyParts(currentKey, key + "[" + groupIndex + "]")
+                );
             }
         }
 
         // Otherwise, just recurse
-        return GetResolvedKeysRecursive(keyParts, childModel, currentIndex + 1, DataModel.JoinFieldKeyParts(currentKey, key));
+        return GetResolvedKeysRecursive(
+            keyParts,
+            childModel,
+            currentIndex + 1,
+            DataModel.JoinFieldKeyParts(currentKey, key)
+        );
     }
 
     /// <inheritdoc />
@@ -269,7 +312,12 @@ public class JsonDataModel : IDataModelAccessor
         if (lastGroupIndex is not null)
         {
             // Remove row from list
-            if (!(containingObject.TryGetPropertyValue(lastKey, out JsonNode? childModel) && childModel is JsonArray childArray))
+            if (
+                !(
+                    containingObject.TryGetPropertyValue(lastKey, out JsonNode? childModel)
+                    && childModel is JsonArray childArray
+                )
+            )
             {
                 throw new ArgumentException($"Tried to remove row {key}, ended in a non-list");
             }

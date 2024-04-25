@@ -29,24 +29,24 @@ public class ExpressionValidatorTests
     private readonly Mock<ILogger<ExpressionValidator>> _logger = new();
     private readonly Mock<IAppResources> _appResources = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadata = new(MockBehavior.Strict);
-    private readonly IOptions<FrontEndSettings> _frontendSettings = Microsoft.Extensions.Options.Options.Create(new FrontEndSettings());
+    private readonly IOptions<FrontEndSettings> _frontendSettings = Microsoft.Extensions.Options.Options.Create(
+        new FrontEndSettings()
+    );
     private readonly Mock<LayoutEvaluatorStateInitializer> _layoutInitializer;
 
     public ExpressionValidatorTests()
     {
         _appMetadata
             .Setup(ar => ar.GetApplicationMetadata())
-            .ReturnsAsync(
-                new ApplicationMetadata("org/app")
-                {
-                    DataTypes = new List<DataType>() { new() { } }
-                });
-        _appResources
-            .Setup(ar => ar.GetLayoutSetForTask(null))
-            .Returns(new LayoutSet());
+            .ReturnsAsync(new ApplicationMetadata("org/app") { DataTypes = new List<DataType>() { new() { } } });
+        _appResources.Setup(ar => ar.GetLayoutSetForTask(null)).Returns(new LayoutSet());
         _layoutInitializer = new(MockBehavior.Strict, _appResources.Object, _frontendSettings) { CallBase = false };
-        _validator =
-            new ExpressionValidator(_logger.Object, _appResources.Object, _layoutInitializer.Object, _appMetadata.Object);
+        _validator = new ExpressionValidator(
+            _logger.Object,
+            _appResources.Object,
+            _layoutInitializer.Object,
+            _appMetadata.Object
+        );
     }
 
     [Theory]
@@ -60,7 +60,14 @@ public class ExpressionValidatorTests
 
         var evaluatorState = new LayoutEvaluatorState(dataModel, testCase.Layouts, _frontendSettings.Value, instance);
         _layoutInitializer
-            .Setup(init => init.Init(It.Is<Instance>(i => i == instance), It.IsAny<object>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Setup(init =>
+                init.Init(
+                    It.Is<Instance>(i => i == instance),
+                    It.IsAny<object>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()
+                )
+            )
             .ReturnsAsync(evaluatorState);
         _appResources
             .Setup(ar => ar.GetValidationConfiguration(null))
@@ -88,11 +95,8 @@ public class ExpressionValidatorTests
 
 public class ExpressionTestAttribute : DataAttribute
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions =
+        new() { ReadCommentHandling = JsonCommentHandling.Skip, PropertyNamingPolicy = JsonNamingPolicy.CamelCase, };
 
     public override IEnumerable<object[]> GetData(MethodInfo methodInfo)
     {
@@ -105,7 +109,8 @@ public class ExpressionTestAttribute : DataAttribute
             var data = File.ReadAllText(file);
             ExpressionValidationTestModel testCase = JsonSerializer.Deserialize<ExpressionValidationTestModel>(
                 data,
-                _jsonSerializerOptions)!;
+                _jsonSerializerOptions
+            )!;
             yield return new object[] { testCase };
         }
     }

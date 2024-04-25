@@ -34,7 +34,7 @@ public class DefaultEFormidlingService : IEFormidlingService
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultEFormidlingService"/> class.
-    /// </summary>    
+    /// </summary>
     public DefaultEFormidlingService(
         ILogger<DefaultEFormidlingService> logger,
         IUserTokenProvider userTokenProvider,
@@ -46,7 +46,8 @@ public class DefaultEFormidlingService : IEFormidlingService
         IOptions<PlatformSettings>? platformSettings = null,
         IEFormidlingClient? eFormidlingClient = null,
         IAccessTokenGenerator? tokenGenerator = null,
-        IEFormidlingMetadata? eFormidlingMetadata = null)
+        IEFormidlingMetadata? eFormidlingMetadata = null
+    )
     {
         _logger = logger;
         _tokenGenerator = tokenGenerator;
@@ -64,17 +65,26 @@ public class DefaultEFormidlingService : IEFormidlingService
     /// <inheritdoc />
     public async Task SendEFormidlingShipment(Instance instance)
     {
-        if (_eFormidlingClient == null || _tokenGenerator == null || _eFormidlingMetadata == null ||
-            _appSettings == null || _platformSettings == null)
+        if (
+            _eFormidlingClient == null
+            || _tokenGenerator == null
+            || _eFormidlingMetadata == null
+            || _appSettings == null
+            || _platformSettings == null
+        )
         {
             throw new EntryPointNotFoundException(
-                "eFormidling support has not been correctly configured in App.cs. " +
-                "Ensure that IEformidlingClient and IAccessTokenGenerator are included in the base constructor.");
+                "eFormidling support has not been correctly configured in App.cs. "
+                    + "Ensure that IEformidlingClient and IAccessTokenGenerator are included in the base constructor."
+            );
         }
 
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
 
-        string accessToken = _tokenGenerator.GenerateAccessToken(applicationMetadata.Org, applicationMetadata.AppIdentifier.App);
+        string accessToken = _tokenGenerator.GenerateAccessToken(
+            applicationMetadata.Org,
+            applicationMetadata.AppIdentifier.App
+        );
         string authzToken = _userTokenProvider.GetUserToken();
 
         var requestHeaders = new Dictionary<string, string>
@@ -110,8 +120,10 @@ public class DefaultEFormidlingService : IEFormidlingService
         }
     }
 
-    private async Task<StandardBusinessDocument> ConstructStandardBusinessDocument(string instanceGuid,
-        Instance instance)
+    private async Task<StandardBusinessDocument> ConstructStandardBusinessDocument(
+        string instanceGuid,
+        Instance instance
+    )
     {
         DateTime completedTime = DateTime.UtcNow;
 
@@ -128,25 +140,18 @@ public class DefaultEFormidlingService : IEFormidlingService
         List<Receiver> receivers = await _eFormidlingReceivers.GetEFormidlingReceivers(instance);
         ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
 
-        Scope scope =
-            new Scope
-            {
-                Identifier = appMetadata.EFormidling.Process,
-                InstanceIdentifier = Guid.NewGuid().ToString(),
-                Type = "ConversationId",
-                ScopeInformation = new List<ScopeInformation>
-                {
-                    new ScopeInformation
-                    {
-                        ExpectedResponseDateTime = completedTime.AddHours(2)
-                    }
-                },
-            };
-
-        BusinessScope businessScope = new BusinessScope
+        Scope scope = new Scope
         {
-            Scope = new List<Scope> { scope }
+            Identifier = appMetadata.EFormidling.Process,
+            InstanceIdentifier = Guid.NewGuid().ToString(),
+            Type = "ConversationId",
+            ScopeInformation = new List<ScopeInformation>
+            {
+                new ScopeInformation { ExpectedResponseDateTime = completedTime.AddHours(2) }
+            },
         };
+
+        BusinessScope businessScope = new BusinessScope { Scope = new List<Scope> { scope } };
 
         DocumentIdentification documentIdentification = new DocumentIdentification
         {
@@ -193,20 +198,33 @@ public class DefaultEFormidlingService : IEFormidlingService
                 continue;
             }
 
-            bool appLogic =
-                applicationMetadata.DataTypes.Any(d => d.Id == dataElement.DataType && d.AppLogic?.ClassRef != null);
+            bool appLogic = applicationMetadata.DataTypes.Any(d =>
+                d.Id == dataElement.DataType && d.AppLogic?.ClassRef != null
+            );
 
             string fileName = appLogic ? $"{dataElement.DataType}.xml" : dataElement.Filename;
-            using Stream stream = await _dataClient.GetBinaryData(applicationMetadata.Org, applicationMetadata.AppIdentifier.App, instanceOwnerPartyId, instanceGuid,
-                new Guid(dataElement.Id));
+            using Stream stream = await _dataClient.GetBinaryData(
+                applicationMetadata.Org,
+                applicationMetadata.AppIdentifier.App,
+                instanceOwnerPartyId,
+                instanceGuid,
+                new Guid(dataElement.Id)
+            );
 
-            bool successful = await _eFormidlingClient!.UploadAttachment(stream, instanceGuid.ToString(), fileName, requestHeaders);
+            bool successful = await _eFormidlingClient!.UploadAttachment(
+                stream,
+                instanceGuid.ToString(),
+                fileName,
+                requestHeaders
+            );
 
             if (!successful)
             {
                 _logger.LogError(
                     "// AppBase // SendInstanceData // DataElement {DataElementId} was not sent with shipment for instance {InstanceId} failed",
-                    dataElement.Id, instance.Id);
+                    dataElement.Id,
+                    instance.Id
+                );
             }
         }
     }

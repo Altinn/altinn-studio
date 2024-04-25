@@ -20,6 +20,7 @@ public abstract class GenericFormDataValidator<TModel> : IFormDataValidator
     {
         DataType = dataType;
     }
+
     /// <inheritdoc />
     public string DataType { get; private init; }
 
@@ -33,17 +34,20 @@ public abstract class GenericFormDataValidator<TModel> : IFormDataValidator
     {
         if (current is not TModel currentCast)
         {
-            throw new Exception($"{GetType().Name} wants to run on data type {DataType}, but the data is of type {current?.GetType().Name}. It should be of type {typeof(TModel).Name}");
+            throw new Exception(
+                $"{GetType().Name} wants to run on data type {DataType}, but the data is of type {current?.GetType().Name}. It should be of type {typeof(TModel).Name}"
+            );
         }
 
         if (previous is not TModel previousCast)
         {
-            throw new Exception($"{GetType().Name} wants to run on data type {DataType}, but the previous of type {previous?.GetType().Name}. It should be of type {typeof(TModel).Name}");
+            throw new Exception(
+                $"{GetType().Name} wants to run on data type {DataType}, but the previous of type {previous?.GetType().Name}. It should be of type {typeof(TModel).Name}"
+            );
         }
 
         return HasRelevantChanges(currentCast, previousCast);
     }
-
 
     /// <summary>
     /// Convenience method to create a validation issue for a field using a linq expression instead of a json path for field
@@ -54,18 +58,27 @@ public abstract class GenericFormDataValidator<TModel> : IFormDataValidator
     /// <param name="description">Optional description if you want to provide a user friendly message that don't rely on the translation system</param>
     /// <param name="code">optional short code for the type of issue</param>
     /// <param name="customTextParams">List of parameters to replace after looking up the translation. Zero indexed {0}</param>
-    protected void CreateValidationIssue<T>(Expression<Func<TModel, T>> selector, string textKey, ValidationIssueSeverity severity = ValidationIssueSeverity.Error, string? description = null, string? code = null, List<string>? customTextParams = null)
+    protected void CreateValidationIssue<T>(
+        Expression<Func<TModel, T>> selector,
+        string textKey,
+        ValidationIssueSeverity severity = ValidationIssueSeverity.Error,
+        string? description = null,
+        string? code = null,
+        List<string>? customTextParams = null
+    )
     {
         Debug.Assert(ValidationIssues.Value is not null);
-        AddValidationIssue(new ValidationIssue
-        {
-            Field = LinqExpressionHelpers.GetJsonPath(selector),
-            Description = description ?? textKey,
-            Code = code ?? textKey,
-            CustomTextKey = textKey,
-            CustomTextParams = customTextParams,
-            Severity = severity
-        });
+        AddValidationIssue(
+            new ValidationIssue
+            {
+                Field = LinqExpressionHelpers.GetJsonPath(selector),
+                Description = description ?? textKey,
+                Code = code ?? textKey,
+                CustomTextKey = textKey,
+                CustomTextParams = customTextParams,
+                Severity = severity
+            }
+        );
     }
 
     /// <summary>
@@ -81,7 +94,12 @@ public abstract class GenericFormDataValidator<TModel> : IFormDataValidator
     /// Implementation of the generic <see cref="IFormDataValidator"/> interface to call the correctly typed
     /// validation method implemented by the inheriting class.
     /// </summary>
-    public async Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data, string? language)
+    public async Task<List<ValidationIssue>> ValidateFormData(
+        Instance instance,
+        DataElement dataElement,
+        object data,
+        string? language
+    )
     {
         if (data is not TModel model)
         {
@@ -91,7 +109,6 @@ public abstract class GenericFormDataValidator<TModel> : IFormDataValidator
         ValidationIssues.Value = new List<ValidationIssue>();
         await ValidateFormData(instance, dataElement, model, language);
         return ValidationIssues.Value;
-
     }
 
     /// <summary>

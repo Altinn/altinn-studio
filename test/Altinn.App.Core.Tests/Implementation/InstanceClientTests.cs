@@ -6,17 +6,13 @@ using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
-
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
-
 using Moq;
 using Moq.Protected;
-
 using Newtonsoft.Json;
-
 using Xunit;
 
 namespace Altinn.App.PlatformServices.Tests.Implementation
@@ -42,7 +38,13 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         public async Task AddCompleteConfirmation_SuccessfulCallToStorage()
         {
             // Arrange
-            Instance instance = new Instance { CompleteConfirmations = new List<CompleteConfirmation> { new CompleteConfirmation { StakeholderId = "test" } } };
+            Instance instance = new Instance
+            {
+                CompleteConfirmations = new List<CompleteConfirmation>
+                {
+                    new CompleteConfirmation { StakeholderId = "test" }
+                }
+            };
 
             HttpResponseMessage httpResponseMessage = new HttpResponseMessage
             {
@@ -54,7 +56,13 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
-            InstanceClient target = new InstanceClient(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+            InstanceClient target = new InstanceClient(
+                platformSettingsOptions.Object,
+                logger.Object,
+                contextAccessor.Object,
+                httpClient,
+                appSettingsOptions.Object
+            );
 
             // Act
             await target.AddCompleteConfirmation(1337, Guid.NewGuid());
@@ -77,7 +85,13 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
-            InstanceClient target = new InstanceClient(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+            InstanceClient target = new InstanceClient(
+                platformSettingsOptions.Object,
+                logger.Object,
+                contextAccessor.Object,
+                httpClient,
+                appSettingsOptions.Object
+            );
 
             PlatformHttpException actualException = null;
 
@@ -111,7 +125,13 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
-            InstanceClient target = new InstanceClient(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+            InstanceClient target = new InstanceClient(
+                platformSettingsOptions.Object,
+                logger.Object,
+                contextAccessor.Object,
+                httpClient,
+                appSettingsOptions.Object
+            );
 
             PlatformHttpException actualException = null;
 
@@ -147,7 +167,13 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
-            InstanceClient target = new InstanceClient(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+            InstanceClient target = new InstanceClient(
+                platformSettingsOptions.Object,
+                logger.Object,
+                contextAccessor.Object,
+                httpClient,
+                appSettingsOptions.Object
+            );
 
             // Act
             Instance actual = await target.UpdateReadStatus(1337, Guid.NewGuid(), "read");
@@ -165,11 +191,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             {
                 Status = new InstanceStatus
                 {
-                    Substatus = new Substatus
-                    {
-                        Label = "Substatus.Label",
-                        Description = "Substatus.Description"
-                    }
+                    Substatus = new Substatus { Label = "Substatus.Label", Description = "Substatus.Description" }
                 }
             };
 
@@ -183,14 +205,20 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
-            InstanceClient target = new InstanceClient(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+            InstanceClient target = new InstanceClient(
+                platformSettingsOptions.Object,
+                logger.Object,
+                contextAccessor.Object,
+                httpClient,
+                appSettingsOptions.Object
+            );
 
             // Act
-            Instance actual = await target.UpdateSubstatus(1337, Guid.NewGuid(), new Substatus
-            {
-                Label = "Substatus.Label",
-                Description = "Substatus.Description"
-            });
+            Instance actual = await target.UpdateSubstatus(
+                1337,
+                Guid.NewGuid(),
+                new Substatus { Label = "Substatus.Label", Description = "Substatus.Description" }
+            );
 
             // Assert
             Assert.Equal(expected.Status.Substatus.Label, actual.Status.Substatus.Label);
@@ -212,7 +240,13 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
-            InstanceClient target = new InstanceClient(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+            InstanceClient target = new InstanceClient(
+                platformSettingsOptions.Object,
+                logger.Object,
+                contextAccessor.Object,
+                httpClient,
+                appSettingsOptions.Object
+            );
 
             PlatformHttpException actualException = null;
 
@@ -255,7 +289,13 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
-            InstanceClient target = new InstanceClient(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+            InstanceClient target = new InstanceClient(
+                platformSettingsOptions.Object,
+                logger.Object,
+                contextAccessor.Object,
+                httpClient,
+                appSettingsOptions.Object
+            );
 
             // Act
             Instance actual = await target.DeleteInstance(1337, Guid.NewGuid(), false);
@@ -281,7 +321,13 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
-            InstanceClient target = new InstanceClient(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+            InstanceClient target = new InstanceClient(
+                platformSettingsOptions.Object,
+                logger.Object,
+                contextAccessor.Object,
+                httpClient,
+                appSettingsOptions.Object
+            );
 
             PlatformHttpException actualException = null;
 
@@ -317,7 +363,13 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
-            InstanceClient target = new InstanceClient(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+            InstanceClient target = new InstanceClient(
+                platformSettingsOptions.Object,
+                logger.Object,
+                contextAccessor.Object,
+                httpClient,
+                appSettingsOptions.Object
+            );
 
             PlatformHttpException actualException = null;
 
@@ -360,7 +412,13 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
-            InstanceClient target = new InstanceClient(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+            InstanceClient target = new InstanceClient(
+                platformSettingsOptions.Object,
+                logger.Object,
+                contextAccessor.Object,
+                httpClient,
+                appSettingsOptions.Object
+            );
 
             // Act
             await target.UpdatePresentationTexts(instanceOwnerId, instanceGuid, new PresentationTexts());
@@ -373,59 +431,70 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         public async Task QueryInstances_QueryResponseContainsNext()
         {
             // Arrange
-            QueryResponse<Instance> queryResponse1 = new()
-            {
-                Count = 1,
-                Instances = new List<Instance>
+            QueryResponse<Instance> queryResponse1 =
+                new()
                 {
-                    new Instance
-                    {
-                        Id = $"{1337}/{Guid.NewGuid()}"
-                    }
-                },
-                Next = "https://platform.altinn.no/storage/api/instances?&appId=ttd/apps-test&instanceOwner.partyId=1337&status.isArchived=false&status.isSoftDeleted=false&continuationtoken=abcd"
-            };
+                    Count = 1,
+                    Instances = new List<Instance> { new Instance { Id = $"{1337}/{Guid.NewGuid()}" } },
+                    Next =
+                        "https://platform.altinn.no/storage/api/instances?&appId=ttd/apps-test&instanceOwner.partyId=1337&status.isArchived=false&status.isSoftDeleted=false&continuationtoken=abcd"
+                };
 
-            QueryResponse<Instance> queryResponse2 = new()
-            {
-                Count = 1,
-                Instances = new List<Instance>
+            QueryResponse<Instance> queryResponse2 =
+                new()
                 {
-                    new Instance
-                    {
-                        Id = $"{1337}/{Guid.NewGuid()}"
-                    }
-                }
-            };
+                    Count = 1,
+                    Instances = new List<Instance> { new Instance { Id = $"{1337}/{Guid.NewGuid()}" } }
+                };
 
-            string urlPart1 = "instances?&appId=ttd/apps-test&instanceOwner.partyId=1337&status.isArchived=false&status.isSoftDeleted=false";
-            string urlPart2 = "https://platform.altinn.no/storage/api/instances?&appId=ttd/apps-test&instanceOwner.partyId=1337&status.isArchived=false&status.isSoftDeleted=false&continuationtoken=abcd";
+            string urlPart1 =
+                "instances?&appId=ttd/apps-test&instanceOwner.partyId=1337&status.isArchived=false&status.isSoftDeleted=false";
+            string urlPart2 =
+                "https://platform.altinn.no/storage/api/instances?&appId=ttd/apps-test&instanceOwner.partyId=1337&status.isArchived=false&status.isSoftDeleted=false&continuationtoken=abcd";
 
             HttpResponseMessage httpResponseMessage1 = new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(JsonConvert.SerializeObject(queryResponse1), Encoding.UTF8, "application/json"),
+                Content = new StringContent(
+                    JsonConvert.SerializeObject(queryResponse1),
+                    Encoding.UTF8,
+                    "application/json"
+                ),
             };
 
             HttpResponseMessage httpResponseMessage2 = new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(JsonConvert.SerializeObject(queryResponse2), Encoding.UTF8, "application/json"),
+                Content = new StringContent(
+                    JsonConvert.SerializeObject(queryResponse2),
+                    Encoding.UTF8,
+                    "application/json"
+                ),
             };
 
-            InitializeMocks(new HttpResponseMessage[] { httpResponseMessage1, httpResponseMessage2 }, new string[] { urlPart1, urlPart2 });
+            InitializeMocks(
+                new HttpResponseMessage[] { httpResponseMessage1, httpResponseMessage2 },
+                new string[] { urlPart1, urlPart2 }
+            );
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
-            InstanceClient target = new InstanceClient(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+            InstanceClient target = new InstanceClient(
+                platformSettingsOptions.Object,
+                logger.Object,
+                contextAccessor.Object,
+                httpClient,
+                appSettingsOptions.Object
+            );
 
-            Dictionary<string, StringValues> queryParams = new()
-            {
-                { "appId", $"ttd/apps-test" },
-                { "instanceOwner.partyId", "1337" },
-                { "status.isArchived", "false" },
-                { "status.isSoftDeleted", "false" }
-            };
+            Dictionary<string, StringValues> queryParams =
+                new()
+                {
+                    { "appId", $"ttd/apps-test" },
+                    { "instanceOwner.partyId", "1337" },
+                    { "status.isArchived", "false" },
+                    { "status.isSoftDeleted", "false" }
+                };
 
             // Act
             List<Instance> instances = await target.GetInstances(queryParams);
@@ -437,7 +506,11 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
         private void InitializeMocks(HttpResponseMessage[] httpResponseMessages, string[] urlPart)
         {
-            PlatformSettings platformSettings = new PlatformSettings { ApiStorageEndpoint = "http://localhost", SubscriptionKey = "key" };
+            PlatformSettings platformSettings = new PlatformSettings
+            {
+                ApiStorageEndpoint = "http://localhost",
+                SubscriptionKey = "key"
+            };
             platformSettingsOptions.Setup(s => s.Value).Returns(platformSettings);
 
             AppSettings appSettings = new AppSettings { RuntimeCookieName = "AltinnStudioRuntime" };
@@ -447,23 +520,29 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             if (httpResponseMessages.Length == 2)
             {
-                handlerMock.Protected()
-                .SetupSequence<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(p => p.RequestUri.ToString().Contains(urlPart[0]) || p.RequestUri.ToString().Contains(urlPart[1])),
-                    ItExpr.IsAny<CancellationToken>())
-                .ReturnsAsync(httpResponseMessages[0])
-               .ReturnsAsync(httpResponseMessages[1]);
+                handlerMock
+                    .Protected()
+                    .SetupSequence<Task<HttpResponseMessage>>(
+                        "SendAsync",
+                        ItExpr.Is<HttpRequestMessage>(p =>
+                            p.RequestUri.ToString().Contains(urlPart[0]) || p.RequestUri.ToString().Contains(urlPart[1])
+                        ),
+                        ItExpr.IsAny<CancellationToken>()
+                    )
+                    .ReturnsAsync(httpResponseMessages[0])
+                    .ReturnsAsync(httpResponseMessages[1]);
             }
             else
             {
-                handlerMock.Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(p => p.RequestUri.ToString().Contains(urlPart[0])),
-                    ItExpr.IsAny<CancellationToken>())
-                .ReturnsAsync(httpResponseMessages[0])
-                .Verifiable();
+                handlerMock
+                    .Protected()
+                    .Setup<Task<HttpResponseMessage>>(
+                        "SendAsync",
+                        ItExpr.Is<HttpRequestMessage>(p => p.RequestUri.ToString().Contains(urlPart[0])),
+                        ItExpr.IsAny<CancellationToken>()
+                    )
+                    .ReturnsAsync(httpResponseMessages[0])
+                    .Verifiable();
             }
         }
     }

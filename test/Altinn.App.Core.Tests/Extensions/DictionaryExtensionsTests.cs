@@ -12,11 +12,7 @@ namespace Altinn.App.Core.Tests.Extensions
         {
             var options = new AppOptions
             {
-                Parameters = new Dictionary<string, string>
-                {
-                    { "lang", "nb" },
-                    { "level", "1" }
-                },
+                Parameters = new Dictionary<string, string> { { "lang", "nb" }, { "level", "1" } },
             };
 
             IHeaderDictionary headers = new HeaderDictionary
@@ -30,10 +26,7 @@ namespace Altinn.App.Core.Tests.Extensions
         [Fact]
         public void ToNameValueString_OptionParametersWithEmptyValue_ShouldConvertToHttpHeaderFormat()
         {
-            var options = new AppOptions
-            {
-                Parameters = new Dictionary<string, string>()
-            };
+            var options = new AppOptions { Parameters = new Dictionary<string, string>() };
 
             IHeaderDictionary headers = new HeaderDictionary
             {
@@ -46,10 +39,7 @@ namespace Altinn.App.Core.Tests.Extensions
         [Fact]
         public void ToNameValueString_OptionParametersWithNullValue_ShouldConvertToHttpHeaderFormat()
         {
-            var options = new AppOptions
-            {
-                Parameters = null!
-            };
+            var options = new AppOptions { Parameters = null! };
 
             IHeaderDictionary headers = new HeaderDictionary
             {
@@ -76,7 +66,10 @@ namespace Altinn.App.Core.Tests.Extensions
             IHeaderDictionary headers = new HeaderDictionary();
             headers.Append("Altinn-DownstreamParameters", options.Parameters.ToUrlEncodedNameValueString(','));
 
-            Assert.Equal("lang=nb,level=1,name=%C3%86%C3%98%C3%85,variant=Sm%C3%A5vilt1", headers["Altinn-DownstreamParameters"]);
+            Assert.Equal(
+                "lang=nb,level=1,name=%C3%86%C3%98%C3%85,variant=Sm%C3%A5vilt1",
+                headers["Altinn-DownstreamParameters"]
+            );
         }
     }
 }

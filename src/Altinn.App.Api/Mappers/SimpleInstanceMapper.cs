@@ -31,7 +31,10 @@ namespace Altinn.App.Api.Mappers
         /// <param name="instances">The list of instances to map</param>
         /// <param name="userDictionary">A dictionary for looking up full name of the entity to last change the instance based on instance.LastChangedBy.</param>
         /// <returns>A list of simple instances.</returns>
-        public static List<SimpleInstance> MapInstanceListToSimpleInstanceList(List<Instance> instances, Dictionary<string, string> userDictionary)
+        public static List<SimpleInstance> MapInstanceListToSimpleInstanceList(
+            List<Instance> instances,
+            Dictionary<string, string> userDictionary
+        )
         {
             List<SimpleInstance> simpleInstances = new List<SimpleInstance>();
             foreach (Instance instance in instances)

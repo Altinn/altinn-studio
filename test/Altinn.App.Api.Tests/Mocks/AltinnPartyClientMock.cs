@@ -8,10 +8,8 @@ namespace Altinn.App.Api.Tests.Mocks;
 
 public class AltinnPartyClientMock : IAltinnPartyClient
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
-    {
-        Converters = { new JsonStringEnumConverter() }
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions =
+        new(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
 
     private readonly string _partyFolder = TestData.GetAltinnProfilePath();
 
@@ -42,6 +40,7 @@ public class AltinnPartyClientMock : IAltinnPartyClient
 
         // Current implementation throws PlatformException if party is not found. Not sure what the correct behaviour for tests is.
         throw new Exception(
-            $"Could not find party with orgNo {partyLookup.OrgNo} or ssn {partyLookup.Ssn} in {_partyFolder}");
+            $"Could not find party with orgNo {partyLookup.OrgNo} or ssn {partyLookup.Ssn} in {_partyFolder}"
+        );
     }
 }

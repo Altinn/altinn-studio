@@ -13,23 +13,28 @@ namespace Altinn.App.Api.Helpers.RequestHandling
     public static class DataRestrictionValidation
     {
         /// <summary>
-        /// Check if a data post/put request complies with restrictions agreed upon for the DataController 
+        /// Check if a data post/put request complies with restrictions agreed upon for the DataController
         /// </summary>
         /// <param name="request">the original http request</param>
         /// <param name="dataType">datatype the files is beeing uploaded to</param>
         /// <returns>true with errorResponse = empty list if all is ok, false with errorResponse including errors if not</returns>
-        public static (bool Success, List<ValidationIssue> Errors) CompliesWithDataRestrictions(HttpRequest request, DataType? dataType)
+        public static (bool Success, List<ValidationIssue> Errors) CompliesWithDataRestrictions(
+            HttpRequest request,
+            DataType? dataType
+        )
         {
             List<ValidationIssue> errors = new();
             var errorBaseMessage = "Invalid data provided. Error:";
             if (!request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues))
             {
-                errors.Add(new ValidationIssue
-                {
-                    Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
-                    Severity = ValidationIssueSeverity.Error,
-                    Description = $"{errorBaseMessage} The request must include a Content-Disposition header"
-                });
+                errors.Add(
+                    new ValidationIssue
+                    {
+                        Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
+                        Severity = ValidationIssueSeverity.Error,
+                        Description = $"{errorBaseMessage} The request must include a Content-Disposition header"
+                    }
+                );
 
                 return (false, errors);
             }
@@ -37,12 +42,14 @@ namespace Altinn.App.Api.Helpers.RequestHandling
             var maxSize = (long?)dataType?.MaxSize * 1024 * 1024;
             if (maxSize != null && request.ContentLength > maxSize)
             {
-                errors.Add(new ValidationIssue
-                {
-                    Code = ValidationIssueCodes.DataElementCodes.DataElementTooLarge,
-                    Severity = ValidationIssueSeverity.Error,
-                    Description = $"{errorBaseMessage} Binary attachment exceeds limit of {maxSize}"
-                });
+                errors.Add(
+                    new ValidationIssue
+                    {
+                        Code = ValidationIssueCodes.DataElementCodes.DataElementTooLarge,
+                        Severity = ValidationIssueSeverity.Error,
+                        Description = $"{errorBaseMessage} Binary attachment exceeds limit of {maxSize}"
+                    }
+                );
 
                 return (false, errors);
             }
@@ -51,12 +58,14 @@ namespace Altinn.App.Api.Helpers.RequestHandling
 
             if (string.IsNullOrEmpty(filename))
             {
-                errors.Add(new ValidationIssue
-                {
-                    Code = ValidationIssueCodes.DataElementCodes.MissingFileName,
-                    Severity = ValidationIssueSeverity.Error,
-                    Description = $"{errorBaseMessage} The Content-Disposition header must contain a filename"
-                });
+                errors.Add(
+                    new ValidationIssue
+                    {
+                        Code = ValidationIssueCodes.DataElementCodes.MissingFileName,
+                        Severity = ValidationIssueSeverity.Error,
+                        Description = $"{errorBaseMessage} The Content-Disposition header must contain a filename"
+                    }
+                );
 
                 return (false, errors);
             }
@@ -65,12 +74,15 @@ namespace Altinn.App.Api.Helpers.RequestHandling
 
             if (splitFilename.Length < 2)
             {
-                errors.Add(new ValidationIssue
-                {
-                    Code = ValidationIssueCodes.DataElementCodes.InvalidFileNameFormat,
-                    Severity = ValidationIssueSeverity.Error,
-                    Description = $"{errorBaseMessage} Invalid format for filename: {filename}. Filename is expected to end with '.{{filetype}}'."
-                });
+                errors.Add(
+                    new ValidationIssue
+                    {
+                        Code = ValidationIssueCodes.DataElementCodes.InvalidFileNameFormat,
+                        Severity = ValidationIssueSeverity.Error,
+                        Description =
+                            $"{errorBaseMessage} Invalid format for filename: {filename}. Filename is expected to end with '.{{filetype}}'."
+                    }
+                );
 
                 return (false, errors);
             }
@@ -85,12 +97,14 @@ namespace Altinn.App.Api.Helpers.RequestHandling
 
             if (!request.Headers.TryGetValue("Content-Type", out StringValues contentType))
             {
-                errors.Add(new ValidationIssue
-                {
-                    Code = ValidationIssueCodes.DataElementCodes.InvalidFileNameFormat,
-                    Severity = ValidationIssueSeverity.Error,
-                    Description = $"{errorBaseMessage} Content-Type header must be included in request."
-                });
+                errors.Add(
+                    new ValidationIssue
+                    {
+                        Code = ValidationIssueCodes.DataElementCodes.InvalidFileNameFormat,
+                        Severity = ValidationIssueSeverity.Error,
+                        Description = $"{errorBaseMessage} Content-Type header must be included in request."
+                    }
+                );
 
                 return (false, errors);
             }
@@ -98,25 +112,36 @@ namespace Altinn.App.Api.Helpers.RequestHandling
             // Verify that file mime type matches content type in request
             if (!contentType.Equals("application/octet-stream") && !mimeType.Equals(contentType))
             {
-                errors.Add(new ValidationIssue
-                {
-                    Code = ValidationIssueCodes.DataElementCodes.InvalidFileNameFormat,
-                    Severity = ValidationIssueSeverity.Error,
-                    Description = $"{errorBaseMessage} Content type header {contentType} does not match mime type {mimeType} for uploaded file. Please fix header or upload another file."
-                });
+                errors.Add(
+                    new ValidationIssue
+                    {
+                        Code = ValidationIssueCodes.DataElementCodes.InvalidFileNameFormat,
+                        Severity = ValidationIssueSeverity.Error,
+                        Description =
+                            $"{errorBaseMessage} Content type header {contentType} does not match mime type {mimeType} for uploaded file. Please fix header or upload another file."
+                    }
+                );
 
                 return (false, errors);
             }
 
             // Verify that file mime type is an allowed content-type
-            if (!dataType.AllowedContentTypes.Contains(contentType.ToString(), StringComparer.InvariantCultureIgnoreCase) && !dataType.AllowedContentTypes.Contains("application/octet-stream"))
+            if (
+                !dataType.AllowedContentTypes.Contains(
+                    contentType.ToString(),
+                    StringComparer.InvariantCultureIgnoreCase
+                ) && !dataType.AllowedContentTypes.Contains("application/octet-stream")
+            )
             {
-                errors.Add(new ValidationIssue
-                {
-                    Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
-                    Severity = ValidationIssueSeverity.Error,
-                    Description = $"{errorBaseMessage} Invalid content type: {mimeType}. Please try another file. Permitted content types include: {string.Join(", ", dataType.AllowedContentTypes)}"
-                });
+                errors.Add(
+                    new ValidationIssue
+                    {
+                        Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
+                        Severity = ValidationIssueSeverity.Error,
+                        Description =
+                            $"{errorBaseMessage} Invalid content type: {mimeType}. Please try another file. Permitted content types include: {string.Join(", ", dataType.AllowedContentTypes)}"
+                    }
+                );
 
                 return (false, errors);
             }

@@ -26,12 +26,9 @@ public class StartTaskEventHandlerTests
         StartTaskEventHandler steh = new StartTaskEventHandler(
             _processTaskDataLocker.Object,
             _processTaskInitializer.Object,
-            _processTaskStarts);
-        var instance = new Instance()
-        {
-            Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d",
-            AppId = "ttd/test",
-        };
+            _processTaskStarts
+        );
+        var instance = new Instance() { Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d", AppId = "ttd/test", };
         Mock<IProcessTask> mockProcessTask = new Mock<IProcessTask>();
         await steh.Execute(mockProcessTask.Object, "Task_1", instance, []);
         _processTaskDataLocker.Verify(p => p.Unlock("Task_1", instance));
@@ -48,20 +45,13 @@ public class StartTaskEventHandlerTests
     {
         Mock<IProcessTaskStart> startOne = new Mock<IProcessTaskStart>();
         Mock<IProcessTaskStart> startTwo = new Mock<IProcessTaskStart>();
-        _processTaskStarts = new List<IProcessTaskStart>()
-        {
-            startOne.Object,
-            startTwo.Object,
-        };
+        _processTaskStarts = new List<IProcessTaskStart>() { startOne.Object, startTwo.Object, };
         StartTaskEventHandler steh = new StartTaskEventHandler(
             _processTaskDataLocker.Object,
             _processTaskInitializer.Object,
-            _processTaskStarts);
-        var instance = new Instance()
-        {
-            Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d",
-            AppId = "ttd/test",
-        };
+            _processTaskStarts
+        );
+        var instance = new Instance() { Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d", AppId = "ttd/test", };
         Mock<IProcessTask> mockProcessTask = new Mock<IProcessTask>();
         await steh.Execute(mockProcessTask.Object, "Task_1", instance, []);
         _processTaskDataLocker.Verify(p => p.Unlock("Task_1", instance));

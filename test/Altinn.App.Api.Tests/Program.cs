@@ -33,9 +33,12 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(
     {
         ApplicationName = "Altinn.App.Api.Tests",
         WebRootPath = Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributer-restriction")
-    });
+    }
+);
 
-builder.Configuration.AddJsonFile(Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributer-restriction", "appsettings.json"));
+builder.Configuration.AddJsonFile(
+    Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributer-restriction", "appsettings.json")
+);
 builder.Configuration.GetSection("MetricsSettings:Enabled").Value = "false";
 
 ConfigureServices(builder.Services, builder.Configuration);
@@ -59,7 +62,10 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
 
 void ConfigureMockServices(IServiceCollection services, ConfigurationManager configuration)
 {
-    PlatformSettings platformSettings = new PlatformSettings() { ApiAuthorizationEndpoint = "http://localhost:5101/authorization/api/v1/" };
+    PlatformSettings platformSettings = new PlatformSettings()
+    {
+        ApiAuthorizationEndpoint = "http://localhost:5101/authorization/api/v1/"
+    };
     services.AddSingleton<IOptions<PlatformSettings>>(Options.Create(platformSettings));
     services.AddTransient<IAuthorizationClient, AuthorizationMock>();
     services.AddTransient<IInstanceClient, InstanceClientMockSi>();

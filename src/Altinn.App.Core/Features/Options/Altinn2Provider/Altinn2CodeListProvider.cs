@@ -44,7 +44,15 @@ namespace Altinn.App.Core.Features.Options.Altinn2Provider
         /// <summary>
         /// <see cref="CommonOptionProviderServiceCollectionExtensions.AddAltinn2CodeList" />
         /// </summary>
-        public Altinn2CodeListProvider(IMemoryCache cache, Altinn2MetadataApiClient client, string id, Func<MetadataCodeListCodes, AppOption> transform, Func<MetadataCodeListCodes, bool>? filter, string? metadataApiId = null, int? codeListVersion = null)
+        public Altinn2CodeListProvider(
+            IMemoryCache cache,
+            Altinn2MetadataApiClient client,
+            string id,
+            Func<MetadataCodeListCodes, AppOption> transform,
+            Func<MetadataCodeListCodes, bool>? filter,
+            string? metadataApiId = null,
+            int? codeListVersion = null
+        )
         {
             _cache = cache;
             _client = client;
@@ -68,12 +76,17 @@ namespace Altinn.App.Core.Features.Options.Altinn2Provider
                 _ => "1044", // default to norwegian bokmål
             };
 
-            return (await _cache.GetOrCreateAsync($"{_metadataApiId}{langCode}{_codeListVersion}", async (entry) =>
-            {
-                entry.Priority = CacheItemPriority.NeverRemove;
-                entry.AbsoluteExpiration = DateTimeOffset.MaxValue;
-                return await _client.GetAltinn2Codelist(_metadataApiId, langCode, _codeListVersion);
-            }))!;
+            return (
+                await _cache.GetOrCreateAsync(
+                    $"{_metadataApiId}{langCode}{_codeListVersion}",
+                    async (entry) =>
+                    {
+                        entry.Priority = CacheItemPriority.NeverRemove;
+                        entry.AbsoluteExpiration = DateTimeOffset.MaxValue;
+                        return await _client.GetAltinn2Codelist(_metadataApiId, langCode, _codeListVersion);
+                    }
+                )
+            )!;
         }
 
         /// <inheritdoc/>
@@ -81,11 +94,12 @@ namespace Altinn.App.Core.Features.Options.Altinn2Provider
         {
             var codelist = await GetRawAltinn2CodelistAsync(language);
 
-            AppOptions options = new()
-            {
-                Options = codelist.Codes.Where(_filter ?? (c => true)).Select(_transform).ToList(),
-                IsCacheable = true
-            };
+            AppOptions options =
+                new()
+                {
+                    Options = codelist.Codes.Where(_filter ?? (c => true)).Select(_transform).ToList(),
+                    IsCacheable = true
+                };
             return options;
         }
     }

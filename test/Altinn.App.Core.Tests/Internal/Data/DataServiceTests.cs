@@ -39,12 +39,16 @@ namespace Altinn.App.Core.Tests.Internal.Data
             await JsonSerializer.SerializeAsync(referenceStream, expectedModel, _jsonSerializerOptions);
             referenceStream.Position = 0;
 
-            _mockDataClient.Setup(dc => dc.GetBinaryData(
-                    applicationMetadata.AppIdentifier.Org,
-                    applicationMetadata.AppIdentifier.App,
-                    instanceIdentifier.InstanceOwnerPartyId,
-                    instanceIdentifier.InstanceGuid,
-                    new Guid(instance.Data.First().Id)))
+            _mockDataClient
+                .Setup(dc =>
+                    dc.GetBinaryData(
+                        applicationMetadata.AppIdentifier.Org,
+                        applicationMetadata.AppIdentifier.App,
+                        instanceIdentifier.InstanceOwnerPartyId,
+                        instanceIdentifier.InstanceGuid,
+                        new Guid(instance.Data.First().Id)
+                    )
+                )
                 .ReturnsAsync(referenceStream);
 
             _mockAppMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
@@ -90,12 +94,16 @@ namespace Altinn.App.Core.Tests.Internal.Data
             await JsonSerializer.SerializeAsync(referenceStream, expectedModel, _jsonSerializerOptions);
             referenceStream.Position = 0;
 
-            _mockDataClient.Setup(dc => dc.GetBinaryData(
-                    applicationMetadata.AppIdentifier.Org,
-                    applicationMetadata.AppIdentifier.App,
-                    instanceIdentifier.InstanceOwnerPartyId,
-                    instanceIdentifier.InstanceGuid,
-                    expectedDataId))
+            _mockDataClient
+                .Setup(dc =>
+                    dc.GetBinaryData(
+                        applicationMetadata.AppIdentifier.Org,
+                        applicationMetadata.AppIdentifier.App,
+                        instanceIdentifier.InstanceOwnerPartyId,
+                        instanceIdentifier.InstanceGuid,
+                        expectedDataId
+                    )
+                )
                 .ReturnsAsync(referenceStream);
 
             _mockAppMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
@@ -115,7 +123,9 @@ namespace Altinn.App.Core.Tests.Internal.Data
             instance.Data = [new DataElement { Id = Guid.NewGuid().ToString() }];
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _dataService.GetById<TestModel>(instance, Guid.NewGuid()));
+            await Assert.ThrowsAsync<ArgumentNullException>(
+                () => _dataService.GetById<TestModel>(instance, Guid.NewGuid())
+            );
         }
 
         [Fact]
@@ -128,14 +138,17 @@ namespace Altinn.App.Core.Tests.Internal.Data
             object data = new();
             DataElement expectedDataElement = new();
 
-            _mockDataClient.Setup(x =>
+            _mockDataClient
+                .Setup(x =>
                     x.InsertBinaryData(
                         instanceIdentifier.ToString(),
                         dataTypeId,
                         "application/json",
                         dataTypeId + ".json",
                         It.IsAny<Stream>(),
-                        null))
+                        null
+                    )
+                )
                 .ReturnsAsync(expectedDataElement);
 
             // Act
@@ -156,16 +169,25 @@ namespace Altinn.App.Core.Tests.Internal.Data
             object data = new();
             DataElement expectedDataElement = new();
 
-            _mockDataClient.Setup(x => x.UpdateBinaryData(
-                    instanceIdentifier,
-                    "application/json",
-                    dataTypeId + ".json",
-                    dataElementId,
-                    It.IsAny<Stream>()))
+            _mockDataClient
+                .Setup(x =>
+                    x.UpdateBinaryData(
+                        instanceIdentifier,
+                        "application/json",
+                        dataTypeId + ".json",
+                        dataElementId,
+                        It.IsAny<Stream>()
+                    )
+                )
                 .ReturnsAsync(expectedDataElement);
 
             // Act
-            DataElement result = await _dataService.UpdateJsonObject(instanceIdentifier, dataTypeId, dataElementId, data);
+            DataElement result = await _dataService.UpdateJsonObject(
+                instanceIdentifier,
+                dataTypeId,
+                dataElementId,
+                data
+            );
 
             // Assert
             Assert.Equivalent(expectedDataElement, result);
@@ -180,11 +202,7 @@ namespace Altinn.App.Core.Tests.Internal.Data
                 InstanceOwner = new InstanceOwner { PartyId = "123" },
                 Process = new ProcessState
                 {
-                    CurrentTask = new ProcessElementInfo
-                    {
-                        AltinnTaskType = "dataTask",
-                        ElementId = "Task_1",
-                    },
+                    CurrentTask = new ProcessElementInfo { AltinnTaskType = "dataTask", ElementId = "Task_1", },
                 },
             };
         }
@@ -198,7 +216,5 @@ namespace Altinn.App.Core.Tests.Internal.Data
         }
     }
 
-    public class TestModel
-    {
-    }
+    public class TestModel { }
 }

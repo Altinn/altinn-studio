@@ -11,10 +11,8 @@ namespace Altinn.App.Core.Internal.Language
     /// </summary>
     public class ApplicationLanguage : IApplicationLanguage
     {
-        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
+        private static readonly JsonSerializerOptions _jsonSerializerOptions =
+            new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
         private readonly AppSettings _settings;
         private readonly ILogger _logger;
@@ -24,9 +22,7 @@ namespace Altinn.App.Core.Internal.Language
         /// </summary>
         /// <param name="settings">The app repository settings.</param>
         /// <param name="logger">A logger from the built in logger factory.</param>
-        public ApplicationLanguage(
-            IOptions<AppSettings> settings,
-            ILogger<AppResourcesSI> logger)
+        public ApplicationLanguage(IOptions<AppSettings> settings, ILogger<AppResourcesSI> logger)
         {
             _settings = settings.Value;
             _logger = logger;
@@ -35,7 +31,11 @@ namespace Altinn.App.Core.Internal.Language
         /// <inheritdoc />
         public async Task<List<Models.ApplicationLanguage>> GetApplicationLanguages()
         {
-            var pathTextsResourceFolder = Path.Join(_settings.AppBasePath, _settings.ConfigurationFolder, _settings.TextFolder);
+            var pathTextsResourceFolder = Path.Join(
+                _settings.AppBasePath,
+                _settings.ConfigurationFolder,
+                _settings.TextFolder
+            );
             var directoryInfo = new DirectoryInfo(pathTextsResourceFolder);
             var textResourceFilesInDirectory = directoryInfo.GetFiles();
             var applicationLanguages = new List<Models.ApplicationLanguage>();
@@ -44,7 +44,12 @@ namespace Altinn.App.Core.Internal.Language
             {
                 await using (FileStream fileStream = new(fileInfo.FullName, FileMode.Open, FileAccess.Read))
                 {
-                    var applicationLanguage = (await JsonSerializer.DeserializeAsync<Models.ApplicationLanguage>(fileStream, _jsonSerializerOptions))!;
+                    var applicationLanguage = (
+                        await JsonSerializer.DeserializeAsync<Models.ApplicationLanguage>(
+                            fileStream,
+                            _jsonSerializerOptions
+                        )
+                    )!;
                     applicationLanguages.Add(applicationLanguage);
                 }
             }

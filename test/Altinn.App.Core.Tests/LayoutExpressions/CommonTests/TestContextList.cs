@@ -12,11 +12,8 @@ namespace Altinn.App.Core.Tests.LayoutExpressions;
 
 public class TestContextList
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        WriteIndented = true,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions =
+        new() { WriteIndented = true, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault };
 
     private readonly ITestOutputHelper _output;
 
@@ -46,11 +43,7 @@ public class TestContextList
         _output.WriteLine($"{test.Filename} in {test.Folder}");
         _output.WriteLine(test.RawJson);
         _output.WriteLine(test.FullPath);
-        var state = new LayoutEvaluatorState(
-            new JsonDataModel(test.DataModel),
-            test.ComponentModel,
-            new(),
-            new());
+        var state = new LayoutEvaluatorState(new JsonDataModel(test.DataModel), test.ComponentModel, new(), new());
 
         test.ParsingException.Should().BeNull("Loading of test failed");
 
@@ -69,18 +62,29 @@ public class TestContextList
     public void Ensure_tests_For_All_Folders()
     {
         // This is just a way to ensure that all folders have test methods associcated.
-        var jsonTestFolders = Directory.GetDirectories(Path.Join("LayoutExpressions", "CommonTests", "shared-tests", "context-lists")).Select(d => Path.GetFileName(d)).ToArray();
-        var testMethods = this.GetType().GetMethods().Select(m => m.CustomAttributes.FirstOrDefault(ca => ca.AttributeType == typeof(SharedTestContextListAttribute))?.ConstructorArguments.FirstOrDefault().Value).OfType<string>().ToArray();
-        testMethods.Should().BeEquivalentTo(jsonTestFolders, "Shared test folders should have a corresponding test method");
+        var jsonTestFolders = Directory
+            .GetDirectories(Path.Join("LayoutExpressions", "CommonTests", "shared-tests", "context-lists"))
+            .Select(d => Path.GetFileName(d))
+            .ToArray();
+        var testMethods = this.GetType()
+            .GetMethods()
+            .Select(m =>
+                m.CustomAttributes.FirstOrDefault(ca => ca.AttributeType == typeof(SharedTestContextListAttribute))
+                    ?.ConstructorArguments.FirstOrDefault()
+                    .Value
+            )
+            .OfType<string>()
+            .ToArray();
+        testMethods
+            .Should()
+            .BeEquivalentTo(jsonTestFolders, "Shared test folders should have a corresponding test method");
     }
 }
 
 public class SharedTestContextListAttribute : DataAttribute
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        ReadCommentHandling = JsonCommentHandling.Skip,
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions =
+        new() { ReadCommentHandling = JsonCommentHandling.Skip, };
 
     private readonly string _folder;
 
@@ -91,7 +95,9 @@ public class SharedTestContextListAttribute : DataAttribute
 
     public override IEnumerable<object[]> GetData(MethodInfo methodInfo)
     {
-        var files = Directory.GetFiles(Path.Join("LayoutExpressions", "CommonTests", "shared-tests", "context-lists", _folder));
+        var files = Directory.GetFiles(
+            Path.Join("LayoutExpressions", "CommonTests", "shared-tests", "context-lists", _folder)
+        );
         foreach (var file in files)
         {
             ContextListRoot testCase = new();

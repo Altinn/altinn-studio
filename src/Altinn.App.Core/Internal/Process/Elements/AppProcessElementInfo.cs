@@ -34,6 +34,7 @@ public class AppProcessElementInfo : ProcessElementInfo
         Actions = new Dictionary<string, bool>();
         UserActions = new List<UserAction>();
     }
+
     /// <summary>
     /// Actions that can be performed and if the user is allowed to perform them.
     /// </summary>

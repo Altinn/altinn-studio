@@ -15,7 +15,7 @@ public static class StartupHelper
     public delegate void SwaggerIncludeXmlComments(string filepath, bool a);
 
     /// <summary>
-    /// Includes comments in swagger based on XML comment files 
+    /// Includes comments in swagger based on XML comment files
     /// </summary>
     /// <param name="swaggerDelegate">Delegate for passing SwaggerGenOptions.IncludeXmlComments function</param>
     public static void IncludeXmlComments(SwaggerIncludeXmlComments swaggerDelegate)
@@ -42,6 +42,7 @@ public static class StartupHelper
     {
         string appMetaDataString = File.ReadAllText("config/applicationmetadata.json");
         JObject appMetadataJObject = JObject.Parse(appMetaDataString);
-        return appMetadataJObject.SelectToken("id")?.Value<string>() ?? throw new Exception("config/applicationmetadata.json does not contain an \"id\" property");
+        return appMetadataJObject.SelectToken("id")?.Value<string>()
+            ?? throw new Exception("config/applicationmetadata.json does not contain an \"id\" property");
     }
 }

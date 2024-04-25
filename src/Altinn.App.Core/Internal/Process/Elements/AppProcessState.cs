@@ -11,9 +11,7 @@ public class AppProcessState : ProcessState
     /// <summary>
     /// Default constructor
     /// </summary>
-    public AppProcessState()
-    {
-    }
+    public AppProcessState() { }
 
     /// <summary>
     /// Constructor that takes a ProcessState object and copies the values.
@@ -33,8 +31,8 @@ public class AppProcessState : ProcessState
         }
         Ended = processState.Ended;
         EndEvent = processState.EndEvent;
-
     }
+
     /// <summary>
     /// Gets or sets a status object containing the task info of the currentTask of an ongoing process.
     /// </summary>

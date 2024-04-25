@@ -16,10 +16,17 @@ namespace Altinn.App.Core.Internal.Maskinporten
         /// The Jwk is fetched from the secret store using the provided secretKeyName.
         /// When using this locally the secret should be fetched from the local secret store using dotnet user-secrets.
         /// </summary>
-        public static IServiceCollection AddMaskinportenJwkTokenProvider(this IServiceCollection services, string secretKeyName)
+        public static IServiceCollection AddMaskinportenJwkTokenProvider(
+            this IServiceCollection services,
+            string secretKeyName
+        )
         {
-            services.AddTransient<IMaskinportenTokenProvider>(sp =>
-                new MaskinportenJwkTokenProvider(sp.GetRequiredService<IMaskinportenService>(), sp.GetRequiredService<IOptions<MaskinportenSettings>>(), sp.GetRequiredService<ISecretsClient>(), secretKeyName));
+            services.AddTransient<IMaskinportenTokenProvider>(sp => new MaskinportenJwkTokenProvider(
+                sp.GetRequiredService<IMaskinportenService>(),
+                sp.GetRequiredService<IOptions<MaskinportenSettings>>(),
+                sp.GetRequiredService<ISecretsClient>(),
+                secretKeyName
+            ));
 
             return services;
         }

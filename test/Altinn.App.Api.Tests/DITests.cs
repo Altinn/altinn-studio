@@ -1,12 +1,11 @@
-
-using Microsoft.Extensions.DependencyInjection;
-using Xunit;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Configuration;
-using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.ApplicationInsights;
 using System.Diagnostics.Tracing;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
+using Xunit;
 
 namespace Altinn.App.Api.Tests;
 
@@ -16,12 +15,36 @@ public class DITests
     {
         private string _env = "";
 
-        public string WebRootPath { get => new DirectoryInfo("./").FullName; set => throw new NotImplementedException(); }
-        public IFileProvider WebRootFileProvider { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public string ApplicationName { get => "test"; set => throw new NotImplementedException(); }
-        public IFileProvider ContentRootFileProvider { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public string ContentRootPath { get => new DirectoryInfo("./").FullName; set => throw new NotImplementedException(); }
-        public string EnvironmentName { get => _env; set => _env = value; }
+        public string WebRootPath
+        {
+            get => new DirectoryInfo("./").FullName;
+            set => throw new NotImplementedException();
+        }
+        public IFileProvider WebRootFileProvider
+        {
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
+        }
+        public string ApplicationName
+        {
+            get => "test";
+            set => throw new NotImplementedException();
+        }
+        public IFileProvider ContentRootFileProvider
+        {
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
+        }
+        public string ContentRootPath
+        {
+            get => new DirectoryInfo("./").FullName;
+            set => throw new NotImplementedException();
+        }
+        public string EnvironmentName
+        {
+            get => _env;
+            set => _env = value;
+        }
     }
 
     private sealed class AppInsightsListener : EventListener
@@ -31,7 +54,6 @@ public class DITests
 
         protected override void OnEventSourceCreated(EventSource eventSource)
         {
-
             if (eventSource.Name == "Microsoft-ApplicationInsights-AspNetCore")
             {
                 _eventSources.Add(eventSource);
@@ -74,9 +96,10 @@ public class DITests
         services.AddSingleton<IHostingEnvironment>(env);
 
         var config = new ConfigurationBuilder()
-            .AddInMemoryCollection([
-                new KeyValuePair<string, string?>("ApplicationInsights:InstrumentationKey", "test")
-            ]).Build();
+            .AddInMemoryCollection(
+                [new KeyValuePair<string, string?>("ApplicationInsights:InstrumentationKey", "test")]
+            )
+            .Build();
 
         Extensions.ServiceCollectionExtensions.AddAltinnAppServices(services, config, env);
 

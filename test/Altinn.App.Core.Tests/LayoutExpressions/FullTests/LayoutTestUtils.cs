@@ -1,5 +1,4 @@
 using System.Text.Json;
-
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
@@ -35,7 +34,10 @@ public static class LayoutTestUtils
 
             PageComponentConverter.SetAsyncLocalPageName(pageName);
 
-            layoutModel.Pages[pageName] = JsonSerializer.Deserialize<PageComponent>(layout.RemoveBom(), _jsonSerializerOptions)!;
+            layoutModel.Pages[pageName] = JsonSerializer.Deserialize<PageComponent>(
+                layout.RemoveBom(),
+                _jsonSerializerOptions
+            )!;
         }
 
         resources.Setup(r => r.GetLayoutModel(null)).Returns(layoutModel);

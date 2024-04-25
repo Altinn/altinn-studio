@@ -19,7 +19,16 @@ public class RunTest1
     [Fact]
     public async Task DoNotRemoveAnyData_WhenPageExpressionIsFalse()
     {
-        var state = await LayoutTestUtils.GetLayoutModelTools(new DataModel { Some = new() { Data = new() { Binding = "don't hide second page", Binding2 = 1235 } } }, "Test1");
+        var state = await LayoutTestUtils.GetLayoutModelTools(
+            new DataModel
+            {
+                Some = new()
+                {
+                    Data = new() { Binding = "don't hide second page", Binding2 = 1235 }
+                }
+            },
+            "Test1"
+        );
         var hidden = LayoutEvaluator.GetHiddenFieldsForRemoval(state);
         hidden.Should().BeEmpty();
     }
@@ -27,7 +36,16 @@ public class RunTest1
     [Fact]
     public async Task RemoveData_WhenPageExpressionIsTrue()
     {
-        var state = await LayoutTestUtils.GetLayoutModelTools(new DataModel { Some = new() { Data = new() { Binding = "hideSecondPage", Binding2 = 1235 } } }, "Test1");
+        var state = await LayoutTestUtils.GetLayoutModelTools(
+            new DataModel
+            {
+                Some = new()
+                {
+                    Data = new() { Binding = "hideSecondPage", Binding2 = 1235 }
+                }
+            },
+            "Test1"
+        );
         var hidden = LayoutEvaluator.GetHiddenFieldsForRemoval(state);
         hidden.Should().BeEquivalentTo(new string[] { "some.data.binding2" });
     }
@@ -35,7 +53,16 @@ public class RunTest1
     [Fact]
     public async Task RunLayoutValidationsForRequired_InvalidComponentHidden_ReturnsNoIssus()
     {
-        var state = await LayoutTestUtils.GetLayoutModelTools(new DataModel { Some = new() { Data = new() { Binding = "hideSecondPage", Binding2 = 1235 } } }, "Test1");
+        var state = await LayoutTestUtils.GetLayoutModelTools(
+            new DataModel
+            {
+                Some = new()
+                {
+                    Data = new() { Binding = "hideSecondPage", Binding2 = 1235 }
+                }
+            },
+            "Test1"
+        );
         var validationIssues = LayoutEvaluator.RunLayoutValidationsForRequired(state, dataElementId: "dummy");
         validationIssues.Should().BeEmpty();
     }
@@ -43,9 +70,20 @@ public class RunTest1
     [Fact]
     public async Task RunLayoutValidationsForRequired_InvalidComponentHidden_ReturnsSingleIssue()
     {
-        var state = await LayoutTestUtils.GetLayoutModelTools(new DataModel { Some = new() { Data = new() { Binding = "don't hide second page", Binding2 = 1235 } } }, "Test1");
+        var state = await LayoutTestUtils.GetLayoutModelTools(
+            new DataModel
+            {
+                Some = new()
+                {
+                    Data = new() { Binding = "don't hide second page", Binding2 = 1235 }
+                }
+            },
+            "Test1"
+        );
         var validationIssues = LayoutEvaluator.RunLayoutValidationsForRequired(state, dataElementId: "dummy");
-        validationIssues.Should().BeEquivalentTo(new object[] { new { Code = "required", Field = "some.data.binding3" } });
+        validationIssues
+            .Should()
+            .BeEquivalentTo(new object[] { new { Code = "required", Field = "some.data.binding3" } });
     }
 }
 

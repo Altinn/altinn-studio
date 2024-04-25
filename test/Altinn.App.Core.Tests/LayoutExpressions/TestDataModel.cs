@@ -5,7 +5,6 @@ using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Tests.Helpers;
 using FluentAssertions;
-
 using Newtonsoft.Json;
 using Xunit;
 using JsonSerializer = System.Text.Json.JsonSerializer;
@@ -17,10 +16,7 @@ public class TestDataModel
     [Fact]
     public void TestSimpleGet()
     {
-        var model = new Model
-        {
-            Name = new() { Value = "myValue" }
-        };
+        var model = new Model { Name = new() { Value = "myValue" } };
         var modelHelper = new DataModel(model);
         modelHelper.GetModelData("does.not.exist", default).Should().BeNull();
         modelHelper.GetModelData("name.value", default).Should().Be(model.Name.Value);
@@ -30,10 +26,7 @@ public class TestDataModel
     [Fact]
     public void AttributeNoAttriubteCaseSensitive()
     {
-        var modelHelper = new DataModel(new Model
-        {
-            NoAttribute = "asdfsf559",
-        });
+        var modelHelper = new DataModel(new Model { NoAttribute = "asdfsf559", });
         modelHelper.GetModelData("NOATTRIBUTE", default).Should().BeNull("data model lookup is case sensitive");
         modelHelper.GetModelData("noAttribute", default).Should().BeNull();
         modelHelper.GetModelData("NoAttribute", default).Should().Be("asdfsf559");
@@ -42,11 +35,11 @@ public class TestDataModel
     [Fact]
     public void NewtonsoftAttributeWorks()
     {
-        var modelHelper = new DataModel(new Model
-        {
-            OnlyNewtonsoft = "asdfsf559",
-        });
-        modelHelper.GetModelData("OnlyNewtonsoft", default).Should().BeNull("Attribute should win over property when set");
+        var modelHelper = new DataModel(new Model { OnlyNewtonsoft = "asdfsf559", });
+        modelHelper
+            .GetModelData("OnlyNewtonsoft", default)
+            .Should()
+            .BeNull("Attribute should win over property when set");
         modelHelper.GetModelData("ONlyNewtonsoft", default).Should().BeNull();
         modelHelper.GetModelData("onlyNewtonsoft", default).Should().Be("asdfsf559");
     }
@@ -54,11 +47,11 @@ public class TestDataModel
     [Fact]
     public void SystemTextJsonAttributeWorks()
     {
-        var modelHelper = new DataModel(new Model
-        {
-            OnlySystemTextJson = "asdfsf559",
-        });
-        modelHelper.GetModelData("OnlySystemTextJson", default).Should().BeNull("Attribute should win over property when set");
+        var modelHelper = new DataModel(new Model { OnlySystemTextJson = "asdfsf559", });
+        modelHelper
+            .GetModelData("OnlySystemTextJson", default)
+            .Should()
+            .BeNull("Attribute should win over property when set");
         modelHelper.GetModelData("onlysystemtextjson", default).Should().BeNull();
         modelHelper.GetModelData("onlySystemTextJson", default).Should().Be("asdfsf559");
     }
@@ -72,19 +65,10 @@ public class TestDataModel
             {
                 new()
                 {
-                    Name = new()
-                    {
-                        Value = "Donald Duck"
-                    },
+                    Name = new() { Value = "Donald Duck" },
                     Age = 123,
                 },
-                new()
-                {
-                    Name = new()
-                    {
-                        Value = "Dolly Duck"
-                    }
-                }
+                new() { Name = new() { Value = "Dolly Duck" } }
             }
         };
         IDataModelAccessor modelHelper = new DataModel(model);
@@ -117,43 +101,28 @@ public class TestDataModel
             {
                 new()
                 {
-                    Name = new()
-                    {
-                        Value = "Donald Duck"
-                    },
+                    Name = new() { Value = "Donald Duck" },
                     Age = 123,
                 },
                 new()
                 {
-                    Name = new()
-                    {
-                        Value = "Dolly Duck"
-                    },
+                    Name = new() { Value = "Dolly Duck" },
                     Friends = new List<Friend>
                     {
                         new()
                         {
-                            Name = new()
-                            {
-                                Value = "Onkel Skrue",
-                            },
+                            Name = new() { Value = "Onkel Skrue", },
                             Age = 2022,
                             Friends = new List<Friend>()
                             {
                                 new()
                                 {
-                                    Name = new()
-                                    {
-                                        Value = "LykkeTiøringen"
-                                    },
+                                    Name = new() { Value = "LykkeTiøringen" },
                                     Age = 23,
                                 },
                                 new()
                                 {
-                                    Name = new()
-                                    {
-                                        Value = "Madam mim"
-                                    },
+                                    Name = new() { Value = "Madam mim" },
                                     Age = 23,
                                 }
                             },
@@ -166,7 +135,10 @@ public class TestDataModel
         IDataModelAccessor modelHelper = new DataModel(model);
         modelHelper.GetModelData("friends[1].friends[0].name.value", default).Should().Be("Onkel Skrue");
         modelHelper.GetModelData("friends[1].friends.name.value", new int[] { 0, 0 }).Should().BeNull();
-        modelHelper.GetModelData("friends[1].friends.name.value", new int[] { 1, 0 }).Should().BeNull("context indexes should not be used after literal index is used");
+        modelHelper
+            .GetModelData("friends[1].friends.name.value", new int[] { 1, 0 })
+            .Should()
+            .BeNull("context indexes should not be used after literal index is used");
         modelHelper.GetModelData("friends[1].friends.name.value", new int[] { 1 }).Should().BeNull();
         modelHelper.GetModelData("friends.friends[0].name.value", new int[] { 1, 4, 5, 7 }).Should().Be("Onkel Skrue");
         modelHelper.GetModelDataCount("friends[1].friends", Array.Empty<int>()).Should().Be(1);
@@ -181,7 +153,10 @@ public class TestDataModel
         modelHelper = new JsonDataModel(doc);
         modelHelper.GetModelData("friends[1].friends[0].name.value", default).Should().Be("Onkel Skrue");
         modelHelper.GetModelData("friends[1].friends.name.value", new int[] { 0, 0 }).Should().BeNull();
-        modelHelper.GetModelData("friends[1].friends.name.value", new int[] { 1, 0 }).Should().BeNull("context indexes should not be used after literal index is used");
+        modelHelper
+            .GetModelData("friends[1].friends.name.value", new int[] { 1, 0 })
+            .Should()
+            .BeNull("context indexes should not be used after literal index is used");
         modelHelper.GetModelData("friends[1].friends.name.value", new int[] { 1 }).Should().BeNull();
         modelHelper.GetModelData("friends.friends[0].name.value", new int[] { 1, 4, 5, 7 }).Should().Be("Onkel Skrue");
         modelHelper.GetModelDataCount("friends[1].friends", Array.Empty<int>()).Should().Be(1);
@@ -198,27 +173,18 @@ public class TestDataModel
         var model = new Model()
         {
             Id = 2,
-            Name = new()
-            {
-                Value = "Ivar"
-            },
+            Name = new() { Value = "Ivar" },
             Friends = new List<Friend>
             {
                 new()
                 {
-                    Name = new()
-                    {
-                        Value = "Første venn"
-                    },
+                    Name = new() { Value = "Første venn" },
                     Age = 1235,
                     Friends = new List<Friend>
                     {
                         new()
                         {
-                            Name = new()
-                            {
-                                Value = "Første venn sin venn",
-                            },
+                            Name = new() { Value = "Første venn sin venn", },
                             Age = 233
                         }
                     }
@@ -252,81 +218,54 @@ public class TestDataModel
         var model = new Model()
         {
             Id = 2,
-            Name = new()
-            {
-                Value = "Per"
-            },
+            Name = new() { Value = "Per" },
             Friends = new List<Friend>
             {
                 new()
                 {
-                    Name = new()
-                    {
-                        Value = "Første venn"
-                    },
+                    Name = new() { Value = "Første venn" },
                     Age = 1235,
                     Friends = new List<Friend>
                     {
                         new()
                         {
-                            Name = new()
-                            {
-                                Value = "Første venn sin første venn",
-                            },
+                            Name = new() { Value = "Første venn sin første venn", },
                             Age = 233
                         },
                         new()
                         {
-                            Name = new()
-                            {
-                                Value = "Første venn sin andre venn",
-                            },
+                            Name = new() { Value = "Første venn sin andre venn", },
                             Age = 233
                         },
                         new()
                         {
-                            Name = new()
-                            {
-                                Value = "Første venn sin tredje venn",
-                            },
+                            Name = new() { Value = "Første venn sin tredje venn", },
                             Age = 233
                         }
                     }
                 },
                 new()
                 {
-                    Name = new()
-                    {
-                        Value = "Andre venn"
-                    },
+                    Name = new() { Value = "Andre venn" },
                     Age = 1235,
                     Friends = new List<Friend>
                     {
                         new()
                         {
-                            Name = new()
-                            {
-                                Value = "Andre venn sin venn",
-                            },
+                            Name = new() { Value = "Andre venn sin venn", },
                             Age = 233
                         }
                     }
                 },
                 new()
                 {
-                    Name = new()
-                    {
-                        Value = "Tredje venn"
-                    },
+                    Name = new() { Value = "Tredje venn" },
                     Age = 1235,
                     Friends = new List<Friend>
                     {
                         new()
                         {
-                            Name = new()
-                            {
-                                Value = "Tredje venn sin venn",
-                            },
+                            Name = new() { Value = "Tredje venn sin venn", },
                             Age = 233
                         }
                     }
@@ -369,24 +308,21 @@ public class TestDataModel
             new Model
             {
                 Id = 3,
-                Friends = new List<Friend>()
-                {
-                    new()
-                    {
-                        Name = new() { Value = "Ole" },
-                    }
-                }
-            });
+                Friends = new List<Friend>() { new() { Name = new() { Value = "Ole" }, } }
+            }
+        );
         modelHelper.Invoking(m => m.GetModelData(".")).Should().Throw<DataModelException>().WithMessage("*empty part*");
         modelHelper.GetModelData("friends[0]").Should().BeOfType<Friend>().Which.Name?.Value.Should().Be("Ole");
         modelHelper.GetModelData("friends[3]").Should().BeNull();
 
-        modelHelper.Invoking(m => m.AddIndicies("tull.sd", new int[] { 2 }))
+        modelHelper
+            .Invoking(m => m.AddIndicies("tull.sd", new int[] { 2 }))
             .Should()
             .Throw<DataModelException>()
             .WithMessage("Unknown model property tull in*");
 
-        modelHelper.Invoking(m => m.AddIndicies("id[4]", new int[] { 6 }))
+        modelHelper
+            .Invoking(m => m.AddIndicies("id[4]", new int[] { 6 }))
             .Should()
             .Throw<DataModelException>()
             .WithMessage("Index on non indexable property");
@@ -396,12 +332,15 @@ public class TestDataModel
     public void TestEdgeCaseWithNonGenericEnumerableForCoverage()
     {
         // Test with erronious model with non-generic IEnumerable (special error for code coverage)
-        var modelHelper = new DataModel(new
-        {
-            // ArrayList is not supported as a data model
-            friends = new System.Collections.ArrayList() { 1, 2, 3 },
-        });
-        modelHelper.Invoking(m => m.AddIndicies("friends", new int[] { 0 }))
+        var modelHelper = new DataModel(
+            new
+            {
+                // ArrayList is not supported as a data model
+                friends = new System.Collections.ArrayList() { 1, 2, 3 },
+            }
+        );
+        modelHelper
+            .Invoking(m => m.AddIndicies("friends", new int[] { 0 }))
             .Should()
             .Throw<DataModelException>()
             .WithMessage("DataModels must have generic IEnumerable<> implementation for list");
@@ -414,14 +353,9 @@ public class TestDataModel
             new Model
             {
                 Id = 3,
-                Friends = new List<Friend>()
-                {
-                    new()
-                    {
-                        Name = new() { Value = "Ole" },
-                    }
-                }
-            });
+                Friends = new List<Friend>() { new() { Name = new() { Value = "Ole" }, } }
+            }
+        );
 
         // Plain add indicies
         modelHelper.AddIndicies("friends.friends", new int[] { 0, 1 }).Should().Be("friends[0].friends[1]");
@@ -442,7 +376,8 @@ public class TestDataModel
         IDataModelAccessor modelHelper = new DataModel(new Model { Id = 3, });
 
         // Throws because id is not indexable
-        modelHelper.Invoking(m => m.AddIndicies("id[0]", new int[] { 1, 2, 3 }))
+        modelHelper
+            .Invoking(m => m.AddIndicies("id[0]", new int[] { 1, 2, 3 }))
             .Should()
             .Throw<DataModelException>()
             .WithMessage("Index on non indexable property");

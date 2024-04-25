@@ -24,7 +24,8 @@ namespace Altinn.App.Api.Infrastructure.Filters
         /// <param name="settings">A reference to the current app settings.</param>
         public ValidateAntiforgeryTokenIfAuthCookieAuthorizationFilter(
             IAntiforgery antiforgery,
-            IOptionsMonitor<AppSettings> settings)
+            IOptionsMonitor<AppSettings> settings
+        )
         {
             if (antiforgery == null)
             {
@@ -69,10 +70,12 @@ namespace Altinn.App.Api.Infrastructure.Filters
             }
 
             string method = context.HttpContext.Request.Method;
-            if (string.Equals("GET", method, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals("HEAD", method, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals("TRACE", method, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals("OPTIONS", method, StringComparison.OrdinalIgnoreCase))
+            if (
+                string.Equals("GET", method, StringComparison.OrdinalIgnoreCase)
+                || string.Equals("HEAD", method, StringComparison.OrdinalIgnoreCase)
+                || string.Equals("TRACE", method, StringComparison.OrdinalIgnoreCase)
+                || string.Equals("OPTIONS", method, StringComparison.OrdinalIgnoreCase)
+            )
             {
                 return false;
             }

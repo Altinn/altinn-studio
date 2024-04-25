@@ -4,8 +4,11 @@ namespace Altinn.App.Core.Features.Notifications;
 
 internal static class Telemetry
 {
-    internal static readonly Counter OrderCount = Metrics
-        .CreateCounter("altinn_app_notification_order_request_count", "Number of notification order requests.", labelNames: ["type", "result"]);
+    internal static readonly Counter OrderCount = Metrics.CreateCounter(
+        "altinn_app_notification_order_request_count",
+        "Number of notification order requests.",
+        labelNames: ["type", "result"]
+    );
 
     internal static class Types
     {

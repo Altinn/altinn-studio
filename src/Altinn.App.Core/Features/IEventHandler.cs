@@ -14,7 +14,7 @@ namespace Altinn.App.Core.Features
 
         /// <summary>
         /// Implementation of what should happen when the event is received in the application.
-        /// </summary>        
+        /// </summary>
         Task<bool> ProcessEvent(CloudEvent cloudEvent);
     }
 }

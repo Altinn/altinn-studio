@@ -30,7 +30,7 @@ namespace Altinn.App.Api.Helpers.RequestHandling
             get
             {
                 return !string.IsNullOrEmpty(request.ContentType)
-                  && request.ContentType.IndexOf("multipart/", StringComparison.OrdinalIgnoreCase) >= 0;
+                    && request.ContentType.IndexOf("multipart/", StringComparison.OrdinalIgnoreCase) >= 0;
             }
         }
 
@@ -62,10 +62,16 @@ namespace Altinn.App.Api.Helpers.RequestHandling
                     {
                         partCounter++;
 
-                        if (!ContentDispositionHeaderValue
-                               .TryParse(section.ContentDisposition, out ContentDispositionHeaderValue? contentDisposition))
+                        if (
+                            !ContentDispositionHeaderValue.TryParse(
+                                section.ContentDisposition,
+                                out ContentDispositionHeaderValue? contentDisposition
+                            )
+                        )
                         {
-                            Errors.Add(string.Format("Part number {0} doesn't have a content disposition", partCounter));
+                            Errors.Add(
+                                string.Format("Part number {0} doesn't have a content disposition", partCounter)
+                            );
                             continue;
                         }
 
@@ -96,14 +102,16 @@ namespace Altinn.App.Api.Helpers.RequestHandling
                         await section.Body.CopyToAsync(memoryStream);
                         memoryStream.Position = 0;
 
-                        Parts.Add(new RequestPart()
-                        {
-                            ContentType = section.ContentType,
-                            Name = sectionName,
-                            Stream = memoryStream,
-                            FileName = contentFileName,
-                            FileSize = fileSize,
-                        });
+                        Parts.Add(
+                            new RequestPart()
+                            {
+                                ContentType = section.ContentType,
+                                Name = sectionName,
+                                Stream = memoryStream,
+                                FileName = contentFileName,
+                                FileSize = fileSize,
+                            }
+                        );
                     }
                 }
                 catch (IOException ioex)
@@ -116,11 +124,7 @@ namespace Altinn.App.Api.Helpers.RequestHandling
                 // create part of content
                 if (request.ContentType != null)
                 {
-                    Parts.Add(new RequestPart()
-                    {
-                        ContentType = request.ContentType,
-                        Stream = request.Body
-                    });
+                    Parts.Add(new RequestPart() { ContentType = request.ContentType, Stream = request.Body });
                 }
             }
         }

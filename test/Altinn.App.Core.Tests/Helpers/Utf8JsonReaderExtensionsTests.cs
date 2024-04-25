@@ -2,7 +2,6 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-
 using Altinn.App.Core.Helpers.Extensions;
 using FluentAssertions;
 using Xunit;
@@ -30,17 +29,28 @@ public class Utf8JsonReaderExtensionsTests
     {
         var nl = Environment.NewLine;
         var value =
-        @"{" + nl +
-        @"  ""component"": ""testComp""" + nl +
-        @"  /* this is a comment */," + nl +
-        @"  ""data"": [" + nl +
-        @"    /* a comment too */" + nl +
-        @"    23" + nl +
-        @"    /* a comment too */" + nl +
-        @"  ]" + nl +
-        @"}";
+            @"{"
+            + nl
+            + @"  ""component"": ""testComp"""
+            + nl
+            + @"  /* this is a comment */,"
+            + nl
+            + @"  ""data"": ["
+            + nl
+            + @"    /* a comment too */"
+            + nl
+            + @"    23"
+            + nl
+            + @"    /* a comment too */"
+            + nl
+            + @"  ]"
+            + nl
+            + @"}";
 
-        var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(value), new JsonReaderOptions { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Allow });
+        var reader = new Utf8JsonReader(
+            Encoding.UTF8.GetBytes(value),
+            new JsonReaderOptions { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Allow }
+        );
 
         reader.Read();
 

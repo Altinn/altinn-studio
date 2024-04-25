@@ -4,16 +4,13 @@ using System.Text;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.Platform.Storage.Interface.Models;
-
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-
 using Moq;
 using Moq.Protected;
-
 using Newtonsoft.Json;
 using Xunit;
 
@@ -58,7 +55,14 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             InitializeMocks(httpResponseMessage, "texts");
             HttpClient httpClient = new HttpClient(handlerMock.Object);
-            TextClient target = new TextClient(appSettingsOptions.Object, platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, memoryCache);
+            TextClient target = new TextClient(
+                appSettingsOptions.Object,
+                platformSettingsOptions.Object,
+                logger.Object,
+                contextAccessor.Object,
+                httpClient,
+                memoryCache
+            );
 
             // Act
             await target.GetText("org", "app", "nb");
@@ -78,7 +82,14 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             InitializeMocks(new HttpResponseMessage(), "texts");
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
-            TextClient target = new TextClient(appSettingsOptions.Object, platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, memoryCache);
+            TextClient target = new TextClient(
+                appSettingsOptions.Object,
+                platformSettingsOptions.Object,
+                logger.Object,
+                contextAccessor.Object,
+                httpClient,
+                memoryCache
+            );
 
             // Act
             TextResource actual = await target.GetText("org", "app", "nb");
@@ -100,7 +111,14 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             InitializeMocks(httpResponseMessage, "texts");
             HttpClient httpClient = new HttpClient(handlerMock.Object);
-            TextClient target = new TextClient(appSettingsOptions.Object, platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, memoryCache);
+            TextClient target = new TextClient(
+                appSettingsOptions.Object,
+                platformSettingsOptions.Object,
+                logger.Object,
+                contextAccessor.Object,
+                httpClient,
+                memoryCache
+            );
 
             // Act
             TextResource actual = await target.GetText("org", "app", "nb");
@@ -111,7 +129,11 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
         private void InitializeMocks(HttpResponseMessage httpResponseMessage, string urlPart)
         {
-            PlatformSettings platformSettings = new PlatformSettings { ApiStorageEndpoint = "http://localhost", SubscriptionKey = "key" };
+            PlatformSettings platformSettings = new PlatformSettings
+            {
+                ApiStorageEndpoint = "http://localhost",
+                SubscriptionKey = "key"
+            };
             platformSettingsOptions.Setup(s => s.Value).Returns(platformSettings);
 
             AppSettings appSettings = new AppSettings { RuntimeCookieName = "AltinnStudioRuntime" };
@@ -119,11 +141,13 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             contextAccessor.Setup(s => s.HttpContext).Returns(new DefaultHttpContext());
 
-            handlerMock.Protected()
+            handlerMock
+                .Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
                     ItExpr.Is<HttpRequestMessage>(p => p.RequestUri.ToString().Contains(urlPart)),
-                    ItExpr.IsAny<CancellationToken>())
+                    ItExpr.IsAny<CancellationToken>()
+                )
                 .ReturnsAsync(httpResponseMessage)
                 .Verifiable();
         }

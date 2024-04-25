@@ -21,7 +21,8 @@ namespace Altinn.App.Core.Extensions
                     new PhysicalFileProvider("/altinn-appsettings-secret"),
                     @"altinn-appsettings-secret.json",
                     true,
-                    true);
+                    true
+                );
             }
             catch (DirectoryNotFoundException)
             {

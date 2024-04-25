@@ -49,14 +49,16 @@ public class ProcessEventHandlingTests
             endTaskEventHandler.Object,
             abandonTaskEventHandler.Object,
             endEventHandler.Object,
-            processTasks);
+            processTasks
+        );
 
         ProcessEventDispatcher dispatcher = new ProcessEventDispatcher(
             instanceService.Object,
             instanceEvent.Object,
             eventsService.Object,
             appSettings,
-            logger);
+            logger
+        );
 
         Instance instance = new Instance()
         {
@@ -69,13 +71,7 @@ public class ProcessEventHandlingTests
             Id = instance.Id,
             Org = "ttd",
             AppId = "ttd/test-app",
-            Process = new ProcessState()
-            {
-                CurrentTask = new()
-                {
-                    ElementId = "Task_1"
-                }
-            }
+            Process = new ProcessState() { CurrentTask = new() { ElementId = "Task_1" } }
         };
         Instance getInstanceResponse = new Instance()
         {
@@ -84,11 +80,7 @@ public class ProcessEventHandlingTests
             AppId = "ttd/test-app",
             Process = new ProcessState()
             {
-                CurrentTask = new()
-                {
-                    ElementId = "Task_1",
-                    Flow = 2
-                }
+                CurrentTask = new() { ElementId = "Task_1", Flow = 2 }
             }
         };
         List<InstanceEvent> events = new List<InstanceEvent>()
@@ -147,14 +139,16 @@ public class ProcessEventHandlingTests
             endTaskEventHandler.Object,
             abandonTaskEventHandler.Object,
             endEventHandler.Object,
-            processTasks);
+            processTasks
+        );
 
         ProcessEventDispatcher dispatcher = new ProcessEventDispatcher(
             instanceService.Object,
             instanceEvent.Object,
             eventsService.Object,
             appSettings,
-            logger);
+            logger
+        );
 
         Instance instance = new Instance()
         {
@@ -167,24 +161,14 @@ public class ProcessEventHandlingTests
             Id = instance.Id,
             Org = "ttd",
             AppId = "ttd/test-app",
-            Process = new ProcessState()
-            {
-                CurrentTask = new()
-                {
-                    ElementId = "Task_1"
-                }
-            }
+            Process = new ProcessState() { CurrentTask = new() { ElementId = "Task_1" } }
         };
         Instance getInstanceResponse = new Instance()
         {
             Id = instance.Id,
             Process = new ProcessState()
             {
-                CurrentTask = new()
-                {
-                    ElementId = "Task_1",
-                    Flow = 2
-                }
+                CurrentTask = new() { ElementId = "Task_1", Flow = 2 }
             }
         };
         List<InstanceEvent> events = new List<InstanceEvent>()
@@ -194,11 +178,7 @@ public class ProcessEventHandlingTests
                 EventType = InstanceEventType.process_StartTask.ToString(),
                 ProcessInfo = new()
                 {
-                    CurrentTask = new()
-                    {
-                        ElementId = "StartEvent",
-                        Name = "Start"
-                    }
+                    CurrentTask = new() { ElementId = "StartEvent", Name = "Start" }
                 }
             }
         };
@@ -242,14 +222,16 @@ public class ProcessEventHandlingTests
             endTaskEventHandler.Object,
             abandonTaskEventHandler.Object,
             endEventHandler.Object,
-            processTasks);
+            processTasks
+        );
 
         ProcessEventDispatcher dispatcher = new ProcessEventDispatcher(
             instanceService.Object,
             instanceEvent.Object,
             eventsService.Object,
             appSettings,
-            logger);
+            logger
+        );
 
         Instance instance = new Instance()
         {
@@ -262,13 +244,7 @@ public class ProcessEventHandlingTests
             Id = instance.Id,
             Org = "ttd",
             AppId = "ttd/test-app",
-            Process = new ProcessState()
-            {
-                CurrentTask = new()
-                {
-                    ElementId = "Task_1",
-                }
-            }
+            Process = new ProcessState() { CurrentTask = new() { ElementId = "Task_1", } }
         };
         Instance getInstanceResponse = new Instance()
         {
@@ -277,11 +253,7 @@ public class ProcessEventHandlingTests
             AppId = "ttd/test-app",
             Process = new ProcessState()
             {
-                CurrentTask = new()
-                {
-                    ElementId = "Task_1",
-                    Flow = 2
-                }
+                CurrentTask = new() { ElementId = "Task_1", Flow = 2 }
             }
         };
         List<InstanceEvent> events = new List<InstanceEvent>()
@@ -341,14 +313,16 @@ public class ProcessEventHandlingTests
             endTaskEventHandler.Object,
             abandonTaskEventHandler.Object,
             endEventHandler.Object,
-            processTasks);
+            processTasks
+        );
 
         ProcessEventDispatcher dispatcher = new ProcessEventDispatcher(
             instanceService.Object,
             instanceEvent.Object,
             eventsService.Object,
             appSettings,
-            logger);
+            logger
+        );
 
         Instance instance = new Instance()
         {
@@ -361,13 +335,7 @@ public class ProcessEventHandlingTests
             Id = instance.Id,
             Org = "ttd",
             AppId = "ttd/test-app",
-            Process = new ProcessState()
-            {
-                CurrentTask = new()
-                {
-                    ElementId = "Task_2",
-                }
-            }
+            Process = new ProcessState() { CurrentTask = new() { ElementId = "Task_2", } }
         };
         Instance getInstanceResponse = new Instance()
         {
@@ -376,11 +344,7 @@ public class ProcessEventHandlingTests
             AppId = "ttd/test-app",
             Process = new ProcessState()
             {
-                CurrentTask = new()
-                {
-                    ElementId = "Task_2",
-                    Flow = 3
-                }
+                CurrentTask = new() { ElementId = "Task_2", Flow = 3 }
             }
         };
         List<InstanceEvent> events = new List<InstanceEvent>()
@@ -440,14 +404,16 @@ public class ProcessEventHandlingTests
             endTaskEventHandler.Object,
             abandonTaskEventHandler.Object,
             endEventHandler.Object,
-            processTasks);
+            processTasks
+        );
 
         ProcessEventDispatcher dispatcher = new ProcessEventDispatcher(
             instanceService.Object,
             instanceEvent.Object,
             eventsService.Object,
             appSettings,
-            logger);
+            logger
+        );
 
         Instance instance = new Instance()
         {
@@ -460,13 +426,7 @@ public class ProcessEventHandlingTests
             Id = instance.Id,
             Org = "ttd",
             AppId = "ttd/test-app",
-            Process = new ProcessState()
-            {
-                CurrentTask = new()
-                {
-                    ElementId = "Task_2",
-                }
-            }
+            Process = new ProcessState() { CurrentTask = new() { ElementId = "Task_2", } }
         };
         Instance getInstanceResponse = new Instance()
         {
@@ -475,11 +435,7 @@ public class ProcessEventHandlingTests
             AppId = "ttd/test-app",
             Process = new ProcessState()
             {
-                CurrentTask = new()
-                {
-                    ElementId = "Task_2",
-                    Flow = 4
-                }
+                CurrentTask = new() { ElementId = "Task_2", Flow = 4 }
             }
         };
         List<InstanceEvent> events = new List<InstanceEvent>()
@@ -540,14 +496,16 @@ public class ProcessEventHandlingTests
             endTaskEventHandler.Object,
             abandonTaskEventHandler.Object,
             endEventHandler,
-            processTasks);
+            processTasks
+        );
 
         ProcessEventDispatcher dispatcher = new ProcessEventDispatcher(
             instanceService.Object,
             instanceEvent.Object,
             eventsService.Object,
             appSettings,
-            logger);
+            logger
+        );
 
         Instance instance = new Instance()
         {
@@ -560,24 +518,14 @@ public class ProcessEventHandlingTests
             Id = instance.Id,
             Org = "ttd",
             AppId = "ttd/test-app",
-            Process = new ProcessState()
-            {
-                CurrentTask = new()
-                {
-                    ElementId = "Task_2",
-                }
-            }
+            Process = new ProcessState() { CurrentTask = new() { ElementId = "Task_2", } }
         };
         Instance getInstanceResponse = new Instance()
         {
             Id = instance.Id,
             Process = new ProcessState()
             {
-                CurrentTask = new()
-                {
-                    ElementId = "Task_2",
-                    Flow = 3
-                }
+                CurrentTask = new() { ElementId = "Task_2", Flow = 3 }
             }
         };
         List<InstanceEvent> events = new List<InstanceEvent>()
@@ -607,10 +555,7 @@ public class ProcessEventHandlingTests
                 new DataType
                 {
                     Id = "data_type_1",
-                    AppLogic = new ApplicationLogic
-                    {
-                        ClassRef = "App.Models.Skjema",
-                    },
+                    AppLogic = new ApplicationLogic { ClassRef = "App.Models.Skjema", },
                     TaskId = "First"
                 }
             }
@@ -659,14 +604,16 @@ public class ProcessEventHandlingTests
             endTaskEventHandler.Object,
             abandonTaskEventHandler.Object,
             endEventHandler.Object,
-            processTasks);
+            processTasks
+        );
 
         ProcessEventDispatcher dispatcher = new ProcessEventDispatcher(
             instanceService.Object,
             instanceEvent.Object,
             eventsService.Object,
             appSettings,
-            logger);
+            logger
+        );
 
         Instance instance = new Instance()
         {
@@ -679,24 +626,14 @@ public class ProcessEventHandlingTests
             Id = instance.Id,
             Org = "ttd",
             AppId = "ttd/test-app",
-            Process = new ProcessState()
-            {
-                CurrentTask = new()
-                {
-                    ElementId = "Task_2",
-                }
-            }
+            Process = new ProcessState() { CurrentTask = new() { ElementId = "Task_2", } }
         };
         Instance getInstanceResponse = new Instance()
         {
             Id = instance.Id,
             Process = new ProcessState()
             {
-                CurrentTask = new()
-                {
-                    ElementId = "Task_2",
-                    Flow = 3
-                }
+                CurrentTask = new() { ElementId = "Task_2", Flow = 3 }
             }
         };
         List<InstanceEvent> events = null;
@@ -726,10 +663,7 @@ public class ProcessEventHandlingTests
         var instanceEvent = new Mock<IInstanceEventClient>();
         var appEvents = new Mock<IAppEvents>();
         var eventsService = new Mock<IEventsClient>();
-        var appSettings = Options.Create(new AppSettings()
-        {
-            RegisterEventsWithEventsComponent = true
-        });
+        var appSettings = Options.Create(new AppSettings() { RegisterEventsWithEventsComponent = true });
         var logger = new NullLogger<ProcessEventDispatcher>();
 
         ProcessEventDispatcher dispatcher = new ProcessEventDispatcher(
@@ -737,18 +671,13 @@ public class ProcessEventHandlingTests
             instanceEvent.Object,
             eventsService.Object,
             appSettings,
-            logger);
+            logger
+        );
 
         Instance instance = new Instance()
         {
             Id = Guid.NewGuid().ToString(),
-            Process = new()
-            {
-                CurrentTask = new()
-                {
-                    ElementId = "Task_1"
-                }
-            }
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } }
         };
 
         // Act
@@ -770,10 +699,7 @@ public class ProcessEventHandlingTests
         var instanceEvent = new Mock<IInstanceEventClient>();
         var appEvents = new Mock<IAppEvents>();
         var eventsService = new Mock<IEventsClient>();
-        var appSettings = Options.Create(new AppSettings()
-        {
-            RegisterEventsWithEventsComponent = true
-        });
+        var appSettings = Options.Create(new AppSettings() { RegisterEventsWithEventsComponent = true });
         var logger = new NullLogger<ProcessEventDispatcher>();
 
         ProcessEventDispatcher dispatcher = new ProcessEventDispatcher(
@@ -781,16 +707,13 @@ public class ProcessEventHandlingTests
             instanceEvent.Object,
             eventsService.Object,
             appSettings,
-            logger);
+            logger
+        );
 
         Instance instance = new Instance()
         {
             Id = Guid.NewGuid().ToString(),
-            Process = new()
-            {
-                CurrentTask = null,
-                EndEvent = "EndEvent"
-            }
+            Process = new() { CurrentTask = null, EndEvent = "EndEvent" }
         };
 
         // Act
@@ -812,10 +735,7 @@ public class ProcessEventHandlingTests
         var instanceEvent = new Mock<IInstanceEventClient>();
         var appEvents = new Mock<IAppEvents>();
         var eventsService = new Mock<IEventsClient>();
-        var appSettings = Options.Create(new AppSettings()
-        {
-            RegisterEventsWithEventsComponent = true
-        });
+        var appSettings = Options.Create(new AppSettings() { RegisterEventsWithEventsComponent = true });
         var logger = new NullLogger<ProcessEventDispatcher>();
 
         ProcessEventDispatcher dispatcher = new ProcessEventDispatcher(
@@ -823,13 +743,10 @@ public class ProcessEventHandlingTests
             instanceEvent.Object,
             eventsService.Object,
             appSettings,
-            logger);
+            logger
+        );
 
-        Instance instance = new Instance()
-        {
-            Id = Guid.NewGuid().ToString(),
-            Process = null
-        };
+        Instance instance = new Instance() { Id = Guid.NewGuid().ToString(), Process = null };
 
         // Act
         await dispatcher.RegisterEventWithEventsComponent(instance);
@@ -849,10 +766,7 @@ public class ProcessEventHandlingTests
         var instanceEvent = new Mock<IInstanceEventClient>();
         var appEvents = new Mock<IAppEvents>();
         var eventsService = new Mock<IEventsClient>();
-        var appSettings = Options.Create(new AppSettings()
-        {
-            RegisterEventsWithEventsComponent = true
-        });
+        var appSettings = Options.Create(new AppSettings() { RegisterEventsWithEventsComponent = true });
         var logger = new NullLogger<ProcessEventDispatcher>();
 
         ProcessEventDispatcher dispatcher = new ProcessEventDispatcher(
@@ -860,13 +774,10 @@ public class ProcessEventHandlingTests
             instanceEvent.Object,
             eventsService.Object,
             appSettings,
-            logger);
+            logger
+        );
 
-        Instance instance = new Instance()
-        {
-            Id = Guid.NewGuid().ToString(),
-            Process = new()
-        };
+        Instance instance = new Instance() { Id = Guid.NewGuid().ToString(), Process = new() };
 
         // Act
         await dispatcher.RegisterEventWithEventsComponent(instance);
@@ -886,10 +797,7 @@ public class ProcessEventHandlingTests
         var instanceEvent = new Mock<IInstanceEventClient>();
         var appEvents = new Mock<IAppEvents>();
         var eventsService = new Mock<IEventsClient>();
-        var appSettings = Options.Create(new AppSettings()
-        {
-            RegisterEventsWithEventsComponent = false
-        });
+        var appSettings = Options.Create(new AppSettings() { RegisterEventsWithEventsComponent = false });
         var logger = new NullLogger<ProcessEventDispatcher>();
 
         ProcessEventDispatcher dispatcher = new ProcessEventDispatcher(
@@ -897,18 +805,13 @@ public class ProcessEventHandlingTests
             instanceEvent.Object,
             eventsService.Object,
             appSettings,
-            logger);
+            logger
+        );
 
         Instance instance = new Instance()
         {
             Id = Guid.NewGuid().ToString(),
-            Process = new()
-            {
-                CurrentTask = new()
-                {
-                    ElementId = "Task_1"
-                }
-            }
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } }
         };
 
         // Act

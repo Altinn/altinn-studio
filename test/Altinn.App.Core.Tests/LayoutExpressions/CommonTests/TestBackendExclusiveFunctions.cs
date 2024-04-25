@@ -1,6 +1,5 @@
 using System.Reflection;
 using System.Text.Json;
-
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Tests.Helpers;
 using FluentAssertions;
@@ -33,7 +32,8 @@ public class TestBackendExclusiveFunctions
             test.ComponentModel,
             test.FrontEndSettings ?? new(),
             test.Instance ?? new(),
-            test.GatewayAction);
+            test.GatewayAction
+        );
 
         if (test.ExpectsFailure is not null)
         {
@@ -45,7 +45,11 @@ public class TestBackendExclusiveFunctions
             {
                 Action act = () =>
                 {
-                    ExpressionEvaluator.EvaluateExpression(state, test.Expression, test.Context?.ToContext(test.ComponentModel)!);
+                    ExpressionEvaluator.EvaluateExpression(
+                        state,
+                        test.Expression,
+                        test.Context?.ToContext(test.ComponentModel)!
+                    );
                 };
                 act.Should().Throw<Exception>().WithMessage(test.ExpectsFailure);
             }
@@ -55,7 +59,11 @@ public class TestBackendExclusiveFunctions
 
         test.ParsingException.Should().BeNull("Loading of test failed");
 
-        var result = ExpressionEvaluator.EvaluateExpression(state, test.Expression, test.Context?.ToContext(test.ComponentModel)!);
+        var result = ExpressionEvaluator.EvaluateExpression(
+            state,
+            test.Expression,
+            test.Context?.ToContext(test.ComponentModel)!
+        );
 
         switch (test.Expects.ValueKind)
         {
@@ -87,19 +95,29 @@ public class TestBackendExclusiveFunctions
     public void Ensure_tests_For_All_Folders()
     {
         // This is just a way to ensure that all folders have test methods associcated.
-        var jsonTestFolders = Directory.GetDirectories(Path.Join("LayoutExpressions", "CommonTests", "exclusive-tests", "functions")).Select(d => Path.GetFileName(d)).ToArray();
-        var testMethods = this.GetType().GetMethods().Select(m => m.CustomAttributes.FirstOrDefault(ca => ca.AttributeType == typeof(ExclusiveTestAttribute))?.ConstructorArguments.FirstOrDefault().Value).OfType<string>().ToArray();
-        testMethods.Should().BeEquivalentTo(jsonTestFolders, "Shared test folders should have a corresponding test method");
+        var jsonTestFolders = Directory
+            .GetDirectories(Path.Join("LayoutExpressions", "CommonTests", "exclusive-tests", "functions"))
+            .Select(d => Path.GetFileName(d))
+            .ToArray();
+        var testMethods = this.GetType()
+            .GetMethods()
+            .Select(m =>
+                m.CustomAttributes.FirstOrDefault(ca => ca.AttributeType == typeof(ExclusiveTestAttribute))
+                    ?.ConstructorArguments.FirstOrDefault()
+                    .Value
+            )
+            .OfType<string>()
+            .ToArray();
+        testMethods
+            .Should()
+            .BeEquivalentTo(jsonTestFolders, "Shared test folders should have a corresponding test method");
     }
 }
 
 public class ExclusiveTestAttribute : DataAttribute
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions =
+        new() { ReadCommentHandling = JsonCommentHandling.Skip, PropertyNamingPolicy = JsonNamingPolicy.CamelCase, };
 
     private readonly string _folder;
 
@@ -110,7 +128,9 @@ public class ExclusiveTestAttribute : DataAttribute
 
     public override IEnumerable<object[]> GetData(MethodInfo methodInfo)
     {
-        var files = Directory.GetFiles(Path.Join("LayoutExpressions", "CommonTests", "exclusive-tests", "functions", _folder));
+        var files = Directory.GetFiles(
+            Path.Join("LayoutExpressions", "CommonTests", "exclusive-tests", "functions", _folder)
+        );
         foreach (var file in files)
         {
             ExpressionTestCaseRoot testCase = new();
@@ -124,7 +144,12 @@ public class ExclusiveTestAttribute : DataAttribute
                 using var jsonDocument = JsonDocument.Parse(data);
 
                 testCase.Name = jsonDocument.RootElement.GetProperty("name").GetString();
-                testCase.ExpectsFailure = jsonDocument.RootElement.TryGetProperty("expectsFailure", out var expectsFailure) ? expectsFailure.GetString() : null;
+                testCase.ExpectsFailure = jsonDocument.RootElement.TryGetProperty(
+                    "expectsFailure",
+                    out var expectsFailure
+                )
+                    ? expectsFailure.GetString()
+                    : null;
                 testCase.ParsingException = e;
             }
 

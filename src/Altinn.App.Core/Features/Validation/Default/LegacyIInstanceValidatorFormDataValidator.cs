@@ -19,7 +19,10 @@ public class LegacyIInstanceValidatorFormDataValidator : IFormDataValidator
     /// <summary>
     /// constructor
     /// </summary>
-    public LegacyIInstanceValidatorFormDataValidator(IOptions<GeneralSettings> generalSettings, IInstanceValidator? instanceValidator = null)
+    public LegacyIInstanceValidatorFormDataValidator(
+        IOptions<GeneralSettings> generalSettings,
+        IInstanceValidator? instanceValidator = null
+    )
     {
         _instanceValidator = instanceValidator;
         _generalSettings = generalSettings.Value;
@@ -38,9 +41,13 @@ public class LegacyIInstanceValidatorFormDataValidator : IFormDataValidator
     /// </summary>
     public bool HasRelevantChanges(object current, object previous) => _instanceValidator is not null;
 
-
     /// <inheritdoc />
-    public async Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data, string? language)
+    public async Task<List<ValidationIssue>> ValidateFormData(
+        Instance instance,
+        DataElement dataElement,
+        object data,
+        string? language
+    )
     {
         if (_instanceValidator is null)
         {
@@ -49,6 +56,13 @@ public class LegacyIInstanceValidatorFormDataValidator : IFormDataValidator
 
         var modelState = new ModelStateDictionary();
         await _instanceValidator.ValidateData(data, modelState);
-        return ModelStateHelpers.ModelStateToIssueList(modelState, instance, dataElement, _generalSettings, data.GetType(), ValidationIssueSources.Custom);
+        return ModelStateHelpers.ModelStateToIssueList(
+            modelState,
+            instance,
+            dataElement,
+            _generalSettings,
+            data.GetType(),
+            ValidationIssueSources.Custom
+        );
     }
 }

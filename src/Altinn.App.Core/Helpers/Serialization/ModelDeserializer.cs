@@ -2,7 +2,6 @@ using System.Text;
 using System.Text.Json;
 using System.Xml;
 using System.Xml.Serialization;
-
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Core.Helpers.Serialization

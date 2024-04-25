@@ -19,6 +19,7 @@ namespace Altinn.App.Core.Features.DataLists
         {
             DataListProviders = dataListProviders;
         }
+
         private IEnumerable<IDataListProvider> DataListProviders { get; }
 
         /// <summary>

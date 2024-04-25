@@ -1,5 +1,4 @@
 using System.Net;
-
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
@@ -15,7 +14,6 @@ using Altinn.Common.PEP.Interfaces;
 using Altinn.Common.PEP.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -53,7 +51,8 @@ namespace Altinn.App.Api.Controllers
             IPrefill prefillService,
             IAltinnPartyClient altinnPartyClientClient,
             IPDP pdp,
-            IEnumerable<IDataProcessor> dataProcessors)
+            IEnumerable<IDataProcessor> dataProcessors
+        )
         {
             _logger = logger;
             _appModel = appModel;
@@ -84,27 +83,39 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] string app,
             [FromQuery] string dataType,
             [FromHeader(Name = "party")] string partyFromHeader,
-            [FromQuery] string? language = null)
+            [FromQuery] string? language = null
+        )
         {
             if (string.IsNullOrEmpty(dataType))
             {
-                return BadRequest($"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter.");
+                return BadRequest(
+                    $"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter."
+                );
             }
 
             string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
 
             if (string.IsNullOrEmpty(classRef))
             {
-                return BadRequest($"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter.");
+                return BadRequest(
+                    $"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter."
+                );
             }
 
             InstanceOwner? owner = await GetInstanceOwner(partyFromHeader);
             if (owner is null)
             {
-                return BadRequest($"Invalid party header. Please provide a party header on the form partyid:123, org:[orgnr] or person:[ssn]");
+                return BadRequest(
+                    $"Invalid party header. Please provide a party header on the form partyid:123, org:[orgnr] or person:[ssn]"
+                );
             }
 
-            EnforcementResult enforcementResult = await AuthorizeAction(org, app, Convert.ToInt32(owner.PartyId), "read");
+            EnforcementResult enforcementResult = await AuthorizeAction(
+                org,
+                app,
+                Convert.ToInt32(owner.PartyId),
+                "read"
+            );
 
             if (!enforcementResult.Authorized)
             {
@@ -129,7 +140,8 @@ namespace Altinn.App.Api.Controllers
                 _logger.LogInformation(
                     "ProcessDataRead for {modelType} using {dataProcesor}",
                     appModel.GetType().Name,
-                    dataProcessor.GetType().Name);
+                    dataProcessor.GetType().Name
+                );
                 await dataProcessor.ProcessDataRead(virtualInstance, null, appModel, language);
             }
         }
@@ -147,20 +159,22 @@ namespace Altinn.App.Api.Controllers
         [ProducesResponseType(typeof(DataElement), 200)]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         [Route("anonymous")]
-        public async Task<ActionResult> GetAnonymous(
-            [FromQuery] string dataType,
-            [FromQuery] string? language = null)
+        public async Task<ActionResult> GetAnonymous([FromQuery] string dataType, [FromQuery] string? language = null)
         {
             if (string.IsNullOrEmpty(dataType))
             {
-                return BadRequest($"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter.");
+                return BadRequest(
+                    $"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter."
+                );
             }
 
             string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
 
             if (string.IsNullOrEmpty(classRef))
             {
-                return BadRequest($"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter.");
+                return BadRequest(
+                    $"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter."
+                );
             }
 
             object appModel = _appModel.Create(classRef);
@@ -190,18 +204,23 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] string app,
             [FromQuery] string dataType,
             [FromHeader(Name = "party")] string partyFromHeader,
-            [FromQuery] string? language = null)
+            [FromQuery] string? language = null
+        )
         {
             if (string.IsNullOrEmpty(dataType))
             {
-                return BadRequest($"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter.");
+                return BadRequest(
+                    $"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter."
+                );
             }
 
             string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
 
             if (string.IsNullOrEmpty(classRef))
             {
-                return BadRequest($"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter.");
+                return BadRequest(
+                    $"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter."
+                );
             }
 
             InstanceOwner? owner = await GetInstanceOwner(partyFromHeader);
@@ -211,7 +230,12 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Invalid party header");
             }
 
-            EnforcementResult enforcementResult = await AuthorizeAction(org, app, Convert.ToInt32(owner.PartyId), "read");
+            EnforcementResult enforcementResult = await AuthorizeAction(
+                org,
+                app,
+                Convert.ToInt32(owner.PartyId),
+                "read"
+            );
 
             if (!enforcementResult.Authorized)
             {
@@ -248,20 +272,22 @@ namespace Altinn.App.Api.Controllers
         [ProducesResponseType(typeof(DataElement), 200)]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         [Route("anonymous")]
-        public async Task<ActionResult> PostAnonymous(
-            [FromQuery] string dataType,
-            [FromQuery] string? language = null)
+        public async Task<ActionResult> PostAnonymous([FromQuery] string dataType, [FromQuery] string? language = null)
         {
             if (string.IsNullOrEmpty(dataType))
             {
-                return BadRequest($"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter.");
+                return BadRequest(
+                    $"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter."
+                );
             }
 
             string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
 
             if (string.IsNullOrEmpty(classRef))
             {
-                return BadRequest($"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter.");
+                return BadRequest(
+                    $"Invalid dataType {dataType} provided. Please provide a valid dataType as query parameter."
+                );
             }
 
             ModelDeserializer deserializer = new ModelDeserializer(_logger, _appModel.GetModelType(classRef));
@@ -331,12 +357,21 @@ namespace Altinn.App.Api.Controllers
         private async Task<EnforcementResult> AuthorizeAction(string org, string app, int partyId, string action)
         {
             EnforcementResult enforcementResult = new EnforcementResult();
-            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, action, partyId, null);
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(
+                org,
+                app,
+                HttpContext.User,
+                action,
+                partyId,
+                null
+            );
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
 
             if (response?.Response == null)
             {
-                _logger.LogInformation($"// Instances Controller // Authorization of action {action} failed with request: {JsonConvert.SerializeObject(request)}.");
+                _logger.LogInformation(
+                    $"// Instances Controller // Authorization of action {action} failed with request: {JsonConvert.SerializeObject(request)}."
+                );
                 return enforcementResult;
             }
 

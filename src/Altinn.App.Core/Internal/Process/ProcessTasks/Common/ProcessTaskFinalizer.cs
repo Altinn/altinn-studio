@@ -31,12 +31,14 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
     /// <param name="appResources"></param>
     /// <param name="layoutEvaluatorStateInitializer"></param>
     /// <param name="appSettings"></param>
-    public ProcessTaskFinalizer(IAppMetadata appMetadata,
+    public ProcessTaskFinalizer(
+        IAppMetadata appMetadata,
         IDataClient dataClient,
         IAppModel appModel,
         IAppResources appResources,
         LayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
-        IOptions<AppSettings> appSettings)
+        IOptions<AppSettings> appSettings
+    )
     {
         _appMetadata = appMetadata;
         _dataClient = dataClient;
@@ -61,14 +63,21 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
     {
         AppIdentifier appIdentifier = new(instance.AppId);
         InstanceIdentifier instanceIdentifier = new(instance);
-        foreach (DataElement dataElement in instance.Data?.Where(de =>
-                                                de.References != null &&
-                                                de.References.Exists(r =>
-                                                    r.ValueType == ReferenceType.Task && r.Value == taskId)) ??
-                                            Enumerable.Empty<DataElement>())
+        foreach (
+            DataElement dataElement in instance.Data?.Where(de =>
+                de.References != null
+                && de.References.Exists(r => r.ValueType == ReferenceType.Task && r.Value == taskId)
+            ) ?? Enumerable.Empty<DataElement>()
+        )
         {
-            await _dataClient.DeleteData(appIdentifier.Org, appIdentifier.App, instanceIdentifier.InstanceOwnerPartyId,
-                instanceIdentifier.InstanceGuid, Guid.Parse(dataElement.Id), false);
+            await _dataClient.DeleteData(
+                appIdentifier.Org,
+                appIdentifier.App,
+                instanceIdentifier.InstanceOwnerPartyId,
+                instanceIdentifier.InstanceGuid,
+                Guid.Parse(dataElement.Id),
+                false
+            );
         }
     }
 
@@ -78,15 +87,23 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
 
         dataTypesToLock = dataTypesToLock.Where(d => !string.IsNullOrEmpty(d.AppLogic?.ClassRef)).ToList();
         await Task.WhenAll(
-            instance.Data
-                .Join(dataTypesToLock, de => de.DataType, dt => dt.Id, (de, dt) => (dataElement: de, dataType: dt))
-                .Select(async (d) =>
-                {
-                    await RemoveFieldsOnTaskComplete(instance, dataTypesToLock, d.dataElement, d.dataType);
-                }));
+            instance
+                .Data.Join(dataTypesToLock, de => de.DataType, dt => dt.Id, (de, dt) => (dataElement: de, dataType: dt))
+                .Select(
+                    async (d) =>
+                    {
+                        await RemoveFieldsOnTaskComplete(instance, dataTypesToLock, d.dataElement, d.dataType);
+                    }
+                )
+        );
     }
 
-    private async Task RemoveFieldsOnTaskComplete(Instance instance, List<DataType> dataTypesToLock, DataElement dataElement, DataType dataType)
+    private async Task RemoveFieldsOnTaskComplete(
+        Instance instance,
+        List<DataType> dataTypesToLock,
+        DataElement dataElement,
+        DataType dataType
+    )
     {
         // Download the data
         Type modelType = _appModel.GetModelType(dataType.AppLogic.ClassRef);
@@ -95,14 +112,23 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
         string app = instance.AppId.Split("/")[1];
         int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
         object data = await _dataClient.GetFormData(
-            instanceGuid, modelType, instance.Org, app, instanceOwnerPartyId, dataGuid);
+            instanceGuid,
+            modelType,
+            instance.Org,
+            app,
+            instanceOwnerPartyId,
+            dataGuid
+        );
 
         // Remove hidden data before validation, ignore hidden rows.
         if (_appSettings.Value?.RemoveHiddenData == true)
         {
             LayoutSet? layoutSet = _appResources.GetLayoutSetForTask(dataType.TaskId);
-            LayoutEvaluatorState evaluationState =
-                await _layoutEvaluatorStateInitializer.Init(instance, data, layoutSet?.Id);
+            LayoutEvaluatorState evaluationState = await _layoutEvaluatorStateInitializer.Init(
+                instance,
+                data,
+                layoutSet?.Id
+            );
             LayoutEvaluator.RemoveHiddenData(evaluationState, RowRemovalOption.Ignore);
         }
 
@@ -113,16 +139,27 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
             if (dataType.AppLogic.ShadowFields.SaveToDataType != null)
             {
                 // Save the shadow fields to another data type
-                DataType? saveToDataType =
-                    dataTypesToLock.Find(dt => dt.Id == dataType.AppLogic.ShadowFields.SaveToDataType);
+                DataType? saveToDataType = dataTypesToLock.Find(dt =>
+                    dt.Id == dataType.AppLogic.ShadowFields.SaveToDataType
+                );
                 if (saveToDataType == null)
                 {
-                    throw new ProcessException($"SaveToDataType {dataType.AppLogic.ShadowFields.SaveToDataType} not found");
+                    throw new ProcessException(
+                        $"SaveToDataType {dataType.AppLogic.ShadowFields.SaveToDataType} not found"
+                    );
                 }
 
                 Type saveToModelType = _appModel.GetModelType(saveToDataType.AppLogic.ClassRef);
                 object? updatedData = JsonSerializer.Deserialize(serializedData, saveToModelType);
-                await _dataClient.InsertFormData(updatedData, instanceGuid, saveToModelType ?? modelType, instance.Org, app, instanceOwnerPartyId, saveToDataType.Id);
+                await _dataClient.InsertFormData(
+                    updatedData,
+                    instanceGuid,
+                    saveToModelType ?? modelType,
+                    instance.Org,
+                    app,
+                    instanceOwnerPartyId,
+                    saveToDataType.Id
+                );
             }
             else
             {

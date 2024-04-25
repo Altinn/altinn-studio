@@ -30,8 +30,12 @@ namespace Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask
         /// <summary>
         /// Execute the event handler logic.
         /// </summary>
-        public async Task Execute(IProcessTask processTask, string taskId, Instance instance,
-            Dictionary<string, string>? prefill)
+        public async Task Execute(
+            IProcessTask processTask,
+            string taskId,
+            Instance instance,
+            Dictionary<string, string>? prefill
+        )
         {
             await _processTaskDataLocker.Unlock(taskId, instance);
             await RunAppDefinedProcessTaskStartHandlers(taskId, instance, prefill);
@@ -42,8 +46,11 @@ namespace Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask
         /// <summary>
         /// Runs IProcessTaskStarts defined in the app.
         /// </summary>
-        private async Task RunAppDefinedProcessTaskStartHandlers(string taskId, Instance instance,
-            Dictionary<string, string>? prefill)
+        private async Task RunAppDefinedProcessTaskStartHandlers(
+            string taskId,
+            Instance instance,
+            Dictionary<string, string>? prefill
+        )
         {
             foreach (IProcessTaskStart processTaskStarts in _processTaskStarts)
             {

@@ -7,7 +7,6 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 /// </summary>
 public class NullTypeProcessTask : IProcessTask
 {
-
     /// <inheritdoc/>
     public string Type => "NullType";
 

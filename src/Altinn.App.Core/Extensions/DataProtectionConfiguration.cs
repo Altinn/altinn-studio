@@ -15,9 +15,7 @@ namespace Altinn.App.Core.Extensions
         /// <param name="services">The service collections</param>
         public static void ConfigureDataProtection(this IServiceCollection services)
         {
-            services
-                .AddDataProtection()
-                .PersistKeysToFileSystem(GetKeysDirectory());
+            services.AddDataProtection().PersistKeysToFileSystem(GetKeysDirectory());
         }
 
         /// <summary>

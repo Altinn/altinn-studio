@@ -34,7 +34,8 @@ namespace Altinn.App.Api.Controllers
         public async Task<IActionResult> Get(
             [FromRoute] string id,
             [FromQuery] Dictionary<string, string> queryParams,
-            [FromQuery] string? language = null)
+            [FromQuery] string? language = null
+        )
         {
             DataList dataLists = await _dataListsService.GetDataListAsync(id, language, queryParams);
             if (dataLists.ListItems == null)
@@ -64,11 +65,17 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] Guid instanceGuid,
             [FromRoute] string id,
             [FromQuery] Dictionary<string, string> queryParams,
-            [FromQuery] string? language = null)
+            [FromQuery] string? language = null
+        )
         {
             var instanceIdentifier = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
 
-            DataList dataLists = await _dataListsService.GetDataListAsync(instanceIdentifier, id, language, queryParams);
+            DataList dataLists = await _dataListsService.GetDataListAsync(
+                instanceIdentifier,
+                id,
+                language,
+                queryParams
+            );
 
             if (dataLists.ListItems == null)
             {

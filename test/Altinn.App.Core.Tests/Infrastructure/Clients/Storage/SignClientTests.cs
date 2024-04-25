@@ -23,11 +23,9 @@ public class SignClientTests
 
     public SignClientTests()
     {
-        platformSettingsOptions = Options.Create(new PlatformSettings()
-        {
-            ApiStorageEndpoint = apiStorageEndpoint,
-            SubscriptionKey = "test"
-        });
+        platformSettingsOptions = Options.Create(
+            new PlatformSettings() { ApiStorageEndpoint = apiStorageEndpoint, SubscriptionKey = "test" }
+        );
 
         userTokenProvide = new Mock<IUserTokenProvider>();
         userTokenProvide.Setup(s => s.GetUserToken()).Returns("dummytoken");
@@ -40,42 +38,30 @@ public class SignClientTests
         InstanceIdentifier instanceIdentifier = new InstanceIdentifier(1337, Guid.NewGuid());
         HttpRequestMessage? platformRequest = null;
         int callCount = 0;
-        SignClient signClient = GetSignClient((request, token) =>
-        {
-            callCount++;
-            platformRequest = request;
-            return Task.FromResult(new HttpResponseMessage
+        SignClient signClient = GetSignClient(
+            (request, token) =>
             {
-                StatusCode = HttpStatusCode.Created
-            });
-        });
+                callCount++;
+                platformRequest = request;
+                return Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.Created });
+            }
+        );
 
         // Act
         var dataElementId = Guid.NewGuid().ToString();
         var signatureContext = new SignatureContext(
             instanceIdentifier,
             "sign-data-type",
-            new Signee()
-            {
-                UserId = "1337",
-                PersonNumber = "0101011337"
-            },
-            new DataElementSignature(dataElementId));
+            new Signee() { UserId = "1337", PersonNumber = "0101011337" },
+            new DataElementSignature(dataElementId)
+        );
 
         SignRequest expectedRequest = new SignRequest()
         {
-            Signee = new()
-            {
-                UserId = "1337",
-                PersonNumber = "0101011337"
-            },
+            Signee = new() { UserId = "1337", PersonNumber = "0101011337" },
             DataElementSignatures = new()
             {
-                new()
-                {
-                    DataElementId = dataElementId,
-                    Signed = true
-                }
+                new() { DataElementId = dataElementId, Signed = true }
             },
             SignatureDocumentDataType = "sign-data-type"
         };
@@ -87,7 +73,12 @@ public class SignClientTests
         callCount.Should().Be(1);
         platformRequest.Should().NotBeNull();
         platformRequest!.Method.Should().Be(HttpMethod.Post);
-        platformRequest!.RequestUri!.ToString().Should().Be($"{apiStorageEndpoint}instances/{instanceIdentifier.InstanceOwnerPartyId}/{instanceIdentifier.InstanceGuid}/sign");
+        platformRequest!
+            .RequestUri!.ToString()
+            .Should()
+            .Be(
+                $"{apiStorageEndpoint}instances/{instanceIdentifier.InstanceOwnerPartyId}/{instanceIdentifier.InstanceGuid}/sign"
+            );
         SignRequest actual = await JsonSerializerPermissive.DeserializeAsync<SignRequest>(platformRequest!.Content!);
         actual.Should().BeEquivalentTo(expectedRequest);
     }
@@ -99,29 +90,27 @@ public class SignClientTests
         InstanceIdentifier instanceIdentifier = new InstanceIdentifier(1337, Guid.NewGuid());
         HttpRequestMessage? platformRequest = null;
         int callCount = 0;
-        SignClient signClient = GetSignClient((request, token) =>
-        {
-            callCount++;
-            platformRequest = request;
-            return Task.FromResult(new HttpResponseMessage
+        SignClient signClient = GetSignClient(
+            (request, token) =>
             {
-                StatusCode = HttpStatusCode.InternalServerError
-            });
-        });
+                callCount++;
+                platformRequest = request;
+                return Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.InternalServerError });
+            }
+        );
 
         // Act
         var dataElementId = Guid.NewGuid().ToString();
         var signatureContext = new SignatureContext(
             instanceIdentifier,
             "sign-data-type",
-            new Signee()
-            {
-                UserId = "1337",
-                PersonNumber = "0101011337"
-            },
-            new DataElementSignature(dataElementId));
+            new Signee() { UserId = "1337", PersonNumber = "0101011337" },
+            new DataElementSignature(dataElementId)
+        );
 
-        var ex = await Assert.ThrowsAsync<PlatformHttpException>(async () => await signClient.SignDataElements(signatureContext));
+        var ex = await Assert.ThrowsAsync<PlatformHttpException>(
+            async () => await signClient.SignDataElements(signatureContext)
+        );
         ex.Should().NotBeNull();
         ex.Response.Should().NotBeNull();
         ex.Response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
@@ -130,9 +119,6 @@ public class SignClientTests
     private SignClient GetSignClient(Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> handlerFunc)
     {
         DelegatingHandlerStub delegatingHandlerStub = new(handlerFunc);
-        return new SignClient(
-            platformSettingsOptions,
-            new HttpClient(delegatingHandlerStub),
-            userTokenProvide.Object);
+        return new SignClient(platformSettingsOptions, new HttpClient(delegatingHandlerStub), userTokenProvide.Object);
     }
 }

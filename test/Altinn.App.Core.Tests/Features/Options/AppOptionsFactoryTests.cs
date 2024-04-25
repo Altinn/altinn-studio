@@ -13,7 +13,9 @@ namespace Altinn.App.Core.Tests.Features.Options
         public void GetOptionsProvider_NoCustomOptionsProvider_ShouldReturnDefault()
         {
             var appOptionsFileHandler = new Mock<IAppOptionsFileHandler>();
-            var factory = new AppOptionsFactory(new List<IAppOptionsProvider>() { new DefaultAppOptionsProvider(appOptionsFileHandler.Object) });
+            var factory = new AppOptionsFactory(
+                new List<IAppOptionsProvider>() { new DefaultAppOptionsProvider(appOptionsFileHandler.Object) }
+            );
 
             IAppOptionsProvider optionsProvider = factory.GetOptionsProvider("country");
 
@@ -25,7 +27,9 @@ namespace Altinn.App.Core.Tests.Features.Options
         public void GetOptionsProvider_NoCustomOptionsProvider_ShouldReturnDefaultTwice()
         {
             var appOptionsFileHandler = new Mock<IAppOptionsFileHandler>();
-            var factory = new AppOptionsFactory(new List<IAppOptionsProvider>() { new DefaultAppOptionsProvider(appOptionsFileHandler.Object) });
+            var factory = new AppOptionsFactory(
+                new List<IAppOptionsProvider>() { new DefaultAppOptionsProvider(appOptionsFileHandler.Object) }
+            );
 
             IAppOptionsProvider optionsProvider1 = factory.GetOptionsProvider("fylke");
             IAppOptionsProvider optionsProvider2 = factory.GetOptionsProvider("kommune");
@@ -48,7 +52,13 @@ namespace Altinn.App.Core.Tests.Features.Options
         public void GetOptionsProvider_CustomOptionsProvider_ShouldReturnCustomType()
         {
             var appOptionsFileHandler = new Mock<IAppOptionsFileHandler>();
-            var factory = new AppOptionsFactory(new List<IAppOptionsProvider>() { new DefaultAppOptionsProvider(appOptionsFileHandler.Object), new CountryAppOptionsProvider() });
+            var factory = new AppOptionsFactory(
+                new List<IAppOptionsProvider>()
+                {
+                    new DefaultAppOptionsProvider(appOptionsFileHandler.Object),
+                    new CountryAppOptionsProvider()
+                }
+            );
 
             IAppOptionsProvider optionsProvider = factory.GetOptionsProvider("country");
 
@@ -60,7 +70,13 @@ namespace Altinn.App.Core.Tests.Features.Options
         public void GetOptionsProvider_CustomOptionsProviderWithUpperCase_ShouldReturnCustomType()
         {
             var appOptionsFileHandler = new Mock<IAppOptionsFileHandler>();
-            var factory = new AppOptionsFactory(new List<IAppOptionsProvider>() { new DefaultAppOptionsProvider(appOptionsFileHandler.Object), new CountryAppOptionsProvider() });
+            var factory = new AppOptionsFactory(
+                new List<IAppOptionsProvider>()
+                {
+                    new DefaultAppOptionsProvider(appOptionsFileHandler.Object),
+                    new CountryAppOptionsProvider()
+                }
+            );
 
             IAppOptionsProvider optionsProvider = factory.GetOptionsProvider("Country");
 
@@ -72,11 +88,20 @@ namespace Altinn.App.Core.Tests.Features.Options
         public async Task GetParameters_CustomOptionsProviderWithUpperCase_ShouldReturnCustomType()
         {
             var appOptionsFileHandler = new Mock<IAppOptionsFileHandler>();
-            var factory = new AppOptionsFactory(new List<IAppOptionsProvider>() { new DefaultAppOptionsProvider(appOptionsFileHandler.Object), new CountryAppOptionsProvider() });
+            var factory = new AppOptionsFactory(
+                new List<IAppOptionsProvider>()
+                {
+                    new DefaultAppOptionsProvider(appOptionsFileHandler.Object),
+                    new CountryAppOptionsProvider()
+                }
+            );
 
             IAppOptionsProvider optionsProvider = factory.GetOptionsProvider("Country");
 
-            AppOptions options = await optionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>() { { "key", "value" } });
+            AppOptions options = await optionsProvider.GetAppOptionsAsync(
+                "nb",
+                new Dictionary<string, string>() { { "key", "value" } }
+            );
             options.Parameters.First(x => x.Key == "key").Value.Should().Be("value");
         }
 
@@ -90,16 +115,8 @@ namespace Altinn.App.Core.Tests.Features.Options
                 {
                     Options = new List<AppOption>
                     {
-                        new AppOption
-                        {
-                            Label = "Norge",
-                            Value = "47"
-                        },
-                        new AppOption
-                        {
-                            Label = "Sverige",
-                            Value = "46"
-                        }
+                        new AppOption { Label = "Norge", Value = "47" },
+                        new AppOption { Label = "Sverige", Value = "46" }
                     },
 
                     Parameters = keyValuePairs!

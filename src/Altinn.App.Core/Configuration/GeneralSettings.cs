@@ -70,7 +70,8 @@ namespace Altinn.App.Core.Configuration
         {
             get
             {
-                return Environment.GetEnvironmentVariable("GeneralSettings__AltinnPartyCookieName") ?? AltinnPartyCookieName;
+                return Environment.GetEnvironmentVariable("GeneralSettings__AltinnPartyCookieName")
+                    ?? AltinnPartyCookieName;
             }
         }
     }

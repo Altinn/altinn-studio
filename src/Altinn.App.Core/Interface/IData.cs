@@ -21,7 +21,15 @@ namespace Altinn.App.Core.Interface
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="instanceOwnerPartyId">The instance owner id</param>
         /// <param name="dataType">The data type to create, must be a valid data type defined in application metadata</param>
-        Task<DataElement> InsertFormData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, string dataType);
+        Task<DataElement> InsertFormData<T>(
+            T dataToSerialize,
+            Guid instanceGuid,
+            Type type,
+            string org,
+            string app,
+            int instanceOwnerPartyId,
+            string dataType
+        );
 
         /// <summary>
         /// Stores the form
@@ -45,7 +53,15 @@ namespace Altinn.App.Core.Interface
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="instanceOwnerPartyId">The instance owner id</param>
         /// <param name="dataId">the data id</param>
-        Task<DataElement> UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, Guid dataId);
+        Task<DataElement> UpdateData<T>(
+            T dataToSerialize,
+            Guid instanceGuid,
+            Type type,
+            string org,
+            string app,
+            int instanceOwnerPartyId,
+            Guid dataId
+        );
 
         /// <summary>
         /// Gets the form data
@@ -56,7 +72,14 @@ namespace Altinn.App.Core.Interface
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="instanceOwnerPartyId">The instance owner id</param>
         /// <param name="dataId">the data id</param>
-        Task<object> GetFormData(Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, Guid dataId);
+        Task<object> GetFormData(
+            Guid instanceGuid,
+            Type type,
+            string org,
+            string app,
+            int instanceOwnerPartyId,
+            Guid dataId
+        );
 
         /// <summary>
         /// Gets the data as is.
@@ -76,7 +99,12 @@ namespace Altinn.App.Core.Interface
         /// <param name="instanceOwnerPartyId">The instance owner id</param>
         /// <param name="instanceGuid">The instance id</param>
         /// <returns>A list with attachments metadata ordered by attachmentType</returns>
-        Task<List<AttachmentList>> GetBinaryDataList(string org, string app, int instanceOwnerPartyId, Guid instanceGuid);
+        Task<List<AttachmentList>> GetBinaryDataList(
+            string org,
+            string app,
+            int instanceOwnerPartyId,
+            Guid instanceGuid
+        );
 
         /// <summary>
         /// Method that removes a form attachments from disk/storage
@@ -98,7 +126,14 @@ namespace Altinn.App.Core.Interface
         /// <param name="instanceGuid">The instance id</param>
         /// <param name="dataGuid">The attachment id</param>
         /// <param name="delay">A boolean indicating whether or not the delete should be executed immediately or delayed</param>
-        Task<bool> DeleteData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, bool delay);
+        Task<bool> DeleteData(
+            string org,
+            string app,
+            int instanceOwnerPartyId,
+            Guid instanceGuid,
+            Guid dataGuid,
+            bool delay
+        );
 
         /// <summary>
         /// Method that saves a form attachments to disk/storage and returns the new data element.
@@ -109,7 +144,14 @@ namespace Altinn.App.Core.Interface
         /// <param name="instanceGuid">The instance id</param>
         /// <param name="dataType">The data type to create, must be a valid data type defined in application metadata</param>
         /// <param name="request">Http request containing the attachment to be saved</param>
-        Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, string dataType, HttpRequest request);
+        Task<DataElement> InsertBinaryData(
+            string org,
+            string app,
+            int instanceOwnerPartyId,
+            Guid instanceGuid,
+            string dataType,
+            HttpRequest request
+        );
 
         /// <summary>
         /// Method that updates a form attachments to disk/storage and returns the updated data element.
@@ -120,8 +162,18 @@ namespace Altinn.App.Core.Interface
         /// <param name="instanceGuid">The instance id</param>
         /// <param name="dataGuid">The data id</param>
         /// <param name="request">Http request containing the attachment to be saved</param>
-        [Obsolete(message: "Deprecated please use UpdateBinaryData(InstanceIdentifier, string, string, Guid, Stream) instead", error: false)]
-        Task<DataElement> UpdateBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, HttpRequest request);
+        [Obsolete(
+            message: "Deprecated please use UpdateBinaryData(InstanceIdentifier, string, string, Guid, Stream) instead",
+            error: false
+        )]
+        Task<DataElement> UpdateBinaryData(
+            string org,
+            string app,
+            int instanceOwnerPartyId,
+            Guid instanceGuid,
+            Guid dataGuid,
+            HttpRequest request
+        );
 
         /// <summary>
         /// Method that updates a form attachments to disk/storage and returns the updated data element.
@@ -131,7 +183,13 @@ namespace Altinn.App.Core.Interface
         /// <param name="filename">Filename of the updated binary data</param>
         /// <param name="dataGuid">Guid of the data element to update</param>
         /// <param name="stream">Updated binary data</param>
-        Task<DataElement> UpdateBinaryData(InstanceIdentifier instanceIdentifier, string? contentType, string filename, Guid dataGuid, Stream stream);
+        Task<DataElement> UpdateBinaryData(
+            InstanceIdentifier instanceIdentifier,
+            string? contentType,
+            string filename,
+            Guid dataGuid,
+            Stream stream
+        );
 
         /// <summary>
         /// Insert a binary data element.
@@ -142,7 +200,13 @@ namespace Altinn.App.Core.Interface
         /// <param name="filename">filename</param>
         /// <param name="stream">the stream to stream</param>
         /// <returns></returns>
-        Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string filename, Stream stream);
+        Task<DataElement> InsertBinaryData(
+            string instanceId,
+            string dataType,
+            string contentType,
+            string filename,
+            Stream stream
+        );
 
         /// <summary>
         /// Updates the data element metadata object.

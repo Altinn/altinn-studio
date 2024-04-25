@@ -15,10 +15,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
     /// </summary>
     public class EventsSubscriptionClient : IEventsSubscription
     {
-        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-        {
-            PropertyNameCaseInsensitive = true
-        };
+        private static readonly JsonSerializerOptions _jsonSerializerOptions =
+            new() { PropertyNameCaseInsensitive = true };
 
         private readonly PlatformSettings _platformSettings;
         private readonly GeneralSettings _generalSettings;
@@ -34,12 +32,16 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
             HttpClient httpClient,
             IOptions<GeneralSettings> generalSettings,
             IEventSecretCodeProvider secretCodeProvider,
-            ILogger<EventsSubscriptionClient> logger)
+            ILogger<EventsSubscriptionClient> logger
+        )
         {
             _platformSettings = platformSettings.Value;
             _generalSettings = generalSettings.Value;
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiEventsEndpoint);
-            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
+            httpClient.DefaultRequestHeaders.Add(
+                General.SubscriptionKeyHeaderName,
+                platformSettings.Value.SubscriptionKey
+            );
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _client = httpClient;
             _secretCodeProvider = secretCodeProvider;
@@ -61,28 +63,41 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
             var subscriptionRequest = new SubscriptionRequest()
             {
                 TypeFilter = eventType,
-                EndPoint = new Uri($"{appBaseUrl}api/v1/eventsreceiver?code={await _secretCodeProvider.GetSecretCode()}"),
+                EndPoint = new Uri(
+                    $"{appBaseUrl}api/v1/eventsreceiver?code={await _secretCodeProvider.GetSecretCode()}"
+                ),
                 SourceFilter = new Uri(appBaseUrl.TrimEnd('/')) // The event system is requireing the source filter to be without trailing slash
             };
 
             string serializedSubscriptionRequest = JsonSerializer.Serialize(subscriptionRequest);
 
-            _logger.LogInformation("About to send the following subscription request {subscriptionJson}", serializedSubscriptionRequest);
+            _logger.LogInformation(
+                "About to send the following subscription request {subscriptionJson}",
+                serializedSubscriptionRequest
+            );
             HttpResponseMessage response = await _client.PostAsync(
                 "subscriptions",
-                new StringContent(serializedSubscriptionRequest, Encoding.UTF8, "application/json"));
+                new StringContent(serializedSubscriptionRequest, Encoding.UTF8, "application/json")
+            );
 
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
                 Subscription? subscription = JsonSerializer.Deserialize<Subscription>(content, _jsonSerializerOptions);
 
-                return subscription ?? throw new NullReferenceException("Successfully added a subscription, but the returned subscription deserialized to null!");
+                return subscription
+                    ?? throw new NullReferenceException(
+                        "Successfully added a subscription, but the returned subscription deserialized to null!"
+                    );
             }
             else
             {
                 var content = await response.Content.ReadAsStringAsync();
-                _logger.LogError("Unable to create subscription, received status {statusCode} with the following content {content}", response.StatusCode, content);
+                _logger.LogError(
+                    "Unable to create subscription, received status {statusCode} with the following content {content}",
+                    response.StatusCode,
+                    content
+                );
                 throw await PlatformHttpException.CreateAsync(response);
             }
         }

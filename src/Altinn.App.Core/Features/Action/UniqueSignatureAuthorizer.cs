@@ -15,11 +15,8 @@ namespace Altinn.App.Core.Features.Action;
 /// </summary>
 public class UniqueSignatureAuthorizer : IUserActionAuthorizer
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true,
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions =
+        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, PropertyNameCaseInsensitive = true, };
 
     private readonly IAppMetadata _appMetadata;
     private readonly IProcessReader _processReader;
@@ -33,7 +30,12 @@ public class UniqueSignatureAuthorizer : IUserActionAuthorizer
     /// <param name="instanceClient">The instance client</param>
     /// <param name="dataClient">The data client</param>
     /// <param name="appMetadata">The application metadata</param>
-    public UniqueSignatureAuthorizer(IProcessReader processReader, IInstanceClient instanceClient, IDataClient dataClient, IAppMetadata appMetadata)
+    public UniqueSignatureAuthorizer(
+        IProcessReader processReader,
+        IInstanceClient instanceClient,
+        IDataClient dataClient,
+        IAppMetadata appMetadata
+    )
     {
         _processReader = processReader;
         _instanceClient = instanceClient;
@@ -49,15 +51,31 @@ public class UniqueSignatureAuthorizer : IUserActionAuthorizer
             return true;
         }
         var flowElement = _processReader.GetFlowElement(context.TaskId) as ProcessTask;
-        if (flowElement?.ExtensionElements?.TaskExtension?.SignatureConfiguration?.UniqueFromSignaturesInDataTypes.Count > 0)
+        if (
+            flowElement?.ExtensionElements?.TaskExtension?.SignatureConfiguration?.UniqueFromSignaturesInDataTypes.Count
+            > 0
+        )
         {
             var appMetadata = await _appMetadata.GetApplicationMetadata();
-            var instance = await _instanceClient.GetInstance(appMetadata.AppIdentifier.App, appMetadata.AppIdentifier.Org, context.InstanceIdentifier.InstanceOwnerPartyId, context.InstanceIdentifier.InstanceGuid);
-            var dataTypes = flowElement.ExtensionElements!.TaskExtension!.SignatureConfiguration!.UniqueFromSignaturesInDataTypes;
+            var instance = await _instanceClient.GetInstance(
+                appMetadata.AppIdentifier.App,
+                appMetadata.AppIdentifier.Org,
+                context.InstanceIdentifier.InstanceOwnerPartyId,
+                context.InstanceIdentifier.InstanceGuid
+            );
+            var dataTypes = flowElement
+                .ExtensionElements!
+                .TaskExtension!
+                .SignatureConfiguration!
+                .UniqueFromSignaturesInDataTypes;
             var signatureDataElements = instance.Data.Where(d => dataTypes.Contains(d.DataType)).ToList();
             foreach (var signatureDataElement in signatureDataElements)
             {
-                var userId = await GetUserIdFromDataElementContainingSignDocument(appMetadata.AppIdentifier, context.InstanceIdentifier, signatureDataElement);
+                var userId = await GetUserIdFromDataElementContainingSignDocument(
+                    appMetadata.AppIdentifier,
+                    context.InstanceIdentifier,
+                    signatureDataElement
+                );
                 if (userId == context.User.GetUserOrOrgId())
                 {
                     return false;
@@ -68,9 +86,19 @@ public class UniqueSignatureAuthorizer : IUserActionAuthorizer
         return true;
     }
 
-    private async Task<string> GetUserIdFromDataElementContainingSignDocument(AppIdentifier appIdentifier, InstanceIdentifier instanceIdentifier, DataElement dataElement)
+    private async Task<string> GetUserIdFromDataElementContainingSignDocument(
+        AppIdentifier appIdentifier,
+        InstanceIdentifier instanceIdentifier,
+        DataElement dataElement
+    )
     {
-        await using var data = await _dataClient.GetBinaryData(appIdentifier.Org, appIdentifier.App, instanceIdentifier.InstanceOwnerPartyId, instanceIdentifier.InstanceGuid, Guid.Parse(dataElement.Id));
+        await using var data = await _dataClient.GetBinaryData(
+            appIdentifier.Org,
+            appIdentifier.App,
+            instanceIdentifier.InstanceOwnerPartyId,
+            instanceIdentifier.InstanceGuid,
+            Guid.Parse(dataElement.Id)
+        );
         try
         {
             var signDocument = await JsonSerializer.DeserializeAsync<SignDocument>(data, _jsonSerializerOptions);

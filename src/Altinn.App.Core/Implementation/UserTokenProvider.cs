@@ -2,7 +2,6 @@
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.Auth;
 using AltinnCore.Authentication.Utils;
-
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 

@@ -23,11 +23,7 @@ public class AppProcessStateTests
                 Ended = DateTime.Now,
                 Flow = 2,
                 Name = "Task_1",
-                Validated = new()
-                {
-                    Timestamp = DateTime.Now,
-                    CanCompleteTask = false
-                },
+                Validated = new() { Timestamp = DateTime.Now, CanCompleteTask = false },
                 ElementId = "Task_1",
                 FlowType = "FlowType",
                 AltinnTaskType = "data",

@@ -22,9 +22,8 @@ namespace Altinn.App.Api.Tests.Mocks.Authentication
         public ConfigurationManagerStub(
             string metadataAddress,
             IConfigurationRetriever<OpenIdConnectConfiguration> configRetriever,
-            IDocumentRetriever docRetriever)
-        {
-        }
+            IDocumentRetriever docRetriever
+        ) { }
 
         /// <inheritdoc />
         public async Task<OpenIdConnectConfiguration> GetConfigurationAsync(CancellationToken cancel)

@@ -19,6 +19,7 @@ namespace Altinn.App.Core.Features.DataLists
         {
             InstanceDataListProviders = instanceDataListProvider;
         }
+
         private IEnumerable<IInstanceDataListProvider> InstanceDataListProviders { get; }
 
         /// <summary>
@@ -37,7 +38,6 @@ namespace Altinn.App.Core.Features.DataLists
             }
 
             return new NullInstanceDataListProvider();
-
         }
     }
 }
