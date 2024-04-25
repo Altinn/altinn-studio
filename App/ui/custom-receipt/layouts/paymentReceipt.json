@@ -3,29 +3,10 @@
   "data": {
     "layout": [
       {
-        "id": "receiptHeader",
-        "type": "Header",
-        "textResourceBindings": {
-          "title": "Kvittering for betaling for registrering av varemerke"
-        },
-        "size": "h2"
-      },
-      {
-        "id": "instanceInfo",
-        "type": "InstanceInformation",
-        "elements": {
-          "referenceNumber": true,
-          "receiver": true,
-          "sender": true,
-          "dateSent": false
-        }
-      },
-      {
         "id": "test",
         "type": "Payment",
         "renderAsSummary": true,
         "textResourceBindings": {
-          "title": "Oppsummering",
           "receiptOrgName": "Test Org",
           "receiptOrgNumber": "123456789",
           "receiptBankAcountNumber": "12345678901",
