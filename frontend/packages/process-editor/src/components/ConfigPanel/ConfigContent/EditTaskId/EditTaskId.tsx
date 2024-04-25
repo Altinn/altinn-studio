@@ -67,15 +67,18 @@ export const EditTaskId = ({ ...rest }: EditTaskIdProps): React.ReactElement => 
     const regexSymbol = /^[0-9_-]+$/;
 
     for (const char of newId) {
+      if (char === ' ') {
+        return 'Mellomrom er ikke tillatt';
+      }
       if (char.toUpperCase() !== char.toLowerCase()) {
         if (!regexLetters.test(char)) {
-          return 'Bokstavene A-Z og a-z er tillatt';
+          return 'Av bokstaver er A-Z og a-z tillatt';
         }
       }
 
       if (char.toUpperCase() === char.toLowerCase()) {
         if (!regexSymbol.test(char)) {
-          return 'Tall og symbolene - og _ er tillatt';
+          return 'Av symboler er - og _ tillatt';
         }
       }
     }
