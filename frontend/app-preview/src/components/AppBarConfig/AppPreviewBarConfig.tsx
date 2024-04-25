@@ -103,7 +103,8 @@ export const appPreviewButtonActions = (
   instanceId: string,
 ): AltinnButtonActionItem[] => {
   const packagesRouter = new PackagesRouter({ org, app });
-  const queryParams = `?layout=${window.localStorage.getItem(instanceId)}`;
+  const layout = window.localStorage.getItem(instanceId);
+  const queryParams = layout ? `?layout=${layout}` : '';
 
   const action: AltinnButtonActionItem[] = [
     {

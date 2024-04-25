@@ -22,7 +22,7 @@ export class UiEditorPage extends BasePage {
 
   public async verifyUiEditorPage(layout?: string | null): Promise<void> {
     const baseRoute = this.getRoute('editorUi');
-    if (layout === null || typeof layout === 'string') {
+    if (/*layout === null ||*/ typeof layout === 'string') {
       const layoutString = `?layout=${layout}`;
       await this.page.waitForURL(`${baseRoute}${layoutString}`);
     } else {
