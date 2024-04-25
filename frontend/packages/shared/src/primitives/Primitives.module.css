@@ -4,7 +4,7 @@
   gap: 16px;
   padding-bottom: 16px;
 }
-.actionButtonContainer {
+.buttonContainer {
   display: flex;
   flex-direction: row;
   gap: 12px;

@@ -11,7 +11,7 @@
   margin: 0;
   padding: 0;
 }
-.actionButtonContainer {
+.buttonContainer {
   display: flex;
   gap: 24px;
 }
