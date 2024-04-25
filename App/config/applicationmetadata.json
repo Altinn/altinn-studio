@@ -1,8 +1,8 @@
 {
-  "id": "pat/varemerke",
-  "org": "pat",
+  "id": "ttd/payment-test",
+  "org": "ttd",
   "title": {
-    "nb": "varemerke"
+    "nb": "payment-test"
   },
   "dataTypes": [
     {
