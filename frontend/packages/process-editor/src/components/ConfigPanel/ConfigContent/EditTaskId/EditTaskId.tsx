@@ -1,6 +1,6 @@
 import React, { type HTMLAttributes } from 'react';
 import { useTranslation } from 'react-i18next';
-
+import { checkForInvalidCharacters } from '../../../../utils/configPanelUtils/configPanelUtils';
 import { StudioToggleableTextfield } from '@studio/components';
 import { KeyVerticalIcon } from '@studio/icons';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
@@ -10,14 +10,19 @@ import { useBpmnConfigPanelFormContext } from '../../../../contexts/BpmnConfigPa
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 
 import classes from './EditTaskId.module.css';
+import { useTaskIds } from '../../../../hooks/useTaskIds';
+import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 
 type EditTaskIdProps = HTMLAttributes<HTMLDivElement>;
 export const EditTaskId = ({ ...rest }: EditTaskIdProps): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails, modelerRef, setBpmnDetails } = useBpmnContext();
+  const { layoutSets } = useBpmnApiContext();
   const { metaDataFormRef } = useBpmnConfigPanelFormContext();
+
   const modelerInstance = modelerRef.current;
   const modeling: Modeling = modelerInstance.get('modeling');
+  const otherTaskIds = useTaskIds(layoutSets).filter((id) => id !== bpmnDetails.id);
 
   const updateId = (value: string): void => {
     modeling.updateProperties(bpmnDetails.element, {
@@ -51,35 +56,33 @@ export const EditTaskId = ({ ...rest }: EditTaskIdProps): React.ReactElement => 
   };
 
   const validateTaskId = (newId: string): string => {
-    if (newId.length === 0) {
-      return t('validation_errors.required');
-    }
+    const errorMessages = {
+      unique: t('process_editor.validation_error.id_not_unique'),
+      required: t('validation_errors.required'),
+      maxLength: t('process_editor.validation_error.id_max_length', { 0: 50 }),
+      reservedWord: t('process_editor.validation_error.id_reserved', {
+        0: 'starte ID-en med Custom',
+      }),
+      noSpacing: t('process_editor.validation_error.no_spacing'),
+      invalidLetter: t('process_editor.validation_error.letters'),
+      invalidSymbol: t('process_editor.validation_error.symbols'),
+    };
 
-    if (newId.length > 50) {
-      return t('validation_errors.invalid_task_id.too_long');
-    }
+    const validationRules = [
+      { name: 'unique', condition: otherTaskIds.includes(newId) },
+      { name: 'required', condition: newId.length === 0 },
+      { name: 'reservedWord', condition: newId.toLowerCase().startsWith('custom') },
+      { name: 'maxLength', condition: newId.length > 50 },
+      { name: 'noSpacing', condition: newId.includes(' ') },
+      {
+        name: checkForInvalidCharacters(newId),
+        condition: checkForInvalidCharacters(newId),
+      },
+    ];
 
-    if (newId.toLowerCase().startsWith('custom')) {
-      return 'Ikke tillatt å starte med "Custom"';
-    }
-
-    const regexLetters = /[a-zA-Z]+$/;
-    const regexSymbol = /^[0-9_-]+$/;
-
-    for (const char of newId) {
-      if (char === ' ') {
-        return 'Mellomrom er ikke tillatt';
-      }
-      if (char.toUpperCase() !== char.toLowerCase()) {
-        if (!regexLetters.test(char)) {
-          return 'Av bokstaver er A-Z og a-z tillatt';
-        }
-      }
-
-      if (char.toUpperCase() === char.toLowerCase()) {
-        if (!regexSymbol.test(char)) {
-          return 'Av symboler er - og _ tillatt';
-        }
+    for (const rule of validationRules) {
+      if (rule.condition) {
+        return errorMessages[rule.name];
       }
     }
 
