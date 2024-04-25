@@ -30,6 +30,12 @@ class SupportedContextPadProvider {
     return function (entries) {
       // Should not be able to replace the entry
       delete entries['replace'];
+      delete entries['append.intermediate-event'];
+      delete entries['append.end-event'];
+      delete entries['append.gateway'];
+      delete entries['append.append-task'];
+
+      // Should be moved to our custom properties panel
       overrideDeleteEntry(entries);
       return entries;
     };
