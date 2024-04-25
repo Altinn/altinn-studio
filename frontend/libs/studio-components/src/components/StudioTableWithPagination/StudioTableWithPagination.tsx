@@ -7,11 +7,12 @@ import { useSortedRows } from '../../hooks/useSortedRows';
 import { SelectRowsPerPage } from './SelectRowsPerPage';
 
 export type TableSize = 'small' | 'medium' | 'large';
+export type Rows = Record<string, React.ReactNode>[];
 
 type StudioTableWithPaginationProps = {
-  columns: string[];
-  rows: Record<string, React.ReactNode>[];
-  sortable?: boolean;
+  columns: Record<'key' | 'value', string>[];
+  rows: Rows;
+  isSortable?: boolean;
   size?: TableSize;
   initialRowsPerPage?: number;
 };
@@ -21,7 +22,7 @@ export const StudioTableWithPagination = forwardRef<
   StudioTableWithPaginationProps
 >(
   (
-    { columns, rows, sortable = true, size = 'medium', initialRowsPerPage = 5 },
+    { columns, rows, isSortable = true, size = 'medium', initialRowsPerPage = 5 },
     ref,
   ): React.ReactElement => {
     const [currentPage, setCurrentPage] = useState(1);
@@ -38,7 +39,7 @@ export const StudioTableWithPagination = forwardRef<
           columns={columns}
           rows={currentRows}
           size={size}
-          sortable={sortable}
+          isSortable={isSortable}
           handleSorting={handleSorting}
         />
         {initialRowsPerPage > 0 && (

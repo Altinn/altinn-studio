@@ -1,39 +1,38 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
+import { Rows } from '../components/StudioTableWithPagination/StudioTableWithPagination';
 
-export const useSortedRows = (rows, initialSortColumn = null, initialSortDirection = 'asc') => {
-  const [sortColumn, setSortColumn] = useState(initialSortColumn);
-  const [sortDirection, setSortDirection] = useState(initialSortDirection);
+export const useSortedRows = (rows: Rows) => {
+  const [sortColumn, setSortColumn] = useState(null);
+  const [sortDirection, setSortDirection] = useState('asc');
 
-  const handleSorting = useCallback(
-    (columnIndex) => {
-      if (sortColumn === columnIndex) {
-        setSortDirection((prevDirection) => (prevDirection === 'asc' ? 'desc' : 'asc'));
-      } else {
-        setSortColumn(columnIndex);
-        setSortDirection('asc');
-      }
-    },
-    [sortColumn],
-  );
+  const toggleSortDirection = () => {
+    setSortDirection((prevDirection) => (prevDirection === 'asc' ? 'desc' : 'asc'));
+  };
 
-  const sortedRows = useCallback(
-    () =>
-      sortColumn !== null
-        ? [...rows].sort((a, b) => {
-            const columnA = a[sortColumn];
-            const columnB = b[sortColumn];
-            if (columnA < columnB) return sortDirection === 'asc' ? -1 : 1;
-            if (columnA > columnB) return sortDirection === 'asc' ? 1 : -1;
-            return 0;
-          })
-        : rows,
-    [rows, sortColumn, sortDirection],
-  );
+  const handleSorting = (columnKey) => {
+    if (sortColumn === columnKey) {
+      toggleSortDirection();
+    } else {
+      setSortColumn(columnKey);
+      setSortDirection('asc');
+    }
+  };
+
+  let sortedRows;
+  if (sortColumn !== null) {
+    sortedRows = [...rows].sort((a, b) => {
+      const columnA = a[sortColumn];
+      const columnB = b[sortColumn];
+      if (columnA < columnB) return sortDirection === 'asc' ? -1 : 1;
+      if (columnA > columnB) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  } else {
+    sortedRows = rows;
+  }
 
   return {
-    sortedRows: sortedRows(),
-    sortColumn,
-    sortDirection,
+    sortedRows,
     handleSorting,
   };
 };

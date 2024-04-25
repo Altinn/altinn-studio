@@ -5,36 +5,40 @@ import { TableSize } from './StudioTableWithPagination';
 
 type StudioTableProps = {
   size: TableSize;
-  columns: string[];
+  columns: Record<'key' | 'value', string>[];
   rows: Record<string, React.ReactNode>[];
-  sortable: boolean;
-  handleSorting?: (columnIndex: number) => void;
+  isSortable: boolean;
+  handleSorting?: (columnKey: string) => void;
 };
 
 export const StudioTable: React.FC<StudioTableProps> = forwardRef<
   HTMLTableElement,
   StudioTableProps
->(({ size, columns, rows, sortable, handleSorting }, ref) => {
+>(({ size, columns, rows, isSortable, handleSorting }, ref) => {
+  const columnHasValue = (value) => {
+    return Boolean(value);
+  };
+
   return (
     <Table size={size} className={classes.table} ref={ref}>
       <Table.Head>
         <Table.Row>
-          {columns?.map((cell, i) => (
+          {columns.map(({ key, value }) => (
             <Table.HeaderCell
-              key={i}
-              sortable={sortable && Boolean(cell)}
-              onSortClick={() => handleSorting(i)}
+              key={key}
+              sortable={isSortable && columnHasValue(value)}
+              onSortClick={() => handleSorting(key)}
             >
-              {cell}
+              {value}
             </Table.HeaderCell>
           ))}
         </Table.Row>
       </Table.Head>
       <Table.Body>
-        {rows?.map((row) => (
+        {rows.map((row) => (
           <Table.Row key={String(row.id)}>
-            {Object.values(row).map((cell, i) => (
-              <Table.Cell key={i}>{cell}</Table.Cell>
+            {columns.map(({ key }) => (
+              <Table.Cell key={key}>{row[key]}</Table.Cell>
             ))}
           </Table.Row>
         ))}

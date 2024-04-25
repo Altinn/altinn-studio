@@ -20,8 +20,8 @@ export const Preview: Story = (args): React.ReactElement => <StudioTableWithPagi
 Preview.args = {
   columns: columns,
   rows: rows,
-  size: 'small',
+  size: 'medium',
   initialRowsPerPage: 5,
-  sortable: true,
+  isSortable: true,
 };
 export default meta;

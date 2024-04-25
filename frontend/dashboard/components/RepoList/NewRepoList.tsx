@@ -28,7 +28,14 @@ export const NewRepoList = ({ repos }: NewRepoListProps): React.ReactElement => 
     rows.push(row);
   });
 
-  const columns = ['', 'Navn', 'Opprettet av', 'Sist Endret', 'Beskrivelse', ''];
+  const columns = [
+    { key: '0', value: '' },
+    { key: '1', value: 'Navn' },
+    { key: '2', value: 'Opprettet av' },
+    { key: '3', value: 'Sist Endret' },
+    { key: '4', value: 'Beskrivelse' },
+    { key: '5', value: '' },
+  ];
 
   return (
     <>

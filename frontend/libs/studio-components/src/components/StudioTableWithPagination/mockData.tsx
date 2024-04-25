@@ -10,151 +10,186 @@ const IconButton = ({ icon }) => (
 
 const AltinnLink = () => <Link to={'https://altinn.no'}>Link</Link>;
 
+function generateRandomId(length) {
+  let result = '';
+  const characters = '0123456789';
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
+
 export const rows = [
   {
     icon: <IconButton icon={<StarFillIcon />} />,
-    id: '123456',
+    id: generateRandomId(6),
     name: 'Lila Patel',
-    position: 'Software Engineer',
+    role: 'Software Engineer',
     status: 'Pending',
     link: <AltinnLink />,
   },
   {
     icon: <IconButton icon={<StarIcon />} />,
-    id: '234567',
+    id: generateRandomId(6),
     name: 'Ethan Nakamura',
-    position: 'Marketing Specialist',
+    role: 'Marketing Specialist',
     status: 'Approved',
     link: <AltinnLink />,
   },
   {
     icon: <IconButton icon={<StarIcon />} />,
-    id: '345678',
+    id: generateRandomId(6),
     name: 'Olivia Chen',
-    position: 'Data Analyst',
+    role: 'Data Analyst',
     status: 'Pending',
     link: <AltinnLink />,
   },
   {
     icon: <IconButton icon={<FaceSmileFillIcon />} />,
-    id: '456789',
+    id: generateRandomId(6),
     name: 'Noah Adebayo',
-    position: 'UX Designer',
+    role: 'UX Designer',
     status: 'Approved',
     link: <AltinnLink />,
   },
   {
     icon: <IconButton icon={<FaceSmileIcon />} />,
-    id: '567890',
+    id: generateRandomId(6),
     name: 'Sophia Ivanov',
-    position: 'Product Manager',
+    role: 'Product Manager',
     status: 'Pending',
     link: <AltinnLink />,
   },
   {
     icon: <IconButton icon={<StarFillIcon />} />,
-    id: '678901',
+    id: generateRandomId(6),
     name: 'William Torres',
-    position: 'Sales Representative',
+    role: 'Sales Representative',
     status: 'Approved',
     link: <AltinnLink />,
   },
   {
     icon: <IconButton icon={<StarIcon />} />,
-    id: '789012',
+    id: generateRandomId(6),
     name: 'Ava Gupta',
-    position: 'Human Resources Manager',
+    role: 'Human Resources Manager',
     status: 'Pending',
     link: <AltinnLink />,
   },
   {
     icon: <IconButton icon={<StarIcon />} />,
-    id: '890123',
+    id: generateRandomId(6),
     name: 'James Kim',
-    position: 'Financial Analyst',
+    role: 'Financial Analyst',
     status: 'Approved',
     link: AltinnLink(),
   },
   {
     icon: <IconButton icon={<StarIcon />} />,
-    id: '901234',
+    id: generateRandomId(6),
     name: 'Mia Sánchez',
-    position: 'Customer Support Specialist',
+    role: 'Customer Support Specialist',
     status: 'Pending',
     link: <AltinnLink />,
   },
   {
     icon: <IconButton icon={<StarFillIcon />} />,
-    id: '012345',
+    id: generateRandomId(6),
     name: 'Lila Patel',
-    position: 'Software Engineer',
+    role: 'Software Engineer',
     status: 'Pending',
     link: <AltinnLink />,
   },
   {
     icon: <IconButton icon={<StarIcon />} />,
-    id: '123450',
+    id: generateRandomId(6),
     name: 'Ethan Nakamura',
-    position: 'Marketing Specialist',
+    role: 'Marketing Specialist',
     status: 'Approved',
     link: <AltinnLink />,
   },
   {
     icon: <IconButton icon={<StarIcon />} />,
-    id: '234501',
+    id: generateRandomId(6),
     name: 'Olivia Chen',
-    position: 'Data Analyst',
+    role: 'Data Analyst',
     status: 'Pending',
     link: <AltinnLink />,
   },
   {
     icon: <IconButton icon={<FaceSmileFillIcon />} />,
-    id: '345012',
+    id: generateRandomId(6),
     name: 'Noah Adebayo',
-    position: 'UX Designer',
+    role: 'UX Designer',
     status: 'Approved',
     link: <AltinnLink />,
   },
   {
     icon: <IconButton icon={<FaceSmileIcon />} />,
-    id: '450123',
+    id: generateRandomId(6),
     name: 'Sophia Ivanov',
-    position: 'Product Manager',
+    role: 'Product Manager',
     status: 'Pending',
     link: <AltinnLink />,
   },
   {
     icon: <IconButton icon={<StarFillIcon />} />,
-    id: '501234',
+    id: generateRandomId(6),
     name: 'William Torres',
-    position: 'Sales Representative',
+    role: 'Sales Representative',
     status: 'Approved',
     link: <AltinnLink />,
   },
   {
     icon: <IconButton icon={<StarIcon />} />,
-    id: '012345',
+    id: generateRandomId(6),
     name: 'Ava Gupta',
-    position: 'Human Resources Manager',
+    role: 'Human Resources Manager',
     status: 'Pending',
     link: <AltinnLink />,
   },
   {
     icon: <IconButton icon={<StarIcon />} />,
-    id: '123450',
+    id: generateRandomId(6),
     name: 'James Kim',
-    position: 'Financial Analyst',
+    role: 'Financial Analyst',
     status: 'Approved',
     link: <AltinnLink />,
   },
   {
     icon: <IconButton icon={<StarIcon />} />,
-    id: '234501',
+    id: generateRandomId(6),
     name: 'Mia Sánchez',
-    position: 'Customer Support Specialist',
+    role: 'Customer Support Specialist',
     status: 'Pending',
     link: <AltinnLink />,
   },
 ];
 
-export const columns = ['', 'Employee ID', 'Name', 'Role', 'Status', ''];
+export const columns = [
+  {
+    key: 'icon',
+    value: '',
+  },
+  {
+    key: 'id',
+    value: 'Employee ID',
+  },
+  {
+    key: 'name',
+    value: 'Name',
+  },
+  {
+    key: 'role',
+    value: 'Role',
+  },
+  {
+    key: 'status',
+    value: 'Status',
+  },
+  {
+    key: 'link',
+    value: '',
+  },
+];
