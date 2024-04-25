@@ -169,27 +169,27 @@ export const rows = [
 
 export const columns = [
   {
-    key: 'icon',
+    accessor: 'icon',
     value: '',
   },
   {
-    key: 'id',
+    accessor: 'id',
     value: 'Employee ID',
   },
   {
-    key: 'name',
+    accessor: 'name',
     value: 'Name',
   },
   {
-    key: 'role',
+    accessor: 'role',
     value: 'Role',
   },
   {
-    key: 'status',
+    accessor: 'status',
     value: 'Status',
   },
   {
-    key: 'link',
+    accessor: 'link',
     value: '',
   },
 ];

@@ -1,12 +1,12 @@
 import classes from './StudioTableWithPagination.module.css';
 import { Table } from '@digdir/design-system-react';
 import React, { forwardRef } from 'react';
-import { TableSize } from './StudioTableWithPagination';
+import { Columns, Rows, TableSize } from './StudioTableWithPagination';
 
 type StudioTableProps = {
   size: TableSize;
-  columns: Record<'key' | 'value', string>[];
-  rows: Record<string, React.ReactNode>[];
+  columns: Columns;
+  rows: Rows;
   isSortable: boolean;
   handleSorting?: (columnKey: string) => void;
 };
@@ -23,11 +23,11 @@ export const StudioTable: React.FC<StudioTableProps> = forwardRef<
     <Table size={size} className={classes.table} ref={ref}>
       <Table.Head>
         <Table.Row>
-          {columns.map(({ key, value }) => (
+          {columns.map(({ accessor, value }) => (
             <Table.HeaderCell
-              key={key}
+              key={accessor}
               sortable={isSortable && columnHasValue(value)}
-              onSortClick={() => handleSorting(key)}
+              onSortClick={() => handleSorting(accessor)}
             >
               {value}
             </Table.HeaderCell>
@@ -37,8 +37,8 @@ export const StudioTable: React.FC<StudioTableProps> = forwardRef<
       <Table.Body>
         {rows.map((row) => (
           <Table.Row key={String(row.id)}>
-            {columns.map(({ key }) => (
-              <Table.Cell key={key}>{row[key]}</Table.Cell>
+            {columns.map(({ accessor }) => (
+              <Table.Cell key={accessor}>{row[accessor]}</Table.Cell>
             ))}
           </Table.Row>
         ))}

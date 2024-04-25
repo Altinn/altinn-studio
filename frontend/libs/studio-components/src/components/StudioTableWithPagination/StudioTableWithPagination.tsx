@@ -8,9 +8,10 @@ import { SelectRowsPerPage } from './SelectRowsPerPage';
 
 export type TableSize = 'small' | 'medium' | 'large';
 export type Rows = Record<string, React.ReactNode>[];
+export type Columns = Record<'accessor' | 'value', string>[];
 
 type StudioTableWithPaginationProps = {
-  columns: Record<'key' | 'value', string>[];
+  columns: Columns;
   rows: Rows;
   isSortable?: boolean;
   size?: TableSize;
