@@ -42,7 +42,7 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
 
     const idErrorMessage = getResourceIdentifierErrorMessage(id, resourceIdExists);
     const hasValidValues =
-      id.length !== 0 && title.length !== 0 && !idErrorMessage && !isCreatingResource;
+      id.length >= 4 && title.length !== 0 && !idErrorMessage && !isCreatingResource;
 
     /**
      * Creates a new resource in backend, and navigates if success
@@ -109,6 +109,7 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
           <StudioButton
             onClick={() => (hasValidValues ? handleCreateNewResource() : undefined)}
             color='first'
+            size='small'
             aria-disabled={!hasValidValues}
           >
             {t('resourceadm.dashboard_create_modal_create_button')}
