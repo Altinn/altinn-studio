@@ -168,9 +168,6 @@ describe('CreateService', () => {
       'this-app-name-exists',
     );
 
-    // Adding a tab so that we are sure that the combobox is closed
-    await user.tab();
-
     const createBtn: HTMLElement = screen.getByRole('button', {
       name: textMock('dashboard.create_service_btn'),
     });

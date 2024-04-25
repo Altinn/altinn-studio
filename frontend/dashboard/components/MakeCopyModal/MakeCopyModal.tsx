@@ -40,7 +40,7 @@ export const MakeCopyModal = forwardRef<HTMLDialogElement, MakeCopyModalProps>(
       const [org, app] = serviceFullName.split('/');
 
       copyAppMutate(
-        { org, app, newRepoName, newOrg: newOrg },
+        { org, app, newRepoName, newOrg },
         {
           onSuccess: () => {
             const packagesRouter = new PackagesRouter({
@@ -87,7 +87,7 @@ export const MakeCopyModal = forwardRef<HTMLDialogElement, MakeCopyModalProps>(
             setFormError={setFormError}
             cancelComponent={{
               type: 'button',
-              onClick: () => onClose(),
+              onClick: onClose,
             }}
           />
         </div>
