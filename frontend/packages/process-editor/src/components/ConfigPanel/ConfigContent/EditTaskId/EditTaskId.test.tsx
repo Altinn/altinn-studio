@@ -25,6 +25,35 @@ jest.mock('../../../../contexts/BpmnContext', () => ({
   }),
 }));
 
+jest.mock('../../../../contexts/BpmnApiContext', () => ({
+  useBpmnApiContext: () => ({
+    layoutSets: {
+      sets: [
+        {
+          id: 'testId',
+          dataTypes: 'layoutSetId1',
+          tasks: ['testId'],
+        },
+        {
+          id: 'layoutSetId2',
+          dataTypes: 'layoutSetId2',
+          tasks: ['Task_2'],
+        },
+        {
+          id: 'layoutSetId3',
+          dataTypes: 'layoutSetId3',
+          tasks: ['Task_3'],
+        },
+        {
+          id: 'layoutSetId4',
+          dataTypes: 'layoutSetId4',
+          tasks: ['CustomReceipt'],
+        },
+      ],
+    },
+  }),
+}));
+
 jest.mock('../../../../contexts/BpmnConfigPanelContext', () => ({
   useBpmnConfigPanelFormContext: jest.fn(),
 }));
@@ -107,6 +136,142 @@ describe('EditTaskId', () => {
     await user.tab();
 
     expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
+  });
+
+  it('should display validation error when task id is not unique', async () => {
+    const user = userEvent.setup();
+    render(<EditTaskId />);
+
+    const editButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_change_task_id'),
+    });
+    await user.click(editButton);
+
+    const input = screen.getByLabelText(
+      textMock('process_editor.configuration_panel_change_task_id'),
+    );
+
+    await user.clear(input);
+    await user.type(input, 'Task_2');
+    await user.tab();
+
+    expect(
+      screen.getByText(textMock('process_editor.validation_error.id_not_unique')),
+    ).toBeInTheDocument();
+  });
+
+  it('should display validation error when task id is too long', async () => {
+    const user = userEvent.setup();
+    render(<EditTaskId />);
+
+    const editButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_change_task_id'),
+    });
+    await user.click(editButton);
+
+    const input = screen.getByLabelText(
+      textMock('process_editor.configuration_panel_change_task_id'),
+    );
+
+    await user.clear(input);
+    await user.type(input, 'a'.repeat(51));
+    await user.tab();
+
+    expect(
+      screen.getByText(textMock('process_editor.validation_error.id_max_length', { 0: 50 })),
+    ).toBeInTheDocument();
+  });
+
+  it('should display validation error when task id contains spaces', async () => {
+    const user = userEvent.setup();
+    render(<EditTaskId />);
+
+    const editButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_change_task_id'),
+    });
+    await user.click(editButton);
+
+    const input = screen.getByLabelText(
+      textMock('process_editor.configuration_panel_change_task_id'),
+    );
+
+    await user.clear(input);
+    await user.type(input, 'test Name');
+    await user.tab();
+
+    expect(
+      screen.getByText(textMock('process_editor.validation_error.no_spacing')),
+    ).toBeInTheDocument();
+  });
+
+  it('should display validation error when task id contains invalid letters', async () => {
+    const user = userEvent.setup();
+    render(<EditTaskId />);
+
+    const editButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_change_task_id'),
+    });
+    await user.click(editButton);
+
+    const input = screen.getByLabelText(
+      textMock('process_editor.configuration_panel_change_task_id'),
+    );
+
+    await user.clear(input);
+    await user.type(input, 'testNameÅ');
+    await user.tab();
+
+    expect(
+      screen.getByText(textMock('process_editor.validation_error.letters')),
+    ).toBeInTheDocument();
+  });
+
+  it('should display validation error when task id contains invalid symbols', async () => {
+    const user = userEvent.setup();
+    render(<EditTaskId />);
+
+    const editButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_change_task_id'),
+    });
+    await user.click(editButton);
+
+    const input = screen.getByLabelText(
+      textMock('process_editor.configuration_panel_change_task_id'),
+    );
+
+    await user.clear(input);
+    await user.type(input, 'testName@');
+    await user.tab();
+
+    expect(
+      screen.getByText(textMock('process_editor.validation_error.symbols')),
+    ).toBeInTheDocument();
+  });
+
+  it('should display validation error when task id starts with reserved word', async () => {
+    const user = userEvent.setup();
+    render(<EditTaskId />);
+
+    const editButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_change_task_id'),
+    });
+    await user.click(editButton);
+
+    const input = screen.getByLabelText(
+      textMock('process_editor.configuration_panel_change_task_id'),
+    );
+
+    await user.clear(input);
+    await user.type(input, 'CustomName');
+    await user.tab();
+
+    expect(
+      screen.getByText(
+        textMock('process_editor.validation_error.id_reserved', {
+          0: 'starte ID-en med Custom',
+        }),
+      ),
+    ).toBeInTheDocument();
   });
 
   it('should support HTMLDivElement props', () => {
