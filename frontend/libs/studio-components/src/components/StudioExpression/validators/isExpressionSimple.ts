@@ -46,13 +46,21 @@ export const isSimpleValueFunc = (expression: Expression): expression is ValueIn
   typeof expression === 'string' ||
   typeof expression === 'boolean' ||
   isSimpleDataLookupFunc(expression) ||
-  isSimpleKeyLookupFunc(expression);
+  isSimpleKeyLookupFunc(expression) ||
+  isSimpleProcessDataLookupFunc(expression);
 
 export const isSimpleDataLookupFunc = (expression: Expression): expression is DataLookupFunc =>
   Array.isArray(expression) &&
   expression.length === 2 &&
   Object.values(DataLookupFuncName).includes(expression[0] as DataLookupFuncName) &&
   typeof expression[1] === 'string';
+
+export const isSimpleProcessDataLookupFunc = (
+  expression: Expression,
+): expression is DataLookupFunc => {
+  const processLookupFuncNames: DataLookupFuncName[] = [DataLookupFuncName.GatewayAction];
+  return Array.isArray(expression) && processLookupFuncNames.includes(expression[0]);
+};
 
 export const isSimpleKeyLookupFunc = (expression: Expression): expression is KeyLookupFunc =>
   Array.isArray(expression) &&

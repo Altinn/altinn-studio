@@ -1,6 +1,7 @@
 import { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSubexpressionValueType';
 import type { SimpleSubexpressionValue } from '../../../../../types/SimpleSubexpressionValue';
 import { InstanceContext } from '../../../../../enums/InstanceContext';
+import { GatewayActionContext } from '../../../../../enums/GatewayActionContext';
 
 export const getDefaultValueOfType = (newType: SimpleSubexpressionValueType) =>
   defaultValueByType[newType];
@@ -19,6 +20,10 @@ const defaultValueByType: {
   [SimpleSubexpressionValueType.InstanceContext]: {
     type: SimpleSubexpressionValueType.InstanceContext,
     key: InstanceContext.AppId,
+  },
+  [SimpleSubexpressionValueType.GatewayActionContext]: {
+    type: SimpleSubexpressionValueType.GatewayActionContext,
+    key: GatewayActionContext.Pay,
   },
   [SimpleSubexpressionValueType.String]: {
     type: SimpleSubexpressionValueType.String,

@@ -42,6 +42,7 @@ describe('isExpressionSimple', () => {
     'component loookup': [DataLookupFuncName.Component, 'test'],
     'datamodel lookup': [DataLookupFuncName.DataModel, 'test'],
     'instance context lookup': [KeyLookupFuncName.InstanceContext, InstanceContext.AppId],
+    'gateway action lookup': [DataLookupFuncName.GatewayAction, 'test'],
     string: 'test',
     number: 1,
     boolean: true,
@@ -129,6 +130,7 @@ describe('isExpressionSimple', () => {
       ],
       [GeneralRelationOperator.Equals, [DataLookupFuncName.Component, 'test'], 'value'],
     ];
+
     expect(isExpressionSimple(expression)).toBe(false);
   });
 });

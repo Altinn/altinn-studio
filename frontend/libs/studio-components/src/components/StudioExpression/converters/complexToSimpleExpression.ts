@@ -11,6 +11,7 @@ import {
   isSimpleDataLookupFunc,
   isSimpleKeyLookupFunc,
   isSimpleLogicalTupleFunc,
+  isSimpleProcessDataLookupFunc,
   isSimpleValueFunc,
 } from '../validators/isExpressionSimple';
 import { DEFAULT_LOGICAL_OPERATOR } from '../config';
@@ -51,6 +52,7 @@ const complexRelationFuncToSimpleSubexpression = ([
     throw new Error(
       'Relation function is not convertable. This should have been picked up by the validator.',
     );
+
   return {
     relationalOperator,
     firstOperand: complexValueToSimple(firstValue),
@@ -61,6 +63,7 @@ const complexRelationFuncToSimpleSubexpression = ([
 const complexValueToSimple = (value: ValueInComplexFormat): SimpleSubexpressionValue => {
   if (isSimpleDataLookupFunc(value)) return dataLookupFuncToSimpleFormat(value);
   if (isSimpleKeyLookupFunc(value)) return keyLookupFuncToSimpleFormat(value);
+  if (isSimpleProcessDataLookupFunc(value)) return processDataLookupFuncToSimpleFormat(value);
   return primitiveValueToSimpleFormat(value);
 };
 
@@ -75,6 +78,19 @@ const dataLookupFuncToSimpleFormat = ([source, key]: DataLookupFunc): SimpleSube
     case DataLookupFuncName.DataModel:
       return { type: SimpleSubexpressionValueType.Datamodel, path: key };
   }
+};
+
+const processDataLookupFuncToSimpleFormat = ([
+  source,
+  key,
+]: DataLookupFunc): SimpleSubexpressionValue => {
+  console.log({ key });
+  if (typeof source !== 'string')
+    throw new Error(
+      'Process data lookup function is not convertable. This should have been picked up by the validator.',
+    );
+
+  return { type: SimpleSubexpressionValueType.GatewayActionContext, key };
 };
 
 const keyLookupFuncToSimpleFormat = ([, key]: KeyLookupFunc): SimpleSubexpressionValue => {
