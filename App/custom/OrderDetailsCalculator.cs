@@ -23,7 +23,7 @@ public class OrderDetailsCalculator : IOrderDetailsCalculator
         _dataClient = dataClient;
     }
     
-    public async Task<OrderDetails> CalculateOrderDetails(Instance instance)
+    public async Task<OrderDetails> CalculateOrderDetails(Instance instance, string? language)
     {
         Form formData = await GetFormData(instance);
 
