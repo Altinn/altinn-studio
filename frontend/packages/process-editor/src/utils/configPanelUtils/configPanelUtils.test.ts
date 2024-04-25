@@ -21,11 +21,6 @@ describe('configPanelUtils', () => {
       const key = getConfigTitleKey('signing');
       expect(key).toEqual('process_editor.configuration_panel_signing_task');
     });
-
-    it('returns end event key when taskType is "endEvent"', () => {
-      const key = getConfigTitleKey('endEvent');
-      expect(key).toEqual('process_editor.configuration_panel_end_event');
-    });
   });
 
   describe('getConfigTitleHelpTextKey', () => {

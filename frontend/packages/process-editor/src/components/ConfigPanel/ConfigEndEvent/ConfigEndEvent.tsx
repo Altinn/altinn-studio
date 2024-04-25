@@ -11,6 +11,7 @@ import { getLayoutSetIdValidationErrorKey } from 'app-shared/utils/layoutSetsUti
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 
 export const ConfigEndEvent = () => {
+  // TODO - END EVENT
   const { t } = useTranslation();
   const { layoutSets, existingCustomReceiptLayoutSetName, addLayoutSet, mutateLayoutSet } =
     useBpmnApiContext();

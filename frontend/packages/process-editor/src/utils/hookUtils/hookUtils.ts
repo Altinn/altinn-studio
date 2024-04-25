@@ -31,26 +31,20 @@ export const getBpmnViewerDetailsFromBusinessObject = (
 export const getBpmnEditorDetailsFromBusinessObject = (
   businessObject: BpmnBusinessObjectEditor,
 ): BpmnDetails => {
+  const extensionElementsValues = businessObject?.extensionElements?.values;
+  const taskTypeFromV8 = extensionElementsValues ? extensionElementsValues[0].taskType : null;
+
+  const bpmnAttrs = businessObject.$attrs;
+  const taskTypeFromV7 = bpmnAttrs ? bpmnAttrs['altinn:tasktype'] : null;
+
   const bpmnDetails: BpmnDetails = {
     id: businessObject?.id,
     name: businessObject?.name,
-    taskType: getTaskType(businessObject),
+    taskType: taskTypeFromV8 || taskTypeFromV7,
     type: businessObject?.$type,
   };
+
   return bpmnDetails;
-};
-
-const getTaskType = (businessObject: BpmnBusinessObjectEditor) => {
-  const extensionElementsValues = businessObject?.extensionElements?.values;
-  const bpmnAttrs = businessObject.$attrs;
-  const taskTypeFromV8 = extensionElementsValues ? extensionElementsValues[0].taskType : null;
-  const taskTypeFromV7 = bpmnAttrs ? bpmnAttrs['altinn:tasktype'] : null;
-  const taskTypeEnd = businessObject?.$type === 'bpmn:EndEvent' ? 'endEvent' : null;
-
-  if (taskTypeFromV8) return taskTypeFromV8;
-  if (taskTypeFromV7) return taskTypeFromV7;
-  if (taskTypeEnd) return taskTypeEnd;
-  return null;
 };
 
 export const getLayoutSetIdFromTaskId = (bpmnDetails: BpmnDetails, layoutSets: LayoutSets) => {

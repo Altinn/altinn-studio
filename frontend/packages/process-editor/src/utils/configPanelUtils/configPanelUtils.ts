@@ -7,7 +7,6 @@ import type { BpmnTaskType } from '../../types/BpmnTaskType';
  *
  */
 export const getConfigTitleKey = (taskType: BpmnTaskType) => {
-  if (taskType === 'endEvent') return 'process_editor.configuration_panel_end_event';
   return `process_editor.configuration_panel_${taskType ?? 'missing'}_task`;
 };
 
