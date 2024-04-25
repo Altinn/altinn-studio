@@ -12,8 +12,7 @@ namespace Altinn.App.Core.Tests.Extensions
         {
             var options = new AppOptions
             {
-                Options = null,
-                Parameters = new Dictionary<string, string?>
+                Parameters = new Dictionary<string, string>
                 {
                     { "lang", "nb" },
                     { "level", "1" }
@@ -33,8 +32,7 @@ namespace Altinn.App.Core.Tests.Extensions
         {
             var options = new AppOptions
             {
-                Options = null,
-                Parameters = new Dictionary<string, string?>()
+                Parameters = new Dictionary<string, string>()
             };
 
             IHeaderDictionary headers = new HeaderDictionary
@@ -50,7 +48,6 @@ namespace Altinn.App.Core.Tests.Extensions
         {
             var options = new AppOptions
             {
-                Options = null,
                 Parameters = null!
             };
 
@@ -67,8 +64,7 @@ namespace Altinn.App.Core.Tests.Extensions
         {
             var options = new AppOptions
             {
-                Options = null,
-                Parameters = new Dictionary<string, string?>
+                Parameters = new Dictionary<string, string>
                 {
                     { "lang", "nb" },
                     { "level", "1" },
