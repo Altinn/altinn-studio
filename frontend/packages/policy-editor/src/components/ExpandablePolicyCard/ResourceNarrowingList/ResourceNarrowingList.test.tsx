@@ -3,7 +3,6 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ResourceNarrowingListProps } from './ResourceNarrowingList';
 import { ResourceNarrowingList } from './ResourceNarrowingList';
-import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import type { PolicyRuleResource, PolicyEditorUsage } from '../../../types';
 
@@ -71,7 +70,7 @@ describe('ResourceNarrowingList', () => {
     render(<ResourceNarrowingList {...defaultProps} />);
 
     const [idInput] = screen.getAllByLabelText(textMock('policy_editor.narrowing_list_field_id'));
-    await act(() => user.type(idInput, mockNewText));
+    await user.type(idInput, mockNewText);
     expect(mockHandleInputChange).toHaveBeenCalledTimes(mockNewText.length);
 
     mockHandleInputChange.mockClear();
@@ -79,7 +78,7 @@ describe('ResourceNarrowingList', () => {
     const [typeInput] = screen.getAllByLabelText(
       textMock('policy_editor.narrowing_list_field_type'),
     );
-    await act(() => user.type(typeInput, mockNewText));
+    await user.type(typeInput, mockNewText);
     expect(mockHandleInputChange).toHaveBeenCalledTimes(mockNewText.length);
   });
 
@@ -91,7 +90,7 @@ describe('ResourceNarrowingList', () => {
       name: textMock('policy_editor.narrowing_list_field_delete'),
     });
 
-    await act(() => user.click(deleteResourceButton));
+    await user.click(deleteResourceButton);
 
     expect(mockHandleRemoveResource).toHaveBeenCalledTimes(1);
   });
@@ -104,7 +103,7 @@ describe('ResourceNarrowingList', () => {
       name: textMock('policy_editor.narrowing_list_add_button'),
     });
 
-    await act(() => user.click(addResourceButton));
+    await user.click(addResourceButton);
 
     expect(mockHandleClickAddResource).toHaveBeenCalledTimes(1);
   });
@@ -116,12 +115,12 @@ describe('ResourceNarrowingList', () => {
     const [moreButton] = screen.getAllByRole('button', {
       name: textMock('policy_editor.more'),
     });
-    await act(() => user.click(moreButton));
+    await user.click(moreButton);
 
     const [deleteElementButton] = screen.getAllByRole('menuitem', {
       name: textMock('general.delete'),
     });
-    await act(() => user.click(deleteElementButton));
+    await user.click(deleteElementButton);
 
     expect(mockHandleRemoveElement).toHaveBeenCalledTimes(1);
   });
@@ -133,12 +132,12 @@ describe('ResourceNarrowingList', () => {
     const [moreButton] = screen.getAllByRole('button', {
       name: textMock('policy_editor.more'),
     });
-    await act(() => user.click(moreButton));
+    await user.click(moreButton);
 
     const [cloneElementButton] = screen.getAllByRole('menuitem', {
       name: textMock('policy_editor.expandable_card_dropdown_copy'),
     });
-    await act(() => user.click(cloneElementButton));
+    await user.click(cloneElementButton);
 
     expect(mockHandleCloneElement).toHaveBeenCalledTimes(1);
   });
@@ -151,8 +150,8 @@ describe('ResourceNarrowingList', () => {
       textMock('policy_editor.narrowing_list_field_type'),
     );
 
-    await act(() => user.type(typeInput, mockNewText));
-    await act(() => user.tab());
+    await user.type(typeInput, mockNewText);
+    await user.tab();
     expect(mockOnBlur).toHaveBeenCalledTimes(1);
   });
 });

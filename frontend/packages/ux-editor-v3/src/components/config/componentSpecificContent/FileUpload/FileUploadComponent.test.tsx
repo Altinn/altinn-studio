@@ -5,7 +5,7 @@ import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQ
 import { FileUploadComponent } from './FileUploadComponent';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { FormFileUploaderComponent } from '../../../../types/FormComponent';
-import { waitFor, screen, act } from '@testing-library/react';
+import { waitFor, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
@@ -127,9 +127,7 @@ describe('FileUploadComponent', () => {
     });
     expect(radioButtonForCustomFile).not.toBeChecked();
 
-    await act(async () => {
-      await user.click(radioButtonForCustomFile);
-    });
+    await user.click(radioButtonForCustomFile);
 
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...component,

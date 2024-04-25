@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { StudioIconTextfield } from './StudioIconTextfield';
 import type { StudioIconTextfieldProps } from './StudioIconTextfield';
 import { KeyVerticalIcon } from '@navikt/aksel-icons';
@@ -34,7 +34,7 @@ describe('StudioIconTextfield', () => {
     const input = screen.getByLabelText('Your ID');
 
     const inputValue = 'my id is 123';
-    await act(() => user.type(input, inputValue));
+    await user.type(input, inputValue);
     expect(onChangeMock).toHaveBeenCalledTimes(inputValue.length);
   });
 

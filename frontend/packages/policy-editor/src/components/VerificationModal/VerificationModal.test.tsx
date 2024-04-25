@@ -3,7 +3,6 @@ import { render, screen } from '@testing-library/react';
 import type { VerificationModalProps } from './VerificationModal';
 import { VerificationModal } from './VerificationModal';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { act } from 'react-dom/test-utils';
 import userEvent from '@testing-library/user-event';
 
 const mockModalText: string = 'Mock modal text';
@@ -52,7 +51,7 @@ describe('VerificationModal', () => {
     render(<VerificationModal {...defaultProps} />);
 
     const closeButton = screen.getByText(mockCloseButtonText);
-    await act(() => user.click(closeButton));
+    await user.click(closeButton);
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
@@ -62,7 +61,7 @@ describe('VerificationModal', () => {
     render(<VerificationModal {...defaultProps} />);
 
     const actionButton = screen.getByText(mockActionButtonText);
-    await act(() => user.click(actionButton));
+    await user.click(actionButton);
 
     expect(mockOnPerformAction).toHaveBeenCalledTimes(1);
   });

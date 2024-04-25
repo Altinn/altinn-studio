@@ -3,7 +3,6 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { PolicyEditorDropdownMenuProps } from './PolicyEditorDropdownMenu';
 import { PolicyEditorDropdownMenu } from './PolicyEditorDropdownMenu';
-import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 
 describe('PolicyEditorDropdownMenu', () => {
@@ -27,7 +26,7 @@ describe('PolicyEditorDropdownMenu', () => {
     render(<PolicyEditorDropdownMenu {...defaultProps} />);
 
     const menuButton = screen.getByRole('button', { name: textMock('policy_editor.more') });
-    await act(() => user.click(menuButton));
+    await user.click(menuButton);
 
     expect(mockHandleClickMoreIcon).toHaveBeenCalledTimes(1);
   });
@@ -48,7 +47,7 @@ describe('PolicyEditorDropdownMenu', () => {
     const copyButton = screen.getByRole('menuitem', {
       name: textMock('policy_editor.expandable_card_dropdown_copy'),
     });
-    await act(() => user.click(copyButton));
+    await user.click(copyButton);
 
     expect(mockHandleClone).toHaveBeenCalledTimes(1);
   });
@@ -60,7 +59,7 @@ describe('PolicyEditorDropdownMenu', () => {
     const deleteButton = screen.getByRole('menuitem', {
       name: textMock('general.delete'),
     });
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
 
     expect(mockHandleDelete).toHaveBeenCalledTimes(1);
   });
