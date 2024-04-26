@@ -1,7 +1,7 @@
 import React from 'react';
 import type { TopToolbarProps } from './TopToolbar';
 import { TopToolbar } from './TopToolbar';
-import { screen, act } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -90,7 +90,7 @@ describe('TopToolbar', () => {
     expect(topToolbar).toBeDefined();
     const generateButton = screen.getByRole('button', { name: generateText });
     expect(generateButton).toBeDefined();
-    await act(() => user.click(generateButton));
+    await user.click(generateButton);
     expect(queriesMock.generateModels).toHaveBeenCalledTimes(1);
   });
 
@@ -106,7 +106,7 @@ describe('TopToolbar', () => {
         generateModels: jest.fn().mockImplementation(() => Promise.reject()),
       },
     );
-    await act(() => user.click(screen.getByRole('button', { name: generateText })));
+    await user.click(screen.getByRole('button', { name: generateText }));
     expect(await screen.findByRole('alert')).toHaveTextContent(generalErrorMessage);
   });
 
@@ -117,7 +117,7 @@ describe('TopToolbar', () => {
 
   it('Shows success message when the "generate" button is clicked and there is no error', async () => {
     renderToolbar({});
-    await act(() => user.click(screen.getByRole('button', { name: generateText })));
+    await user.click(screen.getByRole('button', { name: generateText }));
     expect(await screen.findByRole('alert')).toHaveTextContent(dataModelGenerationSuccessMessage);
   });
 });

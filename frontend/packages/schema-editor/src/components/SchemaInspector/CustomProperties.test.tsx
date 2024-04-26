@@ -3,7 +3,7 @@ import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspect
 import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import { FieldType, ROOT_POINTER, SchemaModel, validateTestUiSchema } from '@altinn/schema-model';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { nodeMockBase } from '../../../test/mocks/uiSchemaMock';
@@ -91,9 +91,7 @@ describe('CustomProperties', () => {
 
   it('Saves model without deleted property when the delete button is clicked', async () => {
     render();
-    await act(() =>
-      user.click(screen.getAllByRole('button', { name: textMock('general.delete') })[0]),
-    );
+    await user.click(screen.getAllByRole('button', { name: textMock('general.delete') })[0]);
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
     const updatedNode = updatedModel.getNode(defaultPath);
@@ -105,7 +103,7 @@ describe('CustomProperties', () => {
   it('Saves model correctly when a string property is changed', async () => {
     render();
     const newLetter = 'e';
-    await act(() => user.type(screen.getByLabelText(stringPropKey), newLetter));
+    await user.type(screen.getByLabelText(stringPropKey), newLetter);
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
     const updatedNode = updatedModel.getNode(defaultPath);
@@ -115,7 +113,7 @@ describe('CustomProperties', () => {
   it('Saves model correctly when a number property is changed', async () => {
     render();
     const newDigit = 4;
-    await act(() => user.type(screen.getByLabelText(numberPropKey), newDigit.toString()));
+    await user.type(screen.getByLabelText(numberPropKey), newDigit.toString());
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
     const updatedNode = updatedModel.getNode(defaultPath);
@@ -124,7 +122,7 @@ describe('CustomProperties', () => {
 
   it('Saves model correctly when a boolean property is changed from false to true', async () => {
     render();
-    await act(() => user.click(screen.getByLabelText(initiallyFalseBoolPropKey)));
+    await user.click(screen.getByLabelText(initiallyFalseBoolPropKey));
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
     const updatedNode = updatedModel.getNode(defaultPath);
@@ -133,7 +131,7 @@ describe('CustomProperties', () => {
 
   it('Saves model correctly when a boolean property is changed from true to false', async () => {
     render();
-    await act(() => user.click(screen.getByLabelText(initiallyTrueBoolPropKey)));
+    await user.click(screen.getByLabelText(initiallyTrueBoolPropKey));
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
     const updatedNode = updatedModel.getNode(defaultPath);

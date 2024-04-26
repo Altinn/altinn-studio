@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import React from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import type { PageAccordionProps } from './PageAccordion';
 import { PageAccordion } from './PageAccordion';
 import userEvent from '@testing-library/user-event';
@@ -60,7 +60,7 @@ describe('PageAccordion', () => {
     await render();
 
     const accordionButton = screen.getByRole('button', { name: mockPageName1 });
-    await act(() => user.click(accordionButton));
+    await user.click(accordionButton);
 
     expect(mockOnClick).toHaveBeenCalledTimes(1);
   });
@@ -73,7 +73,7 @@ describe('PageAccordion', () => {
     expect(elementInMenu).not.toBeInTheDocument();
 
     const menuButton = screen.getByRole('button', { name: textMock('general.options') });
-    await act(() => user.click(menuButton));
+    await user.click(menuButton);
 
     const elementInMenuAfter = screen.getByText(textMock('ux_editor.page_menu_up'));
     expect(elementInMenuAfter).toBeInTheDocument();
@@ -87,7 +87,7 @@ describe('PageAccordion', () => {
     const deleteButton = screen.getByRole('button', {
       name: textMock('general.delete_item', { item: mockPageName1 }),
     });
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
 
     expect(mockDeleteFormLayout).toHaveBeenCalledTimes(1);
     expect(mockDeleteFormLayout).toHaveBeenCalledWith(mockPageName1);
@@ -106,7 +106,7 @@ describe('PageAccordion', () => {
     });
 
     expect(deleteButton).toBeDisabled();
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
     expect(mockDeleteFormLayout).not.toHaveBeenCalled();
     expect(mockSetSearchParams).not.toHaveBeenCalled();
   });
@@ -119,7 +119,7 @@ describe('PageAccordion', () => {
     const deleteButton = screen.getByRole('button', {
       name: textMock('general.delete_item', { item: mockPageName1 }),
     });
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
     expect(mockDeleteFormLayout).not.toHaveBeenCalled();
   });
 });

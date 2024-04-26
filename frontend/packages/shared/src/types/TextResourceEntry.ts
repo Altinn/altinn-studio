@@ -1,4 +1,4 @@
-import type { TextResourceVariable } from '@altinn/text-editor/src/types';
+import type { TextResourceVariable } from '@altinn/text-editor/types';
 
 export interface TextResourceDetails {
   value: string;

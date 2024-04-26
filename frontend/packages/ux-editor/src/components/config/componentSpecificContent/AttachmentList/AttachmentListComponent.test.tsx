@@ -4,7 +4,7 @@ import type { IGenericEditComponent } from '../../componentConfig';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { AttachmentListComponent } from './AttachmentListComponent';
 import React from 'react';
-import { screen, act, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
@@ -33,6 +33,11 @@ const defaultLayoutSets: LayoutSets = {
       id: 'layoutSetId3',
       dataTypes: 'layoutSetId3',
       tasks: ['Task_3'],
+    },
+    {
+      id: 'layoutSetId4',
+      dataTypes: 'layoutSetId4',
+      tasks: ['CustomReceipt'],
     },
   ],
 };
@@ -117,7 +122,7 @@ describe('AttachmentListComponent', () => {
           dataTypeIds: ['test3', 'test4'],
         },
       },
-      'layoutSetId3',
+      'layoutSetId4',
     );
 
     // Todo: Combobox onChangeValue trigger on initial render, this can be fixed when we start to use >v0.55.0 of designsystem. Replace value prop with initialValue prop in combobox
@@ -128,7 +133,7 @@ describe('AttachmentListComponent', () => {
       name: textMock('ux_editor.component_properties.select_pdf'),
     });
 
-    await act(() => user.click(includePdfCheckbox));
+    await user.click(includePdfCheckbox);
     expect(includePdfCheckbox).toBeChecked();
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...defaultComponent,
@@ -136,13 +141,30 @@ describe('AttachmentListComponent', () => {
     });
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
 
-    await act(() => user.click(includePdfCheckbox));
+    await user.click(includePdfCheckbox);
     expect(includePdfCheckbox).not.toBeChecked();
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...defaultComponent,
       dataTypeIds: ['test3', 'test4'],
     });
     expect(handleComponentChange).toHaveBeenCalledTimes(2);
+  });
+
+  it('should not display pdf checkbox when current task is not CustomReceipt', async () => {
+    await render(
+      {
+        component: {
+          ...defaultComponent,
+        },
+      },
+      'layoutSetId3',
+    );
+
+    expect(
+      screen.queryByRole('checkbox', {
+        name: textMock('ux_editor.component_properties.select_pdf'),
+      }),
+    ).not.toBeInTheDocument();
   });
 
   it('should save to backend when toggle of current task and output is valid', async () => {
@@ -164,7 +186,7 @@ describe('AttachmentListComponent', () => {
       name: textMock('ux_editor.component_properties.current_task'),
     });
 
-    await act(() => user.click(currentTaskCheckbox));
+    await user.click(currentTaskCheckbox);
     expect(currentTaskCheckbox).toBeChecked();
 
     expect(handleComponentChange).toHaveBeenCalledWith({
@@ -174,7 +196,7 @@ describe('AttachmentListComponent', () => {
     // Combobox is also triggered, because current task is set to true and makes the combobox to trigger onChangeValue because of filter update
     expect(handleComponentChange).toHaveBeenCalledTimes(2);
 
-    await act(() => user.click(currentTaskCheckbox));
+    await user.click(currentTaskCheckbox);
     expect(currentTaskCheckbox).not.toBeChecked();
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...defaultComponent,
@@ -202,7 +224,7 @@ describe('AttachmentListComponent', () => {
       name: textMock('ux_editor.component_properties.current_task'),
     });
 
-    await act(() => user.click(currentTaskCheckbox));
+    await user.click(currentTaskCheckbox);
     expect(currentTaskCheckbox).toBeChecked();
 
     expect(handleComponentChange).not.toHaveBeenCalled();
@@ -226,7 +248,7 @@ describe('AttachmentListComponent', () => {
     const selectAllCheckbox = screen.getByRole('checkbox', {
       name: textMock('ux_editor.component_properties.select_all_attachments'),
     });
-    await act(() => user.click(selectAllCheckbox));
+    await user.click(selectAllCheckbox);
     expect(selectAllCheckbox).toBeChecked();
     // Combobox is also triggered, because current task is set to true and makes the combobox to trigger onChangeValue because of filter update
     expect(handleComponentChange).toHaveBeenCalledWith({
@@ -236,7 +258,7 @@ describe('AttachmentListComponent', () => {
     expect(handleComponentChange).toHaveBeenCalledTimes(2);
 
     handleComponentChange.mockClear();
-    await act(() => user.click(selectAllCheckbox));
+    await user.click(selectAllCheckbox);
     expect(selectAllCheckbox).not.toBeChecked();
 
     expect(handleComponentChange).not.toHaveBeenCalled();

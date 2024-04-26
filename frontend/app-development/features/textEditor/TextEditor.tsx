@@ -4,16 +4,16 @@ import { TextEditor as TextEditorImpl, defaultLangCode } from '@altinn/text-edit
 import { StudioPageSpinner } from '@studio/components';
 import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
 import { useSearchParams } from 'react-router-dom';
-import type { TextResourceIdMutation } from '@altinn/text-editor/src/types';
+import type { TextResourceIdMutation } from '@altinn/text-editor/types';
 import { useLanguagesQuery, useTextResourcesQuery } from '../../hooks/queries';
 import {
   useAddLanguageMutation,
   useDeleteLanguageMutation,
   useTextIdMutation,
-  useUpsertTextResourceMutation,
 } from '../../hooks/mutations';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useTranslation } from 'react-i18next';
+import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 
 export const TextEditor = () => {
   const { t } = useTranslation();

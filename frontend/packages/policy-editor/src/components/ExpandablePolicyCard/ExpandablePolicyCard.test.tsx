@@ -3,7 +3,6 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ExpandablePolicyCardProps } from './ExpandablePolicyCard';
 import { ExpandablePolicyCard } from './ExpandablePolicyCard';
-import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import type { PolicyEditorUsage } from '../../types';
 import {
@@ -57,12 +56,12 @@ describe('ExpandablePolicyCard', () => {
     render(<ExpandablePolicyCard {...defaultProps} />);
 
     const [moreButton] = screen.getAllByRole('button', { name: textMock('policy_editor.more') });
-    await act(() => user.click(moreButton));
+    await user.click(moreButton);
 
     const [cloneButton] = screen.getAllByRole('menuitem', {
       name: textMock('policy_editor.expandable_card_dropdown_copy'),
     });
-    await act(() => user.click(cloneButton));
+    await user.click(cloneButton);
 
     expect(mockHandleCloneRule).toHaveBeenCalledTimes(1);
   });
@@ -72,10 +71,10 @@ describe('ExpandablePolicyCard', () => {
     render(<ExpandablePolicyCard {...defaultProps} />);
 
     const [moreButton] = screen.getAllByRole('button', { name: textMock('policy_editor.more') });
-    await act(() => user.click(moreButton));
+    await user.click(moreButton);
 
     const [deleteButton] = screen.getAllByRole('menuitem', { name: textMock('general.delete') });
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
 
     expect(mockHandleDeleteRule).toHaveBeenCalledTimes(1);
   });
@@ -91,12 +90,12 @@ describe('ExpandablePolicyCard', () => {
 
     const newWord: string = 'test';
 
-    await act(() => user.type(typeInput, newWord));
+    await user.type(typeInput, newWord);
     expect(mockSetPolicyRules).toHaveBeenCalledTimes(newWord.length);
 
     mockSetPolicyRules.mockClear();
 
-    await act(() => user.type(idInput, newWord));
+    await user.type(idInput, newWord);
     expect(mockSetPolicyRules).toHaveBeenCalledTimes(newWord.length);
   });
 
@@ -126,7 +125,7 @@ describe('ExpandablePolicyCard', () => {
     const [actionSelect] = screen.getAllByLabelText(
       textMock('policy_editor.rule_card_actions_title'),
     );
-    await act(() => user.click(actionSelect));
+    await user.click(actionSelect);
 
     // Check that the selected actions are not in the document
     const optionAction1 = screen.queryByRole('option', { name: mockActionOption1 });
@@ -140,7 +139,7 @@ describe('ExpandablePolicyCard', () => {
     expect(optionAction4).not.toBeInTheDocument();
 
     // Click the final action
-    await act(() => user.click(screen.getByRole('option', { name: mockActionOption3 })));
+    await user.click(screen.getByRole('option', { name: mockActionOption3 }));
 
     expect(mockSetPolicyRules).toHaveBeenCalledTimes(1);
 
@@ -178,7 +177,7 @@ describe('ExpandablePolicyCard', () => {
     const [subjectSelect] = screen.getAllByLabelText(
       textMock('policy_editor.rule_card_subjects_title'),
     );
-    await act(() => user.click(subjectSelect));
+    await user.click(subjectSelect);
 
     // Check that the selected subjects are not in the document
     const optionSubject1 = screen.queryByRole('option', { name: mockSubjectTitle1 });
@@ -190,7 +189,7 @@ describe('ExpandablePolicyCard', () => {
     expect(optionSubject3).not.toBeInTheDocument();
 
     // Click the final subject
-    await act(() => user.click(screen.getByRole('option', { name: mockSubjectTitle2 })));
+    await user.click(screen.getByRole('option', { name: mockSubjectTitle2 }));
 
     expect(mockSetPolicyRules).toHaveBeenCalledTimes(1);
 
@@ -213,7 +212,7 @@ describe('ExpandablePolicyCard', () => {
     const [subjectSelect] = screen.getAllByLabelText(
       textMock('policy_editor.rule_card_subjects_title'),
     );
-    await act(() => user.click(subjectSelect));
+    await user.click(subjectSelect);
 
     // Check that already selected options does not be included within selectable list.
     expect(screen.queryByRole('option', { name: mockSubjectTitle1 })).toBeNull();
@@ -222,10 +221,10 @@ describe('ExpandablePolicyCard', () => {
     const selectedSubject = screen.getByLabelText(
       `${textMock('general.delete')} ${mockSubjectTitle1}`,
     );
-    await act(() => user.click(selectedSubject));
+    await user.click(selectedSubject);
 
     // Open the select and verify that the removed subject is now appended to the selectable list
-    await act(() => user.click(subjectSelect));
+    await user.click(subjectSelect);
     expect(screen.getByRole('option', { name: mockSubjectTitle1 })).toBeInTheDocument();
   });
 
@@ -237,7 +236,7 @@ describe('ExpandablePolicyCard', () => {
       textMock('policy_editor.rule_card_description_title'),
     );
     expect(descriptionField).toHaveValue(mockPolicyRuleCard1.description);
-    await act(() => user.type(descriptionField, '1'));
+    await user.type(descriptionField, '1');
 
     expect(mockSetPolicyRules).toHaveBeenCalledTimes(1);
   });
@@ -252,33 +251,33 @@ describe('ExpandablePolicyCard', () => {
     const [idInput] = screen.getAllByLabelText(textMock('policy_editor.narrowing_list_field_id'));
 
     const newWord: string = 'test';
-    await act(() => user.type(typeInput, newWord));
-    await act(() => user.tab());
-    await act(() => user.type(idInput, newWord));
-    await act(() => user.tab());
+    await user.type(typeInput, newWord);
+    await user.tab();
+    await user.type(idInput, newWord);
+    await user.tab();
 
     const [actionSelect] = screen.getAllByLabelText(
       textMock('policy_editor.rule_card_actions_title'),
     );
-    await act(() => user.click(actionSelect));
+    await user.click(actionSelect);
 
     const actionOption: string = textMock(`policy_editor.action_${mockActionId3}`);
-    await act(() => user.click(screen.getByRole('option', { name: actionOption })));
-    await act(() => user.tab());
+    await user.click(screen.getByRole('option', { name: actionOption }));
+    await user.tab();
 
     const [subjectSelect] = screen.getAllByLabelText(
       textMock('policy_editor.rule_card_subjects_title'),
     );
-    await act(() => user.click(subjectSelect));
-    await act(() => user.click(screen.getByRole('option', { name: mockSubjectTitle2 })));
-    await act(() => user.tab());
+    await user.click(subjectSelect);
+    await user.click(screen.getByRole('option', { name: mockSubjectTitle2 }));
+    await user.tab();
 
     const [descriptionField] = screen.getAllByLabelText(
       textMock('policy_editor.rule_card_description_title'),
     );
     expect(descriptionField).toHaveValue(mockPolicyRuleCard1.description);
-    await act(() => user.type(descriptionField, newWord));
-    await act(() => user.tab());
+    await user.type(descriptionField, newWord);
+    await user.tab();
 
     const numFields = 5;
     expect(mockSavePolicy).toHaveBeenCalledTimes(numFields);

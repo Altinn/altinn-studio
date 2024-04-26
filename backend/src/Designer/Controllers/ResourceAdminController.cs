@@ -438,6 +438,11 @@ namespace Altinn.Studio.Designer.Controllers
                 ModelState.AddModelError($"{resource.Identifier}.availableForType", "resourceerror.missingavailablefortype");
             }
 
+            if (resource.ResourceType == ResourceType.MaskinportenSchema && (resource.ResourceReferences == null || resource.ResourceReferences.Count((x) => x.ReferenceType == ReferenceType.MaskinportenScope) < 1))
+            {
+                ModelState.AddModelError($"{resource.Identifier}.resourceReferences", "resourceerror.missingmaskinportenscope");
+            }
+
             if (resource.Status == null)
             {
                 ModelState.AddModelError($"{resource.Identifier}.status", "resourceerror.missingstatus");
@@ -445,7 +450,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             if (resource.ContactPoints == null || resource.ContactPoints.Count == 0)
             {
-                ModelState.AddModelError($"{resource.Identifier}.contactPoint", "resourceerror.missingcontactpoints");
+                ModelState.AddModelError($"{resource.Identifier}.contactPoints", "resourceerror.missingcontactpoints");
             }
             else
             {

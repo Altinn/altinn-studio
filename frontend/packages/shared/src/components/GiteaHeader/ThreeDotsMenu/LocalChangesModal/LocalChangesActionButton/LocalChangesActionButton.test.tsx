@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import React from 'react';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import type { Action, LocalChangesActionButtonProps } from './LocalChangesActionButton';
 import { LocalChangesActionButton } from './LocalChangesActionButton';
 import { TestFlaskIcon } from '@navikt/aksel-icons';
@@ -55,7 +55,7 @@ describe('LocalChangesActionButton', () => {
     render(<LocalChangesActionButton {...defaultProps} />);
 
     const button = screen.getByRole('button', { name: mockText });
-    await act(() => user.click(button));
+    await user.click(button);
     expect(mockOnClick).toHaveBeenCalledTimes(1);
   });
 });

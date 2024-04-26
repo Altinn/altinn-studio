@@ -67,13 +67,13 @@ export const FormItemContextProvider = ({
     org,
     app,
     prevSelectedFormLayoutNameRef.current,
-    selectedFormLayoutSetName,
+    prevSelectedFormLayoutSetNameRef.current,
   );
   const { mutateAsync: updateFormComponent } = useUpdateFormComponentMutation(
     org,
     app,
     prevSelectedFormLayoutNameRef.current,
-    selectedFormLayoutSetName,
+    prevSelectedFormLayoutSetNameRef.current,
   );
 
   useEffect(() => {
@@ -153,7 +153,7 @@ export const FormItemContextProvider = ({
         return;
       await handleSave();
       handleDiscard();
-      prevSelectedFormLayoutSetNameRef.current = selectedFormLayoutName;
+      prevSelectedFormLayoutSetNameRef.current = selectedFormLayoutSetName;
       prevSelectedFormLayoutNameRef.current = selectedFormLayoutName;
     };
 

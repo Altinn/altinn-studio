@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render as renderRtl, screen, waitFor } from '@testing-library/react';
+import { render as renderRtl, screen, waitFor } from '@testing-library/react';
 import type { IVersionControlButtonsProps } from './VersionControlButtons';
 import { VersionControlButtons } from './VersionControlButtons';
 import { setWindowLocationForTests } from '../../../../../../testing/testUtils';
@@ -78,7 +78,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
   it('Refetches queries when clicking the fetch button', async () => {
     render();
     const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
-    await act(() => user.click(fetchButton));
+    await user.click(fetchButton);
     await waitFor(() => expect(queriesMock.getRepoMetadata).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(getRepoStatus).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(getRepoPull).toHaveBeenCalledTimes(1));
@@ -95,7 +95,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
     const shareButton = screen.getByRole('button', {
       name: textMock('sync_header.no_changes_to_share'),
     });
-    await act(() => user.click(shareButton));
+    await user.click(shareButton);
     await waitFor(() => expect(mockGetRepoStatus).toHaveBeenCalledTimes(1));
     expect(
       await screen.findByText(textMock('sync_header.describe_and_validate')),
@@ -109,7 +109,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
     const shareButton = screen.getByRole('button', {
       name: textMock('sync_header.no_changes_to_share'),
     });
-    await act(() => user.click(shareButton));
+    await user.click(shareButton);
     await waitFor(() => expect(getRepoStatus).toHaveBeenCalledTimes(1));
     expect(await screen.findByText(textMock('sync_header.nothing_to_push'))).toBeInTheDocument();
   });
@@ -126,7 +126,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
     const shareButton = screen.getByRole('button', {
       name: textMock('sync_header.no_changes_to_share'),
     });
-    await act(() => user.click(shareButton));
+    await user.click(shareButton);
     await waitFor(() => expect(mockGetRepoStatus).toHaveBeenCalledTimes(1));
     expect(
       await screen.findByText(textMock('sync_header.describe_and_validate')),
@@ -143,13 +143,11 @@ describe('Shared > Version Control > VersionControlHeader', () => {
     const shareButton = screen.getByRole('button', {
       name: textMock('sync_header.no_changes_to_share'),
     });
-    await act(() => user.click(shareButton));
+    await user.click(shareButton);
 
     await waitFor(() => expect(mockGetRepoStatus).toHaveBeenCalledTimes(1));
-    await act(() =>
-      user.click(
-        screen.getByRole('button', { name: textMock('sync_header.describe_and_validate_btnText') }),
-      ),
+    await user.click(
+      screen.getByRole('button', { name: textMock('sync_header.describe_and_validate_btnText') }),
     );
     await waitFor(() => expect(commitAndPushChanges).toHaveBeenCalledTimes(1));
   });
@@ -167,13 +165,11 @@ describe('Shared > Version Control > VersionControlHeader', () => {
     const shareButton = screen.getByRole('button', {
       name: textMock('sync_header.no_changes_to_share'),
     });
-    await act(() => user.click(shareButton));
+    await user.click(shareButton);
 
     await waitFor(() => expect(mockGetRepoStatus).toHaveBeenCalledTimes(1));
-    await act(() =>
-      user.click(
-        screen.getByRole('button', { name: textMock('sync_header.describe_and_validate_btnText') }),
-      ),
+    await user.click(
+      screen.getByRole('button', { name: textMock('sync_header.describe_and_validate_btnText') }),
     );
     await waitFor(() => expect(mockCommitAndPushChanges).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(mockConsoleError).toHaveBeenCalledTimes(1));
@@ -197,14 +193,13 @@ describe('Shared > Version Control > VersionControlHeader', () => {
     const shareButton = screen.getByRole('button', {
       name: textMock('sync_header.no_changes_to_share'),
     });
-    await act(() => user.click(shareButton));
+    await user.click(shareButton);
 
     await waitFor(() => expect(mockGetRepoStatus).toHaveBeenCalledTimes(1));
-    await act(() =>
-      user.click(
-        screen.getByRole('button', { name: textMock('sync_header.describe_and_validate_btnText') }),
-      ),
+    await user.click(
+      screen.getByRole('button', { name: textMock('sync_header.describe_and_validate_btnText') }),
     );
+
     expect(mockConsoleError).toHaveBeenCalled();
     expect(
       await screen.findByText(textMock('sync_header.merge_conflict_occured')),
