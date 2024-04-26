@@ -13,8 +13,18 @@ export interface IMapComponentSummary {
 }
 
 export const useStyles = makeStyles(() => ({
-  mapMargin: {
+  mapContainer: {
     marginTop: 12,
+    // The marker has role=button, and will therefore be hidden from PDF by default
+    // This makes sure it is visible after all
+    '& img.leaflet-marker-icon': {
+      display: 'block !important',
+    },
+    // The tiles fade in from opacity 0, meaning that they are not fully visible in PDF when print is called
+    // This overrides the opacity so that the tiles are visible immediately
+    '& img.leaflet-tile': {
+      opacity: '1 !important',
+    },
   },
   footer: {
     paddingTop: '12px',
@@ -36,7 +46,7 @@ export function MapComponentSummary({ targetNode }: IMapComponentSummary) {
     <Grid
       item
       xs={12}
-      className={location ? classes.mapMargin : undefined}
+      className={location ? classes.mapContainer : undefined}
     >
       {location ? (
         <>

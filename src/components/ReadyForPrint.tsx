@@ -9,30 +9,11 @@ export function ReadyForPrint() {
   const [assetsLoaded, setAssetsLoaded] = React.useState(false);
 
   React.useLayoutEffect(() => {
-    const promises: Promise<unknown>[] = [];
+    const imagePromise = waitForImages();
+    const fontPromise = document.fonts.ready;
 
-    promises.push(document.fonts.ready);
-
-    const loadPromise = (element: HTMLImageElement | HTMLLinkElement) =>
-      new Promise((res) => {
-        element.addEventListener('load', res);
-        element.addEventListener('error', res);
-      });
-
-    document.querySelectorAll('img').forEach((image) => {
-      image.complete || promises.push(loadPromise(image));
-    });
-
-    Promise.all(promises).then(() => {
-      // All images have loaded (or failed to load), but they haven't always been painted/caused a re-render. A request
-      // for an animation frame reserves you a slot to execute some code _before the next repaint_, but that might be
-      // the repaint where the image was supposed to render. When we call it twice, we're guaranteed to output our
-      // element after all images have been rendered.
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setAssetsLoaded(true);
-        });
-      });
+    Promise.all([imagePromise, fontPromise]).then(() => {
+      setAssetsLoaded(true);
     });
   }, []);
 
@@ -46,4 +27,33 @@ export function ReadyForPrint() {
       id='readyForPrint'
     />
   );
+}
+
+function loadPromise(element: HTMLImageElement | HTMLLinkElement) {
+  return new Promise((res) => {
+    element.addEventListener('load', res);
+    element.addEventListener('error', res);
+  });
+}
+
+async function waitForAnimationFrames(n: number) {
+  for (let i = 0; i < n; i++) {
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+  }
+}
+
+async function waitForImages() {
+  let nodes: HTMLImageElement[] = [];
+  let promises: Promise<unknown>[] = [];
+  do {
+    await Promise.all(promises);
+    await waitForAnimationFrames(2);
+
+    promises = [];
+    nodes = [];
+    document.querySelectorAll('img').forEach((node) => {
+      nodes.push(node);
+      !node.complete && promises.push(loadPromise(node));
+    });
+  } while (nodes.some((node) => !node.complete));
 }
