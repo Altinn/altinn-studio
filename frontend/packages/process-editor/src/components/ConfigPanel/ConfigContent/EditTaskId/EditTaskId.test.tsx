@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EditTaskId } from './EditTaskId';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
@@ -32,8 +32,8 @@ const mockBpmnApiContextValue: BpmnApiContextProps = {
   saveBpmn: jest.fn(),
 };
 
-const render = (children: React.ReactNode) => {
-  return rtlRender(
+const renderEditTaskId = (children: React.ReactNode) => {
+  return render(
     <BpmnApiContextProvider {...mockBpmnApiContextValue}>{children}</BpmnApiContextProvider>,
   );
 };
@@ -71,7 +71,7 @@ describe('EditTaskId', () => {
     jest.clearAllMocks();
   });
   it('should render task id as view mode by default', () => {
-    render(<EditTaskId />);
+    renderEditTaskId(<EditTaskId />);
 
     expect(
       screen.getByRole('button', {
@@ -82,7 +82,7 @@ describe('EditTaskId', () => {
 
   it('should render task id in edit mode when clicking on the edit button', async () => {
     const user = userEvent.setup();
-    render(<EditTaskId />);
+    renderEditTaskId(<EditTaskId />);
 
     const editButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_change_task_id'),
@@ -102,7 +102,7 @@ describe('EditTaskId', () => {
       metaDataFormRef: metaDataFormRefMock,
     });
 
-    render(<EditTaskId />);
+    renderEditTaskId(<EditTaskId />);
 
     const editButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_change_task_id'),
@@ -167,7 +167,7 @@ describe('EditTaskId', () => {
     validationTests.forEach(({ description, inputValue, expectedError, textArgs }) => {
       it(`should display validation error when task id ${description}`, async () => {
         const user = userEvent.setup();
-        render(<EditTaskId />);
+        renderEditTaskId(<EditTaskId />);
 
         const editButton = screen.getByRole('button', {
           name: textMock('process_editor.configuration_panel_change_task_id'),
@@ -188,7 +188,7 @@ describe('EditTaskId', () => {
   });
 
   it('should support HTMLDivElement props', () => {
-    render(<EditTaskId className='my-awesome-class-name' data-testid='unitTestId' />);
+    renderEditTaskId(<EditTaskId className='my-awesome-class-name' data-testid='unitTestId' />);
     expect(screen.getByTestId('unitTestId')).toHaveClass('my-awesome-class-name');
   });
 
@@ -199,7 +199,7 @@ describe('EditTaskId', () => {
       metaDataFormRef: metaDataFormRefMock,
     });
 
-    render(<EditTaskId />);
+    renderEditTaskId(<EditTaskId />);
 
     const editButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_change_task_id'),

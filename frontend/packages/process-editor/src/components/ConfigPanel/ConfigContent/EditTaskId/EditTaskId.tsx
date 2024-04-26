@@ -1,6 +1,6 @@
 import React, { type HTMLAttributes } from 'react';
 import { useTranslation } from 'react-i18next';
-import { checkForInvalidCharacters } from '../../../../utils/configPanelUtils/configPanelUtils';
+import { checkForInvalidCharacters } from '../../../../utils/configPanelUtils';
 import { StudioToggleableTextfield } from '@studio/components';
 import { KeyVerticalIcon } from '@studio/icons';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
