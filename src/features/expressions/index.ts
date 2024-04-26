@@ -760,6 +760,30 @@ export const ExprFunctions = {
     args: [ExprVal.String] as const,
     returns: ExprVal.String,
   }),
+  _experimentalSelectAndMap: defineFunc({
+    args: [ExprVal.String, ExprVal.String, ExprVal.String, ExprVal.String, ExprVal.Boolean] as const,
+    impl(path, propertyToSelect, prepend, append, appendToLastElement = true) {
+      if (path === null || propertyToSelect == null) {
+        throw new ExprRuntimeError(this, `Cannot lookup dataModel null`);
+      }
+      const array = this.dataSources.formDataSelector(path);
+      if (typeof array != 'object' || !Array.isArray(array)) {
+        return '';
+      }
+      return array
+        .map((x, i) => {
+          const hideLastElement = i == array.length - 1 && !appendToLastElement;
+
+          const valueToPrepend = prepend == null ? '' : prepend;
+          const valueToAppend = append == null || hideLastElement ? '' : append;
+
+          return `${valueToPrepend}${x[propertyToSelect]}${valueToAppend}`;
+        })
+        .join(' ');
+    },
+    minArguments: 2,
+    returns: ExprVal.String,
+  }),
 };
 
 function asNumber(arg: string) {
