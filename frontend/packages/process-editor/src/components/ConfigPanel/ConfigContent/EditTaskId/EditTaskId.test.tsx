@@ -1,9 +1,42 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EditTaskId } from './EditTaskId';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { useBpmnConfigPanelFormContext } from '../../../../contexts/BpmnConfigPanelContext';
+import {
+  type BpmnApiContextProps,
+  BpmnApiContextProvider,
+} from '../../../../contexts/BpmnApiContext';
+
+const mockBpmnApiContextValue: BpmnApiContextProps = {
+  layoutSets: {
+    sets: [
+      {
+        id: 'testId',
+        dataTypes: 'layoutSetId1',
+        tasks: ['testId'],
+      },
+      {
+        id: 'layoutSetId2',
+        dataTypes: 'layoutSetId2',
+        tasks: ['Task_2'],
+      },
+    ],
+  },
+  pendingApiOperations: false,
+  existingCustomReceiptLayoutSetName: undefined,
+  addLayoutSet: jest.fn(),
+  deleteLayoutSet: jest.fn(),
+  mutateLayoutSet: jest.fn(),
+  saveBpmn: jest.fn(),
+};
+
+const render = (children: React.ReactNode) => {
+  return rtlRender(
+    <BpmnApiContextProvider {...mockBpmnApiContextValue}>{children}</BpmnApiContextProvider>,
+  );
+};
 
 const setBpmnDetailsMock = jest.fn();
 jest.mock('../../../../contexts/BpmnContext', () => ({
@@ -21,35 +54,6 @@ jest.mock('../../../../contexts/BpmnContext', () => ({
       name: 'testName',
       taskType: 'data',
       type: 'task',
-    },
-  }),
-}));
-
-jest.mock('../../../../contexts/BpmnApiContext', () => ({
-  useBpmnApiContext: () => ({
-    layoutSets: {
-      sets: [
-        {
-          id: 'testId',
-          dataTypes: 'layoutSetId1',
-          tasks: ['testId'],
-        },
-        {
-          id: 'layoutSetId2',
-          dataTypes: 'layoutSetId2',
-          tasks: ['Task_2'],
-        },
-        {
-          id: 'layoutSetId3',
-          dataTypes: 'layoutSetId3',
-          tasks: ['Task_3'],
-        },
-        {
-          id: 'layoutSetId4',
-          dataTypes: 'layoutSetId4',
-          tasks: ['CustomReceipt'],
-        },
-      ],
     },
   }),
 }));
@@ -135,7 +139,7 @@ describe('EditTaskId', () => {
         description: 'is too long',
         inputValue: 'a'.repeat(51),
         expectedError: 'process_editor.validation_error.id_max_length',
-        args: { 0: 50 },
+        textArgs: { 0: 50 },
       },
       {
         description: 'contains spaces',
@@ -156,11 +160,11 @@ describe('EditTaskId', () => {
         description: 'starts with reserved word',
         inputValue: 'CustomName',
         expectedError: 'process_editor.validation_error.id_reserved',
-        args: { 0: 'starte ID-en med Custom' },
+        textArgs: { 0: 'starte ID-en med Custom' },
       },
     ];
 
-    validationTests.forEach(({ description, inputValue, expectedError, args }) => {
+    validationTests.forEach(({ description, inputValue, expectedError, textArgs }) => {
       it(`should display validation error when task id ${description}`, async () => {
         const user = userEvent.setup();
         render(<EditTaskId />);
@@ -178,7 +182,7 @@ describe('EditTaskId', () => {
         if (inputValue !== '') await user.type(input, inputValue);
         await user.tab();
 
-        expect(screen.getByText(textMock(expectedError, args))).toBeInTheDocument();
+        expect(screen.getByText(textMock(expectedError, textArgs))).toBeInTheDocument();
       });
     });
   });
