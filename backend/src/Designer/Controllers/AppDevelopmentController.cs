@@ -517,6 +517,29 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet]
+        [Route("option-lists")]
+        public async Task<ActionResult> GetOptionLists(string org, string app)
+        {
+            try
+            {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+                string[] optionListIds = altinnAppGitRepository.GetOptionListIds();
+                Dictionary<string, string> optionLists = new Dictionary<string, string>();
+                foreach (string optionListId in optionListIds)
+                {
+                    string optionList = await altinnAppGitRepository.GetOptions(optionListId);
+                    optionLists.Add(optionListId, optionList);
+                }
+                return Ok(optionLists);
+            }
+            catch (LibGit2Sharp.NotFoundException)
+            {
+                return NoContent();
+            }
+        }
+
+        [HttpGet]
         [Route("option-list-ids")]
         public ActionResult GetOptionListIds(string org, string app)
         {
