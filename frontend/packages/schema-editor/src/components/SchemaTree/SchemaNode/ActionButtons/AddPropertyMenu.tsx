@@ -3,9 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useAddProperty } from '../../../../hooks/useAddProperty';
 import { ObjectKind } from '@altinn/schema-model';
 import { ActionButton } from './ActionButton';
-import { PlusIcon } from '@studio/icons';
 import { DropdownMenu } from '@digdir/design-system-react';
-import { CombinationIcon, PropertyIcon, ReferenceIcon } from '@studio/icons';
+import { CombinationIcon, PropertyIcon, ReferenceIcon, PlusIcon } from '@studio/icons';
 
 interface AddPropertyMenuProps {
   pointer: string;
