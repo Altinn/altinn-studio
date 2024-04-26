@@ -13,7 +13,7 @@ import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { type SyncSuccess, type SyncError, SyncUtils } from './syncUtils';
 import { useUpdateLayoutSetMutation } from '../../hooks/mutations/useUpdateLayoutSetMutation';
 import { useAddLayoutSetMutation } from '../../hooks/mutations/useAddLayoutSetMutation';
-import { type MetaDataForm } from '@altinn/process-editor/src/contexts/BpmnConfigPanelContext';
+import { type MetaDataForm } from '@altinn/process-editor/contexts/BpmnConfigPanelContext';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useDeleteLayoutSetMutation } from '../../hooks/mutations/useDeleteLayoutSetMutation';

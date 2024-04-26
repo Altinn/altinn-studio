@@ -2,7 +2,7 @@ import React from 'react';
 import { screen, queryByAttribute, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LandingPage } from './LandingPage';
-import { renderWithProviders } from '../../../../frontend/packages/ux-editor/src/testing/mocks';
+import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 import { textMock } from '../../../testing/mocks/i18nMock';
 
 describe('LandingPage', () => {
