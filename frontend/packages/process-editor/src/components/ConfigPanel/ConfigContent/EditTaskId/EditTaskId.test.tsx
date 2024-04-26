@@ -9,17 +9,17 @@ import {
   BpmnApiContextProvider,
 } from '../../../../contexts/BpmnApiContext';
 
-const mockBpmnApiContextValue: BpmnApiContextProps = {
+const mockBpmnApiContextValue: Partial<BpmnApiContextProps> = {
   layoutSets: {
     sets: [
       {
         id: 'testId',
-        dataTypes: 'layoutSetId1',
+        dataType: 'layoutSetId1',
         tasks: ['testId'],
       },
       {
         id: 'layoutSetId2',
-        dataTypes: 'layoutSetId2',
+        dataType: 'layoutSetId2',
         tasks: ['Task_2'],
       },
     ],

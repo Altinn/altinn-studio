@@ -1,15 +1,5 @@
 import React, { createContext, useContext, useRef } from 'react';
-
-export type MetaDataForm = {
-  taskIdChanges?: Array<{
-    oldId: string;
-    newId: string;
-  }>;
-  dataTypeChangeDetails?: {
-    newDataType: string;
-    connectedTaskId: string;
-  };
-};
+import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 
 type BpmnConfigPanelContextType = {
   metaDataFormRef: React.MutableRefObject<MetaDataForm>;

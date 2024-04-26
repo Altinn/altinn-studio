@@ -14,29 +14,30 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
 
-namespace Designer.Tests.Controllers.ProcessModelingController.FileSync.TaskIdChangeTests;
+namespace Designer.Tests.Controllers.ProcessModelingController.FileSync.DataTypeChangeTests;
 
-public class ApplicationMetadataFileSyncDataTypeTests : DisagnerEndpointsTestsBase<ProcessDataTypeChangedNotifyTests>, IClassFixture<WebApplicationFactory<Program>>
+public class LayoutSetsFileSyncDataTypeTests : DisagnerEndpointsTestsBase<LayoutSetsFileSyncDataTypeTests>, IClassFixture<WebApplicationFactory<Program>>
 {
-    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/process-modelling/data-type";
+    private static string VersionPrefix(string org, string repository) =>
+        $"/designer/api/{org}/{repository}/process-modelling/data-type";
 
-    public ApplicationMetadataFileSyncDataTypeTests(WebApplicationFactory<Program> factory) : base(factory)
+    public LayoutSetsFileSyncDataTypeTests(WebApplicationFactory<Program> factory) : base(factory)
     {
     }
 
     [Theory]
     [MemberData(nameof(ProcessDataTypeChangedNotifyTestData))]
-    public async Task ProcessDataTypeChangedNotify_TaskIsDisConnectedFromDataType_ShouldSyncApplicationMetadata(string org, string app, string developer, string applicationMetadataPath, ProcessDefinitionMetadata metadata)
+    public async Task ProcessDataTypeChangedNotify_Task1DisconnectedFromDataType_ShouldSyncLayoutSets(string org, string app, string developer,
+        string layoutSetsPath, ProcessDefinitionMetadata metadata)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
-        await AddFileToRepo(applicationMetadataPath, "App/config/applicationmetadata.json");
+        await AddFileToRepo(layoutSetsPath, "App/ui/layout-sets.json");
 
         string url = VersionPrefix(org, targetRepository);
 
         string metadataString = JsonSerializer.Serialize(metadata,
             new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
         {
             Content = new StringContent(metadataString, Encoding.UTF8, "application/json")
@@ -44,21 +45,21 @@ public class ApplicationMetadataFileSyncDataTypeTests : DisagnerEndpointsTestsBa
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         response.StatusCode.Should().Be(HttpStatusCode.Accepted);
 
-        string applicationMetadataFromRepo = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
+        string layoutSetsFromRepo =
+            TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/ui/layout-sets.json");
 
-        ApplicationMetadata applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataFromRepo, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsFromRepo, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
-        applicationMetadata.DataTypes.Should().NotContain(dataType => dataType.AppLogic != null && dataType.TaskId == metadata.DataTypeChangeDetails.ConnectedTaskId); // No data type connected to Task_1
+        layoutSets.Sets.Find(set => set.Tasks[0] == metadata.DataTypeChangeDetails.ConnectedTaskId).DataType.Should().BeNull();
     }
 
     [Theory]
     [MemberData(nameof(ProcessDataTypeChangedNotifyTestData))]
-    public async Task ProcessDataTypeChangedNotify_NewDataTypeForTask5IsMessage_ShouldSyncApplicationMetadata(
-        string org, string app, string developer, string applicationMetadataPath, ProcessDefinitionMetadata metadata)
+    public async Task ProcessDataTypeChangedNotify_NewDataTypeForTask5IsMessage_ShouldSyncLayoutSets(string org, string app, string developer, string applicationMetadataPath, ProcessDefinitionMetadata metadata)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
-        await AddFileToRepo(applicationMetadataPath, "App/config/applicationmetadata.json");
+        await AddFileToRepo(applicationMetadataPath, "App/ui/layout-sets.json");
         string dataTypeToConnect = "message";
         string task = "Task_5";
         metadata.DataTypeChangeDetails.NewDataType = dataTypeToConnect;
@@ -75,11 +76,12 @@ public class ApplicationMetadataFileSyncDataTypeTests : DisagnerEndpointsTestsBa
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         response.StatusCode.Should().Be(HttpStatusCode.Accepted);
 
-        string applicationMetadataFromRepo = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
+        string layoutSetsFromRepo =
+            TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/ui/layout-sets.json");
 
-        ApplicationMetadata applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataFromRepo, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsFromRepo, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
-        applicationMetadata.DataTypes.Find(type => type.Id == dataTypeToConnect).TaskId.Should().Be(task); // Data type 'message' is now connected to Task_5
+        layoutSets.Sets.Find(set => set.Tasks[0] == task).DataType.Should().Be(dataTypeToConnect);
     }
 
     public static IEnumerable<object[]> ProcessDataTypeChangedNotifyTestData()
@@ -89,7 +91,7 @@ public class ApplicationMetadataFileSyncDataTypeTests : DisagnerEndpointsTestsBa
             "ttd",
             "empty-app",
             "testUser",
-            "App/config/applicationmetadata.json",
+            "App/ui/layout-sets.json",
             new ProcessDefinitionMetadata
             {
                 DataTypeChangeDetails = new DataTypeChange { NewDataType = null, ConnectedTaskId = "Task_1" }
@@ -106,6 +108,8 @@ public class ApplicationMetadataFileSyncDataTypeTests : DisagnerEndpointsTestsBa
         {
             Directory.CreateDirectory(folderPath);
         }
+
         await File.WriteAllTextAsync(filePath, fileContent);
     }
+
 }

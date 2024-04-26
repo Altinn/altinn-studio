@@ -1,6 +1,6 @@
 import type { LayoutSets, LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import React, { createContext, useContext } from 'react';
-import type { MetaDataForm } from './BpmnConfigPanelContext';
+import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 
 export type BpmnApiContextProps = {
   availableDataModelIds: string[];

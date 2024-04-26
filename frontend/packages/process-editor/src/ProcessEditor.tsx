@@ -4,16 +4,14 @@ import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import { StudioPageSpinner } from '@studio/components';
 import { Canvas } from './components/Canvas';
 import { BpmnContextProvider, useBpmnContext } from './contexts/BpmnContext';
-import {
-  BpmnConfigPanelFormContextProvider,
-  type MetaDataForm,
-} from './contexts/BpmnConfigPanelContext';
 import { ConfigPanel } from './components/ConfigPanel';
 import { ConfigViewerPanel } from './components/ConfigViewerPanel';
 
 import classes from './ProcessEditor.module.css';
 import type { BpmnApiContextProps } from './contexts/BpmnApiContext';
 import { BpmnApiContextProvider } from './contexts/BpmnApiContext';
+import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
+import { BpmnConfigPanelFormContextProvider } from './contexts/BpmnConfigPanelContext';
 
 export type ProcessEditorProps = {
   appLibVersion: string;

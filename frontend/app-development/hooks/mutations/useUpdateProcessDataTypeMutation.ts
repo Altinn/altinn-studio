@@ -1,7 +1,7 @@
-import { type MetaDataForm } from '@altinn/process-editor/src/contexts/BpmnConfigPanelContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateProcessDataType } from 'app-shared/api/mutations';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 
 type useUpdateProcessDataTypeMutationPayload = {
   form: MetaDataForm;

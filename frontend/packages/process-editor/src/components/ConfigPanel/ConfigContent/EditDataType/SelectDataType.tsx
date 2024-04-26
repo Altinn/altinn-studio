@@ -1,12 +1,12 @@
 import React from 'react';
 import { NativeSelect } from '@digdir/design-system-react';
 import { StudioButton, StudioDeleteButton } from '@studio/components';
-import type { MetaDataForm } from '../../../../contexts/BpmnConfigPanelContext';
 import { useBpmnConfigPanelFormContext } from '../../../../contexts/BpmnConfigPanelContext';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
 import classes from './SelectDataType.module.css';
+import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 
 export interface SelectDataTypeProps {
   dataModelIds: string[];
@@ -33,16 +33,14 @@ export const SelectDataType = ({
     };
     metaDataFormRef.current = Object.assign({}, metaDataFormRef.current, newMetadata);
     updateDataType(metaDataFormRef.current);
+    onClose();
   };
 
   return (
     <div className={classes.dataTypeSelect}>
       <NativeSelect
         size='small'
-        onChange={({ target }) => {
-          handleChangeDataModel(target.value);
-          onClose();
-        }}
+        onChange={({ target }) => handleChangeDataModel(target.value)}
         label={t('process_editor.configuration_panel_set_datamodel')}
         value={existingDataType ?? 'noModelKey'}
       >
@@ -64,10 +62,7 @@ export const SelectDataType = ({
           variant='secondary'
         />
         <StudioDeleteButton
-          onDelete={() => {
-            handleChangeDataModel(undefined);
-            onClose();
-          }}
+          onDelete={() => handleChangeDataModel(undefined)}
           size='small'
           title={t('general.delete')}
         />

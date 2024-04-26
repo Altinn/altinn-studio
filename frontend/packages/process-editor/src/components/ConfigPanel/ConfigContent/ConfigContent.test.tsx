@@ -2,14 +2,15 @@ import React from 'react';
 import { ConfigContent } from './ConfigContent';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
-import {BpmnContextProps, BpmnContextProvider} from '../../../contexts/BpmnContext';
+import type { BpmnContextProps } from '../../../contexts/BpmnContext';
+import { BpmnContext } from '../../../contexts/BpmnContext';
 import userEvent from '@testing-library/user-event';
 import type { BpmnDetails } from '../../../types/BpmnDetails';
 import { BpmnTypeEnum } from '../../../enum/BpmnTypeEnum';
 import type Modeler from 'bpmn-js/lib/Modeler';
 import { type BpmnTaskType } from '../../../types/BpmnTaskType';
 import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
-import { BpmnApiContextProvider } from '../../../contexts/BpmnApiContext';
+import { BpmnApiContext } from '../../../contexts/BpmnApiContext';
 import type { BpmnApiContextProps } from '../../../contexts/BpmnApiContext';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
@@ -64,10 +65,12 @@ describe('ConfigContent', () => {
   });
   it('should render heading for selected task', () => {
     renderConfigContent();
-    screen.getByRole('heading', {
-      name: textMock('process_editor.configuration_panel_data_task'),
-      level: 2,
-    });
+    expect(
+      screen.getByRole('heading', {
+        name: textMock('process_editor.configuration_panel_data_task'),
+        level: 2,
+      }),
+    ).toBeInTheDocument();
   });
 
   it('should render helpText for selected task', async () => {
@@ -79,15 +82,19 @@ describe('ConfigContent', () => {
     });
     await user.click(helpTextButton);
 
-    screen.getByText(textMock('process_editor.configuration_panel_header_help_text_data'));
+    expect(
+      screen.getByText(textMock('process_editor.configuration_panel_header_help_text_data')),
+    ).toBeInTheDocument();
   });
 
   it('should render EditTaskId component', () => {
     renderConfigContent();
 
-    screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_change_task_id'),
-    });
+    expect(
+      screen.getByRole('button', {
+        name: textMock('process_editor.configuration_panel_change_task_id'),
+      }),
+    ).toBeInTheDocument();
   });
 
   it.each(['data', 'confirmation', 'feedback', 'signing'])(
@@ -142,7 +149,9 @@ describe('ConfigContent', () => {
     });
     await user.click(helpTextButton);
 
-    screen.getByText(textMock('process_editor.configuration_panel_header_help_text_data'));
+    expect(
+      screen.getByText(textMock('process_editor.configuration_panel_header_help_text_data')),
+    ).toBeInTheDocument();
   });
 
   it('should display the connected data model as selected by default when data type is connected to task', () => {
@@ -157,10 +166,12 @@ describe('ConfigContent', () => {
       ],
     };
     renderConfigContent({ layoutSets: existingLayoutSets });
-    screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_set_datamodel'),
-    });
-    screen.getByText(connectedDataType);
+    expect(
+      screen.getByRole('button', {
+        name: textMock('process_editor.configuration_panel_set_datamodel'),
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(connectedDataType)).toBeInTheDocument();
   });
 });
 
@@ -169,12 +180,12 @@ const renderConfigContent = (
   rootContextProps: Partial<BpmnContextProps> = {},
 ) => {
   return render(
-    <BpmnApiContextProvider { ...mockBpmnApiContextValue} {...bpmnApiContextProps }>
-      <BpmnContextProvider { ...mockBpmnContextValue} {...rootContextProps }>
+    <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
+      <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
         <BpmnConfigPanelFormContextProvider>
           <ConfigContent />
         </BpmnConfigPanelFormContextProvider>
-      </BpmnContextProvider>
-    </BpmnApiContextProvider>,
+      </BpmnContext.Provider>
+    </BpmnApiContext.Provider>,
   );
 };
