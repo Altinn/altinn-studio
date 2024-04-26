@@ -7,8 +7,9 @@ export class BpmnExpressionModeler extends StudioModeler {
     return !!element.di.bpmnElement.conditionExpression;
   }
 
-  public get conditionExpression(): string {
-    return this.getElement().di.bpmnElement.conditionExpression?.body;
+  public get conditionExpression(): string | null {
+    const expressionString = this.getElement().di.bpmnElement.conditionExpression?.body;
+    return expressionString ? JSON.parse(expressionString) : null;
   }
 
   constructor(element: Element) {

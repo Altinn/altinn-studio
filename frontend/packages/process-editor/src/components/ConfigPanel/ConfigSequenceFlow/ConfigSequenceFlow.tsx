@@ -1,5 +1,5 @@
-import React from 'react';
-import { StudioExpression, StudioSectionHeader } from '@studio/components';
+import React, { useState } from 'react';
+import { BooleanExpression, StudioExpression, StudioSectionHeader } from '@studio/components';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 
 import classes from './ConfigSequenceFlow.module.css';
@@ -11,9 +11,13 @@ export const ConfigSequenceFlow = (): React.ReactElement => {
   const { bpmnDetails } = useBpmnContext();
   const texts = useExpressionTexts();
   const expressionModeler = new BpmnExpressionModeler(bpmnDetails.element);
+  const [expression, setExpression] = useState<BooleanExpression>(
+    expressionModeler.conditionExpression,
+  );
 
-  const addExpressionToSequenceFlow = (expression: string): void => {
-    const newExpressionElement = expressionModeler.createExpressionElement(expression);
+  const addExpressionToSequenceFlow = (expression: BooleanExpression): void => {
+    const stringifyExpression = JSON.stringify(expression);
+    const newExpressionElement = expressionModeler.createExpressionElement(stringifyExpression);
 
     expressionModeler.addChildElementToParent({
       conditionExpression: newExpressionElement,
@@ -40,9 +44,11 @@ export const ConfigSequenceFlow = (): React.ReactElement => {
           brukerhandling utført ved hjelp av et utrykk.
         </Paragraph>
         <StudioExpression
-          expression={['equals', ['gatewayAction'], 'reject']}
-          onChange={(e) => {
-            console.log(e);
+          showAddSubexpression={false}
+          expression={expression}
+          onChange={(updatedExpression: BooleanExpression) => {
+            setExpression(updatedExpression);
+            addExpressionToSequenceFlow(updatedExpression);
           }}
           texts={texts}
           dataLookupOptions={['gatewayAction']}

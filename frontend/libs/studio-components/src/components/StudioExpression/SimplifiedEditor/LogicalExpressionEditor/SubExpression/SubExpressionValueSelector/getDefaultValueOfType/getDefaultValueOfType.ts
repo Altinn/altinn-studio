@@ -21,9 +21,13 @@ const defaultValueByType: {
     type: SimpleSubexpressionValueType.InstanceContext,
     key: InstanceContext.AppId,
   },
+  [SimpleSubexpressionValueType.GatewayAction]: {
+    type: SimpleSubexpressionValueType.GatewayAction,
+    key: ['GatewayAction'],
+  },
   [SimpleSubexpressionValueType.GatewayActionContext]: {
     type: SimpleSubexpressionValueType.GatewayActionContext,
-    key: GatewayActionContext.Pay,
+    key: GatewayActionContext.Confirm,
   },
   [SimpleSubexpressionValueType.String]: {
     type: SimpleSubexpressionValueType.String,

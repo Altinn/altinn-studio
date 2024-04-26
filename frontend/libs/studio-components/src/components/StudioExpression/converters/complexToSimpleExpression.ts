@@ -84,13 +84,12 @@ const processDataLookupFuncToSimpleFormat = ([
   source,
   key,
 ]: DataLookupFunc): SimpleSubexpressionValue => {
-  console.log({ key });
   if (typeof source !== 'string')
     throw new Error(
       'Process data lookup function is not convertable. This should have been picked up by the validator.',
     );
 
-  return { type: SimpleSubexpressionValueType.GatewayActionContext, key };
+  return { type: SimpleSubexpressionValueType.GatewayAction, key };
 };
 
 const keyLookupFuncToSimpleFormat = ([, key]: KeyLookupFunc): SimpleSubexpressionValue => {

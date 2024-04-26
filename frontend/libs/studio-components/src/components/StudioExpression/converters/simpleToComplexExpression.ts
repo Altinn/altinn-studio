@@ -67,7 +67,9 @@ const subexpressionValueToComplex = (
     case SimpleSubexpressionValueType.Null:
       return null;
     case SimpleSubexpressionValueType.GatewayActionContext:
-      return [DataLookupFuncName.GatewayAction, subexpression.type];
+      return subexpression.key;
+    case SimpleSubexpressionValueType.GatewayAction:
+      return [DataLookupFuncName.GatewayAction];
     default:
       return subexpression.value;
   }
