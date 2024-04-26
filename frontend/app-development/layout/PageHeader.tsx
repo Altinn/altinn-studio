@@ -10,10 +10,7 @@ import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import type { User } from 'app-shared/types/Repository';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { RepositoryType } from 'app-shared/types/global';
-import {
-  useSelectedFormLayoutSetName,
-  useSelectedFormLayoutName,
-} from '../../packages/ux-editor/src/hooks';
+import { useSelectedFormLayoutSetName, useSelectedFormLayoutName } from '@altinn/ux-editor/hooks';
 
 type SubMenuContentProps = {
   org: string;

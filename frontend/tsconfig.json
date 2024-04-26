@@ -17,14 +17,14 @@
     "baseUrl": ".",
     "skipLibCheck": true,
     "paths": {
-      "app-shared/*": ["./packages/shared/src/*"],
+      "@altinn/policy-editor/*": ["./packages/policy-editor/src/*"],
+      "@altinn/process-editor/*": ["./packages/process-editor/src/*"],
       "@altinn/schema-editor/*": ["./packages/schema-editor/src/*"],
-      "@altinn/schema-model": ["./packages/schema-model/src/*"],
-      "@altinn/text-editor": ["./packages/schema-model/src/*"],
-      "@altinn/ux-editor": ["./packages/ux-editor/src/*"],
-      "@altinn/ux-editor-v3": ["./packages/ux-editor-v3/src/*"],
-      "@altinn/process-editor": ["./packages/process-editor/src/*"],
-      "@altinn/policy-editor": ["./packages/policy-editor/src/*"]
+      "@altinn/schema-model/*": ["./packages/schema-model/src/*"],
+      "app-shared/*": ["./packages/shared/src/*"],
+      "@altinn/text-editor/*": ["./packages/text-editor/src/*"],
+      "@altinn/ux-editor/*": ["./packages/ux-editor/src/*"],
+      "@altinn/ux-editor-v3/*": ["./packages/ux-editor-v3/src/*"]
     },
     "plugins": [{ "name": "typescript-plugin-css-modules" }]
   },
