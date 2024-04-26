@@ -2,7 +2,8 @@ import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
 import type { BpmnDetails } from '../../../../types/BpmnDetails';
-import type { ActionType } from './EditActions';
+import type { ActionType } from './EditAction';
+import type { BpmnTaskType } from '../../../../types/BpmnTaskType';
 
 export const addNewActionToTask = (
   bpmnFactory: BpmnFactory,
@@ -30,7 +31,7 @@ export const updateActionNameOnActionElement = (
   modeling: Modeling,
   bpmnDetails: BpmnDetails,
 ) => {
-  if (actionElement.action === newAction) return;
+  if (actionElement.action === newAction || newAction === '') return;
   if (getPredefinedActions(bpmnDetails.taskType).includes(newAction)) {
     delete actionElement.type;
   }
@@ -59,7 +60,8 @@ export const setActionTypeOnAction = (
   modeling: Modeling,
 ) => {
   const actionsElement = bpmnDetails.element.businessObject.extensionElements.values[0].actions;
-  actionElement['type'] = actionType;
+  const actionIndex = actionsElement.action.indexOf(actionElement);
+  actionsElement.action[actionIndex]['type'] = actionType;
   updateExistingActionsOnTask(modeling, bpmnDetails, actionsElement);
 };
 
@@ -100,10 +102,10 @@ const updateActionNameOnExistingAction = (
   });
 };
 
-export const getPredefinedActions = (bpmnTaskType: string): string[] => {
+export const getPredefinedActions = (bpmnTaskType: BpmnTaskType): string[] => {
   const allPredefinedActions = ['write', 'reject', 'confirm'];
   if (bpmnTaskType === 'signing') allPredefinedActions.push('sign');
-  //if (bpmnDetails.taskType !== 'payment') allPredefinedActions.push('pay');
+  if (bpmnTaskType === 'payment') allPredefinedActions.push('pay');
   return allPredefinedActions;
 };
 
@@ -111,21 +113,21 @@ export const getTypeForAction = (actionElement: ModdleElement) => {
   return (actionElement?.type || actionElement?.$attrs?.type) ?? undefined;
 };
 
-export const isActionRequiredForTask = (action: string, bpmnDetails: BpmnDetails): boolean => {
-  if (bpmnDetails.taskType === 'signing' && action === 'sign') return true;
-  if (bpmnDetails.taskType === 'signing' && action === 'reject') return true;
-  return bpmnDetails.taskType === 'confirmation' && action === 'confirm';
+export const isActionRequiredForTask = (action: string, bpmnTaskType: BpmnTaskType): boolean => {
+  if (bpmnTaskType === 'signing' && action === 'sign') return true;
+  if (bpmnTaskType === 'signing' && action === 'reject') return true;
+  if (bpmnTaskType === 'payment' && action === 'pay') return true;
+  if (bpmnTaskType === 'payment' && action === 'confirm') return true;
+  if (bpmnTaskType === 'payment' && action === 'reject') return true;
+  return bpmnTaskType === 'confirmation' && action === 'confirm';
 };
 
-export const generateActionName = (
-  availablePredefinedActions: string[],
+export const getAvailablePredefinedActions = (
+  taskType: BpmnTaskType,
   actionElements: ModdleElement[],
-  bpmnDetails: BpmnDetails,
-) =>
-  availablePredefinedActions[0] ??
-  `myCustomAction_${actionElements.length - getPredefinedActions(bpmnDetails.taskType).length}`;
+) => filterAvailableActions(getPredefinedActions(taskType), actionElements) ?? [];
 
-export const filterAvailableActions = (
+const filterAvailableActions = (
   predefinedActionNames: string[],
   existingActionElements: ModdleElement[],
 ): string[] => {
