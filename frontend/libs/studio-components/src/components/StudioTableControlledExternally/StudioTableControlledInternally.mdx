@@ -1,0 +1,15 @@
+import { Canvas, Meta } from '@storybook/blocks';
+import { Heading, Paragraph } from '@digdir/design-system-react';
+import * as StudioTableWithPaginationStories from './StudioTableWithPagination.stories';
+
+<Meta of={StudioTableWithPaginationStories} />
+
+<Heading level={1} size='small'>
+  StudioTableWithPagination
+</Heading>
+<Paragraph>
+  StudioTableWithPagination brings together Digdir Designsystemet's `Table` and `Pagination` components.
+  It dynamically renders a table by passing an array of objects to the `column` and `row` props. The pagination can be removed by passing `0` to `initialRowsPerPage`.
+</Paragraph>
+
+<Canvas of={StudioTableWithPaginationStories.Preview} />
