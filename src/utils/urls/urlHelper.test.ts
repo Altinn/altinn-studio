@@ -1,5 +1,6 @@
 import {
   customEncodeURI,
+  getUrlWithLanguage,
   logoutUrlAltinn,
   makeUrlRelativeIfSameDomain,
   returnBaseUrlToAltinn,
@@ -121,5 +122,49 @@ describe('Shared urlHelper.ts', () => {
         hostname: 'altinn3local.no',
       } as Location),
     ).toBe('/');
+  });
+
+  describe('getUrlWithLanguage', () => {
+    const testCases = [
+      {
+        url: 'https://local.altinn.cloud/ttd/test/instances/12345/123-123-123/data/456-456-456?includeRowId=true',
+        language: 'nb',
+        expected:
+          'https://local.altinn.cloud/ttd/test/instances/12345/123-123-123/data/456-456-456?includeRowId=true&language=nb',
+      },
+      {
+        url: 'https://local.altinn.cloud/ttd/test/instances/12345/123-123-123/data/456-456-456',
+        language: 'en',
+        expected: 'https://local.altinn.cloud/ttd/test/instances/12345/123-123-123/data/456-456-456?language=en',
+      },
+      {
+        url: 'https://local.altinn.cloud/ttd/test/instances/12345/123-123-123/data/456-456-456?language=en',
+        language: 'nb',
+        expected: 'https://local.altinn.cloud/ttd/test/instances/12345/123-123-123/data/456-456-456?language=nb',
+      },
+      {
+        url: undefined,
+        language: 'nb',
+        expected: undefined,
+      },
+      {
+        url: 'https://local.altinn.cloud/ttd/test/instances/12345/123-123-123/data/456-456-456?language=en',
+        language: undefined,
+        expected: 'https://local.altinn.cloud/ttd/test/instances/12345/123-123-123/data/456-456-456',
+      },
+      {
+        url: 'https://local.altinn.cloud/ttd/test/instances/12345/123-123-123/data/456-456-456?language=nb&includeRowId=true',
+        language: undefined,
+        expected: 'https://local.altinn.cloud/ttd/test/instances/12345/123-123-123/data/456-456-456?includeRowId=true',
+      },
+      {
+        url: 'https://local.altinn.cloud/ttd/test/instances/12345/123-123-123/data/456-456-456',
+        language: undefined,
+        expected: 'https://local.altinn.cloud/ttd/test/instances/12345/123-123-123/data/456-456-456',
+      },
+    ];
+    it.each(testCases)('url: $url, language: $language should result in $expected', ({ url, language, expected }) => {
+      expect(getUrlWithLanguage(url, language)).toBe(expected);
+    });
   });
 });

@@ -14,11 +14,10 @@ import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSetId';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 import {
   getAnonymousStatelessDataModelUrl,
-  getDataElementUrl,
+  getDataModelUrl,
   getStatelessDataModelUrl,
 } from 'src/utils/urls/appUrlHelper';
 import { useIsStatelessApp } from 'src/utils/useIsStatelessApp';
@@ -44,7 +43,6 @@ export function useCurrentDataModelUrl(includeRowIds: boolean) {
   const dataType = useDataTypeByLayoutSetId(layoutSetId);
   const dataElementUuid = useCurrentDataModelGuid();
   const isStateless = useIsStatelessApp();
-  const language = useCurrentLanguage();
 
   if (isStateless && isAnonymous && dataType) {
     return getAnonymousStatelessDataModelUrl(dataType, includeRowIds);
@@ -55,7 +53,7 @@ export function useCurrentDataModelUrl(includeRowIds: boolean) {
   }
 
   if (instance?.id && dataElementUuid) {
-    return getDataElementUrl(instance.id, dataElementUuid, language, includeRowIds);
+    return getDataModelUrl(instance.id, dataElementUuid, includeRowIds);
   }
 
   return undefined;
@@ -65,7 +63,6 @@ export function useDataModelUrl(includeRowIds: boolean, dataType: string | undef
   const isAnonymous = useAllowAnonymous();
   const isStateless = useIsStatelessApp();
   const instance = useLaxInstanceData();
-  const language = useCurrentLanguage();
 
   if (isStateless && isAnonymous && dataType) {
     return getAnonymousStatelessDataModelUrl(dataType, includeRowIds);
@@ -78,7 +75,7 @@ export function useDataModelUrl(includeRowIds: boolean, dataType: string | undef
   if (instance?.id && dataType) {
     const uuid = getFirstDataElementId(instance, dataType);
     if (uuid) {
-      return getDataElementUrl(instance.id, uuid, language, includeRowIds);
+      return getDataModelUrl(instance.id, uuid, includeRowIds);
     }
   }
 

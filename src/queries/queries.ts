@@ -136,7 +136,7 @@ export const doPerformAction = async (partyId: string, dataGuid: string, data: a
 };
 
 export const doAttachmentRemove = async (instanceId: string, dataGuid: string, language: string): Promise<void> => {
-  const response = await httpDelete(getDataElementUrl(instanceId, dataGuid, language, false));
+  const response = await httpDelete(getDataElementUrl(instanceId, dataGuid, language));
   if (response.status !== 200) {
     throw new Error('Failed to remove attachment');
   }

@@ -7,8 +7,10 @@ import { ContextNotProvided, createContext } from 'src/core/contexts/context';
 import { useAvailableDataModels } from 'src/features/datamodel/useAvailableDataModels';
 import { useDataModelUrl } from 'src/features/datamodel/useBindingSchema';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useNavigationParams } from 'src/hooks/useNavigatePage';
+import { getUrlWithLanguage } from 'src/utils/urls/urlHelper';
 
 type ReaderMap = { [name: string]: DataModelReader };
 
@@ -191,7 +193,7 @@ export function DataModelFetcher() {
 }
 
 function SpecificDataModelFetcher({ reader, isAvailable }: { reader: DataModelReader; isAvailable: boolean }) {
-  const url = useDataModelUrl(false, reader.getName());
+  const url = getUrlWithLanguage(useDataModelUrl(false, reader.getName()), useCurrentLanguage());
   const enabled = isAvailable && reader.isLoading();
   const { data, error } = useFormDataQuery(enabled ? url : undefined);
   const { updateModel } = useCtx();

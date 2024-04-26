@@ -8,8 +8,10 @@ import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettings
 import { FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { HttpStatusCodes } from 'src/utils/network/networking';
+import { getUrlWithLanguage } from 'src/utils/urls/urlHelper';
 
 /**
  * This provider loads the initial form data for a data task, and then provides a FormDataWriteProvider with that
@@ -17,7 +19,7 @@ import { HttpStatusCodes } from 'src/utils/network/networking';
  */
 export function InitialFormDataProvider({ children }: PropsWithChildren) {
   const url = useCurrentDataModelUrl(true);
-  const { error, isLoading, data } = useFormDataQuery(url);
+  const { error, isLoading, data } = useFormDataQuery(getUrlWithLanguage(url, useCurrentLanguage()));
   const autoSaveBehaviour = usePageSettings().autoSaveBehavior;
 
   if (!url) {
