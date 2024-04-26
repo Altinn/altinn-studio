@@ -129,12 +129,12 @@ function resolvedNodesInLayouts(
 /**
  * Recursive function to check if a node.item contains other LayoutNode objects somewhere inside
  */
-function containsLayoutNode(obj: any): boolean {
+function containsLayoutNode(obj: unknown): boolean {
   if (obj instanceof BaseLayoutNode) {
     return true;
   }
 
-  if (typeof obj !== 'object') {
+  if (typeof obj !== 'object' || obj === null) {
     return false;
   }
 
