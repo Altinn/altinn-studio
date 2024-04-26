@@ -11,18 +11,16 @@ import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 
 import classes from './EditTaskId.module.css';
 import { useTaskIds } from '../../../../hooks/useTaskIds';
-import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 
 type EditTaskIdProps = HTMLAttributes<HTMLDivElement>;
 export const EditTaskId = ({ ...rest }: EditTaskIdProps): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails, modelerRef, setBpmnDetails } = useBpmnContext();
-  const { layoutSets } = useBpmnApiContext();
   const { metaDataFormRef } = useBpmnConfigPanelFormContext();
 
   const modelerInstance = modelerRef.current;
   const modeling: Modeling = modelerInstance.get('modeling');
-  const otherTaskIds = useTaskIds(layoutSets).filter((id) => id !== bpmnDetails.id);
+  const otherTaskIds = useTaskIds().filter((id) => id !== bpmnDetails.id);
 
   const updateId = (value: string): void => {
     modeling.updateProperties(bpmnDetails.element, {

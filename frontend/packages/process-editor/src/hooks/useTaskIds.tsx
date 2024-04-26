@@ -1,6 +1,7 @@
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import { useBpmnApiContext } from '../contexts/BpmnApiContext';
 
-export const useTaskIds = (layoutSets: LayoutSets): string[] => {
+export const useTaskIds = (): string[] => {
+  const { layoutSets } = useBpmnApiContext();
   const taskIds: string[] = layoutSets?.sets.flatMap((layoutSet) => layoutSet.tasks) ?? [];
   return taskIds;
 };
