@@ -1,11 +1,10 @@
 import React from 'react';
-import { screen, render, within } from '@testing-library/react';
+import { act, screen, render, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MockServicesContextWrapper } from '../../dashboardTestUtils';
 import { searchRepositoryResponseMock } from '../../data-mocks/searchRepositoryResponseMock';
-import type { IRepoListProps } from './RepoList';
-import { RepoList } from './RepoList';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { IRepoListProps, RepoList } from './RepoList';
+import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { repository } from 'app-shared/mocks/mocks';
 import { nbNO } from '@mui/x-data-grid/locales';
@@ -62,7 +61,7 @@ describe('RepoList', () => {
     const sortBtn = document.querySelector(
       'button[aria-label="' + localeText.columnHeaderSortIconLabel + '"]',
     );
-    await user.click(sortBtn);
+    await act(() => user.click(sortBtn));
 
     expect(handleSortMock).not.toHaveBeenCalled();
   });
@@ -78,7 +77,7 @@ describe('RepoList', () => {
     const sortBtn = document.querySelector(
       'button[aria-label="' + localeText.columnHeaderSortIconLabel + '"]',
     );
-    await user.click(sortBtn);
+    await act(() => user.click(sortBtn));
 
     expect(handleSortMock).toHaveBeenCalledWith([{ field: 'name', sort: 'asc' }], {
       reason: undefined,
@@ -95,9 +94,7 @@ describe('RepoList', () => {
       ],
       isServerSort: true,
     });
-    const unstar = await screen.findByRole('menuitem', {
-      name: textMock('dashboard.unstar', { appName: repository.name }),
-    });
+    const unstar = await screen.findByRole('menuitem', { name: textMock('dashboard.unstar') });
     const gridActionsCellItem = within(unstar).getByRole('img');
     expect(gridActionsCellItem).toBeInTheDocument();
   });
@@ -113,7 +110,7 @@ describe('RepoList', () => {
       name: localeText.MuiTablePagination.getItemAriaLabel('next'),
     });
     expect(nextPageButton).toBeInTheDocument();
-    await user.click(nextPageButton);
+    await act(() => user.click(nextPageButton));
 
     expect(onPageChange).toHaveBeenCalledWith(1);
 
@@ -121,7 +118,7 @@ describe('RepoList', () => {
       name: localeText.MuiTablePagination.getItemAriaLabel('previous'),
     });
     expect(previousPageButton).toBeInTheDocument();
-    await user.click(previousPageButton);
+    await act(() => user.click(previousPageButton));
 
     expect(onPageChange).toHaveBeenCalledWith(1);
   });
@@ -138,10 +135,10 @@ describe('RepoList', () => {
     const pageSizeSelect = screen.getByRole('combobox', {
       name: localeText.MuiTablePagination.labelRowsPerPage.toString(),
     });
-    await user.click(pageSizeSelect);
+    await act(() => user.click(pageSizeSelect));
 
     const pageSizeOption = screen.getByRole('option', { name: newPageSize.toString() });
-    await user.click(pageSizeOption);
+    await act(() => user.click(pageSizeOption));
 
     expect(onPageSizeChange).toHaveBeenCalledWith(newPageSize);
   });

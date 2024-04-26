@@ -18,7 +18,7 @@ type StudioTableWithPaginationProps = {
   rows: Rows;
   isSortable?: boolean;
   size?: 'small' | 'medium' | 'large';
-  pagination: {
+  pagination?: {
     initialRowsPerPage?: number;
     paginationTranslation: PaginationTranslation;
   };
@@ -75,8 +75,8 @@ export const StudioTableWithPagination = forwardRef<
               currentPage={currentPage}
               totalPages={totalPages}
               onChange={setCurrentPage}
-              nextLabel={nextButtonText}
-              previousLabel={previousButtonText}
+              nextLabel={nextButtonText || 'Next'}
+              previousLabel={previousButtonText || 'Previous'}
               itemLabel={itemLabel}
               hideLabels
               compact

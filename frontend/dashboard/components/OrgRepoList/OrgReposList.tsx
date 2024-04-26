@@ -3,15 +3,14 @@ import { RepoList } from '../RepoList';
 import { getReposLabel } from '../../utils/repoUtils';
 import { getUidFilter } from '../../utils/filterUtils';
 import { useTranslation } from 'react-i18next';
-import type { User } from 'app-shared/types/Repository';
-import type { Organization } from 'app-shared/types/Organization';
+import { User } from 'app-shared/types/Repository';
+import { Organization } from 'app-shared/types/Organization';
 import { useReposSearch } from 'dashboard/hooks/useReposSearch';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { Heading } from '@digdir/design-system-react';
 import { DATAGRID_DEFAULT_PAGE_SIZE } from 'dashboard/constants';
 import { useAugmentReposWithStarred } from 'dashboard/hooks/useAugmentReposWithStarred';
 import { useStarredReposQuery } from 'dashboard/hooks/queries';
-import { NewRepoList } from '../RepoList/NewRepoList';
 
 type OrgReposListProps = {
   user: User;
@@ -43,7 +42,6 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
       <Heading level={2} size='small' spacing>
         {getReposLabel({ selectedContext, orgs: organizations, t })}
       </Heading>
-      <NewRepoList repos={reposWithStarred.filter((repo) => !repo.name.endsWith('-datamodels'))} />
       <RepoList
         repos={reposWithStarred.filter((repo) => !repo.name.endsWith('-datamodels'))}
         isLoading={isLoadingSearchResults || areStarredReposPending}

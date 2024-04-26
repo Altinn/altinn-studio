@@ -21,7 +21,14 @@ Preview.args = {
   columns: columns,
   rows: rows,
   size: 'medium',
-  initialRowsPerPage: 5,
   isSortable: true,
+  pagination: {
+    initialRowsPerPage: 5,
+    paginationTranslation: {
+      nextButtonText: 'Neste',
+      previousButtonText: 'Forrige',
+      itemLabel: (num) => `Side ${num}`,
+    },
+  },
 };
 export default meta;

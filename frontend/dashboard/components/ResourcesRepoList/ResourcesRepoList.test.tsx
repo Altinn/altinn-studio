@@ -1,11 +1,11 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ResourcesRepoList } from './ResourcesRepoList';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { useParams } from 'react-router-dom';
-import type { User } from 'app-shared/types/Repository';
+import { User } from 'app-shared/types/Repository';
 import { MockServicesContextWrapper } from 'dashboard/dashboardTestUtils';
 
 const originalWindowLocation = window.location;
@@ -25,7 +25,7 @@ const getResourceListResponse = [
       en: '',
     },
     createdBy: '',
-    lastChanged: new Date(),
+    lastChanged: new Date().toISOString(),
     hasPolicy: true,
     identifier: 'test-ressurs',
   },
@@ -77,7 +77,7 @@ describe('RepoList', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText(textMock('dashboard.loading_resource_list'))).toBeInTheDocument();
+      expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
     });
   });
 
@@ -141,7 +141,7 @@ describe('RepoList', () => {
       expect(screen.getByTestId('resource-table-wrapper')).toBeInTheDocument();
     });
 
-    await user.click(screen.getByText(textMock('resourceadm.dashboard_table_row_edit')));
+    await act(() => user.click(screen.getByText(textMock('resourceadm.dashboard_table_row_edit'))));
 
     expect(window.location.assign).toHaveBeenCalledWith(
       '/resourceadm/ttd/ttd-resources/resource/test-ressurs/about',
