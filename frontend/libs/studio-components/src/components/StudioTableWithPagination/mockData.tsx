@@ -96,7 +96,7 @@ export const rows = [
   {
     icon: <IconButton icon={<StarFillIcon />} />,
     id: generateRandomId(6),
-    name: 'Lila Patel',
+    name: 'Lucas Wright',
     role: 'Software Engineer',
     status: 'Pending',
     link: <AltinnLink />,
@@ -104,7 +104,7 @@ export const rows = [
   {
     icon: <IconButton icon={<StarIcon />} />,
     id: generateRandomId(6),
-    name: 'Ethan Nakamura',
+    name: 'Chloe Tanaka',
     role: 'Marketing Specialist',
     status: 'Approved',
     link: <AltinnLink />,
@@ -112,7 +112,7 @@ export const rows = [
   {
     icon: <IconButton icon={<StarIcon />} />,
     id: generateRandomId(6),
-    name: 'Olivia Chen',
+    name: 'Emily Zhao',
     role: 'Data Analyst',
     status: 'Pending',
     link: <AltinnLink />,
@@ -120,7 +120,7 @@ export const rows = [
   {
     icon: <IconButton icon={<FaceSmileFillIcon />} />,
     id: generateRandomId(6),
-    name: 'Noah Adebayo',
+    name: 'Jacob Martinez',
     role: 'UX Designer',
     status: 'Approved',
     link: <AltinnLink />,
@@ -128,7 +128,7 @@ export const rows = [
   {
     icon: <IconButton icon={<FaceSmileIcon />} />,
     id: generateRandomId(6),
-    name: 'Sophia Ivanov',
+    name: 'Isabella Johnson',
     role: 'Product Manager',
     status: 'Pending',
     link: <AltinnLink />,
@@ -136,7 +136,7 @@ export const rows = [
   {
     icon: <IconButton icon={<StarFillIcon />} />,
     id: generateRandomId(6),
-    name: 'William Torres',
+    name: 'Elijah Lee',
     role: 'Sales Representative',
     status: 'Approved',
     link: <AltinnLink />,
@@ -144,7 +144,7 @@ export const rows = [
   {
     icon: <IconButton icon={<StarIcon />} />,
     id: generateRandomId(6),
-    name: 'Ava Gupta',
+    name: 'Charlotte Silva',
     role: 'Human Resources Manager',
     status: 'Pending',
     link: <AltinnLink />,
@@ -152,7 +152,7 @@ export const rows = [
   {
     icon: <IconButton icon={<StarIcon />} />,
     id: generateRandomId(6),
-    name: 'James Kim',
+    name: 'Benjamin Lopez',
     role: 'Financial Analyst',
     status: 'Approved',
     link: <AltinnLink />,
@@ -160,7 +160,7 @@ export const rows = [
   {
     icon: <IconButton icon={<StarIcon />} />,
     id: generateRandomId(6),
-    name: 'Mia Sánchez',
+    name: 'Amelia Schmidt',
     role: 'Customer Support Specialist',
     status: 'Pending',
     link: <AltinnLink />,

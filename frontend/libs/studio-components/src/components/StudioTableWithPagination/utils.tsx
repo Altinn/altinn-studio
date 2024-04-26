@@ -4,8 +4,10 @@ export const labelSizeMap = {
   large: 'medium',
 };
 
-export const calcCurrentRows = (currentPage, rowPerPage, rows) => {
-  const startIndex = (currentPage - 1) * rowPerPage;
-  const endIndex = startIndex + rowPerPage;
+export const calcRowsToRender = (currentPage, rowsPerPage, rows) => {
+  if (rowsPerPage === 0) return rows;
+
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
   return rows.slice(startIndex, endIndex);
 };

@@ -29,12 +29,12 @@ export const NewRepoList = ({ repos }: NewRepoListProps): React.ReactElement => 
   });
 
   const columns = [
-    { key: '0', value: '' },
-    { key: '1', value: 'Navn' },
-    { key: '2', value: 'Opprettet av' },
-    { key: '3', value: 'Sist Endret' },
-    { key: '4', value: 'Beskrivelse' },
-    { key: '5', value: '' },
+    { accessor: '0', value: '' },
+    { accessor: '1', value: 'Navn' },
+    { accessor: '2', value: 'Opprettet av' },
+    { accessor: '3', value: 'Sist Endret' },
+    { accessor: '4', value: 'Beskrivelse' },
+    { accessor: '5', value: '' },
   ];
 
   return (
