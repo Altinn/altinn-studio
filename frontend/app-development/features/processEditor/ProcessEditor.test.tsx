@@ -7,7 +7,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
-import { useBpmnContext } from '../../../packages/process-editor/src/contexts/BpmnContext';
+import { useBpmnContext } from '@altinn/process-editor/contexts/BpmnContext';
 import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { type SyncError, type SyncSuccess } from './syncUtils';
@@ -26,12 +26,12 @@ jest.mock('app-shared/hooks/useConfirmationDialogOnPageLeave', () => ({
   useConfirmationDialogOnPageLeave: jest.fn(),
 }));
 
-jest.mock('../../../packages/process-editor/src/contexts/BpmnContext', () => ({
-  ...jest.requireActual('../../../packages/process-editor/src/contexts/BpmnContext'),
+jest.mock('@altinn/process-editor/contexts/BpmnContext', () => ({
+  ...jest.requireActual('@altinn/process-editor/contexts/BpmnContext'),
   useBpmnContext: jest.fn(),
 }));
 
-jest.mock('../../../packages/process-editor/src/components/Canvas', () => ({
+jest.mock('@altinn/process-editor/components/Canvas', () => ({
   Canvas: () => <div></div>,
 }));
 

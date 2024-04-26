@@ -1,4 +1,4 @@
-import { useSearchParamsState } from '../../../shared/src/hooks/useSearchParamsState';
+import { useSearchParamsState } from 'app-shared/hooks/useSearchParamsState';
 import { useFormLayoutSettingsQuery } from './queries/useFormLayoutSettingsQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
