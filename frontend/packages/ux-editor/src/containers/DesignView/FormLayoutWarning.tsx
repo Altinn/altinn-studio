@@ -14,10 +14,12 @@ export const FormLayoutWarning = ({ layout }: FormLayoutWarningProps) => {
   return (
     <div className={classes.warningWrapper}>
       <Paragraph size='small'>
-        {t('ux_editor.formLayout.warning_duplicates.text1')}
+        {t('ux_editor.formLayout.warning_duplicates')}
         <span className={classes.duplicatedId}> {duplicatedIds}</span>
       </Paragraph>
-      <Paragraph size='small'>{t('ux_editor.formLayout.warning_duplicates.text2')}</Paragraph>
+      <Paragraph size='small'>
+        {t('ux_editor.formLayout.warning_duplicates.cannot_publish')}
+      </Paragraph>
     </div>
   );
 };

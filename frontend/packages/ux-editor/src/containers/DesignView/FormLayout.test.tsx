@@ -43,10 +43,10 @@ describe('FormLayout', () => {
     render({ layout: layoutWithDuplicatedIds, isValid: false });
 
     expect(
-      screen.getByText(textMock('ux_editor.formLayout.warning_duplicates.text1')),
+      screen.getByText(textMock('ux_editor.formLayout.warning_duplicates')),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(textMock('ux_editor.formLayout.warning_duplicates.text2')),
+      screen.getByText(textMock('ux_editor.formLayout.warning_duplicates.cannot_publish')),
     ).toBeInTheDocument();
 
     const duplicatedIds = screen.getByText(/idContainer1, idContainer2/i);

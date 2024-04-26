@@ -33,23 +33,23 @@ export const PageConfigWarning = ({ layout, selectedFormLayoutName }: PageConfig
       />
       <div className={classes.configWarningContent}>
         <Heading level={3} size='xxsmall' spacing>
-          {t('ux_editor.config.warning_duplicates.heading2')}
+          {t('ux_editor.config.warning_duplicates.solution_heading')}
         </Heading>
         <List.Root className={classes.configWarningList} size='small'>
           <List.Ordered>
             <List.Item>
               <Link href={repositoryLayoutPath(org, app, selectedFormLayoutName)} target='_blank'>
-                {t('ux_editor.config.warning_duplicates.list1')}
+                {t('ux_editor.config.warning_duplicates.solution_gitea')}
               </Link>
             </List.Item>
-            <List.Item>{t('ux_editor.config.warning_duplicates.list2')}</List.Item>
+            <List.Item>{t('ux_editor.config.warning_duplicates.solution_gitea_pencel')}</List.Item>
             <List.Item>
-              {t('ux_editor.config.warning_duplicates.list3')}
+              {t('ux_editor.config.warning_duplicates.solution_gitea_locate')}
               <span className={classes.duplicatedId}> {duplicatedIds}</span>.
             </List.Item>
-            <List.Item>{t('ux_editor.config.warning_duplicates.list4')}</List.Item>
-            <List.Item>{t('ux_editor.config.warning_duplicates.list5')}</List.Item>
-            <List.Item>{t('ux_editor.config.warning_duplicates.list6')}</List.Item>
+            <List.Item>{t('ux_editor.config.warning_duplicates.solution_gitea_edit')}</List.Item>
+            <List.Item>{t('ux_editor.config.warning_duplicates.solution_gitea_commit')}</List.Item>
+            <List.Item>{t('ux_editor.config.warning_duplicates.solution_studio_import')}</List.Item>
           </List.Ordered>
         </List.Root>
       </div>
