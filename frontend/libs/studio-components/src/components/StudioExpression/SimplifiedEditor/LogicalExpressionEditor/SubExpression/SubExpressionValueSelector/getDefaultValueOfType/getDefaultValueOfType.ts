@@ -17,17 +17,17 @@ const defaultValueByType: {
     type: SimpleSubexpressionValueType.Datamodel,
     path: '',
   },
-  [SimpleSubexpressionValueType.InstanceContext]: {
-    type: SimpleSubexpressionValueType.InstanceContext,
-    key: InstanceContext.AppId,
-  },
   [SimpleSubexpressionValueType.GatewayAction]: {
     type: SimpleSubexpressionValueType.GatewayAction,
-    key: ['GatewayAction'],
+    key: 'GatewayAction',
   },
   [SimpleSubexpressionValueType.GatewayActionContext]: {
     type: SimpleSubexpressionValueType.GatewayActionContext,
     key: GatewayActionContext.Confirm,
+  },
+  [SimpleSubexpressionValueType.InstanceContext]: {
+    type: SimpleSubexpressionValueType.InstanceContext,
+    key: InstanceContext.AppId,
   },
   [SimpleSubexpressionValueType.String]: {
     type: SimpleSubexpressionValueType.String,

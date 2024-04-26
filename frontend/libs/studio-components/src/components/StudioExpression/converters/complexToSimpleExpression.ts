@@ -12,6 +12,7 @@ import {
   isSimpleKeyLookupFunc,
   isSimpleLogicalTupleFunc,
   isSimpleProcessDataLookupFunc,
+  isSimpleProcessUserAction,
   isSimpleValueFunc,
 } from '../validators/isExpressionSimple';
 import { DEFAULT_LOGICAL_OPERATOR } from '../config';
@@ -63,6 +64,7 @@ const complexRelationFuncToSimpleSubexpression = ([
 const complexValueToSimple = (value: ValueInComplexFormat): SimpleSubexpressionValue => {
   if (isSimpleDataLookupFunc(value)) return dataLookupFuncToSimpleFormat(value);
   if (isSimpleKeyLookupFunc(value)) return keyLookupFuncToSimpleFormat(value);
+  if (isSimpleProcessUserAction(value)) return processUserActionToSimpleFormat(value);
   if (isSimpleProcessDataLookupFunc(value)) return processDataLookupFuncToSimpleFormat(value);
   return primitiveValueToSimpleFormat(value);
 };
@@ -83,13 +85,25 @@ const dataLookupFuncToSimpleFormat = ([source, key]: DataLookupFunc): SimpleSube
 const processDataLookupFuncToSimpleFormat = ([
   source,
   key,
-]: DataLookupFunc): SimpleSubexpressionValue => {
+]: KeyLookupFunc): SimpleSubexpressionValue => {
   if (typeof source !== 'string')
     throw new Error(
-      'Process data lookup function is not convertable. This should have been picked up by the validator.',
+      'Key lookup function is not convertable. This should have been picked up by the validator..',
     );
 
   return { type: SimpleSubexpressionValueType.GatewayAction, key };
+};
+
+const processUserActionToSimpleFormat = ([
+  source,
+  key,
+]: DataLookupFunc): SimpleSubexpressionValue => {
+  if (typeof source !== 'string')
+    throw new Error(
+      'Key lookup function is not convertable. This should have been picked up by the validator..',
+    );
+
+  return { type: SimpleSubexpressionValueType.GatewayActionContext, key };
 };
 
 const keyLookupFuncToSimpleFormat = ([, key]: KeyLookupFunc): SimpleSubexpressionValue => {

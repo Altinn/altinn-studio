@@ -263,6 +263,7 @@
   "expression.or": "eller",
   "expression.readonlyComponentId": "Komponent-ID:",
   "expression.readonlyDatamodelPath": "Datamodellfelt:",
+  "expression.readonlyGatewayActionContext": "Gateway handling:",
   "expression.readonlyInstanceContext": "Instanskontekst:",
   "expression.relationalOperator": "Operator",
   "expression.relationalOperator.equals": "er lik",

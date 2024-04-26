@@ -59,7 +59,15 @@ export const isSimpleProcessDataLookupFunc = (
   expression: Expression,
 ): expression is DataLookupFunc => {
   const processLookupFuncNames: DataLookupFuncName[] = [DataLookupFuncName.GatewayAction];
-  return Array.isArray(expression) && processLookupFuncNames.includes(expression[0]);
+  return (
+    Array.isArray(expression) &&
+    processLookupFuncNames.includes(expression[0] as DataLookupFuncName)
+  );
+};
+
+export const isSimpleProcessUserAction = (expression: Expression): expression is DataLookupFunc => {
+  const actions: string[] = ['sign', 'pay', 'reject', 'confirm'];
+  return typeof expression === 'string' && actions.includes(expression);
 };
 
 export const isSimpleKeyLookupFunc = (expression: Expression): expression is KeyLookupFunc =>
