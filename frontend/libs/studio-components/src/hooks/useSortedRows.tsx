@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { Rows } from '../components/StudioTableWithPagination/StudioTableWithPagination';
 
-export const useSortedRows = (rows: Rows) => {
+export const useSortedRows = (rows) => {
   const [sortColumn, setSortColumn] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
 

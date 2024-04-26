@@ -1,20 +1,15 @@
-import { Pagination } from '@digdir/design-system-react';
+import { Pagination, Table } from '@digdir/design-system-react';
 import React, { forwardRef, useState } from 'react';
 import classes from './StudioTableWithPagination.module.css';
-import { StudioTable } from './StudioTable';
 import { calcRowsToRender } from './utils';
 import { useSortedRows } from '../../hooks/useSortedRows';
 import { SelectRowsPerPage } from './SelectRowsPerPage';
 
-export type TableSize = 'small' | 'medium' | 'large';
-export type Rows = Record<string, React.ReactNode>[];
-export type Columns = Record<'accessor' | 'value', string>[];
-
 type StudioTableWithPaginationProps = {
-  columns: Columns;
-  rows: Rows;
+  columns: Record<'accessor' | 'value', string>[];
+  rows: Record<string, React.ReactNode>[];
   isSortable?: boolean;
-  size?: TableSize;
+  size?: 'small' | 'medium' | 'large';
   initialRowsPerPage?: number;
 };
 
@@ -34,15 +29,36 @@ export const StudioTableWithPagination = forwardRef<
     const rowsToRender = calcRowsToRender(currentPage, rowsPerPage, sortedRows);
     if (rowsToRender.length === 0) setCurrentPage(1);
 
+    const columnHasValue = (value) => {
+      return Boolean(value);
+    };
+
     return (
       <>
-        <StudioTable
-          columns={columns}
-          rows={rowsToRender}
-          size={size}
-          isSortable={isSortable}
-          handleSorting={handleSorting}
-        />
+        <Table size={size} className={classes.table} ref={ref}>
+          <Table.Head>
+            <Table.Row>
+              {columns.map(({ accessor, value }) => (
+                <Table.HeaderCell
+                  key={accessor}
+                  sortable={isSortable && columnHasValue(value)}
+                  onSortClick={() => handleSorting(accessor)}
+                >
+                  {value}
+                </Table.HeaderCell>
+              ))}
+            </Table.Row>
+          </Table.Head>
+          <Table.Body>
+            {rowsToRender.map((row) => (
+              <Table.Row key={String(row.id)}>
+                {columns.map(({ accessor }) => (
+                  <Table.Cell key={accessor}>{row[accessor]}</Table.Cell>
+                ))}
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table>
         {initialRowsPerPage > 0 && (
           <div className={classes.paginationContainer}>
             <SelectRowsPerPage setRowPerPage={setRowsPerPage} size={size} />
