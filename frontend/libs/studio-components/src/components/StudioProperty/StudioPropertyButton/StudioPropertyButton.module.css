@@ -21,6 +21,11 @@
   white-space: nowrap;
 }
 
+.readOnly:hover {
+  cursor: auto !important;
+  background-color: transparent !important;
+}
+
 .property,
 .value {
   display: block;
@@ -28,6 +33,7 @@
   text-overflow: ellipsis;
 }
 
+.readOnlyWrapper,
 .editIconWrapper {
   flex: 1;
   text-align: right;
@@ -35,8 +41,14 @@
 }
 
 .propertyButton:hover .editIconWrapper,
-.propertyButton:focus .editIconWrapper {
+.readOnlyWrapper,
+.propertyButton:focus .editIconWrapper,
+.readOnlyWrapper {
   display: inline-block;
+}
+
+.readOnlyWrapper {
+  color: black;
 }
 
 .propertyButton.compact {

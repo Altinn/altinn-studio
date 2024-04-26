@@ -4,51 +4,29 @@ import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { BpmnApiContextProps } from '../../../../contexts/BpmnApiContext';
 import { BpmnApiContext } from '../../../../contexts/BpmnApiContext';
-import type { BpmnContextProps } from '../../../../contexts/BpmnContext';
 import { BpmnContext } from '../../../../contexts/BpmnContext';
-import type { BpmnDetails } from '../../../../types/BpmnDetails';
-import { BpmnTypeEnum } from '../../../../enum/BpmnTypeEnum';
-import type Modeler from 'bpmn-js/lib/Modeler';
 import { EditDataType } from './EditDataType';
 import { BpmnConfigPanelFormContextProvider } from '../../../../contexts/BpmnConfigPanelContext';
+import {
+  mockBpmnApiContextValue,
+  mockBpmnContextValue,
+} from '../../../../../test/mocks/bpmnContextMock';
+import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
 const mockTaskId: string = 'testId';
-const mockName: string = 'testName';
-
-const modelerRefMock = {
-  current: {
-    get: () => {},
-  } as unknown as Modeler,
-};
-
-const mockBpmnDetails: BpmnDetails = {
-  id: mockTaskId,
-  name: mockName,
-  taskType: 'data',
-  type: BpmnTypeEnum.Task,
-};
-
-const mockBpmnApiContextValue: Partial<BpmnApiContextProps> = {
-  layoutSets: {
-    sets: [
-      {
-        id: 'layoutSetName',
-        tasks: [mockTaskId],
-      },
-    ],
-  },
-  availableDataModelIds: [],
-};
-
-const mockBpmnContextValue: Partial<BpmnContextProps> = {
-  bpmnDetails: mockBpmnDetails,
-  modelerRef: modelerRefMock,
+const layoutSetsWithoutDataTypeConnection: LayoutSets = {
+  sets: [
+    {
+      id: 'setWithDataType',
+      tasks: [mockTaskId],
+    },
+  ],
 };
 
 describe('EditDataType', () => {
   afterEach(jest.clearAllMocks);
   it('should display a button to add datamodel when task has no datamodel', () => {
-    renderEditDataType();
+    renderEditDataType({ layoutSets: layoutSetsWithoutDataTypeConnection });
     expect(
       screen.getByRole('button', {
         name: textMock('process_editor.configuration_panel_set_datamodel_link'),
@@ -58,7 +36,7 @@ describe('EditDataType', () => {
 
   it('should display a native select with default value when clicking "add datamodel"', async () => {
     const user = userEvent.setup();
-    renderEditDataType();
+    renderEditDataType({ layoutSets: layoutSetsWithoutDataTypeConnection });
     const addDataModelButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_datamodel_link'),
     });
@@ -72,11 +50,8 @@ describe('EditDataType', () => {
   it('should display all available data types including existing and no-model-key as options for data type select', async () => {
     const user = userEvent.setup();
     const availableDataModelIds = ['dataModel1', 'dataModel2'];
-    const existingDataType = 'dataModel0';
+    const existingDataType = mockBpmnApiContextValue.layoutSets.sets[0].dataType;
     renderEditDataType({
-      layoutSets: {
-        sets: [{ id: 'setWithDataType', dataType: existingDataType, tasks: [mockTaskId] }],
-      },
       availableDataModelIds,
     });
     const updateDataTypeButton = screen.getByRole('button', {
@@ -98,12 +73,8 @@ describe('EditDataType', () => {
 
   it('should display the existing data type in preview as a button to edit when task has connected data model', async () => {
     const user = userEvent.setup();
-    const existingDataType = 'dataType';
-    renderEditDataType({
-      layoutSets: {
-        sets: [{ id: 'setWithDataType', dataType: existingDataType, tasks: [mockTaskId] }],
-      },
-    });
+    const existingDataType = mockBpmnApiContextValue.layoutSets.sets[0].dataType;
+    renderEditDataType();
     const updateDataTypeButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
@@ -118,18 +89,7 @@ describe('EditDataType', () => {
 
   it('should display the existing data type in preview when clicking the close button after edit mode and task has data type', async () => {
     const user = userEvent.setup();
-    const existingDataType = 'dataType';
-    renderEditDataType({
-      layoutSets: {
-        sets: [
-          {
-            id: 'setWithDataType',
-            dataType: existingDataType,
-            tasks: [mockTaskId],
-          },
-        ],
-      },
-    });
+    renderEditDataType();
     const updateDataTypeButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
@@ -145,7 +105,7 @@ describe('EditDataType', () => {
 
   it('should display the button to add datamodel when clicking the close button after edit mode and task has no data type', async () => {
     const user = userEvent.setup();
-    renderEditDataType();
+    renderEditDataType({ layoutSets: layoutSetsWithoutDataTypeConnection });
     const addDataModelButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_datamodel_link'),
     });

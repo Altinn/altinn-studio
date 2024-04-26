@@ -5,9 +5,13 @@ export const createMock = jest.fn();
 export const mockModelerRef = {
   current: {
     get: () => ({
-      updateProperties: updatePropertiesMock,
-      updateModdleProperties: updateModdlePropertiesMock,
+      ...modelingMock,
       create: createMock,
     }),
   },
+};
+
+export const modelingMock = {
+  updateProperties: updatePropertiesMock,
+  updateModdleProperties: updateModdlePropertiesMock,
 };

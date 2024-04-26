@@ -1,8 +1,10 @@
-.editTaskId {
-  margin-bottom: var(--fds-spacing-4);
+.configContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-2);
 }
 
-.configContent {
-  margin-bottom: var(--fds-spacing-4);
-  padding: var(--fds-spacing-3);
+.accordion {
+  padding-left: 0;
+  padding-right: 0;
 }

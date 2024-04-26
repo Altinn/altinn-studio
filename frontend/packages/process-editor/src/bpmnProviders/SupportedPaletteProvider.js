@@ -120,6 +120,9 @@ class SupportedPaletteProvider {
                   bpmnFactory.create('altinn:Action', {
                     action: 'reject',
                   }),
+                  bpmnFactory.create('altinn:Action', {
+                    action: 'confirm',
+                  }),
                 ],
               }),
               paymentConfig: bpmnFactory.create('altinn:PaymentConfig', {

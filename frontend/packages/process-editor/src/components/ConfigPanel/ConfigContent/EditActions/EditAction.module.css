@@ -1,0 +1,20 @@
+.action {
+  padding: var(--studio-property-button-vertical-spacing) var(--fds-spacing-5);
+  margin-bottom: var(--studio-property-button-vertical-spacing);
+}
+
+.editActionName {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.editActionType {
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
