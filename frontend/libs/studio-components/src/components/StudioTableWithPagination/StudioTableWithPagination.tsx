@@ -29,10 +29,6 @@ export const StudioTableWithPagination = forwardRef<
     const rowsToRender = calcRowsToRender(currentPage, rowsPerPage, sortedRows);
     if (rowsToRender.length === 0) setCurrentPage(1);
 
-    const columnHasValue = (value) => {
-      return Boolean(value);
-    };
-
     return (
       <>
         <Table size={size} className={classes.table} ref={ref}>
@@ -41,7 +37,7 @@ export const StudioTableWithPagination = forwardRef<
               {columns.map(({ accessor, value }) => (
                 <Table.HeaderCell
                   key={accessor}
-                  sortable={isSortable && columnHasValue(value)}
+                  sortable={isSortable && !!value}
                   onSortClick={() => handleSorting(accessor)}
                 >
                   {value}
