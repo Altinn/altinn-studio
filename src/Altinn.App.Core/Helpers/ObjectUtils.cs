@@ -104,7 +104,7 @@ public static class ObjectUtils
                 var value = prop.GetValue(model);
 
                 // continue recursion over all properties
-                if (value is not null)
+                if (value?.GetType().IsValueType == false)
                 {
                     RemoveAltinnRowId(value);
                 }
