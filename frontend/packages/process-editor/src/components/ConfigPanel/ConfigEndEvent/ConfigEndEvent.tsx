@@ -2,7 +2,7 @@ import React from 'react';
 import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { StudioSectionHeader, StudioToggleableTextfield } from '@studio/components';
 import { Paragraph } from '@digdir/design-system-react';
-import { PencilWritingIcon } from '@navikt/aksel-icons';
+import { PencilWritingIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './ConfigEndEvent.module.css';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { DropdownMenu } from '@digdir/design-system-react';
-import { PlusIcon } from '@navikt/aksel-icons';
+import { PlusIcon } from '@studio/icons';
 import { useText } from '../../../../hooks';
 import { StudioDropdownMenu } from '@studio/components';
 import { useFormItemContext } from '../../../../containers/FormItemContext';

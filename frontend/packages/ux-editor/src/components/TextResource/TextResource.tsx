@@ -3,7 +3,7 @@ import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import { generateTextResourceId } from '../../utils/generateId';
 import { TextResourceEditor } from './TextResourceEditor';
 import { StudioButton, StudioDeleteButton, StudioProperty } from '@studio/components';
-import { XMarkIcon } from '@navikt/aksel-icons';
+import { XMarkIcon } from '@studio/icons';
 import { TextResourceValue } from './TextResourceValue';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';

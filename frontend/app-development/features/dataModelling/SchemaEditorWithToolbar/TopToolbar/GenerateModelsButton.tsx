@@ -1,5 +1,5 @@
 import { Spinner } from '@digdir/design-system-react';
-import { CogIcon } from '@navikt/aksel-icons';
+import { CogIcon } from '@studio/icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSchemaQuery } from '../../../../hooks/queries';

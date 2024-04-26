@@ -1,6 +1,6 @@
 import React from 'react';
 import { Accordion } from '@digdir/design-system-react';
-import { FileIcon } from '@navikt/aksel-icons';
+import { FileIcon } from '@studio/icons';
 import { StudioSectionHeader } from '@studio/components';
 import { useText, useTextResourcesSelector, useAppContext, useFormLayouts } from '../../../hooks';
 import { DEFAULT_LANGUAGE, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
