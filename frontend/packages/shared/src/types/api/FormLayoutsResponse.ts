@@ -17,7 +17,7 @@ export interface ExternalData {
   [key: string]: any;
 }
 
-type ExternalComponentBase<T extends ComponentType = ComponentType> = {
+export type ExternalComponentBase<T extends ComponentType = ComponentType> = {
   id: string;
   type: T;
   dataModelBindings?: KeyValuePairs<string>;

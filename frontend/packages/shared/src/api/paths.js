@@ -29,6 +29,7 @@ export const datamodelUploadPagePath = (org, app) => `${APP_DEVELOPMENT_BASENAME
 // FormEditor
 export const ruleHandlerPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/rule-handler?${s({ layoutSetName })}`; // Get, Post
 export const widgetSettingsPath = (org, app) => `${basePath}/${org}/${app}/app-development/widget-settings`; // Get
+export const optionListsPath = (org, app) => `${basePath}/${org}/${app}/app-development/option-lists`; // Get
 export const optionListIdsPath = (org, app) => `${basePath}/${org}/${app}/app-development/option-list-ids`; // Get
 export const ruleConfigPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/rule-config?${s({ layoutSetName })}`; // Get, Post
 export const datamodelMetadataPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/model-metadata?${s({ layoutSetName })}`; // Get
