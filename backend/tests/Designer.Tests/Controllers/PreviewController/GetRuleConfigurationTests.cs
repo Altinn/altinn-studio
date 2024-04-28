@@ -12,7 +12,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class GetRuleConfigurationTests : PreviewControllerTestsBase<GetRuleConfigurationTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public GetRuleConfigurationTests(WebApplicationFactory<Program> factory) : base(factory)
+        public GetRuleConfigurationTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

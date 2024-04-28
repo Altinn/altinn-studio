@@ -15,7 +15,7 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
 
         private string CopyRepoName { get; set; }
 
-        public CopyAppGiteaIntegrationTests(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture) : base(factory, giteaFixture)
+        public CopyAppGiteaIntegrationTests(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture, ITestOutputHelper testOutput) : base(factory, giteaFixture, testOutput)
         {
         }
 

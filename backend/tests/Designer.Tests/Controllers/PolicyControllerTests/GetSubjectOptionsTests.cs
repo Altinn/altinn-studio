@@ -14,7 +14,7 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
     {
         private readonly string _versionPrefix = "designer/api";
 
-        public GetSubjectOptionsTests(WebApplicationFactory<Program> factory) : base(factory)
+        public GetSubjectOptionsTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

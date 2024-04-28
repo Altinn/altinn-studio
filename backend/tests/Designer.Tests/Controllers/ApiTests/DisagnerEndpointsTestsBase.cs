@@ -47,7 +47,7 @@ namespace Designer.Tests.Controllers.ApiTests
             Converters = { new JsonStringEnumConverter() }
         };
 
-        public DisagnerEndpointsTestsBase(WebApplicationFactory<Program> factory) : base(factory)
+        public DisagnerEndpointsTestsBase(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

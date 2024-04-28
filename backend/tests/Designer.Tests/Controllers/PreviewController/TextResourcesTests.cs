@@ -12,7 +12,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class TextResourcesTests : PreviewControllerTestsBase<TextResourcesTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public TextResourcesTests(WebApplicationFactory<Program> factory) : base(factory)
+        public TextResourcesTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

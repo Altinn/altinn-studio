@@ -16,7 +16,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
     public class ImportResourceTests : ResourceAdminControllerTestsBaseClass<ImportResourceTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public ImportResourceTests(WebApplicationFactory<Program> factory) : base(factory)
+        public ImportResourceTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

@@ -38,7 +38,7 @@ public class PutDatamodelTests : DisagnerEndpointsTestsBase<PutDatamodelTests>, 
 
     private const string JsonSchemaThatWillNotCompile = "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":\"schema.json\",\"type\":\"object\",\"properties\":{\"root\":{\"$ref\":\"#/$defs/rootType\"}},\"$defs\":{\"rootType\":{\"properties\":{\"keyword\":{\"type\":\"string\"}}}}}";
 
-    public PutDatamodelTests(WebApplicationFactory<Program> factory) : base(factory)
+    public PutDatamodelTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
     {
         TargetTestRepository = TestDataHelper.GenerateTestRepoName();
     }

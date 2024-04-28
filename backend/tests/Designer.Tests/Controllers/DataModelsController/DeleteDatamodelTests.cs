@@ -18,7 +18,7 @@ public class DeleteDatamodelTests : DisagnerEndpointsTestsBase<DeleteDatamodelTe
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
     private readonly Mock<IRepository> _repositoryMock;
 
-    public DeleteDatamodelTests(WebApplicationFactory<Program> factory) : base(factory)
+    public DeleteDatamodelTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
     {
         _repositoryMock = new Mock<IRepository>();
     }

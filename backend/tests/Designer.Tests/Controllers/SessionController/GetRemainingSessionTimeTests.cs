@@ -17,7 +17,7 @@ namespace Designer.Tests.Controllers.SessionController
     public class GetRemainingSessionTimeTests : DisagnerEndpointsTestsBase<GetRemainingSessionTimeTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix => "/designer/api/session";
-        public GetRemainingSessionTimeTests(WebApplicationFactory<Program> factory) : base(factory)
+        public GetRemainingSessionTimeTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

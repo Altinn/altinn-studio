@@ -13,7 +13,7 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
     {
         private readonly string _versionPrefix = "designer/api";
 
-        public GetResourcePolicyTests(WebApplicationFactory<Program> factory) : base(factory)
+        public GetResourcePolicyTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

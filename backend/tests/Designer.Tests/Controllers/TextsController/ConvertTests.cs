@@ -11,7 +11,7 @@ namespace Designer.Tests.Controllers.TextsController
     public class ConvertTests : DisagnerEndpointsTestsBase<ConvertTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         protected static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/texts";
-        public ConvertTests(WebApplicationFactory<Program> factory) : base(factory)
+        public ConvertTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

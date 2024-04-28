@@ -13,7 +13,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
     {
         private static string VersionPrefix(string org, string repository, string appVersion) => $"/designer/api/{org}/{repository}/process-modelling/templates/{appVersion}";
 
-        public GetTemplatesTests(WebApplicationFactory<Program> factory) : base(factory)
+        public GetTemplatesTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

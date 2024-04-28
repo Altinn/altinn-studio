@@ -11,7 +11,7 @@ namespace Designer.Tests.Controllers.PreviewController
 {
     public class LayoutSettingsTests : PreviewControllerTestsBase<LayoutSettingsTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        public LayoutSettingsTests(WebApplicationFactory<Program> factory) : base(factory)
+        public LayoutSettingsTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

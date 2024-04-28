@@ -10,7 +10,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class GetOptionsTests : PreviewControllerTestsBase<GetOptionsTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public GetOptionsTests(WebApplicationFactory<Program> factory) : base(factory)
+        public GetOptionsTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

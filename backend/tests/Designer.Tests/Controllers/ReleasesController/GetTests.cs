@@ -29,7 +29,7 @@ namespace Designer.Tests.Controllers.ReleasesController
         private readonly string _org = "udi";
         private readonly string _app = "kjaerestebesok";
 
-        public GetTests(WebApplicationFactory<Program> factory) : base(factory)
+        public GetTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
             _options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
             _options.Converters.Add(new JsonStringEnumConverter());

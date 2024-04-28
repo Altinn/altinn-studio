@@ -15,7 +15,7 @@ namespace Designer.Tests.Controllers.RepositoryController
     public class ResetLocalRepositoryTests : DisagnerEndpointsTestsBase<ResetLocalRepositoryTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix => "/designer/api/repos";
-        public ResetLocalRepositoryTests(WebApplicationFactory<Program> factory) : base(factory)
+        public ResetLocalRepositoryTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

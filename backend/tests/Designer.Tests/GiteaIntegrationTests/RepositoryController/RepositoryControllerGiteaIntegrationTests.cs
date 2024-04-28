@@ -27,7 +27,7 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
         private readonly AsyncRetryPolicy<HttpResponseMessage> _giteaRetryPolicy = Policy.HandleResult<HttpResponseMessage>(x => x.StatusCode != HttpStatusCode.OK)
             .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt));
 
-        public RepositoryControllerGiteaIntegrationTests(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture) : base(factory, giteaFixture)
+        public RepositoryControllerGiteaIntegrationTests(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture, ITestOutputHelper testOutput) : base(factory, giteaFixture, testOutput)
         {
         }
 

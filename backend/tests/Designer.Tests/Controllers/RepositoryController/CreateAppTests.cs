@@ -17,7 +17,7 @@ namespace Designer.Tests.Controllers.RepositoryController
     {
         private readonly Mock<IRepository> _repositoryMock = new Mock<IRepository>();
         private static string VersionPrefix => "/designer/api/repos";
-        public CreateAppTests(WebApplicationFactory<Program> factory) : base(factory)
+        public CreateAppTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

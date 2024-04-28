@@ -21,7 +21,7 @@ namespace Designer.Tests.Controllers.PreviewController
     {
 
         private readonly Mock<IAppDevelopmentService> _appDevelopmentServiceMock;
-        public ApplicationMetadataTests(WebApplicationFactory<Program> factory) : base(factory)
+        public ApplicationMetadataTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
             _appDevelopmentServiceMock = new Mock<IAppDevelopmentService>();
         }

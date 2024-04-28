@@ -8,6 +8,7 @@ using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Fixtures;
 using DotNet.Testcontainers.Builders;
 using FluentAssertions;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Mvc.Testing.Handlers;
 using Microsoft.AspNetCore.TestHost;
@@ -85,6 +86,8 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
                 conf.AddJsonFile(configPath);
                 conf.AddJsonStream(GenerateGiteaOverrideConfigStream());
             });
+
+            builder.ConfigureLogging(ConfigureFakeLogging);
 
             builder.ConfigureTestServices(ConfigureTestServices);
         }).CreateDefaultClient(new GiteaAuthDelegatingHandler(GiteaFixture.GiteaUrl), new CookieContainerHandler(CookieContainer));

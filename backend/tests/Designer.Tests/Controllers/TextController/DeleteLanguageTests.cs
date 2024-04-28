@@ -10,7 +10,7 @@ namespace Designer.Tests.Controllers.TextController
     public class DeleteLanguageTests : DisagnerEndpointsTestsBase<DeleteLanguageTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text";
-        public DeleteLanguageTests(WebApplicationFactory<Program> factory) : base(factory)
+        public DeleteLanguageTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Designer.Tests.Controllers.ApiTests;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
@@ -14,7 +15,7 @@ public class NonAuthenticatedCallsTests : DisagnerEndpointsTestsBase<NonAuthenti
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
     private readonly WebApplicationFactory<Program> _factory;
 
-    public NonAuthenticatedCallsTests(WebApplicationFactory<Program> factory) : base(factory)
+    public NonAuthenticatedCallsTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
     {
         _factory = factory;
     }
@@ -40,6 +41,7 @@ public class NonAuthenticatedCallsTests : DisagnerEndpointsTestsBase<NonAuthenti
         var client = _factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureAppConfiguration((_, conf) => { conf.AddJsonFile(configPath); });
+            builder.ConfigureLogging(ConfigureFakeLogging);
 
             builder.ConfigureTestServices(ConfigureTestServices);
         }).CreateClient(new WebApplicationFactoryClientOptions() { AllowAutoRedirect = false });

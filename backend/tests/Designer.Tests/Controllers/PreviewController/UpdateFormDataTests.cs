@@ -10,7 +10,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class UpdateFormDataTests : PreviewControllerTestsBase<UpdateFormDataTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public UpdateFormDataTests(WebApplicationFactory<Program> factory) : base(factory)
+        public UpdateFormDataTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

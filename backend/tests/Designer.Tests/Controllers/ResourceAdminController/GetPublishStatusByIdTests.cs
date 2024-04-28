@@ -12,7 +12,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
 {
     public class GetPublishStatusByIdTests : ResourceAdminControllerTestsBaseClass<GetPublishStatusByIdTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        public GetPublishStatusByIdTests(WebApplicationFactory<Program> factory) : base(factory)
+        public GetPublishStatusByIdTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

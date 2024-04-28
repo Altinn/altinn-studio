@@ -12,7 +12,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class ApplicationSettingsTests : PreviewControllerTestsBase<ApplicationSettingsTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public ApplicationSettingsTests(WebApplicationFactory<Program> factory) : base(factory)
+        public ApplicationSettingsTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

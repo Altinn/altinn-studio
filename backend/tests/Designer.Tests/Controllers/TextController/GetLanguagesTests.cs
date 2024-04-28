@@ -12,7 +12,7 @@ namespace Designer.Tests.Controllers.TextController
     public class GetLanguagesTests : DisagnerEndpointsTestsBase<GetLanguagesTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text";
-        public GetLanguagesTests(WebApplicationFactory<Program> factory) : base(factory)
+        public GetLanguagesTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

@@ -8,7 +8,7 @@ namespace Designer.Tests.Controllers.PreviewController
 {
     public class LayoutSetsTests : PreviewControllerTestsBase<LayoutSetsTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        public LayoutSetsTests(WebApplicationFactory<Program> factory) : base(factory)
+        public LayoutSetsTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

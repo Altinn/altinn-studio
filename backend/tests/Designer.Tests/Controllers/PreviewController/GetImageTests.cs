@@ -13,7 +13,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class GetImageTests : PreviewControllerTestsBase<GetImageTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public GetImageTests(WebApplicationFactory<Program> factory) : base(factory)
+        public GetImageTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

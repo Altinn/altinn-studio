@@ -15,7 +15,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class InstancesTests : PreviewControllerTestsBase<InstancesTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public InstancesTests(WebApplicationFactory<Program> factory) : base(factory)
+        public InstancesTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

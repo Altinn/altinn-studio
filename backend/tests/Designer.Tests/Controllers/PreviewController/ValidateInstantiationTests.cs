@@ -11,7 +11,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class ValidateInstantiationTests : PreviewControllerTestsBase<ValidateInstantiationTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public ValidateInstantiationTests(WebApplicationFactory<Program> factory) : base(factory)
+        public ValidateInstantiationTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

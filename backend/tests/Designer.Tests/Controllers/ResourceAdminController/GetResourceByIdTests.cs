@@ -13,7 +13,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
     public class GetResourceByIdTests : ResourceAdminControllerTestsBaseClass<GetResourceByIdTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public GetResourceByIdTests(WebApplicationFactory<Program> factory) : base(factory)
+        public GetResourceByIdTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

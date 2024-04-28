@@ -16,7 +16,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
     public class DeleteMetadataForAttachmentTests : DisagnerEndpointsTestsBase<DeleteMetadataForAttachmentTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/metadata";
-        public DeleteMetadataForAttachmentTests(WebApplicationFactory<Program> factory) : base(factory)
+        public DeleteMetadataForAttachmentTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

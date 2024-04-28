@@ -15,7 +15,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
     public class GetApplicationMetadataTests : DisagnerEndpointsTestsBase<GetApplicationMetadataTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/metadata";
-        public GetApplicationMetadataTests(WebApplicationFactory<Program> factory) : base(factory)
+        public GetApplicationMetadataTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

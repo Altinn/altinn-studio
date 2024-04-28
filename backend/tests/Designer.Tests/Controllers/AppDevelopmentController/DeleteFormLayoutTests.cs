@@ -14,7 +14,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
     public class DeleteFormLayoutTests : DisagnerEndpointsTestsBase<DeleteFormLayoutTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
-        public DeleteFormLayoutTests(WebApplicationFactory<Program> factory) : base(factory)
+        public DeleteFormLayoutTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

@@ -28,7 +28,7 @@ namespace Designer.Tests.Controllers.PreviewController
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };
 
-        public PreviewControllerTestsBase(WebApplicationFactory<Program> factory) : base(factory)
+        public PreviewControllerTestsBase(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

@@ -14,7 +14,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
 
         private static string VersionPrefix(string org, string repository, string appVersion, string templateName) => $"/designer/api/{org}/{repository}/process-modelling/templates/{appVersion}/{templateName}";
 
-        public SaveProcessDefinitionFromTemplateTests(WebApplicationFactory<Program> factory) : base(factory)
+        public SaveProcessDefinitionFromTemplateTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

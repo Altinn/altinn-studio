@@ -17,7 +17,7 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
     public class GitNotesGiteaIntegrationTests : GiteaIntegrationTestsBase<CopyAppGiteaIntegrationTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public GitNotesGiteaIntegrationTests(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture) : base(factory, giteaFixture)
+        public GitNotesGiteaIntegrationTests(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture, ITestOutputHelper testOutput) : base(factory, giteaFixture, testOutput)
         {
         }
         [Theory]

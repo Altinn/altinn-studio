@@ -10,7 +10,7 @@ namespace Designer.Tests.Controllers.PreviewController
 {
     public class AnonymousTests : PreviewControllerTestsBase<AnonymousTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        public AnonymousTests(WebApplicationFactory<Program> factory) : base(factory)
+        public AnonymousTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

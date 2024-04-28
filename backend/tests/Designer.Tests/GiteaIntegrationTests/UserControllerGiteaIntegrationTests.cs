@@ -16,7 +16,7 @@ namespace Designer.Tests.GiteaIntegrationTests
     public class UserControllerGiteaIntegrationTests : GiteaIntegrationTestsBase<UserControllerGiteaIntegrationTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public UserControllerGiteaIntegrationTests(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture) : base(factory, giteaFixture)
+        public UserControllerGiteaIntegrationTests(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture, ITestOutputHelper testOutput) : base(factory, giteaFixture, testOutput)
         {
         }
 

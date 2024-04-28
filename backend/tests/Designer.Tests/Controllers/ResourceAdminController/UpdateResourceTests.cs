@@ -15,7 +15,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
     public class UpdateResourceTests : ResourceAdminControllerTestsBaseClass<UpdateResourceTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public UpdateResourceTests(WebApplicationFactory<Program> factory) : base(factory)
+        public UpdateResourceTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

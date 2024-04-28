@@ -13,7 +13,7 @@ namespace Designer.Tests.Controllers.LanguagesController
     {
         private readonly string _versionPrefix = "designer/api";
 
-        public GetLanguagesTests(WebApplicationFactory<Program> factory) : base(factory)
+        public GetLanguagesTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

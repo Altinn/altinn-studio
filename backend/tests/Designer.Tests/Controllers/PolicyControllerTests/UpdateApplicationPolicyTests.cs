@@ -14,7 +14,7 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
     {
         private readonly string _versionPrefix = "designer/api";
 
-        public UpdateApplicationPolicyTests(WebApplicationFactory<Program> factory) : base(factory)
+        public UpdateApplicationPolicyTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

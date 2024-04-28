@@ -16,7 +16,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/process-modelling/process-definition";
 
-        public GetProcessDefinitionTests(WebApplicationFactory<Program> factory) : base(factory)
+        public GetProcessDefinitionTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

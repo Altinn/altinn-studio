@@ -11,7 +11,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
     public class GetGetLosTermsTests : ResourceAdminControllerTestsBaseClass<GetGetLosTermsTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public GetGetLosTermsTests(WebApplicationFactory<Program> factory) : base(factory)
+        public GetGetLosTermsTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

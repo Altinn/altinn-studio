@@ -12,7 +12,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class GetFormLayoutsForStatefulApps : PreviewControllerTestsBase<GetFormLayoutsForStatefulApps>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public GetFormLayoutsForStatefulApps(WebApplicationFactory<Program> factory) : base(factory)
+        public GetFormLayoutsForStatefulApps(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

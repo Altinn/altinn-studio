@@ -10,7 +10,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class DeleteAttachmentTests : PreviewControllerTestsBase<DeleteAttachmentTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public DeleteAttachmentTests(WebApplicationFactory<Program> factory) : base(factory)
+        public DeleteAttachmentTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

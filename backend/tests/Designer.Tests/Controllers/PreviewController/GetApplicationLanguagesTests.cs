@@ -9,7 +9,7 @@ namespace Designer.Tests.Controllers.PreviewController
     public class GetApplicationLanguagesTests : PreviewControllerTestsBase<GetApplicationLanguagesTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public GetApplicationLanguagesTests(WebApplicationFactory<Program> factory) : base(factory)
+        public GetApplicationLanguagesTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
         }
 

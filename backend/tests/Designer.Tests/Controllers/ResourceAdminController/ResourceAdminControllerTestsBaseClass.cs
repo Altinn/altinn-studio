@@ -30,7 +30,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             services.AddTransient(_ => Altinn2MetadataClientMock.Object);
         }
 
-        protected ResourceAdminControllerTestsBaseClass(WebApplicationFactory<Program> factory) : base(factory)
+        protected ResourceAdminControllerTestsBaseClass(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
         {
             RepositoryMock = new Mock<IRepository>();
             ResourceRegistryMock = new Mock<IResourceRegistry>();

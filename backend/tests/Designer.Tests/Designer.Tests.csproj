@@ -20,6 +20,7 @@
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.Testing" Version="8.4.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Fare" />
     <PackageReference Include="Moq" />
@@ -51,6 +52,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Using Include="Xunit.Abstractions"></Using>
     <Content Remove="_TestData\**\*.*" />
     <Compile Remove="_TestData\Repositories\*\*\$(TestRepoPrefix)*\**" />
     <Compile Remove="_TestData\Remote\*\$(TestRepoPrefix)*\**" />

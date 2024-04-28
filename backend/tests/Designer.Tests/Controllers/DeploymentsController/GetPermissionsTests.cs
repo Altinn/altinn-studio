@@ -18,7 +18,7 @@ public class GetPermissions : DisagnerEndpointsTestsBase<GetPermissions>, IClass
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/deployments";
     private readonly Mock<IGitea> _giteaMock;
 
-    public GetPermissions(WebApplicationFactory<Program> factory) : base(factory)
+    public GetPermissions(WebApplicationFactory<Program> factory, ITestOutputHelper testOutput) : base(factory, testOutput)
     {
         _giteaMock = new Mock<IGitea>();
         _giteaMock.Setup(g => g.GetUserNameFromUI()).ReturnsAsync("testUser");
