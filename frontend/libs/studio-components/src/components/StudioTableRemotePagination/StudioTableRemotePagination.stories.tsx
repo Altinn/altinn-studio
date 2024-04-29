@@ -19,21 +19,21 @@ const meta: Meta = {
 };
 export const Preview: Story = (args) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [currentPageSize, setCurrentPageSize] = useState<number>(2);
+  const [pageSize, setPageSize] = useState<number>(5);
 
   const { handleSorting, sortedRows } = useTableSorting(rows);
 
-  const rowsToRender = getRowsToRender(currentPage, currentPageSize, sortedRows);
-  const totalPages = Math.ceil(rows.length / currentPageSize);
+  const rowsToRender = getRowsToRender(currentPage, pageSize, sortedRows);
+  const totalPages = Math.ceil(rows.length / pageSize);
   if (rowsToRender.length === 0) setCurrentPage(1);
 
   const paginationProps = {
     currentPage,
     totalPages,
-    pageSize: currentPageSize,
+    pageSize: pageSize,
     pageSizeOptions: [2, 5, 10, 20, 50],
     onPageChange: setCurrentPage,
-    onPageSizeChange: setCurrentPageSize,
+    onPageSizeChange: setPageSize,
     itemLabel: (num) => `Side ${num}`,
     nextButtonText: 'Neste',
     previousButtonText: 'Forrige',

@@ -1,7 +1,6 @@
 import React, { forwardRef } from 'react';
 import { StudioTableRemotePagination } from '../StudioTableRemotePagination';
-
-export type Rows = Record<string, React.ReactNode>[];
+import { Rows } from '../StudioTableRemotePagination/StudioTableRemotePagination';
 
 type PaginationTranslation = {
   nextButtonText: string;

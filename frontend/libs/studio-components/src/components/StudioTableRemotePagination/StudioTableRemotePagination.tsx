@@ -40,6 +40,7 @@ export const StudioTableRemotePagination = forwardRef<
   const {
     currentPage,
     totalPages,
+    pageSize,
     pageSizeOptions,
     onPageChange: handlePageChange,
     onPageSizeChange: handlePageSizeChange,
@@ -83,6 +84,7 @@ export const StudioTableRemotePagination = forwardRef<
             <NativeSelect
               className={classes.selector}
               id={labelId}
+              defaultValue={pageSize}
               onChange={(e) => handlePageSizeChange(Number(e.target.value))}
               size={size}
             >

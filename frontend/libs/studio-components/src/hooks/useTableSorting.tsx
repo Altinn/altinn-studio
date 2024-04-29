@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { Rows } from '../components/StudioTableRemotePagination/StudioTableRemotePagination';
 
-export const useTableSorting = (rows) => {
+export const useTableSorting = (rows: Rows) => {
   const [sortColumn, setSortColumn] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
 
