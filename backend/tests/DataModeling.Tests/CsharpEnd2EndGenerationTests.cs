@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using System.Xml.Serialization;
 using Altinn.Studio.DataModeling.Converter.Csharp;
 using DataModeling.Tests.Assertions;
@@ -8,11 +9,19 @@ using Designer.Tests.Factories.ModelFactory.DataClasses;
 using FluentAssertions;
 using SharedResources.Tests;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace DataModeling.Tests
 {
     public class CsharpEnd2EndGenerationTests : CsharpModelConversionTestsBase<CsharpEnd2EndGenerationTests>
     {
+        private readonly ITestOutputHelper _testOutput;
+
+        public CsharpEnd2EndGenerationTests(ITestOutputHelper testOutput)
+        {
+            _testOutput = testOutput;
+        }
+        
         [Theory]
         [ClassData(typeof(CSharpEnd2EndTestData))]
         public void Convert_FromXsd_Should_EqualExpected(string xsdSchemaPath, string expectedCsharpClassPath)
@@ -61,6 +70,15 @@ namespace DataModeling.Tests
         private void GeneratedClassesShouldBeEquivalentToExpected(string expectedCsharpClassPath)
         {
             string expectedClasses = SharedResourcesHelper.LoadTestDataAsString(expectedCsharpClassPath);
+
+            _testOutput.WriteLine("Expected classes");
+            _testOutput.WriteLine(expectedClasses);
+            _testOutput.WriteLine("Generated classes");
+            _testOutput.WriteLine(CSharpClasses);
+
+            // Save the current generated classes to the expected file so they can be compared with git diff.
+            SharedResourcesHelper.WriteUpdatedTestData(expectedCsharpClassPath, CSharpClasses);
+
             var expectedAssembly = Compiler.CompileToAssembly(expectedClasses);
 
             // Compare root types.
