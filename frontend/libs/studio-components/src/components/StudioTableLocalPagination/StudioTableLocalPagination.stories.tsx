@@ -25,12 +25,10 @@ Preview.args = {
   size: 'medium',
   isSortable: true,
   pagination: {
-    initialRowsPerPage: 5,
-    paginationTranslation: {
-      nextButtonText: 'Neste',
-      previousButtonText: 'Forrige',
-      itemLabel: (num) => `Side ${num}`,
-    },
+    pageSizeOptions: [5, 10, 20, 50],
+    nextButtonText: 'Neste',
+    previousButtonText: 'Forrige',
+    itemLabel: (num) => `Side ${num}`,
   },
 };
 export default meta;

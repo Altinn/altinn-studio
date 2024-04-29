@@ -30,8 +30,7 @@ export const Preview: Story = (args) => {
   const paginationProps = {
     currentPage,
     totalPages,
-    pageSize: pageSize,
-    pageSizeOptions: [2, 5, 10, 20, 50],
+    pageSizeOptions: [5, 10, 20, 50],
     onPageChange: setCurrentPage,
     onPageSizeChange: setPageSize,
     itemLabel: (num) => `Side ${num}`,
