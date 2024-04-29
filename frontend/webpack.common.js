@@ -44,7 +44,7 @@ module.exports = {
             options: {
               modules: {
                 namedExport: false,
-                exportLocalsConvention: 'camel-case-only',
+                exportLocalsConvention: 'as-is',
               },
               url: false,
             },
@@ -69,7 +69,7 @@ module.exports = {
               modules: {
                 localIdentName: '[name]__[local]--[hash:base64:5]',
                 namedExport: false,
-                exportLocalsConvention: 'camel-case-only',
+                exportLocalsConvention: 'as-is',
               },
             },
           },
