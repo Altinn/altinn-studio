@@ -2,7 +2,7 @@ import React, { forwardRef, useEffect, useState } from 'react';
 import { StudioTableRemotePagination } from '../StudioTableRemotePagination';
 import { Rows } from '../StudioTableRemotePagination/StudioTableRemotePagination';
 import { useTableSorting } from '../../hooks/useTableSorting';
-import { getRowsToRender } from './utils';
+import { getRowsToRender } from '../StudioTableRemotePagination/utils';
 
 type StudioTableLocalPaginationProps = {
   columns: Record<'accessor' | 'value', string>[];

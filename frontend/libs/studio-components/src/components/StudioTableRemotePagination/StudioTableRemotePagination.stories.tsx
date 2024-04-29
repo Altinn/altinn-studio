@@ -3,7 +3,7 @@ import type { Meta, StoryFn } from '@storybook/react';
 import { StudioTableRemotePagination } from './StudioTableRemotePagination';
 import { columns, rows } from './mockData';
 import { useTableSorting } from '../../hooks/useTableSorting';
-import { getRowsToRender } from '../StudioTableLocalPagination/utils';
+import { getRowsToRender } from './utils';
 
 type Story = StoryFn<typeof StudioTableRemotePagination>;
 
