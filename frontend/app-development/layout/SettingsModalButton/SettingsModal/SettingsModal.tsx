@@ -8,7 +8,7 @@ import {
   TimerStartIcon,
   ShieldLockIcon,
   SidebarBothIcon,
-} from '@navikt/aksel-icons';
+} from '@studio/icons';
 import { StudioModal } from '@studio/components';
 import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';

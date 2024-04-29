@@ -1,6 +1,6 @@
 import React from 'react';
 import { StudioButton } from '@studio/components';
-import { DownloadIcon } from '@navikt/aksel-icons';
+import { DownloadIcon } from '@studio/icons';
 import classes from './FetchChangesButton.module.css';
 import { useTranslation } from 'react-i18next';
 import { Notification } from '../Notification';

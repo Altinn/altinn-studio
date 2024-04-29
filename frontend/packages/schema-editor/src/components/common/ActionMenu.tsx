@@ -1,5 +1,5 @@
 import React from 'react';
-import { PlusCircleIcon } from '@navikt/aksel-icons';
+import { PlusCircleIcon } from '@studio/icons';
 import type { IconImage } from './Icon';
 import { Icon } from './Icon';
 import classes from './ActionMenu.module.css';

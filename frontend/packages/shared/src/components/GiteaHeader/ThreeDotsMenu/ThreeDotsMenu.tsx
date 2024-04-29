@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './ThreeDotsMenu.module.css';
-import { MonitorIcon, TabsIcon, MenuElipsisVerticalIcon } from '@navikt/aksel-icons';
+import { MonitorIcon, TabsIcon, MenuElipsisVerticalIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
 import { GiteaIcon } from 'app-shared/icons';

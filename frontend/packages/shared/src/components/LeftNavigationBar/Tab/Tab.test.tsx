@@ -2,7 +2,7 @@ import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { LeftNavigationTab, TabAction } from 'app-shared/types/LeftNavigationTab';
-import { TestFlaskIcon } from '@navikt/aksel-icons';
+import { TestFlaskIcon } from '@studio/icons';
 import type { TabProps } from './Tab';
 import { Tab } from './Tab';
 import { MemoryRouter } from 'react-router-dom';

@@ -21,13 +21,7 @@ import classes from './RepoList.module.css';
 import type { User } from 'app-shared/types/Repository';
 import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from '../../hooks/mutations';
 
-import {
-  PencilIcon,
-  FilesIcon,
-  ExternalLinkIcon,
-  StarIcon,
-  StarFillIcon,
-} from '@navikt/aksel-icons';
+import { PencilIcon, FilesIcon, ExternalLinkIcon, StarIcon, StarFillIcon } from '@studio/icons';
 
 export interface IRepoListProps {
   isLoading: boolean;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { PlusIcon, XMarkIcon } from '@navikt/aksel-icons';
+import { PlusIcon, XMarkIcon } from '@studio/icons';
 import { LegacyFieldSet, LegacyTextField } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';

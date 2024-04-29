@@ -1,6 +1,6 @@
 import React from 'react';
 import { StudioButton } from '@studio/components';
-import { CogIcon } from '@navikt/aksel-icons';
+import { CogIcon } from '@studio/icons';
 
 export interface IRuleButtonProps {
   onClick: () => void;

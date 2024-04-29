@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ErrorMessage, Textfield, LegacyPopover } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { PlusIcon } from '@navikt/aksel-icons';
+import { PlusIcon } from '@studio/icons';
 import { extractModelNamesFromMetadataList } from '../../../../utils/metadataUtils';
 import type { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 import { StudioButton } from '@studio/components';

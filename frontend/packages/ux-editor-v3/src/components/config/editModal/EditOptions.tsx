@@ -4,7 +4,7 @@ import { Fieldset, Radio, Textfield, ErrorMessage } from '@digdir/design-system-
 import classes from './EditOptions.module.css';
 import type { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';
-import { PlusIcon, XMarkIcon } from '@navikt/aksel-icons';
+import { PlusIcon, XMarkIcon } from '@studio/icons';
 import { TextResource } from '../../TextResource';
 import { useText, useComponentErrorMessage } from '../../../hooks';
 import { addOptionToComponent, generateRandomOption } from '../../../utils/component';

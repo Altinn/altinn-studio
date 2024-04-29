@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { StudioIconTextfield } from './StudioIconTextfield';
 import type { StudioIconTextfieldProps } from './StudioIconTextfield';
-import { KeyVerticalIcon } from '@navikt/aksel-icons';
+import { KeyVerticalIcon } from '@studio/icons';
 import userEvent from '@testing-library/user-event';
 
 describe('StudioIconTextfield', () => {
