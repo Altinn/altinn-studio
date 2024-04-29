@@ -42,6 +42,10 @@ module.exports = {
           {
             loader: 'css-loader',
             options: {
+              modules: {
+                namedExport: false,
+                exportLocalsConvention: 'camel-case-only',
+              },
               url: false,
             },
           },
@@ -64,6 +68,8 @@ module.exports = {
               },
               modules: {
                 localIdentName: '[name]__[local]--[hash:base64:5]',
+                namedExport: false,
+                exportLocalsConvention: 'camel-case-only',
               },
             },
           },
