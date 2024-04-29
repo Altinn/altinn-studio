@@ -134,6 +134,17 @@ namespace Altinn.App.Models
 
   public class DOKLINK
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId()
+    {
+      return AltinnRowId != default;
+    }
+
     [XmlElement("DL_DOKID_DB", Order = 1)]
     [JsonProperty("DL_DOKID_DB")]
     [JsonPropertyName("DL_DOKID_DB")]
@@ -144,6 +155,10 @@ namespace Altinn.App.Models
     [JsonPropertyName("DL_TYPE_DT")]
     public string DL_TYPE_DT { get; set; }
 
+  }
+
+  public class DOKBESKRIV
+  {
     [XmlAttribute("altinnRowId")]
     [JsonPropertyName("altinnRowId")]
     [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
@@ -154,10 +169,7 @@ namespace Altinn.App.Models
     {
       return AltinnRowId != default;
     }
-  }
 
-  public class DOKBESKRIV
-  {
     [XmlElement("DB_DOKID", Order = 1)]
     [JsonProperty("DB_DOKID")]
     [JsonPropertyName("DB_DOKID")]
@@ -168,6 +180,10 @@ namespace Altinn.App.Models
     [JsonPropertyName("DB_TITTEL")]
     public string DB_TITTEL { get; set; }
 
+  }
+
+  public class DOKVERSJON
+  {
     [XmlAttribute("altinnRowId")]
     [JsonPropertyName("altinnRowId")]
     [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
@@ -178,10 +194,7 @@ namespace Altinn.App.Models
     {
       return AltinnRowId != default;
     }
-  }
 
-  public class DOKVERSJON
-  {
     [XmlElement("VE_DOKID_DB", Order = 1)]
     [JsonProperty("VE_DOKID_DB")]
     [JsonPropertyName("VE_DOKID_DB")]
@@ -197,16 +210,6 @@ namespace Altinn.App.Models
     [JsonPropertyName("VE_FILREF")]
     public string VE_FILREF { get; set; }
 
-    [XmlAttribute("altinnRowId")]
-    [JsonPropertyName("altinnRowId")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [Newtonsoft.Json.JsonIgnore]
-    public Guid AltinnRowId { get; set; }
-
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
   }
 
   public class FlatData
@@ -311,6 +314,17 @@ namespace Altinn.App.Models
 
   public class Barn
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId()
+    {
+      return AltinnRowId != default;
+    }
+
     [XmlElement("navn", Order = 1)]
     [JsonProperty("navn")]
     [JsonPropertyName("navn")]
@@ -336,6 +350,10 @@ namespace Altinn.App.Models
     [JsonPropertyName("bhgEllerSfo")]
     public string bhgEllerSfo { get; set; }
 
+  }
+
+  public class Skattegrunnlag
+  {
     [XmlAttribute("altinnRowId")]
     [JsonPropertyName("altinnRowId")]
     [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
@@ -346,10 +364,7 @@ namespace Altinn.App.Models
     {
       return AltinnRowId != default;
     }
-  }
 
-  public class Skattegrunnlag
-  {
     [XmlElement("grunnlagNavn", Order = 1)]
     [JsonProperty("grunnlagNavn")]
     [JsonPropertyName("grunnlagNavn")]
@@ -362,16 +377,6 @@ namespace Altinn.App.Models
     [Required]
     public decimal? beloep { get; set; }
 
-    [XmlAttribute("altinnRowId")]
-    [JsonPropertyName("altinnRowId")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [Newtonsoft.Json.JsonIgnore]
-    public Guid AltinnRowId { get; set; }
-
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
   }
 
   public class AppLogikk

@@ -238,6 +238,17 @@ namespace Altinn.App.Models
 
   public class ReellRettighetshaver
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId()
+    {
+      return AltinnRowId != default;
+    }
+
     [XmlElement("erRegistrertIFolkeregisteret", Order = 1)]
     [JsonProperty("erRegistrertIFolkeregisteret")]
     [JsonPropertyName("erRegistrertIFolkeregisteret")]
@@ -421,16 +432,6 @@ namespace Altinn.App.Models
     [JsonPropertyName("hfPosisjonsbeskrivelse")]
     public string hfPosisjonsbeskrivelse { get; set; }
 
-    [XmlAttribute("altinnRowId")]
-    [JsonPropertyName("altinnRowId")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [Newtonsoft.Json.JsonIgnore]
-    public Guid AltinnRowId { get; set; }
-
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
   }
 
   public class Posisjon
@@ -454,6 +455,17 @@ namespace Altinn.App.Models
 
   public class MellomliggendeVirksomhet
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId()
+    {
+      return AltinnRowId != default;
+    }
+
     [XmlElement("erUtenlandskVirksomhet", Order = 1)]
     [JsonProperty("erUtenlandskVirksomhet")]
     [JsonPropertyName("erUtenlandskVirksomhet")]
@@ -485,16 +497,6 @@ namespace Altinn.App.Models
     [JsonPropertyName("hfLandnavn")]
     public string hfLandnavn { get; set; }
 
-    [XmlAttribute("altinnRowId")]
-    [JsonPropertyName("altinnRowId")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [Newtonsoft.Json.JsonIgnore]
-    public Guid AltinnRowId { get; set; }
-
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
   }
 
   public class UtenlandskVirksomhet
@@ -613,6 +615,17 @@ namespace Altinn.App.Models
 
   public class Rolleinnehaver
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId()
+    {
+      return AltinnRowId != default;
+    }
+
     [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$")]
     [XmlElement("foedselsdato", Order = 1)]
     [JsonProperty("foedselsdato")]
@@ -629,15 +642,5 @@ namespace Altinn.App.Models
     [JsonPropertyName("rolle")]
     public string rolle { get; set; }
 
-    [XmlAttribute("altinnRowId")]
-    [JsonPropertyName("altinnRowId")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [Newtonsoft.Json.JsonIgnore]
-    public Guid AltinnRowId { get; set; }
-
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
   }
 }

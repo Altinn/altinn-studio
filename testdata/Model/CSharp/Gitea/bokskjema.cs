@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
@@ -216,6 +215,17 @@ namespace Altinn.App.Models
 
   public class personOfResponsibility
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId()
+    {
+      return AltinnRowId != default;
+    }
+
     [XmlElement("role", Order = 1)]
     [JsonProperty("role")]
     [JsonPropertyName("role")]
@@ -231,6 +241,10 @@ namespace Altinn.App.Models
     [JsonPropertyName("lastname")]
     public string lastname { get; set; }
 
+  }
+
+  public class organizationOfResponsibility
+  {
     [XmlAttribute("altinnRowId")]
     [JsonPropertyName("altinnRowId")]
     [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
@@ -239,13 +253,9 @@ namespace Altinn.App.Models
 
     public bool ShouldSerializeAltinnRowId()
     {
-        return AltinnRowId != default;
+      return AltinnRowId != default;
     }
 
-  }
-
-  public class organizationOfResponsibility
-  {
     [XmlElement("orgName", Order = 1)]
     [JsonProperty("orgName")]
     [JsonPropertyName("orgName")]
@@ -256,6 +266,10 @@ namespace Altinn.App.Models
     [JsonPropertyName("orgRole")]
     public string orgRole { get; set; }
 
+  }
+
+  public class publisherObject
+  {
     [XmlAttribute("altinnRowId")]
     [JsonPropertyName("altinnRowId")]
     [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
@@ -264,26 +278,13 @@ namespace Altinn.App.Models
 
     public bool ShouldSerializeAltinnRowId()
     {
-        return AltinnRowId != default;
+      return AltinnRowId != default;
     }
-  }
 
-  public class publisherObject
-  {
     [XmlElement("publisherName", Order = 1)]
     [JsonProperty("publisherName")]
     [JsonPropertyName("publisherName")]
     public string publisherName { get; set; }
 
-    [XmlAttribute("altinnRowId")]
-    [JsonPropertyName("altinnRowId")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [Newtonsoft.Json.JsonIgnore]
-    public Guid AltinnRowId { get; set; }
-
-    public bool ShouldSerializeAltinnRowId()
-    {
-        return AltinnRowId != default;
-    }
   }
 }

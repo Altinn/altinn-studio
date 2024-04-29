@@ -156,6 +156,17 @@ namespace Altinn.App.Models
 
   public class Underenhet
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId()
+    {
+      return AltinnRowId != default;
+    }
+
     [MinLength(0)]
     [MaxLength(255)]
     [XmlElement("Organisasjonsnummer", Order = 1)]
@@ -175,16 +186,6 @@ namespace Altinn.App.Models
     [JsonPropertyName("Adresse")]
     public Adresse Adresse { get; set; }
 
-    [XmlAttribute("altinnRowId")]
-    [JsonPropertyName("altinnRowId")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [Newtonsoft.Json.JsonIgnore]
-    public Guid AltinnRowId { get; set; }
-
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
   }
 
   public class InnholdSkjema

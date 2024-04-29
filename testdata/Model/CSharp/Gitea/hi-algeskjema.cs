@@ -192,6 +192,17 @@ namespace Altinn.App.Models
 
   public class AltinnAlgae
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId()
+    {
+      return AltinnRowId != default;
+    }
+
     [XmlElement("scientificname", Order = 1)]
     [JsonProperty("scientificname")]
     [JsonPropertyName("scientificname")]
@@ -208,6 +219,10 @@ namespace Altinn.App.Models
       return density.HasValue;
     }
 
+  }
+
+  public class AltinnOwner
+  {
     [XmlAttribute("altinnRowId")]
     [JsonPropertyName("altinnRowId")]
     [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
@@ -218,10 +233,7 @@ namespace Altinn.App.Models
     {
       return AltinnRowId != default;
     }
-  }
 
-  public class AltinnOwner
-  {
     [XmlElement("organisationid", Order = 1)]
     [JsonProperty("organisationid")]
     [JsonPropertyName("organisationid")]
@@ -232,15 +244,5 @@ namespace Altinn.App.Models
     [JsonPropertyName("organisationname")]
     public string organisationname { get; set; }
 
-    [XmlAttribute("altinnRowId")]
-    [JsonPropertyName("altinnRowId")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [Newtonsoft.Json.JsonIgnore]
-    public Guid AltinnRowId { get; set; }
-
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
   }
 }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
@@ -14,15 +13,15 @@ namespace Altinn.App.Models
   {
     [XmlAttribute("dataFormatProvider")]
     [BindNever]
-    public string dataFormatProvider {get; set; } = "SERES";
+    public string dataFormatProvider { get; set; } = "SERES";
 
     [XmlAttribute("dataFormatId")]
     [BindNever]
-    public string dataFormatId {get; set; } = "5702";
+    public string dataFormatId { get; set; } = "5702";
 
     [XmlAttribute("dataFormatVersion")]
     [BindNever]
-    public string dataFormatVersion {get; set; } = "34556";
+    public string dataFormatVersion { get; set; } = "34556";
 
     [XmlElement("Applikasjon", Order = 1)]
     [JsonProperty("Applikasjon")]

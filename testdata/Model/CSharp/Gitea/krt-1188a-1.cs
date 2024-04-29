@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
@@ -14,15 +13,15 @@ namespace Altinn.App.Models
   {
     [XmlAttribute("dataFormatProvider")]
     [BindNever]
-    public string dataFormatProvider {get; set; } = "SERES";
+    public string dataFormatProvider { get; set; } = "SERES";
 
     [XmlAttribute("dataFormatId")]
     [BindNever]
-    public string dataFormatId {get; set; } = "6946";
+    public string dataFormatId { get; set; } = "6946";
 
     [XmlAttribute("dataFormatVersion")]
     [BindNever]
-    public string dataFormatVersion {get; set; } = "46317";
+    public string dataFormatVersion { get; set; } = "46317";
 
     [XmlElement("rapport", Order = 1)]
     [JsonProperty("rapport")]
@@ -91,7 +90,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("guid")]
     [BindNever]
-    public string guid {get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Postnummer/660288";
+    public string guid { get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Postnummer/660288";
 
   }
 
@@ -103,7 +102,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("guid")]
     [BindNever]
-    public string guid {get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Adresselinje1/660286";
+    public string guid { get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Adresselinje1/660286";
 
   }
 
@@ -115,7 +114,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("guid")]
     [BindNever]
-    public string guid {get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Poststed/660287";
+    public string guid { get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Poststed/660287";
 
   }
 
@@ -142,7 +141,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("guid")]
     [BindNever]
-    public string guid {get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Organisasjonsnummer/472763";
+    public string guid { get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Organisasjonsnummer/472763";
 
   }
 
@@ -154,7 +153,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("guid")]
     [BindNever]
-    public string guid {get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Foretaksnavn/639250";
+    public string guid { get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Foretaksnavn/639250";
 
   }
 
@@ -167,7 +166,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("guid")]
     [BindNever]
-    public string guid {get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Målform/660674";
+    public string guid { get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Målform/660674";
 
   }
 
@@ -241,7 +240,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("guid")]
     [BindNever]
-    public string guid {get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Arkivkode/660676";
+    public string guid { get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Arkivkode/660676";
 
   }
 
@@ -276,7 +275,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("guid")]
     [BindNever]
-    public string guid {get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Epost_S01/637664";
+    public string guid { get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Epost_S01/637664";
 
   }
 
@@ -288,7 +287,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("guid")]
     [BindNever]
-    public string guid {get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Navn_S01/637662";
+    public string guid { get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Navn_S01/637662";
 
   }
 
@@ -300,7 +299,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("guid")]
     [BindNever]
-    public string guid {get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/TelefonNummer_S01/637660";
+    public string guid { get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/TelefonNummer_S01/637660";
 
   }
 
@@ -312,7 +311,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("guid")]
     [BindNever]
-    public string guid {get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/TelefonPrefiks_S01/637658";
+    public string guid { get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/TelefonPrefiks_S01/637658";
 
   }
 
@@ -347,7 +346,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("guid")]
     [BindNever]
-    public string guid {get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Epost_S02/637663";
+    public string guid { get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Epost_S02/637663";
 
   }
 
@@ -359,7 +358,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("guid")]
     [BindNever]
-    public string guid {get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Navn_S02/637661";
+    public string guid { get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Navn_S02/637661";
 
   }
 
@@ -371,7 +370,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("guid")]
     [BindNever]
-    public string guid {get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/TelefonNummer_S02/637659";
+    public string guid { get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/TelefonNummer_S02/637659";
 
   }
 
@@ -383,7 +382,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("guid")]
     [BindNever]
-    public string guid {get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/TelefonPrefiks_S02/637657";
+    public string guid { get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/TelefonPrefiks_S02/637657";
 
   }
 
@@ -409,7 +408,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("guid")]
     [BindNever]
-    public string guid {get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/År/660276";
+    public string guid { get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/År/660276";
 
   }
 
@@ -420,7 +419,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("guid")]
     [BindNever]
-    public string guid {get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Periodetype/660275";
+    public string guid { get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Periodetype/660275";
 
   }
 
@@ -441,7 +440,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("guid")]
     [BindNever]
-    public string guid {get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/RapporteringsId/636854";
+    public string guid { get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/RapporteringsId/636854";
 
   }
 
@@ -454,7 +453,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("guid")]
     [BindNever]
-    public string guid {get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Tekst_60_S1/488638";
+    public string guid { get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Tekst_60_S1/488638";
 
   }
 
@@ -466,7 +465,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("guid")]
     [BindNever]
-    public string guid {get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Tekst_120_S01/619866";
+    public string guid { get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Tekst_120_S01/619866";
 
   }
 
@@ -477,7 +476,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("guid")]
     [BindNever]
-    public string guid {get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Avdeling/664243";
+    public string guid { get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Avdeling/664243";
 
   }
 
@@ -490,7 +489,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("guid")]
     [BindNever]
-    public string guid {get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Tekst_255_S10/600714";
+    public string guid { get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/Tekst_255_S10/600714";
 
   }
 
@@ -502,7 +501,7 @@ namespace Altinn.App.Models
 
     [XmlAttribute("guid")]
     [BindNever]
-    public string guid {get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/År_S01/602291";
+    public string guid { get; set; } = "http://seres.no/guid/Finanstilsynet/Dataenkeltype/År_S01/602291";
 
   }
 }
