@@ -34,6 +34,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             CreateModelFromMetadataRecursive(classes, rootElementType, serviceMetadata, serviceMetadata.TargetNamespace);
 
             StringBuilder writer = new StringBuilder()
+                .AppendLine("#nullable disable")
                 .AppendLine("using System;")
                 .AppendLine("using System.Collections.Generic;")
                 .AppendLine("using System.ComponentModel.DataAnnotations;")
