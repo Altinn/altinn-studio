@@ -5,9 +5,9 @@
   ],
   "packageRules": [
     {
-      "groupName": "Update dependencies in all frontend workspaces",
-      "matchPaths": [
-        "frontend/*/*/package.json"
+      "groupName": "All frontend workspaces",
+      "matchPackagePatterns": [
+        "frontend/**/package.json"
       ]
     },
     {
