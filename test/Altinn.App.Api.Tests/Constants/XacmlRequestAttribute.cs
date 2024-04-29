@@ -1,4 +1,4 @@
-﻿namespace Altinn.App.Api.Tests.Constants
+namespace Altinn.App.Api.Tests.Constants
 {
     public static class XacmlRequestAttribute
     {

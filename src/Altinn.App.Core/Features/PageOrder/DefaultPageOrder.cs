@@ -1,4 +1,4 @@
-﻿using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 
 namespace Altinn.App.Core.Features.PageOrder

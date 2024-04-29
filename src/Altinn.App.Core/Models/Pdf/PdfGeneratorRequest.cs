@@ -1,4 +1,4 @@
-﻿namespace Altinn.App.Core.Models.Pdf;
+namespace Altinn.App.Core.Models.Pdf;
 
 /// <summary>
 /// This class is created to match the input required to generate a PDF by the PDF generator service.

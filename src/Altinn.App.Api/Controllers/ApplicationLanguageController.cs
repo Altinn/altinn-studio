@@ -1,4 +1,4 @@
-﻿#nullable disable
+#nullable disable
 using Altinn.App.Core.Internal.Language;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

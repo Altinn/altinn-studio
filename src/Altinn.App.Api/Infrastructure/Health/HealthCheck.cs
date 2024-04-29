@@ -1,4 +1,4 @@
-﻿#nullable disable
+#nullable disable
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Altinn.App.Api.Infrastructure.Health

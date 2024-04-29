@@ -1,4 +1,4 @@
-﻿using Altinn.App.Core.Internal.Secrets;
+using Altinn.App.Core.Internal.Secrets;
 
 namespace Altinn.App.Core.Internal.Events
 {

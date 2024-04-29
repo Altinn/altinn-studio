@@ -1,4 +1,4 @@
-﻿namespace Altinn.App.Core.Internal.Language
+namespace Altinn.App.Core.Internal.Language
 {
     /// <summary>
     /// Interface for retrieving languages supported by the application.

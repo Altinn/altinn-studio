@@ -1,4 +1,4 @@
-﻿namespace Altinn.App.Core.Infrastructure.Clients.Events
+namespace Altinn.App.Core.Infrastructure.Clients.Events
 {
     /// <summary>
     /// Class that describes the events subscription request model

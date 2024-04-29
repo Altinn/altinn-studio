@@ -1,4 +1,4 @@
-﻿#nullable disable
+#nullable disable
 using Altinn.App.Core.Models;
 using FluentAssertions;
 using Xunit;

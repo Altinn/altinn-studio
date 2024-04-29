@@ -1,4 +1,4 @@
-﻿using Altinn.App.Api.Tests.Data;
+using Altinn.App.Api.Tests.Data;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Instances;

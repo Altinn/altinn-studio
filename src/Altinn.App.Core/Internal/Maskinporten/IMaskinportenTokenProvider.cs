@@ -1,4 +1,4 @@
-﻿namespace Altinn.App.Core.Internal.Maskinporten;
+namespace Altinn.App.Core.Internal.Maskinporten;
 
 /// <summary>
 /// Defines the interface required for an implementation of a Maskinporte token provider.

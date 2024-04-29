@@ -1,4 +1,4 @@
-﻿using Altinn.App.Core.Features.Validation;
+using Altinn.App.Core.Features.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Validation

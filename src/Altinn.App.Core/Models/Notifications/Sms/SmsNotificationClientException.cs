@@ -1,4 +1,4 @@
-﻿namespace Altinn.App.Core.Models.Notifications.Sms;
+namespace Altinn.App.Core.Models.Notifications.Sms;
 
 /// <summary>
 /// Class representing an exception thrown when a SMS notificcation order could not be created

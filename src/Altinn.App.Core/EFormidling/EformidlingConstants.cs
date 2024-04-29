@@ -1,4 +1,4 @@
-﻿namespace Altinn.App.Core.EFormidling
+namespace Altinn.App.Core.EFormidling
 {
     /// <summary>
     /// Shared constants within the Eformidling area.

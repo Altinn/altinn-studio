@@ -1,4 +1,4 @@
-﻿namespace Altinn.App.Core.Features.FileAnalysis
+namespace Altinn.App.Core.Features.FileAnalysis
 {
     /// <summary>
     /// Interface for doing extended binary file analysing.

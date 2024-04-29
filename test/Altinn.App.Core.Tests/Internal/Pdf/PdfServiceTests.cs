@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Infrastructure.Clients.Pdf;
 using Altinn.App.Core.Internal.App;

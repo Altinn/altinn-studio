@@ -1,4 +1,4 @@
-﻿using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.Platform.Profile.Models;
 using Microsoft.Extensions.Caching.Memory;

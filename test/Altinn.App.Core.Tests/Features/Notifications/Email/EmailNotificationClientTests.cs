@@ -1,4 +1,4 @@
-﻿namespace Altinn.App.Core.Tests.Features.Notifications.Email;
+namespace Altinn.App.Core.Tests.Features.Notifications.Email;
 
 using System.Net;
 using System.Net.Http;

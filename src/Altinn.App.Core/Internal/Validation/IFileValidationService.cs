@@ -1,4 +1,4 @@
-﻿using Altinn.App.Core.Features.FileAnalysis;
+using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 

@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Altinn.App.Api.Tests.Mocks;
 using AltinnCore.Authentication.Constants;
 

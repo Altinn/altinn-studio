@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Enums;

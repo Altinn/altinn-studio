@@ -1,4 +1,4 @@
-﻿using Altinn.ApiClients.Maskinporten.Config;
+using Altinn.ApiClients.Maskinporten.Config;
 using Altinn.ApiClients.Maskinporten.Interfaces;
 using Altinn.App.Core.Internal.Secrets;
 using Microsoft.Extensions.DependencyInjection;

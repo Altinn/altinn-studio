@@ -1,4 +1,4 @@
-﻿using Altinn.App.Core.Features.FileAnalyzis;
+using Altinn.App.Core.Features.FileAnalyzis;
 
 namespace Altinn.App.Core.Features.FileAnalysis
 {

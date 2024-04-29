@@ -1,4 +1,4 @@
-﻿#nullable disable
+#nullable disable
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;

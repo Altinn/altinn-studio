@@ -1,4 +1,4 @@
-﻿namespace Altinn.App.Core.Internal.Pdf;
+namespace Altinn.App.Core.Internal.Pdf;
 
 /// <summary>
 /// Defines the required operations on a client of the PDF generator service.

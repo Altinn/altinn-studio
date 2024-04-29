@@ -1,4 +1,4 @@
-﻿using Altinn.App.Core.Infrastructure.Clients.Events;
+using Altinn.App.Core.Infrastructure.Clients.Events;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Models;
 using Microsoft.Extensions.Hosting;

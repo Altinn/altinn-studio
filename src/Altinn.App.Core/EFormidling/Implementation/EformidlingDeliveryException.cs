@@ -1,4 +1,4 @@
-﻿namespace Altinn.App.Core.EFormidling.Implementation
+namespace Altinn.App.Core.EFormidling.Implementation
 {
     /// <summary>
     /// Exception thrown when Eformidling is unable to process the message delivered to

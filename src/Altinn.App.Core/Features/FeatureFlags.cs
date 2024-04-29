@@ -1,4 +1,4 @@
-﻿namespace Altinn.App.Core.Features;
+namespace Altinn.App.Core.Features;
 
 /// <summary>
 /// Class representing active feature flag constants.

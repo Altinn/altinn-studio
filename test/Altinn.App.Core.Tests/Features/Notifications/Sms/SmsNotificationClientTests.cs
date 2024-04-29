@@ -1,4 +1,4 @@
-﻿namespace Altinn.App.Core.Tests.Features.Notifications.Sms;
+namespace Altinn.App.Core.Tests.Features.Notifications.Sms;
 
 using System.Net;
 using System.Net.Http;

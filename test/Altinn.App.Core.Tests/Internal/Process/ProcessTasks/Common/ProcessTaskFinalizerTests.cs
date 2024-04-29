@@ -1,4 +1,4 @@
-﻿using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;

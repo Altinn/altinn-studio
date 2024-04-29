@@ -1,4 +1,4 @@
-﻿namespace Altinn.App.Core.Interface
+namespace Altinn.App.Core.Interface
 {
     /// <summary>
     /// Defines the methods required for an implementation of a user JSON Web Token provider.

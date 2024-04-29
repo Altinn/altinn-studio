@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using System.Xml;
 using Altinn.App.Api.Tests.Constants;
 using Altinn.App.Api.Tests.Data;

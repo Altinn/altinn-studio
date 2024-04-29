@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 using Altinn.App.Core.Features;
 
 namespace Altinn.App.Core.Models.Notifications.Sms;

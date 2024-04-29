@@ -1,4 +1,4 @@
-﻿using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Internal.Maskinporten;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;

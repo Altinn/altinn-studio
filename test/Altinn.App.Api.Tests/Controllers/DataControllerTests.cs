@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Http.Headers;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Utils;

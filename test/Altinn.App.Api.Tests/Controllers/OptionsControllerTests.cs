@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
 using FluentAssertions;

@@ -1,4 +1,4 @@
-﻿using Altinn.App.Api.Extensions;
+using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Mocks;

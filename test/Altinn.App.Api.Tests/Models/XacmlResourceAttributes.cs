@@ -1,4 +1,4 @@
-﻿namespace Altinn.App.Api.Tests.Models
+namespace Altinn.App.Api.Tests.Models
 {
     public class XacmlResourceAttributes
     {

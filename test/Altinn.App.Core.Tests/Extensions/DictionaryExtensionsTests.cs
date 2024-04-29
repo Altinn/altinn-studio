@@ -1,4 +1,4 @@
-﻿using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Http;
 using Xunit;

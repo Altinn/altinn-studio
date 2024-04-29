@@ -1,4 +1,4 @@
-﻿namespace Altinn.App.Core.Internal.Events
+namespace Altinn.App.Core.Internal.Events
 {
     /// <summary>
     /// Interface for providing a secret code to be used when

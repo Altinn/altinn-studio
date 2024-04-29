@@ -1,4 +1,4 @@
-﻿using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Moq;

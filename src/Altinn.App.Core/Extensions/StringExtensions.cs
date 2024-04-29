@@ -1,4 +1,4 @@
-﻿namespace Altinn.App.Core.Extensions
+namespace Altinn.App.Core.Extensions
 {
     /// <summary>
     /// Extension methods for string
