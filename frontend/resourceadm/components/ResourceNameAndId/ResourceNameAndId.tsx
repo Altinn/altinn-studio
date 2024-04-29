@@ -115,14 +115,18 @@ export const ResourceNameAndId = ({
                 onClick={() => handleClickEditButton(false)}
                 variant='tertiary'
                 color='danger'
-                title={t('resourceadm.dashboard_resource_name_and_id_delete_icon')}
+                title={t('resourceadm.dashboard_resource_name_and_id_delete_icon', {
+                  objectType: idLabel,
+                })}
                 size='small'
                 icon={<MultiplyIcon />}
               />
               <StudioButton
                 onClick={() => handleClickEditButton(true)}
                 variant='tertiary'
-                title={t('resourceadm.dashboard_resource_name_and_id_checkmark_icon')}
+                title={t('resourceadm.dashboard_resource_name_and_id_checkmark_icon', {
+                  objectType: idLabel,
+                })}
                 size='small'
                 icon={<CheckmarkIcon />}
               />
@@ -144,6 +148,9 @@ export const ResourceNameAndId = ({
                 size='small'
                 icon={<PencilWritingIcon />}
                 iconPlacement='right'
+                aria-label={t('resourceadm.dashboard_resource_name_and_id_change', {
+                  objectType: idLabel,
+                })}
               >
                 {t('general.edit')}
               </StudioButton>

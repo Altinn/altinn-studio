@@ -1,6 +1,6 @@
 import React from 'react';
 import { ConfigContent } from './ConfigContent';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import type { BpmnContextProps } from '../../../contexts/BpmnContext';
 import { BpmnContext } from '../../../contexts/BpmnContext';
@@ -10,6 +10,7 @@ import userEvent from '@testing-library/user-event';
 import type Modeler from 'bpmn-js/lib/Modeler';
 import { type BpmnTaskType } from '../../../types/BpmnTaskType';
 import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
+import { BpmnApiContextProvider } from '../../../contexts/BpmnApiContext';
 
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 const mockAppLibVersion8: string = '8.0.3';
@@ -27,16 +28,10 @@ const mockBpmnDetails: BpmnDetails = {
 const mockBpmnContextValue: BpmnContextProps = {
   bpmnXml: mockBPMNXML,
   appLibVersion: mockAppLibVersion8,
-  numberOfUnsavedChanges: 0,
-  setNumberOfUnsavedChanges: jest.fn(),
   getUpdatedXml: jest.fn(),
   isEditAllowed: true,
   bpmnDetails: mockBpmnDetails,
   setBpmnDetails: jest.fn(),
-  dataTasksAdded: [],
-  setDataTasksAdded: jest.fn(),
-  dataTasksRemoved: [],
-  setDataTasksRemoved: jest.fn(),
 };
 
 jest.mock('../../../hooks/useBpmnModeler', () => ({
@@ -75,7 +70,7 @@ describe('ConfigContent', () => {
     const helpTextButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_header_help_text_title'),
     });
-    await act(() => user.click(helpTextButton));
+    await user.click(helpTextButton);
 
     screen.getByText(textMock('process_editor.configuration_panel_header_help_text_data'));
   });
@@ -110,9 +105,11 @@ describe('ConfigContent', () => {
 const renderConfigContent = (rootContextProps: Partial<BpmnContextProps> = {}) => {
   return render(
     <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
-      <BpmnConfigPanelFormContextProvider>
-        <ConfigContent />
-      </BpmnConfigPanelFormContextProvider>
+      <BpmnApiContextProvider>
+        <BpmnConfigPanelFormContextProvider>
+          <ConfigContent />
+        </BpmnConfigPanelFormContextProvider>
+      </BpmnApiContextProvider>
     </BpmnContext.Provider>,
   );
 };

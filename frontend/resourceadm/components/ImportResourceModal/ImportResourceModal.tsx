@@ -59,7 +59,7 @@ export const ImportResourceModal = ({
 
   const idErrorMessage = getResourceIdentifierErrorMessage(id, resourceIdExists);
   const hasValidValues =
-    selectedEnv && selectedService && id && !idErrorMessage && !isImportingResource;
+    selectedEnv && selectedService && id.length >= 4 && !idErrorMessage && !isImportingResource;
   /**
    * Reset fields on close
    */

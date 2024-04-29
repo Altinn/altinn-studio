@@ -1,6 +1,6 @@
 import React from 'react';
 import { LegacyTextField } from '@digdir/design-system-react';
-import { render as rtlRender, screen, act } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FormField } from './FormField';
 import type { FormFieldProps } from './FormField';
@@ -70,7 +70,7 @@ describe('FormField', () => {
       onChange: mockOnChange,
     });
 
-    await act(async () => await user.type(screen.getByRole('textbox'), 'test'));
+    await user.type(screen.getByRole('textbox'), 'test');
     expect(mockOnChange).toHaveBeenCalledTimes(4);
   });
 
