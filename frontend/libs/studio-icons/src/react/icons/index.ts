@@ -7,6 +7,7 @@ export { ConfirmationTaskIcon } from './ConfirmationTaskIcon';
 export { DataTaskIcon } from './DataTaskIcon';
 export { DefinitionIcon } from './DefinitionIcon';
 export { ElementIcon } from './ElementIcon';
+export { EndEventIcon } from './EndEventIcon';
 export { FeedbackTaskIcon } from './FeedbackTaskIcon';
 export { GroupIcon } from './GroupIcon';
 export { LikertIcon } from './LikertIcon';

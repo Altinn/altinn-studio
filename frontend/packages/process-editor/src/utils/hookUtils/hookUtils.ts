@@ -43,7 +43,6 @@ export const getBpmnEditorDetailsFromBusinessObject = (
     taskType: taskTypeFromV8 || taskTypeFromV7,
     type: businessObject?.$type,
   };
-
   return bpmnDetails;
 };
 

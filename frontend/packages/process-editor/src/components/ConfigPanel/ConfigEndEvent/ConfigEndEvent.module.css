@@ -3,6 +3,10 @@
   border-bottom: 1px solid var(--fds-semantic-border-divider-default);
 }
 
-.endEvent {
-  background-color: var(--fds-colors-green-200);
+.section {
+  padding-bottom: var(--fds-spacing-8);
+}
+
+.paragraph {
+  padding-bottom: var(--fds-spacing-2);
 }
