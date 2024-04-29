@@ -14,14 +14,15 @@
             "property": "sektor"
           }
         },
+        "preselectedOptionIndex": 0,
         "options": [
           {
             "label": "Privat",
-            "value": "privat"
+            "value": "private"
           },
           {
             "label": "Offentlig sektor",
-            "value": "offentlig"
+            "value": "public"
           }
         ]
       },

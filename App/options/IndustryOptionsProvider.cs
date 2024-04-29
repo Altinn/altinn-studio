@@ -14,33 +14,51 @@ namespace Altinn.App.Core
             Dictionary<string, string> keyValuePairs
         )
         {
-            var options = new AppOptions();
+            keyValuePairs.TryGetValue("sector", out var sector);
 
-            if (keyValuePairs.TryGetValue("sector", out var sector) && sector == "public")
+            if (sector == "public")
             {
-                options.Options = new List<AppOption>
-                {
-                    new AppOption { Label = "Statlig", Value = "state", },
-                    new AppOption { Label = "Kommunal", Value = "municipality" }
-                };
+                return Task.FromResult(
+                    new AppOptions()
+                    {
+                        Options = new List<AppOption>
+                        {
+                            new AppOption { Label = "Statlig", Value = "state", },
+                            new AppOption { Label = "Kommunal", Value = "municipality" }
+                        }
+                    }
+                );
             }
-            else
+            else if (sector == "private")
             {
-                options.Options = new List<AppOption>
-                {
-                    new AppOption { Label = "Annen industri (kjemi etc.)", Value = "493" },
-                    new AppOption { Label = "Bygge- og anleggsvirksomhet", Value = "472" },
-                    new AppOption { Label = "Elektronikk og telekommunikasjon", Value = "485" },
-                    new AppOption { Label = "Forskning og utvikling", Value = "486" },
-                    new AppOption { Label = "IKT (data/IT)", Value = "491" },
-                    new AppOption { Label = "Kraft- og vannforsyning", Value = "494" },
-                    new AppOption { Label = "Petroleum og engineering", Value = "495" },
-                    new AppOption { Label = "Rådgivning/konsulentvirksomhet", Value = "496" },
-                    new AppOption { Label = "Verkstedindustri", Value = "445" }
-                };
+                return Task.FromResult(
+                    new AppOptions()
+                    {
+                        Options = new List<AppOption>
+                        {
+                            new AppOption { Label = "Annen industri (kjemi etc.)", Value = "493" },
+                            new AppOption { Label = "Bygge- og anleggsvirksomhet", Value = "472" },
+                            new AppOption
+                            {
+                                Label = "Elektronikk og telekommunikasjon",
+                                Value = "485"
+                            },
+                            new AppOption { Label = "Forskning og utvikling", Value = "486" },
+                            new AppOption { Label = "IKT (data/IT)", Value = "491" },
+                            new AppOption { Label = "Kraft- og vannforsyning", Value = "494" },
+                            new AppOption { Label = "Petroleum og engineering", Value = "495" },
+                            new AppOption
+                            {
+                                Label = "Rådgivning/konsulentvirksomhet",
+                                Value = "496"
+                            },
+                            new AppOption { Label = "Verkstedindustri", Value = "445" }
+                        }
+                    }
+                );
             }
 
-            return Task.FromResult(options);
+            return Task.FromResult(new AppOptions() { Options = new List<AppOption> { } });
         }
     }
 }
