@@ -42,14 +42,13 @@ test('should be able to validate resource so it is ready to be deployed', async 
   await resourcePage.setStatus();
   await resourcePage.writeCategoryTextField('category');
   await resourcePage.setAvailableForType();
-  await page.waitForTimeout(500); // wait for 500ms for save resource debounce to trigger
   await resourcePage.gotoPolicyTab();
   await resourcePage.clickAddPolicyRule();
   await resourcePage.setPolicyAction();
   await resourcePage.setPolicySubject();
   await resourcePage.gotoPublishTab();
   await resourcePage.writeVersionTextField(`${Date.now()}`);
-  await page.waitForTimeout(500); // wait for 500ms for save resource debounce to trigger
+  await resourcePage.verifyRepoNotInSyncVisible();
   await resourcePage.clickUploadChangesButton();
   await resourcePage.clickValidateChangesButtonButton();
   await resourcePage.verifyDeployAlertVisible();

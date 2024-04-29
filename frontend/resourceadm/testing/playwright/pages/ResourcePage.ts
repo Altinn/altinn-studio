@@ -29,6 +29,7 @@ export class ResourcePage extends ResourceEnvironment {
   private readonly versionTextField: Locator;
   private readonly uploadChangesButton: Locator;
   private readonly validateChangesButton: Locator;
+  private readonly repoSyncAlert: Locator;
   private readonly publishAlert: Locator;
 
   constructor(
@@ -105,6 +106,7 @@ export class ResourcePage extends ResourceEnvironment {
     this.validateChangesButton = this.page.getByRole('button', {
       name: textMock('sync_header.describe_and_validate_btnText'),
     });
+    this.repoSyncAlert = this.page.getByText(textMock('resourceadm.deploy_status_card_error_repo'));
     this.publishAlert = this.page.getByText(textMock('resourceadm.deploy_status_card_success'));
   }
 
@@ -197,6 +199,10 @@ export class ResourcePage extends ResourceEnvironment {
   public async writeVersionTextField(value: string): Promise<void> {
     await this.versionTextField.fill(value);
     await this.versionTextField.blur();
+  }
+
+  public async verifyRepoNotInSyncVisible(): Promise<void> {
+    await expect(this.repoSyncAlert).toBeVisible();
   }
 
   public async clickUploadChangesButton(): Promise<void> {
