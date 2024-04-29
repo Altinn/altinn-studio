@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StudioToggleableTextfieldSchema, type SchemaValidationError } from '@studio/components';
-import { KeyVerticalIcon } from '@navikt/aksel-icons';
+import { KeyVerticalIcon } from '@studio/icons';
 import classes from './EditComponentIdRow.module.css';
 import { idExists } from '../../../../utils/formLayoutsUtils';
 import { Trans, useTranslation } from 'react-i18next';

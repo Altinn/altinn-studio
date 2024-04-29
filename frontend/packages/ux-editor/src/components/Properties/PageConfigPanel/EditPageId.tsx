@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './EditPageId.module.css';
-import { KeyVerticalIcon } from '@navikt/aksel-icons';
+import { KeyVerticalIcon } from '@studio/icons';
 import { getPageNameErrorKey } from '../../../utils/designViewUtils';
 import { useUpdateLayoutNameMutation } from '../../../hooks/mutations/useUpdateLayoutNameMutation';
 import { StudioToggleableTextfield } from '@studio/components';

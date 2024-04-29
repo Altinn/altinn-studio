@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioButton } from '@studio/components';
-import { TrashIcon } from '@navikt/aksel-icons';
+import { TrashIcon } from '@studio/icons';
 import { useDeleteDatamodelMutation } from '../../../../hooks/mutations';
 import type { MetadataOption } from '../../../../types/MetadataOption';
 import { AltinnConfirmDialog } from 'app-shared/components';

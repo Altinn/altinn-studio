@@ -3,7 +3,7 @@ import classes from './ResourceNarrowingList.module.css';
 import { PolicyResourceFields } from './PolicyResourceFields';
 import { ExpandablePolicyElement } from '../ExpandablePolicyElement';
 import { StudioButton } from '@studio/components';
-import { PlusIcon } from '@navikt/aksel-icons';
+import { PlusIcon } from '@studio/icons';
 import type { PolicyEditorUsage, PolicyRuleResource } from '../../../types';
 import { useTranslation } from 'react-i18next';
 

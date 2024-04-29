@@ -5,7 +5,7 @@ import { Paragraph } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { RepositoryType } from 'app-shared/types/global';
 import type { Repository } from 'app-shared/types/Repository';
-import { PersonCircleIcon } from '@navikt/aksel-icons';
+import { PersonCircleIcon } from '@studio/icons';
 import { formatDateToDateAndTimeString } from 'app-development/utils/dateUtils';
 import { StudioLabelAsParagraph } from '@studio/components';
 
