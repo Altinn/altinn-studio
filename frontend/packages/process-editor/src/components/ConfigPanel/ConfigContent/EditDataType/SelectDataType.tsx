@@ -23,7 +23,7 @@ export const SelectDataType = ({
   const { t } = useTranslation();
   const { updateDataType } = useBpmnApiContext();
   const { metaDataFormRef } = useBpmnConfigPanelFormContext();
-  const handleChangeDataModel = (dataModelId: string) => {
+  const handleChangeDataModel = (dataModelId?: string) => {
     if (dataModelId === existingDataType) return;
     const newMetadata: MetaDataForm = {
       dataTypeChangeDetails: {
@@ -62,7 +62,7 @@ export const SelectDataType = ({
           variant='secondary'
         />
         <StudioDeleteButton
-          onDelete={() => handleChangeDataModel(undefined)}
+          onDelete={handleChangeDataModel}
           size='small'
           title={t('general.delete')}
         />

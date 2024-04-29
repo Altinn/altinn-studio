@@ -42,11 +42,8 @@ const defaultSelectDataTypeProps: SelectDataTypeProps = {
   onClose: jest.fn(),
 };
 
-jest.mock('app-shared/hooks/useConfirmationDialogOnPageLeave', () => ({
-  useConfirmationDialogOnPageLeave: jest.fn(),
-}));
-
 describe('SelectDataType', () => {
+  afterEach(jest.clearAllMocks);
   it('should display the default text as disabled in the select list when no data type is connected to task and there are available data types', () => {
     renderEditDataType();
     const selectDataModel = screen.getByRole('combobox', {
@@ -152,14 +149,14 @@ describe('SelectDataType', () => {
 });
 
 const renderEditDataType = (
-  defaultProps: Partial<SelectDataTypeProps> = {},
+  props: Partial<SelectDataTypeProps> = {},
   bpmnApiContextProps: Partial<BpmnApiContextProps> = {},
 ) => {
   return render(
     <BpmnApiContext.Provider value={{ ...bpmnApiContextProps }}>
       <BpmnContext.Provider value={{ ...mockBpmnContextValue }}>
         <BpmnConfigPanelFormContextProvider>
-          <SelectDataType {...defaultSelectDataTypeProps} {...defaultProps} />
+          <SelectDataType {...defaultSelectDataTypeProps} {...props} />
         </BpmnConfigPanelFormContextProvider>
       </BpmnContext.Provider>
     </BpmnApiContext.Provider>,

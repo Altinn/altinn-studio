@@ -23,6 +23,12 @@ export const EditDataType = () => {
     ? [...availableDataModelIds, ...(existingDataTypeForTask ? [existingDataTypeForTask] : [])]
     : [];
 
+  const definedValueWithLinkIcon = (
+    <span className={classes.definedValue}>
+      <LinkIcon /> {existingDataTypeForTask}
+    </span>
+  );
+
   return (
     <>
       {!existingDataTypeForTask && !dataModelSelectVisible ? (
@@ -46,7 +52,7 @@ export const EditDataType = () => {
           onClick={() => setDataModelSelectVisible(true)}
           property={t('process_editor.configuration_panel_set_datamodel')}
           title={t('process_editor.configuration_panel_set_datamodel')}
-          value={existingDataTypeForTask}
+          value={definedValueWithLinkIcon}
           className={classes.datamodelDefined}
         />
       )}
