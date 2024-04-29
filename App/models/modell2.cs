@@ -22,5 +22,10 @@ namespace Altinn.App.Models.modell2
     [JsonPropertyName("postnummer")]
     public string postnummer { get; set; }
 
+    [XmlElement("sektor", Order = 3)]
+    [JsonProperty("sektor")]
+    [JsonPropertyName("sektor")]
+    public string sektor { get; set; }
+
   }
 }

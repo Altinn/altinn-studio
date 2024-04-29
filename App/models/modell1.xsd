@@ -11,6 +11,7 @@
         <xs:element name="tekstfelt" type="xs:string" />
         <xs:element name="gateadresse" type="xs:string" />
         <xs:element name="poststed" type="xs:string" />
+        <xs:element minOccurs="0" name="bransje" type="xs:string" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

@@ -28,6 +28,9 @@
     },
     "postnummer": {
       "type": "string"
+    },
+    "sektor": {
+      "type": "string"
     }
   }
 }

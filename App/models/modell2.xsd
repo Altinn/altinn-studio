@@ -10,6 +10,7 @@
       <xs:sequence>
         <xs:element name="tekstfelt" type="xs:string" />
         <xs:element name="postnummer" type="xs:string" />
+        <xs:element minOccurs="0" name="sektor" type="xs:string" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

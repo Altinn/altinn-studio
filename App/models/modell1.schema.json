@@ -32,6 +32,9 @@
     },
     "poststed": {
       "type": "string"
+    },
+    "bransje": {
+      "type": "string"
     }
   }
 }

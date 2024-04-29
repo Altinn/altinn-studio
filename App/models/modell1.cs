@@ -27,5 +27,10 @@ namespace Altinn.App.Models.modell1
     [JsonPropertyName("poststed")]
     public string poststed { get; set; }
 
+    [XmlElement("bransje", Order = 4)]
+    [JsonProperty("bransje")]
+    [JsonPropertyName("bransje")]
+    public string bransje { get; set; }
+
   }
 }
