@@ -13,10 +13,10 @@
     "ts-node": "^10.9.2"
   },
   "scripts": {
-    "setup:resourceadm:playwright": "playwright install --with-deps && yarn setup:resourceadm:local:env",
-    "setup:resourceadm:playwright:ci": "playwright install --with-deps",
-    "setup:resourceadm:local:env": "ts-node ./scripts/setup.ts",
-    "test:resourceadm:all": "playwright test --config ./playwright.config.ts",
-    "test:resourceadm:ui": "playwright test --ui"
+    "resourceadm:setup:playwright": "playwright install --with-deps && yarn resourceadm:setup:local:env",
+    "resourceadm:setup:playwright:ci": "playwright install --with-deps",
+    "resourceadm:setup:local:env": "ts-node ./scripts/setup.ts",
+    "resourceadm:test:all": "playwright test --config ./playwright.config.ts",
+    "resourceadm:test:ui": "playwright test --ui"
   }
 }
