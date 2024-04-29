@@ -136,6 +136,12 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             if (element.IsTagContent)
             {
                 classBuilder.AppendLine(Indent(2) + "[XmlText()]");
+                if (required && isValueType) // Why [Required] only on value types?
+                {
+                    classBuilder.AppendLine(Indent(2) + "[Required]");
+                }
+                classBuilder.AppendLine($"{Indent(2)}public {dataType} value {{ get; set; }}");
+                classBuilder.AppendLine();
             }
             else
             {
@@ -146,24 +152,32 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 // deserialization, we need both JsonProperty and JsonPropertyName annotations.
                 classBuilder.AppendLine(Indent(2) + "[JsonProperty(\"" + element.XName + "\")]");
                 classBuilder.AppendLine(Indent(2) + "[JsonPropertyName(\"" + element.XName + "\")]");
-            }
 
-            if (element.MaxOccurs > 1)
-            {
-                classBuilder.AppendLine(Indent(2) + "public List<" + dataType + "> " + element.Name + " { get; set; }\n");
-            }
-            else
-            {
-                if (required && isValueType)
+                if (element.MaxOccurs > 1)
                 {
-                    classBuilder.AppendLine(Indent(2) + "[Required]");
+                    classBuilder.AppendLine(Indent(2) + "public List<" + dataType + "> " + element.Name + " { get; set; }\n");
                 }
-
-                bool shouldBeNullable = isValueType && !element.IsTagContent; // Can't use complex type for XmlText.
-                classBuilder.AppendLine(Indent(2) + "public " + dataType + (shouldBeNullable ? "?" : string.Empty) + " " + element.Name + " { get; set; }\n");
-                if (shouldBeNullable && element.Nillable.HasValue && !element.Nillable.Value && element.MinOccurs == 0)
+                else
                 {
-                    WriteShouldSerializeMethod(classBuilder, element.Name);
+                    if (required && isValueType)
+                    {
+                        classBuilder.AppendLine(Indent(2) + "[Required]");
+                    }
+
+
+                    if (isValueType)
+                    {
+                        classBuilder.AppendLine($"{Indent(2)}public {dataType}? {element.Name} {{ get; set; }}\n");
+
+                        if (element.Nillable.HasValue && !element.Nillable.Value && element.MinOccurs == 0)
+                        {
+                            WriteShouldSerializeMethod(classBuilder, element.Name);
+                        }
+                    }
+                    else
+                    {
+                        classBuilder.AppendLine($"{Indent(2)}public {dataType} {element.Name} {{ get; set; }}\n");
+                    }
                 }
             }
         }
@@ -196,11 +210,11 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
             if (element.MaxOccurs > 1)
             {
-                classBuilder.AppendLine(Indent(2) + "public List<" + dataType + "> " + element.Name + " { get; set; }\n");
+                classBuilder.AppendLine($"{Indent(2)}public List<{dataType}> {element.Name} {{ get; set; }}\n");
             }
             else
             {
-                classBuilder.AppendLine(Indent(2) + "public " + dataType + " " + element.Name + " { get; set; }\n");
+                classBuilder.AppendLine($"{Indent(2)}public {dataType} {element.Name} {{ get; set; }}\n");
             }
 
             if (!primitiveType)
