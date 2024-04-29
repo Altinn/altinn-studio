@@ -7,6 +7,8 @@ import { Paragraph } from '@digdir/design-system-react';
 import { BpmnExpressionModeler } from '../../../utils/bpmn/BpmnExpressionModeler';
 import { useExpressionTexts } from 'app-shared/components/Expression/useExpressionTexts';
 
+const defaultExpression: BooleanExpression = ['equals', 'gatewayAction', 'reject'];
+
 export const ConfigSequenceFlow = (): React.ReactElement => {
   const { bpmnDetails } = useBpmnContext();
   const texts = useExpressionTexts();
@@ -34,7 +36,7 @@ export const ConfigSequenceFlow = (): React.ReactElement => {
     <>
       <StudioSectionHeader
         heading={{
-          text: 'Flytkontroll',
+          text: 'Flytkontroll', // TODO add texts to translation file
           level: 2,
         }}
       />
@@ -43,16 +45,21 @@ export const ConfigSequenceFlow = (): React.ReactElement => {
           Med Flytkontroll-verktøyet kan du kontrollere flyten ut av en gateway basert på
           brukerhandling utført ved hjelp av et utrykk.
         </Paragraph>
-        <StudioExpression
-          showAddSubexpression={false}
-          expression={expression}
-          onChange={(updatedExpression: BooleanExpression) => {
-            setExpression(updatedExpression);
-            addExpressionToSequenceFlow(updatedExpression);
-          }}
-          texts={texts}
-          dataLookupOptions={['gatewayAction']}
-        />
+        {!expression ? (
+          <p>Knapp for å legge til exp</p>
+        ) : (
+          <StudioExpression
+            showAddSubexpression={false}
+            expression={expression}
+            onChange={(updatedExpression: BooleanExpression) => {
+              setExpression(updatedExpression);
+              addExpressionToSequenceFlow(updatedExpression);
+            }}
+            onDelete={deleteExpression}
+            texts={texts}
+            dataLookupOptions={['gatewayAction']} // TODO add the lookup options for component, datamodell etc
+          />
+        )}
       </div>
     </>
   );
