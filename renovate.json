@@ -1,23 +1,40 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["local>Altinn/renovate-config"],
+  "extends": [
+    "local>Altinn/renovate-config"
+  ],
   "packageRules": [
+    {
+      "groupName": "Update dependencies in all frontend workspaces",
+      "matchPaths": [
+        "frontend/*/*/package.json"
+      ]
+    },
     {
       "groupName": "LibGit2Sharp dependency",
       "groupSlug": "LibGit2Sharp",
-      "matchPackageNames": ["LibGit2Sharp"]
+      "matchPackageNames": [
+        "LibGit2Sharp"
+      ]
     },
     {
       "groupName": "gitea dependency",
       "groupSlug": "gitea",
-      "matchPackageNames": ["gitea/gitea"]
+      "matchPackageNames": [
+        "gitea/gitea"
+      ]
     }
   ],
-  "ignorePaths": ["testdata/**", "src/**"],
+  "ignorePaths": [
+    "testdata/**",
+    "src/**"
+  ],
   "ignoreDeps": [
     "@mui/x-data-grid",
     "Moq",
     "Altinn.App.Core"
   ],
-  "schedule": ["before 07:00 on Monday"]
+  "schedule": [
+    "before 07:00 on Monday"
+  ]
 }
