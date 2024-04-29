@@ -20,6 +20,33 @@ function generateRandomId(length) {
   return result;
 }
 
+export const columns = [
+  {
+    accessor: 'icon',
+    value: '',
+  },
+  {
+    accessor: 'id',
+    value: 'Employee ID',
+  },
+  {
+    accessor: 'name',
+    value: 'Name',
+  },
+  {
+    accessor: 'role',
+    value: 'Role',
+  },
+  {
+    accessor: 'status',
+    value: 'Status',
+  },
+  {
+    accessor: 'link',
+    value: '',
+  },
+];
+
 export const rows = [
   {
     icon: <IconButton icon={<StarFillIcon />} />,
@@ -164,32 +191,5 @@ export const rows = [
     role: 'Customer Support Specialist',
     status: 'Pending',
     link: <AltinnLink />,
-  },
-];
-
-export const columns = [
-  {
-    accessor: 'icon',
-    value: '',
-  },
-  {
-    accessor: 'id',
-    value: 'Employee ID',
-  },
-  {
-    accessor: 'name',
-    value: 'Name',
-  },
-  {
-    accessor: 'role',
-    value: 'Role',
-  },
-  {
-    accessor: 'status',
-    value: 'Status',
-  },
-  {
-    accessor: 'link',
-    value: '',
   },
 ];

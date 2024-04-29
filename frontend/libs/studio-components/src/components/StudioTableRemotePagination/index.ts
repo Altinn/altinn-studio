@@ -1,0 +1,1 @@
+export { StudioTableRemotePagination } from './StudioTableRemotePagination';

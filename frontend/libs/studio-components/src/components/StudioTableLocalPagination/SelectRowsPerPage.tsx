@@ -1,14 +1,7 @@
-import classes from './StudioTableWithPagination.module.css';
+import classes from './StudioTableControlledInternally.module.css';
 import { Label, NativeSelect } from '@digdir/design-system-react';
 import React, { useId } from 'react';
-
-type LabelSize = 'small' | 'medium' | 'xsmall';
-type LabelSizeKeys = 'small' | 'medium' | 'large';
-export const labelSizeMap: Record<LabelSizeKeys, LabelSize> = {
-  small: 'xsmall',
-  medium: 'small',
-  large: 'medium',
-};
+import { labelSizeMap } from '../StudioTableRemotePagination/StudioTableRemotePagination';
 
 type SelectRowsPerPageProps = {
   rowPerPageOptions?: number[];

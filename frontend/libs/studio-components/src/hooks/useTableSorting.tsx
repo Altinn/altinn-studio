@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export const useSortedRows = (rows) => {
+export const useTableSorting = (rows) => {
   const [sortColumn, setSortColumn] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
 
@@ -8,7 +8,7 @@ export const useSortedRows = (rows) => {
     setSortDirection((prevDirection) => (prevDirection === 'asc' ? 'desc' : 'asc'));
   };
 
-  const handleSorting = (columnKey) => {
+  const handleSorting = (columnKey: string) => {
     if (sortColumn === columnKey) {
       toggleSortDirection();
     } else {

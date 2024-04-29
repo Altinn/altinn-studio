@@ -1,12 +1,12 @@
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
-import { StudioTableWithPagination } from './StudioTableWithPagination';
+import { StudioTableRemotePagination } from './StudioTableRemotePagination';
 import { columns, rows } from './mockData';
 // import userEvent from "@testing-library/user-event/";
 
 describe('StudioTableWithPagination', () => {
   it('should render the table with sorting and pagination', () => {
-    render(<StudioTableWithPagination columns={columns} rows={rows} />);
+    render(<StudioTableRemotePagination columns={columns} rows={rows} />);
 
     expect(screen.getByRole('button', { name: 'Name' }));
     expect(screen.getByRole('cell', { name: 'Lila Patel' }));
@@ -16,14 +16,7 @@ describe('StudioTableWithPagination', () => {
   });
 
   it('should render the table without sorting and pagination', () => {
-    render(
-      <StudioTableWithPagination
-        columns={columns}
-        rows={rows}
-        isSortable={false}
-        initialRowsPerPage={0}
-      />,
-    );
+    render(<StudioTableRemotePagination columns={columns} rows={rows} />);
 
     expect(screen.getByRole('columnheader', { name: 'Name' }));
     expect(screen.getByRole('cell', { name: 'Lila Patel' }));

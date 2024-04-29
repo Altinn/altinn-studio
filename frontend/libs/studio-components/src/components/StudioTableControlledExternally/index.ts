@@ -1,1 +1,0 @@
-export { StudioTableControlledInternally } from './StudioTableWithPagination';

@@ -1,4 +1,4 @@
-import { Rows } from './StudioTableWithPagination';
+import { Rows } from './StudioTableLocalPagination';
 
 export const getRowsToRender = (currentPage: number, rowsPerPage: number, rows: Rows): Rows => {
   if (rowsPerPage === 0) return rows;

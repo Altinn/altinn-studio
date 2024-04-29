@@ -1,13 +1,13 @@
 import React from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
-import { StudioTableWithPagination } from './StudioTableWithPagination';
+import { StudioTableLocalPagination } from './StudioTableLocalPagination';
 import { columns, rows } from './mockData';
 
-type Story = StoryFn<typeof StudioTableWithPagination>;
+type Story = StoryFn<typeof StudioTableLocalPagination>;
 
 const meta: Meta = {
-  title: 'Studio/StudioTableWithPagination',
-  component: StudioTableWithPagination,
+  title: 'Studio/StudioTableLocalPagination',
+  component: StudioTableLocalPagination,
   argTypes: {
     pagination: {
       control: 'radio',
@@ -15,7 +15,9 @@ const meta: Meta = {
     },
   },
 };
-export const Preview: Story = (args): React.ReactElement => <StudioTableWithPagination {...args} />;
+export const Preview: Story = (args): React.ReactElement => (
+  <StudioTableLocalPagination {...args} />
+);
 
 Preview.args = {
   columns: columns,
