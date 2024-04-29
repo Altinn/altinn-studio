@@ -1,14 +1,13 @@
 import type { APIRequestContext } from '@playwright/test';
 import type { Cookie, StorageState } from '../types/StorageState';
+import { ResourceEnvironment } from './ResourceEnvironment';
+import type { Environment } from '../helpers/ResourceEnvironment';
 
-export class DesignerApi {
-  private readonly org: string;
-  private readonly repoName: string;
+export class DesignerApi extends ResourceEnvironment {
   private readonly resourceId: string;
 
-  constructor(resourceId?: string) {
-    this.org = process.env.PLAYWRIGHT_RESOURCES_ORGANIZATION;
-    this.repoName = process.env.PLAYWRIGHT_RESOURCES_REPO_NAME;
+  constructor(resourceId?: string, environment?: Environment) {
+    super(environment);
     this.resourceId = resourceId;
   }
 
@@ -34,15 +33,12 @@ export class DesignerApi {
 
   public async resetResourceRepo(request: APIRequestContext, storageState: StorageState) {
     const xsrfToken: string = this.getXsrfTokenFromStorageState(storageState);
-    const response = await request.get(
-      `/designer/api/repos/repo/${this.org}/${this.repoName}/reset`,
-      {
-        // The following header is needed to be able to do API requestes
-        headers: {
-          'X-Xsrf-Token': xsrfToken,
-        },
+    const response = await request.get(`/designer/api/repos/repo/${this.org}/${this.repo}/reset`, {
+      // The following header is needed to be able to do API requestes
+      headers: {
+        'X-Xsrf-Token': xsrfToken,
       },
-    );
+    });
     return response;
   }
 

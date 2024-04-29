@@ -3,10 +3,10 @@ import type { Locator, Page } from '@playwright/test';
 import { textMock } from '../helpers/textMock';
 import type { TextKey } from '../helpers/textMock';
 import { url, Routes } from '../helpers/routes';
+import { ResourceEnvironment } from '../helpers/ResourceEnvironment';
+import type { Environment } from '../helpers/ResourceEnvironment';
 
-export class ResourcePage {
-  private readonly org: string;
-  private readonly repo: string;
+export class ResourcePage extends ResourceEnvironment {
   private readonly resourceId: string;
   private readonly resourceTypeRadio: Locator;
   private readonly nameNbTextField: Locator;
@@ -34,9 +34,9 @@ export class ResourcePage {
   constructor(
     public readonly page: Page,
     resourceId: string,
+    environment?: Environment,
   ) {
-    this.org = process.env.PLAYWRIGHT_RESOURCES_ORGANIZATION;
-    this.repo = process.env.PLAYWRIGHT_RESOURCES_REPO_NAME;
+    super(environment);
     this.resourceId = resourceId;
     this.resourceTypeRadio = this.page.getByRole('radio', {
       name: textMock('resourceadm.about_resource_resource_type_generic_access_resource'),

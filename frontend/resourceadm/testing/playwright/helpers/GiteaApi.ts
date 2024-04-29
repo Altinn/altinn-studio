@@ -1,13 +1,12 @@
 import type { APIRequestContext } from '@playwright/test';
+import { ResourceEnvironment } from './ResourceEnvironment';
+import type { Environment } from '../helpers/ResourceEnvironment';
 
-export class GiteaApi {
-  private readonly org: string;
-  private readonly repoName: string;
+export class GiteaApi extends ResourceEnvironment {
   private giteaAccessToken: string = process.env.GITEA_ACCESS_TOKEN;
 
-  constructor() {
-    this.org = process.env.PLAYWRIGHT_RESOURCES_ORGANIZATION;
-    this.repoName = process.env.PLAYWRIGHT_RESOURCES_REPO_NAME;
+  constructor(environment?: Environment) {
+    super(environment);
   }
 
   public async createResourcesRepo(request: APIRequestContext): Promise<void> {
@@ -23,7 +22,7 @@ export class GiteaApi {
 
   public async deleteResourcesRepo(request: APIRequestContext): Promise<void> {
     await request.delete(
-      `/repos/api/v1/repos/${this.org}/${this.repoName}?token=${this.giteaAccessToken}`,
+      `/repos/api/v1/repos/${this.org}/${this.repo}?token=${this.giteaAccessToken}`,
     );
   }
 }
