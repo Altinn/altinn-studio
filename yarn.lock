@@ -10775,7 +10775,7 @@ __metadata:
     cypress-axe: "npm:1.5.0"
     cypress-plugin-tab: "npm:1.0.5"
     eslint: "npm:8.57.0"
-    eslint-plugin-cypress: "npm:2.15.2"
+    eslint-plugin-cypress: "npm:3.0.1"
   languageName: unknown
   linkType: soft
 
@@ -12210,14 +12210,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-cypress@npm:2.15.2":
-  version: 2.15.2
-  resolution: "eslint-plugin-cypress@npm:2.15.2"
+"eslint-plugin-cypress@npm:3.0.1":
+  version: 3.0.1
+  resolution: "eslint-plugin-cypress@npm:3.0.1"
   dependencies:
     globals: "npm:^13.20.0"
   peerDependencies:
-    eslint: ">= 3.2.1"
-  checksum: 10/a01c88f6dcefa1414b188a6121c22d346a145dbba7d70d22d1ee2f9575551e6004fcddd234df8758b4796b43b129a87c41bf380461800d822b020be318ce0b83
+    eslint: ">=7 <9"
+  checksum: 10/7f505c298fe4510de5575902e3838e108646629bd933d9abf78a148fabb1cf317e58c2f8766dfa2171217e4c94916533c9bb9000b4dc70a534738eecc66b32dc
   languageName: node
   linkType: hard
 
