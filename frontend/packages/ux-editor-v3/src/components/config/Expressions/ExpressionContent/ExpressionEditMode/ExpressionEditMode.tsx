@@ -15,7 +15,7 @@ import {
 import { ComplexExpression } from '../ComplexExpression';
 import { SimpleExpression } from './SimpleExpression';
 import { Switch } from '@digdir/design-system-react';
-import { CheckmarkIcon, PlusCircleIcon, TrashIcon } from '@navikt/aksel-icons';
+import { CheckmarkIcon, PlusCircleIcon, TrashIcon } from '@studio/icons';
 import { Trans } from 'react-i18next';
 import classes from '../ExpressionContent.module.css';
 import { stringifyData } from '../../../../../utils/jsonUtils';

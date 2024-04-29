@@ -1,7 +1,7 @@
 import React from 'react';
 import type { SettingsModalTab } from 'app-development/types/SettingsModalTab';
 import { createNavigationTab } from './index';
-import { TestFlaskIcon } from '@navikt/aksel-icons';
+import { TestFlaskIcon } from '@studio/icons';
 import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 
 const mockTabId1: SettingsModalTab = 'about';

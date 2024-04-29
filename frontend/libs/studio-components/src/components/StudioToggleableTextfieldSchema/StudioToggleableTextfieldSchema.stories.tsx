@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
 import { StudioToggleableTextfieldSchema } from './StudioToggleableTextfieldSchema';
-import { KeyVerticalIcon } from '@navikt/aksel-icons';
+import { KeyVerticalIcon } from '@studio/icons';
 
 type Story = StoryFn<typeof StudioToggleableTextfieldSchema>;
 

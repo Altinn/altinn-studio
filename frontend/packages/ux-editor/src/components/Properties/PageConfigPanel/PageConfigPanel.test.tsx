@@ -14,6 +14,7 @@ import { layout1NameMock, layoutMock, layoutSetsMock } from '../../../testing/la
 const app = 'app';
 const org = 'org';
 const layoutSet = layoutSetsMock.sets[0].id;
+const duplicatedLayout = 'duplicatedLayout';
 
 const defaultTexts: ITextResources = {
   [DEFAULT_LANGUAGE]: [
@@ -24,6 +25,16 @@ const defaultTexts: ITextResources = {
 };
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
+  [duplicatedLayout]: {
+    components: {},
+    containers: {},
+    order: {
+      ['idContainer']: ['idContainer1', 'idContainer2', 'idContainer3'],
+      ['idContainer1']: ['idContainer', 'idContainer1', 'idContainer2'],
+    },
+    customRootProperties: {},
+    customDataProperties: {},
+  },
 };
 
 describe('PageConfigPanel', () => {
@@ -59,6 +70,21 @@ describe('PageConfigPanel', () => {
     expect(screen.queryByRole('heading', { name: newSelectedPage })).not.toBeInTheDocument();
     screen.getByRole('heading', { name: newVisualPageName });
     screen.getByRole('button', { name: textMock('ux_editor.id_identifier') });
+  });
+
+  it('render warning when layout is selected and has duplicated ids', () => {
+    renderPageConfigPanel(duplicatedLayout);
+    screen.getByRole('heading', { name: textMock('ux_editor.config.warning_duplicates.heading') });
+  });
+
+  it('should display duplicated ids in the document', () => {
+    renderPageConfigPanel(duplicatedLayout);
+
+    const duplicatedIds = screen.getByText(/<idcontainer1>, <idcontainer2>/i);
+    expect(duplicatedIds).toBeInTheDocument();
+
+    const uniqueIds = screen.queryByText(/<idcontainer>, <idContainer3>/i);
+    expect(uniqueIds).not.toBeInTheDocument();
   });
 });
 

@@ -1,23 +1,22 @@
 .navigationMenu {
   display: flex;
-  justify-content: flex-start;
-  align-items: stretch;
-  padding-block: 12px;
-  margin-left: 10px;
+  align-items: center;
+  padding: var(--fds-spacing-1);
   background-color: var(--background-color);
 }
 
-.accordionHeader {
+.accordionHeader,
+.accordionHeaderWarning {
   flex: 1;
 }
 
-.accordionHeader button {
-  border: none;
-  background-color: var(--background-color);
+.accordionHeaderWarning button {
+  background-color: var(--fds-semantic-surface-danger-subtle) !important;
 }
 
 .accordionContent {
   padding: 0;
+  background-color: var(--fds-semantic-surface-neutral-default);
 }
 
 .accordionItem {
@@ -31,5 +30,4 @@
 
 .accordionHeaderRow {
   display: flex;
-  background-color: var(--background-color);
 }

@@ -6,7 +6,7 @@ import { complexExpressionIsSet } from '../../../../../utils/expressionsUtils';
 import { ComplexExpression } from '../ComplexExpression';
 import { SimpleExpressionPreview } from './SimpleExpressionPreview';
 import { StudioButton } from '@studio/components';
-import { PencilIcon, TrashIcon } from '@navikt/aksel-icons';
+import { PencilIcon, TrashIcon } from '@studio/icons';
 import { useText } from '../../../../../hooks';
 import cn from 'classnames';
 import { Trans } from 'react-i18next';

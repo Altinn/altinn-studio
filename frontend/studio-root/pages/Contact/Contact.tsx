@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './Contact.module.css';
 import { Heading, Link, Paragraph } from '@digdir/design-system-react';
 import { Trans, useTranslation } from 'react-i18next';
-import { EnvelopeClosedIcon } from '@navikt/aksel-icons';
+import { EnvelopeClosedIcon } from '@studio/icons';
 import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
 import Slack from 'app-shared/icons/Slack.svg';
 import GitHub from 'app-shared/icons/GitHub.svg';
