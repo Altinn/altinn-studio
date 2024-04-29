@@ -184,10 +184,18 @@ export const setComponentProperty = <
   component: FormItem<T>,
   propertyKey: K,
   value: V,
-): FormItem<T> => ({
-  ...component,
-  [propertyKey]: value,
-});
+): FormItem<T> => {
+  if (!component['required'] && value === undefined) {
+    const updatedComponent = { ...component };
+    delete updatedComponent[propertyKey];
+    return updatedComponent;
+  }
+
+  return {
+    ...component,
+    [propertyKey]: value,
+  };
+};
 
 export const EXPRESSION_SCHEMA_BASE_DEFINITION_REFERENCE =
   'expression.schema.v1.json#/definitions/' as const;
