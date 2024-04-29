@@ -1,8 +1,7 @@
 .navigationMenu {
   display: flex;
   align-items: center;
-  padding-block: 12px;
-  padding: 3px;
+  padding: var(--fds-spacing-1);
   background-color: var(--background-color);
 }
 

@@ -90,18 +90,17 @@ export const DesignView = (): ReactNode => {
     // Check if the layout has unique component IDs
     const isValidLayout = !duplicatedIdsExistsInLayout(layout.data);
     return (
-      <Accordion key={i} color={'neutral'}>
-        <PageAccordion
-          pageName={layout.page}
-          isOpen={layout.page === selectedFormLayoutName}
-          onClick={() => handleClickAccordion(layout.page)}
-          isValid={isValidLayout}
-        >
-          {layout.page === selectedFormLayoutName && (
-            <FormLayout layout={layout.data} isValid={isValidLayout} />
-          )}
-        </PageAccordion>
-      </Accordion>
+      <PageAccordion
+        key={i}
+        pageName={layout.page}
+        isOpen={layout.page === selectedFormLayoutName}
+        onClick={() => handleClickAccordion(layout.page)}
+        isValid={isValidLayout}
+      >
+        {layout.page === selectedFormLayoutName && (
+          <FormLayout layout={layout.data} isValid={isValidLayout} />
+        )}
+      </PageAccordion>
     );
   });
 
@@ -109,7 +108,9 @@ export const DesignView = (): ReactNode => {
     <div className={classes.root}>
       <div>
         <div className={classes.wrapper}>
-          <div className={classes.accordionWrapper}>{displayPageAccordions}</div>
+          <div className={classes.accordionWrapper}>
+            <Accordion color='neutral'>{displayPageAccordions}</Accordion>
+          </div>
         </div>
         <ReceiptContent
           receiptName={receiptName}

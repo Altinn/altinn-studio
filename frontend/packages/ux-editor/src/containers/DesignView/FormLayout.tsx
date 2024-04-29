@@ -11,15 +11,17 @@ export interface FormLayoutProps {
   isValid: boolean;
 }
 
-export const FormLayout = ({ layout, isValid }: FormLayoutProps) =>
-  isValid ? (
+export const FormLayout = ({ layout, isValid }: FormLayoutProps) => {
+  if (!isValid) {
+    return <FormLayoutWarning layout={layout} />;
+  }
+  return (
     <>
       {hasMultiPageGroup(layout) && <MultiPageWarning />}
       <FormTree layout={layout} />
     </>
-  ) : (
-    <FormLayoutWarning layout={layout} />
   );
+};
 
 const MultiPageWarning = () => {
   const { t } = useTranslation();

@@ -4,6 +4,7 @@ import { getDuplicatedIds } from '../../utils/formLayoutUtils';
 import { Paragraph } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import classes from './FormLayoutWarning.module.css';
+
 interface FormLayoutWarningProps {
   layout: IInternalLayout;
 }
