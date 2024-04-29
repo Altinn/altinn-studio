@@ -9,7 +9,11 @@ import * as StudioTableLocalPaginationStories from './StudioTableLocalPagination
 </Heading>
 <Paragraph>
   StudioTableLocalPagination brings together Digdir Designsystemet's `Table` and `Pagination` components.
-  It dynamically renders a table by passing an array of objects to the `column` and `row` props. The pagination can be removed by passing `0` to `initialRowsPerPage`.
+  It dynamically renders a table by passing an array of objects to the `column` and `row` props.
+
+  The pagination can be disabled by removing the `pagination` prop.
+
+  Use this component when you want the component to handle the pagination for you.
 </Paragraph>
 
 <Canvas of={StudioTableLocalPaginationStories.Preview} />

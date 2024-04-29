@@ -1,9 +1,9 @@
 import { Rows } from '../StudioTableRemotePagination/StudioTableRemotePagination';
 
-export const getRowsToRender = (currentPage: number, rowsPerPage: number, rows: Rows): Rows => {
-  if (rowsPerPage === 0) return rows;
+export const getRowsToRender = (currentPage: number, pageSize: number, rows: Rows): Rows => {
+  if (!!pageSize === false) return rows;
 
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
   return rows.slice(startIndex, endIndex);
 };

@@ -12,21 +12,23 @@ export const labelSizeMap: Record<LabelSizeKeys, LabelSize> = {
 
 export type Rows = Record<string, React.ReactNode>[];
 
+export type PaginationProps = {
+  currentPage: number;
+  totalPages: number;
+  pageSizeOptions: number[];
+  onPageChange: (currentPage: number) => void;
+  onPageSizeChange: (currentSize: number) => void;
+  nextButtonText: string;
+  previousButtonText: string;
+  itemLabel: (num: number) => string;
+};
+
 type StudioTableRemotePaginationProps = {
   columns: Record<'accessor' | 'value', string>[];
   rows: Rows;
   size?: 'small' | 'medium' | 'large';
-  onSortClick?: (columnKey: string | number) => void;
-  pagination?: {
-    currentPage: number;
-    totalPages: number;
-    pageSizeOptions: number[];
-    onPageChange: (currentPage: number) => void;
-    onPageSizeChange: (currentSize: number) => void;
-    nextButtonText: string;
-    previousButtonText: string;
-    itemLabel: (num: number) => string;
-  };
+  onSortClick?: (columnKey: string) => void;
+  pagination?: PaginationProps;
 };
 
 export const StudioTableRemotePagination = forwardRef<
@@ -45,7 +47,7 @@ export const StudioTableRemotePagination = forwardRef<
     nextButtonText,
     previousButtonText,
     itemLabel,
-  } = pagination;
+  } = pagination || {};
 
   const labelId = useId();
   const labelSize = labelSizeMap[size];

@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
 import { StudioTableLocalPagination } from './StudioTableLocalPagination';
-import { columns, rows } from './mockData';
+import { columns, rows } from '../StudioTableRemotePagination/mockData';
 
 type Story = StoryFn<typeof StudioTableLocalPagination>;
 

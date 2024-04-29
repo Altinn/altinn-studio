@@ -1,4 +1,4 @@
-import React, { forwardRef, useState } from 'react';
+import React, { forwardRef, useEffect, useState } from 'react';
 import { StudioTableRemotePagination } from '../StudioTableRemotePagination';
 import { Rows } from '../StudioTableRemotePagination/StudioTableRemotePagination';
 import { useTableSorting } from '../../hooks/useTableSorting';
@@ -21,18 +21,29 @@ export const StudioTableLocalPagination = forwardRef<
   HTMLTableElement,
   StudioTableLocalPaginationProps
 >(({ columns, rows, isSortable = true, size = 'medium', pagination }, ref): React.ReactElement => {
-  const { pageSizeOptions, itemLabel, nextButtonText, previousButtonText } = pagination;
-
+  const { pageSizeOptions, itemLabel, nextButtonText, previousButtonText } = pagination || {};
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(pageSizeOptions[0]);
+  const [pageSize, setPageSize] = useState<number>(pagination ? pageSizeOptions[0] : undefined);
 
-  const { handleSorting, sortedRows } = useTableSorting(rows);
+  let handleSorting: (columnKey: string) => void;
+  let sortedRows: Rows;
+  let rowsToRender: Rows;
 
-  const rowsToRender = getRowsToRender(currentPage, pageSize, sortedRows);
+  if (isSortable) {
+    ({ handleSorting, sortedRows } = useTableSorting(rows));
+    rowsToRender = getRowsToRender(currentPage, pageSize, sortedRows);
+  } else {
+    handleSorting = undefined;
+    rowsToRender = getRowsToRender(currentPage, pageSize, rows);
+  }
+
+  useEffect(() => {
+    if (rowsToRender.length === 0) setCurrentPage(1);
+  }, [rowsToRender]);
+
   const totalPages = Math.ceil(rows.length / pageSize);
-  if (rowsToRender.length === 0) setCurrentPage(1);
 
-  const paginationProps = {
+  const paginationProps = pagination && {
     currentPage,
     totalPages,
     pageSizeOptions,
@@ -50,6 +61,7 @@ export const StudioTableLocalPagination = forwardRef<
       size={size}
       onSortClick={handleSorting}
       pagination={paginationProps}
+      ref={ref}
     />
   );
 });

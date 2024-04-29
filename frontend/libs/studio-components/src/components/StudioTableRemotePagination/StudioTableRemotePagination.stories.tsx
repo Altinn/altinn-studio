@@ -18,6 +18,7 @@ const meta: Meta = {
   },
 };
 export const Preview: Story = (args) => {
+  // Start simulation of API logic
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(5);
 
@@ -37,6 +38,7 @@ export const Preview: Story = (args) => {
     nextButtonText: 'Neste',
     previousButtonText: 'Forrige',
   };
+  // End simulation of API logic
 
   return (
     <StudioTableRemotePagination
