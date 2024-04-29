@@ -46,6 +46,10 @@ export const ConfigEndEvent = () => {
           title: t('process_editor.configuration_panel_header_help_text_title'),
         }}
       />
+      {/*<Accordion color='subtle'>
+        <Accordion.Item>
+          <Accordion.Header>Kvittering</Accordion.Header>
+      <Accordion.Content>*/}
       <div className={classes.container}>
         <div className={classes.section}>
           <StudioLabelAsParagraph size='small' spacing>
@@ -84,7 +88,12 @@ export const ConfigEndEvent = () => {
             <p>TODO</p>
           )}
         </div>
+      </div>
+      {/*</Accordion.Content>
+        </Accordion.Item>
+              </Accordion>*/}
 
+      <div>
         <Paragraph size='small'>
           {existingCustomReceiptLayoutSetName
             ? t('process_editor.configuration_panel_custom_receipt_name')
@@ -116,13 +125,5 @@ export const ConfigEndEvent = () => {
         />
       </div>
     </>
-  );
-};
-
-const StandardReceipt = (): React.JSX.Element => {
-  return (
-    <StudioButton onClick={() => {}} icon={<PlusCircleIcon />} variant='tertiary'>
-      Opprett din egen kvittering
-    </StudioButton>
   );
 };
