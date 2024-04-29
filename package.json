@@ -107,7 +107,7 @@
     "playwright:test:all": "yarn workspace playwright-studio test:all",
     "playwright:test:ui": "yarn workspace playwright-studio test:ui",
     "resourceadm:playwright:test:ui": "yarn workspace playwright-resourceadm test:resourceadm:ui",
-    "playwright:resourceadm:test:all": "yarn workspace playwright-resourceadm test:resourceadm:all",
+    "resourceadm:playwright:test:all": "yarn workspace playwright-resourceadm test:resourceadm:all",
     "git:ignore-revs": "git config blame.ignoreRevsFile .git-blame-ignore-revs"
   },
   "syncpack": {
