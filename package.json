@@ -71,7 +71,7 @@
     "swc-loader": "0.2.6",
     "terser-webpack-plugin": "5.3.10",
     "ts-loader": "9.5.1",
-    "ts-morph": "21.0.1",
+    "ts-morph": "22.0.0",
     "typescript": "5.4.5",
     "typescript-plugin-css-modules": "5.1.0",
     "webpack": "5.91.0",
