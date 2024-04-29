@@ -9,10 +9,10 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 // Mocks:
-jest.mock('../../packages/ux-editor-v3/src/SubApp', () => ({
+jest.mock('@altinn/ux-editor-v3/SubApp', () => ({
   SubApp: () => <div data-testid='version 3' />,
 }));
-jest.mock('../../packages/ux-editor/src/SubApp', () => ({
+jest.mock('@altinn/ux-editor/SubApp', () => ({
   SubApp: () => <div data-testid='latest version' />,
 }));
 

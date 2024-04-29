@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
@@ -54,7 +54,7 @@ describe('FormComponent', () => {
     await render();
 
     const component = screen.getByRole('listitem');
-    await act(() => user.click(component));
+    await user.click(component);
 
     expect(handleSaveMock).toHaveBeenCalledTimes(1);
     expect(handleEditMock).toHaveBeenCalledTimes(1);
@@ -67,7 +67,7 @@ describe('FormComponent', () => {
       await render();
 
       const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
-      await act(() => user.click(deleteButton));
+      await user.click(deleteButton);
 
       const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
@@ -88,12 +88,12 @@ describe('FormComponent', () => {
       await render();
 
       const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
-      await act(() => user.click(deleteButton));
+      await user.click(deleteButton);
 
       const confirmButton = screen.getByRole('button', {
         name: textMock('ux_editor.component_deletion_confirm'),
       });
-      await act(() => user.click(confirmButton));
+      await user.click(confirmButton);
 
       expect(mockDeleteFormComponent).toHaveBeenCalledWith(component1IdMock);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
@@ -103,10 +103,10 @@ describe('FormComponent', () => {
       await render();
 
       const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
-      await act(() => user.click(deleteButton));
+      await user.click(deleteButton);
 
       const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
-      await act(() => user.click(cancelButton));
+      await user.click(cancelButton);
 
       expect(mockDeleteFormComponent).toHaveBeenCalledTimes(0);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
@@ -116,12 +116,12 @@ describe('FormComponent', () => {
       await render({ isEditMode: true, handleDiscard: handleDiscardMock });
 
       const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
-      await act(() => user.click(deleteButton));
+      await user.click(deleteButton);
 
       const confirmButton = screen.getByRole('button', {
         name: textMock('ux_editor.component_deletion_confirm'),
       });
-      await act(() => user.click(confirmButton));
+      await user.click(confirmButton);
 
       expect(mockDeleteFormComponent).toHaveBeenCalledTimes(1);
       expect(handleDiscardMock).toHaveBeenCalledTimes(1);
@@ -132,9 +132,9 @@ describe('FormComponent', () => {
       await render();
 
       const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
-      await act(() => user.click(deleteButton));
+      await user.click(deleteButton);
 
-      await act(() => user.click(document.body));
+      await user.click(document.body);
 
       expect(mockDeleteFormComponent).toHaveBeenCalledTimes(0);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());

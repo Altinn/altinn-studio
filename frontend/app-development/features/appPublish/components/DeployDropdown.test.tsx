@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen, waitFor, waitForElementToBeRemoved, within } from '@testing-library/react';
+import { screen, waitFor, waitForElementToBeRemoved, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { DeployDropdownProps } from './DeployDropdown';
 import { DeployDropdown } from './DeployDropdown';
@@ -101,7 +101,7 @@ describe('DeployDropdown', () => {
       );
 
       const select = screen.getByLabelText(textMock('app_deployment.choose_version'));
-      await act(() => user.click(select));
+      await user.click(select);
 
       expect(screen.getByText(textMock('app_deployment.no_versions'))).toBeInTheDocument();
     });
@@ -115,7 +115,7 @@ describe('DeployDropdown', () => {
       );
 
       const select = screen.getByLabelText(textMock('app_deployment.choose_version'));
-      await act(() => user.click(select));
+      await user.click(select);
 
       expect(screen.getByRole('option', { name: imageOptions[0].label })).toBeInTheDocument();
       expect(screen.getByRole('option', { name: imageOptions[1].label })).toBeInTheDocument();
@@ -139,10 +139,10 @@ describe('DeployDropdown', () => {
       );
 
       const select = screen.getByLabelText(textMock('app_deployment.choose_version'));
-      await act(() => user.click(select));
+      await user.click(select);
 
       const option = screen.getByRole('option', { name: imageOptions[1].label });
-      await act(() => user.click(option));
+      await user.click(option);
 
       await waitFor(() => {
         expect(defaultProps.setSelectedImageTag).toHaveBeenCalledWith(imageOptions[1].value);
@@ -190,7 +190,7 @@ describe('DeployDropdown', () => {
       const deployButton = screen.getByRole('button', {
         name: textMock('app_deployment.btn_deploy_new_version'),
       });
-      await act(() => user.click(deployButton));
+      await user.click(deployButton);
 
       const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
@@ -222,7 +222,7 @@ describe('DeployDropdown', () => {
       const deployButton = screen.getByRole('button', {
         name: textMock('app_deployment.btn_deploy_new_version'),
       });
-      await act(() => user.click(deployButton));
+      await user.click(deployButton);
 
       const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
@@ -253,10 +253,10 @@ describe('DeployDropdown', () => {
       const deployButton = screen.getByRole('button', {
         name: textMock('app_deployment.btn_deploy_new_version'),
       });
-      await act(() => user.click(deployButton));
+      await user.click(deployButton);
 
       const confirmButton = screen.getByRole('button', { name: textMock('general.yes') });
-      await act(() => user.click(confirmButton));
+      await user.click(confirmButton);
 
       expect(defaultProps.startDeploy).toHaveBeenCalledTimes(1);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
@@ -273,10 +273,10 @@ describe('DeployDropdown', () => {
       const deployButton = screen.getByRole('button', {
         name: textMock('app_deployment.btn_deploy_new_version'),
       });
-      await act(() => user.click(deployButton));
+      await user.click(deployButton);
 
       const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
-      await act(() => user.click(cancelButton));
+      await user.click(cancelButton);
 
       expect(defaultProps.startDeploy).toHaveBeenCalledTimes(0);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
@@ -293,9 +293,9 @@ describe('DeployDropdown', () => {
       const deployButton = screen.getByRole('button', {
         name: textMock('app_deployment.btn_deploy_new_version'),
       });
-      await act(() => user.click(deployButton));
+      await user.click(deployButton);
 
-      await act(() => user.click(document.body));
+      await user.click(document.body);
 
       expect(defaultProps.startDeploy).toHaveBeenCalledTimes(0);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());

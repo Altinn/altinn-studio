@@ -8,7 +8,6 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Helpers;
@@ -19,7 +18,6 @@ using LibGit2Sharp;
 using Microsoft.IdentityModel.Tokens;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 using LayoutSets = Altinn.Studio.Designer.Models.LayoutSets;
-using NonUniqueLayoutSetIdException = Altinn.Studio.Designer.Exceptions.NonUniqueLayoutSetIdException;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 {
@@ -142,30 +140,16 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Gets the model metadata content based on model name. If no model metadata found for the model name an empty model metadata is returned.
+        /// Deletes model metadata file as it is generated on the fly and does not need to be in the repo.
         /// </summary>
-        /// <param name="modelName">The model metadata as string</param>
-        public async Task<string> GetModelMetadata(string modelName)
+        /// <param name="modelMetadataFilePath">The full relative path to the model metadata</param>
+        public void DeleteModelMetadata(string modelMetadataFilePath)
         {
-            string modelMetadataFileName = GetPathToModelMetadata(modelName);
-            if (!FileExistsByRelativePath(modelMetadataFileName))
+            if (FileExistsByRelativePath(modelMetadataFilePath))
             {
-                ModelMetadata emptyModel = JsonSerializer.Deserialize<ModelMetadata>("{}");
-                return JsonSerializer.Serialize(emptyModel);
+                string absolutePath = GetAbsoluteFileOrDirectoryPathSanitized(modelMetadataFilePath);
+                File.Delete(absolutePath);
             }
-            return await ReadTextByRelativePathAsync(modelMetadataFileName);
-        }
-
-        /// <summary>
-        /// Saves the model metadata model for the application (a JSON where the model hierarchy is flatten,
-        /// in order to easier generate the C# class) to disk.
-        /// </summary>
-        /// <param name="modelMetadata">Model metadata to persist.</param>
-        /// <param name="modelName">The name of the model. </param>
-        public async Task SaveModelMetadata(string modelMetadata, string modelName)
-        {
-            string modelMetadataRelativeFilePath = GetPathToModelMetadata(modelName);
-            await WriteTextByRelativePathAsync(modelMetadataRelativeFilePath, modelMetadata, true);
         }
 
         /// <summary>
@@ -439,6 +423,21 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
             string sourceAbsolutePath = GetAbsoluteFileOrDirectoryPathSanitized(sourceRelativePath);
             Directory.Move(sourceAbsolutePath, destAbsolutePath);
+        }
+
+        /// <summary>
+        /// Delete layout set folder
+        /// </summary>
+        public void DeleteLayoutSetFolder(string oldLayoutSetName, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            string relativePath = GetPathToLayoutSet(oldLayoutSetName, true);
+            if (DirectoryExistsByRelativePath(relativePath))
+            {
+                string absolutePath = GetAbsoluteFileOrDirectoryPathSanitized(relativePath);
+                Directory.Delete(absolutePath, true);
+            }
         }
 
         /// <summary>

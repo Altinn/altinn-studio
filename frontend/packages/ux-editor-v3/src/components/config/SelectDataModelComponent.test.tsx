@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 
 import { renderWithMockStore, renderHookWithMockStore } from '../../testing/mocks';
 import { appDataMock, textResourcesMock } from '../../testing/stateMocks';
@@ -115,10 +115,10 @@ describe('EditDataModelBindings', () => {
       handleComponentChange,
     });
     const selectElement = screen.getByRole('combobox');
-    await act(async () => {
-      await user.click(selectElement);
-      await user.click(screen.getByText('testModel.field1'));
-    });
+
+    await user.click(selectElement);
+    await user.click(screen.getByText('testModel.field1'));
+
     await waitFor(() => {});
     expect(handleComponentChange).toHaveBeenCalledWith('testModel.field1');
   });

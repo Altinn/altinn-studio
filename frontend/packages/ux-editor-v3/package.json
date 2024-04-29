@@ -1,5 +1,5 @@
 {
-  "name": "ux-editor-v3",
+  "name": "@altinn/ux-editor-v3",
   "description": "",
   "version": "1.0.1",
   "author": "Altinn",
@@ -18,7 +18,7 @@
     "react-select": "5.8.0",
     "redux": "4.2.1",
     "reselect": "4.1.8",
-    "typescript": "5.4.4",
+    "typescript": "5.4.5",
     "uuid": "9.0.1"
   },
   "devDependencies": {

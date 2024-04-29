@@ -137,17 +137,18 @@ export const DeploymentEnvironmentLogList = ({
                       </Table.Cell>
                       <Table.Cell className={classes.tableCell}>{deploy.createdBy}</Table.Cell>
                       <Table.Cell className={classes.tableCell}>
-                        {DateUtils.isDateWithinDays(deploy.build.started, 30) ? (
-                          <Link
-                            href={getAzureDevopsBuildResultUrl(deploy.build.id)}
-                            target='_newTab'
-                            rel='noopener noreferrer'
-                          >
-                            {t('app_deployment.table.build_log_active_link')}
-                          </Link>
-                        ) : (
-                          t('app_deployment.table.build_log_expired_link')
-                        )}
+                        {deploy.build.started &&
+                          (DateUtils.isDateWithinDays(deploy.build.started, 30) ? (
+                            <Link
+                              href={getAzureDevopsBuildResultUrl(deploy.build.id)}
+                              target='_newTab'
+                              rel='noopener noreferrer'
+                            >
+                              {t('app_deployment.table.build_log_active_link')}
+                            </Link>
+                          ) : (
+                            t('app_deployment.table.build_log_expired_link')
+                          ))}
                       </Table.Cell>
                     </Table.Row>
                   );

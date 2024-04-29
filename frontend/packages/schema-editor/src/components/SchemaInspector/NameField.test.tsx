@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, act } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import type { NameFieldProps } from './NameField';
@@ -41,8 +41,8 @@ describe('NameField', () => {
 
   it('should not save if name contains invalid characters', async () => {
     await render();
-    await act(() => user.type(screen.getByRole('textbox'), '@'));
-    await act(() => user.tab());
+    await user.type(screen.getByRole('textbox'), '@');
+    await user.tab();
     expect(
       screen.getByText(textMock('schema_editor.nameError_invalidCharacter')),
     ).toBeInTheDocument();
@@ -51,16 +51,16 @@ describe('NameField', () => {
 
   it('should not save if name is already in use', async () => {
     await render();
-    await act(() => user.type(screen.getByRole('textbox'), '2'));
-    await act(() => user.tab());
+    await user.type(screen.getByRole('textbox'), '2');
+    await user.tab();
     expect(screen.getByText(textMock('schema_editor.nameError_alreadyInUse'))).toBeInTheDocument();
     expect(defaultProps.handleSave).not.toHaveBeenCalled();
   });
 
   it('should save if name is valid', async () => {
     await render();
-    await act(() => user.type(screen.getByRole('textbox'), '3'));
-    await act(() => user.tab());
+    await user.type(screen.getByRole('textbox'), '3');
+    await user.tab();
     expect(defaultProps.handleSave).toHaveBeenCalledTimes(1);
   });
 });

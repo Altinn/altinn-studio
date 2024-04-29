@@ -2,7 +2,7 @@ import React from 'react';
 import type { TextRowProps } from './TextRow';
 import userEvent from '@testing-library/user-event';
 import { TextRow } from './TextRow';
-import { screen, render as rtlRender, waitFor, act } from '@testing-library/react';
+import { screen, render as rtlRender, waitFor } from '@testing-library/react';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import type { TextTableRowEntry } from './types';
 import { Table, TableBody } from '@digdir/design-system-react';
@@ -54,8 +54,8 @@ describe('TextRow', () => {
       }),
     });
 
-    await act(() => user.type(valueInput, '-updated'));
-    await act(() => user.keyboard('{TAB}'));
+    await user.type(valueInput, '-updated');
+    await user.keyboard('{TAB}');
 
     expect(upsertTextResource).toHaveBeenCalledWith({
       language: 'nb',
@@ -95,19 +95,19 @@ describe('TextRow', () => {
     const toggleKeyEditButton = screen.getByRole('button', {
       name: textMock('text_editor.toggle_edit_mode', { textKey }),
     });
-    await act(() => user.click(toggleKeyEditButton));
+    await user.click(toggleKeyEditButton);
 
     const idInput = screen.getByRole('textbox', {
       name: textMock('text_editor.key.edit', { textKey }),
     });
     const emptyMsg = textMock('text_editor.key.error_empty');
     const illegalCharMsg = textMock('text_editor.key.error_invalid');
-    await act(() => user.dblClick(idInput));
-    await act(() => user.keyboard('{BACKSPACE}'));
+    await user.dblClick(idInput);
+    await user.keyboard('{BACKSPACE}');
     expect(screen.getByText(emptyMsg)).not.toBeNull();
-    await act(() => user.keyboard('2'));
+    await user.keyboard('2');
     expect(screen.queryByText(emptyMsg)).toBeNull();
-    await act(() => user.keyboard(' '));
+    await user.keyboard(' ');
     expect(screen.getByText(illegalCharMsg)).toBeInTheDocument();
   });
 
@@ -136,7 +136,7 @@ describe('TextRow', () => {
       renderTextRow();
 
       const deleteButton = screen.getByRole('button', { name: textMock('schema_editor.delete') });
-      await act(() => user.click(deleteButton));
+      await user.click(deleteButton);
 
       const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
@@ -159,12 +159,12 @@ describe('TextRow', () => {
       renderTextRow({ removeEntry });
 
       const deleteButton = screen.getByRole('button', { name: textMock('schema_editor.delete') });
-      await act(() => user.click(deleteButton));
+      await user.click(deleteButton);
 
       const confirmButton = screen.getByRole('button', {
         name: textMock('schema_editor.textRow-deletion-confirm'),
       });
-      await act(() => user.click(confirmButton));
+      await user.click(confirmButton);
 
       expect(removeEntry).toHaveBeenCalledWith({ textId: 'key1' });
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
@@ -176,10 +176,10 @@ describe('TextRow', () => {
       renderTextRow({ removeEntry });
 
       const deleteButton = screen.getByRole('button', { name: textMock('schema_editor.delete') });
-      await act(() => user.click(deleteButton));
+      await user.click(deleteButton);
 
       const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
-      await act(() => user.click(cancelButton));
+      await user.click(cancelButton);
 
       expect(removeEntry).toHaveBeenCalledTimes(0);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
@@ -191,9 +191,9 @@ describe('TextRow', () => {
       renderTextRow({ removeEntry });
 
       const deleteButton = screen.getByRole('button', { name: textMock('schema_editor.delete') });
-      await act(() => user.click(deleteButton));
+      await user.click(deleteButton);
 
-      await act(() => user.click(document.body));
+      await user.click(document.body);
 
       expect(removeEntry).toHaveBeenCalledTimes(0);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());

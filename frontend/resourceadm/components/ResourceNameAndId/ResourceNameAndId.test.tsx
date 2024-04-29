@@ -3,7 +3,6 @@ import { render, screen } from '@testing-library/react';
 import type { ResourceNameAndIdProps } from './ResourceNameAndId';
 import { ResourceNameAndId } from './ResourceNameAndId';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
 
 const mockTitleLabel = 'TitleLabel';
@@ -13,6 +12,16 @@ const mockResourceIdInitial: string = 'resource-123';
 
 const mockResourceTitleAfterChange: string = 'resource 1234';
 const mockResourceIdAfterChange: string = 'resource-1230';
+
+const editLabelButtonText = textMock('resourceadm.dashboard_resource_name_and_id_change', {
+  objectType: mockIdLabel,
+});
+const saveEditButtonText = textMock('resourceadm.dashboard_resource_name_and_id_checkmark_icon', {
+  objectType: mockIdLabel,
+});
+const cancelEditButtonText = textMock('resourceadm.dashboard_resource_name_and_id_delete_icon', {
+  objectType: mockIdLabel,
+});
 
 describe('ResourceNameAndId', () => {
   const mockHandleEditTitle = jest.fn();
@@ -35,23 +44,23 @@ describe('ResourceNameAndId', () => {
     const titleInput = screen.getByLabelText(mockTitleLabel);
     expect(titleInput).toHaveValue(mockResourceTitleInitial);
 
-    await act(() => user.type(titleInput, '4'));
+    await user.type(titleInput, '4');
     expect(mockHandleEditTitle).toHaveBeenCalledWith(mockResourceTitleAfterChange);
   });
 
   it('displays the edit button when isEditOpen is false, and hides the two icon buttons', () => {
     render(<ResourceNameAndId {...defaultProps} />);
 
-    const editButton = screen.getByRole('button', { name: textMock('general.edit') });
+    const editButton = screen.getByRole('button', { name: editLabelButtonText });
     expect(editButton).toBeInTheDocument();
 
     const iconButtonCancel = screen.queryByRole('button', {
-      name: textMock('resourceadm.dashboard_resource_name_and_id_delete_icon'),
+      name: cancelEditButtonText,
     });
     expect(iconButtonCancel).not.toBeInTheDocument();
 
     const iconButtonSave = screen.queryByRole('button', {
-      name: textMock('resourceadm.dashboard_resource_name_and_id_checkmark_icon'),
+      name: saveEditButtonText,
     });
     expect(iconButtonSave).not.toBeInTheDocument();
   });
@@ -60,16 +69,16 @@ describe('ResourceNameAndId', () => {
     const user = userEvent.setup();
     render(<ResourceNameAndId {...defaultProps} />);
 
-    const editButton = screen.queryByRole('button', { name: textMock('general.edit') });
-    await act(() => user.click(editButton));
+    const editButton = screen.queryByRole('button', { name: editLabelButtonText });
+    await user.click(editButton);
 
     const iconButtonCancel = screen.getByRole('button', {
-      name: textMock('resourceadm.dashboard_resource_name_and_id_delete_icon'),
+      name: cancelEditButtonText,
     });
     expect(iconButtonCancel).toBeInTheDocument();
 
     const iconButtonSave = screen.getByRole('button', {
-      name: textMock('resourceadm.dashboard_resource_name_and_id_checkmark_icon'),
+      name: saveEditButtonText,
     });
     expect(iconButtonSave).toBeInTheDocument();
 
@@ -80,13 +89,13 @@ describe('ResourceNameAndId', () => {
     const user = userEvent.setup();
     render(<ResourceNameAndId {...defaultProps} />);
 
-    const editButton = screen.queryByRole('button', { name: textMock('general.edit') });
-    await act(() => user.click(editButton));
+    const editButton = screen.queryByRole('button', { name: editLabelButtonText });
+    await user.click(editButton);
 
     const idInput = screen.getByLabelText(mockIdLabel);
     expect(idInput).toHaveValue(mockResourceIdInitial);
 
-    await act(() => user.type(idInput, '0'));
+    await user.type(idInput, '0');
     expect(mockHandleIdInput).toHaveBeenCalledWith(mockResourceIdAfterChange);
   });
 
@@ -94,16 +103,16 @@ describe('ResourceNameAndId', () => {
     const user = userEvent.setup();
     render(<ResourceNameAndId {...defaultProps} />);
 
-    const editButton = screen.queryByRole('button', { name: textMock('general.edit') });
-    await act(() => user.click(editButton));
+    const editButton = screen.queryByRole('button', { name: editLabelButtonText });
+    await user.click(editButton);
 
     const idInput = screen.getByLabelText(mockIdLabel);
 
-    await act(() => user.type(idInput, 'newId'));
+    await user.type(idInput, 'newId');
     const iconButtonCancel = screen.getByRole('button', {
-      name: textMock('resourceadm.dashboard_resource_name_and_id_delete_icon'),
+      name: cancelEditButtonText,
     });
-    await act(() => user.click(iconButtonCancel));
+    await user.click(iconButtonCancel);
 
     expect(screen.getByText(mockResourceIdInitial)).toBeInTheDocument();
   });
@@ -112,18 +121,18 @@ describe('ResourceNameAndId', () => {
     const user = userEvent.setup();
     render(<ResourceNameAndId {...defaultProps} />);
 
-    const editButton = screen.queryByRole('button', { name: textMock('general.edit') });
-    await act(() => user.click(editButton));
+    const editButton = screen.queryByRole('button', { name: editLabelButtonText });
+    await user.click(editButton);
 
     const idInput = screen.getByLabelText(mockIdLabel);
 
-    await act(() => user.type(idInput, 'newId'));
+    await user.type(idInput, 'newId');
 
     const iconButtonSave = screen.queryByRole('button', {
-      name: textMock('resourceadm.dashboard_resource_name_and_id_checkmark_icon'),
+      name: saveEditButtonText,
     });
 
-    await act(() => user.click(iconButtonSave));
+    await user.click(iconButtonSave);
     expect(idInput).not.toBeInTheDocument();
   });
 
@@ -138,7 +147,7 @@ describe('ResourceNameAndId', () => {
     render(<ResourceNameAndId {...defaultProps} title='test/\\?: #=name' />);
 
     const titleInput = screen.getByLabelText(mockTitleLabel);
-    await act(() => user.type(titleInput, '1'));
+    await user.type(titleInput, '1');
 
     expect(mockHandleIdInput).toHaveBeenCalledWith('test-name1');
   });

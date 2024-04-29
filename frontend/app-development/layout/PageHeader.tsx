@@ -10,17 +10,15 @@ import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import type { User } from 'app-shared/types/Repository';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { RepositoryType } from 'app-shared/types/global';
-import {
-  useSelectedFormLayoutSetName,
-  useSelectedFormLayoutName,
-} from '../../packages/ux-editor/src/hooks';
+import { useSelectedFormLayoutSetName, useSelectedFormLayoutName } from '@altinn/ux-editor/hooks';
 
 type SubMenuContentProps = {
   org: string;
   app: string;
+  hasRepoError?: boolean;
 };
 
-export const subMenuContent = ({ org, app }: SubMenuContentProps) => {
+export const subMenuContent = ({ org, app, hasRepoError }: SubMenuContentProps) => {
   const repositoryType = getRepositoryType(org, app);
   return (
     <GiteaHeader
@@ -30,6 +28,7 @@ export const subMenuContent = ({ org, app }: SubMenuContentProps) => {
       leftComponent={
         repositoryType !== RepositoryType.Datamodels && <SettingsModalButton org={org} app={app} />
       }
+      hasRepoError={hasRepoError}
     />
   );
 };
@@ -83,8 +82,8 @@ export const PageHeader = ({
   return (
     <AltinnHeader
       menuItems={!isRepoError && menuItems}
-      showSubMenu={showSubMenu && !isRepoError}
-      subMenuContent={!isRepoError && subMenuContent({ org, app })}
+      showSubMenu={showSubMenu || !isRepoError}
+      subMenuContent={subMenuContent({ org, app, hasRepoError: isRepoError })}
       org={org}
       app={!isRepoError && app}
       user={user}

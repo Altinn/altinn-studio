@@ -1,19 +1,14 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './AccessControlTab.module.css';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
-import { Checkbox, ErrorMessage, Paragraph } from '@digdir/design-system-react';
-import type { PartyTypesAllowed } from 'app-shared/types/ApplicationMetadata';
-import { useAppMetadataMutation } from 'app-development/hooks/mutations';
-import {
-  getPartyTypesAllowedOptions,
-  initialPartyTypes,
-} from '../../../utils/tabUtils/accessControlTabUtils';
+import { ErrorMessage, HelpText, Link, Paragraph } from '@digdir/design-system-react';
 import { useAppMetadataQuery } from 'app-development/hooks/queries';
 import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';
 import { TabContent } from '../../TabContent';
+import { SelectAllowedPartyTypes } from './SelectAllowedPartyTypes';
 
 export type AccessControlTabProps = {
   org: string;
@@ -33,29 +28,10 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
   const { t } = useTranslation();
 
   const {
-    status: appMetadataStatus,
     data: appMetadata,
+    status: appMetadataStatus,
     error: appMetadataError,
   } = useAppMetadataQuery(org, app);
-
-  const { mutate: updateAppMetadataMutation } = useAppMetadataMutation(org, app);
-
-  const handleChange = (newPartyTypes: string[], currentPartyTypesAllowed: PartyTypesAllowed) => {
-    const newPartyTypesAllowed = { ...currentPartyTypesAllowed };
-
-    Object.keys(currentPartyTypesAllowed).forEach((key) => {
-      newPartyTypesAllowed[key] = newPartyTypes.includes(key);
-    });
-    updateAppMetadataMutation({ ...appMetadata, partyTypesAllowed: newPartyTypesAllowed });
-  };
-
-  const displayCheckboxes = () => {
-    return getPartyTypesAllowedOptions().map((option) => (
-      <Checkbox value={option.value} key={option.value} size='small'>
-        {t(option.label)}
-      </Checkbox>
-    ));
-  };
 
   const displayContent = () => {
     switch (appMetadataStatus) {
@@ -70,30 +46,33 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
         );
       }
       case 'success': {
-        const currentPartyTypesAllowed = appMetadata?.partyTypesAllowed ?? initialPartyTypes;
         return (
-          <Checkbox.Group
-            legend={t('settings_modal.access_control_tab_checkbox_legend')}
-            size='small'
-            onChange={(newValues: string[]) => handleChange(newValues, currentPartyTypesAllowed)}
-            value={Object.keys(currentPartyTypesAllowed).filter(
-              (key) => currentPartyTypesAllowed[key],
-            )}
-          >
-            <Paragraph asChild size='small' short className={classes.checkboxParagraph}>
-              <span>{t('settings_modal.access_control_tab_checkbox_description')}</span>
+          <>
+            <TabHeader text={t('settings_modal.access_control_tab_checkbox_legend_label')} />
+            <Paragraph size='medium'>
+              {t('settings_modal.access_control_tab_checkbox_description')}
             </Paragraph>
-            {displayCheckboxes()}
-          </Checkbox.Group>
+            <SelectAllowedPartyTypes org={org} app={app} appMetadata={appMetadata} />
+          </>
         );
       }
     }
   };
-
   return (
     <TabContent>
-      <TabHeader text={t('settings_modal.access_control_tab_heading')} />
+      <div className={classes.tabHeaderContent}>
+        <TabHeader text={t('settings_modal.access_control_tab_heading')} />
+        <HelpText title={t('settings_modal.access_control_tab_help_text_title')} placement='top'>
+          {t('settings_modal.access_control_tab_help_text_heading')}
+        </HelpText>
+      </div>
       {displayContent()}
+      <span className={classes.docsLinkText}>
+        {t('settings_modal.access_control_tab_option_access_control_docs_link_text')}
+      </span>
+      <Trans i18nKey={'settings_modal.access_control_tab_option_access_control_docs_link'}>
+        <Link>documentation</Link>
+      </Trans>
     </TabContent>
   );
 };

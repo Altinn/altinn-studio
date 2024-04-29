@@ -2,7 +2,6 @@ import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { AccessListMembersProps } from './AccessListMembers';
@@ -58,7 +57,7 @@ describe('AccessListMembers', () => {
     renderAccessListMembers({}, { removeAccessListMember: removeAccessListMemberMock });
 
     const removeButtons = screen.getAllByText(textMock('resourceadm.listadmin_remove_from_list'));
-    await act(() => user.click(removeButtons[0]));
+    await user.click(removeButtons[0]);
 
     expect(removeAccessListMemberMock).toHaveBeenCalledWith(
       testOrg,
@@ -89,15 +88,15 @@ describe('AccessListMembers', () => {
     const addMoreButton = screen.getByRole('button', {
       name: textMock('resourceadm.listadmin_search_add_more'),
     });
-    await act(() => user.click(addMoreButton));
+    await user.click(addMoreButton);
 
     const textField = screen.getByLabelText(textMock('resourceadm.listadmin_search'));
-    await act(() => user.type(textField, 'test'));
+    await user.type(textField, 'test');
 
     await waitFor(() => screen.findByText(searchResultText));
 
     const searchResultsButton = screen.getByText(textMock('resourceadm.listadmin_add_to_list'));
-    await act(() => user.click(searchResultsButton));
+    await user.click(searchResultsButton);
 
     expect(addAccessListMemberMock).toHaveBeenCalledWith(
       testOrg,
@@ -120,10 +119,10 @@ describe('AccessListMembers', () => {
     const addMoreButton = screen.getByRole('button', {
       name: textMock('resourceadm.listadmin_search_add_more'),
     });
-    await act(() => user.click(addMoreButton));
+    await user.click(addMoreButton);
 
     const textField = screen.getByLabelText(textMock('resourceadm.listadmin_search'));
-    await act(() => user.type(textField, '123456789'));
+    await user.type(textField, '123456789');
 
     await screen.findByText(textMock('resourceadm.listadmin_search_no_parties'));
   });
@@ -141,15 +140,15 @@ describe('AccessListMembers', () => {
     const addMoreButton = screen.getByRole('button', {
       name: textMock('resourceadm.listadmin_search_add_more'),
     });
-    await act(() => user.click(addMoreButton));
+    await user.click(addMoreButton);
 
     const subPartyRadioButton = screen.getByLabelText(
       textMock('resourceadm.listadmin_sub_parties'),
     );
-    await act(() => user.click(subPartyRadioButton));
+    await user.click(subPartyRadioButton);
 
     const textField = screen.getByLabelText(textMock('resourceadm.listadmin_search'));
-    await act(() => user.type(textField, 'test'));
+    await user.type(textField, 'test');
 
     await screen.findByText(textMock('resourceadm.listadmin_search_no_sub_parties'));
   });
@@ -180,22 +179,22 @@ describe('AccessListMembers', () => {
     const addMoreButton = screen.getByRole('button', {
       name: textMock('resourceadm.listadmin_search_add_more'),
     });
-    await act(() => user.click(addMoreButton));
+    await user.click(addMoreButton);
 
     const subPartyRadioButton = screen.getByLabelText(
       textMock('resourceadm.listadmin_sub_parties'),
     );
-    await act(() => user.click(subPartyRadioButton));
+    await user.click(subPartyRadioButton);
 
     const textField = screen.getByLabelText(textMock('resourceadm.listadmin_search'));
-    await act(() => user.type(textField, 'test'));
+    await user.type(textField, 'test');
 
     await waitFor(() => screen.findByText(searchResultText));
 
     const nextButton = screen.getByRole('button', {
       name: textMock('resourceadm.listadmin_search_next'),
     });
-    await act(() => user.click(nextButton));
+    await user.click(nextButton);
 
     expect(getSubPartiesMock).toHaveBeenCalledWith(nextPageUrl);
   });
@@ -226,10 +225,10 @@ describe('AccessListMembers', () => {
     const addMoreButton = screen.getByRole('button', {
       name: textMock('resourceadm.listadmin_search_add_more'),
     });
-    await act(() => user.click(addMoreButton));
+    await user.click(addMoreButton);
 
     const textField = screen.getByLabelText(textMock('resourceadm.listadmin_search'));
-    await act(() => user.type(textField, 'test'));
+    await user.type(textField, 'test');
 
     await waitFor(() => screen.findByText(searchResultText));
 
