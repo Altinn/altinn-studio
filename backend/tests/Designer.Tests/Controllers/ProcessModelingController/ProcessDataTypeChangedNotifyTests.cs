@@ -24,7 +24,7 @@ public class ProcessDataTypeChangedNotifyTests : DisagnerEndpointsTestsBase<Proc
 
     [Theory]
     [MemberData(nameof(ProcessDataTypeChangedNotifyTestData))]
-    public async Task ProcessDataTypeChangedNotify_ShouldReturnOk(string org, string app, string developer, ProcessDefinitionMetadata metadata)
+    public async Task ProcessDataTypeChangedNotify_ShouldReturnOk(string org, string app, string developer, DataTypeChange metadata)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -48,10 +48,7 @@ public class ProcessDataTypeChangedNotifyTests : DisagnerEndpointsTestsBase<Proc
             "ttd",
             "empty-app",
             "testUser",
-            new ProcessDefinitionMetadata
-            {
-                DataTypeChangeDetails = new DataTypeChange { NewDataType = "model", ConnectedTaskId = "Task_1" }
-            }
+            new DataTypeChange { NewDataType = "model", ConnectedTaskId = "Task_1" }
         ];
     }
 }

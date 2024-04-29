@@ -10,8 +10,8 @@ import { ConfigViewerPanel } from './components/ConfigViewerPanel';
 import classes from './ProcessEditor.module.css';
 import type { BpmnApiContextProps } from './contexts/BpmnApiContext';
 import { BpmnApiContextProvider } from './contexts/BpmnApiContext';
-import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 import { BpmnConfigPanelFormContextProvider } from './contexts/BpmnConfigPanelContext';
+import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 
 export type ProcessEditorProps = {
   appLibVersion: string;
@@ -23,7 +23,7 @@ export type ProcessEditorProps = {
   addLayoutSet: BpmnApiContextProps['addLayoutSet'];
   deleteLayoutSet: BpmnApiContextProps['deleteLayoutSet'];
   mutateLayoutSet: BpmnApiContextProps['mutateLayoutSet'];
-  updateDataType: (metaData: MetaDataForm) => void;
+  mutateDataType: BpmnApiContextProps['mutateDataType'];
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
 };
 
@@ -37,7 +37,7 @@ export const ProcessEditor = ({
   addLayoutSet,
   deleteLayoutSet,
   mutateLayoutSet,
-  updateDataType,
+  mutateDataType,
   saveBpmn,
 }: ProcessEditorProps): JSX.Element => {
   const { t } = useTranslation();
@@ -60,7 +60,7 @@ export const ProcessEditor = ({
         addLayoutSet={addLayoutSet}
         deleteLayoutSet={deleteLayoutSet}
         mutateLayoutSet={mutateLayoutSet}
-        updateDataType={updateDataType}
+        mutateDataType={mutateDataType}
         saveBpmn={saveBpmn}
       >
         <BpmnConfigPanelFormContextProvider>

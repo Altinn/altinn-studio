@@ -118,7 +118,7 @@ describe('EditTaskId', () => {
     await user.tab();
 
     expect(metaDataFormRefMock.current).toEqual(
-      expect.objectContaining({ taskIdChanges: [{ newId: newId, oldId: 'testId' }] }),
+      expect.objectContaining({ taskIdChange: { newId: newId, oldId: 'testId' } }),
     );
     expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1);
   });

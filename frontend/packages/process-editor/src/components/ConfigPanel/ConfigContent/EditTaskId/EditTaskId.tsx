@@ -36,18 +36,12 @@ export const EditTaskId = ({ ...rest }: EditTaskIdProps): React.ReactElement => 
     if (newId === bpmnDetails.id) return;
 
     const newMetadata: MetaDataForm = {
-      taskIdChanges: [
-        {
-          newId,
-          oldId: bpmnDetails.id,
-        },
-      ],
+      taskIdChange: {
+        newId,
+        oldId: bpmnDetails.id,
+      },
     };
-    metaDataFormRef.current = Object.assign(
-      {},
-      metaDataFormRef.current, // Current value of metaDataFormRef
-      newMetadata, // New metadata to merge
-    );
+    metaDataFormRef.current = Object.assign({}, metaDataFormRef.current, newMetadata);
     updateId(newId);
   };
 

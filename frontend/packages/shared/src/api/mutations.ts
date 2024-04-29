@@ -58,6 +58,7 @@ import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Repository } from 'app-shared/types/Repository';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import type { AddLayoutSetResponse } from 'app-shared/types/api/AddLayoutSetResponse';
+import type { DataTypeChange } from 'app-shared/types/api/DataTypeChange';
 
 const headers = {
   Accept: 'application/json',
@@ -127,4 +128,4 @@ export const updateBpmnXml = (org: string, app: string, form: any) =>
     },
   });
 
-export const updateProcessDataType = (org: string, app: string, form: any) => put(processEditorDataTypeChangePath(org, app), form);
+export const updateProcessDataType = (org: string, app: string, dataTypeChange: DataTypeChange) => put(processEditorDataTypeChangePath(org, app), dataTypeChange);

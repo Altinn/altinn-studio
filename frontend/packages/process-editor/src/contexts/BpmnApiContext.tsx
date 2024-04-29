@@ -1,6 +1,7 @@
 import type { LayoutSets, LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import React, { createContext, useContext } from 'react';
 import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
+import type { DataTypeChange } from 'app-shared/types/api/DataTypeChange';
 
 export type BpmnApiContextProps = {
   availableDataModelIds: string[];
@@ -10,7 +11,7 @@ export type BpmnApiContextProps = {
   addLayoutSet: (data: { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig }) => void;
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
   mutateLayoutSet: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
-  updateDataType: (metaData: MetaDataForm) => void;
+  mutateDataType: (dataTypeChange: DataTypeChange) => void;
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
 };
 
@@ -25,7 +26,7 @@ export type BpmnApiContextProviderProps = {
   addLayoutSet: (data: { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig }) => void;
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
   mutateLayoutSet: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
-  updateDataType: (metaData: MetaDataForm) => void;
+  mutateDataType: (data: DataTypeChange) => void;
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
 };
 export const BpmnApiContextProvider = ({
@@ -37,7 +38,7 @@ export const BpmnApiContextProvider = ({
   addLayoutSet,
   deleteLayoutSet,
   mutateLayoutSet,
-  updateDataType,
+  mutateDataType,
   saveBpmn,
 }: Partial<BpmnApiContextProviderProps>) => {
   return (
@@ -50,7 +51,7 @@ export const BpmnApiContextProvider = ({
         addLayoutSet,
         deleteLayoutSet,
         mutateLayoutSet,
-        updateDataType,
+        mutateDataType,
         saveBpmn,
       }}
     >

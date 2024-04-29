@@ -1,9 +1,6 @@
-using System.Collections.Generic;
-
 namespace Altinn.Studio.Designer.Models.Dto;
 
 public class ProcessDefinitionMetadata
 {
-    public List<TaskIdChange> TaskIdChanges { get; set; }
-    public DataTypeChange DataTypeChangeDetails { get; set; }
+    public TaskIdChange TaskIdChange { get; set; }
 }

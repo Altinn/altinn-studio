@@ -26,7 +26,7 @@ public class ApplicationMetadataFileSyncDataTypeTests : DisagnerEndpointsTestsBa
 
     [Theory]
     [MemberData(nameof(ProcessDataTypeChangedNotifyTestData))]
-    public async Task ProcessDataTypeChangedNotify_TaskIsDisConnectedFromDataType_ShouldSyncApplicationMetadata(string org, string app, string developer, string applicationMetadataPath, ProcessDefinitionMetadata metadata)
+    public async Task ProcessDataTypeChangedNotify_TaskIsDisConnectedFromDataType_ShouldSyncApplicationMetadata(string org, string app, string developer, string applicationMetadataPath, DataTypeChange dataTypeChange)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -34,12 +34,12 @@ public class ApplicationMetadataFileSyncDataTypeTests : DisagnerEndpointsTestsBa
 
         string url = VersionPrefix(org, targetRepository);
 
-        string metadataString = JsonSerializer.Serialize(metadata,
+        string dataTypeChangeString = JsonSerializer.Serialize(dataTypeChange,
             new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
         {
-            Content = new StringContent(metadataString, Encoding.UTF8, "application/json")
+            Content = new StringContent(dataTypeChangeString, Encoding.UTF8, "application/json")
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         response.StatusCode.Should().Be(HttpStatusCode.Accepted);
@@ -48,29 +48,29 @@ public class ApplicationMetadataFileSyncDataTypeTests : DisagnerEndpointsTestsBa
 
         ApplicationMetadata applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataFromRepo, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
-        applicationMetadata.DataTypes.Should().NotContain(dataType => dataType.AppLogic != null && dataType.TaskId == metadata.DataTypeChangeDetails.ConnectedTaskId); // No data type connected to Task_1
+        applicationMetadata.DataTypes.Should().NotContain(dataType => dataType.AppLogic != null && dataType.TaskId == dataTypeChange.ConnectedTaskId); // No data type connected to Task_1
     }
 
     [Theory]
     [MemberData(nameof(ProcessDataTypeChangedNotifyTestData))]
     public async Task ProcessDataTypeChangedNotify_NewDataTypeForTask5IsMessage_ShouldSyncApplicationMetadata(
-        string org, string app, string developer, string applicationMetadataPath, ProcessDefinitionMetadata metadata)
+        string org, string app, string developer, string applicationMetadataPath, DataTypeChange dataTypeChange)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
         await AddFileToRepo(applicationMetadataPath, "App/config/applicationmetadata.json");
         string dataTypeToConnect = "message";
         string task = "Task_5";
-        metadata.DataTypeChangeDetails.NewDataType = dataTypeToConnect;
-        metadata.DataTypeChangeDetails.ConnectedTaskId = task;
+        dataTypeChange.NewDataType = dataTypeToConnect;
+        dataTypeChange.ConnectedTaskId = task;
 
         string url = VersionPrefix(org, targetRepository);
 
-        string metadataString = JsonSerializer.Serialize(metadata,
+        string dataTypeChangeString = JsonSerializer.Serialize(dataTypeChange,
             new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
         {
-            Content = new StringContent(metadataString, Encoding.UTF8, "application/json")
+            Content = new StringContent(dataTypeChangeString, Encoding.UTF8, "application/json")
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         response.StatusCode.Should().Be(HttpStatusCode.Accepted);
@@ -90,10 +90,7 @@ public class ApplicationMetadataFileSyncDataTypeTests : DisagnerEndpointsTestsBa
             "empty-app",
             "testUser",
             "App/config/applicationmetadata.json",
-            new ProcessDefinitionMetadata
-            {
-                DataTypeChangeDetails = new DataTypeChange { NewDataType = null, ConnectedTaskId = "Task_1" }
-            }
+            new DataTypeChange { NewDataType = null, ConnectedTaskId = "Task_1" }
         ];
     }
 

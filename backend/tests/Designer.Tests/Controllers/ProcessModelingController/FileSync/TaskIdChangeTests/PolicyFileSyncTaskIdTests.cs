@@ -37,8 +37,9 @@ public class PolicyFileSyncTaskIdTests : DisagnerEndpointsTestsBase<LayoutSetsFi
         await AddFileToRepo(policyFilePath, "App/config/authorization/policy.xml");
 
         string processContent = SharedResourcesHelper.LoadTestDataAsString(bpmnFilePath);
-        processContent = metadata.TaskIdChanges.Aggregate(processContent,
-            (current, metadataTaskIdChange) => current.Replace(metadataTaskIdChange.OldId, metadataTaskIdChange.NewId));
+        processContent.Replace(metadata.TaskIdChange.OldId, metadata.TaskIdChange.NewId);
+        //processContent = metadata.TaskIdChange.Aggregate(processContent,
+        //(current, metadataTaskIdChange) => current.Replace(metadataTaskIdChange.OldId, metadataTaskIdChange.NewId));
         using var processStream = new MemoryStream(Encoding.UTF8.GetBytes(processContent));
 
         string url = VersionPrefix(org, targetRepository);
@@ -55,11 +56,8 @@ public class PolicyFileSyncTaskIdTests : DisagnerEndpointsTestsBase<LayoutSetsFi
         string policyFileFromRepo =
             TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/authorization/policy.xml");
 
-        foreach (var taskIdChange in metadata.TaskIdChanges)
-        {
-            policyFileFromRepo.Should().NotContain(taskIdChange.OldId);
-            policyFileFromRepo.Should().Contain(taskIdChange.NewId);
-        }
+        policyFileFromRepo.Should().NotContain(metadata.TaskIdChange.OldId);
+        policyFileFromRepo.Should().Contain(metadata.TaskIdChange.NewId);
 
     }
 
@@ -71,7 +69,7 @@ public class PolicyFileSyncTaskIdTests : DisagnerEndpointsTestsBase<LayoutSetsFi
             "App/config/authorization/policy.xml",
             new ProcessDefinitionMetadata
             {
-                TaskIdChanges = new List<TaskIdChange> { new() { OldId = "Task_1", NewId = "SomeNewId" } }
+                TaskIdChange = new TaskIdChange { OldId = "Task_1", NewId = "SomeNewId" }
             }
         };
     }

@@ -1,10 +1,8 @@
+export type TaskIdChange = {
+  oldId: string;
+  newId: string;
+};
+
 export type MetaDataForm = {
-  taskIdChanges?: Array<{
-    oldId: string;
-    newId: string;
-  }>;
-  dataTypeChangeDetails?: {
-    newDataType: string;
-    connectedTaskId: string;
-  };
+  taskIdChange?: TaskIdChange;
 };

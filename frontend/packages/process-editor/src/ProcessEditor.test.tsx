@@ -12,7 +12,6 @@ const mockAppLibVersion8: string = '8.0.3';
 
 const defaultProps: ProcessEditorProps = {
   bpmnXml: mockBPMNXML,
-  updateDataType: jest.fn(),
   saveBpmn: jest.fn(),
   appLibVersion: mockAppLibVersion8,
   availableDataModelIds: [],
@@ -22,6 +21,7 @@ const defaultProps: ProcessEditorProps = {
   addLayoutSet: jest.fn(),
   deleteLayoutSet: jest.fn(),
   mutateLayoutSet: jest.fn(),
+  mutateDataType: jest.fn(),
 };
 
 const renderProcessEditor = (bpmnXml: string) => {

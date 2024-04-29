@@ -1,12 +1,11 @@
 import React from 'react';
 import { NativeSelect } from '@digdir/design-system-react';
 import { StudioButton, StudioDeleteButton } from '@studio/components';
-import { useBpmnConfigPanelFormContext } from '../../../../contexts/BpmnConfigPanelContext';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
 import classes from './SelectDataType.module.css';
-import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
+import type { DataTypeChange } from 'app-shared/types/api/DataTypeChange';
 
 export interface SelectDataTypeProps {
   dataModelIds: string[];
@@ -21,18 +20,14 @@ export const SelectDataType = ({
   onClose,
 }: SelectDataTypeProps) => {
   const { t } = useTranslation();
-  const { updateDataType } = useBpmnApiContext();
-  const { metaDataFormRef } = useBpmnConfigPanelFormContext();
+  const { mutateDataType } = useBpmnApiContext();
   const handleChangeDataModel = (dataModelId?: string) => {
     if (dataModelId === existingDataType) return;
-    const newMetadata: MetaDataForm = {
-      dataTypeChangeDetails: {
-        newDataType: dataModelId,
-        connectedTaskId: connectedTaskId,
-      },
+    const dataTypeChange: DataTypeChange = {
+      newDataType: dataModelId,
+      connectedTaskId: connectedTaskId,
     };
-    metaDataFormRef.current = Object.assign({}, metaDataFormRef.current, newMetadata);
-    updateDataType(metaDataFormRef.current);
+    mutateDataType(dataTypeChange);
     onClose();
   };
 

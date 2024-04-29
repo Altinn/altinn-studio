@@ -60,91 +60,85 @@ describe('SelectDataType', () => {
 
   it('should call updateDataType with new data type when new option is clicked', async () => {
     const user = userEvent.setup();
-    const updateDataTypeMock = jest.fn();
+    const mutateDataTypeMock = jest.fn();
     const dataTypeToConnect = 'datamodel0';
     const dataModelIds = [dataTypeToConnect, 'dataModel1', 'dataModel2'];
 
     renderEditDataType(
       { dataModelIds },
       {
-        updateDataType: updateDataTypeMock,
+        mutateDataType: mutateDataTypeMock,
       },
     );
     const selectDataModel = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
     await user.selectOptions(selectDataModel, dataTypeToConnect);
-    expect(updateDataTypeMock).toHaveBeenCalledWith({
-      dataTypeChangeDetails: {
-        connectedTaskId: mockTaskId,
-        newDataType: dataTypeToConnect,
-      },
+    expect(mutateDataTypeMock).toHaveBeenCalledWith({
+      connectedTaskId: mockTaskId,
+      newDataType: dataTypeToConnect,
     });
   });
 
   it('should call updateDataType with new data type when data type is changed', async () => {
     const user = userEvent.setup();
-    const updateDataTypeMock = jest.fn();
+    const mutateDataTypeMock = jest.fn();
     const existingDataType = 'dataModel0';
     const dataTypeToConnect = 'datamodel1';
     const dataModelIds = [existingDataType, dataTypeToConnect, 'dataModel2'];
     renderEditDataType(
       { dataModelIds, existingDataType },
       {
-        updateDataType: updateDataTypeMock,
+        mutateDataType: mutateDataTypeMock,
       },
     );
     const selectDataModel = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
     await user.selectOptions(selectDataModel, dataTypeToConnect);
-    expect(updateDataTypeMock).toHaveBeenCalledWith({
-      dataTypeChangeDetails: {
-        connectedTaskId: mockTaskId,
-        newDataType: dataTypeToConnect,
-      },
+    expect(mutateDataTypeMock).toHaveBeenCalledWith({
+      connectedTaskId: mockTaskId,
+      newDataType: dataTypeToConnect,
     });
   });
 
   it('should call updateDataType with no data type when data type is deleted', async () => {
     const user = userEvent.setup();
-    const updateDataTypeMock = jest.fn();
+    const mutateDataTypeMock = jest.fn();
     const existingDataType = 'dataModel0';
     const dataModelIds = [existingDataType, 'datamodel1', 'dataModel2'];
     renderEditDataType(
       { dataModelIds, existingDataType },
       {
-        updateDataType: updateDataTypeMock,
+        mutateDataType: mutateDataTypeMock,
       },
     );
     const deleteDataTypeButton = screen.getByRole('button', {
       name: textMock('general.delete'),
     });
     await user.click(deleteDataTypeButton);
-    expect(updateDataTypeMock).toHaveBeenCalledWith({
-      dataTypeChangeDetails: {
-        connectedTaskId: mockTaskId,
-        newDataType: undefined,
-      },
+    expect(mutateDataTypeMock).toHaveBeenCalledWith({
+      connectedTaskId: mockTaskId,
+      newDataType: undefined,
     });
   });
 
   it('should not call updateDataType when data type is set to existing', async () => {
     const user = userEvent.setup();
-    const updateDataTypeMock = jest.fn();
+    const mutateDataTypeMock = jest.fn();
     const existingDataType = 'dataModel0';
     const dataModelIds = [existingDataType, 'datamodel1', 'dataModel2'];
     renderEditDataType(
       { dataModelIds, existingDataType },
       {
-        updateDataType: updateDataTypeMock,
+        mutateDataType: mutateDataTypeMock,
       },
     );
     const selectDataModel = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
     await user.selectOptions(selectDataModel, existingDataType);
-    expect(updateDataTypeMock).not.toHaveBeenCalled();
+    expect(mutateDataTypeMock).not.toHaveBeenCalled();
   });
 });
 

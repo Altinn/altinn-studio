@@ -28,7 +28,7 @@ public class LayoutSetsFileSyncDataTypeTests : DisagnerEndpointsTestsBase<Layout
     [Theory]
     [MemberData(nameof(ProcessDataTypeChangedNotifyTestData))]
     public async Task ProcessDataTypeChangedNotify_Task1DisconnectedFromDataType_ShouldSyncLayoutSets(string org, string app, string developer,
-        string layoutSetsPath, ProcessDefinitionMetadata metadata)
+        string layoutSetsPath, DataTypeChange dataTypeChange)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -36,11 +36,11 @@ public class LayoutSetsFileSyncDataTypeTests : DisagnerEndpointsTestsBase<Layout
 
         string url = VersionPrefix(org, targetRepository);
 
-        string metadataString = JsonSerializer.Serialize(metadata,
+        string dataTypeChangeString = JsonSerializer.Serialize(dataTypeChange,
             new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
         {
-            Content = new StringContent(metadataString, Encoding.UTF8, "application/json")
+            Content = new StringContent(dataTypeChangeString, Encoding.UTF8, "application/json")
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         response.StatusCode.Should().Be(HttpStatusCode.Accepted);
@@ -50,28 +50,28 @@ public class LayoutSetsFileSyncDataTypeTests : DisagnerEndpointsTestsBase<Layout
 
         LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsFromRepo, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
-        layoutSets.Sets.Find(set => set.Tasks[0] == metadata.DataTypeChangeDetails.ConnectedTaskId).DataType.Should().BeNull();
+        layoutSets.Sets.Find(set => set.Tasks[0] == dataTypeChange.ConnectedTaskId).DataType.Should().BeNull();
     }
 
     [Theory]
     [MemberData(nameof(ProcessDataTypeChangedNotifyTestData))]
-    public async Task ProcessDataTypeChangedNotify_NewDataTypeForTask5IsMessage_ShouldSyncLayoutSets(string org, string app, string developer, string applicationMetadataPath, ProcessDefinitionMetadata metadata)
+    public async Task ProcessDataTypeChangedNotify_NewDataTypeForTask5IsMessage_ShouldSyncLayoutSets(string org, string app, string developer, string applicationMetadataPath, DataTypeChange dataTypeChange)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
         await AddFileToRepo(applicationMetadataPath, "App/ui/layout-sets.json");
         string dataTypeToConnect = "message";
         string task = "Task_5";
-        metadata.DataTypeChangeDetails.NewDataType = dataTypeToConnect;
-        metadata.DataTypeChangeDetails.ConnectedTaskId = task;
+        dataTypeChange.NewDataType = dataTypeToConnect;
+        dataTypeChange.ConnectedTaskId = task;
 
         string url = VersionPrefix(org, targetRepository);
 
-        string metadataString = JsonSerializer.Serialize(metadata,
+        string dataTypeChangeString = JsonSerializer.Serialize(dataTypeChange,
             new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
         {
-            Content = new StringContent(metadataString, Encoding.UTF8, "application/json")
+            Content = new StringContent(dataTypeChangeString, Encoding.UTF8, "application/json")
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         response.StatusCode.Should().Be(HttpStatusCode.Accepted);
@@ -92,10 +92,7 @@ public class LayoutSetsFileSyncDataTypeTests : DisagnerEndpointsTestsBase<Layout
             "empty-app",
             "testUser",
             "App/ui/layout-sets.json",
-            new ProcessDefinitionMetadata
-            {
-                DataTypeChangeDetails = new DataTypeChange { NewDataType = null, ConnectedTaskId = "Task_1" }
-            }
+            new DataTypeChange { NewDataType = null, ConnectedTaskId = "Task_1" }
         ];
     }
 

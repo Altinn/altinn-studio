@@ -77,7 +77,7 @@ export const ProcessEditor = (): React.ReactElement => {
     }
   });
 
-  const saveBpmnXml = async (xml: string, metaData: MetaDataForm): Promise<void> => {
+  const saveBpmnXml = async (xml: string, metaData?: MetaDataForm): Promise<void> => {
     const formData = new FormData();
     formData.append('content', new Blob([xml]), 'process.bpmn');
     formData.append('metadata', JSON.stringify(metaData));
@@ -87,17 +87,6 @@ export const ProcessEditor = (): React.ReactElement => {
       {
         onError: () => {
           toast.error(t('process_editor.save_bpmn_xml_error'));
-        },
-      },
-    );
-  };
-
-  const updateDataType = async (metaData: MetaDataForm): Promise<void> => {
-    mutateDataType(
-      { form: metaData },
-      {
-        onError: () => {
-          toast.error(t('process_editor.update_data_type_error'));
         },
       },
     );
@@ -119,7 +108,7 @@ export const ProcessEditor = (): React.ReactElement => {
       mutateLayoutSet={mutateLayoutSet}
       appLibVersion={appLibData.backendVersion}
       bpmnXml={hasBpmnQueryError ? null : bpmnXml}
-      updateDataType={updateDataType}
+      mutateDataType={mutateDataType}
       saveBpmn={saveBpmnXml}
     />
   );

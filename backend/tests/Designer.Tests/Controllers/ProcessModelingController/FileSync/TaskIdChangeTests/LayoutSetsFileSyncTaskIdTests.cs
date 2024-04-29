@@ -38,8 +38,9 @@ public class LayoutSetsFileSyncTaskIdTests : DisagnerEndpointsTestsBase<LayoutSe
         await AddFileToRepo(layoutSetsPath, "App/ui/layout-sets.json");
 
         string processContent = SharedResourcesHelper.LoadTestDataAsString(bpmnFilePath);
-        processContent = metadata.TaskIdChanges.Aggregate(processContent,
-            (current, metadataTaskIdChange) => current.Replace(metadataTaskIdChange.OldId, metadataTaskIdChange.NewId));
+        processContent.Replace(metadata.TaskIdChange.OldId, metadata.TaskIdChange.NewId);
+        //processContent = metadata.TaskIdChange.Aggregate(processContent,
+        //  (current, metadataTaskIdChange) => current.Replace(metadataTaskIdChange.OldId, metadataTaskIdChange.NewId));
         using var processStream = new MemoryStream(Encoding.UTF8.GetBytes(processContent));
 
         string url = VersionPrefix(org, targetRepository);
@@ -58,12 +59,8 @@ public class LayoutSetsFileSyncTaskIdTests : DisagnerEndpointsTestsBase<LayoutSe
 
         LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsFromRepo, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
-        foreach (var taskIdChange in metadata.TaskIdChanges)
-        {
-            layoutSets.Sets.Should().NotContain(layout => layout.Tasks.Contains(taskIdChange.OldId));
-            layoutSets.Sets.Should().Contain(layout => layout.Tasks.Contains(taskIdChange.NewId));
-        }
-
+        layoutSets.Sets.Should().NotContain(layout => layout.Tasks.Contains(metadata.TaskIdChange.OldId));
+        layoutSets.Sets.Should().Contain(layout => layout.Tasks.Contains(metadata.TaskIdChange.NewId));
     }
 
     public static IEnumerable<object[]> UpsertProcessDefinitionAndNotifyTestData()
@@ -74,7 +71,7 @@ public class LayoutSetsFileSyncTaskIdTests : DisagnerEndpointsTestsBase<LayoutSe
             "App/ui/layout-sets.json",
             new ProcessDefinitionMetadata
             {
-                TaskIdChanges = new List<TaskIdChange> { new() { OldId = "Task_1", NewId = "SomeNewId" } }
+                TaskIdChange = new TaskIdChange { OldId = "Task_1", NewId = "SomeNewId" }
             }
         };
     }

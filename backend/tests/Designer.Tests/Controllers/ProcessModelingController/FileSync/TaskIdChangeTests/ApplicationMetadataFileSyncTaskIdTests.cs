@@ -36,7 +36,8 @@ public class ApplicationMetadataFileSyncTaskIdTests : DisagnerEndpointsTestsBase
         await AddFileToRepo(applicationMetadataPath, "App/config/applicationmetadata.json");
 
         string processContent = SharedResourcesHelper.LoadTestDataAsString(bpmnFilePath);
-        processContent = metadata.TaskIdChanges.Aggregate(processContent, (current, metadataTaskIdChange) => current.Replace(metadataTaskIdChange.OldId, metadataTaskIdChange.NewId));
+        processContent.Replace(metadata.TaskIdChange.OldId, metadata.TaskIdChange.NewId);
+        //processContent = metadata.TaskIdChange.Aggregate(processContent, (current, metadataTaskIdChange) => current.Replace(metadataTaskIdChange.OldId, metadataTaskIdChange.NewId));
         using var processStream = new MemoryStream(Encoding.UTF8.GetBytes(processContent));
 
         string url = VersionPrefix(org, targetRepository);
@@ -54,11 +55,8 @@ public class ApplicationMetadataFileSyncTaskIdTests : DisagnerEndpointsTestsBase
 
         ApplicationMetadata applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataFromRepo, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
-        foreach (var taskIdChange in metadata.TaskIdChanges)
-        {
-            applicationMetadata.DataTypes.Should().NotContain(dataType => dataType.TaskId == taskIdChange.OldId);
-            applicationMetadata.DataTypes.Should().Contain(dataType => dataType.TaskId == taskIdChange.NewId);
-        }
+        applicationMetadata.DataTypes.Should().NotContain(dataType => dataType.TaskId == metadata.TaskIdChange.OldId);
+        applicationMetadata.DataTypes.Should().Contain(dataType => dataType.TaskId == metadata.TaskIdChange.NewId);
     }
 
     public static IEnumerable<object[]> UpsertProcessDefinitionAndNotifyTestData()
@@ -66,7 +64,7 @@ public class ApplicationMetadataFileSyncTaskIdTests : DisagnerEndpointsTestsBase
         yield return new object[] { "ttd", "empty-app", "testUser", "App/config/process/process.bpmn", "App/config/applicationmetadata.json",
             new ProcessDefinitionMetadata
             {
-                TaskIdChanges = new List<TaskIdChange> { new() { OldId = "Task_1", NewId = "SomeNewId" } }
+                TaskIdChange = new TaskIdChange { OldId = "Task_1", NewId = "SomeNewId" }
             } };
     }
 
