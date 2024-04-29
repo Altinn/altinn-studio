@@ -1,4 +1,5 @@
 {
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/text-resources/text-resources.schema.v1.json",
   "language": "nb",
   "resources": [
     {
@@ -32,6 +33,26 @@
     {
       "id": "appName",
       "value": "multiple-datamodels-test"
+    },
+    {
+      "id": "equalParagraph",
+      "value": "#### Variabler i tekst-ressurs\n\nBegge feltene er __helt like!__"
+    },
+    {
+      "id": "variableParagraph",
+      "value": "#### Variabler i tekst-ressurs\n\nI første felt står det __{0}__, og i det andre feltet står det __{1}__.",
+      "variables": [
+        {
+          "key": "tekstfelt",
+          "dataSource": "dataModel.modell1",
+          "defaultValue": "ingenting"
+        },
+        {
+          "key": "tekstfelt",
+          "dataSource": "dataModel.modell2",
+          "defaultValue": "ikke noe"
+        }
+      ]
     }
   ]
 }

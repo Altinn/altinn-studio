@@ -3,6 +3,46 @@
   "data": {
     "layout": [
       {
+        "id": "choose-sector",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Velg sektor"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell2",
+            "property": "sektor"
+          }
+        },
+        "options": [
+          {
+            "label": "Privat",
+            "value": "privat"
+          },
+          {
+            "label": "Offentlig sektor",
+            "value": "offentlig"
+          }
+        ]
+      },
+      {
+        "id": "choose-industry",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "Velg bransje"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell1",
+            "property": "bransje"
+          }
+        },
+        "optionsId": "industry",
+        "queryParameters": {
+          "sector": ["dataModel", "sektor", "modell2"]
+        }
+      },
+      {
         "id": "NavigationButtons-uFAtqJ",
         "showBackButton": true,
         "textResourceBindings": {
@@ -21,4 +61,3 @@
     ]
   }
 }
-

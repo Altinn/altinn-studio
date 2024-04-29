@@ -48,6 +48,27 @@
         "required": true
       },
       {
+        "id": "variableParagraph",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": [
+            "if",
+            [
+              "and",
+              ["greaterThan", ["stringLength", ["dataModel", "tekstfelt"]], 0],
+              [
+                "equals",
+                ["dataModel", "tekstfelt"],
+                ["dataModel", "tekstfelt", "modell2"]
+              ]
+            ],
+            "equalParagraph",
+            "else",
+            "variableParagraph"
+          ]
+        }
+      },
+      {
         "size": "M",
         "id": "Header-adresse",
         "type": "Header",
@@ -89,4 +110,3 @@
     ]
   }
 }
-
