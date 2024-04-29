@@ -5,7 +5,7 @@ import { Textarea } from '@digdir/design-system-react';
 import { Variables } from './Variables';
 import { useAutoSizeTextArea } from './hooks/useAutoSizeTextArea';
 import { APP_NAME } from 'app-shared/constants';
-import { FormField } from '../../shared/src/components/FormField/FormField';
+import { FormField } from 'app-shared/components/FormField/FormField';
 import { useTranslation } from 'react-i18next';
 
 export interface TextEntryProps extends TextTableRowEntry {
