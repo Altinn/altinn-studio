@@ -1,41 +1,76 @@
-import { render, screen } from '@testing-library/react';
 import React from 'react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { StudioTableRemotePagination } from './StudioTableRemotePagination';
-import { columns, rows } from './mockData';
-// import userEvent from "@testing-library/user-event/";
 
-describe('StudioTableWithPagination', () => {
-  it('should render the table with sorting and pagination', () => {
+describe('StudioTableRemotePagination', () => {
+  const columns = [
+    { accessor: 'name', value: 'Name' },
+    { accessor: 'age', value: 'Age' },
+  ];
+
+  const rows = [
+    { id: 1, name: 'John Doe', age: 25 },
+    { id: 2, name: 'Jane Smith', age: 30 },
+  ];
+
+  const paginationProps = {
+    currentPage: 1,
+    totalPages: 2,
+    pageSizeOptions: [5, 10, 20],
+    pageSizeLabel: 'Rows per page',
+    onPageChange: jest.fn(),
+    onPageSizeChange: jest.fn(),
+    nextButtonText: 'Next',
+    previousButtonText: 'Previous',
+    itemLabel: (num) => `Page ${num}`,
+  };
+
+  it('renders the table with columns and rows', () => {
     render(<StudioTableRemotePagination columns={columns} rows={rows} />);
 
-    expect(screen.getByRole('button', { name: 'Name' }));
-    expect(screen.getByRole('cell', { name: 'Lila Patel' }));
-    expect(screen.getByRole('combobox'));
-    expect(screen.getByRole('button', { name: 'Side 1' }));
-    expect(screen.getByRole('button', { name: 'Side 2' }));
+    expect(screen.getByRole('columnheader', { name: 'Name' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Age' })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'John Doe' })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'Jane Smith' })).toBeInTheDocument();
   });
 
-  it('should render the table without sorting and pagination', () => {
-    render(<StudioTableRemotePagination columns={columns} rows={rows} />);
+  it('triggers the onSortClick callback when a sortable column header is clicked', async () => {
+    const onSortClick = jest.fn();
+    render(<StudioTableRemotePagination columns={columns} rows={rows} onSortClick={onSortClick} />);
 
-    expect(screen.getByRole('columnheader', { name: 'Name' }));
-    expect(screen.getByRole('cell', { name: 'Lila Patel' }));
-    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Side 1' })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('columnheader', { name: 'Name' }));
+
+    expect(onSortClick).toHaveBeenCalledWith('name');
   });
 
-  // it("should sort the columns", async () => {
-  //   const user = userEvent.setup();
-  //   render(<StudioTableWithPagination columns={columns} rows={rows} />);
-  //
-  //   await user.click(screen.getByRole("button", {name: "Name"}));
-  //   const cellsAfterFirstClick = screen.getAllByRole("cell");
-  //   expect(cellsAfterFirstClick[2]).toHaveTextContent("Amelia Schmidt");
-  //
-  //   await act(async () => {
-  //   await user.click(screen.getByRole("button", {name: "Name"}));
-  //   })
-  //   const cellsAfterSecondClick = screen.getAllByRole("cell");
-  //   expect(cellsAfterSecondClick[2]).toHaveTextContent("William Torres");
-  // })
+  it('renders the pagination controls when pagination prop is provided', () => {
+    render(
+      <StudioTableRemotePagination columns={columns} rows={rows} pagination={paginationProps} />,
+    );
+
+    expect(screen.getByRole('combobox', { name: 'Rows per page' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Previous' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Next' })).toBeInTheDocument();
+  });
+
+  it('triggers the onPageChange callback when a page is clicked', async () => {
+    render(
+      <StudioTableRemotePagination columns={columns} rows={rows} pagination={paginationProps} />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Next' }));
+
+    expect(paginationProps.onPageChange).toHaveBeenCalledWith(2);
+  });
+
+  it('triggers the onPageSizeChange callback when the page size is changed', async () => {
+    render(
+      <StudioTableRemotePagination columns={columns} rows={rows} pagination={paginationProps} />,
+    );
+
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Rows per page' }), '10');
+
+    expect(paginationProps.onPageSizeChange).toHaveBeenCalledWith(10);
+  });
 });
