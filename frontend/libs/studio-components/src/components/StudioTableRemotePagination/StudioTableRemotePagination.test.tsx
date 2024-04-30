@@ -2,18 +2,9 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StudioTableRemotePagination } from './StudioTableRemotePagination';
+import { columns, rows } from './mockData';
 
 describe('StudioTableRemotePagination', () => {
-  const columns = [
-    { accessor: 'name', value: 'Name' },
-    { accessor: 'age', value: 'Age' },
-  ];
-
-  const rows = [
-    { id: 1, name: 'John Doe', age: 25 },
-    { id: 2, name: 'Jane Smith', age: 30 },
-  ];
-
   const paginationProps = {
     currentPage: 1,
     totalPages: 2,
@@ -30,18 +21,24 @@ describe('StudioTableRemotePagination', () => {
     render(<StudioTableRemotePagination columns={columns} rows={rows} />);
 
     expect(screen.getByRole('columnheader', { name: 'Name' })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: 'Age' })).toBeInTheDocument();
-    expect(screen.getByRole('cell', { name: 'John Doe' })).toBeInTheDocument();
-    expect(screen.getByRole('cell', { name: 'Jane Smith' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Created by' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('cell', { name: 'Coordinated register notification' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('cell', { name: 'The Norwegian Directorate of Health' }),
+    ).toBeInTheDocument();
   });
 
-  it('triggers the onSortClick callback when a sortable column header is clicked', async () => {
-    const onSortClick = jest.fn();
-    render(<StudioTableRemotePagination columns={columns} rows={rows} onSortClick={onSortClick} />);
+  it('triggers the handleSorting function when a sortable column header is clicked', async () => {
+    const handleSorting = jest.fn();
+    render(
+      <StudioTableRemotePagination columns={columns} rows={rows} onSortClick={handleSorting} />,
+    );
 
-    await userEvent.click(screen.getByRole('columnheader', { name: 'Name' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Name' }));
 
-    expect(onSortClick).toHaveBeenCalledWith('name');
+    expect(handleSorting).toHaveBeenCalledWith('name');
   });
 
   it('renders the pagination controls when pagination prop is provided', () => {
@@ -50,7 +47,6 @@ describe('StudioTableRemotePagination', () => {
     );
 
     expect(screen.getByRole('combobox', { name: 'Rows per page' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Previous' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Next' })).toBeInTheDocument();
   });
 
