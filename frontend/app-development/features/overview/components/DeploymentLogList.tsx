@@ -28,7 +28,7 @@ export const DeploymentLogList = ({
 
   const formatDateTime = (dateAsString: string): string => {
     return t('general.date_time_format', {
-      date: DateUtils.formatDateDDMMYY(dateAsString),
+      date: DateUtils.formatDateDDMMYYYY(dateAsString),
       time: DateUtils.formatTimeHHmm(dateAsString),
     });
   };
