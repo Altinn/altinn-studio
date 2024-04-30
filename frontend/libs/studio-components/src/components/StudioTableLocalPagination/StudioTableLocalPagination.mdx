@@ -8,12 +8,82 @@ import * as StudioTableLocalPaginationStories from './StudioTableLocalPagination
   StudioTableLocalPagination
 </Heading>
 <Paragraph>
-  StudioTableLocalPagination brings together Digdir Designsystemet's `Table` and `Pagination` components.
-  It dynamically renders a table by passing an array of objects to the `column` and `row` props.
+  StudioTableLocalPagination brings together Digdir Designsystemet's `Table` and `Pagination` components. It dynamically renders a table by passing an array of objects to the column and row props.
 
-  The pagination can be disabled by removing the `pagination` prop.
-
-  Use this component when you want the component to handle the pagination for you.
+  * Use this component when you have a complete set of data, and want the component to handle pagination internally. Otherwise, use `StudioTableRemotePagination`.
+  * Pagination and sorting can be removed by not passing props to pagination and onSortClick.
 </Paragraph>
 
 <Canvas of={StudioTableLocalPaginationStories.Preview} />
+
+<Heading level={2} size='xsmall'>
+  Type definitions
+</Heading>
+<Paragraph>
+```tsx
+type StudioTableLocalPaginationProps = {
+  columns: Record<'accessor' | 'value', string>[];
+  rows: Rows;
+  size?: 'small' | 'medium' | 'large';
+  isSortable?: boolean;
+  pagination?: {
+    pageSizeOptions: number[];
+    nextButtonText: string;
+    previousButtonText: string;
+    itemLabel: (num: number) => string;
+  };
+};
+
+type Rows = (Record<string, React.ReactNode> & Record<"id", string | number>)[];
+```
+</Paragraph>
+<Heading level={2} size='xsmall'>
+  Column format
+</Heading>
+<Paragraph>
+  Columns must have both an `accessor` and a `value` property.
+</Paragraph>
+```tsx
+const columns = [
+  {
+    accessor: "icon",
+    value: "",
+  },
+  {
+    accessor: "name",
+    value: "Name",
+  },
+  {
+    accessor: "creator",
+    value: "Created by",
+  },
+  {
+    accessor: "lastChanged",
+    value: "Last changed",
+  }
+]
+```
+<Heading level={2} size='xsmall'>Row format</Heading>
+<Paragraph>
+  * Rows must have an id that is unique.
+  * The accessors in the columns array is used to display the row properties. Therefore, each property name has to exactly match the accessor.
+</Paragraph>
+```
+  const rows = [
+    {
+      id: 1,
+      icon: <IconButton icon={<StarFillIcon/>}/>,
+      name: "Coordinated register notification",
+      creator: "Brønnøysund Register Centre",
+      lastChanged: new Date("2023-04-12").toLocaleDateString(),
+    },
+    {
+      id: 2,
+      icon: <IconButton icon={<StarFillIcon/>}/>,
+      name: "Application for authorisation and license as a healthcare personnel",
+      creator: "The Norwegian Directorate of Health",
+      lastChanged: new Date("2023-04-05").toLocaleDateString(),
+    },
+  ]
+```
+

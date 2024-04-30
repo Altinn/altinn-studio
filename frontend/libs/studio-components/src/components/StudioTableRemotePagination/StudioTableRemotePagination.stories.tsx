@@ -11,14 +11,15 @@ const meta: Meta = {
   title: 'Studio/StudioTableRemotePagination',
   component: StudioTableRemotePagination,
   argTypes: {
-    pagination: {
+    size: {
       control: 'radio',
-      options: ['true', 'false'],
+      options: ['small', 'medium', 'large'],
     },
   },
 };
+
 export const Preview: Story = (args) => {
-  // Start simulation of API logic
+  // Example of external logic
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(5);
 
@@ -38,13 +39,12 @@ export const Preview: Story = (args) => {
     nextButtonText: 'Neste',
     previousButtonText: 'Forrige',
   };
-  // End simulation of API logic
 
   return (
     <StudioTableRemotePagination
       columns={columns}
       rows={rowsToRender}
-      size='medium'
+      size={args.size}
       onSortClick={handleSorting}
       pagination={paginationProps}
     />

@@ -10,7 +10,7 @@ export const labelSizeMap: Record<LabelSizeKeys, LabelSize> = {
   large: 'medium',
 };
 
-export type Rows = Record<string, React.ReactNode>[];
+export type Rows = (Record<string, React.ReactNode> & Record<'id', string | number>)[];
 
 export type PaginationProps = {
   currentPage: number;

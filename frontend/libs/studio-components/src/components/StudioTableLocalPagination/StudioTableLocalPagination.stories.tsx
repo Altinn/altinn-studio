@@ -9,26 +9,26 @@ const meta: Meta = {
   title: 'Studio/StudioTableLocalPagination',
   component: StudioTableLocalPagination,
   argTypes: {
-    pagination: {
+    size: {
       control: 'radio',
-      options: ['true', 'false'],
+      options: ['small', 'medium', 'large'],
     },
   },
 };
-export const Preview: Story = (args): React.ReactElement => (
-  <StudioTableLocalPagination {...args} />
+
+export const Preview: Story = (args) => (
+  <StudioTableLocalPagination
+    columns={columns}
+    rows={rows}
+    size={args.size}
+    isSortable={true}
+    pagination={{
+      pageSizeOptions: [5, 10, 20, 50],
+      nextButtonText: 'Neste',
+      previousButtonText: 'Forrige',
+      itemLabel: (num) => `Side ${num}`,
+    }}
+  />
 );
 
-Preview.args = {
-  columns: columns,
-  rows: rows,
-  size: 'medium',
-  isSortable: true,
-  pagination: {
-    pageSizeOptions: [5, 10, 20, 50],
-    nextButtonText: 'Neste',
-    previousButtonText: 'Forrige',
-    itemLabel: (num) => `Side ${num}`,
-  },
-};
 export default meta;

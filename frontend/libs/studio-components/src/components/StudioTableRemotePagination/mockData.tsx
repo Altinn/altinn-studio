@@ -1,5 +1,5 @@
-import { Button, Link } from '@digdir/design-system-react';
-import { FaceSmileFillIcon, FaceSmileIcon, StarFillIcon, StarIcon } from '@navikt/aksel-icons';
+import { Button } from '@digdir/design-system-react';
+import { StarFillIcon, StarIcon } from '@navikt/aksel-icons';
 import React from 'react';
 
 const IconButton = ({ icon }) => (
@@ -8,188 +8,136 @@ const IconButton = ({ icon }) => (
   </Button>
 );
 
-const AltinnLink = () => <Link to={'https://altinn.no'}>Link</Link>;
-
-function generateRandomId(length) {
-  let result = '';
-  const characters = '0123456789';
-  const charactersLength = characters.length;
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-  }
-  return result;
-}
-
 export const columns = [
   {
     accessor: 'icon',
     value: '',
   },
   {
-    accessor: 'id',
-    value: 'Employee ID',
-  },
-  {
     accessor: 'name',
     value: 'Name',
   },
   {
-    accessor: 'role',
-    value: 'Role',
+    accessor: 'creator',
+    value: 'Created by',
   },
   {
-    accessor: 'status',
-    value: 'Status',
-  },
-  {
-    accessor: 'link',
-    value: '',
+    accessor: 'lastChanged',
+    value: 'Last changed',
   },
 ];
 
 export const rows = [
   {
+    id: 1,
     icon: <IconButton icon={<StarFillIcon />} />,
-    id: generateRandomId(6),
-    name: 'Lila Patel',
-    role: 'Software Engineer',
-    status: 'Pending',
-    link: <AltinnLink />,
+    name: 'Coordinated register notification',
+    creator: 'Brønnøysund Register Centre',
+    lastChanged: new Date('2023-04-12').toLocaleDateString(),
   },
   {
-    icon: <IconButton icon={<StarIcon />} />,
-    id: generateRandomId(6),
-    name: 'Ethan Nakamura',
-    role: 'Marketing Specialist',
-    status: 'Approved',
-    link: <AltinnLink />,
-  },
-  {
-    icon: <IconButton icon={<StarIcon />} />,
-    id: generateRandomId(6),
-    name: 'Olivia Chen',
-    role: 'Data Analyst',
-    status: 'Pending',
-    link: <AltinnLink />,
-  },
-  {
-    icon: <IconButton icon={<FaceSmileFillIcon />} />,
-    id: generateRandomId(6),
-    name: 'Noah Adebayo',
-    role: 'UX Designer',
-    status: 'Approved',
-    link: <AltinnLink />,
-  },
-  {
-    icon: <IconButton icon={<FaceSmileIcon />} />,
-    id: generateRandomId(6),
-    name: 'Sophia Ivanov',
-    role: 'Product Manager',
-    status: 'Pending',
-    link: <AltinnLink />,
-  },
-  {
+    id: 2,
     icon: <IconButton icon={<StarFillIcon />} />,
-    id: generateRandomId(6),
-    name: 'William Torres',
-    role: 'Sales Representative',
-    status: 'Approved',
-    link: <AltinnLink />,
+    name: 'Application for authorisation and license as a healthcare personnel',
+    creator: 'The Norwegian Directorate of Health',
+    lastChanged: new Date('2023-04-05').toLocaleDateString(),
   },
   {
-    icon: <IconButton icon={<StarIcon />} />,
-    id: generateRandomId(6),
-    name: 'Ava Gupta',
-    role: 'Human Resources Manager',
-    status: 'Pending',
-    link: <AltinnLink />,
-  },
-  {
-    icon: <IconButton icon={<StarIcon />} />,
-    id: generateRandomId(6),
-    name: 'James Kim',
-    role: 'Financial Analyst',
-    status: 'Approved',
-    link: AltinnLink(),
-  },
-  {
-    icon: <IconButton icon={<StarIcon />} />,
-    id: generateRandomId(6),
-    name: 'Mia Sánchez',
-    role: 'Customer Support Specialist',
-    status: 'Pending',
-    link: <AltinnLink />,
-  },
-  {
+    id: 3,
     icon: <IconButton icon={<StarFillIcon />} />,
-    id: generateRandomId(6),
-    name: 'Lucas Wright',
-    role: 'Software Engineer',
-    status: 'Pending',
-    link: <AltinnLink />,
+    name: 'Produkter og tjenester fra Brønnøysundregistrene',
+    creator: 'Brønnøysund Register Centre',
+    lastChanged: new Date('2023-04-16').toLocaleDateString(),
   },
   {
+    id: 4,
     icon: <IconButton icon={<StarIcon />} />,
-    id: generateRandomId(6),
-    name: 'Chloe Tanaka',
-    role: 'Marketing Specialist',
-    status: 'Approved',
-    link: <AltinnLink />,
+    name: 'Contact form - Norwegian Tax Administration (private individual)',
+    creator: 'Tax Administration',
+    lastChanged: new Date('2023-04-08').toLocaleDateString(),
   },
   {
-    icon: <IconButton icon={<StarIcon />} />,
-    id: generateRandomId(6),
-    name: 'Emily Zhao',
-    role: 'Data Analyst',
-    status: 'Pending',
-    link: <AltinnLink />,
-  },
-  {
-    icon: <IconButton icon={<FaceSmileFillIcon />} />,
-    id: generateRandomId(6),
-    name: 'Jacob Martinez',
-    role: 'UX Designer',
-    status: 'Approved',
-    link: <AltinnLink />,
-  },
-  {
-    icon: <IconButton icon={<FaceSmileIcon />} />,
-    id: generateRandomId(6),
-    name: 'Isabella Johnson',
-    role: 'Product Manager',
-    status: 'Pending',
-    link: <AltinnLink />,
-  },
-  {
+    id: 5,
     icon: <IconButton icon={<StarFillIcon />} />,
-    id: generateRandomId(6),
-    name: 'Elijah Lee',
-    role: 'Sales Representative',
-    status: 'Approved',
-    link: <AltinnLink />,
+    name: 'Contact form - Norwegian Tax Administration (commercial)',
+    creator: 'Tax Administration',
+    lastChanged: new Date('2023-04-01').toLocaleDateString(),
   },
   {
-    icon: <IconButton icon={<StarIcon />} />,
-    id: generateRandomId(6),
-    name: 'Charlotte Silva',
-    role: 'Human Resources Manager',
-    status: 'Pending',
-    link: <AltinnLink />,
+    id: 6,
+    icon: <IconButton icon={<StarFillIcon />} />,
+    name: 'A-melding – all forms',
+    creator: 'Brønnøysund Register Centre',
+    lastChanged: new Date('2023-04-14').toLocaleDateString(),
   },
   {
+    id: 7,
     icon: <IconButton icon={<StarIcon />} />,
-    id: generateRandomId(6),
-    name: 'Benjamin Lopez',
-    role: 'Financial Analyst',
-    status: 'Approved',
-    link: <AltinnLink />,
+    name: 'Application for VAT registration',
+    creator: 'Tax Administration',
+    lastChanged: new Date('2023-04-03').toLocaleDateString(),
   },
   {
+    id: 8,
+    icon: <IconButton icon={<StarFillIcon />} />,
+    name: 'Reporting of occupational injuries and diseases',
+    creator: 'Norwegian Labour Inspection Authority',
+    lastChanged: new Date('2023-04-11').toLocaleDateString(),
+  },
+  {
+    id: 9,
+    icon: <IconButton icon={<StarFillIcon />} />,
+    name: 'Application for a residence permit',
+    creator: 'Norwegian Directorate of Immigration',
+    lastChanged: new Date('2023-04-06').toLocaleDateString(),
+  },
+  {
+    id: 10,
     icon: <IconButton icon={<StarIcon />} />,
-    id: generateRandomId(6),
-    name: 'Amelia Schmidt',
-    role: 'Customer Support Specialist',
-    status: 'Pending',
-    link: <AltinnLink />,
+    name: 'Application for a work permit',
+    creator: 'Norwegian Directorate of Immigration',
+    lastChanged: new Date('2023-04-15').toLocaleDateString(),
+  },
+  {
+    id: 11,
+    icon: <IconButton icon={<StarFillIcon />} />,
+    name: 'Notification of change of address',
+    creator: 'Norwegian Tax Administration',
+    lastChanged: new Date('2023-04-09').toLocaleDateString(),
+  },
+  {
+    id: 12,
+    icon: <IconButton icon={<StarFillIcon />} />,
+    name: 'Application for a Norwegian national ID number',
+    creator: 'Norwegian Tax Administration',
+    lastChanged: new Date('2023-04-02').toLocaleDateString(),
+  },
+  {
+    id: 13,
+    icon: <IconButton icon={<StarIcon />} />,
+    name: 'Reporting of temporary layoffs',
+    creator: 'Norwegian Labour and Welfare Administration',
+    lastChanged: new Date('2023-04-07').toLocaleDateString(),
+  },
+  {
+    id: 14,
+    icon: <IconButton icon={<StarFillIcon />} />,
+    name: 'Application for parental benefit',
+    creator: 'Norwegian Labour and Welfare Administration',
+    lastChanged: new Date('2023-04-13').toLocaleDateString(),
+  },
+  {
+    id: 15,
+    icon: <IconButton icon={<StarFillIcon />} />,
+    name: 'Reporting of VAT',
+    creator: 'Tax Administration',
+    lastChanged: new Date('2023-04-04').toLocaleDateString(),
+  },
+  {
+    id: 16,
+    icon: <IconButton icon={<StarIcon />} />,
+    name: 'Application for a certificate of good conduct',
+    creator: 'Norwegian Police',
+    lastChanged: new Date('2023-04-10').toLocaleDateString(),
   },
 ];
