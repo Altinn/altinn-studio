@@ -171,6 +171,7 @@ export const generateFormItem = <T extends ComponentType>(type: T, id: string): 
 
 /**
  * Sets the given property of the given component to the given value.
+ * If the value is undefined and the property is not required, the property is removed from the component.
  * @param component The component to set the property on.
  * @param propertyKey The property to set.
  * @param value The value to set the property to.
@@ -184,10 +185,18 @@ export const setComponentProperty = <
   component: FormItem<T>,
   propertyKey: K,
   value: V,
-): FormItem<T> => ({
-  ...component,
-  [propertyKey]: value,
-});
+): FormItem<T> => {
+  if (!component['required'] && value === undefined) {
+    const updatedComponent = { ...component };
+    delete updatedComponent[propertyKey];
+    return updatedComponent;
+  }
+
+  return {
+    ...component,
+    [propertyKey]: value,
+  };
+};
 
 export const EXPRESSION_SCHEMA_BASE_DEFINITION_REFERENCE =
   'expression.schema.v1.json#/definitions/' as const;
