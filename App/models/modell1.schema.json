@@ -35,6 +35,17 @@
     },
     "bransje": {
       "type": "string"
+    },
+    "personer_hj": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "hjelpefelt": {
+            "type": "string"
+          }
+        }
+      }
     }
   }
 }

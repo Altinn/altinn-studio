@@ -27,5 +27,52 @@ namespace Altinn.App.Models.modell2
     [JsonPropertyName("sektor")]
     public string sektor { get; set; }
 
+    [XmlElement("personer", Order = 4)]
+    [JsonProperty("personer")]
+    [JsonPropertyName("personer")]
+    public List<personer> personer { get; set; }
+
+  }
+
+  public class personer
+  {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId()
+    {
+      return AltinnRowId != default;
+    }
+
+    [XmlElement("fornavn", Order = 1)]
+    [JsonProperty("fornavn")]
+    [JsonPropertyName("fornavn")]
+    public string fornavn { get; set; }
+
+    [XmlElement("etternavn", Order = 2)]
+    [JsonProperty("etternavn")]
+    [JsonPropertyName("etternavn")]
+    public string etternavn { get; set; }
+
+    [Range(Double.MinValue,Double.MaxValue)]
+    [XmlElement("alder", Order = 3)]
+    [JsonProperty("alder")]
+    [JsonPropertyName("alder")]
+    public decimal? alder { get; set; }
+
+    public bool ShouldSerializealder()
+    {
+      return alder.HasValue;
+    }
+
+    [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$")]
+    [XmlElement("fødselsdato", Order = 4)]
+    [JsonProperty("fødselsdato")]
+    [JsonPropertyName("fødselsdato")]
+    public string fødselsdato { get; set; }
+
   }
 }

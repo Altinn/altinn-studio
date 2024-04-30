@@ -11,6 +11,16 @@
         <xs:element name="tekstfelt" type="xs:string" />
         <xs:element name="postnummer" type="xs:string" />
         <xs:element minOccurs="0" name="sektor" type="xs:string" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="personer">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="fornavn" type="xs:string" />
+              <xs:element minOccurs="0" name="etternavn" type="xs:string" />
+              <xs:element minOccurs="0" name="alder" type="xs:long" />
+              <xs:element minOccurs="0" name="fødselsdato" type="xs:date" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
       </xs:sequence>
     </xs:complexType>
   </xs:element>

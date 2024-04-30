@@ -32,5 +32,30 @@ namespace Altinn.App.Models.modell1
     [JsonPropertyName("bransje")]
     public string bransje { get; set; }
 
+    [XmlElement("personer_hj", Order = 5)]
+    [JsonProperty("personer_hj")]
+    [JsonPropertyName("personer_hj")]
+    public List<personer_hj> personer_hj { get; set; }
+
+  }
+
+  public class personer_hj
+  {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId()
+    {
+      return AltinnRowId != default;
+    }
+
+    [XmlElement("hjelpefelt", Order = 1)]
+    [JsonProperty("hjelpefelt")]
+    [JsonPropertyName("hjelpefelt")]
+    public string hjelpefelt { get; set; }
+
   }
 }
