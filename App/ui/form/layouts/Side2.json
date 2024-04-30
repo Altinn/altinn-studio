@@ -40,24 +40,29 @@
         },
         "optionsId": "industry",
         "queryParameters": {
-          "sector": ["dataModel", "sektor", "modell2"]
+          "sector": ["component", "choose-sector"]
         }
       },
       {
-        "id": "NavigationButtons-uFAtqJ",
+        "id": "oil-is-bad",
+        "type": "Alert",
+        "textResourceBindings": {
+          "title": "Olje er ikke bra for planeten"
+        },
+        "severity": "danger",
+        "hidden": [
+          "not",
+          ["commaContains", ["component", "choose-industry"], "495"]
+        ]
+      },
+      {
+        "id": "navbuttons2",
         "showBackButton": true,
         "textResourceBindings": {
           "next": "Neste",
           "back": "Forrige"
         },
         "type": "NavigationButtons"
-      },
-      {
-        "id": "submit",
-        "type": "Button",
-        "textResourceBindings": {
-          "title": "Send inn"
-        }
       }
     ]
   }

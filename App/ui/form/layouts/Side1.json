@@ -58,7 +58,7 @@
               ["greaterThan", ["stringLength", ["dataModel", "tekstfelt"]], 0],
               [
                 "equals",
-                ["dataModel", "tekstfelt"],
+                ["dataModel", "tekstfelt", "modell1"],
                 ["dataModel", "tekstfelt", "modell2"]
               ]
             ],
@@ -99,7 +99,7 @@
         "simplified": true
       },
       {
-        "id": "NavigationButtons-U4X9sD",
+        "id": "navbuttons1",
         "showBackButton": true,
         "textResourceBindings": {
           "next": "Neste",

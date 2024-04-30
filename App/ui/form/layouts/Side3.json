@@ -1,0 +1,28 @@
+{
+  "$schema": "http://localhost:3000/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "buttons",
+        "type": "ButtonGroup",
+        "children": ["navbuttons", "submit"]
+      },
+      {
+        "id": "navbuttons",
+        "showBackButton": true,
+        "textResourceBindings": {
+          "next": "Neste",
+          "back": "Forrige"
+        },
+        "type": "NavigationButtons"
+      },
+      {
+        "id": "submit",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Send inn"
+        }
+      }
+    ]
+  }
+}
