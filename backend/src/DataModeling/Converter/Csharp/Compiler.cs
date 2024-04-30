@@ -41,7 +41,6 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 var ignoredDiagnostics = new[]
                 {
                     "CS8019", // CS8019: Unnecessary using directive.
-
                 };
                 var diagnostics = result.Diagnostics.Where(d => !ignoredDiagnostics.Contains(d.Descriptor.Id)).ToArray();
                 if (diagnostics.Any())

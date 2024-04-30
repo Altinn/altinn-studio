@@ -22,7 +22,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
         private string Indent(int level = 1) => new string(' ', level * _generationSettings.IndentSize);
 
         /// <inheritdoc />
-        public string CreateModelFromMetadata(ModelMetadata serviceMetadata, bool separateNamespaces = false)
+        public string CreateModelFromMetadata(ModelMetadata serviceMetadata, bool separateNamespaces, bool useNullableReferenceTypes)
         {
             Dictionary<string, string> classes = new();
 
@@ -31,11 +31,18 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                                     (separateNamespaces ? $".{rootElementType.TypeName}"
                                         : string.Empty);
 
-            CreateModelFromMetadataRecursive(classes, rootElementType, serviceMetadata, serviceMetadata.TargetNamespace);
+            CreateModelFromMetadataRecursive(classes, rootElementType, serviceMetadata, serviceMetadata.TargetNamespace, useNullableReferenceTypes);
 
-            StringBuilder writer = new StringBuilder()
-                .AppendLine("#nullable disable")
-                .AppendLine("using System;")
+            StringBuilder writer = new StringBuilder();
+            if (useNullableReferenceTypes)
+            {
+                writer.AppendLine("#nullable enable");
+            }
+            else
+            {
+                writer.AppendLine("#nullable disable");
+            }
+            writer.AppendLine("using System;")
                 .AppendLine("using System.Collections.Generic;")
                 .AppendLine("using System.ComponentModel.DataAnnotations;")
                 .AppendLine("using System.Linq;")
@@ -62,7 +69,8 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
         /// <param name="parentElement">The parent Element</param>
         /// <param name="serviceMetadata">Model metadata</param>
         /// <param name="targetNamespace">Target namespace in xsd schema.</param>
-        private void CreateModelFromMetadataRecursive(Dictionary<string, string> classes, ElementMetadata parentElement, ModelMetadata serviceMetadata, string targetNamespace = null)
+        /// <param name="useNullableReferenceTypes">wheter to add nullable? to reference types</param>
+        private void CreateModelFromMetadataRecursive(Dictionary<string, string> classes, ElementMetadata parentElement, ModelMetadata serviceMetadata, string targetNamespace, bool useNullableReferenceTypes)
         {
             List<ElementMetadata> referredTypes = new List<ElementMetadata>();
 
@@ -103,15 +111,15 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
                 if (element.Type == ElementType.Field)
                 {
-                    ParseFieldProperty(element, classBuilder, ref elementOrder, required);
+                    ParseFieldProperty(element, classBuilder, ref elementOrder, required, useNullableReferenceTypes);
                 }
                 else if (element.Type == ElementType.Group)
                 {
-                    ParseGroupProperty(element, classBuilder, referredTypes, ref elementOrder);
+                    ParseGroupProperty(element, classBuilder, referredTypes, ref elementOrder, useNullableReferenceTypes);
                 }
                 else if (element.Type == ElementType.Attribute)
                 {
-                    ParseAttributeProperty(element, classBuilder, required);
+                    ParseAttributeProperty(element, classBuilder, required, useNullableReferenceTypes);
                 }
             }
 
@@ -124,12 +132,13 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
             foreach (ElementMetadata refType in referredTypes)
             {
-                CreateModelFromMetadataRecursive(classes, refType, serviceMetadata);
+                CreateModelFromMetadataRecursive(classes, refType, serviceMetadata, targetNamespace: null, useNullableReferenceTypes);
             }
         }
 
-        private void ParseFieldProperty(ElementMetadata element, StringBuilder classBuilder, ref int elementOrder, bool required)
+        private void ParseFieldProperty(ElementMetadata element, StringBuilder classBuilder, ref int elementOrder, bool required, bool useNullableReferenceTypes)
         {
+            string nullableReference = useNullableReferenceTypes ? "?" : string.Empty;
             (string dataType, bool isValueType) = GetPropertyType(element.XsdValueType);
 
             WriteRestrictionAnnotations(classBuilder, element);
@@ -140,7 +149,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 {
                     classBuilder.AppendLine(Indent(2) + "[Required]");
                 }
-                classBuilder.AppendLine($"{Indent(2)}public {dataType} value {{ get; set; }}");
+                classBuilder.AppendLine($"{Indent(2)}public {dataType}{nullableReference} value {{ get; set; }}");
                 classBuilder.AppendLine();
             }
             else
@@ -155,7 +164,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
                 if (element.MaxOccurs > 1)
                 {
-                    classBuilder.AppendLine(Indent(2) + "public List<" + dataType + "> " + element.Name + " { get; set; }\n");
+                    classBuilder.AppendLine($"{Indent(2)}public List<{dataType}>{nullableReference} {element.Name} {{ get; set; }}\n");
                 }
                 else
                 {
@@ -176,14 +185,15 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                     }
                     else
                     {
-                        classBuilder.AppendLine($"{Indent(2)}public {dataType} {element.Name} {{ get; set; }}\n");
+                        classBuilder.AppendLine($"{Indent(2)}public {dataType}{nullableReference} {element.Name} {{ get; set; }}\n");
                     }
                 }
             }
         }
 
-        private void ParseGroupProperty(ElementMetadata element, StringBuilder classBuilder, List<ElementMetadata> referredTypes, ref int elementOrder)
+        private void ParseGroupProperty(ElementMetadata element, StringBuilder classBuilder, List<ElementMetadata> referredTypes, ref int elementOrder, bool useNullableReferenceTypes)
         {
+            var nullableReference = useNullableReferenceTypes ? "?" : string.Empty;
             WriteRestrictionAnnotations(classBuilder, element);
             elementOrder += 1;
             classBuilder.AppendLine(Indent(2) + "[XmlElement(\"" + element.XName + "\", Order = " + elementOrder + ")]");
@@ -210,11 +220,11 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
             if (element.MaxOccurs > 1)
             {
-                classBuilder.AppendLine($"{Indent(2)}public List<{dataType}> {element.Name} {{ get; set; }}\n");
+                classBuilder.AppendLine($"{Indent(2)}public List<{dataType}>{nullableReference} {element.Name} {{ get; set; }}\n");
             }
             else
             {
-                classBuilder.AppendLine($"{Indent(2)}public {dataType} {element.Name} {{ get; set; }}\n");
+                classBuilder.AppendLine($"{Indent(2)}public {dataType}{nullableReference} {element.Name} {{ get; set; }}\n");
             }
 
             if (!primitiveType)
@@ -223,8 +233,9 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             }
         }
 
-        private void ParseAttributeProperty(ElementMetadata element, StringBuilder classBuilder, bool required)
+        private void ParseAttributeProperty(ElementMetadata element, StringBuilder classBuilder, bool required, bool useNullableReferenceTypes)
         {
+            string nullableReference = useNullableReferenceTypes ? "?": string.Empty;
             string dataType = "string";
             bool isValueType = false;
             if (element.XsdValueType != null)
@@ -240,7 +251,8 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 classBuilder.AppendLine(Indent(2) + "[BindNever]");
                 if (dataType.Equals("string"))
                 {
-                    classBuilder.AppendLine(Indent(2) + "public " + dataType + " " + element.Name + " { get; set; } = \"" + element.FixedValue + "\";\n");
+                    classBuilder.AppendLine(
+                        $"{Indent(2)}public {dataType} {element.Name} {{ get; set; }} = \"{element.FixedValue}\";\n");
                 }
                 else
                 {
@@ -253,7 +265,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 {
                     classBuilder.AppendLine(Indent(2) + "[Required]");
                 }
-                classBuilder.AppendLine(Indent(2) + "public " + dataType + " " + element.Name + " { get; set; }\n");
+                classBuilder.AppendLine($"{Indent(2)}public {dataType}{nullableReference} {element.Name} {{ get; set; }}\n");
             }
         }
 
