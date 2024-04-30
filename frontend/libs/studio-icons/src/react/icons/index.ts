@@ -21,6 +21,7 @@ export { PropertyIcon } from './PropertyIcon';
 export { RadioButtonIcon } from './RadioButtonIcon';
 export { ReferenceIcon } from './ReferenceIcon';
 export { RepeatingGroupIcon } from './RepeatingGroupIcon';
+export { SectionHeaderWarningIcon } from './SectionHeaderWarningIcon';
 export { SelectIcon } from './SelectIcon';
 export { ShortTextIcon } from './ShortTextIcon';
 export { SignTaskIcon } from './SignTaskIcon';

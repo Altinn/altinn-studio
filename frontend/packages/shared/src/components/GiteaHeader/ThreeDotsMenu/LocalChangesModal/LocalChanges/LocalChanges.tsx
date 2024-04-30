@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import classes from './LocalChanges.module.css';
 import { useTranslation } from 'react-i18next';
 import { Paragraph } from '@digdir/design-system-react';
-import { DownloadIcon, TrashIcon } from '@navikt/aksel-icons';
+import { DownloadIcon, TrashIcon } from '@studio/icons';
 import { LocalChangesActionButton } from '../LocalChangesActionButton';
 import { DeleteModal } from '../DeleteModal';
 import { repoDownloadPath } from 'app-shared/api/paths';

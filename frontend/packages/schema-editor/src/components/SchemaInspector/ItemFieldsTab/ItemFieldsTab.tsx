@@ -4,7 +4,7 @@ import type { FieldNode } from '@altinn/schema-model';
 import { FieldType, isField, isReference, ObjectKind } from '@altinn/schema-model';
 import classes from './ItemFieldsTab.module.css';
 import { StudioButton, usePrevious } from '@studio/components';
-import { PlusIcon } from '@navikt/aksel-icons';
+import { PlusIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { ItemFieldsTable } from './ItemFieldsTable';
 import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';

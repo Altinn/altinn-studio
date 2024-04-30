@@ -6,7 +6,7 @@ import {
   expressionFunctionTexts,
   Operator,
 } from '../../../../../types/Expressions';
-import { ArrowRightIcon } from '@navikt/aksel-icons';
+import { ArrowRightIcon } from '@studio/icons';
 import { useText } from '../../../../../hooks';
 import { stringifyValueForDisplay } from '../../../../../utils/expressionsUtils';
 

@@ -7,7 +7,7 @@ export class DateUtils {
       timeZone,
     });
 
-  static formatDateDDMMYY = (dateasstring: string, timeZone?: string) =>
+  static formatDateDDMMYYYY = (dateasstring: string, timeZone?: string) =>
     new Date(dateasstring).toLocaleDateString('no-NB', {
       year: 'numeric',
       month: '2-digit',
@@ -17,7 +17,7 @@ export class DateUtils {
 
   static formatDateTime = (dateasstring: string, timeZone?: string) =>
     [
-      DateUtils.formatDateDDMMYY(dateasstring, timeZone),
+      DateUtils.formatDateDDMMYYYY(dateasstring, timeZone),
       DateUtils.formatTimeHHmm(dateasstring, timeZone),
     ].join(' ');
 

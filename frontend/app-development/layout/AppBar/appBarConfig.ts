@@ -1,6 +1,6 @@
 import { RepositoryType } from 'app-shared/types/global';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { DatabaseIcon, Density3Icon, PencilIcon, TenancyIcon } from '@navikt/aksel-icons';
+import { DatabaseIcon, Density3Icon, PencilIcon, TenancyIcon } from '@studio/icons';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';

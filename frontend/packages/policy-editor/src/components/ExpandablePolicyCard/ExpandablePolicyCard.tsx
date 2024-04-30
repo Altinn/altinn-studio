@@ -6,7 +6,7 @@ import {
   Textarea,
   LegacySelect,
 } from '@digdir/design-system-react';
-import { PlusIcon } from '@navikt/aksel-icons';
+import { PlusIcon } from '@studio/icons';
 import classes from './ExpandablePolicyCard.module.css';
 import { ActionAndSubjectListItem } from './ActionAndSubjectListItem';
 import { ResourceNarrowingList } from './ResourceNarrowingList';

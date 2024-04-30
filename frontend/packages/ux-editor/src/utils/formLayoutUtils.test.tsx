@@ -4,9 +4,11 @@ import {
   addItemOfType,
   addNavigationButtons,
   createEmptyLayout,
+  duplicatedIdsExistsInLayout,
   findParentId,
   getChildIds,
   getDepth,
+  getDuplicatedIds,
   getItem,
   hasMultiPageGroup,
   hasNavigationButtons,
@@ -573,6 +575,37 @@ describe('formLayoutUtils', () => {
 
     it('Returns false if the layout does not contain a multi page group', () => {
       expect(hasMultiPageGroup(mockInternal)).toBe(false);
+    });
+  });
+
+  describe('duplicatedIdsExistsInLayout', () => {
+    it('Returns true if the layout contains duplicated ids', () => {
+      const layout = {
+        ...mockInternal,
+        order: {
+          ...mockInternal.order,
+          [groupId]: [paragraphInGroupId, paragraphInGroupId],
+        },
+      };
+      expect(duplicatedIdsExistsInLayout(layout)).toBe(true);
+    });
+
+    it('Returns false if the layout does not contain duplicated ids', () => {
+      expect(duplicatedIdsExistsInLayout(mockInternal)).toBe(false);
+    });
+  });
+
+  describe('getDuplicatedIds', () => {
+    it('Returns the duplicated ids in the layout', () => {
+      const layout = {
+        ...mockInternal,
+        order: {
+          ...mockInternal.order,
+          [groupId]: [paragraphInGroupId, paragraphInGroupId, paragraphInGroupId],
+        },
+      };
+      const duplicatedIds = getDuplicatedIds(layout);
+      expect(duplicatedIds).toEqual([paragraphInGroupId]);
     });
   });
 });

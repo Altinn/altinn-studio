@@ -1,20 +1,24 @@
 import React from 'react';
+import classes from './ConfigContent.module.css';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { EditTaskId } from './EditTaskId/EditTaskId';
 import { StudioDisplayTile, StudioSectionHeader } from '@studio/components';
 import { getConfigTitleKey, getConfigTitleHelpTextKey } from '../../../utils/configPanelUtils';
 import { ConfigIcon } from './ConfigIcon';
-import classes from './ConfigContent.module.css';
+import { EditDataType } from './EditDataType/EditDataType';
+import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
-
+  const { layoutSets } = useBpmnApiContext();
   const configHeaderTexts: Record<'title' | 'helpText', string> = {
     title: bpmnDetails?.taskType && t(getConfigTitleKey(bpmnDetails.taskType)),
     helpText: bpmnDetails?.taskType && t(getConfigTitleHelpTextKey(bpmnDetails.taskType)),
   };
+
+  const taskHasConnectedLayoutSet = layoutSets?.sets?.some((set) => set.tasks[0] == bpmnDetails.id);
 
   return (
     <>
@@ -33,8 +37,9 @@ export const ConfigContent = (): React.ReactElement => {
       <StudioDisplayTile
         label={t('process_editor.configuration_panel_name_label')}
         value={bpmnDetails.name}
-        className={classes.displayTile}
+        className={classes.configContent}
       />
+      {taskHasConnectedLayoutSet && <EditDataType />}
     </>
   );
 };

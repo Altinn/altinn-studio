@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioButton } from '@studio/components';
-import { UploadIcon } from '@navikt/aksel-icons';
+import { UploadIcon } from '@studio/icons';
 import * as testids from '../../../../testing/testids';
 
 export interface IFileSelectorProps {
