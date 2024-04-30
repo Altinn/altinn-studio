@@ -9,12 +9,15 @@ import React, {
 } from 'react';
 import type { FormContainer } from '../types/FormContainer';
 import type { FormComponent } from '../types/FormComponent';
+import type { UpdateFormContainerMutationArgs } from '../hooks/mutations/useUpdateFormContainerMutation';
 import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateFormContainerMutation';
+import type { UpdateFormComponentMutationArgs } from '../hooks/mutations/useUpdateFormComponentMutation';
 import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateFormComponentMutation';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { LayoutItemType } from '../types/global';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppContext } from '../hooks';
+import type { MutateOptions } from '@tanstack/react-query';
 
 export type FormItemContext = {
   formItemId: string;
@@ -22,8 +25,16 @@ export type FormItemContext = {
   handleDiscard: () => void;
   handleEdit: (updatedForm: FormContainer | FormComponent) => void;
   handleUpdate: React.Dispatch<React.SetStateAction<FormContainer | FormComponent>>;
-  handleSave: (id?: string, updatedForm?: FormContainer | FormComponent) => Promise<void>;
-  debounceSave: (id?: string, updatedForm?: FormContainer | FormComponent) => Promise<void>;
+  handleSave: (
+    id?: string,
+    updatedForm?: FormContainer | FormComponent,
+    mutateOptions?: UpdateFormMutateOptions,
+  ) => Promise<void>;
+  debounceSave: (
+    id?: string,
+    updatedForm?: FormContainer | FormComponent,
+    mutateOptions?: UpdateFormMutateOptions,
+  ) => Promise<void>;
 };
 
 export const FormItemContext = createContext<FormItemContext>({
@@ -35,6 +46,13 @@ export const FormItemContext = createContext<FormItemContext>({
   handleSave: undefined,
   debounceSave: undefined,
 });
+
+export type UpdateFormMutateOptions = MutateOptions<
+  { currentId: string; newId: string },
+  Error,
+  UpdateFormContainerMutationArgs | UpdateFormComponentMutationArgs,
+  unknown
+>;
 
 export const useFormItemContext = function () {
   const context = useContext(FormItemContext);
@@ -52,7 +70,7 @@ export const FormItemContextProvider = ({
   children,
 }: FormItemContextProviderProps): React.JSX.Element => {
   const { org, app } = useStudioUrlParams();
-  const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
+  const { selectedFormLayoutSetName, selectedFormLayoutName, refetchLayouts } = useAppContext();
   const prevSelectedFormLayoutSetNameRef = useRef(selectedFormLayoutSetName);
   const prevSelectedFormLayoutNameRef = useRef(selectedFormLayoutName);
 
@@ -82,42 +100,66 @@ export const FormItemContextProvider = ({
   }, [formItemId, formItem]);
 
   const handleContainerSave = useCallback(
-    async (id: string, updatedContainer: FormContainer): Promise<void> => {
-      await updateFormContainer({
-        id,
-        updatedContainer,
-      });
-      if (id !== updatedContainer.id) {
-        setFormItemId(updatedContainer.id);
-      }
+    async (
+      id: string,
+      updatedContainer: FormContainer,
+      mutateOptions?: UpdateFormMutateOptions,
+    ): Promise<void> => {
+      const hasNewId = id !== updatedContainer.id;
+      await updateFormContainer(
+        {
+          id,
+          updatedContainer,
+        },
+        {
+          onSuccess: async () => {
+            await refetchLayouts(selectedFormLayoutSetName, hasNewId);
+          },
+          ...mutateOptions,
+        },
+      );
     },
-    [updateFormContainer],
+    [refetchLayouts, selectedFormLayoutSetName, updateFormContainer],
   );
 
   const handleComponentSave = useCallback(
-    async (id: string, updatedComponent: FormComponent): Promise<void> => {
-      await updateFormComponent({
-        id,
-        updatedComponent,
-      });
-      if (id !== updatedComponent.id) {
+    async (
+      id: string,
+      updatedComponent: FormComponent,
+      mutateOptions?: UpdateFormMutateOptions,
+    ): Promise<void> => {
+      const hasNewId = id !== updatedComponent.id;
+      await updateFormComponent(
+        {
+          id,
+          updatedComponent,
+        },
+        {
+          onSuccess: async () => {
+            await refetchLayouts(selectedFormLayoutSetName, hasNewId);
+          },
+          ...mutateOptions,
+        },
+      );
+      if (hasNewId) {
         setFormItemId(updatedComponent.id);
       }
     },
-    [updateFormComponent],
+    [refetchLayouts, selectedFormLayoutSetName, updateFormComponent],
   );
 
   const handleSave = useCallback(
     async (
       id: string = formItemIdRef.current,
       updatedForm: FormContainer | FormComponent = formItemRef.current,
+      mutateOptions?: UpdateFormMutateOptions,
     ): Promise<void> => {
       clearTimeout(autoSaveTimeoutRef.current);
       if (updatedForm) {
         if (updatedForm.itemType === LayoutItemType.Container) {
-          await handleContainerSave(id, updatedForm as FormContainer);
+          await handleContainerSave(id, updatedForm as FormContainer, mutateOptions);
         } else {
-          await handleComponentSave(id, updatedForm as FormComponent);
+          await handleComponentSave(id, updatedForm as FormComponent, mutateOptions);
         }
       }
     },
@@ -135,10 +177,14 @@ export const FormItemContextProvider = ({
   }, [handleEdit]);
 
   const debounceSave = useCallback(
-    async (id: string, updatedForm: FormContainer | FormComponent): Promise<void> => {
+    async (
+      id: string,
+      updatedForm: FormContainer | FormComponent,
+      mutateOptions?: UpdateFormMutateOptions,
+    ): Promise<void> => {
       clearTimeout(autoSaveTimeoutRef.current);
       autoSaveTimeoutRef.current = setTimeout(async () => {
-        await handleSave(id, updatedForm);
+        await handleSave(id, updatedForm, mutateOptions);
       }, AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
     },
     [handleSave],

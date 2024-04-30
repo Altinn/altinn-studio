@@ -11,11 +11,12 @@ import { UnknownComponentAlert } from '../UnknownComponentAlert';
 import type { FormItem } from '../../types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { useAppContext } from '../../hooks';
+import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
 
 export interface IEditFormComponentProps<T extends ComponentType = ComponentType> {
   editFormId: string;
   component: FormItem<T>;
-  handleComponentUpdate: (component: FormItem<T>) => void;
+  handleComponentUpdate: (component: FormItem<T>, mutateOptions?: UpdateFormMutateOptions) => void;
 }
 
 export const EditFormComponent = ({
