@@ -36,7 +36,7 @@
     "bransje": {
       "type": "string"
     },
-    "hjelpeliste": {
+    "personer": {
       "type": "array",
       "items": {
         "type": "object",
