@@ -7,7 +7,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@navikt/aksel-icons": "6.6.1",
+    "@navikt/aksel-icons": "^5.6.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
