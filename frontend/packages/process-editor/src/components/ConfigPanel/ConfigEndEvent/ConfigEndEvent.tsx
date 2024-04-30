@@ -24,7 +24,7 @@ export const ConfigEndEvent = () => {
     };
     if (!layoutSetIdToUpdate)
       addLayoutSet({ layoutSetIdToUpdate, layoutSetConfig: customReceiptLayoutSetConfig });
-    else mutateLayoutSet({ layoutSetIdToUpdate, layoutSetConfig: customReceiptLayoutSetConfig });
+    else mutateLayoutSet({ layoutSetIdToUpdate, newLayoutSetId: customReceiptId });
   };
 
   return (
