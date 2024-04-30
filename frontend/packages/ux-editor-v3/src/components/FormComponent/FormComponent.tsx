@@ -8,7 +8,7 @@ import type { ConnectDragSource } from 'react-dnd';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { DragHandle } from './DragHandle';
 import type { ITextResource } from 'app-shared/types/global';
-import { TrashIcon } from '@navikt/aksel-icons';
+import { TrashIcon } from '@studio/icons';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { getComponentTitleByComponentType, getTextResource, truncate } from '../../utils/language';
 import { textResourcesByLanguageSelector } from '../../selectors/textResourceSelectors';

@@ -18,6 +18,7 @@ export type PageAccordionProps = {
   isOpen: boolean;
   onClick: () => void;
   pageIsReceipt?: boolean;
+  isValid?: boolean;
 };
 
 /**
@@ -39,6 +40,7 @@ export const PageAccordion = ({
   isOpen,
   onClick,
   pageIsReceipt,
+  isValid,
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
@@ -62,7 +64,11 @@ export const PageAccordion = ({
       open={isOpen}
     >
       <div className={classes.accordionHeaderRow}>
-        <Accordion.Header className={classes.accordionHeader} level={3} onHeaderClick={onClick}>
+        <Accordion.Header
+          className={isValid ? classes.accordionHeader : classes.accordionHeaderWarning}
+          level={3}
+          onHeaderClick={onClick}
+        >
           {pageName}
         </Accordion.Header>
         <div className={classes.navigationMenu}>
