@@ -11,7 +11,7 @@ import * as StudioTableRemotePaginationStories from './StudioTableRemotePaginati
   StudioTableRemotePagination brings together Digdir Designsystemet's `Table` and `Pagination` components.
   It dynamically renders a table by passing an array of objects to the `column` and `row` props.
 
-  * Use this component when  data is fetched in chunks, and the pagination logic is handled remotely. Otherwise, use `StudioTableLocalPagination`.
+  * Use this component when  data is fetched in chunks, and the pagination logic is handled externally. Otherwise, use `StudioTableLocalPagination`.
   * Pagination and sorting can be removed by not passing props to `pagination` and `onSortClick`.
 </Paragraph>
 
@@ -20,7 +20,6 @@ import * as StudioTableRemotePaginationStories from './StudioTableRemotePaginati
 <Heading level={2} size='xsmall'>
   Type definitions
 </Heading>
-<Paragraph>
 ```tsx
 type StudioTableRemotePaginationProps = {
   columns: Record<'accessor' | 'value', string>[];
@@ -36,6 +35,7 @@ type PaginationProps = {
   currentPage: number;
   totalPages: number;
   pageSizeOptions: number[];
+  pageSizeLabel: string;
   onPageChange: (currentPage: number) => void;
   onPageSizeChange: (currentSize: number) => void;
   nextButtonText: string;
@@ -43,7 +43,7 @@ type PaginationProps = {
   itemLabel: (num: number) => string;
 };
 ```
-</Paragraph>
+
 <Heading level={2} size='xsmall'>
   Column format
 </Heading>

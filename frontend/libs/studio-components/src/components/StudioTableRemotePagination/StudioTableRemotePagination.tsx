@@ -16,6 +16,7 @@ export type PaginationProps = {
   currentPage: number;
   totalPages: number;
   pageSizeOptions: number[];
+  pageSizeLabel: string;
   onPageChange: (currentPage: number) => void;
   onPageSizeChange: (currentSize: number) => void;
   nextButtonText: string;
@@ -42,6 +43,7 @@ export const StudioTableRemotePagination = forwardRef<
     currentPage,
     totalPages,
     pageSizeOptions,
+    pageSizeLabel,
     onPageChange: handlePageChange,
     onPageSizeChange: handlePageSizeChange,
     nextButtonText,
@@ -94,7 +96,7 @@ export const StudioTableRemotePagination = forwardRef<
               ))}
             </NativeSelect>
             <Label htmlFor={labelId} size={labelSize} className={classes.label}>
-              Rows per page
+              {pageSizeLabel}
             </Label>
           </div>
           {totalPages > 1 && (

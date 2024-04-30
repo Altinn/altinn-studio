@@ -11,6 +11,7 @@ type StudioTableLocalPaginationProps = {
   isSortable?: boolean;
   pagination?: {
     pageSizeOptions: number[];
+    pageSizeLabel: string;
     nextButtonText: string;
     previousButtonText: string;
     itemLabel: (num: number) => string;
@@ -21,7 +22,8 @@ export const StudioTableLocalPagination = forwardRef<
   HTMLTableElement,
   StudioTableLocalPaginationProps
 >(({ columns, rows, isSortable = true, size = 'medium', pagination }, ref): React.ReactElement => {
-  const { pageSizeOptions, itemLabel, nextButtonText, previousButtonText } = pagination || {};
+  const { pageSizeOptions, pageSizeLabel, itemLabel, nextButtonText, previousButtonText } =
+    pagination || {};
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(pagination ? pageSizeOptions[0] : undefined);
 
@@ -47,6 +49,7 @@ export const StudioTableLocalPagination = forwardRef<
     currentPage,
     totalPages,
     pageSizeOptions,
+    pageSizeLabel,
     onPageChange: setCurrentPage,
     onPageSizeChange: setPageSize,
     itemLabel,

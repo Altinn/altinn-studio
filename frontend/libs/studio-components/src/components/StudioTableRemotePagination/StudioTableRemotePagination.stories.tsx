@@ -33,11 +33,12 @@ export const Preview: Story = (args) => {
     currentPage,
     totalPages,
     pageSizeOptions: [5, 10, 20, 50],
+    pageSizeLabel: 'Rows per page',
     onPageChange: setCurrentPage,
     onPageSizeChange: setPageSize,
-    itemLabel: (num) => `Side ${num}`,
-    nextButtonText: 'Neste',
-    previousButtonText: 'Forrige',
+    itemLabel: (num) => `Page ${num}`,
+    nextButtonText: 'Next',
+    previousButtonText: 'Previous',
   };
 
   return (

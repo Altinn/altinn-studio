@@ -11,7 +11,7 @@ import * as StudioTableLocalPaginationStories from './StudioTableLocalPagination
   StudioTableLocalPagination brings together Digdir Designsystemet's `Table` and `Pagination` components. It dynamically renders a table by passing an array of objects to the column and row props.
 
   * Use this component when you have a complete set of data, and want the component to handle pagination internally. Otherwise, use `StudioTableRemotePagination`.
-  * Pagination and sorting can be removed by not passing props to pagination and onSortClick.
+  * Pagination and sorting can be removed by not passing props to `pagination` and `onSortClick`.
 </Paragraph>
 
 <Canvas of={StudioTableLocalPaginationStories.Preview} />
@@ -19,7 +19,6 @@ import * as StudioTableLocalPaginationStories from './StudioTableLocalPagination
 <Heading level={2} size='xsmall'>
   Type definitions
 </Heading>
-<Paragraph>
 ```tsx
 type StudioTableLocalPaginationProps = {
   columns: Record<'accessor' | 'value', string>[];
@@ -28,6 +27,7 @@ type StudioTableLocalPaginationProps = {
   isSortable?: boolean;
   pagination?: {
     pageSizeOptions: number[];
+    pageSizeLabel: string;
     nextButtonText: string;
     previousButtonText: string;
     itemLabel: (num: number) => string;
@@ -36,7 +36,7 @@ type StudioTableLocalPaginationProps = {
 
 type Rows = (Record<string, React.ReactNode> & Record<"id", string | number>)[];
 ```
-</Paragraph>
+
 <Heading level={2} size='xsmall'>
   Column format
 </Heading>
@@ -72,18 +72,18 @@ const columns = [
   const rows = [
     {
       id: 1,
-      icon: <IconButton icon={<StarFillIcon/>}/>,
+      icon: <StarFillIcon/>,
       name: "Coordinated register notification",
       creator: "Brønnøysund Register Centre",
       lastChanged: new Date("2023-04-12").toLocaleDateString(),
     },
     {
       id: 2,
-      icon: <IconButton icon={<StarFillIcon/>}/>,
+      icon: <StarFillIcon/>,
       name: "Application for authorisation and license as a healthcare personnel",
       creator: "The Norwegian Directorate of Health",
       lastChanged: new Date("2023-04-05").toLocaleDateString(),
     },
-  ]
+   ]
 ```
 

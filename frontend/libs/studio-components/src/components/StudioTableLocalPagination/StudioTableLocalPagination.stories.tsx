@@ -24,9 +24,10 @@ export const Preview: Story = (args) => (
     isSortable={true}
     pagination={{
       pageSizeOptions: [5, 10, 20, 50],
-      nextButtonText: 'Neste',
-      previousButtonText: 'Forrige',
-      itemLabel: (num) => `Side ${num}`,
+      pageSizeLabel: 'Rows per page',
+      nextButtonText: 'Next',
+      previousButtonText: 'Previous',
+      itemLabel: (num) => `Page ${num}`,
     }}
   />
 );
