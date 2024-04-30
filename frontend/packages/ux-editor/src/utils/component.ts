@@ -171,6 +171,7 @@ export const generateFormItem = <T extends ComponentType>(type: T, id: string): 
 
 /**
  * Sets the given property of the given component to the given value.
+ * If the value is undefined and the property is not required, the property is removed from the component.
  * @param component The component to set the property on.
  * @param propertyKey The property to set.
  * @param value The value to set the property to.
