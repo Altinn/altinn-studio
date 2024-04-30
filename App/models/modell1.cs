@@ -32,14 +32,14 @@ namespace Altinn.App.Models.modell1
     [JsonPropertyName("bransje")]
     public string bransje { get; set; }
 
-    [XmlElement("personer_hj", Order = 5)]
-    [JsonProperty("personer_hj")]
-    [JsonPropertyName("personer_hj")]
-    public List<personer_hj> personer_hj { get; set; }
+    [XmlElement("hjelpeliste", Order = 5)]
+    [JsonProperty("hjelpeliste")]
+    [JsonPropertyName("hjelpeliste")]
+    public List<hjelpeliste> hjelpeliste { get; set; }
 
   }
 
-  public class personer_hj
+  public class hjelpeliste
   {
     [XmlAttribute("altinnRowId")]
     [JsonPropertyName("altinnRowId")]
