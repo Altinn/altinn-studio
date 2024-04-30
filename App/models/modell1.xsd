@@ -12,7 +12,7 @@
         <xs:element name="gateadresse" type="xs:string" />
         <xs:element name="poststed" type="xs:string" />
         <xs:element minOccurs="0" name="bransje" type="xs:string" />
-        <xs:element minOccurs="0" maxOccurs="unbounded" name="hei">
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="personer">
           <xs:complexType>
             <xs:sequence>
               <xs:element minOccurs="0" name="hjelpefelt" type="xs:string" />
