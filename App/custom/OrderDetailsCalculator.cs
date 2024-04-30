@@ -67,6 +67,13 @@ public class OrderDetailsCalculator : IOrderDetailsCalculator
         {
             Name = "Patentstyret",
             OrganisationNumber = "971 526 157",
+            BankAccountNumber = "123456789",
+            Email = "test.mail@patentstyret.no",
+            PhoneNumber = new PhoneNumber
+            {
+                Prefix = "+47",
+                Number = "12345678"
+            },
             PostalAddress = new Address
             {
                 Name = "Patentstyret",
