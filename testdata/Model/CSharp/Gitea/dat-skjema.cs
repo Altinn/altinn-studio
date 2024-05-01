@@ -163,10 +163,7 @@ namespace Altinn.App.Models
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
     [MinLength(0)]
     [MaxLength(255)]
@@ -197,10 +194,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("AntallAnsatte")]
     public decimal? AntallAnsatte { get; set; }
 
-    public bool ShouldSerializeAntallAnsatte()
-    {
-      return AntallAnsatte.HasValue;
-    }
+    public bool ShouldSerializeAntallAnsatte() => AntallAnsatte.HasValue;
 
     [XmlElement("ASellerASAiHjemland", Order = 2)]
     [JsonProperty("ASellerASAiHjemland")]

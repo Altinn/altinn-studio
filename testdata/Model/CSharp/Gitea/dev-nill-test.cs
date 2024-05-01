@@ -26,10 +26,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("nonNillableRef")]
     public bool? nonNillableRef { get; set; }
 
-    public bool ShouldSerializenonNillableRef()
-    {
-      return nonNillableRef.HasValue;
-    }
+    public bool ShouldSerializenonNillableRef() => nonNillableRef.HasValue;
 
     [XmlElement("nillableRef", Order = 2)]
     [JsonProperty("nillableRef")]
@@ -41,10 +38,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("nonNillableBoolean")]
     public bool? nonNillableBoolean { get; set; }
 
-    public bool ShouldSerializenonNillableBoolean()
-    {
-      return nonNillableBoolean.HasValue;
-    }
+    public bool ShouldSerializenonNillableBoolean() => nonNillableBoolean.HasValue;
 
     [XmlElement("nillableBoolean", Order = 4)]
     [JsonProperty("nillableBoolean")]

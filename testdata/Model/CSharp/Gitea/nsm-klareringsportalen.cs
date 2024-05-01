@@ -102,10 +102,7 @@ namespace Altinn.App.Models
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
     [XmlElement("fraaar", Order = 1)]
     [JsonProperty("fraaar")]
@@ -216,10 +213,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("ishatttidligerenavn")]
     public bool? ishatttidligerenavn { get; set; }
 
-    public bool ShouldSerializeishatttidligerenavn()
-    {
-      return ishatttidligerenavn.HasValue;
-    }
+    public bool ShouldSerializeishatttidligerenavn() => ishatttidligerenavn.HasValue;
 
     [XmlElement("hatttidligerenavn", Order = 8)]
     [JsonProperty("hatttidligerenavn")]
@@ -291,10 +285,7 @@ namespace Altinn.App.Models
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
     [XmlElement("adressebeskrivelse", Order = 1)]
     [JsonProperty("adressebeskrivelse")]
@@ -326,10 +317,7 @@ namespace Altinn.App.Models
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
     [XmlElement("typedokument", Order = 1)]
     [JsonProperty("typedokument")]
@@ -356,10 +344,7 @@ namespace Altinn.App.Models
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
     [XmlElement("foedselsnummer", Order = 1)]
     [JsonProperty("foedselsnummer")]
@@ -430,10 +415,7 @@ namespace Altinn.App.Models
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
     [XmlElement("fraDato", Order = 1)]
     [JsonProperty("fraDato")]
@@ -584,10 +566,7 @@ namespace Altinn.App.Models
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
     [XmlElement("personinfo", Order = 1)]
     [JsonProperty("personinfo")]
@@ -703,10 +682,7 @@ namespace Altinn.App.Models
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
     [XmlElement("land", Order = 1)]
     [JsonProperty("land")]
@@ -768,10 +744,7 @@ namespace Altinn.App.Models
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
     [XmlElement("land", Order = 1)]
     [JsonProperty("land")]
@@ -877,10 +850,7 @@ namespace Altinn.App.Models
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
     [XmlElement("type", Order = 1)]
     [JsonProperty("type")]
@@ -907,10 +877,7 @@ namespace Altinn.App.Models
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
     [XmlElement("antallganger", Order = 1)]
     [JsonProperty("antallganger")]
@@ -976,10 +943,7 @@ namespace Altinn.App.Models
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
     [XmlElement("aar", Order = 1)]
     [JsonProperty("aar")]
@@ -1163,10 +1127,7 @@ namespace Altinn.App.Models
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
     [XmlElement("beskrivelse", Order = 1)]
     [JsonProperty("beskrivelse")]
@@ -1198,10 +1159,7 @@ namespace Altinn.App.Models
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
     [XmlElement("utdanningsted", Order = 1)]
     [JsonProperty("utdanningsted")]

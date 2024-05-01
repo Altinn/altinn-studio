@@ -524,10 +524,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
         /// </summary>
         private void WriteShouldSerializeMethod(StringBuilder classBuilder, string propName)
         {
-            classBuilder.AppendLine(Indent(2) + $"public bool ShouldSerialize{propName}()");
-            classBuilder.AppendLine(Indent(2) + "{");
-            classBuilder.AppendLine(Indent(3) + $"return {propName}.HasValue;");
-            classBuilder.AppendLine(Indent(2) + "}");
+            classBuilder.AppendLine(Indent(2) + $"public bool ShouldSerialize{propName}() => {propName}.HasValue;");
             classBuilder.AppendLine();
         }
 
@@ -544,10 +541,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             classBuilder.AppendLine(Indent(2) + "[Newtonsoft.Json.JsonIgnore]");
             classBuilder.AppendLine(Indent(2) + "public Guid AltinnRowId { get; set; }");
             classBuilder.AppendLine("");
-            classBuilder.AppendLine(Indent(2) + "public bool ShouldSerializeAltinnRowId()");
-            classBuilder.AppendLine(Indent(2) + "{");
-            classBuilder.AppendLine(Indent(3) + "return AltinnRowId != default;");
-            classBuilder.AppendLine(Indent(2) + "}");
+            classBuilder.AppendLine(Indent(2) + "public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;");
             classBuilder.AppendLine();
         }
     }

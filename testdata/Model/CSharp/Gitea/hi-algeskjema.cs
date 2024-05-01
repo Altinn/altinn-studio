@@ -37,20 +37,14 @@ namespace Altinn.App.Models
     [JsonPropertyName("longitude")]
     public decimal? longitude { get; set; }
 
-    public bool ShouldSerializelongitude()
-    {
-      return longitude.HasValue;
-    }
+    public bool ShouldSerializelongitude() => longitude.HasValue;
 
     [XmlElement("latitude", Order = 6)]
     [JsonProperty("latitude")]
     [JsonPropertyName("latitude")]
     public decimal? latitude { get; set; }
 
-    public bool ShouldSerializelatitude()
-    {
-      return latitude.HasValue;
-    }
+    public bool ShouldSerializelatitude() => latitude.HasValue;
 
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("depth", Order = 7)]
@@ -58,10 +52,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("depth")]
     public decimal? depth { get; set; }
 
-    public bool ShouldSerializedepth()
-    {
-      return depth.HasValue;
-    }
+    public bool ShouldSerializedepth() => depth.HasValue;
 
     [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$")]
     [XmlElement("sampledate", Order = 8)]
@@ -75,10 +66,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("hour")]
     public decimal? hour { get; set; }
 
-    public bool ShouldSerializehour()
-    {
-      return hour.HasValue;
-    }
+    public bool ShouldSerializehour() => hour.HasValue;
 
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("minute", Order = 10)]
@@ -86,10 +74,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("minute")]
     public decimal? minute { get; set; }
 
-    public bool ShouldSerializeminute()
-    {
-      return minute.HasValue;
-    }
+    public bool ShouldSerializeminute() => minute.HasValue;
 
     [XmlElement("productionarea", Order = 11)]
     [JsonProperty("productionarea")]
@@ -116,30 +101,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("harmfulalgae")]
     public bool? harmfulalgae { get; set; }
 
-    public bool ShouldSerializeharmfulalgae()
-    {
-      return harmfulalgae.HasValue;
-    }
+    public bool ShouldSerializeharmfulalgae() => harmfulalgae.HasValue;
 
     [XmlElement("reportedmortality", Order = 16)]
     [JsonProperty("reportedmortality")]
     [JsonPropertyName("reportedmortality")]
     public bool? reportedmortality { get; set; }
 
-    public bool ShouldSerializereportedmortality()
-    {
-      return reportedmortality.HasValue;
-    }
+    public bool ShouldSerializereportedmortality() => reportedmortality.HasValue;
 
     [XmlElement("behaviourchanges", Order = 17)]
     [JsonProperty("behaviourchanges")]
     [JsonPropertyName("behaviourchanges")]
     public bool? behaviourchanges { get; set; }
 
-    public bool ShouldSerializebehaviourchanges()
-    {
-      return behaviourchanges.HasValue;
-    }
+    public bool ShouldSerializebehaviourchanges() => behaviourchanges.HasValue;
 
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("diatomcount", Order = 18)]
@@ -147,10 +123,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("diatomcount")]
     public decimal? diatomcount { get; set; }
 
-    public bool ShouldSerializediatomcount()
-    {
-      return diatomcount.HasValue;
-    }
+    public bool ShouldSerializediatomcount() => diatomcount.HasValue;
 
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("dinoflagellatecount", Order = 19)]
@@ -158,10 +131,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("dinoflagellatecount")]
     public decimal? dinoflagellatecount { get; set; }
 
-    public bool ShouldSerializedinoflagellatecount()
-    {
-      return dinoflagellatecount.HasValue;
-    }
+    public bool ShouldSerializedinoflagellatecount() => dinoflagellatecount.HasValue;
 
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("flagellatecount", Order = 20)]
@@ -169,10 +139,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("flagellatecount")]
     public decimal? flagellatecount { get; set; }
 
-    public bool ShouldSerializeflagellatecount()
-    {
-      return flagellatecount.HasValue;
-    }
+    public bool ShouldSerializeflagellatecount() => flagellatecount.HasValue;
 
     [XmlElement("comments", Order = 21)]
     [JsonProperty("comments")]
@@ -199,10 +166,7 @@ namespace Altinn.App.Models
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
     [XmlElement("scientificname", Order = 1)]
     [JsonProperty("scientificname")]
@@ -215,10 +179,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("density")]
     public decimal? density { get; set; }
 
-    public bool ShouldSerializedensity()
-    {
-      return density.HasValue;
-    }
+    public bool ShouldSerializedensity() => density.HasValue;
 
   }
 
@@ -230,10 +191,7 @@ namespace Altinn.App.Models
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
     [XmlElement("organisationid", Order = 1)]
     [JsonProperty("organisationid")]

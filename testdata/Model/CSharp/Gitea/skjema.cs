@@ -203,10 +203,7 @@ namespace Altinn.App.Models
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
     [MinLength(0)]
     [MaxLength(50)]
@@ -268,10 +265,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("AntallEnerom")]
     public decimal? AntallEnerom { get; set; }
 
-    public bool ShouldSerializeAntallEnerom()
-    {
-      return AntallEnerom.HasValue;
-    }
+    public bool ShouldSerializeAntallEnerom() => AntallEnerom.HasValue;
 
     [XmlElement("AlleRomHarBadOgToalett", Order = 5)]
     [JsonProperty("AlleRomHarBadOgToalett")]
@@ -289,10 +283,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("AntallRomMedKjokken")]
     public decimal? AntallRomMedKjokken { get; set; }
 
-    public bool ShouldSerializeAntallRomMedKjokken()
-    {
-      return AntallRomMedKjokken.HasValue;
-    }
+    public bool ShouldSerializeAntallRomMedKjokken() => AntallRomMedKjokken.HasValue;
 
     [XmlElement("TilbysMatservering", Order = 8)]
     [JsonProperty("TilbysMatservering")]
@@ -350,10 +341,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("BekreftetRiktig")]
     public bool? BekreftetRiktig { get; set; }
 
-    public bool ShouldSerializeBekreftetRiktig()
-    {
-      return BekreftetRiktig.HasValue;
-    }
+    public bool ShouldSerializeBekreftetRiktig() => BekreftetRiktig.HasValue;
 
     [MinLength(0)]
     [MaxLength(255)]

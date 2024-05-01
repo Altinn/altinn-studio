@@ -145,10 +145,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("AntallAnsatte")]
     public decimal? AntallAnsatte { get; set; }
 
-    public bool ShouldSerializeAntallAnsatte()
-    {
-      return AntallAnsatte.HasValue;
-    }
+    public bool ShouldSerializeAntallAnsatte() => AntallAnsatte.HasValue;
 
     [XmlElement("Underenheter", Order = 6)]
     [JsonProperty("Underenheter")]
@@ -174,10 +171,7 @@ namespace Altinn.App.Models
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
     [MinLength(0)]
     [MaxLength(255)]
@@ -207,20 +201,14 @@ namespace Altinn.App.Models
     [JsonPropertyName("ErIStatensVegvesen")]
     public bool? ErIStatensVegvesen { get; set; }
 
-    public bool ShouldSerializeErIStatensVegvesen()
-    {
-      return ErIStatensVegvesen.HasValue;
-    }
+    public bool ShouldSerializeErIStatensVegvesen() => ErIStatensVegvesen.HasValue;
 
     [XmlElement("KunAnsvarligSkalArbeide", Order = 2)]
     [JsonProperty("KunAnsvarligSkalArbeide")]
     [JsonPropertyName("KunAnsvarligSkalArbeide")]
     public bool? KunAnsvarligSkalArbeide { get; set; }
 
-    public bool ShouldSerializeKunAnsvarligSkalArbeide()
-    {
-      return KunAnsvarligSkalArbeide.HasValue;
-    }
+    public bool ShouldSerializeKunAnsvarligSkalArbeide() => KunAnsvarligSkalArbeide.HasValue;
 
     [Range(0,Double.MaxValue)]
     [XmlElement("AntallAnsatteEgenUtfylt", Order = 3)]
@@ -228,10 +216,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("AntallAnsatteEgenUtfylt")]
     public decimal? AntallAnsatteEgenUtfylt { get; set; }
 
-    public bool ShouldSerializeAntallAnsatteEgenUtfylt()
-    {
-      return AntallAnsatteEgenUtfylt.HasValue;
-    }
+    public bool ShouldSerializeAntallAnsatteEgenUtfylt() => AntallAnsatteEgenUtfylt.HasValue;
 
     [Range(0,Double.MaxValue)]
     [XmlElement("AntallHMSKort", Order = 4)]
@@ -239,20 +224,14 @@ namespace Altinn.App.Models
     [JsonPropertyName("AntallHMSKort")]
     public decimal? AntallHMSKort { get; set; }
 
-    public bool ShouldSerializeAntallHMSKort()
-    {
-      return AntallHMSKort.HasValue;
-    }
+    public bool ShouldSerializeAntallHMSKort() => AntallHMSKort.HasValue;
 
     [XmlElement("SkalUnderenheterJobbeMedBilpleie", Order = 5)]
     [JsonProperty("SkalUnderenheterJobbeMedBilpleie")]
     [JsonPropertyName("SkalUnderenheterJobbeMedBilpleie")]
     public bool? SkalUnderenheterJobbeMedBilpleie { get; set; }
 
-    public bool ShouldSerializeSkalUnderenheterJobbeMedBilpleie()
-    {
-      return SkalUnderenheterJobbeMedBilpleie.HasValue;
-    }
+    public bool ShouldSerializeSkalUnderenheterJobbeMedBilpleie() => SkalUnderenheterJobbeMedBilpleie.HasValue;
 
     [XmlElement("UnderenheterSomSkalBilpleie", Order = 6)]
     [JsonProperty("UnderenheterSomSkalBilpleie")]
@@ -264,10 +243,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("OmfattetAvForurensingsforskriften")]
     public bool? OmfattetAvForurensingsforskriften { get; set; }
 
-    public bool ShouldSerializeOmfattetAvForurensingsforskriften()
-    {
-      return OmfattetAvForurensingsforskriften.HasValue;
-    }
+    public bool ShouldSerializeOmfattetAvForurensingsforskriften() => OmfattetAvForurensingsforskriften.HasValue;
 
     [XmlElement("UnderenheterOmfattetAvForurensingsforskriften", Order = 8)]
     [JsonProperty("UnderenheterOmfattetAvForurensingsforskriften")]
@@ -279,10 +255,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("HarVerneombud")]
     public bool? HarVerneombud { get; set; }
 
-    public bool ShouldSerializeHarVerneombud()
-    {
-      return HarVerneombud.HasValue;
-    }
+    public bool ShouldSerializeHarVerneombud() => HarVerneombud.HasValue;
 
     [MinLength(0)]
     [MaxLength(255)]
@@ -303,20 +276,14 @@ namespace Altinn.App.Models
     [JsonPropertyName("AlternativOrdning")]
     public bool? AlternativOrdning { get; set; }
 
-    public bool ShouldSerializeAlternativOrdning()
-    {
-      return AlternativOrdning.HasValue;
-    }
+    public bool ShouldSerializeAlternativOrdning() => AlternativOrdning.HasValue;
 
     [XmlElement("HarAMU", Order = 13)]
     [JsonProperty("HarAMU")]
     [JsonPropertyName("HarAMU")]
     public bool? HarAMU { get; set; }
 
-    public bool ShouldSerializeHarAMU()
-    {
-      return HarAMU.HasValue;
-    }
+    public bool ShouldSerializeHarAMU() => HarAMU.HasValue;
 
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("BHTorgnr", Order = 14)]
@@ -324,10 +291,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("BHTorgnr")]
     public decimal? BHTorgnr { get; set; }
 
-    public bool ShouldSerializeBHTorgnr()
-    {
-      return BHTorgnr.HasValue;
-    }
+    public bool ShouldSerializeBHTorgnr() => BHTorgnr.HasValue;
 
     [XmlElement("Arbeidsavtaler", Order = 15)]
     [JsonProperty("Arbeidsavtaler")]
@@ -339,10 +303,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("ErUtfyllerKontaktPerson")]
     public bool? ErUtfyllerKontaktPerson { get; set; }
 
-    public bool ShouldSerializeErUtfyllerKontaktPerson()
-    {
-      return ErUtfyllerKontaktPerson.HasValue;
-    }
+    public bool ShouldSerializeErUtfyllerKontaktPerson() => ErUtfyllerKontaktPerson.HasValue;
 
     [MinLength(0)]
     [MaxLength(255)]
@@ -370,20 +331,14 @@ namespace Altinn.App.Models
     [JsonPropertyName("BekreftOpplysninger")]
     public bool? BekreftOpplysninger { get; set; }
 
-    public bool ShouldSerializeBekreftOpplysninger()
-    {
-      return BekreftOpplysninger.HasValue;
-    }
+    public bool ShouldSerializeBekreftOpplysninger() => BekreftOpplysninger.HasValue;
 
     [XmlElement("BekreftStraff", Order = 21)]
     [JsonProperty("BekreftStraff")]
     [JsonPropertyName("BekreftStraff")]
     public bool? BekreftStraff { get; set; }
 
-    public bool ShouldSerializeBekreftStraff()
-    {
-      return BekreftStraff.HasValue;
-    }
+    public bool ShouldSerializeBekreftStraff() => BekreftStraff.HasValue;
 
   }
 }
