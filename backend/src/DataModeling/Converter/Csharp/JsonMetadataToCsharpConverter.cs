@@ -115,7 +115,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 }
                 else if (element.Type == ElementType.Group)
                 {
-                    ParseGroupProperty(element, classBuilder, referredTypes, ref elementOrder, useNullableReferenceTypes);
+                    ParseGroupProperty(element, classBuilder, serviceMetadata, referredTypes, ref elementOrder, useNullableReferenceTypes);
                 }
                 else if (element.Type == ElementType.Attribute)
                 {
@@ -142,7 +142,34 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             (string dataType, bool isValueType) = GetPropertyType(element.XsdValueType);
 
             WriteRestrictionAnnotations(classBuilder, element);
-            if (element.IsTagContent)
+
+            // [XmlText] properties can't be nullable value types, so we need a hack so that they behave as if nullable works.
+            if (_generationSettings.XmlTextValueNullableHack && element.IsTagContent && isValueType)
+            {
+                if (required)
+                {
+                    classBuilder.AppendLine(Indent(2) + "[Required]");
+                }
+                classBuilder.AppendLine(Indent(2) + "[XmlIgnore]");
+                classBuilder.AppendLine(Indent(2) + "[JsonPropertyName(\"value\")]");
+                classBuilder.AppendLine(Indent(2) + "[JsonProperty(PropertyName = \"value\")]");
+                classBuilder.AppendLine($"{Indent(2)}public {dataType}? valueNullable {{ get; set; }}");
+                classBuilder.AppendLine();
+
+                classBuilder.AppendLine(Indent(2) + "[XmlText]");
+                classBuilder.AppendLine(Indent(2) + "[System.Text.Json.Serialization.JsonIgnore]");
+                classBuilder.AppendLine(Indent(2) + "[Newtonsoft.Json.JsonIgnore]");
+                classBuilder.AppendLine(Indent(2) + "public " + dataType + " value");
+                classBuilder.AppendLine(Indent(2) + "{");
+                classBuilder.AppendLine(Indent(3) + "get => valueNullable ?? default;");
+                classBuilder.AppendLine(Indent(3) + "set");
+                classBuilder.AppendLine(Indent(3) + "{");
+                classBuilder.AppendLine(Indent(4) + "this.valueNullable = value;");
+                classBuilder.AppendLine(Indent(3) + "}");
+                classBuilder.AppendLine(Indent(2) + "}");
+                classBuilder.AppendLine();
+            }
+            else if (element.IsTagContent)
             {
                 classBuilder.AppendLine(Indent(2) + "[XmlText()]");
                 if (required && isValueType) // Why [Required] only on value types?
@@ -191,7 +218,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             }
         }
 
-        private void ParseGroupProperty(ElementMetadata element, StringBuilder classBuilder, List<ElementMetadata> referredTypes, ref int elementOrder, bool useNullableReferenceTypes)
+        private void ParseGroupProperty(ElementMetadata element, StringBuilder classBuilder, ModelMetadata modelMetadata, List<ElementMetadata> referredTypes, ref int elementOrder, bool useNullableReferenceTypes)
         {
             var nullableReference = useNullableReferenceTypes ? "?" : string.Empty;
             WriteRestrictionAnnotations(classBuilder, element);
@@ -225,11 +252,33 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             else
             {
                 classBuilder.AppendLine($"{Indent(2)}public {dataType}{nullableReference} {element.Name} {{ get; set; }}\n");
+
+                if (_generationSettings.AddShouldSerializeForTagContent)
+                {
+                    AddShouldSerializeForTagContent(element, classBuilder, modelMetadata);
+                }
             }
 
             if (!primitiveType)
             {
                 referredTypes.Add(element);
+            }
+        }
+
+        private void AddShouldSerializeForTagContent(ElementMetadata element, StringBuilder classBuilder, ModelMetadata modelMetadata)
+        {
+            var children = modelMetadata.Elements.Values.Where(metadata =>
+                metadata.ParentElement == element.ID);
+            if (children.Count(metadata => metadata.FixedValue != null) == 1 && children.Count(metadata => metadata.IsTagContent) == 1)
+            {
+                var taggedContentChild = children.Single(metadata => metadata.IsTagContent);
+                var value = _generationSettings.XmlTextValueNullableHack && taggedContentChild.XsdValueType.HasValue &&
+                            GetPropertyType(taggedContentChild.XsdValueType).IsValueType
+                    ? "valueNullable is not null"
+                    : "value is not null";
+
+                classBuilder.AppendLine($"{Indent(2)}public bool ShouldSerialize{element.Name}() => {element.Name}?.{value};");
+                classBuilder.AppendLine();
             }
         }
 
