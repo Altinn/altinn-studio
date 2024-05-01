@@ -52,15 +52,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("type")]
     public ArsregnskapType25942 type { get; set; }
 
+    public bool ShouldSerializetype() => type?.value is not null;
+
     [XmlElement("valuta", Order = 2)]
     [JsonProperty("valuta")]
     [JsonPropertyName("valuta")]
     public ArsregnskapValutakode34984 valuta { get; set; }
 
+    public bool ShouldSerializevaluta() => valuta?.value is not null;
+
     [XmlElement("valoer", Order = 3)]
     [JsonProperty("valoer")]
     [JsonPropertyName("valoer")]
     public ArsregnskapValor28974 valoer { get; set; }
+
+    public bool ShouldSerializevaloer() => valoer?.value is not null;
 
   }
 
@@ -226,15 +232,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteMedlemsinntekter30319 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public Medlemsinntekter30320 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public MedlemsinntekterFjoraret30321 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -255,9 +267,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -269,9 +295,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -286,15 +326,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteTilskuddOffentlig33418 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public TilskuddOffentlig33419 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public TilskuddOffentligFjoraret33420 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -315,9 +361,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -329,9 +389,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -346,15 +420,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteTilskuddAndre33421 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public TilskuddAndre33422 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public TilskuddAndreFjoraret33423 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -373,9 +453,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -386,9 +480,23 @@ namespace Altinn.App.Models
   public class TilskuddAndreFjoraret33423
   {
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -403,15 +511,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteTilskudd30310 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public TilskuddOffentlig30311 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public TilskuddOffentligFjoraret30312 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -432,9 +546,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -446,9 +574,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -463,15 +605,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteMidlerGaverInnsamlede30313 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public MidlerGaverInnsamlede30314 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public MidlerGaverInnsamledeFjoraret30315 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -492,9 +640,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -506,9 +668,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -523,15 +699,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteAktiviteterOppfyllerOrganisasjonensFormal33424 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public AktiviteterOppfyllerOrganisasjonensFormal33425 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public AktiviteterOppfyllerOrganisasjonensFormalFjoraret33426 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -552,9 +734,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -566,9 +762,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -583,15 +793,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteAktiviteterSkaperInntekt33427 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public AktiviteterSkaperInntekt33428 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public AktiviteterSkaperInntektFjoraret33429 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -612,9 +828,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -626,9 +856,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -643,15 +887,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteAktiviteterOperasjonelle33430 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public AktiviteterOperasjonelle33431 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public AktiviteterOperasjonelleFjoraret33432 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -672,9 +922,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -686,9 +950,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -703,15 +981,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteDriftsinntekterAndreSum18238 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public DriftsinntekterAndreSum7709 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public DriftsinntekterAndreFjoraretSum7966 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -732,9 +1016,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -746,9 +1044,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -763,15 +1075,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteFinansinntekterInvesteringsinntekter33433 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public FinansinntekterInvesteringsinntekter33434 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public FinansinntekterInvesteringsinntekterFjoraret33435 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -792,9 +1110,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -806,9 +1138,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -823,15 +1169,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteInntektAnnen30307 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public InntektAnnen30308 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public InntektAnnenFjoraret30309 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -852,9 +1204,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -866,9 +1232,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -883,15 +1263,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteMidlerAnskaffede30316 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public MidlerAnskaffede30317 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public MidlerAnskaffedeFjoraret30318 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -912,9 +1298,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -926,9 +1326,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -992,15 +1406,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteKostnadAnskaffelseAvMidler30806 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public KostnadAnskaffelseAvMidler30807 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public KostnadAnskaffelseAvMidlerFjoraret30808 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -1021,9 +1441,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1035,9 +1469,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1052,15 +1500,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteTilskuddBevilningOppfyllelseOrganisasjonensFormal33436 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public TilskuddBevilningOppfyllelseOrganisasjonensFormal33437 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public TilskuddBevilningOppfyllelseOrganisasjonensFormalFjoraret33438 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -1081,9 +1535,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1095,9 +1563,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1112,15 +1594,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteKostnaderOppfyllelseOrganisasjonensFormal33439 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public KostnaderOppfyllelseOrganisasjonensFormal33440 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public KostnaderOppfyllelseOrganisasjonensFormalFjoraret33441 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -1141,9 +1629,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1155,9 +1657,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1172,15 +1688,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteKostnadOrganisasjonensFormal30809 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public KostnadOrganisasjonensFormal30810 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public KostnadOrganisasjonensFormalFjoraret30811 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -1201,9 +1723,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1215,9 +1751,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1232,15 +1782,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteRentekostnaderAndre18550 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public RentekostnaderAndre2216 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public RentekostnaderAndreFjoraret7039 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -1261,9 +1817,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1275,9 +1845,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1292,15 +1876,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteFinanskostnaderAndre18337 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public FinanskostnaderAndre156 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public FinanskostnaderAndreFjoraret7041 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -1321,9 +1911,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1335,9 +1939,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1352,15 +1970,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteKostnaderAdministrative27924 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public KostnaderAdministrative27926 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public KostnaderAdministrativeFjoraret27928 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -1381,9 +2005,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1395,9 +2033,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1412,15 +2064,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteDriftskostnaderAndre18249 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public DriftskostnaderAndre82 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public DriftskostnaderAndreFjoraret7023 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -1441,9 +2099,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1455,9 +2127,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1472,15 +2158,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteMidlerForbrukte30812 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public MidlerForbrukte30813 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public MidlerForbrukteFjoraret30814 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -1501,9 +2193,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1515,9 +2221,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1586,15 +2306,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteResultatForSkattekostnad18355 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public ResultatForSkattekostnad167 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public ResultatForSkattekostnadFjoraret7042 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -1615,9 +2341,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1629,9 +2369,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1646,15 +2400,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteSkattekostnadOrdinartResultat18259 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public SkattekostnadOrdinartResultat11835 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public SkattekostnadOrdinartResultatFjoraret11836 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -1675,9 +2435,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1689,9 +2463,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1706,15 +2494,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteResultatOrdinart18258 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public ResultatOrdinart7048 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public ResultatOrdinartFjordaret7049 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -1735,9 +2529,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1749,9 +2557,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1766,15 +2588,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteResultatEkstraordinarePoster29047 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public ResultatEkstraordinarePoster29048 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public ResultatEkstraordinarePosterFjoraret29049 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -1795,9 +2623,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1809,9 +2651,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1826,15 +2682,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteSkattekostnadEkstraordinartResultat18263 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public SkattekostnadEkstraordinartResultat2821 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public SkattekostnadEkstraordinartResultatFjoraret8002 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -1855,9 +2717,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1869,9 +2745,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1886,15 +2776,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteArsresultat18265 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public Arsresultat172 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public ArsresultatFjoraret7054 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -1915,9 +2811,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1929,9 +2839,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1946,15 +2870,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteMinoritetsinteresser18264 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public Minoritetsinteresser7717 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public MinoritetsinteresserFjoraret8004 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -1975,9 +2905,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -1989,9 +2933,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2006,15 +2964,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteArsresultatEtterMinoritetsinteresser33417 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public ArsresultatEtterMinoritetsinteresser33415 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public ArsresultatEtterMinoritetsinteresserFjoraret33416 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -2035,9 +2999,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2049,9 +3027,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2066,15 +3058,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteResultatkomponenterAndreIFRS35536 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public ResultatkomponenterAndreIFRS32929 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public ResultatkomponenterAndreIFRSFjoraret32930 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -2093,9 +3091,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2107,9 +3119,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2124,15 +3150,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteTotalresultatIFRS36635 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public TotalresultatIFRS36633 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public TotalresultatIFRSFjoraaret36634 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -2153,9 +3185,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2167,9 +3213,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2213,15 +3273,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteGrunnkapital30815 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public Grunnkapital30816 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public GrunnkapitalFjoraret30817 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -2242,9 +3308,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2256,9 +3336,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2273,15 +3367,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteFormalskapitalRestriksjonerLovpalagte33445 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public FormalskapitalRestriksjonerLovpalagte33446 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public FormalskapitalRestriksjonerLovpalagteFjoraret33447 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -2302,9 +3402,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2316,9 +3430,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2333,15 +3461,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteFormalskapitalRestriksjonerEksterntPalagt33448 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public FormalskapitalRestriksjonerEksterntPalagt33449 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public FormalskapitalRestriksjonerEksterntPalagtFjoraret33450 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -2362,9 +3496,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2376,9 +3524,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2393,15 +3555,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteFormalskapitalRestriksjonerSelvpalagte33451 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public FormalskapitalRestriksjonerSelvpalagte33452 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public FormalskapitalRestriksjonerSelvpalagteFjoraret33453 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -2422,9 +3590,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2436,9 +3618,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2453,15 +3649,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteFormalskapitalAnnen33454 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public FormalskapitalAnnen33455 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public FormalskapitalAnnenFjoraret33456 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -2482,9 +3684,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2496,9 +3712,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2561,15 +3791,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NotePatenterRettigheter18560 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public PatenterRettigheter205 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public PatenterRettigheterFjoraret7075 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -2588,9 +3824,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2602,9 +3852,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2619,15 +3883,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteSkattefordelUtsatt18182 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public SkattefordelUtsatt202 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public SkattefordelUtsattFjoraret7076 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -2648,9 +3918,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2662,9 +3946,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2679,15 +3977,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteForretningsverdiGoodwill18183 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public ForretningsverdiGoodwill206 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public ForretningsverdiGoodwillFjoraret7077 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -2708,9 +4012,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2722,9 +4040,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2739,15 +4071,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteEiendelerImmaterielle18180 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public EiendelerImmaterielle2400 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public EiendelerImmaterielleFjoraret8006 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -2768,9 +4106,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2782,9 +4134,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2818,15 +4184,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteFastEiendom18178 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public FastEiendom1976 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public FastEiendomFjoraret8007 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -2847,9 +4219,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2861,9 +4247,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2878,15 +4278,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteKjoretoyInventarVerktoyMv18562 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public KjoretoyInventarVerktoyMv7725 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public KjoretoyInventarVerktoyMvFjoraret8009 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -2907,9 +4313,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2921,9 +4341,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2938,15 +4372,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteDriftsmidlerVarige18176 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public DriftsmidlerVarige47 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public DriftsmidlerVarigeFjoraret8010 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -2967,9 +4407,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -2981,9 +4435,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3012,15 +4480,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteDriftsmidlerAndre18177 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public DriftsmidlerAndre2836 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public DriftsmidlerAndreFjoraret7088 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -3041,9 +4515,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3055,9 +4543,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3072,15 +4574,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteDriftsmidlerAndre30979 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public DriftsmidlerAndre30980 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public DriftsmidlerAndreFjoraret30981 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -3101,9 +4609,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3115,9 +4637,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3166,15 +4702,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteInvesteringerDatterselskap18563 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public InvesteringerDatterselskap9686 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public InvesteringerDatterselskapFjoraret10289 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -3195,9 +4737,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3209,9 +4765,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3226,15 +4796,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteInvesteringerAksjerAndeler18568 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public InvesteringerAksjerAndeler7100 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public InvesteringerAksjerAndelerFjoraret7101 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -3255,9 +4831,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3269,9 +4859,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3286,15 +4890,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteObligasjonerLangsiktige27582 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public ObligasjonerLangsiktige27583 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public ObligasjonerLangsiktigeFjoraret27584 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -3315,9 +4925,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3329,9 +4953,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3346,15 +4984,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteFordringerAndreLangsiktige27578 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public FordringerAndreLangsiktige203 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public FordringerAndreLangsiktigeFjoraret27585 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -3375,9 +5019,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3389,9 +5047,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3406,15 +5078,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteAnleggsmidlerFinansielle18372 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public AnleggsmidlerFinansielle5267 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public AnleggsmidlerFinansielleFjoraret8014 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -3435,9 +5113,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3449,9 +5141,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3466,15 +5172,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteAnleggsmidler18570 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public Anleggsmidler217 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public AnleggsmidlerFjoraret7108 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -3495,9 +5207,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3509,9 +5235,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3564,15 +5304,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteLagerbeholdning30822 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public Lagerbeholdning30823 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public LagerbeholdningFjoraret30824 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -3593,9 +5339,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3607,9 +5367,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3624,15 +5398,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteLagerbeholdning18571 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public Lagerbeholdning326 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public LagerbeholdningFjoraret797 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -3653,9 +5433,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3667,9 +5461,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3703,15 +5511,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteFordringerKunder18384 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public FordringerKunder116 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public FordringerKunderFjoraret6921 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -3732,9 +5546,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3746,9 +5574,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3763,15 +5605,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteFordringerAndreKortsiktig18572 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public FordringerAndreKortsiktig282 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public FordringerAndreKortsiktigFjoraret7112 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -3792,9 +5640,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3806,9 +5668,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3823,15 +5699,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteFordringer18389 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public Fordringer80 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public FordringerFjoraret8015 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -3852,9 +5734,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3866,9 +5762,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3907,15 +5817,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteAksjerMvMarkedsbaserte18575 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public AksjerMvMarkedsbaserte7117 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public AksjerMvMarkedsbaserteFjoraret7118 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -3936,9 +5852,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3950,9 +5880,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -3967,15 +5911,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteFinansielleInstrumenterMarkedsbaserteAndre18577 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public FinansielleInstrumenterMarkedsbaserteAndre7731 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public FinansielleInstrumenterMarkedsbaserteAndreFjoraret8017 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -3996,9 +5946,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4010,9 +5974,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4027,15 +6005,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteFinansielleInstrumenterAndre18578 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public FinansielleInstrumenterAndre6429 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public FinansielleInstrumenterAndreFjoraret7123 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -4056,9 +6040,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4070,9 +6068,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4087,15 +6099,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteInvesteringer18579 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public Investeringer6601 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public InvesteringerFjoraret8018 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -4116,9 +6134,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4130,9 +6162,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4171,15 +6217,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteKontanterBankinnskudd18390 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public KontanterBankinnskudd786 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public KontanterBankinnskuddFjoraret8019 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -4200,9 +6252,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4214,9 +6280,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4231,15 +6311,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteKontanterBankinnskuddSum29041 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public KontanterBankinnskuddSum29042 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public KontanterBankinnskuddSumFjoraret29043 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -4260,9 +6346,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4274,9 +6374,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4291,15 +6405,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteOmlopsmidler18580 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public Omlopsmidler194 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public OmlopsmidlerFjoraret7126 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -4320,9 +6440,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4334,9 +6468,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4351,15 +6499,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteEiendeler18167 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public Eiendeler219 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public EiendelerFjoraret7127 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -4380,9 +6534,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4394,9 +6562,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4454,15 +6636,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteGrunnkapital30819 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public Grunnkapital30820 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public GrunnkapitalFjoraret30821 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -4483,9 +6671,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4497,9 +6699,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4514,15 +6730,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteFormalskapitalInnskuttAnnen33457 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public FormalskapitalInnskuttAnnen33458 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public FormalskapitalInnskuttAnnenFjoraret33459 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -4543,9 +6765,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4557,9 +6793,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4574,15 +6824,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteFormalskapitalInnskuttSum33460 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public FormalskapitalInnskuttSum33461 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public AktiviteterOppfyllerOrganisasjonensFormalFjoraret33426 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -4603,9 +6859,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4634,15 +6904,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteFormalskapitalAnnenRestriksjonerLovpalagte33463 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public FormalskapitalAnnenRestriksjonerLovpalagte33464 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public FormalskapitalAnnenRestriksjonerLovpalagteFjoraret33465 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -4663,9 +6939,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4677,9 +6967,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4694,15 +6998,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteFormalskapitalOpptjentSumRestriksjonerLovpalagte33466 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public FormalskapitalOpptjentSumRestriksjonerLovpalagte33467 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public FormalskapitalOpptjentSumRestriksjonerLovpalagteFjoraret33468 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -4723,9 +7033,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4737,9 +7061,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4768,15 +7106,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteFormalskapitalAnnenRestriksjonerEksterntPalagte33469 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public FormalskapitalAnnenRestriksjonerEksterntPalagte33470 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public FormalskapitalAnnenRestriksjonerEksterntPalagteFjoraret33471 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -4797,9 +7141,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4811,9 +7169,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4828,15 +7200,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteFormalskapitalSumRestriksjonerEksterntPalagte33472 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public FormalskapitalSumRestriksjonerEksterntPalagte33473 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public FormalskapitalSumRestriksjonerEksterntPalagteFjoraret33474 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -4857,9 +7235,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4871,9 +7263,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4917,15 +7323,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteFormalskapitalAnnenRestriksjonerSelpalagte33475 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public FormalskapitalAnnenRestriksjonerSelvpalagte33476 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public FormalskapitalAnnenRestriksjonerSelvpalagteFjoraret33477 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -4946,9 +7358,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4960,9 +7386,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -4977,15 +7417,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteFormalskapitalSumRestriksjonerSelvpalagte33478 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public FormalskapitalSumRestriksjonerSelvpalagte33479 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public FormalskapitalSumRestriksjonerSelvpalagteFjoraret33480 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -5006,9 +7452,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5020,9 +7480,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5037,15 +7511,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteFormalskapitalAnnen33481 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public FormalskapitalAnnen33482 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public FormalskapitalAnnenFjoraret33483 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -5066,9 +7546,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5080,9 +7574,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5097,15 +7605,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteMinoritetsinteresser29044 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public Minoritetsinteresser29045 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public MinoritetsinteresserFjoraret29046 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -5126,9 +7640,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5140,9 +7668,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5157,15 +7699,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteFormalskapitalSum33484 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public FormalskapitalSum33485 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public FormalskapitalSumFjoraret33486 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -5186,9 +7734,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5200,9 +7762,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5260,15 +7836,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NotePensjonsforpliktelser18149 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public Pensjonsforpliktelser238 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public PensjonsforpliktelserFjoraret6685 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -5289,9 +7871,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5303,9 +7899,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5320,15 +7930,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteSkattUtsatt18148 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public SkattUtsatt237 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public SkattUtsattFjoraret7143 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -5349,9 +7965,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5363,9 +7993,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5380,15 +8024,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteAvsetningerForpliktelserLangsiktig18582 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public AvsetningerForpliktelserLangsiktig7157 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public AvsetningerForpliktelserLangsiktigFjoraret7146 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -5409,9 +8059,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5423,9 +8087,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5440,15 +8118,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteAvsetningerForpliktelser18144 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public AvsetningerForpliktelser7231 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public AvsetningerForpliktelserFjoraret7230 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -5469,9 +8153,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5483,9 +8181,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5524,15 +8236,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteGjeldKredittinstitusjoner18164 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public GjeldKredittinstitusjoner7150 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public GjeldKredittinstitusjonerFjoraret7151 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -5553,9 +8271,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5567,9 +8299,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5584,15 +8330,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteGjeldAnnenLangsiktig18584 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public GjeldAnnenLangsiktig242 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public GjeldAnnenLangsiktigFjoraret7155 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -5613,9 +8365,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5627,9 +8393,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5644,15 +8424,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteGjeldAnnenLangsiktigSum25018 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public GjeldAnnenLangsiktigSum25019 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public GjeldAnnenLangsiktigSumFjoraret25020 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -5673,9 +8459,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5687,9 +8487,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5704,15 +8518,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteGjeldLangsiktig18585 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public GjeldLangsiktig86 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public GjeldLangsiktigFjoraret7156 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -5733,9 +8553,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5747,9 +8581,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5808,15 +8656,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteGjeldKredittinstitusjonerKortsiktig18587 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public GjeldKredittinstitusjonerKortsiktig10926 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public GjeldKredittinstitusjonerKortsiktigFjoraret13203 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -5837,9 +8691,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5851,9 +8719,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5868,15 +8750,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteLeverandorgjeld18588 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public Leverandorgjeld220 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public LeverandorgjeldFjoraret7162 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -5897,9 +8785,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5911,9 +8813,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5928,15 +8844,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteSkattBetalbar18589 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public SkattBetalbar2483 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public SkattBetalbarFjoraret10293 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -5957,9 +8879,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5971,9 +8907,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -5988,15 +8938,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteAvgifterOffentligeSkyldig18590 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public AvgifterOffentligeSkyldig225 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public AvgifterOffentligeSkyldigFjoraret7170 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -6017,9 +8973,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -6031,9 +9001,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -6048,15 +9032,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteGjeldAnnenKortsiktig18592 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public GjeldAnnenKortsiktig236 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public GjeldAnnenKortsiktigFjoraret7182 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -6077,9 +9067,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -6091,9 +9095,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -6108,15 +9126,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteGjeldKortsiktig18593 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public GjeldKortsiktig85 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public GjeldKortsiktigFjoraret7183 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -6137,9 +9161,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -6151,9 +9189,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -6168,15 +9220,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteGjeld18138 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public Gjeld1119 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public GjeldFjoraret7184 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -6197,9 +9255,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -6211,9 +9283,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -6228,15 +9314,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteGjeldEgenkapital18122 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public GjeldEgenkapital251 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public GjeldEgenkapitalFjoraret7185 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -6257,9 +9349,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -6271,9 +9377,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -6302,15 +9422,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NoteGarantistillelse18594 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public Garantistillelse16920 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public GarantistillelseFjoraret16921 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -6331,9 +9457,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -6345,9 +9485,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -6362,15 +9516,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("note")]
     public NotePantstillelser18595 note { get; set; }
 
+    public bool ShouldSerializenote() => note?.value is not null;
+
     [XmlElement("aarets", Order = 2)]
     [JsonProperty("aarets")]
     [JsonPropertyName("aarets")]
     public Pantstillelser16922 aarets { get; set; }
 
+    public bool ShouldSerializeaarets() => aarets?.valueNullable is not null;
+
     [XmlElement("fjoraarets", Order = 3)]
     [JsonProperty("fjoraarets")]
     [JsonPropertyName("fjoraarets")]
     public PantstillelserFjoraret16923 fjoraarets { get; set; }
+
+    public bool ShouldSerializefjoraarets() => fjoraarets?.valueNullable is not null;
 
   }
 
@@ -6391,9 +9551,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -6405,9 +9579,23 @@ namespace Altinn.App.Models
   {
     [RegularExpression(@"^-?[0-9]{0,15}$")]
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlText()]
     [Required]
-    public decimal value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public decimal? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public decimal value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]

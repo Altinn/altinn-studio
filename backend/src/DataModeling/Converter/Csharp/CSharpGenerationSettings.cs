@@ -14,11 +14,11 @@
         /// The valueNullable property also used in a `ShouldSerialize` method
         /// on the parent element
         /// </summary>
-        public bool XmlTextValueNullableHack { get; set; } = false;
+        public bool XmlTextValueNullableHack { get; set; } = true;
 
         /// <summary>
         /// Add a ShouldSerialize method for to the parent property for [XmlText] elements when all attibutes are fixed
         /// </summary>
-        public bool AddShouldSerializeForTagContent { get; set; } = false;
+        public bool AddShouldSerializeForTagContent { get; set; } = true;
     }
 }

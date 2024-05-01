@@ -62,15 +62,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("organisasjonsnummer")]
     public EnhetOrganisasjonsnummer18 organisasjonsnummer { get; set; }
 
+    public bool ShouldSerializeorganisasjonsnummer() => organisasjonsnummer?.value is not null;
+
     [XmlElement("organisasjonsform", Order = 2)]
     [JsonProperty("organisasjonsform")]
     [JsonPropertyName("organisasjonsform")]
     public EnhetOrganisasjonsform756 organisasjonsform { get; set; }
 
+    public bool ShouldSerializeorganisasjonsform() => organisasjonsform?.value is not null;
+
     [XmlElement("navn", Order = 3)]
     [JsonProperty("navn")]
     [JsonPropertyName("navn")]
     public EnhetNavn1 navn { get; set; }
+
+    public bool ShouldSerializenavn() => navn?.value is not null;
 
   }
 
@@ -131,6 +137,8 @@ namespace Altinn.App.Models
     [JsonPropertyName("e-post")]
     public KontaktpersonEPost19022 epost { get; set; }
 
+    public bool ShouldSerializeepost() => epost?.value is not null;
+
   }
 
   public class KontaktpersonEPost19022
@@ -153,10 +161,14 @@ namespace Altinn.App.Models
     [JsonPropertyName("fraSluttbrukersystem")]
     public ArsregnskapSysteminnsending35139 fraSluttbrukersystem { get; set; }
 
+    public bool ShouldSerializefraSluttbrukersystem() => fraSluttbrukersystem?.value is not null;
+
     [XmlElement("landTilLand", Order = 2)]
     [JsonProperty("landTilLand")]
     [JsonPropertyName("landTilLand")]
     public ArsregnskapLandTilLand35172 landTilLand { get; set; }
+
+    public bool ShouldSerializelandTilLand() => landTilLand?.valueNullable is not null;
 
   }
 
@@ -173,9 +185,23 @@ namespace Altinn.App.Models
 
   public class ArsregnskapLandTilLand35172
   {
-    [XmlText()]
     [Required]
-    public bool value { get; set; }
+    [XmlIgnore]
+    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName = "value")]
+    public bool? valueNullable { get; set; }
+
+    [XmlText]
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public bool value
+    {
+      get => valueNullable ?? default;
+      set
+      {
+        this.valueNullable = value;
+      }
+    }
 
     [XmlAttribute("orid")]
     [BindNever]
@@ -214,15 +240,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("regnskapsstart")]
     public RegnskapStartdato17103 regnskapsstart { get; set; }
 
+    public bool ShouldSerializeregnskapsstart() => regnskapsstart?.value is not null;
+
     [XmlElement("regnskapsslutt", Order = 2)]
     [JsonProperty("regnskapsslutt")]
     [JsonPropertyName("regnskapsslutt")]
     public RegnskapAvslutningsdato17104 regnskapsslutt { get; set; }
 
+    public bool ShouldSerializeregnskapsslutt() => regnskapsslutt?.value is not null;
+
     [XmlElement("regnskapsaar", Order = 3)]
     [JsonProperty("regnskapsaar")]
     [JsonPropertyName("regnskapsaar")]
     public RegnskapAr17102 regnskapsaar { get; set; }
+
+    public bool ShouldSerializeregnskapsaar() => regnskapsaar?.value is not null;
 
   }
 
@@ -269,15 +301,21 @@ namespace Altinn.App.Models
     [JsonPropertyName("morselskap")]
     public Morselskap4168 morselskap { get; set; }
 
+    public bool ShouldSerializemorselskap() => morselskap?.value is not null;
+
     [XmlElement("konsernregnskap", Order = 2)]
     [JsonProperty("konsernregnskap")]
     [JsonPropertyName("konsernregnskap")]
     public KonsernregnskapVedlegg25943 konsernregnskap { get; set; }
 
+    public bool ShouldSerializekonsernregnskap() => konsernregnskap?.value is not null;
+
     [XmlElement("utenlandskKonsern", Order = 3)]
     [JsonProperty("utenlandskKonsern")]
     [JsonPropertyName("utenlandskKonsern")]
     public UtenlandskKonsern36640 utenlandskKonsern { get; set; }
+
+    public bool ShouldSerializeutenlandskKonsern() => utenlandskKonsern?.value is not null;
 
   }
 
@@ -321,40 +359,56 @@ namespace Altinn.App.Models
     [JsonPropertyName("smaaForetak")]
     public RegnskapsreglerSmaForetak8079 smaaForetak { get; set; }
 
+    public bool ShouldSerializesmaaForetak() => smaaForetak?.value is not null;
+
     [XmlElement("regnskapsreglerSelskap", Order = 2)]
     [JsonProperty("regnskapsreglerSelskap")]
     [JsonPropertyName("regnskapsreglerSelskap")]
     public RegnskapsoppsettIFRS25021 regnskapsreglerSelskap { get; set; }
+
+    public bool ShouldSerializeregnskapsreglerSelskap() => regnskapsreglerSelskap?.value is not null;
 
     [XmlElement("forenkletIfrs", Order = 3)]
     [JsonProperty("forenkletIfrs")]
     [JsonPropertyName("forenkletIfrs")]
     public ForenkletIFRS36639 forenkletIfrs { get; set; }
 
+    public bool ShouldSerializeforenkletIfrs() => forenkletIfrs?.value is not null;
+
     [XmlElement("regnskapsreglerKonsern", Order = 4)]
     [JsonProperty("regnskapsreglerKonsern")]
     [JsonPropertyName("regnskapsreglerKonsern")]
     public RegnskapsoppsettKonsernIFRS25944 regnskapsreglerKonsern { get; set; }
+
+    public bool ShouldSerializeregnskapsreglerKonsern() => regnskapsreglerKonsern?.value is not null;
 
     [XmlElement("forenkletIfrsKonsern", Order = 5)]
     [JsonProperty("forenkletIfrsKonsern")]
     [JsonPropertyName("forenkletIfrsKonsern")]
     public ForenkletIFRSKonsern36641 forenkletIfrsKonsern { get; set; }
 
+    public bool ShouldSerializeforenkletIfrsKonsern() => forenkletIfrsKonsern?.value is not null;
+
     [XmlElement("aarsregnskapIkkeRevideres", Order = 6)]
     [JsonProperty("aarsregnskapIkkeRevideres")]
     [JsonPropertyName("aarsregnskapIkkeRevideres")]
     public ArsregnskapIkkeRevisjonBesluttet34669 aarsregnskapIkkeRevideres { get; set; }
+
+    public bool ShouldSerializeaarsregnskapIkkeRevideres() => aarsregnskapIkkeRevideres?.value is not null;
 
     [XmlElement("aarsregnskapUtarbeidetAutorisertRegnskapsfoerer", Order = 7)]
     [JsonProperty("aarsregnskapUtarbeidetAutorisertRegnskapsfoerer")]
     [JsonPropertyName("aarsregnskapUtarbeidetAutorisertRegnskapsfoerer")]
     public ArsregnskapUtarbeidelseAvAutorisertRegnskapsforer34670 aarsregnskapUtarbeidetAutorisertRegnskapsfoerer { get; set; }
 
+    public bool ShouldSerializeaarsregnskapUtarbeidetAutorisertRegnskapsfoerer() => aarsregnskapUtarbeidetAutorisertRegnskapsfoerer?.value is not null;
+
     [XmlElement("tjenestebistandEksternAutorisertRegnskapsfoerer", Order = 8)]
     [JsonProperty("tjenestebistandEksternAutorisertRegnskapsfoerer")]
     [JsonPropertyName("tjenestebistandEksternAutorisertRegnskapsfoerer")]
     public TjenestebistandEksternAutorisertRegnskapsforer34671 tjenestebistandEksternAutorisertRegnskapsfoerer { get; set; }
+
+    public bool ShouldSerializetjenestebistandEksternAutorisertRegnskapsfoerer() => tjenestebistandEksternAutorisertRegnskapsfoerer?.value is not null;
 
   }
 
@@ -453,10 +507,14 @@ namespace Altinn.App.Models
     [JsonPropertyName("fastsettelsesdato")]
     public RegnskapFastsettelseDato17105 fastsettelsesdato { get; set; }
 
+    public bool ShouldSerializefastsettelsesdato() => fastsettelsesdato?.value is not null;
+
     [XmlElement("bekreftendeSelskapsrepresentant", Order = 2)]
     [JsonProperty("bekreftendeSelskapsrepresentant")]
     [JsonPropertyName("bekreftendeSelskapsrepresentant")]
     public StyremedlemNavnSpesifisertStyremedlem19023 bekreftendeSelskapsrepresentant { get; set; }
+
+    public bool ShouldSerializebekreftendeSelskapsrepresentant() => bekreftendeSelskapsrepresentant?.value is not null;
 
   }
 
