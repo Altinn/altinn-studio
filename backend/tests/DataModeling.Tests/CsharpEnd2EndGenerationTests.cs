@@ -21,7 +21,7 @@ namespace DataModeling.Tests
         {
             _testOutput = testOutput;
         }
-        
+
         [Theory]
         [ClassData(typeof(CSharpEnd2EndTestData))]
         public void Convert_FromXsd_Should_EqualExpected(string xsdSchemaPath, string expectedCsharpClassPath)

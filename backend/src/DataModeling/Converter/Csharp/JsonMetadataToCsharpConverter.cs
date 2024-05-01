@@ -284,7 +284,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
         private void ParseAttributeProperty(ElementMetadata element, StringBuilder classBuilder, bool required, bool useNullableReferenceTypes)
         {
-            string nullableReference = useNullableReferenceTypes ? "?": string.Empty;
+            string nullableReference = useNullableReferenceTypes ? "?" : string.Empty;
             string dataType = "string";
             bool isValueType = false;
             if (element.XsdValueType != null)
