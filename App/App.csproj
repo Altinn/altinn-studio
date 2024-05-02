@@ -3,13 +3,10 @@
     <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>Altinn</AssemblyName>
     <RootNamespace>Altinn.App</RootNamespace>
-    <AppLibProjectFolder>/Users/magnusrm/repos/app-lib-dotnet</AppLibProjectFolder>
   </PropertyGroup>
   <ItemGroup>
-  <ProjectReference Include="/Users/magnusrm/repos/app-lib-dotnet/src/Altinn.App.Api/Altinn.App.Api.csproj">
-    <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
-  </ProjectReference>
-    <ProjectReference Include="/Users/magnusrm/repos/app-lib-dotnet/src/Altinn.App.Core/Altinn.App.Core.csproj" />
+    <PackageReference Include="Altinn.App.Api" Version="8.2.0-preview.1" />
+    <PackageReference Include="Altinn.App.Core" Version="8.2.0-preview.1"/>
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="6.0.0" />
     <PackageReference Include="PsA3Forms" Version="2.7.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />

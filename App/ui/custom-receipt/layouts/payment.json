@@ -6,17 +6,7 @@
         "id": "payment-test-component",
         "type": "Payment",
         "textResourceBindings": {
-          "title": "Oppsummering",
-          "receiptOrgName": "Test Org",
-          "receiptOrgNumber": "123456789",
-          "receiptBankAcountNumber": "12345678901",
-          "receiptEmailAdress": "123@123.no",
-          "receiptPhoneNumber": "12345678",
-          "receiptSupportPhoneNumber": "12345678",
-          "receiptStreetAdress": "Testveien 1",
-          "receiptZipCode": "1234",
-          "receiptCity": "Testby",
-          "receiptCountry": "Testland"
+          "title": "Oppsummering"
         },
         "paymentSettings": {
           "autoForwardToPayment": true
