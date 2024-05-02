@@ -10,6 +10,7 @@ describe('filterTableData', () => {
         lastChanged: new Date('2023-08-24'),
         hasPolicy: true,
         identifier: '1',
+        environments: ['gitea'],
       },
       {
         title: { nb: 'Test 2', nn: 'Test 2', en: 'Test 2' },
@@ -17,6 +18,7 @@ describe('filterTableData', () => {
         lastChanged: new Date('2023-08-24'),
         hasPolicy: true,
         identifier: '1',
+        environments: ['gitea'],
       },
       {
         title: { nb: '123', nn: '123', en: '123' },
@@ -24,6 +26,7 @@ describe('filterTableData', () => {
         lastChanged: new Date('2023-08-24'),
         hasPolicy: true,
         identifier: '1',
+        environments: ['gitea'],
       },
     ];
 
@@ -34,6 +37,7 @@ describe('filterTableData', () => {
         lastChanged: new Date('2023-08-24'),
         hasPolicy: true,
         identifier: '1',
+        environments: ['gitea'],
       },
     ];
 

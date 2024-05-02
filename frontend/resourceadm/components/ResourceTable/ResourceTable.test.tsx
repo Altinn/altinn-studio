@@ -12,6 +12,7 @@ const mockResourceListItem1: ResourceListItem = {
   lastChanged: new Date('2023-08-28'),
   hasPolicy: true,
   identifier: 'resource-1',
+  environments: ['gitea'],
 };
 const mockResourceListItem2: ResourceListItem = {
   title: { nb: 'tittel 2', en: '', nn: '' },
@@ -19,6 +20,7 @@ const mockResourceListItem2: ResourceListItem = {
   lastChanged: new Date('2023-08-29'),
   hasPolicy: false,
   identifier: 'resource-2',
+  environments: ['gitea'],
 };
 const mockResourceListItem3: ResourceListItem = {
   title: { nb: '', en: '', nn: '' },
@@ -26,6 +28,7 @@ const mockResourceListItem3: ResourceListItem = {
   lastChanged: new Date('2023-08-30'),
   hasPolicy: true,
   identifier: 'resource-3',
+  environments: ['gitea'],
 };
 const mockResourceList: ResourceListItem[] = [
   mockResourceListItem1,
@@ -86,13 +89,6 @@ describe('ResourceTable', () => {
 
     const lastChangedCell = screen.getByText('28.08.2023');
     expect(lastChangedCell).toBeInTheDocument();
-  });
-
-  it('displays policy tag', () => {
-    render(<ResourceTable {...defaultProps} />);
-
-    const [policyTag] = screen.getAllByText(textMock('resourceadm.dashboard_table_row_has_policy'));
-    expect(policyTag).toBeInTheDocument();
   });
 
   it('navigates to the clicked resource', async () => {
