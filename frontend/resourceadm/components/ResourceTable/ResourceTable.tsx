@@ -4,7 +4,7 @@ import { PencilIcon, DownloadIcon } from '@studio/icons';
 import { Tag } from '@digdir/design-system-react';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
-import type { GridRenderCellParams, GridRowParams } from '@mui/x-data-grid';
+import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { DataGrid, GridActionsCellItem, GridOverlay } from '@mui/x-data-grid';
 
 export type ResourceTableProps = {
@@ -66,7 +66,7 @@ export const ResourceTable = ({
     },
   };
 
-  const columns = [
+  const columns: GridColDef[] = [
     {
       field: 'title',
       headerName: t('resourceadm.dashboard_table_header_name'),
@@ -98,6 +98,7 @@ export const ResourceTable = ({
     },
     {
       field: 'environments',
+      sortable: false,
       headerName: t('resourceadm.dashboard_table_header_environment'),
       flex: 1,
       renderCell: (params: GridRenderCellParams) => {
@@ -118,10 +119,10 @@ export const ResourceTable = ({
     },
     {
       field: 'links',
+      headerName: '',
+      sortable: false,
       width: 50,
-      renderHeader: (): null => null,
-      type: 'actions',
-      getActions: (params: GridRowParams) => {
+      renderCell: (params) => {
         const existsInGitea = params.row.environments.some((env: string) => env === 'gitea');
         if (existsInGitea) {
           return [
