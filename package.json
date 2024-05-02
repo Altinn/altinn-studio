@@ -105,6 +105,8 @@
     "typecheck": "yarn workspaces foreach -A run typecheck",
     "playwright:test:all": "yarn workspace playwright-studio test:all",
     "playwright:test:ui": "yarn workspace playwright-studio test:ui",
+    "resourceadm:playwright:test:ui": "yarn workspace playwright-resourceadm resourceadm:test:ui",
+    "resourceadm:playwright:test:all": "yarn workspace playwright-resourceadm resourceadm:test:all",
     "git:ignore-revs": "git config blame.ignoreRevsFile .git-blame-ignore-revs"
   },
   "syncpack": {
@@ -116,6 +118,7 @@
     "frontend/app-preview",
     "frontend/dashboard",
     "frontend/resourceadm",
+    "frontend/resourceadm/testing/playwright",
     "frontend/language",
     "frontend/studio-root",
     "frontend/testing/mockend",

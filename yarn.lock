@@ -18005,6 +18005,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"playwright-resourceadm@workspace:frontend/resourceadm/testing/playwright":
+  version: 0.0.0-use.local
+  resolution: "playwright-resourceadm@workspace:frontend/resourceadm/testing/playwright"
+  dependencies:
+    "@playwright/test": "npm:^1.41.1"
+    "@types/dotenv": "npm:^8.2.0"
+    "@types/node": "npm:^20.10.5"
+    dotenv: "npm:^16.3.1"
+    ts-node: "npm:^10.9.2"
+  languageName: unknown
+  linkType: soft
+
 "playwright-studio@workspace:frontend/testing/playwright":
   version: 0.0.0-use.local
   resolution: "playwright-studio@workspace:frontend/testing/playwright"
