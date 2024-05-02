@@ -6,13 +6,14 @@ import { ExpressionErrorKey } from '../../../../enums/ExpressionErrorKey';
 import { GeneralRelationOperator } from '../../../../enums/GeneralRelationOperator';
 
 describe('findSubexpressionErrors', () => {
+  const options = ['1', '2'];
   it('Returns an empty array when the subexpression is valid', () => {
     const subexpression: SimpleSubexpression = {
       relationalOperator: GeneralRelationOperator.Equals,
       firstOperand: { type: SimpleSubexpressionValueType.Number, value: 1 },
       secondOperand: { type: SimpleSubexpressionValueType.Number, value: 2 },
     };
-    const result = findSubexpressionErrors(subexpression);
+    const result = findSubexpressionErrors(subexpression, options);
     expect(result).toEqual([]);
   });
 
@@ -22,7 +23,8 @@ describe('findSubexpressionErrors', () => {
       firstOperand: { type: SimpleSubexpressionValueType.Number, value: 1 },
       secondOperand: { type: SimpleSubexpressionValueType.Boolean, value: false },
     };
-    const result = findSubexpressionErrors(subexpression);
+
+    const result = findSubexpressionErrors(subexpression, options);
     expect(result).toEqual([ExpressionErrorKey.NumericRelationOperatorWithWrongType]);
   });
 
@@ -32,7 +34,7 @@ describe('findSubexpressionErrors', () => {
       firstOperand: { type: SimpleSubexpressionValueType.Datamodel, path: '' },
       secondOperand: { type: SimpleSubexpressionValueType.Number, value: 2 },
     };
-    const result = findSubexpressionErrors(subexpression);
+    const result = findSubexpressionErrors(subexpression, options);
     expect(result).toEqual([ExpressionErrorKey.InvalidFirstOperand]);
   });
 
@@ -42,7 +44,7 @@ describe('findSubexpressionErrors', () => {
       firstOperand: { type: SimpleSubexpressionValueType.Component, id: '' },
       secondOperand: { type: SimpleSubexpressionValueType.Number, value: 2 },
     };
-    const result = findSubexpressionErrors(subexpression);
+    const result = findSubexpressionErrors(subexpression, options);
     expect(result).toEqual([ExpressionErrorKey.InvalidFirstOperand]);
   });
 
@@ -52,7 +54,7 @@ describe('findSubexpressionErrors', () => {
       firstOperand: { type: SimpleSubexpressionValueType.Number, value: 1 },
       secondOperand: { type: SimpleSubexpressionValueType.Datamodel, path: '' },
     };
-    const result = findSubexpressionErrors(subexpression);
+    const result = findSubexpressionErrors(subexpression, options);
     expect(result).toEqual([ExpressionErrorKey.InvalidSecondOperand]);
   });
 
@@ -62,7 +64,7 @@ describe('findSubexpressionErrors', () => {
       firstOperand: { type: SimpleSubexpressionValueType.Component, id: '' },
       secondOperand: { type: SimpleSubexpressionValueType.Datamodel, path: '' },
     };
-    const result = findSubexpressionErrors(subexpression);
+    const result = findSubexpressionErrors(subexpression, options);
     expect(result).toEqual([
       ExpressionErrorKey.InvalidFirstOperand,
       ExpressionErrorKey.InvalidSecondOperand,
