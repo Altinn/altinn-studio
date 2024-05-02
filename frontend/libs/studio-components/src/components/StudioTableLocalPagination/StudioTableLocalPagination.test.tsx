@@ -6,7 +6,7 @@ import { columns, rows } from '../StudioTableRemotePagination/mockData';
 
 describe('StudioTableLocalPagination', () => {
   const paginationProps = {
-    pageSizeOptions: [5, 10],
+    pageSizeOptions: [5, 10, 50],
     pageSizeLabel: 'Rows per page',
     nextButtonText: 'Next',
     previousButtonText: 'Previous',
@@ -77,5 +77,21 @@ describe('StudioTableLocalPagination', () => {
     const tableBody = screen.getAllByRole('rowgroup')[1];
     const tableBodyRows = within(tableBody).getAllByRole('row');
     expect(tableBodyRows).toHaveLength(10);
+  });
+
+  it('sets currentPage to 1 when no rows are displayed', async () => {
+    render(
+      <StudioTableLocalPagination columns={columns} rows={rows} pagination={paginationProps} />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Page 4' }));
+    const lastPageBody = screen.getAllByRole('rowgroup')[1];
+    const lastPageRow = within(lastPageBody).getAllByRole('row');
+    expect(lastPageRow.length).toBe(1);
+
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Rows per page' }), '50');
+    const tableBody = screen.getAllByRole('rowgroup')[1];
+    const tableBodyRows = within(tableBody).getAllByRole('row');
+    expect(tableBodyRows.length).toBeGreaterThan(10);
   });
 });

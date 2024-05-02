@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useState } from 'react';
+import React, { forwardRef, useState } from 'react';
 import { StudioTableRemotePagination } from '../StudioTableRemotePagination';
 import type { Rows } from '../StudioTableRemotePagination/';
 import { useTableSorting } from '../../hooks/useTableSorting';
@@ -36,10 +36,7 @@ export const StudioTableLocalPagination = forwardRef<
     rowsToRender = getRowsToRender(currentPage, pageSize, rows);
   }
 
-  useEffect(() => {
-    if (rowsToRender.length === 0) setCurrentPage(1);
-  }, [rowsToRender]);
-
+  if (rowsToRender.length === 0) setCurrentPage(1);
   const totalPages = Math.ceil(rows.length / pageSize);
 
   const paginationProps = pagination && {
