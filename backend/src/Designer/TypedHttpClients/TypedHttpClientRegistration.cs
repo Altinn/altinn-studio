@@ -14,11 +14,13 @@ using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
 using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
+using Altinn.Studio.Designer.TypedHttpClients.MaskinPorten;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.TypedHttpClients
 {
@@ -51,6 +53,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddHttpClient<IPolicyOptions, PolicyOptionsClient>();
             services.AddHttpClient<IResourceRegistryOptions, ResourceRegistryOptionsClients>();
             services.AddHttpClient<IAltinn2MetadataClient, Altinn2MetadataClient>();
+            services.AddAnsattPortenHttpClient(config);
 
             return services;
         }
@@ -112,5 +115,17 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 })
                 .AddHttpMessageHandler<PlatformBearerTokenHandler>()
                 .AddHttpMessageHandler<EnsureSuccessHandler>();
+
+        private static IHttpClientBuilder AddAnsattPortenHttpClient(this IServiceCollection services, IConfiguration config)
+        {
+            services.AddScoped<MaskinPortenTokenDelegatingHandler>();
+            services.Configure<MaskinPortenSettings>(config.GetSection(nameof(MaskinPortenSettings)));
+            return services.AddHttpClient<IMaskinPortenHttpClient, MaskinPortenHttpClient>((serviceProvider, client) =>
+                {
+                    var options = serviceProvider.GetRequiredService<IOptions<MaskinPortenSettings>>().Value;
+                    client.BaseAddress = new Uri(options.BaseUrl);
+                })
+                .AddHttpMessageHandler<MaskinPortenTokenDelegatingHandler>();
+        }
     }
 }

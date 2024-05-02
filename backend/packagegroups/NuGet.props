@@ -36,6 +36,8 @@
     <PackageReference Update="Altinn.Authorization.ABAC" Version="0.0.8" />
     <PackageReference Update="Altinn.ApiClients.Maskinporten" Version="9.1.0" />
     <PackageReference Update="MediatR" Version="12.2.0" />
+    <PackageReference Update="IdentityModel" Version="7.0.0" />
+    <PackageReference Update="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.4" />
   </ItemGroup>
 
   <ItemGroup Label="Packages used for testing">

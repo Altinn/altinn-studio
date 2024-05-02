@@ -8,6 +8,7 @@ using Altinn.Studio.DataModeling.Validator.Json;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Factories;
+using Altinn.Studio.Designer.Infrastructure.AnsattPortenIntegration;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
@@ -74,6 +75,8 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IProcessModelingService, ProcessModelingService>();
             services.RegisterDatamodeling(configuration);
             services.RegisterUserRequestSynchronization(configuration);
+
+            services.AddAnsattPortenAuthenticationAndAuthorization(configuration);
 
             return services;
         }
