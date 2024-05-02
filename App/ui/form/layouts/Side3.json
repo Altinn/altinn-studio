@@ -99,25 +99,13 @@
         }
       },
       {
-        "id": "buttons",
-        "type": "ButtonGroup",
-        "children": ["navbuttons", "submit"]
-      },
-      {
-        "id": "navbuttons",
+        "id": "navbuttons3",
         "showBackButton": true,
         "textResourceBindings": {
           "next": "Neste",
           "back": "Forrige"
         },
         "type": "NavigationButtons"
-      },
-      {
-        "id": "submit",
-        "type": "Button",
-        "textResourceBindings": {
-          "title": "Send inn"
-        }
       }
     ]
   }
