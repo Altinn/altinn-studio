@@ -26,6 +26,16 @@ describe('StudioTableLocalPagination', () => {
     ).toBeInTheDocument();
   });
 
+  it('renders the complete table when isSortable is set to false', () => {
+    render(<StudioTableLocalPagination columns={columns} rows={rows} isSortable={false} />);
+    expect(
+      screen.getByRole('cell', { name: 'Coordinated register notification' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('cell', { name: 'Application for a certificate of good conduct' }),
+    ).toBeInTheDocument();
+  });
+
   it('triggers sorting when a sortable column header is clicked', async () => {
     render(<StudioTableLocalPagination columns={columns} rows={rows} isSortable />);
 
