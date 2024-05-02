@@ -2,7 +2,7 @@ import { useTableSorting } from './useTableSorting';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import { Rows } from '../components';
+import type { Rows } from '../components';
 
 type TestComponentProps = {
   rows: Rows;

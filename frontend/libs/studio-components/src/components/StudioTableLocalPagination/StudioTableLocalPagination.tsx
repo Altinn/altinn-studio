@@ -1,8 +1,8 @@
 import React, { forwardRef, useState } from 'react';
 import { StudioTableRemotePagination } from '../StudioTableRemotePagination';
+import type { Rows } from '../StudioTableRemotePagination';
 import { useTableSorting } from '../../hooks/useTableSorting';
 import { getRowsToRender } from '../StudioTableRemotePagination/utils';
-import { Rows } from '../StudioTableRemotePagination';
 
 type StudioTableLocalPaginationProps = {
   columns: Record<'accessor' | 'value', string>[];
