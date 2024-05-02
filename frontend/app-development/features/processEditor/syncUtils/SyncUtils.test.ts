@@ -23,6 +23,14 @@ describe('SyncUtils', () => {
       code: 'policyFileTaskIdSyncError',
       expectedTranslationKey: 'process_editor.sync_error_policy_file_task_id',
     },
+    {
+      code: 'applicationMetadataDataTypeSyncError',
+      expectedTranslationKey: 'process_editor.sync_error_application_metadata_data_type',
+    },
+    {
+      code: 'layoutSetsDataTypeSyncError',
+      expectedTranslationKey: 'process_editor.sync_error_layout_sets_data_type',
+    },
   ])(`should map errorCode into translation keys`, ({ code, expectedTranslationKey }) => {
     const syncError: SyncError = {
       ...defaultSyncErrorMock,

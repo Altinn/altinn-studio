@@ -31,6 +31,7 @@ export const ruleHandlerPath = (org, app, layoutSetName) => `${basePath}/${org}/
 export const widgetSettingsPath = (org, app) => `${basePath}/${org}/${app}/app-development/widget-settings`; // Get
 export const optionListIdsPath = (org, app) => `${basePath}/${org}/${app}/app-development/option-list-ids`; // Get
 export const ruleConfigPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/rule-config?${s({ layoutSetName })}`; // Get, Post
+export const appMetadataModelIdsPath = (org, app, onlyUnReferenced) => `${basePath}/${org}/${app}/app-development/model-ids?${s({ onlyUnReferenced })}`; // Get
 export const datamodelMetadataPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/model-metadata?${s({ layoutSetName })}`; // Get
 export const layoutNamesPath = (org, app) => `${basePath}/${org}/${app}/app-development/layout-names`; // Get
 export const layoutSetsPath = (org, app) => `${basePath}/${org}/${app}/app-development/layout-sets`; // Get
@@ -146,6 +147,7 @@ export const resourceAccessListsPath = (org, resourceId, env, page) => `${basePa
 export const resourceAccessListPath = (org, resourceId, listId, env) => `${basePath}/${org}/resources/${resourceId}/accesslists/${listId}?env=${env}`; // Post, Delete, Patch
 
 // Process Editor
-export const processEditorPath = (org, repo) => `${basePath}/${org}/${repo}/process-modelling/process-definition`;
+export const processEditorPath = (org, app) => `${basePath}/${org}/${app}/process-modelling/process-definition`;
 export const processEditorWebSocketHub = () => '/sync-hub';
-export const processEditorPathPut = (org, repo) => `${basePath}/${org}/${repo}/process-modelling/process-definition-latest`;
+export const processEditorPathPut = (org, app) => `${basePath}/${org}/${app}/process-modelling/process-definition-latest`;
+export const processEditorDataTypeChangePath = (org, app) => `${basePath}/${org}/${app}/process-modelling/data-type`;
