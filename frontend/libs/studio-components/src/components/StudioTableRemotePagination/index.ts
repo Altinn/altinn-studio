@@ -1,1 +1,2 @@
-export { StudioTableRemotePagination, Rows } from './StudioTableRemotePagination';
+export { StudioTableRemotePagination } from './StudioTableRemotePagination';
+export type { Rows } from './StudioTableRemotePagination';
