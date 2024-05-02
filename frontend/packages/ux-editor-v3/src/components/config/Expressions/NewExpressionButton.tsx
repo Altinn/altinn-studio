@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { DropdownMenu } from '@digdir/design-system-react';
-import { PlusIcon } from '@navikt/aksel-icons';
+import { PlusIcon } from '@studio/icons';
 import { useText } from '../../../hooks';
 import type { ExpressionProperty } from '../../../types/Expressions';
 import { expressionPropertyTexts } from '../../../types/Expressions';

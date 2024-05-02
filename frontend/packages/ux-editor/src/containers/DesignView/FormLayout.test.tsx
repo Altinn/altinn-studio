@@ -12,6 +12,7 @@ import { internalLayoutWithMultiPageGroup } from '../../testing/layoutWithMultiP
 
 const defaultProps: FormLayoutProps = {
   layout: layoutMock,
+  isValid: true,
 };
 
 describe('FormLayout', () => {
@@ -28,6 +29,31 @@ describe('FormLayout', () => {
   it('Does not display warning about multi page groups when the layout does not have such groups', () => {
     render();
     expect(screen.queryByText(textMock('ux_editor.multi_page_warning'))).not.toBeInTheDocument();
+  });
+
+  it('Displays warning about duplicated ids when the layout has such ids', () => {
+    const layoutWithDuplicatedIds = {
+      ...layoutMock,
+      order: {
+        ['idContainer']: ['idContainer1', 'idContainer2', 'idContainer3'],
+        ['idContainer1']: ['idContainer1', 'idContainer2', 'idContainer2'],
+      },
+    };
+
+    render({ layout: layoutWithDuplicatedIds, isValid: false });
+
+    expect(
+      screen.getByText(textMock('ux_editor.formLayout.warning_duplicates')),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('ux_editor.formLayout.warning_duplicates.cannot_publish')),
+    ).toBeInTheDocument();
+
+    const duplicatedIds = screen.getByText(/idContainer1, idContainer2/i);
+    expect(duplicatedIds).toBeInTheDocument();
+
+    const uniqueIds = screen.queryByText(/idContainer3/i);
+    expect(uniqueIds).not.toBeInTheDocument();
   });
 });
 

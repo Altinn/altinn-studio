@@ -3,7 +3,7 @@ import classes from './PreviewLimitationsInfo.module.css';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { Alert, LegacyPopover } from '@digdir/design-system-react';
-import { XMarkIcon } from '@navikt/aksel-icons';
+import { XMarkIcon } from '@studio/icons';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import { StudioButton } from '@studio/components';
 

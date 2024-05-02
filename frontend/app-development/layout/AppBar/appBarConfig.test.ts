@@ -4,7 +4,7 @@ import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
-import { DatabaseIcon } from '@navikt/aksel-icons';
+import { DatabaseIcon } from '@studio/icons';
 
 describe('getTopBarMenu', () => {
   it('should return all items when provided repository type is "App" which is not hidden behind feature-flags', () => {

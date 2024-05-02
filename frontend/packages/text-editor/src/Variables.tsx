@@ -1,7 +1,7 @@
 import classes from './Variables.module.css';
 import { PanelVariant, PopoverPanel } from '@altinn/altinn-design-system';
 import { StudioButton } from '@studio/components';
-import { InformationSquareFillIcon } from '@navikt/aksel-icons';
+import { InformationSquareFillIcon } from '@studio/icons';
 import React, { useState } from 'react';
 import type { TextResourceVariable } from './types';
 import { useTranslation, Trans } from 'react-i18next';

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './GoBackButton.module.css';
 import cn from 'classnames';
-import { ArrowLeftIcon } from '@navikt/aksel-icons';
+import { ArrowLeftIcon } from '@studio/icons';
 import { Paragraph } from '@digdir/design-system-react';
 import { NavLink } from 'react-router-dom';
 

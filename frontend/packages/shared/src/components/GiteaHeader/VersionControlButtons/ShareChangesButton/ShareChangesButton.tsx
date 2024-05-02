@@ -1,6 +1,6 @@
 import React from 'react';
 import { StudioButton } from '@studio/components';
-import { UploadIcon, XMarkIcon } from '@navikt/aksel-icons';
+import { UploadIcon, XMarkIcon } from '@studio/icons';
 import classes from './ShareChangesButton.module.css';
 import { useTranslation } from 'react-i18next';
 import { Notification } from '../Notification';

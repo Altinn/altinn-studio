@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './Calculations.module.css';
 import { StudioButton } from '@studio/components';
-import { PlusIcon } from '@navikt/aksel-icons';
+import { PlusIcon } from '@studio/icons';
 import { RuleModal } from '../toolbar/RuleModal';
 import { OldDynamicsInfo } from './OldDynamicsInfo';
 import { Divider } from 'app-shared/primitives';
