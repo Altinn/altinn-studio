@@ -9,9 +9,15 @@ import * as StudioTableLocalPaginationStories from './StudioTableLocalPagination
 </Heading>
 <Paragraph>StudioTableLocalPagination is a wrapper for StudioTableRemotePagination.</Paragraph>
 <Paragraph>
-  - Use this component when you are fetching a complete set of data, and want the component to
-  handle pagination and sorting internally. Otherwise, use `StudioTableRemotePagination`. -
-  Pagination and sorting can be removed by not passing props to `pagination` and `onSortClick`.
+  <ul>
+    <li>
+      Use this component when you are fetching a complete set of data, and want the component to
+      handle pagination and sorting internally. Otherwise, use `StudioTableRemotePagination`.
+    </li>
+    <li>
+      Pagination and sorting can be removed by not passing props to `pagination` and `onSortClick`.
+    </li>
+  </ul>
 </Paragraph>
 
 <Canvas of={StudioTableLocalPaginationStories.Preview} />
@@ -68,8 +74,13 @@ const columns = [
   Row format
 </Heading>
 <Paragraph>
-  * Rows must have an id that is unique. * The accessors in the columns array is used to display the
-  row properties. Therefore, each property name has to exactly match the accessor.
+  <ul>
+    <li>Rows must have an id that is unique.</li>
+    <li>
+      The accessors in the columns array is used to display the row properties. Therefore, each
+      property name has to exactly match the accessor.
+    </li>
+  </ul>
 </Paragraph>
 
 ```tsx
