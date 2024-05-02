@@ -3,6 +3,102 @@
   "data": {
     "layout": [
       {
+        "id": "personer-group",
+        "type": "RepeatingGroup",
+        "textResourceBindings": {
+          "title": "Personer"
+        },
+        "dataModelBindings": {
+          "group": {
+            "dataType": "modell2",
+            "property": "personer"
+          }
+        },
+        "children": [
+          "person-fornavn",
+          "person-etternavn",
+          "person-alder",
+          "person-fodselsdato",
+          "repeatingParagraph"
+        ]
+      },
+      {
+        "id": "person-fornavn",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Fornavn"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell2",
+            "property": "personer.fornavn"
+          }
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "person-etternavn",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Etternavn"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell2",
+            "property": "personer.etternavn"
+          }
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "person-fodselsdato",
+        "type": "Datepicker",
+        "textResourceBindings": {
+          "title": "Fødselsdato"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell2",
+            "property": "personer.fødselsdato"
+          }
+        },
+        "timeStamp": false,
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "person-alder",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Alder"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell2",
+            "property": "personer.alder"
+          }
+        },
+        "readOnly": true,
+        "formatting": {
+          "unit": "year"
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "repeatingParagraph",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "repeatingParagraph"
+        }
+      },
+      {
         "id": "buttons",
         "type": "ButtonGroup",
         "children": ["navbuttons", "submit"]

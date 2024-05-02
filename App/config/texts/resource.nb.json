@@ -53,6 +53,32 @@
           "defaultValue": "ikke noe"
         }
       ]
+    },
+    {
+      "id": "repeatingParagraph",
+      "value": "{0} {1} er født {2} og er dermed {3} år gammel.",
+      "variables": [
+        {
+          "key": "personer.fornavn",
+          "dataSource": "dataModel.modell2",
+          "defaultValue": "_fornavn_"
+        },
+        {
+          "key": "personer.etternavn",
+          "dataSource": "dataModel.modell2",
+          "defaultValue": "_etternavn_"
+        },
+        {
+          "key": "personer.fødselsdato",
+          "dataSource": "dataModel.modell2",
+          "defaultValue": "_dato_"
+        },
+        {
+          "key": "personer.alder",
+          "dataSource": "dataModel.modell2",
+          "defaultValue": "_alder_"
+        }
+      ]
     }
   ]
 }

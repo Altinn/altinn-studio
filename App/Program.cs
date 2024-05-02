@@ -2,6 +2,7 @@ using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Core;
 using Altinn.App.Core.Features;
+using Altinn.App.logic.DataProcessing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -17,6 +18,7 @@ void RegisterCustomAppServices(
 {
     // Register your apps custom service implementations here.
     services.AddTransient<IAppOptionsProvider, IndustryOptionsProvider>();
+    services.AddTransient<IDataProcessor, DataProcessor>();
 }
 
 // ###########################################################################
