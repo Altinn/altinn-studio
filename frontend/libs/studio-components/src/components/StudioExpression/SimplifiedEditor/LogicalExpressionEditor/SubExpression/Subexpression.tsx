@@ -17,6 +17,7 @@ import { findSubexpressionErrors } from './utils/findSubexpressionErrors';
 import { SubexpressionErrors } from './SubExpressionErrors';
 import { Fieldset } from '@digdir/design-system-react';
 import { useStudioExpressionContext } from '../../../StudioExpressionContext';
+import { DataLookupFuncName } from '../../../enums/DataLookupFuncName';
 
 export type SubexpressionProps = {
   expression: SimpleSubexpression;
@@ -26,10 +27,12 @@ export type SubexpressionProps = {
 };
 
 export const Subexpression = ({ expression, legend, onChange, onDelete }: SubexpressionProps) => {
-  const { texts } = useStudioExpressionContext();
+  const { texts, dataLookupOptions } = useStudioExpressionContext();
   const [isInEditMode, setIsInEditMode] = useState<boolean>(false);
   const [expressionState, setExpressionState] = useState<SimpleSubexpression>(expression);
   const [errors, setErrors] = useState<ExpressionErrorKey[]>([]);
+  const componentOptions = dataLookupOptions[DataLookupFuncName.Component];
+  const initialError = findSubexpressionErrors(expressionState, componentOptions);
 
   useEffect(() => {
     setExpressionState(expression);
@@ -40,7 +43,7 @@ export const Subexpression = ({ expression, legend, onChange, onDelete }: Subexp
   };
 
   const handleSave = () => {
-    const errorList = findSubexpressionErrors(expressionState);
+    const errorList = findSubexpressionErrors(expressionState, componentOptions);
     setErrors(errorList);
     if (!errorList.length) {
       onChange(expressionState);
@@ -50,6 +53,7 @@ export const Subexpression = ({ expression, legend, onChange, onDelete }: Subexp
 
   const handleEnableEditMode = () => {
     setIsInEditMode(true);
+    setErrors(initialError);
   };
 
   const handleOperatorChange = (operator: RelationalOperator) =>
@@ -64,7 +68,7 @@ export const Subexpression = ({ expression, legend, onChange, onDelete }: Subexp
   const className = cn(
     classes.subexpression,
     isInEditMode && classes.editMode,
-    errors.length && classes.hasError,
+    (errors.length || initialError.length) && classes.hasError,
   );
 
   return (
