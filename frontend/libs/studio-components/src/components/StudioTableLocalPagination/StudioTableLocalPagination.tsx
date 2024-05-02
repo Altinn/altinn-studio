@@ -1,6 +1,6 @@
 import React, { forwardRef, useEffect, useState } from 'react';
 import { StudioTableRemotePagination } from '../StudioTableRemotePagination';
-import { Rows } from '../StudioTableRemotePagination/StudioTableRemotePagination';
+import type { Rows } from '../StudioTableRemotePagination/';
 import { useTableSorting } from '../../hooks/useTableSorting';
 import { getRowsToRender } from '../StudioTableRemotePagination/utils';
 
@@ -27,15 +27,12 @@ export const StudioTableLocalPagination = forwardRef<
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(pagination ? pageSizeOptions[0] : undefined);
 
-  let handleSorting: (columnKey: string) => void;
-  let sortedRows: Rows;
+  const { handleSorting, sortedRows } = useTableSorting(rows);
   let rowsToRender: Rows;
 
   if (isSortable) {
-    ({ handleSorting, sortedRows } = useTableSorting(rows));
     rowsToRender = getRowsToRender(currentPage, pageSize, sortedRows);
   } else {
-    handleSorting = undefined;
     rowsToRender = getRowsToRender(currentPage, pageSize, rows);
   }
 
@@ -62,9 +59,11 @@ export const StudioTableLocalPagination = forwardRef<
       columns={columns}
       rows={rowsToRender}
       size={size}
-      onSortClick={handleSorting}
+      onSortClick={isSortable && handleSorting}
       pagination={paginationProps}
       ref={ref}
     />
   );
 });
+
+StudioTableLocalPagination.displayName = 'StudioTableLocalPagination';

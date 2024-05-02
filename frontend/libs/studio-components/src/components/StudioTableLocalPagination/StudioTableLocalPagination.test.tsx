@@ -6,7 +6,7 @@ import { columns, rows } from '../StudioTableRemotePagination/mockData';
 
 describe('StudioTableLocalPagination', () => {
   const paginationProps = {
-    pageSizeOptions: [2, 5, 10],
+    pageSizeOptions: [5, 10],
     pageSizeLabel: 'Rows per page',
     nextButtonText: 'Next',
     previousButtonText: 'Previous',
@@ -29,12 +29,17 @@ describe('StudioTableLocalPagination', () => {
   it('triggers sorting when a sortable column header is clicked', async () => {
     render(<StudioTableLocalPagination columns={columns} rows={rows} isSortable />);
 
-    await userEvent.click(screen.getByRole('button', { name: 'Age' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Name' }));
 
-    const tableBody = screen.getByRole('rowgroup');
-    const rows = within(tableBody).getAllByRole('row');
-    expect(within(rows[0]).getByRole('cell', { name: 'John Doe' })).toBeInTheDocument();
-    expect(within(rows[1]).getByRole('cell', { name: 'Jane Smith' })).toBeInTheDocument();
+    const firstBodyRow = screen.getAllByRole('row')[1];
+    expect(
+      within(firstBodyRow).getByRole('cell', { name: 'A-melding – all forms' }),
+    ).toBeInTheDocument();
+
+    const secondBodyRow = screen.getAllByRole('row')[2];
+    expect(
+      within(secondBodyRow).getByRole('cell', { name: 'Application for VAT registration' }),
+    ).toBeInTheDocument();
   });
 
   it('renders pagination controls when pagination prop is provided', () => {
@@ -53,8 +58,13 @@ describe('StudioTableLocalPagination', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Next' }));
 
-    expect(screen.getByRole('cell', { name: 'Bob Johnson' })).toBeInTheDocument();
-    expect(screen.getByRole('cell', { name: 'Alice Brown' })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('cell', { name: 'Coordinated register notification' }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'A-melding – all forms' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('cell', { name: 'Application for VAT registration' }),
+    ).toBeInTheDocument();
   });
 
   it('changes page size when page size option is selected', async () => {
@@ -62,10 +72,10 @@ describe('StudioTableLocalPagination', () => {
       <StudioTableLocalPagination columns={columns} rows={rows} pagination={paginationProps} />,
     );
 
-    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Rows per page' }), '5');
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Rows per page' }), '10');
 
-    const tableBody = screen.getByRole('rowgroup');
-    const rows = within(tableBody).getAllByRole('row');
-    expect(rows).toHaveLength(4);
+    const tableBody = screen.getAllByRole('rowgroup')[1];
+    const tableBodyRows = within(tableBody).getAllByRole('row');
+    expect(tableBodyRows).toHaveLength(10);
   });
 });

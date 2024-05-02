@@ -84,14 +84,13 @@ export const StudioTableRemotePagination = forwardRef<
         <div className={classes.paginationContainer}>
           <div className={classes.selectorContainer}>
             <NativeSelect
-              className={classes.selector}
               id={labelId}
               onChange={(e) => handlePageSizeChange(Number(e.target.value))}
               size={size}
             >
-              {pageSizeOptions.map((rows) => (
-                <option key={rows} value={rows}>
-                  {rows}
+              {pageSizeOptions.map((pageSizeOption) => (
+                <option key={pageSizeOption} value={pageSizeOption}>
+                  {pageSizeOption}
                 </option>
               ))}
             </NativeSelect>
@@ -101,7 +100,6 @@ export const StudioTableRemotePagination = forwardRef<
           </div>
           {totalPages > 1 && (
             <Pagination
-              className={classes.pagination}
               size={size}
               currentPage={currentPage}
               totalPages={totalPages}
@@ -118,3 +116,5 @@ export const StudioTableRemotePagination = forwardRef<
     </>
   );
 });
+
+StudioTableRemotePagination.displayName = 'StudioTableRemotePagination';

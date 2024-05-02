@@ -50,6 +50,13 @@ describe('StudioTableRemotePagination', () => {
     expect(screen.getByRole('button', { name: 'Next' })).toBeInTheDocument();
   });
 
+  it('does not render the pagination controls when pagination prop is not provided', () => {
+    render(<StudioTableRemotePagination columns={columns} rows={rows} />);
+
+    expect(screen.queryByRole('combobox', { name: 'Rows per page' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Next' })).not.toBeInTheDocument();
+  });
+
   it('triggers the onPageChange callback when a page is clicked', async () => {
     render(
       <StudioTableRemotePagination columns={columns} rows={rows} pagination={paginationProps} />,

@@ -1,8 +1,13 @@
 import { Button } from '@digdir/design-system-react';
 import { StarFillIcon, StarIcon } from '@navikt/aksel-icons';
 import React from 'react';
+import type { Rows } from './StudioTableRemotePagination';
 
-const IconButton = ({ icon }) => (
+type IconButtonProps = {
+  icon: React.ReactNode;
+};
+
+const IconButton = ({ icon }: IconButtonProps): React.ReactElement => (
   <Button variant={'tertiary'} icon>
     {icon}
   </Button>
@@ -27,7 +32,7 @@ export const columns = [
   },
 ];
 
-export const rows = [
+export const rows: Rows = [
   {
     id: 1,
     icon: <IconButton icon={<StarFillIcon />} />,
