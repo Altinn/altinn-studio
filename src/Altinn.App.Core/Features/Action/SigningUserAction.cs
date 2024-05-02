@@ -18,6 +18,7 @@ namespace Altinn.App.Core.Features.Action;
 public class SigningUserAction : IUserAction
 {
     private readonly IProcessReader _processReader;
+    private readonly IAppMetadata _appMetadata;
     private readonly ILogger<SigningUserAction> _logger;
     private readonly IProfileClient _profileClient;
     private readonly ISignClient _signClient;
@@ -29,25 +30,28 @@ public class SigningUserAction : IUserAction
     /// <param name="logger">The logger</param>
     /// <param name="profileClient">The profile client</param>
     /// <param name="signClient">The sign client</param>
+    /// <param name="appMetadata">The application metadata</param>
     public SigningUserAction(
         IProcessReader processReader,
         ILogger<SigningUserAction> logger,
         IProfileClient profileClient,
-        ISignClient signClient
+        ISignClient signClient,
+        IAppMetadata appMetadata
     )
     {
         _logger = logger;
         _profileClient = profileClient;
         _signClient = signClient;
         _processReader = processReader;
+        _appMetadata = appMetadata;
     }
 
     /// <inheritdoc />
     public string Id => "sign";
 
     /// <inheritdoc />
-    /// <exception cref="Altinn.App.Core.Helpers.PlatformHttpException"></exception>
-    /// <exception cref="Altinn.App.Core.Internal.App.ApplicationConfigException"></exception>
+    /// <exception cref="Helpers.PlatformHttpException"></exception>
+    /// <exception cref="ApplicationConfigException"></exception>
     public async Task<UserActionResult> HandleAction(UserActionContext context)
     {
         if (context.UserId == null)
@@ -64,20 +68,23 @@ public class SigningUserAction : IUserAction
                 context.Instance.Id,
                 currentTask.Id
             );
-            var dataTypes =
-                currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration?.DataTypesToSign ?? new();
-            var connectedDataElements = GetDataElementSignatures(context.Instance.Data, dataTypes);
-            if (
-                connectedDataElements.Count > 0
-                && currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration?.SignatureDataType != null
-            )
+            var appMetadata = await _appMetadata.GetApplicationMetadata();
+            var dataTypeIds =
+                currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration?.DataTypesToSign ?? [];
+            var dataTypesToSign = appMetadata
+                ?.DataTypes?.Where(d => dataTypeIds.Contains(d.Id, StringComparer.OrdinalIgnoreCase))
+                .ToList();
+
+            if (ShouldSign(currentTask, context.Instance.Data, dataTypesToSign))
             {
-                SignatureContext signatureContext = new SignatureContext(
-                    new InstanceIdentifier(context.Instance),
-                    currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration?.SignatureDataType!,
-                    await GetSignee(context.UserId.Value),
-                    connectedDataElements
-                );
+                var dataElementSignatures = GetDataElementSignatures(context.Instance.Data, dataTypesToSign);
+                SignatureContext signatureContext =
+                    new(
+                        new InstanceIdentifier(context.Instance),
+                        currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration?.SignatureDataType!,
+                        await GetSignee(context.UserId.Value),
+                        dataElementSignatures
+                    );
                 await _signClient.SignDataElements(signatureContext);
                 return UserActionResult.SuccessResult();
             }
@@ -92,17 +99,39 @@ public class SigningUserAction : IUserAction
         );
     }
 
+    private static bool ShouldSign(
+        ProcessTask currentTask,
+        List<DataElement> dataElements,
+        List<DataType>? dataTypesToSign
+    )
+    {
+        var signatureIsConfigured =
+            currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration?.SignatureDataType is not null;
+        if (dataTypesToSign is null or [] || !signatureIsConfigured)
+        {
+            return false;
+        }
+
+        var dataElementMatchExists = dataElements.Any(de =>
+            dataTypesToSign.Any(dt => string.Equals(dt.Id, de.DataType, StringComparison.OrdinalIgnoreCase))
+        );
+        var allDataTypesAreOptional = dataTypesToSign.All(d => d.MinCount == 0);
+        return dataElementMatchExists || allDataTypesAreOptional;
+    }
+
     private static List<DataElementSignature> GetDataElementSignatures(
         List<DataElement> dataElements,
-        List<string> dataTypesToSign
+        List<DataType>? dataTypesToSign
     )
     {
         var connectedDataElements = new List<DataElementSignature>();
+        if (dataTypesToSign is null or [])
+            return connectedDataElements;
         foreach (var dataType in dataTypesToSign)
         {
             connectedDataElements.AddRange(
                 dataElements
-                    .Where(d => d.DataType.Equals(dataType, StringComparison.OrdinalIgnoreCase))
+                    .Where(d => d.DataType.Equals(dataType.Id, StringComparison.OrdinalIgnoreCase))
                     .Select(d => new DataElementSignature(d.Id))
             );
         }

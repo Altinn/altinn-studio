@@ -2,21 +2,16 @@ using System.Security.Claims;
 using System.Xml.Serialization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Extensions;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.Extensions;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Profile;
-using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
-using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 
 namespace Altinn.App.Core.Internal.Pdf;
 
@@ -71,7 +66,7 @@ public class PdfService : IPdfService
     {
         string language = GetOverriddenLanguage();
         // Avoid a costly call if the language is allready overriden by the user
-        language = language.IsNullOrEmpty() ? await GetLanguage() : language;
+        language = string.IsNullOrEmpty(language) ? await GetLanguage() : language;
 
         var pdfContent = await GeneratePdfContent(instance, taskId, ct, language);
 
@@ -87,7 +82,7 @@ public class PdfService : IPdfService
     {
         var language = GetOverriddenLanguage();
         // Avoid a costly call if the language is allready overriden by the user
-        language = language.IsNullOrEmpty() ? await GetLanguage() : language;
+        language = string.IsNullOrEmpty(language) ? await GetLanguage() : language;
 
         return await GeneratePdfContent(instance, taskId, ct, language);
     }

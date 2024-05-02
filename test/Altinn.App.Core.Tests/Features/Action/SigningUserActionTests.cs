@@ -31,7 +31,59 @@ public class SigningUserActionTests
             UserId = 1337,
             Party = new Party() { SSN = "12345678901" }
         };
-        (var userAction, var signClientMock) = CreateSigningUserAction(userProfile);
+        var appMetadata = new ApplicationMetadata("org/id") { DataTypes = [new DataType { Id = "model" }] };
+        (var userAction, var signClientMock) = CreateSigningUserAction(
+            applicationMetadataToReturn: appMetadata,
+            userProfileToReturn: userProfile
+        );
+        var instance = new Instance()
+        {
+            Id = "500000/b194e9f5-02d0-41bc-8461-a0cbac8a6efc",
+            InstanceOwner = new() { PartyId = "5000", },
+            Process = new() { CurrentTask = new() { ElementId = "Task2" } },
+            Data = new()
+            {
+                new() { Id = "a499c3ef-e88a-436b-8650-1c43e5037ada", DataType = "Model" }
+            }
+        };
+        var userActionContext = new UserActionContext(instance, 1337);
+
+        // Act
+        var result = await userAction.HandleAction(userActionContext);
+
+        // Assert
+        SignatureContext expected = new SignatureContext(
+            new InstanceIdentifier(instance),
+            "signature",
+            new Signee() { UserId = "1337", PersonNumber = "12345678901" },
+            new DataElementSignature("a499c3ef-e88a-436b-8650-1c43e5037ada")
+        );
+        signClientMock.Verify(
+            s => s.SignDataElements(It.Is<SignatureContext>(sc => AssertSigningContextAsExpected(sc, expected))),
+            Times.Once
+        );
+        result.Should().BeEquivalentTo(UserActionResult.SuccessResult());
+        signClientMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async void HandleAction_returns_ok_if_no_dataElementSignature_and_optional_datatypes()
+    {
+        // Arrange
+        UserProfile userProfile = new UserProfile()
+        {
+            UserId = 1337,
+            Party = new Party() { SSN = "12345678901" }
+        };
+        var appMetadata = new ApplicationMetadata("org/id")
+        {
+            // Optional because MinCount == 0
+            DataTypes = [new DataType { Id = "model", MinCount = 0 }]
+        };
+        (var userAction, var signClientMock) = CreateSigningUserAction(
+            applicationMetadataToReturn: appMetadata,
+            userProfileToReturn: userProfile
+        );
         var instance = new Instance()
         {
             Id = "500000/b194e9f5-02d0-41bc-8461-a0cbac8a6efc",
@@ -97,6 +149,47 @@ public class SigningUserActionTests
     }
 
     [Fact]
+    public async void HandleAction_throws_ApplicationConfigException_when_no_dataElementSignature_and_mandatory_datatypes()
+    {
+        // Arrange
+        UserProfile userProfile = new UserProfile()
+        {
+            UserId = 1337,
+            Party = new Party() { SSN = "12345678901" }
+        };
+        var appMetadata = new ApplicationMetadata("org/id")
+        {
+            // Mandatory because MinCount != 0
+            DataTypes =
+            [
+                new DataType { Id = "not_match", MinCount = 0 },
+                new DataType { Id = "not_match_2", MinCount = 1 }
+            ]
+        };
+        (var userAction, var signClientMock) = CreateSigningUserAction(
+            applicationMetadataToReturn: appMetadata,
+            userProfileToReturn: userProfile
+        );
+        var instance = new Instance()
+        {
+            Id = "500000/b194e9f5-02d0-41bc-8461-a0cbac8a6efc",
+            InstanceOwner = new() { PartyId = "5000", },
+            Process = new() { CurrentTask = new() { ElementId = "Task2" } },
+            Data = new()
+            {
+                new() { Id = "a499c3ef-e88a-436b-8650-1c43e5037ada", DataType = "Model" }
+            }
+        };
+        var userActionContext = new UserActionContext(instance, 1337);
+
+        // Act
+        await Assert.ThrowsAsync<ApplicationConfigException>(
+            async () => await userAction.HandleAction(userActionContext)
+        );
+        signClientMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async void HandleAction_throws_ApplicationConfigException_if_SignatureDataType_is_null()
     {
         // Arrange
@@ -130,6 +223,7 @@ public class SigningUserActionTests
 
     private static (SigningUserAction SigningUserAction, Mock<ISignClient> SignClientMock) CreateSigningUserAction(
         UserProfile userProfileToReturn = null,
+        ApplicationMetadata applicationMetadataToReturn = null,
         PlatformHttpException platformHttpExceptionToThrow = null,
         string testBpmnfilename = "signing-task-process.bpmn"
     )
@@ -141,6 +235,8 @@ public class SigningUserActionTests
 
         var profileClientMock = new Mock<IProfileClient>();
         var signingClientMock = new Mock<ISignClient>();
+        var appMetadataMock = new Mock<IAppMetadata>();
+        appMetadataMock.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(applicationMetadataToReturn);
         profileClientMock.Setup(p => p.GetUserProfile(It.IsAny<int>())).ReturnsAsync(userProfileToReturn);
         if (platformHttpExceptionToThrow != null)
         {
@@ -154,7 +250,8 @@ public class SigningUserActionTests
                 processReader,
                 new NullLogger<SigningUserAction>(),
                 profileClientMock.Object,
-                signingClientMock.Object
+                signingClientMock.Object,
+                appMetadataMock.Object
             ),
             signingClientMock
         );
