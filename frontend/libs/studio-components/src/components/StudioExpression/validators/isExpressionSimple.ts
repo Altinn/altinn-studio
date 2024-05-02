@@ -30,14 +30,14 @@ const isNumberRelationFunc = (expression: Expression): expression is NumberRelat
   Array.isArray(expression) &&
   expression.length === 3 &&
   Object.values(NumberRelationOperator).includes(expression[0] as NumberRelationOperator) &&
-  isSimpleValueFunc(expression[1]) &&
+  isSimpleValueFunc(expression[1] as Expression) &&
   isSimpleValueFunc(expression[2]);
 
 const isTypeIndependentRelationFunc = (expression: Expression): expression is GenericRelationFunc =>
   Array.isArray(expression) &&
   expression.length === 3 &&
   Object.values(GeneralRelationOperator).includes(expression[0] as GeneralRelationOperator) &&
-  isSimpleValueFunc(expression[1]) &&
+  isSimpleValueFunc(expression[1] as Expression) &&
   isSimpleValueFunc(expression[2]);
 
 export const isSimpleValueFunc = (expression: Expression): expression is ValueInComplexFormat =>
@@ -65,9 +65,13 @@ export const isSimpleProcessDataLookupFunc = (
   );
 };
 
-export const isSimpleProcessUserAction = (expression: Expression): expression is DataLookupFunc => {
+export const isSimpleProcessUserAction = (expression: Expression): expression is KeyLookupFunc => {
   const actions: string[] = ['sign', 'pay', 'reject', 'confirm'];
   return typeof expression === 'string' && actions.includes(expression);
+};
+
+export const isProcessGatewayAction = (expression: Expression): expression is DataLookupFunc => {
+  return Array.isArray(expression) && expression[0] === DataLookupFuncName.GatewayAction;
 };
 
 export const isSimpleKeyLookupFunc = (expression: Expression): expression is KeyLookupFunc =>

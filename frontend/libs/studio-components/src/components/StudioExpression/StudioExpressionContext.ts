@@ -3,7 +3,7 @@ import type { DataLookupOptions } from './types/DataLookupOptions';
 import type { ExpressionTexts } from './types/ExpressionTexts';
 
 export type StudioExpressionContext = {
-  dataLookupOptions: DataLookupOptions;
+  dataLookupOptions: Partial<DataLookupOptions>;
   texts: ExpressionTexts;
 };
 

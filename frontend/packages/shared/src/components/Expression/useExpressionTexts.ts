@@ -48,7 +48,7 @@ export const useExpressionTexts = (): ExpressionTexts => {
   );
 
   const gatewayActionContextKeys = Object.values(GatewayActionContext);
-  const gatewayActionContext = mapArrayToTranslations<InstanceContext>(
+  const gatewayActionContext = mapArrayToTranslations<GatewayActionContext>(
     gatewayActionContextKeys,
     (key) => `expression.gatewayActionContext.${key}`,
   );
@@ -72,6 +72,7 @@ export const useExpressionTexts = (): ExpressionTexts => {
     expression: t('expression'),
     false: t('expression.false'),
     firstOperand: t('expression.firstOperand'),
+    gatewayActionKey: t('expression.gatewayActionKey'),
     gatewayActionContext,
     instanceContext,
     instanceContextKey: t('expression.instanceContextKey'),

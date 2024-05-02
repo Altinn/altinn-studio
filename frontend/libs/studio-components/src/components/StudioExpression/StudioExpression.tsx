@@ -14,7 +14,7 @@ export type StudioExpressionProps = {
   expression: BooleanExpression;
   onChange: (expression: BooleanExpression) => void;
   texts: ExpressionTexts;
-  dataLookupOptions: DataLookupOptions;
+  dataLookupOptions: Partial<DataLookupOptions>;
   showAddSubexpression?: boolean;
 };
 

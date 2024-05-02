@@ -37,7 +37,6 @@ export type ExpressionTexts = {
   or: string;
   readonlyComponentId: string;
   readonlyDatamodelPath: string;
-  readonlyGatewayActionContext: string;
   readonlyInstanceContext: string;
   relationalOperator: string;
   relationalOperators: Record<RelationalOperator, string>;

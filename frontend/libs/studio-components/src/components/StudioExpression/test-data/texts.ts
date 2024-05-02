@@ -6,11 +6,14 @@ import type { RelationalOperator } from '../types/RelationalOperator';
 import { NumberRelationOperator } from '../enums/NumberRelationOperator';
 import { GeneralRelationOperator } from '../enums/GeneralRelationOperator';
 import { SimpleSubexpressionValueType } from '../enums/SimpleSubexpressionValueType';
+import { GatewayActionContext } from '../enums/GatewayActionContext';
 
 const valueTypes: Record<SimpleSubexpressionValueType, string> = {
   [SimpleSubexpressionValueType.Boolean]: 'Boolean',
   [SimpleSubexpressionValueType.Component]: 'Component',
   [SimpleSubexpressionValueType.Datamodel]: 'Datamodel',
+  [SimpleSubexpressionValueType.GatewayAction]: 'Gateway action',
+  [SimpleSubexpressionValueType.GatewayActionContext]: 'Gateway action context',
   [SimpleSubexpressionValueType.InstanceContext]: 'Instance context',
   [SimpleSubexpressionValueType.Null]: 'Null',
   [SimpleSubexpressionValueType.Number]: 'Number',
@@ -29,6 +32,13 @@ const relationalOperators: Record<RelationalOperator, string> = {
 const logicalTupleOperators: Record<LogicalTupleOperator, string> = {
   [LogicalTupleOperator.And]: 'And',
   [LogicalTupleOperator.Or]: 'Or',
+};
+
+const gatewayActionContext: Record<GatewayActionContext, string> = {
+  [GatewayActionContext.Confirm]: 'Confirm',
+  [GatewayActionContext.Pay]: 'Pay',
+  [GatewayActionContext.Sign]: 'Sign',
+  [GatewayActionContext.Reject]: 'Reject',
 };
 
 const instanceContext: Record<InstanceContext, string> = {
@@ -67,6 +77,8 @@ export const texts: ExpressionTexts = {
   expression: 'Expression',
   false: 'False',
   firstOperand: 'First operand',
+  gatewayActionKey: 'Gateway action key',
+  gatewayActionContext,
   instanceContext,
   instanceContextKey: 'Instance context key',
   invalidExpression: 'Invalid expression',

@@ -26,6 +26,7 @@ export type BooleanExpression =
 export type StrictBooleanExpression =
   | boolean
   | FuncEquals
+  | FuncEqualsArrayString
   | FuncNotEquals
   | FuncGreaterThan
   | FuncGreaterThanEq
@@ -88,7 +89,9 @@ export type NumberRelationFunc<N extends NumberRelationOperator = NumberRelation
   [K in N]: GenericNumberRelationFunc<K>;
 }[N];
 
-type GenericGenericRelationFunc<N extends GeneralRelationOperator> = [N, Expression, Expression];
+type GenericGenericRelationFunc<N extends GeneralRelationOperator> =
+  | [N, Expression, Expression]
+  | FuncEqualsArrayString;
 export type GenericRelationFunc<N extends GeneralRelationOperator = GeneralRelationOperator> = {
   [K in N]: GenericGenericRelationFunc<K>;
 }[N];
@@ -114,6 +117,7 @@ type FuncAuthContext = [
 type FuncFrontendSettings = ['frontendSettings', StringExpression];
 type FuncConcat = ['concat', ...StringExpression[]];
 type FuncEquals = GenericRelationFunc<GeneralRelationOperator.Equals>;
+type FuncEqualsArrayString = [GeneralRelationOperator.Equals, [StringExpression], StringExpression];
 type FuncNotEquals = GenericRelationFunc<GeneralRelationOperator.NotEquals>;
 type FuncNot = ['not', BooleanExpression];
 type FuncGreaterThan = NumberRelationFunc<NumberRelationOperator.GreaterThan>;

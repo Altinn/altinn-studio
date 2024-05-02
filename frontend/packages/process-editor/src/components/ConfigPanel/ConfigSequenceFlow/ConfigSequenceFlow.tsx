@@ -1,15 +1,29 @@
 import React, { useState } from 'react';
-import { BooleanExpression, StudioExpression, StudioSectionHeader } from '@studio/components';
+import {
+  BooleanExpression,
+  GeneralRelationOperator,
+  StringExpression,
+  StudioButton,
+  StudioExpression,
+  StudioSectionHeader,
+} from '@studio/components';
+import { PlusIcon } from '@studio/icons';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
-
-import classes from './ConfigSequenceFlow.module.css';
 import { Paragraph } from '@digdir/design-system-react';
 import { BpmnExpressionModeler } from '../../../utils/bpmn/BpmnExpressionModeler';
 import { useExpressionTexts } from 'app-shared/components/Expression/useExpressionTexts';
+import { useTranslation } from 'react-i18next';
 
-const defaultExpression: BooleanExpression = ['equals', 'gatewayAction', 'reject'];
+import classes from './ConfigSequenceFlow.module.css';
+
+const defaultExpression: StringExpression = [
+  GeneralRelationOperator.Equals,
+  ['gatewayAction'],
+  'reject',
+];
 
 export const ConfigSequenceFlow = (): React.ReactElement => {
+  const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
   const texts = useExpressionTexts();
   const expressionModeler = new BpmnExpressionModeler(bpmnDetails.element);
@@ -17,7 +31,17 @@ export const ConfigSequenceFlow = (): React.ReactElement => {
     expressionModeler.conditionExpression,
   );
 
+  const onAddNewExpressionClicked = (): void => {
+    setExpression(defaultExpression);
+  };
+
   const addExpressionToSequenceFlow = (expression: BooleanExpression): void => {
+    const shouldDeleteExpression = expression === null;
+    if (shouldDeleteExpression) {
+      deleteExpression();
+      return;
+    }
+
     const stringifyExpression = JSON.stringify(expression);
     const newExpressionElement = expressionModeler.createExpressionElement(stringifyExpression);
 
@@ -28,7 +52,7 @@ export const ConfigSequenceFlow = (): React.ReactElement => {
 
   const deleteExpression = (): void => {
     expressionModeler.updateElementProperties({
-      conditionExpression: null,
+      conditionExpression: undefined,
     });
   };
 
@@ -36,17 +60,23 @@ export const ConfigSequenceFlow = (): React.ReactElement => {
     <>
       <StudioSectionHeader
         heading={{
-          text: 'Flytkontroll', // TODO add texts to translation file
+          text: t('process_editor.sequence_flow_configuration_panel_title'),
           level: 2,
         }}
       />
       <div className={classes.container}>
         <Paragraph spacing>
-          Med Flytkontroll-verktøyet kan du kontrollere flyten ut av en gateway basert på
-          brukerhandling utført ved hjelp av et utrykk.
+          {t('process_editor.sequence_flow_configuration_panel_explanation')}
         </Paragraph>
         {!expression ? (
-          <p>Knapp for å legge til exp</p>
+          <StudioButton
+            variant='secondary'
+            icon={<PlusIcon />}
+            fullWidth
+            onClick={onAddNewExpressionClicked}
+          >
+            {t('process_editor.sequence_flow_configuration_add_new_rule')}
+          </StudioButton>
         ) : (
           <StudioExpression
             showAddSubexpression={false}
@@ -55,9 +85,8 @@ export const ConfigSequenceFlow = (): React.ReactElement => {
               setExpression(updatedExpression);
               addExpressionToSequenceFlow(updatedExpression);
             }}
-            onDelete={deleteExpression}
             texts={texts}
-            dataLookupOptions={['gatewayAction']} // TODO add the lookup options for component, datamodell etc
+            dataLookupOptions={undefined} // TODO add lookup for dataModel
           />
         )}
       </div>
