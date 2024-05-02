@@ -18,7 +18,7 @@ import { getReposLabel } from 'dashboard/utils/repoUtils';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { useUrlParams } from '../../hooks/useSelectedContext';
 import { StudioButton } from '@studio/components';
-import { ImportAltinn3ResourceModal } from '../../components/ImportAltinn3ResourceModal/ImportAltinn3ResourceModal';
+import { ImportAltinn3ResourceModal } from '../../components/ImportAltinn3ResourceModal';
 import { useImportResourceFromAltinn3Mutation } from '../../hooks/mutations/useImportResourceFromAltinn3Mutation';
 import type { EnvId } from '../../utils/resourceUtils';
 import type { Resource } from 'app-shared/types/ResourceAdm';
