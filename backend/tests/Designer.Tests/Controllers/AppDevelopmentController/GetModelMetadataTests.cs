@@ -2,18 +2,16 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Altinn.Studio.DataModeling.Metamodel;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Newtonsoft.Json;
 using SharedResources.Tests;
 using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class GetModelMetadataTests : DisagnerEndpointsTestsBase<GetFormLayoutsTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetModelMetadataTests : DisagnerEndpointsTestsBase<GetModelMetadataTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
 
