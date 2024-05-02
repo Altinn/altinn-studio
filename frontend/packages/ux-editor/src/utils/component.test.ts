@@ -187,18 +187,24 @@ describe('Component utils', () => {
   });
 
   describe('setComponentProperty', () => {
+    const component: FormComponent = {
+      id: 'test',
+      type: ComponentType.Input,
+      itemType: 'COMPONENT',
+      dataModelBindings: { simpleBinding: 'some-path' },
+    };
+    const propertyKey = 'testProperty';
+
     it('Sets given property on given component', () => {
-      const component: FormComponent = {
-        id: 'test',
-        type: ComponentType.Input,
-        itemType: 'COMPONENT',
-        dataModelBindings: { simpleBinding: 'some-path' },
-      };
-      const propertyKey = 'testProperty';
       const value = 'testValue';
       expect(setComponentProperty(component, propertyKey, value)).toEqual({
         ...component,
         [propertyKey]: value,
+      });
+    });
+    it('Removes property if value is undefined', () => {
+      expect(setComponentProperty(component, propertyKey, undefined)).toEqual({
+        ...component,
       });
     });
   });

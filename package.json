@@ -76,7 +76,7 @@
     "typescript-plugin-css-modules": "5.1.0",
     "webpack": "5.91.0",
     "webpack-cli": "5.1.4",
-    "webpack-dev-server": "4.15.2",
+    "webpack-dev-server": "5.0.4",
     "whatwg-fetch": "3.6.20"
   },
   "lint-staged": {
@@ -105,6 +105,8 @@
     "typecheck": "yarn workspaces foreach -A run typecheck",
     "playwright:test:all": "yarn workspace playwright-studio test:all",
     "playwright:test:ui": "yarn workspace playwright-studio test:ui",
+    "resourceadm:playwright:test:ui": "yarn workspace playwright-resourceadm resourceadm:test:ui",
+    "resourceadm:playwright:test:all": "yarn workspace playwright-resourceadm resourceadm:test:all",
     "git:ignore-revs": "git config blame.ignoreRevsFile .git-blame-ignore-revs"
   },
   "syncpack": {
@@ -116,6 +118,7 @@
     "frontend/app-preview",
     "frontend/dashboard",
     "frontend/resourceadm",
+    "frontend/resourceadm/testing/playwright",
     "frontend/language",
     "frontend/studio-root",
     "frontend/testing/mockend",

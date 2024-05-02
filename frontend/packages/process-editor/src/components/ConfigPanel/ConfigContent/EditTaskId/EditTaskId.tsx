@@ -4,13 +4,11 @@ import { checkForInvalidCharacters } from '../../../../utils/configPanelUtils';
 import { StudioToggleableTextfield } from '@studio/components';
 import { KeyVerticalIcon } from '@studio/icons';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
-
-import type { MetaDataForm } from '../../../../contexts/BpmnConfigPanelContext';
 import { useBpmnConfigPanelFormContext } from '../../../../contexts/BpmnConfigPanelContext';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
-
 import classes from './EditTaskId.module.css';
 import { useTaskIds } from '../../../../hooks/useTaskIds';
+import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 
 type EditTaskIdProps = HTMLAttributes<HTMLDivElement>;
 export const EditTaskId = ({ ...rest }: EditTaskIdProps): React.ReactElement => {
@@ -38,18 +36,12 @@ export const EditTaskId = ({ ...rest }: EditTaskIdProps): React.ReactElement => 
     if (newId === bpmnDetails.id) return;
 
     const newMetadata: MetaDataForm = {
-      taskIdChanges: [
-        {
-          newId,
-          oldId: bpmnDetails.id,
-        },
-      ],
+      taskIdChange: {
+        newId,
+        oldId: bpmnDetails.id,
+      },
     };
-    metaDataFormRef.current = Object.assign(
-      {},
-      metaDataFormRef.current, // Current value of metaDataFormRef
-      newMetadata, // New metadata to merge
-    );
+    metaDataFormRef.current = Object.assign({}, metaDataFormRef.current, newMetadata);
     updateId(newId);
   };
 

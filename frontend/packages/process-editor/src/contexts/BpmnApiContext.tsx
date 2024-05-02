@@ -1,17 +1,17 @@
 import type { LayoutSets, LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import React, { createContext, useContext } from 'react';
-import type { MetaDataForm } from './BpmnConfigPanelContext';
+import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
+import type { DataTypeChange } from 'app-shared/types/api/DataTypeChange';
 
 export type BpmnApiContextProps = {
+  availableDataModelIds: string[];
   layoutSets: LayoutSets;
   pendingApiOperations: boolean;
   existingCustomReceiptLayoutSetName: string | undefined;
   addLayoutSet: (data: { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig }) => void;
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
-  mutateLayoutSet: (data: {
-    layoutSetIdToUpdate: string;
-    layoutSetConfig: LayoutSetConfig;
-  }) => void;
+  mutateLayoutSet: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
+  mutateDataType: (dataTypeChange: DataTypeChange) => void;
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
 };
 
@@ -19,36 +19,39 @@ export const BpmnApiContext = createContext<Partial<BpmnApiContextProps>>(undefi
 
 export type BpmnApiContextProviderProps = {
   children: React.ReactNode;
+  availableDataModelIds: string[];
   layoutSets: LayoutSets;
   pendingApiOperations: boolean;
   existingCustomReceiptLayoutSetName: string | undefined;
   addLayoutSet: (data: { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig }) => void;
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
-  mutateLayoutSet: (data: {
-    layoutSetIdToUpdate: string;
-    layoutSetConfig: LayoutSetConfig;
-  }) => void;
+  mutateLayoutSet: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
+  mutateDataType: (data: DataTypeChange) => void;
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
 };
 export const BpmnApiContextProvider = ({
   children,
+  availableDataModelIds,
   layoutSets,
   pendingApiOperations,
   existingCustomReceiptLayoutSetName,
   addLayoutSet,
   deleteLayoutSet,
   mutateLayoutSet,
+  mutateDataType,
   saveBpmn,
 }: Partial<BpmnApiContextProviderProps>) => {
   return (
     <BpmnApiContext.Provider
       value={{
+        availableDataModelIds,
         layoutSets,
         pendingApiOperations,
         existingCustomReceiptLayoutSetName,
         addLayoutSet,
         deleteLayoutSet,
         mutateLayoutSet,
+        mutateDataType,
         saveBpmn,
       }}
     >
