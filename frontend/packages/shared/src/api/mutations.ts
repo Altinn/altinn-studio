@@ -28,6 +28,7 @@ import {
   appMetadataPath,
   serviceConfigPath,
   importResourceFromAltinn2Path,
+  importResourceFromAltinn3Path,
   accessListPath,
   createAccessListsPath,
   accessListMemberPath,
@@ -109,6 +110,7 @@ export const upsertTextResources = (org: string, app: string, language: string, 
 // Resourceadm
 export const createResource = (org: string, payload: NewResource) => post(resourceCreatePath(org), payload);
 export const importResourceFromAltinn2 = (org: string, environment: string, code: string, edition: string, payload: string) => post<Resource>(importResourceFromAltinn2Path(org, environment, code, edition), JSON.stringify(payload), { headers: { 'Content-Type': 'application/json' } });
+export const importResourceFromAltinn3 = (org: string, resourceId: string, environment: string) => post<Resource>(importResourceFromAltinn3Path(org, resourceId, environment));
 export const createAccessList = (org: string, environment: string, payload: Partial<AccessList>) => post<AccessList>(createAccessListsPath(org, environment), payload);
 export const updateAccessList = (org: string, listId: string, environment: string, payload: AccessList) => put<AccessList>(accessListPath(org, listId, environment), payload);
 export const deleteAccessList = (org: string, listId: string, environment: string) => del(accessListPath(org, listId, environment));

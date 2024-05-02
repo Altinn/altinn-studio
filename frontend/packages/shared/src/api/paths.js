@@ -139,6 +139,7 @@ export const resourceValidateResourcePath = (org, repo, id) => `${basePath}/${or
 export const publishResourcePath = (org, repo, id, env) => `${basePath}/${org}/resources/publish/${repo}/${id}?env=${env}`; // Get
 export const altinn2LinkServicesPath = (org, env) => `${basePath}/${org}/resources/altinn2linkservices/${env}`; // Get
 export const importResourceFromAltinn2Path = (org, env, serviceCode, serviceEdition) => `${basePath}/${org}/resources/importresource/${serviceCode}/${serviceEdition}/${env}`; // Post
+export const importResourceFromAltinn3Path = (org, resourceId, env) => `${basePath}/${org}/resources/addexistingresource/${resourceId}/${env}`; // Post
 export const accessListsPath = (org, env, page) => `${basePath}/${org}/resources/accesslist/?env=${env}&page=${page}`; // Get
 export const createAccessListsPath = (org, env) => `${basePath}/${org}/resources/accesslist/?env=${env}`; //  Post
 export const accessListPath = (org, listId, env) => `${basePath}/${org}/resources/accesslist/${listId}?env=${env}`; // Get, Patch, Delete

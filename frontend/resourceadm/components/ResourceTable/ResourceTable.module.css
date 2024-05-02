@@ -2,3 +2,9 @@
   color: #165db8;
   font-size: 2rem;
 }
+
+.tagContainer {
+  display: flex;
+  flex-direction: row;
+  gap: var(--fds-spacing-1);
+}

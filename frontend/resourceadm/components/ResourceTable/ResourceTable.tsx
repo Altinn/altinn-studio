@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
-import cn from 'classnames';
 import classes from './ResourceTable.module.css';
-import { PencilIcon } from '@studio/icons';
+import { PencilIcon, DownloadIcon } from '@studio/icons';
 import { Tag } from '@digdir/design-system-react';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
@@ -19,7 +18,8 @@ export type ResourceTableProps = {
    * @returns void
    */
   onClickEditResource: (id: string) => void;
-  onToggleFavourite?: (id: string) => void;
+
+  onClickImportResource?: (id: string, availableEnvs: string[]) => void;
 };
 
 /**
@@ -34,6 +34,7 @@ export type ResourceTableProps = {
 export const ResourceTable = ({
   list,
   onClickEditResource,
+  onClickImportResource,
 }: ResourceTableProps): React.JSX.Element => {
   const { t, i18n } = useTranslation();
 
@@ -87,23 +88,31 @@ export const ResourceTable = ({
       width: 120,
       type: 'date',
       valueFormatter: ({ value }) =>
-        new Date(value).toLocaleDateString('nb-NO', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-        }),
+        value
+          ? new Date(value).toLocaleDateString('nb-NO', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+            })
+          : '',
     },
     {
-      field: 'hasPolicy',
-      headerName: t('resourceadm.dashboard_table_header_policy_rules'),
+      field: 'environments',
+      headerName: t('resourceadm.dashboard_table_header_environment'),
       flex: 1,
       renderCell: (params: GridRenderCellParams) => {
         return (
-          <Tag color={params.row.hasPolicy ? 'info' : 'danger'} size='small'>
-            {params.row.hasPolicy
-              ? t('resourceadm.dashboard_table_row_has_policy')
-              : t('resourceadm.dashboard_table_row_missing_policy')}
-          </Tag>
+          <div className={classes.tagContainer}>
+            {params.row.environments.map((env: string) => {
+              return (
+                <Tag key={env} color={'info'} size='small'>
+                  {env == 'gitea'
+                    ? t('resourceadm.dashboard_table_row_in_gitea')
+                    : env.toUpperCase()}
+                </Tag>
+              );
+            })}
+          </div>
         );
       },
     },
@@ -113,20 +122,40 @@ export const ResourceTable = ({
       renderHeader: (): null => null,
       type: 'actions',
       getActions: (params: GridRowParams) => {
-        return [
-          <GridActionsCellItem
-            icon={
-              <PencilIcon
-                title={t('resourceadm.dashboard_table_row_edit')}
-                className={cn(classes.editLink)}
-              />
-            }
-            label={t('resourceadm.dashboard_table_row_edit')}
-            key={`dashboard.edit_resource${params.row.identifier}`}
-            onClick={() => onClickEditResource(params.row.identifier)}
-            showInMenu={false}
-          />,
-        ];
+        const existsInGitea = params.row.environments.some((env: string) => env === 'gitea');
+        if (existsInGitea) {
+          return [
+            <GridActionsCellItem
+              icon={
+                <PencilIcon
+                  title={t('resourceadm.dashboard_table_row_edit')}
+                  className={classes.editLink}
+                />
+              }
+              label={t('resourceadm.dashboard_table_row_edit')}
+              key={`dashboard.edit_resource${params.row.identifier}`}
+              onClick={() => onClickEditResource(params.row.identifier)}
+              showInMenu={false}
+            />,
+          ];
+        } else if (!!onClickImportResource) {
+          return (
+            <GridActionsCellItem
+              icon={
+                <DownloadIcon
+                  title={t('resourceadm.dashboard_table_row_import')}
+                  className={classes.editLink}
+                />
+              }
+              label={t('resourceadm.dashboard_table_row_import')}
+              key={`dashboard.import_resource${params.row.identifier}`}
+              onClick={() => onClickImportResource(params.row.identifier, params.row.identifier)}
+              showInMenu={false}
+            />
+          );
+        } else {
+          return [];
+        }
       },
     },
   ];
