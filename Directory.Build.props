@@ -1,6 +1,6 @@
 <Project>
     <ItemGroup>
-        <PackageReference Include="CSharpier.MsBuild" Version="0.28.1">
+        <PackageReference Include="CSharpier.MsBuild" Version="0.28.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>
