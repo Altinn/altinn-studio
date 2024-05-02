@@ -32,6 +32,11 @@ namespace Altinn.App.Models.modell2
     [JsonPropertyName("personer")]
     public List<personer> personer { get; set; }
 
+    [XmlElement("questions", Order = 5)]
+    [JsonProperty("questions")]
+    [JsonPropertyName("questions")]
+    public List<questions> questions { get; set; }
+
   }
 
   public class personer
@@ -73,6 +78,31 @@ namespace Altinn.App.Models.modell2
     [JsonProperty("fødselsdato")]
     [JsonPropertyName("fødselsdato")]
     public string fødselsdato { get; set; }
+
+  }
+
+  public class questions
+  {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId()
+    {
+      return AltinnRowId != default;
+    }
+
+    [XmlElement("Id", Order = 1)]
+    [JsonProperty("Id")]
+    [JsonPropertyName("Id")]
+    public string Id { get; set; }
+
+    [XmlElement("Answer", Order = 2)]
+    [JsonProperty("Answer")]
+    [JsonPropertyName("Answer")]
+    public string Answer { get; set; }
 
   }
 }
