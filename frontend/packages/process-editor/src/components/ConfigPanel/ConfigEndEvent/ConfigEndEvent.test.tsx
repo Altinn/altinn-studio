@@ -102,10 +102,7 @@ describe('ConfigEndEvent', () => {
     expect(updateLayoutSetMock).toHaveBeenCalledTimes(1);
     expect(updateLayoutSetMock).toHaveBeenCalledWith({
       layoutSetIdToUpdate: existingCustomReceiptLayoutSetName,
-      layoutSetConfig: {
-        id: newCustomReceiptLayoutSetName,
-        tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
-      },
+      newLayoutSetId: newCustomReceiptLayoutSetName,
     });
   });
   it.each([

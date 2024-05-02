@@ -1,0 +1,10 @@
+.buttons {
+  display: flex;
+  gap: var(--fds-spacing-3);
+  padding-top: var(--fds-spacing-3);
+}
+
+.dataTypeSelect {
+  padding-left: var(--fds-spacing-3);
+  padding-right: var(--fds-spacing-3);
+}

@@ -13,10 +13,12 @@ import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { type SyncSuccess, type SyncError, SyncUtils } from './syncUtils';
 import { useUpdateLayoutSetMutation } from '../../hooks/mutations/useUpdateLayoutSetMutation';
 import { useAddLayoutSetMutation } from '../../hooks/mutations/useAddLayoutSetMutation';
-import { type MetaDataForm } from '@altinn/process-editor/contexts/BpmnConfigPanelContext';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useDeleteLayoutSetMutation } from '../../hooks/mutations/useDeleteLayoutSetMutation';
+import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
+import { useUpdateProcessDataTypeMutation } from '../../hooks/mutations/useUpdateProcessDataTypeMutation';
+import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 
 enum SyncClientsName {
   FileSyncSuccess = 'FileSyncSuccess',
@@ -41,10 +43,19 @@ export const ProcessEditor = (): React.ReactElement => {
     org,
     app,
   );
+  const { mutate: mutateDataType, isPending: updateDataTypePending } =
+    useUpdateProcessDataTypeMutation(org, app);
   const existingCustomReceiptName: string | undefined = useCustomReceiptLayoutSetName(org, app);
+  const { data: availableDataModelIds, isPending: availableDataModelIdsPending } =
+    useAppMetadataModelIdsQuery(org, app);
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
   const pendingApiOperations: boolean =
-    mutateBpmnPending || mutateLayoutSetPending || addLayoutSetPending || deleteLayoutSetPending;
+    mutateBpmnPending ||
+    mutateLayoutSetPending ||
+    addLayoutSetPending ||
+    deleteLayoutSetPending ||
+    updateDataTypePending ||
+    availableDataModelIdsPending;
 
   const { onWSMessageReceived } = useWebSocket({
     webSocketUrl: processEditorWebSocketHub(),
@@ -66,7 +77,7 @@ export const ProcessEditor = (): React.ReactElement => {
     }
   });
 
-  const saveBpmnXml = async (xml: string, metaData: MetaDataForm): Promise<void> => {
+  const saveBpmnXml = async (xml: string, metaData?: MetaDataForm): Promise<void> => {
     const formData = new FormData();
     formData.append('content', new Blob([xml]), 'process.bpmn');
     formData.append('metadata', JSON.stringify(metaData));
@@ -88,6 +99,7 @@ export const ProcessEditor = (): React.ReactElement => {
   // TODO: Handle error will be handled better after issue #10735 is resolved
   return (
     <ProcessEditorImpl
+      availableDataModelIds={availableDataModelIds}
       layoutSets={layoutSets}
       pendingApiOperations={pendingApiOperations}
       existingCustomReceiptLayoutSetName={existingCustomReceiptName}
@@ -96,6 +108,7 @@ export const ProcessEditor = (): React.ReactElement => {
       mutateLayoutSet={mutateLayoutSet}
       appLibVersion={appLibData.backendVersion}
       bpmnXml={hasBpmnQueryError ? null : bpmnXml}
+      mutateDataType={mutateDataType}
       saveBpmn={saveBpmnXml}
     />
   );

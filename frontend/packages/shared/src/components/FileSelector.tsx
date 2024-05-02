@@ -5,22 +5,22 @@ import { UploadIcon } from '@studio/icons';
 import * as testids from '../../../../testing/testids';
 
 export interface IFileSelectorProps {
-  submitHandler: (file: FormData, fileName: string) => void;
-  busy: boolean;
-  formFileName: string;
   accept?: string;
+  busy: boolean;
   disabled?: boolean;
+  formFileName: string;
   submitButtonRenderer?: (fileInputClickHandler: (event: any) => void) => JSX.Element;
+  submitHandler: (file: FormData, fileName: string) => void;
 }
 
-function FileSelector({
-  accept,
-  formFileName,
+export const FileSelector = ({
+  accept = undefined,
   busy,
   disabled,
-  submitHandler,
+  formFileName,
   submitButtonRenderer,
-}: IFileSelectorProps) {
+  submitHandler,
+}: IFileSelectorProps) => {
   const { t } = useTranslation();
   const defaultSubmitButtonRenderer = (fileInputClickHandler: (event: any) => void) => (
     <StudioButton
@@ -69,9 +69,4 @@ function FileSelector({
       {(submitButtonRenderer ?? defaultSubmitButtonRenderer)(() => fileInput?.current?.click())}
     </form>
   );
-}
-
-export default FileSelector;
-FileSelector.defaultProps = {
-  accept: undefined,
 };
