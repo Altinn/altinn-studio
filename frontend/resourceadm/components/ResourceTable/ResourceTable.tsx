@@ -150,7 +150,7 @@ export const ResourceTable = ({
               }
               label={t('resourceadm.dashboard_table_row_import')}
               key={`dashboard.import_resource${params.row.identifier}`}
-              onClick={() => onClickImportResource(params.row.identifier, params.row.identifier)}
+              onClick={() => onClickImportResource(params.row.identifier, params.row.environments)}
               showInMenu={false}
             />
           );

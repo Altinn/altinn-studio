@@ -19,8 +19,18 @@ export const ImportAltinn3ResourceModal = forwardRef<
 
   const [selectedEnv, setSelectedEnv] = useState<EnvId | null>();
 
+  const onCloseModal = (): void => {
+    setSelectedEnv(null);
+    onClose();
+  };
+
+  const onImportResource = (): void => {
+    setSelectedEnv(null);
+    onImport(selectedEnv);
+  };
+
   return (
-    <Modal ref={ref} onClose={onClose}>
+    <Modal ref={ref} onClose={onCloseModal}>
       <Modal.Header>{t('resourceadm.dashboard_import_environment_header')}</Modal.Header>
       <Modal.Content>
         <Radio.Group
@@ -36,14 +46,10 @@ export const ImportAltinn3ResourceModal = forwardRef<
         </Radio.Group>
       </Modal.Content>
       <Modal.Footer>
-        <StudioButton
-          variant='primary'
-          disabled={!selectedEnv}
-          onClick={() => onImport(selectedEnv)}
-        >
+        <StudioButton variant='primary' disabled={!selectedEnv} onClick={onImportResource}>
           {t('resourceadm.dashboard_import_environment_confirm')}
         </StudioButton>
-        <StudioButton variant='tertiary' onClick={onClose}>
+        <StudioButton variant='tertiary' onClick={onCloseModal}>
           {t('general.cancel')}
         </StudioButton>
       </Modal.Footer>

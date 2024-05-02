@@ -64,6 +64,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
   };
 
   const handleImportResource = (resourceId: string, env: EnvId) => {
+    importAltinn3ResourceModalRef.current?.close();
     const payload = {
       resourceId: resourceId,
       environment: env,
@@ -188,10 +189,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
         ref={importAltinn3ResourceModalRef}
         availableEnvs={importData?.availableEnvs ?? []}
         onClose={() => importAltinn3ResourceModalRef.current?.close()}
-        onImport={(selectedEnv) => {
-          handleImportResource(importData.resourceId, selectedEnv);
-          setImportData(null);
-        }}
+        onImport={(selectedEnv) => handleImportResource(importData.resourceId, selectedEnv)}
       />
     </div>
   );
