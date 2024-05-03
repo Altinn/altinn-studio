@@ -130,8 +130,8 @@ describe('ResourceTable', () => {
     const user = userEvent.setup();
     render(<ResourceTable {...defaultProps} />);
 
-    const [editButton] = screen.getAllByText(textMock('resourceadm.dashboard_table_row_import'));
-    await user.click(editButton);
+    const [importButton] = screen.getAllByText(textMock('resourceadm.dashboard_table_row_import'));
+    await user.click(importButton);
 
     expect(mockOnClickImportResource).toHaveBeenCalled();
   });

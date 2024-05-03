@@ -17,7 +17,7 @@ export const ImportAltinn3ResourceModal = forwardRef<
 >(({ availableEnvs, onClose, onImport }, ref): React.JSX.Element => {
   const { t } = useTranslation();
 
-  const [selectedEnv, setSelectedEnv] = useState<EnvId | null>();
+  const [selectedEnv, setSelectedEnv] = useState<EnvId | null>(null);
 
   const onCloseModal = (): void => {
     setSelectedEnv(null);
@@ -26,7 +26,7 @@ export const ImportAltinn3ResourceModal = forwardRef<
 
   const onImportResource = (): void => {
     setSelectedEnv(null);
-    onImport(selectedEnv);
+    onImport(selectedEnv as EnvId);
   };
 
   return (
@@ -35,7 +35,7 @@ export const ImportAltinn3ResourceModal = forwardRef<
       <Modal.Content>
         <Radio.Group
           legend={t('resourceadm.dashboard_import_environment_radio_header')}
-          value={selectedEnv}
+          value={selectedEnv ?? '-'} // bug: default value of radio cannot be null or undefined; that will cause the component to be uncontrolled until a value is set
           onChange={(newEnv: string) => setSelectedEnv(newEnv as EnvId)}
         >
           {availableEnvs.map((env) => (

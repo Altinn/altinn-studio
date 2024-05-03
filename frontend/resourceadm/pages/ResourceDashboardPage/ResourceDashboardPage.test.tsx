@@ -1,9 +1,9 @@
 import React from 'react';
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { act, render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { ResourceDashboardPage } from './ResourceDashboardPage';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
+import type { Resource, ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -12,7 +12,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { Organization } from 'app-shared/types/Organization';
-import { organization } from 'app-shared/mocks/mocks';
+import { environment, organization } from 'app-shared/mocks/mocks';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
 
 const mockResourceListItem1: ResourceListItem = {
@@ -53,7 +53,7 @@ const mockResourceListItem5: ResourceListItem = {
   lastChanged: new Date('2023-08-30'),
   hasPolicy: false,
   identifier: 'r5',
-  environments: ['gitea'],
+  environments: ['tt02'],
 };
 const mockResourceList: ResourceListItem[] = [
   mockResourceListItem1,
@@ -63,8 +63,10 @@ const mockResourceList: ResourceListItem[] = [
   mockResourceListItem5,
 ];
 
+const mockedNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockedNavigate,
   useParams: () => ({
     selectedContext: 'ttd',
   }),
@@ -269,6 +271,54 @@ describe('ResourceDashBoardPage', () => {
     renderResourceDashboardPage({ getRepoStatus });
 
     await screen.findByText(textMock('merge_conflict.headline'));
+  });
+
+  it('should import resource from chosen test environment', async () => {
+    const user = userEvent.setup();
+    const listItem = {
+      ...mockResourceListItem5,
+      environments: ['at22', 'tt02'],
+    };
+    const getResourceList = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<ResourceListItem[]>([listItem]));
+    const importResourceFromAltinn3 = jest.fn().mockImplementation(() => Promise.resolve({}));
+    renderResourceDashboardPage({ getResourceList, importResourceFromAltinn3 });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
+    );
+
+    const [importButton] = screen.getAllByText(textMock('resourceadm.dashboard_table_row_import'));
+    await user.click(importButton);
+
+    const at22radio = screen.getByRole('radio', { name: textMock('resourceadm.deploy_at22_env') });
+    await user.click(at22radio);
+
+    const confirmImportButton = screen.getByRole('button', {
+      name: textMock('resourceadm.dashboard_import_environment_confirm'),
+    });
+    await user.click(confirmImportButton);
+
+    expect(mockedNavigate).toHaveBeenCalled();
+  });
+
+  it('should navigate to imported resource from only available test environment', async () => {
+    const user = userEvent.setup();
+    const getResourceList = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
+    const importResourceFromAltinn3 = jest.fn().mockImplementation(() => Promise.resolve({}));
+    renderResourceDashboardPage({ getResourceList, importResourceFromAltinn3 });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
+    );
+
+    const [importButton] = screen.getAllByText(textMock('resourceadm.dashboard_table_row_import'));
+    await user.click(importButton);
+
+    expect(mockedNavigate).toHaveBeenCalled();
   });
 });
 

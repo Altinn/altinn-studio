@@ -75,10 +75,10 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
       onSuccess: (data: Resource) => {
         toast.success(
           t('resourceadm.dashboard_import_resource_success', {
-            resourceName: data.title.nb,
+            resourceName: data.title?.nb,
           }),
         );
-        navigate(getResourcePageURL(selectedContext, repo, resourceId, 'about'));
+        handleNavigateToResource(resourceId);
       },
     });
   };
