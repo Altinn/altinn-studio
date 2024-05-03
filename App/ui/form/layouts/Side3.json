@@ -19,8 +19,11 @@
           "person-etternavn",
           "person-alder",
           "person-fodselsdato",
-          "repeatingParagraph"
-        ]
+          "repeatingParagraph",
+          "fileUploadSingle",
+          "fileUploadMulti"
+        ],
+        "tableHeaders": ["person-fornavn", "person-etternavn", "person-alder"]
       },
       {
         "id": "person-fornavn",
@@ -97,6 +100,56 @@
         "textResourceBindings": {
           "title": "repeatingParagraph"
         }
+      },
+      {
+        "id": "fileUploadSingle",
+        "type": "FileUploadWithTag",
+        "textResourceBindings": {
+          "title": "Kopi av legitimasjon"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell2",
+            "property": "personer.legitimasjon"
+          }
+        },
+        "displayMode": "simple",
+        "options": [
+          {
+            "label": "Førerkort",
+            "value": "drivers-licence"
+          },
+          {
+            "label": "Pass",
+            "value": "passport"
+          },
+          {
+            "label": "Bankkort",
+            "value": "credit-card"
+          }
+        ],
+        "validFileEndings": [".jpg", ".png", ".pdf"],
+        "maxFileSizeInMB": 20,
+        "maxNumberOfAttachments": 1,
+        "minNumberOfAttachments": 0
+      },
+      {
+        "id": "fileUploadMulti",
+        "type": "FileUpload",
+        "textResourceBindings": {
+          "title": "Andre vedlegg"
+        },
+        "dataModelBindings": {
+          "list": {
+            "dataType": "modell2",
+            "property": "personer.vedlegg"
+          }
+        },
+        "displayMode": "list",
+        "validFileEndings": [".pdf"],
+        "maxFileSizeInMB": 20,
+        "maxNumberOfAttachments": 5,
+        "minNumberOfAttachments": 0
       },
       {
         "id": "navbuttons3",
