@@ -3,7 +3,6 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.AnsattPorten;
-using Altinn.Studio.Designer.Infrastructure.AnsattPortenIntegration;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 

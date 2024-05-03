@@ -2,8 +2,6 @@ namespace Altinn.Studio.Designer.Configuration;
 
 public class OidcSettings
 {
-    public bool Enabled { get; set; }
-
     public int CookieExpiryTimeInSeconds { get; set; } = 120;
     public string Authority { get; set; }
     public string ClientId { get; set; }

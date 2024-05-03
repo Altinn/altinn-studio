@@ -53,7 +53,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddHttpClient<IPolicyOptions, PolicyOptionsClient>();
             services.AddHttpClient<IResourceRegistryOptions, ResourceRegistryOptionsClients>();
             services.AddHttpClient<IAltinn2MetadataClient, Altinn2MetadataClient>();
-            services.AddAnsattPortenHttpClient(config);
+            services.AddMaskinPortenHttpClient(config);
 
             return services;
         }
@@ -116,7 +116,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 .AddHttpMessageHandler<PlatformBearerTokenHandler>()
                 .AddHttpMessageHandler<EnsureSuccessHandler>();
 
-        private static IHttpClientBuilder AddAnsattPortenHttpClient(this IServiceCollection services, IConfiguration config)
+        private static IHttpClientBuilder AddMaskinPortenHttpClient(this IServiceCollection services, IConfiguration config)
         {
             services.AddScoped<MaskinPortenTokenDelegatingHandler>();
             services.Configure<MaskinPortenSettings>(config.GetSection(nameof(MaskinPortenSettings)));

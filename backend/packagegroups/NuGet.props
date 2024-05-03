@@ -38,6 +38,7 @@
     <PackageReference Update="MediatR" Version="12.2.0" />
     <PackageReference Update="IdentityModel" Version="7.0.0" />
     <PackageReference Update="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.4" />
+    <PackageReference Update="Microsoft.FeatureManagement.AspNetCore" Version="3.2.0" />
   </ItemGroup>
 
   <ItemGroup Label="Packages used for testing">
