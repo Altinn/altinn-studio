@@ -18,7 +18,7 @@ export const useTableSorting = (rows: Rows) => {
     }
   };
 
-  let sortedRows;
+  let sortedRows: Rows;
   if (sortColumn !== null) {
     sortedRows = [...rows].sort((a, b) => {
       const columnA = a[sortColumn];

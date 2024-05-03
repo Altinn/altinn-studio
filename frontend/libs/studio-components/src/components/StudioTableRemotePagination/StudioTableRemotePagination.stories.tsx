@@ -27,7 +27,10 @@ export const Preview: Story = (args) => {
 
   const rowsToRender = getRowsToRender(currentPage, pageSize, sortedRows);
   const totalPages = Math.ceil(rows.length / pageSize);
-  if (rowsToRender.length === 0) setCurrentPage(1);
+
+  if (!rowsToRender.length && (sortedRows.length || rows.length)) {
+    setCurrentPage(1);
+  }
 
   const paginationProps = {
     currentPage,
@@ -36,7 +39,7 @@ export const Preview: Story = (args) => {
     pageSizeLabel: 'Rows per page',
     onPageChange: setCurrentPage,
     onPageSizeChange: setPageSize,
-    itemLabel: (num) => `Page ${num}`,
+    itemLabel: (num: number) => `Page ${num}`,
     nextButtonText: 'Next',
     previousButtonText: 'Previous',
   };

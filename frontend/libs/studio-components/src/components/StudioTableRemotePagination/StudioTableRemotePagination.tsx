@@ -36,8 +36,8 @@ export const StudioTableRemotePagination = forwardRef<
   HTMLTableElement,
   StudioTableRemotePaginationProps
 >(({ columns, rows, size = 'medium', onSortClick, pagination }, ref): React.ReactElement => {
-  const isSortable = !!onSortClick;
-  const isPaginationActive = !!pagination;
+  const isSortable = !!onSortClick && !!rows.length;
+  const isPaginationActive = !!pagination && !!rows.length;
 
   const {
     currentPage,

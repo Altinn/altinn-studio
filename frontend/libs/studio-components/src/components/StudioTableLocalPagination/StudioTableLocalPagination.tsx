@@ -36,7 +36,10 @@ export const StudioTableLocalPagination = forwardRef<
     rowsToRender = getRowsToRender(currentPage, pageSize, rows);
   }
 
-  if (rowsToRender.length === 0) setCurrentPage(1);
+  if (!rowsToRender.length && (sortedRows.length || rows.length)) {
+    setCurrentPage(1);
+  }
+
   const totalPages = Math.ceil(rows.length / pageSize);
 
   const paginationProps = pagination && {
