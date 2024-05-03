@@ -48,8 +48,8 @@
           "alternatives": [5, 10],
           "default": 5
         },
-        "mapping": {
-          "listsearch": "search"
+        "queryParameters": {
+          "search": ["dataModel", "listsearch", "modell1"]
         },
         "required": true
       },
