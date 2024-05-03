@@ -1,3 +1,4 @@
+using Altinn.App.Actions;
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Core;
@@ -19,6 +20,8 @@ void RegisterCustomAppServices(
     // Register your apps custom service implementations here.
     services.AddTransient<IAppOptionsProvider, IndustryOptionsProvider>();
     services.AddTransient<IDataProcessor, DataProcessor>();
+    services.AddTransient<IInstantiationProcessor, InstantiationProcessor>();
+    services.AddTransient<IUserAction, RandomAction>();
 }
 
 // ###########################################################################

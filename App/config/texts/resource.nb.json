@@ -79,6 +79,28 @@
           "defaultValue": "_alder_"
         }
       ]
+    },
+    {
+      "id": "question-1",
+      "value": "Gjør du leksene dine?"
+    },
+    {
+      "id": "question-2",
+      "value": "Fungerer kalkulatoren din?"
+    },
+    {
+      "id": "question-3",
+      "value": "Er pulten din ryddig?"
+    },
+    {
+      "id": "likert-row-title",
+      "value": "{0}",
+      "variables": [
+        {
+          "key": "questions[{0}].Id",
+          "dataSource": "dataModel.modell2"
+        }
+      ]
     }
   ]
 }

@@ -1,0 +1,87 @@
+{
+  "$schema": "http://localhost:3000/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "rnd-num",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Tilfeldig tall"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell1",
+            "property": "randomnum"
+          }
+        },
+        "readOnly": true,
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "rnd-char",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Tilfeldig bokstaver"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell2",
+            "property": "randomchar"
+          }
+        },
+        "readOnly": true,
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "should-succeed",
+        "type": "Checkboxes",
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell2",
+            "property": "shouldsucceed"
+          }
+        },
+        "options": [
+          {
+            "label": "Vellykket?",
+            "value": "yes"
+          }
+        ]
+      },
+      {
+        "id": "custom-button",
+        "type": "CustomButton",
+        "textResourceBindings": {
+          "title": "Få tilfeldige verdier"
+        },
+        "buttonStyle": "secondary",
+        "actions": [{ "id": "random", "type": "ServerAction" }]
+      },
+      {
+        "id": "buttons",
+        "type": "ButtonGroup",
+        "children": ["navbuttons", "submit"]
+      },
+      {
+        "id": "navbuttons",
+        "showBackButton": true,
+        "textResourceBindings": {
+          "next": "Neste",
+          "back": "Forrige"
+        },
+        "type": "NavigationButtons"
+      },
+      {
+        "id": "submit",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Send inn"
+        }
+      }
+    ]
+  }
+}

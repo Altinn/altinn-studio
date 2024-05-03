@@ -10,6 +10,9 @@
       <bpmn:extensionElements>
         <altinn:taskExtension>
           <altinn:taskType>data</altinn:taskType>
+          <altinn:actions>
+            <altinn:action type="serverAction">random</altinn:action>
+          </altinn:actions>
         </altinn:taskExtension>
       </bpmn:extensionElements>
     </bpmn:task>

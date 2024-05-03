@@ -3,25 +3,45 @@
   "data": {
     "layout": [
       {
-        "id": "buttons",
-        "type": "ButtonGroup",
-        "children": ["navbuttons", "submit"]
+        "id": "likert",
+        "type": "Likert",
+        "textResourceBindings": {
+          "title": "Likert test",
+          "questions": "likert-row-title"
+        },
+        "dataModelBindings": {
+          "questions": {
+            "dataType": "modell2",
+            "property": "questions"
+          },
+          "answer": {
+            "dataType": "modell2",
+            "property": "questions.Answer"
+          }
+        },
+        "options": [
+          {
+            "label": "I liten grad",
+            "value": 0
+          },
+          {
+            "label": "Middels",
+            "value": 1
+          },
+          {
+            "label": "I stor grad",
+            "value": 2
+          }
+        ]
       },
       {
-        "id": "navbuttons",
+        "id": "navbuttons4",
         "showBackButton": true,
         "textResourceBindings": {
           "next": "Neste",
           "back": "Forrige"
         },
         "type": "NavigationButtons"
-      },
-      {
-        "id": "submit",
-        "type": "Button",
-        "textResourceBindings": {
-          "title": "Send inn"
-        }
       }
     ]
   }
