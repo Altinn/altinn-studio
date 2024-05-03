@@ -157,7 +157,7 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet]
         [Route("designer/api/{org}/resources/resourcelist")]
-        public async Task<ActionResult<List<ListviewServiceResource>>> GetRepositoryResourceList(string org)
+        public async Task<ActionResult<List<ListviewServiceResource>>> GetRepositoryResourceList(string org, [FromQuery] bool includeEnvResources = false)
         {
             string repository = string.Format("{0}-resources", org);
             List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repository);
@@ -171,30 +171,33 @@ namespace Altinn.Studio.Designer.Controllers
                 listviewServiceResources.Add(listviewResource);
             }
 
-            foreach (string environment in _resourceRegistrySettings.Keys)
+            if (includeEnvResources == true)
             {
-                List<ServiceResource> environmentResources = await _resourceRegistry.GetResourceList(environment, false);
-                IEnumerable<ServiceResource> environmentResourcesForOrg = environmentResources.Where(x => 
-                    x.HasCompetentAuthority?.Orgcode != null && 
-                    x.HasCompetentAuthority.Orgcode.Equals(org, StringComparison.OrdinalIgnoreCase)
-                );
-
-                foreach (ServiceResource resource in environmentResourcesForOrg)
+                foreach (string environment in _resourceRegistrySettings.Keys)
                 {
-                    ListviewServiceResource listResource = listviewServiceResources.FirstOrDefault(x => x.Identifier == resource.Identifier);
-                    if (listResource == null) 
+                    List<ServiceResource> environmentResources = await _resourceRegistry.GetResourceList(environment, false);
+                    IEnumerable<ServiceResource> environmentResourcesForOrg = environmentResources.Where(x =>
+                        x.HasCompetentAuthority?.Orgcode != null &&
+                        x.HasCompetentAuthority.Orgcode.Equals(org, StringComparison.OrdinalIgnoreCase)
+                    );
+
+                    foreach (ServiceResource resource in environmentResourcesForOrg)
                     {
-                        listResource = new ListviewServiceResource
+                        ListviewServiceResource listResource = listviewServiceResources.FirstOrDefault(x => x.Identifier == resource.Identifier);
+                        if (listResource == null)
                         {
-                            Identifier = resource.Identifier,
-                            Title = resource.Title,
-                            CreatedBy = "",
-                            LastChanged = null,
-                            Environments = []
-                        };
-                        listviewServiceResources.Add(listResource);
+                            listResource = new ListviewServiceResource
+                            {
+                                Identifier = resource.Identifier,
+                                Title = resource.Title,
+                                CreatedBy = "",
+                                LastChanged = null,
+                                Environments = []
+                            };
+                            listviewServiceResources.Add(listResource);
+                        }
+                        listResource.Environments.Add(environment);
                     }
-                    listResource.Environments.Add(environment);
                 }
             }
 
@@ -309,7 +312,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string repository = string.Format("{0}-resources", org);
             ServiceResource resource = await _resourceRegistry.GetResource(resourceId, environment);
-            if (resource == null) 
+            if (resource == null)
             {
                 return new StatusCodeResult(404);
             }
