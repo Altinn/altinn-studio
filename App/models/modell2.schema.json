@@ -82,7 +82,7 @@
           "type": "string"
         },
         "age": {
-          "type": "integer"
+          "type": "string"
         },
         "profession": {
           "type": "string"
