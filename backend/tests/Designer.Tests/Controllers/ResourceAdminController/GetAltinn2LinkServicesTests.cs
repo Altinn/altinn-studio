@@ -37,7 +37,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
                     ExternalServiceCode = "Test2",
                     ExternalServiceEditionCode = 123
                 });
-                ResourceRegistryMock.Setup(r => r.GetResourceList(It.IsAny<string>())).ReturnsAsync(new List<ServiceResource>());
+                ResourceRegistryMock.Setup(r => r.GetResourceList(It.IsAny<string>(), It.IsAny<bool>())).ReturnsAsync(new List<ServiceResource>());
                 Altinn2MetadataClientMock.Setup(r => r.AvailableServices(It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(services);
 
                 // Act
