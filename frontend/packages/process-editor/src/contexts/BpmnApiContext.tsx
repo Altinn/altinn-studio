@@ -7,7 +7,7 @@ export type BpmnApiContextProps = {
   availableDataModelIds: string[];
   layoutSets: LayoutSets;
   pendingApiOperations: boolean;
-  existingCustomReceiptLayoutSetName: string | undefined;
+  existingCustomReceiptLayoutSetId: string | undefined;
   addLayoutSet: (data: { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig }) => void;
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
   mutateLayoutSet: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
@@ -22,9 +22,10 @@ export type BpmnApiContextProviderProps = {
   availableDataModelIds: string[];
   layoutSets: LayoutSets;
   pendingApiOperations: boolean;
-  existingCustomReceiptLayoutSetName: string | undefined;
+  existingCustomReceiptLayoutSetId: string | undefined;
   addLayoutSet: (data: { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig }) => void;
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
+  // Todo - rename below
   mutateLayoutSet: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
   mutateDataType: (data: DataTypeChange) => void;
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
@@ -34,7 +35,7 @@ export const BpmnApiContextProvider = ({
   availableDataModelIds,
   layoutSets,
   pendingApiOperations,
-  existingCustomReceiptLayoutSetName,
+  existingCustomReceiptLayoutSetId,
   addLayoutSet,
   deleteLayoutSet,
   mutateLayoutSet,
@@ -47,7 +48,7 @@ export const BpmnApiContextProvider = ({
         availableDataModelIds,
         layoutSets,
         pendingApiOperations,
-        existingCustomReceiptLayoutSetName,
+        existingCustomReceiptLayoutSetId,
         addLayoutSet,
         deleteLayoutSet,
         mutateLayoutSet,

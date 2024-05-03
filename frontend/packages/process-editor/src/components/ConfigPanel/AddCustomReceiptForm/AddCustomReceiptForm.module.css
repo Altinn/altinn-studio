@@ -1,0 +1,16 @@
+.buttonWrapper {
+  display: flex;
+  gap: var(--fds-spacing-2);
+}
+
+.goToCreatePageWrapper {
+  margin-top: var(--fds-spacing-6);
+  border-radius: 5px;
+  padding-block: var(--fds-spacing-3);
+  padding-inline: var(--fds-spacing-4);
+  background-color: var(--fds-semantic-surface-action-second-subtle);
+}
+
+.goToCreateButton {
+  margin-top: var(--fds-spacing-4);
+}

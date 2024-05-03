@@ -45,7 +45,9 @@ export const ProcessEditor = (): React.ReactElement => {
   );
   const { mutate: mutateDataType, isPending: updateDataTypePending } =
     useUpdateProcessDataTypeMutation(org, app);
-  const existingCustomReceiptName: string | undefined = useCustomReceiptLayoutSetName(org, app);
+
+  const existingCustomReceiptId: string | undefined = useCustomReceiptLayoutSetName(org, app);
+
   const { data: availableDataModelIds, isPending: availableDataModelIdsPending } =
     useAppMetadataModelIdsQuery(org, app);
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
@@ -102,7 +104,7 @@ export const ProcessEditor = (): React.ReactElement => {
       availableDataModelIds={availableDataModelIds}
       layoutSets={layoutSets}
       pendingApiOperations={pendingApiOperations}
-      existingCustomReceiptLayoutSetName={existingCustomReceiptName}
+      existingCustomReceiptLayoutSetId={existingCustomReceiptId}
       addLayoutSet={addLayoutSet}
       deleteLayoutSet={deleteLayoutSet}
       mutateLayoutSet={mutateLayoutSet}

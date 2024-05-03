@@ -19,7 +19,7 @@ export type ProcessEditorProps = {
   availableDataModelIds: BpmnApiContextProps['availableDataModelIds'];
   layoutSets: BpmnApiContextProps['layoutSets'];
   pendingApiOperations: boolean;
-  existingCustomReceiptLayoutSetName: BpmnApiContextProps['existingCustomReceiptLayoutSetName'];
+  existingCustomReceiptLayoutSetId: BpmnApiContextProps['existingCustomReceiptLayoutSetId'];
   addLayoutSet: BpmnApiContextProps['addLayoutSet'];
   deleteLayoutSet: BpmnApiContextProps['deleteLayoutSet'];
   mutateLayoutSet: BpmnApiContextProps['mutateLayoutSet'];
@@ -33,7 +33,7 @@ export const ProcessEditor = ({
   availableDataModelIds,
   layoutSets,
   pendingApiOperations,
-  existingCustomReceiptLayoutSetName,
+  existingCustomReceiptLayoutSetId,
   addLayoutSet,
   deleteLayoutSet,
   mutateLayoutSet,
@@ -56,7 +56,7 @@ export const ProcessEditor = ({
         availableDataModelIds={availableDataModelIds}
         layoutSets={layoutSets}
         pendingApiOperations={pendingApiOperations}
-        existingCustomReceiptLayoutSetName={existingCustomReceiptLayoutSetName}
+        existingCustomReceiptLayoutSetId={existingCustomReceiptLayoutSetId}
         addLayoutSet={addLayoutSet}
         deleteLayoutSet={deleteLayoutSet}
         mutateLayoutSet={mutateLayoutSet}
