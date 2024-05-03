@@ -71,6 +71,9 @@
     },
     "randomchar": {
       "type": "string"
+    },
+    "shouldsucceed": {
+      "type": "string"
     }
   }
 }

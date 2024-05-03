@@ -30,6 +30,7 @@
           </xs:complexType>
         </xs:element>
         <xs:element minOccurs="0" name="randomchar" type="xs:string" />
+        <xs:element minOccurs="0" name="shouldsucceed" type="xs:string" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

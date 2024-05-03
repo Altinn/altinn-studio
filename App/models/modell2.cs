@@ -42,6 +42,11 @@ namespace Altinn.App.Models.modell2
     [JsonPropertyName("randomchar")]
     public string randomchar { get; set; }
 
+    [XmlElement("shouldsucceed", Order = 7)]
+    [JsonProperty("shouldsucceed")]
+    [JsonPropertyName("shouldsucceed")]
+    public string shouldsucceed { get; set; }
+
   }
 
   public class personer
