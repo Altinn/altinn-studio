@@ -51,6 +51,15 @@
             "type": "string",
             "format": "date",
             "formatMinimum": "1900-01-01"
+          },
+          "legitimasjon": {
+            "type": "string"
+          },
+          "vedlegg": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       }

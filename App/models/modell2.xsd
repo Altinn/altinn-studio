@@ -18,6 +18,8 @@
               <xs:element minOccurs="0" name="etternavn" type="xs:string" />
               <xs:element minOccurs="0" name="alder" type="xs:long" />
               <xs:element minOccurs="0" name="fødselsdato" type="xs:date" />
+              <xs:element minOccurs="0" name="legitimasjon" type="xs:string" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="vedlegg" type="xs:string" />
             </xs:sequence>
           </xs:complexType>
         </xs:element>

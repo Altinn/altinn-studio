@@ -94,6 +94,16 @@ namespace Altinn.App.Models.modell2
     [JsonPropertyName("fødselsdato")]
     public string fødselsdato { get; set; }
 
+    [XmlElement("legitimasjon", Order = 5)]
+    [JsonProperty("legitimasjon")]
+    [JsonPropertyName("legitimasjon")]
+    public string legitimasjon { get; set; }
+
+    [XmlElement("vedlegg", Order = 6)]
+    [JsonProperty("vedlegg")]
+    [JsonPropertyName("vedlegg")]
+    public List<string> vedlegg { get; set; }
+
   }
 
   public class questions
