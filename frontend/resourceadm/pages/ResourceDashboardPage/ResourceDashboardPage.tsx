@@ -84,10 +84,10 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
   };
 
   const onClickImportResource = (resourceId: string, envs: EnvId[]): void => {
+    setImportData({ resourceId: resourceId, availableEnvs: envs as EnvId[] });
     if (envs.length === 1) {
       handleImportResource(resourceId, envs[0]);
     } else {
-      setImportData({ resourceId: resourceId, availableEnvs: envs as EnvId[] });
       importAltinn3ResourceModalRef.current.showModal();
     }
   };

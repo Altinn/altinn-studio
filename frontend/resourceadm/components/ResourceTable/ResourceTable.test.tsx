@@ -25,10 +25,10 @@ const mockResourceListItem2: ResourceListItem = {
 const mockResourceListItem3: ResourceListItem = {
   title: { nb: '', en: '', nn: '' },
   createdBy: 'John Doe',
-  lastChanged: new Date('2023-08-30'),
+  lastChanged: null,
   hasPolicy: true,
   identifier: 'resource-3',
-  environments: ['gitea'],
+  environments: ['at22'],
 };
 const mockResourceList: ResourceListItem[] = [
   mockResourceListItem1,
@@ -38,10 +38,12 @@ const mockResourceList: ResourceListItem[] = [
 
 describe('ResourceTable', () => {
   const mockOnClickEditResource = jest.fn();
+  const mockOnClickImportResource = jest.fn();
 
   const defaultProps: ResourceTableProps = {
     list: mockResourceList,
     onClickEditResource: mockOnClickEditResource,
+    onClickImportResource: mockOnClickImportResource,
   };
 
   it('toggles sort order when header is clicked', async () => {
@@ -91,6 +93,13 @@ describe('ResourceTable', () => {
     expect(lastChangedCell).toBeInTheDocument();
   });
 
+  it('displays environments for resource', () => {
+    render(<ResourceTable {...defaultProps} />);
+
+    const environmentsTag = screen.getByText('AT22');
+    expect(environmentsTag).toBeInTheDocument();
+  });
+
   it('navigates to the clicked resource', async () => {
     const user = userEvent.setup();
     render(<ResourceTable {...defaultProps} />);
@@ -99,5 +108,38 @@ describe('ResourceTable', () => {
     await user.click(editButton);
 
     expect(mockOnClickEditResource).toHaveBeenCalled();
+  });
+
+  it('does not display any action if resource cannot be imported or navigated to', () => {
+    render(
+      <ResourceTable
+        {...defaultProps}
+        onClickImportResource={undefined}
+        list={[mockResourceListItem3]}
+      />,
+    );
+
+    const editButton = screen.queryByText(textMock('resourceadm.dashboard_table_row_edit'));
+    const importButton = screen.queryByText(textMock('resourceadm.dashboard_table_row_import'));
+
+    expect(editButton).not.toBeInTheDocument();
+    expect(importButton).not.toBeInTheDocument();
+  });
+
+  it('triggers import when import button is clicked', async () => {
+    const user = userEvent.setup();
+    render(<ResourceTable {...defaultProps} />);
+
+    const [editButton] = screen.getAllByText(textMock('resourceadm.dashboard_table_row_import'));
+    await user.click(editButton);
+
+    expect(mockOnClickImportResource).toHaveBeenCalled();
+  });
+
+  it('should show spinner when importing resource', () => {
+    render(<ResourceTable {...defaultProps} importResourceId={mockResourceListItem3.identifier} />);
+
+    const importSpinner = screen.getByText(textMock('resourceadm.dashboard_table_row_importing'));
+    expect(importSpinner).toBeInTheDocument();
   });
 });

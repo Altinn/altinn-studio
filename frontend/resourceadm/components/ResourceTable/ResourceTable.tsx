@@ -135,7 +135,7 @@ export const ResourceTable = ({
       renderCell: (params) => {
         const existsInGitea = params.row.environments.some((env: string) => env === 'gitea');
         if (existsInGitea) {
-          return [
+          return (
             <GridActionsCellItem
               icon={
                 <PencilIcon
@@ -146,9 +146,8 @@ export const ResourceTable = ({
               label={t('resourceadm.dashboard_table_row_edit')}
               key={`dashboard.edit_resource${params.row.identifier}`}
               onClick={() => onClickEditResource(params.row.identifier)}
-              showInMenu={false}
-            />,
-          ];
+            />
+          );
         } else if (!!onClickImportResource && importResourceId === params.row.identifier) {
           return <Spinner title={t('resourceadm.dashboard_table_row_importing')} />;
         } else if (!!onClickImportResource) {
@@ -164,11 +163,10 @@ export const ResourceTable = ({
               label={t('resourceadm.dashboard_table_row_import')}
               key={`dashboard.import_resource${params.row.identifier}`}
               onClick={() => onClickImportResource(params.row.identifier, params.row.environments)}
-              showInMenu={false}
             />
           );
         } else {
-          return [];
+          return null;
         }
       },
     },
