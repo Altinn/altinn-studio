@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
 
-namespace Altinn.App.Core
+namespace Altinn.App.Options
 {
     public class IndustryOptionsProvider : IAppOptionsProvider
     {

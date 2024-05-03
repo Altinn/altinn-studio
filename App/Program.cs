@@ -1,9 +1,9 @@
 using Altinn.App.Actions;
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
-using Altinn.App.Core;
 using Altinn.App.Core.Features;
 using Altinn.App.logic.DataProcessing;
+using Altinn.App.Options;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -22,6 +22,7 @@ void RegisterCustomAppServices(
     services.AddTransient<IDataProcessor, DataProcessor>();
     services.AddTransient<IInstantiationProcessor, InstantiationProcessor>();
     services.AddTransient<IUserAction, RandomAction>();
+    services.AddTransient<IDataListProvider, PersonListProvider>();
 }
 
 // ###########################################################################

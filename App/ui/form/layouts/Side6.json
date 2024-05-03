@@ -1,0 +1,79 @@
+{
+  "$schema": "http://localhost:3000/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "searchForList",
+        "type": "Input",
+        "variant": "search",
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell1",
+            "property": "listsearch"
+          }
+        },
+        "textResourceBindings": {
+          "title": "Søk"
+        }
+      },
+      {
+        "id": "listComponent",
+        "type": "List",
+        "textResourceBindings": {
+          "title": "Hvem gjelder saken?"
+        },
+        "dataModelBindings": {
+          "name": {
+            "dataType": "modell2",
+            "property": "selectedperson.name"
+          },
+          "age": {
+            "dataType": "modell2",
+            "property": "selectedperson.age"
+          },
+          "profession": {
+            "dataType": "modell2",
+            "property": "selectedperson.profession"
+          }
+        },
+        "summaryBinding": "name",
+        "dataListId": "people",
+        "tableHeaders": {
+          "name": "Navn",
+          "age": "Alder",
+          "profession": "Yrke"
+        },
+        "sortableColumns": ["age"],
+        "pagination": {
+          "alternatives": [5, 10],
+          "default": 5
+        },
+        "mapping": {
+          "listsearch": "search"
+        },
+        "required": true
+      },
+      {
+        "id": "buttons",
+        "type": "ButtonGroup",
+        "children": ["navbuttons", "submit"]
+      },
+      {
+        "id": "navbuttons",
+        "showBackButton": true,
+        "textResourceBindings": {
+          "next": "Neste",
+          "back": "Forrige"
+        },
+        "type": "NavigationButtons"
+      },
+      {
+        "id": "submit",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Send inn"
+        }
+      }
+    ]
+  }
+}
