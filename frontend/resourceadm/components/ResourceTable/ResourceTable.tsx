@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import classes from './ResourceTable.module.css';
 import { PencilIcon, DownloadIcon } from '@studio/icons';
-import { Tag } from '@digdir/design-system-react';
+import { Spinner, Tag } from '@digdir/design-system-react';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
 import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
@@ -18,8 +18,17 @@ export type ResourceTableProps = {
    * @returns void
    */
   onClickEditResource: (id: string) => void;
-
+  /**
+   * Function to be executed when clicking the import resource button
+   * @param id the id of the resource
+   * @param id all environments the resource with given id exists in
+   * @returns void
+   */
   onClickImportResource?: (id: string, availableEnvs: string[]) => void;
+  /**
+   * Id of the resource being imported. Only one resource can be imported at the same time
+   */
+  importResourceId?: string;
 };
 
 /**
@@ -35,6 +44,7 @@ export const ResourceTable = ({
   list,
   onClickEditResource,
   onClickImportResource,
+  importResourceId,
 }: ResourceTableProps): React.JSX.Element => {
   const { t, i18n } = useTranslation();
 
@@ -139,6 +149,8 @@ export const ResourceTable = ({
               showInMenu={false}
             />,
           ];
+        } else if (!!onClickImportResource && importResourceId === params.row.identifier) {
+          return <Spinner title={t('resourceadm.dashboard_table_row_importing')} />;
         } else if (!!onClickImportResource) {
           return (
             <GridActionsCellItem
@@ -148,6 +160,7 @@ export const ResourceTable = ({
                   className={classes.editLink}
                 />
               }
+              disabled={!!importResourceId}
               label={t('resourceadm.dashboard_table_row_import')}
               key={`dashboard.import_resource${params.row.identifier}`}
               onClick={() => onClickImportResource(params.row.identifier, params.row.environments)}

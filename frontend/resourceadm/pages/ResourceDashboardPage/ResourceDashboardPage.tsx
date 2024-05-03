@@ -35,7 +35,8 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
   const { selectedContext, repo } = useUrlParams();
   const { data: organizations } = useOrganizationsQuery();
 
-  const { mutate: importResource } = useImportResourceFromAltinn3Mutation(selectedContext);
+  const { mutate: importResource, isPending: isImportingResource } =
+    useImportResourceFromAltinn3Mutation(selectedContext);
 
   const { t } = useTranslation();
 
@@ -114,6 +115,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
             list={filteredResourceList}
             onClickEditResource={handleNavigateToResource}
             onClickImportResource={onClickImportResource}
+            importResourceId={isImportingResource ? importData?.resourceId : ''}
           />
         </>
       );
