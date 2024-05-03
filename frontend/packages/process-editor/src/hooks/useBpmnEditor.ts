@@ -21,8 +21,14 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const { metaDataFormRef, resetForm } = useBpmnConfigPanelFormContext();
   const { getModeler } = useBpmnModeler();
-  const { addLayoutSet, deleteLayoutSet, saveBpmn, layoutSets } = useBpmnApiContext();
-  //let modelerRef: BpmnModeler | null = null;
+  const {
+    addLayoutSet,
+    deleteLayoutSet,
+    addDataTypeToAppMetadata,
+    deleteDataTypeFromAppMetadata,
+    saveBpmn,
+    layoutSets,
+  } = useBpmnApiContext();
 
   const handleCommandStackChanged = async () => {
     saveBpmn(await getUpdatedXml(), metaDataFormRef.current || null);
@@ -41,6 +47,16 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
         layoutSetConfig: { id: bpmnDetails.id, tasks: [bpmnDetails.id] },
       });
     }
+    if (bpmnDetails.taskType === 'payment') {
+      addDataTypeToAppMetadata({
+        dataTypeId: 'paymentInformation',
+      });
+    }
+    if (bpmnDetails.taskType === 'signing') {
+      addDataTypeToAppMetadata({
+        dataTypeId: 'signingInformation',
+      });
+    }
   };
 
   const handleShapeRemove = (e) => {
@@ -52,6 +68,16 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
           layoutSetIdToUpdate: layoutSetId,
         });
       }
+    }
+    if (bpmnDetails.taskType === 'payment') {
+      deleteDataTypeFromAppMetadata({
+        dataTypeId: 'paymentInformation',
+      });
+    }
+    if (bpmnDetails.taskType === 'signing') {
+      deleteDataTypeFromAppMetadata({
+        dataTypeId: 'signingInformation',
+      });
     }
     setBpmnDetails(null);
   };
@@ -94,11 +120,11 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
       console.log('Canvas reference is not yet available in the DOM.');
     }
     // GetModeler can only be fetched from this hook once since the modeler creates a
-    // new instance and will attach the same canvasRef container to all instances it fetches
+    // new instance and will attach the same canvasRef container to all instances it fetches.
+    // Set modelerRef.current to the Context so that it can be used in other components
     modelerRef.current = getModeler(canvasRef.current);
     initializeEditor();
     initializeBpmnChanges();
-    // set modelerRef.current to the Context so that it can be used in other components
   }, []); // Missing dependencies are not added to avoid getModeler to be called multiple times
 
   useEffect(() => {
