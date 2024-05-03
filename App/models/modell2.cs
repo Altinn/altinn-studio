@@ -128,10 +128,16 @@ namespace Altinn.App.Models.modell2
     [JsonPropertyName("name")]
     public string name { get; set; }
 
+    [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("age", Order = 2)]
     [JsonProperty("age")]
     [JsonPropertyName("age")]
-    public string age { get; set; }
+    public decimal? age { get; set; }
+
+    public bool ShouldSerializeage()
+    {
+      return age.HasValue;
+    }
 
     [XmlElement("profession", Order = 3)]
     [JsonProperty("profession")]
