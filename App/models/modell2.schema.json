@@ -68,6 +68,9 @@
           }
         }
       }
+    },
+    "randomchar": {
+      "type": "string"
     }
   }
 }

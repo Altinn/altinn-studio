@@ -37,6 +37,11 @@ namespace Altinn.App.Models.modell2
     [JsonPropertyName("questions")]
     public List<questions> questions { get; set; }
 
+    [XmlElement("randomchar", Order = 6)]
+    [JsonProperty("randomchar")]
+    [JsonPropertyName("randomchar")]
+    public string randomchar { get; set; }
+
   }
 
   public class personer

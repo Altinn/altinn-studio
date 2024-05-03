@@ -37,6 +37,17 @@ namespace Altinn.App.Models.modell1
     [JsonPropertyName("personer")]
     public List<personer> personer { get; set; }
 
+    [Range(Double.MinValue,Double.MaxValue)]
+    [XmlElement("randomnum", Order = 6)]
+    [JsonProperty("randomnum")]
+    [JsonPropertyName("randomnum")]
+    public decimal? randomnum { get; set; }
+
+    public bool ShouldSerializerandomnum()
+    {
+      return randomnum.HasValue;
+    }
+
   }
 
   public class personer

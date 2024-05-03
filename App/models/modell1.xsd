@@ -19,6 +19,7 @@
             </xs:sequence>
           </xs:complexType>
         </xs:element>
+        <xs:element minOccurs="0" name="randomnum" type="xs:long" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
