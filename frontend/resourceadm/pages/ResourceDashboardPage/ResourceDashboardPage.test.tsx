@@ -1,9 +1,9 @@
 import React from 'react';
-import { act, render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { ResourceDashboardPage } from './ResourceDashboardPage';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import type { Resource, ResourceListItem } from 'app-shared/types/ResourceAdm';
+import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -12,7 +12,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { Organization } from 'app-shared/types/Organization';
-import { environment, organization } from 'app-shared/mocks/mocks';
+import { organization } from 'app-shared/mocks/mocks';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
 
 const mockResourceListItem1: ResourceListItem = {
