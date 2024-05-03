@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
@@ -15,13 +16,13 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
+using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ApplicationLanguage = Altinn.Studio.Designer.Models.ApplicationLanguage;
-using LayoutSets = Altinn.Studio.Designer.Models.LayoutSets;
 
 namespace Altinn.Studio.Designer.Controllers
 {
@@ -150,6 +151,11 @@ namespace Altinn.Studio.Designer.Controllers
             string appNugetVersionString = _appDevelopmentService.GetAppLibVersion(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer)).ToString();
             // This property is populated at runtime by the apps, so we need to mock it here
             applicationMetadata.AltinnNugetVersion = GetMockedAltinnNugetBuildFromVersion(appNugetVersionString);
+            if (altinnAppGitRepository.AppUsesLayoutSets())
+            {
+                LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+                applicationMetadata = SetMockDataTypeIfMissing(applicationMetadata, layoutSets);
+            }
             return Ok(applicationMetadata);
         }
 
@@ -192,7 +198,8 @@ namespace Altinn.Studio.Designer.Controllers
                 string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
                 LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
-                return Ok(layoutSets);
+                LayoutSets layoutSetsWithMockedDataTypes = AddDataTypesToReturnedLayoutSetsIfMissing(layoutSets);
+                return Ok(layoutSetsWithMockedDataTypes);
             }
             catch (NotFoundException)
             {
@@ -236,7 +243,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>layoutsettings</returns>
         [HttpGet]
         [Route("api/layoutsettings/{layoutSetName}")]
-        public async Task<ActionResult<string>> LayoutSettingsForStatefulApps(string org, string app, [FromRoute] string layoutSetName, CancellationToken cancellationToken)
+        public async Task<ActionResult<string>> LayoutSettingsForV4Apps(string org, string app, [FromRoute] string layoutSetName, CancellationToken cancellationToken)
         {
             try
             {
@@ -436,7 +443,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>Json schema for datamodel for the current task</returns>
         [HttpGet]
-        [Route("instances/{partyId}/{instanceGuid}/data/test-datatask-id")]
+        [Route("instances/{partyId}/{instanceGuid}/data/" + PreviewService.MockDataTaskId)]
         public async Task<ActionResult> GetFormData(string org, string app, [FromRoute] int partyId, [FromRoute] string instanceGuid, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
@@ -465,7 +472,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>Json schema for datamodel for the current data task in the process</returns>
         [HttpPut]
-        [Route("instances/{partyId}/{instanceGuid}/data/test-datatask-id")]
+        [Route("instances/{partyId}/{instanceGuid}/data/" + PreviewService.MockDataTaskId)]
         public async Task<ActionResult> UpdateFormData(string org, string app, [FromRoute] int partyId, [FromRoute] string instanceGuid, CancellationToken cancellationToken)
         {
             return await GetFormData(org, app, partyId, instanceGuid, cancellationToken);
@@ -577,7 +584,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <returns>Ok</returns>
         [HttpGet]
-        [Route("instances/{partyId}/{instanceGuId}/data/test-datatask-id/validate")]
+        [Route("instances/{partyId}/{instanceGuId}/data/" + PreviewService.MockDataTaskId + "/validate")]
         public ActionResult ValidateInstanceForDataTask()
         {
             return Ok(new List<string>());
@@ -648,10 +655,18 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("api/jsonschema/{datamodel}")]
         public async Task<ActionResult<string>> Datamodel(string org, string app, [FromRoute] string datamodel, CancellationToken cancellationToken)
         {
-            string modelPath = $"/App/models/{datamodel}.schema.json";
-            string decodedPath = Uri.UnescapeDataString(modelPath);
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            string json = await _schemaModelService.GetSchema(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), decodedPath, cancellationToken);
+            string modelPath = $"/App/models/{datamodel}.schema.json";
+            if (datamodel.StartsWith(PreviewService.MockDataModelIdPrefix))
+            {
+                AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+                ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
+                string existingDataTypeId = applicationMetadata.DataTypes.First(dataType => dataType.AppLogic?.ClassRef is not null).Id;
+                modelPath = $"/App/models/{existingDataTypeId}.schema.json";
+            }
+            string decodedPath = Uri.UnescapeDataString(modelPath);
+            string json = await _schemaModelService.GetSchema(
+                AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), decodedPath, cancellationToken);
             return Ok(json);
         }
 
@@ -684,7 +699,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>A List of form layouts as byte array</returns>
         [HttpGet]
         [Route("api/layouts/{layoutSetName}")]
-        public async Task<ActionResult<Dictionary<string, JsonNode>>> GetFormLayoutsForStatefulApps(string org, string app, [FromRoute] string layoutSetName, CancellationToken cancellationToken)
+        public async Task<ActionResult<Dictionary<string, JsonNode>>> GetFormLayoutsForV4Apps(string org, string app, [FromRoute] string layoutSetName, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
@@ -728,7 +743,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>Rule handler as string or no content if not found</returns>
         [HttpGet]
         [Route("api/rulehandler/{layoutSetName}")]
-        public async Task<ActionResult<string>> GetRuleHandlerStateful(string org, string app, [FromRoute] string layoutSetName, CancellationToken cancellationToken)
+        public async Task<ActionResult<string>> GetRuleHandlerV4(string org, string app, [FromRoute] string layoutSetName, CancellationToken cancellationToken)
         {
             try
             {
@@ -777,7 +792,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>Rule configuration as string or no content if not found</returns>
         [HttpGet]
         [Route("api/ruleconfiguration/{layoutSetName}")]
-        public async Task<ActionResult<string>> GetRuleConfigurationStateful(string org, string app, [FromRoute] string layoutSetName, CancellationToken cancellationToken)
+        public async Task<ActionResult<string>> GetRuleConfigurationV4(string org, string app, [FromRoute] string layoutSetName, CancellationToken cancellationToken)
         {
             try
             {
@@ -887,7 +902,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The options list if it exists, otherwise nothing</returns>
         [HttpGet]
         [Route("instances/{partyId}/{instanceGuid}/datalists/{dataListId}")]
-        public async Task<ActionResult<List<string>>> GetDatalistsForInstance(string org, string app, string dataListId, [FromQuery] string language, [FromQuery] string size, CancellationToken cancellationToken)
+        public ActionResult<List<string>> GetDataListsForInstance(string org, string app, string dataListId, [FromQuery] string language, [FromQuery] string size, CancellationToken cancellationToken)
         {
             // TODO: Should look into whether we can get some actual data here, or if we can make an "informed" mock based on the setup.
             // For now, we just return an empty list.
@@ -937,7 +952,7 @@ namespace Altinn.Studio.Designer.Controllers
             return Ok();
         }
 
-        private string GetSelectedLayoutSetInEditorFromRefererHeader(string refererHeader)
+        private static string GetSelectedLayoutSetInEditorFromRefererHeader(string refererHeader)
         {
             Uri refererUri = new(refererHeader);
             string layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
@@ -945,7 +960,7 @@ namespace Altinn.Studio.Designer.Controllers
             return string.IsNullOrEmpty(layoutSetName) ? null : layoutSetName;
         }
 
-        private string ReplaceIndexToFetchCorrectOrgAppInCshtml(string originalContent)
+        private static string ReplaceIndexToFetchCorrectOrgAppInCshtml(string originalContent)
         {
             // Replace the array indexes in the script in the cshtml that retrieves the org and app name since
             // /app-specific-preview/ is added when fetching the cshtml file from endpoint instead of designer wwwroot
@@ -979,6 +994,28 @@ namespace Altinn.Studio.Designer.Controllers
             return MINIMUM_NUGET_VERSION;
         }
 
+        private static ApplicationMetadata SetMockDataTypeIfMissing(ApplicationMetadata applicationMetadata, LayoutSets layoutSets)
+        {
+            LayoutSets layoutSetsWithMockedDataTypesIfMissing = AddDataTypesToReturnedLayoutSetsIfMissing(layoutSets);
+            layoutSetsWithMockedDataTypesIfMissing.Sets.ForEach(set =>
+            {
+                if (!applicationMetadata.DataTypes.Any(dataType => dataType.Id == set.DataType))
+                {
+                    applicationMetadata.DataTypes.Add(new DataType()
+                    {
+                        Id = set.DataType,
+                        AppLogic = new ApplicationLogic()
+                        {
+                            ClassRef = $"Altinn.App.Models.model.{set.DataType}"
+                        },
+                        TaskId = set.Tasks[0]
+                    });
+                }
+            });
+
+            return applicationMetadata;
+        }
+
         private bool IsValidSemVerVersion(string[] versionParts)
         {
             return versionParts.Length >= 3 && Convert.ToInt32(versionParts[0]) >= 8;
@@ -992,6 +1029,18 @@ namespace Altinn.Studio.Designer.Controllers
         private int GetPreviewVersion(string[] versionParts)
         {
             return Convert.ToInt32(versionParts[3]);
+        }
+
+        private static LayoutSets AddDataTypesToReturnedLayoutSetsIfMissing(LayoutSets layoutSets)
+        {
+            int counter = 0;
+            foreach (var set in layoutSets.Sets.Where(set => string.IsNullOrEmpty(set.DataType)))
+            {
+                string mockDataTypeId = $"{PreviewService.MockDataModelIdPrefix}-{counter++}";
+                set.DataType = mockDataTypeId;
+            }
+
+            return layoutSets;
         }
     }
 }

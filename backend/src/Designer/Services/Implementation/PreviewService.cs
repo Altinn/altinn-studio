@@ -17,6 +17,8 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 public class PreviewService : IPreviewService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
+    public const string MockDataModelIdPrefix = "MockDataModel";
+    public const string MockDataTaskId = "test-datatask-id";
 
     /// <summary>
     /// Constructor
@@ -33,12 +35,10 @@ public class PreviewService : IPreviewService
         cancellationToken.ThrowIfCancellationRequested();
         AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
         Application applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
-        DataType dataType = await GetDataTypeForLayoutSetName(org, app, developer, layoutSetName, cancellationToken);
         string task = await GetTaskForLayoutSetName(org, app, developer, layoutSetName, cancellationToken);
         bool shouldProcessActAsReceipt = task == "CustomReceipt";
         // RegEx for instance guid in app-frontend: [\da-f]{8}-[\da-f]{4}-[1-5][\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}
         string instanceGuid = "f1e23d45-6789-1bcd-8c34-56789abcdef0";
-        string dataTypeForDataElement = shouldProcessActAsReceipt ? await GetDataTypeForCustomReceipt(org, app, developer, cancellationToken) : dataType?.Id;
         ProcessState processState = shouldProcessActAsReceipt
             ? new()
             {
@@ -61,14 +61,7 @@ public class PreviewService : IPreviewService
             InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId == null ? "undefined" : instanceOwnerPartyId.Value.ToString() },
             Id = $"{instanceOwnerPartyId}/{instanceGuid}",
             AppId = applicationMetadata.Id,
-            Data = new List<DataElement>
-            { new ()
-                // All data types attached to the current task in the process model should be added here
-                    {
-                        DataType = dataTypeForDataElement,
-                        Id = "test-datatask-id"
-                    }
-                },
+            Data = await GetDataTypesForInstance(org, app, developer, layoutSetName, shouldProcessActAsReceipt),
             Org = applicationMetadata.Org == developer ? "ttd" : applicationMetadata.Org,
             Process = processState,
         };
@@ -90,6 +83,7 @@ public class PreviewService : IPreviewService
         return null;
     }
 
+    /// <inheritdoc />
     public async Task<List<string>> GetTasksForAllLayoutSets(string org, string app, string developer, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -97,7 +91,7 @@ public class PreviewService : IPreviewService
         try
         {
             LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
-            List<string> tasks = new();
+            List<string> tasks = [];
             if (layoutSets?.Sets is { Count: > 0 })
             {
                 foreach (LayoutSetConfig layoutSet in layoutSets.Sets.Where(ls => !tasks.Contains(ls.Tasks[0])))
@@ -118,14 +112,7 @@ public class PreviewService : IPreviewService
         }
     }
 
-    /// <summary>
-    /// Gets the task connected to the current layout set name in the layout sets file
-    /// </summary>
-    /// <param name="org">Organisation</param>
-    /// <param name="app">Repository</param>
-    /// <param name="developer">Username of developer</param>
-    /// <param name="layoutSetName">LayoutSetName to get dataType for</param>
-    /// <param name="cancellationToken"></param>
+    /// <inheritdoc />
     /// <returns></returns>
     public async Task<string> GetTaskForLayoutSetName(string org, string app, string developer, string layoutSetName, CancellationToken cancellationToken = default)
     {
@@ -140,11 +127,36 @@ public class PreviewService : IPreviewService
         return task;
     }
 
-    private async Task<string> GetDataTypeForCustomReceipt(string org, string app, string developer, CancellationToken cancellationToken = default)
+    private async Task<List<DataElement>> GetDataTypesForInstance(string org, string app, string developer, string layoutSetName, bool shouldProcessActAsReceipt)
     {
-        cancellationToken.ThrowIfCancellationRequested();
         AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-        LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+        DataType dataType = await GetDataTypeForLayoutSetName(org, app, developer, layoutSetName);
+        string dataTypeForDataElement = shouldProcessActAsReceipt ? await GetDataTypeForCustomReceipt(altinnAppGitRepository) : dataType?.Id;
+        if (dataTypeForDataElement is null && altinnAppGitRepository.AppUsesLayoutSets())
+        {
+            int counter = 0;
+            LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile();
+            return layoutSets.Sets
+                .Where(set => string.IsNullOrEmpty(set.DataType))
+                .Select(_ => new DataElement
+                {
+                    DataType = $"{MockDataModelIdPrefix}-{counter++}",
+                    Id = MockDataTaskId
+                })
+                .ToList();
+        }
+        return [
+            new DataElement
+            {
+                DataType = dataTypeForDataElement,
+                Id = MockDataTaskId
+            }
+            ];
+    }
+
+    private async Task<string> GetDataTypeForCustomReceipt(AltinnAppGitRepository altinnAppGitRepository)
+    {
+        LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile();
         string dataType = layoutSets?.Sets?.Find(set => set.Tasks[0] == "CustomReceipt")?.DataType;
         return dataType ?? string.Empty;
     }
