@@ -52,7 +52,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Get Policy from Altinn 3 resource
         /// </summary>
         Task<XacmlPolicy> GetResourcePolicy(string resourceId, string environment);
-        
+
         /// <summary>
         /// Create a new access list for an organization in a given environment
         /// </summary>
