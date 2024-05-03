@@ -48,6 +48,11 @@ namespace Altinn.App.Models.modell1
       return randomnum.HasValue;
     }
 
+    [XmlElement("listsearch", Order = 7)]
+    [JsonProperty("listsearch")]
+    [JsonPropertyName("listsearch")]
+    public string listsearch { get; set; }
+
   }
 
   public class personer

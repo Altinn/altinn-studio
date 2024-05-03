@@ -47,6 +47,11 @@ namespace Altinn.App.Models.modell2
     [JsonPropertyName("shouldsucceed")]
     public string shouldsucceed { get; set; }
 
+    [XmlElement("selectedperson", Order = 8)]
+    [JsonProperty("selectedperson")]
+    [JsonPropertyName("selectedperson")]
+    public selectedperson selectedperson { get; set; }
+
   }
 
   public class personer
@@ -113,6 +118,25 @@ namespace Altinn.App.Models.modell2
     [JsonProperty("Answer")]
     [JsonPropertyName("Answer")]
     public string Answer { get; set; }
+
+  }
+
+  public class selectedperson
+  {
+    [XmlElement("name", Order = 1)]
+    [JsonProperty("name")]
+    [JsonPropertyName("name")]
+    public string name { get; set; }
+
+    [XmlElement("age", Order = 2)]
+    [JsonProperty("age")]
+    [JsonPropertyName("age")]
+    public string age { get; set; }
+
+    [XmlElement("profession", Order = 3)]
+    [JsonProperty("profession")]
+    [JsonPropertyName("profession")]
+    public string profession { get; set; }
 
   }
 }

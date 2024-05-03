@@ -49,6 +49,9 @@
     },
     "randomnum": {
       "type": "integer"
+    },
+    "listsearch": {
+      "type": "string"
     }
   }
 }

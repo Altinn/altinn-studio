@@ -74,6 +74,20 @@
     },
     "shouldsucceed": {
       "type": "string"
+    },
+    "selectedperson": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "age": {
+          "type": "string"
+        },
+        "profession": {
+          "type": "string"
+        }
+      }
     }
   }
 }
