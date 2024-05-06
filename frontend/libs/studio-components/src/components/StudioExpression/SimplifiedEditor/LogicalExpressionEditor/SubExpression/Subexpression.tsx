@@ -30,23 +30,22 @@ export const Subexpression = ({ expression, legend, onChange, onDelete }: Subexp
   const { texts, dataLookupOptions } = useStudioExpressionContext();
   const [isInEditMode, setIsInEditMode] = useState<boolean>(false);
   const [expressionState, setExpressionState] = useState<SimpleSubexpression>(expression);
-  const [errors, setErrors] = useState<ExpressionErrorKey[]>([]);
   const componentOptions = dataLookupOptions[DataLookupFuncName.Component];
-  const [initialError, setinitialError] = useState<ExpressionErrorKey[]>([]);
+  const [errors, setErrors] = useState<ExpressionErrorKey[]>(
+    findSubexpressionErrors(expression, componentOptions),
+  );
 
   useEffect(() => {
     setExpressionState(expression);
-    setinitialError(findSubexpressionErrors(expression, componentOptions));
-  }, [expression, componentOptions]);
+  }, [expression]);
 
   const handleChange = (subexpression: SimpleSubexpression) => {
     setExpressionState(subexpression);
   };
 
   const handleSave = () => {
-    const errorList = findSubexpressionErrors(expressionState);
+    const errorList = findSubexpressionErrors(expressionState, componentOptions);
     setErrors(errorList);
-    setinitialError(errorList);
     if (!errorList.length) {
       onChange(expressionState);
       setIsInEditMode(false);
@@ -55,7 +54,6 @@ export const Subexpression = ({ expression, legend, onChange, onDelete }: Subexp
 
   const handleEnableEditMode = () => {
     setIsInEditMode(true);
-    setErrors(initialError);
   };
 
   const handleOperatorChange = (operator: RelationalOperator) =>
@@ -70,7 +68,7 @@ export const Subexpression = ({ expression, legend, onChange, onDelete }: Subexp
   const className = cn(
     classes.subexpression,
     isInEditMode && classes.editMode,
-    (errors.length || initialError.length) && classes.hasError,
+    errors.length && classes.hasError,
   );
 
   return (
@@ -102,7 +100,7 @@ export const Subexpression = ({ expression, legend, onChange, onDelete }: Subexp
           onSave={handleSave}
           onEnableEditMode={handleEnableEditMode}
         />
-        {!!errors.length && <SubexpressionErrors errorKeys={errors} />}
+        {!!errors.length && isInEditMode && <SubexpressionErrors errorKeys={errors} />}
       </div>
     </Fieldset>
   );
