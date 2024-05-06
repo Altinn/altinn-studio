@@ -59,22 +59,25 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
         {
             cancellationToken.ThrowIfCancellationRequested();
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-            ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
-            applicationMetadata.DataTypes.Add(new DataType
+            ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
+            if (!applicationMetadata.DataTypes.Exists(dataType => dataType.Id == dataTypeId))
             {
-                Id = dataTypeId,
-                AllowedContentTypes = ["application/json"],
-                MaxCount = 1,
-                EnablePdfCreation = false
-            });
-            await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
+                applicationMetadata.DataTypes.Add(new DataType
+                {
+                    Id = dataTypeId,
+                    AllowedContentTypes = ["application/json"],
+                    MaxCount = 1,
+                    EnablePdfCreation = false
+                });
+                await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
+            }
         }
 
         public async Task DeleteDataTypeFromApplicationMetadataAsync(AltinnRepoEditingContext altinnRepoEditingContext, string dataTypeId, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-            ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
+            ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
             applicationMetadata.DataTypes.RemoveAll(dataType => dataType.Id == dataTypeId);
             await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
         }

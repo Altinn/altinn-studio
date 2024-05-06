@@ -37,26 +37,24 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
 
   const handleShapeAdd = (e) => {
     const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
-    setBpmnDetails({
-      ...bpmnDetails,
-      element: e.element,
-    });
     if (bpmnDetails.taskType === 'data') {
       addLayoutSet({
         layoutSetIdToUpdate: bpmnDetails.id,
         layoutSetConfig: { id: bpmnDetails.id, tasks: [bpmnDetails.id] },
       });
     }
-    if (bpmnDetails.taskType === 'payment') {
+    if (bpmnDetails.taskType === 'payment' || bpmnDetails.taskType === 'signing') {
+      const dataTypeId =
+        bpmnDetails.taskType === 'payment'
+          ? e?.element?.businessObject.extensionElements.values[0].paymentConfig.paymentDataType
+              .dataType.dataType
+          : e?.element?.businessObject.extensionElements.values[0].signatureConfig.signatureDataType
+              .dataType.dataType;
       addDataTypeToAppMetadata({
-        dataTypeId: 'paymentInformation',
+        dataTypeId,
       });
     }
-    if (bpmnDetails.taskType === 'signing') {
-      addDataTypeToAppMetadata({
-        dataTypeId: 'signingInformation',
-      });
-    }
+    handleSetBpmnDetails(e);
   };
 
   const handleShapeRemove = (e) => {
@@ -69,14 +67,15 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
         });
       }
     }
-    if (bpmnDetails.taskType === 'payment') {
+    if (bpmnDetails.taskType === 'payment' || bpmnDetails.taskType === 'signing') {
+      const dataTypeId =
+        bpmnDetails.taskType === 'payment'
+          ? e?.element?.businessObject.extensionElements.values[0].paymentConfig.paymentDataType
+              .dataType.dataType
+          : e?.element?.businessObject.extensionElements.values[0].signatureConfig.signatureDataType
+              .dataType.dataType;
       deleteDataTypeFromAppMetadata({
-        dataTypeId: 'paymentInformation',
-      });
-    }
-    if (bpmnDetails.taskType === 'signing') {
-      deleteDataTypeFromAppMetadata({
-        dataTypeId: 'signingInformation',
+        dataTypeId,
       });
     }
     setBpmnDetails(null);
