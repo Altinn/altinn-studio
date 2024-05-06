@@ -51,7 +51,7 @@ export const TextResource = ({
   };
 
   useEffect(() => {
-    if (formItem !== prevFormItem) {
+    if (formItem?.id !== prevFormItem?.id) {
       setIsOpen(false);
     }
   }, [formItem, prevFormItem]);
