@@ -205,6 +205,9 @@
           "title": "Oversikt over betaling",
           "description": "Her er en oversikt over hva du skal betale for."
         },
+        "mapping": {
+          "GoodsAndServicesProperties.Inventory.InventoryProperties": "paymentDetails"
+        },
         "hidden": [
           "equals",
           [
