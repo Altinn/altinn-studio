@@ -135,7 +135,6 @@ function useHandleServerActionMutation(lockTools: FormDataLockTools): UsePerform
         }
       } catch (error) {
         lockTools.unlock();
-        window.logError(error.stack);
         if (error?.response?.data?.error?.message !== undefined) {
           toast(<Lang id={error?.response?.data?.error?.message} />, { type: 'error' });
         } else {
