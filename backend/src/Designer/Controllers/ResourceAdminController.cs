@@ -13,7 +13,6 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -32,20 +31,18 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IResourceRegistryOptions _resourceRegistryOptions;
         private readonly IMemoryCache _memoryCache;
         private readonly CacheSettings _cacheSettings;
-        private readonly IAltinn2MetadataClient _altinn2MetadataClient;
         private readonly IOrgService _orgService;
         private readonly IResourceRegistry _resourceRegistry;
         private readonly ResourceRegistryIntegrationSettings _resourceRegistrySettings;
         private readonly IUserRequestsSynchronizationService _userRequestsSynchronizationService;
 
-        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IAltinn2MetadataClient altinn2MetadataClient, IOrgService orgService, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IResourceRegistry resourceRegistry, IUserRequestsSynchronizationService userRequestsSynchronizationService)
+        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IOrgService orgService, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IResourceRegistry resourceRegistry, IUserRequestsSynchronizationService userRequestsSynchronizationService)
         {
             _giteaApi = gitea;
             _repository = repository;
             _resourceRegistryOptions = resourceRegistryOptions;
             _memoryCache = memoryCache;
             _cacheSettings = cacheSettings.Value;
-            _altinn2MetadataClient = altinn2MetadataClient;
             _orgService = orgService;
             _resourceRegistrySettings = resourceRegistryEnvironment.Value;
             _resourceRegistry = resourceRegistry;
