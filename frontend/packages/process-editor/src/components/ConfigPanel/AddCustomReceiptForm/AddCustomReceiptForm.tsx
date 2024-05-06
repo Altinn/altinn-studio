@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import classes from './AddCustomReceiptForm.module.css';
-import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
-import { PencilWritingIcon, PlusCircleIcon } from '@studio/icons';
+import { StudioButton, StudioLabelAsParagraph, StudioTextfield } from '@studio/components';
+import { KeyVerticalIcon, LinkIcon, PencilWritingIcon, PlusCircleIcon } from '@studio/icons';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { NativeSelect, Paragraph } from '@digdir/design-system-react';
 
 export type AddCustomReceiptFormProps = {
   existingCustomReceiptLayoutSetId: string | undefined;
@@ -16,12 +17,21 @@ export const AddCustomReceiptForm = ({
   onSaveCustomReceipt,
   handleDeleteCustomReceipt,
 }: AddCustomReceiptFormProps): React.JSX.Element => {
-  const { org, app } = useStudioUrlParams();
-  const packagesRouter = new PackagesRouter({ org, app });
-
   const [showCreateCustomReceiptFields, setShowCreateCustomReceiptFields] = useState(false);
 
-  const handleSaveCustomReceipt = () => {
+  const handleSaveCustomReceipt = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const formData: FormData = new FormData(event.currentTarget);
+
+    const customReceiptForm: any = {
+      // TODO type
+      existingCustomReceiptLayoutSetId: formData.get('customReceiptLayoutSetId') as string,
+      dataModel: formData.get('customReceiptDataModel') as string,
+    };
+
+    console.log('customReceiptForm', customReceiptForm);
+
     // Send verdi fra tekstfelt
     onSaveCustomReceipt('');
     setShowCreateCustomReceiptFields(false);
@@ -33,6 +43,10 @@ export const AddCustomReceiptForm = ({
 
   const handleCancelCreateCustomReceipt = () => {
     setShowCreateCustomReceiptFields(false);
+  };
+
+  const handleClickEditButton = () => {
+    setShowCreateCustomReceiptFields(true);
   };
 
   // Case 1 - Initial
@@ -49,82 +63,65 @@ export const AddCustomReceiptForm = ({
     );
   }
 
-  // Case 2 - In "create mode"
-  if (!existingCustomReceiptLayoutSetId && showCreateCustomReceiptFields) {
+  // Case 2 - In "create mode" & Case 4 - In "edit mode"
+  if (showCreateCustomReceiptFields) {
     return (
-      /*  CAN THIS BLOCK GO TOGETHER WITH BLOCK ON 3 AND 4 ?? */
-      <div>
-        <p>TEXT FIELD</p>
-        <p>Drop down</p>
-        {/****************************/}
-        <div className={classes.buttonWrapper}>
-          <StudioButton size='small' onClick={handleSaveCustomReceipt} variant='primary'>
-            Opprett
-          </StudioButton>
-          <StudioButton size='small' onClick={handleCancelCreateCustomReceipt} variant='secondary'>
-            Avbryt
-          </StudioButton>
-        </div>
-      </div>
+      <Comp
+        onSubmit={handleSaveCustomReceipt}
+        existingCustomReceiptLayoutSetId={existingCustomReceiptLayoutSetId}
+        onCancel={handleCancelCreateCustomReceipt}
+        options={[]} // TODO
+      />
     );
   }
 
   // Case 3 - In final mode - can delete or edit - Delete sends to case 1, edit to case 4
   if (existingCustomReceiptLayoutSetId && !showCreateCustomReceiptFields) {
     return (
-      <div>
-        {/* TODO - When clicking the entire block, set to case 4 */}
-        {/*  CAN THIS BLOCK GO TOGETHER WITH BLOCK ON 2 AND 3 ?? */}
-        <div>
-          <p>TEXT FIELD with value</p>
-          <p>drop downwith value</p>
-        </div>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--fds-spacing-4)',
+          marginTop: 'var(--fds-spacing-3)',
+        }}
+      >
+        {/* TODO - MAKE OWN COMPONENT */}
+        <span style={{ display: 'flex', alignItems: 'center' }}>
+          <KeyVerticalIcon style={{ fontSize: 'var(--fds-sizing-6)' }} />
+          <Paragraph size='small'>
+            <strong>Navn på sidegruppe: </strong>
+            {' Kvittering'}
+          </Paragraph>
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center' }}>
+          <LinkIcon style={{ fontSize: 'var(--fds-sizing-6)' }} />
+          <Paragraph size='small'>
+            <strong>Datamodellknytning: </strong>
+            {'Datamodell.123'}
+          </Paragraph>
+        </span>
         {/*********************************************************/}
-        <StudioButton
-          size='small'
-          color='danger'
-          onClick={handleDeleteCustomReceipt}
-          variant='secondary'
+        <div
+          style={{
+            display: 'flex',
+            gap: 'var(--fds-spacing-2)',
+          }}
         >
-          Slett kvitteringen din
-        </StudioButton>
-        {/* THE BLOCK BELOW SHOULD BE A REUSABLE COMPONENT */}
-        <div className={classes.goToCreatePageWrapper}>
-          <StudioLabelAsParagraph size='small'>
-            Gå til Lage for å utforme kvitteringen din
-          </StudioLabelAsParagraph>
+          <StudioButton size='small' onClick={handleClickEditButton}>
+            Endre kvittering
+          </StudioButton>
           <StudioButton
-            as='a'
             size='small'
-            variant='primary'
-            color='second'
-            icon={<PencilWritingIcon />}
-            href={packagesRouter.getPackageNavigationUrl('editorUiEditor')}
-            className={classes.goToCreateButton}
+            color='danger'
+            onClick={handleDeleteCustomReceipt}
+            variant='secondary'
           >
-            Gå til Lage
+            Slett kvittering
           </StudioButton>
         </div>
-      </div>
-    );
-  }
 
-  // Case 4 - In "edit mode"
-  if (existingCustomReceiptLayoutSetId && showCreateCustomReceiptFields) {
-    return (
-      /*  CAN THIS BLOCK GO TOGETHER WITH BLOCK ON 2 AND 3 ?? */
-      <div>
-        <p>TEXT FIELD</p>
-        <p>Drop down</p>
-        {/****************************/}
-        <div className={classes.buttonWrapper}>
-          <StudioButton size='small' onClick={handleSaveCustomReceipt} variant='primary'>
-            Lagre
-          </StudioButton>
-          <StudioButton size='small' onClick={handleCancelCreateCustomReceipt} variant='secondary'>
-            Avbryt
-          </StudioButton>
-        </div>
+        <RedirectToCreatePageButton />
       </div>
     );
   }
@@ -139,3 +136,79 @@ export const AddCustomReceiptForm = ({
 - Når man er utenfor state 2 og 3, og man har en visningsmodus og en "slett" knapp
 
 */
+
+// TODO MOVE
+type Props = {
+  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+  existingCustomReceiptLayoutSetId: string | undefined;
+  onCancel: () => void;
+  options: { value: string; label: string }[];
+};
+const Comp = ({ onSubmit, existingCustomReceiptLayoutSetId, onCancel, options }: Props) => {
+  return (
+    <form
+      onSubmit={onSubmit}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 'var(--fds-spacing-2)',
+        marginTop: 'var(--fds-spacing-3)',
+      }}
+    >
+      <StudioTextfield
+        name='customReceiptLayoutSetId'
+        // defaultValue={}
+        label='Navn på sidegruppe'
+        value={existingCustomReceiptLayoutSetId}
+        size='small'
+        // error - TODO
+        // onChange - TODO
+      />
+      <NativeSelect
+        name='customReceiptDataModel'
+        label='Datamodelknytning'
+        size='small'
+        // defaultValue={}
+        // error
+      >
+        {options.map(({ value, label }) => (
+          <option key={value} value={value}>
+            {label}
+          </option>
+        ))}
+      </NativeSelect>
+      <div className={classes.buttonWrapper}>
+        <StudioButton size='small' type='submit' variant='primary'>
+          {!existingCustomReceiptLayoutSetId ? 'Opprett' : 'Lagre'}
+        </StudioButton>
+        <StudioButton size='small' onClick={onCancel} variant='secondary'>
+          Avbryt
+        </StudioButton>
+      </div>
+    </form>
+  );
+};
+
+const RedirectToCreatePageButton = () => {
+  const { org, app } = useStudioUrlParams();
+  const packagesRouter = new PackagesRouter({ org, app });
+
+  return (
+    <div className={classes.goToCreatePageWrapper}>
+      <StudioLabelAsParagraph size='small'>
+        Gå til Lage for å utforme kvitteringen din
+      </StudioLabelAsParagraph>
+      <StudioButton
+        as='a'
+        size='small'
+        variant='primary'
+        color='second'
+        icon={<PencilWritingIcon />}
+        href={packagesRouter.getPackageNavigationUrl('editorUiEditor')}
+        className={classes.goToCreateButton}
+      >
+        Gå til Lage
+      </StudioButton>
+    </div>
+  );
+};

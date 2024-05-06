@@ -103,7 +103,7 @@ export const ConfigEndEvent = () => {
           </Paragraph>
 
           <AddCustomReceiptForm
-            existingCustomReceiptLayoutSetId={existingCustomReceiptLayoutSetId}
+            existingCustomReceiptLayoutSetId={'test'} //existingCustomReceiptLayoutSetId}
             onSaveCustomReceipt={handleSaveCustomReceipt}
             handleDeleteCustomReceipt={handleDeleteCustomReceipt}
           />
