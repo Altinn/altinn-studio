@@ -108,8 +108,8 @@ public class PatchService : IPatchService
             await dataProcessor.ProcessDataWrite(instance, dataElementId, result.Ok, oldModel, language);
         }
 
-        // Ensure that all lists are changed from null to empty list.
         ObjectUtils.InitializeAltinnRowId(result.Ok);
+        ObjectUtils.PrepareModelForXmlStorage(result.Ok);
 
         var validationIssues = await _validationService.ValidateFormData(
             instance,

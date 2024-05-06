@@ -50,6 +50,11 @@ public class Dummy
     [JsonProperty("tag-with-attribute")]
     [JsonPropertyName("tag-with-attribute")]
     public TagWithAttribute? TagWithAttribute { get; set; }
+
+    public bool ShouldSerializeTagWithAttribute()
+    {
+        return TagWithAttribute?.value != null;
+    }
 }
 
 public class TagWithAttribute

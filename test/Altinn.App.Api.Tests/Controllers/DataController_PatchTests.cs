@@ -347,6 +347,50 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     }
 
     [Fact]
+    public async Task SetXmlTextPropertyToEmtpy_ReturnsCorrectDataModel()
+    {
+        _dataProcessorMock
+            .Setup(p =>
+                p.ProcessDataWrite(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Guid?>(),
+                    It.IsAny<object>(),
+                    It.IsAny<object?>(),
+                    null
+                )
+            )
+            .Returns(
+                (Instance instance, Guid? dataGuid, object skjema, object? existingData, string language) =>
+                    Task.CompletedTask
+            );
+
+        var pointer = JsonPointer.Create("melding", "tag-with-attribute");
+        var createFirstElementPatch = new JsonPatch(
+            PatchOperation.Test(pointer, JsonNode.Parse("null")),
+            PatchOperation.Add(pointer, JsonNode.Parse("""{"value": "" }"""))
+        );
+
+        var (_, _, firstResponse) = await CallPatchApi<DataPatchResponse>(
+            createFirstElementPatch,
+            null,
+            HttpStatusCode.OK
+        );
+
+        var firstData = firstResponse.NewDataModel.Should().BeOfType<JsonElement>().Which;
+        var emptyValue = firstData.GetProperty("melding").GetProperty("tag-with-attribute");
+        emptyValue.ValueKind.Should().Be(JsonValueKind.Null);
+
+        var addValuePatch = new JsonPatch(
+            PatchOperation.Test(pointer, emptyValue.AsNode()),
+            PatchOperation.Replace(pointer, JsonNode.Parse("""{"value": "mySecondValue" }"""))
+        );
+        var (_, _, secondResponse) = await CallPatchApi<DataPatchResponse>(addValuePatch, null, HttpStatusCode.OK);
+        var secondData = secondResponse.NewDataModel.Should().BeOfType<JsonElement>().Which;
+        var secondValue = secondData.GetProperty("melding").GetProperty("tag-with-attribute").GetProperty("value");
+        secondValue.GetString().Should().Be("mySecondValue");
+    }
+
+    [Fact]
     public async Task UpdateContainerWithListProperty_ReturnsCorrectDataModel()
     {
         _dataProcessorMock
@@ -466,7 +510,8 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
 
         var firstData = firstResponse.NewDataModel.Should().BeOfType<JsonElement>().Which;
         var firstListItem = firstData.GetProperty("melding").GetProperty("name");
-        firstListItem.ValueKind.Should().Be(JsonValueKind.Null);
+        firstListItem.ValueKind.Should().Be(JsonValueKind.String);
+        firstListItem.GetString().Should().BeEmpty();
 
         var addValuePatch = new JsonPatch(
             PatchOperation.Test(pointer, firstListItem.AsNode()),
@@ -510,11 +555,11 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
 
         var firstData = firstResponse.NewDataModel.Should().BeOfType<JsonElement>().Which;
         var firstListItem = firstData.GetProperty("melding").GetProperty("tag-with-attribute");
-        firstListItem.GetProperty("value").ValueKind.Should().Be(JsonValueKind.Null);
+        firstListItem.ValueKind.Should().Be(JsonValueKind.Null);
 
         var addValuePatch = new JsonPatch(
-            PatchOperation.Test(pointer, firstListItem.AsNode()),
-            PatchOperation.Replace(pointer.Combine("value"), JsonNode.Parse("null"))
+            PatchOperation.Test(pointer, JsonNode.Parse("null")),
+            PatchOperation.Add(pointer.Combine("value"), JsonNode.Parse("null"))
         );
         var (_, _, secondResponse) = await CallPatchApi<DataPatchResponse>(addValuePatch, null, HttpStatusCode.OK);
         var secondData = secondResponse.NewDataModel.Should().BeOfType<JsonElement>().Which;
@@ -567,12 +612,12 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
                     {
                         "simple_keyvalues":[
                             {
-                               "key": "KeyFromClient", 
-                               "intValue": 123, 
+                               "key": "KeyFromClient",
+                               "intValue": 123,
                                "altinnRowId": "{{rowIdClinet}}"
                              },
                              {
-                                  "key": "KeyFromClientNoRowId", 
+                                  "key": "KeyFromClientNoRowId",
                                   "intValue": 1234
                              }
                        ]

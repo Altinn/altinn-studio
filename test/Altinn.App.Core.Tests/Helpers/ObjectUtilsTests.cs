@@ -30,6 +30,7 @@ public class ObjectUtilsTests
         test.Children.Should().BeNull();
 
         ObjectUtils.InitializeAltinnRowId(test);
+        ObjectUtils.PrepareModelForXmlStorage(test);
 
         test.Children.Should().BeEmpty();
     }
@@ -41,6 +42,7 @@ public class ObjectUtilsTests
         test.Children.Should().BeNull();
 
         ObjectUtils.InitializeAltinnRowId(test);
+        ObjectUtils.PrepareModelForXmlStorage(test);
 
         test.Children.Should().BeEmpty();
         test.StringValue.Should().Be("some");
@@ -80,6 +82,7 @@ public class ObjectUtilsTests
 
         // Act
         ObjectUtils.InitializeAltinnRowId(test);
+        ObjectUtils.PrepareModelForXmlStorage(test);
 
         // Assert
         test.Children.Should().BeEmpty();

@@ -198,6 +198,7 @@ public class ActionsController : ControllerBase
             }
 
             ObjectUtils.InitializeAltinnRowId(newModel);
+            ObjectUtils.PrepareModelForXmlStorage(newModel);
 
             var dataElement = instance.Data.First(d => d.Id.Equals(elementId, StringComparison.OrdinalIgnoreCase));
             await _dataClient.UpdateData(
