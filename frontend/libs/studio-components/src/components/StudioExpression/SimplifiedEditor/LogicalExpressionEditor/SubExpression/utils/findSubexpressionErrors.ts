@@ -7,7 +7,7 @@ import type { SimpleSubexpressionValue } from '../../../../types/SimpleSubexpres
 
 export const findSubexpressionErrors = (
   subexpression: SimpleSubexpression,
-  componentOptions: string[],
+  componentOptions?: string[],
 ): ExpressionErrorKey[] => {
   const errors: ExpressionErrorKey[] = [];
   if (hasNumberOperator(subexpression) && hasBooleanValue(subexpression)) {
@@ -51,5 +51,10 @@ const isDatamodelValueValid = (
 
 const isComponentValueValid = (
   value: SimpleSubexpressionValue<SimpleSubexpressionValueType.Component>,
-  componentOptions: string[],
-): boolean => !!value.id && componentOptions.includes(value.id);
+  componentOptions?: string[],
+): boolean => {
+  if (!componentOptions) {
+    return !!value.id;
+  }
+  return !!value.id && componentOptions.includes(value.id);
+};

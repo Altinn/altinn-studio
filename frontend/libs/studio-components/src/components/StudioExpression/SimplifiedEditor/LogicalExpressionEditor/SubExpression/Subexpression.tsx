@@ -32,19 +32,21 @@ export const Subexpression = ({ expression, legend, onChange, onDelete }: Subexp
   const [expressionState, setExpressionState] = useState<SimpleSubexpression>(expression);
   const [errors, setErrors] = useState<ExpressionErrorKey[]>([]);
   const componentOptions = dataLookupOptions[DataLookupFuncName.Component];
-  const initialError = findSubexpressionErrors(expressionState, componentOptions);
+  const [initialError, setinitialError] = useState<ExpressionErrorKey[]>([]);
 
   useEffect(() => {
     setExpressionState(expression);
-  }, [expression]);
+    setinitialError(findSubexpressionErrors(expression, componentOptions));
+  }, [expression, componentOptions]);
 
   const handleChange = (subexpression: SimpleSubexpression) => {
     setExpressionState(subexpression);
   };
 
   const handleSave = () => {
-    const errorList = findSubexpressionErrors(expressionState, componentOptions);
+    const errorList = findSubexpressionErrors(expressionState);
     setErrors(errorList);
+    setinitialError(errorList);
     if (!errorList.length) {
       onChange(expressionState);
       setIsInEditMode(false);
