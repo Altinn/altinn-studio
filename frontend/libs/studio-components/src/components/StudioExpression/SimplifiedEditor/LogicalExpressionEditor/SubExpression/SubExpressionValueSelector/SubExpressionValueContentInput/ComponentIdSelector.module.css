@@ -1,0 +1,4 @@
+.comboboxBackground {
+  /*When error message, the default background color of the combobox is white*/
+  background-color: transparent;
+}
