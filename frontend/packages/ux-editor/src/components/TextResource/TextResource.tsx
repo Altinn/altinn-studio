@@ -8,6 +8,7 @@ import { TextResourceValue } from './TextResourceValue';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useFormItemContext } from '@altinn/ux-editor/containers/FormItemContext';
+import { useAppContext } from '@altinn/ux-editor/hooks';
 
 export interface TextResourceProps {
   handleIdChange: (id: string) => void;
@@ -39,8 +40,12 @@ export const TextResource = ({
   label,
   textResourceId,
 }: TextResourceProps) => {
-  const { formItem } = useFormItemContext();
-  const prevFormItem = usePrevious(formItem);
+  const { formItemId } = useFormItemContext();
+  const { selectedFormLayoutName: formLayoutName } = useAppContext();
+
+  const prevFormItemId = usePrevious(formItemId);
+  const prevFormLayoutName = usePrevious(formLayoutName);
+
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const handleOpen = () => {
@@ -51,10 +56,10 @@ export const TextResource = ({
   };
 
   useEffect(() => {
-    if (formItem?.id !== prevFormItem?.id) {
+    if (formItemId !== prevFormItemId || formLayoutName !== prevFormLayoutName) {
       setIsOpen(false);
     }
-  }, [formItem, prevFormItem]);
+  }, [formItemId, prevFormItemId, formLayoutName, prevFormLayoutName]);
 
   return isOpen ? (
     <TextResourceFieldset
