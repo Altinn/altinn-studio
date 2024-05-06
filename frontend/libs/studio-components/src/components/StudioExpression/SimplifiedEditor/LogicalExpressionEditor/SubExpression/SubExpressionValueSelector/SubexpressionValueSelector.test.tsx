@@ -190,6 +190,14 @@ describe('SubexpressionValueSelector', () => {
       await user.click(document.body);
       screen.getByText(texts.errorMessages[ExpressionErrorKey.InvalidComponentId]);
     });
+
+    it('Displays initial error and handles non-existing component ID', () => {
+      const id = 'non-existing-id';
+      renderSubexpressionValueSelector({ value: { ...componentValue, id }, isInEditMode: true });
+      screen.getByText(texts.errorMessages[ExpressionErrorKey.ComponentIDNoLongerExists]);
+      const input = screen.getByRole('combobox', { name: texts.componentId });
+      expect(input).toHaveValue('');
+    });
   });
 
   describe('When the value is an instance context reference', () => {
