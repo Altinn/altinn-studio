@@ -85,6 +85,7 @@ export const useExpressionTexts = (): ExpressionTexts => {
     or: t('expression.or'),
     readonlyComponentId: t('expression.readonlyComponentId'),
     readonlyDatamodelPath: t('expression.readonlyDatamodelPath'),
+    readonlyGatewayActionContext: t('expression.readonlyGatewayActionContext'),
     readonlyInstanceContext: t('expression.readonlyInstanceContext'),
     relationalOperator: t('expression.relationalOperator'),
     relationalOperators,

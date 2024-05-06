@@ -65,7 +65,7 @@ export const isSimpleProcessDataLookupFunc = (
   );
 };
 
-export const isSimpleProcessUserAction = (expression: Expression): expression is KeyLookupFunc => {
+export const isProcessUserAction = (expression: Expression): expression is KeyLookupFunc => {
   const actions: string[] = ['sign', 'pay', 'reject', 'confirm'];
   return typeof expression === 'string' && actions.includes(expression);
 };

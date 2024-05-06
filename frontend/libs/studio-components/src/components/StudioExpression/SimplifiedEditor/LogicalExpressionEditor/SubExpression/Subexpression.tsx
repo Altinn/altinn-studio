@@ -67,6 +67,10 @@ export const Subexpression = ({ expression, legend, onChange, onDelete }: Subexp
     errors.length && classes.hasError,
   );
 
+  console.log({
+    expressionState,
+  });
+
   return (
     <Fieldset className={className} hideLegend legend={legend}>
       <div className={classes.fieldsetContent}>

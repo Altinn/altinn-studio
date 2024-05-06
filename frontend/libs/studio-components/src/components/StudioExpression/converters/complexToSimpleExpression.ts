@@ -12,7 +12,7 @@ import {
   isSimpleDataLookupFunc,
   isSimpleKeyLookupFunc,
   isSimpleLogicalTupleFunc,
-  isSimpleProcessUserAction,
+  isProcessUserAction,
   isSimpleValueFunc,
 } from '../validators/isExpressionSimple';
 import { DEFAULT_LOGICAL_OPERATOR } from '../config';
@@ -25,6 +25,7 @@ import { SimpleSubexpressionValueType } from '../enums/SimpleSubexpressionValueT
 import { GatewayActionContext } from '../enums/GatewayActionContext';
 
 export const complexToSimpleExpression = (expression: Expression): SimplifiedExpression => {
+  console.log({ complex: expression });
   if (!isExpressionSimple(expression)) throw new Error('Expression is not simple.');
   if (typeof expression === 'boolean') return expression;
   if (expression === null) return nullExpressionInSimpleFormat;
@@ -65,21 +66,17 @@ const complexRelationFuncToSimpleSubexpression = ([
 const complexValueToSimple = (value: ValueInComplexFormat): SimpleSubexpressionValue => {
   if (isSimpleDataLookupFunc(value)) return dataLookupFuncToSimpleFormat(value);
   if (isSimpleKeyLookupFunc(value)) return keyLookupFuncToSimpleFormat(value);
-  if (isProcessGatewayAction(value))
-    return {
-      type: SimpleSubexpressionValueType.GatewayActionContext,
-      key: value[1] as unknown as GatewayActionContext,
-    };
-  if (isSimpleProcessUserAction(value)) return processUserActionToSimpleFormat(value);
-  console.log({ value });
+  if (isProcessGatewayAction(value)) return processActionToSimpleFormat(value);
+  if (isProcessUserAction(value)) return processUserActionToSimpleFormat(value);
   return primitiveValueToSimpleFormat(value);
 };
-
 const dataLookupFuncToSimpleFormat = ([source, key]: DataLookupFunc): SimpleSubexpressionValue => {
   if (typeof key !== 'string')
     throw new Error(
       'Data lookup function is not convertable. This should have been picked up by the validator.',
     );
+
+  console.log({ source });
   switch (source) {
     case DataLookupFuncName.Component:
       return { type: SimpleSubexpressionValueType.Component, id: key };
@@ -90,15 +87,27 @@ const dataLookupFuncToSimpleFormat = ([source, key]: DataLookupFunc): SimpleSube
   }
 };
 
+const processActionToSimpleFormat = ([value]: KeyLookupFunc): SimpleSubexpressionValue => {
+  if (Array.isArray(value) && value[0] !== SimpleSubexpressionValueType.GatewayActionContext) {
+    throw new Error(
+      'Key lookup function is not convertable. This should have been picked up by the validator.',
+    );
+  }
+  return {
+    type: SimpleSubexpressionValueType.GatewayActionContext,
+    key: value[0] as unknown as GatewayActionContext,
+  };
+};
+
 const processUserActionToSimpleFormat = ([, key]: KeyLookupFunc): SimpleSubexpressionValue => {
   if (typeof key !== 'string')
     throw new Error(
-      'Key lookup function is not convertable. This should have been picked up by the validator..',
+      'Key lookup function is not convertable. This should have been picked up by the validator.',
     );
 
   return {
     type: SimpleSubexpressionValueType.GatewayActionContext,
-    key: key as unknown as GatewayActionContext,
+    key,
   };
 };
 
