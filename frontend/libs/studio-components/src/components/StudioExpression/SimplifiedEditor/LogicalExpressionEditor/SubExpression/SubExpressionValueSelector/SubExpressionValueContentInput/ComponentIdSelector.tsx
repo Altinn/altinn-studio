@@ -12,7 +12,7 @@ export const ComponentIdSelector = ({
 }: Props<SimpleSubexpressionValueType.Component>) => {
   const { dataLookupOptions, texts } = useStudioExpressionContext();
   const options = dataLookupOptions[DataLookupFuncName.Component];
-  const idValueExist = options.includes(value.id);
+  const idValueExist = options.includes(value.id) || value.id === '';
   const [errorKey, setErrorKey] = useState<ExpressionErrorKey | null>(
     idValueExist ? null : ExpressionErrorKey.ComponentIDNoLongerExists,
   );
