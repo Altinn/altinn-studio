@@ -2,6 +2,7 @@ import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import type {
   ExportForm,
   ExportFormComponent,
+  ExportFormPage,
   ExportOption,
   ExportTextResource,
   ExportTextResourceValue,
@@ -14,17 +15,27 @@ import type { ExternalFormLayout } from 'app-shared/types/api';
 export const generateExportFormFormat = (
   pageOrder: string[],
   formLayouts: IFormLayouts,
+  layoutSetName: string,
+  appId: string,
   textResources: ITextResources,
   optionLists: KeyValuePairs<any>,
   defaultLanguage,
   includeRestProperties = false,
 ): ExportForm => {
-  const exportForm: ExportForm = {};
-  pageOrder.forEach((layoutName) => {
+  const exportForm: ExportForm = {
+    appId,
+    formId: layoutSetName,
+    pages: [],
+  };
+  pageOrder.forEach((layoutName: string, index: number) => {
     const layout = formLayouts[layoutName];
-    const exportFormPage: ExportFormComponent[] = [];
+    const exportFormPage: ExportFormPage = {
+      pageId: layoutName,
+      sortOrder: index,
+      components: [],
+    };
     const externalLayout: ExternalFormLayout = internalLayoutToExternal(layout);
-    externalLayout.data.layout.forEach((component) => {
+    externalLayout.data.layout.forEach((component, index) => {
       const { id, type, dataModelBindings, textResourceBindings, optionsId, ...rest } = component;
       let exportComponent = {
         id,
@@ -42,14 +53,16 @@ export const generateExportFormFormat = (
           ? mapOptionsToExportFormat(optionLists[optionsId], textResources, defaultLanguage)
           : undefined;
 
+      exportComponent.sortOrder = index;
+
       if (includeRestProperties) {
         exportComponent = { ...exportComponent, ...rest } as ExportFormComponent;
       }
 
-      exportFormPage.push(exportComponent);
+      exportFormPage.components.push(exportComponent);
     });
 
-    exportForm[layoutName] = exportFormPage;
+    exportForm.pages.push(exportFormPage);
   });
   return exportForm;
 };

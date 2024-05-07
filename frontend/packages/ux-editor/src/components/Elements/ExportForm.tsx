@@ -22,20 +22,14 @@ export const ExportForm = () => {
       const exportFormat = generateExportFormFormat(
         settings?.pages?.order,
         formLayouts,
+        selectedFormLayoutSetName,
+        app,
         textResources,
         optionLists,
         'nb',
         false,
       );
-      const blob = new Blob(
-        [
-          JSON.stringify({
-            formId: selectedFormLayoutSetName,
-            form: exportFormat,
-          }),
-        ],
-        { type: 'application/json' },
-      );
+      const blob = new Blob([JSON.stringify(exportFormat)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
