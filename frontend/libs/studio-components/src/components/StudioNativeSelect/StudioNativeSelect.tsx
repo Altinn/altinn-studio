@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import classes from './studioNativeSelect.module.css';
+import classes from './StudioNativeSelect.module.css';
 import {
   Label,
   Paragraph,
@@ -7,19 +7,13 @@ import {
   type NativeSelectProps,
 } from '@digdir/design-system-react';
 
-export type SelectOption = {
-  value: string;
-  label: string;
-};
-
 export type StudioNativeSelectProps = {
-  options: SelectOption[];
   description?: string;
 } & Omit<NativeSelectProps, 'hideLabel'>;
 
 //TODO - Add label and description to NativeSelect when this issue is solved in the design system: https://github.com/Altinn/altinn-studio/issues/12725
 export const StudioNativeSelect = forwardRef<HTMLSelectElement, StudioNativeSelectProps>(
-  ({ options, description, label, id, size, ...rest }, ref): React.JSX.Element => {
+  ({ children, description, label, id, size, ...rest }, ref): React.JSX.Element => {
     return (
       <>
         <Label size={size} spacing htmlFor={id}>
@@ -43,7 +37,7 @@ export const StudioNativeSelect = forwardRef<HTMLSelectElement, StudioNativeSele
           aria-describedby={description && 'studio-native-select-description'}
           {...rest}
         >
-          <StudioNativeSelectOptions options={options} />
+          {children}
         </NativeSelect>
       </>
     );
@@ -51,16 +45,3 @@ export const StudioNativeSelect = forwardRef<HTMLSelectElement, StudioNativeSele
 );
 
 StudioNativeSelect.displayName = 'StudioNativeSelect';
-
-type StudioNativeSelectOptionsProps = {
-  options: SelectOption[];
-};
-const StudioNativeSelectOptions = ({
-  options,
-}: StudioNativeSelectOptionsProps): React.JSX.Element[] => {
-  return options.map(({ value, label }: SelectOption) => (
-    <option key={value} value={value}>
-      {label}
-    </option>
-  ));
-};

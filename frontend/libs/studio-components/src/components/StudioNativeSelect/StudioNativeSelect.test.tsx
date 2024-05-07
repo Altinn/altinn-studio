@@ -1,26 +1,11 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import {
-  StudioNativeSelect,
-  type StudioNativeSelectProps,
-  type SelectOption,
-} from './StudioNativeSelect';
+import { StudioNativeSelect, type StudioNativeSelectProps } from './StudioNativeSelect';
 
-const optionValue1: string = '1';
-const optionValue2: string = '2';
-
-const optionLabel1: string = 'Option 1';
-const optionLabel2: string = 'Option 2';
-
-const options: SelectOption[] = [
-  { value: optionValue1, label: optionLabel1 },
-  { value: optionValue2, label: optionLabel2 },
-];
 const mockLabel: string = 'Select label';
 const mockDescription: string = 'Description';
 const mockId: string = 'select-id';
 const defaultProps: StudioNativeSelectProps = {
-  options,
   id: mockId,
   label: mockLabel,
 };

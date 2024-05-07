@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
-import { StudioNativeSelect, type SelectOption } from './StudioNativeSelect';
+import { StudioNativeSelect } from './StudioNativeSelect';
 
 type Story = StoryFn<typeof StudioNativeSelect>;
 
@@ -12,26 +12,19 @@ const meta: Meta = {
       control: 'radio',
       options: ['xsmall', 'small', 'medium', 'large'],
     },
-    options: {
-      control: {
-        type: 'object',
-        mapping: {
-          value: { type: 'string' },
-          label: { type: 'string' },
-        },
-      },
-    },
   },
 };
-export const Preview: Story = (args): React.ReactElement => <StudioNativeSelect {...args} />;
+export const Preview: Story = (args): React.ReactElement => (
+  <StudioNativeSelect {...args}>
+    <option value='1'>Option 1</option>
+    <option value='2'>Option 2</option>
+    <option value='3'>Option 3</option>
+  </StudioNativeSelect>
+);
 
 Preview.args = {
   label: 'Label',
   description: 'This is a description',
   size: 'medium',
-  options: [
-    { value: 'value1', label: 'Label 1' },
-    { value: 'value2', label: 'Label 2' },
-  ] as SelectOption[],
 };
 export default meta;
