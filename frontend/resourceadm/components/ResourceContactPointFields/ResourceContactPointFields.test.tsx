@@ -64,7 +64,7 @@ describe('ResourceContactPointFields', () => {
     );
     expect(categoryLabel).toHaveValue(mockContactPoint1.category);
 
-    await user.type(categoryLabel, mockNewInput);
+    await waitFor(() => user.type(categoryLabel, mockNewInput));
 
     expect(
       screen.getByLabelText(textMock('resourceadm.about_resource_contact_label_category'), {
@@ -83,7 +83,7 @@ describe('ResourceContactPointFields', () => {
     );
     expect(emailLabel).toHaveValue(mockContactPoint1.email);
 
-    await user.type(emailLabel, mockNewInput);
+    await waitFor(() => user.type(emailLabel, mockNewInput));
 
     expect(
       screen.getByLabelText(textMock('resourceadm.about_resource_contact_label_email')),
@@ -99,7 +99,7 @@ describe('ResourceContactPointFields', () => {
     );
     expect(telephoneLabel).toHaveValue(mockContactPoint1.telephone);
 
-    await user.type(telephoneLabel, mockNewInput);
+    await waitFor(() => user.type(telephoneLabel, mockNewInput));
 
     expect(
       screen.getByLabelText(textMock('resourceadm.about_resource_contact_label_telephone')),
@@ -115,7 +115,7 @@ describe('ResourceContactPointFields', () => {
     );
     expect(contactpageLabel).toHaveValue(mockContactPoint1.contactPage);
 
-    await user.type(contactpageLabel, mockNewInput);
+    await waitFor(() => user.type(contactpageLabel, mockNewInput));
 
     expect(
       screen.getByLabelText(textMock('resourceadm.about_resource_contact_label_contactpage')),
@@ -127,7 +127,7 @@ describe('ResourceContactPointFields', () => {
     render(<ResourceContactPointFields {...defaultProps} />);
 
     const addButton = screen.getByText(textMock('resourceadm.about_resource_contact_add_button'));
-    await user.click(addButton);
+    await waitFor(() => user.click(addButton));
 
     const newContactPointField = screen.getByText(
       textMock('resourceadm.about_resource_contact_legend', { index: 2 }),
@@ -156,12 +156,12 @@ describe('ResourceContactPointFields', () => {
     const removeButton = screen.getAllByText(
       textMock('resourceadm.about_resource_contact_remove_button'),
     );
-    await user.click(removeButton[0]);
+    await waitFor(() => user.click(removeButton[0]));
 
     const confirmRemoveButton = screen.getByText(
       textMock('resourceadm.about_resource_contact_confirm_remove_button'),
     );
-    await user.click(confirmRemoveButton);
+    await waitFor(() => user.click(confirmRemoveButton));
 
     const contactPointField = screen.queryByText(
       textMock('resourceadm.about_resource_contact_legend', { index: 2 }),
@@ -187,14 +187,16 @@ describe('ResourceContactPointFields', () => {
       textMock('resourceadm.about_resource_contact_label_contactpage'),
     );
 
-    await user.type(categoryLabel, mockNewInput);
-    await waitFor(() => categoryLabel.blur());
-    await user.type(emailLabel, mockNewInput);
-    await waitFor(() => emailLabel.blur());
-    await user.type(telephoneLabel, mockNewInput);
-    await waitFor(() => telephoneLabel.blur());
-    await user.type(contactPageLabel, mockNewInput);
-    await waitFor(() => contactPageLabel.blur());
+    await waitFor(async () => {
+      await user.type(categoryLabel, mockNewInput);
+      categoryLabel.blur();
+      await user.type(emailLabel, mockNewInput);
+      emailLabel.blur();
+      await user.type(telephoneLabel, mockNewInput);
+      telephoneLabel.blur();
+      await user.type(contactPageLabel, mockNewInput);
+      contactPageLabel.blur();
+    });
 
     expect(mockOnContactPointsChanged).toHaveBeenCalledWith([
       {
