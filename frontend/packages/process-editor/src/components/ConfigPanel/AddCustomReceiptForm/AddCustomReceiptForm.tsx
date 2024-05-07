@@ -11,9 +11,10 @@ import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { Paragraph } from '@digdir/design-system-react';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
+import { type CustomReceipt } from '../../../types/CustomReceipt';
 
 export type AddCustomReceiptFormProps = {
-  onSaveCustomReceipt: (newCustomReceiptLayoutSetId: string) => void;
+  onSaveCustomReceipt: (customReceipt: CustomReceipt) => void;
   handleDeleteCustomReceipt: () => void;
 };
 
@@ -36,16 +37,12 @@ export const AddCustomReceiptForm = ({
 
     const formData: FormData = new FormData(event.currentTarget);
 
-    const customReceiptForm: any = {
-      // TODO type
-      existingCustomReceiptLayoutSetId: formData.get('customReceiptLayoutSetId') as string,
-      dataModel: formData.get('customReceiptDataModel') as string,
+    const customReceiptForm: CustomReceipt = {
+      layoutSetId: formData.get('customReceiptLayoutSetId') as string,
+      datamodelId: formData.get('customReceiptDataModel') as string,
     };
 
-    console.log('customReceiptForm', customReceiptForm);
-
-    // Send verdi fra tekstfelt
-    onSaveCustomReceipt('');
+    onSaveCustomReceipt(customReceiptForm);
     setShowCreateCustomReceiptFields(false);
   };
 
@@ -103,7 +100,7 @@ export const AddCustomReceiptForm = ({
           <KeyVerticalIcon style={{ fontSize: 'var(--fds-sizing-6)' }} />
           <Paragraph size='small'>
             <strong>Navn på sidegruppe: </strong>
-            {' Kvittering'}
+            {existingCustomReceiptLayoutSetId}
           </Paragraph>
         </span>
         <span style={{ display: 'flex', alignItems: 'center' }}>

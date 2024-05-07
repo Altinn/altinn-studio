@@ -14,6 +14,8 @@ import { ConfigIcon } from '../ConfigContent/ConfigIcon';
 // import { getLayoutSetIdValidationErrorKey } from 'app-shared/utils/layoutSetsUtils';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { AddCustomReceiptForm } from '../AddCustomReceiptForm';
+import { type CustomReceipt } from '../../../types/CustomReceipt';
+import { type DataTypeChange } from 'app-shared/types/api/DataTypeChange';
 
 export const ConfigEndEvent = () => {
   const { t } = useTranslation();
@@ -27,43 +29,46 @@ export const ConfigEndEvent = () => {
     mutateDataType,
   } = useBpmnApiContext();
 
-  const handleSaveCustomReceipt = (customReceiptId: string) => {
-    if (existingCustomReceiptLayoutSetId === customReceiptId) return;
+  const handleSaveCustomReceipt = (customReceipt: CustomReceipt) => {
+    if (existingCustomReceiptLayoutSetId === customReceipt.layoutSetId) return;
 
     if (!existingCustomReceiptLayoutSetId) {
-      console.log('NO EXISTING');
-      handleAddLayoutSet(customReceiptId);
+      handleAddLayoutSet(customReceipt);
       return;
     }
-
-    mutateLayoutSet({
-      layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
-      newLayoutSetId: customReceiptId,
-    });
+    handleEditCustomReceipt(customReceipt);
   };
 
-  const handleAddLayoutSet = (customReceiptId: string) => {
+  const handleEditCustomReceipt = (customReceipt: CustomReceipt) => {
+    mutateLayoutSet({
+      layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
+      newLayoutSetId: customReceipt.layoutSetId,
+    });
+    updateDatamodel(customReceipt.datamodelId);
+  };
+
+  const handleAddLayoutSet = (customReceipt: CustomReceipt) => {
     const customReceiptLayoutSetConfig: LayoutSetConfig = {
-      id: customReceiptId,
+      id: customReceipt.layoutSetId,
       tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
     };
-
     addLayoutSet({
-      layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
+      layoutSetIdToUpdate: customReceipt.layoutSetId,
       layoutSetConfig: customReceiptLayoutSetConfig,
     });
+    updateDatamodel(customReceipt.datamodelId);
+  };
 
-    // TODO
-    /*
+  const updateDatamodel = (datamodelId: string) => {
     const dataTypeChange: DataTypeChange = {
-      newDataType: dataModelId,
-      connectedTaskId: connectedTaskId,
+      newDataType: datamodelId,
+      connectedTaskId: PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
     };
-    mutateDataType(dataTypeChange);*/
+    mutateDataType(dataTypeChange);
   };
 
   const handleDeleteCustomReceipt = () => {
-    mutateDataType(undefined);
+    // mutateDataType(undefined);
     deleteLayoutSet({ layoutSetIdToUpdate: existingCustomReceiptLayoutSetId });
   };
 
