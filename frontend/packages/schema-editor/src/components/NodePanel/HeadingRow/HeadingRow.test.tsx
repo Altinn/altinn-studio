@@ -4,7 +4,7 @@ import React from 'react';
 import type { SchemaEditorAppContextProps } from '../../../contexts/SchemaEditorAppContext';
 import { renderWithProviders } from '../../../../test/renderWithProviders';
 import { extractNameFromPointer, ROOT_POINTER, SchemaModel } from '@altinn/schema-model';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import {
@@ -78,8 +78,8 @@ describe('HeadingRow', () => {
         const schemaModel = createSchemaModel();
         const numberOfRootChildrenBefore = schemaModel.getRootChildren().length;
         renderHeadingRow({ appContextProps: { schemaModel } });
-        await user.click(getAddButton());
-        await user.click(getAddMenuitem(type));
+        await waitFor(() => user.click(getAddButton()));
+        await waitFor(() => user.click(getAddMenuitem(type)));
         expect(save).toHaveBeenCalledTimes(1);
         const savedModel = save.mock.calls[0][0];
         expect(savedModel.getNodeMap()).toBe(schemaModel.getNodeMap());
@@ -200,8 +200,8 @@ describe('HeadingRow', () => {
             const schemaModel = createSchemaModel();
             const numberOfChildrenBefore = schemaModel.getChildNodes(pointer).length;
             renderHeadingRowForType(pointer, { schemaModel });
-            await user.click(getAddButton());
-            await user.click(getAddMenuitem(type));
+            await waitFor(() => user.click(getAddButton()));
+            await waitFor(() => user.click(getAddMenuitem(type)));
             expect(save).toHaveBeenCalledTimes(1);
             const savedModel = save.mock.calls[0][0];
             expect(savedModel.getNodeMap()).toBe(schemaModel.getNodeMap());
