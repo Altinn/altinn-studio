@@ -61,10 +61,10 @@
           "title": "Severity",
           "description": "The severity of the validation message.",
           "type": "string",
-          "default": "errors",
+          "default": "error",
           "enum": [
-            "errors",
-            "warnings",
+            "error",
+            "warning",
             "info",
             "success"
           ]
