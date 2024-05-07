@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text.RegularExpressions;
 using Altinn.Studio.Designer.Helpers;
 
 namespace Altinn.Studio.Designer.Models
