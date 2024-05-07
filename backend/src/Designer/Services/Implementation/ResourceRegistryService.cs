@@ -21,7 +21,6 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.PolicyAdmin.Constants;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -293,7 +292,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             response.EnsureSuccessStatusCode();
 
             string contentString = await response.Content.ReadAsStringAsync();
-            contentString = contentString.Replace("urn:altinn:resourceregistry", AltinnXacmlConstants.MatchAttributeIdentifiers.ResourceRegistryResource);
             XacmlPolicy policy;
             using (XmlReader reader = XmlReader.Create(new StringReader(contentString)))
             {
