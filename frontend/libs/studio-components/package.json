@@ -1,6 +1,6 @@
 {
   "name": "@studio/components",
-  "packageManager": "yarn@4.1.1",
+  "packageManager": "yarn@4.2.1",
   "version": "0.1.0",
   "main": "./src/index.ts",
   "scripts": {
@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@studio/icons": "^0.1.0",
-    "ajv": "8.12.0",
+    "ajv": "8.13.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "uuid": "9.0.1"
