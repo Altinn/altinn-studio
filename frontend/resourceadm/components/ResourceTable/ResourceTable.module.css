@@ -6,5 +6,6 @@
 .tagContainer {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   gap: var(--fds-spacing-1);
 }

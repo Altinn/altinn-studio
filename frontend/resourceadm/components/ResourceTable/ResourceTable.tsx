@@ -176,6 +176,7 @@ export const ResourceTable = ({
     <DataGrid
       autoHeight
       rows={listData}
+      rowHeight={58}
       getRowId={(row) => row.identifier}
       disableRowSelectionOnClick
       disableColumnMenu
