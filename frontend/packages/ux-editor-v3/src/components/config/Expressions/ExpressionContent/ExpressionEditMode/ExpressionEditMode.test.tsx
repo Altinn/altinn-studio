@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   componentId,
@@ -128,7 +128,7 @@ describe('ExpressionEditMode', () => {
     const saveExpressionButton = screen.getByRole('button', {
       name: textMock('right_menu.expression_save'),
     });
-    await user.click(saveExpressionButton);
+    await waitFor(() => user.click(saveExpressionButton));
     expect(mockOnSaveExpression).toHaveBeenCalledWith(simpleInternalExpression);
     expect(mockOnSaveExpression).toHaveBeenCalledTimes(1);
   });
@@ -143,7 +143,7 @@ describe('ExpressionEditMode', () => {
     const deleteExpressionButton = screen.getByRole('button', {
       name: textMock('right_menu.expression_delete'),
     });
-    await user.click(deleteExpressionButton);
+    await waitFor(() => user.click(deleteExpressionButton));
     expect(mockOnDeleteExpression).toHaveBeenCalledWith(simpleInternalExpression);
     expect(mockOnDeleteExpression).toHaveBeenCalledTimes(1);
   });
@@ -158,11 +158,11 @@ describe('ExpressionEditMode', () => {
     const functionDropDown = screen.getByRole('combobox', {
       name: textMock('right_menu.expressions_function'),
     });
-    await user.click(functionDropDown);
+    await waitFor(() => user.click(functionDropDown));
     const functionOption = screen.getByRole('option', {
       name: textMock('right_menu.expressions_function_less_than'),
     });
-    await user.click(functionOption);
+    await waitFor(() => user.click(functionOption));
     const simpleInternalExpressionCopy = ObjectUtils.deepCopy(simpleInternalExpression);
     simpleInternalExpressionCopy.subExpressions[0].function = ExpressionFunction.LessThan;
     expect(mockOnSetExpression).toHaveBeenCalledWith(simpleInternalExpressionCopy);
@@ -179,7 +179,7 @@ describe('ExpressionEditMode', () => {
     const addSubExpressionButton = screen.getByRole('button', {
       name: textMock('right_menu.expressions_add_sub_expression'),
     });
-    await user.click(addSubExpressionButton);
+    await waitFor(() => user.click(addSubExpressionButton));
     const simpleInternalExpressionCopy = ObjectUtils.deepCopy(simpleInternalExpression);
     simpleInternalExpressionCopy.subExpressions.push({});
     simpleInternalExpressionCopy.operator = Operator.And;
@@ -187,7 +187,6 @@ describe('ExpressionEditMode', () => {
     expect(mockOnSetExpression).toHaveBeenCalledTimes(1);
   });
   it('calls onSetExpression when operator is changed', async () => {
-    const user = userEvent.setup();
     const mockOnSetExpression = jest.fn();
     render({
       props: {
@@ -198,7 +197,9 @@ describe('ExpressionEditMode', () => {
     const andOperatorToggleButton = screen.getByRole('button', {
       name: textMock('right_menu.expressions_operator_and'),
     });
-    await user.click(andOperatorToggleButton);
+    expect(andOperatorToggleButton).toBeInTheDocument();
+
+    fireEvent.click(andOperatorToggleButton);
     internalExpressionWithMultipleSubExpressions.operator = Operator.And;
     expect(mockOnSetExpression).toHaveBeenCalledWith(internalExpressionWithMultipleSubExpressions);
     expect(mockOnSetExpression).toHaveBeenCalledTimes(1);
@@ -243,7 +244,7 @@ describe('ExpressionEditMode', () => {
       name: textMock('right_menu.expression_enable_free_style_editing'),
     });
     expect(enableFreeStyleEditingSwitch).toBeChecked();
-    await user.click(enableFreeStyleEditingSwitch);
+    await waitFor(() => user.click(enableFreeStyleEditingSwitch));
     expect(enableFreeStyleEditingSwitch).not.toBeChecked();
   });
 });
