@@ -91,7 +91,7 @@ export const ResourceTable = ({
     {
       field: 'createdBy',
       headerName: t('resourceadm.dashboard_table_header_createdby'),
-      width: 180,
+      width: 160,
     },
     {
       field: 'lastChanged',
@@ -116,11 +116,15 @@ export const ResourceTable = ({
         return (
           <div className={classes.tagContainer}>
             {params.row.environments.map((env: string) => {
+              let tagText = env.toUpperCase();
+              if (env === 'prod') {
+                tagText = t('resourceadm.dashboard_table_row_in_prod');
+              } else if (env === 'gitea') {
+                tagText = t('resourceadm.dashboard_table_row_in_gitea');
+              }
               return (
-                <Tag key={env} color={'info'} size='small'>
-                  {env == 'gitea'
-                    ? t('resourceadm.dashboard_table_row_in_gitea')
-                    : env.toUpperCase()}
+                <Tag key={env} color='info' size='small'>
+                  {tagText}
                 </Tag>
               );
             })}

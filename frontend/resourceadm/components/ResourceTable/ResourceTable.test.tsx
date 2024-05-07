@@ -18,7 +18,7 @@ const mockResourceListItem2: ResourceListItem = {
   createdBy: 'John Doe',
   lastChanged: new Date('2023-08-29'),
   identifier: 'resource-2',
-  environments: ['gitea'],
+  environments: ['gitea', 'tt02', 'prod'],
 };
 const mockResourceListItem3: ResourceListItem = {
   title: { nb: '', en: '', nn: '' },
