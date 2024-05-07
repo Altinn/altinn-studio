@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Helpers
     /// </summary>
     public class ProcessError
     {
+#nullable disable
         /// <summary>
         /// Gets or sets a machine readable error code or test resource key.
         /// </summary>
@@ -14,5 +15,6 @@ namespace Altinn.App.Core.Helpers
         /// Gets or sets a human readable error message.
         /// </summary>
         public string Text { get; set; }
+#nullable restore
     }
 }

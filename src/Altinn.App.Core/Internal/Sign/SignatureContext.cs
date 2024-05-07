@@ -76,7 +76,10 @@ public class Signee
     /// <summary>
     /// User id of the user performing the signing
     /// </summary>
+#nullable disable
     public string UserId { get; set; }
+
+#nullable restore
 
     /// <summary>
     /// The SSN of the user performing the signing, set if the signer is a person

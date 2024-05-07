@@ -8,6 +8,7 @@ namespace Altinn.App.Core.Models
     /// </summary>
     public class UserContext
     {
+#nullable disable
         /// <summary>
         /// Gets or sets the social security number
         /// </summary>
@@ -32,6 +33,8 @@ namespace Altinn.App.Core.Models
         /// Gets or sets the claims principal for the user
         /// </summary>
         public ClaimsPrincipal User { get; set; }
+
+#nullable restore
 
         /// <summary>
         /// Gets or sets the ID of the user

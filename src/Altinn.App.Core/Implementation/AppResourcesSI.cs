@@ -249,13 +249,14 @@ namespace Altinn.App.Core.Implementation
         public string GetLayoutSets()
         {
             string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.LayoutSetsFileName);
-            string filedata = null;
+            string? filedata = null;
             if (File.Exists(filename))
             {
                 filedata = File.ReadAllText(filename, Encoding.UTF8);
             }
-
+#nullable disable
             return filedata;
+#nullable restore
         }
 
         /// <inheritdoc />
@@ -389,13 +390,15 @@ namespace Altinn.App.Core.Implementation
 
         private byte[] ReadFileByte(string fileName)
         {
-            byte[] filedata = null;
+            byte[]? filedata = null;
             if (File.Exists(fileName))
             {
                 filedata = File.ReadAllBytes(fileName);
             }
 
+#nullable disable
             return filedata;
+#nullable restore
         }
 
         private byte[] ReadFileContentsFromLegalPath(string legalPath, string filePath)
@@ -411,7 +414,9 @@ namespace Altinn.App.Core.Implementation
                 return File.ReadAllBytes(fullFileName);
             }
 
+#nullable disable
             return null;
+#nullable restore
         }
 
         /// <inheritdoc />

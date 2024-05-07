@@ -15,7 +15,7 @@ namespace Altinn.App.Core.Tests.Internal.Process;
 public class ProcessNavigatorTests
 {
     [Fact]
-    public async void GetNextTask_returns_next_element_if_no_gateway()
+    public async Task GetNextTask_returns_next_element_if_no_gateway()
     {
         IProcessNavigator processNavigator = SetupProcessNavigator(
             "simple-linear.bpmn",
@@ -40,7 +40,7 @@ public class ProcessNavigatorTests
     }
 
     [Fact]
-    public async void NextFollowAndFilterGateways_returns_empty_list_if_no_outgoing_flows()
+    public async Task NextFollowAndFilterGateways_returns_empty_list_if_no_outgoing_flows()
     {
         IProcessNavigator processNavigator = SetupProcessNavigator(
             "simple-linear.bpmn",
@@ -51,7 +51,7 @@ public class ProcessNavigatorTests
     }
 
     [Fact]
-    public async void GetNextTask_returns_default_if_no_filtering_is_implemented_and_default_set()
+    public async Task GetNextTask_returns_default_if_no_filtering_is_implemented_and_default_set()
     {
         IProcessNavigator processNavigator = SetupProcessNavigator(
             "simple-gateway-default.bpmn",
@@ -80,7 +80,7 @@ public class ProcessNavigatorTests
     }
 
     [Fact]
-    public async void GetNextTask_runs_custom_filter_and_returns_result()
+    public async Task GetNextTask_runs_custom_filter_and_returns_result()
     {
         IProcessNavigator processNavigator = SetupProcessNavigator(
             "simple-gateway-with-join-gateway.bpmn",
@@ -111,7 +111,7 @@ public class ProcessNavigatorTests
     }
 
     [Fact]
-    public async void GetNextTask_throws_ProcessException_if_multiple_targets_found()
+    public async Task GetNextTask_throws_ProcessException_if_multiple_targets_found()
     {
         IProcessNavigator processNavigator = SetupProcessNavigator(
             "simple-gateway-with-join-gateway.bpmn",
@@ -128,7 +128,7 @@ public class ProcessNavigatorTests
     }
 
     [Fact]
-    public async void GetNextTask_follows_downstream_gateways()
+    public async Task GetNextTask_follows_downstream_gateways()
     {
         IProcessNavigator processNavigator = SetupProcessNavigator(
             "simple-gateway-with-join-gateway.bpmn",
@@ -150,7 +150,7 @@ public class ProcessNavigatorTests
     }
 
     [Fact]
-    public async void GetNextTask_runs_custom_filter_and_returns_empty_list_if_all_filtered_out()
+    public async Task GetNextTask_runs_custom_filter_and_returns_empty_list_if_all_filtered_out()
     {
         IProcessNavigator processNavigator = SetupProcessNavigator(
             "simple-gateway-with-join-gateway.bpmn",
@@ -170,7 +170,7 @@ public class ProcessNavigatorTests
     }
 
     [Fact]
-    public async void GetNextTask_returns_empty_list_if_element_has_no_next()
+    public async Task GetNextTask_returns_empty_list_if_element_has_no_next()
     {
         IProcessNavigator processNavigator = SetupProcessNavigator(
             "simple-gateway-with-join-gateway.bpmn",

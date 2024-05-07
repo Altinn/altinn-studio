@@ -26,7 +26,7 @@ public class SmsNotificationClientTests
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async void Order_VerifyHttpCall(bool includeTelemetryClient)
+    public async Task Order_VerifyHttpCall(bool includeTelemetryClient)
     {
         // Arrange
         var smsNotification = new SmsNotification
@@ -81,7 +81,7 @@ public class SmsNotificationClientTests
     }
 
     [Fact]
-    public async void Order_ShouldReturnOrderId_OnSuccess()
+    public async Task Order_ShouldReturnOrderId_OnSuccess()
     {
         // Arrange
         var handlerMock = new Mock<HttpMessageHandler>();
@@ -122,7 +122,7 @@ public class SmsNotificationClientTests
     }
 
     [Fact]
-    public async void Order_ShouldThrowSmsNotificationException_OnFailure()
+    public async Task Order_ShouldThrowSmsNotificationException_OnFailure()
     {
         // Arrange
         var handlerMock = new Mock<HttpMessageHandler>();
@@ -162,7 +162,7 @@ public class SmsNotificationClientTests
     }
 
     [Fact]
-    public async void Order_ShouldThrowSmsNotificationException_OnInvalidJsonResponse()
+    public async Task Order_ShouldThrowSmsNotificationException_OnInvalidJsonResponse()
     {
         // Arrange
         var handlerMock = new Mock<HttpMessageHandler>();

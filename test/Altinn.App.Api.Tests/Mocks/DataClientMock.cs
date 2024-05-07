@@ -405,7 +405,7 @@ namespace App.IntegrationTests.Mocks.Services
             string instanceId,
             string dataType,
             string contentType,
-            string filename,
+            string? filename,
             Stream stream,
             string? generatedFromTask = null
         )

@@ -8,11 +8,13 @@ namespace Altinn.App.Core.Models
         /// <summary>
         /// The attachment type
         /// </summary>
+#nullable disable
         public string Type { get; set; }
 
         /// <summary>
         /// The attachments
         /// </summary>
         public List<Attachment> Attachments { get; set; }
+#nullable restore
     }
 }

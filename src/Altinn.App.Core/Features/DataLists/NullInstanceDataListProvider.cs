@@ -24,7 +24,9 @@ namespace Altinn.App.Core.Features.DataLists
             Dictionary<string, string> keyValuePairs
         )
         {
+#nullable disable
             return Task.FromResult(new DataList() { ListItems = null });
+#nullable restore
         }
     }
 }

@@ -68,7 +68,9 @@ namespace Altinn.App.Core.Helpers
                 }
             }
 
-            UserProfile userProfile = await _profileClient.GetUserProfile(userContext.UserId);
+            UserProfile userProfile =
+                await _profileClient.GetUserProfile(userContext.UserId)
+                ?? throw new Exception("Could not get user profile while getting user context");
             userContext.UserParty = userProfile.Party;
 
             if (context.Request.Cookies[_settings.GetAltinnPartyCookieName] != null)

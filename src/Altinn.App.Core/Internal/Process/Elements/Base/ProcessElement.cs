@@ -11,6 +11,7 @@ public abstract class ProcessElement
     /// Gets or sets the ID of a flow element
     /// </summary>
     [XmlAttribute("id")]
+#nullable disable
     public string Id { get; set; }
 
     /// <summary>
@@ -30,6 +31,8 @@ public abstract class ProcessElement
     /// </summary>
     [XmlElement("outgoing")]
     public List<string> Outgoing { get; set; }
+
+#nullable restore
 
     /// <summary>
     /// String representation of process element type

@@ -9,7 +9,7 @@ namespace Altinn.App.PlatformServices.Tests.Features.Validators;
 public class NullInstantiationValidatorTests
 {
     [Fact]
-    public async void NullInstantiationTest_Validation_returns_null()
+    public async Task NullInstantiationTest_Validation_returns_null()
     {
         // Arrange
         var nullInstantiation = new NullInstantiationValidator();

@@ -131,7 +131,7 @@ namespace Altinn.App.Core.Tests.Internal.App
         }
 
         [Fact]
-        public async void GetApplicationMetadata_second_read_from_cache()
+        public async Task GetApplicationMetadata_second_read_from_cache()
         {
             AppSettings appSettings = GetAppSettings("AppMetadata", "default.applicationmetadata.json");
             Mock<IFrontendFeatures> appFeaturesMock = new Mock<IFrontendFeatures>();
@@ -464,7 +464,7 @@ namespace Altinn.App.Core.Tests.Internal.App
         }
 
         [Fact]
-        public async void GetApplicationMetadata_throws_ApplicationConfigException_if_file_not_found()
+        public async Task GetApplicationMetadata_throws_ApplicationConfigException_if_file_not_found()
         {
             AppSettings appSettings = GetAppSettings("AppMetadata", "notfound.applicationmetadata.json");
             IAppMetadata appMetadata = SetupAppMedata(Microsoft.Extensions.Options.Options.Create(appSettings));
@@ -474,7 +474,7 @@ namespace Altinn.App.Core.Tests.Internal.App
         }
 
         [Fact]
-        public async void GetApplicationMetadata_throw_ApplicationConfigException_if_deserialization_fails()
+        public async Task GetApplicationMetadata_throw_ApplicationConfigException_if_deserialization_fails()
         {
             AppSettings appSettings = GetAppSettings("AppMetadata", "invalid.applicationmetadata.json");
             IAppMetadata appMetadata = SetupAppMedata(Microsoft.Extensions.Options.Options.Create(appSettings));
@@ -484,7 +484,7 @@ namespace Altinn.App.Core.Tests.Internal.App
         }
 
         [Fact]
-        public async void GetApplicationMetadata_throws_ApplicationConfigException_if_deserialization_fails_due_to_string_in_int()
+        public async Task GetApplicationMetadata_throws_ApplicationConfigException_if_deserialization_fails_due_to_string_in_int()
         {
             AppSettings appSettings = GetAppSettings("AppMetadata", "invalid-int.applicationmetadata.json");
             IAppMetadata appMetadata = SetupAppMedata(Microsoft.Extensions.Options.Options.Create(appSettings));
@@ -494,7 +494,7 @@ namespace Altinn.App.Core.Tests.Internal.App
         }
 
         [Fact]
-        public async void GetApplicationXACMLPolicy_return_policyfile_as_string()
+        public async Task GetApplicationXACMLPolicy_return_policyfile_as_string()
         {
             AppSettings appSettings = GetAppSettings(subfolder: "AppPolicy", policyFilename: "policy.xml");
             IAppMetadata appMetadata = SetupAppMedata(Microsoft.Extensions.Options.Options.Create(appSettings));
@@ -505,7 +505,7 @@ namespace Altinn.App.Core.Tests.Internal.App
         }
 
         [Fact]
-        public async void GetApplicationXACMLPolicy_throws_FileNotFoundException_if_file_not_found()
+        public async Task GetApplicationXACMLPolicy_throws_FileNotFoundException_if_file_not_found()
         {
             AppSettings appSettings = GetAppSettings(subfolder: "AppPolicy", policyFilename: "notfound.xml");
             IAppMetadata appMetadata = SetupAppMedata(Microsoft.Extensions.Options.Options.Create(appSettings));
@@ -513,7 +513,7 @@ namespace Altinn.App.Core.Tests.Internal.App
         }
 
         [Fact]
-        public async void GetApplicationBPMNProcess_return_process_as_string()
+        public async Task GetApplicationBPMNProcess_return_process_as_string()
         {
             AppSettings appSettings = GetAppSettings(subfolder: "AppProcess", bpmnFilename: "process.bpmn");
             IAppMetadata appMetadata = SetupAppMedata(Microsoft.Extensions.Options.Options.Create(appSettings));
@@ -524,7 +524,7 @@ namespace Altinn.App.Core.Tests.Internal.App
         }
 
         [Fact]
-        public async void GetApplicationBPMNProcess_throws_ApplicationConfigException_if_file_not_found()
+        public async Task GetApplicationBPMNProcess_throws_ApplicationConfigException_if_file_not_found()
         {
             AppSettings appSettings = GetAppSettings(subfolder: "AppProcess", policyFilename: "notfound.xml");
             IAppMetadata appMetadata = SetupAppMedata(Microsoft.Extensions.Options.Options.Create(appSettings));

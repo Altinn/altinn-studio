@@ -11,7 +11,10 @@ namespace Altinn.App.Core.Internal.Process.Elements
         /// Gets or sets the ID of the process of a workflow
         /// </summary>
         [XmlAttribute("id")]
+#nullable disable
         public string Id { get; set; }
+
+#nullable restore
 
         /// <summary>
         /// Gets or sets if the process of a workflow is executable or not
@@ -23,6 +26,7 @@ namespace Altinn.App.Core.Internal.Process.Elements
         /// Gets or sets the start event of the process of a workflow
         /// </summary>
         [XmlElement("startEvent")]
+#nullable disable
         public List<StartEvent> StartEvents { get; set; }
 
         /// <summary>
@@ -48,5 +52,6 @@ namespace Altinn.App.Core.Internal.Process.Elements
         /// </summary>
         [XmlElement("exclusiveGateway")]
         public List<ExclusiveGateway> ExclusiveGateway { get; set; }
+#nullable restore
     }
 }

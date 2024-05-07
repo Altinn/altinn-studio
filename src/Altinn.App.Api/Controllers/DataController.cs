@@ -226,6 +226,11 @@ namespace Altinn.App.Api.Controllers
                         return BadRequest(await GetErrorDetails(validationIssues));
                     }
 
+                    if (streamContent.Headers.ContentType is null)
+                    {
+                        return StatusCode(500, "Content-Type not defined");
+                    }
+
                     fileStream.Seek(0, SeekOrigin.Begin);
                     return await CreateBinaryData(
                         instance,

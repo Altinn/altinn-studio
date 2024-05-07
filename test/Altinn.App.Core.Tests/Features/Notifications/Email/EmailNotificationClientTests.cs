@@ -26,7 +26,7 @@ public class EmailNotificationClientTests
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async void Order_VerifyHttpCall(bool includeTelemetryClient)
+    public async Task Order_VerifyHttpCall(bool includeTelemetryClient)
     {
         // Arrange
         var emailNotification = new EmailNotification
@@ -80,7 +80,7 @@ public class EmailNotificationClientTests
     }
 
     [Fact]
-    public async void Order_ShouldReturnOrderId_OnSuccess()
+    public async Task Order_ShouldReturnOrderId_OnSuccess()
     {
         // Arrange
         var handlerMock = new Mock<HttpMessageHandler>();
@@ -120,7 +120,7 @@ public class EmailNotificationClientTests
     }
 
     [Fact]
-    public async void Order_ShouldThrowEmailNotificationException_OnFailure()
+    public async Task Order_ShouldThrowEmailNotificationException_OnFailure()
     {
         // Arrange
         var handlerMock = new Mock<HttpMessageHandler>();
@@ -160,7 +160,7 @@ public class EmailNotificationClientTests
     }
 
     [Fact]
-    public async void Order_ShouldThrowEmailNotificationException_OnInvalidJsonResponse()
+    public async Task Order_ShouldThrowEmailNotificationException_OnInvalidJsonResponse()
     {
         // Arrange
         var handlerMock = new Mock<HttpMessageHandler>();

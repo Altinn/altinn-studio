@@ -85,7 +85,11 @@ namespace Altinn.App.Api.Controllers
         public async Task<IActionResult> ValidateInstantiation(string org, string app, [FromQuery] int partyId)
         {
             UserContext userContext = await _userHelper.GetUserContext(HttpContext);
-            UserProfile user = await _profileClient.GetUserProfile(userContext.UserId);
+            UserProfile? user = await _profileClient.GetUserProfile(userContext.UserId);
+            if (user is null)
+            {
+                return StatusCode(500, "Could not get user profile while validating instantiation");
+            }
             List<Party>? partyList = await _authorizationClient.GetPartyList(userContext.UserId);
             Application application = await _appMetadata.GetApplicationMetadata();
 

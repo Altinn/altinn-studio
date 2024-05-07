@@ -37,7 +37,11 @@ public class ProcessNavigator : IProcessNavigator
     public async Task<ProcessElement?> GetNextTask(Instance instance, string currentElement, string? action)
     {
         List<ProcessElement> directFlowTargets = _processReader.GetNextElements(currentElement);
-        List<ProcessElement> filteredNext = await NextFollowAndFilterGateways(instance, directFlowTargets, action);
+        List<ProcessElement> filteredNext = await NextFollowAndFilterGateways(
+            instance,
+            directFlowTargets as List<ProcessElement?>,
+            action
+        );
         if (filteredNext.Count == 0)
         {
             return null;

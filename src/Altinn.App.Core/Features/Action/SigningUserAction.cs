@@ -141,7 +141,10 @@ public class SigningUserAction : IUserAction
 
     private async Task<Signee> GetSignee(int userId)
     {
-        var userProfile = await _profileClient.GetUserProfile(userId);
+        var userProfile =
+            await _profileClient.GetUserProfile(userId)
+            ?? throw new Exception("Could not get user profile while getting signee");
+
         return new Signee
         {
             UserId = userProfile.UserId.ToString(),

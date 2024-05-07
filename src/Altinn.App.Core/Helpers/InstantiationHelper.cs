@@ -51,6 +51,10 @@ namespace Altinn.App.Core.Helpers
                 if (canPartyInstantiate && isChildPartyAllowed)
                 {
                     party.ChildParties = new List<Party>();
+                    if (allowedChildParties is null)
+                    {
+                        throw new Exception("List of allowed child parties unexpectedly null");
+                    }
                     party.ChildParties.AddRange(allowedChildParties);
                     allowed.Add(party);
                 }
@@ -58,6 +62,10 @@ namespace Altinn.App.Core.Helpers
                 {
                     party.ChildParties = new List<Party>();
                     party.OnlyHierarchyElementWithNoAccess = true;
+                    if (allowedChildParties is null)
+                    {
+                        throw new Exception("List of allowed child parties unexpectedly null");
+                    }
                     party.ChildParties.AddRange(allowedChildParties);
                     allowed.Add(party);
                 }

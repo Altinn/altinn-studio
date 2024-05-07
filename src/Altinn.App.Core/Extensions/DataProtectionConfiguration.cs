@@ -15,14 +15,21 @@ namespace Altinn.App.Core.Extensions
         /// <param name="services">The service collections</param>
         public static void ConfigureDataProtection(this IServiceCollection services)
         {
-            services.AddDataProtection().PersistKeysToFileSystem(GetKeysDirectory());
+            var dir = GetKeysDirectory();
+            if (dir is null)
+            {
+                throw new DirectoryNotFoundException(
+                    "Could not find a suitable directory for storing DataProtection keys"
+                );
+            }
+            services.AddDataProtection().PersistKeysToFileSystem(dir);
         }
 
         /// <summary>
         /// Return a directory based on the running operating system. It is possible to override the directory based on the ALTINN_KEYS_DIRECTORY environment variable.
         /// </summary>
         /// <returns></returns>
-        private static DirectoryInfo GetKeysDirectory()
+        private static DirectoryInfo? GetKeysDirectory()
         {
             var environmentVariable = System.Environment.GetEnvironmentVariable("ALTINN_KEYS_DIRECTORY");
             if (!string.IsNullOrWhiteSpace(environmentVariable))

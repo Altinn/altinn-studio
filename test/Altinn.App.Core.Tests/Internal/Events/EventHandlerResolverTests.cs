@@ -11,7 +11,7 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Events
     public class EventHandlerResolverTests
     {
         [Fact]
-        public async void ResolveEventHandler_SubscriptionValidationHandler_ShouldReturnSubscriptionValidationHandler()
+        public async Task ResolveEventHandler_SubscriptionValidationHandler_ShouldReturnSubscriptionValidationHandler()
         {
             var factory = new EventHandlerResolver(new List<IEventHandler>() { new SubscriptionValidationHandler() });
 

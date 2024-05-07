@@ -17,6 +17,7 @@ namespace Altinn.App.Core.Models
         /// The current query.
         /// </summary>
         [JsonProperty(PropertyName = "self")]
+#nullable disable
         public string Self { get; set; }
 
         /// <summary>
@@ -30,5 +31,6 @@ namespace Altinn.App.Core.Models
         /// </summary>
         [JsonProperty(PropertyName = "instances")]
         public List<T> Instances { get; set; }
+#nullable restore
     }
 }

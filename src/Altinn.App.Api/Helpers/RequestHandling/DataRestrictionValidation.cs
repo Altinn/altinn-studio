@@ -154,7 +154,10 @@ namespace Altinn.App.Api.Helpers.RequestHandling
         /// </summary>
         public static string? GetFileNameFromHeader(StringValues headerValues)
         {
-            ContentDispositionHeaderValue contentDisposition = ContentDispositionHeaderValue.Parse(headerValues);
+            string? headerValue = headerValues;
+            ArgumentNullException.ThrowIfNull(headerValue, nameof(headerValues));
+
+            ContentDispositionHeaderValue contentDisposition = ContentDispositionHeaderValue.Parse(headerValue);
             string? filename = contentDisposition.FileNameStar ?? contentDisposition.FileName;
 
             // We actively remove quotes because we don't want them replaced with '_'.

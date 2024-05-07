@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
 using Altinn.App.Core.Configuration;
@@ -116,8 +117,14 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             if (response.IsSuccessStatusCode)
             {
                 string eventData = await response.Content.ReadAsStringAsync();
-                InstanceEvent result = JsonConvert.DeserializeObject<InstanceEvent>(eventData)!;
-                return result.Id.ToString();
+                InstanceEvent result =
+                    JsonConvert.DeserializeObject<InstanceEvent>(eventData)
+                    ?? throw new Exception("Failed to deserialize instance event");
+                var id = result.Id.ToString();
+                Debug.Assert(id is not null, "Nullable<Guid>.ToString() never returns null");
+                // ^ https://github.com/dotnet/runtime/blob/9b088ab8287a77c52ff7c4ed6fa96be6d3eb87f1/src/libraries/System.Private.CoreLib/src/System/Nullable.cs#L67
+                // ^ https://github.com/dotnet/runtime/blob/9b088ab8287a77c52ff7c4ed6fa96be6d3eb87f1/src/libraries/System.Private.CoreLib/src/System/Guid.cs#L1124
+                return id;
             }
 
             throw await PlatformHttpException.CreateAsync(response);

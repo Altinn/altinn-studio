@@ -12,6 +12,7 @@ namespace Altinn.App.Core.Models
         /// Gets or sets the id of the event.
         /// </summary>
         [JsonPropertyName("id")]
+#nullable disable
         public string Id { get; set; }
 
         /// <summary>
@@ -38,6 +39,8 @@ namespace Altinn.App.Core.Models
         [JsonPropertyName("subject")]
         public string Subject { get; set; }
 
+#nullable restore
+
         /// <summary>
         /// Gets or sets the time of the event.
         /// </summary>
@@ -48,6 +51,7 @@ namespace Altinn.App.Core.Models
         /// Gets or sets the alternative subject of the event.
         /// </summary>
         [JsonPropertyName("alternativesubject")]
+#nullable disable
         public string AlternativeSubject { get; set; }
 
         /// <summary>
@@ -70,5 +74,6 @@ namespace Altinn.App.Core.Models
         /// </summary>
         [JsonPropertyName("contenttype")]
         public ContentType DataContentType { get; set; }
+#nullable restore
     }
 }

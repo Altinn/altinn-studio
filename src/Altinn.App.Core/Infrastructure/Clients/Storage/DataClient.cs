@@ -183,7 +183,9 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             }
             else if (response.StatusCode == HttpStatusCode.NotFound)
             {
+#nullable disable
                 return null;
+#nullable restore
             }
 
             throw await PlatformHttpException.CreateAsync(response);
@@ -455,6 +457,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}";
             string token = _userTokenProvider.GetUserToken();
             StreamContent content = new StreamContent(stream);
+            ArgumentNullException.ThrowIfNull(contentType);
             content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
             content.Headers.ContentDisposition = new ContentDispositionHeaderValue(DispositionTypeNames.Attachment)
             {

@@ -13,6 +13,7 @@ namespace Altinn.App.Core.Internal.Process.Elements
         /// Gets or sets the ID of the definition
         /// </summary>
         [XmlAttribute("id")]
+#nullable disable
         public string Id { get; set; }
 
         /// <summary>
@@ -26,5 +27,6 @@ namespace Altinn.App.Core.Internal.Process.Elements
         /// </summary>
         [XmlElement("process")]
         public Process Process { get; set; }
+#nullable restore
     }
 }

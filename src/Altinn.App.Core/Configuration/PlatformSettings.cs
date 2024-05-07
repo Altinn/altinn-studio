@@ -51,6 +51,8 @@ namespace Altinn.App.Core.Configuration
         /// A new subscription key is generated automatically every time an app is deployed to an environment. The new key is then automatically
         /// added to the environment for the app code during deploy. This will override the value stored in app settings.
         /// </summary>
+#nullable disable
         public string SubscriptionKey { get; set; }
+#nullable restore
     }
 }

@@ -12,6 +12,7 @@ namespace Altinn.App.Core.Models.Validation
         /// </summary>
         public bool Valid { get; set; }
 
+#nullable disable
         /// <summary>
         /// Gets or sets a message
         /// </summary>
@@ -21,5 +22,6 @@ namespace Altinn.App.Core.Models.Validation
         /// Gets or sets a list of parties the user represents that can instantiate
         /// </summary>
         public List<Party> ValidParties { get; set; }
+#nullable restore
     }
 }

@@ -9,7 +9,7 @@ namespace Altinn.App.PlatformServices.Tests.DataLists
     public class NullInstanceDataListProviderTest
     {
         [Fact]
-        public async void Constructor_InitializedWithEmptyValues()
+        public async Task Constructor_InitializedWithEmptyValues()
         {
             var provider = new NullInstanceDataListProvider();
 

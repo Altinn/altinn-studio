@@ -23,7 +23,7 @@ namespace Altinn.App.Core.Tests.Features.Action;
 public class SigningUserActionTests
 {
     [Fact]
-    public async void HandleAction_returns_ok_if_user_is_valid()
+    public async Task HandleAction_returns_ok_if_user_is_valid()
     {
         // Arrange
         UserProfile userProfile = new UserProfile()
@@ -67,7 +67,7 @@ public class SigningUserActionTests
     }
 
     [Fact]
-    public async void HandleAction_returns_ok_if_no_dataElementSignature_and_optional_datatypes()
+    public async Task HandleAction_returns_ok_if_no_dataElementSignature_and_optional_datatypes()
     {
         // Arrange
         UserProfile userProfile = new UserProfile()
@@ -115,7 +115,7 @@ public class SigningUserActionTests
     }
 
     [Fact]
-    public async void HandleAction_returns_error_when_UserId_not_set_in_context()
+    public async Task HandleAction_returns_error_when_UserId_not_set_in_context()
     {
         // Arrange
         UserProfile userProfile = new UserProfile()
@@ -149,7 +149,7 @@ public class SigningUserActionTests
     }
 
     [Fact]
-    public async void HandleAction_throws_ApplicationConfigException_when_no_dataElementSignature_and_mandatory_datatypes()
+    public async Task HandleAction_throws_ApplicationConfigException_when_no_dataElementSignature_and_mandatory_datatypes()
     {
         // Arrange
         UserProfile userProfile = new UserProfile()
@@ -190,7 +190,7 @@ public class SigningUserActionTests
     }
 
     [Fact]
-    public async void HandleAction_throws_ApplicationConfigException_if_SignatureDataType_is_null()
+    public async Task HandleAction_throws_ApplicationConfigException_if_SignatureDataType_is_null()
     {
         // Arrange
         UserProfile userProfile = new UserProfile()

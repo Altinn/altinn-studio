@@ -12,7 +12,7 @@ namespace Altinn.App.Core.Tests.Extensions
         {
             var options = new AppOptions
             {
-                Parameters = new Dictionary<string, string> { { "lang", "nb" }, { "level", "1" } },
+                Parameters = new Dictionary<string, string?> { { "lang", "nb" }, { "level", "1" } },
             };
 
             IHeaderDictionary headers = new HeaderDictionary
@@ -26,7 +26,7 @@ namespace Altinn.App.Core.Tests.Extensions
         [Fact]
         public void ToNameValueString_OptionParametersWithEmptyValue_ShouldConvertToHttpHeaderFormat()
         {
-            var options = new AppOptions { Parameters = new Dictionary<string, string>() };
+            var options = new AppOptions { Parameters = new Dictionary<string, string?>() };
 
             IHeaderDictionary headers = new HeaderDictionary
             {
@@ -54,7 +54,7 @@ namespace Altinn.App.Core.Tests.Extensions
         {
             var options = new AppOptions
             {
-                Parameters = new Dictionary<string, string>
+                Parameters = new Dictionary<string, string?>
                 {
                     { "lang", "nb" },
                     { "level", "1" },

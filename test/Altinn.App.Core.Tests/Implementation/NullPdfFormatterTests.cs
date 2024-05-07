@@ -10,7 +10,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation;
 public class NullPdfFormatterTests
 {
     [Fact]
-    public async void NullPdfFormatter_FormatPdf_returns_Layoutsettings_as_is()
+    public async Task NullPdfFormatter_FormatPdf_returns_Layoutsettings_as_is()
     {
         // Arrange
         var layoutSettings = new LayoutSettings()

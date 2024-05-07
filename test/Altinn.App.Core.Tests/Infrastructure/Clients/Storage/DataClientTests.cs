@@ -878,8 +878,11 @@ namespace Altinn.App.Core.Tests.Infrastructure.Clients.Storage
 
             if (expectedFilename is not null)
             {
+                Assert.NotNull(actualContentDisposition);
+                var actualContentDispositionValue = actualContentDisposition.FirstOrDefault();
+                Assert.NotNull(actualContentDispositionValue);
                 ContentDispositionHeaderValue
-                    .Parse(actualContentDisposition?.FirstOrDefault())
+                    .Parse(actualContentDispositionValue)
                     .FileName?.Should()
                     .BeEquivalentTo(expectedFilename);
             }

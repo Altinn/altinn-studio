@@ -8,6 +8,7 @@ namespace Altinn.App.Core.Models.Process;
 /// </summary>
 public class ProcessStartRequest
 {
+#nullable disable
     /// <summary>
     /// The instance to be started
     /// </summary>
@@ -17,6 +18,8 @@ public class ProcessStartRequest
     /// The user that is starting the process
     /// </summary>
     public ClaimsPrincipal User { get; set; }
+
+#nullable restore
 
     /// <summary>
     /// The prefill data supplied when starting the process

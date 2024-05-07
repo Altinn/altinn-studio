@@ -1,8 +1,21 @@
 <Project>
+    <PropertyGroup Condition="'$(DOTNET_TREATWARNINGSASERRORS)' == 'true' OR '$(CI)' == 'true'">
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+
     <ItemGroup>
         <PackageReference Include="CSharpier.MsBuild" Version="0.28.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>
+        <!-- TODO: enable this at some point, when we've got a handle on NRTs -->
+        <!-- <PackageReference Include="Nullable.Extended.Analyzer" Version="1.15.6169">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+          </PackageReference> -->
     </ItemGroup>
 </Project>

@@ -125,6 +125,11 @@ public class DefaultEFormidlingService : IEFormidlingService
         Instance instance
     )
     {
+        if (_appSettings is null)
+        {
+            throw new Exception("AppSettings not initialized");
+        }
+
         DateTime completedTime = DateTime.UtcNow;
 
         Sender digdirSender = new Sender

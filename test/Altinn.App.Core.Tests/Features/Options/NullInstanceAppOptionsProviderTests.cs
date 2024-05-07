@@ -8,7 +8,7 @@ namespace Altinn.App.Core.Tests.Features.Options
     public class NullInstanceAppOptionsProviderTests
     {
         [Fact]
-        public async void Constructor_InitializedWithEmptyValues()
+        public async Task Constructor_InitializedWithEmptyValues()
         {
             var provider = new NullInstanceAppOptionsProvider();
 

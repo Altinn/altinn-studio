@@ -86,7 +86,7 @@ namespace Altinn.App.Core.Implementation
                 allowOverwrite = allowOverwriteToken.ToObject<bool>();
             }
 
-            Party party = await _altinnPartyClientClient.GetParty(int.Parse(partyId));
+            Party? party = await _altinnPartyClientClient.GetParty(int.Parse(partyId));
             if (party == null)
             {
                 string errorMessage = $"Could find party for partyId: {partyId}";
@@ -184,7 +184,7 @@ namespace Altinn.App.Core.Implementation
         /// </summary>
         private void AssignValueToDataModel(
             string[] keys,
-            JToken value,
+            JToken? value,
             object currentObject,
             int index = 0,
             bool continueOnError = false
@@ -215,6 +215,8 @@ namespace Altinn.App.Core.Implementation
                 {
                     if (propertyValue == null || allowOverwrite)
                     {
+                        ArgumentNullException.ThrowIfNull(value);
+
                         // create instance of the property type defined in the datamodel
                         var instance = value.ToObject(property.PropertyType);
 

@@ -1,4 +1,3 @@
-#nullable enable
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.Internal.App;

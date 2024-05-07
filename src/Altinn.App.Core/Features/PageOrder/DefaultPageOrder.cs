@@ -21,7 +21,7 @@ namespace Altinn.App.Core.Features.PageOrder
         }
 
         /// <inheritdoc />
-        public async Task<List<string>> GetPageOrder(
+        public Task<List<string>> GetPageOrder(
             AppIdentifier appIdentifier,
             InstanceIdentifier instanceIdentifier,
             string layoutSetId,
@@ -40,8 +40,9 @@ namespace Altinn.App.Core.Features.PageOrder
             {
                 layoutSettings = _resources.GetLayoutSettingsForSet(layoutSetId);
             }
-
-            return await Task.FromResult(layoutSettings.Pages.Order);
+#nullable disable
+            return Task.FromResult(layoutSettings.Pages.Order);
+#nullable restore
         }
     }
 }

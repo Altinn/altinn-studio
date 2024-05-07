@@ -84,6 +84,10 @@ public class ComponentContextForTestSpec
 
     public static ComponentContextForTestSpec FromContext(ComponentContext context)
     {
+        ArgumentNullException.ThrowIfNull(context.Component);
+        ArgumentNullException.ThrowIfNull(context.Component.Id);
+        ArgumentNullException.ThrowIfNull(context.Component.PageId);
+
         return new ComponentContextForTestSpec
         {
             ComponentId = context.Component.Id,
