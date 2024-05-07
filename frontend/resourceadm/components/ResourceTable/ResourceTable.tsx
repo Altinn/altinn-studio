@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import classes from './ResourceTable.module.css';
-import { PencilIcon, DownloadIcon } from '@studio/icons';
+import { PencilIcon, FileImportIcon } from '@studio/icons';
 import { Spinner, Tag } from '@digdir/design-system-react';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
@@ -131,7 +131,7 @@ export const ResourceTable = ({
       field: 'links',
       headerName: '',
       sortable: false,
-      width: 50,
+      width: 62,
       renderCell: (params) => {
         const existsInGitea = params.row.environments.some((env: string) => env === 'gitea');
         if (existsInGitea) {
@@ -154,7 +154,7 @@ export const ResourceTable = ({
           return (
             <GridActionsCellItem
               icon={
-                <DownloadIcon
+                <FileImportIcon
                   title={t('resourceadm.dashboard_table_row_import')}
                   className={classes.editLink}
                 />
