@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import classes from './ResourceTable.module.css';
 import { PencilIcon, FileImportIcon } from '@studio/icons';
-import { Spinner, Tag } from '@digdir/design-system-react';
+import { Tag } from '@digdir/design-system-react';
+import { StudioSpinner } from '@studio/components';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
 import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
@@ -149,7 +150,7 @@ export const ResourceTable = ({
             />
           );
         } else if (!!onClickImportResource && importResourceId === params.row.identifier) {
-          return <Spinner title={t('resourceadm.dashboard_table_row_importing')} />;
+          return <StudioSpinner spinnerTitle={t('resourceadm.dashboard_table_row_importing')} />;
         } else if (!!onClickImportResource) {
           return (
             <GridActionsCellItem
