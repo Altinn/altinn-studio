@@ -97,7 +97,7 @@ describe('AppContext', () => {
     );
   });
 
-  it('refetches layouts correctly', async () => {
+  it('invalidates layout query', async () => {
     const user = userEvent.setup();
 
     const queryClient = createQueryClientMock();
@@ -130,7 +130,43 @@ describe('AppContext', () => {
     );
   });
 
-  it('refetches layout settings correctly', async () => {
+  it('resets layout query', async () => {
+    const user = userEvent.setup();
+
+    const queryClient = createQueryClientMock();
+    queryClient.resetQueries = jest.fn();
+
+    renderAppContext(() => {
+      const { previewIframeRef, refetchLayouts, selectedFormLayoutSetName } = useAppContext();
+      useEffect(() => {
+        if (previewIframeRef) {
+          const contentWindow: WindowWithQueryClient = previewIframeRef?.current?.contentWindow;
+          contentWindow.queryClient = queryClient;
+        }
+      }, [previewIframeRef]);
+      return (
+        <>
+          <button
+            data-testid='button'
+            onClick={() => refetchLayouts(selectedFormLayoutSetName, true)}
+          />
+          <iframe data-testid='previewIframeRef' ref={previewIframeRef} />
+        </>
+      );
+    });
+
+    const button = screen.getByTestId('button');
+    await user.click(button);
+
+    await waitFor(async () => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
+    await waitFor(async () =>
+      expect(queryClient.resetQueries).toHaveBeenCalledWith({
+        queryKey: ['formLayouts', mockSelectedFormLayoutSetName],
+      }),
+    );
+  });
+
+  it('invalidates layout settings query', async () => {
     const user = userEvent.setup();
 
     const queryClient = createQueryClientMock();
@@ -167,7 +203,44 @@ describe('AppContext', () => {
     );
   });
 
-  it('refetches texts correctly', async () => {
+  it('reset layout settings query', async () => {
+    const user = userEvent.setup();
+
+    const queryClient = createQueryClientMock();
+    queryClient.resetQueries = jest.fn();
+
+    renderAppContext(() => {
+      const { previewIframeRef, refetchLayoutSettings, selectedFormLayoutSetName } =
+        useAppContext();
+      useEffect(() => {
+        if (previewIframeRef) {
+          const contentWindow: WindowWithQueryClient = previewIframeRef?.current?.contentWindow;
+          contentWindow.queryClient = queryClient;
+        }
+      }, [previewIframeRef]);
+      return (
+        <>
+          <button
+            data-testid='button'
+            onClick={() => refetchLayoutSettings(selectedFormLayoutSetName, true)}
+          />
+          <iframe data-testid='previewIframeRef' ref={previewIframeRef} />
+        </>
+      );
+    });
+
+    const button = screen.getByTestId('button');
+    await user.click(button);
+
+    await waitFor(async () => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
+    await waitFor(async () =>
+      expect(queryClient.resetQueries).toHaveBeenCalledWith({
+        queryKey: ['layoutSettings', mockSelectedFormLayoutSetName],
+      }),
+    );
+  });
+
+  it('invalidates text query', async () => {
     const user = userEvent.setup();
 
     const mockLanguage = 'nb';
@@ -197,6 +270,41 @@ describe('AppContext', () => {
     await waitFor(async () => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
     await waitFor(async () =>
       expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['fetchTextResources', mockLanguage],
+      }),
+    );
+  });
+
+  it('resets text query', async () => {
+    const user = userEvent.setup();
+
+    const mockLanguage = 'nb';
+
+    const queryClient = createQueryClientMock();
+    queryClient.resetQueries = jest.fn();
+
+    renderAppContext(() => {
+      const { previewIframeRef, refetchTexts } = useAppContext();
+      useEffect(() => {
+        if (previewIframeRef) {
+          const contentWindow: WindowWithQueryClient = previewIframeRef?.current?.contentWindow;
+          contentWindow.queryClient = queryClient;
+        }
+      }, [previewIframeRef]);
+      return (
+        <>
+          <button data-testid='button' onClick={() => refetchTexts(mockLanguage, true)} />
+          <iframe data-testid='previewIframeRef' ref={previewIframeRef} />
+        </>
+      );
+    });
+
+    const button = screen.getByTestId('button');
+    await user.click(button);
+
+    await waitFor(async () => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
+    await waitFor(async () =>
+      expect(queryClient.resetQueries).toHaveBeenCalledWith({
         queryKey: ['fetchTextResources', mockLanguage],
       }),
     );
