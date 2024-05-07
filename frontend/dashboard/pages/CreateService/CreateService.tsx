@@ -38,6 +38,14 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
 
   const [formError, setFormError] = useState<NewAppForm>(initialFormError);
 
+  const navigateToEditorOverview = (org: string, app: string) => {
+    const packagesRouter = new PackagesRouter({
+      org,
+      app,
+    });
+    packagesRouter.navigateToPackage('editorOverview');
+  };
+
   const createAppRepo = async (newAppForm: NewAppForm) => {
     const { org, repoName } = newAppForm;
 
@@ -49,11 +57,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
       },
       {
         onSuccess: (): void => {
-          const packagesRouter = new PackagesRouter({
-            org,
-            app: repoName,
-          });
-          packagesRouter.navigateToPackage('editorOverview');
+          navigateToEditorOverview(org, repoName);
         },
         onError: (error: AxiosError): void => {
           const appNameAlreadyExists = error.response.status === ServerCodes.Conflict;
@@ -82,7 +86,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
         submitButtonText={t('dashboard.create_service_btn')}
         formError={formError}
         setFormError={setFormError}
-        cancelComponent={{
+        actionableElement={{
           type: 'link',
           href: `${DASHBOARD_ROOT_ROUTE}${selectedContext === SelectedContextType.Self ? '' : selectedContext}`,
         }}

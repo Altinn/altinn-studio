@@ -21,7 +21,7 @@ type CancelLink = {
   href: string;
   type: 'link';
 };
-export type CancelComponent = CancelButton | CancelLink;
+export type ActionableElement = CancelButton | CancelLink;
 
 export type NewApplicationFormProps = {
   onSubmit: (newAppForm: NewAppForm) => Promise<void>;
@@ -31,7 +31,7 @@ export type NewApplicationFormProps = {
   submitButtonText: string;
   formError: NewAppForm;
   setFormError: React.Dispatch<React.SetStateAction<NewAppForm>>;
-  cancelComponent: CancelComponent;
+  actionableElement: ActionableElement;
 };
 
 export const NewApplicationForm = ({
@@ -42,7 +42,7 @@ export const NewApplicationForm = ({
   submitButtonText,
   formError,
   setFormError,
-  cancelComponent,
+  actionableElement,
 }: NewApplicationFormProps): React.JSX.Element => {
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
@@ -67,6 +67,7 @@ export const NewApplicationForm = ({
     event.preventDefault();
 
     const formData: FormData = new FormData(event.currentTarget);
+
     const newAppForm: NewAppForm = {
       org: formData.get('org') as string,
       repoName: formData.get('repoName') as string,
@@ -117,7 +118,7 @@ export const NewApplicationForm = ({
             <StudioButton type='submit' variant='primary' size='small'>
               {submitButtonText}
             </StudioButton>
-            <CancelComponent cancelComponent={cancelComponent} />
+            <CancelComponent actionableElement={actionableElement} />
           </>
         )}
       </div>
@@ -126,19 +127,19 @@ export const NewApplicationForm = ({
 };
 
 type CancelComponentProps = {
-  cancelComponent: CancelComponent;
+  actionableElement: ActionableElement;
 };
-const CancelComponent = ({ cancelComponent }: CancelComponentProps) => {
+const CancelComponent = ({ actionableElement }: CancelComponentProps) => {
   const { t } = useTranslation();
 
-  switch (cancelComponent.type) {
+  switch (actionableElement.type) {
     case 'button':
       return (
-        <StudioButton onClick={cancelComponent.onClick} variant='tertiary' size='small'>
+        <StudioButton onClick={actionableElement.onClick} variant='tertiary' size='small'>
           {t('general.cancel')}
         </StudioButton>
       );
     case 'link':
-      return <Link to={cancelComponent.href}>{t('general.cancel')}</Link>;
+      return <Link to={actionableElement.href}>{t('general.cancel')}</Link>;
   }
 };

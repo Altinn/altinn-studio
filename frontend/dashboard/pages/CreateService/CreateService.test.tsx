@@ -35,11 +35,17 @@ const mockUser: User = {
   userType: 0,
 };
 
-const renderWithMockServices = (
-  services?: Partial<ServicesContextProps>,
-  organizations?: Organization[],
-  user?: User,
-) => {
+type RenderWithMockServicesProps = {
+  services?: Partial<ServicesContextProps>;
+  organizations?: Organization[];
+  user?: User;
+};
+
+const renderWithMockServices = ({
+  services,
+  organizations,
+  user,
+}: RenderWithMockServicesProps = {}) => {
   render(
     <MockServicesContextWrapper client={null} customServices={services}>
       <CreateService organizations={organizations || []} user={user || mockUser} />
@@ -66,7 +72,7 @@ describe('CreateService', () => {
 
   it('should show error messages when clicking create and no owner or name is filled in', async () => {
     const user = userEvent.setup();
-    renderWithMockServices({}, [], { ...mockUser, login: '' });
+    renderWithMockServices({ user: { ...mockUser, login: '' } });
 
     const createBtn: HTMLElement = screen.getByRole('button', {
       name: textMock('dashboard.create_service_btn'),
@@ -156,7 +162,7 @@ describe('CreateService', () => {
       .fn()
       .mockImplementation(() => Promise.reject({ response: { status: 409 } }));
 
-    renderWithMockServices({ addRepo: addRepoMock }, [orgMock]);
+    renderWithMockServices({ services: { addRepo: addRepoMock }, organizations: [orgMock] });
 
     const select = screen.getByLabelText(textMock('general.service_owner'));
     await user.click(select);
@@ -181,7 +187,7 @@ describe('CreateService', () => {
   it('should show generic error message when trying to create an app and something unknown went wrong', async () => {
     const user = userEvent.setup();
     const addRepoMock = jest.fn(() => Promise.reject({ response: { status: 500 } }));
-    renderWithMockServices({ addRepo: addRepoMock }, [orgMock]);
+    renderWithMockServices({ services: { addRepo: addRepoMock }, organizations: [orgMock] });
 
     const select = screen.getByLabelText(textMock('general.service_owner'));
     await user.click(select);
@@ -202,8 +208,8 @@ describe('CreateService', () => {
   it('should display loading while the form is processing', async () => {
     const user = userEvent.setup();
 
-    renderWithMockServices(
-      {
+    renderWithMockServices({
+      services: {
         // Use setTimeout as a workaround to trigger isLoading on mutation.
         addRepo: () =>
           new Promise((resolve) =>
@@ -216,12 +222,12 @@ describe('CreateService', () => {
             }, 2),
           ),
       },
-      [orgMock],
-      {
+      organizations: [orgMock],
+      user: {
         ...userMock,
         login: 'tester',
       },
-    );
+    });
 
     const createBtn: HTMLElement = screen.getByRole('button', {
       name: textMock('dashboard.create_service_btn'),
@@ -240,7 +246,7 @@ describe('CreateService', () => {
       .fn()
       .mockImplementation(() => Promise.reject({ response: { status: 409 } }));
 
-    renderWithMockServices({ addRepo: addRepoMock }, [orgMock]);
+    renderWithMockServices({ services: { addRepo: addRepoMock }, organizations: [orgMock] });
 
     const select = screen.getByLabelText(textMock('general.service_owner'));
     await user.click(select);
@@ -269,16 +275,16 @@ describe('CreateService', () => {
   it('should navigate to app-development if creating the app was successful', async () => {
     const user = userEvent.setup();
 
-    renderWithMockServices(
-      {
+    renderWithMockServices({
+      services: {
         addRepo: () => Promise.resolve(repository),
       },
-      [orgMock],
-      {
+      organizations: [orgMock],
+      user: {
         ...userMock,
         login: 'tester',
       },
-    );
+    });
 
     const createBtn: HTMLElement = screen.getByRole('button', {
       name: textMock('dashboard.create_service_btn'),

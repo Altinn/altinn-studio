@@ -43,9 +43,6 @@ export class LoginPage extends BasePage {
   }
 
   public async confirmSuccessfulLogin(): Promise<void> {
-    const url = this.page.url();
-    if (url === 'http://studio.localhost/repos') this.page.goto(this.getRoute('dashboard'));
-
     await this.page.waitForURL(this.getRoute('dashboard'));
   }
 

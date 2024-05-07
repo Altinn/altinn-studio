@@ -35,6 +35,14 @@ export const MakeCopyModal = forwardRef<HTMLDialogElement, MakeCopyModalProps>(
 
     const { t } = useTranslation();
 
+    const navigateToEditorOverview = (org: string, app: string) => {
+      const packagesRouter = new PackagesRouter({
+        org,
+        app,
+      });
+      packagesRouter.navigateToPackage('editorOverview', '?copiedApp=true');
+    };
+
     const createClonedRepo = async (newAppForm: NewAppForm) => {
       const { org: newOrg, repoName: newRepoName } = newAppForm;
       const [org, app] = serviceFullName.split('/');
@@ -43,11 +51,7 @@ export const MakeCopyModal = forwardRef<HTMLDialogElement, MakeCopyModalProps>(
         { org, app, newRepoName, newOrg },
         {
           onSuccess: () => {
-            const packagesRouter = new PackagesRouter({
-              org: newOrg,
-              app: newRepoName,
-            });
-            packagesRouter.navigateToPackage('editorOverview', '?copiedApp=true');
+            navigateToEditorOverview(newOrg, newRepoName);
           },
           onError: (error: AxiosError): void => {
             const appNameAlreadyExists = error.response.status === ServerCodes.Conflict;
@@ -85,7 +89,7 @@ export const MakeCopyModal = forwardRef<HTMLDialogElement, MakeCopyModalProps>(
             submitButtonText={t('dashboard.make_copy')}
             formError={formError}
             setFormError={setFormError}
-            cancelComponent={{
+            actionableElement={{
               type: 'button',
               onClick: onClose,
             }}

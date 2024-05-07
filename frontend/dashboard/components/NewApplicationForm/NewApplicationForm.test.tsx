@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import {
   NewApplicationForm,
   type NewApplicationFormProps,
-  type CancelComponent,
+  type ActionableElement,
 } from './NewApplicationForm';
 import { type User } from 'app-shared/types/Repository';
 import { type Organization } from 'app-shared/types/Organization';
@@ -30,7 +30,7 @@ const mockOrg: Organization = {
 const mockOrganizations: Organization[] = [mockOrg];
 
 const mockOnClickCancelButton = jest.fn();
-const mockCancelComponentButton: CancelComponent = {
+const mockCancelComponentButton: ActionableElement = {
   onClick: mockOnClickCancelButton,
   type: 'button',
 };
@@ -48,7 +48,7 @@ const defaultProps: NewApplicationFormProps = {
     repoName: '',
   },
   setFormError: jest.fn(),
-  cancelComponent: mockCancelComponentButton,
+  actionableElement: mockCancelComponentButton,
 };
 
 describe('NewApplicationForm', () => {
