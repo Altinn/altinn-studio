@@ -1,4 +1,5 @@
 import React, { forwardRef } from 'react';
+import classes from './StudioNativeSelect.module.css';
 import {
   Label,
   Paragraph,
@@ -20,7 +21,7 @@ export const StudioNativeSelect = forwardRef<HTMLSelectElement, StudioNativeSele
         </Label>
         {description && (
           <Paragraph
-            //className={classes.studioNativeSelectDescription}
+            className={classes.studioNativeSelectDescription}
             size={size}
             id='studio-native-select-description'
           >
