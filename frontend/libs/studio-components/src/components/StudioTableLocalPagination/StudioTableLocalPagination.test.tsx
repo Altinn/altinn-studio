@@ -5,7 +5,7 @@ import { StudioTableLocalPagination } from './StudioTableLocalPagination';
 import { columns, rows } from '../StudioTableRemotePagination/mockData';
 
 describe('StudioTableLocalPagination', () => {
-  const paginationProps = {
+  const paginationProps: StudioTableLocalPaginationProps['pagination'] = {
     pageSizeOptions: [5, 10, 50],
     pageSizeLabel: 'Rows per page',
     nextButtonText: 'Next',
@@ -26,14 +26,10 @@ describe('StudioTableLocalPagination', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders the complete table when isSortable is set to false', () => {
+  it('does not render sorting buttons when isSortable is set to false', () => {
     render(<StudioTableLocalPagination columns={columns} rows={rows} isSortable={false} />);
-    expect(
-      screen.getByRole('cell', { name: 'Coordinated register notification' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('cell', { name: 'Application for a certificate of good conduct' }),
-    ).toBeInTheDocument();
+
+    expect(screen.queryByRole('button', { name: 'Name' })).not.toBeInTheDocument();
   });
 
   it('triggers sorting when a sortable column header is clicked', async () => {
@@ -41,14 +37,23 @@ describe('StudioTableLocalPagination', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Name' }));
 
-    const firstBodyRow = screen.getAllByRole('row')[1];
+    const [, firstBodyRow, secondBodyRow] = screen.getAllByRole('row');
     expect(
       within(firstBodyRow).getByRole('cell', { name: 'A-melding – all forms' }),
     ).toBeInTheDocument();
 
-    const secondBodyRow = screen.getAllByRole('row')[2];
     expect(
       within(secondBodyRow).getByRole('cell', { name: 'Application for VAT registration' }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders the complete table when pagination is undefined', () => {
+    render(<StudioTableLocalPagination columns={columns} rows={rows} />);
+    expect(
+      screen.getByRole('cell', { name: 'Coordinated register notification' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('cell', { name: 'Application for a certificate of good conduct' }),
     ).toBeInTheDocument();
   });
 
@@ -77,7 +82,23 @@ describe('StudioTableLocalPagination', () => {
     ).toBeInTheDocument();
   });
 
-  it('changes page size when page size option is selected', async () => {
+  it('changes page when "Page 2" button is clicked', async () => {
+    render(
+      <StudioTableLocalPagination columns={columns} rows={rows} pagination={paginationProps} />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Page 2' }));
+
+    expect(
+      screen.queryByRole('cell', { name: 'Coordinated register notification' }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'A-melding – all forms' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('cell', { name: 'Application for VAT registration' }),
+    ).toBeInTheDocument();
+  });
+
+  it('changes page size when a different page size option is selected', async () => {
     render(
       <StudioTableLocalPagination columns={columns} rows={rows} pagination={paginationProps} />,
     );
