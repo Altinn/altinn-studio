@@ -4,19 +4,26 @@ import { StudioButton, StudioLabelAsParagraph, StudioTextfield } from '@studio/c
 import { KeyVerticalIcon, LinkIcon, PencilWritingIcon, PlusCircleIcon } from '@studio/icons';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { NativeSelect, Paragraph } from '@digdir/design-system-react';
+import { Label, NativeSelect, Paragraph } from '@digdir/design-system-react';
+import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 
 export type AddCustomReceiptFormProps = {
-  existingCustomReceiptLayoutSetId: string | undefined;
   onSaveCustomReceipt: (newCustomReceiptLayoutSetId: string) => void;
   handleDeleteCustomReceipt: () => void;
 };
 
 export const AddCustomReceiptForm = ({
-  existingCustomReceiptLayoutSetId,
   onSaveCustomReceipt,
   handleDeleteCustomReceipt,
 }: AddCustomReceiptFormProps): React.JSX.Element => {
+  const {
+    // layoutSets,
+    existingCustomReceiptLayoutSetId,
+    availableDataModelIds,
+  } = useBpmnApiContext();
+
+  console.log('availableDataModelIds', availableDataModelIds);
+
   const [showCreateCustomReceiptFields, setShowCreateCustomReceiptFields] = useState(false);
 
   const handleSaveCustomReceipt = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -70,7 +77,7 @@ export const AddCustomReceiptForm = ({
         onSubmit={handleSaveCustomReceipt}
         existingCustomReceiptLayoutSetId={existingCustomReceiptLayoutSetId}
         onCancel={handleCancelCreateCustomReceipt}
-        options={[]} // TODO
+        options={availableDataModelIds.map((id: string) => ({ value: id, label: id }))}
       />
     );
   }
@@ -164,12 +171,23 @@ const Comp = ({ onSubmit, existingCustomReceiptLayoutSetId, onCancel, options }:
         // error - TODO
         // onChange - TODO
       />
+      {/* TODO - Add label and description to NativeSelect when this issue is solved in the design system: https://github.com/Altinn/altinn-studio/issues/12725 */}
+      <Label spacing htmlFor='customReceiptDataModelSelect'>
+        Datamodelknytning
+      </Label>
+      {options.length === 0 && (
+        <Paragraph size='small'>
+          Du må ha noen ledige datamodeller du kan knytte mot kvitteringen for at det skal vises
+          noen i listen under.
+        </Paragraph>
+      )}
       <NativeSelect
         name='customReceiptDataModel'
         label='Datamodelknytning'
+        hideLabel
         size='small'
-        // defaultValue={}
-        // error
+        id='customReceiptDataModelSelect'
+        disabled={options.length === 0}
       >
         {options.map(({ value, label }) => (
           <option key={value} value={value}>

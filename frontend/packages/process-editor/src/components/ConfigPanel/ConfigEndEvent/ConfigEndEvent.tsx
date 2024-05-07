@@ -20,22 +20,22 @@ export const ConfigEndEvent = () => {
 
   const {
     // layoutSets,
-    existingCustomReceiptLayoutSetId: existingCustomReceiptLayoutSetId,
+    existingCustomReceiptLayoutSetId,
     addLayoutSet,
     mutateLayoutSet,
     deleteLayoutSet,
     mutateDataType,
   } = useBpmnApiContext();
 
-  console.log('Existing', existingCustomReceiptLayoutSetId);
-
   const handleSaveCustomReceipt = (customReceiptId: string) => {
     if (existingCustomReceiptLayoutSetId === customReceiptId) return;
 
     if (!existingCustomReceiptLayoutSetId) {
+      console.log('NO EXISTING');
       handleAddLayoutSet(customReceiptId);
       return;
     }
+
     mutateLayoutSet({
       layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
       newLayoutSetId: customReceiptId,
@@ -52,6 +52,14 @@ export const ConfigEndEvent = () => {
       layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
       layoutSetConfig: customReceiptLayoutSetConfig,
     });
+
+    // TODO
+    /*
+    const dataTypeChange: DataTypeChange = {
+      newDataType: dataModelId,
+      connectedTaskId: connectedTaskId,
+    };
+    mutateDataType(dataTypeChange);*/
   };
 
   const handleDeleteCustomReceipt = () => {
@@ -103,7 +111,6 @@ export const ConfigEndEvent = () => {
           </Paragraph>
 
           <AddCustomReceiptForm
-            existingCustomReceiptLayoutSetId={'test'} //existingCustomReceiptLayoutSetId}
             onSaveCustomReceipt={handleSaveCustomReceipt}
             handleDeleteCustomReceipt={handleDeleteCustomReceipt}
           />
