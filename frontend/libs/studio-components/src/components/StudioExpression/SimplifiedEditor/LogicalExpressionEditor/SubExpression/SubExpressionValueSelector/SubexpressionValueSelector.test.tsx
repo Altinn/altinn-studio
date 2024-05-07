@@ -1,4 +1,4 @@
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { StudioExpressionContext } from '../../../../StudioExpressionContext';
 import type { SubexpressionValueSelectorProps } from './SubexpressionValueSelector';
 import { SubexpressionValueSelector } from './SubexpressionValueSelector';
@@ -44,7 +44,7 @@ describe('SubexpressionValueSelector', () => {
       renderSubexpressionValueSelector({ value: stringValue, isInEditMode: true, onChange });
       const input = screen.getByRole('textbox');
       const addedText = 'A';
-      await user.type(input, addedText);
+      await waitFor(() => user.type(input, addedText));
       expect(onChange).toHaveBeenLastCalledWith({
         ...stringValue,
         value: stringValue.value + addedText,
@@ -69,7 +69,7 @@ describe('SubexpressionValueSelector', () => {
       renderSubexpressionValueSelector({ value: numberValue, isInEditMode: true, onChange });
       const input = screen.getByRole('textbox');
       const addedValue = 1;
-      await user.type(input, addedValue.toString());
+      await waitFor(() => user.type(input, addedValue.toString()));
       expect(onChange).toHaveBeenLastCalledWith({ ...numberValue, value: 421 });
     });
   });
@@ -91,7 +91,7 @@ describe('SubexpressionValueSelector', () => {
       const onChange = jest.fn();
       renderSubexpressionValueSelector({ value: booleanValue, isInEditMode: true, onChange });
       const newValue = !value;
-      await user.click(screen.getByRole('radio', { name: booleanText(newValue) }));
+      await waitFor(() => user.click(screen.getByRole('radio', { name: booleanText(newValue) })));
       expect(onChange).toHaveBeenLastCalledWith({ ...booleanValue, value: newValue });
     });
   });
@@ -127,8 +127,8 @@ describe('SubexpressionValueSelector', () => {
       const onChange = jest.fn();
       renderSubexpressionValueSelector({ value: datamodelValue, isInEditMode: true, onChange });
       const newPointer = datamodelPointers[1];
-      await user.click(screen.getByRole('combobox', { name: texts.datamodelPath }));
-      await user.click(screen.getByRole('option', { name: newPointer }));
+      await waitFor(() => user.click(screen.getByRole('combobox', { name: texts.datamodelPath })));
+      await waitFor(() => user.click(screen.getByRole('option', { name: newPointer })));
       await waitForElementToBeRemoved(screen.queryByRole('listbox')); // Needs to wait here because the Combobox component's change function is asynchronous
       expect(onChange).toHaveBeenCalledWith({ ...datamodelValue, path: newPointer });
     });
@@ -137,9 +137,10 @@ describe('SubexpressionValueSelector', () => {
       const user = userEvent.setup();
       const onChange = jest.fn();
       renderSubexpressionValueSelector({ value: datamodelValue, isInEditMode: true, onChange });
-      const input = () => screen.getByRole('combobox', { name: texts.datamodelPath });
-      await user.type(input(), '{backspace}');
-      await user.click(document.body);
+      const input = screen.getByRole('combobox', { name: texts.datamodelPath });
+
+      await waitFor(() => user.type(input, '{backspace}'));
+      await waitFor(() => user.tab());
       screen.getByText(texts.errorMessages[ExpressionErrorKey.InvalidDatamodelPath]);
     });
   });
@@ -175,8 +176,8 @@ describe('SubexpressionValueSelector', () => {
       const onChange = jest.fn();
       renderSubexpressionValueSelector({ value: componentValue, isInEditMode: true, onChange });
       const newId = componentIds[1];
-      await user.click(screen.getByRole('combobox', { name: texts.componentId }));
-      await user.click(screen.getByRole('option', { name: newId }));
+      await waitFor(() => user.click(screen.getByRole('combobox', { name: texts.componentId })));
+      await waitFor(() => user.click(screen.getByRole('option', { name: newId })));
       await waitForElementToBeRemoved(screen.queryByRole('listbox')); // Needs to wait here because the Combobox component's change function is asynchronous
       expect(onChange).toHaveBeenCalledWith({ ...componentValue, id: newId });
     });
@@ -186,8 +187,8 @@ describe('SubexpressionValueSelector', () => {
       const onChange = jest.fn();
       renderSubexpressionValueSelector({ value: componentValue, isInEditMode: true, onChange });
       const input = () => screen.getByRole('combobox', { name: texts.componentId });
-      await user.type(input(), '{backspace}');
-      await user.click(document.body);
+      await waitFor(() => user.type(input(), '{backspace}'));
+      await waitFor(() => user.tab());
       screen.getByText(texts.errorMessages[ExpressionErrorKey.InvalidComponentId]);
     });
   });
