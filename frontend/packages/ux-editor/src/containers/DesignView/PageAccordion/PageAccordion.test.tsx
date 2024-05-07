@@ -83,7 +83,9 @@ describe('PageAccordion', () => {
     await user.click(deleteButton);
 
     expect(mockDeleteFormLayout).toHaveBeenCalledTimes(1);
-    expect(mockDeleteFormLayout).toHaveBeenCalledWith(mockPageName1);
+    expect(mockDeleteFormLayout).toHaveBeenCalledWith(mockPageName1, {
+      onSuccess: expect.any(Function),
+    });
   });
 
   it('Disables delete button when isPending is true', async () => {

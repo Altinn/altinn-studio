@@ -118,6 +118,9 @@ export const FormItemContextProvider = ({
           ...mutateOptions,
         },
       );
+      if (hasNewId) {
+        setFormItemId(updatedContainer.id);
+      }
     },
     [refetchLayouts, selectedFormLayoutSetName, updateFormContainer],
   );

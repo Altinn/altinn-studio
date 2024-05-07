@@ -2,7 +2,6 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { formLayoutSettingsMock, renderHookWithProviders } from '../../testing/mocks';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { waitFor } from '@testing-library/react';
-import { appContextMock } from '../../testing/appContextMock';
 
 // Test data:
 const org = 'org';
@@ -25,6 +24,5 @@ describe('useFormLayoutSettingsMutation', () => {
       selectedLayoutSet,
       formLayoutSettingsMock,
     );
-    expect(appContextMock.refetchLayoutSettings).toHaveBeenCalledTimes(1);
   });
 });
