@@ -15,7 +15,7 @@ export type StudioNativeSelectProps = {
 export const StudioNativeSelect = forwardRef<HTMLSelectElement, StudioNativeSelectProps>(
   ({ children, description, label, id, size, ...rest }, ref): React.JSX.Element => {
     return (
-      <>
+      <div>
         <Label size={size} spacing htmlFor={id}>
           {label}
         </Label>
@@ -39,7 +39,7 @@ export const StudioNativeSelect = forwardRef<HTMLSelectElement, StudioNativeSele
         >
           {children}
         </NativeSelect>
-      </>
+      </div>
     );
   },
 );
