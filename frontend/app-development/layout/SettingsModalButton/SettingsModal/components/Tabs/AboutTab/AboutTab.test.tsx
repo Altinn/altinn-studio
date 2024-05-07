@@ -14,28 +14,12 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { mockRepository1, mockRepository2 } from '../../../mocks/repositoryMock';
 import { mockAppConfig } from '../../../mocks/appConfigMock';
 import { formatDateToDateAndTimeString } from 'app-development/utils/dateUtils';
-import type { Commit, CommitAuthor } from 'app-shared/types/Commit';
 import { MemoryRouter } from 'react-router-dom';
-import { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
 const mockNewText: string = 'test';
-
-const mockCommitAuthor: CommitAuthor = {
-  email: '',
-  name: 'Mock Mockesen',
-  when: new Date(2023, 9, 22),
-};
-
-const mockInitialCommit: Commit = {
-  message: '',
-  author: mockCommitAuthor,
-  comitter: mockCommitAuthor,
-  sha: '',
-  messageShort: '',
-  encoding: '',
-};
 
 const mockAppMetadata: ApplicationMetadata = {
   id: `${mockOrg}/${mockApp}`,
