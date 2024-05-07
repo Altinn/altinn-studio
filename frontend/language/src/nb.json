@@ -963,7 +963,7 @@
   "resourceadm.dashboard_table_row_has_policy": "Har tilgangsregler",
   "resourceadm.dashboard_table_row_import": "Importer ressurs til Altinn Studio",
   "resourceadm.dashboard_table_row_importing": "Importerer ressurs til Altinn Studio",
-  "resourceadm.dashboard_table_row_in_gitea": "Gitea",
+  "resourceadm.dashboard_table_row_in_gitea": "Altinn Studio",
   "resourceadm.dashboard_table_row_missing_policy": "Mangler tilgangsregler",
   "resourceadm.dashboard_table_row_missing_title": "Mangler tittel på Bokmål",
   "resourceadm.dashboard_userdata_error_body": "Vi beklager, men en feil oppstod ved henting av dine brukerdata.",
