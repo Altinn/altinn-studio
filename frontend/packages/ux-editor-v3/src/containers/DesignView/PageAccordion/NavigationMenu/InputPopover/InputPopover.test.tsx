@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import type { InputPopoverProps } from './InputPopover';
 import { InputPopover } from './InputPopover';
 import userEvent from '@testing-library/user-event';
@@ -56,8 +56,8 @@ describe('InputPopover', () => {
     const input = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
     expect(input).toHaveValue(mockOldName);
 
-    await user.type(input, mockNewValue);
-    await user.keyboard('{Enter}');
+    await waitFor(() => user.type(input, mockNewValue));
+    await waitFor(() => user.keyboard('{Enter}'));
 
     expect(mockSaveNewName).toHaveBeenCalledTimes(1);
     expect(mockSaveNewName).toHaveBeenCalledWith(mockNewName);
@@ -72,7 +72,7 @@ describe('InputPopover', () => {
     const input = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
     expect(input).toHaveValue(mockOldName);
 
-    await user.type(input, mockNewValue);
+    await waitFor(() => user.type(input, mockNewValue));
 
     const inputAfter = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
     expect(inputAfter).toHaveValue(mockNewName);
@@ -80,7 +80,7 @@ describe('InputPopover', () => {
     const confirmButton = screen.getByRole('button', {
       name: textMock('ux_editor.input_popover_save_button'),
     });
-    await user.click(confirmButton);
+    await waitFor(() => user.click(confirmButton));
 
     expect(mockSaveNewName).toHaveBeenCalledTimes(1);
     expect(mockSaveNewName).toHaveBeenCalledWith(mockNewName);
@@ -106,8 +106,10 @@ describe('InputPopover', () => {
     const input = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
     expect(input).toHaveValue(mockOldName);
 
-    await user.type(input, mockNewValue);
-    await user.keyboard('{Escape}');
+    await waitFor(async () => {
+      await user.type(input, mockNewValue);
+      await user.keyboard('{Escape}');
+    });
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);
     expect(mockSaveNewName).toHaveBeenCalledTimes(0);
@@ -124,7 +126,7 @@ describe('InputPopover', () => {
     const errorMessage = screen.queryByText(textMock('ux_editor.pages_error_unique'));
     expect(errorMessage).not.toBeInTheDocument();
 
-    await user.type(input, '3');
+    await waitFor(() => user.type(input, '3'));
 
     const errorMessageAfter = screen.getByText(textMock('ux_editor.pages_error_unique'));
     expect(errorMessageAfter).toBeInTheDocument();
@@ -141,7 +143,7 @@ describe('InputPopover', () => {
     const errorMessage = screen.queryByText(textMock('ux_editor.pages_error_empty'));
     expect(errorMessage).not.toBeInTheDocument();
 
-    await user.clear(input);
+    await waitFor(() => user.clear(input));
 
     const errorMessageAfter = screen.getByText(textMock('ux_editor.pages_error_empty'));
     expect(errorMessageAfter).toBeInTheDocument();
@@ -159,7 +161,7 @@ describe('InputPopover', () => {
     expect(errorMessage).not.toBeInTheDocument();
 
     const longWord = '123456789012345678901234567890';
-    await user.type(input, longWord);
+    await waitFor(() => user.type(input, longWord));
 
     const errorMessageAfter = screen.getByText(textMock('ux_editor.pages_error_length'));
     expect(errorMessageAfter).toBeInTheDocument();
@@ -177,7 +179,7 @@ describe('InputPopover', () => {
     expect(errorMessage).not.toBeInTheDocument();
 
     const illegalWord = ',,,';
-    await user.type(input, illegalWord);
+    await waitFor(() => user.type(input, illegalWord));
 
     const errorMessageAfter = screen.getByText(textMock('ux_editor.pages_error_format'));
     expect(errorMessageAfter).toBeInTheDocument();
@@ -189,7 +191,7 @@ describe('InputPopover', () => {
     await openDropdownMenuItem();
 
     const button = screen.getByRole('button', { name: textMock('general.cancel') });
-    await user.click(button);
+    await waitFor(() => user.click(button));
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
@@ -200,5 +202,5 @@ const openDropdownMenuItem = async () => {
   const dropdownMenuItem = screen.getByRole('menuitem', {
     name: textMock('ux_editor.page_menu_edit'),
   });
-  await user.click(dropdownMenuItem);
+  await waitFor(() => user.click(dropdownMenuItem));
 };
