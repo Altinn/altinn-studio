@@ -108,7 +108,7 @@ namespace Altinn.Studio.Designer.Controllers
 
         private async Task<(bool IsValid, IActionResult ErrorResponse)> IsValidCopyAppRequestAsync(string org, string sourceRepository, string targetRepository, string targetOrg)
         {
-            if (!string.IsNullOrWhiteSpace(targetOrg) && !Regex.IsMatch(org, "^[a-zA-Z0-9][a-zA-Z0-9-_\\.]*$"))
+            if (!string.IsNullOrWhiteSpace(targetOrg) && !AltinnRegexes.AltinnOrganizationNameRegex().IsMatch(org))
             {
                 return (false, BadRequest($"{targetOrg} is not a valid name for an organization."));
             }
