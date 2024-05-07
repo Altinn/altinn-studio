@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './CardButton.module.css';
-import { PlusIcon } from '@navikt/aksel-icons';
+import { PlusIcon } from '@studio/icons';
 import { Paragraph } from '@digdir/design-system-react';
 
 export type CardButtonProps = {

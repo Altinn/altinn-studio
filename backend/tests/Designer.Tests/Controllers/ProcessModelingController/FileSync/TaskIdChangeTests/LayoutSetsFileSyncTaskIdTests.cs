@@ -7,6 +7,7 @@ using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
@@ -17,28 +18,29 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController.FileSync.TaskIdChangeTests;
 
-public class PolicyFileSyncTests : DisagnerEndpointsTestsBase<LayoutSetsFileSyncTests>,
+public class LayoutSetsFileSyncTaskIdTests : DisagnerEndpointsTestsBase<LayoutSetsFileSyncTaskIdTests>,
     IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) =>
         $"/designer/api/{org}/{repository}/process-modelling/process-definition-latest";
 
-    public PolicyFileSyncTests(WebApplicationFactory<Program> factory) : base(factory)
+    public LayoutSetsFileSyncTaskIdTests(WebApplicationFactory<Program> factory) : base(factory)
     {
     }
 
     [Theory]
     [MemberData(nameof(UpsertProcessDefinitionAndNotifyTestData))]
     public async Task UpsertProcessDefinition_ShouldSyncLayoutSets(string org, string app, string developer,
-        string bpmnFilePath, string policyFilePath, ProcessDefinitionMetadata metadata)
+        string bpmnFilePath, string layoutSetsPath, ProcessDefinitionMetadata metadata)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
-        await AddFileToRepo(policyFilePath, "App/config/authorization/policy.xml");
+        await AddFileToRepo(layoutSetsPath, "App/ui/layout-sets.json");
 
         string processContent = SharedResourcesHelper.LoadTestDataAsString(bpmnFilePath);
-        processContent = metadata.TaskIdChanges.Aggregate(processContent,
-            (current, metadataTaskIdChange) => current.Replace(metadataTaskIdChange.OldId, metadataTaskIdChange.NewId));
+        processContent.Replace(metadata.TaskIdChange.OldId, metadata.TaskIdChange.NewId);
+        //processContent = metadata.TaskIdChange.Aggregate(processContent,
+        //  (current, metadataTaskIdChange) => current.Replace(metadataTaskIdChange.OldId, metadataTaskIdChange.NewId));
         using var processStream = new MemoryStream(Encoding.UTF8.GetBytes(processContent));
 
         string url = VersionPrefix(org, targetRepository);
@@ -52,15 +54,13 @@ public class PolicyFileSyncTests : DisagnerEndpointsTestsBase<LayoutSetsFileSync
         using var response = await HttpClient.PutAsync(url, form);
         response.StatusCode.Should().Be(HttpStatusCode.Accepted);
 
-        string policyFileFromRepo =
-            TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/authorization/policy.xml");
+        string layoutSetsFromRepo =
+            TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/ui/layout-sets.json");
 
-        foreach (var taskIdChange in metadata.TaskIdChanges)
-        {
-            policyFileFromRepo.Should().NotContain(taskIdChange.OldId);
-            policyFileFromRepo.Should().Contain(taskIdChange.NewId);
-        }
+        LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsFromRepo, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
+        layoutSets.Sets.Should().NotContain(layout => layout.Tasks.Contains(metadata.TaskIdChange.OldId));
+        layoutSets.Sets.Should().Contain(layout => layout.Tasks.Contains(metadata.TaskIdChange.NewId));
     }
 
     public static IEnumerable<object[]> UpsertProcessDefinitionAndNotifyTestData()
@@ -68,10 +68,10 @@ public class PolicyFileSyncTests : DisagnerEndpointsTestsBase<LayoutSetsFileSync
         yield return new object[]
         {
             "ttd", "empty-app", "testUser", "App/config/process/process.bpmn",
-            "App/config/authorization/policy.xml",
+            "App/ui/layout-sets.json",
             new ProcessDefinitionMetadata
             {
-                TaskIdChanges = new List<TaskIdChange> { new() { OldId = "Task_1", NewId = "SomeNewId" } }
+                TaskIdChange = new TaskIdChange { OldId = "Task_1", NewId = "SomeNewId" }
             }
         };
     }

@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './Documentation.module.css';
 import { Heading, Link } from '@digdir/design-system-react';
-import { ExternalLinkIcon } from '@navikt/aksel-icons';
+import { ExternalLinkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 
 export const Documentation = () => {

@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import React from 'react';
-import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
@@ -8,13 +7,14 @@ import { Accordion } from '@digdir/design-system-react';
 import type { IFormLayouts } from '../../types/global';
 import type { FormLayoutPage } from '../../types/FormLayoutPage';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
-import { PlusIcon } from '@navikt/aksel-icons';
+import { PlusIcon } from '@studio/icons';
 import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
 import { PageAccordion } from './PageAccordion';
 import { ReceiptContent } from './ReceiptContent';
-import { useAppContext } from '../../hooks';
+import { useAppContext, useFormLayouts } from '../../hooks';
 import { FormLayout } from './FormLayout';
 import { StudioButton } from '@studio/components';
+import { duplicatedIdsExistsInLayout } from '../../utils/formLayoutUtils';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
@@ -41,7 +41,7 @@ export const DesignView = (): ReactNode => {
     app,
     selectedFormLayoutSetName,
   );
-  const { data: layouts } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
+  const layouts = useFormLayouts();
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
     org,
     app,
@@ -53,7 +53,6 @@ export const DesignView = (): ReactNode => {
   const { t } = useTranslation();
 
   const formLayoutData = mapFormLayoutsToFormLayoutPages(layouts);
-
   /**
    * Handles the click of an accordion. It updates the URL and sets the
    * local storage for which page view that is open
@@ -88,14 +87,19 @@ export const DesignView = (): ReactNode => {
     // If the layout does not exist, return null
     if (layout === undefined) return null;
 
+    // Check if the layout has unique component IDs
+    const isValidLayout = !duplicatedIdsExistsInLayout(layout.data);
     return (
       <PageAccordion
-        pageName={layout.page}
         key={i}
+        pageName={layout.page}
         isOpen={layout.page === selectedFormLayoutName}
         onClick={() => handleClickAccordion(layout.page)}
+        isValid={isValidLayout}
       >
-        {layout.page === selectedFormLayoutName && <FormLayout layout={layout.data} />}
+        {layout.page === selectedFormLayoutName && (
+          <FormLayout layout={layout.data} isValid={isValidLayout} />
+        )}
       </PageAccordion>
     );
   });

@@ -7,7 +7,7 @@ import classes from './RuleComponent.module.css';
 import Modal from 'react-modal';
 import type { RuleConnection, RuleConnections } from 'app-shared/types/RuleConfig';
 import type i18next from 'i18next';
-import { Buldings2Icon } from '@navikt/aksel-icons';
+import { Buldings2Icon } from '@studio/icons';
 
 export interface IRuleComponentProps {
   connectionId?: string;

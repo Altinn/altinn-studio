@@ -58,7 +58,7 @@ describe('BpmnConfigPanelContext', () => {
 
       const handleSetMetaData = () => {
         setState('test');
-        metaDataFormRef.current = { taskIdChanges: [{ oldId: 'old', newId: 'new' }] };
+        metaDataFormRef.current = { taskIdChange: { oldId: 'old', newId: 'new' } };
       };
 
       const handleResetMetaData = () => {
@@ -85,7 +85,7 @@ describe('BpmnConfigPanelContext', () => {
     await user.click(screen.getByRole('button', { name: 'Set meta data' }));
     await waitFor(() =>
       expect(screen.getByTestId('context')).toHaveTextContent(
-        '{"taskIdChanges":[{"oldId":"old","newId":"new"}]}',
+        '{"taskIdChange":{"oldId":"old","newId":"new"}}',
       ),
     );
 

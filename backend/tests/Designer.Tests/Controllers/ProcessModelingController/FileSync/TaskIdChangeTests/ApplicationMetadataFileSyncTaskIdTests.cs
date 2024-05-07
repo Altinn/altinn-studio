@@ -7,7 +7,7 @@ using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
@@ -18,28 +18,26 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController.FileSync.TaskIdChangeTests;
 
-public class LayoutSetsFileSyncTests : DisagnerEndpointsTestsBase<LayoutSetsFileSyncTests>,
-    IClassFixture<WebApplicationFactory<Program>>
+public class ApplicationMetadataFileSyncTaskIdTests : DisagnerEndpointsTestsBase<UpsertProcessDefinitionAndNotifyTests>, IClassFixture<WebApplicationFactory<Program>>
 {
-    private static string VersionPrefix(string org, string repository) =>
-        $"/designer/api/{org}/{repository}/process-modelling/process-definition-latest";
 
-    public LayoutSetsFileSyncTests(WebApplicationFactory<Program> factory) : base(factory)
+    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/process-modelling/process-definition-latest";
+
+    public ApplicationMetadataFileSyncTaskIdTests(WebApplicationFactory<Program> factory) : base(factory)
     {
     }
 
     [Theory]
     [MemberData(nameof(UpsertProcessDefinitionAndNotifyTestData))]
-    public async Task UpsertProcessDefinition_ShouldSyncLayoutSets(string org, string app, string developer,
-        string bpmnFilePath, string layoutSetsPath, ProcessDefinitionMetadata metadata)
+    public async Task UpsertProcessDefinition_ShouldSyncApplicationMetadata(string org, string app, string developer, string bpmnFilePath, string applicationMetadataPath, ProcessDefinitionMetadata metadata)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
-        await AddFileToRepo(layoutSetsPath, "App/ui/layout-sets.json");
+        await AddFileToRepo(applicationMetadataPath, "App/config/applicationmetadata.json");
 
         string processContent = SharedResourcesHelper.LoadTestDataAsString(bpmnFilePath);
-        processContent = metadata.TaskIdChanges.Aggregate(processContent,
-            (current, metadataTaskIdChange) => current.Replace(metadataTaskIdChange.OldId, metadataTaskIdChange.NewId));
+        processContent.Replace(metadata.TaskIdChange.OldId, metadata.TaskIdChange.NewId);
+        //processContent = metadata.TaskIdChange.Aggregate(processContent, (current, metadataTaskIdChange) => current.Replace(metadataTaskIdChange.OldId, metadataTaskIdChange.NewId));
         using var processStream = new MemoryStream(Encoding.UTF8.GetBytes(processContent));
 
         string url = VersionPrefix(org, targetRepository);
@@ -53,33 +51,24 @@ public class LayoutSetsFileSyncTests : DisagnerEndpointsTestsBase<LayoutSetsFile
         using var response = await HttpClient.PutAsync(url, form);
         response.StatusCode.Should().Be(HttpStatusCode.Accepted);
 
-        string layoutSetsFromRepo =
-            TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/ui/layout-sets.json");
+        string applicationMetadataFromRepo = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
 
-        LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsFromRepo, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        ApplicationMetadata applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataFromRepo, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
-        foreach (var taskIdChange in metadata.TaskIdChanges)
-        {
-            layoutSets.Sets.Should().NotContain(layout => layout.Tasks.Contains(taskIdChange.OldId));
-            layoutSets.Sets.Should().Contain(layout => layout.Tasks.Contains(taskIdChange.NewId));
-        }
-
+        applicationMetadata.DataTypes.Should().NotContain(dataType => dataType.TaskId == metadata.TaskIdChange.OldId);
+        applicationMetadata.DataTypes.Should().Contain(dataType => dataType.TaskId == metadata.TaskIdChange.NewId);
     }
 
     public static IEnumerable<object[]> UpsertProcessDefinitionAndNotifyTestData()
     {
-        yield return new object[]
-        {
-            "ttd", "empty-app", "testUser", "App/config/process/process.bpmn",
-            "App/ui/layout-sets.json",
+        yield return new object[] { "ttd", "empty-app", "testUser", "App/config/process/process.bpmn", "App/config/applicationmetadata.json",
             new ProcessDefinitionMetadata
             {
-                TaskIdChanges = new List<TaskIdChange> { new() { OldId = "Task_1", NewId = "SomeNewId" } }
-            }
-        };
+                TaskIdChange = new TaskIdChange { OldId = "Task_1", NewId = "SomeNewId" }
+            } };
     }
 
-    private async Task<string> AddFileToRepo(string fileToCopyPath, string relativeCopyRepoLocation)
+    private async Task AddFileToRepo(string fileToCopyPath, string relativeCopyRepoLocation)
     {
         string fileContent = SharedResourcesHelper.LoadTestDataAsString(fileToCopyPath);
         string filePath = Path.Combine(TestRepoPath, relativeCopyRepoLocation);
@@ -88,8 +77,8 @@ public class LayoutSetsFileSyncTests : DisagnerEndpointsTestsBase<LayoutSetsFile
         {
             Directory.CreateDirectory(folderPath);
         }
-
         await File.WriteAllTextAsync(filePath, fileContent);
-        return fileContent;
     }
+
+
 }

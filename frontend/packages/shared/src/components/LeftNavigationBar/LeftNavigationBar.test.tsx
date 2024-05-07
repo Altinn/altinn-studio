@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import type { LeftNavigationBarProps } from './LeftNavigationBar';
 import { LeftNavigationBar } from './LeftNavigationBar';
 import type { LeftNavigationTab, TabAction } from 'app-shared/types/LeftNavigationTab';
-import { TestFlaskIcon } from '@navikt/aksel-icons';
+import { TestFlaskIcon } from '@studio/icons';
 import { MemoryRouter } from 'react-router-dom';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 

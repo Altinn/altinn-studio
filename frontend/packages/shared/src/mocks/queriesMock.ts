@@ -73,6 +73,7 @@ import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsRespon
 
 export const queriesMock: ServicesContextProps = {
   // Queries
+  getAppMetadataModelIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getAppReleases: jest
     .fn()
     .mockImplementation(() => Promise.resolve<AppReleasesResponse>(appReleasesResponse)),
@@ -221,4 +222,5 @@ export const queriesMock: ServicesContextProps = {
 
   // Mutations - ProcessEditor
   updateBpmnXml: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateProcessDataType: jest.fn().mockImplementation(() => Promise.resolve()),
 };

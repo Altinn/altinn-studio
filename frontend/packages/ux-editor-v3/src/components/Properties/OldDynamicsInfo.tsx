@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './OldDynamicsInfo.module.css';
-import { ExternalLinkIcon } from '@navikt/aksel-icons';
+import { ExternalLinkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { giteaEditLink, altinnDocsUrl } from 'app-shared/ext-urls';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';

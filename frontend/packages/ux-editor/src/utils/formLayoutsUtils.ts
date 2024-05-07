@@ -75,11 +75,7 @@ export const convertExternalLayoutsToInternalFormat = (
     if (!layout || !layout.data) {
       convertedLayouts[name] = createEmptyLayout();
     } else {
-      try {
-        convertedLayouts[name] = externalLayoutToInternal(layouts[name]);
-      } catch (err) {
-        console.error(err);
-      }
+      convertedLayouts[name] = externalLayoutToInternal(layouts[name]);
     }
   });
   return convertedLayouts;
