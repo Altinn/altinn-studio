@@ -168,7 +168,7 @@ namespace Altinn.Studio.Designer.Controllers
                 listviewServiceResources.Add(listviewResource);
             }
 
-            if (includeEnvResources == true)
+            if (includeEnvResources)
             {
                 foreach (string environment in _resourceRegistrySettings.Keys)
                 {
