@@ -10,7 +10,6 @@ const mockResourceListItem1: ResourceListItem = {
   title: { nb: 'tittel 1', en: '', nn: '' },
   createdBy: 'John Doe',
   lastChanged: new Date('2023-08-28'),
-  hasPolicy: true,
   identifier: 'resource-1',
   environments: ['gitea'],
 };
@@ -18,7 +17,6 @@ const mockResourceListItem2: ResourceListItem = {
   title: { nb: 'tittel 2', en: '', nn: '' },
   createdBy: 'John Doe',
   lastChanged: new Date('2023-08-29'),
-  hasPolicy: false,
   identifier: 'resource-2',
   environments: ['gitea'],
 };
@@ -26,7 +24,6 @@ const mockResourceListItem3: ResourceListItem = {
   title: { nb: '', en: '', nn: '' },
   createdBy: 'John Doe',
   lastChanged: null,
-  hasPolicy: true,
   identifier: 'resource-3',
   environments: ['at22'],
 };

@@ -62,7 +62,6 @@ export interface ResourceListItem {
   title: SupportedLanguage;
   createdBy: string;
   lastChanged?: Date;
-  hasPolicy: boolean;
   identifier: string;
   environments: string[];
 }

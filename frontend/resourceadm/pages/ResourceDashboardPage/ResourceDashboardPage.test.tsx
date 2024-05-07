@@ -19,7 +19,6 @@ const mockResourceListItem1: ResourceListItem = {
   title: { nb: 'resource 1', nn: '', en: '' },
   createdBy: 'John Doe',
   lastChanged: new Date('2023-08-30'),
-  hasPolicy: true,
   identifier: 'r1',
   environments: ['gitea'],
 };
@@ -27,7 +26,6 @@ const mockResourceListItem2: ResourceListItem = {
   title: { nb: 'resource 2', nn: '', en: '' },
   createdBy: 'John Doe',
   lastChanged: new Date('2023-08-30'),
-  hasPolicy: true,
   identifier: 'r2',
   environments: ['gitea'],
 };
@@ -35,7 +33,6 @@ const mockResourceListItem3: ResourceListItem = {
   title: { nb: 'resource 3', nn: '', en: '' },
   createdBy: 'John Doe',
   lastChanged: new Date('2023-08-30'),
-  hasPolicy: false,
   identifier: 'r3',
   environments: ['gitea'],
 };
@@ -43,7 +40,6 @@ const mockResourceListItem4: ResourceListItem = {
   title: { nb: 'resource 4', nn: '', en: '' },
   createdBy: 'John Doe',
   lastChanged: new Date('2023-08-30'),
-  hasPolicy: true,
   identifier: 'r4',
   environments: ['gitea'],
 };
@@ -51,7 +47,6 @@ const mockResourceListItem5: ResourceListItem = {
   title: { nb: 'resource 5', nn: '', en: '' },
   createdBy: 'John Doe',
   lastChanged: new Date('2023-08-30'),
-  hasPolicy: false,
   identifier: 'r5',
   environments: ['tt02'],
 };
