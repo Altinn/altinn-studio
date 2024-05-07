@@ -146,3 +146,27 @@ export const rows: Rows = [
     lastChanged: new Date('2023-04-10').toLocaleDateString(),
   },
 ];
+
+export const propInfoColumns = [
+  {
+    accessor: 'id',
+    value: 'Props',
+  },
+  {
+    accessor: 'description',
+    value: 'Description',
+  },
+];
+
+export const propInfoRows = [
+  {
+    id: 'onSortClick',
+    description:
+      'Function to handle column header click for sorting. If not provided, sorting buttons are hidden.',
+  },
+  {
+    id: 'pagination',
+    description:
+      'Object that defines pagination settings for the table. If not provided, pagination is hidden.',
+  },
+];

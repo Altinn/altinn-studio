@@ -1,6 +1,8 @@
 import { Canvas, Meta } from '@storybook/blocks';
 import { Heading, Paragraph } from '@digdir/design-system-react';
 import * as StudioTableRemotePaginationStories from './StudioTableRemotePagination.stories';
+import { StudioTableRemotePagination } from "./StudioTableRemotePagination"
+import { propInfoColumns, propInfoRows } from "./mockData"
 
 <Meta of={StudioTableRemotePaginationStories} />
 
@@ -10,50 +12,15 @@ import * as StudioTableRemotePaginationStories from './StudioTableRemotePaginati
 
 <Paragraph>
   StudioTableRemotePagination brings together Digdir Designsystemet's `Table` and `Pagination`
-  components. It dynamically renders a table by passing an array of objects to the `column` and
-  `row` props.
+  components.
+  Use this component when data is fetched in chunks, and the pagination logic is handled
+  externally. Otherwise, use `StudioTableLocalPagination`.
 </Paragraph>
-<Paragraph>
-  <ul>
-    <li>
-      Use this component when data is fetched in chunks, and the pagination logic is handled
-      externally. Otherwise, use `StudioTableLocalPagination`.
-    </li>
-    <li>
-      Pagination and sorting can be removed by not passing props to `pagination` and `onSortClick`.
-    </li>
-  </ul>
-</Paragraph>
+
+<StudioTableRemotePagination columns={propInfoColumns} rows={propInfoRows} size="small"/>
+<br />
 
 <Canvas of={StudioTableRemotePaginationStories.Preview} />
-
-<Heading level={2} size='xsmall'>
-  Type definitions
-</Heading>
-
-```tsx
-type StudioTableRemotePaginationProps = {
-  columns: Record<'accessor' | 'value', string>[];
-  rows: Rows;
-  size?: 'small' | 'medium' | 'large';
-  onSortClick?: (columnKey: string) => void;
-  pagination?: PaginationProps;
-};
-
-type Rows = (Record<string, React.ReactNode> & Record<'id', string | number>)[];
-
-type PaginationProps = {
-  currentPage: number;
-  totalPages: number;
-  pageSizeOptions: number[];
-  pageSizeLabel: string;
-  onPageChange: (currentPage: number) => void;
-  onPageSizeChange: (currentSize: number) => void;
-  nextButtonText: string;
-  previousButtonText: string;
-  itemLabel: (num: number) => string;
-};
-```
 
 <Heading level={2} size='xsmall'>
   Column format

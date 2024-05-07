@@ -10,6 +10,8 @@ export const labelSizeMap: Record<LabelSizeKeys, LabelSize> = {
   large: 'medium',
 };
 
+export type Columns = Record<'accessor' | 'value', string>[];
+
 export type Rows = (Record<string, React.ReactNode> & Record<'id', string | number>)[];
 
 export type PaginationProps = {
@@ -24,8 +26,8 @@ export type PaginationProps = {
   itemLabel: (num: number) => string;
 };
 
-type StudioTableRemotePaginationProps = {
-  columns: Record<'accessor' | 'value', string>[];
+export type StudioTableRemotePaginationProps = {
+  columns: Columns;
   rows: Rows;
   size?: 'small' | 'medium' | 'large';
   onSortClick?: (columnKey: string) => void;
