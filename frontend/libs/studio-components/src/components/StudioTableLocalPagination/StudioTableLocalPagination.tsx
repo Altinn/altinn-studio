@@ -4,7 +4,7 @@ import type { Rows } from '../StudioTableRemotePagination';
 import { useTableSorting } from '../../hooks/useTableSorting';
 import { getRowsToRender } from '../StudioTableRemotePagination/utils';
 
-type StudioTableLocalPaginationProps = {
+export type StudioTableLocalPaginationProps = {
   columns: Record<'accessor' | 'value', string>[];
   rows: Rows;
   size?: 'small' | 'medium' | 'large';
@@ -27,14 +27,9 @@ export const StudioTableLocalPagination = forwardRef<
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(pagination ? pageSizeOptions[0] : undefined);
 
-  const { handleSorting, sortedRows } = useTableSorting(rows);
-  let rowsToRender: Rows;
+  const { handleSorting, sortedRows } = useTableSorting(rows, { enable: isSortable });
 
-  if (isSortable) {
-    rowsToRender = getRowsToRender(currentPage, pageSize, sortedRows);
-  } else {
-    rowsToRender = getRowsToRender(currentPage, pageSize, rows);
-  }
+  const rowsToRender = getRowsToRender(currentPage, pageSize, sortedRows || rows);
 
   if (!rowsToRender.length && (sortedRows.length || rows.length)) {
     setCurrentPage(1);

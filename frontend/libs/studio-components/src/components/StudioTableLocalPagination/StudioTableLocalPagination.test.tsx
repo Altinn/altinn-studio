@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StudioTableLocalPagination } from './StudioTableLocalPagination';
+import type { StudioTableLocalPaginationProps } from './StudioTableLocalPagination';
 import { columns, rows } from '../StudioTableRemotePagination/mockData';
 
 describe('StudioTableLocalPagination', () => {

@@ -11,7 +11,7 @@ type TestComponentProps = {
 type Row = Record<string, React.ReactNode> & Record<'id', string | number>;
 
 const TestComponent = ({ rows }: TestComponentProps) => {
-  const { sortedRows, handleSorting } = useTableSorting(rows);
+  const { sortedRows, handleSorting } = useTableSorting(rows, { enable: true });
   return (
     <div>
       <button onClick={() => handleSorting('name')}>Sort by Name</button>

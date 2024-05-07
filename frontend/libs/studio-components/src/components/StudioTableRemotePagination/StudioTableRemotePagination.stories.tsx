@@ -23,9 +23,9 @@ export const Preview: Story = (args) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(5);
 
-  const { handleSorting, sortedRows } = useTableSorting(rows);
+  const { handleSorting, sortedRows } = useTableSorting(rows, { enable: true });
 
-  const rowsToRender = getRowsToRender(currentPage, pageSize, sortedRows);
+  const rowsToRender = getRowsToRender(currentPage, pageSize, sortedRows || rows);
   const totalPages = Math.ceil(rows.length / pageSize);
 
   if (!rowsToRender.length && (sortedRows.length || rows.length)) {
