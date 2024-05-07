@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import type { AboutResourcePageProps } from './AboutResourcePage';
 import { AboutResourcePage } from './AboutResourcePage';
 import userEvent from '@testing-library/user-event';
@@ -90,8 +90,8 @@ describe('AboutResourcePage', () => {
 
     const idInput = screen.getByLabelText(textMock('resourceadm.about_resource_identifier_label'));
 
-    await idInput.focus();
-    await idInput.blur();
+    idInput.focus();
+    idInput.blur();
 
     expect(mockOnSaveResource).not.toHaveBeenCalled();
   });
@@ -101,7 +101,7 @@ describe('AboutResourcePage', () => {
     render(<AboutResourcePage {...defaultProps} />);
 
     const resourceTypeRadio = screen.getByLabelText(mockResourceType);
-    await user.click(resourceTypeRadio);
+    await waitFor(() => user.click(resourceTypeRadio));
 
     expect(resourceTypeRadio).toBeChecked();
   });
@@ -116,8 +116,8 @@ describe('AboutResourcePage', () => {
     );
     expect(titleNbInput).toHaveValue(mockResource1.title.nb);
 
-    await user.type(titleNbInput, mockNewTitleInput);
-    await titleNbInput.blur();
+    await waitFor(() => user.type(titleNbInput, mockNewTitleInput));
+    titleNbInput.blur();
 
     expect(mockOnSaveResource).toHaveBeenCalledWith({
       ...mockResource1,
@@ -136,14 +136,14 @@ describe('AboutResourcePage', () => {
       textMock('resourceadm.about_resource_resource_title_label'),
       { exact: false },
     );
-    await user.type(titleNbInput, mockNewTitleInput);
+    await waitFor(() => user.type(titleNbInput, mockNewTitleInput));
     expect(mockOnSaveResource).not.toHaveBeenCalled();
 
     const descriptionNbInput = screen.getByLabelText(
       textMock('resourceadm.about_resource_resource_description_label'),
       { exact: false },
     );
-    await user.type(descriptionNbInput, mockNewDescriptionInput);
+    await waitFor(() => user.type(descriptionNbInput, mockNewDescriptionInput));
     expect(mockOnSaveResource).toHaveBeenCalled();
   });
 
@@ -157,8 +157,8 @@ describe('AboutResourcePage', () => {
     );
     expect(descriptionNbInput).toHaveValue(mockResource1.description.nb);
 
-    await user.type(descriptionNbInput, mockNewDescriptionInput);
-    await descriptionNbInput.blur();
+    await waitFor(() => user.type(descriptionNbInput, mockNewDescriptionInput));
+    descriptionNbInput.blur();
 
     expect(mockOnSaveResource).toHaveBeenCalledWith({
       ...mockResource1,
@@ -179,8 +179,8 @@ describe('AboutResourcePage', () => {
     expect(homepageInput).toHaveValue(mockResource1.homepage);
 
     await user.clear(homepageInput);
-    await user.type(homepageInput, mockNewHomepageInput);
-    await homepageInput.blur();
+    await waitFor(() => user.type(homepageInput, mockNewHomepageInput));
+    homepageInput.blur();
 
     expect(mockOnSaveResource).toHaveBeenCalledWith({
       ...mockResource1,
@@ -197,7 +197,7 @@ describe('AboutResourcePage', () => {
     );
     expect(delegableInput).toBeChecked();
 
-    await user.click(delegableInput);
+    await waitFor(() => user.click(delegableInput));
 
     expect(mockOnSaveResource).toHaveBeenCalledWith({
       ...mockResource1,
@@ -215,8 +215,8 @@ describe('AboutResourcePage', () => {
     const keywordString: string = mapKeywordsArrayToString(mockResource1.keywords);
     expect(keywordInput).toHaveValue(keywordString);
 
-    await user.type(keywordInput, mockNewKeyboardInput);
-    await keywordInput.blur();
+    await waitFor(() => user.type(keywordInput, mockNewKeyboardInput));
+    keywordInput.blur();
 
     expect(mockOnSaveResource).toHaveBeenCalledWith({
       ...mockResource1,
@@ -234,9 +234,9 @@ describe('AboutResourcePage', () => {
     );
     expect(rightDescriptionInput).toHaveValue(mockResource1.rightDescription.nb);
 
-    await user.clear(rightDescriptionInput);
-    await user.type(rightDescriptionInput, mockNewRightDescriptionInput);
-    await rightDescriptionInput.blur();
+    await waitFor(() => user.clear(rightDescriptionInput));
+    await waitFor(() => user.type(rightDescriptionInput, mockNewRightDescriptionInput));
+    rightDescriptionInput.blur();
 
     expect(mockOnSaveResource).toHaveBeenCalledWith({
       ...mockResource1,
@@ -252,7 +252,7 @@ describe('AboutResourcePage', () => {
     render(<AboutResourcePage {...defaultProps} />);
 
     const statusRadio = screen.getByLabelText(textMock(resourceStatusMap[mockStatus]));
-    await user.click(statusRadio);
+    await waitFor(() => user.click(statusRadio));
 
     expect(mockOnSaveResource).toHaveBeenCalledWith({
       ...mockResource1,
@@ -269,7 +269,7 @@ describe('AboutResourcePage', () => {
     );
     expect(input).not.toBeChecked();
 
-    await user.click(input);
+    await waitFor(() => user.click(input));
 
     expect(mockOnSaveResource).toHaveBeenCalledWith({
       ...mockResource1,
@@ -284,7 +284,7 @@ describe('AboutResourcePage', () => {
     const input = screen.getByLabelText(textMock('resourceadm.about_resource_enterprise_label'));
     expect(input).not.toBeChecked();
 
-    await user.click(input);
+    await waitFor(() => user.click(input));
 
     expect(mockOnSaveResource).toHaveBeenCalledWith({
       ...mockResource1,
@@ -299,7 +299,7 @@ describe('AboutResourcePage', () => {
     const input = screen.getByLabelText(textMock('resourceadm.about_resource_visible_label'));
     expect(input).not.toBeChecked();
 
-    await user.click(input);
+    await waitFor(() => user.click(input));
 
     expect(mockOnSaveResource).toHaveBeenCalledWith({
       ...mockResource1,
