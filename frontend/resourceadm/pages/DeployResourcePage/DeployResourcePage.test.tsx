@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import type { DeployResourcePageProps } from './DeployResourcePage';
 import { DeployResourcePage } from './DeployResourcePage';
 import { textMock } from '../../../testing/mocks/i18nMock';
@@ -224,7 +224,7 @@ describe('DeployResourcePage', () => {
     const versionInput = screen.getByLabelText(textMock('resourceadm.deploy_version_label'));
     expect(versionInput).toHaveValue(mockResourceVersionText);
 
-    await user.type(versionInput, '1');
+    await waitFor(() => user.type(versionInput, '1'));
 
     expect(versionInput).toHaveValue(`${mockResourceVersionText}1`);
   });
@@ -234,7 +234,7 @@ describe('DeployResourcePage', () => {
     await resolveAndWaitForSpinnerToDisappear();
 
     const versionInput = screen.getByLabelText(textMock('resourceadm.deploy_version_label'));
-    await user.type(versionInput, '1');
+    await waitFor(() => user.type(versionInput, '1'));
     await user.tab();
 
     expect(mockOnSaveVersion).toHaveBeenCalledTimes(1);
