@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import classes from './AddCustomReceiptForm.module.css';
-import { StudioButton, StudioLabelAsParagraph, StudioTextfield } from '@studio/components';
+import {
+  StudioButton,
+  StudioLabelAsParagraph,
+  StudioNativeSelect,
+  StudioTextfield,
+} from '@studio/components';
 import { KeyVerticalIcon, LinkIcon, PencilWritingIcon, PlusCircleIcon } from '@studio/icons';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { Label, NativeSelect, Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/design-system-react';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 
 export type AddCustomReceiptFormProps = {
@@ -158,7 +163,7 @@ const Comp = ({ onSubmit, existingCustomReceiptLayoutSetId, onCancel, options }:
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: 'var(--fds-spacing-2)',
+        gap: 'var(--fds-spacing-5)',
         marginTop: 'var(--fds-spacing-3)',
       }}
     >
@@ -172,20 +177,14 @@ const Comp = ({ onSubmit, existingCustomReceiptLayoutSetId, onCancel, options }:
         // onChange - TODO
       />
       {/* TODO - Add label and description to NativeSelect when this issue is solved in the design system: https://github.com/Altinn/altinn-studio/issues/12725 */}
-      <Label spacing htmlFor='customReceiptDataModelSelect'>
-        Datamodelknytning
-      </Label>
-      {options.length === 0 && (
-        <Paragraph size='small'>
-          Du må ha noen ledige datamodeller du kan knytte mot kvitteringen for at det skal vises
-          noen i listen under.
-        </Paragraph>
-      )}
-      <NativeSelect
-        name='customReceiptDataModel'
+      <StudioNativeSelect
         label='Datamodelknytning'
-        hideLabel
         size='small'
+        description={
+          options.length === 0 &&
+          'Du må ha noen ledige datamodeller du kan knytte mot kvitteringen for at det skal visesnoen i listen under.'
+        }
+        name='customReceiptDataModel'
         id='customReceiptDataModelSelect'
         disabled={options.length === 0}
       >
@@ -194,7 +193,7 @@ const Comp = ({ onSubmit, existingCustomReceiptLayoutSetId, onCancel, options }:
             {label}
           </option>
         ))}
-      </NativeSelect>
+      </StudioNativeSelect>
       <div className={classes.buttonWrapper}>
         <StudioButton size='small' type='submit' variant='primary'>
           {!existingCustomReceiptLayoutSetId ? 'Opprett' : 'Lagre'}
