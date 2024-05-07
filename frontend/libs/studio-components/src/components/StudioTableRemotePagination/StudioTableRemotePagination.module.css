@@ -10,7 +10,7 @@
 .paginationContainer {
   display: flex;
   justify-content: space-between;
-  margin-top: var(--fds-spacing-4);
+  margin-top: var(--fds-spacing-5);
 }
 
 .selectorContainer {

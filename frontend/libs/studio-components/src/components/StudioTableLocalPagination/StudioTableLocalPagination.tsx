@@ -29,14 +29,15 @@ export const StudioTableLocalPagination = forwardRef<
   ): React.ReactElement => {
     const { pageSizeOptions, pageSizeLabel, itemLabel, nextButtonText, previousButtonText } =
       pagination || {};
+
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(pagination ? pageSizeOptions[0] : undefined);
 
     const { handleSorting, sortedRows } = useTableSorting(rows, { enable: isSortable });
-
     const rowsToRender = getRowsToRender(currentPage, pageSize, sortedRows || rows);
 
-    if (!rowsToRender.length && (sortedRows.length || rows.length)) {
+    // Move pages if the current page gets removed when changing page size
+    if (!rowsToRender.length && (sortedRows?.length || rows?.length)) {
       setCurrentPage(1);
     }
 
