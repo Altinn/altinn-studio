@@ -5,7 +5,7 @@
   "author": "Altinn",
   "dependencies": {
     "@mui/material": "5.15.15",
-    "@reduxjs/toolkit": "1.9.7",
+    "@reduxjs/toolkit": "2.2.3",
     "@studio/icons": "workspace:^",
     "axios": "1.6.8",
     "classnames": "2.5.1",

@@ -10,7 +10,7 @@
   ],
   "dependencies": {
     "@mui/material": "5.15.15",
-    "@reduxjs/toolkit": "1.9.7",
+    "@reduxjs/toolkit": "2.2.3",
     "@studio/icons": "workspace:^",
     "@studio/pure-functions": "workspace:^",
     "axios": "1.6.8",
