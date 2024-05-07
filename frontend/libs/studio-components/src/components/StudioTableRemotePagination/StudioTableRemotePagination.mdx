@@ -2,7 +2,7 @@ import { Canvas, Meta } from '@storybook/blocks';
 import { Heading, Paragraph } from '@digdir/design-system-react';
 import * as StudioTableRemotePaginationStories from './StudioTableRemotePagination.stories';
 import { StudioTableRemotePagination } from "./StudioTableRemotePagination"
-import { propInfoColumns, propInfoRows } from "./mockData"
+import { propInfoColumns, propInfoRowsRemotePagination } from "./mockData"
 
 <Meta of={StudioTableRemotePaginationStories} />
 
@@ -13,11 +13,10 @@ import { propInfoColumns, propInfoRows } from "./mockData"
 <Paragraph>
   StudioTableRemotePagination brings together Digdir Designsystemet's `Table` and `Pagination`
   components.
-  Use this component when data is fetched in chunks, and the pagination logic is handled
-  externally. Otherwise, use `StudioTableLocalPagination`.
+  This component is useful when data is retrieved in chunks, and the pagination logic is managed externally.
 </Paragraph>
 
-<StudioTableRemotePagination columns={propInfoColumns} rows={propInfoRows} size="small"/>
+<StudioTableRemotePagination columns={propInfoColumns} rows={propInfoRowsRemotePagination} size="small"/>
 <br />
 
 <Canvas of={StudioTableRemotePaginationStories.Preview} />

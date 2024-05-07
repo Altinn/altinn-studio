@@ -158,11 +158,23 @@ export const propInfoColumns = [
   },
 ];
 
-export const propInfoRows = [
+export const propInfoRowsRemotePagination = [
   {
     id: 'onSortClick',
     description:
       'Function to handle column header click for sorting. If not provided, sorting buttons are hidden.',
+  },
+  {
+    id: 'pagination',
+    description:
+      'Object that defines pagination settings for the table. If not provided, pagination is hidden.',
+  },
+];
+
+export const propInfoRowsLocalPagination = [
+  {
+    id: 'isSortable',
+    description: 'Indicates whether the component is sortable. Defaults to true.',
   },
   {
     id: 'pagination',

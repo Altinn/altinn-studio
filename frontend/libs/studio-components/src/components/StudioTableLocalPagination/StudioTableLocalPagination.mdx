@@ -1,49 +1,22 @@
 import { Canvas, Meta } from '@storybook/blocks';
 import { Heading, Paragraph } from '@digdir/design-system-react';
 import * as StudioTableLocalPaginationStories from './StudioTableLocalPagination.stories';
+import { propInfoColumns, propInfoRowsLocalPagination } from "../StudioTableRemotePagination/mockData"
+import {StudioTableLocalPagination} from "./StudioTableLocalPagination";
 
 <Meta of={StudioTableLocalPaginationStories} />
 
 <Heading level={1} size='small'>
   StudioTableLocalPagination
 </Heading>
-<Paragraph>StudioTableLocalPagination is a wrapper for StudioTableRemotePagination.</Paragraph>
 <Paragraph>
-  <ul>
-    <li>
-      Use this component when you are fetching a complete set of data, and want the component to
-      handle pagination and sorting internally. Otherwise, use `StudioTableRemotePagination`.
-    </li>
-    <li>
-      Pagination and sorting can be removed by not passing props to `pagination` and setting
-      `isSortable` to `false`.
-    </li>
-  </ul>
-</Paragraph>
+  The StudioTableLocalPagination component handles pagination internally, eliminating the need for manual control. It seamlessly manages pagination logic for you.
+  </Paragraph>
+
+<StudioTableLocalPagination columns={propInfoColumns} rows={propInfoRowsLocalPagination} size="small" isSortable={false}/>
+<br />
 
 <Canvas of={StudioTableLocalPaginationStories.Preview} />
-
-<Heading level={2} size='xsmall'>
-  Type definitions
-</Heading>
-
-```tsx
-type StudioTableLocalPaginationProps = {
-  columns: Record<'accessor' | 'value', string>[];
-  rows: Rows;
-  size?: 'small' | 'medium' | 'large';
-  isSortable?: boolean;
-  pagination?: {
-    pageSizeOptions: number[];
-    pageSizeLabel: string;
-    nextButtonText: string;
-    previousButtonText: string;
-    itemLabel: (num: number) => string;
-  };
-};
-
-type Rows = (Record<string, React.ReactNode> & Record<'id', string | number>)[];
-```
 
 <Heading level={2} size='xsmall'>
   Column format
