@@ -8,6 +8,7 @@ export type StudioTableLocalPaginationProps = {
   columns: Record<'accessor' | 'value', string>[];
   rows: Rows;
   size?: 'small' | 'medium' | 'large';
+  emptyTableMessage?: string;
   isSortable?: boolean;
   pagination?: {
     pageSizeOptions: number[];
@@ -21,44 +22,50 @@ export type StudioTableLocalPaginationProps = {
 export const StudioTableLocalPagination = forwardRef<
   HTMLTableElement,
   StudioTableLocalPaginationProps
->(({ columns, rows, isSortable = true, size = 'medium', pagination }, ref): React.ReactElement => {
-  const { pageSizeOptions, pageSizeLabel, itemLabel, nextButtonText, previousButtonText } =
-    pagination || {};
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(pagination ? pageSizeOptions[0] : undefined);
+>(
+  (
+    { columns, rows, isSortable = true, size = 'medium', emptyTableMessage, pagination },
+    ref,
+  ): React.ReactElement => {
+    const { pageSizeOptions, pageSizeLabel, itemLabel, nextButtonText, previousButtonText } =
+      pagination || {};
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [pageSize, setPageSize] = useState<number>(pagination ? pageSizeOptions[0] : undefined);
 
-  const { handleSorting, sortedRows } = useTableSorting(rows, { enable: isSortable });
+    const { handleSorting, sortedRows } = useTableSorting(rows, { enable: isSortable });
 
-  const rowsToRender = getRowsToRender(currentPage, pageSize, sortedRows || rows);
+    const rowsToRender = getRowsToRender(currentPage, pageSize, sortedRows || rows);
 
-  if (!rowsToRender.length && (sortedRows.length || rows.length)) {
-    setCurrentPage(1);
-  }
+    if (!rowsToRender.length && (sortedRows.length || rows.length)) {
+      setCurrentPage(1);
+    }
 
-  const totalPages = Math.ceil(rows.length / pageSize);
+    const totalPages = Math.ceil(rows.length / pageSize);
 
-  const paginationProps = pagination && {
-    currentPage,
-    totalPages,
-    pageSizeOptions,
-    pageSizeLabel,
-    onPageChange: setCurrentPage,
-    onPageSizeChange: setPageSize,
-    itemLabel,
-    nextButtonText,
-    previousButtonText,
-  };
+    const paginationProps = pagination && {
+      currentPage,
+      totalPages,
+      pageSizeOptions,
+      pageSizeLabel,
+      onPageChange: setCurrentPage,
+      onPageSizeChange: setPageSize,
+      itemLabel,
+      nextButtonText,
+      previousButtonText,
+    };
 
-  return (
-    <StudioTableRemotePagination
-      columns={columns}
-      rows={rowsToRender}
-      size={size}
-      onSortClick={isSortable && handleSorting}
-      pagination={paginationProps}
-      ref={ref}
-    />
-  );
-});
+    return (
+      <StudioTableRemotePagination
+        columns={columns}
+        rows={rowsToRender}
+        size={size}
+        emptyTableMessage={emptyTableMessage}
+        onSortClick={isSortable && handleSorting}
+        pagination={paginationProps}
+        ref={ref}
+      />
+    );
+  },
+);
 
 StudioTableLocalPagination.displayName = 'StudioTableLocalPagination';

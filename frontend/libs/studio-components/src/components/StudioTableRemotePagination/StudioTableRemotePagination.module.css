@@ -2,6 +2,11 @@
   width: 100%;
 }
 
+.emptyTableMessage {
+  padding: var(--fds-spacing-3);
+  text-align: center;
+}
+
 .paginationContainer {
   display: flex;
   justify-content: space-between;

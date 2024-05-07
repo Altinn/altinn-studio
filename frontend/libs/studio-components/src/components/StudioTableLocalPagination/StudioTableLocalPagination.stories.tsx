@@ -21,6 +21,7 @@ export const Preview: Story = (args) => (
     columns={columns}
     rows={rows}
     size={args.size}
+    emptyTableMessage={'No data found'}
     isSortable={true}
     pagination={{
       pageSizeOptions: [5, 10, 20, 50],
