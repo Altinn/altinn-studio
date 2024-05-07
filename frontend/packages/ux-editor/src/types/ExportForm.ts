@@ -1,10 +1,19 @@
 import type { ExternalComponentBase } from 'app-shared/types/api';
 
 export type ExportForm = {
-  [id: string]: ExportFormComponent[];
+  appId: string;
+  formId: string;
+  pages: ExportFormPage[];
+};
+
+export type ExportFormPage = {
+  pageId: string;
+  sortOrder: number;
+  components: ExportFormComponent[];
 };
 
 export type ExportFormComponent = ExternalComponentBase & {
+  sortOrder?: number;
   texts: ExportTextResource[];
   options?: ExportOption[];
 };
