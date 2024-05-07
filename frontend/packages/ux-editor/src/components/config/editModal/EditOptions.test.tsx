@@ -159,7 +159,7 @@ describe('EditOptions', () => {
     const addOptionButton = screen.getByRole('button', {
       name: textMock('ux_editor.modal_new_option'),
     });
-    await addOptionButton.click();
+    addOptionButton.click();
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...mockComponent,
       options: expect.arrayContaining([
@@ -181,7 +181,7 @@ describe('EditOptions', () => {
     });
     const optionLabel = textMock('ux_editor.radios_option', { optionNumber: 1 });
     const optionButton = screen.getByRole('button', { name: optionLabel });
-    await user.click(optionButton);
+    await waitFor(() => user.click(optionButton));
     const optionFieldset = screen.getByRole('group', { name: optionLabel });
     const removeButtonLabel = textMock('general.delete');
     const removeOptionButton = within(optionFieldset).getByRole('button', {
