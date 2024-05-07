@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { BpmnApiContextProps } from '../../../../contexts/BpmnApiContext';
@@ -62,7 +62,7 @@ describe('EditDataType', () => {
     const addDataModelButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_datamodel_link'),
     });
-    await user.click(addDataModelButton);
+    await waitFor(() => user.click(addDataModelButton));
     const nativeSelect = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
@@ -82,7 +82,7 @@ describe('EditDataType', () => {
     const updateDataTypeButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
-    await user.click(updateDataTypeButton);
+    await waitFor(() => user.click(updateDataTypeButton));
 
     expect(
       screen.getByRole('option', {
@@ -109,7 +109,7 @@ describe('EditDataType', () => {
     });
     expect(screen.getByText(existingDataType)).toBeInTheDocument();
 
-    await user.click(updateDataTypeButton);
+    await waitFor(() => user.click(updateDataTypeButton));
     const nativeSelect = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
@@ -133,9 +133,9 @@ describe('EditDataType', () => {
     const updateDataTypeButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
-    await user.click(updateDataTypeButton);
+    await waitFor(() => user.click(updateDataTypeButton));
     const closeButton = screen.getByRole('button', { name: textMock('general.close') });
-    await user.click(closeButton);
+    await waitFor(() => user.click(closeButton));
     expect(
       screen.getByRole('button', {
         name: textMock('process_editor.configuration_panel_set_datamodel'),
@@ -149,9 +149,9 @@ describe('EditDataType', () => {
     const addDataModelButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_datamodel_link'),
     });
-    await user.click(addDataModelButton);
+    await waitFor(() => user.click(addDataModelButton));
     const closeButton = screen.getByRole('button', { name: textMock('general.close') });
-    await user.click(closeButton);
+    await waitFor(() => user.click(closeButton));
     expect(
       screen.getByRole('button', {
         name: textMock('process_editor.configuration_panel_set_datamodel_link'),
