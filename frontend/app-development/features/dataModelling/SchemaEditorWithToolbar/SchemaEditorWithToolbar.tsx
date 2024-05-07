@@ -9,12 +9,12 @@ import { SchemaGenerationErrorsPanel } from './SchemaGenerationErrorsPanel';
 
 export interface SchemaEditorWithToolbarProps {
   createPathOption?: boolean;
-  datamodels: DatamodelMetadata[];
+  dataModels: DatamodelMetadata[];
 }
 
 export const SchemaEditorWithToolbar = ({
   createPathOption,
-  datamodels,
+  dataModels,
 }: SchemaEditorWithToolbarProps) => {
   const [createNewOpen, setCreateNewOpen] = useState<boolean>(false);
   const [selectedOption, setSelectedOption] = useState<MetadataOption | undefined>(undefined);
@@ -27,7 +27,7 @@ export const SchemaEditorWithToolbar = ({
       <TopToolbar
         createNewOpen={createNewOpen}
         createPathOption={createPathOption}
-        datamodels={datamodels}
+        dataModels={dataModels}
         selectedOption={selectedOption}
         setCreateNewOpen={setCreateNewOpen}
         setSelectedOption={setSelectedOption}
@@ -42,7 +42,7 @@ export const SchemaEditorWithToolbar = ({
         />
       )}
       <main className={classes.main}>
-        {!datamodels.length && <LandingPagePanel openCreateNew={() => setCreateNewOpen(true)} />}
+        {!dataModels.length && <LandingPagePanel openCreateNew={() => setCreateNewOpen(true)} />}
         {modelPath && <SelectedSchemaEditor modelPath={modelPath} />}
       </main>
     </div>

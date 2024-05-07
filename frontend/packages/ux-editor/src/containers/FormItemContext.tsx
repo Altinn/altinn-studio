@@ -194,10 +194,10 @@ export const FormItemContextProvider = ({
     const autoSaveOnLayoutChange = async () => {
       if (
         prevSelectedFormLayoutSetNameRef.current === selectedFormLayoutSetName &&
-        prevSelectedFormLayoutNameRef.current === selectedFormLayoutName
-      )
-        return;
-      await handleSave();
+        prevSelectedFormLayoutNameRef.current !== selectedFormLayoutName
+      ) {
+        await handleSave();
+      }
       handleDiscard();
       prevSelectedFormLayoutSetNameRef.current = selectedFormLayoutSetName;
       prevSelectedFormLayoutNameRef.current = selectedFormLayoutName;

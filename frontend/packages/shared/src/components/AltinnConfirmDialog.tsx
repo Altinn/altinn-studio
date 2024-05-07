@@ -64,7 +64,6 @@ export function AltinnConfirmDialog({
               onConfirm(event);
               onClose(event);
             }}
-            className={classes.confirmButton}
             size='small'
           >
             {confirmText || t('general.yes')}
