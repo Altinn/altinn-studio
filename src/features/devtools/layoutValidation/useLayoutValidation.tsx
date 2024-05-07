@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
+import deepEqual from 'fast-deep-equal';
 import { createStore } from 'zustand';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
@@ -63,7 +64,7 @@ function useDataModelBindingsValidation(props: LayoutValidationProps) {
   const { logErrors = false } = props;
   const schema = useCurrentDataModelSchema();
   const dataType = useCurrentDataModelType();
-  const nodes = useNodes();
+  const nodes = useNodesStructureMemo();
 
   return useMemo(() => {
     const failures: LayoutValidationErrors = {
@@ -105,6 +106,27 @@ function useDataModelBindingsValidation(props: LayoutValidationProps) {
 
     return failures;
   }, [layoutSetId, schema, dataType, nodes, logErrors]);
+}
+
+/**
+ * Utility hook for preventing revalidating bindings unless the node structure actually changes
+ * The data model binding validations only depends on the node structure and data model bindings,
+ * so it is unecessary to revalidate whenever nodes change for a different reason, and dataModelBindings are static.
+ */
+function useNodesStructureMemo() {
+  const nodes = useNodes();
+  const nodesRef = useRef(nodes);
+
+  const allNodesIds = useMemo(() => nodes.allNodes().map((n) => n.item.id), [nodes]);
+  const allNodeIdsRef = useRef(allNodesIds);
+
+  if (allNodesIds === allNodeIdsRef.current || deepEqual(allNodesIds, allNodeIdsRef.current)) {
+    return nodesRef.current;
+  } else {
+    nodesRef.current = nodes;
+    allNodeIdsRef.current = allNodesIds;
+    return nodes;
+  }
 }
 
 interface Context {

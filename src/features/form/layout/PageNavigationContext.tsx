@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 
 import { createStore } from 'zustand';
 
@@ -92,10 +92,13 @@ export const useHiddenPages = () => {
 
 export const useIsHiddenPage = () => {
   const hidden = useLaxSelectorAsRef((state) => state.hidden);
-  return (pageId: string) => {
-    const current = hidden.current;
-    return current === ContextNotProvided ? false : current.has(pageId);
-  };
+  return useCallback(
+    (pageId: string) => {
+      const current = hidden.current;
+      return current === ContextNotProvided ? false : current.has(pageId);
+    },
+    [hidden],
+  );
 };
 
 export const useSetHiddenPages = () => {

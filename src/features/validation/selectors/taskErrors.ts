@@ -1,4 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
+
+import deepEqual from 'fast-deep-equal';
 
 import type { BaseValidation, NodeValidation } from '..';
 
@@ -25,22 +27,22 @@ export function useTaskErrors(): {
 } {
   const selector = Validation.useSelector();
   const visibilitySelector = Validation.useVisibilitySelector();
-  const nodes = useNodes();
+  const visibleNodes = useVisibleNodes();
 
   const formErrors = useMemo(() => {
-    if (!nodes) {
+    if (!visibleNodes) {
       return emptyArray;
     }
 
     const formErrors: NodeValidation<'error'>[] = [];
-    for (const node of nodes.allNodes().filter(shouldValidateNode)) {
+    for (const node of visibleNodes) {
       formErrors.push(
         ...getValidationsForNode(node, selector, getVisibilityForNode(node, visibilitySelector), 'error'),
       );
     }
 
     return formErrors;
-  }, [nodes, selector, visibilitySelector]);
+  }, [visibleNodes, selector, visibilitySelector]);
 
   const taskErrors = useMemo(() => {
     const taskErrors: BaseValidation<'error'>[] = [];
@@ -67,4 +69,26 @@ export function useTaskErrors(): {
   }, [selector]);
 
   return useMemo(() => ({ formErrors, taskErrors }), [formErrors, taskErrors]);
+}
+
+/**
+ * Utility hook for preventing rerendering unless visible nodes actually change
+ */
+function useVisibleNodes() {
+  const nodes = useNodes();
+  const visibleNodes = useMemo(() => nodes.allNodes().filter(shouldValidateNode), [nodes]);
+  const visibleNodesRef = useRef(visibleNodes);
+
+  if (
+    visibleNodes === visibleNodesRef.current ||
+    deepEqual(
+      visibleNodes.map((n) => n.item.id),
+      visibleNodesRef.current.map((n) => n.item.id),
+    )
+  ) {
+    return visibleNodesRef.current;
+  } else {
+    visibleNodesRef.current = visibleNodes;
+    return visibleNodes;
+  }
 }

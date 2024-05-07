@@ -20,10 +20,7 @@ type DelayedSelectorFunc<T> = <U>(selector: Selector<T, U>, postProcessor?: (dat
 type DelayedSelectorFuncWithArg<Arg, U> = (lookup: Arg, postProcessor?: (data: unknown) => U) => U;
 type SelectorFuncLax<T> = <U>(selector: Selector<T, U>) => U | typeof ContextNotProvided;
 
-type DelayedSelectorState<T> = {
-  selector: Selector<T, any>;
-  prevValue: any;
-}[];
+type DelayedSelectorState<T> = Map<Selector<T, any>, { selector: Selector<T, any>; rawValue: any; value: any }>;
 
 interface DelayedSelectorFactory<Param, RetVal, T> {
   selector: (lookup: Param) => Selector<T, RetVal>;
@@ -126,7 +123,7 @@ export function createZustandContext<Store extends StoreApi<Type>, Type = Extrac
    * will not be able to be used as a cache key.
    */
   const useDelayedMemoSelectorProto = (store: Store | typeof ContextNotProvided): DelayedSelectorFunc<Type> => {
-    const selectorsCalled = useRef<DelayedSelectorState<Type>>([]);
+    const selectorsCalled = useRef<DelayedSelectorState<Type>>(new Map());
     const [renderCount, forceRerender] = useState(0);
 
     useEffect(() => {
@@ -138,9 +135,15 @@ export function createZustandContext<Store extends StoreApi<Type>, Type = Extrac
         // When the state changes, we run all the known selectors again to figure out if anything changed. If it
         // did change, we'll clear the list of selectors to force a re-render.
         const selectors = selectorsCalled.current;
-        const changed = selectors.some((s) => !deepEqual(s.prevValue, s.selector(state)));
+        let changed = false;
+        for (const { selector, rawValue } of selectors.values()) {
+          if (!deepEqual(rawValue, selector(state))) {
+            changed = true;
+            break;
+          }
+        }
         if (changed) {
-          selectorsCalled.current = [];
+          selectorsCalled.current = new Map();
           forceRerender((prev) => prev + 1);
         }
       });
@@ -158,21 +161,19 @@ export function createZustandContext<Store extends StoreApi<Type>, Type = Extrac
         }
 
         const state = store.getState();
-        let value = selector(state);
-        if (postProcessor) {
-          value = postProcessor(value);
-        }
+        const rawValue = selector(state);
+        const value = postProcessor ? postProcessor(rawValue) : rawValue;
 
         // Check if this function has been called before, and if the value has not changed since the last time it
         // was called we can return the previous value and prevent re-rendering.
-        const prev = selectorsCalled.current.find((s) => s.selector === selector);
-        if (prev && !deepEqual(prev.prevValue, value)) {
-          return prev.prevValue;
+        const prev = selectorsCalled.current.get(selector);
+        if (prev && deepEqual(prev.value, value)) {
+          return prev.value;
         }
 
         // The value has changed, or the callback is new to us. No need to re-render the component now, because
         // this is always the first render where this value is referenced, and we're always selecting from fresh state.
-        selectorsCalled.current.push({ selector, prevValue: value });
+        selectorsCalled.current.set(selector, { selector, rawValue, value });
         return value;
       },
       [store, renderCount],

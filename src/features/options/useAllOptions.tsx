@@ -108,14 +108,24 @@ const { Provider, useSelector, useDelayedMemoSelectorFactory } = createZustandCo
 
 const emptyArray: IOptionInternal[] = [];
 export function useAllOptionsSelector(onlyWhenAllLoaded = false) {
-  return useDelayedMemoSelectorFactory({
-    selector: (nodeId: string) => (state) => {
+  const selector = useCallback(
+    (nodeId: string) => (state: State) => {
       if (onlyWhenAllLoaded && !state.allInitiallyLoaded) {
         return emptyArray;
       }
       return state.nodes[nodeId] || emptyArray;
     },
-    makeCacheKey: (nodeId: string) => nodeId + (onlyWhenAllLoaded ? '|onlyWhenAllLoaded' : ''),
+    [onlyWhenAllLoaded],
+  );
+
+  const makeCacheKey = useCallback(
+    (nodeId: string) => nodeId + (onlyWhenAllLoaded ? '|onlyWhenAllLoaded' : ''),
+    [onlyWhenAllLoaded],
+  );
+
+  return useDelayedMemoSelectorFactory({
+    selector,
+    makeCacheKey,
   });
 }
 
