@@ -419,18 +419,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return await response.Content.ReadAsAsync<AccessList>();
         }
 
-        public async Task<HttpStatusCode> AddAccessListMember(string org,
+        public async Task<HttpStatusCode> AddAccessListMember(
+            string org,
             string identifier,
-            string memberOrgnr,
+            UpdateAccessListMemberDto members,
             string env
         )
         {
-            UpdateAccessListMemberDto newListMember = new()
-            {
-                Data = [$"urn:altinn:organization:identifier-no:{memberOrgnr}"]
-            };
+            UpdateAccessListMemberDto newListMembers = PrefixAccessListMembersData(members);
             string listUrl = $"/{org}/{identifier}/members";
-            string addMemberPayloadString = JsonSerializer.Serialize(newListMember, _serializerOptions);
+            string addMemberPayloadString = JsonSerializer.Serialize(newListMembers, _serializerOptions);
             HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Post, listUrl, addMemberPayloadString);
 
             HttpResponseMessage response = await _httpClient.SendAsync(request);
@@ -441,16 +439,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<HttpStatusCode> RemoveAccessListMember(
             string org,
             string identifier,
-            string memberOrgnr,
+            UpdateAccessListMemberDto members,
             string env
         )
         {
-            UpdateAccessListMemberDto newListMember = new()
-            {
-                Data = [$"urn:altinn:organization:identifier-no:{memberOrgnr}"]
-            };
+            UpdateAccessListMemberDto deleteListMembers = PrefixAccessListMembersData(members);
             string listUrl = $"/{org}/{identifier}/members";
-            string removeMemberPayloadString = JsonSerializer.Serialize(newListMember, _serializerOptions);
+            string removeMemberPayloadString = JsonSerializer.Serialize(deleteListMembers, _serializerOptions);
             HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Delete, listUrl, removeMemberPayloadString);
 
             HttpResponseMessage response = await _httpClient.SendAsync(request);
@@ -535,6 +530,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return request;
+        }
+
+        private UpdateAccessListMemberDto PrefixAccessListMembersData(UpdateAccessListMemberDto members)
+        {
+            return new UpdateAccessListMemberDto()
+            {
+                Data = members.Data.Select(orgnr => $"urn:altinn:organization:identifier-no:{orgnr}").ToList()
+            };
         }
         // RRR end
 

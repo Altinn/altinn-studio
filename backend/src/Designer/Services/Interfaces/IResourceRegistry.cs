@@ -3,6 +3,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
@@ -109,20 +110,20 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Current organization</param>
         /// <param name="identifier">Access list identifier</param>
-        /// <param name="memberOrgnr">9-digit organization number of party to add to list</param>
+        /// <param name="members">Object with list of 9-digit organization number of party to add to list</param>
         /// <param name="env">Chosen environment</param>
         /// <returns>HTTP status code of the operation. 200 OK if add was successful</returns>
-        Task<HttpStatusCode> AddAccessListMember(string org, string identifier, string memberOrgnr, string env);
+        Task<HttpStatusCode> AddAccessListMember(string org, string identifier, UpdateAccessListMemberDto members, string env);
 
         /// <summary>
         /// Remove a party as access list member
         /// </summary>
         /// <param name="org">Current organization</param>
         /// <param name="identifier">Access list identifier</param>
-        /// <param name="memberOrgnr">9-digit organization number of party to remove from the list</param>
+        /// <param name="members">Object with list of 9-digit organization number of party to remove from the list</param>
         /// <param name="env">Chosen environment</param>
         /// <returns>HTTP status code of the operation. 204 No content if remove was successful</returns>
-        Task<HttpStatusCode> RemoveAccessListMember(string org, string identifier, string memberOrgnr, string env);
+        Task<HttpStatusCode> RemoveAccessListMember(string org, string identifier, UpdateAccessListMemberDto members, string env);
 
         /// <summary>
         /// Connect a resource to a given access list

@@ -12,6 +12,7 @@ using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
@@ -96,19 +97,19 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpPost]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaResourceAccessListPermission)]
-        [Route("designer/api/{org}/resources/accesslist/{identifier}/members/{memberOrgNr}")]
-        public async Task<ActionResult> AddAccessListMember(string org, string identifier, string memberOrgNr, string env)
+        [Route("designer/api/{org}/resources/accesslist/{identifier}/members/")]
+        public async Task<ActionResult> AddAccessListMembers(string org, string identifier, string env, [FromBody] UpdateAccessListMemberDto members)
         {
-            HttpStatusCode statusCode = await _resourceRegistry.AddAccessListMember(org, identifier, memberOrgNr, env);
+            HttpStatusCode statusCode = await _resourceRegistry.AddAccessListMember(org, identifier, members, env);
             return new StatusCodeResult(((int)statusCode));
         }
 
         [HttpDelete]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaResourceAccessListPermission)]
-        [Route("designer/api/{org}/resources/accesslist/{identifier}/members/{memberOrgNr}")]
-        public async Task<ActionResult> RemoveAccessListMember(string org, string identifier, string memberOrgNr, string env)
+        [Route("designer/api/{org}/resources/accesslist/{identifier}/members/")]
+        public async Task<ActionResult> RemoveAccessListMember(string org, string identifier, string env, [FromBody] UpdateAccessListMemberDto members)
         {
-            HttpStatusCode statusCode = await _resourceRegistry.RemoveAccessListMember(org, identifier, memberOrgNr, env);
+            HttpStatusCode statusCode = await _resourceRegistry.RemoveAccessListMember(org, identifier, members, env);
             return new StatusCodeResult(((int)statusCode));
         }
 
