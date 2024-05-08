@@ -38,16 +38,17 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             {
                 EmitResult result = compilation.Emit(ms);
 
-                if (!result.Success)
+                var ignoredDiagnostics = new[]
                 {
-                    IEnumerable<Diagnostic> failures = result.Diagnostics.Where(diagnostic =>
-                        diagnostic.IsWarningAsError ||
-                        diagnostic.Severity == DiagnosticSeverity.Error);
-
+                    "CS8019", // CS8019: Unnecessary using directive.
+                };
+                var diagnostics = result.Diagnostics.Where(d => !ignoredDiagnostics.Contains(d.Descriptor.Id)).ToArray();
+                if (diagnostics.Any())
+                {
                     List<string> customErrorMessages = new();
-                    foreach (Diagnostic diagnostic in failures)
+                    foreach (Diagnostic diagnostic in diagnostics)
                     {
-                        customErrorMessages.Add(diagnostic.GetMessage());
+                        customErrorMessages.Add(diagnostic.Id + "" + diagnostic.GetMessage() + csharpCode[(diagnostic.Location.SourceSpan.Start - 10)..(diagnostic.Location.SourceSpan.End + 10)]);
                     }
 
                     throw new CsharpCompilationException("Csharp compilation failed.", customErrorMessages);
