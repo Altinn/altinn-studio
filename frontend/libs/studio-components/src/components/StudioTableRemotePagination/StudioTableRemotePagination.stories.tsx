@@ -11,9 +11,27 @@ const meta: Meta = {
   title: 'Studio/StudioTableRemotePagination',
   component: StudioTableRemotePagination,
   argTypes: {
+    columns: {
+      description: 'An array of objects representing the table columns.',
+    },
+    rows: {
+      description: 'An array of objects representing the table rows.',
+    },
     size: {
       control: 'radio',
       options: ['small', 'medium', 'large'],
+      description: 'The size of the table.',
+    },
+    emptyTableMessage: {
+      description: 'The message to display when the table is empty.',
+    },
+    onSortClick: {
+      description:
+        'Function to be invoked when a sortable column header is clicked. If not provided, sorting buttons are hidden.',
+    },
+    pagination: {
+      description:
+        'An object containing pagination-related props. If not provided, pagination is hidden.',
     },
   },
 };

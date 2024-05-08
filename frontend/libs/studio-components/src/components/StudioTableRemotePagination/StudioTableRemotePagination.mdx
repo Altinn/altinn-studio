@@ -11,12 +11,6 @@ import { propInfoColumns, propInfoRowsRemotePagination } from "./mockData"
 </Heading>
 <Paragraph>StudioTableRemotePagination brings together Digdir Designsystemet's `Table` and `Pagination` components. This component is useful when data is retrieved in chunks, and the pagination logic is managed externally. </Paragraph>
 
-<Heading level={2} size='xxsmall'>
-    Optional props:
-</Heading>
-<StudioTableRemotePagination columns={propInfoColumns} rows={propInfoRowsRemotePagination} size="small"/>
-<br />
-
 <Canvas of={StudioTableRemotePaginationStories.Preview} />
 
 <Heading level={2} size='xsmall'>
@@ -49,7 +43,7 @@ const columns = [
   Row format
 </Heading>
 <ul>
-  <li>Rows must have an id that is unique.</li>
+  <li>Rows must have an `id` that is unique.</li>
   <li>
     The accessors in the columns array is used to display the row properties. Therefore, each
     property name has to exactly match the accessor.
