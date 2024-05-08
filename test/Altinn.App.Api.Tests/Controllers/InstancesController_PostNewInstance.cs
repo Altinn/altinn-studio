@@ -16,9 +16,6 @@ namespace Altinn.App.Api.Tests.Controllers;
 
 public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, };
-
     private readonly Mock<IDataProcessor> _dataProcessor = new();
 
     public InstancesController_PostNewInstanceTests(

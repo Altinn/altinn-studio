@@ -12,8 +12,6 @@ namespace Altinn.App.Api.Tests.Controllers;
 
 public class ApplicationMetadataControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
-
     private readonly Mock<IAppMetadata> _appMetadataMock = new();
 
     public ApplicationMetadataControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
