@@ -1,9 +1,9 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
@@ -63,10 +63,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("meantForPress")]
     public bool? meantForPress { get; set; }
 
-    public bool ShouldSerializemeantForPress()
-    {
-      return meantForPress.HasValue;
-    }
+    public bool ShouldSerializemeantForPress() => meantForPress.HasValue;
 
     [XmlElement("language", Order = 11)]
     [JsonProperty("language")]
@@ -98,10 +95,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("hasISBN")]
     public bool? hasISBN { get; set; }
 
-    public bool ShouldSerializehasISBN()
-    {
-      return hasISBN.HasValue;
-    }
+    public bool ShouldSerializehasISBN() => hasISBN.HasValue;
 
     [RegularExpression(@"(?=[\S\s]{13}$|[\S\s]{17}$)[\S\s]*^(978([\-]?)[0-9]{2}([\-]?)([0-1][0-9]|[2-6][0-9]{2}|[78][0-9]{3}|9[0-8][0-9]{3}|99[0-9]{4}|69[0-9]{4})([\-]?)[0-9]{1,5}([\-]?)[xX0-9])$")]
     [XmlElement("isbn", Order = 17)]
@@ -119,10 +113,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("isSeries")]
     public bool? isSeries { get; set; }
 
-    public bool ShouldSerializeisSeries()
-    {
-      return isSeries.HasValue;
-    }
+    public bool ShouldSerializeisSeries() => isSeries.HasValue;
 
     [RegularExpression(@"(?=[\S\s]{8}$|[\S\s]{9}$)[\S\s]*^([0-9]{4}([\-]?)[0-9]{3}[xX0-9])$")]
     [XmlElement("issn", Order = 20)]
@@ -170,10 +161,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("hasISMN")]
     public bool? hasISMN { get; set; }
 
-    public bool ShouldSerializehasISMN()
-    {
-      return hasISMN.HasValue;
-    }
+    public bool ShouldSerializehasISMN() => hasISMN.HasValue;
 
     [RegularExpression(@"(?=[\S\s]{13}$|[\S\s]{17}$)[\S\s]*^(979([\-]?)0([\-]?)(0[0-9]{2}|[1-3][0-9]{3}|[4-6][0-9]{4}|[78][0-9]{5}|9[0-9]{6})([\-]?)[0-9]{1,5}([\-]?)[xX0-9])$")]
     [XmlElement("ismn", Order = 29)]
@@ -187,20 +175,14 @@ namespace Altinn.App.Models
     [JsonPropertyName("orgNumber")]
     public decimal? orgNumber { get; set; }
 
-    public bool ShouldSerializeorgNumber()
-    {
-      return orgNumber.HasValue;
-    }
+    public bool ShouldSerializeorgNumber() => orgNumber.HasValue;
 
     [XmlElement("access", Order = 31)]
     [JsonProperty("access")]
     [JsonPropertyName("access")]
     public bool? access { get; set; }
 
-    public bool ShouldSerializeaccess()
-    {
-      return access.HasValue;
-    }
+    public bool ShouldSerializeaccess() => access.HasValue;
 
     [XmlElement("comment", Order = 32)]
     [JsonProperty("comment")]
@@ -216,6 +198,14 @@ namespace Altinn.App.Models
 
   public class personOfResponsibility
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
     [XmlElement("role", Order = 1)]
     [JsonProperty("role")]
     [JsonPropertyName("role")]
@@ -231,21 +221,18 @@ namespace Altinn.App.Models
     [JsonPropertyName("lastname")]
     public string lastname { get; set; }
 
+  }
+
+  public class organizationOfResponsibility
+  {
     [XmlAttribute("altinnRowId")]
     [JsonPropertyName("altinnRowId")]
     [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-        return AltinnRowId != default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
-  }
-
-  public class organizationOfResponsibility
-  {
     [XmlElement("orgName", Order = 1)]
     [JsonProperty("orgName")]
     [JsonPropertyName("orgName")]
@@ -256,34 +243,22 @@ namespace Altinn.App.Models
     [JsonPropertyName("orgRole")]
     public string orgRole { get; set; }
 
+  }
+
+  public class publisherObject
+  {
     [XmlAttribute("altinnRowId")]
     [JsonPropertyName("altinnRowId")]
     [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-        return AltinnRowId != default;
-    }
-  }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
-  public class publisherObject
-  {
     [XmlElement("publisherName", Order = 1)]
     [JsonProperty("publisherName")]
     [JsonPropertyName("publisherName")]
     public string publisherName { get; set; }
 
-    [XmlAttribute("altinnRowId")]
-    [JsonPropertyName("altinnRowId")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [Newtonsoft.Json.JsonIgnore]
-    public Guid AltinnRowId { get; set; }
-
-    public bool ShouldSerializeAltinnRowId()
-    {
-        return AltinnRowId != default;
-    }
   }
 }
