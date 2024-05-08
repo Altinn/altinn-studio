@@ -42,8 +42,10 @@ export const AccessListMembers = ({
     [searchText, isSubPartySearch],
   );
 
-  const { mutate: removeListMember } = useRemoveAccessListMemberMutation(org, list.identifier, env);
-  const { mutate: addListMember } = useAddAccessListMemberMutation(org, list.identifier, env);
+  const { mutate: removeListMember, isPending: isRemovingMember } =
+    useRemoveAccessListMemberMutation(org, list.identifier, env);
+  const { mutate: addListMember, isPending: isAddingNewListMember } =
+    useAddAccessListMemberMutation(org, list.identifier, env);
 
   const { data: partiesSearchData, isLoading: isLoadingParties } = usePartiesRegistryQuery(
     !isSubPartySearch ? searchUrl : '',
@@ -53,13 +55,19 @@ export const AccessListMembers = ({
   );
 
   const handleAddMember = (memberToAdd: AccessListMember): void => {
-    addListMember(memberToAdd.orgNr);
-    setListItems((old) => [...old, memberToAdd]);
+    addListMember([memberToAdd.orgNr], {
+      onSuccess: () => {
+        setListItems((old) => [...old, memberToAdd]);
+      },
+    });
   };
 
   const handleRemoveMember = (memberIdToRemove: string): void => {
-    removeListMember(memberIdToRemove);
-    setListItems((old) => old.filter((x) => x.orgNr !== memberIdToRemove));
+    removeListMember([memberIdToRemove], {
+      onSuccess: () => {
+        setListItems((old) => old.filter((x) => x.orgNr !== memberIdToRemove));
+      },
+    });
   };
 
   const resultData = partiesSearchData ?? subPartiesSearchData ?? undefined;
@@ -71,6 +79,7 @@ export const AccessListMembers = ({
     >
       <AccessListMembersTable
         listItems={listItems}
+        isLoading={isRemovingMember}
         onButtonClick={(item: AccessListMember) => handleRemoveMember(item.orgNr)}
       />
       {listItems.length === 0 && (
@@ -109,6 +118,7 @@ export const AccessListMembers = ({
           <AccessListMembersTable
             isHeaderHidden
             listItems={resultData?.parties ?? []}
+            isLoading={isAddingNewListMember}
             disabledItems={listItems}
             isAdd
             onButtonClick={handleAddMember}

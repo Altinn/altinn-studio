@@ -51,31 +51,23 @@ describe('AccessListMembers', () => {
     expect(screen.getByText(textMock('resourceadm.listadmin_empty_list'))).toBeInTheDocument();
   });
 
-  it('should call service to remove member', async () => {
+  it('should remove member from table when remove member button is clicked', async () => {
     const user = userEvent.setup();
-    const removeAccessListMemberMock = jest.fn();
-    renderAccessListMembers({}, { removeAccessListMember: removeAccessListMemberMock });
+    renderAccessListMembers();
 
     const removeButtons = screen.getAllByText(textMock('resourceadm.listadmin_remove_from_list'));
     await user.click(removeButtons[0]);
 
-    expect(removeAccessListMemberMock).toHaveBeenCalledWith(
-      testOrg,
-      testListIdentifier,
-      testMemberPartyId,
-      testEnv,
-    );
+    expect(screen.queryByText(testMemberPartyId)).not.toBeInTheDocument();
   });
 
-  it('should call service to add member', async () => {
+  it('should show new member in list after member is added', async () => {
     const user = userEvent.setup();
-    const addAccessListMemberMock = jest.fn();
     const searchResultText = 'Digdir';
     const searchResultOrgNr = '987654321';
     renderAccessListMembers(
       {},
       {
-        addAccessListMember: addAccessListMemberMock,
         getParties: jest.fn().mockImplementation(() =>
           Promise.resolve({
             _embedded: {
@@ -95,15 +87,10 @@ describe('AccessListMembers', () => {
 
     await waitFor(() => screen.findByText(searchResultText));
 
-    const searchResultsButton = screen.getByText(textMock('resourceadm.listadmin_add_to_list'));
-    await user.click(searchResultsButton);
+    const addMemberButton = screen.getByText(textMock('resourceadm.listadmin_add_to_list'));
+    await user.click(addMemberButton);
 
-    expect(addAccessListMemberMock).toHaveBeenCalledWith(
-      testOrg,
-      testListIdentifier,
-      searchResultOrgNr,
-      testEnv,
-    );
+    expect(screen.queryAllByText(searchResultOrgNr)).toHaveLength(2);
   });
 
   it('should show message when no parties are found', async () => {

@@ -155,6 +155,10 @@ export interface AccessListsResponse {
   nextPage?: number;
 }
 
+export interface AccessListOrganizationNumbers {
+  data: string[];
+}
+
 export interface JsonPatch {
   op: 'replace' | 'add' | 'remove';
   path: string;

@@ -9,6 +9,7 @@ import { stringNumberToAriaLabel } from '../../utils/stringUtils';
 
 interface AccessListMembersTableProps {
   listItems: AccessListMember[];
+  isLoading: boolean;
   isAdd?: boolean;
   isHeaderHidden?: boolean;
   disabledItems?: AccessListMember[];
@@ -17,6 +18,7 @@ interface AccessListMembersTableProps {
 
 export const AccessListMembersTable = ({
   listItems,
+  isLoading,
   isAdd,
   isHeaderHidden,
   disabledItems,
@@ -44,7 +46,8 @@ export const AccessListMembersTable = ({
         aria-label={buttonAriaLabel}
         onClick={() => onButtonClick(item)}
         disabled={
-          disabledItems && disabledItems.some((existingItem) => existingItem.orgNr === item.orgNr)
+          isLoading ||
+          (disabledItems && disabledItems.some((existingItem) => existingItem.orgNr === item.orgNr))
         }
         variant='tertiary'
         size='small'
