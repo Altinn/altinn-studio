@@ -437,7 +437,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                     Count = 1,
                     Instances = new List<Instance> { new Instance { Id = $"{1337}/{Guid.NewGuid()}" } },
                     Next =
-                        "https://platform.altinn.no/storage/api/instances?&appId=ttd/apps-test&instanceOwner.partyId=1337&status.isArchived=false&status.isSoftDeleted=false&continuationtoken=abcd"
+                        "https://platform.altinn.no/storage/api/instances?appId=ttd%2Fapps-test&instanceOwner.partyId=1337&status.isArchived=false&status.isSoftDeleted=false&continuationtoken=abcd"
                 };
 
             QueryResponse<Instance> queryResponse2 =
@@ -448,9 +448,9 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 };
 
             string urlPart1 =
-                "instances?&appId=ttd/apps-test&instanceOwner.partyId=1337&status.isArchived=false&status.isSoftDeleted=false";
+                "instances?appId=ttd%2Fapps-test&instanceOwner.partyId=1337&status.isArchived=false&status.isSoftDeleted=false";
             string urlPart2 =
-                "https://platform.altinn.no/storage/api/instances?&appId=ttd/apps-test&instanceOwner.partyId=1337&status.isArchived=false&status.isSoftDeleted=false&continuationtoken=abcd";
+                "https://platform.altinn.no/storage/api/instances?appId=ttd%2Fapps-test&instanceOwner.partyId=1337&status.isArchived=false&status.isSoftDeleted=false&continuationtoken=abcd";
 
             HttpResponseMessage httpResponseMessage1 = new HttpResponseMessage
             {

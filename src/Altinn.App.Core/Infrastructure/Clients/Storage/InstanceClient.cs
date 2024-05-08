@@ -10,6 +10,7 @@ using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -95,22 +96,13 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         /// <inheritdoc />
         public async Task<List<Instance>> GetInstances(Dictionary<string, StringValues> queryParams)
         {
-            StringBuilder apiUrl = new($"instances?");
-
-            foreach (var queryParameter in queryParams)
-            {
-                foreach (string? value in queryParameter.Value)
-                {
-                    // TODO: remember to escape the value here
-                    apiUrl.Append($"&{queryParameter.Key}={value}");
-                }
-            }
+            var apiUrl = QueryHelpers.AddQueryString("instances", queryParams);
 
             string token = JwtTokenUtil.GetTokenFromContext(
                 _httpContextAccessor.HttpContext,
                 _settings.RuntimeCookieName
             );
-            QueryResponse<Instance> queryResponse = await QueryInstances(token, apiUrl.ToString());
+            QueryResponse<Instance> queryResponse = await QueryInstances(token, apiUrl);
 
             if (queryResponse.Count == 0)
             {
