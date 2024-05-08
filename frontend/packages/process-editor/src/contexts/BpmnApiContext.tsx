@@ -4,7 +4,7 @@ import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 import type { DataTypeChange } from 'app-shared/types/api/DataTypeChange';
 
 type QueryOptions = {
-  onSettled: () => void;
+  onSuccess: () => void;
 };
 
 export type BpmnApiContextProps = {

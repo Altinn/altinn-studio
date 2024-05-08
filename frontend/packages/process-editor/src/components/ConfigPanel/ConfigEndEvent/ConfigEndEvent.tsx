@@ -50,7 +50,7 @@ export const ConfigEndEvent = () => {
         newLayoutSetId: customReceipt.layoutSetId,
       },
       {
-        onSettled: () => updateDatamodel(customReceipt.datamodelId),
+        onSuccess: () => updateDatamodel(customReceipt.datamodelId),
       },
     );
   };
@@ -66,7 +66,7 @@ export const ConfigEndEvent = () => {
         layoutSetConfig: customReceiptLayoutSetConfig,
       },
       {
-        onSettled: () => updateDatamodel(customReceipt.datamodelId),
+        onSuccess: () => updateDatamodel(customReceipt.datamodelId),
       },
     );
   };
