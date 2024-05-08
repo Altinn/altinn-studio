@@ -101,8 +101,7 @@
             "xs": 12,
             "md": 6
           }
-        },
-        "required": true
+        }
       },
       {
         "id": "reference",
