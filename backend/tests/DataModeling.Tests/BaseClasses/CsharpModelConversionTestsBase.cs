@@ -65,7 +65,7 @@ namespace DataModeling.Tests.BaseClasses
 
         protected TTestType ModelMetadataConvertedToCsharpClass()
         {
-            CSharpClasses = new JsonMetadataToCsharpConverter(new CSharpGenerationSettings()).CreateModelFromMetadata(ModelMetadata);
+            CSharpClasses = new JsonMetadataToCsharpConverter(new CSharpGenerationSettings()).CreateModelFromMetadata(ModelMetadata, separateNamespaces: false, useNullableReferenceTypes: false);
             return this as TTestType;
         }
 
