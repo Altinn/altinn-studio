@@ -1,8 +1,8 @@
 import React from 'react';
 import { StudioNativeSelect } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
-import { getExistingDatamodelIdFromLayoutsets } from '../../../../../utils/customReceiptUtils';
+import { useBpmnApiContext } from '../../../../../../contexts/BpmnApiContext';
+import { getExistingDatamodelIdFromLayoutsets } from '../../../../../../utils/customReceiptUtils';
 
 export const SelectCustomReceiptDatamodelId = (): React.ReactElement => {
   const { layoutSets, existingCustomReceiptLayoutSetId, availableDataModelIds } =

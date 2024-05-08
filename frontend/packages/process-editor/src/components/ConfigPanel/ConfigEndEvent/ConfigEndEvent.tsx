@@ -4,17 +4,10 @@ import { Link, Paragraph } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import classes from './ConfigEndEvent.module.css';
 import { ConfigIcon } from '../ConfigContent/ConfigIcon';
-import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
-import { AddCustomReceiptForm } from '../AddCustomReceiptForm';
+import { CustomReceiptContent } from './CustomReceiptContent';
 
 export const ConfigEndEvent = () => {
   const { t } = useTranslation();
-
-  const { layoutSets, existingCustomReceiptLayoutSetId } = useBpmnApiContext();
-
-  const currentDataModel =
-    layoutSets.sets.find((ls) => ls.id === existingCustomReceiptLayoutSetId)?.dataType ?? '';
-  console.log('layoutsets', currentDataModel);
 
   return (
     <>
@@ -58,8 +51,7 @@ export const ConfigEndEvent = () => {
             Hvis du heller vil lage din egen kvittering, kan du opprette den her. Kvitteringen du
             lager selv vil overstyre standardkvitteringen.
           </Paragraph>
-
-          <AddCustomReceiptForm />
+          <CustomReceiptContent />
         </div>
       </div>
       {/*</Accordion.Content>

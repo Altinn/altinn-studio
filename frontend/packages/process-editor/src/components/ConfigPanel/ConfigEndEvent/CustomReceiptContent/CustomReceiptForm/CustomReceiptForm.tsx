@@ -2,13 +2,13 @@ import React from 'react';
 import classes from './CustomReceiptForm.module.css';
 // import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioTextfield } from '@studio/components';
-import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
-import { type CustomReceiptType } from '../../../../types/CustomReceiptType';
+import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
+import { type CustomReceiptType } from '../../../../../types/CustomReceiptType';
 import { type DataTypeChange } from 'app-shared/types/api/DataTypeChange';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import { type LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { SelectCustomReceiptDatamodelId } from './SelectCustomReceiptDatamodelId';
-import { getExistingDatamodelIdFromLayoutsets } from '../../../../utils/customReceiptUtils';
+import { getExistingDatamodelIdFromLayoutsets } from '../../../../../utils/customReceiptUtils';
 
 export type CustomReceiptFormProps = {
   onCloseForm: () => void;

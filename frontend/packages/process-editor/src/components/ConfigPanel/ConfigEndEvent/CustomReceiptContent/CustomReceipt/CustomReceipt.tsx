@@ -3,8 +3,8 @@ import classes from './CustomReceipt.module.css';
 import { StudioButton } from '@studio/components';
 import { KeyVerticalIcon, LinkIcon } from '@studio/icons';
 import { Paragraph } from '@digdir/design-system-react';
-import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
-import { getExistingDatamodelIdFromLayoutsets } from '../../../../utils/customReceiptUtils';
+import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
+import { getExistingDatamodelIdFromLayoutsets } from '../../../../../utils/customReceiptUtils';
 import { RedirectToCreatePageButton } from '../RedirectToCreatePageButton';
 
 export type CustomReceiptProps = {
