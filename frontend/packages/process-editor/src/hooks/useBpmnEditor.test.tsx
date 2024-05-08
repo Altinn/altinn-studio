@@ -9,15 +9,10 @@ import type { BpmnDetails } from '../types/BpmnDetails';
 import { BpmnTypeEnum } from '../enum/BpmnTypeEnum';
 import type { BpmnTaskType } from '../types/BpmnTaskType';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import { mockBpmnDetails, mockBpmnElement } from '../../test/mocks/bpmnDetailsMock';
 
 const taskId = 'testId';
 const layoutSetId = 'someLayoutSetId';
-const bpmnDetailsMock: BpmnDetails = {
-  id: taskId,
-  name: 'mockName',
-  type: BpmnTypeEnum.Task,
-  taskType: 'data',
-};
 
 const layoutSetsMock: LayoutSets = {
   sets: [
@@ -41,7 +36,7 @@ class BpmnModelerMockImpl {
   }
   on(eventName: string, listener: (event: any) => void) {
     if (eventName === this._currentEventName) {
-      listener({ element: 'someElement' });
+      listener({ element: mockBpmnElement });
     }
   }
   get(elementName: string) {
@@ -129,11 +124,11 @@ describe('useBpmnEditor', () => {
 
     expect(addLayoutSetMock).toHaveBeenCalledTimes(1);
     expect(addLayoutSetMock).toHaveBeenCalledWith({
-      layoutSetIdToUpdate: bpmnDetailsMock.id,
-      layoutSetConfig: { id: bpmnDetailsMock.id, tasks: [bpmnDetailsMock.id] },
+      layoutSetIdToUpdate: mockBpmnDetails.id,
+      layoutSetConfig: { id: mockBpmnDetails.id, tasks: [mockBpmnDetails.id] },
     });
     expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1);
-    expect(setBpmnDetailsMock).toHaveBeenCalledWith(bpmnDetailsMock);
+    expect(setBpmnDetailsMock).toHaveBeenCalledWith(mockBpmnDetails);
   });
 
   it.each(['confirmation', 'signing', 'feedback', 'endEvent'])(
@@ -144,6 +139,7 @@ describe('useBpmnEditor', () => {
         name: 'mockName',
         type: BpmnTypeEnum.Task,
         taskType: taskType,
+        element: mockBpmnElement,
       };
       const currentEventName = 'shape.add';
       renderUseBpmnEditor(true, currentEventName, mockBpmnDetailsNotData);
@@ -193,17 +189,14 @@ describe('useBpmnEditor', () => {
     renderUseBpmnEditor(true, currentEventName);
 
     expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1);
-    expect(setBpmnDetailsMock).toHaveBeenCalledWith({
-      ...bpmnDetailsMock,
-      element: 'someElement',
-    });
+    expect(setBpmnDetailsMock).toHaveBeenCalledWith(mockBpmnDetails);
   });
 });
 
 const renderUseBpmnEditor = (
   overrideBpmnContext: boolean,
   currentEventName: string,
-  bpmnDetails = bpmnDetailsMock,
+  bpmnDetails = mockBpmnDetails,
 ) => {
   overrideBpmnContext && overrideUseBpmnContext();
   overrideGetBpmnEditorDetailsFromBusinessObject(bpmnDetails);
