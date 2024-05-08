@@ -33,12 +33,12 @@ export const StudioTableLocalPagination = forwardRef<
     const { handleSorting, sortedRows } = useTableSorting(rows, { enable: isSortable });
 
     const initialRowsToRender = getRowsToRender(currentPage, pageSize, sortedRows || rows);
-    const [rowsToRender, setRowsToRender] = useState(initialRowsToRender);
+    const [rowsToRender, setRowsToRender] = useState<Rows>(initialRowsToRender);
 
     const handlePageSizeChange = (newPageSize: number) => {
       const newRowsToRender = getRowsToRender(currentPage, newPageSize, sortedRows || rows);
 
-      // Move user back to page one, if current page is removed
+      // Move user back to page 1 if current page is removed
       if (!newRowsToRender.length) {
         setCurrentPage(1);
       }

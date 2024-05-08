@@ -9,13 +9,11 @@ import {StudioTableLocalPagination} from "./StudioTableLocalPagination";
 <Heading level={1} size='small'>
   StudioTableLocalPagination
 </Heading>
-<Paragraph>
-  The StudioTableLocalPagination component handles pagination internally, eliminating the need for manual control. It seamlessly manages pagination logic for you.
-  </Paragraph>
+<Paragraph>The StudioTableLocalPagination component handles pagination internally, eliminating the need for manual control. It seamlessly manages pagination logic for you.</Paragraph>
 
 <Heading level={2} size='xxsmall'>
-    Optional props:
-  </Heading>
+  Optional props:
+</Heading>
 <StudioTableLocalPagination columns={propInfoColumns} rows={propInfoRowsLocalPagination} size="small" isSortable={false}/>
 <br />
 
@@ -50,15 +48,13 @@ const columns = [
 <Heading level={2} size='xsmall'>
   Row format
 </Heading>
-<Paragraph>
-  <ul>
-    <li>Rows must have an id that is unique.</li>
-    <li>
-      The accessors in the columns array is used to display the row properties. Therefore, each
-      property name has to exactly match the accessor.
-    </li>
-  </ul>
-</Paragraph>
+<ul>
+  <li>Rows must have an id that is unique.</li>
+  <li>
+    The accessors in the columns array is used to display the row properties. Therefore, each
+    property name has to exactly match the accessor.
+  </li>
+</ul>
 
 ```tsx
 const rows = [
