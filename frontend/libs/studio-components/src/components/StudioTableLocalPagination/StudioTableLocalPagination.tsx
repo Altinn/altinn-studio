@@ -35,21 +35,22 @@ export const StudioTableLocalPagination = forwardRef<
     const initialRowsToRender = getRowsToRender(currentPage, pageSize, sortedRows || rows);
     const [rowsToRender, setRowsToRender] = useState<Rows>(initialRowsToRender);
 
-    const handlePageSizeChange = (newPageSize: number) => {
-      const newRowsToRender = getRowsToRender(currentPage, newPageSize, sortedRows || rows);
-
-      // Move user back to page 1 if current page is removed
-      if (!newRowsToRender.length) {
-        setCurrentPage(1);
-      }
-
-      setPageSize(newPageSize);
-      setRowsToRender(newRowsToRender);
-    };
-
     const handlePageChange = (newPage: number) => {
       setCurrentPage(newPage);
       setRowsToRender(getRowsToRender(newPage, pageSize, sortedRows || rows));
+    };
+
+    const handlePageSizeChange = (newPageSize: number) => {
+      setPageSize(newPageSize);
+
+      const updatedRowsToRender = getRowsToRender(currentPage, newPageSize, sortedRows || rows);
+      if (!updatedRowsToRender.length) {
+        // Set table to page 1 if current page becomes obsolete
+        setRowsToRender(getRowsToRender(1, newPageSize, sortedRows || rows));
+        setCurrentPage(1);
+      } else {
+        setRowsToRender(updatedRowsToRender);
+      }
     };
 
     const totalPages = Math.ceil(rows.length / pageSize);
