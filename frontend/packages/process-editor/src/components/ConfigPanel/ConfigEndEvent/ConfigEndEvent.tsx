@@ -1,89 +1,20 @@
 import React from 'react';
-import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
-import {
-  StudioLabelAsParagraph,
-  StudioSectionHeader,
-  // StudioToggleableTextfield,
-} from '@studio/components';
+import { StudioLabelAsParagraph, StudioSectionHeader } from '@studio/components';
 import { Link, Paragraph } from '@digdir/design-system-react';
-// import { PencilWritingIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './ConfigEndEvent.module.css';
-import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import { ConfigIcon } from '../ConfigContent/ConfigIcon';
-// import { getLayoutSetIdValidationErrorKey } from 'app-shared/utils/layoutSetsUtils';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
-import { AddCustomReceiptForm } from '../AddCustomReceiptForm';
-import { type CustomReceipt } from '../../../types/CustomReceipt';
-import { type DataTypeChange } from 'app-shared/types/api/DataTypeChange';
+import { AddCustomReceiptForm } from '../CustomReceiptForm';
 
 export const ConfigEndEvent = () => {
   const { t } = useTranslation();
 
-  const {
-    layoutSets,
-    existingCustomReceiptLayoutSetId,
-    addLayoutSet,
-    mutateLayoutSet,
-    deleteLayoutSet,
-    mutateDataType,
-  } = useBpmnApiContext();
+  const { layoutSets, existingCustomReceiptLayoutSetId } = useBpmnApiContext();
 
   const currentDataModel =
     layoutSets.sets.find((ls) => ls.id === existingCustomReceiptLayoutSetId)?.dataType ?? '';
   console.log('layoutsets', currentDataModel);
-
-  const handleSaveCustomReceipt = (customReceipt: CustomReceipt) => {
-    if (existingCustomReceiptLayoutSetId === customReceipt.layoutSetId) return;
-
-    if (!existingCustomReceiptLayoutSetId) {
-      handleAddLayoutSet(customReceipt);
-      return;
-    }
-    handleEditCustomReceipt(customReceipt);
-  };
-
-  const handleEditCustomReceipt = (customReceipt: CustomReceipt) => {
-    mutateLayoutSet(
-      {
-        layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
-        newLayoutSetId: customReceipt.layoutSetId,
-      },
-      {
-        onSuccess: () => updateDatamodel(customReceipt.datamodelId),
-      },
-    );
-  };
-
-  const handleAddLayoutSet = (customReceipt: CustomReceipt) => {
-    const customReceiptLayoutSetConfig: LayoutSetConfig = {
-      id: customReceipt.layoutSetId,
-      tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
-    };
-    addLayoutSet(
-      {
-        layoutSetIdToUpdate: customReceipt.layoutSetId,
-        layoutSetConfig: customReceiptLayoutSetConfig,
-      },
-      {
-        onSuccess: () => updateDatamodel(customReceipt.datamodelId),
-      },
-    );
-  };
-
-  const updateDatamodel = (datamodelId: string) => {
-    console.log('datamodel id', datamodelId);
-    const dataTypeChange: DataTypeChange = {
-      newDataType: datamodelId,
-      connectedTaskId: PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
-    };
-    mutateDataType(dataTypeChange);
-  };
-
-  const handleDeleteCustomReceipt = () => {
-    // mutateDataType(undefined);
-    deleteLayoutSet({ layoutSetIdToUpdate: existingCustomReceiptLayoutSetId });
-  };
 
   return (
     <>
@@ -128,47 +59,12 @@ export const ConfigEndEvent = () => {
             lager selv vil overstyre standardkvitteringen.
           </Paragraph>
 
-          <AddCustomReceiptForm
-            onSaveCustomReceipt={handleSaveCustomReceipt}
-            handleDeleteCustomReceipt={handleDeleteCustomReceipt}
-          />
+          <AddCustomReceiptForm />
         </div>
       </div>
       {/*</Accordion.Content>
         </Accordion.Item>
               </Accordion>*/}
-
-      {/* <div>
-        <Paragraph size='small'>
-          {existingCustomReceiptLayoutSetId
-            ? t('process_editor.configuration_panel_custom_receipt_name')
-            : t('process_editor.configuration_panel_custom_receipt_add')}
-        </Paragraph>
-        <StudioToggleableTextfield
-          viewProps={{
-            title: t('process_editor.configuration_panel_custom_receipt_add'),
-            children: existingCustomReceiptLayoutSetId,
-            variant: existingCustomReceiptLayoutSetId ? 'tertiary' : 'secondary',
-            fullWidth: true,
-          }}
-          inputProps={{
-            label: t('process_editor.configuration_panel_custom_receipt_add_button_title'),
-            icon: <PencilWritingIcon />,
-            value: existingCustomReceiptLayoutSetId,
-            onBlur: ({ target }) =>
-              handleUpdateLayoutSet(existingCustomReceiptLayoutSetId, target.value),
-            size: 'small',
-          }}
-          customValidation={(newLayoutSetId: string) => {
-            const validationResult = getLayoutSetIdValidationErrorKey(
-              layoutSets,
-              existingCustomReceiptLayoutSetId,
-              newLayoutSetId,
-            );
-            return validationResult ? t(validationResult) : undefined;
-          }}
-        />
-        </div>*/}
     </>
   );
 };

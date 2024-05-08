@@ -1,0 +1,20 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-4);
+  margin-top: var(--fds-spacing-3);
+}
+
+.customReceiptField {
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  font-size: var(--fds-spacing-6);
+}
+
+.buttonWrapper {
+  display: flex;
+  gap: var(--fds-spacing-2);
+}
