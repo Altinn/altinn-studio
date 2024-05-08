@@ -12,7 +12,6 @@ using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
@@ -98,7 +97,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaResourceAccessListPermission)]
         [Route("designer/api/{org}/resources/accesslist/{identifier}/members/")]
-        public async Task<ActionResult> AddAccessListMembers(string org, string identifier, string env, [FromBody] UpdateAccessListMemberDto members)
+        public async Task<ActionResult> AddAccessListMembers(string org, string identifier, string env, [FromBody] AccessListOrganizationNumbers members)
         {
             HttpStatusCode statusCode = await _resourceRegistry.AddAccessListMember(org, identifier, members, env);
             return new StatusCodeResult(((int)statusCode));
@@ -107,7 +106,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpDelete]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaResourceAccessListPermission)]
         [Route("designer/api/{org}/resources/accesslist/{identifier}/members/")]
-        public async Task<ActionResult> RemoveAccessListMember(string org, string identifier, string env, [FromBody] UpdateAccessListMemberDto members)
+        public async Task<ActionResult> RemoveAccessListMember(string org, string identifier, string env, [FromBody] AccessListOrganizationNumbers members)
         {
             HttpStatusCode statusCode = await _resourceRegistry.RemoveAccessListMember(org, identifier, members, env);
             return new StatusCodeResult(((int)statusCode));

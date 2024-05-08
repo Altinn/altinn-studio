@@ -422,7 +422,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<HttpStatusCode> AddAccessListMember(
             string org,
             string identifier,
-            UpdateAccessListMemberDto members,
+            AccessListOrganizationNumbers members,
             string env
         )
         {
@@ -439,7 +439,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<HttpStatusCode> RemoveAccessListMember(
             string org,
             string identifier,
-            UpdateAccessListMemberDto members,
+            AccessListOrganizationNumbers members,
             string env
         )
         {
@@ -532,7 +532,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return request;
         }
 
-        private UpdateAccessListMemberDto PrefixAccessListMembersData(UpdateAccessListMemberDto members)
+        private static UpdateAccessListMemberDto PrefixAccessListMembersData(AccessListOrganizationNumbers members)
         {
             return new UpdateAccessListMemberDto()
             {
