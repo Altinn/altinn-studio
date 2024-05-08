@@ -27,11 +27,8 @@ export const StudioTableLocalPagination = forwardRef<
     { columns, rows, isSortable = true, size = 'medium', emptyTableMessage, pagination },
     ref,
   ): React.ReactElement => {
-    const { pageSizeOptions, pageSizeLabel, itemLabel, nextButtonText, previousButtonText } =
-      pagination || {};
-
     const [currentPage, setCurrentPage] = useState<number>(1);
-    const [pageSize, setPageSize] = useState<number>(pagination ? pageSizeOptions[0] : undefined);
+    const [pageSize, setPageSize] = useState<number>(pagination?.pageSizeOptions[0] ?? undefined);
 
     const { handleSorting, sortedRows } = useTableSorting(rows, { enable: isSortable });
     const rowsToRender = getRowsToRender(currentPage, pageSize, sortedRows || rows);
@@ -43,16 +40,12 @@ export const StudioTableLocalPagination = forwardRef<
 
     const totalPages = Math.ceil(rows.length / pageSize);
 
-    const paginationProps = pagination && {
+    const studioTableRemotePaginationProps = pagination && {
+      ...pagination,
       currentPage,
       totalPages,
-      pageSizeOptions,
-      pageSizeLabel,
       onPageChange: setCurrentPage,
       onPageSizeChange: setPageSize,
-      itemLabel,
-      nextButtonText,
-      previousButtonText,
     };
 
     return (
@@ -62,7 +55,7 @@ export const StudioTableLocalPagination = forwardRef<
         size={size}
         emptyTableMessage={emptyTableMessage}
         onSortClick={isSortable && handleSorting}
-        pagination={paginationProps}
+        pagination={studioTableRemotePaginationProps}
         ref={ref}
       />
     );

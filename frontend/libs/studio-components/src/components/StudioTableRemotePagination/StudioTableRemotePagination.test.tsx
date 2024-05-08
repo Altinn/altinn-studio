@@ -1,11 +1,11 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { StudioTableRemotePagination } from './StudioTableRemotePagination';
+import { PaginationProps, StudioTableRemotePagination } from './StudioTableRemotePagination';
 import { columns, rows } from './mockData';
 
 describe('StudioTableRemotePagination', () => {
-  const paginationProps = {
+  const paginationProps: PaginationProps = {
     currentPage: 1,
     totalPages: 2,
     pageSizeOptions: [5, 10, 20],
