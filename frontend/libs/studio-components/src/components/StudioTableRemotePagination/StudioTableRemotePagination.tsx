@@ -2,9 +2,9 @@ import { Label, NativeSelect, Pagination, Paragraph, Table } from '@digdir/desig
 import React, { forwardRef, useId } from 'react';
 import classes from './StudioTableRemotePagination.module.css';
 
-type LabelSizeKeys = 'small' | 'medium' | 'large';
-type LabelSize = 'small' | 'medium' | 'xsmall';
-export const labelSizeMap: Record<LabelSizeKeys, LabelSize> = {
+type tableSize = 'small' | 'medium' | 'large';
+type labelSize = 'xsmall' | 'small' | 'medium';
+export const resizeLabelMap: Record<tableSize, labelSize> = {
   small: 'xsmall',
   medium: 'small',
   large: 'medium',
@@ -58,7 +58,7 @@ export const StudioTableRemotePagination = forwardRef<
     } = pagination || {};
 
     const labelId = useId();
-    const labelSize = labelSizeMap[size];
+    const labelSize = resizeLabelMap[size];
 
     return (
       <>
