@@ -8,6 +8,8 @@ import { getConfigTitleKey, getConfigTitleHelpTextKey } from '../../../utils/con
 import { ConfigIcon } from './ConfigIcon';
 import { EditDataType } from './EditDataType/EditDataType';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
+import { Accordion } from '@digdir/design-system-react';
+import { EditActions } from './EditActions';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -21,7 +23,7 @@ export const ConfigContent = (): React.ReactElement => {
   const taskHasConnectedLayoutSet = layoutSets?.sets?.some((set) => set.tasks[0] == bpmnDetails.id);
 
   return (
-    <>
+    <div className={classes.configContent}>
       <StudioSectionHeader
         icon={<ConfigIcon taskType={bpmnDetails.taskType} />}
         heading={{
@@ -33,13 +35,22 @@ export const ConfigContent = (): React.ReactElement => {
           title: t('process_editor.configuration_panel_header_help_text_title'),
         }}
       />
-      <EditTaskId className={classes.editTaskId} />
+      <EditTaskId />
       <StudioDisplayTile
         label={t('process_editor.configuration_panel_name_label')}
         value={bpmnDetails.name}
-        className={classes.configContent}
       />
       {taskHasConnectedLayoutSet && <EditDataType />}
-    </>
+      <Accordion color='neutral'>
+        <Accordion.Item>
+          <Accordion.Header>
+            {t('process_editor.configuration_panel_actions_title')}
+          </Accordion.Header>
+          <Accordion.Content className={classes.accordion}>
+            <EditActions />
+          </Accordion.Content>
+        </Accordion.Item>
+      </Accordion>
+    </div>
   );
 };

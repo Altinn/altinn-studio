@@ -113,7 +113,17 @@ class SupportedPaletteProvider {
             bpmnFactory.create('altinn:TaskExtension', {
               taskType: taskType,
               actions: bpmnFactory.create('altinn:Actions', {
-                action: ['pay', 'reject'],
+                action: [
+                  bpmnFactory.create('altinn:Action', {
+                    action: 'pay',
+                  }),
+                  bpmnFactory.create('altinn:Action', {
+                    action: 'reject',
+                  }),
+                  bpmnFactory.create('altinn:Action', {
+                    action: 'confirm',
+                  }),
+                ],
               }),
               paymentConfig: bpmnFactory.create('altinn:PaymentConfig', {
                 paymentDataType: bpmnFactory.create('altinn:PaymentDataType', {
@@ -174,10 +184,10 @@ class SupportedPaletteProvider {
         },
         'create.altinn-confirmation-task': {
           group: 'activity',
-          title: translate('Create Altinn Confirm Task'),
           className: 'bpmn-icon-task-generic bpmn-icon-confirmation-task',
+          title: translate('Create Altinn Confirm Task'),
           action: {
-            dragstart: createCustomConfirmationTask('confirmation'),
+            dragstart: createCustomConfirmationTask(),
           },
         },
         'create.altinn-payment-task': {
