@@ -6,12 +6,14 @@ import { Paragraph } from '@digdir/design-system-react';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { getExistingDatamodelIdFromLayoutsets } from '../../../../../utils/customReceiptUtils';
 import { RedirectToCreatePageButton } from '../RedirectToCreatePageButton';
+import { useTranslation } from 'react-i18next';
 
 export type CustomReceiptProps = {
   onClickEditButton: () => void;
 };
 
 export const CustomReceipt = ({ onClickEditButton }: CustomReceiptProps): React.ReactElement => {
+  const { t } = useTranslation();
   const { layoutSets, existingCustomReceiptLayoutSetId, deleteLayoutSet } = useBpmnApiContext();
 
   const existingDatamodelId: string = getExistingDatamodelIdFromLayoutsets(
@@ -28,20 +30,20 @@ export const CustomReceipt = ({ onClickEditButton }: CustomReceiptProps): React.
       <span className={classes.customReceiptField}>
         <KeyVerticalIcon className={classes.icon} />
         <Paragraph size='small'>
-          <strong>Navn på sidegruppe: </strong>
+          <strong>{t('process_editor.configuration_panel_custom_receipt_layoutset_name')}</strong>
           {existingCustomReceiptLayoutSetId}
         </Paragraph>
       </span>
       <span className={classes.customReceiptField}>
         <LinkIcon className={classes.icon} />
         <Paragraph size='small'>
-          <strong>Datamodellknytning: </strong>
+          <strong>{t('process_editor.configuration_panel_custom_receipt_datamodel_id')}</strong>
           {existingDatamodelId}
         </Paragraph>
       </span>
       <div className={classes.buttonWrapper}>
         <StudioButton size='small' onClick={onClickEditButton}>
-          Endre kvittering
+          {t('process_editor.configuration_panel_custom_receipt_edit_button')}
         </StudioButton>
         <StudioButton
           size='small'
@@ -49,7 +51,7 @@ export const CustomReceipt = ({ onClickEditButton }: CustomReceiptProps): React.
           onClick={handleDeleteCustomReceipt}
           variant='secondary'
         >
-          Slett kvittering
+          {t('process_editor.configuration_panel_custom_receipt_delete_button')}
         </StudioButton>
       </div>
       <RedirectToCreatePageButton />
