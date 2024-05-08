@@ -268,6 +268,35 @@ describe('ResourceDashBoardPage', () => {
     await screen.findByText(textMock('merge_conflict.headline'));
   });
 
+  it('should close select test environment modal when clicking cancel button', async () => {
+    const user = userEvent.setup();
+    const listItem = {
+      ...mockResourceListItem5,
+      environments: ['at22', 'tt02'],
+    };
+    const getResourceList = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<ResourceListItem[]>([listItem]));
+    const importResourceFromAltinn3 = jest.fn().mockImplementation(() => Promise.resolve({}));
+    renderResourceDashboardPage({ getResourceList, importResourceFromAltinn3 });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
+    );
+
+    const [importButton] = screen.getAllByText(textMock('resourceadm.dashboard_table_row_import'));
+    await user.click(importButton);
+
+    const cancelButton = screen.getByRole('button', {
+      name: textMock('general.cancel'),
+    });
+    await user.click(cancelButton);
+
+    expect(
+      screen.queryByText(textMock('resourceadm.dashboard_import_environment_header')),
+    ).not.toBeInTheDocument();
+  });
+
   it('should import resource from chosen test environment', async () => {
     const user = userEvent.setup();
     const listItem = {
