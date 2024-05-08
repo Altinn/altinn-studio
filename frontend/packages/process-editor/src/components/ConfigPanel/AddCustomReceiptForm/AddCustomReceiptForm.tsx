@@ -22,13 +22,13 @@ export const AddCustomReceiptForm = ({
   onSaveCustomReceipt,
   handleDeleteCustomReceipt,
 }: AddCustomReceiptFormProps): React.JSX.Element => {
-  const {
-    // layoutSets,
-    existingCustomReceiptLayoutSetId,
-    availableDataModelIds,
-  } = useBpmnApiContext();
+  const { layoutSets, existingCustomReceiptLayoutSetId, availableDataModelIds } =
+    useBpmnApiContext();
 
-  console.log('availableDataModelIds', availableDataModelIds);
+  const existingDatamodelId =
+    layoutSets.sets.find((layoutSet) => layoutSet.id === existingCustomReceiptLayoutSetId)
+      ?.dataType ?? '';
+  console.log('existingDatamodelId', existingDatamodelId);
 
   const [showCreateCustomReceiptFields, setShowCreateCustomReceiptFields] = useState(false);
 
@@ -39,8 +39,10 @@ export const AddCustomReceiptForm = ({
 
     const customReceiptForm: CustomReceipt = {
       layoutSetId: formData.get('customReceiptLayoutSetId') as string,
-      datamodelId: formData.get('customReceiptDataModel') as string,
+      datamodelId: formData.get('customReceiptDatamodel') as string,
     };
+
+    console.log('customReceiptForm', customReceiptForm);
 
     onSaveCustomReceipt(customReceiptForm);
     setShowCreateCustomReceiptFields(false);
@@ -107,7 +109,7 @@ export const AddCustomReceiptForm = ({
           <LinkIcon style={{ fontSize: 'var(--fds-sizing-6)' }} />
           <Paragraph size='small'>
             <strong>Datamodellknytning: </strong>
-            {'Datamodell.123'}
+            {existingDatamodelId}
           </Paragraph>
         </span>
         {/*********************************************************/}
@@ -181,7 +183,7 @@ const Comp = ({ onSubmit, existingCustomReceiptLayoutSetId, onCancel, options }:
           options.length === 0 &&
           'Du må ha noen ledige datamodeller du kan knytte mot kvitteringen for at det skal visesnoen i listen under.'
         }
-        name='customReceiptDataModel'
+        name='customReceiptDatamodel'
         id='customReceiptDataModelSelect'
         disabled={options.length === 0}
       >

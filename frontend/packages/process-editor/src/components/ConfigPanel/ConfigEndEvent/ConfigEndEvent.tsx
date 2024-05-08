@@ -21,13 +21,17 @@ export const ConfigEndEvent = () => {
   const { t } = useTranslation();
 
   const {
-    // layoutSets,
+    layoutSets,
     existingCustomReceiptLayoutSetId,
     addLayoutSet,
     mutateLayoutSet,
     deleteLayoutSet,
     mutateDataType,
   } = useBpmnApiContext();
+
+  const currentDataModel =
+    layoutSets.sets.find((ls) => ls.id === existingCustomReceiptLayoutSetId)?.dataType ?? '';
+  console.log('layoutsets', currentDataModel);
 
   const handleSaveCustomReceipt = (customReceipt: CustomReceipt) => {
     if (existingCustomReceiptLayoutSetId === customReceipt.layoutSetId) return;
@@ -60,6 +64,7 @@ export const ConfigEndEvent = () => {
   };
 
   const updateDatamodel = (datamodelId: string) => {
+    console.log('datamodel id', datamodelId);
     const dataTypeChange: DataTypeChange = {
       newDataType: datamodelId,
       connectedTaskId: PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
