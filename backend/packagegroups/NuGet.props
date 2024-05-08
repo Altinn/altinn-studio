@@ -25,7 +25,7 @@
     <PackageReference Update="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
     <PackageReference Update="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.24" />
     <PackageReference Update="Microsoft.VisualStudio.Web.BrowserLink" Version="2.2.0" />
-    <PackageReference Update="HtmlAgilityPack" Version="1.11.60" />
+    <PackageReference Update="HtmlAgilityPack" Version="1.11.61" />
     <PackageReference Update="Microsoft.DiaSymReader.Native" Version="1.7.0" />
     <PackageReference Update="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.16" />
     <PackageReference Update="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.2" />
@@ -44,10 +44,10 @@
     <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.9.0" />
     <!-- Do not upgrade Moq version from 4.18.4 -->
     <PackageReference Update="Moq" Version="4.18.4" />
-    <PackageReference Update="xunit" Version="2.7.1" />
-    <PackageReference Update="xunit.runner.visualstudio" Version="2.5.8" />
+    <PackageReference Update="xunit" Version="2.8.0" />
+    <PackageReference Update="xunit.runner.visualstudio" Version="2.8.0" />
     <PackageReference Update="coverlet.collector" Version="6.0.2" />
-    <PackageReference Update="Basic.Reference.Assemblies" Version="1.6.0" />
+    <PackageReference Update="Basic.Reference.Assemblies" Version="1.7.1" />
     <PackageReference Update="Fare" Version="2.2.1" />
     <PackageReference Update="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
     <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.9.2" />
