@@ -277,8 +277,7 @@ describe('ResourceDashBoardPage', () => {
     const getResourceList = jest
       .fn()
       .mockImplementation(() => Promise.resolve<ResourceListItem[]>([listItem]));
-    const importResourceFromAltinn3 = jest.fn().mockImplementation(() => Promise.resolve({}));
-    renderResourceDashboardPage({ getResourceList, importResourceFromAltinn3 });
+    renderResourceDashboardPage({ getResourceList });
 
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
@@ -306,8 +305,7 @@ describe('ResourceDashBoardPage', () => {
     const getResourceList = jest
       .fn()
       .mockImplementation(() => Promise.resolve<ResourceListItem[]>([listItem]));
-    const importResourceFromAltinn3 = jest.fn().mockImplementation(() => Promise.resolve({}));
-    renderResourceDashboardPage({ getResourceList, importResourceFromAltinn3 });
+    renderResourceDashboardPage({ getResourceList });
 
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
@@ -332,8 +330,7 @@ describe('ResourceDashBoardPage', () => {
     const getResourceList = jest
       .fn()
       .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
-    const importResourceFromAltinn3 = jest.fn().mockImplementation(() => Promise.resolve({}));
-    renderResourceDashboardPage({ getResourceList, importResourceFromAltinn3 });
+    renderResourceDashboardPage({ getResourceList });
 
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
