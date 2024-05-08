@@ -7,9 +7,6 @@
         "type": "Payment",
         "textResourceBindings": {
           "title": "Oppsummering"
-        },
-        "paymentSettings": {
-          "autoForwardToPayment": true
         }
       }
     ]
