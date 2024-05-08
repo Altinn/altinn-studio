@@ -4,8 +4,10 @@ import { PlusCircleIcon } from '@studio/icons';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { CustomReceipt } from './CustomReceipt';
 import { CustomReceiptForm } from './CustomReceiptForm';
+import { useTranslation } from 'react-i18next';
 
 export const CustomReceiptContent = (): React.ReactElement => {
+  const { t } = useTranslation();
   const { existingCustomReceiptLayoutSetId } = useBpmnApiContext();
 
   const [showCreateCustomReceiptFields, setShowCreateCustomReceiptFields] = useState(false);
@@ -21,7 +23,7 @@ export const CustomReceiptContent = (): React.ReactElement => {
         icon={<PlusCircleIcon />}
         variant='tertiary'
       >
-        Opprett din egen kvittering
+        {t('process_editor.configuration_panel_custom_receipt_create_your_own_button')}
       </StudioButton>
     );
   }

@@ -5,9 +5,9 @@ import { useBpmnApiContext } from '../../../../../../contexts/BpmnApiContext';
 import { getExistingDatamodelIdFromLayoutsets } from '../../../../../../utils/customReceiptUtils';
 
 export const SelectCustomReceiptDatamodelId = (): React.ReactElement => {
+  const { t } = useTranslation();
   const { layoutSets, existingCustomReceiptLayoutSetId, availableDataModelIds } =
     useBpmnApiContext();
-  const { t } = useTranslation();
 
   const existingDatamodelId: string = getExistingDatamodelIdFromLayoutsets(
     layoutSets,
@@ -21,11 +21,11 @@ export const SelectCustomReceiptDatamodelId = (): React.ReactElement => {
 
   return (
     <StudioNativeSelect
-      label='Datamodelknytning'
+      label={t('process_editor.configuration_panel_custom_receipt_select_datamodel_label')}
       size='small'
       description={
         availableDatamodelIdsEmpty &&
-        'Du må ha noen ledige datamodeller du kan knytte mot kvitteringen for at det skal visesnoen i listen under.'
+        t('process_editor.configuration_panel_custom_receipt_select_datamodel_description')
       }
       name='customReceiptDatamodel'
       id='customReceiptDataModelSelect'
