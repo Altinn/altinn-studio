@@ -3,14 +3,24 @@ import React, { createContext, useContext } from 'react';
 import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 import type { DataTypeChange } from 'app-shared/types/api/DataTypeChange';
 
+type QueryOptions = {
+  onSettled: () => void;
+};
+
 export type BpmnApiContextProps = {
   availableDataModelIds: string[];
   layoutSets: LayoutSets;
   pendingApiOperations: boolean;
   existingCustomReceiptLayoutSetId: string | undefined;
-  addLayoutSet: (data: { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig }) => void;
+  addLayoutSet: (
+    data: { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig },
+    options?: QueryOptions,
+  ) => void;
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
-  mutateLayoutSet: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
+  mutateLayoutSet: (
+    data: { layoutSetIdToUpdate: string; newLayoutSetId: string },
+    options?: QueryOptions,
+  ) => void;
   mutateDataType: (dataTypeChange: DataTypeChange) => void;
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
 };
@@ -19,17 +29,8 @@ export const BpmnApiContext = createContext<Partial<BpmnApiContextProps>>(undefi
 
 export type BpmnApiContextProviderProps = {
   children: React.ReactNode;
-  availableDataModelIds: string[];
-  layoutSets: LayoutSets;
-  pendingApiOperations: boolean;
-  existingCustomReceiptLayoutSetId: string | undefined;
-  addLayoutSet: (data: { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig }) => void;
-  deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
-  // Todo - rename below
-  mutateLayoutSet: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
-  mutateDataType: (data: DataTypeChange) => void;
-  saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
-};
+} & BpmnApiContextProps;
+
 export const BpmnApiContextProvider = ({
   children,
   availableDataModelIds,

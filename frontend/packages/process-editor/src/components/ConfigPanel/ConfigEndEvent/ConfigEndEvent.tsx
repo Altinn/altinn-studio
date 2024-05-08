@@ -44,11 +44,15 @@ export const ConfigEndEvent = () => {
   };
 
   const handleEditCustomReceipt = (customReceipt: CustomReceipt) => {
-    mutateLayoutSet({
-      layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
-      newLayoutSetId: customReceipt.layoutSetId,
-    });
-    updateDatamodel(customReceipt.datamodelId);
+    mutateLayoutSet(
+      {
+        layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
+        newLayoutSetId: customReceipt.layoutSetId,
+      },
+      {
+        onSettled: () => updateDatamodel(customReceipt.datamodelId),
+      },
+    );
   };
 
   const handleAddLayoutSet = (customReceipt: CustomReceipt) => {
@@ -56,11 +60,15 @@ export const ConfigEndEvent = () => {
       id: customReceipt.layoutSetId,
       tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
     };
-    addLayoutSet({
-      layoutSetIdToUpdate: customReceipt.layoutSetId,
-      layoutSetConfig: customReceiptLayoutSetConfig,
-    });
-    updateDatamodel(customReceipt.datamodelId);
+    addLayoutSet(
+      {
+        layoutSetIdToUpdate: customReceipt.layoutSetId,
+        layoutSetConfig: customReceiptLayoutSetConfig,
+      },
+      {
+        onSettled: () => updateDatamodel(customReceipt.datamodelId),
+      },
+    );
   };
 
   const updateDatamodel = (datamodelId: string) => {

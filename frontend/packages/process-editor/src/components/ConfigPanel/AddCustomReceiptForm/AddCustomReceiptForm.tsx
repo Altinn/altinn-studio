@@ -12,6 +12,7 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { Paragraph } from '@digdir/design-system-react';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { type CustomReceipt } from '../../../types/CustomReceipt';
+import { useTranslation } from 'react-i18next';
 
 export type AddCustomReceiptFormProps = {
   onSaveCustomReceipt: (customReceipt: CustomReceipt) => void;
@@ -25,9 +26,10 @@ export const AddCustomReceiptForm = ({
   const { layoutSets, existingCustomReceiptLayoutSetId, availableDataModelIds } =
     useBpmnApiContext();
 
-  const existingDatamodelId =
-    layoutSets.sets.find((layoutSet) => layoutSet.id === existingCustomReceiptLayoutSetId)
-      ?.dataType ?? '';
+  const existingDatamodelId = layoutSets.sets.find(
+    (layoutSet) => layoutSet.id === existingCustomReceiptLayoutSetId,
+  )?.dataType;
+
   console.log('existingDatamodelId', existingDatamodelId);
 
   const [showCreateCustomReceiptFields, setShowCreateCustomReceiptFields] = useState(false);
@@ -80,8 +82,9 @@ export const AddCustomReceiptForm = ({
       <Comp
         onSubmit={handleSaveCustomReceipt}
         existingCustomReceiptLayoutSetId={existingCustomReceiptLayoutSetId}
+        existingDataType={existingDatamodelId}
         onCancel={handleCancelCreateCustomReceipt}
-        options={availableDataModelIds.map((id: string) => ({ value: id, label: id }))}
+        availableDatamodelIds={[...availableDataModelIds, existingDatamodelId]}
       />
     );
   }
@@ -152,10 +155,21 @@ export const AddCustomReceiptForm = ({
 type Props = {
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   existingCustomReceiptLayoutSetId: string | undefined;
+  existingDataType: string;
   onCancel: () => void;
-  options: { value: string; label: string }[];
+  availableDatamodelIds: string[]; // { value: string; label: string }[];
 };
-const Comp = ({ onSubmit, existingCustomReceiptLayoutSetId, onCancel, options }: Props) => {
+const Comp = ({
+  onSubmit,
+  existingCustomReceiptLayoutSetId,
+  existingDataType,
+  onCancel,
+  availableDatamodelIds,
+}: Props) => {
+  const { t } = useTranslation();
+
+  const availableDatamodelIdsEmpty: boolean = availableDatamodelIds.length === 0;
+
   return (
     <form
       onSubmit={onSubmit}
@@ -180,16 +194,20 @@ const Comp = ({ onSubmit, existingCustomReceiptLayoutSetId, onCancel, options }:
         label='Datamodelknytning'
         size='small'
         description={
-          options.length === 0 &&
+          availableDatamodelIdsEmpty &&
           'Du må ha noen ledige datamodeller du kan knytte mot kvitteringen for at det skal visesnoen i listen under.'
         }
         name='customReceiptDatamodel'
         id='customReceiptDataModelSelect'
-        disabled={options.length === 0}
+        disabled={availableDatamodelIdsEmpty}
+        defaultValue={existingDataType ?? 'noModelKey'}
       >
-        {options.map(({ value, label }) => (
-          <option key={value} value={value}>
-            {label}
+        <option disabled={true} value={'noModelKey'}>
+          {t('process_editor.configuration_panel_select_datamodel')}
+        </option>
+        {availableDatamodelIds.map((id: string) => (
+          <option key={id} value={id}>
+            {id}
           </option>
         ))}
       </StudioNativeSelect>
