@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Rows } from '../components';
 
 export const useTableSorting = (rows: Rows, config) => {
   const [sortColumn, setSortColumn] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
+  const [sortedRows, setSortedRows] = useState<Rows>(rows);
 
   if (!config.enable) {
     return {
@@ -25,18 +26,20 @@ export const useTableSorting = (rows: Rows, config) => {
     }
   };
 
-  let sortedRows: Rows;
-  if (sortColumn !== null) {
-    sortedRows = [...rows].sort((a, b) => {
-      const columnA = a[sortColumn];
-      const columnB = b[sortColumn];
-      if (columnA < columnB) return sortDirection === 'asc' ? -1 : 1;
-      if (columnA > columnB) return sortDirection === 'asc' ? 1 : -1;
-      return 0;
-    });
-  } else {
-    sortedRows = rows;
-  }
+  useEffect(() => {
+    if (sortColumn !== null) {
+      const newSortedRows = [...rows].sort((a, b) => {
+        const columnA = a[sortColumn];
+        const columnB = b[sortColumn];
+        if (columnA < columnB) return sortDirection === 'asc' ? -1 : 1;
+        if (columnA > columnB) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+      setSortedRows(newSortedRows);
+    } else {
+      setSortedRows(rows);
+    }
+  }, [sortColumn, sortDirection, rows]);
 
   return {
     sortedRows,

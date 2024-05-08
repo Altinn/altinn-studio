@@ -1,4 +1,4 @@
-import React, { forwardRef, useState } from 'react';
+import React, { forwardRef, useEffect, useState } from 'react';
 import { StudioTableRemotePagination } from '../StudioTableRemotePagination';
 import type { Rows } from '../StudioTableRemotePagination';
 import { useTableSorting } from '../../hooks/useTableSorting';
@@ -31,12 +31,26 @@ export const StudioTableLocalPagination = forwardRef<
     const [pageSize, setPageSize] = useState<number>(pagination?.pageSizeOptions[0] ?? undefined);
 
     const { handleSorting, sortedRows } = useTableSorting(rows, { enable: isSortable });
-    const rowsToRender = getRowsToRender(currentPage, pageSize, sortedRows || rows);
 
-    // Move pages if the current page gets removed when changing page size
-    if (!rowsToRender.length && (sortedRows?.length || rows?.length)) {
-      setCurrentPage(1);
-    }
+    const initialRowsToRender = getRowsToRender(currentPage, pageSize, sortedRows || rows);
+    const [rowsToRender, setRowsToRender] = useState(initialRowsToRender);
+
+    const handlePageSizeChange = (newPageSize: number) => {
+      const newRowsToRender = getRowsToRender(currentPage, newPageSize, sortedRows || rows);
+
+      // Move user back to page one, if current page is removed
+      if (!newRowsToRender.length) {
+        setCurrentPage(1);
+      }
+
+      setPageSize(newPageSize);
+      setRowsToRender(newRowsToRender);
+    };
+
+    const handlePageChange = (newPage: number) => {
+      setCurrentPage(newPage);
+      setRowsToRender(getRowsToRender(newPage, pageSize, sortedRows || rows));
+    };
 
     const totalPages = Math.ceil(rows.length / pageSize);
 
@@ -44,8 +58,8 @@ export const StudioTableLocalPagination = forwardRef<
       ...pagination,
       currentPage,
       totalPages,
-      onPageChange: setCurrentPage,
-      onPageSizeChange: setPageSize,
+      onPageChange: handlePageChange,
+      onPageSizeChange: handlePageSizeChange,
     };
 
     return (
