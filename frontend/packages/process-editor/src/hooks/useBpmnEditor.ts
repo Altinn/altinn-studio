@@ -7,7 +7,10 @@ import { getBpmnEditorDetailsFromBusinessObject } from '../utils/hookUtils';
 import { useBpmnConfigPanelFormContext } from '../contexts/BpmnConfigPanelContext';
 import { useBpmnApiContext } from '../contexts/BpmnApiContext';
 import { BpmnTypeEnum } from '../enum/BpmnTypeEnum';
-import { getLayoutSetIdFromTaskId } from '../utils/hookUtils/hookUtils';
+import {
+  getDataTypeIdFromBusinessObject,
+  getLayoutSetIdFromTaskId,
+} from '../utils/hookUtils/hookUtils';
 
 // Wrapper around bpmn-js to Reactify it
 
@@ -44,12 +47,10 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
       });
     }
     if (bpmnDetails.taskType === 'payment' || bpmnDetails.taskType === 'signing') {
-      const dataTypeId =
-        bpmnDetails.taskType === 'payment'
-          ? e?.element?.businessObject.extensionElements.values[0].paymentConfig.paymentDataType
-              .dataType.dataType
-          : e?.element?.businessObject.extensionElements.values[0].signatureConfig.signatureDataType
-              .dataType.dataType;
+      const dataTypeId = getDataTypeIdFromBusinessObject(
+        bpmnDetails.taskType,
+        e.element.businessObject,
+      );
       addDataTypeToAppMetadata({
         dataTypeId,
       });
@@ -68,12 +69,10 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
       }
     }
     if (bpmnDetails.taskType === 'payment' || bpmnDetails.taskType === 'signing') {
-      const dataTypeId =
-        bpmnDetails.taskType === 'payment'
-          ? e?.element?.businessObject.extensionElements.values[0].paymentConfig.paymentDataType
-              .dataType.dataType
-          : e?.element?.businessObject.extensionElements.values[0].signatureConfig.signatureDataType
-              .dataType.dataType;
+      const dataTypeId = getDataTypeIdFromBusinessObject(
+        bpmnDetails.taskType,
+        e.element.businessObject,
+      );
       deleteDataTypeFromAppMetadata({
         dataTypeId,
       });
