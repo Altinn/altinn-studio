@@ -8,16 +8,27 @@ import { type DataTypeChange } from 'app-shared/types/api/DataTypeChange';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import { type LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { SelectCustomReceiptDatamodelId } from './SelectCustomReceiptDatamodelId';
+import { getExistingDatamodelIdFromLayoutsets } from '../../../../utils/customReceiptUtils';
 
 export type CustomReceiptFormProps = {
   onCloseForm: () => void;
 };
 
 export const CustomReceiptForm = ({ onCloseForm }: CustomReceiptFormProps): React.ReactElement => {
-  const { existingCustomReceiptLayoutSetId, addLayoutSet, mutateLayoutSet, mutateDataType } =
-    useBpmnApiContext();
+  const {
+    layoutSets,
+    existingCustomReceiptLayoutSetId,
+    addLayoutSet,
+    mutateLayoutSet,
+    mutateDataType,
+  } = useBpmnApiContext();
 
   // const { t } = useTranslation();
+
+  const existingDatamodelId: string = getExistingDatamodelIdFromLayoutsets(
+    layoutSets,
+    existingCustomReceiptLayoutSetId,
+  );
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -34,7 +45,11 @@ export const CustomReceiptForm = ({ onCloseForm }: CustomReceiptFormProps): Reac
   };
 
   const saveCustomReceipt = (customReceipt: CustomReceiptType) => {
-    if (existingCustomReceiptLayoutSetId === customReceipt.layoutSetId) return;
+    const isSameLayoutId: boolean = existingCustomReceiptLayoutSetId === customReceipt.layoutSetId;
+    const isSameDatamodelId: boolean = existingDatamodelId === customReceipt.datamodelId;
+
+    if (isSameLayoutId && isSameDatamodelId) return;
+
     if (!existingCustomReceiptLayoutSetId) {
       createNewCustomReceipt(customReceipt);
       return;
@@ -59,18 +74,23 @@ export const CustomReceiptForm = ({ onCloseForm }: CustomReceiptFormProps): Reac
   };
 
   const saveExistingCustomReceipt = (customReceipt: CustomReceiptType) => {
+    console.log('inside save edit');
     mutateLayoutSet(
       {
         layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
         newLayoutSetId: customReceipt.layoutSetId,
       },
       {
-        onSuccess: () => saveDatamodel(customReceipt.datamodelId),
+        onSuccess: () => {
+          console.log('inside success');
+          saveDatamodel(customReceipt.datamodelId);
+        },
       },
     );
   };
 
   const saveDatamodel = (datamodelId: string) => {
+    console.log('inside save datamodel');
     const dataTypeChange: DataTypeChange = {
       newDataType: datamodelId,
       connectedTaskId: PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
