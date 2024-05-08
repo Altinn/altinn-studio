@@ -16,9 +16,6 @@ namespace Altinn.App.Api.Tests.Controllers;
 
 public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, };
-
     private readonly Mock<IDataProcessor> _dataProcessor = new();
 
     public DataController_PutTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
@@ -46,9 +43,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
             $"{org}/{app}/instances/?instanceOwnerPartyId={instanceOwnerPartyId}",
             null
         );
-        var createResponseContent = await createResponse.Content.ReadAsStringAsync();
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-        var createResponseParsed = JsonSerializer.Deserialize<Instance>(createResponseContent, _jsonSerializerOptions)!;
+        var createResponseParsed = await VerifyStatusAndDeserialize<Instance>(createResponse, HttpStatusCode.Created);
         var instanceId = createResponseParsed.Id;
 
         // Create data element (not sure why it isn't created when the instance is created, autoCreate is true)
@@ -61,12 +56,11 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
             $"/{org}/{app}/instances/{instanceId}/data?dataType=default",
             createDataElementContent
         );
-        var createDataElementResponseContent = await createDataElementResponse.Content.ReadAsStringAsync();
-        createDataElementResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-        var createDataElementResponseParsed = JsonSerializer.Deserialize<DataElement>(
-            createDataElementResponseContent,
-            _jsonSerializerOptions
-        )!;
+
+        var createDataElementResponseParsed = await VerifyStatusAndDeserialize<DataElement>(
+            createDataElementResponse,
+            HttpStatusCode.Created
+        );
         var dataGuid = createDataElementResponseParsed.Id;
 
         // Update data element
@@ -83,9 +77,10 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
 
         // Verify stored data
         var readDataElementResponse = await client.GetAsync($"/{org}/{app}/instances/{instanceId}/data/{dataGuid}");
-        readDataElementResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        var readDataElementResponseContent = await readDataElementResponse.Content.ReadAsStringAsync();
-        var readDataElementResponseParsed = JsonSerializer.Deserialize<Skjema>(readDataElementResponseContent)!;
+        var readDataElementResponseParsed = await VerifyStatusAndDeserialize<Skjema>(
+            readDataElementResponse,
+            HttpStatusCode.OK
+        );
         readDataElementResponseParsed.Melding!.Name.Should().Be("Ola Olsen");
 
         _dataProcessor.Verify(
@@ -152,9 +147,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
             $"{org}/{app}/instances/?instanceOwnerPartyId={instanceOwnerPartyId}",
             null
         );
-        var createResponseContent = await createResponse.Content.ReadAsStringAsync();
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-        var createResponseParsed = JsonSerializer.Deserialize<Instance>(createResponseContent, _jsonSerializerOptions)!;
+        var createResponseParsed = await VerifyStatusAndDeserialize<Instance>(createResponse, HttpStatusCode.Created);
         var instanceId = createResponseParsed.Id;
 
         // Create data element (not sure why it isn't created when the instance is created, autoCreate is true)
@@ -167,11 +160,9 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
             $"/{org}/{app}/instances/{instanceId}/data?dataType=default",
             createDataElementContent
         );
-        var createDataElementResponseContent = await createDataElementResponse.Content.ReadAsStringAsync();
-        createDataElementResponse.StatusCode.Should().Be(HttpStatusCode.Created);
-        var createDataElementResponseParsed = JsonSerializer.Deserialize<DataElement>(
-            createDataElementResponseContent,
-            _jsonSerializerOptions
+        var createDataElementResponseParsed = await VerifyStatusAndDeserialize<DataElement>(
+            createDataElementResponse,
+            HttpStatusCode.Created
         )!;
         var dataGuid = createDataElementResponseParsed.Id;
 
@@ -179,10 +170,10 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         var firstReadDataElementResponse = await client.GetAsync(
             $"/{org}/{app}/instances/{instanceId}/data/{dataGuid}"
         );
-        var firstReadDataElementResponseContent = await firstReadDataElementResponse.Content.ReadAsStringAsync();
-        var firstReadDataElementResponseParsed = JsonSerializer.Deserialize<Skjema>(
-            firstReadDataElementResponseContent
-        )!;
+        var firstReadDataElementResponseParsed = await VerifyStatusAndDeserialize<Skjema>(
+            firstReadDataElementResponse,
+            HttpStatusCode.OK
+        );
         firstReadDataElementResponseParsed.Melding!.Name.Should().Be("Ivar");
         firstReadDataElementResponseParsed.Melding.Toggle.Should().BeFalse();
 
@@ -196,12 +187,15 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
             $"/{org}/{app}/instances/{instanceId}/data/{dataGuid}",
             updateDataElementContent
         );
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.Should().HaveStatusCode(HttpStatusCode.OK);
 
         // Verify stored data
         var readDataElementResponse = await client.GetAsync($"/{org}/{app}/instances/{instanceId}/data/{dataGuid}");
-        var readDataElementResponseContent = await readDataElementResponse.Content.ReadAsStringAsync();
-        var readDataElementResponseParsed = JsonSerializer.Deserialize<Skjema>(readDataElementResponseContent)!;
+
+        var readDataElementResponseParsed = await VerifyStatusAndDeserialize<Skjema>(
+            readDataElementResponse,
+            HttpStatusCode.OK
+        )!;
         readDataElementResponseParsed.Melding!.Name.Should().Be("Ola Olsen");
         readDataElementResponseParsed.Melding.Toggle.Should().BeTrue();
 

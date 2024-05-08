@@ -1,7 +1,10 @@
+using System.Net;
 using System.Net.Http.Headers;
+using System.Text.Json;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Configuration;
+using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -15,6 +18,12 @@ namespace Altinn.App.Api.Tests;
 
 public class ApiTestBase
 {
+    protected static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
+    };
+
     protected readonly ITestOutputHelper _outputHelper;
     private readonly WebApplicationFactory<Program> _factory;
 
@@ -114,6 +123,38 @@ public class ApiTestBase
         services.AddSingleton<HttpClient>(sp => new HttpClient(
             new MockHttpMessageHandler(SendAsync, sp.GetRequiredService<ILogger<MockHttpMessageHandler>>())
         ));
+    }
+
+    /// <summary>
+    /// Set this in your test class constructor
+    /// </summary>
+    protected async Task<T> VerifyStatusAndDeserialize<T>(
+        HttpResponseMessage response,
+        HttpStatusCode expectedStatusCode
+    )
+    {
+        // Verify status code
+        response.Should().HaveStatusCode(expectedStatusCode);
+
+        // Deserialize content and log everything if it fails
+        var content = await response.Content.ReadAsStringAsync();
+        try
+        {
+            return JsonSerializer.Deserialize<T>(content, _jsonSerializerOptions)
+                ?? throw new JsonException("Content was \"null\"");
+        }
+        catch (Exception)
+        {
+            _outputHelper.WriteLine(string.Empty);
+            _outputHelper.WriteLine(string.Empty);
+            _outputHelper.WriteLine(
+                $"Failed to deserialize content of {response.RequestMessage?.Method} request to {response.RequestMessage?.RequestUri} as {ReflectionUtils.GetTypeNameWithGenericArguments<T>()}:"
+            );
+
+            _outputHelper.WriteLine(JsonUtils.IndentJson(content));
+            _outputHelper.WriteLine(string.Empty);
+            throw;
+        }
     }
 
     /// <summary>
