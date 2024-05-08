@@ -750,7 +750,7 @@
   "process_editor.configuration_panel_actions_custom_action": "Skriv en egendefinert handling",
   "process_editor.configuration_panel_actions_delete_action": "Slett {{ actionName }}-handlingen",
   "process_editor.configuration_panel_actions_set_server_action_info": "Løsne handlingen fra det neste prosessteget dersom handlingen skal utføre en operasjon der skjemaet er i samme steg etter endt operasjon.",
-  "process_editor.configuration_panel_actions_set_server_action_label": "Løsne handlingen fra det neste prosessteget",
+  "process_editor.configuration_panel_actions_set_server_action_label": "Handlingen skal ikke påvirke prosessen",
   "process_editor.configuration_panel_actions_title": "Handlinger",
   "process_editor.configuration_panel_change_task_id": "Endre id",
   "process_editor.configuration_panel_confirmation_task": "Oppgave: Bekreftelse",
