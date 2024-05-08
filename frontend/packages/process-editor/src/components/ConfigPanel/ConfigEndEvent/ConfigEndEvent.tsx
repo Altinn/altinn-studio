@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import classes from './ConfigEndEvent.module.css';
 import { ConfigIcon } from '../ConfigContent/ConfigIcon';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
-import { AddCustomReceiptForm } from '../CustomReceiptForm';
+import { AddCustomReceiptForm } from '../AddCustomReceiptForm';
 
 export const ConfigEndEvent = () => {
   const { t } = useTranslation();

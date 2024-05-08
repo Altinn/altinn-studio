@@ -3,18 +3,11 @@ import { StudioButton } from '@studio/components';
 import { PlusCircleIcon } from '@studio/icons';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { CustomReceipt } from './CustomReceipt';
-import { getExistingDatamodelIdFromLayoutsets } from '../../../utils/customReceiptUtils';
 import { CustomReceiptForm } from './CustomReceiptForm';
 
 // TODO - NEW NAME
 export const AddCustomReceiptForm = (): React.ReactElement => {
-  const { layoutSets, existingCustomReceiptLayoutSetId, availableDataModelIds } =
-    useBpmnApiContext();
-
-  const existingDatamodelId: string = getExistingDatamodelIdFromLayoutsets(
-    layoutSets,
-    existingCustomReceiptLayoutSetId,
-  );
+  const { existingCustomReceiptLayoutSetId } = useBpmnApiContext();
 
   const [showCreateCustomReceiptFields, setShowCreateCustomReceiptFields] = useState(false);
 
@@ -34,13 +27,7 @@ export const AddCustomReceiptForm = (): React.ReactElement => {
     );
   }
   if (showCreateCustomReceiptFields) {
-    return (
-      <CustomReceiptForm
-        existingDataType={existingDatamodelId}
-        onCloseForm={closeCustomReceiptFields}
-        availableDatamodelIds={[...availableDataModelIds, existingDatamodelId]}
-      />
-    );
+    return <CustomReceiptForm onCloseForm={closeCustomReceiptFields} />;
   }
   if (existingCustomReceiptLayoutSetId && !showCreateCustomReceiptFields) {
     return <CustomReceipt onClickEditButton={openCustomReceiptFields} />;
