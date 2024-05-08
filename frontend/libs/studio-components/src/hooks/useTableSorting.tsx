@@ -29,10 +29,10 @@ export const useTableSorting = (rows: Rows, config) => {
   useEffect(() => {
     if (sortColumn !== null) {
       const newSortedRows = [...rows].sort((a, b) => {
-        const columnA = a[sortColumn];
-        const columnB = b[sortColumn];
-        if (columnA < columnB) return sortDirection === 'asc' ? -1 : 1;
-        if (columnA > columnB) return sortDirection === 'asc' ? 1 : -1;
+        const rowA = a[sortColumn];
+        const rowB = b[sortColumn];
+        if (rowA > rowB) return sortDirection === 'asc' ? 1 : -1;
+        if (rowA < rowB) return sortDirection === 'asc' ? -1 : 1;
         return 0;
       });
       setSortedRows(newSortedRows);
