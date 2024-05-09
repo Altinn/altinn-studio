@@ -11,7 +11,7 @@ type ResourceSwitchInputProps = {
   /**
    * The description of the switch
    */
-  description: string;
+  description?: string;
   /**
    * The value in the switch
    */
@@ -63,9 +63,11 @@ export const ResourceSwitchInput = ({
       <Label size='small' spacing>
         {label}
       </Label>
-      <Paragraph short size='small' className={classes.description}>
-        {description}
-      </Paragraph>
+      {description && (
+        <Paragraph short size='small' className={classes.description}>
+          {description}
+        </Paragraph>
+      )}
       <div className={classes.toggleWrapper}>
         <Switch
           checked={isChecked}

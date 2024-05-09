@@ -1,15 +1,15 @@
 import React from 'react';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IFileSelectorProps } from './FileSelector';
-import FileSelector from './FileSelector';
+import { FileSelector } from './FileSelector';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { Button } from '@digdir/design-system-react';
 import * as testids from '../../../../testing/testids';
 
 const user = userEvent.setup();
 
-const render = (props: Partial<IFileSelectorProps> = {}) => {
+const renderFileSelector = (props: Partial<IFileSelectorProps> = {}) => {
   const allProps: IFileSelectorProps = {
     submitHandler: jest.fn(),
     busy: false,
@@ -17,7 +17,7 @@ const render = (props: Partial<IFileSelectorProps> = {}) => {
     ...props,
   };
 
-  rtlRender(<FileSelector {...allProps} />);
+  render(<FileSelector {...allProps} />);
 };
 
 const customButtonText = 'Lorem ipsum';
@@ -28,7 +28,7 @@ const testCustomButtonRenderer = (onClick: React.MouseEventHandler<HTMLButtonEle
 describe('FileSelector', () => {
   it('should not call submitHandler when no files are selected', async () => {
     const handleSubmit = jest.fn();
-    render({ submitHandler: handleSubmit });
+    renderFileSelector({ submitHandler: handleSubmit });
 
     const fileInput = screen.getByTestId(testids.fileSelectorInput);
     await user.upload(fileInput, null);
@@ -39,7 +39,7 @@ describe('FileSelector', () => {
   it('should call submitHandler when a file is selected', async () => {
     const file = new File(['hello'], 'hello.png', { type: 'image/png' });
     const handleSubmit = jest.fn();
-    render({ submitHandler: handleSubmit });
+    renderFileSelector({ submitHandler: handleSubmit });
 
     const fileInput = screen.getByTestId(testids.fileSelectorInput);
     await user.upload(fileInput, file);
@@ -48,19 +48,19 @@ describe('FileSelector', () => {
   });
 
   it('Should show text on the button by default', async () => {
-    render();
+    renderFileSelector();
     expect(
       screen.getByRole('button', { name: textMock('app_data_modelling.upload_xsd') }),
     ).toBeInTheDocument();
   });
 
   it('Should show custom button', async () => {
-    render({ submitButtonRenderer: testCustomButtonRenderer });
+    renderFileSelector({ submitButtonRenderer: testCustomButtonRenderer });
     expect(screen.getByRole('button', { name: customButtonText })).toBeInTheDocument();
   });
 
   it('Should call file input onClick handler when the default upload button is clicked', async () => {
-    render();
+    renderFileSelector();
     const button = screen.getByRole('button', { name: textMock('app_data_modelling.upload_xsd') });
     const fileInput = screen.getByTestId(testids.fileSelectorInput);
     fileInput.onclick = jest.fn();
@@ -69,7 +69,7 @@ describe('FileSelector', () => {
   });
 
   it('Should call file input onClick handler when the custom upload button is clicked', async () => {
-    render({ submitButtonRenderer: testCustomButtonRenderer });
+    renderFileSelector({ submitButtonRenderer: testCustomButtonRenderer });
     const button = screen.getByRole('button', { name: customButtonText });
     const fileInput = screen.getByTestId(testids.fileSelectorInput);
     fileInput.onclick = jest.fn();
