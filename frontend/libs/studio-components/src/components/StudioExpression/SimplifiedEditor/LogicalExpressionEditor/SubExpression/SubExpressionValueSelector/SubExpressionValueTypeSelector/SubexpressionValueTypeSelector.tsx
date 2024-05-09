@@ -18,8 +18,7 @@ export const SubexpressionValueTypeSelector = ({
   const handleChange = (event: ChangeEvent<HTMLSelectElement>) =>
     onChange(event.target.value as SimpleSubexpressionValueType);
 
-  const options: Array<keyof typeof SimpleSubexpressionValueType> =
-    expressionOptions || Object.values(SimpleSubexpressionValueType);
+  const options: string[] = expressionOptions || Object.values(SimpleSubexpressionValueType);
 
   return (
     <NativeSelect label={texts.valueType} onChange={handleChange} size='small' value={value}>

@@ -9,11 +9,10 @@ import { StudioExpressionContext } from './StudioExpressionContext';
 import type { DataLookupOptions } from './types/DataLookupOptions';
 import classes from './StudioExpression.module.css';
 import type { ExpressionTexts } from './types/ExpressionTexts';
-import { SimpleSubexpressionValueType } from './enums/SimpleSubexpressionValueType';
 
 export type StudioExpressionProps = {
   expression: BooleanExpression;
-  expressionOptions: Array<keyof typeof SimpleSubexpressionValueType>;
+  expressionOptions: string[];
   onChange: (expression: BooleanExpression) => void;
   texts: ExpressionTexts;
   dataLookupOptions: Partial<DataLookupOptions>;
