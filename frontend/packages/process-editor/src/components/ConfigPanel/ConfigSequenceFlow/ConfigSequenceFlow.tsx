@@ -86,6 +86,7 @@ export const ConfigSequenceFlow = (): React.ReactElement => {
               addExpressionToSequenceFlow(updatedExpression);
             }}
             texts={texts}
+            expressionOptions={['gatewayAction', 'Datamodel', 'GatewayActionContext']}
             dataLookupOptions={undefined} // TODO add lookup for dataModel
           />
         )}

@@ -13,12 +13,13 @@ export const SubexpressionValueTypeSelector = ({
   value,
   onChange,
 }: SubexpressionValueTypeSelectorProps) => {
-  const { texts } = useStudioExpressionContext();
+  const { texts, expressionOptions } = useStudioExpressionContext();
 
   const handleChange = (event: ChangeEvent<HTMLSelectElement>) =>
     onChange(event.target.value as SimpleSubexpressionValueType);
 
-  const options = Object.values(SimpleSubexpressionValueType);
+  const options: Array<keyof typeof SimpleSubexpressionValueType> =
+    expressionOptions || Object.values(SimpleSubexpressionValueType);
 
   return (
     <NativeSelect label={texts.valueType} onChange={handleChange} size='small' value={value}>
