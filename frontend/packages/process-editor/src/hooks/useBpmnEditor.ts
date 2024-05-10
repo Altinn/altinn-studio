@@ -31,7 +31,10 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
 
   const handleShapeAdd = (e) => {
     const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
-    setBpmnDetails(bpmnDetails);
+    setBpmnDetails({
+      ...bpmnDetails,
+      element: e.element,
+    });
     if (bpmnDetails.taskType === 'data') {
       addLayoutSet({
         layoutSetIdToUpdate: bpmnDetails.id,

@@ -19,6 +19,7 @@ public class ValidationTestData : IEnumerable<object[]>
         yield return new object[] { "Model/XmlSchema/Gitea/stami-atid-databehandler-2022.xsd" };
         yield return new object[] { "Model/XmlSchema/Gitea/stami-mu-databehandler-2021.xsd" };
         yield return new object[] { "Model/XmlSchema/Gitea/skd-formueinntekt-skattemelding-v2.xsd" };
+        yield return new object[] { "Model/XmlSchema/Gitea/krt-1188a-1.xsd" };
 
         // Can generate non valid date string from regex
         // yield return new object[] { "Model/XmlSchema/Gitea/hi-algeskjema.xsd" };
