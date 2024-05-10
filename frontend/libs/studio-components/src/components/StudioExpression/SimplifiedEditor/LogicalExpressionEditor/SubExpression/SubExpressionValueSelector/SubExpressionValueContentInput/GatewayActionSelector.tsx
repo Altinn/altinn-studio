@@ -16,9 +16,14 @@ export const GatewayActionSelector = ({
     onChange({ ...value, key: event.target.value as GatewayActionContext });
 
   return (
-    <NativeSelect size='small' onChange={handleChange} label={texts.gatewayActionKey}>
+    <NativeSelect
+      size='small'
+      onChange={handleChange}
+      label={texts.gatewayActionKey}
+      defaultValue={value.key}
+    >
       {options.map((option) => (
-        <option key={option} value={option} selected={option === value.key}>
+        <option key={option} value={option}>
           {texts.gatewayActionContext[option]}
         </option>
       ))}
