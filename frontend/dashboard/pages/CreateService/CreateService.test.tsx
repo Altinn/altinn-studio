@@ -74,7 +74,7 @@ describe('CreateService', () => {
       name: textMock('dashboard.create_service_btn'),
     });
 
-    await user.click(createBtn);
+    user.click(createBtn);
 
     const emptyFieldErrors = await screen.findAllByText(
       textMock('dashboard.field_cannot_be_empty'),
@@ -85,23 +85,20 @@ describe('CreateService', () => {
   it('should prefill owner when there are no available orgs, and the only available user is the logged in user', async () => {
     renderWithMockServices();
 
-    await waitFor(() => {
-      expect(screen.getByRole('combobox')).toBeInTheDocument();
-    });
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
 
   it('should show error message that app name is too long when it exceeds max length', async () => {
     const user = userEvent.setup();
     renderWithMockServices();
-    await user.type(
-      screen.getByLabelText(/general.service_name/),
-      'this-app-name-is-longer-than-max',
+    await waitFor(() =>
+      user.type(screen.getByLabelText(/general.service_name/), 'this-app-name-is-longer-than-max'),
     );
 
     const createBtn: HTMLElement = screen.getByRole('button', {
       name: textMock('dashboard.create_service_btn'),
     });
-    await user.click(createBtn);
+    user.click(createBtn);
 
     const emptyFieldErrors = await screen.findAllByText(
       textMock('dashboard.service_name_is_too_long'),
@@ -113,12 +110,14 @@ describe('CreateService', () => {
     const user = userEvent.setup();
     renderWithMockServices();
 
-    await user.type(screen.getByLabelText(textMock('general.service_name')), 'datamodels');
+    await waitFor(() =>
+      user.type(screen.getByLabelText(textMock('general.service_name')), 'datamodels'),
+    );
 
     const createBtn: HTMLElement = screen.getByRole('button', {
       name: textMock('dashboard.create_service_btn'),
     });
-    await user.click(createBtn);
+    user.click(createBtn);
 
     const emptyFieldErrors = await screen.findAllByText(
       textMock('dashboard.service_name_has_illegal_characters'),
@@ -132,19 +131,19 @@ describe('CreateService', () => {
 
     const repoNameInput = screen.getByLabelText(textMock('general.service_name'));
 
-    await user.type(repoNameInput, 'aa');
+    await waitFor(() => user.type(repoNameInput, 'aa'));
 
     const createBtn: HTMLElement = screen.getByRole('button', {
       name: textMock('dashboard.create_service_btn'),
     });
-    await user.click(createBtn);
+    user.click(createBtn);
 
     const errorMessage = screen.getByText(
       textMock('dashboard.service_name_has_illegal_characters'),
     );
     expect(errorMessage).toBeInTheDocument();
 
-    await user.type(repoNameInput, 'a');
+    await waitFor(() => user.type(repoNameInput, 'a'));
 
     const errorMessageAfter = screen.queryByText(
       textMock('dashboard.service_name_has_illegal_characters'),
@@ -160,21 +159,20 @@ describe('CreateService', () => {
 
     renderWithMockServices({ addRepo: addRepoMock }, [orgMock]);
 
-    await user.selectOptions(screen.getByLabelText(textMock('general.service_owner')), 'unit-test');
+    user.selectOptions(screen.getByLabelText(textMock('general.service_owner')), 'unit-test');
 
-    await user.type(
-      screen.getByLabelText(textMock('general.service_name')),
-      'this-app-name-exists',
+    await waitFor(() =>
+      user.type(screen.getByLabelText(textMock('general.service_name')), 'this-app-name-exists'),
     );
 
     const createBtn: HTMLElement = screen.getByRole('button', {
       name: textMock('dashboard.create_service_btn'),
     });
-    await user.click(createBtn);
+    user.click(createBtn);
 
     expect(addRepoMock).rejects.toEqual({ response: { status: 409 } });
-
-    await screen.findByText(textMock('dashboard.app_already_exists'));
+    const appAlreadyExistsError = await screen.findByText(textMock('dashboard.app_already_exists'));
+    expect(appAlreadyExistsError).toBeInTheDocument();
   });
 
   it('should show generic error message when trying to create an app and something unknown went wrong', async () => {
@@ -182,11 +180,13 @@ describe('CreateService', () => {
     const addRepoMock = jest.fn(() => Promise.reject({ response: { status: 500 } }));
     renderWithMockServices({ addRepo: addRepoMock }, [orgMock]);
 
-    await user.selectOptions(screen.getByLabelText(textMock('general.service_owner')), 'unit-test');
-    await user.type(screen.getByLabelText(textMock('general.service_name')), 'new-app');
+    user.selectOptions(screen.getByLabelText(textMock('general.service_owner')), 'unit-test'),
+      await waitFor(() =>
+        user.type(screen.getByLabelText(textMock('general.service_name')), 'new-app'),
+      );
 
     const createButton = await screen.findByText(textMock('dashboard.create_service_btn'));
-    await user.click(createButton);
+    user.click(createButton);
 
     await expect(addRepoMock).rejects.toEqual({ response: { status: 500 } });
 
@@ -223,8 +223,8 @@ describe('CreateService', () => {
     });
 
     const appNameInput = screen.getByLabelText(textMock('general.service_name'));
-    await user.type(appNameInput, 'appname');
-    await user.click(createBtn);
+    await waitFor(() => user.type(appNameInput, 'appname'));
+    user.click(createBtn);
 
     expect(await screen.findByText(textMock('dashboard.creating_your_service')));
   });
@@ -237,11 +237,10 @@ describe('CreateService', () => {
 
     renderWithMockServices({ addRepo: addRepoMock }, [orgMock]);
 
-    await user.selectOptions(screen.getByLabelText(textMock('general.service_owner')), 'unit-test');
+    user.selectOptions(screen.getByLabelText(textMock('general.service_owner')), 'unit-test');
 
-    await user.type(
-      screen.getByLabelText(textMock('general.service_name')),
-      'this-app-name-exists',
+    await waitFor(() =>
+      user.type(screen.getByLabelText(textMock('general.service_name')), 'this-app-name-exists'),
     );
 
     const createBtn: HTMLElement = screen.getByRole('button', {
@@ -275,10 +274,10 @@ describe('CreateService', () => {
     });
 
     const appNameInput = screen.getByLabelText(textMock('general.service_name'));
-    await user.type(appNameInput, 'appname');
-    await user.click(createBtn);
+    await waitFor(() => user.type(appNameInput, 'appname'));
+    user.click(createBtn);
 
-    expect(windowLocationAssignMock).toHaveBeenCalled();
+    await waitFor(() => expect(windowLocationAssignMock).toHaveBeenCalled());
   });
 
   it('should set cancel link to / when selected context is self', async () => {

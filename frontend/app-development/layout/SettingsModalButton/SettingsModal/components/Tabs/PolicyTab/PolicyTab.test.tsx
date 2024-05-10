@@ -1,5 +1,10 @@
 import React from 'react';
-import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import {
+  render as rtlRender,
+  screen,
+  waitFor,
+  waitForElementToBeRemoved,
+} from '@testing-library/react';
 import type { PolicyTabProps } from './PolicyTab';
 import { PolicyTab } from './PolicyTab';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
@@ -107,7 +112,7 @@ describe('PolicyTab', () => {
     const user = userEvent.setup();
     await resolveAndWaitForSpinnerToDisappear();
 
-    await user.tab();
+    user.tab();
 
     const elementInPolicyEditor = screen.getByText(
       textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_app') }),
@@ -123,9 +128,9 @@ describe('PolicyTab', () => {
       name: textMock('policy_editor.card_button_text'),
     });
 
-    await user.click(addButton);
+    user.click(addButton);
 
-    expect(updateAppPolicyMutation).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(updateAppPolicyMutation).toHaveBeenCalledTimes(1));
   });
 });
 

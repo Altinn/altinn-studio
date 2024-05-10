@@ -1,7 +1,7 @@
 import React from 'react';
 import type { IResetRepoModalProps } from './ResetRepoModal';
 import { ResetRepoModal } from './ResetRepoModal';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithMockStore } from 'app-development/test/mocks';
 
@@ -79,7 +79,7 @@ describe('ResetRepoModal', () => {
   it('renders the reset my changes button as disabled when incorrect repo name is entered', async () => {
     render();
     const repoNameInput = screen.getByLabelText(resetModalConfirmRepoName);
-    await user.type(repoNameInput, 'notTheRepoName');
+    await waitFor(() => user.type(repoNameInput, 'notTheRepoName'));
     const resetRepoButton = screen.getByRole('button', {
       name: resetModalButton,
     });
@@ -89,7 +89,7 @@ describe('ResetRepoModal', () => {
   it('enables the reset my changes button when repo name is entered', async () => {
     render();
     const repoNameInput = screen.getByLabelText(resetModalConfirmRepoName);
-    await user.type(repoNameInput, mockRepoName);
+    await waitFor(() => user.type(repoNameInput, mockRepoName));
     const resetRepoButton = screen.getByRole('button', {
       name: resetModalButton,
     });
@@ -103,16 +103,16 @@ describe('ResetRepoModal', () => {
     };
     render({}, mockQueries);
     const repoNameInput = screen.getByLabelText(resetModalConfirmRepoName);
-    await user.type(repoNameInput, mockRepoName);
-    await user.click(screen.getByRole('button', { name: resetModalButton }));
-    expect(resetRepoChanges).toHaveBeenCalled();
+    await waitFor(() => user.type(repoNameInput, mockRepoName));
+    user.click(screen.getByRole('button', { name: resetModalButton }));
+    await waitFor(() => expect(resetRepoChanges).toHaveBeenCalled());
   });
 
   it('renders the success message after reset is completed', async () => {
     render();
     const repoNameInput = screen.getByLabelText(resetModalConfirmRepoName);
-    await user.type(repoNameInput, mockRepoName);
-    await user.click(screen.getByRole('button', { name: resetModalButton }));
+    await waitFor(() => user.type(repoNameInput, mockRepoName));
+    user.click(screen.getByRole('button', { name: resetModalButton }));
     expect(await screen.findByText('overview.reset_repo_completed')).toBeInTheDocument();
   });
 });

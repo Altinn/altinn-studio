@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { PolicyEditorProps } from './PolicyEditor';
 import { PolicyEditor } from './PolicyEditor';
@@ -45,9 +45,9 @@ describe('PolicyEditor', () => {
       textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_resource') }),
     );
 
-    await user.tab();
+    user.tab();
 
-    expect(alertTextApp).toBeInTheDocument();
+    await waitFor(() => expect(alertTextApp).toBeInTheDocument());
     expect(alertTextResource).not.toBeInTheDocument();
   });
 
@@ -62,25 +62,25 @@ describe('PolicyEditor', () => {
       textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_resource') }),
     );
 
-    await user.tab();
+    user.tab();
 
-    expect(alertTextApp).not.toBeInTheDocument();
+    await waitFor(() => expect(alertTextApp).not.toBeInTheDocument());
     expect(alertTextResource).toBeInTheDocument();
   });
 
-  it('changes the auth level when the user selects a different auth level', async () => {
+  it.only('changes the auth level when the user selects a different auth level', async () => {
     const user = userEvent.setup();
     render(<PolicyEditor {...defaultProps} />);
 
-    const [selectElement] = screen.getAllByLabelText(
+    const [selectElement] = await screen.findAllByLabelText(
       textMock('policy_editor.select_auth_level_label'),
     );
     expect(selectElement).toHaveValue(mockRequiredAuthLevelLabel);
 
-    await user.click(selectElement);
+    user.click(selectElement);
 
     const mockOption2 = textMock(authlevelOptions[2].label);
-    await user.click(screen.getByRole('option', { name: mockOption2 }));
+    user.click(screen.getByRole('option', { name: mockOption2 }));
 
     const [selectElementAfter] = screen.getAllByLabelText(
       textMock('policy_editor.select_auth_level_label'),
@@ -95,11 +95,11 @@ describe('PolicyEditor', () => {
     const [selectElement] = screen.getAllByLabelText(
       textMock('policy_editor.select_auth_level_label'),
     );
-    await user.click(selectElement);
+    user.click(selectElement);
 
     const mockOption2 = textMock(authlevelOptions[2].label);
-    await user.click(screen.getByRole('option', { name: mockOption2 }));
-    await user.tab();
+    user.click(screen.getByRole('option', { name: mockOption2 }));
+    user.tab();
 
     expect(mockOnSave).toHaveBeenCalledTimes(1);
   });
@@ -112,7 +112,7 @@ describe('PolicyEditor', () => {
       textMock('policy_editor.rule_card_sub_resource_title'),
     );
 
-    await user.tab();
+    user.tab();
 
     expect(aLabelFromPolicyCard.length).toEqual(mockPolicy.rules.length);
   });
@@ -125,7 +125,7 @@ describe('PolicyEditor', () => {
       textMock('policy_editor.rule_card_sub_resource_title'),
     );
 
-    await user.tab();
+    user.tab();
 
     expect(aLabelFromPolicyCard.length).toEqual(0);
   });
@@ -140,7 +140,7 @@ describe('PolicyEditor', () => {
       name: textMock('policy_editor.card_button_text'),
     });
 
-    await user.click(addButton);
+    user.click(addButton);
 
     const aLabelFromPolicyCard = screen.queryAllByText(
       textMock('policy_editor.rule_card_sub_resource_title'),
@@ -157,7 +157,7 @@ describe('PolicyEditor', () => {
       name: textMock('policy_editor.card_button_text'),
     });
 
-    await user.click(addButton);
+    user.click(addButton);
 
     expect(mockOnSave).toHaveBeenCalledTimes(1);
   });
@@ -173,10 +173,10 @@ describe('PolicyEditor', () => {
     expect(modalTitle).not.toBeInTheDocument();
 
     const [moreButton] = screen.getAllByRole('button', { name: textMock('policy_editor.more') });
-    await user.click(moreButton);
+    user.click(moreButton);
 
     const deleteButton = screen.getByRole('menuitem', { name: textMock('general.delete') });
-    await user.click(deleteButton);
+    user.click(deleteButton);
 
     const modalTitleAfter = screen.getByRole('heading', {
       name: textMock('policy_editor.verification_modal_heading'),

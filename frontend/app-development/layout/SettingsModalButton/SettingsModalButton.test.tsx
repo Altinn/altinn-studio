@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { render as rtlRender, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { SettingsModalButtonProps } from './SettingsModalButton';
 import { SettingsModalButton } from './SettingsModalButton';
@@ -44,9 +44,9 @@ describe('SettingsModal', () => {
     expect(modalHeading).not.toBeInTheDocument();
 
     const button = screen.getByRole('button', { name: textMock('sync_header.settings') });
-    await user.click(button);
+    user.click(button);
 
-    const modalHeadingAfter = screen.getByRole('heading', {
+    const modalHeadingAfter = await screen.findByRole('heading', {
       name: textMock('settings_modal.heading'),
       level: 1,
     });
@@ -56,9 +56,9 @@ describe('SettingsModal', () => {
   it('closes the SettingsModal when the modal is closed', async () => {
     render();
     const button = screen.getByRole('button', { name: textMock('sync_header.settings') });
-    await user.click(button);
+    user.click(button);
 
-    const modalHeading = screen.getByRole('heading', {
+    const modalHeading = await screen.findByRole('heading', {
       name: textMock('settings_modal.heading'),
       level: 1,
     });
@@ -67,13 +67,13 @@ describe('SettingsModal', () => {
     const closeButton = screen.getByRole('button', {
       name: textMock('settings_modal.close_button_label'),
     });
-    await user.click(closeButton);
+    user.click(closeButton);
 
     const modalHeadingAfter = screen.queryByRole('heading', {
       name: textMock('settings_modal.heading'),
       level: 1,
     });
-    expect(modalHeadingAfter).not.toBeInTheDocument();
+    await waitFor(() => expect(modalHeadingAfter).not.toBeInTheDocument());
   });
 });
 

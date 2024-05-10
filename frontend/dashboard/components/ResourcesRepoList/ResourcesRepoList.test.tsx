@@ -90,9 +90,9 @@ describe('RepoList', () => {
       getResourceList: () => Promise.reject(),
     });
 
-    await waitFor(() => {
-      expect(screen.getByText(textMock('dashboard.resource_list_load_error'))).toBeInTheDocument();
-    });
+    expect(
+      await screen.findByText(textMock('dashboard.resource_list_load_error')),
+    ).toBeInTheDocument();
   });
 
   test('Should show correct header', async () => {
@@ -103,9 +103,7 @@ describe('RepoList', () => {
       searchRepos: () => Promise.resolve(searchReposResponse),
       getResourceList: () => Promise.resolve(getResourceListResponse),
     });
-    await waitFor(() => {
-      expect(screen.getByTestId('resource-table-wrapper')).toBeInTheDocument();
-    });
+    expect(await screen.findByTestId('resource-table-wrapper')).toBeInTheDocument();
 
     expect(
       screen.getByText(textMock('dashboard.org_resources', { orgName: 'Testdepartementet' })),
@@ -120,9 +118,8 @@ describe('RepoList', () => {
       searchRepos: () => Promise.resolve(searchReposResponse),
       getResourceList: () => Promise.resolve(getResourceListResponse),
     });
-    await waitFor(() => {
-      expect(screen.getByTestId('resource-table-wrapper')).toBeInTheDocument();
-    });
+
+    expect(await screen.findByTestId('resource-table-wrapper')).toBeInTheDocument();
 
     expect(
       screen.getByRole('link', { name: textMock('dashboard.go_to_resources') }),
@@ -137,14 +134,14 @@ describe('RepoList', () => {
       searchRepos: () => Promise.resolve(searchReposResponse),
       getResourceList: () => Promise.resolve(getResourceListResponse),
     });
-    await waitFor(() => {
-      expect(screen.getByTestId('resource-table-wrapper')).toBeInTheDocument();
-    });
 
-    await user.click(screen.getByText(textMock('resourceadm.dashboard_table_row_edit')));
+    expect(await screen.findByTestId('resource-table-wrapper')).toBeInTheDocument();
 
-    expect(window.location.assign).toHaveBeenCalledWith(
-      '/resourceadm/ttd/ttd-resources/resource/test-ressurs/about',
+    user.click(screen.getByText(textMock('resourceadm.dashboard_table_row_edit')));
+    await waitFor(() =>
+      expect(window.location.assign).toHaveBeenCalledWith(
+        '/resourceadm/ttd/ttd-resources/resource/test-ressurs/about',
+      ),
     );
   });
 });

@@ -41,8 +41,10 @@ describe('StudioExpression', () => {
   it('Displays an information message when the expression is not simplifiable and the user opens the simplified editor', async () => {
     const user = userEvent.setup();
     renderExpression(tooComplexExpression);
-    await waitFor(() => user.click(screen.getByRole('tab', { name: texts.simplified })));
-    expect(screen.getByText(texts.cannotSimplify)).toBeInTheDocument();
+    const tabSimple = screen.getByRole('tab', { name: texts.simplified });
+    user.click(tabSimple);
+    const message = await screen.findByText(texts.cannotSimplify);
+    expect(message).toBeInTheDocument();
   });
 
   it.each([true, false])(
@@ -63,19 +65,20 @@ describe('StudioExpression', () => {
     async (expression) => {
       const user = userEvent.setup();
       renderExpression(expression);
-      await waitFor(() =>
-        user.click(screen.getByRole('radio', { name: expression ? texts.false : texts.true })),
-      );
+      const radioButton = screen.getByRole('radio', {
+        name: expression ? texts.false : texts.true,
+      });
+      user.click(radioButton);
 
-      expect(onChange).toHaveBeenCalledWith(!expression);
+      await waitFor(() => expect(onChange).toHaveBeenCalledWith(!expression));
     },
   );
 
   it('Calls the onChange function with the default expression when the expression is a boolean and the user clicks the transform button', async () => {
     const user = userEvent.setup();
     renderExpression(true);
-    await waitFor(() => user.click(screen.getByRole('button', { name: texts.transformToLogical })));
-    expect(onChange).toHaveBeenCalledTimes(1);
+    user.click(screen.getByRole('button', { name: texts.transformToLogical }));
+    await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
     expect(onChange).toHaveBeenCalledWith([GeneralRelationOperator.Equals, 0, 0]);
   });
 
@@ -118,8 +121,8 @@ describe('StudioExpression', () => {
   it('Calls the onChange function with the new expression when the user adds a subexpression', async () => {
     const user = userEvent.setup();
     renderExpression(logicalExpression);
-    await waitFor(() => user.click(screen.getByRole('button', { name: texts.addSubexpression })));
-    expect(onChange).toHaveBeenCalledTimes(1);
+    user.click(screen.getByRole('button', { name: texts.addSubexpression }));
+    await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
     expect(onChange).toHaveBeenCalledWith([
       ...logicalExpression,
       [GeneralRelationOperator.Equals, 0, 0],
@@ -132,8 +135,8 @@ describe('StudioExpression', () => {
     renderExpression(logicalExpression);
     const subexpressionToDelete = screen.getByRole('group', { name: texts.subexpression(0) });
     const deleteButton = within(subexpressionToDelete).getByRole('button', { name: texts.delete });
-    await waitFor(() => user.click(deleteButton));
-    expect(onChange).toHaveBeenCalledTimes(1);
+    user.click(deleteButton);
+    await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
     expect(onChange).toHaveBeenCalledWith(numberOperatorRelation);
   });
 
@@ -146,8 +149,10 @@ describe('StudioExpression', () => {
     const user = userEvent.setup();
     renderExpression(generalOperatorRelation);
     const editButton = screen.getByRole('button', { name: texts.edit });
-    await waitFor(() => user.click(editButton));
-    expect(screen.queryByRole('button', { name: texts.edit })).not.toBeInTheDocument();
+    user.click(editButton);
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: texts.edit })).not.toBeInTheDocument(),
+    );
     screen.getByRole('button', { name: texts.saveAndClose });
   });
 
@@ -155,13 +160,13 @@ describe('StudioExpression', () => {
     const user = userEvent.setup();
     renderExpression(generalOperatorRelation);
     const editButton = screen.getByRole('button', { name: texts.edit });
-    await waitFor(() => user.click(editButton));
-    const secondOperandGroup = screen.getByRole('group', { name: texts.secondOperand });
+    user.click(editButton);
+    const secondOperandGroup = await screen.findByRole('group', { name: texts.secondOperand });
     const input = within(secondOperandGroup).getByRole('textbox', { name: texts.value });
     await waitFor(() => user.type(input, '1'));
     const saveButton = screen.getByRole('button', { name: texts.saveAndClose });
-    await waitFor(() => user.click(saveButton));
-    expect(onChange).toHaveBeenCalledTimes(1);
+    user.click(saveButton);
+    await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
     expect(onChange).toHaveBeenCalledWith([...generalOperatorRelation.slice(0, 2), 'some-text1']);
   });
 
@@ -169,12 +174,12 @@ describe('StudioExpression', () => {
     const user = userEvent.setup();
     renderExpression(generalOperatorRelation);
     const editButton = screen.getByRole('button', { name: texts.edit });
-    await waitFor(() => user.click(editButton));
-    const input = screen.getByRole('combobox', { name: texts.relationalOperator });
-    await waitFor(() => user.selectOptions(input, GeneralRelationOperator.NotEquals));
-    const saveButton = screen.getByRole('button', { name: texts.saveAndClose });
-    await waitFor(() => user.click(saveButton));
-    expect(onChange).toHaveBeenCalledTimes(1);
+    user.click(editButton);
+    const input = await screen.findByRole('combobox', { name: texts.relationalOperator });
+    user.selectOptions(input, GeneralRelationOperator.NotEquals);
+    const saveButton = await screen.findByRole('button', { name: texts.saveAndClose });
+    user.click(saveButton);
+    await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
     expect(onChange).toHaveBeenCalledWith([
       GeneralRelationOperator.NotEquals,
       ...generalOperatorRelation.slice(1),
@@ -184,25 +189,28 @@ describe('StudioExpression', () => {
   it('Returns back to view mode when the user clicks the save button on a subexpression', async () => {
     const user = userEvent.setup();
     renderExpression(generalOperatorRelation);
-    const editButton = screen.getByRole('button', { name: texts.edit });
-    await waitFor(() => user.click(editButton));
-    const saveButton = screen.getByRole('button', { name: texts.saveAndClose });
-    await waitFor(() => user.click(saveButton));
-    screen.getByRole('button', { name: texts.edit });
+    const editButton = () => screen.findByRole('button', { name: texts.edit });
+    user.click(await editButton());
+    const saveButton = await screen.findByRole('button', { name: texts.saveAndClose });
+    user.click(saveButton);
+    expect(await editButton()).toBeInTheDocument();
   });
 
   it('Displays an error message and does not call the onChange function when the user tries to save an invalid subexpression', async () => {
     const user = userEvent.setup();
     renderExpression(numberOperatorRelation);
     const editButton = screen.getByRole('button', { name: texts.edit });
-    await waitFor(() => user.click(editButton));
-    const firstOperandGroup = screen.getByRole('group', { name: texts.firstOperand });
+    user.click(editButton);
+    const firstOperandGroup = await screen.findByRole('group', { name: texts.firstOperand });
     const typeSelect = within(firstOperandGroup).getByRole('combobox', { name: texts.valueType });
-    await waitFor(() => user.selectOptions(typeSelect, SimpleSubexpressionValueType.Boolean));
-    const saveButton = screen.getByRole('button', { name: texts.saveAndClose });
-    await waitFor(() => user.click(saveButton));
-    expect(onChange).not.toHaveBeenCalled();
-    screen.getByText(texts.errorMessages.numericRelationOperatorWithWrongType);
+    user.selectOptions(typeSelect, SimpleSubexpressionValueType.Boolean);
+    const saveButton = await screen.findByRole('button', { name: texts.saveAndClose });
+    user.click(saveButton);
+    await waitFor(() => expect(onChange).not.toHaveBeenCalled());
+    const errorMessage = await screen.findByText(
+      texts.errorMessages.numericRelationOperatorWithWrongType,
+    );
+    expect(errorMessage).toBeInTheDocument();
   });
 
   it('Displays a stringified version of the expression in the manual editor', () => {
@@ -214,8 +222,10 @@ describe('StudioExpression', () => {
     const user = userEvent.setup();
     renderExpression(tooComplexExpression);
     const input = screen.getByRole('textbox');
-    await waitFor(() => user.clear(input));
-    await waitFor(() => user.type(input, 'true'));
+    await waitFor(async () => {
+      await user.clear(input);
+      await user.type(input, 'true');
+    });
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith(true);
   });
@@ -226,10 +236,11 @@ describe('StudioExpression', () => {
     renderExpression(tooComplexExpression);
     const input = screen.getByRole('textbox');
     await waitFor(async () => {
-      await waitFor(() => user.clear(input));
-      await waitFor(() => user.type(input, 'tru'));
-      await waitFor(() => user.click(screen.getByRole('tab', { name: texts.simplified })));
+      await user.clear(input);
+      await user.type(input, 'tru');
     });
+    const tabSimple = await screen.findByRole('tab', { name: texts.simplified });
+    user.click(tabSimple);
     expect(onChange).not.toHaveBeenCalled();
     expect(screen.getByRole('tab', { name: texts.manual })).toHaveAttribute(
       'aria-selected',
@@ -245,12 +256,16 @@ describe('StudioExpression', () => {
     await waitFor(async () => {
       await user.clear(input);
       await user.type(input, 'tru');
-      await user.click(screen.getByRole('tab', { name: texts.simplified }));
     });
-    expect(onChange).not.toHaveBeenCalled();
-    expect(screen.getByRole('tab', { name: texts.simplified })).toHaveAttribute(
-      'aria-selected',
-      'true',
+    const tabSimple = await screen.findByRole('tab', { name: texts.simplified });
+    user.click(tabSimple);
+
+    await waitFor(() => expect(onChange).not.toHaveBeenCalled());
+    await waitFor(() =>
+      expect(screen.getByRole('tab', { name: texts.simplified })).toHaveAttribute(
+        'aria-selected',
+        'true',
+      ),
     );
   });
 
@@ -261,10 +276,11 @@ describe('StudioExpression', () => {
     await waitFor(async () => {
       await user.clear(input);
       await user.type(input, 'tru');
-      await user.tab();
     });
-    expect(onChange).not.toHaveBeenCalled();
-    screen.getByText(texts.cannotSaveSinceInvalid);
+    user.tab();
+
+    await waitFor(() => expect(onChange).not.toHaveBeenCalled());
+    expect(screen.getByText(texts.cannotSaveSinceInvalid)).toBeInTheDocument();
   });
 });
 

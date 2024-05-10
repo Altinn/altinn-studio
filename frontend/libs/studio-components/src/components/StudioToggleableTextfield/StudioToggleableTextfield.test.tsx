@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import {
   StudioToggleableTextfield,
   type StudioToggleableTextfieldProps,
@@ -21,8 +21,8 @@ describe('StudioToggleableTextfield', () => {
       viewProps: { children: 'Edit name' },
       inputProps: { value: '', icon: <div />, label: 'Your name' },
     });
-    await user.click(screen.getByRole('button', { name: 'Edit name' }));
-    expect(screen.getByLabelText('Your name')).toBeEnabled();
+    user.click(screen.getByRole('button', { name: 'Edit name' }));
+    await waitFor(() => expect(screen.getByLabelText('Your name')).toBeEnabled());
   });
 
   it('should run custom validation when value changes', async () => {
@@ -33,12 +33,12 @@ describe('StudioToggleableTextfield', () => {
       inputProps: { value: '', label: 'Your name', icon: <div /> },
       customValidation,
     });
-    await user.click(screen.getByRole('button', { name: 'Edit name' }));
+    user.click(screen.getByRole('button', { name: 'Edit name' }));
 
     const typedInputValue = 'John';
-    await user.type(screen.getByLabelText('Your name'), typedInputValue);
+    user.type(await screen.findByLabelText('Your name'), typedInputValue);
 
-    expect(customValidation).toHaveBeenCalledTimes(typedInputValue.length);
+    await waitFor(() => expect(customValidation).toHaveBeenCalledTimes(typedInputValue.length));
   });
 
   it('should be toggle back to view mode on blur', async () => {
@@ -49,12 +49,13 @@ describe('StudioToggleableTextfield', () => {
       inputProps: { value: 'value', label: 'Your name', icon: <div /> },
     });
 
-    await user.click(screen.getByRole('button', { name: 'edit' }));
-    expect(screen.getByLabelText('Your name')).toBeEnabled();
+    user.click(screen.getByRole('button', { name: 'edit' }));
+    await waitFor(() => expect(screen.getByLabelText('Your name')).toBeEnabled());
     expect(screen.queryByRole('button', { name: 'edit' })).not.toBeInTheDocument();
 
     fireEvent.blur(screen.getByLabelText('Your name'));
-    await screen.findByRole('button', { name: 'edit' });
+    const editButton = await screen.findByRole('button', { name: 'edit' });
+    expect(editButton).toBeInTheDocument();
   });
 
   it('should execute onBlur method when input is blurred', async () => {
@@ -65,8 +66,9 @@ describe('StudioToggleableTextfield', () => {
       inputProps: { onBlur: onBlurMock, label: 'Your name', icon: <div /> },
     });
 
-    await user.click(screen.getByRole('button', { name: 'Edit name' }));
-    fireEvent.blur(screen.getByLabelText('Your name'));
+    user.click(screen.getByRole('button', { name: 'Edit name' }));
+
+    fireEvent.blur(await screen.findByLabelText('Your name'));
     expect(onBlurMock).toHaveBeenCalledTimes(1);
   });
 
@@ -78,9 +80,9 @@ describe('StudioToggleableTextfield', () => {
       inputProps: { label: 'Your name', icon: <div />, error: 'Your name is a required field' },
     });
 
-    await user.click(screen.getByRole('button', { name: 'Edit your name' }));
+    user.click(screen.getByRole('button', { name: 'Edit your name' }));
 
-    const inputField = screen.getByLabelText('Your name');
+    const inputField = await screen.findByLabelText('Your name');
     fireEvent.blur(inputField);
 
     expect(inputField).toHaveAttribute('aria-invalid', 'true');
@@ -98,10 +100,10 @@ describe('StudioToggleableTextfield', () => {
     });
 
     const inputValue = 'John';
-    await user.click(screen.getByRole('button', { name: 'edit' }));
-    await user.type(screen.getByLabelText('Your name'), inputValue);
+    user.click(screen.getByRole('button', { name: 'edit' }));
+    user.type(await screen.findByLabelText('Your name'), inputValue);
 
-    expect(onChangeMock).toHaveBeenCalledTimes(inputValue.length);
+    await waitFor(() => expect(onChangeMock).toHaveBeenCalledTimes(inputValue.length));
   });
 
   it('should render error message if customValidation occured', async () => {
@@ -114,9 +116,9 @@ describe('StudioToggleableTextfield', () => {
         value === 'test' ? 'Your name cannot be "test"' : undefined,
     });
 
-    await user.click(screen.getByRole('button', { name: 'Edit name' }));
-    await user.type(screen.getByLabelText('Your name'), 'test');
-    expect(screen.getByText('Your name cannot be "test"'));
+    user.click(screen.getByRole('button', { name: 'Edit name' }));
+    await waitFor(() => user.type(screen.getByLabelText('Your name'), 'test'));
+    expect(screen.getByText('Your name cannot be "test"')).toBeInTheDocument();
   });
 });
 

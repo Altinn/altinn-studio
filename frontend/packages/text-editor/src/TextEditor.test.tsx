@@ -1,7 +1,7 @@
 import React from 'react';
 import { TextEditor } from './TextEditor';
 import type { TextEditorProps } from './TextEditor';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
@@ -68,13 +68,16 @@ describe('TextEditor', () => {
       name: textMock('text_editor.new_text'),
     });
 
-    await user.click(addBtn);
+    user.click(addBtn);
 
-    expect(upsertTextResource).toHaveBeenCalledWith({
-      language: 'nb',
-      textId: 'id_1000',
-      translation: '',
-    });
+    await waitFor(() =>
+      expect(upsertTextResource).toHaveBeenCalledWith({
+        language: 'nb',
+        textId: 'id_1000',
+        translation: '',
+      }),
+    );
+
     jest.spyOn(global.Math, 'random').mockRestore();
   });
 
@@ -85,15 +88,15 @@ describe('TextEditor', () => {
     });
     const deleteBtn = screen.getByTestId(testids.deleteButton('en'));
 
-    await user.click(deleteBtn);
-    await screen.findByRole('dialog');
-    await user.click(
+    user.click(deleteBtn);
+    await expect(screen.findByRole('dialog')).resolves.toBeInTheDocument();
+    user.click(
       screen.getByRole('button', {
         name: textMock('schema_editor.language_confirm_deletion'),
       }),
     );
 
-    expect(handleDeleteLang).toHaveBeenCalledWith('en');
+    await waitFor(() => expect(handleDeleteLang).toHaveBeenCalledWith('en'));
   });
 
   it('removes nb from selectedLanguages when delete lang is clicked', async () => {
@@ -106,14 +109,14 @@ describe('TextEditor', () => {
     });
     const deleteBtn = screen.getByTestId(testids.deleteButton('en'));
 
-    await user.click(deleteBtn);
-    await screen.findByRole('dialog');
-    await user.click(
+    user.click(deleteBtn);
+    await expect(screen.findByRole('dialog')).resolves.toBeInTheDocument();
+    user.click(
       screen.getByRole('button', {
         name: textMock('schema_editor.language_confirm_deletion'),
       }),
     );
-    expect(handleDeleteLang).toHaveBeenCalledWith('en');
+    await waitFor(() => expect(handleDeleteLang).toHaveBeenCalledWith('en'));
     expect(setSelectedLangCodes).toHaveBeenCalledWith(['nb']);
   });
 
@@ -131,9 +134,9 @@ describe('TextEditor', () => {
     expect(norwegianCheckbox).toBeChecked();
     expect(englishCheckbox).not.toBeChecked();
 
-    await user.click(englishCheckbox);
+    user.click(englishCheckbox);
 
-    expect(setSelectedLangCodes).toHaveBeenCalledWith(['nb', 'en']);
+    await waitFor(() => expect(setSelectedLangCodes).toHaveBeenCalledWith(['nb', 'en']));
   });
 
   it('Calls ScrollIntoView when a new languages is selected', async () => {
@@ -144,9 +147,9 @@ describe('TextEditor', () => {
     const kurdishCheckbox = screen.getByRole('checkbox', {
       name: /kurdisk/i,
     });
-    await user.click(kurdishCheckbox);
+    user.click(kurdishCheckbox);
 
-    expect(mockScrollIntoView).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockScrollIntoView).toHaveBeenCalledTimes(1));
   });
 
   it('Sorts texts when sort chip is clicked', async () => {
@@ -155,8 +158,10 @@ describe('TextEditor', () => {
     const textEntries = screen.getAllByRole('textbox');
     expect(textEntries[1]).toHaveValue(textValue1);
 
-    const sortAlphabeticallyButton = screen.getByText(textMock('text_editor.sort_alphabetically'));
-    await user.click(sortAlphabeticallyButton);
+    const sortAlphabeticallyButton = await screen.findByText(
+      textMock('text_editor.sort_alphabetically'),
+    );
+    await waitFor(() => user.click(sortAlphabeticallyButton));
 
     const sortedTranslations = screen.getAllByRole('textbox');
     expect(sortedTranslations[1]).toHaveValue(textValue2);
@@ -175,14 +180,18 @@ describe('TextEditor', () => {
     });
 
     const newValue: string = 'new translation';
-    await user.clear(nbTextarea);
-    await user.type(nbTextarea, newValue);
-    await user.tab();
-    expect(upsertTextResource).toHaveBeenCalledWith({
-      language: 'nb',
-      textId: textId1,
-      translation: newValue,
-    });
+
+    await waitFor(() => user.clear(nbTextarea));
+    await waitFor(() => user.type(nbTextarea, newValue));
+    await waitFor(() => user.tab());
+
+    await waitFor(() =>
+      expect(upsertTextResource).toHaveBeenCalledWith({
+        language: 'nb',
+        textId: textId1,
+        translation: newValue,
+      }),
+    );
   });
 
   describe('text-id mutation', () => {
@@ -195,15 +204,16 @@ describe('TextEditor', () => {
       });
       expect(result).toHaveLength(2);
 
-      await user.click(result[0]);
-      await screen.findByRole('dialog');
-      await user.click(
+      user.click(result[0]);
+      await waitFor(() => expect(screen.findByRole('dialog')).resolves.toBeInTheDocument());
+
+      user.click(
         screen.getByRole('button', {
           name: textMock('schema_editor.textRow-deletion-confirm'),
         }),
       );
 
-      await expect(onTextIdChange).toHaveBeenCalledWith({ oldId: nb[0].id });
+      await waitFor(() => expect(onTextIdChange).toHaveBeenCalledWith({ oldId: nb[0].id }));
     };
 
     const makeChangesToTextIds = async (onTextIdChange = jest.fn()) => {
@@ -211,22 +221,24 @@ describe('TextEditor', () => {
         updateTextId: onTextIdChange,
       });
 
-      const editKeyButton = await screen.getAllByRole('button', {
+      const editKeyButton = screen.getAllByRole('button', {
         name: textMock('text_editor.toggle_edit_mode', { textKey: textId1 }),
       })[0];
-      await user.click(editKeyButton);
+      user.click(editKeyButton);
 
-      const textIdInput = screen.getByRole('textbox', {
+      const textIdInput = await screen.findByRole('textbox', {
         name: textMock('text_editor.key.edit', { textKey: textId1 }),
       });
 
-      await user.tripleClick(textIdInput);
-      await user.keyboard('new-key{TAB}'); // type new text and blur
+      await waitFor(() => user.tripleClick(textIdInput));
+      await waitFor(() => user.keyboard('new-key{TAB}')); // type new text and blur
 
-      await expect(onTextIdChange).toHaveBeenCalledWith({
-        oldId: nb[0].id,
-        newId: 'new-key',
-      });
+      await waitFor(() =>
+        expect(onTextIdChange).toHaveBeenCalledWith({
+          oldId: nb[0].id,
+          newId: 'new-key',
+        }),
+      );
       return textIdInput;
     };
     const setupError = () => {
@@ -248,7 +260,9 @@ describe('TextEditor', () => {
     it('reverts the text-id if there was an error on change', async () => {
       const { error, onTextIdChange } = setupError();
       const original = await makeChangesToTextIds(onTextIdChange);
-      expect(error).toHaveBeenCalledWith('Renaming text-id failed:\n', 'some error');
+      await waitFor(() =>
+        expect(error).toHaveBeenCalledWith('Renaming text-id failed:\n', 'some error'),
+      );
       const textIdRefsAfter1 = screen.getAllByText(textId2);
       expect(textIdRefsAfter1).toHaveLength(1);
 
@@ -264,7 +278,9 @@ describe('TextEditor', () => {
     it('reverts to the previous IDs if an entry could not be deleted', async () => {
       const { error, onTextIdChange } = setupError();
       await deleteSomething(onTextIdChange);
-      expect(error).toHaveBeenCalledWith('Deleting text failed:\n', 'some error');
+      await waitFor(() =>
+        expect(error).toHaveBeenCalledWith('Deleting text failed:\n', 'some error'),
+      );
       const resultAfter = screen.getAllByRole('button', {
         name: textMock('schema_editor.delete'),
       });

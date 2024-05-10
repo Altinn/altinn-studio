@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { render as rtlRender, screen, waitFor } from '@testing-library/react';
 import type { SetupTabContentProps } from './SetupTabContent';
 import { SetupTabContent } from './SetupTabContent';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
@@ -58,9 +58,9 @@ describe('SetupTabContent', () => {
       textMock('settings_modal.setup_tab_switch_autoDeleteOnProcessEnd'),
     );
     expect(switchInput).toBeChecked();
-    await user.click(switchInput);
+    user.click(switchInput);
 
-    expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1));
   });
 
   it('loads the "messageBoxConfig.hideSettings.hideAlways" value correctly', () => {
@@ -80,9 +80,9 @@ describe('SetupTabContent', () => {
       textMock('settings_modal.setup_tab_switch_messageBoxConfig_hideSettings_hideAlways'),
     );
     expect(switchInput).toBeChecked();
-    await user.click(switchInput);
+    user.click(switchInput);
 
-    expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1));
   });
 
   it('loads the "copyInstanceSettings.enabled" value correctly', () => {
@@ -102,9 +102,9 @@ describe('SetupTabContent', () => {
       textMock('settings_modal.setup_tab_switch_copyInstanceSettings_enabled'),
     );
     expect(switchInput).toBeChecked();
-    await user.click(switchInput);
+    user.click(switchInput);
 
-    expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1));
   });
 
   it('loads the "onEntry.show" value correctly', () => {
@@ -124,9 +124,9 @@ describe('SetupTabContent', () => {
       textMock('settings_modal.setup_tab_switch_onEntry_show'),
     );
     expect(switchInput).toBeChecked();
-    await user.click(switchInput);
+    user.click(switchInput);
 
-    expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(updateAppMetadataMutation).toHaveBeenCalledTimes(1));
   });
 });
 

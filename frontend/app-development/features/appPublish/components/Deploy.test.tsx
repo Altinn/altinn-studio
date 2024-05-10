@@ -152,18 +152,18 @@ describe('DeploymentActions', () => {
     );
 
     const select = screen.getByLabelText(textMock('app_deployment.choose_version'));
-    await user.click(select);
+    user.click(select);
 
-    const option = screen.getByRole('option', { name: imageOptions[0].label });
-    await user.click(option);
+    const option = await screen.findByRole('option', { name: imageOptions[0].label });
+    user.click(option);
 
     const deployButton = await screen.findByRole('button', {
       name: textMock('app_deployment.btn_deploy_new_version'),
     });
-    await user.click(deployButton);
+    user.click(deployButton);
 
-    const confirmButton = screen.getByRole('button', { name: textMock('general.yes') });
-    await user.click(confirmButton);
+    const confirmButton = await screen.findByRole('button', { name: textMock('general.yes') });
+    user.click(confirmButton);
 
     expect(
       await screen.findByText(textMock('app_deployment.technical_error_1')),

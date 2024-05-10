@@ -1,7 +1,7 @@
 import React from 'react';
 import type { StudioTreeViewItemProps } from './StudioTreeViewItem';
 import type { ByRoleOptions } from '@testing-library/react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { StudioTreeViewItem } from './StudioTreeViewItem';
 import type { TreeViewRootContextProps } from '../StudioTreeViewRoot';
 import { StudioTreeViewRootContext } from '../StudioTreeViewRoot';
@@ -91,11 +91,11 @@ describe('StudioTreeViewItem', () => {
   it('Expands the tree item when it is clicked and closes it again when it is clicked again', async () => {
     renderItem({ label, children: <StudioTreeViewItem nodeId='child' label='Test' /> });
     expect(getTreeItem({ name: label, expanded: false })).toBeInTheDocument();
-    await user.click(getTreeItem());
-    expect(getTreeItem({ name: label, expanded: true })).toBeInTheDocument();
+    user.click(getTreeItem());
+    await waitFor(() => expect(getTreeItem({ name: label, expanded: true })).toBeInTheDocument());
     expect(screen.getByRole('group')).toBeInTheDocument();
-    await user.click(getTreeItem());
-    expect(getTreeItem({ name: label, expanded: false })).toBeInTheDocument();
+    user.click(getTreeItem());
+    await waitFor(() => expect(getTreeItem({ name: label, expanded: false })).toBeInTheDocument());
     expect(screen.queryByRole('group')).not.toBeInTheDocument();
   });
 
@@ -116,8 +116,8 @@ describe('StudioTreeViewItem', () => {
 
   it('Calls the `setSelectedId` and `setFocusedId` callbacks with the `nodeId` when clicked', async () => {
     renderItem({ label });
-    await user.click(getTreeItem({ name: label }));
-    expect(setSelectedId).toHaveBeenCalledTimes(1);
+    user.click(getTreeItem({ name: label }));
+    await waitFor(() => expect(setSelectedId).toHaveBeenCalledTimes(1));
     expect(setSelectedId).toHaveBeenCalledWith(nodeId);
     expect(setFocusedId).toHaveBeenCalledTimes(1);
     expect(setFocusedId).toHaveBeenCalledWith(nodeId);

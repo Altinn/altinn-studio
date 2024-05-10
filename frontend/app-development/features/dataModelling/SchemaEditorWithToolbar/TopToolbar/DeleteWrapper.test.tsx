@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { DeleteWrapperProps } from './DeleteWrapper';
 import { DeleteWrapper } from './DeleteWrapper';
@@ -57,29 +57,29 @@ describe('DeleteWrapper', () => {
   it('should open the delete dialog when clicking delete button and schemaName is set', async () => {
     render();
     expect(queryDeleteMessage()).not.toBeInTheDocument();
-    await user.click(getDeleteButton());
-    expect(getDeleteMessage()).toBeInTheDocument();
+    user.click(getDeleteButton());
+    expect(await getDeleteMessage()).toBeInTheDocument();
   });
 
   it('should call deleteAction callback and close dialog when clicking continue button', async () => {
     render();
-    await user.click(getDeleteButton());
-    await user.click(getContinueButton());
-    expect(queryDeleteMessage()).not.toBeInTheDocument();
+    user.click(getDeleteButton());
+    user.click(await getContinueButton());
+    await waitFor(() => expect(queryDeleteMessage()).not.toBeInTheDocument());
   });
 
   it('should close the delete dialog when clicking cancel', async () => {
     render();
     expect(queryDeleteMessage()).not.toBeInTheDocument();
-    await user.click(getDeleteButton());
-    expect(getDeleteMessage()).toBeInTheDocument();
-    await user.click(getCancelButton());
-    expect(queryDeleteMessage()).not.toBeInTheDocument();
+    user.click(getDeleteButton());
+    expect(await getDeleteMessage()).toBeInTheDocument();
+    user.click(getCancelButton());
+    await waitFor(() => expect(queryDeleteMessage()).not.toBeInTheDocument());
   });
 });
 
 const getDeleteButton = () => screen.getByRole('button', { name: deleteText });
-const getContinueButton = () => screen.getByRole('button', { name: continueText });
+const getContinueButton = () => screen.findByRole('button', { name: continueText });
 const getCancelButton = () => screen.getByRole('button', { name: cancelText });
-const getDeleteMessage = () => screen.getByText(confirmText);
+const getDeleteMessage = () => screen.findByText(confirmText);
 const queryDeleteMessage = () => screen.queryByText(confirmText);

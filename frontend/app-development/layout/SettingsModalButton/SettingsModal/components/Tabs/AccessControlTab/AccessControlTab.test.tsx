@@ -60,8 +60,11 @@ describe('AccessControlTab', () => {
     const helpButton = screen.getByRole('button', {
       name: textMock('settings_modal.access_control_tab_help_text_title'),
     });
-    await user.click(helpButton);
-    screen.getByText(textMock('settings_modal.access_control_tab_help_text_heading'));
+    user.click(helpButton);
+    const helpText = await screen.findByText(
+      textMock('settings_modal.access_control_tab_help_text_heading'),
+    );
+    expect(helpText).toBeInTheDocument();
   });
 
   it('renders the documentation link with the correct text', async () => {

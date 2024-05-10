@@ -1,5 +1,10 @@
 import React from 'react';
-import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import {
+  render as rtlRender,
+  screen,
+  waitFor,
+  waitForElementToBeRemoved,
+} from '@testing-library/react';
 import type { AboutTabProps } from './AboutTab';
 import { AboutTab } from './AboutTab';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
@@ -111,9 +116,9 @@ describe('AboutTab', () => {
     const appName = screen.getByLabelText(textMock('settings_modal.about_tab_name_label'));
     expect(appName).toHaveValue(mockAppConfig.serviceName);
 
-    await user.type(appName, mockNewText);
+    user.type(appName, mockNewText);
 
-    expect(appName).toHaveValue(`${mockAppConfig.serviceName}${mockNewText}`);
+    await waitFor(() => expect(appName).toHaveValue(`${mockAppConfig.serviceName}${mockNewText}`));
   });
 
   it('displays correct value in "alternative id" input field, and updates the value on change', async () => {
@@ -123,9 +128,9 @@ describe('AboutTab', () => {
     const altId = screen.getByLabelText(textMock('settings_modal.about_tab_alt_id_label'));
     expect(altId).toHaveValue(mockAppConfig.serviceId);
 
-    await user.type(altId, mockNewText);
+    user.type(altId, mockNewText);
 
-    expect(altId).toHaveValue(`${mockAppConfig.serviceId}${mockNewText}`);
+    await waitFor(() => expect(altId).toHaveValue(`${mockAppConfig.serviceId}${mockNewText}`));
   });
 
   it('should update app config when saving', async () => {
@@ -133,10 +138,10 @@ describe('AboutTab', () => {
     await resolveAndWaitForSpinnerToDisappear();
 
     const altId = screen.getByLabelText(textMock('settings_modal.about_tab_alt_id_label'));
-    await user.type(altId, mockNewText);
-    await user.tab();
+    user.type(altId, mockNewText);
+    user.tab();
 
-    expect(updateAppConfigMutation).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(updateAppConfigMutation).toHaveBeenCalledTimes(1));
   });
 
   it('displays owners full name when it is set', async () => {

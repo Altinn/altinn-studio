@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { StudioIconTextfield } from './StudioIconTextfield';
 import type { StudioIconTextfieldProps } from './StudioIconTextfield';
 import { KeyVerticalIcon } from '@studio/icons';
@@ -34,8 +34,8 @@ describe('StudioIconTextfield', () => {
     const input = screen.getByLabelText('Your ID');
 
     const inputValue = 'my id is 123';
-    await user.type(input, inputValue);
-    expect(onChangeMock).toHaveBeenCalledTimes(inputValue.length);
+    user.type(input, inputValue);
+    await waitFor(() => expect(onChangeMock).toHaveBeenCalledTimes(inputValue.length));
   });
 
   it('should forward the rest of the props to the input', () => {

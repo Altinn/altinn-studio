@@ -2,7 +2,7 @@ import type { RefObject } from 'react';
 import React from 'react';
 import type { StudioPropertyButtonProps } from './StudioPropertyButton';
 import { StudioPropertyButton } from './StudioPropertyButton';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 // Test data:
@@ -52,8 +52,8 @@ describe('StudioPropertyButton', () => {
     const user = userEvent.setup();
     const onClick = jest.fn();
     renderButton({ onClick });
-    await user.click(screen.getByRole('button'));
-    expect(onClick).toHaveBeenCalled();
+    user.click(screen.getByRole('button'));
+    await waitFor(() => expect(onClick).toHaveBeenCalled());
   });
 
   it('Renders a compact button when the compact prop is true', () => {

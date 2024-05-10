@@ -101,9 +101,9 @@ describe('DeployDropdown', () => {
       );
 
       const select = screen.getByLabelText(textMock('app_deployment.choose_version'));
-      await user.click(select);
-
-      expect(screen.getByText(textMock('app_deployment.no_versions'))).toBeInTheDocument();
+      user.click(select);
+      const option = await screen.findByText(textMock('app_deployment.no_versions'));
+      expect(option).toBeInTheDocument();
     });
 
     it('renders image options', async () => {
@@ -115,10 +115,12 @@ describe('DeployDropdown', () => {
       );
 
       const select = screen.getByLabelText(textMock('app_deployment.choose_version'));
-      await user.click(select);
+      user.click(select);
 
-      expect(screen.getByRole('option', { name: imageOptions[0].label })).toBeInTheDocument();
-      expect(screen.getByRole('option', { name: imageOptions[1].label })).toBeInTheDocument();
+      const option1 = await screen.findByRole('option', { name: imageOptions[0].label });
+      expect(option1).toBeInTheDocument();
+      const option2 = screen.getByRole('option', { name: imageOptions[1].label });
+      expect(option2).toBeInTheDocument();
     });
 
     it('selects default image option', async () => {
@@ -139,14 +141,14 @@ describe('DeployDropdown', () => {
       );
 
       const select = screen.getByLabelText(textMock('app_deployment.choose_version'));
-      await user.click(select);
+      user.click(select);
 
-      const option = screen.getByRole('option', { name: imageOptions[1].label });
-      await user.click(option);
+      const option = await screen.findByRole('option', { name: imageOptions[1].label });
+      user.click(option);
 
-      await waitFor(() => {
-        expect(defaultProps.setSelectedImageTag).toHaveBeenCalledWith(imageOptions[1].value);
-      });
+      await waitFor(() =>
+        expect(defaultProps.setSelectedImageTag).toHaveBeenCalledWith(imageOptions[1].value),
+      );
     });
 
     it('shows a loding spinner when mutation is pending', async () => {
@@ -190,12 +192,12 @@ describe('DeployDropdown', () => {
       const deployButton = screen.getByRole('button', {
         name: textMock('app_deployment.btn_deploy_new_version'),
       });
-      await user.click(deployButton);
+      user.click(deployButton);
 
-      const dialog = screen.getByRole('dialog');
+      const dialog = await screen.findByRole('dialog');
       expect(dialog).toBeInTheDocument();
 
-      const text = await screen.findByText(
+      const text = screen.getByText(
         textMock('app_deployment.deploy_confirmation_short', {
           selectedImageTag: imageOptions[0].value,
         }),
@@ -222,12 +224,12 @@ describe('DeployDropdown', () => {
       const deployButton = screen.getByRole('button', {
         name: textMock('app_deployment.btn_deploy_new_version'),
       });
-      await user.click(deployButton);
+      user.click(deployButton);
 
-      const dialog = screen.getByRole('dialog');
+      const dialog = await screen.findByRole('dialog');
       expect(dialog).toBeInTheDocument();
 
-      const text = await screen.findByText(
+      const text = screen.getByText(
         textMock('app_deployment.deploy_confirmation', {
           selectedImageTag: imageOptions[0].value,
           appDeployedVersion: '1',
@@ -253,13 +255,13 @@ describe('DeployDropdown', () => {
       const deployButton = screen.getByRole('button', {
         name: textMock('app_deployment.btn_deploy_new_version'),
       });
-      await user.click(deployButton);
+      user.click(deployButton);
 
-      const confirmButton = screen.getByRole('button', { name: textMock('general.yes') });
-      await user.click(confirmButton);
+      const confirmButton = await screen.findByRole('button', { name: textMock('general.yes') });
+      user.click(confirmButton);
 
-      expect(defaultProps.startDeploy).toHaveBeenCalledTimes(1);
-      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+      await waitFor(() => expect(defaultProps.startDeploy).toHaveBeenCalledTimes(1));
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
 
     it('should close the confirmation dialog when clicking the cancel button', async () => {
@@ -273,12 +275,12 @@ describe('DeployDropdown', () => {
       const deployButton = screen.getByRole('button', {
         name: textMock('app_deployment.btn_deploy_new_version'),
       });
-      await user.click(deployButton);
+      user.click(deployButton);
 
-      const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
-      await user.click(cancelButton);
+      const cancelButton = await screen.findByRole('button', { name: textMock('general.cancel') });
+      user.click(cancelButton);
 
-      expect(defaultProps.startDeploy).toHaveBeenCalledTimes(0);
+      await waitFor(() => expect(defaultProps.startDeploy).toHaveBeenCalledTimes(0));
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
 
@@ -293,12 +295,12 @@ describe('DeployDropdown', () => {
       const deployButton = screen.getByRole('button', {
         name: textMock('app_deployment.btn_deploy_new_version'),
       });
-      await user.click(deployButton);
+      user.click(deployButton);
 
-      await user.click(document.body);
+      user.click(document.body);
 
-      expect(defaultProps.startDeploy).toHaveBeenCalledTimes(0);
-      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+      await waitFor(() => expect(defaultProps.startDeploy).toHaveBeenCalledTimes(0));
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
   });
 });

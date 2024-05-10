@@ -1,5 +1,10 @@
 import React from 'react';
-import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import {
+  render as rtlRender,
+  screen,
+  waitFor,
+  waitForElementToBeRemoved,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { SettingsModalProps } from './SettingsModal';
 import { SettingsModal } from './SettingsModal';
@@ -53,9 +58,9 @@ describe('SettingsModal', () => {
     const closeButton = screen.getByRole('button', {
       name: textMock('settings_modal.close_button_label'),
     });
-    await user.click(closeButton);
+    user.click(closeButton);
 
-    expect(mockOnClose).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockOnClose).toHaveBeenCalledTimes(1));
   });
 
   it('displays left navigation bar when promises resolves', async () => {
@@ -107,14 +112,13 @@ describe('SettingsModal', () => {
     const policyTab = screen.getByRole('tab', {
       name: textMock('settings_modal.left_nav_tab_policy'),
     });
-    await user.click(policyTab);
+    user.click(policyTab);
 
-    expect(
-      screen.getByRole('heading', {
-        name: textMock('settings_modal.policy_tab_heading'),
-        level: 2,
-      }),
-    ).toBeInTheDocument();
+    const policyTabHeading = await screen.findByRole('heading', {
+      name: textMock('settings_modal.policy_tab_heading'),
+      level: 2,
+    });
+    expect(policyTabHeading).toBeInTheDocument();
     expect(
       screen.queryByText(textMock('settings_modal.about_tab_heading')),
     ).not.toBeInTheDocument();
@@ -126,19 +130,18 @@ describe('SettingsModal', () => {
     const policyTab = screen.getByRole('tab', {
       name: textMock('settings_modal.left_nav_tab_policy'),
     });
-    await user.click(policyTab);
+    user.click(policyTab);
 
-    const aboutTab = screen.getByRole('tab', {
+    const aboutTab = await screen.findByRole('tab', {
       name: textMock('settings_modal.left_nav_tab_about'),
     });
-    await user.click(aboutTab);
+    user.click(aboutTab);
 
-    expect(
-      screen.queryByRole('heading', {
-        name: textMock('settings_modal.policy_tab_heading'),
-        level: 2,
-      }),
-    ).not.toBeInTheDocument();
+    const aboutTabHeading = await screen.findByRole('heading', {
+      name: textMock('settings_modal.about_tab_heading'),
+      level: 2,
+    });
+    await waitFor(() => expect(aboutTabHeading).not.toBeInTheDocument());
     expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
   });
 
@@ -156,17 +159,16 @@ describe('SettingsModal', () => {
     const accessControlTab = screen.getByRole('tab', {
       name: textMock('settings_modal.left_nav_tab_accessControl'),
     });
-    await user.click(accessControlTab);
+    user.click(accessControlTab);
 
-    expect(
-      screen.getByRole('heading', {
-        name: textMock('settings_modal.access_control_tab_heading'),
-        level: 2,
-      }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByText(textMock('settings_modal.about_tab_heading')),
-    ).not.toBeInTheDocument();
+    const accessControlTabHeading = await screen.findByRole('heading', {
+      name: textMock('settings_modal.access_control_tab_heading'),
+      level: 2,
+    });
+    expect(accessControlTabHeading).toBeInTheDocument();
+
+    const aboutTabHeading = screen.queryByText(textMock('settings_modal.about_tab_heading'));
+    expect(aboutTabHeading).not.toBeInTheDocument();
   });
 
   it('changes the tab from "about" to "setup" when setup control tab is clicked', async () => {
@@ -183,17 +185,15 @@ describe('SettingsModal', () => {
     const setupTab = screen.getByRole('tab', {
       name: textMock('settings_modal.left_nav_tab_setup'),
     });
-    await user.click(setupTab);
+    user.click(setupTab);
+    const setupTabHeading = await screen.findByRole('heading', {
+      name: textMock('settings_modal.setup_tab_heading'),
+      level: 2,
+    });
+    expect(setupTabHeading).toBeInTheDocument();
 
-    expect(
-      screen.getByRole('heading', {
-        name: textMock('settings_modal.setup_tab_heading'),
-        level: 2,
-      }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByText(textMock('settings_modal.about_tab_heading')),
-    ).not.toBeInTheDocument();
+    const aboutTabHeading = screen.queryByText(textMock('settings_modal.about_tab_heading'));
+    expect(aboutTabHeading).not.toBeInTheDocument();
   });
 
   /**

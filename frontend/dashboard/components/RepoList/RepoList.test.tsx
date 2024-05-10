@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, render, within } from '@testing-library/react';
+import { screen, render, within, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MockServicesContextWrapper } from '../../dashboardTestUtils';
 import { searchRepositoryResponseMock } from '../../data-mocks/searchRepositoryResponseMock';
@@ -62,9 +62,9 @@ describe('RepoList', () => {
     const sortBtn = document.querySelector(
       'button[aria-label="' + localeText.columnHeaderSortIconLabel + '"]',
     );
-    await user.click(sortBtn);
+    user.click(sortBtn);
 
-    expect(handleSortMock).not.toHaveBeenCalled();
+    await waitFor(() => expect(handleSortMock).not.toHaveBeenCalled());
   });
 
   test('should call onSortModelChange when clicking sort button and isServerSort is true', async () => {
@@ -78,11 +78,13 @@ describe('RepoList', () => {
     const sortBtn = document.querySelector(
       'button[aria-label="' + localeText.columnHeaderSortIconLabel + '"]',
     );
-    await user.click(sortBtn);
+    user.click(sortBtn);
 
-    expect(handleSortMock).toHaveBeenCalledWith([{ field: 'name', sort: 'asc' }], {
-      reason: undefined,
-    });
+    await waitFor(() =>
+      expect(handleSortMock).toHaveBeenCalledWith([{ field: 'name', sort: 'asc' }], {
+        reason: undefined,
+      }),
+    );
   });
 
   test('Should render GridActionsCellItem', async () => {
@@ -113,17 +115,17 @@ describe('RepoList', () => {
       name: localeText.MuiTablePagination.getItemAriaLabel('next'),
     });
     expect(nextPageButton).toBeInTheDocument();
-    await user.click(nextPageButton);
+    user.click(nextPageButton);
 
-    expect(onPageChange).toHaveBeenCalledWith(1);
+    await waitFor(() => expect(onPageChange).toHaveBeenCalledWith(1));
 
     const previousPageButton = screen.getByRole('button', {
       name: localeText.MuiTablePagination.getItemAriaLabel('previous'),
     });
     expect(previousPageButton).toBeInTheDocument();
-    await user.click(previousPageButton);
 
-    expect(onPageChange).toHaveBeenCalledWith(1);
+    user.click(previousPageButton);
+    await waitFor(() => expect(onPageChange).toHaveBeenCalledWith(1));
   });
 
   test('should call onPageSizeChange when selecting a new page size', async () => {
@@ -138,11 +140,11 @@ describe('RepoList', () => {
     const pageSizeSelect = screen.getByRole('combobox', {
       name: localeText.MuiTablePagination.labelRowsPerPage.toString(),
     });
-    await user.click(pageSizeSelect);
+    user.click(pageSizeSelect);
 
-    const pageSizeOption = screen.getByRole('option', { name: newPageSize.toString() });
-    await user.click(pageSizeOption);
+    const pageSizeOption = await screen.findByRole('option', { name: newPageSize.toString() });
+    user.click(pageSizeOption);
 
-    expect(onPageSizeChange).toHaveBeenCalledWith(newPageSize);
+    await waitFor(() => expect(onPageSizeChange).toHaveBeenCalledWith(newPageSize));
   });
 });

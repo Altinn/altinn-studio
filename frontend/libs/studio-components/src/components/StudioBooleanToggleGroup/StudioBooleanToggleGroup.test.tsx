@@ -1,6 +1,6 @@
 import type { RefObject } from 'react';
 import React, { createRef } from 'react';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import type { StudioBooleanToggleGroupProps } from './StudioBooleanToggleGroup';
 import { StudioBooleanToggleGroup } from './StudioBooleanToggleGroup';
 import userEvent from '@testing-library/user-event';
@@ -35,16 +35,16 @@ describe('StudioBooleanToggleGroup', () => {
     const user = userEvent.setup();
     const onChange = jest.fn();
     renderBooleanToggle({ onChange, value: false });
-    await user.click(getTrueToggle());
-    expect(onChange).toHaveBeenCalledTimes(1);
+    user.click(getTrueToggle());
+    await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
     expect(onChange).toHaveBeenCalledWith(true);
   });
 
   it('Switches the toggle when the user checks the true toggle', async () => {
     const user = userEvent.setup();
     renderBooleanToggle({ value: false });
-    await user.click(getTrueToggle());
-    expect(getTrueToggle()).toBeChecked();
+    user.click(getTrueToggle());
+    await waitFor(() => expect(getTrueToggle()).toBeChecked());
     expect(getFalseToggle()).not.toBeChecked();
   });
 
@@ -52,16 +52,16 @@ describe('StudioBooleanToggleGroup', () => {
     const user = userEvent.setup();
     const onChange = jest.fn();
     renderBooleanToggle({ onChange, value: true });
-    await user.click(getFalseToggle());
-    expect(onChange).toHaveBeenCalledTimes(1);
+    user.click(getFalseToggle());
+    await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
     expect(onChange).toHaveBeenCalledWith(false);
   });
 
   it('Switches the toggle when the user checks the false toggle', async () => {
     const user = userEvent.setup();
     renderBooleanToggle({ value: true });
-    await user.click(getFalseToggle());
-    expect(getFalseToggle()).toBeChecked();
+    user.click(getFalseToggle());
+    await waitFor(() => expect(getFalseToggle()).toBeChecked());
     expect(getTrueToggle()).not.toBeChecked();
   });
 

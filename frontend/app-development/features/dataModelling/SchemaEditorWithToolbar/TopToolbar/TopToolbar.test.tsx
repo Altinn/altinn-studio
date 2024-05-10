@@ -1,7 +1,7 @@
 import React from 'react';
 import type { TopToolbarProps } from './TopToolbar';
 import { TopToolbar } from './TopToolbar';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -90,8 +90,8 @@ describe('TopToolbar', () => {
     expect(topToolbar).toBeDefined();
     const generateButton = screen.getByRole('button', { name: generateText });
     expect(generateButton).toBeDefined();
-    await user.click(generateButton);
-    expect(queriesMock.generateModels).toHaveBeenCalledTimes(1);
+    user.click(generateButton);
+    await waitFor(() => expect(queriesMock.generateModels).toHaveBeenCalledTimes(1));
   });
 
   it('Does not show any error by default', () => {
@@ -106,8 +106,9 @@ describe('TopToolbar', () => {
         generateModels: jest.fn().mockImplementation(() => Promise.reject()),
       },
     );
-    await user.click(screen.getByRole('button', { name: generateText }));
-    expect(await screen.findByRole('alert')).toHaveTextContent(generalErrorMessage);
+    user.click(screen.getByRole('button', { name: generateText }));
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent(generalErrorMessage);
   });
 
   it('Hides spinner while not loading', () => {
@@ -117,7 +118,8 @@ describe('TopToolbar', () => {
 
   it('Shows success message when the "generate" button is clicked and there is no error', async () => {
     renderToolbar({});
-    await user.click(screen.getByRole('button', { name: generateText }));
-    expect(await screen.findByRole('alert')).toHaveTextContent(dataModelGenerationSuccessMessage);
+    user.click(await screen.findByRole('button', { name: generateText }));
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent(dataModelGenerationSuccessMessage);
   });
 });

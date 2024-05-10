@@ -71,12 +71,13 @@ describe('SelectAllowedPartyTypes', () => {
       name: textMock('settings_modal.access_control_tab_option_bankruptcy_estate'),
     });
     expect(bankruptcyEstateCheckbox).toBeChecked();
-    await waitFor(() => user.click(bankruptcyEstateCheckbox));
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    user.click(bankruptcyEstateCheckbox);
+    const warningModal = await screen.findByRole('dialog');
+    expect(warningModal).toBeInTheDocument();
     expect(queriesMock.updateAppMetadata).not.toHaveBeenCalled();
     const closeButton = screen.getByRole('button', { name: textMock('general.close') });
-    await user.click(closeButton);
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    user.click(closeButton);
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 
   it('should check all checkboxes when all-types checkbox is clicked', async () => {
@@ -85,10 +86,10 @@ describe('SelectAllowedPartyTypes', () => {
     const allTypeCheckbox = screen.getByRole('checkbox', {
       name: textMock('settings_modal.access_control_tab_option_all_types'),
     });
-    await user.click(allTypeCheckbox);
+    user.click(allTypeCheckbox);
     const checkboxes = screen.getAllByRole('checkbox');
-    checkboxes.forEach((checkbox) => {
-      expect(checkbox).toBeChecked();
+    checkboxes.forEach(async (checkbox) => {
+      await waitFor(() => expect(checkbox).toBeChecked());
     });
   });
 
@@ -98,17 +99,19 @@ describe('SelectAllowedPartyTypes', () => {
     const allTypeCheckbox = screen.getByRole('checkbox', {
       name: textMock('settings_modal.access_control_tab_option_all_types'),
     });
-    await user.click(allTypeCheckbox);
-    expect(queriesMock.updateAppMetadata).toHaveBeenCalledTimes(1);
-    expect(queriesMock.updateAppMetadata).toHaveBeenCalledWith(org, app, {
-      ...mockAppMetadata,
-      partyTypesAllowed: {
-        person: true,
-        organisation: true,
-        subUnit: true,
-        bankruptcyEstate: true,
-      },
-    });
+    user.click(allTypeCheckbox);
+    await waitFor(() => expect(queriesMock.updateAppMetadata).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(queriesMock.updateAppMetadata).toHaveBeenCalledWith(org, app, {
+        ...mockAppMetadata,
+        partyTypesAllowed: {
+          person: true,
+          organisation: true,
+          subUnit: true,
+          bankruptcyEstate: true,
+        },
+      }),
+    );
   });
 
   it('all checkboxes should be checked by default when all partytypes are false', async () => {
@@ -134,8 +137,8 @@ describe('SelectAllowedPartyTypes', () => {
     const checkboxes = screen.getByRole('checkbox', {
       name: textMock('settings_modal.access_control_tab_option_person'),
     });
-    await user.click(checkboxes);
-    expect(queriesMock.updateAppMetadata).toHaveBeenCalledTimes(1);
+    user.click(checkboxes);
+    await waitFor(() => expect(queriesMock.updateAppMetadata).toHaveBeenCalledTimes(1));
   });
 });
 

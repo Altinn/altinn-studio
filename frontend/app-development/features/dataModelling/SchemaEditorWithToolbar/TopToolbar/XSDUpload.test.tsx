@@ -1,7 +1,7 @@
 import React from 'react';
 import axios from 'axios';
 import { XSDUpload } from './XSDUpload';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import type { QueryClient } from '@tanstack/react-query';
@@ -22,7 +22,7 @@ const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 const clickUploadButton = async () => {
   const btn = screen.getByText(textMock('app_data_modelling.upload_xsd'));
-  await user.click(btn);
+  user.click(btn);
 };
 
 const render = (queryClient: QueryClient = createQueryClientMock()) =>
@@ -46,19 +46,21 @@ describe('XSDUpload', () => {
     const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
     render();
 
-    await clickUploadButton();
+    clickUploadButton();
 
-    expect(
-      screen.queryByText(textMock('form_filler.file_uploader_validation_error_upload')),
-    ).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.queryByText(textMock('form_filler.file_uploader_validation_error_upload')),
+      ).not.toBeInTheDocument(),
+    );
 
     const fileInput = screen.getByTestId(testids.fileSelectorInput);
 
-    await user.upload(fileInput, file);
-
-    expect(
-      screen.getByText(textMock('form_filler.file_uploader_validation_error_upload')),
-    ).toBeInTheDocument();
+    user.upload(fileInput, file);
+    const errorText = await screen.findByText(
+      textMock('form_filler.file_uploader_validation_error_upload'),
+    );
+    expect(errorText).toBeInTheDocument();
   });
 
   it('Invalidates metadata queries when upload is successful', async () => {
@@ -69,13 +71,13 @@ describe('XSDUpload', () => {
     const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
     render(queryClient);
 
-    await clickUploadButton();
+    clickUploadButton();
 
     const fileInput = screen.getByTestId(testids.fileSelectorInput);
 
-    await user.upload(fileInput, file);
+    user.upload(fileInput, file);
 
-    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(2);
+    await waitFor(() => expect(invalidateQueriesSpy).toHaveBeenCalledTimes(2));
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({
       queryKey: [QueryKey.DatamodelsJson, org, app],
     });

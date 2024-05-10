@@ -4,7 +4,7 @@ import {
   StudioToggleableTextfieldSchema,
   type StudioToggleableTextfieldSchemaProps,
 } from './StudioToggleableTextfieldSchema';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const defaultLayoutSchemaMock: JsonSchema = {
@@ -73,8 +73,9 @@ describe('StudioToggleableTextfieldSchema', () => {
       },
     });
 
-    await user.click(screen.getByRole('button', { name: 'Edit id' }));
-    expect(screen.getByLabelText('Your id')).toBeInTheDocument();
+    user.click(screen.getByRole('button', { name: 'Edit id' }));
+    const input = await screen.findByLabelText('Your id');
+    expect(input).toBeInTheDocument();
   });
 
   it('should toggle to view mode on blur', async () => {
@@ -90,8 +91,10 @@ describe('StudioToggleableTextfieldSchema', () => {
       },
     });
 
-    await user.click(screen.getByRole('button', { name: 'Edit id' }));
-    expect(screen.queryByRole('button', { name: 'Edit id' })).not.toBeInTheDocument();
+    user.click(screen.getByRole('button', { name: 'Edit id' }));
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Edit id' })).not.toBeInTheDocument(),
+    );
 
     fireEvent.blur(screen.getByLabelText('Your id'));
     expect(screen.getByRole('button', { name: 'Edit id' })).toBeInTheDocument();
@@ -111,11 +114,15 @@ describe('StudioToggleableTextfieldSchema', () => {
       },
     });
 
-    await user.click(screen.getByRole('button', { name: 'Edit id' }));
-    expect(screen.queryByRole('button', { name: 'Edit id' })).not.toBeInTheDocument();
+    user.click(screen.getByRole('button', { name: 'Edit id' }));
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Edit id' })).not.toBeInTheDocument(),
+    );
 
     fireEvent.blur(screen.getByLabelText('Your id'));
-    expect(screen.queryByRole('button', { name: 'Edit id' })).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Edit id' })).not.toBeInTheDocument(),
+    );
   });
 
   it('should validate field against json schema and invoke "onError" if validation has errors', async () => {
@@ -130,13 +137,15 @@ describe('StudioToggleableTextfieldSchema', () => {
         label: 'Your id',
       },
     });
-    await user.click(screen.getByRole('button', { name: 'Edit id' }));
+    user.click(screen.getByRole('button', { name: 'Edit id' }));
 
-    await user.type(screen.getByLabelText('Your id'), 'invalid-value-01');
-    expect(defaultProps.onError).toHaveBeenCalledWith({
-      errorCode: 'pattern',
-      details: 'Result of validate property',
-    });
+    user.type(await screen.findByLabelText('Your id'), 'invalid-value-01');
+    await waitFor(() =>
+      expect(defaultProps.onError).toHaveBeenCalledWith({
+        errorCode: 'pattern',
+        details: 'Result of validate property',
+      }),
+    );
   });
 
   it('should validate field against json schema and invoke "onError" if field is required', async () => {
@@ -151,10 +160,10 @@ describe('StudioToggleableTextfieldSchema', () => {
         label: 'Your id',
       },
     });
-    await user.click(screen.getByRole('button', { name: 'Edit id' }));
+    user.click(screen.getByRole('button', { name: 'Edit id' }));
 
-    await user.type(screen.getByLabelText('Your id'), 'first-id');
-    await user.clear(screen.getByLabelText('Your id'));
+    await waitFor(() => user.type(screen.getByLabelText('Your id'), 'first-id'));
+    await waitFor(() => user.clear(screen.getByLabelText('Your id')));
 
     expect(defaultProps.onError).toHaveBeenCalledWith({
       errorCode: 'required',
@@ -179,14 +188,16 @@ describe('StudioToggleableTextfieldSchema', () => {
       },
     });
 
-    await user.click(screen.getByRole('button', { name: 'Edit id' }));
+    user.click(screen.getByRole('button', { name: 'Edit id' }));
 
     const invalidValue = '1';
-    await user.type(screen.getByLabelText('Your id'), invalidValue);
-    expect(onErrorMock).toHaveBeenCalledWith({
-      details: 'Result of validate property',
-      errorCode: 'pattern',
-    });
+    user.type(await screen.findByLabelText('Your id'), invalidValue);
+    await waitFor(() =>
+      expect(onErrorMock).toHaveBeenCalledWith({
+        details: 'Result of validate property',
+        errorCode: 'pattern',
+      }),
+    );
     expect(onChangeMock).toHaveBeenCalledTimes(1);
   });
 });

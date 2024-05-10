@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as renderRtl, screen } from '@testing-library/react';
+import { render as renderRtl, screen, waitFor } from '@testing-library/react';
 import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
 import type { CreateNewWrapperProps } from './CreateNewWrapper';
 import { CreateNewWrapper } from './CreateNewWrapper';
@@ -38,9 +38,9 @@ describe('CreateNewWrapper', () => {
     const newButton = screen.getByRole('button', {
       name: textMock('general.create_new'),
     });
-    await user.click(newButton);
+    user.click(newButton);
 
-    expect(setCreateNewOpen).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(setCreateNewOpen).toHaveBeenCalledTimes(1));
     expect(setCreateNewOpen).toHaveBeenCalledWith(true);
   });
 
@@ -57,8 +57,8 @@ describe('CreateNewWrapper', () => {
       name: textMock('general.create_new'),
     });
 
-    await user.click(newButton);
-    expect(setCreateNewOpen).toHaveBeenCalledTimes(1);
+    user.click(newButton);
+    await waitFor(() => expect(setCreateNewOpen).toHaveBeenCalledTimes(1));
     expect(setCreateNewOpen).toHaveBeenCalledWith(false);
   });
 
@@ -70,12 +70,14 @@ describe('CreateNewWrapper', () => {
       const okButton = screen.getByRole('button', {
         name: textMock('schema_editor.create_model_confirm_button'),
       });
-      await user.type(textInput, 'new-model');
-      await user.click(okButton);
-      expect(handleCreateSchema).toHaveBeenCalledWith({
-        name: 'new-model',
-        relativePath: undefined,
-      });
+      await waitFor(() => user.type(textInput, 'new-model'));
+      user.click(okButton);
+      await waitFor(() =>
+        expect(handleCreateSchema).toHaveBeenCalledWith({
+          name: 'new-model',
+          relativePath: undefined,
+        }),
+      );
     });
 
     it('should call handleCreateSchema callback when input is focused and Enter key is pressed', async () => {
@@ -83,12 +85,14 @@ describe('CreateNewWrapper', () => {
 
       const textInput = screen.getByRole('textbox');
 
-      await user.type(textInput, 'new-model');
-      await user.keyboard('{Enter}');
-      expect(handleCreateSchema).toHaveBeenCalledWith({
-        name: 'new-model',
-        relativePath: undefined,
-      });
+      await waitFor(() => user.type(textInput, 'new-model'));
+      user.keyboard('{Enter}');
+      await waitFor(() =>
+        expect(handleCreateSchema).toHaveBeenCalledWith({
+          name: 'new-model',
+          relativePath: undefined,
+        }),
+      );
     });
 
     it('should call handleCreateSchema callback with relativePath when createPathOption is set and ok button is clicked', async () => {
@@ -98,12 +102,14 @@ describe('CreateNewWrapper', () => {
       const okButton = screen.getByRole('button', {
         name: textMock('schema_editor.create_model_confirm_button'),
       });
-      await user.type(textInput, 'new-model');
-      await user.click(okButton);
-      expect(handleCreateSchema).toHaveBeenCalledWith({
-        name: 'new-model',
-        relativePath: '',
-      });
+      await waitFor(() => user.type(textInput, 'new-model'));
+      user.click(okButton);
+      await waitFor(() =>
+        expect(handleCreateSchema).toHaveBeenCalledWith({
+          name: 'new-model',
+          relativePath: '',
+        }),
+      );
     });
 
     it('should not call handleCreateSchema callback and show error message when trying to create a new model with the same name as an existing one when ok button is clicked', async () => {
@@ -116,13 +122,14 @@ describe('CreateNewWrapper', () => {
         name: textMock('schema_editor.create_model_confirm_button'),
       });
 
-      await user.type(textInput, newModelName);
+      await waitFor(() => user.type(textInput, newModelName));
       expect(screen.queryByText(errMessage)).not.toBeInTheDocument();
 
-      await user.click(okButton);
+      user.click(okButton);
 
       expect(handleCreateSchema).not.toHaveBeenCalled();
-      expect(screen.getByText(errMessage)).toBeInTheDocument();
+      const errMessageElement = await screen.findByText(errMessage);
+      expect(errMessageElement).toBeInTheDocument();
     });
 
     it('should not call handleCreateSchema callback when trying to create a new model with no name when ok button is clicked', async () => {
@@ -135,7 +142,7 @@ describe('CreateNewWrapper', () => {
         name: textMock('schema_editor.create_model_confirm_button'),
       });
 
-      await userWithNoPointerEventCheck.click(okButton);
+      userWithNoPointerEventCheck.click(okButton);
 
       expect(handleCreateSchema).not.toHaveBeenCalled();
     });
