@@ -4,8 +4,6 @@ import { FormItemContext, FormItemContextProvider } from './FormItemContext';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../testing/mocks';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
-import { ComponentType } from 'app-shared/types/ComponentType';
-import type { FormContainer } from '../types/FormContainer';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { appContextMock } from '../testing/appContextMock';
