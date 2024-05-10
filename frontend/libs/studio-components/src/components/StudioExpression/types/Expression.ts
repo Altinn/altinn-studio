@@ -4,6 +4,7 @@ import type { LogicalTupleOperator } from '../enums/LogicalTupleOperator';
 import type { DataLookupFuncName } from '../enums/DataLookupFuncName';
 import type { KeyLookupFuncName } from '../enums/KeyLookupFuncName';
 import type { InstanceContext } from '../enums/InstanceContext';
+import { GatewayActionContext } from '../enums/GatewayActionContext';
 
 export type Expression =
   | null
@@ -26,7 +27,6 @@ export type BooleanExpression =
 export type StrictBooleanExpression =
   | boolean
   | FuncEquals
-  | FuncEqualsArrayString
   | FuncNotEquals
   | FuncGreaterThan
   | FuncGreaterThanEq
@@ -54,6 +54,7 @@ type StrictStringExpression =
   | FuncComponent
   | FuncDatamodel
   | FuncGatewayAction
+  | FuncGatewayActionContext
   | FuncDisplayValue
   | FuncInstanceContext
   | FuncFrontendSettings
@@ -89,9 +90,7 @@ export type NumberRelationFunc<N extends NumberRelationOperator = NumberRelation
   [K in N]: GenericNumberRelationFunc<K>;
 }[N];
 
-type GenericGenericRelationFunc<N extends GeneralRelationOperator> =
-  | [N, Expression, Expression]
-  | FuncEqualsArrayString;
+type GenericGenericRelationFunc<N extends GeneralRelationOperator> = [N, Expression, Expression];
 export type GenericRelationFunc<N extends GeneralRelationOperator = GeneralRelationOperator> = {
   [K in N]: GenericGenericRelationFunc<K>;
 }[N];
@@ -110,6 +109,7 @@ type FuncDatamodel = DataLookupFunc<DataLookupFuncName.DataModel>;
 type FuncGatewayAction = DataLookupFunc<DataLookupFuncName.GatewayAction>;
 type FuncDisplayValue = ['displayValue', StringExpression];
 type FuncInstanceContext = KeyLookupFunc<KeyLookupFuncName.InstanceContext>;
+type FuncGatewayActionContext = KeyLookupFunc<KeyLookupFuncName.GatewayActionContext>;
 type FuncAuthContext = [
   'authContext',
   'read' | 'write' | 'instantiate' | 'confirm' | 'sign' | 'reject',
@@ -117,7 +117,6 @@ type FuncAuthContext = [
 type FuncFrontendSettings = ['frontendSettings', StringExpression];
 type FuncConcat = ['concat', ...StringExpression[]];
 type FuncEquals = GenericRelationFunc<GeneralRelationOperator.Equals>;
-type FuncEqualsArrayString = [GeneralRelationOperator, [StringExpression], StringExpression];
 type FuncNotEquals = GenericRelationFunc<GeneralRelationOperator.NotEquals>;
 type FuncNot = ['not', BooleanExpression];
 type FuncGreaterThan = NumberRelationFunc<NumberRelationOperator.GreaterThan>;
@@ -142,4 +141,5 @@ type FuncArgv = ['argv', NumberExpression];
 
 type LookupKey<N extends KeyLookupFuncName> = {
   [KeyLookupFuncName.InstanceContext]: InstanceContext;
+  [KeyLookupFuncName.GatewayActionContext]: GatewayActionContext;
 }[N];

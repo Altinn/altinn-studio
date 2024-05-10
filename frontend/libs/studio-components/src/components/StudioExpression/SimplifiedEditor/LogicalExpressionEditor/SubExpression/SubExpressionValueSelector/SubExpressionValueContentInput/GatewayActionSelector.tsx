@@ -18,7 +18,7 @@ export const GatewayActionSelector = ({
   return (
     <NativeSelect size='small' onChange={handleChange} label={texts.gatewayActionKey}>
       {options.map((option) => (
-        <option key={option} value={option}>
+        <option key={option} value={option} selected={option === value.key}>
           {texts.gatewayActionContext[option]}
         </option>
       ))}

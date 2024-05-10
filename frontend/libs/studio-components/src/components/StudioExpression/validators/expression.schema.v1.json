@@ -374,7 +374,11 @@
           "const": "gatewayAction"
         },
         {
-          "$ref": "#/definitions/string"
+          "enum": [
+            "confirm",
+            "pay",
+            "reject"
+          ]
         }
       ]
     },

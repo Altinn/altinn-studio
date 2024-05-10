@@ -20,6 +20,8 @@ export const SubexpressionValueContentInput = ({
       return <ComponentIdSelector onChange={onChange} value={value} />;
     case SimpleSubexpressionValueType.InstanceContext:
       return <InstanceContextKeySelector onChange={onChange} value={value} />;
+    case SimpleSubexpressionValueType.GatewayAction:
+      return null;
     case SimpleSubexpressionValueType.GatewayActionContext:
       return <GatewayActionSelector onChange={onChange} value={value} />;
     case SimpleSubexpressionValueType.String:
