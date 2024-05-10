@@ -4,7 +4,7 @@ import type { LogicalTupleOperator } from '../enums/LogicalTupleOperator';
 import type { DataLookupFuncName } from '../enums/DataLookupFuncName';
 import type { KeyLookupFuncName } from '../enums/KeyLookupFuncName';
 import type { InstanceContext } from '../enums/InstanceContext';
-import { GatewayActionContext } from '../enums/GatewayActionContext';
+import type { GatewayActionContext } from '../enums/GatewayActionContext';
 
 export type Expression =
   | null

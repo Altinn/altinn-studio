@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  BooleanExpression,
+  type BooleanExpression,
   GeneralRelationOperator,
   StudioButton,
   StudioExpression,
@@ -34,14 +34,14 @@ export const ConfigSequenceFlow = (): React.ReactElement => {
     setExpression(defaultExpression);
   };
 
-  const addExpressionToSequenceFlow = (expression: BooleanExpression): void => {
-    const shouldDeleteExpression = expression === null;
+  const addExpressionToSequenceFlow = (expressionToAdd: BooleanExpression): void => {
+    const shouldDeleteExpression = expressionToAdd === null;
     if (shouldDeleteExpression) {
       deleteExpression();
       return;
     }
 
-    const stringifyExpression = JSON.stringify(expression);
+    const stringifyExpression = JSON.stringify(expressionToAdd);
     const newExpressionElement = expressionModeler.createExpressionElement(stringifyExpression);
 
     expressionModeler.addChildElementToParent({

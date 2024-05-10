@@ -3,7 +3,7 @@ import type { LogicalTupleOperator } from '../enums/LogicalTupleOperator';
 import type { ExpressionErrorKey } from '../enums/ExpressionErrorKey';
 import type { RelationalOperator } from './RelationalOperator';
 import type { InstanceContext } from '../enums/InstanceContext';
-import { GatewayActionContext } from '../enums/GatewayActionContext';
+import type { GatewayActionContext } from '../enums/GatewayActionContext';
 
 export type ExpressionTexts = {
   addSubexpression: string;
