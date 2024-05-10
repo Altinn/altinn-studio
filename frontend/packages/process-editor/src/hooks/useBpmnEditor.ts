@@ -90,11 +90,10 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   useEffect(() => {
     if (!canvasRef.current) {
       console.log('Canvas reference is not yet available in the DOM.');
-      return;
     }
-
+    // GetModeler can only be fetched from this hook once since the modeler creates a
+    // new instance and will attach the same canvasRef container to all instances it fetches
     modelerRef.current = getModeler(canvasRef.current);
-
     initializeEditor();
     initializeBpmnChanges();
     // set modelerRef.current to the Context so that it can be used in other components
@@ -106,7 +105,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   }, [modelerRef, handleSetBpmnDetails]);
 
   useEffect(() => {
-    // Ensure to detach and destroys the modeller when it's unmounted
+    // Destroy the modeler instance when the component is unmounted
     return () => {
       destroyModeler();
     };

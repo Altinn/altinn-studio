@@ -82,6 +82,7 @@ jest.mock('./useBpmnModeler', () => ({
 const overrideUseBpmnModeler = (currentEventName: string) => {
   (useBpmnModeler as jest.Mock).mockReturnValue({
     getModeler: () => new BpmnModelerMockImpl(currentEventName),
+    destroyModeler: jest.fn(),
   });
 };
 
