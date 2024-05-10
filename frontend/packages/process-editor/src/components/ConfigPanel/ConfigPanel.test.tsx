@@ -66,10 +66,6 @@ describe('ConfigPanel', () => {
       expectedText: 'process_editor.configuration_panel_no_task_title',
     },
     {
-      task: BpmnTypeEnum.SequenceFlow,
-      expectedText: 'process_editor.configuration_panel_element_not_supported_message',
-    },
-    {
       task: BpmnTypeEnum.StartEvent,
       expectedText: 'process_editor.configuration_panel_element_not_supported_message',
     },

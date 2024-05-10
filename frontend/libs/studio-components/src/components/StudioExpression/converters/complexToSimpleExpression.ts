@@ -20,7 +20,7 @@ import type { SimpleSubexpressionValue } from '../types/SimpleSubexpressionValue
 import type { SimpleSubexpression } from '../types/SimpleSubexpression';
 import type { ValueInComplexFormat } from '../types/ValueInComplexFormat';
 import type { RelationFunc } from '../types/RelationFunc';
-import { type DataLookupFuncName } from '../enums/DataLookupFuncName';
+import { DataLookupFuncName } from '../enums/DataLookupFuncName';
 import { SimpleSubexpressionValueType } from '../enums/SimpleSubexpressionValueType';
 import { type GatewayActionContext } from '../enums/GatewayActionContext';
 import { type InstanceContext } from '../enums/InstanceContext';
