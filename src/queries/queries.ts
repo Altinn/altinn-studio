@@ -24,6 +24,8 @@ import {
   getLayoutSetsUrl,
   getLayoutSettingsUrl,
   getLayoutsUrl,
+  getOrderDetailsUrl,
+  getPaymentInformationUrl,
   getPdfFormatUrl,
   getProcessNextUrl,
   getProcessStateUrl,
@@ -49,6 +51,7 @@ import type { BackendValidationIssue, IExpressionValidationConfig } from 'src/fe
 import type { ILayoutSets, ILayoutSettings, IRawOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 import type { ILayoutCollection } from 'src/layout/layout';
+import type { OrderDetails, PaymentResponsePayload } from 'src/layout/Payment/queries/types';
 import type { ISimpleInstance } from 'src/types';
 import type {
   IActionType,
@@ -219,6 +222,14 @@ export const fetchRuleHandler = (layoutSetId: string): Promise<string | null> =>
 
 export const fetchTextResources = (selectedLanguage: string): Promise<ITextResourceResult> =>
   httpGet(textResourcesUrl(selectedLanguage));
+
+export const fetchPaymentInformation = (
+  instanceOwnerPartyId: string,
+  instanceGuid: string,
+): Promise<PaymentResponsePayload> => httpGet(getPaymentInformationUrl(instanceOwnerPartyId, instanceGuid));
+
+export const fetchOrderDetails = (instanceOwnerPartyId: string, instanceGuid: string): Promise<OrderDetails> =>
+  httpGet(getOrderDetailsUrl(instanceOwnerPartyId, instanceGuid));
 
 export const fetchBackendValidations = (
   instanceId: string,

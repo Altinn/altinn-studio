@@ -3,8 +3,13 @@ import React from 'react';
 import { Heading } from '@digdir/designsystemet-react';
 import { Grid } from '@material-ui/core';
 
+import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
+import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { useLaxProcessData } from 'src/features/instance/ProcessContext';
+import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/features/pdf/PDFView.module.css';
 import { usePdfPage } from 'src/hooks/usePdfPage';
 import { CompCategory } from 'src/layout/common';
@@ -55,6 +60,11 @@ export const PDFView = () => {
   const pdfPage = usePdfPage();
   const appName = useAppName();
   const appOwner = useAppOwner();
+  const processData = useLaxProcessData();
+  const { langAsString } = useLanguage();
+
+  const isPayment = processData?.currentTask?.altinnTaskType === 'payment';
+  const enableOrgLogo = Boolean(useApplicationMetadata().logo);
 
   if (!pdfPage) {
     return null;
@@ -66,13 +76,24 @@ export const PDFView = () => {
       className={classes['pdf-wrapper']}
     >
       {appOwner && <span role='doc-subtitle'>{appOwner}</span>}
-      <Heading
-        spacing={true}
-        level={1}
-        size='large'
+
+      <ConditionalWrapper
+        condition={isPayment && enableOrgLogo}
+        wrapper={(children) => (
+          <div className={classes.paymentTitleContainer}>
+            {children} <OrganisationLogo></OrganisationLogo>
+          </div>
+        )}
       >
-        {appName}
-      </Heading>
+        <Heading
+          spacing={true}
+          level={1}
+          size='large'
+        >
+          {isPayment ? `${appName} - ${langAsString('payment.receipt.title')}` : appName}
+        </Heading>
+      </ConditionalWrapper>
+
       <Grid
         container={true}
         spacing={3}

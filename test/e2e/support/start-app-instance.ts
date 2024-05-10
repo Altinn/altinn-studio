@@ -5,7 +5,7 @@ import { cyUserCredentials } from 'test/e2e/support/auth';
 import type { CyUser } from 'test/e2e/support/auth';
 import Response = Cypress.Response;
 
-function login(user: CyUser) {
+function login(user: CyUser, authenticationLevel: string = '1') {
   cy.clearCookies();
 
   if (Cypress.env('type') === 'localtest') {
@@ -13,7 +13,7 @@ function login(user: CyUser) {
 
     const formData = new FormData();
     formData.append('UserSelect', localPartyId);
-    formData.append('AuthenticationLevel', '1');
+    formData.append('AuthenticationLevel', authenticationLevel);
 
     cy.request({
       method: 'POST',
@@ -42,7 +42,7 @@ function login(user: CyUser) {
 }
 
 Cypress.Commands.add('startAppInstance', (appName, options) => {
-  const { user = 'default', evaluateBefore, urlSuffix = '' } = options || {};
+  const { user = 'default', evaluateBefore, urlSuffix = '', authenticationLevel } = options || {};
   const env = dotenv.config().parsed || {};
   cy.log(`Starting app instance: ${appName}`);
   if (user) {
@@ -125,7 +125,7 @@ Cypress.Commands.add('startAppInstance', (appName, options) => {
     throw new Error('Requested asset from altinncdn.no, our rewrite code is apparently not working, aborting test');
   });
 
-  user && login(user);
+  user && login(user, authenticationLevel);
   !user && cy.clearCookies();
   cy.visit(targetUrlRaw, visitOptions);
 

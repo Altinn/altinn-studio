@@ -12,6 +12,17 @@
   margin-top: 0;
 }
 
+.paymentTitleContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--fds-spacing-6);
+  margin-bottom: var(--fds-spacing-3);
+  h1 {
+    margin-bottom: 0;
+  }
+}
+
 @media print {
   .hideInPrint {
     display: none;

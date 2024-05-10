@@ -30,6 +30,7 @@ export enum ProcessTaskType {
   Archived = 'ended',
   Confirm = 'confirmation',
   Feedback = 'feedback',
+  Payment = 'payment',
 }
 
 export enum PresentationType {

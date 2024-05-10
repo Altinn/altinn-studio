@@ -10,6 +10,8 @@ export type StartAppInstanceOptions = {
   // User to log in as
   user?: CyUser | null;
 
+  authenticationLevel?: string;
+
   // JavaScript code to evaluate before starting the app instance (evaluates in the browser, in context of the app).
   // The code runs inside an async function, and if it ends with a return value, that value will assumed to be a
   // URL that the app page should be navigated to.
@@ -127,6 +129,8 @@ declare global {
       ): Chainable<null>;
 
       interceptLayoutSetsUiSettings(uiSettings: Partial<ILayoutSets['uiSettings']>): Chainable<null>;
+
+      iframeCustom(): Chainable<null>;
 
       assertUser(user: CyUser): Chainable<null>;
       interceptPermissions(): Chainable<null>;

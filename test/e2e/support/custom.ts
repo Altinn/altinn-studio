@@ -1,3 +1,5 @@
+import 'cypress-wait-until';
+
 import deepEqual from 'fast-deep-equal';
 import type axe from 'axe-core';
 import type { Options as AxeOptions } from 'cypress-axe';
@@ -547,3 +549,16 @@ Cypress.Commands.add('testPdf', (callback, returnToForm = false) => {
     cy.get('#readyForPrint').should('exist');
   }
 });
+
+Cypress.Commands.add(
+  'iframeCustom',
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-expect-error
+  { prevSubject: 'element' },
+  ($iframe: JQueryWithSelector) =>
+    new Cypress.Promise((resolve) => {
+      $iframe.ready(function () {
+        resolve($iframe.contents().find('body'));
+      });
+    }),
+);

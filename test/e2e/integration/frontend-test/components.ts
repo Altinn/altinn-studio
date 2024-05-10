@@ -9,6 +9,10 @@ import type { CompExternal } from 'src/layout/layout';
 const appFrontend = new AppFrontend();
 
 describe('UI Components', () => {
+  beforeEach(() => {
+    cy.startAppInstance(appFrontend.apps.frontendTest);
+  });
+
   it('Image component with help text', () => {
     cy.goto('message');
     cy.get('body').should('have.css', 'background-color', 'rgb(239, 239, 239)');

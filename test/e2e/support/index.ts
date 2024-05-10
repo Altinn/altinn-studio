@@ -1,5 +1,4 @@
 import '@testing-library/cypress/add-commands';
-import 'cypress-wait-until';
 import 'cypress-axe';
 import 'cypress-plugin-tab';
 import 'cypress-network-idle';

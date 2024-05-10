@@ -78,6 +78,7 @@ jobs:
             --parallel
             --tag \"altinn-app-frontend\"
             --group altinn-app-frontend
+            --browser chrome
             --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT'
         "
 

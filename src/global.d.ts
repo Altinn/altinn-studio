@@ -4,6 +4,8 @@ import type { IAttachments } from 'src/features/attachments';
 import type { IFeatureTogglesOptionalMap } from 'src/features/toggles';
 import type { IRuleObject } from 'src/types';
 
+///<reference types="cypress-iframe" />
+
 declare global {
   interface Window {
     app: string;

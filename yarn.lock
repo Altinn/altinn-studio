@@ -2914,6 +2914,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@faker-js/faker@npm:^8.4.1":
+  version: 8.4.1
+  resolution: "@faker-js/faker@npm:8.4.1"
+  checksum: 10c0/4f2aecddcfdc2cc8b50b2d15d1e37302a7c7a5bbd184ae910a9d271bc11248533ca74dcdd4a9ccbe20410553e7af0f6a4d334c5b955635e09a32ddf4a64942d4
+  languageName: node
+  linkType: hard
+
 "@floating-ui/core@npm:^0.7.3":
   version: 0.7.3
   resolution: "@floating-ui/core@npm:0.7.3"
@@ -6172,6 +6179,7 @@ __metadata:
     "@digdir/designsystemet-css": "npm:0.3.0"
     "@digdir/designsystemet-react": "npm:0.56.1"
     "@digdir/designsystemet-theme": "npm:0.15.0"
+    "@faker-js/faker": "npm:^8.4.1"
     "@material-ui/core": "npm:4.12.4"
     "@material-ui/pickers": "npm:3.3.11"
     "@navikt/aksel-icons": "npm:^6.0.0"
@@ -6213,6 +6221,7 @@ __metadata:
     css-loader: "npm:6.11.0"
     cypress: "npm:13.7.3"
     cypress-axe: "npm:1.5.0"
+    cypress-iframe: "npm:^1.0.1"
     cypress-network-idle: "npm:^1.14.2"
     cypress-plugin-tab: "npm:1.0.5"
     cypress-wait-until: "npm:^3.0.0"
@@ -8212,6 +8221,15 @@ __metadata:
     axe-core: ^3 || ^4
     cypress: ^10 || ^11 || ^12 || ^13
   checksum: 10c0/bc9aab239fbed99bc64801b1f83c4835047264a4f34f801649e41579014cc1bddbd1379efaf3c4a9e6ff42f359bb7fc028df039d6fba637852370d77be0af5ec
+  languageName: node
+  linkType: hard
+
+"cypress-iframe@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "cypress-iframe@npm:1.0.1"
+  peerDependencies:
+    "@types/cypress": ^1.1.0
+  checksum: 10c0/90b4d5bc8583806254418d90bbbfd6c3c70c7be21894f11dc47073d646e5b6e4f944eff45578fe7817d999a93171737d4903d161fe06576db0aad0ce2d7a47cb
   languageName: node
   linkType: hard
 

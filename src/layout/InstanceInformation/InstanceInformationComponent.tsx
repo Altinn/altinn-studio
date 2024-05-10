@@ -14,7 +14,7 @@ import { useParties } from 'src/features/party/PartiesProvider';
 import { getDateFormat } from 'src/utils/dateHelpers';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
-import type { IParty } from 'src/types/shared';
+import type { IInstance, IParty } from 'src/types/shared';
 
 export const returnInstanceMetaDataObject = (
   langTools: IUseLanguage,
@@ -55,6 +55,8 @@ export const returnInstanceMetaDataObject = (
   return obj;
 };
 
+export const getInstanceReferenceNumber = (instance: IInstance): string => instance.id.split('/')[1].split('-')[4];
+
 export function InstanceInformationComponent({ node }: PropsFromGenericComponent<'InstanceInformation'>) {
   const elements = node.item.elements;
   const { dateSent, sender, receiver, referenceNumber } = elements || {};
@@ -78,7 +80,7 @@ export function InstanceInformationComponent({ node }: PropsFromGenericComponent
 
   const instanceReceiver = receiver !== false ? appReceiver ?? 'Error: Receiver org not found' : undefined;
 
-  const instanceReferenceNumber = referenceNumber !== false && instance && instance.id.split('/')[1].split('-')[4];
+  const instanceReferenceNumber = referenceNumber !== false && instance && getInstanceReferenceNumber(instance);
 
   const instanceMetaDataObject = returnInstanceMetaDataObject(
     langTools,
