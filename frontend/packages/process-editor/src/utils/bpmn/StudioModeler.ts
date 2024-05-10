@@ -1,8 +1,8 @@
 import type Modeler from 'bpmn-js/lib/Modeler';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type { Element } from 'bpmn-moddle';
-import ElementRegistry from 'diagram-js/lib/core/ElementRegistry';
-import { Moddle } from 'bpmn-js/lib/model/Types';
+import type ElementRegistry from 'diagram-js/lib/core/ElementRegistry';
+import { type Moddle } from 'bpmn-js/lib/model/Types';
 import { BpmnModelerInstance } from './BpmnModelerInstance';
 
 // Short description: This class is used to interact with the bpmn-js modeler instance to create, update and delete elements in the bpmn diagram.

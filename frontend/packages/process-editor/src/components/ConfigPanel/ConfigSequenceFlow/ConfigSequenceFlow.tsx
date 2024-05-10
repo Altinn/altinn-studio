@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   BooleanExpression,
   GeneralRelationOperator,
-  StringExpression,
   StudioButton,
   StudioExpression,
   StudioSectionHeader,
@@ -16,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 
 import classes from './ConfigSequenceFlow.module.css';
 
-const defaultExpression: StringExpression = [
+const defaultExpression: BooleanExpression = [
   GeneralRelationOperator.Equals,
   ['gatewayAction'],
   'reject',
@@ -86,8 +85,8 @@ export const ConfigSequenceFlow = (): React.ReactElement => {
               addExpressionToSequenceFlow(updatedExpression);
             }}
             texts={texts}
-            expressionOptions={['gatewayAction', 'Datamodel', 'GatewayActionContext']}
-            dataLookupOptions={undefined} // TODO add lookup for dataModel
+            expressionOptions={['gatewayAction', 'gatewayActionContext']}
+            dataLookupOptions={undefined}
           />
         )}
       </div>
