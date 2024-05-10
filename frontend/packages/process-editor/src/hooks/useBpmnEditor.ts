@@ -1,4 +1,4 @@
-import { MutableRefObject, useEffect, useCallback, useRef } from 'react';
+import { type MutableRefObject, useEffect, useCallback, useRef } from 'react';
 import type BpmnModeler from 'bpmn-js/lib/Modeler';
 import { useBpmnContext } from '../contexts/BpmnContext';
 import { useBpmnModeler } from './useBpmnModeler';
