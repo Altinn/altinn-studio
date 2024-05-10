@@ -194,7 +194,10 @@ describe('SubexpressionValueSelector', () => {
     it('Displays initial error and handles non-existing component ID', () => {
       const id = 'non-existing-id';
       renderSubexpressionValueSelector({ value: { ...componentValue, id }, isInEditMode: true });
-      screen.getByText(texts.errorMessages[ExpressionErrorKey.ComponentIDNoLongerExists]);
+      const errorMessage = screen.getByText(
+        texts.errorMessages[ExpressionErrorKey.ComponentIDNoLongerExists],
+      );
+      expect(errorMessage).toBeInTheDocument();
       const input = screen.getByRole('combobox', { name: texts.componentId });
       expect(input).toHaveValue('');
     });
