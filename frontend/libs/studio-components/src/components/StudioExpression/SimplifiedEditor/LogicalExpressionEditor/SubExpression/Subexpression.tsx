@@ -17,7 +17,6 @@ import { findSubexpressionErrors } from './utils/findSubexpressionErrors';
 import { SubexpressionErrors } from './SubExpressionErrors';
 import { Fieldset } from '@digdir/design-system-react';
 import { useStudioExpressionContext } from '../../../StudioExpressionContext';
-import { DataLookupFuncName } from '../../../enums/DataLookupFuncName';
 
 export type SubexpressionProps = {
   expression: SimpleSubexpression;
@@ -30,9 +29,8 @@ export const Subexpression = ({ expression, legend, onChange, onDelete }: Subexp
   const { texts, dataLookupOptions } = useStudioExpressionContext();
   const [isInEditMode, setIsInEditMode] = useState<boolean>(false);
   const [expressionState, setExpressionState] = useState<SimpleSubexpression>(expression);
-  const componentOptions = dataLookupOptions[DataLookupFuncName.Component];
   const [errors, setErrors] = useState<ExpressionErrorKey[]>(
-    findSubexpressionErrors(expression, componentOptions),
+    findSubexpressionErrors(expression, dataLookupOptions),
   );
 
   useEffect(() => {
@@ -44,7 +42,7 @@ export const Subexpression = ({ expression, legend, onChange, onDelete }: Subexp
   };
 
   const handleSave = () => {
-    const errorList = findSubexpressionErrors(expressionState, componentOptions);
+    const errorList = findSubexpressionErrors(expressionState, dataLookupOptions);
     setErrors(errorList);
     if (!errorList.length) {
       onChange(expressionState);

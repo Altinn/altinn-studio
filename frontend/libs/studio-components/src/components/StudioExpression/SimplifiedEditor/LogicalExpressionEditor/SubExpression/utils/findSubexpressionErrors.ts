@@ -4,19 +4,21 @@ import type { RelationalOperator } from '../../../../types/RelationalOperator';
 import { SimpleSubexpressionValueType } from '../../../../enums/SimpleSubexpressionValueType';
 import { ExpressionErrorKey } from '../../../../enums/ExpressionErrorKey';
 import type { SimpleSubexpressionValue } from '../../../../types/SimpleSubexpressionValue';
+import type { DataLookupOptions } from '../../../../types/DataLookupOptions';
+import { DataLookupFuncName } from '../../../../enums/DataLookupFuncName';
 
 export const findSubexpressionErrors = (
   subexpression: SimpleSubexpression,
-  componentOptions: string[],
+  dataLookupOptions: DataLookupOptions,
 ): ExpressionErrorKey[] => {
   const errors: ExpressionErrorKey[] = [];
   if (hasNumberOperator(subexpression) && hasBooleanValue(subexpression)) {
     errors.push(ExpressionErrorKey.NumericRelationOperatorWithWrongType);
   }
-  if (!isOperandValid(subexpression.firstOperand, componentOptions)) {
+  if (!isOperandValid(subexpression.firstOperand, dataLookupOptions)) {
     errors.push(ExpressionErrorKey.InvalidFirstOperand);
   }
-  if (!isOperandValid(subexpression.secondOperand, componentOptions)) {
+  if (!isOperandValid(subexpression.secondOperand, dataLookupOptions)) {
     errors.push(ExpressionErrorKey.InvalidSecondOperand);
   }
   return errors;
@@ -34,12 +36,15 @@ const hasBooleanValue = ({ firstOperand, secondOperand }: SimpleSubexpression): 
     (value) => value.type === SimpleSubexpressionValueType.Boolean,
   );
 
-const isOperandValid = (value: SimpleSubexpressionValue, componentOptions: string[]): boolean => {
+const isOperandValid = (
+  value: SimpleSubexpressionValue,
+  dataLookupOptions: DataLookupOptions,
+): boolean => {
   switch (value.type) {
     case SimpleSubexpressionValueType.Datamodel:
       return isDatamodelValueValid(value);
     case SimpleSubexpressionValueType.Component:
-      return isComponentValueValid(value, componentOptions);
+      return isComponentValueValid(value, dataLookupOptions);
     default:
       return true;
   }
@@ -51,5 +56,5 @@ const isDatamodelValueValid = (
 
 const isComponentValueValid = (
   value: SimpleSubexpressionValue<SimpleSubexpressionValueType.Component>,
-  componentOptions: string[],
-): boolean => !!value.id && componentOptions.includes(value.id);
+  dataLookupOptions: DataLookupOptions,
+): boolean => !!value.id && dataLookupOptions[DataLookupFuncName.Component].includes(value.id);
