@@ -4,29 +4,21 @@ import { render, screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import type { BpmnContextProps } from '../../contexts/BpmnContext';
 import { BpmnContext } from '../../contexts/BpmnContext';
-import type { BpmnDetails } from '../../types/BpmnDetails';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 import { BpmnConfigPanelFormContextProvider } from '../../contexts/BpmnConfigPanelContext';
 import type Modeler from 'bpmn-js/lib/Modeler';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { BpmnApiContextProvider } from '../../contexts/BpmnApiContext';
+import { mockBpmnDetails } from '../../../test/mocks/bpmnDetailsMock';
 
 jest.mock('app-shared/utils/featureToggleUtils', () => ({
   shouldDisplayFeature: jest.fn().mockReturnValue(false),
 }));
 
-const mockBpmnDetails: BpmnDetails = {
-  id: 'testId',
-  name: 'testName',
-  taskType: 'data',
-  type: BpmnTypeEnum.Task,
-};
-
 describe('ConfigPanel', () => {
-  beforeEach(() => {
-    jest.resetAllMocks();
+  afterEach(() => {
+    jest.clearAllMocks();
   });
-
   it('should render no selected task message', () => {
     renderConfigPanel({ bpmnDetails: null });
     const title = screen.getByRole('heading', {
@@ -74,6 +66,7 @@ describe('ConfigPanel', () => {
       expectedText: 'process_editor.configuration_panel_element_not_supported_message',
     },
   ])('should display correct message based on selected bpmn type', ({ task, expectedText }) => {
+    (shouldDisplayFeature as jest.Mock).mockReturnValue(false);
     renderConfigPanel({
       modelerRef: { current: '' as unknown as Modeler },
       bpmnDetails: { ...mockBpmnDetails, type: task },

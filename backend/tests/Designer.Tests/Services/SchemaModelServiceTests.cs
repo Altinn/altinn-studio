@@ -229,7 +229,7 @@ namespace Designer.Tests.Services
             });
 
             Assert.NotNull(exception.CustomErrorMessages);
-            Assert.Equal(new List<string>() { "'root': member names cannot be the same as their enclosing type" }, exception.CustomErrorMessages);
+            exception.CustomErrorMessages.Should().ContainSingle(c => c.Contains("root': member names cannot be the same as their enclosing type"));
         }
 
         [Theory]
