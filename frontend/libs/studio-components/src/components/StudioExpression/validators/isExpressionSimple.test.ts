@@ -1,4 +1,8 @@
-import { isExpressionSimple } from './isExpressionSimple';
+import {
+  isExpressionSimple,
+  isProcessGatewayAction,
+  isProcessUserAction,
+} from './isExpressionSimple';
 import type {
   GenericRelationFunc,
   NumberRelationFunc,
@@ -70,8 +74,26 @@ describe('isExpressionSimple', () => {
     },
   );
 
+  it.each(['sign', 'pay', 'reject', 'confirm'])(
+    'should return true when the expression is a %s action',
+    (action) => {
+      expect(isProcessUserAction(action)).toBe(true);
+    },
+  );
+
+  it.each(['notAnAction', ''])(
+    'should return false when the expression is not a valid action',
+    (action) => {
+      expect(isProcessUserAction(action)).toBe(false);
+    },
+  );
+
   it('Returns false when the expression is a string', () => {
     expect(isExpressionSimple('test')).toBe(false);
+  });
+
+  it('should return true if the expression is gateway action', () => {
+    expect(isProcessGatewayAction([DataLookupFuncName.GatewayAction])).toBe(true);
   });
 
   it('Returns false when the expression is a number', () => {
