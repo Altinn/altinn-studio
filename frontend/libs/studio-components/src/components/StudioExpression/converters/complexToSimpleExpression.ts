@@ -87,7 +87,7 @@ const dataLookupFuncToSimpleFormat = ([source, key]: DataLookupFunc): SimpleSube
 const processActionToSimpleFormat = ([value]: DataLookupFunc): SimpleSubexpressionValue => {
   if (Array.isArray(value) && value[0] !== SimpleSubexpressionValueType.GatewayActionContext) {
     throw new Error(
-      'Key lookup function is not convertable. This should have been picked up by the validator.',
+      'Data lookup function is not convertable. This should have been picked up by the validator.',
     );
   }
 
