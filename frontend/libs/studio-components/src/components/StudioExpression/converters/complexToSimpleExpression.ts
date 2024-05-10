@@ -21,7 +21,7 @@ import type { SimpleSubexpression } from '../types/SimpleSubexpression';
 import type { ValueInComplexFormat } from '../types/ValueInComplexFormat';
 import type { RelationFunc } from '../types/RelationFunc';
 import { type DataLookupFuncName } from '../enums/DataLookupFuncName';
-import { type SimpleSubexpressionValueType } from '../enums/SimpleSubexpressionValueType';
+import { SimpleSubexpressionValueType } from '../enums/SimpleSubexpressionValueType';
 import { type GatewayActionContext } from '../enums/GatewayActionContext';
 import { type InstanceContext } from '../enums/InstanceContext';
 
