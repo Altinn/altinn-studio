@@ -12,7 +12,7 @@ import type { ExpressionTexts } from './types/ExpressionTexts';
 
 export type StudioExpressionProps = {
   expression: BooleanExpression;
-  expressionOptions: string[];
+  expressionOptions?: string[];
   onChange: (expression: BooleanExpression) => void;
   texts: ExpressionTexts;
   dataLookupOptions: Partial<DataLookupOptions>;

@@ -81,8 +81,6 @@ const dataLookupFuncToSimpleFormat = ([source, key]: DataLookupFunc): SimpleSube
       return { type: SimpleSubexpressionValueType.Component, id: key };
     case DataLookupFuncName.DataModel:
       return { type: SimpleSubexpressionValueType.Datamodel, path: key };
-    case DataLookupFuncName.GatewayAction:
-      return { type: SimpleSubexpressionValueType.GatewayAction, value: 'GatewayAction' };
   }
 };
 

@@ -90,6 +90,7 @@ export const texts: ExpressionTexts = {
   or: 'or',
   readonlyComponentId: 'Component ID:',
   readonlyDatamodelPath: 'Datamodel path:',
+  readonlyGatewayActionContext: 'Gateway action context:',
   readonlyInstanceContext: 'Instance context:',
   relationalOperator: 'Relational operator',
   relationalOperators,

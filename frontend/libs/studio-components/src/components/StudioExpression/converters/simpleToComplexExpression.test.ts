@@ -100,7 +100,10 @@ describe('simpleToComplexExpression', () => {
       expectedResult: [DataLookupFuncName.DataModel, '#/properties/test'],
     },
     gatewayAction: {
-      subexpressionValue: { type: SimpleSubexpressionValueType.GatewayAction, key: 'test' },
+      subexpressionValue: {
+        type: SimpleSubexpressionValueType.GatewayAction,
+        value: 'GatewayAction',
+      },
       expectedResult: [DataLookupFuncName.GatewayAction],
     },
     gatewayActionContext: {

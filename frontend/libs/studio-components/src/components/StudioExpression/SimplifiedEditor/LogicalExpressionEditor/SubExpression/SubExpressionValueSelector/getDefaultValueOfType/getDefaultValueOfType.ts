@@ -19,7 +19,7 @@ const defaultValueByType: {
   },
   [SimpleSubexpressionValueType.GatewayAction]: {
     type: SimpleSubexpressionValueType.GatewayAction,
-    key: 'GatewayAction',
+    value: 'GatewayAction',
   },
   [SimpleSubexpressionValueType.GatewayActionContext]: {
     type: SimpleSubexpressionValueType.GatewayActionContext,

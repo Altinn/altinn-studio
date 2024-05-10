@@ -51,6 +51,7 @@ export type StringExpression =
 
 type StrictStringExpression =
   | string
+  | [string]
   | FuncComponent
   | FuncDatamodel
   | FuncGatewayAction
