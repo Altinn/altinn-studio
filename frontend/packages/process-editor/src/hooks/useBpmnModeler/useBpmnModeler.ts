@@ -3,6 +3,7 @@ import { BpmnModelerInstance } from '../../utils/bpmn/BpmnModelerInstance';
 
 type UseBpmnModelerResult = {
   getModeler: (canvasContainer: HTMLDivElement) => Modeler;
+  destroyModeler: () => void;
 };
 
 export const useBpmnModeler = (): UseBpmnModelerResult => {
@@ -10,7 +11,12 @@ export const useBpmnModeler = (): UseBpmnModelerResult => {
     return BpmnModelerInstance.getInstance(canvasContainer);
   };
 
+  const destroyModeler = (): void => {
+    BpmnModelerInstance.destroyInstance();
+  };
+
   return {
+    destroyModeler,
     getModeler,
   };
 };

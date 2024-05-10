@@ -1,5 +1,4 @@
-import type { MutableRefObject } from 'react';
-import { useCallback, useEffect, useRef } from 'react';
+import { MutableRefObject, useEffect, useCallback, useRef } from 'react';
 import type BpmnModeler from 'bpmn-js/lib/Modeler';
 import { useBpmnContext } from '../contexts/BpmnContext';
 import { useBpmnModeler } from './useBpmnModeler';
@@ -20,9 +19,8 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   const { getUpdatedXml, bpmnXml, modelerRef, setBpmnDetails } = useBpmnContext();
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const { metaDataFormRef, resetForm } = useBpmnConfigPanelFormContext();
-  const { getModeler } = useBpmnModeler();
+  const { getModeler, destroyModeler } = useBpmnModeler();
   const { addLayoutSet, deleteLayoutSet, saveBpmn, layoutSets } = useBpmnApiContext();
-  //let modelerRef: BpmnModeler | null = null;
 
   const handleCommandStackChanged = async () => {
     saveBpmn(await getUpdatedXml(), metaDataFormRef.current || null);
@@ -92,10 +90,11 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   useEffect(() => {
     if (!canvasRef.current) {
       console.log('Canvas reference is not yet available in the DOM.');
+      return;
     }
-    // GetModeler can only be fetched from this hook once since the modeler creates a
-    // new instance and will attach the same canvasRef container to all instances it fetches
+
     modelerRef.current = getModeler(canvasRef.current);
+
     initializeEditor();
     initializeBpmnChanges();
     // set modelerRef.current to the Context so that it can be used in other components
@@ -105,6 +104,13 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
     const eventBus: BpmnModeler = modelerRef.current.get('eventBus');
     eventBus.on('element.click', handleSetBpmnDetails);
   }, [modelerRef, handleSetBpmnDetails]);
+
+  useEffect(() => {
+    // Ensure to detach and destroys the modeller when it's unmounted
+    return () => {
+      destroyModeler();
+    };
+  }, []);
 
   return { canvasRef, modelerRef };
 };
