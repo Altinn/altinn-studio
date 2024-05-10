@@ -5,7 +5,6 @@ import { useStudioExpressionContext } from '../../../../../StudioExpressionConte
 import { ExpressionErrorKey } from '../../../../../enums/ExpressionErrorKey';
 import { DataLookupFuncName } from '../../../../../enums/DataLookupFuncName';
 import { Combobox } from '@digdir/design-system-react';
-import classes from './ComponentIdSelector.module.css';
 
 export const ComponentIdSelector = ({
   value,
@@ -32,7 +31,6 @@ export const ComponentIdSelector = ({
 
   return (
     <Combobox
-      className={classes.comboboxBackground}
       error={texts.errorMessages[errorKey]}
       label={texts.componentId}
       onValueChange={handleChange}
