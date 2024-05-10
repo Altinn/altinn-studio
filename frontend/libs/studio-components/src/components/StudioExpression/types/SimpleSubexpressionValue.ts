@@ -1,6 +1,6 @@
 import type { InstanceContext } from '../enums/InstanceContext';
 import type { SimpleSubexpressionValueType } from '../enums/SimpleSubexpressionValueType';
-import { GatewayActionContext } from '../enums/GatewayActionContext';
+import type { GatewayActionContext } from '../enums/GatewayActionContext';
 
 export type SimpleSubexpressionValue<
   T extends SimpleSubexpressionValueType = SimpleSubexpressionValueType,

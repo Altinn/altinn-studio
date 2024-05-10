@@ -20,10 +20,10 @@ import type { SimpleSubexpressionValue } from '../types/SimpleSubexpressionValue
 import type { SimpleSubexpression } from '../types/SimpleSubexpression';
 import type { ValueInComplexFormat } from '../types/ValueInComplexFormat';
 import type { RelationFunc } from '../types/RelationFunc';
-import { DataLookupFuncName } from '../enums/DataLookupFuncName';
-import { SimpleSubexpressionValueType } from '../enums/SimpleSubexpressionValueType';
-import { GatewayActionContext } from '../enums/GatewayActionContext';
-import { InstanceContext } from '../enums/InstanceContext';
+import { type DataLookupFuncName } from '../enums/DataLookupFuncName';
+import { type SimpleSubexpressionValueType } from '../enums/SimpleSubexpressionValueType';
+import { type GatewayActionContext } from '../enums/GatewayActionContext';
+import { type InstanceContext } from '../enums/InstanceContext';
 
 export const complexToSimpleExpression = (expression: Expression): SimplifiedExpression => {
   if (!isExpressionSimple(expression)) throw new Error('Expression is not simple.');
