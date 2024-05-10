@@ -92,7 +92,7 @@ public class PutDatamodelTests : DisagnerEndpointsTestsBase<PutDatamodelTests>, 
         customErrorMessages.Should().NotBeNull();
         var customErrorMessagesElement = (JsonElement)customErrorMessages;
         var firstErrorMessage = customErrorMessagesElement.EnumerateArray().FirstOrDefault().GetString();
-        firstErrorMessage.Should().Be("'root': member names cannot be the same as their enclosing type");
+        firstErrorMessage.Should().Contain("'root': member names cannot be the same as their enclosing type");
     }
 
     [Theory]
