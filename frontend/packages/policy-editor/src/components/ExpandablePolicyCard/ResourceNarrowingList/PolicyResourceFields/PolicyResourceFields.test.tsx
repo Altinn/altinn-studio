@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { PolicyResourceFieldsProps } from './PolicyResourceFields';
 import { PolicyResourceFields } from './PolicyResourceFields';
@@ -53,9 +53,9 @@ describe('PolicyResourceFields', () => {
 
     const idInput = screen.getByLabelText(textMock('policy_editor.narrowing_list_field_id'));
 
-    await user.type(idInput, mockValudNewText);
+    user.type(idInput, mockValudNewText);
 
-    expect(mockOnChangeId).toHaveBeenCalledTimes(mockValudNewText.length);
+    await waitFor(() => expect(mockOnChangeId).toHaveBeenCalledTimes(mockValudNewText.length));
   });
 
   it('calls "onChangeType" when type input values change', async () => {
@@ -64,9 +64,9 @@ describe('PolicyResourceFields', () => {
 
     const typeInput = screen.getByLabelText(textMock('policy_editor.narrowing_list_field_type'));
 
-    await user.type(typeInput, mockValudNewText);
+    user.type(typeInput, mockValudNewText);
 
-    expect(mockOnChangeType).toHaveBeenCalledTimes(mockValudNewText.length);
+    await waitFor(() => expect(mockOnChangeType).toHaveBeenCalledTimes(mockValudNewText.length));
   });
 
   it('calls "onBlur" when input fields lose focus', async () => {
@@ -75,9 +75,9 @@ describe('PolicyResourceFields', () => {
 
     const typeInput = screen.getByLabelText(textMock('policy_editor.narrowing_list_field_type'));
 
-    await user.type(typeInput, mockValudNewText);
-    await user.tab();
-    expect(mockOnBlur).toHaveBeenCalledTimes(1);
+    await waitFor(() => user.type(typeInput, mockValudNewText));
+    user.tab();
+    await waitFor(() => expect(mockOnBlur).toHaveBeenCalledTimes(1));
   });
 
   it('hides the delete button when "canEditTypeAndId" is false', () => {
@@ -100,8 +100,8 @@ describe('PolicyResourceFields', () => {
 
     expect(deleteButton).toBeInTheDocument();
 
-    await user.click(deleteButton);
+    user.click(deleteButton);
 
-    expect(mockOnRemove).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockOnRemove).toHaveBeenCalledTimes(1));
   });
 });

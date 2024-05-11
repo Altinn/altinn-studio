@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SchemaEditor } from './SchemaEditor';
 import {
@@ -33,21 +33,21 @@ const renderEditor = (data: Partial<RenderWithProvidersData> = {}) => {
 };
 
 const clickMenuItem = async (name: string) => {
-  const item = screen.getByRole('menuitem', { name });
-  await user.click(item);
+  const item = await screen.findByRole('menuitem', { name });
+  user.click(item);
 };
 
 const addNodeButtonTitle = textMock('schema_editor.add_node_of_type');
 
 const clickOpenAddNodeButton = async () => {
-  const buttons = screen.getAllByRole('button', { name: addNodeButtonTitle });
-  await user.click(buttons[0]);
+  const buttons = await screen.findAllByRole('button', { name: addNodeButtonTitle });
+  await waitFor(() => user.click(buttons[0]));
 };
 
 const clickOpenAddNodeButtonInTree = async () => {
   const tree = screen.getByRole('tree');
   const buttons = within(tree).getAllByRole('button', { name: addNodeButtonTitle });
-  await user.click(buttons[0]);
+  user.click(buttons[0]);
 };
 
 const typeName = 'TestType';
@@ -71,7 +71,7 @@ describe('SchemaEditor', () => {
     renderEditor({ appContextProps: { schemaModel } });
     await clickOpenAddNodeButton();
     await clickMenuItem(textMock('schema_editor.string'));
-    expect(save).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
     const updatedModel = getSavedModel(save);
     expect(updatedModel.asArray().length).toBe(uiSchemaNodesMock.length + 1);
   });
@@ -86,7 +86,7 @@ describe('SchemaEditor', () => {
     renderEditor({ appContextProps: { schemaModel } });
     await clickOpenAddNodeButtonInTree();
     await clickMenuItem(textMock('schema_editor.add_field'));
-    expect(save).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
     const updatedModel = getSavedModel(save);
     expect(updatedModel.asArray().length).toBe(uiSchema.length + 1);
   });
@@ -103,7 +103,7 @@ describe('SchemaEditor', () => {
     jest.spyOn(window, 'prompt').mockImplementation(() => definitionName);
     await clickOpenAddNodeButtonInTree();
     await clickMenuItem(textMock('schema_editor.add_reference'));
-    expect(save).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
     const updatedModel = getSavedModel(save);
     expect(updatedModel.asArray().length).toBe(uiSchema.length + 1);
   });
@@ -118,8 +118,8 @@ describe('SchemaEditor', () => {
       name: textMock('general.delete'),
     });
     const firstDeleteButton = deleteButtons[0];
-    await user.click(firstDeleteButton);
-    expect(save).toHaveBeenCalledTimes(1);
+    user.click(firstDeleteButton);
+    await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
     const updatedModel = getSavedModel(save);
     const updatedNumberOfRootNodes = updatedModel.getRootChildren().length;
     expect(updatedNumberOfRootNodes).toBe(numberOfRootNodes - 1);
@@ -134,7 +134,7 @@ describe('SchemaEditor', () => {
       name: textMock('general.delete'),
     });
     const firstDeleteButton = deleteButtons[0];
-    await user.click(firstDeleteButton);
+    await waitFor(() => user.click(firstDeleteButton));
     expect(save).not.toHaveBeenCalled();
   });
 
@@ -180,10 +180,11 @@ describe('SchemaEditor', () => {
     const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock);
 
     renderEditor({ appContextProps: { schemaModel } });
-    await clickOpenAddNodeButton();
-    ['string', 'integer', 'number', 'boolean', 'combination'].forEach((type) => {
+    clickOpenAddNodeButton();
+    ['string', 'integer', 'number', 'boolean', 'combination'].forEach(async (type) => {
       const name = textMock(`schema_editor.${type}`);
-      expect(screen.getByRole('menuitem', { name })).toBeInTheDocument();
+      const menuItem = await screen.findByRole('menuitem', { name });
+      await waitFor(() => expect(menuItem).toBeInTheDocument());
     });
   });
 
@@ -192,7 +193,7 @@ describe('SchemaEditor', () => {
     renderEditor({ appContextProps: { schemaModel } });
     await clickOpenAddNodeButton();
     await clickMenuItem(textMock('schema_editor.combination'));
-    expect(save).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
     const updatedModel = getSavedModel(save);
     expect(updatedModel.asArray().length).toBe(uiSchemaNodesMock.length + 1);
   });
@@ -207,7 +208,7 @@ describe('SchemaEditor', () => {
     renderEditor({ appContextProps: { schemaModel } });
     await clickOpenAddNodeButtonInTree();
     await clickMenuItem(textMock('schema_editor.add_combination'));
-    expect(save).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
     const updatedModel = getSavedModel(save);
     expect(updatedModel.asArray().length).toBe(uiSchema.length + 1);
   });
@@ -223,8 +224,9 @@ describe('SchemaEditor', () => {
       },
     });
     const type = screen.getByTestId(testids.typeItem(selectedTypePointer));
-    await user.click(type);
-    expect(screen.getByRole('heading', { name: typeName, level: 1 })).toBeInTheDocument();
+    user.click(type);
+    const heading = await screen.findByRole('heading', { name: typeName, level: 1 });
+    expect(heading).toBeInTheDocument();
   });
 
   it('Navigates back to the datamodel when clicking the "back to datamodel" link', async () => {
@@ -246,8 +248,8 @@ describe('SchemaEditor', () => {
     const backButton = screen.getByRole('button', {
       name: textMock('schema_editor.back_to_datamodel'),
     });
-    await user.click(backButton);
-    expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
+    user.click(backButton);
+    await waitFor(() => expect(setSelectedTypePointer).toHaveBeenCalledTimes(1));
     expect(setSelectedTypePointer).toHaveBeenCalledWith(undefined);
     expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
     expect(setSelectedNodePointer).toHaveBeenCalledWith(undefined);
@@ -276,8 +278,8 @@ describe('SchemaEditor', () => {
     });
 
     const deleteButton = screen.getAllByRole('button', { name: textMock('general.delete') });
-    await user.click(deleteButton[0]);
-    expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
+    user.click(deleteButton[0]);
+    await waitFor(() => expect(setSelectedTypePointer).toHaveBeenCalledTimes(1));
     expect(setSelectedTypePointer).toHaveBeenCalledWith(null);
     expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
     expect(setSelectedNodePointer).toHaveBeenCalledWith(null);
@@ -302,10 +304,10 @@ describe('SchemaEditor', () => {
     const deleteButton = within(prop1).getByRole('button', {
       name: textMock('general.delete'),
     });
-    await user.click(deleteButton);
+    user.click(deleteButton);
 
+    await waitFor(() => expect(setSelectedNodePointer).toHaveBeenCalledTimes(1));
     expect(setSelectedTypePointer).not.toHaveBeenCalled();
-    expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
     expect(setSelectedNodePointer).toHaveBeenCalledWith(null);
   });
 });

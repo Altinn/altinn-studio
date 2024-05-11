@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { render as rtlRender, screen, waitFor } from '@testing-library/react';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { ConfigEndEvent } from './ConfigEndEvent';
 import userEvent from '@testing-library/user-event';
@@ -63,13 +63,15 @@ describe('ConfigEndEvent', () => {
     const inputFieldButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_custom_receipt_add'),
     });
-    await user.click(inputFieldButton);
-    const inputField = screen.getByRole('textbox', {
-      name: textMock('process_editor.configuration_panel_custom_receipt_add_button_title'),
-    });
-    await user.type(inputField, customReceiptLayoutSetName);
-    await user.tab();
-    expect(addLayoutSetMock).toHaveBeenCalledTimes(1);
+    user.click(inputFieldButton);
+    const inputField = await waitFor(() =>
+      screen.findByRole('textbox', {
+        name: textMock('process_editor.configuration_panel_custom_receipt_add_button_title'),
+      }),
+    );
+    await waitFor(() => user.type(inputField, customReceiptLayoutSetName));
+    user.tab();
+    await waitFor(() => expect(addLayoutSetMock).toHaveBeenCalledTimes(1));
     expect(addLayoutSetMock).toHaveBeenCalledWith({
       layoutSetIdToUpdate: undefined,
       layoutSetConfig: {
@@ -92,14 +94,14 @@ describe('ConfigEndEvent', () => {
     const inputFieldButton = screen.getByRole('button', {
       name: existingCustomReceiptLayoutSetName,
     });
-    await user.click(inputFieldButton);
-    const inputField = screen.getByRole('textbox', {
+    user.click(inputFieldButton);
+    const inputField = await screen.findByRole('textbox', {
       name: textMock('process_editor.configuration_panel_custom_receipt_add_button_title'),
     });
-    await user.clear(inputField);
-    await user.type(inputField, newCustomReceiptLayoutSetName);
-    await user.tab();
-    expect(updateLayoutSetMock).toHaveBeenCalledTimes(1);
+    await waitFor(() => user.clear(inputField));
+    await waitFor(() => user.type(inputField, newCustomReceiptLayoutSetName));
+    user.tab();
+    await waitFor(() => expect(updateLayoutSetMock).toHaveBeenCalledTimes(1));
     expect(updateLayoutSetMock).toHaveBeenCalledWith({
       layoutSetIdToUpdate: existingCustomReceiptLayoutSetName,
       newLayoutSetId: newCustomReceiptLayoutSetName,
@@ -122,24 +124,31 @@ describe('ConfigEndEvent', () => {
     const inputFieldButton = screen.getByRole('button', {
       name: existingCustomReceiptLayoutSetName,
     });
-    await user.click(inputFieldButton);
-    const inputField = screen.getByRole('textbox', {
+    user.click(inputFieldButton);
+    const inputField = await screen.findByRole('textbox', {
       name: textMock('process_editor.configuration_panel_custom_receipt_add_button_title'),
     });
     if (invalidLayoutSetId === emptyLayoutSetName) {
-      await user.clear(inputField);
-      await user.tab();
-      screen.getByText(textMock('validation_errors.required'));
+      await waitFor(() => user.clear(inputField));
+      user.tab();
+      const requiredMessage = screen.getByText(textMock('validation_errors.required'));
+      await waitFor(() => expect(requiredMessage).toBeInTheDocument());
     } else {
-      await user.clear(inputField);
-      await user.type(inputField, invalidLayoutSetId);
-      await user.tab();
+      await waitFor(() => user.clear(inputField));
+      await waitFor(() => user.type(inputField, invalidLayoutSetId));
+      user.tab();
     }
-    if (invalidLayoutSetId === invalidFormatLayoutSetName)
-      screen.getByText(textMock('ux_editor.pages_error_format'));
-    if (invalidLayoutSetId === existingLayoutSetName)
-      screen.getByText(textMock('process_editor.configuration_panel_layout_set_id_not_unique'));
-    expect(updateLayoutSetMock).not.toHaveBeenCalled();
+    if (invalidLayoutSetId === invalidFormatLayoutSetName) {
+      const invalidFormatMessage = screen.getByText(textMock('ux_editor.pages_error_format'));
+      expect(invalidFormatMessage).toBeInTheDocument();
+    }
+    if (invalidLayoutSetId === existingLayoutSetName) {
+      const notUniqueMessage = screen.getByText(
+        textMock('process_editor.configuration_panel_layout_set_id_not_unique'),
+      );
+      expect(notUniqueMessage).toBeInTheDocument();
+      expect(updateLayoutSetMock).not.toHaveBeenCalled();
+    }
   });
 });
 

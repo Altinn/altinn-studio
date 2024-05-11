@@ -65,8 +65,8 @@ describe('StudioTextarea', () => {
     const onBlur = jest.fn();
     renderTextarea({ onBlur });
     const textarea = screen.getByRole('textbox');
-    await user.click(textarea);
-    await user.tab();
+    await waitFor(() => user.click(textarea));
+    user.tab();
     await waitFor(() => expect(onBlur).toHaveBeenCalledTimes(1));
   });
 

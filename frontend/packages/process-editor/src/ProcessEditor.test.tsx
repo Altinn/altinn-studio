@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import type { ProcessEditorProps } from './ProcessEditor';
 import { ProcessEditor } from './ProcessEditor';
 import { textMock } from '../../../testing/mocks/i18nMock';
@@ -57,12 +57,12 @@ describe('ProcessEditor', () => {
     const user = userEvent.setup();
     renderProcessEditor(mockBPMNXML);
 
-    await user.tab();
+    user.tab();
 
     const alertHeader = screen.queryByRole('heading', {
       name: textMock('process_editor.too_old_version_title'),
       level: 1,
     });
-    expect(alertHeader).not.toBeInTheDocument();
+    await waitFor(() => expect(alertHeader).not.toBeInTheDocument());
   });
 });

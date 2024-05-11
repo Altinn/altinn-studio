@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { BpmnApiContextProps } from '../../../../contexts/BpmnApiContext';
@@ -73,11 +73,13 @@ describe('SelectDataType', () => {
     const selectDataModel = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
-    await user.selectOptions(selectDataModel, dataTypeToConnect);
-    expect(mutateDataTypeMock).toHaveBeenCalledWith({
-      connectedTaskId: mockTaskId,
-      newDataType: dataTypeToConnect,
-    });
+    user.selectOptions(selectDataModel, dataTypeToConnect);
+    await waitFor(() =>
+      expect(mutateDataTypeMock).toHaveBeenCalledWith({
+        connectedTaskId: mockTaskId,
+        newDataType: dataTypeToConnect,
+      }),
+    );
   });
 
   it('should call updateDataType with new data type when data type is changed', async () => {
@@ -95,11 +97,13 @@ describe('SelectDataType', () => {
     const selectDataModel = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
-    await user.selectOptions(selectDataModel, dataTypeToConnect);
-    expect(mutateDataTypeMock).toHaveBeenCalledWith({
-      connectedTaskId: mockTaskId,
-      newDataType: dataTypeToConnect,
-    });
+    user.selectOptions(selectDataModel, dataTypeToConnect);
+    await waitFor(() =>
+      expect(mutateDataTypeMock).toHaveBeenCalledWith({
+        connectedTaskId: mockTaskId,
+        newDataType: dataTypeToConnect,
+      }),
+    );
   });
 
   it('should call updateDataType with no data type when data type is deleted', async () => {
@@ -116,11 +120,13 @@ describe('SelectDataType', () => {
     const deleteDataTypeButton = screen.getByRole('button', {
       name: textMock('general.delete'),
     });
-    await user.click(deleteDataTypeButton);
-    expect(mutateDataTypeMock).toHaveBeenCalledWith({
-      connectedTaskId: mockTaskId,
-      newDataType: undefined,
-    });
+    user.click(deleteDataTypeButton);
+    await waitFor(() =>
+      expect(mutateDataTypeMock).toHaveBeenCalledWith({
+        connectedTaskId: mockTaskId,
+        newDataType: undefined,
+      }),
+    );
   });
 
   it('should not call updateDataType when data type is set to existing', async () => {
@@ -137,8 +143,8 @@ describe('SelectDataType', () => {
     const selectDataModel = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
-    await user.selectOptions(selectDataModel, existingDataType);
-    expect(mutateDataTypeMock).not.toHaveBeenCalled();
+    user.selectOptions(selectDataModel, existingDataType);
+    await waitFor(() => expect(mutateDataTypeMock).not.toHaveBeenCalled());
   });
 });
 

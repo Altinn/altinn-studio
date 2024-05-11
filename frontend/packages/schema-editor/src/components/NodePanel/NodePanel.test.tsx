@@ -11,7 +11,7 @@ import {
 } from '../../../test/mocks/uiSchemaMock';
 import type { DragAndDropTreeProviderProps } from 'app-shared/components/DragAndDropTree/DragAndDropTreeProvider';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
@@ -102,8 +102,8 @@ describe('NodePanel', () => {
       const user = userEvent.setup();
       renderNodePanelWithObjectDefinition();
       const backButton = screen.getByRole('button', { name: backButtonName });
-      await user.click(backButton);
-      expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
+      user.click(backButton);
+      await waitFor(() => expect(setSelectedTypePointer).toHaveBeenCalledTimes(1));
       expect(setSelectedTypePointer).toHaveBeenCalledWith(undefined);
       expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
       expect(setSelectedNodePointer).toHaveBeenCalledWith(undefined);

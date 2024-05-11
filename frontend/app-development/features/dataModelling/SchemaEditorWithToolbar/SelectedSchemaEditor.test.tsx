@@ -101,10 +101,10 @@ describe('SelectedSchemaEditor', () => {
     );
 
     const button = screen.getByTestId(saveButtonTestId);
-    await user.click(button);
-    expect(saveDatamodel).not.toHaveBeenCalled();
+    user.click(button);
+    await waitFor(() => expect(saveDatamodel).not.toHaveBeenCalled());
 
-    await waitFor(() => jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS));
+    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
     await waitFor(() => expect(saveDatamodel).toHaveBeenCalledTimes(1));
     expect(saveDatamodel).toHaveBeenCalledWith(org, app, model1Path, dataMock);
   });

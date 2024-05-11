@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import type { CardButtonProps } from './CardButton';
 import { CardButton } from './CardButton';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
@@ -22,8 +22,8 @@ describe('CardButton', () => {
     render(<CardButton {...defaultProps} />);
 
     const buttonElement = screen.getByRole('button', { name: mockButtonText });
-    await user.click(buttonElement);
+    user.click(buttonElement);
 
-    expect(mockOnClick).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockOnClick).toHaveBeenCalledTimes(1));
   });
 });

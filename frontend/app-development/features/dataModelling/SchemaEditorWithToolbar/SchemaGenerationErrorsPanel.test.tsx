@@ -3,7 +3,7 @@ import { renderWithMockStore } from '../../../test/mocks';
 import type { SchemaGenerationErrorsPanelProps } from './SchemaGenerationErrorsPanel';
 import { SchemaGenerationErrorsPanel } from './SchemaGenerationErrorsPanel';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 
@@ -69,8 +69,8 @@ describe('SchemaGenerationErrorsPanel', () => {
     const mockOnCloseErrorsPanel = jest.fn();
     render({}, { ...defaultProps, onCloseErrorsPanel: mockOnCloseErrorsPanel });
     const closeErrorPanelButton = screen.getByRole('button', { name: textMock('general.close') });
-    await user.click(closeErrorPanelButton);
-    expect(mockOnCloseErrorsPanel).toHaveBeenCalledTimes(1);
+    user.click(closeErrorPanelButton);
+    await waitFor(() => expect(mockOnCloseErrorsPanel).toHaveBeenCalledTimes(1));
   });
 });
 

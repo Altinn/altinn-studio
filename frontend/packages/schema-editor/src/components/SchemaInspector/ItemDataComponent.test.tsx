@@ -2,7 +2,7 @@ import { ItemDataComponent } from './ItemDataComponent';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { SchemaModel } from '@altinn/schema-model';
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import {
   fieldNode1Mock,
@@ -42,7 +42,8 @@ describe('ItemDataComponent', () => {
 
   test('"Multiple answers" checkbox should not appear if selected item is combination', async () => {
     renderItemDataComponent();
-    await screen.findByLabelText(textMock('schema_editor.name'));
+    const editorLabel = await screen.findByLabelText(textMock('schema_editor.name'));
+    expect(editorLabel).toBeInTheDocument();
     expect(screen.queryByLabelText(textMock('schema_editor.multiple_answers'))).toBeNull();
   });
 
@@ -50,8 +51,8 @@ describe('ItemDataComponent', () => {
     renderItemDataComponent(toggableNodeMock);
     const checkbox = screen.queryByLabelText(textMock('schema_editor.multiple_answers'));
     if (checkbox === null) fail();
-    await user.click(checkbox);
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
+    user.click(checkbox);
+    await waitFor(() => expect(saveDatamodel).toHaveBeenCalledTimes(1));
   });
 
   test('"Nullable" checkbox should appear if selected item is combination', async () => {
@@ -69,8 +70,8 @@ describe('ItemDataComponent', () => {
     renderItemDataComponent();
     const checkbox = screen.getByLabelText(textMock('schema_editor.nullable'));
     if (checkbox === null) fail();
-    await user.click(checkbox);
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
+    user.click(checkbox);
+    await waitFor(() => expect(saveDatamodel).toHaveBeenCalledTimes(1));
   });
 
   test('"Title" field appears', async () => {
@@ -82,9 +83,9 @@ describe('ItemDataComponent', () => {
     renderItemDataComponent();
     const inputField = screen.getByLabelText(textMock('schema_editor.title'));
     const title = 'Lorem ipsum';
-    await user.type(inputField, title);
-    await user.tab();
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
+    await waitFor(() => user.type(inputField, title));
+    user.tab();
+    await waitFor(() => expect(saveDatamodel).toHaveBeenCalledTimes(1));
     const updatedModel = getSavedModel(saveDatamodel);
     const updatedNode = updatedModel.getNode(combinationNodeMock.pointer);
     expect(updatedNode.title).toEqual(title);
@@ -99,9 +100,9 @@ describe('ItemDataComponent', () => {
     renderItemDataComponent();
     const textArea = screen.getByLabelText(textMock('schema_editor.description'));
     const description = 'Lorem ipsum dolor sit amet.';
-    await user.type(textArea, description);
-    await user.tab();
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
+    await waitFor(() => user.type(textArea, description));
+    user.tab();
+    await waitFor(() => expect(saveDatamodel).toHaveBeenCalledTimes(1));
     const updatedModel = getSavedModel(saveDatamodel);
     const updatedNode = updatedModel.getNode(combinationNodeMock.pointer);
     expect(updatedNode.description).toEqual(description);
@@ -121,7 +122,7 @@ describe('ItemDataComponent', () => {
   test('Does not render an error message when there is no change in text', async () => {
     renderItemDataComponent();
     const inputField = screen.getByLabelText(textMock('schema_editor.name'));
-    await user.type(inputField, 'test');
+    await waitFor(() => user.type(inputField, 'test'));
     fireEvent.blur(inputField);
     expect(screen.queryByText(textMock('schema_editor.nameError_alreadyInUse'))).toBeNull();
   });

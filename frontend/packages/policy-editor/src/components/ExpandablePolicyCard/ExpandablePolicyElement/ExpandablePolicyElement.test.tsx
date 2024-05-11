@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ExpandablePolicyElementProps } from './ExpandablePolicyElement';
 import { ExpandablePolicyElement } from './ExpandablePolicyElement';
@@ -49,12 +49,12 @@ describe('ExpandablePolicyElement', () => {
     expect(expandButtonClosedBefore).toBeInTheDocument();
     expect(expandButtonOpenedBefore).not.toBeInTheDocument();
 
-    await user.click(expandButtonClosedBefore);
+    await waitFor(() => user.click(expandButtonClosedBefore));
 
     const expandButtonClosedAfter = screen.queryByRole('button', {
       name: `${mockTitle} ${textMock('policy_editor.expandable_card_close_icon')}`,
     });
-    const expandButtonOpenedAfter = screen.getByRole('button', {
+    const expandButtonOpenedAfter = await screen.findByRole('button', {
       name: `${mockTitle} ${textMock('policy_editor.expandable_card_open_icon')}`,
     });
 
@@ -62,9 +62,9 @@ describe('ExpandablePolicyElement', () => {
     expect(expandButtonClosedAfter).not.toBeInTheDocument();
     expect(expandButtonOpenedAfter).toBeInTheDocument();
 
-    await user.click(expandButtonOpenedAfter);
+    user.click(expandButtonOpenedAfter);
 
-    expect(screen.getByText(mockTextChildren)).toBeInTheDocument();
+    expect(await screen.findByText(mockTextChildren)).toBeInTheDocument();
   });
 
   it('calls handleRemoveElement when the "Delete" option in the dropdown menu is clicked', async () => {
@@ -74,12 +74,12 @@ describe('ExpandablePolicyElement', () => {
     const moreButton = screen.getByRole('button', {
       name: textMock('policy_editor.more'),
     });
-    await user.click(moreButton);
+    user.click(moreButton);
 
-    const deleteOption = screen.getByRole('menuitem', { name: textMock('general.delete') });
-    await user.click(deleteOption);
+    const deleteOption = await screen.findByRole('menuitem', { name: textMock('general.delete') });
+    user.click(deleteOption);
 
-    expect(mockHandleRemoveElement).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockHandleRemoveElement).toHaveBeenCalledTimes(1));
   });
 
   it('calls handleCloneElement when the "Copy" option in the dropdown menu is clicked', async () => {
@@ -89,13 +89,13 @@ describe('ExpandablePolicyElement', () => {
     const moreButton = screen.getByRole('button', {
       name: textMock('policy_editor.more'),
     });
-    await user.click(moreButton);
+    user.click(moreButton);
 
-    const cloneOption = screen.getByRole('menuitem', {
+    const cloneOption = await screen.findByRole('menuitem', {
       name: textMock('policy_editor.expandable_card_dropdown_copy'),
     });
-    await user.click(cloneOption);
+    user.click(cloneOption);
 
-    expect(mockHandleCloneElement).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockHandleCloneElement).toHaveBeenCalledTimes(1));
   });
 });

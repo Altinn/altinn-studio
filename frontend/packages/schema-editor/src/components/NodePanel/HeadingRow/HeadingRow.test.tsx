@@ -66,8 +66,8 @@ describe('HeadingRow', () => {
     it('Selects the root node when clicking the name', async () => {
       const user = userEvent.setup();
       renderHeadingRow();
-      await user.click(screen.getByRole('button', { name: datamodelName }));
-      expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
+      user.click(screen.getByRole('button', { name: datamodelName }));
+      await waitFor(() => expect(setSelectedNodePointer).toHaveBeenCalledTimes(1));
       expect(setSelectedNodePointer).toHaveBeenCalledWith(ROOT_POINTER);
     });
 
@@ -79,8 +79,8 @@ describe('HeadingRow', () => {
         const numberOfRootChildrenBefore = schemaModel.getRootChildren().length;
         renderHeadingRow({ appContextProps: { schemaModel } });
         await waitFor(() => user.click(getAddButton()));
-        await waitFor(() => user.click(getAddMenuitem(type)));
-        expect(save).toHaveBeenCalledTimes(1);
+        user.click(getAddMenuitem(type));
+        await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
         const savedModel = save.mock.calls[0][0];
         expect(savedModel.getNodeMap()).toBe(schemaModel.getNodeMap());
         const numberOfRootChildrenAfter = schemaModel.getRootChildren().length;
@@ -187,8 +187,8 @@ describe('HeadingRow', () => {
       it('Selects the type when clicking the name', async () => {
         const user = userEvent.setup();
         renderHeadingRowForType(pointer);
-        await user.click(screen.getByRole('button', { name }));
-        expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
+        user.click(screen.getByRole('button', { name }));
+        await waitFor(() => expect(setSelectedNodePointer).toHaveBeenCalledTimes(1));
         expect(setSelectedNodePointer).toHaveBeenCalledWith(pointer);
       });
 
@@ -201,8 +201,8 @@ describe('HeadingRow', () => {
             const numberOfChildrenBefore = schemaModel.getChildNodes(pointer).length;
             renderHeadingRowForType(pointer, { schemaModel });
             await waitFor(() => user.click(getAddButton()));
-            await waitFor(() => user.click(getAddMenuitem(type)));
-            expect(save).toHaveBeenCalledTimes(1);
+            user.click(getAddMenuitem(type));
+            await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
             const savedModel = save.mock.calls[0][0];
             expect(savedModel.getNodeMap()).toBe(schemaModel.getNodeMap());
             const numberOfChildrenAfter = schemaModel.getChildNodes(pointer).length;
@@ -229,8 +229,8 @@ describe('HeadingRow', () => {
           const schemaModel = createSchemaModel();
           jest.spyOn(window, 'confirm').mockImplementation(() => true);
           renderHeadingRowForType(pointer, { schemaModel });
-          await user.click(getDeleteButton());
-          expect(save).toHaveBeenCalledTimes(1);
+          user.click(getDeleteButton());
+          await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
           const savedModel = save.mock.calls[0][0];
           expect(savedModel.getNodeMap()).toBe(schemaModel.getNodeMap());
           expect(schemaModel.hasNode(pointer)).toBe(false);

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ExpandablePolicyCardProps } from './ExpandablePolicyCard';
 import { ExpandablePolicyCard } from './ExpandablePolicyCard';
@@ -56,14 +56,14 @@ describe('ExpandablePolicyCard', () => {
     render(<ExpandablePolicyCard {...defaultProps} />);
 
     const [moreButton] = screen.getAllByRole('button', { name: textMock('policy_editor.more') });
-    await user.click(moreButton);
+    user.click(moreButton);
 
-    const [cloneButton] = screen.getAllByRole('menuitem', {
+    const [cloneButton] = await screen.findAllByRole('menuitem', {
       name: textMock('policy_editor.expandable_card_dropdown_copy'),
     });
-    await user.click(cloneButton);
+    user.click(cloneButton);
 
-    expect(mockHandleCloneRule).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockHandleCloneRule).toHaveBeenCalledTimes(1));
   });
 
   it('calls "handleDeleteRule" when the delete button is clicked', async () => {
@@ -71,12 +71,14 @@ describe('ExpandablePolicyCard', () => {
     render(<ExpandablePolicyCard {...defaultProps} />);
 
     const [moreButton] = screen.getAllByRole('button', { name: textMock('policy_editor.more') });
-    await user.click(moreButton);
+    user.click(moreButton);
 
-    const [deleteButton] = screen.getAllByRole('menuitem', { name: textMock('general.delete') });
-    await user.click(deleteButton);
+    const [deleteButton] = await screen.findAllByRole('menuitem', {
+      name: textMock('general.delete'),
+    });
+    user.click(deleteButton);
 
-    expect(mockHandleDeleteRule).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockHandleDeleteRule).toHaveBeenCalledTimes(1));
   });
 
   it('calls "setPolicyRules" when sub-resource fields are edited', async () => {
@@ -90,13 +92,13 @@ describe('ExpandablePolicyCard', () => {
 
     const newWord: string = 'test';
 
-    await user.type(typeInput, newWord);
-    expect(mockSetPolicyRules).toHaveBeenCalledTimes(newWord.length);
+    user.type(typeInput, newWord);
+    await waitFor(() => expect(mockSetPolicyRules).toHaveBeenCalledTimes(newWord.length));
 
     mockSetPolicyRules.mockClear();
 
-    await user.type(idInput, newWord);
-    expect(mockSetPolicyRules).toHaveBeenCalledTimes(newWord.length);
+    user.type(idInput, newWord);
+    await waitFor(() => expect(mockSetPolicyRules).toHaveBeenCalledTimes(newWord.length));
   });
 
   it('displays the selected actions as Chips', async () => {
@@ -125,7 +127,7 @@ describe('ExpandablePolicyCard', () => {
     const [actionSelect] = screen.getAllByLabelText(
       textMock('policy_editor.rule_card_actions_title'),
     );
-    await user.click(actionSelect);
+    await waitFor(() => user.click(actionSelect));
 
     // Check that the selected actions are not in the document
     const optionAction1 = screen.queryByRole('option', { name: mockActionOption1 });
@@ -139,9 +141,10 @@ describe('ExpandablePolicyCard', () => {
     expect(optionAction4).not.toBeInTheDocument();
 
     // Click the final action
-    await user.click(screen.getByRole('option', { name: mockActionOption3 }));
+    const optionAction3Element = screen.getByRole('option', { name: mockActionOption3 });
+    user.click(optionAction3Element);
 
-    expect(mockSetPolicyRules).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockSetPolicyRules).toHaveBeenCalledTimes(1));
 
     // Expect the option clicked to be removed from the screen
     expect(
@@ -177,7 +180,7 @@ describe('ExpandablePolicyCard', () => {
     const [subjectSelect] = screen.getAllByLabelText(
       textMock('policy_editor.rule_card_subjects_title'),
     );
-    await user.click(subjectSelect);
+    await waitFor(() => user.click(subjectSelect));
 
     // Check that the selected subjects are not in the document
     const optionSubject1 = screen.queryByRole('option', { name: mockSubjectTitle1 });
@@ -189,9 +192,9 @@ describe('ExpandablePolicyCard', () => {
     expect(optionSubject3).not.toBeInTheDocument();
 
     // Click the final subject
-    await user.click(screen.getByRole('option', { name: mockSubjectTitle2 }));
+    user.click(screen.getByRole('option', { name: mockSubjectTitle2 }));
 
-    expect(mockSetPolicyRules).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockSetPolicyRules).toHaveBeenCalledTimes(1));
 
     // Expect the option clicked to be removed from the screen
     expect(
@@ -212,20 +215,23 @@ describe('ExpandablePolicyCard', () => {
     const [subjectSelect] = screen.getAllByLabelText(
       textMock('policy_editor.rule_card_subjects_title'),
     );
-    await user.click(subjectSelect);
+    user.click(subjectSelect);
 
     // Check that already selected options does not be included within selectable list.
-    expect(screen.queryByRole('option', { name: mockSubjectTitle1 })).toBeNull();
+    await waitFor(() =>
+      expect(screen.queryByRole('option', { name: mockSubjectTitle1 })).toBeNull(),
+    );
 
     // Remove the selected subject
     const selectedSubject = screen.getByLabelText(
       `${textMock('general.delete')} ${mockSubjectTitle1}`,
     );
-    await user.click(selectedSubject);
+    user.click(selectedSubject);
 
     // Open the select and verify that the removed subject is now appended to the selectable list
-    await user.click(subjectSelect);
-    expect(screen.getByRole('option', { name: mockSubjectTitle1 })).toBeInTheDocument();
+    user.click(subjectSelect);
+    const optionSubject1 = await screen.findByRole('option', { name: mockSubjectTitle1 });
+    expect(optionSubject1).toBeInTheDocument();
   });
 
   it('calls "setPolicyRules" when description field is edited', async () => {
@@ -236,9 +242,9 @@ describe('ExpandablePolicyCard', () => {
       textMock('policy_editor.rule_card_description_title'),
     );
     expect(descriptionField).toHaveValue(mockPolicyRuleCard1.description);
-    await user.type(descriptionField, '1');
+    user.type(descriptionField, '1');
 
-    expect(mockSetPolicyRules).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockSetPolicyRules).toHaveBeenCalledTimes(1));
   });
 
   it('calls "savePolicy" when input fields are blurred', async () => {
@@ -251,35 +257,35 @@ describe('ExpandablePolicyCard', () => {
     const [idInput] = screen.getAllByLabelText(textMock('policy_editor.narrowing_list_field_id'));
 
     const newWord: string = 'test';
-    await user.type(typeInput, newWord);
-    await user.tab();
-    await user.type(idInput, newWord);
-    await user.tab();
+    await waitFor(() => user.type(typeInput, newWord));
+    user.tab();
+    await waitFor(() => user.type(idInput, newWord));
+    user.tab();
 
-    const [actionSelect] = screen.getAllByLabelText(
+    const [actionSelect] = await screen.findAllByLabelText(
       textMock('policy_editor.rule_card_actions_title'),
     );
-    await user.click(actionSelect);
+    user.click(actionSelect);
 
     const actionOption: string = textMock(`policy_editor.action_${mockActionId3}`);
-    await user.click(screen.getByRole('option', { name: actionOption }));
-    await user.tab();
+    user.click(await screen.findByRole('option', { name: actionOption }));
+    user.tab();
 
     const [subjectSelect] = screen.getAllByLabelText(
       textMock('policy_editor.rule_card_subjects_title'),
     );
-    await user.click(subjectSelect);
-    await user.click(screen.getByRole('option', { name: mockSubjectTitle2 }));
-    await user.tab();
+    user.click(subjectSelect);
+    user.click(await screen.findByRole('option', { name: mockSubjectTitle2 }));
+    user.tab();
 
     const [descriptionField] = screen.getAllByLabelText(
       textMock('policy_editor.rule_card_description_title'),
     );
     expect(descriptionField).toHaveValue(mockPolicyRuleCard1.description);
-    await user.type(descriptionField, newWord);
-    await user.tab();
+    await waitFor(() => user.type(descriptionField, newWord));
+    user.tab();
 
     const numFields = 5;
-    expect(mockSavePolicy).toHaveBeenCalledTimes(numFields);
+    await waitFor(() => expect(mockSavePolicy).toHaveBeenCalledTimes(numFields));
   });
 });

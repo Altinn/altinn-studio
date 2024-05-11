@@ -11,9 +11,9 @@ describe('Viewer', () => {
     const user = userEvent.setup();
     render(<BPMNViewerErrorAlert bpmnViewerError='noDiagram' />);
 
-    await user.tab();
+    user.tab();
 
-    const heading = screen.getByRole('heading', {
+    const heading = await screen.findByRole('heading', {
       name: textMock('process_editor.not_found_diagram_heading'),
     });
     const paragraph = screen.getByText(textMock('process_editor.not_found_diagram_error_message'));
@@ -26,9 +26,9 @@ describe('Viewer', () => {
     const user = userEvent.setup();
     render(<BPMNViewerErrorAlert bpmnViewerError='noProcess' />);
 
-    await user.tab();
+    user.tab();
 
-    const heading = screen.getByRole('heading', {
+    const heading = await screen.findByRole('heading', {
       name: textMock('process_editor.not_found_process_heading'),
     });
     const paragraph = screen.getByText(textMock('process_editor.not_found_process_error_message'));
@@ -41,9 +41,9 @@ describe('Viewer', () => {
     const user = userEvent.setup();
     render(<BPMNViewerErrorAlert bpmnViewerError='unknown' />);
 
-    await user.tab();
+    user.tab();
 
-    const heading = screen.getByRole('heading', {
+    const heading = await screen.findByRole('heading', {
       name: textMock('process_editor.unknown_heading_error_message'),
     });
     const paragraph = screen.getByText(textMock('process_editor.unknown_paragraph_error_message'));

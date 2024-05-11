@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import type { VerificationModalProps } from './VerificationModal';
 import { VerificationModal } from './VerificationModal';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
@@ -51,9 +51,9 @@ describe('VerificationModal', () => {
     render(<VerificationModal {...defaultProps} />);
 
     const closeButton = screen.getByText(mockCloseButtonText);
-    await user.click(closeButton);
+    user.click(closeButton);
 
-    expect(mockOnClose).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockOnClose).toHaveBeenCalledTimes(1));
   });
 
   it('calls "onPerformAction" when the action button is clicked', async () => {
@@ -61,8 +61,8 @@ describe('VerificationModal', () => {
     render(<VerificationModal {...defaultProps} />);
 
     const actionButton = screen.getByText(mockActionButtonText);
-    await user.click(actionButton);
+    user.click(actionButton);
 
-    expect(mockOnPerformAction).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockOnPerformAction).toHaveBeenCalledTimes(1));
   });
 });

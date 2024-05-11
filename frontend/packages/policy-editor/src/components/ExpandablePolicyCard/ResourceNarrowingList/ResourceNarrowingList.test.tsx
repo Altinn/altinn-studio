@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ResourceNarrowingListProps } from './ResourceNarrowingList';
 import { ResourceNarrowingList } from './ResourceNarrowingList';
@@ -70,16 +70,16 @@ describe('ResourceNarrowingList', () => {
     render(<ResourceNarrowingList {...defaultProps} />);
 
     const [idInput] = screen.getAllByLabelText(textMock('policy_editor.narrowing_list_field_id'));
-    await user.type(idInput, mockNewText);
-    expect(mockHandleInputChange).toHaveBeenCalledTimes(mockNewText.length);
+    user.type(idInput, mockNewText);
+    await waitFor(() => expect(mockHandleInputChange).toHaveBeenCalledTimes(mockNewText.length));
 
     mockHandleInputChange.mockClear();
 
     const [typeInput] = screen.getAllByLabelText(
       textMock('policy_editor.narrowing_list_field_type'),
     );
-    await user.type(typeInput, mockNewText);
-    expect(mockHandleInputChange).toHaveBeenCalledTimes(mockNewText.length);
+    user.type(typeInput, mockNewText);
+    await waitFor(() => expect(mockHandleInputChange).toHaveBeenCalledTimes(mockNewText.length));
   });
 
   it('calls "handleRemoveResource" when remove resource button is clicked', async () => {
@@ -90,9 +90,9 @@ describe('ResourceNarrowingList', () => {
       name: textMock('policy_editor.narrowing_list_field_delete'),
     });
 
-    await user.click(deleteResourceButton);
+    user.click(deleteResourceButton);
 
-    expect(mockHandleRemoveResource).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockHandleRemoveResource).toHaveBeenCalledTimes(1));
   });
 
   it('calls "handleClickAddResource" when add button is clicked', async () => {
@@ -103,9 +103,9 @@ describe('ResourceNarrowingList', () => {
       name: textMock('policy_editor.narrowing_list_add_button'),
     });
 
-    await user.click(addResourceButton);
+    user.click(addResourceButton);
 
-    expect(mockHandleClickAddResource).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockHandleClickAddResource).toHaveBeenCalledTimes(1));
   });
 
   it('calls "handleRemoveElement" when remove element button is clicked', async () => {
@@ -115,14 +115,14 @@ describe('ResourceNarrowingList', () => {
     const [moreButton] = screen.getAllByRole('button', {
       name: textMock('policy_editor.more'),
     });
-    await user.click(moreButton);
+    user.click(moreButton);
 
-    const [deleteElementButton] = screen.getAllByRole('menuitem', {
+    const [deleteElementButton] = await screen.findAllByRole('menuitem', {
       name: textMock('general.delete'),
     });
-    await user.click(deleteElementButton);
+    user.click(deleteElementButton);
 
-    expect(mockHandleRemoveElement).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockHandleRemoveElement).toHaveBeenCalledTimes(1));
   });
 
   it('calls "handleCloneElement" when clone element button is clicked', async () => {
@@ -132,14 +132,14 @@ describe('ResourceNarrowingList', () => {
     const [moreButton] = screen.getAllByRole('button', {
       name: textMock('policy_editor.more'),
     });
-    await user.click(moreButton);
+    user.click(moreButton);
 
-    const [cloneElementButton] = screen.getAllByRole('menuitem', {
+    const [cloneElementButton] = await screen.findAllByRole('menuitem', {
       name: textMock('policy_editor.expandable_card_dropdown_copy'),
     });
-    await user.click(cloneElementButton);
+    user.click(cloneElementButton);
 
-    expect(mockHandleCloneElement).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockHandleCloneElement).toHaveBeenCalledTimes(1));
   });
 
   it('calls "onBlur" when a textfield is left', async () => {
@@ -150,8 +150,8 @@ describe('ResourceNarrowingList', () => {
       textMock('policy_editor.narrowing_list_field_type'),
     );
 
-    await user.type(typeInput, mockNewText);
-    await user.tab();
-    expect(mockOnBlur).toHaveBeenCalledTimes(1);
+    await waitFor(() => user.type(typeInput, mockNewText));
+    user.tab();
+    await waitFor(() => expect(mockOnBlur).toHaveBeenCalledTimes(1));
   });
 });

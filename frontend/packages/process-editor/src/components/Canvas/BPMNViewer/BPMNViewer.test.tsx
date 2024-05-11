@@ -13,9 +13,9 @@ describe('Viewer', () => {
       </BpmnContextProvider>,
     );
 
-    await user.tab();
+    user.tab();
 
-    const alertTitle = screen.getByRole('link', { name: 'Powered by bpmn.io' });
+    const alertTitle = await screen.findByRole('link', { name: 'Powered by bpmn.io' });
     expect(alertTitle).toBeInTheDocument;
   });
 });

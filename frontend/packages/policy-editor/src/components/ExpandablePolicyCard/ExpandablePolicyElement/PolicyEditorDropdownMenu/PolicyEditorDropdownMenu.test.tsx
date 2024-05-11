@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { PolicyEditorDropdownMenuProps } from './PolicyEditorDropdownMenu';
 import { PolicyEditorDropdownMenu } from './PolicyEditorDropdownMenu';
@@ -26,9 +26,9 @@ describe('PolicyEditorDropdownMenu', () => {
     render(<PolicyEditorDropdownMenu {...defaultProps} />);
 
     const menuButton = screen.getByRole('button', { name: textMock('policy_editor.more') });
-    await user.click(menuButton);
+    user.click(menuButton);
 
-    expect(mockHandleClickMoreIcon).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockHandleClickMoreIcon).toHaveBeenCalledTimes(1));
   });
 
   it('does not render the dropdown menu when isOpen is false', () => {
@@ -47,9 +47,9 @@ describe('PolicyEditorDropdownMenu', () => {
     const copyButton = screen.getByRole('menuitem', {
       name: textMock('policy_editor.expandable_card_dropdown_copy'),
     });
-    await user.click(copyButton);
+    user.click(copyButton);
 
-    expect(mockHandleClone).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockHandleClone).toHaveBeenCalledTimes(1));
   });
 
   it('calls handleDelete when the "Delete" button is clicked', async () => {
@@ -59,8 +59,8 @@ describe('PolicyEditorDropdownMenu', () => {
     const deleteButton = screen.getByRole('menuitem', {
       name: textMock('general.delete'),
     });
-    await user.click(deleteButton);
+    user.click(deleteButton);
 
-    expect(mockHandleDelete).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockHandleDelete).toHaveBeenCalledTimes(1));
   });
 });

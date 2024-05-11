@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EditTaskId } from './EditTaskId';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
@@ -87,7 +87,7 @@ describe('EditTaskId', () => {
     const editButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_change_task_id'),
     });
-    await user.click(editButton);
+    user.click(editButton);
 
     expect(
       screen.getByLabelText(textMock('process_editor.configuration_panel_change_task_id')),
@@ -107,20 +107,20 @@ describe('EditTaskId', () => {
     const editButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_change_task_id'),
     });
-    await user.click(editButton);
+    await waitFor(() => user.click(editButton));
 
-    const input = screen.getByLabelText(
+    const input = await screen.findByLabelText(
       textMock('process_editor.configuration_panel_change_task_id'),
     );
 
-    await user.clear(input);
-    await user.type(input, newId);
-    await user.tab();
+    await waitFor(() => user.clear(input));
+    await waitFor(() => user.type(input, newId));
+    user.tab();
 
+    await waitFor(() => expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1));
     expect(metaDataFormRefMock.current).toEqual(
       expect.objectContaining({ taskIdChange: { newId: newId, oldId: 'testId' } }),
     );
-    expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1);
   });
 
   describe('validation', () => {
@@ -172,17 +172,18 @@ describe('EditTaskId', () => {
         const editButton = screen.getByRole('button', {
           name: textMock('process_editor.configuration_panel_change_task_id'),
         });
-        await user.click(editButton);
+        await waitFor(() => user.click(editButton));
 
-        const input = screen.getByLabelText(
+        const input = await screen.findByLabelText(
           textMock('process_editor.configuration_panel_change_task_id'),
         );
 
-        await user.clear(input);
-        if (inputValue !== '') await user.type(input, inputValue);
-        await user.tab();
+        await waitFor(() => user.clear(input));
+        if (inputValue !== '') await waitFor(() => user.type(input, inputValue));
+        user.tab();
 
-        expect(screen.getByText(textMock(expectedError, textArgs))).toBeInTheDocument();
+        const errorMessage = await screen.findByText(textMock(expectedError, textArgs));
+        expect(errorMessage).toBeInTheDocument();
       });
     });
   });
@@ -204,15 +205,15 @@ describe('EditTaskId', () => {
     const editButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_change_task_id'),
     });
-    await user.click(editButton);
+    await waitFor(() => user.click(editButton));
 
-    const input = screen.getByLabelText(
+    const input = await screen.findByLabelText(
       textMock('process_editor.configuration_panel_change_task_id'),
     );
 
-    await user.clear(input);
-    await user.type(input, 'testId');
-    await user.tab();
+    await waitFor(() => user.clear(input));
+    await waitFor(() => user.type(input, 'testId'));
+    user.tab();
 
     expect(metaDataFormRefMock.current).toBeUndefined();
     expect(setBpmnDetailsMock).not.toHaveBeenCalled();

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import type { ActionAndSubjectListItemProps } from './ActionAndSubjectListItem';
 import { ActionAndSubjectListItem } from './ActionAndSubjectListItem';
 import userEvent from '@testing-library/user-event';
@@ -21,8 +21,8 @@ describe('ActionAndSubjectListItem', () => {
     render(<ActionAndSubjectListItem {...defaultProps} />);
 
     const chipElement = screen.getByText(mockChipTitle);
-    await user.click(chipElement);
+    user.click(chipElement);
 
-    expect(mockOnRemove).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockOnRemove).toHaveBeenCalledTimes(1));
   });
 });

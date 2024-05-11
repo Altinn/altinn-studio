@@ -32,9 +32,9 @@ describe('ConfigViewerPanel', () => {
       name: textMock('process_editor.configuration_panel_header_help_text_title'),
     });
 
-    await user.click(helpTextButton);
+    user.click(helpTextButton);
 
-    const configHeaderHelpText = screen.getByText(
+    const configHeaderHelpText = await screen.findByText(
       textMock('process_editor.configuration_panel_header_help_text_data'),
     );
 

@@ -80,11 +80,11 @@ describe('ConfigContent', () => {
     const helpTextButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_header_help_text_title'),
     });
-    await user.click(helpTextButton);
-
-    expect(
-      screen.getByText(textMock('process_editor.configuration_panel_header_help_text_data')),
-    ).toBeInTheDocument();
+    user.click(helpTextButton);
+    const helpText = await screen.findByText(
+      textMock('process_editor.configuration_panel_header_help_text_data'),
+    );
+    expect(helpText).toBeInTheDocument();
   });
 
   it('should render EditTaskId component', () => {
@@ -147,11 +147,11 @@ describe('ConfigContent', () => {
     const helpTextButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_header_help_text_title'),
     });
-    await user.click(helpTextButton);
-
-    expect(
-      screen.getByText(textMock('process_editor.configuration_panel_header_help_text_data')),
-    ).toBeInTheDocument();
+    user.click(helpTextButton);
+    const helpText = await screen.findByText(
+      textMock('process_editor.configuration_panel_header_help_text_data'),
+    );
+    expect(helpText).toBeInTheDocument();
   });
 
   it('should display the connected data model as selected by default when data type is connected to task', () => {

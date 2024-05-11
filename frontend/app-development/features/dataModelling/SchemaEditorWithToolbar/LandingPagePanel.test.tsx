@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import type { LandingPagePanelProps } from './LandingPagePanel';
 import { LandingPagePanel } from './LandingPagePanel';
 import userEvent from '@testing-library/user-event';
@@ -38,9 +38,9 @@ describe('LandingPagePanel', () => {
     const button = screen.getByRole('button', {
       name: textMock('app_data_modelling.landing_dialog_create'),
     });
-    await user.click(button);
+    user.click(button);
 
-    expect(landingPagePropsMock.openCreateNew).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(landingPagePropsMock.openCreateNew).toHaveBeenCalledTimes(1));
   });
 });
 

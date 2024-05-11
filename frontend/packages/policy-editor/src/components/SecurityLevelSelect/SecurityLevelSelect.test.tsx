@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { SecurityLevelSelectProps } from './SecurityLevelSelect';
 import { SecurityLevelSelect, authlevelOptions } from './SecurityLevelSelect';
@@ -28,11 +28,11 @@ describe('SelectAuthLevel', () => {
 
     expect(selectElement).toHaveValue(mockInitialAuthLevelLabel);
 
-    await user.click(selectElement);
+    user.click(selectElement);
 
     const mockOption2 = textMock(authlevelOptions[2].label);
-    await user.click(screen.getByRole('option', { name: mockOption2 }));
+    user.click(await screen.findByRole('option', { name: mockOption2 }));
 
-    expect(mockOnSave).toHaveBeenCalledWith(authlevelOptions[2].value);
+    await waitFor(() => expect(mockOnSave).toHaveBeenCalledWith(authlevelOptions[2].value));
   });
 });
