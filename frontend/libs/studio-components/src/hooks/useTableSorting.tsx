@@ -1,17 +1,10 @@
 import { useState, useEffect } from 'react';
 import type { Rows } from '../components';
 
-export const useTableSorting = (rows: Rows, config) => {
+export const useTableSorting = (rows: Rows, config: Record<'enable', boolean>) => {
   const [sortColumn, setSortColumn] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
   const [sortedRows, setSortedRows] = useState<Rows>(rows);
-
-  if (!config.enable) {
-    return {
-      sortedRows: undefined,
-      handleSorting: undefined,
-    };
-  }
 
   const toggleSortDirection = () => {
     setSortDirection((prevDirection) => (prevDirection === 'asc' ? 'desc' : 'asc'));
@@ -40,6 +33,13 @@ export const useTableSorting = (rows: Rows, config) => {
       setSortedRows(rows);
     }
   }, [sortColumn, sortDirection, rows]);
+
+  if (!config.enable) {
+    return {
+      sortedRows: undefined,
+      handleSorting: undefined,
+    };
+  }
 
   return {
     sortedRows,

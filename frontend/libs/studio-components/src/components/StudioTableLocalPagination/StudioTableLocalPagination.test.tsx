@@ -48,7 +48,7 @@ describe('StudioTableLocalPagination', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders the complete table when pagination is undefined', () => {
+  it('renders the complete table when pagination prop is not provided', () => {
     render(<StudioTableLocalPagination columns={columns} rows={rows} />);
     expect(
       screen.getByRole('cell', { name: 'Coordinated register notification' }),
@@ -67,7 +67,7 @@ describe('StudioTableLocalPagination', () => {
     expect(screen.getByRole('button', { name: 'Next' })).toBeInTheDocument();
   });
 
-  it('changes page when next button is clicked', async () => {
+  it('changes page when the "Next" button is clicked', async () => {
     render(
       <StudioTableLocalPagination columns={columns} rows={rows} pagination={paginationProps} />,
     );
@@ -83,7 +83,7 @@ describe('StudioTableLocalPagination', () => {
     ).toBeInTheDocument();
   });
 
-  it('changes page when "Page 2" button is clicked', async () => {
+  it('changes page when the "Page 2" button is clicked', async () => {
     render(
       <StudioTableLocalPagination columns={columns} rows={rows} pagination={paginationProps} />,
     );
@@ -125,5 +125,16 @@ describe('StudioTableLocalPagination', () => {
     const tableBody = screen.getAllByRole('rowgroup')[1];
     const tableBodyRows = within(tableBody).getAllByRole('row');
     expect(tableBodyRows.length).toBeGreaterThan(10);
+  });
+
+  it('displays the empty table message when there are no rows to display', () => {
+    render(
+      <StudioTableLocalPagination
+        columns={columns}
+        rows={[]}
+        emptyTableMessage='No rows to display'
+      />,
+    );
+    expect(screen.getByRole('paragraph', { value: 'No rows to display' })).toBeInTheDocument();
   });
 });

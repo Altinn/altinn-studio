@@ -1,7 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { PaginationProps, StudioTableRemotePagination } from './StudioTableRemotePagination';
+import { StudioTableRemotePagination } from './StudioTableRemotePagination';
+import type { PaginationProps } from './StudioTableRemotePagination';
 import { columns, rows } from './mockData';
 
 describe('StudioTableRemotePagination', () => {
@@ -57,7 +58,7 @@ describe('StudioTableRemotePagination', () => {
     expect(screen.queryByRole('button', { name: 'Next' })).not.toBeInTheDocument();
   });
 
-  it('triggers the onPageChange callback when a page is clicked', async () => {
+  it('triggers the onPageChange function when "Next" is clicked', async () => {
     render(
       <StudioTableRemotePagination columns={columns} rows={rows} pagination={paginationProps} />,
     );
@@ -67,7 +68,17 @@ describe('StudioTableRemotePagination', () => {
     expect(paginationProps.onPageChange).toHaveBeenCalledWith(2);
   });
 
-  it('triggers the onPageSizeChange callback when the page size is changed', async () => {
+  it('triggers the onPageChange function when "Page 2" is clicked', async () => {
+    render(
+      <StudioTableRemotePagination columns={columns} rows={rows} pagination={paginationProps} />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Page 2' }));
+
+    expect(paginationProps.onPageChange).toHaveBeenCalledWith(2);
+  });
+
+  it('triggers the onPageSizeChange function when the page size is changed', async () => {
     render(
       <StudioTableRemotePagination columns={columns} rows={rows} pagination={paginationProps} />,
     );
@@ -75,5 +86,16 @@ describe('StudioTableRemotePagination', () => {
     await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Rows per page' }), '10');
 
     expect(paginationProps.onPageSizeChange).toHaveBeenCalledWith(10);
+  });
+
+  it('displays the empty table message when there are no rows to display', () => {
+    render(
+      <StudioTableRemotePagination
+        columns={columns}
+        rows={[]}
+        emptyTableMessage='No rows to display'
+      />,
+    );
+    expect(screen.getByRole('paragraph', { value: 'No rows to display' })).toBeInTheDocument();
   });
 });

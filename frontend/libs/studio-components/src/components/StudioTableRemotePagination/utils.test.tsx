@@ -12,15 +12,17 @@ describe('getRowsToRender', () => {
   it('should return all rows when pageSize is 0', () => {
     const currentPage = 1;
     const pageSize = 0;
-    const result = getRowsToRender(currentPage, pageSize, rows);
-    expect(result).toEqual(rows);
+    // eslint-disable-next-line testing-library/render-result-naming-convention
+    const rowsToRender = getRowsToRender(currentPage, pageSize, rows);
+    expect(rowsToRender).toEqual(rows);
   });
 
   it('should return the correct rows for the first page', () => {
     const currentPage = 1;
     const pageSize = 2;
-    const result = getRowsToRender(currentPage, pageSize, rows);
-    expect(result).toEqual([
+    // eslint-disable-next-line testing-library/render-result-naming-convention
+    const rowsToRender = getRowsToRender(currentPage, pageSize, rows);
+    expect(rowsToRender).toEqual([
       { id: 1, name: 'Row 1' },
       { id: 2, name: 'Row 2' },
     ]);
@@ -29,21 +31,24 @@ describe('getRowsToRender', () => {
   it('should return the correct rows for the last page', () => {
     const currentPage = 3;
     const pageSize = 2;
-    const result = getRowsToRender(currentPage, pageSize, rows);
-    expect(result).toEqual([{ id: 5, name: 'Row 5' }]);
+    // eslint-disable-next-line testing-library/render-result-naming-convention
+    const rowsToRender = getRowsToRender(currentPage, pageSize, rows);
+    expect(rowsToRender).toEqual([{ id: 5, name: 'Row 5' }]);
   });
 
   it('should return an empty array when currentPage is out of range', () => {
     const currentPage = 4;
     const pageSize = 2;
-    const result = getRowsToRender(currentPage, pageSize, rows);
-    expect(result).toEqual([]);
+    // eslint-disable-next-line testing-library/render-result-naming-convention
+    const rowsToRender = getRowsToRender(currentPage, pageSize, rows);
+    expect(rowsToRender).toEqual([]);
   });
 
-  it('should return an empty array when rows is empty', () => {
+  it('should return an empty array when rows is an empty array', () => {
     const currentPage = 1;
     const pageSize = 2;
-    const result = getRowsToRender(currentPage, pageSize, []);
-    expect(result).toEqual([]);
+    // eslint-disable-next-line testing-library/render-result-naming-convention
+    const rowsToRender = getRowsToRender(currentPage, pageSize, []);
+    expect(rowsToRender).toEqual([]);
   });
 });

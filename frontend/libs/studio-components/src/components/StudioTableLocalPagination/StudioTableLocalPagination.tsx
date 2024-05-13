@@ -32,8 +32,13 @@ export const StudioTableLocalPagination = forwardRef<
 
     const { handleSorting, sortedRows } = useTableSorting(rows, { enable: isSortable });
 
-    const initialRowsToRender = getRowsToRender(currentPage, pageSize, sortedRows || rows);
+    const initialRowsToRender = getRowsToRender(currentPage, pageSize, rows);
     const [rowsToRender, setRowsToRender] = useState<Rows>(initialRowsToRender);
+
+    useEffect(() => {
+      setRowsToRender(getRowsToRender(currentPage, pageSize, sortedRows || rows));
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sortedRows]);
 
     const handlePageChange = (newPage: number) => {
       setCurrentPage(newPage);
@@ -45,7 +50,7 @@ export const StudioTableLocalPagination = forwardRef<
 
       const updatedRowsToRender = getRowsToRender(currentPage, newPageSize, sortedRows || rows);
       if (!updatedRowsToRender.length) {
-        // Set table to page 1 if current page becomes obsolete
+        // If the new page size results in an empty page, reset to the first page
         setRowsToRender(getRowsToRender(1, newPageSize, sortedRows || rows));
         setCurrentPage(1);
       } else {

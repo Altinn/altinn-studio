@@ -38,147 +38,111 @@ export const rows: Rows = [
     icon: <IconButton icon={<StarFillIcon />} />,
     name: 'Coordinated register notification',
     creator: 'Brønnøysund Register Centre',
-    lastChanged: new Date('2023-04-12').toLocaleDateString(),
+    lastChanged: '12-04-2023',
   },
   {
     id: 2,
     icon: <IconButton icon={<StarFillIcon />} />,
     name: 'Application for authorisation and license as a healthcare personnel',
     creator: 'The Norwegian Directorate of Health',
-    lastChanged: new Date('2023-04-05').toLocaleDateString(),
+    lastChanged: '05-04-2023',
   },
   {
     id: 3,
     icon: <IconButton icon={<StarFillIcon />} />,
     name: 'Produkter og tjenester fra Brønnøysundregistrene',
     creator: 'Brønnøysund Register Centre',
-    lastChanged: new Date('2023-04-16').toLocaleDateString(),
+    lastChanged: '16-04-2023',
   },
   {
     id: 4,
     icon: <IconButton icon={<StarIcon />} />,
     name: 'Contact form - Norwegian Tax Administration (private individual)',
     creator: 'Tax Administration',
-    lastChanged: new Date('2023-04-08').toLocaleDateString(),
+    lastChanged: '08-04-2023',
   },
   {
     id: 5,
     icon: <IconButton icon={<StarFillIcon />} />,
     name: 'Contact form - Norwegian Tax Administration (commercial)',
     creator: 'Tax Administration',
-    lastChanged: new Date('2023-04-01').toLocaleDateString(),
+    lastChanged: '01-04-2023',
   },
   {
     id: 6,
     icon: <IconButton icon={<StarFillIcon />} />,
     name: 'A-melding – all forms',
     creator: 'Brønnøysund Register Centre',
-    lastChanged: new Date('2023-04-14').toLocaleDateString(),
+    lastChanged: '14-04-2023',
   },
   {
     id: 7,
     icon: <IconButton icon={<StarIcon />} />,
     name: 'Application for VAT registration',
     creator: 'Tax Administration',
-    lastChanged: new Date('2023-04-03').toLocaleDateString(),
+    lastChanged: '03-04-2023',
   },
   {
     id: 8,
     icon: <IconButton icon={<StarFillIcon />} />,
     name: 'Reporting of occupational injuries and diseases',
     creator: 'Norwegian Labour Inspection Authority',
-    lastChanged: new Date('2023-04-11').toLocaleDateString(),
+    lastChanged: '11-04-2023',
   },
   {
     id: 9,
     icon: <IconButton icon={<StarFillIcon />} />,
     name: 'Application for a residence permit',
     creator: 'Norwegian Directorate of Immigration',
-    lastChanged: new Date('2023-04-06').toLocaleDateString(),
+    lastChanged: '06-04-2023',
   },
   {
     id: 10,
     icon: <IconButton icon={<StarIcon />} />,
     name: 'Application for a work permit',
     creator: 'Norwegian Directorate of Immigration',
-    lastChanged: new Date('2023-04-15').toLocaleDateString(),
+    lastChanged: '15-04-2023',
   },
   {
     id: 11,
     icon: <IconButton icon={<StarFillIcon />} />,
     name: 'Notification of change of address',
     creator: 'Norwegian Tax Administration',
-    lastChanged: new Date('2023-04-09').toLocaleDateString(),
+    lastChanged: '09-04-2023',
   },
   {
     id: 12,
     icon: <IconButton icon={<StarFillIcon />} />,
     name: 'Application for a Norwegian national ID number',
     creator: 'Norwegian Tax Administration',
-    lastChanged: new Date('2023-04-02').toLocaleDateString(),
+    lastChanged: '02-04-2023',
   },
   {
     id: 13,
     icon: <IconButton icon={<StarIcon />} />,
     name: 'Reporting of temporary layoffs',
     creator: 'Norwegian Labour and Welfare Administration',
-    lastChanged: new Date('2023-04-07').toLocaleDateString(),
+    lastChanged: '07-04-2023',
   },
   {
     id: 14,
     icon: <IconButton icon={<StarFillIcon />} />,
     name: 'Application for parental benefit',
     creator: 'Norwegian Labour and Welfare Administration',
-    lastChanged: new Date('2023-04-13').toLocaleDateString(),
+    lastChanged: '13-04-2023',
   },
   {
     id: 15,
     icon: <IconButton icon={<StarFillIcon />} />,
     name: 'Reporting of VAT',
     creator: 'Tax Administration',
-    lastChanged: new Date('2023-04-04').toLocaleDateString(),
+    lastChanged: '04-04-2023',
   },
   {
     id: 16,
     icon: <IconButton icon={<StarIcon />} />,
     name: 'Application for a certificate of good conduct',
     creator: 'Norwegian Police',
-    lastChanged: new Date('2023-04-10').toLocaleDateString(),
-  },
-];
-
-export const propInfoColumns = [
-  {
-    accessor: 'id',
-    value: 'Props',
-  },
-  {
-    accessor: 'description',
-    value: 'Description',
-  },
-];
-
-export const propInfoRowsRemotePagination = [
-  {
-    id: 'onSortClick',
-    description:
-      'Function to handle column header click for sorting. If not provided, sorting buttons are hidden.',
-  },
-  {
-    id: 'pagination',
-    description:
-      'Object that defines pagination settings for the table. If not provided, pagination is hidden.',
-  },
-];
-
-export const propInfoRowsLocalPagination = [
-  {
-    id: 'isSortable',
-    description: 'Indicates whether the component is sortable. Defaults to true.',
-  },
-  {
-    id: 'pagination',
-    description:
-      'Object that defines pagination settings for the table. If not provided, pagination is hidden.',
+    lastChanged: '10-04-2023',
   },
 ];

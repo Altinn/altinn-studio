@@ -30,14 +30,14 @@ describe('useTableSorting', () => {
     const { result } = renderHook(() => useTableSorting(rows, { enable: true }));
     await waitFor(() => result.current.handleSorting('creator'));
 
-    const CreatorsAscending: string[] = [];
+    const creatorsAscending: string[] = [];
     result.current.sortedRows.forEach((row) => {
-      CreatorsAscending.push(row.creator);
+      creatorsAscending.push(String(row.creator));
     });
 
-    expect(CreatorsAscending[0]).toEqual('Brreg');
-    expect(CreatorsAscending[1]).toEqual('Digdir');
-    expect(CreatorsAscending[2]).toEqual('Skatt');
+    expect(creatorsAscending[0]).toEqual('Brreg');
+    expect(creatorsAscending[1]).toEqual('Digdir');
+    expect(creatorsAscending[2]).toEqual('Skatt');
   });
 
   it('should sort rows in descending order when the same column is clicked again', async () => {
@@ -45,14 +45,14 @@ describe('useTableSorting', () => {
     await waitFor(() => result.current.handleSorting('creator'));
     await waitFor(() => result.current.handleSorting('creator'));
 
-    const CreatorsDescending: string[] = [];
+    const creatorsDescending: string[] = [];
     result.current.sortedRows.forEach((row) => {
-      CreatorsDescending.push(row.creator);
+      creatorsDescending.push(String(row.creator));
     });
 
-    expect(CreatorsDescending[0]).toEqual('Skatt');
-    expect(CreatorsDescending[1]).toEqual('Digdir');
-    expect(CreatorsDescending[2]).toEqual('Brreg');
+    expect(creatorsDescending[0]).toEqual('Skatt');
+    expect(creatorsDescending[1]).toEqual('Digdir');
+    expect(creatorsDescending[2]).toEqual('Brreg');
   });
 
   it('should reset the sort direction to ascending when a different column is clicked', async () => {
