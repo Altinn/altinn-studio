@@ -15,14 +15,6 @@ import { app, org } from '@studio/testing/testids';
 // Test data:
 const selectedLayoutSet = layoutSet1NameMock;
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({
-    org,
-    app,
-  }),
-}));
-
 const wrapper = ({
   children,
   queries = {},

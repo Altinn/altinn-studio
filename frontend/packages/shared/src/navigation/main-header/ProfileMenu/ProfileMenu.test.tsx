@@ -7,14 +7,6 @@ import { textMock } from '../../../../../../testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'), // use actual for all non-hook parts
-  useParams: () => ({
-    org: 'company-id1',
-    app: 'app-id1',
-  }),
-}));
-
 const render = (props: Partial<IProfileMenuComponentProps> = {}) => {
   const allProps = {
     showlogout: false,

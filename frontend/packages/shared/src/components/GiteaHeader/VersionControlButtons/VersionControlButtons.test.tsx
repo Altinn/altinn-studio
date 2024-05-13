@@ -2,30 +2,17 @@ import React from 'react';
 import { render as renderRtl, screen, waitFor } from '@testing-library/react';
 import type { IVersionControlButtonsProps } from './VersionControlButtons';
 import { VersionControlButtons } from './VersionControlButtons';
-import { setWindowLocationForTests } from '../../../../../../testing/testUtils';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import * as testids from '../../../../../../testing/testids';
+import { app, org, versionControlHeader } from '../../../../../../testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { repoStatus } from 'app-shared/mocks/mocks';
 
 const user = userEvent.setup();
-const org = 'test-org';
-const app = 'test-app';
-
-setWindowLocationForTests(org, app);
-
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'), // use actual for all non-hook parts
-  useParams: () => ({
-    org: org,
-    app: app,
-  }),
-}));
 
 /**
  * This part is probably not ideal. A more scaleable way to mock these calls should be done in a more sentral place
@@ -72,7 +59,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
   it('should render header when type is not defined', async () => {
     render();
     await waitFor(() => expect(queriesMock.getRepoMetadata).toHaveBeenCalledTimes(1));
-    expect(await screen.findByTestId(testids.versionControlHeader)).not.toBeNull();
+    expect(await screen.findByTestId(versionControlHeader)).not.toBeNull();
   });
 
   it('Refetches queries when clicking the fetch button', async () => {

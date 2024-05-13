@@ -25,14 +25,6 @@ const mockSelectedLayoutSet = layoutSet1NameMock;
 const mockPageName1: string = layout1NameMock;
 const mockPageName2: string = layout2NameMock;
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({
-    org,
-    app,
-  }),
-}));
-
 describe('DesignView', () => {
   afterEach(() => {
     jest.clearAllMocks();

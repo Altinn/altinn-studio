@@ -17,14 +17,6 @@ import { app, org } from '@studio/testing/testids';
 const mockPageName1: string = layout1NameMock;
 const mockSelectedLayoutSet = layoutSet1NameMock;
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({
-    org,
-    app,
-  }),
-}));
-
 const mockDeleteFormLayout = jest.fn();
 jest.mock('../../../hooks/mutations/useDeleteLayoutMutation', () => ({
   useDeleteLayoutMutation: jest.fn(() => ({ mutate: mockDeleteFormLayout, isPending: false })),
