@@ -11,6 +11,7 @@ const cloneTextMock = textMock('sync_header.clone');
 const repositoryTextMock = textMock('sync_header.repository');
 const localChangesTextMock = textMock('sync_header.local_changes');
 const localChangesModalMock = 'LocalChangesModal';
+import { app, org } from '@studio/testing/testids';
 
 jest.mock(
   'app-shared/components/GiteaHeader/ThreeDotsMenu/LocalChangesModal/LocalChangesModal',
@@ -67,8 +68,8 @@ const render = async (props: Partial<ThreeDotsMenuProps> = {}) => {
   const allProps: ThreeDotsMenuProps = {
     onlyShowRepository: false,
     hasCloneModal: false,
-    org: 'org',
-    app: 'app',
+    org,
+    app,
     ...props,
   };
 

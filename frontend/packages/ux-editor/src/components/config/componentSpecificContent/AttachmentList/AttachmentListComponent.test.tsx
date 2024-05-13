@@ -12,10 +12,9 @@ import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { DataTypeElement } from 'app-shared/types/ApplicationMetadata';
 import { reservedDataTypes } from './attachmentListUtils';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
-const org = 'org';
-const app = 'app';
 
 const defaultLayoutSets: LayoutSets = {
   sets: [

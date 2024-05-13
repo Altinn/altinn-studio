@@ -10,13 +10,11 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { MemoryRouter } from 'react-router-dom';
-
-const mockApp: string = 'app';
-const mockOrg: string = 'org';
+import { app, org } from '@studio/testing/testids';
 
 const defaultProps: SettingsModalButtonProps = {
-  org: mockOrg,
-  app: mockApp,
+  org,
+  app,
 };
 
 describe('SettingsModal', () => {

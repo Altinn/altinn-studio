@@ -12,12 +12,11 @@ import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { appContextMock } from '../../testing/appContextMock';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const handleIdChange = jest.fn();
 const handleRemoveTextResource = jest.fn();
 const defaultProps: TextResourceProps = { handleIdChange, handleRemoveTextResource };

@@ -16,9 +16,8 @@ import type { FormComponent } from '../../../types/FormComponent';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { parsableExternalExpression } from '../../../testing/expressionMocks';
 import type { FormContainer } from '../../../types/FormContainer';
+import { app, org } from '@studio/testing/testids';
 
-const org = 'org';
-const app = 'app';
 const layoutSetName = formDesignerMock.layout.selectedLayoutSet;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,

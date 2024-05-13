@@ -5,10 +5,7 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { environment, repository } from 'app-shared/mocks/mocks';
-
-// Test data
-const org = 'org';
-const app = 'app';
+import { app, org } from '@studio/testing/testids';
 
 const render = (queries = {}) => {
   return renderWithProviders(<DeploymentContainer />, {

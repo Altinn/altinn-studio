@@ -18,10 +18,9 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { layout1NameMock, layoutMock } from '../../../../../../testing/layoutMock';
 import type { IFormLayouts } from '../../../../../../types/global';
 import { DataSource } from '../../../../../../types/Expressions';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
-const org = 'org';
-const app = 'app';
 const layoutSetName = formDesignerMock.layout.selectedLayoutSet;
 
 const layouts: IFormLayouts = {

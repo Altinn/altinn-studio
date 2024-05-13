@@ -11,9 +11,7 @@ import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-
-const org = 'org';
-const app = 'app';
+import { app, org } from '@studio/testing/testids';
 
 const defaultProps: SelectAllowedPartyTypesProps = {
   org,

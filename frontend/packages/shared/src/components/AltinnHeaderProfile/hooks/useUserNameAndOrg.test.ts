@@ -1,8 +1,7 @@
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { useUserNameAndOrg } from './useUserNameAndOrg';
 import type { User, Repository } from 'app-shared/types/Repository';
-
-const mockOrg: string = 'org';
+import { org } from '@studio/testing/testids';
 
 const mockUser: User = {
   avatar_url: '',
@@ -53,13 +52,13 @@ const mockRepository: Repository = {
 
 describe('useUserNameAndOrg', () => {
   it('returns user´s full name when repository is not provided and full_name is present', () => {
-    const result = useUserNameAndOrg(mockUser, mockOrg, null);
+    const result = useUserNameAndOrg(mockUser, org, null);
 
     expect(result).toBe(mockUser.full_name);
   });
 
   it('returns user´s login when repository is not provided and full_name is not present', () => {
-    const result = useUserNameAndOrg({ ...mockUser, full_name: '' }, mockOrg, null);
+    const result = useUserNameAndOrg({ ...mockUser, full_name: '' }, org, null);
 
     expect(result).toBe(mockUser.login);
   });
@@ -81,7 +80,7 @@ describe('useUserNameAndOrg', () => {
   });
 
   it('returns translated string when org is different from user login', () => {
-    const result = useUserNameAndOrg(mockUser, mockOrg, mockRepository);
+    const result = useUserNameAndOrg(mockUser, org, mockRepository);
 
     const text = textMock('shared.header_user_for_org', {
       user: mockUser.full_name,

@@ -23,9 +23,8 @@ import { DragAndDrop } from 'app-shared/components/dragAndDrop';
 import { FormItemContextProvider } from '../../FormItemContext';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import { app, org } from '@studio/testing/testids';
 
-const mockOrg = 'org';
-const mockApp = 'app';
 const mockSelectedLayoutSet = 'test-layout-set';
 
 const mockPageName1 = layout1NameMock;
@@ -95,10 +94,10 @@ const waitForData = async () => {
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
   const formLayoutsResult = renderHookWithProviders(() =>
-    useFormLayoutsQuery(mockOrg, mockApp, mockSelectedLayoutSet),
+    useFormLayoutsQuery(org, app, mockSelectedLayoutSet),
   ).result;
   const settingsResult = renderHookWithProviders(
-    () => useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet),
+    () => useFormLayoutSettingsQuery(org, app, mockSelectedLayoutSet),
     { queries: { getFormLayoutSettings } },
   ).result;
 

@@ -8,6 +8,7 @@ import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { app, org } from '@studio/testing/testids';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -16,10 +17,6 @@ jest.mock('react-i18next', () => ({
 }));
 
 const user = userEvent.setup();
-
-// Test data
-const org = 'org';
-const app = 'app';
 
 describe('AppPreviewSubMenu', () => {
   afterEach(jest.clearAllMocks);

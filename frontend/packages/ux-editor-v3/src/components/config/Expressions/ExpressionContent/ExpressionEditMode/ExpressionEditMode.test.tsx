@@ -25,9 +25,8 @@ import {
 import { ObjectUtils } from '@studio/pure-functions';
 import type { ExpressionEditModeProps } from './ExpressionEditMode';
 import { ExpressionEditMode } from './ExpressionEditMode';
+import { app, org } from '@studio/testing/testids';
 
-const org = 'org';
-const app = 'app';
 const layoutSetName = formDesignerMock.layout.selectedLayoutSet;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,

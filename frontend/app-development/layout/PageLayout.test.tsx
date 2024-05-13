@@ -7,15 +7,13 @@ import { textMock } from '../../testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { repoStatus } from 'app-shared/mocks/mocks';
-
-const mockOrg: string = 'org';
-const mockApp: string = 'app';
+import { app, org } from '@studio/testing/testids';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
-    org: mockOrg,
-    app: mockApp,
+    org,
+    app,
   }),
 }));
 

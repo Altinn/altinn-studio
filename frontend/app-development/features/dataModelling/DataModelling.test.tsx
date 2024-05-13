@@ -11,6 +11,7 @@ import { jsonMetadata1Mock } from '../../../packages/schema-editor/test/mocks/me
 import type { QueryClient } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
+import { app, org } from '@studio/testing/testids';
 
 // workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {
@@ -27,8 +28,6 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
-const org = 'org';
-const app = 'app';
 const user = userEvent.setup();
 
 const render = (

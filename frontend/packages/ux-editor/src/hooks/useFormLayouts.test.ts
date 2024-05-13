@@ -4,10 +4,9 @@ import { useFormLayoutsQuery } from './queries/useFormLayoutsQuery';
 import { externalLayoutsMock } from '../testing/layoutMock';
 import { waitFor } from '@testing-library/react';
 import { convertExternalLayoutsToInternalFormat } from '../utils/formLayoutsUtils';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const selectedLayoutSet = 'test-layout-set';
 
 const render = async () => {

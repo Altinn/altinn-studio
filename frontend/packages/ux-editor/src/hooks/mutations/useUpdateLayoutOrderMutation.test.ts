@@ -5,10 +5,9 @@ import { waitFor } from '@testing-library/react';
 import type { UpdateLayoutOrderMutationArgs } from './useUpdateLayoutOrderMutation';
 import { useUpdateLayoutOrderMutation } from './useUpdateLayoutOrderMutation';
 import { layout1NameMock, layout2NameMock } from '../../testing/layoutMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const selectedLayoutSet = 'test-layout-set';
 
 describe('useUpdateLayoutOrderMutation', () => {

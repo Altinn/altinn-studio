@@ -9,10 +9,9 @@ import { DEFAULT_LANGUAGE, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/const
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import type { IFormLayouts } from '../../../types/global';
 import { layout1NameMock, layoutMock, layoutSetsMock } from '../../../testing/layoutMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data
-const app = 'app';
-const org = 'org';
 const layoutSet = layoutSetsMock.sets[0].id;
 const duplicatedLayout = 'duplicatedLayout';
 

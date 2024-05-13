@@ -16,9 +16,8 @@ import { mockAppConfig } from '../../../mocks/appConfigMock';
 import { formatDateToDateAndTimeString } from 'app-development/utils/dateUtils';
 import type { Commit, CommitAuthor } from 'app-shared/types/Commit';
 import { MemoryRouter } from 'react-router-dom';
+import { app, org } from '@studio/testing/testids';
 
-const mockApp: string = 'app';
-const mockOrg: string = 'org';
 const mockNewText: string = 'test';
 
 const mockCommitAuthor: CommitAuthor = {
@@ -50,8 +49,8 @@ const getRepoMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getRepoInitialCommit = jest.fn().mockImplementation(() => Promise.resolve({}));
 
 const defaultProps: AboutTabProps = {
-  org: mockOrg,
-  app: mockApp,
+  org,
+  app,
 };
 
 describe('AboutTab', () => {

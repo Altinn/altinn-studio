@@ -14,10 +14,9 @@ import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQue
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const selectedLayoutSet = 'test-layout-set';
 
 const component: FormComponent<ComponentTypeV3.Panel> = {

@@ -5,10 +5,9 @@ import { useAddLayoutSetMutation } from './useAddLayoutSetMutation';
 import type { LayoutSetConfig, LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const layoutSetIdToUpdate = 'oldLayoutSetName';
 const layoutSet: LayoutSetConfig = {
   id: 'newLayoutSetName',

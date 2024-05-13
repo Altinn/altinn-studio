@@ -11,15 +11,13 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';
 import { MemoryRouter } from 'react-router-dom';
-
-const mockApp: string = 'app';
-const mockOrg: string = 'org';
+import { app, org } from '@studio/testing/testids';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
-    app: mockApp,
-    org: mockOrg,
+    app,
+    org,
   }),
 }));
 
@@ -43,8 +41,8 @@ describe('SettingsModal', () => {
   const defaultProps: SettingsModalProps = {
     isOpen: true,
     onClose: mockOnClose,
-    org: mockOrg,
-    app: mockApp,
+    org,
+    app,
   };
 
   it('closes the modal when the close button is clicked', async () => {

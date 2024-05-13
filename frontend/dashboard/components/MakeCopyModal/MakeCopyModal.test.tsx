@@ -6,10 +6,9 @@ import { MockServicesContextWrapper } from 'dashboard/dashboardTestUtils';
 import { textMock } from '../../../testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
-const org = 'org';
-const app = 'app';
 const originalWindowLocation = window.location;
 // eslint-disable-next-line
 const anchor = document.querySelector('body');
@@ -44,7 +43,7 @@ describe('MakeCopyModal', () => {
         screen.queryByText(textMock('dashboard.field_cannot_be_empty')),
       ).not.toBeInTheDocument();
     expect(queriesMock.copyApp).toHaveBeenCalledTimes(1);
-    expect(queriesMock.copyApp).toHaveBeenCalledWith('org', 'app', 'new-repo-name');
+    expect(queriesMock.copyApp).toHaveBeenCalledWith(org, app, 'new-repo-name');
   });
 
   test('should show error message when clicking confirm without adding name', async () => {

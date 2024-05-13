@@ -10,6 +10,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 let mockScrollIntoView = jest.fn();
@@ -44,7 +45,7 @@ describe('TextEditor', () => {
       updateTextId: jest.fn(),
       upsertTextResource: jest.fn(),
     };
-    queryClientMock.setQueryData([QueryKey.LayoutNames, 'org', 'app'], []);
+    queryClientMock.setQueryData([QueryKey.LayoutNames, org, app], []);
     return rtlRender(
       <ServicesContextProvider {...queriesMock} client={queryClientMock}>
         <TextEditor {...defaultProps} {...props} />

@@ -9,12 +9,9 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import * as testids from '../../../../../testing/testids';
 import { renderWithMockStore } from '../../../../test/mocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
-
-// Test data:
-const org = 'org';
-const app = 'app';
 
 // Mocks:
 jest.mock('axios');

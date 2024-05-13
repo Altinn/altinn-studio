@@ -11,10 +11,9 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const selectedLayoutSet = layoutSetsMock.sets[0].id;
 
 const mockSetSearchParams = jest.fn();

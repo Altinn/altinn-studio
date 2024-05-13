@@ -8,6 +8,7 @@ import { textMock } from './mocks/i18nMock';
 import { SignalR } from './mocks/signalr';
 import type { ReactNode } from 'react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { app, org } from './testids';
 
 failOnConsole({
   shouldFailOnWarn: true,
@@ -70,7 +71,7 @@ jest.mock('@microsoft/signalr', () => SignalR);
 // Mock org and app params
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
-  useParams: () => ({ org: 'org', app: 'app' }),
+  useParams: () => ({ org, app }),
 }));
 
 jest.setTimeout(3000000);

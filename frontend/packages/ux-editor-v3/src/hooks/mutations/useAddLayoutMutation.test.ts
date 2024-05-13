@@ -9,10 +9,9 @@ import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { externalLayoutsMock } from '../../testing/layoutMock';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api';
 import type { ILayoutSettings } from 'app-shared/types/global';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const layoutName = 'layoutName';
 const selectedLayoutSet = 'test-layout-set';
 const defaultArgs: AddLayoutMutationArgs = { layoutName };

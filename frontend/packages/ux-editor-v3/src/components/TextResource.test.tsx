@@ -12,12 +12,11 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResources
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const handleIdChange = jest.fn();
 const defaultProps: TextResourceProps = { handleIdChange };
 

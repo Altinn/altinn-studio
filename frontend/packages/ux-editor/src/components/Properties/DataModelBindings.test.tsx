@@ -13,6 +13,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../types/FormItem';
 import { componentMocks } from '../../testing/componentMocks';
 import { component3IdMock, component3Mock, layoutMock } from '../../testing/layoutMock';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
@@ -256,7 +257,7 @@ const render = async ({
   props?: Partial<FormItemContext>;
   editId?: string;
 }) => {
-  queryClientMock.setQueryData([QueryKey.FormLayouts, 'org', 'app', 'test-layout-set'], {
+  queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, 'test-layout-set'], {
     default: layoutMock,
   });
   queryClientMock.setQueryData(

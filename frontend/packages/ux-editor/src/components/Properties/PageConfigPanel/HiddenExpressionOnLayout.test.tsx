@@ -11,10 +11,9 @@ import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import type { BooleanExpression } from '@studio/components';
 import { GeneralRelationOperator } from '@studio/components';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data
-const app = 'app';
-const org = 'org';
 const layoutSet = layoutSetsMock.sets[0].id;
 
 const defaultLayouts: IFormLayouts = {

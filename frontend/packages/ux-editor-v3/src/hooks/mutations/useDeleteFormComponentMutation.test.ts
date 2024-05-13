@@ -4,10 +4,9 @@ import { waitFor } from '@testing-library/react';
 import { useDeleteFormComponentMutation } from './useDeleteFormComponentMutation';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { component2IdMock, layout1NameMock } from '../../testing/layoutMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const selectedLayoutSet = 'test-layout-set';
 
 describe('useDeleteFormComponentMutation', () => {

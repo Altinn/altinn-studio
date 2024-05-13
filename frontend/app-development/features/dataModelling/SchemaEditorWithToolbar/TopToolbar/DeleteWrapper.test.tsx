@@ -13,6 +13,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertMetadataToOption } from '../../../../utils/metadataUtils';
 import { renderWithMockStore } from '../../../../test/mocks';
 import type { QueryClient } from '@tanstack/react-query';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
@@ -28,8 +29,6 @@ const texts = {
   'general.cancel': cancelText,
 };
 const selectedOption = convertMetadataToOption(jsonMetadata1Mock);
-const org = 'org';
-const app = 'app';
 const defaultProps: DeleteWrapperProps = { selectedOption };
 
 // Mocks:

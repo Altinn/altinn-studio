@@ -10,10 +10,9 @@ import { externalLayoutsMock, layoutMock, layout1NameMock } from '../testing/lay
 import { waitFor } from '@testing-library/react';
 import { convertExternalLayoutsToInternalFormat } from '../utils/formLayoutsUtils';
 import type { IFormLayouts, IInternalLayout, IInternalLayoutWithName } from '../types/global';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const selectedLayoutName = 'Side1';
 const selectedLayoutSet = 'test-layout-set';
 

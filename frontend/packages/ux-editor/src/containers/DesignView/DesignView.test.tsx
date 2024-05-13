@@ -14,9 +14,8 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { externalLayoutsMock } from '../../testing/layoutMock';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { appContextMock } from '../../testing/appContextMock';
+import { app, org } from '@studio/testing/testids';
 
-const mockOrg = 'org';
-const mockApp = 'app';
 const mockSelectedLayoutSet = 'test-layout-set';
 const mockPageName1: string = formLayoutSettingsMock.pages.order[0];
 const mockPageName2: string = formLayoutSettingsMock.pages.order[1];
@@ -24,8 +23,8 @@ const mockPageName2: string = formLayoutSettingsMock.pages.order[1];
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
-    org: mockOrg,
-    app: mockApp,
+    org,
+    app,
   }),
 }));
 
@@ -84,11 +83,11 @@ describe('DesignView', () => {
 const render = async () => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData(
-    [QueryKey.FormLayouts, mockOrg, mockApp, mockSelectedLayoutSet],
+    [QueryKey.FormLayouts, org, app, mockSelectedLayoutSet],
     convertExternalLayoutsToInternalFormat(externalLayoutsMock),
   );
   queryClient.setQueryData(
-    [QueryKey.FormLayoutSettings, mockOrg, mockApp, mockSelectedLayoutSet],
+    [QueryKey.FormLayoutSettings, org, app, mockSelectedLayoutSet],
     formLayoutSettingsMock,
   );
 

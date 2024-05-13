@@ -17,12 +17,11 @@ import type { FormLayoutsResponseV3 } from 'app-shared/types/api';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import type { FormContainer } from '../../types/FormContainer';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const selectedLayoutSet = 'test-layout-set';
 const accordionContainer: FormContainer = {
   id: 'accordionContainerId',

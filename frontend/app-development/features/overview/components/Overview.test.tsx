@@ -5,10 +5,9 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { repository } from 'app-shared/mocks/mocks';
+import { app, org } from '@studio/testing/testids';
 
 // Test data
-const org = 'org';
-const app = 'app';
 const title = 'test';
 
 describe('Overview', () => {

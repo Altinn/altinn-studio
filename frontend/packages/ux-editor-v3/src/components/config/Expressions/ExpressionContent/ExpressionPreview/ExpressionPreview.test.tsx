@@ -17,9 +17,8 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 
 import type { ExpressionPreviewProps } from './ExpressionPreview';
 import { ExpressionPreview } from './ExpressionPreview';
+import { app, org } from '@studio/testing/testids';
 
-const org = 'org';
-const app = 'app';
 const layoutSetName = formDesignerMock.layout.selectedLayoutSet;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,

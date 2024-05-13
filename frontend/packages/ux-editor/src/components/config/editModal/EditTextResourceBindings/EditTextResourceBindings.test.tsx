@@ -14,10 +14,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import type { FormComponent } from '../../../../types/FormComponent';
-
-// Test data:
-const org = 'org';
-const app = 'app';
+import { app, org } from '@studio/testing/testids';
 
 describe('EditTextResourceBindings component', () => {
   const mockComponent: FormComponent = {

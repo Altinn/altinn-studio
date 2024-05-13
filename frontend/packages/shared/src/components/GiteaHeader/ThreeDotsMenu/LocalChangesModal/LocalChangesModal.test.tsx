@@ -10,6 +10,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { MemoryRouter } from 'react-router-dom';
 import type { LocalChangesModalProps } from './LocalChangesModal';
 import { LocalChangesModal } from './LocalChangesModal';
+import { app, org } from '@studio/testing/testids';
 
 describe('LocalChangesModal', () => {
   const user = userEvent.setup();
@@ -37,13 +38,11 @@ describe('LocalChangesModal', () => {
 });
 
 const mockOnClose = jest.fn();
-const mockApp: string = 'app';
-const mockOrg: string = 'org';
 const defaultProps: LocalChangesModalProps = {
   isOpen: true,
   onClose: mockOnClose,
-  org: mockOrg,
-  app: mockApp,
+  org,
+  app,
 };
 
 const render = (

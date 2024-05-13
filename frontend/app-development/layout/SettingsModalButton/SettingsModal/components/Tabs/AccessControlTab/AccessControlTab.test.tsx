@@ -9,15 +9,13 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import { mockAppMetadata } from '../../../mocks/applicationMetadataMock';
 import userEvent from '@testing-library/user-event';
-
-const mockApp: string = 'app';
-const mockOrg: string = 'org';
+import { app, org } from '@studio/testing/testids';
 
 const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 
 const defaultProps: AccessControlTabProps = {
-  org: mockOrg,
-  app: mockApp,
+  org,
+  app,
 };
 
 describe('AccessControlTab', () => {

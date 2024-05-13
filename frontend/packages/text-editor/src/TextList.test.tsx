@@ -9,6 +9,7 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { app, org } from '@studio/testing/testids';
 
 const textKey1: string = 'a';
 
@@ -61,7 +62,7 @@ const renderTextList = (props: Partial<TextListProps> = {}) => {
     selectedLanguages: ['nb', 'en', 'nn'],
     ...props,
   };
-  queryClientMock.setQueryData([QueryKey.LayoutNames, 'org', 'app'], []);
+  queryClientMock.setQueryData([QueryKey.LayoutNames, org, app], []);
   return {
     initPros: allProps,
     ...rtlRender(
@@ -77,7 +78,7 @@ describe('TextList', () => {
     const user = userEvent.setup();
     const updateEntryId = jest.fn();
     const { rerender, initPros } = renderTextList({ updateEntryId });
-    queryClientMock.setQueryData([QueryKey.LayoutNames, 'org', 'app'], []);
+    queryClientMock.setQueryData([QueryKey.LayoutNames, org, app], []);
     rerender(
       <ServicesContextProvider {...queriesMock} client={queryClientMock}>
         <TextList {...initPros} />
@@ -106,7 +107,7 @@ describe('TextList', () => {
       textMock('text_editor.key.error_empty'),
     ];
     const { rerender, initPros } = renderTextList({ updateEntryId });
-    queryClientMock.setQueryData([QueryKey.LayoutNames, 'org', 'app'], []);
+    queryClientMock.setQueryData([QueryKey.LayoutNames, org, app], []);
     rerender(
       <ServicesContextProvider {...queriesMock} client={queryClientMock}>
         <TextList {...initPros} />

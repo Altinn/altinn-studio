@@ -14,6 +14,7 @@ import { buildJsonSchema } from '@altinn/schema-model';
 import { renderWithMockStore } from '../../../../test/mocks';
 import { useQueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
@@ -44,8 +45,6 @@ const defaultProps: TopToolbarProps = {
   setSelectedOption,
   onSetSchemaGenerationErrorMessages,
 };
-const org = 'org';
-const app = 'app';
 const modelPath = jsonMetadata1Mock.repositoryRelativeUrl;
 
 const renderToolbar = (

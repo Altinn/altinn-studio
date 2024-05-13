@@ -12,10 +12,9 @@ import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { type SyncError, type SyncSuccess } from './syncUtils';
 import { processEditorWebSocketHub } from 'app-shared/api/paths';
+import { app, org } from '@studio/testing/testids';
 
 // test data
-const org = 'org';
-const app = 'app';
 const defaultAppVersion: AppVersion = { backendVersion: '8.0.0', frontendVersion: '4.0.0' };
 
 jest.mock('app-shared/hooks/useWebSocket', () => ({

@@ -8,14 +8,13 @@ import { layoutSetsMock } from '../../testing/layoutMock';
 import type { AppContextProps } from '../../AppContext';
 import { appStateMock } from '../../testing/stateMocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { app, org } from '@studio/testing/testids';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: jest.fn(),
 }));
 // Test data
-const org = 'org';
-const app = 'app';
 const layoutSetName1 = layoutSetsMock.sets[0].id;
 const layoutSetName2 = layoutSetsMock.sets[1].id;
 const { selectedLayoutSet } = appStateMock.formDesigner.layout;

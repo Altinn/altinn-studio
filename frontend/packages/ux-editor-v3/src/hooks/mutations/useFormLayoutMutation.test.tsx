@@ -8,10 +8,9 @@ import { baseContainerIdMock } from '../../testing/layoutMock';
 import type { AppContextProps } from '../../AppContext';
 import type { RefObject } from 'react';
 import { createRef } from 'react';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const layoutName = 'layoutName';
 const selectedLayoutSet = 'test-layout-set';
 const componentId = 'component1';

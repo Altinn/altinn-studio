@@ -11,6 +11,7 @@ import userEvent from '@testing-library/user-event';
 import { FormItemContext } from '../../../../FormItemContext';
 import { formItemContextProviderMock } from '../../../../../testing/formItemContextMocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { app, org } from '@studio/testing/testids';
 
 const mockHandleDiscard = jest.fn();
 
@@ -39,8 +40,8 @@ describe('FormItemTitle', () => {
 
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
     expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
-      'org',
-      'app',
+      org,
+      app,
       'Side1',
       'test-layout-set',
       expect.objectContaining({

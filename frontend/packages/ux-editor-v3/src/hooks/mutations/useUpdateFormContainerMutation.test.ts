@@ -16,10 +16,9 @@ import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const selectedLayoutName = 'Side1';
 const selectedLayoutSet = 'test-layout-set';
 const maxCount = 2;

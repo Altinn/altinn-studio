@@ -12,9 +12,8 @@ import {
 } from '../../../../testing/mocks';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
 import { layout1NameMock } from '../../../../testing/layoutMock';
+import { app, org } from '@studio/testing/testids';
 
-const mockOrg = 'org';
-const mockApp = 'app';
 const mockPageName1: string = layout1NameMock;
 const mockSelectedLayoutSet = 'test-layout-set';
 
@@ -23,8 +22,8 @@ const mockSearchParams = { layout: mockPageName1 };
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
-    org: mockOrg,
-    app: mockApp,
+    org,
+    app,
   }),
   useSearchParams: () => {
     return [new URLSearchParams(mockSearchParams), mockSetSearchParams];
@@ -140,8 +139,8 @@ describe('NavigationMenu', () => {
 
     expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledTimes(1);
     expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledWith(
-      mockOrg,
-      mockApp,
+      org,
+      app,
       mockSelectedLayoutSet,
       { pages: { order: ['Side2', 'Side1'] }, receiptLayoutName: 'Kvittering' },
     );
@@ -154,8 +153,8 @@ describe('NavigationMenu', () => {
     await user.click(menuItemUp);
     expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledTimes(2);
     expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledWith(
-      mockOrg,
-      mockApp,
+      org,
+      app,
       mockSelectedLayoutSet,
       { pages: { order: ['Side1', 'Side2'] }, receiptLayoutName: 'Kvittering' },
     );
@@ -167,7 +166,7 @@ const waitForData = async () => {
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
   const settingsResult = renderHookWithProviders(
-    () => useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet),
+    () => useFormLayoutSettingsQuery(org, app, mockSelectedLayoutSet),
     { queries: { getFormLayoutSettings } },
   ).result;
 

@@ -12,9 +12,8 @@ import {
 } from '../../../../testing/mocks';
 import { formDesignerMock } from '../../../../testing/stateMocks';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
+import { app, org } from '@studio/testing/testids';
 
-const mockOrg = 'org';
-const mockApp = 'app';
 const mockPageName1: string = formDesignerMock.layout.selectedLayout;
 const mockSelectedLayoutSet = 'test-layout-set';
 
@@ -23,8 +22,8 @@ const mockSearchParams = { layout: mockPageName1 };
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
-    org: mockOrg,
-    app: mockApp,
+    org,
+    app,
   }),
   useSearchParams: () => {
     return [new URLSearchParams(mockSearchParams), mockSetSearchParams];
@@ -99,8 +98,8 @@ describe('NavigationMenu', () => {
 
     expect(queriesMock.updateFormLayoutName).toHaveBeenCalledTimes(1);
     expect(queriesMock.updateFormLayoutName).toHaveBeenCalledWith(
-      mockOrg,
-      mockApp,
+      org,
+      app,
       mockPageName1,
       newValue,
       mockSelectedLayoutSet,
@@ -165,8 +164,8 @@ describe('NavigationMenu', () => {
 
     expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledTimes(1);
     expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledWith(
-      mockOrg,
-      mockApp,
+      org,
+      app,
       mockSelectedLayoutSet,
       { pages: { order: ['Side2', 'Side1'] }, receiptLayoutName: 'Kvittering' },
     );
@@ -179,8 +178,8 @@ describe('NavigationMenu', () => {
     await user.click(menuItemUp);
     expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledTimes(2);
     expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledWith(
-      mockOrg,
-      mockApp,
+      org,
+      app,
       mockSelectedLayoutSet,
       { pages: { order: ['Side1', 'Side2'] }, receiptLayoutName: 'Kvittering' },
     );
@@ -194,8 +193,7 @@ const waitForData = async () => {
   const settingsResult = renderHookWithMockStore(
     {},
     { getFormLayoutSettings },
-  )(() => useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet)).renderHookResult
-    .result;
+  )(() => useFormLayoutSettingsQuery(org, app, mockSelectedLayoutSet)).renderHookResult.result;
 
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 };

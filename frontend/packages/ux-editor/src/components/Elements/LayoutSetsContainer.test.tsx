@@ -7,10 +7,9 @@ import { renderWithProviders } from '../../testing/mocks';
 import { layoutSetsMock } from '../../testing/layoutMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { appContextMock } from '../../testing/appContextMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data
-const org = 'org';
-const app = 'app';
 const layoutSetName1 = layoutSetsMock.sets[0].id;
 const layoutSetName2 = layoutSetsMock.sets[1].id;
 

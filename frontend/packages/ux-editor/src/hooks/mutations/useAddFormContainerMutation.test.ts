@@ -7,10 +7,9 @@ import { useAddFormContainerMutation } from './useAddFormContainerMutation';
 import type { FormContainer } from '../../types/FormContainer';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { layout1NameMock } from '../../testing/layoutMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const id = 'testid';
 const selectedLayoutSet = 'test-layout-set';
 const container: FormContainer = {

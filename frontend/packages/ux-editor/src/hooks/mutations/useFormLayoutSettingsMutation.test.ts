@@ -3,10 +3,9 @@ import { formLayoutSettingsMock, renderHookWithProviders } from '../../testing/m
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { waitFor } from '@testing-library/react';
 import { appContextMock } from '../../testing/appContextMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const selectedLayoutSet = 'test-layout-set';
 
 describe('useFormLayoutSettingsMutation', () => {

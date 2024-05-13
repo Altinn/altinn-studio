@@ -17,12 +17,11 @@ import type { ITextResource } from 'app-shared/types/global';
 import { useDeleteFormComponentMutation } from '../../hooks/mutations/useDeleteFormComponentMutation';
 import type { UseMutationResult } from '@tanstack/react-query';
 import type { IInternalLayout } from '../../types/global';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const testTextResourceKey = 'test-key';
 const testTextResourceValue = 'test-value';
 const emptyTextResourceKey = 'empty-key';

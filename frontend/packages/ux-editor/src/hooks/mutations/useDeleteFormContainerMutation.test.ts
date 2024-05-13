@@ -6,10 +6,9 @@ import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuer
 import { useDeleteFormContainerMutation } from './useDeleteFormContainerMutation';
 import { container1IdMock, externalLayoutsMock, layout1NameMock } from '../../testing/layoutMock';
 import type { FormLayoutsResponse } from 'app-shared/types/api';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const selectedLayoutSet = 'test-layout-set';
 const id = container1IdMock;
 

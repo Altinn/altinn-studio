@@ -9,9 +9,8 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useAppContext } from './hooks';
+import { app, org } from '@studio/testing/testids';
 
-const org = 'org';
-const app = 'app';
 const mockSelectedFormLayoutSetName = 'test-layout-set';
 const mockSelectedFormLayoutName = 'Side1';
 

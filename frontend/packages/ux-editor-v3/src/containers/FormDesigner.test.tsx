@@ -9,10 +9,7 @@ import { FormDesigner } from './FormDesigner';
 import { textMock } from '../../../../testing/mocks/i18nMock';
 import { useWidgetsQuery } from '../hooks/queries/useWidgetsQuery';
 import ruleHandlerMock from '../testing/ruleHandlerMock';
-
-// Test data:
-const org = 'org';
-const app = 'app';
+import { app, org } from '@studio/testing/testids';
 
 const render = () => {
   const queries = {

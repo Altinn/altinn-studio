@@ -10,9 +10,7 @@ import type { QueryClient, UseMutationResult } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
 import { repoDownloadPath } from 'app-shared/api/paths';
-
-const mockApp: string = 'app';
-const mockOrg: string = 'org';
+import { app, org } from '@studio/testing/testids';
 
 jest.mock('app-development/hooks/mutations/useResetRepositoryMutation');
 const deleteLocalChangesMutation = jest.fn();
@@ -27,14 +25,14 @@ describe('LocalChanges', () => {
   afterEach(jest.clearAllMocks);
 
   const defaultProps: LocalChangesProps = {
-    org: mockOrg,
-    app: mockApp,
+    org,
+    app,
   };
 
   it('renders the component with the href for downloading only files that you have changes', () => {
     render({}, createQueryClientMock(), defaultProps);
 
-    const hrefToOnlyFilesYouHaveChanged = repoDownloadPath(mockOrg, mockApp);
+    const hrefToOnlyFilesYouHaveChanged = repoDownloadPath(org, app);
 
     const downloadOnlyChangedFilesLink = screen.getByRole('link', {
       name: textMock('local_changes.modal_download_only_changed_button'),
@@ -45,7 +43,7 @@ describe('LocalChanges', () => {
   it('renders the component with the href for downloading all files in the repo', () => {
     render({}, createQueryClientMock(), defaultProps);
 
-    const hrefToAllFilesInRepo = repoDownloadPath(mockOrg, mockApp, true);
+    const hrefToAllFilesInRepo = repoDownloadPath(org, app, true);
 
     const downloadOnlyChangedFilesLink = screen.getByRole('link', {
       name: textMock('local_changes_modal.download_all_button'),
@@ -96,7 +94,7 @@ describe('LocalChanges', () => {
     const textfield = screen.getByLabelText(
       textMock('local_changes.modal_delete_modal_textfield_label'),
     );
-    await user.type(textfield, mockApp);
+    await user.type(textfield, app);
 
     const deleteModalDeleteButtonAfterTyping = screen.getByRole('button', {
       name: textMock('local_changes.modal_confirm_delete_button'),

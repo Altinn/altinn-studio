@@ -13,3 +13,5 @@ export const userMenuItem = 'user-menu-item';
 export const versionControlHeader = 'version-control-header';
 export const pageAccordionContent = (pageName) => `page-accordion-content-${pageName}`;
 export const profileButton = 'profileButton';
+export const org = 'org';
+export const app = 'app';

@@ -22,6 +22,7 @@ import type {
   DatamodelMetadataXsd,
 } from 'app-shared/types/DatamodelMetadata';
 import { verifyNeverOccurs } from '../../../../testing/testUtils';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
@@ -38,8 +39,6 @@ const model2MetadataXsd: DatamodelMetadataXsd = createXsdMetadataMock(model2name
 const defaultProps: SelectedSchemaEditorProps = {
   modelPath: model1Path,
 };
-const org = 'org';
-const app = 'app';
 
 // Mocks:
 const schemaEditorTestId = 'schema-editor';

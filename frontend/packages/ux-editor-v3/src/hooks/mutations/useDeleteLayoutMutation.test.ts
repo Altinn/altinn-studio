@@ -5,10 +5,9 @@ import { useDeleteLayoutMutation } from './useDeleteLayoutMutation';
 import { externalLayoutsMock, layout2NameMock } from '../../testing/layoutMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const selectedLayoutSet = 'test-layout-set';
 const layoutName = layout2NameMock;
 

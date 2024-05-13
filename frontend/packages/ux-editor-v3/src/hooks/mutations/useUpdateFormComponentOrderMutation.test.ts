@@ -13,10 +13,9 @@ import {
   layoutMock,
 } from '../../testing/layoutMock';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const selectedLayoutSet = 'test-layout-set';
 
 describe('useUpdateFormComponentOrderMutation', () => {

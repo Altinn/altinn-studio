@@ -11,9 +11,8 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { IFormLayouts } from '../../../../../../types/global';
 import { layout1NameMock, layoutMock } from '../../../../../../testing/layoutMock';
+import { app, org } from '@studio/testing/testids';
 
-const org = 'org';
-const app = 'app';
 const layoutSetName = formDesignerMock.layout.selectedLayoutSet;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,

@@ -13,9 +13,8 @@ import {
   renderWithMockStore,
 } from '../../../testing/mocks';
 import { layout2NameMock } from '../../../testing/layoutMock';
+import { app, org } from '@studio/testing/testids';
 
-const mockOrg = 'org';
-const mockApp = 'app';
 const mockPageName1: string = formDesignerMock.layout.selectedLayout;
 const mockSelectedLayoutSet = 'test-layout-set';
 const mockPageName2 = layout2NameMock;
@@ -25,8 +24,8 @@ const mockSearchParams = { layout: mockPageName1 };
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
-    org: mockOrg,
-    app: mockApp,
+    org,
+    app,
   }),
   useSearchParams: () => {
     return [new URLSearchParams(mockSearchParams), mockSetSearchParams];
@@ -131,8 +130,7 @@ const waitForData = async () => {
   const settingsResult = renderHookWithMockStore(
     {},
     { getFormLayoutSettings },
-  )(() => useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet)).renderHookResult
-    .result;
+  )(() => useFormLayoutSettingsQuery(org, app, mockSelectedLayoutSet)).renderHookResult.result;
 
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 };
