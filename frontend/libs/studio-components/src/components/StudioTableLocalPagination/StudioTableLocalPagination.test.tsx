@@ -135,6 +135,6 @@ describe('StudioTableLocalPagination', () => {
         emptyTableMessage='No rows to display'
       />,
     );
-    expect(screen.getByRole('paragraph', { value: 'No rows to display' })).toBeInTheDocument();
+    expect(screen.getByText('No rows to display')).toBeInTheDocument();
   });
 });

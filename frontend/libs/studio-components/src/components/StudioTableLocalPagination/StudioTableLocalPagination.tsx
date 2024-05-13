@@ -38,15 +38,15 @@ export const StudioTableLocalPagination = forwardRef<
     useEffect(() => {
       const newRowsToRender = getRowsToRender(currentPage, pageSize, sortedRows || rows);
 
-      const outOfRange = !newRowsToRender.length && currentPage > 1;
-      if (outOfRange) {
+      const isOutOfRange = !newRowsToRender.length && currentPage > 1;
+      if (isOutOfRange) {
         setCurrentPage(1);
         setRowsToRender(getRowsToRender(1, pageSize, sortedRows || rows));
         return;
       }
 
       setRowsToRender(newRowsToRender);
-    }, [sortedRows, currentPage, pageSize]);
+    }, [sortedRows, rows, currentPage, pageSize]);
 
     const totalPages = Math.ceil(rows.length / pageSize);
 
