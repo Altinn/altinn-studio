@@ -4,7 +4,7 @@ import { renderWithProviders } from '../../../../testing/mocks';
 import { EditComponentIdRow, type EditComponentIdRowProps } from './EditComponentIdRow';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { IFormLayouts } from '../../../../types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';

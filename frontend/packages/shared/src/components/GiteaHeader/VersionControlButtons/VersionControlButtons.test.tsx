@@ -4,11 +4,11 @@ import type { IVersionControlButtonsProps } from './VersionControlButtons';
 import { VersionControlButtons } from './VersionControlButtons';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { app, org, versionControlHeader } from '../../../../../../testing/testids';
+import { app, org, versionControlHeader } from '@studio/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { repoStatus } from 'app-shared/mocks/mocks';
 

@@ -3,8 +3,8 @@ import { screen } from '@testing-library/react';
 import type { LandingPagePanelProps } from './LandingPagePanel';
 import { LandingPagePanel } from './LandingPagePanel';
 import userEvent from '@testing-library/user-event';
-import * as testids from '../../../../testing/testids';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import * as testids from '@studio/testing/testids';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithMockStore } from '../../../test/mocks';
 
 const user = userEvent.setup();

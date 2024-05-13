@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import type { User } from 'app-shared/types/Repository';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { StudioButton } from '@studio/components';
-import * as testids from '../../../../../../testing/testids';
+import * as testids from '@studio/testing/testids';
 
 export interface IProfileMenuComponentProps {
   showlogout?: boolean;

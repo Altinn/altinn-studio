@@ -1,6 +1,6 @@
 import { useItemTitle } from './useItemTitle';
 import { renderHookWithMockStore } from '../../../../testing/mocks';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { FormContainer } from '../../../../types/FormContainer';
 import type { FormComponent } from '../../../../types/FormComponent';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';

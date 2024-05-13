@@ -3,7 +3,7 @@ import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing
 import userEvent from '@testing-library/user-event';
 import type { SettingsModalProps } from './SettingsModal';
 import { SettingsModal } from './SettingsModal';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient, UseMutationResult } from '@tanstack/react-query';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';

@@ -6,7 +6,7 @@ import {
   renderWithProviders,
 } from '../testing/mocks';
 import { FormDesigner } from './FormDesigner';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useWidgetsQuery } from '../hooks/queries/useWidgetsQuery';
 import ruleHandlerMock from '../testing/ruleHandlerMock';
 import type { ITextResources } from 'app-shared/types/global';

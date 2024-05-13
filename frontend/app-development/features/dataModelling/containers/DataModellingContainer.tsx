@@ -1,7 +1,7 @@
 import React from 'react';
 import { DataModelling } from '../DataModelling';
 import classes from './DataModellingContainer.module.css';
-import * as testids from '../../../../testing/testids';
+import * as testids from '@studio/testing/testids';
 
 // Todo: Is this component necessary?
 const DataModellingContainer = () => (

@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { DeleteWrapperProps } from './DeleteWrapper';
 import { DeleteWrapper } from './DeleteWrapper';
-import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
+import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import {
   jsonMetadata1Mock,
   jsonMetadata2Mock,

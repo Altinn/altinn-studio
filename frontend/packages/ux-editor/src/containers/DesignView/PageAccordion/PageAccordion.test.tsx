@@ -4,7 +4,7 @@ import { screen, waitFor } from '@testing-library/react';
 import type { PageAccordionProps } from './PageAccordion';
 import { PageAccordion } from './PageAccordion';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import {
   formLayoutSettingsMock,

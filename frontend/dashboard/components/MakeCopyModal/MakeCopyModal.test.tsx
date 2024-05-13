@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MakeCopyModal } from './MakeCopyModal';
 import { MockServicesContextWrapper } from 'dashboard/dashboardTestUtils';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';

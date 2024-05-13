@@ -5,7 +5,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../test/testUtils';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { AppVersion } from 'app-shared/types/AppVersion';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { useBpmnContext } from '@altinn/process-editor/contexts/BpmnContext';
 import { useWebSocket } from 'app-shared/hooks/useWebSocket';

@@ -7,7 +7,7 @@ import { TextResource } from './TextResource';
 import { renderHookWithMockStore, renderWithMockStore, textLanguagesMock } from '../testing/mocks';
 import { useLayoutSchemaQuery } from '../hooks/queries/useLayoutSchemaQuery';
 import { screen, waitFor } from '@testing-library/react';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';

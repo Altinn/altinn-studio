@@ -2,7 +2,7 @@ import React from 'react';
 import { formLayoutSettingsMock, renderWithMockStore } from '../../testing/mocks';
 import { DesignView } from './DesignView';
 import { screen } from '@testing-library/react';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { FormItemContextProvider } from '../FormItemContext';
 import { DragAndDrop } from 'app-shared/components/dragAndDrop';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';

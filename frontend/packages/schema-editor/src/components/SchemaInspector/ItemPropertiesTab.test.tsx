@@ -9,7 +9,7 @@ import {
   SchemaModel,
   validateTestUiSchema,
 } from '@altinn/schema-model';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { nodeMockBase, rootNodeMock } from '../../../test/mocks/uiSchemaMock';
 import type { SchemaEditorAppContextProps } from '../../contexts/SchemaEditorAppContext';

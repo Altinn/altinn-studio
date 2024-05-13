@@ -3,7 +3,7 @@ import { renderWithProviders } from '../../../../../testing/mocks';
 import { FormItemTitle } from './FormItemTitle';
 import type { FormComponent } from '../../../../../types/FormComponent';
 import { componentMocks } from '../../../../../testing/componentMocks';
-import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { type FormContainer } from '../../../../../types/FormContainer';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { screen, waitFor } from '@testing-library/react';

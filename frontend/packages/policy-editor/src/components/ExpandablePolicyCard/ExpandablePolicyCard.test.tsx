@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ExpandablePolicyCardProps } from './ExpandablePolicyCard';
 import { ExpandablePolicyCard } from './ExpandablePolicyCard';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { PolicyEditorUsage } from '../../types';
 import {
   mockActionId1,

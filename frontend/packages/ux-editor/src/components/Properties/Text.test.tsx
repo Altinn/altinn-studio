@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text } from './Text';
 import { screen } from '@testing-library/react';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { FormItemContext } from '../../containers/FormItemContext';
 import {
   component1IdMock,

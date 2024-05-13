@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioButton } from '@studio/components';
 import { UploadIcon } from '@studio/icons';
-import * as testids from '../../../../testing/testids';
+import * as testids from '@studio/testing/testids';
 
 export interface IFileSelectorProps {
   accept?: string;

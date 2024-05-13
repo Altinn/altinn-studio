@@ -4,8 +4,8 @@ import type { IUserState } from '../sharedResources/user/userSlice';
 import { screen } from '@testing-library/react';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../test/testUtils';
-import * as testids from '../../testing/testids';
-import { textMock } from '../../testing/mocks/i18nMock';
+import * as testids from '@studio/testing/testids';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 jest.mock('../../language/src/nb.json', jest.fn());
 jest.mock('../../language/src/en.json', jest.fn());

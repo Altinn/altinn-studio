@@ -2,7 +2,7 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../../testing/mocks';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { getDataModelFieldsFilter } from '../../utils/datamodel';

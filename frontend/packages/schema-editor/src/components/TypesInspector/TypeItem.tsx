@@ -4,7 +4,7 @@ import { extractNameFromPointer } from '@altinn/schema-model';
 import { CogIcon, FileJsonIcon } from '@studio/icons';
 import classes from './TypeItem.module.css';
 import classNames from 'classnames';
-import * as testids from '../../../../../testing/testids';
+import * as testids from '@studio/testing/testids';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 
 export interface TypeItemProps {

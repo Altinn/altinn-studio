@@ -5,7 +5,7 @@ import { renderWithMockStore, renderHookWithMockStore } from '../../testing/mock
 import { appDataMock, textResourcesMock } from '../../testing/stateMocks';
 import type { IAppDataState } from '../../features/appData/appDataReducers';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 import userEvent from '@testing-library/user-event';
 import type { DatamodelMetadataResponse } from 'app-shared/types/api';

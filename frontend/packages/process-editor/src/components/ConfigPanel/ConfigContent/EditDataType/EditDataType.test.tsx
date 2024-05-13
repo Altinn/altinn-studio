@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { BpmnApiContextProps } from '../../../../contexts/BpmnApiContext';
 import { BpmnApiContext } from '../../../../contexts/BpmnApiContext';

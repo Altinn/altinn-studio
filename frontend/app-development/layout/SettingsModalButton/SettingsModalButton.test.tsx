@@ -3,7 +3,7 @@ import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { SettingsModalButtonProps } from './SettingsModalButton';
 import { SettingsModalButton } from './SettingsModalButton';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { QueryClient } from '@tanstack/react-query';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';

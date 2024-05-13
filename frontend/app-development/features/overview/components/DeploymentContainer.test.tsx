@@ -3,7 +3,7 @@ import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { DeploymentContainer } from './DeploymentContainer';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { environment, repository } from 'app-shared/mocks/mocks';
 import { app, org } from '@studio/testing/testids';
 

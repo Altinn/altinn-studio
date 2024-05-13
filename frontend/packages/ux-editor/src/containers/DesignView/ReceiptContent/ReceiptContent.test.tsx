@@ -3,7 +3,7 @@ import { screen, waitFor } from '@testing-library/react';
 import type { ReceiptContentProps } from './ReceiptContent';
 import { ReceiptContent } from './ReceiptContent';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { FormLayoutPage } from '../../../types/FormLayoutPage';
 import {
   component1Mock,

@@ -2,7 +2,7 @@ import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 import type { AltinnHeaderProfileProps } from './AltinnHeaderProfile';
 import { AltinnHeaderProfile } from './AltinnHeaderProfile';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('AltinnHeaderProfile', () => {
   it('should render users name if user and org are the same', () => {

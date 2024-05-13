@@ -1,7 +1,7 @@
 import React from 'react';
 import { DataModelling } from './DataModelling';
 import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';

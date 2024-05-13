@@ -2,7 +2,7 @@ import React from 'react';
 import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { AboutTabProps } from './AboutTab';
 import { AboutTab } from './AboutTab';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import userEvent from '@testing-library/user-event';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';

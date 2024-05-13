@@ -17,7 +17,7 @@ import {
   layoutMock,
   layoutSet1NameMock,
 } from '../../testing/layoutMock';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import type { FormContainer } from '../../types/FormContainer';

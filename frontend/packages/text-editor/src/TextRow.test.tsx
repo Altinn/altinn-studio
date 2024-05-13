@@ -3,7 +3,7 @@ import type { TextRowProps } from './TextRow';
 import userEvent from '@testing-library/user-event';
 import { TextRow } from './TextRow';
 import { screen, render as rtlRender, waitFor } from '@testing-library/react';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { TextTableRowEntry } from './types';
 import { Table, TableBody } from '@digdir/design-system-react';
 import { queriesMock } from 'app-shared/mocks/queriesMock';

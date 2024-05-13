@@ -1,6 +1,6 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ConfigEndEvent } from './ConfigEndEvent';
 import userEvent from '@testing-library/user-event';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';

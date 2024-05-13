@@ -7,7 +7,7 @@ import { renderWithMockStore } from '../../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ITextResources } from 'app-shared/types/global';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { FormItemContext } from '../../FormItemContext';

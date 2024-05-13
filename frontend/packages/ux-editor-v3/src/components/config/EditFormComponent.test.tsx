@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import type { FormComponent } from '../../types/FormComponent';
 import { renderHookWithMockStore, renderWithMockStore } from '../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
-import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
+import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 import type { DatamodelMetadataResponse } from 'app-shared/types/api';

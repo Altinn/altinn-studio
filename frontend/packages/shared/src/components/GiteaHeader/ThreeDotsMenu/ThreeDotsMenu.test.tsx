@@ -3,7 +3,7 @@ import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ThreeDotsMenuProps } from './ThreeDotsMenu';
 import { ThreeDotsMenu } from './ThreeDotsMenu';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 const threeDotsButtonMock = textMock('sync_header.gitea_menu');

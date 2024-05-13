@@ -2,7 +2,7 @@ import React from 'react';
 import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { PolicyTabProps } from './PolicyTab';
 import { PolicyTab } from './PolicyTab';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';

@@ -2,7 +2,7 @@ import { renderHookWithProviders } from '../testing/mocks';
 import { useComponentErrorMessage } from './useComponentErrorMessage';
 import type { FormComponent } from '../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('useComponentErrorMessage', () => {
   it('Returns an error message from the translation file if the component is invalid', () => {

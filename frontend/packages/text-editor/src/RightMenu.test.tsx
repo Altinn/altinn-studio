@@ -2,8 +2,8 @@ import React from 'react';
 import { screen, waitFor, render as rtlRender } from '@testing-library/react';
 import { RightMenu } from './RightMenu';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../testing/mocks/i18nMock';
-import * as testids from '../../../testing/testids';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+import * as testids from '@studio/testing/testids';
 
 const user = userEvent.setup();
 

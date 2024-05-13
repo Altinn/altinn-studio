@@ -12,7 +12,7 @@ import {
 } from 'app-shared/hooks/queries';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRepoCommitAndPushMutation } from 'app-shared/hooks/mutations';
-import * as testids from '../../../../../../testing/testids';
+import * as testids from '@studio/testing/testids';
 import { toast } from 'react-toastify';
 
 const initialModalState = {

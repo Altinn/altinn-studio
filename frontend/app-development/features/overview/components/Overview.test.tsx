@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import { Overview } from './Overview';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { repository } from 'app-shared/mocks/mocks';
 import { app, org } from '@studio/testing/testids';
 

@@ -4,7 +4,7 @@ import { EditFormComponent } from './EditFormComponent';
 import { screen, waitFor } from '@testing-library/react';
 import { renderHookWithProviders, renderWithProviders } from '../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 import type { DatamodelMetadataResponse } from 'app-shared/types/api';

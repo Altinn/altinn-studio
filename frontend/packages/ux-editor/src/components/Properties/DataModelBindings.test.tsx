@@ -5,7 +5,7 @@ import { DataModelBindings } from './DataModelBindings';
 import { FormItemContext } from '../../containers/FormItemContext';
 import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
 import { renderWithProviders } from '../../testing/mocks';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { componentSchemaMocks } from '../../testing/componentSchemaMocks';

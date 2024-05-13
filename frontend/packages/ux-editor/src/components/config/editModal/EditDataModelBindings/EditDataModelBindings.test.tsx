@@ -2,7 +2,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { EditDataModelBindings } from './EditDataModelBindings';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 import type { DatamodelMetadataResponse } from 'app-shared/types/api';

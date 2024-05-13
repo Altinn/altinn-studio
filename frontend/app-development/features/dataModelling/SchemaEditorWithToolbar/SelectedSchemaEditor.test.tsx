@@ -4,7 +4,7 @@ import type { SelectedSchemaEditorProps } from './SelectedSchemaEditor';
 import { SelectedSchemaEditor } from './SelectedSchemaEditor';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import {
   createJsonMetadataMock,
@@ -21,7 +21,7 @@ import type {
   DatamodelMetadataJson,
   DatamodelMetadataXsd,
 } from 'app-shared/types/DatamodelMetadata';
-import { verifyNeverOccurs } from '../../../../testing/testUtils';
+import { verifyNeverOccurs } from '@studio/testing/testUtils';
 import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();

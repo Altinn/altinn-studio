@@ -3,9 +3,9 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IFileSelectorProps } from './FileSelector';
 import { FileSelector } from './FileSelector';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { Button } from '@digdir/design-system-react';
-import * as testids from '../../../../testing/testids';
+import * as testids from '@studio/testing/testids';
 
 const user = userEvent.setup();
 

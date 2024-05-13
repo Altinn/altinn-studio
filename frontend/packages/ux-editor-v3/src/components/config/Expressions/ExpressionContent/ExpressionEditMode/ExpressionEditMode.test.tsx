@@ -13,7 +13,7 @@ import { renderWithMockStore } from '../../../../../testing/mocks';
 import { formDesignerMock } from '../../../../../testing/stateMocks';
 import type { IFormLayouts } from '../../../../../types/global';
 import { layout1NameMock, layoutMock } from '../../../../../testing/layoutMock';
-import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import {

@@ -12,7 +12,7 @@ import type { IFormLayouts } from '../../../../types/global';
 import { layout1NameMock, layoutMock } from '../../../../testing/layoutMock';
 import type { ExpressionContentProps } from './ExpressionContent';
 import { ExpressionContent } from './ExpressionContent';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { ExpressionPropertyBase } from '../../../../types/Expressions';

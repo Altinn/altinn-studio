@@ -1,7 +1,7 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';

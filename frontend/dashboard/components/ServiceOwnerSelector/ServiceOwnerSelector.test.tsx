@@ -2,7 +2,7 @@ import React from 'react';
 import { render as rtlRender, screen, within } from '@testing-library/react';
 import type { ServiceOwnerSelectorProps } from './ServiceOwnerSelector';
 import { ServiceOwnerSelector } from './ServiceOwnerSelector';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { user } from 'app-shared/mocks/mocks';
 
 const defaultProps = {

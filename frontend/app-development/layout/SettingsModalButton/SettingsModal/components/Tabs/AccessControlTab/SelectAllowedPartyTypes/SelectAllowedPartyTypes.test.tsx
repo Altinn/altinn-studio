@@ -4,7 +4,7 @@ import {
   type SelectAllowedPartyTypesProps,
 } from './SelectAllowedPartyTypes';
 import { mockAppMetadata } from '../../../../mocks/applicationMetadataMock';
-import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { render as rtlRender, screen, waitFor } from '@testing-library/react';
 import type { QueryClient } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';

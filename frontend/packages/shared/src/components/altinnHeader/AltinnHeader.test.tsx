@@ -3,7 +3,7 @@ import { render as rtlRender, screen } from '@testing-library/react';
 import type { AltinnHeaderProps } from './AltinnHeader';
 import { AltinnHeader } from './AltinnHeader';
 import { Button } from '@digdir/design-system-react';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { RepositoryType } from 'app-shared/types/global';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { MemoryRouter } from 'react-router-dom';

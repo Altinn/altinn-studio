@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import type { TextListProps } from './TextList';
 import { TextList } from './TextList';
 import { screen, render as rtlRender } from '@testing-library/react';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { TextTableRow } from './types';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';

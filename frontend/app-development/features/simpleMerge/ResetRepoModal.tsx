@@ -5,7 +5,7 @@ import { Textfield } from '@digdir/design-system-react';
 import { Popover } from '@mui/material';
 import { useTranslation, Trans } from 'react-i18next';
 import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
-import * as testids from '../../../testing/testids';
+import * as testids from '@studio/testing/testids';
 import { toast } from 'react-toastify';
 
 import { useQueryClient } from '@tanstack/react-query';
