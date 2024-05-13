@@ -1021,6 +1021,7 @@
   "resourceadm.listadmin_list_name_description": "Gi listen et beskrivende navn, f.eks \"Godkjente banker\"",
   "resourceadm.listadmin_list_organizations": "Registrerte enheter",
   "resourceadm.listadmin_list_organizations_description": "Enheter i denne listen vil ha tilgang til ressursen",
+  "resourceadm.listadmin_list_tenor_org": "Tenor testorganisasjon",
   "resourceadm.listadmin_lists_in": "Lister i {{environment}}",
   "resourceadm.listadmin_load_list_error": "Kunne ikke laste tilgangslister",
   "resourceadm.listadmin_load_more": "Last flere",

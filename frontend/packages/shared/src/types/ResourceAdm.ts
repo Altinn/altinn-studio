@@ -124,8 +124,8 @@ export interface BrregSubPartySearchResult {
 
 export interface BrregSearchResult {
   parties: AccessListMember[];
-  links: BrregPagination;
-  page: BrregPageInfo;
+  links?: BrregPagination;
+  page?: BrregPageInfo;
 }
 
 export interface BrregParty {

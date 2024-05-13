@@ -14,6 +14,7 @@ import { StudioSpinner, StudioButton } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
 import { AccessListMembersPaging } from './AccessListMembersPaging';
 import { AccessListMembersTable } from './AccessListMembersTable';
+import { isOrgNrString } from 'resourceadm/utils/stringUtils';
 
 const PARTY_SEARCH_TYPE = 'PARTY';
 const SUBPARTY_SEARCH_TYPE = 'SUBPARTY';
@@ -70,7 +71,31 @@ export const AccessListMembers = ({
     });
   };
 
-  const resultData = partiesSearchData ?? subPartiesSearchData ?? undefined;
+  const getResultData = () => {
+    if (
+      (partiesSearchData?.parties?.length === 0 || subPartiesSearchData?.parties?.length === 0) &&
+      isOrgNrString(searchText) &&
+      env !== 'prod'
+    ) {
+      return {
+        parties: [
+          {
+            orgNr: searchText,
+            orgName: t('resourceadm.listadmin_list_tenor_org'),
+            isSubParty: false,
+          },
+        ],
+      };
+    } else if (partiesSearchData) {
+      return partiesSearchData;
+    } else if (subPartiesSearchData) {
+      return subPartiesSearchData;
+    } else {
+      return undefined;
+    }
+  };
+
+  const resultData = getResultData();
 
   return (
     <FieldWrapper
@@ -109,7 +134,11 @@ export const AccessListMembers = ({
               onChange={() => setIsSubPartySearch((old) => !old)}
               value={isSubPartySearch ? SUBPARTY_SEARCH_TYPE : PARTY_SEARCH_TYPE}
               inline
-              legend={t('resourceadm.listadmin_search_party_type')}
+              legend={
+                <div className={classes.radioGroupHeader}>
+                  {t('resourceadm.listadmin_search_party_type')}
+                </div>
+              }
             >
               <Radio value={PARTY_SEARCH_TYPE}>{t('resourceadm.listadmin_parties')}</Radio>
               <Radio value={SUBPARTY_SEARCH_TYPE}>{t('resourceadm.listadmin_sub_parties')}</Radio>

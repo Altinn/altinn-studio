@@ -49,3 +49,7 @@
 .largeColumn {
   width: 45%;
 }
+
+.radioGroupHeader {
+  visibility: hidden;
+}

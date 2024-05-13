@@ -1,4 +1,5 @@
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
+import { isOrgNrString } from '../stringUtils';
 
 /**
  * Returns the path to the dashboard based on the name of the organisation
@@ -45,7 +46,7 @@ export const getAccessListPageUrl = (
 
 export const getPartiesQueryUrl = (search: string, isSubParty?: boolean): string => {
   const partyType = isSubParty ? 'underenheter' : 'enheter';
-  const isOrgnrSearch = /^\d{9}$/.test(search); // regex for search string is exactly 9 digits
+  const isOrgnrSearch = isOrgNrString(search);
   const searchTerm = isOrgnrSearch ? `organisasjonsnummer=${search}` : `navn=${search}`;
   return `https://data.brreg.no/enhetsregisteret/api/${partyType}?${searchTerm}&size=5`;
 };

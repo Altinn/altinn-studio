@@ -109,7 +109,7 @@ describe('AccessListMembers', () => {
     await user.click(addMoreButton);
 
     const textField = screen.getByLabelText(textMock('resourceadm.listadmin_search'));
-    await user.type(textField, '123456789');
+    await user.type(textField, 'test');
 
     await screen.findByText(textMock('resourceadm.listadmin_search_no_parties'));
   });
@@ -138,6 +138,27 @@ describe('AccessListMembers', () => {
     await user.type(textField, 'test');
 
     await screen.findByText(textMock('resourceadm.listadmin_search_no_sub_parties'));
+  });
+
+  it('should show special organization from tenor when search for orgnr is not found', async () => {
+    const user = userEvent.setup();
+
+    renderAccessListMembers(
+      {},
+      {
+        getParties: jest.fn().mockImplementation(() => Promise.resolve({})),
+      },
+    );
+
+    const addMoreButton = screen.getByRole('button', {
+      name: textMock('resourceadm.listadmin_search_add_more'),
+    });
+    await user.click(addMoreButton);
+
+    const textField = screen.getByLabelText(textMock('resourceadm.listadmin_search'));
+    await user.type(textField, '123456789');
+
+    await screen.findByText(textMock('resourceadm.listadmin_list_tenor_org'));
   });
 
   it('should go to next page when paging button is clicked', async () => {
