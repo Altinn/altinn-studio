@@ -92,7 +92,6 @@ export const repoBranchesPath = (org, app) => `${basePath}/repos/repo/${org}/${a
 export const repoCommitPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/commit`; // Post
 export const repoCommitPushPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/commit-and-push`; // Post
 export const repoDownloadPath = (org, app, full) => `${basePath}/repos/repo/${org}/${app}/contents.zip?${s({ full })}`;
-export const repoInitialCommitPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/initial-commit`; // Get
 export const repoLatestCommitPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/latest-commit`; // Get
 export const repoLogPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/log`; // Get
 export const repoMetaPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/metadata`; // Get
