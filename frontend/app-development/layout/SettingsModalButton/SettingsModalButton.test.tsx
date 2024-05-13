@@ -10,6 +10,7 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { MemoryRouter } from 'react-router-dom';
+import { AppDevelopmentContextProvider } from 'app-development/contexts/AppDevelopmentContext';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';
@@ -24,7 +25,7 @@ describe('SettingsModal', () => {
   afterEach(jest.clearAllMocks);
 
   it('has SettingsModal default to closed', async () => {
-    render();
+    renderSettingsModalButton();
 
     const modalHeading = screen.queryByRole('heading', {
       name: textMock('settings_modal.heading'),
@@ -35,7 +36,7 @@ describe('SettingsModal', () => {
   });
 
   it('opens the SettingsModal when the button is clicked', async () => {
-    render();
+    renderSettingsModalButton();
 
     const modalHeading = screen.queryByRole('heading', {
       name: textMock('settings_modal.heading'),
@@ -54,7 +55,7 @@ describe('SettingsModal', () => {
   });
 
   it('closes the SettingsModal when the modal is closed', async () => {
-    render();
+    renderSettingsModalButton();
     const button = screen.getByRole('button', { name: textMock('sync_header.settings') });
     await user.click(button);
 
@@ -77,7 +78,7 @@ describe('SettingsModal', () => {
   });
 });
 
-const render = (
+const renderSettingsModalButton = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
@@ -88,7 +89,9 @@ const render = (
   return rtlRender(
     <MemoryRouter>
       <ServicesContextProvider {...allQueries} client={queryClient}>
-        <SettingsModalButton {...defaultProps} />
+        <AppDevelopmentContextProvider>
+          <SettingsModalButton {...defaultProps} />
+        </AppDevelopmentContextProvider>
       </ServicesContextProvider>
     </MemoryRouter>,
   );

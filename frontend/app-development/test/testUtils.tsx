@@ -12,6 +12,7 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queryClientConfigMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { AppDevelopmentContextProvider } from 'app-development/contexts/AppDevelopmentContext';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   preloadedState?: PreloadedState<RootState>;
@@ -42,9 +43,11 @@ export const renderWithProviders = (
             client={queryClient}
             clientConfig={queryClientConfigMock}
           >
-            <Routes>
-              <Route path='/:org/:app/*' element={children} />
-            </Routes>
+            <AppDevelopmentContextProvider>
+              <Routes>
+                <Route path='/:org/:app/*' element={children} />
+              </Routes>
+            </AppDevelopmentContextProvider>
           </ServicesContextProvider>
         </MemoryRouter>
       </Provider>
