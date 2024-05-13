@@ -106,11 +106,11 @@ export const CustomReceiptForm = ({ onCloseForm }: CustomReceiptFormProps): Reac
       <div className={classes.buttonWrapper}>
         <StudioButton size='small' type='submit' variant='primary'>
           {t(
-            `configuration_panel_custom_receipt_save_button_${!existingCustomReceiptLayoutSetId ? 'create' : 'save'}_button`,
+            `process_editor.configuration_panel_custom_receipt_${!existingCustomReceiptLayoutSetId ? 'create' : 'save'}_button`,
           )}
         </StudioButton>
         <StudioButton size='small' onClick={onCloseForm} variant='secondary'>
-          {t('configuration_panel_custom_receipt_cancel_button')}
+          {t('process_editor.configuration_panel_custom_receipt_cancel_button')}
         </StudioButton>
       </div>
     </form>
