@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './CustomReceipt.module.css';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioToggleableTextfield } from '@studio/components';
 import { KeyVerticalIcon, LinkIcon } from '@studio/icons';
 import { Paragraph } from '@digdir/design-system-react';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
@@ -14,7 +14,8 @@ export type CustomReceiptProps = {
 
 export const CustomReceipt = ({ onClickEditButton }: CustomReceiptProps): React.ReactElement => {
   const { t } = useTranslation();
-  const { layoutSets, existingCustomReceiptLayoutSetId, deleteLayoutSet } = useBpmnApiContext();
+  const { layoutSets, existingCustomReceiptLayoutSetId, deleteLayoutSet, mutateLayoutSet } =
+    useBpmnApiContext();
 
   const existingDatamodelId: string = getExistingDatamodelIdFromLayoutsets(
     layoutSets,
@@ -25,15 +26,40 @@ export const CustomReceipt = ({ onClickEditButton }: CustomReceiptProps): React.
     deleteLayoutSet({ layoutSetIdToUpdate: existingCustomReceiptLayoutSetId });
   };
 
+  const handleEditLayoutSetId = (event: React.FocusEvent<HTMLInputElement, Element>) => {
+    const newLayoutSetId: string = event.target.value;
+
+    mutateLayoutSet({
+      layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
+      newLayoutSetId,
+    });
+  };
+
   return (
     <div className={classes.wrapper}>
-      <span className={classes.customReceiptField}>
-        <KeyVerticalIcon className={classes.icon} />
-        <Paragraph size='small'>
-          <strong>{t('process_editor.configuration_panel_custom_receipt_layoutset_name')}</strong>
-          {existingCustomReceiptLayoutSetId}
-        </Paragraph>
-      </span>
+      <StudioToggleableTextfield
+        // customValidation={validateTaskId}
+        inputProps={{
+          icon: <KeyVerticalIcon />,
+          label: t('process_editor.configuration_panel_custom_receipt_textfield_label'),
+          value: existingCustomReceiptLayoutSetId,
+          onBlur: handleEditLayoutSetId,
+          size: 'small',
+        }}
+        viewProps={{
+          children: (
+            <Paragraph size='small' className={classes.toggleableButtonText}>
+              <strong>
+                {t('process_editor.configuration_panel_custom_receipt_layoutset_name')}
+              </strong>
+              {existingCustomReceiptLayoutSetId}
+            </Paragraph>
+          ),
+          value: existingCustomReceiptLayoutSetId,
+          variant: 'tertiary',
+          'aria-label': t('process_editor.configuration_panel_custom_receipt_textfield_label'),
+        }}
+      />
       <span className={classes.customReceiptField}>
         <LinkIcon className={classes.icon} />
         <Paragraph size='small'>
@@ -42,9 +68,9 @@ export const CustomReceipt = ({ onClickEditButton }: CustomReceiptProps): React.
         </Paragraph>
       </span>
       <div className={classes.buttonWrapper}>
-        <StudioButton size='small' onClick={onClickEditButton}>
+        {/*<StudioButton size='small' onClick={onClickEditButton}>
           {t('process_editor.configuration_panel_custom_receipt_edit_button')}
-        </StudioButton>
+        </StudioButton>*/}
         <StudioButton
           size='small'
           color='danger'

@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './CustomReceiptForm.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioTextfield } from '@studio/components';
+import { StudioButton } from '@studio/components';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { type CustomReceiptType } from '../../../../../types/CustomReceiptType';
 import { type DataTypeChange } from 'app-shared/types/api/DataTypeChange';
@@ -94,14 +94,6 @@ export const CustomReceiptForm = ({ onCloseForm }: CustomReceiptFormProps): Reac
 
   return (
     <form onSubmit={handleSubmit} className={classes.customReceiptForm}>
-      <StudioTextfield
-        name='customReceiptLayoutSetId'
-        label={t('process_editor.configuration_panel_custom_receipt_textfield_label')}
-        value={existingCustomReceiptLayoutSetId}
-        size='small'
-        // error - TODO
-        // onChange - TODO
-      />
       <SelectCustomReceiptDatamodelId />
       <div className={classes.buttonWrapper}>
         <StudioButton size='small' type='submit' variant='primary'>

@@ -5,6 +5,11 @@
   margin-top: var(--fds-spacing-3);
 }
 
+.toggleableButtonText {
+  text-align: left;
+  padding-left: var(--fds-spacing-1);
+}
+
 .customReceiptField {
   display: flex;
   align-items: center;
