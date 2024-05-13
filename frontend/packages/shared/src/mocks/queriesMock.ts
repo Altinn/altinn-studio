@@ -164,6 +164,7 @@ export const queriesMock: ServicesContextProps = {
 
   // Mutations
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
+  addDataTypeToAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   addLayoutSet: jest.fn().mockImplementation(() => Promise.resolve()),
   addLanguageCode: jest.fn().mockImplementation(() => Promise.resolve()),
   addRepo: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
@@ -180,6 +181,7 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
   deleteAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteDatamodel: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteDataTypeFromAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteFormLayout: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteLanguageCode: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteLayoutSet: jest.fn().mockImplementation(() => Promise.resolve()),
