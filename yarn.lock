@@ -8441,7 +8441,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ajv-formats@npm:2.1.1, ajv-formats@npm:^2.1.1":
+"ajv-formats@npm:3.0.1":
+  version: 3.0.1
+  resolution: "ajv-formats@npm:3.0.1"
+  dependencies:
+    ajv: "npm:^8.0.0"
+  peerDependencies:
+    ajv: ^8.0.0
+  peerDependenciesMeta:
+    ajv:
+      optional: true
+  checksum: 10/5679b9f9ced9d0213a202a37f3aa91efcffe59a6de1a6e3da5c873344d3c161820a1f11cc29899661fee36271fd2895dd3851b6461c902a752ad661d1c1e8722
+  languageName: node
+  linkType: hard
+
+"ajv-formats@npm:^2.1.1":
   version: 2.1.1
   resolution: "ajv-formats@npm:2.1.1"
   dependencies:
@@ -8543,7 +8557,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:7.7.1"
     "@typescript-eslint/parser": "npm:7.7.1"
     ajv: "npm:8.12.0"
-    ajv-formats: "npm:2.1.1"
+    ajv-formats: "npm:3.0.1"
     clean-webpack-plugin: "npm:4.0.0"
     cross-env: "npm:7.0.3"
     css-loader: "npm:6.11.0"
@@ -8747,7 +8761,7 @@ __metadata:
     jest: "npm:29.7.0"
     qs: "npm:6.12.1"
     react: "npm:18.3.1"
-    react-content-loader: "npm:6.2.1"
+    react-content-loader: "npm:7.0.0"
     react-dnd: "npm:16.0.1"
     react-dnd-html5-backend: "npm:16.0.1"
     react-dom: "npm:18.3.1"
@@ -18926,12 +18940,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-content-loader@npm:6.2.1":
-  version: 6.2.1
-  resolution: "react-content-loader@npm:6.2.1"
+"react-content-loader@npm:7.0.0":
+  version: 7.0.0
+  resolution: "react-content-loader@npm:7.0.0"
   peerDependencies:
     react: ">=16.0.0"
-  checksum: 10/9a59fa25ab5418800c40eec5a1cd7c0bb14bab9654326288370240271e6591f0a921938a08ca01f3dc6c69df909622b9e8ed0992bcf255616cfa83d9c22f4285
+  checksum: 10/1f1e5e0e39c3ff627964998b10c590b5252de11f838a74e8338dc1af191f540b4831d91657bccdb3df3b807ec39eee11691dc7870535427c9afd5ec5c73cfcd1
   languageName: node
   linkType: hard
 
