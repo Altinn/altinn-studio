@@ -21,7 +21,7 @@ export type BpmnApiContextProps = {
     data: { layoutSetIdToUpdate: string; newLayoutSetId: string },
     options?: QueryOptions,
   ) => void;
-  mutateDataType: (dataTypeChange: DataTypeChange) => void;
+  mutateDataType: (dataTypeChange: DataTypeChange, options?: QueryOptions) => void;
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
 };
 

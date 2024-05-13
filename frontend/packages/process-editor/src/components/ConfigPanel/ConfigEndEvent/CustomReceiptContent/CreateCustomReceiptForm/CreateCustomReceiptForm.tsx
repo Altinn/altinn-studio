@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import classes from './CreateCustomReceiptForm.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioTextfield } from '@studio/components';
@@ -21,6 +21,9 @@ export const CreateCustomReceiptForm = ({
   const { layoutSets, existingCustomReceiptLayoutSetId, addLayoutSet, mutateDataType } =
     useBpmnApiContext();
 
+  const [layoutSetError, setLayoutSetError] = useState<string>(null);
+  const [datamodelError, setDatamodelError] = useState<string>(null);
+
   const existingDatamodelId: string = getExistingDatamodelIdFromLayoutsets(
     layoutSets,
     existingCustomReceiptLayoutSetId,
@@ -35,9 +38,21 @@ export const CreateCustomReceiptForm = ({
       layoutSetId: formData.get('customReceiptLayoutSetId') as string,
       datamodelId: formData.get('customReceiptDatamodel') as string,
     };
+    const { layoutSetId, datamodelId } = customReceiptForm;
 
-    saveCustomReceipt(customReceiptForm);
-    onCloseForm();
+    if (layoutSetId && datamodelId) {
+      saveCustomReceipt(customReceiptForm);
+    }
+    setLayoutSetError(
+      !layoutSetId
+        ? t('process_editor.configuration_panel_custom_receipt_create_layoutset_error')
+        : null,
+    );
+    setDatamodelError(
+      !datamodelId
+        ? t('process_editor.configuration_panel_custom_receipt_create_datamodel_error')
+        : null,
+    );
   };
 
   const saveCustomReceipt = (customReceipt: CustomReceiptType) => {
@@ -73,7 +88,18 @@ export const CreateCustomReceiptForm = ({
       newDataType: datamodelId,
       connectedTaskId: PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
     };
-    mutateDataType(dataTypeChange);
+    mutateDataType(dataTypeChange, {
+      onSuccess: onCloseForm,
+    });
+  };
+
+  const handleChangeLayoutsetName = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value: string = event.target.value;
+    setLayoutSetError(
+      value.length === 0
+        ? t('process_editor.configuration_panel_custom_receipt_create_layoutset_error')
+        : null,
+    );
   };
 
   return (
@@ -83,10 +109,13 @@ export const CreateCustomReceiptForm = ({
         label={t('process_editor.configuration_panel_custom_receipt_textfield_label')}
         value={existingCustomReceiptLayoutSetId}
         size='small'
-        // error - TODO
-        // onChange - TODO
+        error={layoutSetError && layoutSetError}
+        onChange={handleChangeLayoutsetName}
       />
-      <SelectCustomReceiptDatamodelId />
+      <SelectCustomReceiptDatamodelId
+        error={datamodelError && datamodelError}
+        onChange={() => setDatamodelError(null)}
+      />
       <div className={classes.buttonWrapper}>
         <StudioButton size='small' type='submit' variant='primary'>
           {t(

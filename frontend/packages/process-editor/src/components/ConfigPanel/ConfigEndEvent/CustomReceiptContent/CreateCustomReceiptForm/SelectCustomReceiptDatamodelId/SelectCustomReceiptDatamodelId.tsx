@@ -4,7 +4,15 @@ import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '../../../../../../contexts/BpmnApiContext';
 import { getExistingDatamodelIdFromLayoutsets } from '../../../../../../utils/customReceiptUtils';
 
-export const SelectCustomReceiptDatamodelId = (): React.ReactElement => {
+export type SelectCustomReceiptDatamodelIdProps = {
+  error: string;
+  onChange: () => void;
+};
+
+export const SelectCustomReceiptDatamodelId = ({
+  error,
+  onChange,
+}: SelectCustomReceiptDatamodelIdProps): React.ReactElement => {
   const { t } = useTranslation();
   const { layoutSets, existingCustomReceiptLayoutSetId, availableDataModelIds } =
     useBpmnApiContext();
@@ -31,6 +39,8 @@ export const SelectCustomReceiptDatamodelId = (): React.ReactElement => {
       id='customReceiptDataModelSelect'
       disabled={availableDatamodelIdsEmpty}
       defaultValue={existingDatamodelId ?? 'noModelKey'}
+      error={error}
+      onChange={onChange}
     >
       <option disabled={true} value='noModelKey'>
         {t('process_editor.configuration_panel_select_datamodel')}
