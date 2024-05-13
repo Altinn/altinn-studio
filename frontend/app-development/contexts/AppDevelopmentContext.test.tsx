@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, renderHook, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { AppDevelopmentContextProvider, useAppDevelopmentContext } from './AppDevelopmentContext';
 
 describe('AppDevelopmentContext', () => {
