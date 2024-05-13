@@ -24,7 +24,7 @@ const mockNewText: string = 'test';
 const mockAppMetadata: ApplicationMetadata = {
   id: `${mockOrg}/${mockApp}`,
   org: mockOrg,
-  createdBy: 'Test testesen',
+  createdBy: 'Test Testesen',
 };
 
 jest.mock('../../../../../../hooks/mutations/useAppConfigMutation');
