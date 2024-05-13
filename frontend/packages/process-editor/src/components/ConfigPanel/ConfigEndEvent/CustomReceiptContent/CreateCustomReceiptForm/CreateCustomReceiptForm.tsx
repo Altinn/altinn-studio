@@ -1,7 +1,7 @@
 import React from 'react';
-import classes from './CustomReceiptForm.module.css';
+import classes from './CreateCustomReceiptForm.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioTextfield } from '@studio/components';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { type CustomReceiptType } from '../../../../../types/CustomReceiptType';
 import { type DataTypeChange } from 'app-shared/types/api/DataTypeChange';
@@ -10,19 +10,16 @@ import { type LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { SelectCustomReceiptDatamodelId } from './SelectCustomReceiptDatamodelId';
 import { getExistingDatamodelIdFromLayoutsets } from '../../../../../utils/customReceiptUtils';
 
-export type CustomReceiptFormProps = {
+export type CreateCustomReceiptFormProps = {
   onCloseForm: () => void;
 };
 
-export const CustomReceiptForm = ({ onCloseForm }: CustomReceiptFormProps): React.ReactElement => {
+export const CreateCustomReceiptForm = ({
+  onCloseForm,
+}: CreateCustomReceiptFormProps): React.ReactElement => {
   const { t } = useTranslation();
-  const {
-    layoutSets,
-    existingCustomReceiptLayoutSetId,
-    addLayoutSet,
-    mutateLayoutSet,
-    mutateDataType,
-  } = useBpmnApiContext();
+  const { layoutSets, existingCustomReceiptLayoutSetId, addLayoutSet, mutateDataType } =
+    useBpmnApiContext();
 
   const existingDatamodelId: string = getExistingDatamodelIdFromLayoutsets(
     layoutSets,
@@ -53,7 +50,6 @@ export const CustomReceiptForm = ({ onCloseForm }: CustomReceiptFormProps): Reac
       createNewCustomReceipt(customReceipt);
       return;
     }
-    saveExistingCustomReceipt(customReceipt);
   };
 
   const createNewCustomReceipt = (customReceipt: CustomReceiptType) => {
@@ -72,18 +68,6 @@ export const CustomReceiptForm = ({ onCloseForm }: CustomReceiptFormProps): Reac
     );
   };
 
-  const saveExistingCustomReceipt = (customReceipt: CustomReceiptType) => {
-    mutateLayoutSet(
-      {
-        layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
-        newLayoutSetId: customReceipt.layoutSetId,
-      },
-      {
-        onSuccess: () => saveDatamodel(customReceipt.datamodelId),
-      },
-    );
-  };
-
   const saveDatamodel = (datamodelId: string) => {
     const dataTypeChange: DataTypeChange = {
       newDataType: datamodelId,
@@ -94,6 +78,14 @@ export const CustomReceiptForm = ({ onCloseForm }: CustomReceiptFormProps): Reac
 
   return (
     <form onSubmit={handleSubmit} className={classes.customReceiptForm}>
+      <StudioTextfield
+        name='customReceiptLayoutSetId'
+        label={t('process_editor.configuration_panel_custom_receipt_textfield_label')}
+        value={existingCustomReceiptLayoutSetId}
+        size='small'
+        // error - TODO
+        // onChange - TODO
+      />
       <SelectCustomReceiptDatamodelId />
       <div className={classes.buttonWrapper}>
         <StudioButton size='small' type='submit' variant='primary'>

@@ -5,9 +5,16 @@
   margin-top: var(--fds-spacing-3);
 }
 
+.inputfields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-2);
+}
+
 .toggleableButtonText {
   text-align: left;
   padding-left: var(--fds-spacing-1);
+  width: 100%;
 }
 
 .customReceiptField {

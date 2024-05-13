@@ -16,17 +16,19 @@ export const RedirectToCreatePageButton = (): React.ReactElement => {
       <StudioLabelAsParagraph size='small'>
         {t('process_editor.configuration_panel_custom_receipt_navigate_to_lage_title')}
       </StudioLabelAsParagraph>
-      <StudioButton
-        as='a'
-        size='small'
-        variant='primary'
-        color='second'
-        icon={<PencilWritingIcon />}
-        href={packagesRouter.getPackageNavigationUrl('editorUiEditor')}
-        className={classes.goToCreateButton}
-      >
-        {t('process_editor.configuration_panel_custom_receipt_navigate_to_lage_button')}
-      </StudioButton>
+      <div>
+        <StudioButton
+          as='a'
+          size='small'
+          variant='primary'
+          color='second'
+          icon={<PencilWritingIcon />}
+          href={packagesRouter.getPackageNavigationUrl('editorUiEditor')}
+          className={classes.goToCreateButton}
+        >
+          {t('process_editor.configuration_panel_custom_receipt_navigate_to_lage_button')}
+        </StudioButton>
+      </div>
     </div>
   );
 };

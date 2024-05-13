@@ -1,17 +1,17 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import type { BpmnApiContextProps } from '../../../../contexts/BpmnApiContext';
-import { BpmnApiContext } from '../../../../contexts/BpmnApiContext';
-import type { BpmnContextProps } from '../../../../contexts/BpmnContext';
-import { BpmnContext } from '../../../../contexts/BpmnContext';
-import type { BpmnDetails } from '../../../../types/BpmnDetails';
-import { BpmnTypeEnum } from '../../../../enum/BpmnTypeEnum';
+import type { BpmnApiContextProps } from '../../../contexts/BpmnApiContext';
+import { BpmnApiContext } from '../../../contexts/BpmnApiContext';
+import type { BpmnContextProps } from '../../../contexts/BpmnContext';
+import { BpmnContext } from '../../../contexts/BpmnContext';
+import type { BpmnDetails } from '../../../types/BpmnDetails';
+import { BpmnTypeEnum } from '../../../enum/BpmnTypeEnum';
 import type Modeler from 'bpmn-js/lib/Modeler';
 import type { SelectDataTypeProps } from './SelectDataType';
 import { SelectDataType } from './SelectDataType';
-import { BpmnConfigPanelFormContextProvider } from '../../../../contexts/BpmnConfigPanelContext';
+import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
 
 const mockTaskId: string = 'testId';
 const mockName: string = 'testName';
@@ -37,7 +37,7 @@ const mockBpmnContextValue: Partial<BpmnContextProps> = {
 
 const defaultSelectDataTypeProps: SelectDataTypeProps = {
   connectedTaskId: mockTaskId,
-  dataModelIds: [],
+  datamodelIds: [],
   existingDataType: undefined,
   onClose: jest.fn(),
 };
@@ -65,7 +65,7 @@ describe('SelectDataType', () => {
     const dataModelIds = [dataTypeToConnect, 'dataModel1', 'dataModel2'];
 
     renderEditDataType(
-      { dataModelIds },
+      { datamodelIds: dataModelIds },
       {
         mutateDataType: mutateDataTypeMock,
       },
@@ -87,7 +87,7 @@ describe('SelectDataType', () => {
     const dataTypeToConnect = 'datamodel1';
     const dataModelIds = [existingDataType, dataTypeToConnect, 'dataModel2'];
     renderEditDataType(
-      { dataModelIds, existingDataType },
+      { datamodelIds: dataModelIds, existingDataType },
       {
         mutateDataType: mutateDataTypeMock,
       },
@@ -108,7 +108,7 @@ describe('SelectDataType', () => {
     const existingDataType = 'dataModel0';
     const dataModelIds = [existingDataType, 'datamodel1', 'dataModel2'];
     renderEditDataType(
-      { dataModelIds, existingDataType },
+      { datamodelIds: dataModelIds, existingDataType },
       {
         mutateDataType: mutateDataTypeMock,
       },
@@ -129,7 +129,7 @@ describe('SelectDataType', () => {
     const existingDataType = 'dataModel0';
     const dataModelIds = [existingDataType, 'datamodel1', 'dataModel2'];
     renderEditDataType(
-      { dataModelIds, existingDataType },
+      { datamodelIds: dataModelIds, existingDataType },
       {
         mutateDataType: mutateDataTypeMock,
       },

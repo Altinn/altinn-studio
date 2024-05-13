@@ -1,4 +1,6 @@
 .goToCreatePageWrapper {
+  display: flex;
+  flex-direction: column;
   margin-top: var(--fds-spacing-6);
   border-radius: 5px;
   padding-block: var(--fds-spacing-3);

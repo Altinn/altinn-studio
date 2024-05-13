@@ -1,21 +1,24 @@
 import React from 'react';
 import classes from './CustomReceipt.module.css';
 import { StudioButton, StudioToggleableTextfield } from '@studio/components';
-import { KeyVerticalIcon, LinkIcon } from '@studio/icons';
+import { KeyVerticalIcon } from '@studio/icons';
 import { Paragraph } from '@digdir/design-system-react';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { getExistingDatamodelIdFromLayoutsets } from '../../../../../utils/customReceiptUtils';
 import { RedirectToCreatePageButton } from '../RedirectToCreatePageButton';
 import { useTranslation } from 'react-i18next';
+import { EditDataType } from '../../../ConfigContent/EditDataType';
+import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 
-export type CustomReceiptProps = {
-  onClickEditButton: () => void;
-};
-
-export const CustomReceipt = ({ onClickEditButton }: CustomReceiptProps): React.ReactElement => {
+export const CustomReceipt = (): React.ReactElement => {
   const { t } = useTranslation();
-  const { layoutSets, existingCustomReceiptLayoutSetId, deleteLayoutSet, mutateLayoutSet } =
-    useBpmnApiContext();
+  const {
+    layoutSets,
+    availableDataModelIds,
+    existingCustomReceiptLayoutSetId,
+    deleteLayoutSet,
+    mutateLayoutSet,
+  } = useBpmnApiContext();
 
   const existingDatamodelId: string = getExistingDatamodelIdFromLayoutsets(
     layoutSets,
@@ -35,42 +38,45 @@ export const CustomReceipt = ({ onClickEditButton }: CustomReceiptProps): React.
     });
   };
 
+  const options = existingDatamodelId
+    ? [...availableDataModelIds, existingDatamodelId]
+    : availableDataModelIds;
+
   return (
     <div className={classes.wrapper}>
-      <StudioToggleableTextfield
-        // customValidation={validateTaskId}
-        inputProps={{
-          icon: <KeyVerticalIcon />,
-          label: t('process_editor.configuration_panel_custom_receipt_textfield_label'),
-          value: existingCustomReceiptLayoutSetId,
-          onBlur: handleEditLayoutSetId,
-          size: 'small',
-        }}
-        viewProps={{
-          children: (
-            <Paragraph size='small' className={classes.toggleableButtonText}>
-              <strong>
-                {t('process_editor.configuration_panel_custom_receipt_layoutset_name')}
-              </strong>
-              {existingCustomReceiptLayoutSetId}
-            </Paragraph>
-          ),
-          value: existingCustomReceiptLayoutSetId,
-          variant: 'tertiary',
-          'aria-label': t('process_editor.configuration_panel_custom_receipt_textfield_label'),
-        }}
-      />
-      <span className={classes.customReceiptField}>
-        <LinkIcon className={classes.icon} />
-        <Paragraph size='small'>
-          <strong>{t('process_editor.configuration_panel_custom_receipt_datamodel_id')}</strong>
-          {existingDatamodelId}
-        </Paragraph>
-      </span>
+      <div className={classes.inputfields}>
+        <StudioToggleableTextfield
+          // customValidation={validateTaskId}
+          inputProps={{
+            icon: <KeyVerticalIcon />,
+            label: t('process_editor.configuration_panel_custom_receipt_textfield_label'),
+            value: existingCustomReceiptLayoutSetId,
+            onBlur: handleEditLayoutSetId,
+            size: 'small',
+            style: { width: '100% ' },
+          }}
+          viewProps={{
+            children: (
+              <Paragraph size='small' className={classes.toggleableButtonText}>
+                <strong>
+                  {t('process_editor.configuration_panel_custom_receipt_layoutset_name')}
+                </strong>
+                {existingCustomReceiptLayoutSetId}
+              </Paragraph>
+            ),
+            value: existingCustomReceiptLayoutSetId,
+            variant: 'tertiary',
+            'aria-label': t('process_editor.configuration_panel_custom_receipt_textfield_label'),
+          }}
+        />
+        <EditDataType
+          connectedTaskId={PROTECTED_TASK_NAME_CUSTOM_RECEIPT}
+          datamodelIds={options}
+          existingDataTypeForTask={existingDatamodelId}
+          hideSelectDeleteButton
+        />
+      </div>
       <div className={classes.buttonWrapper}>
-        {/*<StudioButton size='small' onClick={onClickEditButton}>
-          {t('process_editor.configuration_panel_custom_receipt_edit_button')}
-        </StudioButton>*/}
         <StudioButton
           size='small'
           color='danger'

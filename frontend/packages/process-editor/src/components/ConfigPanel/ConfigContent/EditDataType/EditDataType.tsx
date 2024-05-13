@@ -1,27 +1,26 @@
-import React, { useEffect, useState } from 'react';
-import { useBpmnContext } from '../../../../contexts/BpmnContext';
-import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
+import React from 'react';
 import { StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { LinkIcon } from '@studio/icons';
-import { SelectDataType } from './SelectDataType';
+import { SelectDataType } from '../../SelectDataType';
 import classes from './EditDataType.module.css';
+import { useDatamodelSelectVisibility } from '../../../../hooks/useDatamodelSelectVisibility';
 
-export const EditDataType = () => {
+type EditDataTypeProps = {
+  datamodelIds: string[];
+  connectedTaskId: string;
+  existingDataTypeForTask: string | undefined;
+  hideSelectDeleteButton?: boolean;
+};
+
+export const EditDataType = ({
+  datamodelIds,
+  connectedTaskId,
+  existingDataTypeForTask,
+  hideSelectDeleteButton = false,
+}: EditDataTypeProps) => {
   const { t } = useTranslation();
-  const { availableDataModelIds, layoutSets } = useBpmnApiContext();
-  const { bpmnDetails } = useBpmnContext();
-  const [dataModelSelectVisible, setDataModelSelectVisible] = useState(false);
-
-  useEffect(() => {
-    setDataModelSelectVisible(false);
-  }, [bpmnDetails]);
-
-  const layoutSet = layoutSets?.sets.find((set) => set.tasks.includes(bpmnDetails.id));
-  const existingDataTypeForTask = layoutSet?.dataType;
-  const dataModelIds = availableDataModelIds
-    ? [...availableDataModelIds, ...(existingDataTypeForTask ? [existingDataTypeForTask] : [])]
-    : [];
+  const { dataModelSelectVisible, setDataModelSelectVisible } = useDatamodelSelectVisibility();
 
   const definedValueWithLinkIcon = (
     <span className={classes.definedValue}>
@@ -37,14 +36,14 @@ export const EditDataType = () => {
           property={t('process_editor.configuration_panel_set_datamodel_link')}
           size='small'
           icon={<LinkIcon />}
-          className={classes.datamodelUndefined}
         />
       ) : dataModelSelectVisible ? (
         <SelectDataType
-          dataModelIds={dataModelIds}
+          datamodelIds={datamodelIds}
           existingDataType={existingDataTypeForTask}
-          connectedTaskId={layoutSet.tasks[0]}
+          connectedTaskId={connectedTaskId}
           onClose={() => setDataModelSelectVisible(false)}
+          hideDeleteButton={hideSelectDeleteButton}
         />
       ) : (
         <StudioProperty.Button
