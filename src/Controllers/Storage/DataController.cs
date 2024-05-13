@@ -272,7 +272,11 @@ namespace Altinn.Platform.Storage.Controllers
             Stream theStream = streamAndDataElement.Stream;
             DataElement newData = streamAndDataElement.DataElement;
 
+#if LOCALTEST
+            newData.FileScanResult = dataTypeDefinition.EnableFileScan ? FileScanResult.Clean : FileScanResult.NotApplicable;
+#else
             newData.FileScanResult = dataTypeDefinition.EnableFileScan ? FileScanResult.Pending : FileScanResult.NotApplicable;
+#endif
 
             if (theStream == null)
             {
@@ -404,7 +408,11 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (blobSize > 0)
             {
+#if LOCALTEST
+                FileScanResult scanResult = dataTypeDefinition.EnableFileScan ? FileScanResult.Clean : FileScanResult.NotApplicable;
+#else
                 FileScanResult scanResult = dataTypeDefinition.EnableFileScan ? FileScanResult.Pending : FileScanResult.NotApplicable;
+#endif
 
                 updatedProperties.Add("/fileScanResult", scanResult);
 
