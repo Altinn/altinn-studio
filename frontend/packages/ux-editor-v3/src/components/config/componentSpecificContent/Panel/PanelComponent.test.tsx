@@ -15,9 +15,10 @@ import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLay
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
 import { app, org } from '@studio/testing/testids';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutMock';
 
 // Test data:
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 
 const component: FormComponent<ComponentTypeV3.Panel> = {
   id: '',

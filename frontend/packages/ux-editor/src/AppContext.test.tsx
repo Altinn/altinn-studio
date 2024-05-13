@@ -10,9 +10,10 @@ import { MemoryRouter } from 'react-router-dom';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useAppContext } from './hooks';
 import { app, org } from '@studio/testing/testids';
+import { layout1NameMock, layoutSet1NameMock } from './testing/layoutMock';
 
-const mockSelectedFormLayoutSetName = 'test-layout-set';
-const mockSelectedFormLayoutName = 'Side1';
+const mockSelectedFormLayoutSetName = layoutSet1NameMock;
+const mockSelectedFormLayoutName = layout1NameMock;
 
 const renderAppContext = (ChildComponent: React.ElementType) => {
   const queryClient = createQueryClientMock();

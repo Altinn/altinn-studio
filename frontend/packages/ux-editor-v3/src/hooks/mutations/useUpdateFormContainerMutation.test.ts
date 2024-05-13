@@ -11,6 +11,7 @@ import {
   externalLayoutsMock,
   layout1Mock,
   layout1NameMock,
+  layoutSet1NameMock,
 } from '../../testing/layoutMock';
 import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api';
@@ -19,8 +20,8 @@ import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const selectedLayoutName = 'Side1';
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutName = layout1NameMock;
+const selectedLayoutSet = layoutSet1NameMock;
 const maxCount = 2;
 const updatedContainer: FormContainer = {
   id: 'newId',

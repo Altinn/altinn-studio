@@ -11,7 +11,12 @@ import {
   renderWithMockStore,
 } from '../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
-import { container1IdMock, externalLayoutsMock, layoutMock } from '../../testing/layoutMock';
+import {
+  container1IdMock,
+  externalLayoutsMock,
+  layoutMock,
+  layoutSet1NameMock,
+} from '../../testing/layoutMock';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api';
 import type { ILayoutSettings } from 'app-shared/types/global';
@@ -22,7 +27,7 @@ import { app, org } from '@studio/testing/testids';
 const user = userEvent.setup();
 
 // Test data:
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 const accordionContainer: FormContainer = {
   id: 'accordionContainerId',
   itemType: 'CONTAINER',

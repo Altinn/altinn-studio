@@ -1,7 +1,7 @@
 import React from 'react';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
-import { layoutSetsMock } from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock, layoutSetsMock } from '@altinn/ux-editor/testing/layoutMock';
 import type { AppPreviewSubMenuProps } from './AppPreviewSubMenu';
 import { AppPreviewSubMenu } from './AppPreviewSubMenu';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
@@ -24,7 +24,7 @@ describe('AppPreviewSubMenu', () => {
   const props: AppPreviewSubMenuProps = {
     viewSize: 'desktop',
     setViewSize: jest.fn(),
-    selectedLayoutSet: 'test-layout-set',
+    selectedLayoutSet: layoutSet1NameMock,
     handleChangeLayoutSet: jest.fn(),
   };
 

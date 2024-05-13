@@ -8,10 +8,15 @@ import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { EditPageId } from './EditPageId';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { app, org } from '@studio/testing/testids';
+import {
+  layout1NameMock,
+  layout2NameMock,
+  layoutSet1NameMock,
+} from '@altinn/ux-editor/testing/layoutMock';
 
 // Test data
-const selectedLayout = 'layoutPageName';
-const layoutSetName = 'test-layout-set';
+const selectedLayout = layout2NameMock;
+const layoutSetName = layoutSet1NameMock;
 
 describe('EditPageId', () => {
   it('renders given page ID', () => {
@@ -70,7 +75,7 @@ describe('EditPageId', () => {
 
   it('renders error message if page ID exist in layout settings order', async () => {
     const user = userEvent.setup();
-    const existingPageName = formLayoutSettingsMock.pages.order[0];
+    const existingPageName = layout1NameMock;
     renderEditPageId();
     const notUniqueErrorMessage = screen.queryByText(textMock('ux_editor.pages_error_unique'));
     expect(notUniqueErrorMessage).not.toBeInTheDocument();

@@ -13,9 +13,14 @@ import {
 import { formDesignerMock } from '../../../../testing/stateMocks';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
 import { app, org } from '@studio/testing/testids';
+import {
+  layout1NameMock,
+  layout2NameMock,
+  layoutSet1NameMock,
+} from '@altinn/ux-editor-v3/testing/layoutMock';
 
 const mockPageName1: string = formDesignerMock.layout.selectedLayout;
-const mockSelectedLayoutSet = 'test-layout-set';
+const mockSelectedLayoutSet = layoutSet1NameMock;
 
 const mockSetSearchParams = jest.fn();
 const mockSearchParams = { layout: mockPageName1 };
@@ -167,7 +172,7 @@ describe('NavigationMenu', () => {
       org,
       app,
       mockSelectedLayoutSet,
-      { pages: { order: ['Side2', 'Side1'] }, receiptLayoutName: 'Kvittering' },
+      { pages: { order: [layout2NameMock, layout1NameMock] }, receiptLayoutName: 'Kvittering' },
     );
     expect(menuItemDown).not.toBeInTheDocument();
 
@@ -181,7 +186,7 @@ describe('NavigationMenu', () => {
       org,
       app,
       mockSelectedLayoutSet,
-      { pages: { order: ['Side1', 'Side2'] }, receiptLayoutName: 'Kvittering' },
+      { pages: { order: [layout1NameMock, layout2NameMock] }, receiptLayoutName: 'Kvittering' },
     );
   });
 });

@@ -12,6 +12,7 @@ import { FormItemContext } from '../../../../FormItemContext';
 import { formItemContextProviderMock } from '../../../../../testing/formItemContextMocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
+import { layout1NameMock, layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutMock';
 
 const mockHandleDiscard = jest.fn();
 
@@ -42,8 +43,8 @@ describe('FormItemTitle', () => {
     expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
       org,
       app,
-      'Side1',
-      'test-layout-set',
+      layout1NameMock,
+      layoutSet1NameMock,
       expect.objectContaining({
         data: {
           layout: [],

@@ -4,9 +4,10 @@ import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { waitFor } from '@testing-library/react';
 import { appContextMock } from '../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutMock';
 
 // Test data:
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 
 describe('useFormLayoutSettingsMutation', () => {
   it('Calls saveFormLayoutSettings with correct arguments and payload', async () => {

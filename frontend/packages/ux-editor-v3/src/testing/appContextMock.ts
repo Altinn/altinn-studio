@@ -1,5 +1,6 @@
 import type { AppContextProps } from '../AppContext';
 import type { RefObject } from 'react';
+import { layoutSet1NameMock } from './layoutMock';
 
 const previewIframeRefMock: RefObject<HTMLIFrameElement> = {
   current: null,
@@ -7,7 +8,7 @@ const previewIframeRefMock: RefObject<HTMLIFrameElement> = {
 
 export const appContextMock: AppContextProps = {
   previewIframeRef: previewIframeRefMock,
-  selectedLayoutSet: 'test-layout-set',
+  selectedLayoutSet: layoutSet1NameMock,
   setSelectedLayoutSet: (layoutSet: string) => {},
   removeSelectedLayoutSet: () => {},
 };

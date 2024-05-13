@@ -9,9 +9,10 @@ import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { ITextResource } from 'app-shared/types/global';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { app, org } from '@studio/testing/testids';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutMock';
 
 // Test data:
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 const displayName = ComponentTypeV3.TextArea;
 const language = 'nb';
 const textId = 'testid';

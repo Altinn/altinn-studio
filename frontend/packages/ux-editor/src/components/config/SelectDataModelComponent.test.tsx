@@ -9,6 +9,7 @@ import { getDataModelFieldsFilter } from '../../utils/datamodel';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutMock';
 
 const datamodelMetadataMock = [
   {
@@ -68,7 +69,7 @@ const render = async ({
   handleComponentChange = jest.fn(),
 } = {}) => {
   queryClientMock.setQueryData(
-    [QueryKey.DatamodelMetadata, org, app, 'test-layout-set'],
+    [QueryKey.DatamodelMetadata, org, app, layoutSet1NameMock],
     dataModelMetadata,
   );
   renderWithProviders(

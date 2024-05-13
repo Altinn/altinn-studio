@@ -4,13 +4,13 @@ import { renderHookWithProviders } from '../../testing/mocks';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import type { IInternalLayout } from '../../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { baseContainerIdMock } from '../../testing/layoutMock';
+import { baseContainerIdMock, layout1NameMock, layoutSet1NameMock } from '../../testing/layoutMock';
 import { appContextMock } from '../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const layoutName = 'layoutName';
-const selectedLayoutSet = 'test-layout-set';
+const layoutName = layout1NameMock;
+const selectedLayoutSet = layoutSet1NameMock;
 const componentId = 'component1';
 const componentType = ComponentType.TextArea;
 const baseContainerId = baseContainerIdMock;

@@ -11,11 +11,11 @@ import {
   renderHookWithProviders,
   renderWithProviders,
 } from '../../../testing/mocks';
-import { layout1NameMock } from '../../../testing/layoutMock';
+import { layout1NameMock, layoutSet1NameMock } from '../../../testing/layoutMock';
 import { app, org } from '@studio/testing/testids';
 
 const mockPageName1: string = layout1NameMock;
-const mockSelectedLayoutSet = 'test-layout-set';
+const mockSelectedLayoutSet = layoutSet1NameMock;
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),

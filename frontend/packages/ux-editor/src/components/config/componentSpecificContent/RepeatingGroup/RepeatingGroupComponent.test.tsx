@@ -9,7 +9,7 @@ import {
   container2IdMock,
   layout1NameMock,
   layoutMock,
-  layoutSetsMock,
+  layoutSet1NameMock,
 } from '../../../../testing/layoutMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -19,7 +19,7 @@ import type { ComponentType } from 'app-shared/types/ComponentType';
 import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const layoutSetName = layoutSetsMock.sets[0].id;
+const layoutSetName = layoutSet1NameMock;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };

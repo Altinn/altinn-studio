@@ -8,10 +8,10 @@ import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { IFormLayouts } from '../../../../types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { layout1NameMock, layoutMock, layoutSetsMock } from '../../../../testing/layoutMock';
+import { layout1NameMock, layoutMock, layoutSet1NameMock } from '../../../../testing/layoutMock';
 import { app, org } from '@studio/testing/testids';
 
-const layoutSetName = layoutSetsMock.sets[0].id;
+const layoutSetName = layoutSet1NameMock;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };

@@ -1,13 +1,18 @@
 import { useFormLayout } from './';
 import { renderHookWithProviders } from '../testing/mocks';
 import { useFormLayoutsQuery } from './queries/useFormLayoutsQuery';
-import { externalLayoutsMock, layoutMock } from '../testing/layoutMock';
+import {
+  externalLayoutsMock,
+  layout1NameMock,
+  layoutMock,
+  layoutSet1NameMock,
+} from '../testing/layoutMock';
 import { waitFor } from '@testing-library/react';
 import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const selectedLayoutName = 'Side1';
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutName = layout1NameMock;
+const selectedLayoutSet = layoutSet1NameMock;
 
 const render = async () => {
   const getFormLayouts = jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock));

@@ -12,11 +12,11 @@ import {
   renderHookWithMockStore,
   renderWithMockStore,
 } from '../../../testing/mocks';
-import { layout2NameMock } from '../../../testing/layoutMock';
+import { layout2NameMock, layoutSet1NameMock } from '../../../testing/layoutMock';
 import { app, org } from '@studio/testing/testids';
 
 const mockPageName1: string = formDesignerMock.layout.selectedLayout;
-const mockSelectedLayoutSet = 'test-layout-set';
+const mockSelectedLayoutSet = layoutSet1NameMock;
 const mockPageName2 = layout2NameMock;
 
 const mockSetSearchParams = jest.fn();

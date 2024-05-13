@@ -10,6 +10,7 @@ import { textMock } from '../../../../testing/mocks/i18nMock';
 import { useWidgetsQuery } from '../hooks/queries/useWidgetsQuery';
 import ruleHandlerMock from '../testing/ruleHandlerMock';
 import { app, org } from '@studio/testing/testids';
+import { layoutSet1NameMock } from '../testing/layoutMock';
 
 const render = () => {
   const queries = {
@@ -21,7 +22,7 @@ const render = () => {
   };
   const props = {
     selectedLayout: 'test-layout',
-    selectedLayoutSet: 'test-layout-set',
+    selectedLayoutSet: layoutSet1NameMock,
   };
   return renderWithMockStore({}, queries)(<FormDesigner {...props} />);
 };

@@ -26,9 +26,10 @@ import ruleHandlerMock, {
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { app, org } from '@studio/testing/testids';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutMock';
 
 // Test data:
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 
 const getRuleModel = jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock));
 

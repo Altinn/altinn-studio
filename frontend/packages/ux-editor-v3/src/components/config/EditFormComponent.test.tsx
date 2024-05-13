@@ -9,6 +9,7 @@ import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 import type { DatamodelMetadataResponse } from 'app-shared/types/api';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutMock';
 
 const user = userEvent.setup();
 
@@ -224,7 +225,7 @@ const waitForData = async () => {
   const dataModelMetadataResult = renderHookWithMockStore(
     {},
     { getDatamodelMetadata },
-  )(() => useDatamodelMetadataQuery('test-org', 'test-app', 'test-layout-set')).renderHookResult
+  )(() => useDatamodelMetadataQuery('test-org', 'test-app', layoutSet1NameMock)).renderHookResult
     .result;
   await waitFor(() => expect(dataModelMetadataResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));

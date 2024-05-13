@@ -11,11 +11,15 @@ import {
   renderWithProviders,
 } from '../../../../testing/mocks';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
-import { layout1NameMock } from '../../../../testing/layoutMock';
+import {
+  layout1NameMock,
+  layout2NameMock,
+  layoutSet1NameMock,
+} from '../../../../testing/layoutMock';
 import { app, org } from '@studio/testing/testids';
 
 const mockPageName1: string = layout1NameMock;
-const mockSelectedLayoutSet = 'test-layout-set';
+const mockSelectedLayoutSet = layoutSet1NameMock;
 
 const mockSetSearchParams = jest.fn();
 const mockSearchParams = { layout: mockPageName1 };
@@ -142,7 +146,7 @@ describe('NavigationMenu', () => {
       org,
       app,
       mockSelectedLayoutSet,
-      { pages: { order: ['Side2', 'Side1'] }, receiptLayoutName: 'Kvittering' },
+      { pages: { order: [layout2NameMock, layout1NameMock] }, receiptLayoutName: 'Kvittering' },
     );
     expect(menuItemDown).not.toBeInTheDocument();
 
@@ -156,7 +160,7 @@ describe('NavigationMenu', () => {
       org,
       app,
       mockSelectedLayoutSet,
-      { pages: { order: ['Side1', 'Side2'] }, receiptLayoutName: 'Kvittering' },
+      { pages: { order: [layout1NameMock, layout2NameMock] }, receiptLayoutName: 'Kvittering' },
     );
   });
 });

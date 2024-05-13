@@ -11,6 +11,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { componentMocks } from '../../../../testing/componentMocks';
 import type { FormItem } from '../../../../types/FormItem';
 import { app, org } from '@studio/testing/testids';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutMock';
 
 const datamodelMetadata: DatamodelMetadataResponse = {
   elements: {
@@ -304,7 +305,7 @@ describe('EditDataModelBindings', () => {
     const dataBindingNameMock = 'element';
     const maxCountMock = 2;
     queryClientMock.setQueryData(
-      [QueryKey.DatamodelMetadata, org, app, 'test-layout-set'],
+      [QueryKey.DatamodelMetadata, org, app, layoutSet1NameMock],
       [{ dataBindingName: dataBindingNameMock, maxOccurs: maxCountMock }],
     );
     render({

@@ -10,6 +10,7 @@ import {
   component2Mock,
   layout1NameMock,
   layout2NameMock,
+  layoutSet1NameMock,
 } from '../../../testing/layoutMock';
 import type { IInternalLayout } from '../../../types/global';
 import {
@@ -25,7 +26,7 @@ import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { app, org } from '@studio/testing/testids';
 
-const mockSelectedLayoutSet = 'test-layout-set';
+const mockSelectedLayoutSet = layoutSet1NameMock;
 
 const mockPageName1 = layout1NameMock;
 const mockPageName2 = layout2NameMock;

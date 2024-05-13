@@ -8,11 +8,11 @@ import type { ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import type { IFormLayouts } from '../../../types/global';
-import { layout1NameMock, layoutMock, layoutSetsMock } from '../../../testing/layoutMock';
+import { layout1NameMock, layoutMock, layoutSet1NameMock } from '../../../testing/layoutMock';
 import { app, org } from '@studio/testing/testids';
 
 // Test data
-const layoutSet = layoutSetsMock.sets[0].id;
+const layoutSet = layoutSet1NameMock;
 const duplicatedLayout = 'duplicatedLayout';
 
 const defaultTexts: ITextResources = {

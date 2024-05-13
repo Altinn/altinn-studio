@@ -9,6 +9,7 @@ import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 import userEvent from '@testing-library/user-event';
 import type { DatamodelMetadataResponse } from 'app-shared/types/api';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutMock';
 
 const getDatamodelMetadata = () =>
   Promise.resolve<DatamodelMetadataResponse>({
@@ -58,7 +59,7 @@ const waitForData = async () => {
     {
       getDatamodelMetadata,
     },
-  )(() => useDatamodelMetadataQuery('test-org', 'test-app', 'test-layout-set')).renderHookResult
+  )(() => useDatamodelMetadataQuery('test-org', 'test-app', layoutSet1NameMock)).renderHookResult
     .result;
   await waitFor(() => expect(datamodelMetadatResult.current.isSuccess).toBe(true));
 };

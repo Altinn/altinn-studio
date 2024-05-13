@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import { useSelectedTaskId } from './';
-import { layoutSetsMock } from '../testing/layoutMock';
+import { layout1NameMock, layoutSet1NameMock } from '../testing/layoutMock';
 import { renderHook } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
@@ -14,10 +14,10 @@ import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
 import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const selectedLayoutSet = layoutSetsMock.sets[0].id;
+const selectedLayoutSet = layoutSet1NameMock;
 
 const mockSetSearchParams = jest.fn();
-const mockSearchParams = { layout: 'Side1' };
+const mockSearchParams = { layout: layout1NameMock };
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({

@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithMockStore } from '../../testing/mocks';
-import { layoutSetsMock } from '../../testing/layoutMock';
+import { layoutSet1NameMock, layoutSet2NameMock, layoutSetsMock } from '../../testing/layoutMock';
 import type { AppContextProps } from '../../AppContext';
 import { appStateMock } from '../../testing/stateMocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -15,8 +15,8 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 // Test data
-const layoutSetName1 = layoutSetsMock.sets[0].id;
-const layoutSetName2 = layoutSetsMock.sets[1].id;
+const layoutSetName1 = layoutSet1NameMock;
+const layoutSetName2 = layoutSet2NameMock;
 const { selectedLayoutSet } = appStateMock.formDesigner.layout;
 const setSelectedLayoutSetMock = jest.fn();
 
