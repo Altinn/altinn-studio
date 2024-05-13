@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Rows } from '../components';
 
-export const useTableSorting = (rows: Rows, config: Record<'enable', boolean>) => {
+export const useTableSorting = (rows: Rows, options: Record<'enable', boolean>) => {
   const [sortColumn, setSortColumn] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
   const [sortedRows, setSortedRows] = useState<Rows>(rows);
@@ -34,7 +34,7 @@ export const useTableSorting = (rows: Rows, config: Record<'enable', boolean>) =
     }
   }, [sortColumn, sortDirection, rows]);
 
-  if (!config.enable) {
+  if (!options.enable) {
     return {
       sortedRows: undefined,
       handleSorting: undefined,

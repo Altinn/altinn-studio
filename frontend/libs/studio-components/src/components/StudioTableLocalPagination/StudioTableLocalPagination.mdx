@@ -1,15 +1,21 @@
 import { Canvas, Meta } from '@storybook/blocks';
 import { Heading, Paragraph } from '@digdir/design-system-react';
 import * as StudioTableLocalPaginationStories from './StudioTableLocalPagination.stories';
-import { propInfoColumns, propInfoRowsLocalPagination } from "../StudioTableRemotePagination/mockData"
-import {StudioTableLocalPagination} from "./StudioTableLocalPagination";
+import {
+  propInfoColumns,
+  propInfoRowsLocalPagination,
+} from '../StudioTableRemotePagination/mockData';
+import { StudioTableLocalPagination } from './StudioTableLocalPagination';
 
 <Meta of={StudioTableLocalPaginationStories} />
 
 <Heading level={1} size='small'>
   StudioTableLocalPagination
 </Heading>
-<Paragraph>The StudioTableLocalPagination component handles pagination internally, eliminating the need for manual control. It seamlessly manages pagination logic for you.</Paragraph>
+<Paragraph>
+  The StudioTableLocalPagination component handles pagination internally, eliminating the need for
+  manual control. It seamlessly manages pagination logic for you.
+</Paragraph>
 
 <Canvas of={StudioTableLocalPaginationStories.Preview} />
 

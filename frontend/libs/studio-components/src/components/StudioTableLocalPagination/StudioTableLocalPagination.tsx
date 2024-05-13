@@ -36,27 +36,17 @@ export const StudioTableLocalPagination = forwardRef<
     const [rowsToRender, setRowsToRender] = useState<Rows>(initialRowsToRender);
 
     useEffect(() => {
-      setRowsToRender(getRowsToRender(currentPage, pageSize, sortedRows || rows));
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sortedRows]);
+      const newRowsToRender = getRowsToRender(currentPage, pageSize, sortedRows || rows);
 
-    const handlePageChange = (newPage: number) => {
-      setCurrentPage(newPage);
-      setRowsToRender(getRowsToRender(newPage, pageSize, sortedRows || rows));
-    };
-
-    const handlePageSizeChange = (newPageSize: number) => {
-      setPageSize(newPageSize);
-
-      const updatedRowsToRender = getRowsToRender(currentPage, newPageSize, sortedRows || rows);
-      if (!updatedRowsToRender.length) {
-        // If the new page size results in an empty page, reset to the first page
-        setRowsToRender(getRowsToRender(1, newPageSize, sortedRows || rows));
+      const outOfRange = !newRowsToRender.length && currentPage > 1;
+      if (outOfRange) {
         setCurrentPage(1);
-      } else {
-        setRowsToRender(updatedRowsToRender);
+        setRowsToRender(getRowsToRender(1, pageSize, sortedRows || rows));
+        return;
       }
-    };
+
+      setRowsToRender(newRowsToRender);
+    }, [sortedRows, currentPage, pageSize]);
 
     const totalPages = Math.ceil(rows.length / pageSize);
 
@@ -64,8 +54,8 @@ export const StudioTableLocalPagination = forwardRef<
       ...pagination,
       currentPage,
       totalPages,
-      onPageChange: handlePageChange,
-      onPageSizeChange: handlePageSizeChange,
+      onPageChange: setCurrentPage,
+      onPageSizeChange: setPageSize,
     };
 
     return (
