@@ -17,10 +17,6 @@ export const ConfigEndEvent = () => {
           text: t('process_editor.configuration_panel_end_event'),
           level: 2,
         }}
-        helpText={{
-          text: t('process_editor.configuration_panel_header_help_text_custom_receipt'),
-          title: t('process_editor.configuration_panel_header_help_text_title'),
-        }}
       />
       <Accordion color='subtle'>
         <Accordion.Item>

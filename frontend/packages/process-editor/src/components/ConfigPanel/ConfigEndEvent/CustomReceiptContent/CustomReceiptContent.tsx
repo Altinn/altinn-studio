@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StudioButton } from '@studio/components';
+import classes from './CustomReceiptContent.module.css';
+import { StudioButton, StudioSpinner } from '@studio/components';
 import { PlusCircleIcon } from '@studio/icons';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { CustomReceipt } from './CustomReceipt';
@@ -8,13 +9,21 @@ import { useTranslation } from 'react-i18next';
 
 export const CustomReceiptContent = (): React.ReactElement => {
   const { t } = useTranslation();
-  const { existingCustomReceiptLayoutSetId } = useBpmnApiContext();
+  const { existingCustomReceiptLayoutSetId, pendingApiOperations } = useBpmnApiContext();
 
   const [showCreateCustomReceiptFields, setShowCreateCustomReceiptFields] = useState(false);
 
   const openCustomReceiptFields = () => setShowCreateCustomReceiptFields(true);
   const closeCustomReceiptFields = () => setShowCreateCustomReceiptFields(false);
 
+  if (pendingApiOperations) {
+    return (
+      <StudioSpinner
+        spinnerTitle={t('process_editor.configuration_panel_custom_receipt_spinner_title')}
+        className={classes.spinner}
+      />
+    );
+  }
   if (!existingCustomReceiptLayoutSetId && !showCreateCustomReceiptFields) {
     return (
       <StudioButton
