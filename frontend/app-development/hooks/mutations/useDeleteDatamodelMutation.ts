@@ -32,6 +32,9 @@ export const useDeleteDatamodelMutation = () => {
       queryClient.removeQueries({
         queryKey: [QueryKey.JsonSchema, org, app, xsdPath],
       });
+      queryClient.removeQueries({
+        queryKey: [QueryKey.AppMetadataModelIds, org, app, xsdPath],
+      });
     },
   });
 };

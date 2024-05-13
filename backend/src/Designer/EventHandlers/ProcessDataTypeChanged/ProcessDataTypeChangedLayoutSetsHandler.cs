@@ -41,7 +41,7 @@ public class ProcessDataTypeChangedLayoutSetsHandler : INotificationHandler<Proc
                 var layoutSets = await repository.GetLayoutSetsFile(cancellationToken);
                 if (TryChangeDataType(layoutSets, notification.NewDataType, notification.ConnectedTaskId))
                 {
-                    await repository.SaveLayoutSetsFile(layoutSets);
+                    await repository.SaveLayoutSets(layoutSets);
                 }
             });
     }
