@@ -1,4 +1,4 @@
-import { typedLocalStorage } from 'app-shared/utils/webStorage';
+import { typedLocalStorage, typedSessionStorage } from 'app-shared/utils/webStorage';
 import {
   addFeatureFlagToLocalStorage,
   removeFeatureFlagFromLocalStorage,
@@ -45,6 +45,22 @@ describe('featureToggle url', () => {
   it('should return false if feature is not included in the url', () => {
     window.history.pushState({}, 'PageUrl', '/');
     expect(shouldDisplayFeature('shouldOverrideAppLibCheck')).toBe(false);
+  });
+
+  it('should persist features in sessionStorage when persistFeatureFlag is set in url', () => {
+    window.history.pushState(
+      {},
+      'PageUrl',
+      '/?featureFlags=customizeEndEvent,shouldOverrideAppLibCheck&persistFeatureFlag=true',
+    );
+    expect(shouldDisplayFeature('componentConfigBeta')).toBe(false);
+    expect(shouldDisplayFeature('shouldOverrideAppLibCheck')).toBe(true);
+    expect(shouldDisplayFeature('customizeEndEvent')).toBe(true);
+    expect(typedSessionStorage.getItem<string[]>('featureFlags')).toEqual([
+      'shouldOverrideAppLibCheck',
+      'customizeEndEvent',
+    ]);
+    expect(typedLocalStorage.getItem<string[]>('featureFlags')).toBeUndefined();
   });
 });
 
