@@ -4,10 +4,7 @@ import { Documentation } from './Documentation';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-
-// Test data
-const org = 'my-org';
-const app = 'my-app';
+import { app, org } from '@studio/testing/testids';
 
 describe('Documentation', () => {
   it('renders component', async () => {

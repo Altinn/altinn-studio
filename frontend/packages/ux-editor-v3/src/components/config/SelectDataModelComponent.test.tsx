@@ -10,6 +10,7 @@ import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetad
 import userEvent from '@testing-library/user-event';
 import type { DatamodelMetadataResponse } from 'app-shared/types/api';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutMock';
+import { app, org } from '@studio/testing/testids';
 
 const getDatamodelMetadata = () =>
   Promise.resolve<DatamodelMetadataResponse>({
@@ -59,8 +60,7 @@ const waitForData = async () => {
     {
       getDatamodelMetadata,
     },
-  )(() => useDatamodelMetadataQuery('test-org', 'test-app', layoutSet1NameMock)).renderHookResult
-    .result;
+  )(() => useDatamodelMetadataQuery(org, app, layoutSet1NameMock)).renderHookResult.result;
   await waitFor(() => expect(datamodelMetadatResult.current.isSuccess).toBe(true));
 };
 

@@ -8,6 +8,7 @@ import { RepositoryType } from 'app-shared/types/global';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { MemoryRouter } from 'react-router-dom';
 import type { AltinnButtonActionItem } from './types';
+import { app, org } from '@studio/testing/testids';
 
 const mockTo: string = '/test';
 const mockButtonTitle: string = 'title';
@@ -107,8 +108,8 @@ const render = (props: Partial<AltinnHeaderProps> = {}) => {
     menuItems: [],
     showSubMenu: true,
     subMenuContent: null,
-    app: 'test-app',
-    org: 'test-org',
+    app,
+    org,
     user: {
       avatar_url: '',
       email: 'test@email.com',
@@ -124,11 +125,11 @@ const render = (props: Partial<AltinnHeaderProps> = {}) => {
       html_url: 'html_url',
       id: 1,
       is_cloned_to_local: false,
-      name: 'test-app',
+      name: app,
       owner: {
         avatar_url: 'avatar_url',
         full_name: 'Test Org',
-        login: 'test-org',
+        login: org,
         email: 'test-email',
         id: 1,
         userType: 1,

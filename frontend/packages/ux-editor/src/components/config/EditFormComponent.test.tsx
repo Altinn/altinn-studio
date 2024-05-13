@@ -10,6 +10,7 @@ import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetad
 import type { DatamodelMetadataResponse } from 'app-shared/types/api';
 import { componentMocks } from '../../testing/componentMocks';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
 const srcValueLabel = 'Source';
@@ -99,7 +100,7 @@ const waitForData = async () => {
   const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
   const dataModelMetadataResult = renderHookWithProviders(
-    () => useDatamodelMetadataQuery('test-org', 'test-app', layoutSet1NameMock),
+    () => useDatamodelMetadataQuery(org, app, layoutSet1NameMock),
     { queries: { getDatamodelMetadata } },
   ).result;
   await waitFor(() => expect(dataModelMetadataResult.current.isSuccess).toBe(true));
