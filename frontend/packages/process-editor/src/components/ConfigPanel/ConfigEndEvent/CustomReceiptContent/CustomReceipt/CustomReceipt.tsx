@@ -42,11 +42,19 @@ export const CustomReceipt = (): React.ReactElement => {
     ? [...availableDataModelIds, existingDatamodelId]
     : availableDataModelIds;
 
+  const handleValidation = (value: string): string => {
+    console.log('VALUE', value);
+    if (value.length === 0) {
+      return t('process_editor.configuration_panel_custom_receipt_edit_layoutset_error');
+    }
+    return '';
+  };
+
   return (
     <div className={classes.wrapper}>
       <div className={classes.inputfields}>
         <StudioToggleableTextfield
-          // customValidation={validateTaskId}
+          customValidation={handleValidation}
           inputProps={{
             icon: <KeyVerticalIcon />,
             label: t('process_editor.configuration_panel_custom_receipt_textfield_label'),
