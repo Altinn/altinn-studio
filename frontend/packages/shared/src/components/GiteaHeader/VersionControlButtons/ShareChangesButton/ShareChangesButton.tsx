@@ -38,7 +38,7 @@ export const ShareChangesButton = ({
     <StudioButton
       className={classes.button}
       color='inverted'
-      disabled={!hasPushRight}
+      disabled={!hasPushRight || hasMergeConflict}
       icon={hasMergeConflict ? <XMarkIcon /> : <UploadIcon />}
       id='share_changes_button'
       onClick={shareChangesHandler}
@@ -46,7 +46,7 @@ export const ShareChangesButton = ({
       variant='tertiary'
     >
       {renderCorrectText()}
-      {displayNotification && <Notification numChanges={1} />}
+      {displayNotification && !hasMergeConflict && <Notification numChanges={1} />}
     </StudioButton>
   );
 };

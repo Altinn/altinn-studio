@@ -80,7 +80,7 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
     if (result.repositoryStatus === 'Ok') {
       // force refetch  files
       await queryClient.invalidateQueries(); // Todo: This invalidates ALL queries. Consider providing a list of relevant queries only.
-      // if pull was successfull, show app is updated message
+      // if pull was successful, show app is updated message
       setModalState({
         ...initialModalState,
         header: t('sync_header.service_updated_to_latest'),
@@ -171,7 +171,7 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
     } catch (error) {
       console.error(error);
       const { data: result } = await fetchPullData();
-      if (result.repositoryStatus === 'CheckoutConflict') {
+      if (result.hasMergeConflict) {
         // if pull resulted in a mergeconflict, show mergeconflict message
         setModalState({
           ...initialModalState,
@@ -208,13 +208,16 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
     }
   };
 
-  const forceRepoStatusCheck = () =>
+  const forceRepoStatusCheck = () => {
+    handleSyncModalClose();
     window.postMessage('forceRepoStatusCheck', window.location.href);
+  };
 
   return (
     <div className={classes.headerStyling} data-testid={testids.versionControlHeader}>
       <FetchChangesButton
         fetchChanges={fetchChanges}
+        hasMergeConflict={hasMergeConflict}
         displayNotification={repoStatus?.behindBy > 0 ?? false}
         numChanges={repoStatus?.behindBy ?? 0}
       />

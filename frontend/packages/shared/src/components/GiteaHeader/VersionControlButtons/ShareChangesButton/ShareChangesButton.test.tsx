@@ -19,6 +19,46 @@ describe('shareChanges', () => {
 
     expect(handleShareChanges).toHaveBeenCalled();
   });
+
+  it('should render number of changes when displayNotification is true and there are no merge conflicts', () => {
+    render({ displayNotification: true });
+
+    const shareButton = screen.getByRole('button', {
+      name: textMock('sync_header.changes_to_share'),
+    });
+
+    expect(shareButton).toHaveTextContent(textMock('sync_header.changes_to_share') + 1);
+  });
+
+  it('should not render number of changes when displayNotification is true and there are merge conflicts', () => {
+    render({ displayNotification: true, hasMergeConflict: true });
+
+    const shareButton = screen.getByRole('button', {
+      name: textMock('sync_header.merge_conflict'),
+    });
+
+    expect(shareButton).not.toHaveTextContent(textMock('sync_header.merge_conflict') + 1);
+  });
+
+  it('should render merge conflict button as disabled when there are merge conflicts', () => {
+    render({ displayNotification: true, hasMergeConflict: true });
+
+    const shareButton = screen.getByRole('button', {
+      name: textMock('sync_header.merge_conflict'),
+    });
+
+    expect(shareButton).toHaveAttribute('disabled');
+  });
+
+  it('should render share changes button as disabled when hasPushRight is false', () => {
+    render({ hasPushRight: false });
+
+    const shareButton = screen.getByRole('button', {
+      name: textMock('sync_header.changes_to_share'),
+    });
+
+    expect(shareButton).toHaveAttribute('disabled');
+  });
 });
 
 const render = (props: Partial<IShareChangesButtonProps> = {}) => {
