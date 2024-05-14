@@ -659,6 +659,9 @@ namespace Altinn.Studio.Designer.Controllers
             string modelPath = $"/App/models/{datamodel}.schema.json";
             if (datamodel.StartsWith(PreviewService.MockDataModelIdPrefix))
             {
+                // If app-frontend tries to fetch a datamodel for a mockDataModelId we will return the first
+                // datamodel in appMetadata since our mocked preview will not use this datamodel anyway, but
+                // app-frontend expects an actual datamodel as a response
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
                 ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
                 string existingDataTypeId = applicationMetadata.DataTypes.First(dataType => dataType.AppLogic?.ClassRef is not null).Id;
