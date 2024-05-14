@@ -19,7 +19,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_Text_Ok()
         {
-            string dataPathWithData = $"{Org}/{App}/api/v1/texts/nb";
+            string dataPathWithData = $"{Org}/{AppV3}/api/v1/texts/nb";
 
             using HttpResponseMessage response = await HttpClient.GetAsync(dataPathWithData);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

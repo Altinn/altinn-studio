@@ -23,11 +23,11 @@ namespace Designer.Tests.Controllers.PreviewController
         public async Task Post_Instance_Ok()
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            await CopyRepositoryForTest(Org, App, Developer, targetRepository);
+            await CopyRepositoryForTest(Org, AppV3, Developer, targetRepository);
 
             string dataPathWithData = $"{Org}/{targetRepository}/instances?instanceOwnerPartyId=51001";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSet=");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV3}&selectedLayoutSet=");
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -40,14 +40,14 @@ namespace Designer.Tests.Controllers.PreviewController
         }
 
         [Fact]
-        public async Task Post_InstanceForStatefulApp_Ok()
+        public async Task Post_InstanceForV4App_Ok()
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            await CopyRepositoryForTest(Org, StatefulApp, Developer, targetRepository);
+            await CopyRepositoryForTest(Org, AppV4, Developer, targetRepository);
 
             string dataPathWithData = $"{Org}/{targetRepository}/instances?instanceOwnerPartyId=51001";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSet={LayoutSetName}");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet={LayoutSetName}");
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -63,11 +63,11 @@ namespace Designer.Tests.Controllers.PreviewController
         public async Task Post_InstanceForCustomReceipt_Ok()
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            await CopyRepositoryForTest(Org, StatefulApp, Developer, targetRepository);
+            await CopyRepositoryForTest(Org, AppV4, Developer, targetRepository);
 
             string dataPathWithData = $"{Org}/{targetRepository}/instances?instanceOwnerPartyId=51001";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSet={CustomReceiptLayoutSetName2}");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet={CustomReceiptLayoutSetName2}");
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

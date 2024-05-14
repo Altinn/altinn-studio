@@ -83,7 +83,7 @@ export const envConfigPath = () => `${basePath}/environments`;
 export const abortmergePath = (org, app) => `${basePath}/repos/repo/${org}/${app}/abort-merge`;
 export const branchStatusPath = (org, app, branch) => `${basePath}/repos/repo/${org}/${app}/branches/branch?${s({ branch })}`; // Get
 export const cloneAppPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/clone`; // Get
-export const copyAppPath = (org, sourceRepository, targetRepository) => `${basePath}/repos/repo/${org}/copy-app?${s({ sourceRepository, targetRepository })}`;
+export const copyAppPath = (org, sourceRepository, targetRepository, targetOrg) => `${basePath}/repos/repo/${org}/copy-app?${s({ sourceRepository, targetRepository, targetOrg })}`;
 export const createRepoPath = () => `${basePath}/repos/create-app`; // Post
 export const discardChangesPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/discard`; // Get
 export const discardFileChangesPath = (org, app, filename) => `${basePath}/repos/repo/${org}/${app}/discard/${filename}`; // Get
@@ -92,7 +92,6 @@ export const repoBranchesPath = (org, app) => `${basePath}/repos/repo/${org}/${a
 export const repoCommitPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/commit`; // Post
 export const repoCommitPushPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/commit-and-push`; // Post
 export const repoDownloadPath = (org, app, full) => `${basePath}/repos/repo/${org}/${app}/contents.zip?${s({ full })}`;
-export const repoInitialCommitPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/initial-commit`; // Get
 export const repoLatestCommitPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/latest-commit`; // Get
 export const repoLogPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/log`; // Get
 export const repoMetaPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/metadata`; // Get
@@ -151,3 +150,4 @@ export const processEditorPath = (org, app) => `${basePath}/${org}/${app}/proces
 export const processEditorWebSocketHub = () => '/sync-hub';
 export const processEditorPathPut = (org, app) => `${basePath}/${org}/${app}/process-modelling/process-definition-latest`;
 export const processEditorDataTypeChangePath = (org, app) => `${basePath}/${org}/${app}/process-modelling/data-type`;
+export const processEditorDataTypePath = (org, app, dataTypeId) => `${basePath}/${org}/${app}/process-modelling/data-type/${dataTypeId}`;

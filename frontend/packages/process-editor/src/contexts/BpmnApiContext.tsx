@@ -11,7 +11,9 @@ export type BpmnApiContextProps = {
   addLayoutSet: (data: { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig }) => void;
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
   mutateLayoutSet: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
-  mutateDataType: (dataTypeChange: DataTypeChange) => void;
+  mutateDataType: (dataTypeId: DataTypeChange) => void;
+  addDataTypeToAppMetadata: (data: { dataTypeId: string }) => void;
+  deleteDataTypeFromAppMetadata: (data: { dataTypeId: string }) => void;
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
 };
 
@@ -27,6 +29,8 @@ export type BpmnApiContextProviderProps = {
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
   mutateLayoutSet: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
   mutateDataType: (data: DataTypeChange) => void;
+  addDataTypeToAppMetadata: (data: { dataTypeId: string }) => void;
+  deleteDataTypeFromAppMetadata: (data: { dataTypeId: string }) => void;
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
 };
 export const BpmnApiContextProvider = ({
@@ -39,6 +43,8 @@ export const BpmnApiContextProvider = ({
   deleteLayoutSet,
   mutateLayoutSet,
   mutateDataType,
+  addDataTypeToAppMetadata,
+  deleteDataTypeFromAppMetadata,
   saveBpmn,
 }: Partial<BpmnApiContextProviderProps>) => {
   return (
@@ -52,6 +58,8 @@ export const BpmnApiContextProvider = ({
         deleteLayoutSet,
         mutateLayoutSet,
         mutateDataType,
+        addDataTypeToAppMetadata,
+        deleteDataTypeFromAppMetadata,
         saveBpmn,
       }}
     >
