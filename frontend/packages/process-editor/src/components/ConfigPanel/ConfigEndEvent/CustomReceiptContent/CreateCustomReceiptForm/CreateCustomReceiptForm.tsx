@@ -40,10 +40,13 @@ export const CreateCustomReceiptForm = ({
       datamodelId: formData.get('customReceiptDatamodel') as string,
     };
     const { layoutSetId, datamodelId } = customReceiptForm;
+    console.log('1 - ERRORRRRRRR', customReceiptForm);
 
     if (layoutSetId && datamodelId) {
       saveCustomReceipt(customReceiptForm);
     }
+
+    console.log('2- ERRORRRRRRR', customReceiptForm);
 
     const validationResult = handleValidateLayoutSetId(layoutSetId);
     setLayoutSetError(validationResult);
