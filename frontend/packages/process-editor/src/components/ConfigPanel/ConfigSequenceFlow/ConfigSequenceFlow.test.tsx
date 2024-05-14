@@ -1,0 +1,128 @@
+import React from 'react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { ConfigSequenceFlow } from './ConfigSequenceFlow';
+import { BpmnContext, type BpmnContextProps } from '@altinn/process-editor/contexts/BpmnContext';
+import { BpmnApiContextProvider } from '@altinn/process-editor/contexts/BpmnApiContext';
+import { BpmnConfigPanelFormContextProvider } from '@altinn/process-editor/contexts/BpmnConfigPanelContext';
+import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { mockBpmnDetails } from '../../../../test/mocks/bpmnDetailsMock';
+import { BpmnExpressionModeler } from '../../../utils/bpmn/BpmnExpressionModeler';
+
+jest.mock('../../../utils/bpmn/BpmnExpressionModeler');
+
+describe('ConfigSequenceFlow', () => {
+  it('should render title for sequence flow configuration', () => {
+    renderConfigSequenceFlow({
+      bpmnDetails: { ...mockBpmnDetails, element: {} },
+    });
+
+    expect(
+      screen.getByText(textMock('process_editor.sequence_flow_configuration_panel_title')),
+    ).toBeInTheDocument();
+  });
+
+  it('should hide add expression button', async () => {
+    const user = userEvent.setup();
+
+    renderConfigSequenceFlow({
+      bpmnDetails: { ...mockBpmnDetails, element: {} },
+    });
+
+    const addNewExpressionButton = screen.getByRole('button', {
+      name: textMock('process_editor.sequence_flow_configuration_add_new_rule'),
+    });
+
+    await user.click(addNewExpressionButton);
+    expect(addNewExpressionButton).not.toBeInTheDocument();
+  });
+
+  it('should display expression editor after add expression button is clicked', async () => {
+    const user = userEvent.setup();
+
+    renderConfigSequenceFlow({
+      bpmnDetails: { ...mockBpmnDetails, element: {} },
+    });
+
+    const addNewExpressionButton = screen.getByRole('button', {
+      name: textMock('process_editor.sequence_flow_configuration_add_new_rule'),
+    });
+
+    await user.click(addNewExpressionButton);
+
+    const simplifiedEditor = screen.getByRole('tab', {
+      name: textMock('expression.simplified'),
+    });
+    expect(simplifiedEditor).toBeInTheDocument();
+  });
+
+  it('should save the expression when the save button is clicked', async () => {
+    const user = userEvent.setup();
+    renderConfigSequenceFlow({
+      bpmnDetails: { ...mockBpmnDetails, element: {} },
+    });
+
+    const addNewExpressionButton = screen.getByRole('button', {
+      name: textMock('process_editor.sequence_flow_configuration_add_new_rule'),
+    });
+
+    await user.click(addNewExpressionButton);
+
+    const editButton = screen.getByRole('button', {
+      name: textMock('general.edit'),
+    });
+
+    await user.click(editButton);
+
+    const saveButton = screen.getByRole('button', { name: textMock('expression.saveAndClose') });
+
+    expect(saveButton).toBeInTheDocument();
+    await user.click(saveButton);
+  });
+
+  it('should delete the expression when the delete button is clicked', async () => {
+    window.confirm = jest.fn(() => true);
+
+    const updateElementPropertiesMock = jest.fn();
+    (BpmnExpressionModeler as jest.Mock).mockImplementation(() => ({
+      updateElementProperties: updateElementPropertiesMock,
+    }));
+
+    const user = userEvent.setup();
+
+    renderConfigSequenceFlow({
+      bpmnDetails: { ...mockBpmnDetails, element: {} },
+    });
+
+    const addNewExpressionButton = screen.getByRole('button', {
+      name: textMock('process_editor.sequence_flow_configuration_add_new_rule'),
+    });
+
+    await user.click(addNewExpressionButton);
+
+    const editButton = screen.getByRole('button', {
+      name: textMock('general.edit'),
+    });
+
+    await user.click(editButton);
+
+    const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
+
+    expect(deleteButton).toBeInTheDocument();
+    await user.click(deleteButton);
+
+    await waitFor(() => expect(updateElementPropertiesMock).toHaveBeenCalledTimes(1));
+  });
+});
+
+const renderConfigSequenceFlow = (rootContextProps: Partial<BpmnContextProps> = {}) => {
+  return render(
+    <BpmnContext.Provider value={{ ...rootContextProps }}>
+      <BpmnApiContextProvider>
+        <BpmnConfigPanelFormContextProvider>
+          <ConfigSequenceFlow />
+        </BpmnConfigPanelFormContextProvider>
+      </BpmnApiContextProvider>
+    </BpmnContext.Provider>,
+  );
+};
