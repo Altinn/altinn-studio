@@ -9,7 +9,7 @@ import { DataLookupFuncName } from '../../../../enums/DataLookupFuncName';
 
 export const findSubexpressionErrors = (
   subexpression: SimpleSubexpression,
-  dataLookupOptions: DataLookupOptions,
+  dataLookupOptions: Partial<DataLookupOptions>,
 ): ExpressionErrorKey[] => {
   const errors: ExpressionErrorKey[] = [];
   if (hasNumberOperator(subexpression) && hasBooleanValue(subexpression)) {
@@ -38,7 +38,7 @@ const hasBooleanValue = ({ firstOperand, secondOperand }: SimpleSubexpression): 
 
 const isOperandValid = (
   value: SimpleSubexpressionValue,
-  dataLookupOptions: DataLookupOptions,
+  dataLookupOptions: Partial<DataLookupOptions>,
 ): boolean => {
   switch (value.type) {
     case SimpleSubexpressionValueType.Datamodel:
@@ -56,5 +56,5 @@ const isDatamodelValueValid = (
 
 const isComponentValueValid = (
   value: SimpleSubexpressionValue<SimpleSubexpressionValueType.Component>,
-  dataLookupOptions: DataLookupOptions,
-): boolean => !!value.id && dataLookupOptions[DataLookupFuncName.Component].includes(value.id);
+  dataLookupOptions: Partial<DataLookupOptions>,
+): boolean => !!value.id && dataLookupOptions[DataLookupFuncName.Component]?.includes(value.id);
