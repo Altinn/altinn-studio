@@ -63,7 +63,6 @@ export const CustomReceipt = (): React.ReactElement => {
             value: existingCustomReceiptLayoutSetId,
             onBlur: handleEditLayoutSetId,
             size: 'small',
-            style: { width: '100% ' },
           }}
           viewProps={{
             children: (

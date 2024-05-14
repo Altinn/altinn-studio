@@ -17,10 +17,7 @@ export type BpmnApiContextProps = {
     options?: QueryOptions,
   ) => void;
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
-  mutateLayoutSet: (
-    data: { layoutSetIdToUpdate: string; newLayoutSetId: string },
-    options?: QueryOptions,
-  ) => void;
+  mutateLayoutSet: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
   mutateDataType: (dataTypeChange: DataTypeChange, options?: QueryOptions) => void;
   addDataTypeToAppMetadata: (data: { dataTypeId: string }) => void;
   deleteDataTypeFromAppMetadata: (data: { dataTypeId: string }) => void;
