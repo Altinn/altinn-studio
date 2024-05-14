@@ -13,7 +13,7 @@ export const combineComponents = (
 ): ComponentWithChildren => {
   return components.reduce(
     (AccumulatedComponents, CurrentComponent) => {
-      return ({ children }: { children: ReactNode }): JSX.Element => {
+      return ({ children }: { children: ReactNode }): React.ReactElement => {
         return (
           <AccumulatedComponents>
             <CurrentComponent>{children}</CurrentComponent>
