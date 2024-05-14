@@ -6,7 +6,7 @@ import { SelectDataType } from './SelectDataType';
 import classes from './EditDataType.module.css';
 import { useDatamodelSelectVisibility } from '../../../hooks/useDatamodelSelectVisibility';
 
-type EditDataTypeProps = {
+export type EditDataTypeProps = {
   datamodelIds: string[];
   connectedTaskId: string;
   existingDataTypeForTask: string | undefined;

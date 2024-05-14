@@ -768,6 +768,7 @@
   "process_editor.configuration_panel_custom_receipt_default_receipt_info": "Det er automatisk satt opp en standardkvittering i appen.",
   "process_editor.configuration_panel_custom_receipt_default_receipt_link": "Les mer om standardkvittering i dokumentasjonen",
   "process_editor.configuration_panel_custom_receipt_delete_button": "Slett kvitteringen din ",
+  "process_editor.configuration_panel_custom_receipt_delete_receipt": "Er du sikker på at du vil slette kvitteringen din?",
   "process_editor.configuration_panel_custom_receipt_edit_button": "Endre",
   "process_editor.configuration_panel_custom_receipt_heading": "Opprett din egen kvittering",
   "process_editor.configuration_panel_custom_receipt_info": "Hvis du heller vil lage din egen kvittering, kan du opprette den her. Kvitteringen du lager selv vil overstyre standardkvitteringen.",
