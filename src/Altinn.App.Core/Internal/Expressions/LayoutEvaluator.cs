@@ -77,7 +77,7 @@ public static class LayoutEvaluator
         {
             foreach (var index in Enumerable.Range(0, context.RowLength.Value).Reverse())
             {
-                var rowIndices = context.RowIndices?.Append(index).ToArray() ?? new[] { index };
+                var rowIndices = context.RowIndices?.Append(index).ToArray() ?? [index];
                 var indexedBinding = state.AddInidicies(repGroup.DataModelBindings["group"], rowIndices);
                 if (context.HiddenRows.Contains(index))
                 {

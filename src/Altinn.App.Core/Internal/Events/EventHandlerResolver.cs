@@ -23,7 +23,7 @@ namespace Altinn.App.Core.Internal.Events
 
             foreach (var handler in _eventHandlers)
             {
-                if (handler.EventType.ToLower() != eventType.ToLower())
+                if (!handler.EventType.Equals(eventType, StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }

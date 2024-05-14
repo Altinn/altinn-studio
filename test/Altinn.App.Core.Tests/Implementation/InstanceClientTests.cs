@@ -52,7 +52,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 Content = new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"),
             };
 
-            InitializeMocks(new HttpResponseMessage[] { httpResponseMessage }, new string[] { "complete" });
+            InitializeMocks([httpResponseMessage], ["complete"]);
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
@@ -81,7 +81,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 Content = new StringContent("Error message", Encoding.UTF8, "application/json"),
             };
 
-            InitializeMocks(new HttpResponseMessage[] { httpResponseMessage }, new string[] { "complete" });
+            InitializeMocks([httpResponseMessage], ["complete"]);
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
@@ -121,7 +121,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 Content = new StringContent("Error message", Encoding.UTF8, "application/json"),
             };
 
-            InitializeMocks(new HttpResponseMessage[] { httpResponseMessage }, new string[] { "read" });
+            InitializeMocks([httpResponseMessage], ["read"]);
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
@@ -163,7 +163,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 Content = new StringContent(JsonConvert.SerializeObject(expected), Encoding.UTF8, "application/json"),
             };
 
-            InitializeMocks(new HttpResponseMessage[] { httpResponseMessage }, new string[] { "read" });
+            InitializeMocks([httpResponseMessage], ["read"]);
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
@@ -201,7 +201,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 Content = new StringContent(JsonConvert.SerializeObject(expected), Encoding.UTF8, "application/json"),
             };
 
-            InitializeMocks(new HttpResponseMessage[] { httpResponseMessage }, new string[] { "substatus" });
+            InitializeMocks([httpResponseMessage], ["substatus"]);
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
@@ -236,7 +236,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 Content = new StringContent("Error message", Encoding.UTF8, "application/json"),
             };
 
-            InitializeMocks(new HttpResponseMessage[] { httpResponseMessage }, new string[] { "substatus" });
+            InitializeMocks([httpResponseMessage], ["substatus"]);
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
@@ -285,7 +285,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 Content = new StringContent(JsonConvert.SerializeObject(expected), Encoding.UTF8, "application/json"),
             };
 
-            InitializeMocks(new HttpResponseMessage[] { httpResponseMessage }, new string[] { "1337" });
+            InitializeMocks([httpResponseMessage], ["1337"]);
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
@@ -317,7 +317,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 Content = new StringContent("Error message", Encoding.UTF8, "application/json"),
             };
 
-            InitializeMocks(new HttpResponseMessage[] { httpResponseMessage }, new string[] { "1337" });
+            InitializeMocks([httpResponseMessage], ["1337"]);
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
@@ -359,7 +359,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 Content = new StringContent("Error message", Encoding.UTF8, "application/json"),
             };
 
-            InitializeMocks(new HttpResponseMessage[] { httpResponseMessage }, new string[] { "1337" });
+            InitializeMocks([httpResponseMessage], ["1337"]);
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
@@ -408,7 +408,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 Content = new StringContent(JsonConvert.SerializeObject(expected), Encoding.UTF8, "application/json"),
             };
 
-            InitializeMocks(new HttpResponseMessage[] { httpResponseMessage }, new string[] { "presentationtexts" });
+            InitializeMocks([httpResponseMessage], ["presentationtexts"]);
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
@@ -472,10 +472,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 ),
             };
 
-            InitializeMocks(
-                new HttpResponseMessage[] { httpResponseMessage1, httpResponseMessage2 },
-                new string[] { urlPart1, urlPart2 }
-            );
+            InitializeMocks([httpResponseMessage1, httpResponseMessage2], [urlPart1, urlPart2]);
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 

@@ -13,7 +13,6 @@ using Xunit;
 using Xunit.Abstractions;
 
 // ReSharper disable InconsistentNaming
-#pragma warning disable SA1300 // Inconsistent casing on property
 
 namespace Altinn.App.Core.Tests.Helpers;
 

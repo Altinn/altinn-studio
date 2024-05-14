@@ -5,12 +5,6 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<IsPackable>false</IsPackable>
-		<NoWarn>$(NoWarn);CS1591;CS0618;CS7022</NoWarn>
-		<!--
-			CS1591: Don't warn for missing XML doc
-			CS0618: This is a test project, so we usually continue testing [Obsolete] apis
-            CS7022: The entry point of the program is global code; ignoring 'Program.Main(string[])' entry point
-		-->
 	</PropertyGroup>
 
 	<ItemGroup>

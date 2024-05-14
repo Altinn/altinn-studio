@@ -68,7 +68,7 @@ public class PdfService : IPdfService
         // Avoid a costly call if the language is allready overriden by the user
         language = string.IsNullOrEmpty(language) ? await GetLanguage() : language;
 
-        var pdfContent = await GeneratePdfContent(instance, taskId, ct, language);
+        var pdfContent = await GeneratePdfContent(instance, taskId, language, ct);
 
         var appIdentifier = new AppIdentifier(instance);
 
@@ -84,14 +84,14 @@ public class PdfService : IPdfService
         // Avoid a costly call if the language is allready overriden by the user
         language = string.IsNullOrEmpty(language) ? await GetLanguage() : language;
 
-        return await GeneratePdfContent(instance, taskId, ct, language);
+        return await GeneratePdfContent(instance, taskId, language, ct);
     }
 
     private async Task<Stream> GeneratePdfContent(
         Instance instance,
         string taskId,
-        CancellationToken ct,
-        string language
+        string language,
+        CancellationToken ct
     )
     {
         var baseUrl = _generalSettings.FormattedExternalAppBaseUrl(new AppIdentifier(instance));

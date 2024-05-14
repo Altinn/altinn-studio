@@ -72,7 +72,7 @@ public sealed class ComponentContext
         get
         {
             var stack = new Stack<ComponentContext>(ChildContexts);
-            while (stack.Any())
+            while (stack.Count != 0)
             {
                 var node = stack.Pop();
                 yield return node;

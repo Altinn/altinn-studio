@@ -5,6 +5,10 @@
 
     <PropertyGroup>
         <LangVersion>latest</LangVersion>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <AnalysisMode>Minimum</AnalysisMode>
+        <Features>strict</Features>
+        <!-- <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors> -->
     </PropertyGroup>
 
     <ItemGroup>

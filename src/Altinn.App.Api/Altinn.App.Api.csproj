@@ -26,28 +26,9 @@
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="3.3.0" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(Configuration)'=='Debug'">
-     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-    <AdditionalFiles Include="..\..\stylecop.json">
-      <Link>stylecop.json</Link>
-    </AdditionalFiles>
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Altinn.App.Core\Altinn.App.Core.csproj" />
   </ItemGroup>
-
-  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <CodeAnalysisRuleSet>..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);1591</NoWarn>
-  </PropertyGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />

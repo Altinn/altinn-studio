@@ -27,10 +27,7 @@ namespace Altinn.App.Api.Infrastructure.Filters
             IOptionsMonitor<AppSettings> settings
         )
         {
-            if (antiforgery == null)
-            {
-                throw new ArgumentNullException(nameof(antiforgery));
-            }
+            ArgumentNullException.ThrowIfNull(antiforgery);
 
             _antiforgery = antiforgery;
             _settings = settings.CurrentValue;
@@ -64,10 +61,7 @@ namespace Altinn.App.Api.Infrastructure.Filters
         /// <returns>True if validation is needed.</returns>
         protected virtual bool ShouldValidate(AuthorizationFilterContext context)
         {
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
+            ArgumentNullException.ThrowIfNull(context);
 
             string method = context.HttpContext.Request.Method;
             if (

@@ -25,7 +25,7 @@ namespace Altinn.App.Core.Features.Options
         {
             foreach (var instanceAppOptionProvider in InstanceAppOptionsProviders)
             {
-                if (instanceAppOptionProvider.Id.ToLower() != optionsId.ToLower())
+                if (!instanceAppOptionProvider.Id.Equals(optionsId, StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }

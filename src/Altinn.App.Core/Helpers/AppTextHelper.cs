@@ -21,11 +21,11 @@ namespace Altinn.App.Core.Helpers
         )
         {
             string text = key;
-            if (serviceText != null && serviceText.ContainsKey(key))
+            if (serviceText != null && serviceText.TryGetValue(key, out var serviceTextMap))
             {
-                if (serviceText[key].ContainsKey(languageId))
+                if (serviceTextMap.TryGetValue(languageId, out var lookupText))
                 {
-                    text = serviceText[key][languageId];
+                    text = lookupText;
                 }
 
                 if (textParams != null && textParams.Count > 0)

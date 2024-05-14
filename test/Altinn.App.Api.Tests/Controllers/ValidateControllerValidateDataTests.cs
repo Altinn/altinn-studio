@@ -146,7 +146,7 @@ public class TestScenariosData : IEnumerable<object[]>
         List<object[]> testData = new List<object[]>();
         foreach (var d in _data)
         {
-            testData.Add(new object[] { d });
+            testData.Add([d]);
         }
 
         return testData.GetEnumerator();

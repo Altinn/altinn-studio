@@ -133,7 +133,7 @@ namespace Altinn.App.Core.Helpers
                 string key = entry.Key;
                 string? value = entry.Value;
 
-                if (originalDictionary.ContainsKey(key) && originalDictionary[key] != value)
+                if (originalDictionary.TryGetValue(key, out string? originalValue) && originalValue != value)
                 {
                     updatedValues.Add(key, value);
                 }

@@ -117,10 +117,7 @@ namespace Altinn.App.Core.Models
         /// <returns>A new instance of <see cref="AppIdentifier"/></returns>
         public static AppIdentifier CreateFromUrl(string url)
         {
-            if (url == null)
-            {
-                throw new ArgumentNullException(nameof(url));
-            }
+            ArgumentNullException.ThrowIfNull(url);
 
             if (!Uri.IsWellFormedUriString(url, UriKind.Absolute))
             {

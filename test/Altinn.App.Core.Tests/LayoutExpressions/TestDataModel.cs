@@ -20,7 +20,7 @@ public class TestDataModel
         var modelHelper = new DataModel(model);
         modelHelper.GetModelData("does.not.exist", default).Should().BeNull();
         modelHelper.GetModelData("name.value", default).Should().Be(model.Name.Value);
-        modelHelper.GetModelData("name.value", new int[] { 1, 2, 3 }).Should().Be(model.Name.Value);
+        modelHelper.GetModelData("name.value", [1, 2, 3]).Should().Be(model.Name.Value);
     }
 
     [Fact]
@@ -74,22 +74,22 @@ public class TestDataModel
         IDataModelAccessor modelHelper = new DataModel(model);
         modelHelper.GetModelData("friends.name.value", default).Should().BeNull();
         modelHelper.GetModelData("friends[0].name.value", default).Should().Be("Donald Duck");
-        modelHelper.GetModelData("friends.name.value", new int[] { 0 }).Should().Be("Donald Duck");
+        modelHelper.GetModelData("friends.name.value", [0]).Should().Be("Donald Duck");
         modelHelper.GetModelData("friends[0].age", default).Should().Be(123);
-        modelHelper.GetModelData("friends.age", new int[] { 0 }).Should().Be(123);
+        modelHelper.GetModelData("friends.age", [0]).Should().Be(123);
         modelHelper.GetModelData("friends[1].name.value", default).Should().Be("Dolly Duck");
-        modelHelper.GetModelData("friends.name.value", new int[] { 1 }).Should().Be("Dolly Duck");
+        modelHelper.GetModelData("friends.name.value", [1]).Should().Be("Dolly Duck");
 
         // Run the same tests with JsonDataModel
         var doc = JsonSerializer.Deserialize<JsonObject>(JsonSerializer.Serialize(model));
         modelHelper = new JsonDataModel(doc);
         modelHelper.GetModelData("friends.name.value", default).Should().BeNull();
         modelHelper.GetModelData("friends[0].name.value", default).Should().Be("Donald Duck");
-        modelHelper.GetModelData("friends.name.value", new int[] { 0 }).Should().Be("Donald Duck");
+        modelHelper.GetModelData("friends.name.value", [0]).Should().Be("Donald Duck");
         modelHelper.GetModelData("friends[0].age", default).Should().Be(123);
-        modelHelper.GetModelData("friends.age", new int[] { 0 }).Should().Be(123);
+        modelHelper.GetModelData("friends.age", [0]).Should().Be(123);
         modelHelper.GetModelData("friends[1].name.value", default).Should().Be("Dolly Duck");
-        modelHelper.GetModelData("friends.name.value", new int[] { 1 }).Should().Be("Dolly Duck");
+        modelHelper.GetModelData("friends.name.value", [1]).Should().Be("Dolly Duck");
     }
 
     [Fact]
@@ -134,37 +134,37 @@ public class TestDataModel
 
         IDataModelAccessor modelHelper = new DataModel(model);
         modelHelper.GetModelData("friends[1].friends[0].name.value", default).Should().Be("Onkel Skrue");
-        modelHelper.GetModelData("friends[1].friends.name.value", new int[] { 0, 0 }).Should().BeNull();
+        modelHelper.GetModelData("friends[1].friends.name.value", [0, 0]).Should().BeNull();
         modelHelper
-            .GetModelData("friends[1].friends.name.value", new int[] { 1, 0 })
+            .GetModelData("friends[1].friends.name.value", [1, 0])
             .Should()
             .BeNull("context indexes should not be used after literal index is used");
-        modelHelper.GetModelData("friends[1].friends.name.value", new int[] { 1 }).Should().BeNull();
-        modelHelper.GetModelData("friends.friends[0].name.value", new int[] { 1, 4, 5, 7 }).Should().Be("Onkel Skrue");
+        modelHelper.GetModelData("friends[1].friends.name.value", [1]).Should().BeNull();
+        modelHelper.GetModelData("friends.friends[0].name.value", [1, 4, 5, 7]).Should().Be("Onkel Skrue");
         modelHelper.GetModelDataCount("friends[1].friends", Array.Empty<int>()).Should().Be(1);
-        modelHelper.GetModelDataCount("friends.friends", new int[] { 1 }).Should().Be(1);
-        modelHelper.GetModelDataCount("friends[1].friends.friends", new int[] { 1, 0, 0 }).Should().BeNull();
-        modelHelper.GetModelDataCount("friends[1].friends[0].friends", new int[] { 1, 0, 0 }).Should().Be(2);
-        modelHelper.GetModelDataCount("friends.friends.friends", new int[] { 1, 0, 0 }).Should().Be(2);
-        modelHelper.GetModelDataCount("friends.friends", new int[] { 1 }).Should().Be(1);
+        modelHelper.GetModelDataCount("friends.friends", [1]).Should().Be(1);
+        modelHelper.GetModelDataCount("friends[1].friends.friends", [1, 0, 0]).Should().BeNull();
+        modelHelper.GetModelDataCount("friends[1].friends[0].friends", [1, 0, 0]).Should().Be(2);
+        modelHelper.GetModelDataCount("friends.friends.friends", [1, 0, 0]).Should().Be(2);
+        modelHelper.GetModelDataCount("friends.friends", [1]).Should().Be(1);
 
         // Run the same tests with JsonDataModel
         var doc = JsonSerializer.Deserialize<JsonObject>(JsonSerializer.Serialize(model));
         modelHelper = new JsonDataModel(doc);
         modelHelper.GetModelData("friends[1].friends[0].name.value", default).Should().Be("Onkel Skrue");
-        modelHelper.GetModelData("friends[1].friends.name.value", new int[] { 0, 0 }).Should().BeNull();
+        modelHelper.GetModelData("friends[1].friends.name.value", [0, 0]).Should().BeNull();
         modelHelper
-            .GetModelData("friends[1].friends.name.value", new int[] { 1, 0 })
+            .GetModelData("friends[1].friends.name.value", [1, 0])
             .Should()
             .BeNull("context indexes should not be used after literal index is used");
-        modelHelper.GetModelData("friends[1].friends.name.value", new int[] { 1 }).Should().BeNull();
-        modelHelper.GetModelData("friends.friends[0].name.value", new int[] { 1, 4, 5, 7 }).Should().Be("Onkel Skrue");
+        modelHelper.GetModelData("friends[1].friends.name.value", [1]).Should().BeNull();
+        modelHelper.GetModelData("friends.friends[0].name.value", [1, 4, 5, 7]).Should().Be("Onkel Skrue");
         modelHelper.GetModelDataCount("friends[1].friends", Array.Empty<int>()).Should().Be(1);
-        modelHelper.GetModelDataCount("friends.friends", new int[] { 1 }).Should().Be(1);
-        modelHelper.GetModelDataCount("friends[1].friends.friends", new int[] { 1, 0, 0 }).Should().BeNull();
-        modelHelper.GetModelDataCount("friends[1].friends[0].friends", new int[] { 1, 0, 0 }).Should().Be(2);
-        modelHelper.GetModelDataCount("friends.friends.friends", new int[] { 1, 0, 0 }).Should().Be(2);
-        modelHelper.GetModelDataCount("friends.friends", new int[] { 1 }).Should().Be(1);
+        modelHelper.GetModelDataCount("friends.friends", [1]).Should().Be(1);
+        modelHelper.GetModelDataCount("friends[1].friends.friends", [1, 0, 0]).Should().BeNull();
+        modelHelper.GetModelDataCount("friends[1].friends[0].friends", [1, 0, 0]).Should().Be(2);
+        modelHelper.GetModelDataCount("friends.friends.friends", [1, 0, 0]).Should().Be(2);
+        modelHelper.GetModelDataCount("friends.friends", [1]).Should().Be(1);
     }
 
     [Fact]
@@ -316,13 +316,13 @@ public class TestDataModel
         modelHelper.GetModelData("friends[3]").Should().BeNull();
 
         modelHelper
-            .Invoking(m => m.AddIndicies("tull.sd", new int[] { 2 }))
+            .Invoking(m => m.AddIndicies("tull.sd", [2]))
             .Should()
             .Throw<DataModelException>()
             .WithMessage("Unknown model property tull in*");
 
         modelHelper
-            .Invoking(m => m.AddIndicies("id[4]", new int[] { 6 }))
+            .Invoking(m => m.AddIndicies("id[4]", [6]))
             .Should()
             .Throw<DataModelException>()
             .WithMessage("Index on non indexable property");
@@ -340,7 +340,7 @@ public class TestDataModel
             }
         );
         modelHelper
-            .Invoking(m => m.AddIndicies("friends", new int[] { 0 }))
+            .Invoking(m => m.AddIndicies("friends", [0]))
             .Should()
             .Throw<DataModelException>()
             .WithMessage("DataModels must have generic IEnumerable<> implementation for list");
@@ -358,16 +358,16 @@ public class TestDataModel
         );
 
         // Plain add indicies
-        modelHelper.AddIndicies("friends.friends", new int[] { 0, 1 }).Should().Be("friends[0].friends[1]");
+        modelHelper.AddIndicies("friends.friends", [0, 1]).Should().Be("friends[0].friends[1]");
 
         // Ignore extra indicies
-        modelHelper.AddIndicies("friends.friends", new int[] { 0, 1, 4, 6 }).Should().Be("friends[0].friends[1]");
+        modelHelper.AddIndicies("friends.friends", [0, 1, 4, 6]).Should().Be("friends[0].friends[1]");
 
         // Don't add indicies if they are specified in input
-        modelHelper.AddIndicies("friends[3]", new int[] { 0 }).Should().Be("friends[3]");
+        modelHelper.AddIndicies("friends[3]", [0]).Should().Be("friends[3]");
 
         // First index is ignored if it is explicit
-        modelHelper.AddIndicies("friends[0].friends", new int[] { 2, 3 }).Should().Be("friends[0].friends[3]");
+        modelHelper.AddIndicies("friends[0].friends", [2, 3]).Should().Be("friends[0].friends[3]");
     }
 
     [Fact]
@@ -377,7 +377,7 @@ public class TestDataModel
 
         // Throws because id is not indexable
         modelHelper
-            .Invoking(m => m.AddIndicies("id[0]", new int[] { 1, 2, 3 }))
+            .Invoking(m => m.AddIndicies("id[0]", [1, 2, 3]))
             .Should()
             .Throw<DataModelException>()
             .WithMessage("Index on non indexable property");

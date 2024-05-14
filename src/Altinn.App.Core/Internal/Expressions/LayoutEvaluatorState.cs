@@ -347,7 +347,7 @@ public class LayoutEvaluatorState
             var hiddenRows = new List<int>();
             foreach (var index in Enumerable.Range(0, context.RowLength.Value))
             {
-                var rowIndices = context.RowIndices?.Append(index).ToArray() ?? new[] { index };
+                var rowIndices = context.RowIndices?.Append(index).ToArray() ?? [index];
                 var childContexts = context.ChildContexts.Where(c => c.RowIndices?.Last() == index);
                 var rowContext = new ComponentContext(context.Component, rowIndices, null, childContexts);
                 var rowHidden = ExpressionEvaluator.EvaluateBooleanExpression(this, rowContext, "hiddenRow", false);

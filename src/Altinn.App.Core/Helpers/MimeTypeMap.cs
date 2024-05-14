@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using Altinn.App.Core.Models;
 
 namespace Altinn.App.Core.Helpers
@@ -7,11 +8,11 @@ namespace Altinn.App.Core.Helpers
     /// </summary>
     public static class MimeTypeMap
     {
-        private static readonly Lazy<IDictionary<string, MimeType>> _mappings = new Lazy<IDictionary<string, MimeType>>(
-            BuildMappings
-        );
+        private static readonly Lazy<FrozenDictionary<string, MimeType>> _mappings = new Lazy<
+            FrozenDictionary<string, MimeType>
+        >(BuildMappings);
 
-        private static IDictionary<string, MimeType> BuildMappings()
+        private static FrozenDictionary<string, MimeType> BuildMappings()
         {
             var mappings = new Dictionary<string, MimeType>(StringComparer.OrdinalIgnoreCase)
             {
@@ -620,7 +621,7 @@ namespace Altinn.App.Core.Helpers
                 #endregion
             };
 
-            return mappings;
+            return mappings.ToFrozenDictionary();
         }
 
         /// <summary>
@@ -630,12 +631,9 @@ namespace Altinn.App.Core.Helpers
         /// <returns>The mime type</returns>
         public static MimeType GetMimeType(string extension)
         {
-            if (extension == null)
-            {
-                throw new ArgumentNullException(nameof(extension));
-            }
+            ArgumentNullException.ThrowIfNull(extension);
 
-            if (!extension.StartsWith("."))
+            if (!extension.StartsWith('.'))
             {
                 extension = "." + extension;
             }

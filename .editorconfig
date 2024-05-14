@@ -73,7 +73,6 @@ max_line_length = 160
 end_of_line = crlf
 dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 
-[*.cs]
 csharp_using_directive_placement = outside_namespace:silent
 csharp_prefer_simple_using_statement = true:suggestion
 csharp_prefer_braces = true:silent
@@ -90,6 +89,18 @@ csharp_style_expression_bodied_lambdas = true:silent
 csharp_style_expression_bodied_local_functions = false:silent
 csharp_indent_labels = one_less_than_current
 csharp_style_prefer_primary_constructors = false:suggestion
+
+# CA1848: Use the LoggerMessage delegates
+dotnet_diagnostic.CA1848.severity = none
+
+# CA1727: Use PascalCase for named placeholders
+dotnet_diagnostic.CA1727.severity = suggestion
+
+# CA2254: Template should be a static expression
+dotnet_diagnostic.CA2254.severity = none
+
+# CA1822: Mark members as static
+dotnet_diagnostic.CA1822.severity = suggestion
 
 [Program.cs]
 dotnet_diagnostic.CA1050.severity = none

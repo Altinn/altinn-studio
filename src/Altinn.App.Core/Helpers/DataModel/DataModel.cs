@@ -98,7 +98,7 @@ public class DataModel : IDataModelAccessor
     {
         if (_serviceModel is null)
         {
-            return new string[0];
+            return [];
         }
 
         var keyParts = key.Split('.');
@@ -144,12 +144,12 @@ public class DataModel : IDataModelAccessor
     {
         if (currentModel is null)
         {
-            return new string[0];
+            return [];
         }
 
         if (currentIndex == keyParts.Length)
         {
-            return new[] { currentKey };
+            return [currentKey];
         }
 
         var (key, groupIndex) = ParseKeyPart(keyParts[currentIndex]);
@@ -157,7 +157,7 @@ public class DataModel : IDataModelAccessor
         var childModel = prop?.GetValue(currentModel);
         if (childModel is null)
         {
-            return new string[0];
+            return [];
         }
 
         if (childModel is not string && childModel is System.Collections.IEnumerable childModelList)

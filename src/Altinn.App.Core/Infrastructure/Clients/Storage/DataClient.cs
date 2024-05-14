@@ -101,7 +101,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
 
             _logger.Log(
                 LogLevel.Error,
-                "unable to save form data for instance{0} due to response {1}",
+                "unable to save form data for instance {InstanceId} due to response {StatusCode}",
                 instance.Id,
                 response.StatusCode
             );

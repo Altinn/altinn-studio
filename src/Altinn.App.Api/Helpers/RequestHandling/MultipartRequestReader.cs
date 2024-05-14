@@ -30,7 +30,7 @@ namespace Altinn.App.Api.Helpers.RequestHandling
             get
             {
                 return !string.IsNullOrEmpty(request.ContentType)
-                    && request.ContentType.IndexOf("multipart/", StringComparison.OrdinalIgnoreCase) >= 0;
+                    && request.ContentType.Contains("multipart/", StringComparison.OrdinalIgnoreCase);
             }
         }
 

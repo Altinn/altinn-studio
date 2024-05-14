@@ -169,7 +169,7 @@ public class JsonDataModel : IDataModelAccessor
     {
         if (_modelRoot is null)
         {
-            return new string[0];
+            return [];
         }
 
         var keyParts = key.Split('.');
@@ -185,12 +185,12 @@ public class JsonDataModel : IDataModelAccessor
     {
         if (currentModel is null)
         {
-            return new string[0];
+            return [];
         }
 
         if (currentIndex == keyParts.Length)
         {
-            return new[] { currentKey };
+            return [currentKey];
         }
 
         var (key, groupIndex) = DataModel.ParseKeyPart(keyParts[currentIndex]);
@@ -199,7 +199,7 @@ public class JsonDataModel : IDataModelAccessor
             || !currentModel.AsObject().TryGetPropertyValue(key, out JsonNode? childModel)
         )
         {
-            return new string[0];
+            return [];
         }
 
         if (childModel is JsonArray childArray)

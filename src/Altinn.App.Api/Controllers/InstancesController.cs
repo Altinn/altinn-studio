@@ -194,7 +194,7 @@ namespace Altinn.App.Api.Controllers
             MultipartRequestReader parsedRequest = new MultipartRequestReader(Request);
             await parsedRequest.Read();
 
-            if (parsedRequest.Errors.Any())
+            if (parsedRequest.Errors.Count != 0)
             {
                 return BadRequest($"Error when reading content: {JsonConvert.SerializeObject(parsedRequest.Errors)}");
             }
@@ -793,7 +793,7 @@ namespace Altinn.App.Api.Controllers
 
             List<Instance> activeInstances = await _instanceClient.GetInstances(queryParams);
 
-            if (!activeInstances.Any())
+            if (activeInstances.Count == 0)
             {
                 return Ok(new List<SimpleInstance>());
             }

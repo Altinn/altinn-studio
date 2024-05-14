@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <Import Project="../Directory.Build.props" />
+
+  <PropertyGroup>
+    <AnalysisMode>Default</AnalysisMode>
+    <NoWarn>$(NoWarn);CS1591;CS0618;CS7022;CA1707</NoWarn>
+    <!--
+        CS1591: Don't warn for missing XML doc
+        CS0618: This is a test project, so we usually continue testing [Obsolete] apis
+        CS7022: The entry point of the program is global code; ignoring 'Program.Main(string[])' entry point
+    -->
+  </PropertyGroup>
+
+</Project>

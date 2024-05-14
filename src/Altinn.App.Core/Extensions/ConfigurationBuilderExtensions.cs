@@ -34,7 +34,7 @@ namespace Altinn.App.Core.Extensions
 
             // Add values from environment and command line arguments last, to override values from other sources.
             builder.AddEnvironmentVariables();
-            builder.AddCommandLine(args ?? new string[0]);
+            builder.AddCommandLine(args ?? []);
         }
     }
 }

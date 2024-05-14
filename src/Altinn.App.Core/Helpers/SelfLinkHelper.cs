@@ -24,7 +24,7 @@ namespace Altinn.App.Core.Helpers
             int start = selfLink.IndexOf("/instances");
             if (start > 0)
             {
-                selfLink = selfLink.Substring(0, start) + "/instances";
+                selfLink = string.Concat(selfLink.AsSpan(0, start), "/instances");
             }
 
             selfLink += $"/{instance.Id}";
@@ -69,7 +69,7 @@ namespace Altinn.App.Core.Helpers
             int start = selfLink.IndexOf("/instances");
             if (start > 0)
             {
-                selfLink = selfLink.Substring(0, start) + "/instances";
+                selfLink = string.Concat(selfLink.AsSpan(0, start), "/instances");
             }
 
             selfLink += $"/{instanceOwnerPartyId}/{instanceGuid.ToString()}";

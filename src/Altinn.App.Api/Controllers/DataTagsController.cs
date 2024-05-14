@@ -168,9 +168,8 @@ namespace Altinn.App.Api.Controllers
                 return NotFound("Unable to find data element based on the given parameters.");
             }
 
-            if (dataElement.Tags.Contains(tag))
+            if (dataElement.Tags.Remove(tag))
             {
-                dataElement.Tags.Remove(tag);
                 await _dataClient.Update(instance, dataElement);
             }
 

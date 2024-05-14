@@ -586,7 +586,7 @@ namespace Altinn.App.Api.Controllers
             }
         }
 
-        private ActionResult ExceptionResponse(Exception exception, string message)
+        private ObjectResult ExceptionResponse(Exception exception, string message)
         {
             _logger.LogError(exception, message);
 

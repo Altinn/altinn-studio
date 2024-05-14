@@ -29,7 +29,7 @@ namespace Altinn.App.Core.Features.Options
 
             foreach (var appOptionProvider in AppOptionsProviders)
             {
-                if (appOptionProvider.Id.ToLower() != optionsId.ToLower())
+                if (!appOptionProvider.Id.Equals(optionsId, StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
