@@ -64,7 +64,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaResourceAccessListPermission)]
         [Route("designer/api/{org}/resources/accesslist/")]
-        public async Task<ActionResult<PagedAccessListResponse>> GetAccessLists(string org, string env, int page)
+        public async Task<ActionResult<PagedAccessListResponse>> GetAccessLists(string org, string env, string page)
         {
             return await _resourceRegistry.GetAccessLists(org, env, page);
         }
@@ -115,7 +115,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaResourceAccessListPermission)]
         [Route("designer/api/{org}/resources/{id}/accesslists/")]
-        public async Task<ActionResult<PagedAccessListResponse>> GetResourceAccessLists(string org, string id, string env, int page)
+        public async Task<ActionResult<PagedAccessListResponse>> GetResourceAccessLists(string org, string id, string env, string page)
         {
             return await _resourceRegistry.GetResourceAccessLists(org, id, env, page);
         }

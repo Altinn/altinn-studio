@@ -71,9 +71,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Current organization</param>
         /// <param name="env">Chosen environment</param>
-        /// <param name="page">Page number, if requesting any other page than the first page</param>
+        /// <param name="page">Full page url, if requesting any other page than the first page</param>
         /// <returns>A paginated response of access lists in the given environment for the given organization. Members of access lists are not returned</returns>
-        Task<PagedAccessListResponse> GetAccessLists(string org, string env, int? page);
+        Task<PagedAccessListResponse> GetAccessLists(string org, string env, string? page);
 
         /// <summary>
         /// Gets all access lists connected to a given resource for an organization in a given environment
@@ -81,9 +81,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Current organization</param>
         /// <param name="resourceId">Chosen resource</param>
         /// <param name="env">Chosen environment</param>
-        /// <param name="page">Page number, if requesting any other page than the first page</param>
+        /// <param name="page">Full page url, if requesting any other page than the first page</param>
         /// <returns>A paginated response of access lists the given resource in the given environment for the given organization is connected to. Members of access lists are not returned</returns>
-        Task<PagedAccessListResponse> GetResourceAccessLists(string org, string resourceId, string env, int? page);
+        Task<PagedAccessListResponse> GetResourceAccessLists(string org, string resourceId, string env, string? page);
 
         /// <summary>
         /// Delete an access list for an organization in a given environment

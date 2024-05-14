@@ -7,7 +7,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using Altinn.ApiClients.Maskinporten.Interfaces;
@@ -290,7 +289,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         )
         {
             // get access list
-            string listUrl = $"/{org}/{identifier}?include=members"; // TODO: members er ikke implementert
+            string listUrl = $"/{org}/{identifier}";
             HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Get, listUrl);
 
             HttpResponseMessage getAccessListsResponse = await _httpClient.SendAsync(request);
@@ -339,10 +338,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         public async Task<PagedAccessListResponse> GetAccessLists(string org,
-            string env, int? page
+            string env, string? page
         )
         {
-            string listUrl = $"/{org}";
+            string listUrl = string.IsNullOrEmpty(page) ? $"/{org}" : $"/{GetAccessListPageUrlSuffix(page, env)}";
             HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Get, listUrl);
 
             HttpResponseMessage getAccessListsResponse = await _httpClient.SendAsync(request);
@@ -351,7 +350,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new PagedAccessListResponse()
             {
                 Data = res.Data,
-                NextPage = GetNextPage(res)
+                NextPage = GetNextPageUrl(res)
             };
 
         }
@@ -359,7 +358,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<PagedAccessListResponse> GetResourceAccessLists(string org,
             string resourceId,
             string env,
-            int? page
+            string? page
         )
         {
             string listUrl = $"/{org}?include=resources&resource={resourceId}";
@@ -372,7 +371,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new PagedAccessListResponse()
             {
                 Data = res.Data,
-                NextPage = GetNextPage(res)
+                NextPage = GetNextPageUrl(res)
             };
         }
 
@@ -502,17 +501,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return results.Embedded != null ? results.Embedded.Parties ?? results.Embedded.SubParties : new List<BrregParty>();
         }
 
-        private int? GetNextPage(AccessListInfoDtoPaginated dto)
+        private string? GetAccessListPageUrlSuffix(string pageUrl, string env)
         {
-            if (dto == null || dto.Links.Next == null)
-            {
-                return null;
+            string accessListBaseUrl = !env.ToLower().Equals("dev")
+                ? $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryAccessListUrl}"
+                : $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryAccessListUrl}";
+            
+            if (!pageUrl.StartsWith(accessListBaseUrl)) {
+                throw new Exception("Cannot load page data from another origin");
             }
 
-            string pattern = @"page=(\d+)";
-            Regex regex = new Regex(pattern);
-            Match matches = regex.Match(dto.Links.Next);
-            return int.Parse(matches.Groups[1].Value);
+            return pageUrl.Replace(accessListBaseUrl, "");
+        }
+
+        private static string? GetNextPageUrl(AccessListInfoDtoPaginated dto)
+        {
+            return dto?.Links?.Next;
         }
 
         private async Task<HttpRequestMessage> CreateAccessListRequest(string env, HttpMethod verb, string relativeUrl, string serializedContent = null)
