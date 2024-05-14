@@ -1,17 +1,17 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import type { BpmnApiContextProps } from '../../../contexts/BpmnApiContext';
-import { BpmnApiContext } from '../../../contexts/BpmnApiContext';
-import type { BpmnContextProps } from '../../../contexts/BpmnContext';
-import { BpmnContext } from '../../../contexts/BpmnContext';
-import type { BpmnDetails } from '../../../types/BpmnDetails';
-import { BpmnTypeEnum } from '../../../enum/BpmnTypeEnum';
+import type { BpmnApiContextProps } from '../../../../contexts/BpmnApiContext';
+import { BpmnApiContext } from '../../../../contexts/BpmnApiContext';
+import type { BpmnContextProps } from '../../../../contexts/BpmnContext';
+import { BpmnContext } from '../../../../contexts/BpmnContext';
+import type { BpmnDetails } from '../../../../types/BpmnDetails';
+import { BpmnTypeEnum } from '../../../../enum/BpmnTypeEnum';
 import type Modeler from 'bpmn-js/lib/Modeler';
 import type { SelectDataTypeProps } from './SelectDataType';
 import { SelectDataType } from './SelectDataType';
-import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
+import { BpmnConfigPanelFormContextProvider } from '../../../../contexts/BpmnConfigPanelContext';
 
 const mockTaskId: string = 'testId';
 const mockName: string = 'testName';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { StudioButton, StudioDeleteButton, StudioNativeSelect } from '@studio/components';
-import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
+import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
 import classes from './SelectDataType.module.css';

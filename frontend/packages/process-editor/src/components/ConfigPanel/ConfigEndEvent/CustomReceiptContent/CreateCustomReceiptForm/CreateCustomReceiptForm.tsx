@@ -109,18 +109,16 @@ export const CreateCustomReceiptForm = ({
         label={t('process_editor.configuration_panel_custom_receipt_textfield_label')}
         value={existingCustomReceiptLayoutSetId}
         size='small'
-        error={layoutSetError && layoutSetError}
+        error={layoutSetError}
         onChange={handleChangeLayoutsetName}
       />
       <SelectCustomReceiptDatamodelId
-        error={datamodelError && datamodelError}
+        error={datamodelError}
         onChange={() => setDatamodelError(null)}
       />
       <div className={classes.buttonWrapper}>
         <StudioButton size='small' type='submit' variant='primary'>
-          {t(
-            `process_editor.configuration_panel_custom_receipt_${!existingCustomReceiptLayoutSetId ? 'create' : 'save'}_button`,
-          )}
+          {t('process_editor.configuration_panel_custom_receipt_create_button')}
         </StudioButton>
         <StudioButton size='small' onClick={onCloseForm} variant='secondary'>
           {t('process_editor.configuration_panel_custom_receipt_cancel_button')}

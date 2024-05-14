@@ -777,7 +777,6 @@
   "process_editor.configuration_panel_custom_receipt_name": "Sidegruppenavnet på din egendefinerte kvittering",
   "process_editor.configuration_panel_custom_receipt_navigate_to_lage_button": "Gå til Lage",
   "process_editor.configuration_panel_custom_receipt_navigate_to_lage_title": "Gå til Lage for å utforme kvitteringen din",
-  "process_editor.configuration_panel_custom_receipt_save_button": "Lagre",
   "process_editor.configuration_panel_custom_receipt_select_datamodel_description": "Du må ha noen ledige datamodeller du kan knytte mot kvitteringen for at det skal visesnoen i listen under.",
   "process_editor.configuration_panel_custom_receipt_select_datamodel_label": "Datamodellknytning",
   "process_editor.configuration_panel_custom_receipt_spinner_title": "Laster inn kvittering",

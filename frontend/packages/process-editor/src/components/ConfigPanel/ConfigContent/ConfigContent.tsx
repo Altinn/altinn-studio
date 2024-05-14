@@ -6,7 +6,7 @@ import { EditTaskId } from './EditTaskId/EditTaskId';
 import { StudioDisplayTile, StudioSectionHeader } from '@studio/components';
 import { getConfigTitleKey, getConfigTitleHelpTextKey } from '../../../utils/configPanelUtils';
 import { ConfigIcon } from './ConfigIcon';
-import { EditDataType } from './EditDataType';
+import { EditDataType } from '../EditDataType';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { Accordion } from '@digdir/design-system-react';
 import { EditActions } from './EditActions';

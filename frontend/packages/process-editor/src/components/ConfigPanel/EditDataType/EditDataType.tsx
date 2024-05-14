@@ -2,9 +2,9 @@ import React from 'react';
 import { StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { LinkIcon } from '@studio/icons';
-import { SelectDataType } from '../../SelectDataType';
+import { SelectDataType } from './SelectDataType';
 import classes from './EditDataType.module.css';
-import { useDatamodelSelectVisibility } from '../../../../hooks/useDatamodelSelectVisibility';
+import { useDatamodelSelectVisibility } from '../../../hooks/useDatamodelSelectVisibility';
 
 type EditDataTypeProps = {
   datamodelIds: string[];

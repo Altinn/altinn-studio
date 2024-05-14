@@ -7,7 +7,7 @@ import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { getExistingDatamodelIdFromLayoutsets } from '../../../../../utils/customReceiptUtils';
 import { RedirectToCreatePageButton } from '../RedirectToCreatePageButton';
 import { useTranslation } from 'react-i18next';
-import { EditDataType } from '../../../ConfigContent/EditDataType';
+import { EditDataType } from '../../../EditDataType';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 
 export const CustomReceipt = (): React.ReactElement => {
