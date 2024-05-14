@@ -4,7 +4,7 @@ import { StudioButton } from '@studio/components';
 import { CogIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { SettingsModal } from './SettingsModal';
-import { useAppDevelopmentContext } from 'app-development/contexts/AppDevelopmentContext';
+import { useSettingsModalContext } from 'app-development/contexts/SettingsModalContext';
 
 export type SettingsModalButtonProps = {
   org: string;
@@ -18,7 +18,7 @@ export type SettingsModalButtonProps = {
 export const SettingsModalButton = ({ org, app }: SettingsModalButtonProps): ReactNode => {
   const { t } = useTranslation();
   const { settingsModalOpen, setSettingsModalOpen, settingsModalSelectedTab } =
-    useAppDevelopmentContext();
+    useSettingsModalContext();
 
   return (
     <>

@@ -1,44 +1,12 @@
-import type { SettingsModalTab } from 'app-development/types/SettingsModalTab';
-import React, { createContext, useContext, useState } from 'react';
+import { SettingsModalContextProvider } from './SettingsModalContext';
+import { combineComponents } from 'app-development/utils/context/combineComponents';
 
-export type AppDevelopmentContextProps = {
-  settingsModalOpen: boolean;
-  setSettingsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  settingsModalSelectedTab?: SettingsModalTab;
-  setSettingsModalSelectedTab: React.Dispatch<React.SetStateAction<SettingsModalTab>>;
-};
+/**
+ * Add all context providers for app-development to the providers-array.
+ * Beware of the order of the providers, as they will be combined in the order they are added to the array.
+ * The last provider in the array will be the innermost provider.
+ */
+const providers = [SettingsModalContextProvider];
 
-export const AppDevelopmentContext = createContext<Partial<AppDevelopmentContextProps>>(undefined);
-
-export type AppDevelopmentContextProviderProps = {
-  children: React.ReactNode;
-};
-
-export const AppDevelopmentContextProvider = ({
-  children,
-}: Partial<AppDevelopmentContextProviderProps>) => {
-  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
-  const [settingsModalSelectedTab, setSettingsModalSelectedTab] =
-    useState<SettingsModalTab>('about');
-
-  return (
-    <AppDevelopmentContext.Provider
-      value={{
-        settingsModalOpen,
-        setSettingsModalOpen,
-        settingsModalSelectedTab,
-        setSettingsModalSelectedTab,
-      }}
-    >
-      {children}
-    </AppDevelopmentContext.Provider>
-  );
-};
-
-export const useAppDevelopmentContext = (): Partial<AppDevelopmentContextProps> => {
-  const context = useContext(AppDevelopmentContext);
-  if (context === undefined) {
-    throw new Error('useAppDevelopmentContext must be used within a AppDevelopmentContextProvider');
-  }
-  return context;
-};
+/** Combine all context providers for app-development. */
+export const AppDevelopmentContextProvider = combineComponents(...providers);
