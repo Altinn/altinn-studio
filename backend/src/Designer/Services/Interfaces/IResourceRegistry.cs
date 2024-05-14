@@ -67,6 +67,16 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<AccessList> GetAccessList(string org, string identifier, string env);
 
         /// <summary>
+        /// Get members of an access list for an organization in a given environment
+        /// </summary>
+        /// <param name="org">Current organization</param>
+        /// <param name="identifier">Access list identifier</param>
+        /// <param name="env">Chosen environment</param>
+        /// <param name="page">Full page url, if requesting any other page than the first page</param>
+        /// <returns>The access list, if it exists in the given environment for the given organization. Access list members are returned</returns>
+        Task<PagedAccessListMembersResponse> GetAccessListMembers(string org, string identifier, string env, string? page);
+
+        /// <summary>
         /// Gets all access lists for an organization in a given environment
         /// </summary>
         /// <param name="org">Current organization</param>

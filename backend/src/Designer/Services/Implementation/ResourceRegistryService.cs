@@ -294,22 +294,30 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             HttpResponseMessage getAccessListsResponse = await _httpClient.SendAsync(request);
             getAccessListsResponse.EnsureSuccessStatusCode();
-            AccessList accessList = await getAccessListsResponse.Content.ReadAsAsync<AccessList>();
+            return await getAccessListsResponse.Content.ReadAsAsync<AccessList>();
+        }
 
-            // get access list members
-            string listMembersUrl = $"/{org}/{identifier}/members";
+        public async Task<PagedAccessListMembersResponse> GetAccessListMembers(
+            string org,
+            string identifier,
+            string env,
+            string? page
+        )
+        {
+            string listMembersUrl = string.IsNullOrEmpty(page) ? $"/{org}/{identifier}/members" : $"/{GetAccessListPageUrlSuffix(page, env)}";
             HttpRequestMessage membersRequest = await CreateAccessListRequest(env, HttpMethod.Get, listMembersUrl);
 
             HttpResponseMessage geMembersResponse = await _httpClient.SendAsync(membersRequest);
             geMembersResponse.EnsureSuccessStatusCode();
-            
+
             string membersResponseContent = await geMembersResponse.Content.ReadAsStringAsync();
             AccessListMembersDto membersDto = JsonSerializer.Deserialize<AccessListMembersDto>(
                 membersResponseContent,
                 _serializerOptions
             );
-            
+
             IEnumerable<string> partyIds = membersDto.Data.Select(x => x.Identifiers.OrganizationNumber);
+            IEnumerable<AccessListMember> members = new List<AccessListMember>();
 
             // lookup party names
             if (partyIds.Any())
@@ -321,7 +329,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     GetBrregParties(string.Format(brregUrl, "underenheter", partyIdsString))
                 );
 
-                accessList.Members = partyIds.Select(orgnr =>
+                members = partyIds.Select(orgnr =>
                 {
                     string enhetOrgName = parties[0].Find(enhet => enhet.Organisasjonsnummer.Equals(orgnr))?.Navn;
                     string underenhetOrgName = parties[1].Find(enhet => enhet.Organisasjonsnummer.Equals(orgnr))?.Navn;
@@ -334,11 +342,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     return member;
                 });
             }
-            return accessList;
+
+            return new PagedAccessListMembersResponse()
+            {
+                Data = members,
+                NextPage = "https://platform.at22.altinn.cloud/resourceregistry/api/v1/access-lists/ttd/bruno/members?page=page2" //membersDto?.Links?.Next
+            };
         }
 
-        public async Task<PagedAccessListResponse> GetAccessLists(string org,
-            string env, string? page
+        public async Task<PagedAccessListResponse> GetAccessLists(
+            string org,
+            string env,
+            string? page
         )
         {
             string listUrl = string.IsNullOrEmpty(page) ? $"/{org}" : $"/{GetAccessListPageUrlSuffix(page, env)}";
@@ -350,12 +365,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new PagedAccessListResponse()
             {
                 Data = res.Data,
-                NextPage = GetNextPageUrl(res)
+                NextPage = res.Links?.Next
             };
 
         }
 
-        public async Task<PagedAccessListResponse> GetResourceAccessLists(string org,
+        public async Task<PagedAccessListResponse> GetResourceAccessLists(
+            string org,
             string resourceId,
             string env,
             string? page
@@ -371,7 +387,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new PagedAccessListResponse()
             {
                 Data = res.Data,
-                NextPage = GetNextPageUrl(res)
+                NextPage = res.Links?.Next
             };
         }
 
@@ -431,7 +447,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Post, listUrl, addMemberPayloadString);
 
             HttpResponseMessage response = await _httpClient.SendAsync(request);
-            if (response.StatusCode == HttpStatusCode.BadRequest) {
+            if (response.StatusCode == HttpStatusCode.BadRequest)
+            {
                 return response.StatusCode; // TODO: handle spesific error code from JSON after it is implemented in resource registry
             }
             response.EnsureSuccessStatusCode();
@@ -506,17 +523,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string accessListBaseUrl = !env.ToLower().Equals("dev")
                 ? $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryAccessListUrl}"
                 : $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryAccessListUrl}";
-            
-            if (!pageUrl.StartsWith(accessListBaseUrl)) {
+
+            if (!pageUrl.StartsWith(accessListBaseUrl))
+            {
                 throw new Exception("Cannot load page data from another origin");
             }
 
             return pageUrl.Replace(accessListBaseUrl, "");
-        }
-
-        private static string? GetNextPageUrl(AccessListInfoDtoPaginated dto)
-        {
-            return dto?.Links?.Next;
         }
 
         private async Task<HttpRequestMessage> CreateAccessListRequest(string env, HttpMethod verb, string relativeUrl, string serializedContent = null)

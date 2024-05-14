@@ -77,6 +77,14 @@ namespace Altinn.Studio.Designer.Controllers
             return await _resourceRegistry.GetAccessList(org, identifier, env);
         }
 
+        [HttpGet]
+        [Authorize(Policy = AltinnPolicy.MustHaveGiteaResourceAccessListPermission)]
+        [Route("designer/api/{org}/resources/accesslist/{identifier}/members")]
+        public async Task<ActionResult<PagedAccessListMembersResponse>> GetAccessListMembers(string org, string identifier, string env, string page)
+        {
+            return await _resourceRegistry.GetAccessListMembers(org, identifier, env, page);
+        }
+
         [HttpDelete]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaResourceAccessListPermission)]
         [Route("designer/api/{org}/resources/accesslist/{identifier}")]
