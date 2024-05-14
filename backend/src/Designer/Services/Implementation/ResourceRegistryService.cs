@@ -432,6 +432,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Post, listUrl, addMemberPayloadString);
 
             HttpResponseMessage response = await _httpClient.SendAsync(request);
+            if (response.StatusCode == HttpStatusCode.BadRequest) {
+                return response.StatusCode; // TODO: handle spesific error code from JSON after it is implemented in resource registry
+            }
             response.EnsureSuccessStatusCode();
             return response.StatusCode;
         }
