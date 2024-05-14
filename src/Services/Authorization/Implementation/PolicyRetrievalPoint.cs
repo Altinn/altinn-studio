@@ -43,7 +43,11 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             if (app != null && org != null)
             {
                 string policyString = await _localApp.GetXACMLPolicy($"{org}/{app}");
-                policyString = policyString.Replace("[ORG]", org).Replace("[APP]", app);
+                policyString = policyString
+                    .Replace("[org]", org)
+                    .Replace("[ORG]", org)
+                    .Replace("[app]", app)
+                    .Replace("[APP]", app);
                 return ParsePolicyContent(policyString);
             }
             else
