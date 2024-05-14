@@ -17,6 +17,16 @@ const user = userEvent.setup();
 const org = 'org';
 const app = 'app';
 
+jest.mock('../../../../hooks/mutations/useUploadDatamodelMutation', () => ({
+  __esModule: true,
+  ...jest.requireActual('../../../../hooks/mutations/useUploadDatamodelMutation'),
+}));
+
+const useUploadDatamodelMutationSpy = jest.spyOn(
+  require('../../../../hooks/mutations/useUploadDatamodelMutation'),
+  'useUploadDatamodelMutation',
+);
+
 const clickUploadButton = async () => {
   const btn = screen.getByText(textMock('app_data_modelling.upload_xsd'));
   await user.click(btn);
@@ -32,6 +42,14 @@ const render = ({
 
 describe('XSDUpload', () => {
   afterEach(jest.restoreAllMocks);
+
+  it('should show a spinner when uploading', async () => {
+    useUploadDatamodelMutationSpy.mockReturnValue({ isPending: true });
+
+    render();
+
+    expect(screen.getByText(textMock('app_data_modelling.uploading_xsd'))).toBeInTheDocument();
+  });
 
   it('should show file picker button', () => {
     render();
