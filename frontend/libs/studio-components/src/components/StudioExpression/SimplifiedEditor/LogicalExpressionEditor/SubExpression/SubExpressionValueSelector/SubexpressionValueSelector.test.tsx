@@ -208,11 +208,10 @@ describe('SubexpressionValueSelector', () => {
     );
 
     it('Render GatewayAction in readonly mode', () => {
-      const gatewayAction: SimpleSubexpressionValueType<SimpleSubexpressionValueType.GatewayAction> =
-        {
-          type: SimpleSubexpressionValueType.GatewayAction,
-          value: 'gatewayAction',
-        };
+      const gatewayAction: SimpleSubexpressionValue<SimpleSubexpressionValueType.GatewayAction> = {
+        type: SimpleSubexpressionValueType.GatewayAction,
+        value: 'gatewayAction',
+      };
       renderSubexpressionValueSelector({ value: gatewayAction, isInEditMode: false });
       expect(screen.getByText('gatewayAction'));
     });

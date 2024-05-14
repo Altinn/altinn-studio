@@ -57,12 +57,15 @@ export const isSimpleDataLookupFunc = (expression: Expression): expression is Da
   typeof expression[1] === 'string';
 
 export const isProcessDataLookupFunc = (expression: Expression): expression is DataLookupFunc => {
-  return Array.isArray(expression) && Object.values(DataLookupFuncName).includes(expression[0]);
+  return (
+    Array.isArray(expression) &&
+    Object.values(DataLookupFuncName).includes(expression[0] as DataLookupFuncName)
+  );
 };
 
 export const isProcessUserAction = (expression: Expression): expression is KeyLookupFunc => {
   const actions = Object.values(GatewayActionContext);
-  return typeof expression === 'string' && actions.includes(expression);
+  return typeof expression === 'string' && actions.includes(expression as GatewayActionContext);
 };
 
 export const isProcessGatewayAction = (expression: Expression): expression is DataLookupFunc => {
