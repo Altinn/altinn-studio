@@ -6,6 +6,7 @@ import {
   DataTaskIcon,
   FeedbackTaskIcon,
   EndEventIcon,
+  PaymentTaskIcon,
   SignTaskIcon,
 } from '@studio/icons';
 
@@ -23,6 +24,8 @@ export const ConfigIcon = ({ taskType }: ConfigIconProps): React.ReactElement =>
       return <FeedbackTaskIcon className={classes.icon} />;
     case 'signing':
       return <SignTaskIcon className={classes.icon} />;
+    case 'payment':
+      return <PaymentTaskIcon className={classes.icon} />;
     case 'endEvent':
       return <EndEventIcon className={classes.icon} />;
   }

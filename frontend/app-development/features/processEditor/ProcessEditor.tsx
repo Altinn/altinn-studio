@@ -19,6 +19,8 @@ import { useDeleteLayoutSetMutation } from '../../hooks/mutations/useDeleteLayou
 import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
 import { useUpdateProcessDataTypeMutation } from '../../hooks/mutations/useUpdateProcessDataTypeMutation';
 import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
+import { useAddDataTypeToAppMetadata } from '../../hooks/mutations/useAddDataTypeToAppMetadata';
+import { useDeleteDataTypeFromAppMetadata } from '../../hooks/mutations/useDeleteDataTypeFromAppMetadata';
 
 enum SyncClientsName {
   FileSyncSuccess = 'FileSyncSuccess',
@@ -48,9 +50,13 @@ export const ProcessEditor = (): React.ReactElement => {
 
   const existingCustomReceiptId: string | undefined = useCustomReceiptLayoutSetName(org, app);
 
+  const { mutate: addDataTypeToAppMetadata } = useAddDataTypeToAppMetadata(org, app);
+  const { mutate: deleteDataTypeFromAppMetadata } = useDeleteDataTypeFromAppMetadata(org, app);
+
   const { data: availableDataModelIds, isPending: availableDataModelIdsPending } =
     useAppMetadataModelIdsQuery(org, app);
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
+
   const pendingApiOperations: boolean =
     mutateBpmnPending ||
     mutateLayoutSetPending ||
@@ -111,6 +117,8 @@ export const ProcessEditor = (): React.ReactElement => {
       appLibVersion={appLibData.backendVersion}
       bpmnXml={hasBpmnQueryError ? null : bpmnXml}
       mutateDataType={mutateDataType}
+      addDataTypeToAppMetadata={addDataTypeToAppMetadata}
+      deleteDataTypeFromAppMetadata={deleteDataTypeFromAppMetadata}
       saveBpmn={saveBpmnXml}
     />
   );

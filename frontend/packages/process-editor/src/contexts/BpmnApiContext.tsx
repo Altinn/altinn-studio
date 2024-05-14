@@ -22,6 +22,9 @@ export type BpmnApiContextProps = {
     options?: QueryOptions,
   ) => void;
   mutateDataType: (dataTypeChange: DataTypeChange, options?: QueryOptions) => void;
+  addDataTypeToAppMetadata: (data: { dataTypeId: string }) => void;
+  deleteDataTypeFromAppMetadata: (data: { dataTypeId: string }) => void;
+
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
 };
 
@@ -41,6 +44,8 @@ export const BpmnApiContextProvider = ({
   deleteLayoutSet,
   mutateLayoutSet,
   mutateDataType,
+  addDataTypeToAppMetadata,
+  deleteDataTypeFromAppMetadata,
   saveBpmn,
 }: Partial<BpmnApiContextProviderProps>) => {
   return (
@@ -54,6 +59,8 @@ export const BpmnApiContextProvider = ({
         deleteLayoutSet,
         mutateLayoutSet,
         mutateDataType,
+        addDataTypeToAppMetadata,
+        deleteDataTypeFromAppMetadata,
         saveBpmn,
       }}
     >
