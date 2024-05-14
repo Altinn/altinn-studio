@@ -1,8 +1,7 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createAction, createSlice } from '@reduxjs/toolkit';
-import type { ICommit, IServiceDescription, IServiceId, IServiceName } from '../../types/global';
+import type { IServiceDescription, IServiceId, IServiceName } from '../../types/global';
 import type {
-  IFetchInitialCommitFulfilled,
   IHandleServiceInformationActionRejected,
   IFetchServiceFulfilled,
   IFetchServiceConfigFulfilled,
@@ -14,7 +13,6 @@ import type {
   IFetchServiceAction,
   IFetchServiceConfigAction,
   IFetchServiceNameAction,
-  IFetchInitialCommitAction,
 } from './types';
 import type { Repository } from 'app-shared/types/Repository';
 
@@ -23,7 +21,6 @@ export interface IHandleServiceInformationState {
   serviceNameObj: IServiceName;
   serviceDescriptionObj: IServiceDescription;
   serviceIdObj: IServiceId;
-  initialCommit: ICommit;
   error: Error;
 }
 
@@ -41,7 +38,6 @@ const initialState: IHandleServiceInformationState = {
     serviceId: '',
     saving: false,
   },
-  initialCommit: null,
   error: null,
 };
 
@@ -50,17 +46,6 @@ const handleServiceInformationSlice = createSlice({
   name: moduleName,
   initialState,
   reducers: {
-    fetchInitialCommitFulfilled: (state, action: PayloadAction<IFetchInitialCommitFulfilled>) => {
-      const { result } = action.payload;
-      state.initialCommit = result;
-    },
-    fetchInitialCommitRejected: (
-      state,
-      action: PayloadAction<IHandleServiceInformationActionRejected>,
-    ) => {
-      const { error } = action.payload;
-      state.error = error;
-    },
     fetchServiceFulfilled: (state, action: PayloadAction<IFetchServiceFulfilled>) => {
       const { repository } = action.payload;
       state.repositoryInfo = repository;
@@ -148,7 +133,6 @@ const actions = {
   fetchService: createAction<IFetchServiceAction>(`${moduleName}/fetchService`),
   fetchServiceConfig: createAction<IFetchServiceConfigAction>(`${moduleName}/fetchServiceConfig`),
   fetchServiceName: createAction<IFetchServiceNameAction>(`${moduleName}/fetchServiceName`),
-  fetchInitialCommit: createAction<IFetchInitialCommitAction>(`${moduleName}/fetchInitialCommit`),
 };
 
 export const HandleServiceInformationActions = {

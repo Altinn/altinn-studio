@@ -1,13 +1,5 @@
 import type { Repository } from 'app-shared/types/Repository';
 
-export interface IFetchInitialCommitAction {
-  url: string;
-}
-
-export interface IFetchInitialCommitFulfilled {
-  result: any;
-}
-
 export interface IFetchServiceAction {
   url: string;
 }

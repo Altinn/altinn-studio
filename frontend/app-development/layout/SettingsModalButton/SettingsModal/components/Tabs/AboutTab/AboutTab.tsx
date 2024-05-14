@@ -7,8 +7,8 @@ import { ErrorMessage } from '@digdir/design-system-react';
 import { Divider } from 'app-shared/primitives';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';
-import { useAppConfigQuery } from 'app-development/hooks/queries';
-import { useRepoInitialCommitQuery, useRepoMetadataQuery } from 'app-shared/hooks/queries';
+import { useAppConfigQuery, useAppMetadataQuery } from 'app-development/hooks/queries';
+import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';
@@ -46,10 +46,10 @@ export const AboutTab = ({ org, app }: AboutTabProps): ReactNode => {
     error: repositoryError,
   } = useRepoMetadataQuery(org, app);
   const {
-    status: initialCommitStatus,
-    data: initialCommitData,
-    error: initialCommitError,
-  } = useRepoInitialCommitQuery(org, app);
+    status: applicationMetadataStatus,
+    data: applicationMetadataData,
+    error: applicationMetadataError,
+  } = useAppMetadataQuery(org, app);
 
   const { mutate: updateAppConfigMutation } = useAppConfigMutation(org, app);
 
@@ -58,7 +58,7 @@ export const AboutTab = ({ org, app }: AboutTabProps): ReactNode => {
   };
 
   const displayContent = () => {
-    switch (mergeQueryStatuses(appConfigStatus, repositoryStatus, initialCommitStatus)) {
+    switch (mergeQueryStatuses(appConfigStatus, repositoryStatus, applicationMetadataStatus)) {
       case 'pending': {
         return <LoadingTabData />;
       }
@@ -67,7 +67,9 @@ export const AboutTab = ({ org, app }: AboutTabProps): ReactNode => {
           <TabDataError>
             {appConfigError && <ErrorMessage>{appConfigError.message}</ErrorMessage>}
             {repositoryError && <ErrorMessage>{repositoryError.message}</ErrorMessage>}
-            {initialCommitError && <ErrorMessage>{initialCommitError.message}</ErrorMessage>}
+            {applicationMetadataError && (
+              <ErrorMessage>{applicationMetadataError.message}</ErrorMessage>
+            )}
           </TabDataError>
         );
       }
@@ -79,7 +81,7 @@ export const AboutTab = ({ org, app }: AboutTabProps): ReactNode => {
             <CreatedFor
               repositoryType={repositoryType}
               repository={repositoryData}
-              authorName={initialCommitData.author.name}
+              authorName={applicationMetadataData?.createdBy}
             />
           </>
         );

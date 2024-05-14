@@ -23,7 +23,6 @@ import {
   accessListPath,
   processEditorPath,
   releasesPath,
-  repoInitialCommitPath,
   repoMetaPath,
   repoPullPath,
   repoSearchPath,
@@ -69,7 +68,6 @@ import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { PolicyAction, Policy, PolicySubject } from '@altinn/policy-editor';
 import type { BrregPartySearchResult, BrregSubPartySearchResult, AccessList, Resource, ResourceListItem, ResourceVersionStatus, Validation, AccessListsResponse } from 'app-shared/types/ResourceAdm';
 import type { AppConfig } from 'app-shared/types/AppConfig';
-import type { Commit } from 'app-shared/types/Commit';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import type { NewsList } from 'app-shared/types/api/NewsList';
@@ -98,7 +96,6 @@ export const getNewsList = (language: 'nb' | 'en') => get<NewsList>(newsListUrl(
 export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));
 export const getOrgList = () => get<OrgList>(orgListUrl());
 export const getOrganizations = () => get<Organization[]>(orgsListPath());
-export const getRepoInitialCommit = (owner: string, app: string) => get<Commit>(repoInitialCommitPath(owner, app));
 export const getRepoMetadata = (owner: string, app: string) => get<Repository>(repoMetaPath(owner, app));
 export const getRepoPull = (owner: string, app: string) => get<RepoStatus>(repoPullPath(owner, app));
 export const getRepoStatus = (owner: string, app: string) => get<RepoStatus>(repoStatusPath(owner, app));
