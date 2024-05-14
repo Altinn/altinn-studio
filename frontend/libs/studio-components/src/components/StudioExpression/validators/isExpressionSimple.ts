@@ -59,7 +59,7 @@ export const isSimpleDataLookupFunc = (expression: Expression): expression is Da
 export const isProcessDataLookupFunc = (expression: Expression): expression is DataLookupFunc => {
   return (
     Array.isArray(expression) &&
-    Object.values(DataLookupFuncName).includes(expression[0] as DataLookupFuncName)
+    [DataLookupFuncName.GatewayAction].includes(expression[0] as DataLookupFuncName)
   );
 };
 
