@@ -71,7 +71,7 @@ public static class AnsattPortenExtensions
 
                     options.Events.OnRedirectToIdentityProvider = context =>
                     {
-                        if (!context.Request.Path.StartsWithSegments("/designer/api/maskinporten"))
+                        if (!context.Request.Path.StartsWithSegments("/AnsattPortenLogin"))
                         {
                             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                             context.HandleResponse();

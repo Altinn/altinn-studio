@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Infrastructure.AnsattPorten;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 
@@ -194,6 +196,13 @@ namespace Altinn.Studio.Designer.Controllers
                 });
 
             return LocalRedirect(goToUrl);
+        }
+
+
+        [Authorize(AnsattPortenConstants.AnsattportenAuthorizationPolicy)]
+        public async Task AnsattPortenLogin()
+        {
+            await Task.CompletedTask;
         }
 
         /// <summary>
