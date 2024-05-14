@@ -5324,20 +5324,6 @@
         },
         "additionalProperties": false
       },
-      "JsonPointer": {
-        "type": "object",
-        "properties": {
-          "segments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PointerSegment"
-            },
-            "nullable": true,
-            "readOnly": true
-          }
-        },
-        "additionalProperties": false
-      },
       "Logo": {
         "type": "object",
         "properties": {
@@ -5424,24 +5410,23 @@
             "$ref": "#/components/schemas/OperationType"
           },
           "from": {
-            "$ref": "#/components/schemas/JsonPointer"
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "readOnly": true
           },
           "path": {
-            "$ref": "#/components/schemas/JsonPointer"
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "readOnly": true
           },
           "value": {
             "$ref": "#/components/schemas/JsonNode"
-          }
-        },
-        "additionalProperties": false
-      },
-      "PointerSegment": {
-        "type": "object",
-        "properties": {
-          "value": {
-            "type": "string",
-            "nullable": true,
-            "readOnly": true
           }
         },
         "additionalProperties": false
