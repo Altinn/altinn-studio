@@ -4,33 +4,10 @@ import userEvent from '@testing-library/user-event';
 import { EditTaskId } from './EditTaskId';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { useBpmnConfigPanelFormContext } from '../../../../contexts/BpmnConfigPanelContext';
-import {
-  type BpmnApiContextProps,
-  BpmnApiContextProvider,
-} from '../../../../contexts/BpmnApiContext';
-
-const mockBpmnApiContextValue: Partial<BpmnApiContextProps> = {
-  layoutSets: {
-    sets: [
-      {
-        id: 'testId',
-        dataType: 'layoutSetId1',
-        tasks: ['testId'],
-      },
-      {
-        id: 'layoutSetId2',
-        dataType: 'layoutSetId2',
-        tasks: ['Task_2'],
-      },
-    ],
-  },
-  pendingApiOperations: false,
-  existingCustomReceiptLayoutSetName: undefined,
-  addLayoutSet: jest.fn(),
-  deleteLayoutSet: jest.fn(),
-  mutateLayoutSet: jest.fn(),
-  saveBpmn: jest.fn(),
-};
+import { BpmnApiContextProvider } from '../../../../contexts/BpmnApiContext';
+import { mockBpmnDetails } from '../../../../../test/mocks/bpmnDetailsMock';
+import { mockModelerRef } from '../../../../../test/mocks/bpmnModelerMock';
+import { mockBpmnApiContextValue } from '../../../../../test/mocks/bpmnContextMock';
 
 const renderEditTaskId = (children: React.ReactNode) => {
   return render(
@@ -41,20 +18,9 @@ const renderEditTaskId = (children: React.ReactNode) => {
 const setBpmnDetailsMock = jest.fn();
 jest.mock('../../../../contexts/BpmnContext', () => ({
   useBpmnContext: () => ({
-    modelerRef: {
-      current: {
-        get: () => ({
-          updateProperties: jest.fn(),
-        }),
-      },
-    },
+    modelerRef: mockModelerRef,
     setBpmnDetails: setBpmnDetailsMock,
-    bpmnDetails: {
-      id: 'testId',
-      name: 'testName',
-      taskType: 'data',
-      type: 'task',
-    },
+    bpmnDetails: mockBpmnDetails,
   }),
 }));
 
@@ -185,11 +151,6 @@ describe('EditTaskId', () => {
         expect(screen.getByText(textMock(expectedError, textArgs))).toBeInTheDocument();
       });
     });
-  });
-
-  it('should support HTMLDivElement props', () => {
-    renderEditTaskId(<EditTaskId className='my-awesome-class-name' data-testid='unitTestId' />);
-    expect(screen.getByTestId('unitTestId')).toHaveClass('my-awesome-class-name');
   });
 
   it('should not update id if new id is the same as the old id', async () => {

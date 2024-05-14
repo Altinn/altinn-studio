@@ -4,8 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
 using NuGet.Versioning;
 
@@ -51,6 +53,33 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
         {
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
             return altinnAppGitRepository.GetProcessDefinitionFile();
+        }
+
+        public async Task AddDataTypeToApplicationMetadataAsync(AltinnRepoEditingContext altinnRepoEditingContext, string dataTypeId, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
+            if (!applicationMetadata.DataTypes.Exists(dataType => dataType.Id == dataTypeId))
+            {
+                applicationMetadata.DataTypes.Add(new DataType
+                {
+                    Id = dataTypeId,
+                    AllowedContentTypes = ["application/json"],
+                    MaxCount = 1,
+                    EnablePdfCreation = false
+                });
+                await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
+            }
+        }
+
+        public async Task DeleteDataTypeFromApplicationMetadataAsync(AltinnRepoEditingContext altinnRepoEditingContext, string dataTypeId, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
+            applicationMetadata.DataTypes.RemoveAll(dataType => dataType.Id == dataTypeId);
+            await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
         }
 
         private IEnumerable<string> EnumerateTemplateResources(SemanticVersion version)
