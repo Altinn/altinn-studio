@@ -42,7 +42,7 @@ public class ProcessTaskIdChangedLayoutSetsHandler : INotificationHandler<Proces
                 var layoutSets = await repository.GetLayoutSetsFile(cancellationToken);
                 if (TryChangeTaskIds(layoutSets, notification.OldId, notification.NewId))
                 {
-                    await repository.SaveLayoutSetsFile(layoutSets);
+                    await repository.SaveLayoutSets(layoutSets);
                 }
             });
     }
