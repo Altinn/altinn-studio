@@ -10,7 +10,7 @@ import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 jest.mock('../../../contexts/BpmnApiContext', () => ({
   useBpmnApiContext: jest.fn().mockReturnValue({
     layoutSets: {},
-    existingCustomReceiptLayoutSetName: undefined,
+    existingCustomReceiptLayoutSetId: undefined,
     addLayoutSet: jest.fn(),
     mutateLayoutSet: jest.fn(),
   }),
@@ -20,9 +20,9 @@ jest.mock('../../../contexts/BpmnApiContext', () => ({
 const invalidFormatLayoutSetName: string = 'Receipt/';
 const emptyLayoutSetName: string = '';
 const existingLayoutSetName: string = 'layoutSetName1';
-const existingCustomReceiptLayoutSetName: string = 'CustomReceipt';
+const existingCustomReceiptLayoutSetId: string = 'CustomReceipt';
 const layoutSetWithCustomReceipt: LayoutSetConfig = {
-  id: existingCustomReceiptLayoutSetName,
+  id: existingCustomReceiptLayoutSetId,
   tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
 };
 const layoutSetWithDataTask: LayoutSetConfig = {
@@ -44,11 +44,11 @@ describe('ConfigEndEvent', () => {
 
   it('should display existing layout set name of receipt when custom receipt layout set exists', () => {
     (useBpmnApiContext as jest.Mock).mockReturnValue({
-      existingCustomReceiptLayoutSetName: existingCustomReceiptLayoutSetName,
+      existingCustomReceiptLayoutSetId,
     });
     renderConfigEndEventPanel();
     screen.getByText(textMock('process_editor.configuration_panel_custom_receipt_name'));
-    screen.getByRole('button', { name: existingCustomReceiptLayoutSetName });
+    screen.getByRole('button', { name: existingCustomReceiptLayoutSetId });
   });
 
   it('calls addLayoutSet mutation when layoutSetName for custom receipt is added', async () => {
@@ -85,12 +85,12 @@ describe('ConfigEndEvent', () => {
     const updateLayoutSetMock = jest.fn();
     (useBpmnApiContext as jest.Mock).mockReturnValue({
       layoutSets: layoutSetsWithCustomReceipt,
-      existingCustomReceiptLayoutSetName: existingCustomReceiptLayoutSetName,
+      existingCustomReceiptLayoutSetId,
       mutateLayoutSet: updateLayoutSetMock,
     });
     renderConfigEndEventPanel();
     const inputFieldButton = screen.getByRole('button', {
-      name: existingCustomReceiptLayoutSetName,
+      name: existingCustomReceiptLayoutSetId,
     });
     await user.click(inputFieldButton);
     const inputField = screen.getByRole('textbox', {
@@ -101,7 +101,7 @@ describe('ConfigEndEvent', () => {
     await user.tab();
     expect(updateLayoutSetMock).toHaveBeenCalledTimes(1);
     expect(updateLayoutSetMock).toHaveBeenCalledWith({
-      layoutSetIdToUpdate: existingCustomReceiptLayoutSetName,
+      layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
       newLayoutSetId: newCustomReceiptLayoutSetName,
     });
   });
@@ -109,18 +109,18 @@ describe('ConfigEndEvent', () => {
     invalidFormatLayoutSetName,
     emptyLayoutSetName,
     existingLayoutSetName,
-    existingCustomReceiptLayoutSetName,
+    existingCustomReceiptLayoutSetId,
   ])('shows correct errormessage when layoutSetId is %s', async (invalidLayoutSetId: string) => {
     const user = userEvent.setup();
     const updateLayoutSetMock = jest.fn();
     (useBpmnApiContext as jest.Mock).mockReturnValue({
       layoutSets: { sets: [layoutSetWithCustomReceipt, layoutSetWithDataTask] },
-      existingCustomReceiptLayoutSetName: existingCustomReceiptLayoutSetName,
+      existingCustomReceiptLayoutSetId,
       mutateLayoutSet: updateLayoutSetMock,
     });
     renderConfigEndEventPanel();
     const inputFieldButton = screen.getByRole('button', {
-      name: existingCustomReceiptLayoutSetName,
+      name: existingCustomReceiptLayoutSetId,
     });
     await user.click(inputFieldButton);
     const inputField = screen.getByRole('textbox', {

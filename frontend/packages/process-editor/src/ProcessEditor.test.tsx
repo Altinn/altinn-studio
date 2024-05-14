@@ -17,7 +17,7 @@ const defaultProps: ProcessEditorProps = {
   availableDataModelIds: [],
   layoutSets: { sets: [] },
   pendingApiOperations: false,
-  existingCustomReceiptLayoutSetName: undefined,
+  existingCustomReceiptLayoutSetId: undefined,
   addLayoutSet: jest.fn(),
   deleteLayoutSet: jest.fn(),
   mutateLayoutSet: jest.fn(),
