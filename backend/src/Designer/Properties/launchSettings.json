@@ -32,17 +32,6 @@
         "ALTINN_KEYS_DIRECTORY": "/tmp/altinn/keys/",
         "DOTNET_ROLL_FORWARD": "Major"
       }
-    },
-      "AnsattPortenIntegration": {
-          "commandName": "Project",
-          "dotnetRunMessages": true,
-          "launchBrowser": true,
-          "launchUrl": "https://localhost:5002/designer/api",
-          "applicationUrl": "https://localhost:5002",
-          "environmentVariables": {
-              "ASPNETCORE_ENVIRONMENT": "Development"
-          }
-      }
-
+    }
   }
 }
