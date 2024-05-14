@@ -34,6 +34,8 @@ module.exports = {
       },
     },
   ],
-
   extends: ['plugin:storybook/recommended'],
+  settings: {
+    'testing-library/custom-renders': ['rowsToRender'],
+  },
 };
