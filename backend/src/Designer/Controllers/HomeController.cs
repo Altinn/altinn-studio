@@ -63,6 +63,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// the default page for altinn studio when the user is not logged in
         /// </summary>
         /// <returns>The start page</returns>
+        [HttpGet]
         [Route("/")]
         [Route("/[controller]")]
         [Route("/[controller]/[action]/{id?}", Name = "DefaultNotLoggedIn")]
