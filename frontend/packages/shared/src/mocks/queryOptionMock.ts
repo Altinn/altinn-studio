@@ -4,6 +4,7 @@ type QueryOptions = {
   onSettled?: Function;
 };
 
+// Only to be used in places where React Query is mocked and "the real" usage is not available
 export const queryOptionMock = <T>(args: T, options: QueryOptions) => {
   const { onError, onSettled, onSuccess } = options;
 
