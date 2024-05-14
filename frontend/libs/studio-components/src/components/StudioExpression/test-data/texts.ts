@@ -55,6 +55,7 @@ const errorMessages: Record<ExpressionErrorKey, string> = {
   [ExpressionErrorKey.InvalidSecondOperand]: 'The second operand is invalid.',
   [ExpressionErrorKey.NumericRelationOperatorWithWrongType]:
     'The relational operator is invalid for the selected operand types.',
+  [ExpressionErrorKey.ComponentIDNoLongerExists]: 'The component ID no longer exists.',
 };
 
 export const texts: ExpressionTexts = {
