@@ -761,7 +761,6 @@
   "process_editor.configuration_panel_custom_receipt_cancel_button": "Avbryt",
   "process_editor.configuration_panel_custom_receipt_create_button": "Opprett",
   "process_editor.configuration_panel_custom_receipt_create_datamodel_error": "Du må velge en datamodellknytning for å opprette din egen kvittering",
-  "process_editor.configuration_panel_custom_receipt_create_layoutset_error": "Du må gi et navn til sidegruppen for å opprette din egen kvittering",
   "process_editor.configuration_panel_custom_receipt_create_your_own_button": "Opprett din egen kvittering",
   "process_editor.configuration_panel_custom_receipt_datamodel_id": "Datamodellknytning: ",
   "process_editor.configuration_panel_custom_receipt_default_heading": "Standardkvittering",
