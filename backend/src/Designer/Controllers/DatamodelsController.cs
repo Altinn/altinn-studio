@@ -12,7 +12,6 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.ViewModels.Request;
-using JetBrains.Annotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -55,23 +54,13 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Route("datamodel")]
-        public async Task<ActionResult<string>> Get([FromRoute] string org, [FromRoute] string repository, [FromQuery] [CanBeNull] string modelPath, CancellationToken cancellationToken)
+        public async Task<ActionResult<string>> Get([FromRoute] string org, [FromRoute] string repository, [FromQuery] string modelPath, CancellationToken cancellationToken)
         {
+            var decodedPath = Uri.UnescapeDataString(modelPath);
+
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
-
-            string json;
-            if (string.IsNullOrEmpty(modelPath))
-            {
-                // Get default data model
-                // Not sure if this is the correct way to get the default data model
-                json = _schemaModelService.GetSchemaFiles(editingContext)[0].ToString();
-            }
-            else
-            {
-                var decodedPath = Uri.UnescapeDataString(modelPath);
-                json = await _schemaModelService.GetSchema(editingContext, decodedPath, cancellationToken);
-            }
+            var json = await _schemaModelService.GetSchema(editingContext, decodedPath, cancellationToken);
 
             return Ok(json);
         }

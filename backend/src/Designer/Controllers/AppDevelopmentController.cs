@@ -12,6 +12,7 @@ using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
+using JetBrains.Annotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -42,7 +43,9 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="sourceControl">The source control service.</param>
         /// <param name="altinnGitRepositoryFactory"></param>
         /// <param name="applicationInsightsSettings">An <see cref="ApplicationInsightsSettings"/></param>
-        public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService, ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ApplicationInsightsSettings applicationInsightsSettings)
+        public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService,
+            ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+            ApplicationInsightsSettings applicationInsightsSettings)
         {
             _appDevelopmentService = appDevelopmentService;
             _repository = repositoryService;
@@ -74,13 +77,15 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [UseSystemTextJson]
         [Route("form-layouts")]
-        public async Task<IActionResult> GetFormLayouts(string org, string app, [FromQuery] string layoutSetName, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetFormLayouts(string org, string app, [FromQuery] string layoutSetName,
+            CancellationToken cancellationToken)
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                Dictionary<string, JsonNode> formLayouts = await _appDevelopmentService.GetFormLayouts(editingContext, layoutSetName, cancellationToken);
+                Dictionary<string, JsonNode> formLayouts =
+                    await _appDevelopmentService.GetFormLayouts(editingContext, layoutSetName, cancellationToken);
                 return Ok(formLayouts);
             }
             catch (FileNotFoundException exception)
@@ -106,13 +111,15 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         [UseSystemTextJson]
         [Route("form-layout/{layoutName}")]
-        public async Task<ActionResult> SaveFormLayout(string org, string app, [FromQuery] string layoutSetName, [FromRoute] string layoutName, [FromBody] JsonNode formLayout, CancellationToken cancellationToken)
+        public async Task<ActionResult> SaveFormLayout(string org, string app, [FromQuery] string layoutSetName,
+            [FromRoute] string layoutName, [FromBody] JsonNode formLayout, CancellationToken cancellationToken)
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                await _appDevelopmentService.SaveFormLayout(editingContext, layoutSetName, layoutName, formLayout, cancellationToken);
+                await _appDevelopmentService.SaveFormLayout(editingContext, layoutSetName, layoutName, formLayout,
+                    cancellationToken);
                 return Ok();
             }
             catch (FileNotFoundException exception)
@@ -131,7 +138,8 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>A success message if the save was successful</returns>
         [HttpDelete]
         [Route("form-layout/{layoutName}")]
-        public ActionResult DeleteFormLayout(string org, string app, [FromQuery] string layoutSetName, [FromRoute] string layoutName)
+        public ActionResult DeleteFormLayout(string org, string app, [FromQuery] string layoutSetName,
+            [FromRoute] string layoutName)
         {
             try
             {
@@ -157,7 +165,8 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
         [Route("form-layout-name/{layoutName}")]
-        public ActionResult UpdateFormLayoutName(string org, string app, [FromQuery] string layoutSetName, [FromRoute] string layoutName, [FromBody] string newName)
+        public ActionResult UpdateFormLayoutName(string org, string app, [FromQuery] string layoutSetName,
+            [FromRoute] string layoutName, [FromBody] string newName)
         {
             try
             {
@@ -184,13 +193,15 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         [UseSystemTextJson]
         [Route("layout-settings")]
-        public async Task<ActionResult> SaveLayoutSettings(string org, string app, [FromQuery] string layoutSetName, [FromBody] JsonNode layoutSettings, CancellationToken cancellationToken)
+        public async Task<ActionResult> SaveLayoutSettings(string org, string app, [FromQuery] string layoutSetName,
+            [FromBody] JsonNode layoutSettings, CancellationToken cancellationToken)
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                await _appDevelopmentService.SaveLayoutSettings(editingContext, layoutSettings, layoutSetName, cancellationToken);
+                await _appDevelopmentService.SaveLayoutSettings(editingContext, layoutSettings, layoutSetName,
+                    cancellationToken);
                 return Ok();
             }
             catch (FileNotFoundException exception)
@@ -210,13 +221,15 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [UseSystemTextJson]
         [Route("layout-settings")]
-        public async Task<IActionResult> GetLayoutSettings(string org, string app, [FromQuery] string layoutSetName, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetLayoutSettings(string org, string app, [FromQuery] string layoutSetName,
+            CancellationToken cancellationToken)
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                var layoutSettings = await _appDevelopmentService.GetLayoutSettings(editingContext, layoutSetName, cancellationToken);
+                var layoutSettings =
+                    await _appDevelopmentService.GetLayoutSettings(editingContext, layoutSetName, cancellationToken);
                 return Ok(layoutSettings);
             }
             catch (FileNotFoundException exception)
@@ -258,10 +271,13 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [UseSystemTextJson]
         [Route("model-ids")]
-        public async Task<IActionResult> GetAppMetadataDataModelIds(string org, string app, CancellationToken cancellationToken, [FromQuery] bool onlyUnReferenced = false)
+        public async Task<IActionResult> GetAppMetadataDataModelIds(string org, string app,
+            CancellationToken cancellationToken, [FromQuery] bool onlyUnReferenced = false)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            IEnumerable<string> dataModelIds = await _appDevelopmentService.GetAppMetadataModelIds(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), onlyUnReferenced, cancellationToken);
+            IEnumerable<string> dataModelIds = await _appDevelopmentService.GetAppMetadataModelIds(
+                AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), onlyUnReferenced,
+                cancellationToken);
             return Ok(dataModelIds);
         }
 
@@ -271,15 +287,19 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="layoutSetName">Name of current layoutSet in ux-editor that edited layout belongs to</param>
+        /// <param name="dataModelName">Name of data model to fetch (optional)</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The model as JSON</returns>
         [HttpGet]
         [UseSystemTextJson]
         [Route("model-metadata")]
-        public async Task<IActionResult> GetModelMetadata(string org, string app, [FromQuery] string layoutSetName, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetModelMetadata(string org, string app, [FromQuery] string layoutSetName,
+            [FromQuery] [CanBeNull] string dataModelName, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            ModelMetadata modelMetadata = await _appDevelopmentService.GetModelMetadata(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), layoutSetName, cancellationToken);
+            ModelMetadata modelMetadata = await _appDevelopmentService.GetModelMetadata(
+                AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), layoutSetName, dataModelName,
+                cancellationToken);
             return Ok(modelMetadata);
         }
 
@@ -311,11 +331,13 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         [UseSystemTextJson]
         [Route("layout-set/{layoutSetIdToUpdate}")]
-        public async Task<ActionResult> AddLayoutSet(string org, string app, [FromBody] LayoutSetConfig layoutSet, CancellationToken cancellationToken)
+        public async Task<ActionResult> AddLayoutSet(string org, string app, [FromBody] LayoutSetConfig layoutSet,
+            CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            LayoutSets layoutSets = await _appDevelopmentService.AddLayoutSet(editingContext, layoutSet, cancellationToken);
+            LayoutSets layoutSets =
+                await _appDevelopmentService.AddLayoutSet(editingContext, layoutSet, cancellationToken);
             return Ok(layoutSets);
         }
 
@@ -330,11 +352,14 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPut]
         [UseSystemTextJson]
         [Route("layout-set/{layoutSetIdToUpdate}")]
-        public async Task<ActionResult> UpdateLayoutSetName(string org, string app, [FromRoute] string layoutSetIdToUpdate, [FromBody] string newLayoutSetName, CancellationToken cancellationToken)
+        public async Task<ActionResult> UpdateLayoutSetName(string org, string app,
+            [FromRoute] string layoutSetIdToUpdate, [FromBody] string newLayoutSetName,
+            CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            LayoutSets layoutSets = await _appDevelopmentService.UpdateLayoutSetName(editingContext, layoutSetIdToUpdate, newLayoutSetName, cancellationToken);
+            LayoutSets layoutSets = await _appDevelopmentService.UpdateLayoutSetName(editingContext,
+                layoutSetIdToUpdate, newLayoutSetName, cancellationToken);
             return Ok(layoutSets);
         }
 
@@ -348,11 +373,13 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpDelete]
         [UseSystemTextJson]
         [Route("layout-set/{layoutSetIdToUpdate}")]
-        public async Task<ActionResult> DeleteLayoutSet(string org, string app, [FromRoute] string layoutSetIdToUpdate, CancellationToken cancellationToken)
+        public async Task<ActionResult> DeleteLayoutSet(string org, string app, [FromRoute] string layoutSetIdToUpdate,
+            CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            LayoutSets layoutSets = await _appDevelopmentService.DeleteLayoutSet(editingContext, layoutSetIdToUpdate, cancellationToken);
+            LayoutSets layoutSets =
+                await _appDevelopmentService.DeleteLayoutSet(editingContext, layoutSetIdToUpdate, cancellationToken);
             return Ok(layoutSets);
         }
 
@@ -366,13 +393,15 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The model representation as JSON</returns>
         [HttpGet]
         [Route("rule-handler")]
-        public async Task<IActionResult> GetRuleHandler(string org, string app, [FromQuery] string layoutSetName, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetRuleHandler(string org, string app, [FromQuery] string layoutSetName,
+            CancellationToken cancellationToken)
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                string ruleHandler = await _appDevelopmentService.GetRuleHandler(editingContext, layoutSetName, cancellationToken);
+                string ruleHandler =
+                    await _appDevelopmentService.GetRuleHandler(editingContext, layoutSetName, cancellationToken);
                 return Content(ruleHandler);
             }
             catch (FileNotFoundException)
@@ -395,7 +424,8 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The model representation as JSON</returns>
         [HttpPost]
         [Route("rule-handler")]
-        public async Task<IActionResult> SaveRuleHandler(string org, string app, [FromQuery] string layoutSetName, CancellationToken cancellationToken)
+        public async Task<IActionResult> SaveRuleHandler(string org, string app, [FromQuery] string layoutSetName,
+            CancellationToken cancellationToken)
         {
             try
             {
@@ -404,7 +434,8 @@ namespace Altinn.Studio.Designer.Controllers
                 {
                     var content = await reader.ReadToEndAsync(cancellationToken);
                     var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                    await _appDevelopmentService.SaveRuleHandler(editingContext, content, layoutSetName, cancellationToken);
+                    await _appDevelopmentService.SaveRuleHandler(editingContext, content, layoutSetName,
+                        cancellationToken);
                 }
 
                 return NoContent();
@@ -427,13 +458,15 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         [UseSystemTextJson]
         [Route("rule-config")]
-        public async Task<IActionResult> SaveRuleConfig(string org, string app, [FromBody] JsonNode ruleConfig, [FromQuery] string layoutSetName, CancellationToken cancellationToken)
+        public async Task<IActionResult> SaveRuleConfig(string org, string app, [FromBody] JsonNode ruleConfig,
+            [FromQuery] string layoutSetName, CancellationToken cancellationToken)
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                await _appDevelopmentService.SaveRuleConfig(editingContext, ruleConfig, layoutSetName, cancellationToken);
+                await _appDevelopmentService.SaveRuleConfig(editingContext, ruleConfig, layoutSetName,
+                    cancellationToken);
                 return Ok();
             }
             catch (Exception exception)
@@ -452,13 +485,16 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The model representation as JSON</returns>
         [HttpGet]
         [Route("rule-config")]
-        public async Task<IActionResult> GetRuleConfig(string org, string app, [FromQuery] string layoutSetName, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetRuleConfig(string org, string app, [FromQuery] string layoutSetName,
+            CancellationToken cancellationToken)
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                string ruleConfig = await _appDevelopmentService.GetRuleConfigAndAddDataToRootIfNotAlreadyPresent(editingContext, layoutSetName, cancellationToken);
+                string ruleConfig =
+                    await _appDevelopmentService.GetRuleConfigAndAddDataToRootIfNotAlreadyPresent(editingContext,
+                        layoutSetName, cancellationToken);
                 return Content(ruleConfig);
             }
             catch (FileNotFoundException)
@@ -483,7 +519,8 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult GetWidgetSettings(string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            string widgetSettings = _repository.GetWidgetSettings(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer));
+            string widgetSettings =
+                _repository.GetWidgetSettings(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer));
             return Ok(widgetSettings);
         }
 
@@ -494,7 +531,8 @@ namespace Altinn.Studio.Designer.Controllers
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+                AltinnAppGitRepository altinnAppGitRepository =
+                    _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
                 string[] optionListIds = altinnAppGitRepository.GetOptionListIds();
                 return Ok(optionListIds);
             }
@@ -513,11 +551,7 @@ namespace Altinn.Studio.Designer.Controllers
             var backendVersion = _appDevelopmentService.GetAppLibVersion(editingContext);
             _appDevelopmentService.TryGetFrontendVersion(editingContext, out string frontendVersion);
 
-            return new VersionResponse
-            {
-                BackendVersion = backendVersion,
-                FrontendVersion = frontendVersion
-            };
+            return new VersionResponse { BackendVersion = backendVersion, FrontendVersion = frontendVersion };
         }
     }
 }
