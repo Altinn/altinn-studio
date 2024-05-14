@@ -9,6 +9,7 @@ import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import { type LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { SelectCustomReceiptDatamodelId } from './SelectCustomReceiptDatamodelId';
 import { getExistingDatamodelIdFromLayoutsets } from '../../../../../utils/customReceiptUtils';
+import { getLayoutSetIdValidationErrorKey } from 'app-shared/utils/layoutSetsUtils';
 
 export type CreateCustomReceiptFormProps = {
   onCloseForm: () => void;
@@ -43,11 +44,9 @@ export const CreateCustomReceiptForm = ({
     if (layoutSetId && datamodelId) {
       saveCustomReceipt(customReceiptForm);
     }
-    setLayoutSetError(
-      !layoutSetId
-        ? t('process_editor.configuration_panel_custom_receipt_create_layoutset_error')
-        : null,
-    );
+
+    const validationResult = handleValidateLayoutSetId(layoutSetId);
+    setLayoutSetError(validationResult);
     setDatamodelError(
       !datamodelId
         ? t('process_editor.configuration_panel_custom_receipt_create_datamodel_error')
@@ -94,12 +93,18 @@ export const CreateCustomReceiptForm = ({
   };
 
   const handleChangeLayoutsetName = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value: string = event.target.value;
-    setLayoutSetError(
-      value.length === 0
-        ? t('process_editor.configuration_panel_custom_receipt_create_layoutset_error')
-        : null,
+    const newLayoutSetId: string = event.target.value;
+    const validationResult = handleValidateLayoutSetId(newLayoutSetId);
+    setLayoutSetError(validationResult);
+  };
+
+  const handleValidateLayoutSetId = (newLayoutSetId: string): string => {
+    const validationResult = getLayoutSetIdValidationErrorKey(
+      layoutSets,
+      existingCustomReceiptLayoutSetId,
+      newLayoutSetId,
     );
+    return validationResult ? t(validationResult) : null;
   };
 
   return (

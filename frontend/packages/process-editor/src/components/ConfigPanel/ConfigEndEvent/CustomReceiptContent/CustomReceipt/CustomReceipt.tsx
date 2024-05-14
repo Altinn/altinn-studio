@@ -9,6 +9,7 @@ import { RedirectToCreatePageButton } from '../RedirectToCreatePageButton';
 import { useTranslation } from 'react-i18next';
 import { EditDataType } from '../../../EditDataType';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
+import { getLayoutSetIdValidationErrorKey } from 'app-shared/utils/layoutSetsUtils';
 
 export const CustomReceipt = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -42,12 +43,13 @@ export const CustomReceipt = (): React.ReactElement => {
     ? [...availableDataModelIds, existingDatamodelId]
     : availableDataModelIds;
 
-  const handleValidation = (value: string): string => {
-    console.log('VALUE', value);
-    if (value.length === 0) {
-      return t('process_editor.configuration_panel_custom_receipt_edit_layoutset_error');
-    }
-    return '';
+  const handleValidation = (newLayoutSetId: string): string => {
+    const validationResult = getLayoutSetIdValidationErrorKey(
+      layoutSets,
+      existingCustomReceiptLayoutSetId,
+      newLayoutSetId,
+    );
+    return validationResult ? t(validationResult) : undefined;
   };
 
   return (

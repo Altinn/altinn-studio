@@ -770,7 +770,6 @@
   "process_editor.configuration_panel_custom_receipt_default_receipt_link": "Les mer om standardkvittering i dokumentasjonen",
   "process_editor.configuration_panel_custom_receipt_delete_button": "Slett kvitteringen din ",
   "process_editor.configuration_panel_custom_receipt_edit_button": "Endre",
-  "process_editor.configuration_panel_custom_receipt_edit_layoutset_error": "Du må ha et navn på sidegruppen for å ha en egen kvittering",
   "process_editor.configuration_panel_custom_receipt_heading": "Opprett din egen kvittering",
   "process_editor.configuration_panel_custom_receipt_info": "Hvis du heller vil lage din egen kvittering, kan du opprette den her. Kvitteringen du lager selv vil overstyre standardkvitteringen.",
   "process_editor.configuration_panel_custom_receipt_layoutset_name": "Navn på sidegruppe: ",
