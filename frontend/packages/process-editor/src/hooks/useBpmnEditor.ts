@@ -135,7 +135,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
     return () => {
       destroyModeler();
     };
-  }, [destroyModeler]);
+  }, []);
 
   return { canvasRef, modelerRef };
 };
