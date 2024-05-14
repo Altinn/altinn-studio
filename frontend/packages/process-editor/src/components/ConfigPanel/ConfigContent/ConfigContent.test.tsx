@@ -16,6 +16,10 @@ import {
 } from '../../../../test/mocks/bpmnContextMock';
 
 describe('ConfigContent', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should render heading for selected task', () => {
     renderConfigContent();
     expect(

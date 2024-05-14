@@ -22,6 +22,8 @@ const defaultProps: ProcessEditorProps = {
   deleteLayoutSet: jest.fn(),
   mutateLayoutSet: jest.fn(),
   mutateDataType: jest.fn(),
+  addDataTypeToAppMetadata: jest.fn(),
+  deleteDataTypeFromAppMetadata: jest.fn(),
 };
 
 const renderProcessEditor = (bpmnXml: string) => {

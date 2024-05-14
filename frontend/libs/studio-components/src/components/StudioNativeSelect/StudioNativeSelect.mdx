@@ -1,0 +1,14 @@
+import { Canvas, Meta } from '@storybook/blocks';
+import { Heading, Paragraph } from '@digdir/design-system-react';
+import * as StudioNativeSelectStories from './StudioNativeSelect.stories';
+
+<Meta of={StudioNativeSelectStories} />
+
+<Heading level={1} size='small'>
+  StudioNativeSelect
+</Heading>
+<Paragraph>
+  StudioNativeSelect is an extension of the digdir-designsystemet `NativeSelect`.
+</Paragraph>
+
+<Canvas of={StudioNativeSelectStories.Preview} />

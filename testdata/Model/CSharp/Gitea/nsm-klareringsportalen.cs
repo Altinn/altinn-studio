@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -95,6 +96,14 @@ namespace Altinn.App.Models
 
   public class Arbeidserfaringer
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
     [XmlElement("fraaar", Order = 1)]
     [JsonProperty("fraaar")]
     [JsonPropertyName("fraaar")]
@@ -165,16 +174,6 @@ namespace Altinn.App.Models
     [JsonPropertyName("tilmaaned")]
     public string tilmaaned { get; set; }
 
-    [XmlAttribute("altinnRowId")]
-    [JsonPropertyName("altinnRowId")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [Newtonsoft.Json.JsonIgnore]
-    public Guid AltinnRowId { get; set; }
-
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
   }
 
   public class Personalia
@@ -214,10 +213,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("ishatttidligerenavn")]
     public bool? ishatttidligerenavn { get; set; }
 
-    public bool ShouldSerializeishatttidligerenavn()
-    {
-      return ishatttidligerenavn.HasValue;
-    }
+    public bool ShouldSerializeishatttidligerenavn() => ishatttidligerenavn.HasValue;
 
     [XmlElement("hatttidligerenavn", Order = 8)]
     [JsonProperty("hatttidligerenavn")]
@@ -283,6 +279,14 @@ namespace Altinn.App.Models
 
   public class Adresse
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
     [XmlElement("adressebeskrivelse", Order = 1)]
     [JsonProperty("adressebeskrivelse")]
     [JsonPropertyName("adressebeskrivelse")]
@@ -303,20 +307,18 @@ namespace Altinn.App.Models
     [JsonPropertyName("land")]
     public string land { get; set; }
 
+  }
+
+  public class Iddokumenter
+  {
     [XmlAttribute("altinnRowId")]
     [JsonPropertyName("altinnRowId")]
     [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
-  }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
-  public class Iddokumenter
-  {
     [XmlElement("typedokument", Order = 1)]
     [JsonProperty("typedokument")]
     [JsonPropertyName("typedokument")]
@@ -332,20 +334,18 @@ namespace Altinn.App.Models
     [JsonPropertyName("land")]
     public string land { get; set; }
 
+  }
+
+  public class Person
+  {
     [XmlAttribute("altinnRowId")]
     [JsonPropertyName("altinnRowId")]
     [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
-  }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
-  public class Person
-  {
     [XmlElement("foedselsnummer", Order = 1)]
     [JsonProperty("foedselsnummer")]
     [JsonPropertyName("foedselsnummer")]
@@ -381,16 +381,6 @@ namespace Altinn.App.Models
     [JsonPropertyName("utenlandsadresse")]
     public List<Adresse> utenlandsadresse { get; set; }
 
-    [XmlAttribute("altinnRowId")]
-    [JsonPropertyName("altinnRowId")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [Newtonsoft.Json.JsonIgnore]
-    public Guid AltinnRowId { get; set; }
-
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
   }
 
   public class Personnavn
@@ -419,6 +409,14 @@ namespace Altinn.App.Models
 
   public class Statsborgerskap
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
     [XmlElement("fraDato", Order = 1)]
     [JsonProperty("fraDato")]
     [JsonPropertyName("fraDato")]
@@ -454,16 +452,6 @@ namespace Altinn.App.Models
     [JsonPropertyName("land")]
     public string land { get; set; }
 
-    [XmlAttribute("altinnRowId")]
-    [JsonPropertyName("altinnRowId")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [Newtonsoft.Json.JsonIgnore]
-    public Guid AltinnRowId { get; set; }
-
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
   }
 
   public class Relasjoner
@@ -572,6 +560,14 @@ namespace Altinn.App.Models
 
   public class Naerstaaende
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
     [XmlElement("personinfo", Order = 1)]
     [JsonProperty("personinfo")]
     [JsonPropertyName("personinfo")]
@@ -617,16 +613,6 @@ namespace Altinn.App.Models
     [JsonPropertyName("relasjonmedperson")]
     public string relasjonmedperson { get; set; }
 
-    [XmlAttribute("altinnRowId")]
-    [JsonPropertyName("altinnRowId")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [Newtonsoft.Json.JsonIgnore]
-    public Guid AltinnRowId { get; set; }
-
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
   }
 
   public class Samboerektefelle
@@ -690,6 +676,14 @@ namespace Altinn.App.Models
 
   public class Bostedhistorikkutland
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
     [XmlElement("land", Order = 1)]
     [JsonProperty("land")]
     [JsonPropertyName("land")]
@@ -740,20 +734,18 @@ namespace Altinn.App.Models
     [JsonPropertyName("spesifikasjon")]
     public string spesifikasjon { get; set; }
 
+  }
+
+  public class Bostedhistorikkeu
+  {
     [XmlAttribute("altinnRowId")]
     [JsonPropertyName("altinnRowId")]
     [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
-  }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
-  public class Bostedhistorikkeu
-  {
     [XmlElement("land", Order = 1)]
     [JsonProperty("land")]
     [JsonPropertyName("land")]
@@ -774,16 +766,6 @@ namespace Altinn.App.Models
     [JsonPropertyName("antallganger")]
     public string antallganger { get; set; }
 
-    [XmlAttribute("altinnRowId")]
-    [JsonPropertyName("altinnRowId")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [Newtonsoft.Json.JsonIgnore]
-    public Guid AltinnRowId { get; set; }
-
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
   }
 
   public class OEkonomi
@@ -862,6 +844,14 @@ namespace Altinn.App.Models
 
   public class Investering
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
     [XmlElement("type", Order = 1)]
     [JsonProperty("type")]
     [JsonPropertyName("type")]
@@ -877,20 +867,18 @@ namespace Altinn.App.Models
     [JsonPropertyName("land")]
     public string land { get; set; }
 
+  }
+
+  public class Transaksjonutland
+  {
     [XmlAttribute("altinnRowId")]
     [JsonPropertyName("altinnRowId")]
     [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
-  }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
-  public class Transaksjonutland
-  {
     [XmlElement("antallganger", Order = 1)]
     [JsonProperty("antallganger")]
     [JsonPropertyName("antallganger")]
@@ -911,16 +899,6 @@ namespace Altinn.App.Models
     [JsonPropertyName("belop")]
     public string belop { get; set; }
 
-    [XmlAttribute("altinnRowId")]
-    [JsonPropertyName("altinnRowId")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [Newtonsoft.Json.JsonIgnore]
-    public Guid AltinnRowId { get; set; }
-
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
   }
 
   public class Strafferettslig
@@ -959,6 +937,14 @@ namespace Altinn.App.Models
 
   public class Straffforhold
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
     [XmlElement("aar", Order = 1)]
     [JsonProperty("aar")]
     [JsonPropertyName("aar")]
@@ -979,16 +965,6 @@ namespace Altinn.App.Models
     [JsonPropertyName("type")]
     public string type { get; set; }
 
-    [XmlAttribute("altinnRowId")]
-    [JsonPropertyName("altinnRowId")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [Newtonsoft.Json.JsonIgnore]
-    public Guid AltinnRowId { get; set; }
-
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
   }
 
   public class Rusmidler
@@ -1145,6 +1121,14 @@ namespace Altinn.App.Models
 
   public class Tilknytningtilfelle
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
     [XmlElement("beskrivelse", Order = 1)]
     [JsonProperty("beskrivelse")]
     [JsonPropertyName("beskrivelse")]
@@ -1165,20 +1149,18 @@ namespace Altinn.App.Models
     [JsonPropertyName("til")]
     public string til { get; set; }
 
+  }
+
+  public class Utdanningssted
+  {
     [XmlAttribute("altinnRowId")]
     [JsonPropertyName("altinnRowId")]
     [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     [Newtonsoft.Json.JsonIgnore]
     public Guid AltinnRowId { get; set; }
 
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
-  }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
-  public class Utdanningssted
-  {
     [XmlElement("utdanningsted", Order = 1)]
     [JsonProperty("utdanningsted")]
     [JsonPropertyName("utdanningsted")]
@@ -1199,16 +1181,6 @@ namespace Altinn.App.Models
     [JsonPropertyName("til")]
     public string til { get; set; }
 
-    [XmlAttribute("altinnRowId")]
-    [JsonPropertyName("altinnRowId")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [Newtonsoft.Json.JsonIgnore]
-    public Guid AltinnRowId { get; set; }
-
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
   }
 
   public class Helse

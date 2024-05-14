@@ -13,6 +13,7 @@ export * from './StudioIconTextfield';
 export * from './StudioLabelAsParagraph';
 export * from './StudioLabelWrapper';
 export * from './StudioModal';
+export * from './StudioNativeSelect';
 export * from './StudioNotFoundPage';
 export * from './StudioPageSpinner';
 export * from './StudioProperty';

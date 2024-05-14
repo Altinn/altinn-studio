@@ -1,4 +1,5 @@
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { generateRandomId } from 'app-shared/utils/generateRandomId';
 
 const supportedEntries = ['create.exclusive-gateway', 'create.start-event', 'create.end-event'];
 
@@ -58,8 +59,16 @@ class SupportedPaletteProvider {
               }),
               signatureConfig: bpmnFactory.create('altinn:SignatureConfig', {
                 dataTypesToSign: bpmnFactory.create('altinn:DataTypesToSign', {
-                  dataType: ['Model'],
+                  dataTypes: [],
                 }),
+                signatureDataType: bpmnFactory.create(
+                  'altinn:SignatureDataType',
+                  {
+                    dataType: bpmnFactory.create('altinn:DataType', {
+                      dataType: `signatureInformation-${generateRandomId(4)}`,
+                    }),
+                  }, // What about uniqueFromSignaturesInDataTypes
+                ),
               }),
             }),
           ],
@@ -127,7 +136,9 @@ class SupportedPaletteProvider {
               }),
               paymentConfig: bpmnFactory.create('altinn:PaymentConfig', {
                 paymentDataType: bpmnFactory.create('altinn:PaymentDataType', {
-                  dataType: ['paymentInformation'],
+                  dataType: bpmnFactory.create('altinn:DataType', {
+                    dataType: `paymentInformation-${generateRandomId(4)}`,
+                  }),
                 }),
               }),
             }),

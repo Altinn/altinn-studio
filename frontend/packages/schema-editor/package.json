@@ -12,10 +12,10 @@
     "@mui/material": "5.15.15",
     "axios": "1.6.8",
     "classnames": "2.5.1",
-    "react": "18.2.0",
+    "react": "18.3.1",
     "react-dnd": "16.0.1",
     "react-dnd-html5-backend": "16.0.1",
-    "react-dom": "18.2.0"
+    "react-dom": "18.3.1"
   },
   "private": true,
   "scripts": {

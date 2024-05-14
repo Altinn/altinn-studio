@@ -15,7 +15,7 @@ const landingPagePropsMock: LandingPagePanelProps = {
 
 describe('LandingPagePanel', () => {
   it('renders component', async () => {
-    render();
+    renderLandingPagePanel();
 
     expect(
       screen.getByRole('heading', { name: textMock('app_data_modelling.landing_dialog_header') }),
@@ -33,7 +33,7 @@ describe('LandingPagePanel', () => {
   });
 
   it('opens create dialog when clicking create button', async () => {
-    render();
+    renderLandingPagePanel();
 
     const button = screen.getByRole('button', {
       name: textMock('app_data_modelling.landing_dialog_create'),
@@ -44,5 +44,5 @@ describe('LandingPagePanel', () => {
   });
 });
 
-const render = (props: Partial<LandingPagePanelProps> = {}) =>
+const renderLandingPagePanel = (props: Partial<LandingPagePanelProps> = {}) =>
   renderWithMockStore()(<LandingPagePanel {...landingPagePropsMock} {...props} />);

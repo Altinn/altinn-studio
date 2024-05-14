@@ -5,6 +5,10 @@ import type { SelectActionProps } from './SelectAction';
 import { SelectAction } from './SelectAction';
 
 describe('SelectAction', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should show combobox with all predefined actions as options', async () => {
     const user = userEvent.setup();
     renderSelectAction();

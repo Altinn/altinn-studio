@@ -37,7 +37,7 @@ export function DataModelling({ createPathOption = false }: DataModellingProps):
       );
     case 'success': {
       const data = mergeJsonAndXsdData(jsonData, xsdData);
-      return <SchemaEditorWithToolbar createPathOption={createPathOption} datamodels={data} />;
+      return <SchemaEditorWithToolbar createPathOption={createPathOption} dataModels={data} />;
     }
   }
 }

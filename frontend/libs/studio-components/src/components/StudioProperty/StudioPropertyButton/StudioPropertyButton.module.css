@@ -40,6 +40,7 @@
   display: none;
 }
 
+.readOnlyWrapper,
 .propertyButton:hover .editIconWrapper,
 .readOnlyWrapper,
 .propertyButton:focus .editIconWrapper,

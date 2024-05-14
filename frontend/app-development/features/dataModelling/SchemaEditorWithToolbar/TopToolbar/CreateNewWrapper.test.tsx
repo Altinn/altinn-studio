@@ -16,7 +16,7 @@ const handleCreateSchema = jest.fn();
 const setCreateNewOpen = jest.fn();
 const defaultProps: CreateNewWrapperProps = {
   createNewOpen: false,
-  datamodels: [],
+  dataModels: [],
   disabled: false,
   handleCreateSchema,
   setCreateNewOpen,
@@ -109,7 +109,7 @@ describe('CreateNewWrapper', () => {
     it('should not call handleCreateSchema callback and show error message when trying to create a new model with the same name as an existing one when ok button is clicked', async () => {
       const newModelName = datamodel1NameMock;
       const errMessage = textMock('schema_editor.error_model_name_exists', { newModelName });
-      render({ createNewOpen: true, datamodels: [jsonMetadata1Mock] });
+      render({ createNewOpen: true, dataModels: [jsonMetadata1Mock] });
 
       const textInput = screen.getByRole('textbox');
       const okButton = screen.getByRole('button', {
@@ -129,7 +129,7 @@ describe('CreateNewWrapper', () => {
       const userWithNoPointerEventCheck = userEvent.setup({
         pointerEventsCheck: PointerEventsCheckLevel.Never,
       });
-      render({ createNewOpen: true, datamodels: [jsonMetadata1Mock] });
+      render({ createNewOpen: true, dataModels: [jsonMetadata1Mock] });
 
       const okButton = screen.getByRole('button', {
         name: textMock('schema_editor.create_model_confirm_button'),

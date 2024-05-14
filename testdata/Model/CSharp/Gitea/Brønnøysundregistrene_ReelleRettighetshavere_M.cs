@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -66,20 +67,14 @@ namespace Altinn.App.Models
     [JsonPropertyName("hfHentPreutfyllingFeilet")]
     public bool? hfHentPreutfyllingFeilet { get; set; }
 
-    public bool ShouldSerializehfHentPreutfyllingFeilet()
-    {
-      return hfHentPreutfyllingFeilet.HasValue;
-    }
+    public bool ShouldSerializehfHentPreutfyllingFeilet() => hfHentPreutfyllingFeilet.HasValue;
 
     [XmlElement("hfHentRollerFeilet", Order = 2)]
     [JsonProperty("hfHentRollerFeilet")]
     [JsonPropertyName("hfHentRollerFeilet")]
     public bool? hfHentRollerFeilet { get; set; }
 
-    public bool ShouldSerializehfHentRollerFeilet()
-    {
-      return hfHentRollerFeilet.HasValue;
-    }
+    public bool ShouldSerializehfHentRollerFeilet() => hfHentRollerFeilet.HasValue;
 
   }
 
@@ -120,10 +115,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("finnesDetReelleRettighetshavereITilleggTilRolleinnehavereForStiftelse")]
     public bool? finnesDetReelleRettighetshavereITilleggTilRolleinnehavereForStiftelse { get; set; }
 
-    public bool ShouldSerializefinnesDetReelleRettighetshavereITilleggTilRolleinnehavereForStiftelse()
-    {
-      return finnesDetReelleRettighetshavereITilleggTilRolleinnehavereForStiftelse.HasValue;
-    }
+    public bool ShouldSerializefinnesDetReelleRettighetshavereITilleggTilRolleinnehavereForStiftelse() => finnesDetReelleRettighetshavereITilleggTilRolleinnehavereForStiftelse.HasValue;
 
     [XmlElement("reellRettighetshaver", Order = 8)]
     [JsonProperty("reellRettighetshaver")]
@@ -135,20 +127,14 @@ namespace Altinn.App.Models
     [JsonPropertyName("kanIkkeIdentifisereFlereReelleRettighetshavere")]
     public bool? kanIkkeIdentifisereFlereReelleRettighetshavere { get; set; }
 
-    public bool ShouldSerializekanIkkeIdentifisereFlereReelleRettighetshavere()
-    {
-      return kanIkkeIdentifisereFlereReelleRettighetshavere.HasValue;
-    }
+    public bool ShouldSerializekanIkkeIdentifisereFlereReelleRettighetshavere() => kanIkkeIdentifisereFlereReelleRettighetshavere.HasValue;
 
     [XmlElement("erVirksomhetRegistrertPaaRegulertMarked", Order = 10)]
     [JsonProperty("erVirksomhetRegistrertPaaRegulertMarked")]
     [JsonPropertyName("erVirksomhetRegistrertPaaRegulertMarked")]
     public bool? erVirksomhetRegistrertPaaRegulertMarked { get; set; }
 
-    public bool ShouldSerializeerVirksomhetRegistrertPaaRegulertMarked()
-    {
-      return erVirksomhetRegistrertPaaRegulertMarked.HasValue;
-    }
+    public bool ShouldSerializeerVirksomhetRegistrertPaaRegulertMarked() => erVirksomhetRegistrertPaaRegulertMarked.HasValue;
 
     [XmlElement("regulertMarked", Order = 11)]
     [JsonProperty("regulertMarked")]
@@ -160,10 +146,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("erReelleRettighetshavereRegistrertIUtenlandskRegister")]
     public bool? erReelleRettighetshavereRegistrertIUtenlandskRegister { get; set; }
 
-    public bool ShouldSerializeerReelleRettighetshavereRegistrertIUtenlandskRegister()
-    {
-      return erReelleRettighetshavereRegistrertIUtenlandskRegister.HasValue;
-    }
+    public bool ShouldSerializeerReelleRettighetshavereRegistrertIUtenlandskRegister() => erReelleRettighetshavereRegistrertIUtenlandskRegister.HasValue;
 
     [XmlElement("utenlandskRegister", Order = 13)]
     [JsonProperty("utenlandskRegister")]
@@ -229,15 +212,20 @@ namespace Altinn.App.Models
     [JsonPropertyName("erOffentligVirksomhetUtenlandsk")]
     public bool? erOffentligVirksomhetUtenlandsk { get; set; }
 
-    public bool ShouldSerializeerOffentligVirksomhetUtenlandsk()
-    {
-      return erOffentligVirksomhetUtenlandsk.HasValue;
-    }
+    public bool ShouldSerializeerOffentligVirksomhetUtenlandsk() => erOffentligVirksomhetUtenlandsk.HasValue;
 
   }
 
   public class ReellRettighetshaver
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
     [XmlElement("erRegistrertIFolkeregisteret", Order = 1)]
     [JsonProperty("erRegistrertIFolkeregisteret")]
     [JsonPropertyName("erRegistrertIFolkeregisteret")]
@@ -249,10 +237,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("hfErPreutfylt")]
     public bool? hfErPreutfylt { get; set; }
 
-    public bool ShouldSerializehfErPreutfylt()
-    {
-      return hfErPreutfylt.HasValue;
-    }
+    public bool ShouldSerializehfErPreutfylt() => hfErPreutfylt.HasValue;
 
     [XmlElement("foedselsEllerDNummer", Order = 3)]
     [JsonProperty("foedselsEllerDNummer")]
@@ -281,10 +266,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("hfSoekFolkeregistrertPersonFeilkode")]
     public long? hfSoekFolkeregistrertPersonFeilkode { get; set; }
 
-    public bool ShouldSerializehfSoekFolkeregistrertPersonFeilkode()
-    {
-      return hfSoekFolkeregistrertPersonFeilkode.HasValue;
-    }
+    public bool ShouldSerializehfSoekFolkeregistrertPersonFeilkode() => hfSoekFolkeregistrertPersonFeilkode.HasValue;
 
     [XmlElement("statsborgerskap", Order = 8)]
     [JsonProperty("statsborgerskap")]
@@ -301,10 +283,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("harPosisjonEierskap")]
     public bool? harPosisjonEierskap { get; set; }
 
-    public bool ShouldSerializeharPosisjonEierskap()
-    {
-      return harPosisjonEierskap.HasValue;
-    }
+    public bool ShouldSerializeharPosisjonEierskap() => harPosisjonEierskap.HasValue;
 
     [XmlElement("posisjonEierskap", Order = 11)]
     [JsonProperty("posisjonEierskap")]
@@ -316,10 +295,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("harPosisjonKontrollOverStemmerettigheter")]
     public bool? harPosisjonKontrollOverStemmerettigheter { get; set; }
 
-    public bool ShouldSerializeharPosisjonKontrollOverStemmerettigheter()
-    {
-      return harPosisjonKontrollOverStemmerettigheter.HasValue;
-    }
+    public bool ShouldSerializeharPosisjonKontrollOverStemmerettigheter() => harPosisjonKontrollOverStemmerettigheter.HasValue;
 
     [XmlElement("posisjonKontrollOverStemmerettigheter", Order = 13)]
     [JsonProperty("posisjonKontrollOverStemmerettigheter")]
@@ -331,10 +307,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("harPosisjonRettTilAaUtpekeEllerAvsetteMinstHalvpartenAvStyremedlemmene")]
     public bool? harPosisjonRettTilAaUtpekeEllerAvsetteMinstHalvpartenAvStyremedlemmene { get; set; }
 
-    public bool ShouldSerializeharPosisjonRettTilAaUtpekeEllerAvsetteMinstHalvpartenAvStyremedlemmene()
-    {
-      return harPosisjonRettTilAaUtpekeEllerAvsetteMinstHalvpartenAvStyremedlemmene.HasValue;
-    }
+    public bool ShouldSerializeharPosisjonRettTilAaUtpekeEllerAvsetteMinstHalvpartenAvStyremedlemmene() => harPosisjonRettTilAaUtpekeEllerAvsetteMinstHalvpartenAvStyremedlemmene.HasValue;
 
     [XmlElement("grunnlagForPosisjonenRettTilAaUtpekeEllerAvsetteMinstHalvpartenAvStyremedlemmene", Order = 15)]
     [JsonProperty("grunnlagForPosisjonenRettTilAaUtpekeEllerAvsetteMinstHalvpartenAvStyremedlemmene")]
@@ -346,10 +319,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("harPosisjonKontrollPaaAnnenMaate")]
     public bool? harPosisjonKontrollPaaAnnenMaate { get; set; }
 
-    public bool ShouldSerializeharPosisjonKontrollPaaAnnenMaate()
-    {
-      return harPosisjonKontrollPaaAnnenMaate.HasValue;
-    }
+    public bool ShouldSerializeharPosisjonKontrollPaaAnnenMaate() => harPosisjonKontrollPaaAnnenMaate.HasValue;
 
     [XmlElement("beskrivelseAvPosisjonenKontrollPaaAnnenMaate", Order = 17)]
     [JsonProperty("beskrivelseAvPosisjonenKontrollPaaAnnenMaate")]
@@ -361,10 +331,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("harPosisjonAvgittGrunnkapital")]
     public bool? harPosisjonAvgittGrunnkapital { get; set; }
 
-    public bool ShouldSerializeharPosisjonAvgittGrunnkapital()
-    {
-      return harPosisjonAvgittGrunnkapital.HasValue;
-    }
+    public bool ShouldSerializeharPosisjonAvgittGrunnkapital() => harPosisjonAvgittGrunnkapital.HasValue;
 
     [XmlElement("posisjonAvgittGrunnkapital", Order = 19)]
     [JsonProperty("posisjonAvgittGrunnkapital")]
@@ -376,10 +343,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("harPosisjonRettTilAaUtpekeEtFlertallAvStyremedlemmene")]
     public bool? harPosisjonRettTilAaUtpekeEtFlertallAvStyremedlemmene { get; set; }
 
-    public bool ShouldSerializeharPosisjonRettTilAaUtpekeEtFlertallAvStyremedlemmene()
-    {
-      return harPosisjonRettTilAaUtpekeEtFlertallAvStyremedlemmene.HasValue;
-    }
+    public bool ShouldSerializeharPosisjonRettTilAaUtpekeEtFlertallAvStyremedlemmene() => harPosisjonRettTilAaUtpekeEtFlertallAvStyremedlemmene.HasValue;
 
     [XmlElement("posisjonRettTilAaUtpekeEtFlertallAvStyremedlemmene", Order = 21)]
     [JsonProperty("posisjonRettTilAaUtpekeEtFlertallAvStyremedlemmene")]
@@ -391,10 +355,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("harPosisjonSaerligeRettigheter")]
     public bool? harPosisjonSaerligeRettigheter { get; set; }
 
-    public bool ShouldSerializeharPosisjonSaerligeRettigheter()
-    {
-      return harPosisjonSaerligeRettigheter.HasValue;
-    }
+    public bool ShouldSerializeharPosisjonSaerligeRettigheter() => harPosisjonSaerligeRettigheter.HasValue;
 
     [XmlElement("posisjonSaerligeRettigheter", Order = 23)]
     [JsonProperty("posisjonSaerligeRettigheter")]
@@ -406,10 +367,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("harPosisjonDestinatar")]
     public bool? harPosisjonDestinatar { get; set; }
 
-    public bool ShouldSerializeharPosisjonDestinatar()
-    {
-      return harPosisjonDestinatar.HasValue;
-    }
+    public bool ShouldSerializeharPosisjonDestinatar() => harPosisjonDestinatar.HasValue;
 
     [XmlElement("posisjonDestinatar", Order = 25)]
     [JsonProperty("posisjonDestinatar")]
@@ -421,16 +379,6 @@ namespace Altinn.App.Models
     [JsonPropertyName("hfPosisjonsbeskrivelse")]
     public string hfPosisjonsbeskrivelse { get; set; }
 
-    [XmlAttribute("altinnRowId")]
-    [JsonPropertyName("altinnRowId")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [Newtonsoft.Json.JsonIgnore]
-    public Guid AltinnRowId { get; set; }
-
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
   }
 
   public class Posisjon
@@ -454,6 +402,14 @@ namespace Altinn.App.Models
 
   public class MellomliggendeVirksomhet
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
     [XmlElement("erUtenlandskVirksomhet", Order = 1)]
     [JsonProperty("erUtenlandskVirksomhet")]
     [JsonPropertyName("erUtenlandskVirksomhet")]
@@ -485,16 +441,6 @@ namespace Altinn.App.Models
     [JsonPropertyName("hfLandnavn")]
     public string hfLandnavn { get; set; }
 
-    [XmlAttribute("altinnRowId")]
-    [JsonPropertyName("altinnRowId")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [Newtonsoft.Json.JsonIgnore]
-    public Guid AltinnRowId { get; set; }
-
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
   }
 
   public class UtenlandskVirksomhet
@@ -613,6 +559,14 @@ namespace Altinn.App.Models
 
   public class Rolleinnehaver
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
     [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$")]
     [XmlElement("foedselsdato", Order = 1)]
     [JsonProperty("foedselsdato")]
@@ -629,15 +583,5 @@ namespace Altinn.App.Models
     [JsonPropertyName("rolle")]
     public string rolle { get; set; }
 
-    [XmlAttribute("altinnRowId")]
-    [JsonPropertyName("altinnRowId")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [Newtonsoft.Json.JsonIgnore]
-    public Guid AltinnRowId { get; set; }
-
-    public bool ShouldSerializeAltinnRowId()
-    {
-      return AltinnRowId != default;
-    }
   }
 }

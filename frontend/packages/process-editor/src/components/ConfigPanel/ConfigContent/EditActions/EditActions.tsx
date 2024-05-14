@@ -8,14 +8,6 @@ import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
 import { addNewActionToTask, getAvailablePredefinedActions } from './ActionsUtils';
 import { EditAction } from './EditAction';
 
-// Should we do anything with syncing the policy file or just advice to app developer to navigate to policy editor?
-// Maybe not in the first implementation round anyway --> new issue
-
-export enum ActionType {
-  Server = 'serverAction',
-  Process = 'processAction',
-}
-
 export const EditActions = () => {
   const { t } = useTranslation();
   const { bpmnDetails, modelerRef } = useBpmnContext();

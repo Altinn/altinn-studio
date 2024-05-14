@@ -10,7 +10,7 @@ import classes from './EditTaskId.module.css';
 import { useTaskIds } from '../../../../hooks/useTaskIds';
 import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 
-export const EditTaskId = () => {
+export const EditTaskId = (): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails, modelerRef, setBpmnDetails } = useBpmnContext();
   const { metaDataFormRef } = useBpmnConfigPanelFormContext();

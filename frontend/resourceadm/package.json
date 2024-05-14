@@ -10,9 +10,9 @@
   ],
   "dependencies": {
     "@mui/x-data-grid": "6.18.5",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "react-router-dom": "6.22.3",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-router-dom": "6.23.0",
     "react-use": "17.5.0"
   },
   "devDependencies": {
@@ -21,7 +21,7 @@
     "jest": "29.7.0",
     "typescript": "5.4.5",
     "webpack": "5.91.0",
-    "webpack-dev-server": "4.15.2"
+    "webpack-dev-server": "5.0.4"
   },
   "license": "3-Clause BSD",
   "private": true,

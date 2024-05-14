@@ -9,7 +9,7 @@ import { ConfigIcon } from './ConfigIcon';
 import { EditDataType } from './EditDataType/EditDataType';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { Accordion } from '@digdir/design-system-react';
-import { EditActions } from './EditActions/EditActions';
+import { EditActions } from './EditActions';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();

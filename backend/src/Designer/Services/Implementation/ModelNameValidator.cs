@@ -78,7 +78,7 @@ public class ModelNameValidator : IModelNameValidator
         var jsonSchemaConverterStrategy = JsonSchemaConverterStrategyFactory.SelectStrategy(jsonSchema);
         var metamodelConverter = new JsonSchemaToMetamodelConverter(jsonSchemaConverterStrategy.GetAnalyzer());
         var modelMetadata = metamodelConverter.Convert(SerializeJsonSchema(jsonSchema));
-        _modelMetadataToCsharpConverter.CreateModelFromMetadata(modelMetadata);
+        _modelMetadataToCsharpConverter.CreateModelFromMetadata(modelMetadata, separateNamespaces: false, useNullableReferenceTypes: false);
         return modelMetadata;
     }
 

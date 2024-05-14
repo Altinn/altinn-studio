@@ -10,7 +10,7 @@ const meta: Meta = {
   component: StudioSectionHeader,
   argTypes: {
     icon: {
-      control: 'none',
+      control: false,
     },
   },
 };

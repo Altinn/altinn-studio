@@ -2,14 +2,13 @@ import React from 'react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import { render, screen } from '@testing-library/react';
-import { mockBpmnDetails } from '../../../../../test/mocks/bpmnDetailsMock';
-import { ActionType } from './EditActions';
+import { mockBpmnDetails, paymentActions } from '../../../../../test/mocks/bpmnDetailsMock';
+import { ActionType, EditAction } from './EditAction';
 import {
   modelingMock,
   updateModdlePropertiesMock,
 } from '../../../../../test/mocks/bpmnModelerMock';
 import type { EditActionProps } from './EditAction';
-import { EditAction } from './EditAction';
 
 const mockActionElementWrite =
   mockBpmnDetails.element.businessObject.extensionElements.values[0].actions.action[0];
@@ -30,14 +29,26 @@ describe('EditAction', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
-  it('should render a defined action as read only by default when action is required for task', async () => {
+  it('should render a defined action as read only by default when action is required for task', () => {
+    const mockActionElementPay = paymentActions.actions.action[0];
     renderEditAction({
       ...defaultEditActionProps,
-      actionElementToEdit: mockActionElementCustomServer,
+      bpmnDetails: {
+        ...mockBpmnDetails,
+        taskType: 'payment',
+      },
+      actionElementToEdit: mockActionElementPay,
     });
+    const definedAction = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_actions_action_label', {
+        actionIndex: defaultEditActionProps.index + 1,
+        actionName: mockActionElementPay.action,
+      }),
+    });
+    expect(definedAction).toHaveAttribute('aria-readonly');
   });
 
-  it('should render a defined action by default when action is set', async () => {
+  it('should render a defined action by default when action is set', () => {
     renderEditAction();
     expect(
       screen.getByRole('button', {
@@ -66,7 +77,11 @@ describe('EditAction', () => {
       name: textMock('process_editor.configuration_panel_actions_action_type_help_text'),
     });
     await user.click(helpTextButton);
-    screen.getByText(textMock('process_editor.configuration_panel_actions_set_server_action_info'));
+    expect(
+      screen.getByText(
+        textMock('process_editor.configuration_panel_actions_set_server_action_info'),
+      ),
+    ).toBeInTheDocument();
   });
 
   it('should render save button as disabled when clicking an option', async () => {
@@ -86,7 +101,11 @@ describe('EditAction', () => {
       name: textMock('process_editor.configuration_panel_actions_action_type_help_text'),
     });
     await user.click(helpTextButton);
-    screen.getByText(textMock('process_editor.configuration_panel_actions_set_server_action_info'));
+    expect(
+      screen.getByText(
+        textMock('process_editor.configuration_panel_actions_set_server_action_info'),
+      ),
+    ).toBeInTheDocument();
   });
 
   it('should render switch that is enabled for an existing server action', async () => {

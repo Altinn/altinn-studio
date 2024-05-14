@@ -83,12 +83,9 @@ public static class TypeAssertions
 
     private static void IsEquivalentTo(IEnumerable<CustomAttributeData> expected, IEnumerable<CustomAttributeData> actual)
     {
-        expected.Count().Should().Be(actual.Count());
-
-        foreach (var item in expected)
-        {
-            Assert.Single(actual.Where(x => x.ToString() == item.ToString()));
-        }
+        var expectedStrings = expected.Select(e => e.ToString());
+        var actualStrings = actual.Select(a => a.ToString());
+        expectedStrings.Should().BeEquivalentTo(actualStrings);
     }
 
     private static void IsEquivalentTo(TypeAttributes expected, TypeAttributes actual)

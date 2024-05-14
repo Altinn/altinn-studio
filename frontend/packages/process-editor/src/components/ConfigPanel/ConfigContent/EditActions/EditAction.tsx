@@ -9,7 +9,6 @@ import {
   setActionTypeOnAction,
   updateActionNameOnActionElement,
 } from './ActionsUtils';
-import { ActionType } from './EditActions';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
 import { StudioButton, StudioDeleteButton, StudioProperty } from '@studio/components';
@@ -18,6 +17,11 @@ import { HelpText, Switch } from '@digdir/design-system-react';
 import type { BpmnDetails } from '../../../../types/BpmnDetails';
 import { useTranslation } from 'react-i18next';
 import { SelectAction } from './SelectAction';
+
+export enum ActionType {
+  Server = 'serverAction',
+  Process = 'processAction',
+}
 
 export interface EditActionProps {
   actionElementToEdit: ModdleElement;
@@ -58,8 +62,9 @@ export const EditAction = ({
   };
 
   const allowSettingServerAction = (actionName: string): boolean => {
+    if (actionName === '') return false; // Ensure that default is not allowing
     return (
-      !isActionRequiredForTask(actionName, bpmnDetails) &&
+      !isActionRequiredForTask(actionName, bpmnDetails.taskType) &&
       !getPredefinedActions(bpmnDetails.taskType).includes(actionName)
     );
   };
@@ -117,7 +122,7 @@ export const EditAction = ({
   ) : (
     <StudioProperty.Button
       aria-label={actionLabel()}
-      readOnly={isActionRequiredForTask(actionElementToEdit.action, bpmnDetails)}
+      readOnly={isActionRequiredForTask(actionElementToEdit.action, bpmnDetails.taskType)}
       onClick={() => setEditMode(true)}
       property={actionLabel(null)}
       title={actionLabel()}

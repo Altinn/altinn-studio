@@ -15,7 +15,7 @@ import type { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 export interface TopToolbarProps {
   createNewOpen: boolean;
   createPathOption?: boolean;
-  datamodels: DatamodelMetadata[];
+  dataModels: DatamodelMetadata[];
   selectedOption?: MetadataOption;
   setCreateNewOpen: (open: boolean) => void;
   setSelectedOption: (option?: MetadataOption) => void;
@@ -25,7 +25,7 @@ export interface TopToolbarProps {
 export function TopToolbar({
   createNewOpen,
   createPathOption,
-  datamodels,
+  dataModels,
   selectedOption,
   setCreateNewOpen,
   setSelectedOption,
@@ -34,11 +34,11 @@ export function TopToolbar({
   const modelPath = selectedOption?.value.repositoryRelativeUrl;
 
   const { mutate: createDatamodel } = useCreateDatamodelMutation();
-  const prevDatamodels = usePrevious(datamodels);
+  const prevDataModels = usePrevious(dataModels);
 
   useEffect(() => {
-    setSelectedOption(computeSelectedOption(selectedOption, datamodels, prevDatamodels));
-  }, [selectedOption, datamodels, prevDatamodels, setSelectedOption]);
+    setSelectedOption(computeSelectedOption(selectedOption, dataModels, prevDataModels));
+  }, [selectedOption, dataModels, prevDataModels, setSelectedOption]);
 
   const handleCreateSchema = (model: CreateDatamodelMutationArgs) => {
     createDatamodel(model);
@@ -48,7 +48,7 @@ export function TopToolbar({
   return (
     <section className={classes.toolbar} role='toolbar'>
       <CreateNewWrapper
-        datamodels={datamodels}
+        dataModels={dataModels}
         disabled={false}
         createNewOpen={createNewOpen}
         setCreateNewOpen={setCreateNewOpen}
@@ -57,7 +57,7 @@ export function TopToolbar({
       />
       <XSDUpload disabled={false} />
       <SchemaSelect
-        datamodels={datamodels}
+        datamodels={dataModels}
         disabled={false}
         selectedOption={selectedOption}
         setSelectedOption={setSelectedOption}

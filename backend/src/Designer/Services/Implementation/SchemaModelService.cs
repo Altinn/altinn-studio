@@ -310,7 +310,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string modelName = modelMetadata.GetRootElement().TypeName;
             bool separateNamespace = !application.DataTypes.Any(d => d.AppLogic?.ClassRef == $"Altinn.App.Models.{modelName}");
 
-            string csharpClasses = _modelMetadataToCsharpConverter.CreateModelFromMetadata(modelMetadata, separateNamespace);
+            string csharpClasses = _modelMetadataToCsharpConverter.CreateModelFromMetadata(modelMetadata, separateNamespace, useNullableReferenceTypes: false);
             await altinnAppGitRepository.SaveCSharpClasses(csharpClasses, schemaName);
             return separateNamespace ? $"Altinn.App.Models.{modelName}.{modelName}" : $"Altinn.App.Models.{modelName}";
         }

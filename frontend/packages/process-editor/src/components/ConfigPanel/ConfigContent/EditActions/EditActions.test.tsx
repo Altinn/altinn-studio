@@ -5,6 +5,7 @@ import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import {
   confirmationActions,
   mockBpmnDetails,
+  paymentActions,
   signingActions,
 } from '../../../../../test/mocks/bpmnDetailsMock';
 import {
@@ -18,7 +19,11 @@ import type { BpmnTaskType } from '../../../../types/BpmnTaskType';
 import userEvent from '@testing-library/user-event';
 import { ObjectUtils } from '@studio/pure-functions';
 
-const actionsForTaskTypes = { confirmation: confirmationActions, signing: signingActions }; // add payment: paymentActions
+const actionsForTaskTypes = {
+  confirmation: confirmationActions,
+  signing: signingActions,
+  payment: paymentActions,
+}; // add payment: paymentActions
 
 const setBpmnDetailsMock = jest.fn();
 jest.mock('../../../../contexts/BpmnContext', () => ({
@@ -67,28 +72,33 @@ describe('EditActions', () => {
     const customProcessAction =
       mockBpmnDetails.element.businessObject.extensionElements.values[0].actions.action[2].action;
     renderEditActions();
-    screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_actions_action_label', {
-        actionIndex: 1,
-        actionName: predefinedAction,
+    expect(
+      screen.getByRole('button', {
+        name: textMock('process_editor.configuration_panel_actions_action_label', {
+          actionIndex: 1,
+          actionName: predefinedAction,
+        }),
       }),
-    });
-    screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_actions_action_label', {
-        actionIndex: 2,
-        actionName: customServerAction,
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: textMock('process_editor.configuration_panel_actions_action_label', {
+          actionIndex: 2,
+          actionName: customServerAction,
+        }),
       }),
-    });
-    screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_actions_action_label', {
-        actionIndex: 3,
-        actionName: customProcessAction,
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: textMock('process_editor.configuration_panel_actions_action_label', {
+          actionIndex: 3,
+          actionName: customProcessAction,
+        }),
       }),
-    });
+    ).toBeInTheDocument();
   });
 
-  it.each(['confirmation', 'signing'])(
-    // add payment
+  it.each(['confirmation', 'signing', 'payment'])(
     'should render readOnly non-clickable defined action button for actions that are required for task type: %s',
     (taskType: BpmnTaskType) => {
       const actions = actionsForTaskTypes[taskType];

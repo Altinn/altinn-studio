@@ -1,0 +1,456 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:seres="http://seres.no/xsd/forvaltningsdata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:xsd="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
+           elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xsd:annotation>
+    <xsd:documentation>
+      <xs:attribute name="XSLT-skriptnavn" fixed="SERES_XSD_GEN"/>
+      <xs:attribute name="XSD-generatorversjon" fixed="2.0.13"/>
+      <xs:attribute name="XSLT-prosessor" fixed="SAXON versjon 9.1.0.7"/>
+      <xs:attribute name="generert" fixed="2015-11-16T15:02:03.256+01:00"/>
+      <xs:attribute name="navneromprefix" fixed="http://seres.no/xsd"/>
+      <xs:attribute name="namespace" fixed="http://seres.no/xsd/Regnskapsregisteret/RR-0010H_M/2015"/>
+      <xs:attribute name="meldingsnavn" fixed="melding"/>
+      <xs:attribute name="domenenavn" fixed="Regnskapsregisteret"/>
+      <xs:attribute name="modellnavn" fixed="RR-0010H_M"/>
+      <xs:attribute name="metamodellversjon" fixed="1.2"/>
+      <xs:attribute name="guid" fixed="true"/>
+      <xs:attribute name="orid" fixed="true"/>
+      <xs:attribute name="nillable" fixed="true"/>
+      <xs:attribute name="tillat-gjenbruk" fixed="false"/>
+      <xs:attribute name="elementtype" fixed="true"/>
+      <xs:attribute name="forvaltningsdata" fixed="true"/>
+      <xs:attribute name="forvaltningsdata-navnerom" fixed="http://seres.no/xsd/forvaltningsdata"/>
+      <xs:attribute name="særnorske-bokstaver-i-navn" fixed="false"/>
+      <xs:attribute name="ft_guid_som_attributt" fixed="false"/>
+      <xs:attribute name="sem-ref" fixed="false"/>
+      <xs:attribute name="kodebibliotek" fixed="false"/>
+      <xs:attribute name="språk" fixed=""/>
+      <xs:attribute name="XSD-variant" fixed="Altinn 1.3"/>
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:element name="melding" type="RR-0010H_M"/>
+  <xsd:complexType seres:elementtype="Meldingsmodell"
+                   seres:guid="http://seres.no/guid/Regnskapsregisteret/Meldingsmodell/RR-0010H_M/450423"
+                   name="RR-0010H_M">
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Innsender" type="Innsender"/>
+      <xsd:element minOccurs="0" name="Skjemainnhold" type="Skjemainnhold"/>
+    </xsd:sequence>
+    <xsd:attribute fixed="SERES" name="dataFormatProvider" type="xsd:string" use="required"/>
+    <xsd:attribute fixed="3430" name="dataFormatId" type="xsd:string" use="required"/>
+    <xsd:attribute fixed="48617" name="dataFormatVersion" type="xsd:string" use="required"/>
+    <xsd:anyAttribute namespace="##any"/>
+  </xsd:complexType>
+  <xsd:complexType seres:elementtype="ORDataenkeltype"
+                   seres:guid="http://seres.no/guid/ORDataenkeltype/EnhetOrganisasjonsnummer-18/400536" seres:orid="18"
+                   name="EnhetOrganisasjonsnummer-18">
+    <xsd:simpleContent>
+      <xsd:extension base="EnhetOrganisasjonsnummer-18_Verdirestriksjon">
+        <xsd:attribute fixed="18" name="orid" type="xsd:string" use="required"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType seres:elementtype="ORDataenkeltype"
+                   seres:guid="http://seres.no/guid/ORDataenkeltype/EnhetOrganisasjonsform-756/399934" seres:orid="756"
+                   name="EnhetOrganisasjonsform-756">
+    <xsd:simpleContent>
+      <xsd:extension base="EnhetOrganisasjonsform-756_Verdirestriksjon">
+        <xsd:attribute fixed="756" name="orid" type="xsd:string" use="required"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType seres:elementtype="ORDataenkeltype"
+                   seres:guid="http://seres.no/guid/ORDataenkeltype/EnhetNavn-1/400376" seres:orid="1"
+                   name="EnhetNavn-1">
+    <xsd:simpleContent>
+      <xsd:extension base="EnhetNavn-1_Verdirestriksjon">
+        <xsd:attribute fixed="1" name="orid" type="xsd:string" use="required"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType seres:elementtype="ORDataenkeltype"
+                   seres:guid="http://seres.no/guid/ORDataenkeltype/KontaktpersonEPost-19022/399576" seres:orid="19022"
+                   name="KontaktpersonEPost-19022">
+    <xsd:simpleContent>
+      <xsd:extension base="KontaktpersonEPost-19022_Verdirestriksjon">
+        <xsd:attribute fixed="19022" name="orid" type="xsd:string" use="required"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType seres:elementtype="ORDataenkeltype"
+                   seres:guid="http://seres.no/guid/Regnskapsregisteret/ORDataenkeltype/ArsregnskapSysteminnsending-35139/555499"
+                   seres:orid="35139" name="ArsregnskapSysteminnsending-35139">
+    <xsd:simpleContent>
+      <xsd:extension base="ArsregnskapSysteminnsending-35139_Verdirestriksjon">
+        <xsd:attribute fixed="35139" name="orid" type="xsd:string" use="required"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType seres:elementtype="ORDataenkeltype"
+                   seres:guid="http://seres.no/guid/Regnskapsregisteret/ORDataenkeltype/ArsregnskapLandTilLand-35172/566229"
+                   seres:orid="35172" name="ArsregnskapLandTilLand-35172">
+    <xsd:simpleContent>
+      <xsd:extension base="ArsregnskapLandTilLand-35172_Verdirestriksjon">
+        <xsd:attribute fixed="35172" name="orid" type="xsd:string" use="required"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType seres:elementtype="ORDataenkeltype"
+                   seres:guid="http://seres.no/guid/ORDataenkeltype/RegnskapAr-17102/400287" seres:orid="17102"
+                   name="RegnskapAr-17102">
+    <xsd:simpleContent>
+      <xsd:extension base="RegnskapAr-17102_Verdirestriksjon">
+        <xsd:attribute fixed="17102" name="orid" type="xsd:string" use="required"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType seres:elementtype="ORDataenkeltype"
+                   seres:guid="http://seres.no/guid/ORDataenkeltype/RegnskapStartdato-17103/399965" seres:orid="17103"
+                   name="RegnskapStartdato-17103">
+    <xsd:simpleContent>
+      <xsd:extension base="RegnskapStartdato-17103_Verdirestriksjon">
+        <xsd:attribute fixed="17103" name="orid" type="xsd:string" use="required"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType seres:elementtype="ORDataenkeltype"
+                   seres:guid="http://seres.no/guid/ORDataenkeltype/RegnskapAvslutningsdato-17104/399700"
+                   seres:orid="17104" name="RegnskapAvslutningsdato-17104">
+    <xsd:simpleContent>
+      <xsd:extension base="RegnskapAvslutningsdato-17104_Verdirestriksjon">
+        <xsd:attribute fixed="17104" name="orid" type="xsd:string" use="required"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType seres:elementtype="ORDatakodeliste"
+                   seres:guid="http://seres.no/guid/ORDatakodeutvalg/Morselskap-4168/397351" seres:orid="4168"
+                   name="Morselskap-4168">
+    <xsd:simpleContent>
+      <xsd:extension base="Morselskap-4168_Verdirestriksjon">
+        <xsd:attribute fixed="4168" name="orid" type="xsd:string" use="required"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType seres:elementtype="ORDatakodeliste"
+                   seres:guid="http://seres.no/guid/ORDatakodeutvalg/KonsernregnskapVedlegg-25943/397353"
+                   seres:orid="25943" name="KonsernregnskapVedlegg-25943">
+    <xsd:simpleContent>
+      <xsd:extension base="KonsernregnskapVedlegg-25943_Verdirestriksjon">
+        <xsd:attribute fixed="25943" name="orid" type="xsd:string" use="required"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType seres:elementtype="ORDatakodeliste"
+                   seres:guid="http://seres.no/guid/Regnskapsregisteret/ORDatakodeliste/UtenlandskKonsern-36640/613242"
+                   seres:orid="36640" name="UtenlandskKonsern-36640">
+    <xsd:simpleContent>
+      <xsd:extension base="UtenlandskKonsern-36640_Verdirestriksjon">
+        <xsd:attribute fixed="36640" name="orid" type="xsd:string" use="required"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType seres:elementtype="ORDatakodeliste"
+                   seres:guid="http://seres.no/guid/ORDatakodeutvalg/RegnskapsreglerSmaForetak-8079/397350"
+                   seres:orid="8079" name="RegnskapsreglerSmaForetak-8079">
+    <xsd:simpleContent>
+      <xsd:extension base="RegnskapsreglerSmaForetak-8079_Verdirestriksjon">
+        <xsd:attribute fixed="8079" name="orid" type="xsd:string" use="required"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType seres:elementtype="ORDatakodeliste"
+                   seres:guid="http://seres.no/guid/ORDatakodeutvalg/RegnskapsoppsettIFRS-25021/397352"
+                   seres:orid="25021" name="RegnskapsoppsettIFRS-25021">
+    <xsd:simpleContent>
+      <xsd:extension base="RegnskapsoppsettIFRS-25021_Verdirestriksjon">
+        <xsd:attribute fixed="25021" name="orid" type="xsd:string" use="required"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType seres:elementtype="ORDatakodeliste"
+                   seres:guid="http://seres.no/guid/Regnskapsregisteret/ORDatakodeliste/ForenkletIFRS-36639/613245"
+                   seres:orid="36639" name="ForenkletIFRS-36639">
+    <xsd:simpleContent>
+      <xsd:extension base="ForenkletIFRS-36639_Verdirestriksjon">
+        <xsd:attribute fixed="36639" name="orid" type="xsd:string" use="required"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType seres:elementtype="ORDatakodeliste"
+                   seres:guid="http://seres.no/guid/ORDatakodeutvalg/RegnskapsoppsettKonsernIFRS-25944/397354"
+                   seres:orid="25944" name="RegnskapsoppsettKonsernIFRS-25944">
+    <xsd:simpleContent>
+      <xsd:extension base="RegnskapsoppsettKonsernIFRS-25944_Verdirestriksjon">
+        <xsd:attribute fixed="25944" name="orid" type="xsd:string" use="required"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType seres:elementtype="ORDatakodeliste"
+                   seres:guid="http://seres.no/guid/Regnskapsregisteret/ORDatakodeliste/ForenkletIFRSKonsern-36641/613239"
+                   seres:orid="36641" name="ForenkletIFRSKonsern-36641">
+    <xsd:simpleContent>
+      <xsd:extension base="ForenkletIFRSKonsern-36641_Verdirestriksjon">
+        <xsd:attribute fixed="36641" name="orid" type="xsd:string" use="required"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType seres:elementtype="ORDatakodeliste"
+                   seres:guid="http://seres.no/guid/Regnskapsregisteret/ORDatakodeutvalg/ArsregnskapIkkeRevisjonBesluttet-34669/477715"
+                   seres:orid="34669" name="ArsregnskapIkkeRevisjonBesluttet-34669">
+    <xsd:simpleContent>
+      <xsd:extension base="ArsregnskapIkkeRevisjonBesluttet-34669_Verdirestriksjon">
+        <xsd:attribute fixed="34669" name="orid" type="xsd:string" use="required"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType seres:elementtype="ORDatakodeliste"
+                   seres:guid="http://seres.no/guid/Regnskapsregisteret/ORDatakodeutvalg/ArsregnskapUtarbeidelseAvAutorisertRegnskapsforer-34670/477714"
+                   seres:orid="34670" name="ArsregnskapUtarbeidelseAvAutorisertRegnskapsforer-34670">
+    <xsd:simpleContent>
+      <xsd:extension base="ArsregnskapUtarbeidelseAvAutorisertRegnskapsforer-34670_Verdirestriksjon">
+        <xsd:attribute fixed="34670" name="orid" type="xsd:string" use="required"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType seres:elementtype="ORDatakodeliste"
+                   seres:guid="http://seres.no/guid/Regnskapsregisteret/ORDatakodeutvalg/TjenestebistandEksternAutorisertRegnskapsforer-34671/477713"
+                   seres:orid="34671" name="TjenestebistandEksternAutorisertRegnskapsforer-34671">
+    <xsd:simpleContent>
+      <xsd:extension base="TjenestebistandEksternAutorisertRegnskapsforer-34671_Verdirestriksjon">
+        <xsd:attribute fixed="34671" name="orid" type="xsd:string" use="required"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType seres:elementtype="ORDataenkeltype"
+                   seres:guid="http://seres.no/guid/ORDataenkeltype/RegnskapFastsettelseDato-17105/399637"
+                   seres:orid="17105" name="RegnskapFastsettelseDato-17105">
+    <xsd:simpleContent>
+      <xsd:extension base="RegnskapFastsettelseDato-17105_Verdirestriksjon">
+        <xsd:attribute fixed="17105" name="orid" type="xsd:string" use="required"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType seres:elementtype="ORDataenkeltype"
+                   seres:guid="http://seres.no/guid/ORDataenkeltype/StyremedlemNavnSpesifisertStyremedlem-19023/399857"
+                   seres:orid="19023" name="StyremedlemNavnSpesifisertStyremedlem-19023">
+    <xsd:simpleContent>
+      <xsd:extension base="StyremedlemNavnSpesifisertStyremedlem-19023_Verdirestriksjon">
+        <xsd:attribute fixed="19023" name="orid" type="xsd:string" use="required"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:simpleType seres:elementtype="Tegnrestriksjon" name="EnhetOrganisasjonsnummer-18_Verdirestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:length value="9"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType seres:elementtype="Tegnrestriksjon" name="EnhetOrganisasjonsform-756_Verdirestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:minLength value="1"/>
+      <xsd:maxLength value="35"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType seres:elementtype="Tegnrestriksjon" name="EnhetNavn-1_Verdirestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:minLength value="1"/>
+      <xsd:maxLength value="175"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType seres:elementtype="Tegnrestriksjon" name="KontaktpersonEPost-19022_Verdirestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:minLength value="1"/>
+      <xsd:maxLength value="70"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="ArsregnskapSysteminnsending-35139_Verdirestriksjon">
+    <xsd:restriction base="xsd:string"/>
+  </xsd:simpleType>
+  <xsd:simpleType name="ArsregnskapLandTilLand-35172_Verdirestriksjon">
+    <xsd:restriction base="xsd:boolean"/>
+  </xsd:simpleType>
+  <xsd:simpleType seres:elementtype="Tallrestriksjon" name="RegnskapAr-17102_Verdirestriksjon">
+    <xsd:restriction base="xsd:gYear">
+      <xsd:minInclusive value="1980"/>
+      <xsd:maxInclusive value="9999"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType seres:elementtype="Tallrestriksjon" name="RegnskapStartdato-17103_Verdirestriksjon">
+    <xsd:restriction base="xsd:date">
+      <xsd:minInclusive value="1980-01-01"/>
+      <xsd:maxInclusive value="9999-12-31"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType seres:elementtype="Tallrestriksjon" name="RegnskapAvslutningsdato-17104_Verdirestriksjon">
+    <xsd:restriction base="xsd:date">
+      <xsd:minInclusive value="1980-01-01"/>
+      <xsd:maxInclusive value="9999-12-31"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Morselskap-4168_Verdirestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration seres:elementtype="Datakodeelement"
+                       seres:guid="http://seres.no/guid/Regnskapsregisteret/Datakodeelement/ja/500664" value="ja"/>
+      <xsd:enumeration seres:elementtype="Datakodeelement"
+                       seres:guid="http://seres.no/guid/Regnskapsregisteret/Datakodeelement/nei/500663" value="nei"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="KonsernregnskapVedlegg-25943_Verdirestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration seres:elementtype="Datakodeelement"
+                       seres:guid="http://seres.no/guid/Regnskapsregisteret/Datakodeelement/ja/500668" value="ja"/>
+      <xsd:enumeration seres:elementtype="Datakodeelement"
+                       seres:guid="http://seres.no/guid/Regnskapsregisteret/Datakodeelement/nei/500667" value="nei"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="UtenlandskKonsern-36640_Verdirestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration seres:elementtype="Datakodeelement"
+                       seres:guid="http://seres.no/guid/Regnskapsregisteret/Datakodeelement/ja/613241" value="ja"/>
+      <xsd:enumeration seres:elementtype="Datakodeelement"
+                       seres:guid="http://seres.no/guid/Regnskapsregisteret/Datakodeelement/nei/613240" value="nei"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="RegnskapsreglerSmaForetak-8079_Verdirestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration seres:elementtype="Datakodeelement"
+                       seres:guid="http://seres.no/guid/Regnskapsregisteret/Datakodeelement/ja/500662" value="ja"/>
+      <xsd:enumeration seres:elementtype="Datakodeelement"
+                       seres:guid="http://seres.no/guid/Regnskapsregisteret/Datakodeelement/nei/500661" value="nei"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="RegnskapsoppsettIFRS-25021_Verdirestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration seres:elementtype="Datakodeelement"
+                       seres:guid="http://seres.no/guid/Regnskapsregisteret/Datakodeelement/nei/500666" value="nei"/>
+      <xsd:enumeration seres:elementtype="Datakodeelement"
+                       seres:guid="http://seres.no/guid/Regnskapsregisteret/Datakodeelement/ja/500665" value="ja"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="ForenkletIFRS-36639_Verdirestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration seres:elementtype="Datakodeelement"
+                       seres:guid="http://seres.no/guid/Regnskapsregisteret/Datakodeelement/ja/613244" value="ja"/>
+      <xsd:enumeration seres:elementtype="Datakodeelement"
+                       seres:guid="http://seres.no/guid/Regnskapsregisteret/Datakodeelement/nei/613243" value="nei"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="RegnskapsoppsettKonsernIFRS-25944_Verdirestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration seres:elementtype="Datakodeelement"
+                       seres:guid="http://seres.no/guid/Regnskapsregisteret/Datakodeelement/nei/500670" value="nei"/>
+      <xsd:enumeration seres:elementtype="Datakodeelement"
+                       seres:guid="http://seres.no/guid/Regnskapsregisteret/Datakodeelement/ja/500669" value="ja"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="ForenkletIFRSKonsern-36641_Verdirestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration seres:elementtype="Datakodeelement"
+                       seres:guid="http://seres.no/guid/Regnskapsregisteret/Datakodeelement/ja/613238" value="ja"/>
+      <xsd:enumeration seres:elementtype="Datakodeelement"
+                       seres:guid="http://seres.no/guid/Regnskapsregisteret/Datakodeelement/nei/613237" value="nei"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="ArsregnskapIkkeRevisjonBesluttet-34669_Verdirestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration seres:elementtype="Datakodeelement"
+                       seres:guid="http://seres.no/guid/Regnskapsregisteret/Datakodeelement/ja/500660" value="ja"/>
+      <xsd:enumeration seres:elementtype="Datakodeelement"
+                       seres:guid="http://seres.no/guid/Regnskapsregisteret/Datakodeelement/nei/500659" value="nei"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="ArsregnskapUtarbeidelseAvAutorisertRegnskapsforer-34670_Verdirestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration seres:elementtype="Datakodeelement"
+                       seres:guid="http://seres.no/guid/Regnskapsregisteret/Datakodeelement/ja/500658" value="ja"/>
+      <xsd:enumeration seres:elementtype="Datakodeelement"
+                       seres:guid="http://seres.no/guid/Regnskapsregisteret/Datakodeelement/nei/500657" value="nei"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="TjenestebistandEksternAutorisertRegnskapsforer-34671_Verdirestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration seres:elementtype="Datakodeelement"
+                       seres:guid="http://seres.no/guid/Regnskapsregisteret/Datakodeelement/ja/500656" value="ja"/>
+      <xsd:enumeration seres:elementtype="Datakodeelement"
+                       seres:guid="http://seres.no/guid/Regnskapsregisteret/Datakodeelement/nei/500655" value="nei"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType seres:elementtype="Tallrestriksjon" name="RegnskapFastsettelseDato-17105_Verdirestriksjon">
+    <xsd:restriction base="xsd:date"/>
+  </xsd:simpleType>
+  <xsd:simpleType seres:elementtype="Tegnrestriksjon"
+                  name="StyremedlemNavnSpesifisertStyremedlem-19023_Verdirestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:minLength value="1"/>
+      <xsd:maxLength value="70"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="Skjemainnhold">
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="regnskapsperiode" type="Regnskapsperiode"/>
+      <xsd:element minOccurs="0" name="konsern" type="Konsern"/>
+      <xsd:element minOccurs="0" name="regnskapsprinsipper" type="Regnskapsprinsipper"/>
+      <xsd:element minOccurs="0" name="fastsettelse" type="Fastsettelse"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Innsender">
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="enhet" type="Enhet"/>
+      <xsd:element minOccurs="0" maxOccurs="unbounded" name="kontaktperson" type="Kontaktperson"/>
+      <xsd:element minOccurs="0" name="opplysningerInnsending" type="OpplysningerInnsending"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="OpplysningerInnsending">
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="fraSluttbrukersystem" type="ArsregnskapSysteminnsending-35139"/>
+      <xsd:element minOccurs="0" name="landTilLand" type="ArsregnskapLandTilLand-35172"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Kontaktperson">
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="e-post" type="KontaktpersonEPost-19022"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Enhet">
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="organisasjonsnummer" type="EnhetOrganisasjonsnummer-18"/>
+      <xsd:element minOccurs="0" name="organisasjonsform" type="EnhetOrganisasjonsform-756"/>
+      <xsd:element minOccurs="0" name="navn" type="EnhetNavn-1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Fastsettelse">
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="fastsettelsesdato" type="RegnskapFastsettelseDato-17105"/>
+      <xsd:element minOccurs="0" name="bekreftendeSelskapsrepresentant"
+                   type="StyremedlemNavnSpesifisertStyremedlem-19023"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Regnskapsprinsipper">
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="smaaForetak" type="RegnskapsreglerSmaForetak-8079"/>
+      <xsd:element minOccurs="0" name="regnskapsreglerSelskap" type="RegnskapsoppsettIFRS-25021"/>
+      <xsd:element minOccurs="0" name="forenkletIfrs" type="ForenkletIFRS-36639"/>
+      <xsd:element minOccurs="0" name="regnskapsreglerKonsern" type="RegnskapsoppsettKonsernIFRS-25944"/>
+      <xsd:element minOccurs="0" name="forenkletIfrsKonsern" type="ForenkletIFRSKonsern-36641"/>
+      <xsd:element minOccurs="0" name="aarsregnskapIkkeRevideres" type="ArsregnskapIkkeRevisjonBesluttet-34669"/>
+      <xsd:element minOccurs="0" name="aarsregnskapUtarbeidetAutorisertRegnskapsfoerer"
+                   type="ArsregnskapUtarbeidelseAvAutorisertRegnskapsforer-34670"/>
+      <xsd:element minOccurs="0" name="tjenestebistandEksternAutorisertRegnskapsfoerer"
+                   type="TjenestebistandEksternAutorisertRegnskapsforer-34671"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Konsern">
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="morselskap" type="Morselskap-4168"/>
+      <xsd:element minOccurs="0" name="konsernregnskap" type="KonsernregnskapVedlegg-25943"/>
+      <xsd:element minOccurs="0" name="utenlandskKonsern" type="UtenlandskKonsern-36640"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Regnskapsperiode">
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="regnskapsstart" type="RegnskapStartdato-17103"/>
+      <xsd:element minOccurs="0" name="regnskapsslutt" type="RegnskapAvslutningsdato-17104"/>
+      <xsd:element minOccurs="0" name="regnskapsaar" type="RegnskapAr-17102"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xs:schema>

@@ -407,8 +407,8 @@ stats.csv
 ## VSCode settings
 .vscode/tasks.json
 .vscode/launch.json
-/test-results/
+**/test-results/
 /blob-report/
 /playwright/.cache/
-/frontend/testing/playwright/playwright-report
+**/playwright/playwright-report/
 .playwright/

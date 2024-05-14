@@ -16,6 +16,10 @@ jest.mock('app-shared/utils/featureToggleUtils', () => ({
 }));
 
 describe('ConfigPanel', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should render no selected task message', () => {
     renderConfigPanel({ bpmnDetails: null });
     const title = screen.getByRole('heading', {
