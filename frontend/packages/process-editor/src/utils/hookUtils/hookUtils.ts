@@ -62,7 +62,7 @@ export const getDataTypeIdFromBusinessObject = (
 ): string => {
   const configNode = bpmnTaskConfig[bpmnTaskType].configNode;
   const dataTypeName = bpmnTaskConfig[bpmnTaskType].dataTypeName;
-  return businessObject?.extensionElements?.values[0][configNode][dataTypeName]?.dataType?.dataType;
+  return businessObject?.extensionElements?.values[0][configNode][dataTypeName];
 };
 
 export const getLayoutSetIdFromTaskId = (bpmnDetails: BpmnDetails, layoutSets: LayoutSets) => {
