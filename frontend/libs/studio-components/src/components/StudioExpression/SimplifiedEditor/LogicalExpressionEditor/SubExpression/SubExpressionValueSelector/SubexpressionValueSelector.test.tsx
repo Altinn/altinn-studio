@@ -236,6 +236,26 @@ describe('SubexpressionValueSelector', () => {
     });
   });
 
+  describe('When the value is an gateway action', () => {
+    it('should display expression selector only', () => {
+      const gatewayAction: SimpleSubexpressionValue<SimpleSubexpressionValueType.GatewayAction> = {
+        type: SimpleSubexpressionValueType.GatewayAction,
+        value: 'gatewayAction',
+      };
+      renderSubexpressionValueSelector({ value: gatewayAction, isInEditMode: true });
+      expect(screen.getByText('Gateway action'));
+    });
+
+    it('should display readonly mode', () => {
+      const gatewayAction: SimpleSubexpressionValue<SimpleSubexpressionValueType.GatewayAction> = {
+        type: SimpleSubexpressionValueType.GatewayAction,
+        value: 'gatewayAction',
+      };
+      renderSubexpressionValueSelector({ value: gatewayAction, isInEditMode: false });
+      expect(screen.getByText('gatewayAction'));
+    });
+  });
+
   describe('When the value is an instance context reference', () => {
     it.each(Object.values(InstanceContext))(
       'Displays the key in readonly mode when it is %s',

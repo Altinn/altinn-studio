@@ -11,6 +11,10 @@ import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { BpmnApiContextProvider } from '../../contexts/BpmnApiContext';
 import { mockBpmnDetails } from '../../../test/mocks/bpmnDetailsMock';
 
+jest.mock('./ConfigSequenceFlow', () => ({
+  ConfigSequenceFlow: () => <h1>ConfigSequenceFlow Mocked Component</h1>,
+}));
+
 jest.mock('app-shared/utils/featureToggleUtils', () => ({
   shouldDisplayFeature: jest.fn().mockReturnValue(false),
 }));
@@ -35,13 +39,24 @@ describe('ConfigPanel', () => {
 
   it('should render ConfigPanel if bpmn type is task', () => {
     renderConfigPanel({
-      modelerRef: { current: { get: () => {} } as unknown as Modeler },
+      modelerRef: {
+        current: {
+          get: () => {},
+        } as unknown as Modeler,
+      },
       bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.Task },
     });
     const editTaskIdButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_change_task_id'),
     });
     expect(editTaskIdButton).toBeInTheDocument();
+  });
+
+  it('should render sequence flow config panel if bpmn type is sequence flow', () => {
+    renderConfigPanel({ bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.SequenceFlow } });
+    expect(
+      screen.getByRole('heading', { name: 'ConfigSequenceFlow Mocked Component' }),
+    ).toBeInTheDocument();
   });
 
   it('should display the details about the end event when bpmnDetails.type is "EndEvent" and customizeEndEvent feature flag is enabled', () => {

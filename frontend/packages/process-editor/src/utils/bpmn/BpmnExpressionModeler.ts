@@ -2,11 +2,6 @@ import type { Element } from 'bpmn-moddle';
 import { StudioModeler } from './StudioModeler';
 
 export class BpmnExpressionModeler extends StudioModeler {
-  public get hasConditionExpression(): boolean {
-    const element: Element = this.getElement();
-    return !!element.di.bpmnElement.conditionExpression;
-  }
-
   public get conditionExpression(): string | null {
     const expressionString = this.getElement().di.bpmnElement.conditionExpression?.body;
     return expressionString ? JSON.parse(expressionString) : null;
