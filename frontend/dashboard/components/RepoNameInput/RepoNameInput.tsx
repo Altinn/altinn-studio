@@ -1,6 +1,7 @@
 import React from 'react';
+import classes from './RepoNameInput.module.css';
 import type { TextfieldProps } from '@digdir/design-system-react';
-import { Textfield } from '@digdir/design-system-react';
+import { Paragraph, Textfield } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 
 type RepoNameInputProps = {
@@ -20,13 +21,14 @@ export const RepoNameInput = ({ repoName, errorMessage, name, onChange }: RepoNa
         defaultValue={repoName}
         error={errorMessage}
         onChange={onChange}
+        size='small'
       />
-      <p>
+      <Paragraph size='small' className={classes.textWrapper}>
         {t('dashboard.service_saved_name_description')}{' '}
         <strong style={{ fontWeight: '500' }}>
           {t('dashboard.service_saved_name_description_cannot_be_changed')}
         </strong>
-      </p>
+      </Paragraph>
     </div>
   );
 };
