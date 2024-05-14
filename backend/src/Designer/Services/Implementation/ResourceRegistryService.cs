@@ -346,7 +346,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new PagedAccessListMembersResponse()
             {
                 Data = members,
-                NextPage = "https://platform.at22.altinn.cloud/resourceregistry/api/v1/access-lists/ttd/bruno/members?page=page2" //membersDto?.Links?.Next
+                NextPage = membersDto?.Links?.Next
             };
         }
 
