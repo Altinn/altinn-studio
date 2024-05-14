@@ -61,4 +61,10 @@ describe('useTableSorting', () => {
     await waitFor(() => result.current.handleSorting('id'));
     expect(result.current.sortedRows).toEqual(rows);
   });
+
+  it("should make 'sortedRows' and 'handleSorting' undefined when enable is false", () => {
+    const { result } = renderHook(() => useTableSorting(rows, { enable: false }));
+    expect(result.current.sortedRows).toBeUndefined();
+    expect(result.current.handleSorting).toBeUndefined();
+  });
 });

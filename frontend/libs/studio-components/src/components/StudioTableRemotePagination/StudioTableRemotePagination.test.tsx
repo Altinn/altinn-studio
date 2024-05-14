@@ -36,8 +36,9 @@ describe('StudioTableRemotePagination', () => {
     render(
       <StudioTableRemotePagination columns={columns} rows={rows} onSortClick={handleSorting} />,
     );
+    const user = userEvent.setup();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Name' }));
+    await user.click(screen.getByRole('button', { name: 'Name' }));
 
     expect(handleSorting).toHaveBeenCalledWith('name');
   });
@@ -62,8 +63,9 @@ describe('StudioTableRemotePagination', () => {
     render(
       <StudioTableRemotePagination columns={columns} rows={rows} pagination={paginationProps} />,
     );
+    const user = userEvent.setup();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await user.click(screen.getByRole('button', { name: 'Next' }));
 
     expect(paginationProps.onPageChange).toHaveBeenCalledWith(2);
   });
@@ -72,8 +74,9 @@ describe('StudioTableRemotePagination', () => {
     render(
       <StudioTableRemotePagination columns={columns} rows={rows} pagination={paginationProps} />,
     );
+    const user = userEvent.setup();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Page 2' }));
+    await user.click(screen.getByRole('button', { name: 'Page 2' }));
 
     expect(paginationProps.onPageChange).toHaveBeenCalledWith(2);
   });
@@ -82,8 +85,9 @@ describe('StudioTableRemotePagination', () => {
     render(
       <StudioTableRemotePagination columns={columns} rows={rows} pagination={paginationProps} />,
     );
+    const user = userEvent.setup();
 
-    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Rows per page' }), '10');
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Rows per page' }), '10');
 
     expect(paginationProps.onPageSizeChange).toHaveBeenCalledWith(10);
   });

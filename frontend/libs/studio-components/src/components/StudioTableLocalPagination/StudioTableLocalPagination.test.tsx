@@ -35,10 +35,11 @@ describe('StudioTableLocalPagination', () => {
 
   it('triggers sorting when a sortable column header is clicked', async () => {
     render(<StudioTableLocalPagination columns={columns} rows={rows} isSortable />);
+    const user = userEvent.setup();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Name' }));
-
+    await user.click(screen.getByRole('button', { name: 'Name' }));
     const [, firstBodyRow, secondBodyRow] = screen.getAllByRole('row');
+
     expect(
       within(firstBodyRow).getByRole('cell', { name: 'A-melding – all forms' }),
     ).toBeInTheDocument();
@@ -71,8 +72,9 @@ describe('StudioTableLocalPagination', () => {
     render(
       <StudioTableLocalPagination columns={columns} rows={rows} pagination={paginationProps} />,
     );
+    const user = userEvent.setup();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await user.click(screen.getByRole('button', { name: 'Next' }));
 
     expect(
       screen.queryByRole('cell', { name: 'Coordinated register notification' }),
@@ -87,8 +89,9 @@ describe('StudioTableLocalPagination', () => {
     render(
       <StudioTableLocalPagination columns={columns} rows={rows} pagination={paginationProps} />,
     );
+    const user = userEvent.setup();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Page 2' }));
+    await user.click(screen.getByRole('button', { name: 'Page 2' }));
 
     expect(
       screen.queryByRole('cell', { name: 'Coordinated register notification' }),
@@ -103,8 +106,9 @@ describe('StudioTableLocalPagination', () => {
     render(
       <StudioTableLocalPagination columns={columns} rows={rows} pagination={paginationProps} />,
     );
+    const user = userEvent.setup();
 
-    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Rows per page' }), '10');
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Rows per page' }), '10');
 
     const tableBody = screen.getAllByRole('rowgroup')[1];
     const tableBodyRows = within(tableBody).getAllByRole('row');
@@ -115,13 +119,14 @@ describe('StudioTableLocalPagination', () => {
     render(
       <StudioTableLocalPagination columns={columns} rows={rows} pagination={paginationProps} />,
     );
+    const user = userEvent.setup();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Page 4' }));
+    await user.click(screen.getByRole('button', { name: 'Page 4' }));
     const lastPageBody = screen.getAllByRole('rowgroup')[1];
     const lastPageRow = within(lastPageBody).getAllByRole('row');
     expect(lastPageRow.length).toBe(1);
 
-    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Rows per page' }), '50');
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Rows per page' }), '50');
     const tableBody = screen.getAllByRole('rowgroup')[1];
     const tableBodyRows = within(tableBody).getAllByRole('row');
     expect(tableBodyRows.length).toBeGreaterThan(10);
