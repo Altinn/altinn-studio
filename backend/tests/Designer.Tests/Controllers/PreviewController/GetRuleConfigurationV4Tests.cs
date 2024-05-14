@@ -9,17 +9,17 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class GetRuleConfigurationStatefulTests : PreviewControllerTestsBase<GetRuleConfigurationStatefulTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetRuleConfigurationV4Tests : PreviewControllerTestsBase<GetRuleConfigurationV4Tests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        public GetRuleConfigurationStatefulTests(WebApplicationFactory<Program> factory) : base(factory)
+        public GetRuleConfigurationV4Tests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
         [Fact]
-        public async Task Get_RuleConfigurationForStatefulAppWithoutRuleConfig_NoContent()
+        public async Task Get_RuleConfigurationForV4AppWithoutRuleConfig_NoContent()
         {
-            string dataPathWithData = $"{Org}/{StatefulApp}/api/ruleconfiguration/{LayoutSetName}";
+            string dataPathWithData = $"{Org}/{AppV4}/api/ruleconfiguration/{LayoutSetName}";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -27,11 +27,11 @@ namespace Designer.Tests.Controllers.PreviewController
         }
 
         [Fact]
-        public async Task Get_RuleConfigurationForStatefulAppWithRuleConfig_Ok()
+        public async Task Get_RuleConfigurationForV4AppWithRuleConfig_Ok()
         {
-            string expectedRuleConfig = TestDataHelper.GetFileFromRepo(Org, StatefulApp, Developer, $"App/ui/{LayoutSetName2}/RuleConfiguration.json");
+            string expectedRuleConfig = TestDataHelper.GetFileFromRepo(Org, AppV4, Developer, $"App/ui/{LayoutSetName2}/RuleConfiguration.json");
 
-            string dataPathWithData = $"{Org}/{StatefulApp}/api/ruleconfiguration/{LayoutSetName2}";
+            string dataPathWithData = $"{Org}/{AppV4}/api/ruleconfiguration/{LayoutSetName2}";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

@@ -83,7 +83,7 @@ export const envConfigPath = () => `${basePath}/environments`;
 export const abortmergePath = (org, app) => `${basePath}/repos/repo/${org}/${app}/abort-merge`;
 export const branchStatusPath = (org, app, branch) => `${basePath}/repos/repo/${org}/${app}/branches/branch?${s({ branch })}`; // Get
 export const cloneAppPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/clone`; // Get
-export const copyAppPath = (org, sourceRepository, targetRepository) => `${basePath}/repos/repo/${org}/copy-app?${s({ sourceRepository, targetRepository })}`;
+export const copyAppPath = (org, sourceRepository, targetRepository, targetOrg) => `${basePath}/repos/repo/${org}/copy-app?${s({ sourceRepository, targetRepository, targetOrg })}`;
 export const createRepoPath = () => `${basePath}/repos/create-app`; // Post
 export const discardChangesPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/discard`; // Get
 export const discardFileChangesPath = (org, app, filename) => `${basePath}/repos/repo/${org}/${app}/discard/${filename}`; // Get
