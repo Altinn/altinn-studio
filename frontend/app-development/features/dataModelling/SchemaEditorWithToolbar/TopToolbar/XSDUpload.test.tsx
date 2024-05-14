@@ -1,5 +1,4 @@
 import React from 'react';
-import axios from 'axios';
 import { XSDUpload } from './XSDUpload';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -9,6 +8,8 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import * as testids from '../../../../../testing/testids';
 import { renderWithMockStore } from '../../../../test/mocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
 const user = userEvent.setup();
 
@@ -16,17 +17,18 @@ const user = userEvent.setup();
 const org = 'org';
 const app = 'app';
 
-// Mocks:
-jest.mock('axios');
-const mockedAxios = axios as jest.Mocked<typeof axios>;
-
 const clickUploadButton = async () => {
   const btn = screen.getByText(textMock('app_data_modelling.upload_xsd'));
   await user.click(btn);
 };
 
-const render = (queryClient: QueryClient = createQueryClientMock()) =>
-  renderWithMockStore({}, {}, queryClient)(<XSDUpload />);
+const render = ({
+  queries = {},
+  queryClient = createQueryClientMock(),
+}: {
+  queryClient?: QueryClient;
+  queries?: Partial<ServicesContextProps>;
+} = {}) => renderWithMockStore({}, queries, queryClient)(<XSDUpload />);
 
 describe('XSDUpload', () => {
   afterEach(jest.restoreAllMocks);
@@ -42,32 +44,32 @@ describe('XSDUpload', () => {
   });
 
   it('should show error text when file upload results in error', async () => {
-    mockedAxios.post.mockImplementation(() => Promise.reject(new Error('mocked error')));
+    const errorCode = 'ModelWithTheSameTypeNameExists';
     const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
-    render();
+    render({
+      queries: {
+        uploadDatamodel: jest
+          .fn()
+          .mockImplementation(() => Promise.reject(createApiErrorMock(400, errorCode))),
+      },
+      queryClient: null,
+    });
 
     await clickUploadButton();
-
-    expect(
-      screen.queryByText(textMock('form_filler.file_uploader_validation_error_upload')),
-    ).not.toBeInTheDocument();
 
     const fileInput = screen.getByTestId(testids.fileSelectorInput);
 
     await user.upload(fileInput, file);
 
-    expect(
-      screen.getByText(textMock('form_filler.file_uploader_validation_error_upload')),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole('alert')).toHaveTextContent(textMock(`api_errors.${errorCode}`));
   });
 
   it('Invalidates metadata queries when upload is successful', async () => {
-    mockedAxios.post.mockImplementation(() => Promise.resolve({ status: 200 }));
     const filename = 'hello';
     const file = new File([filename], `${filename}.xsd`, { type: 'text/xml' });
     const queryClient = createQueryClientMock();
     const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
-    render(queryClient);
+    render({ queryClient });
 
     await clickUploadButton();
 
