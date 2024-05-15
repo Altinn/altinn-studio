@@ -158,7 +158,7 @@ export const queriesMock: ServicesContextProps = {
   getSubParties: jest
     .fn()
     .mockImplementation(() => Promise.resolve<BrregSubPartySearchResult>(null)),
-  getAccessListMembers: jest.fn().mockImplementation(() => Promise.resolve({})),
+  getAccessListMembers: jest.fn().mockImplementation(() => Promise.resolve({ data: [] })),
 
   // Queries - PrgetBpmnFile
   getBpmnFile: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
