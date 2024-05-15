@@ -130,6 +130,15 @@
         "textResourceBindings": {
           "title": "Side4.Button-qHGXDg.title"
         }
+      },
+      {
+        "id": "Summary2-previous-processarg",
+        "type": "Summary2",
+        "hidden": false,
+        "whatToRender": {
+          "type": "task",
+          "id": "PreviousProcessSummary"
+        }
       }
     ]
   }

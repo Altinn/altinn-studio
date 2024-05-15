@@ -3,12 +3,20 @@
   "data": {
     "layout": [
       {
+        "size": "M",
+        "id": "page3summarytask",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Her skal vi rendre hele Task_1:"
+        }
+      },
+      {
         "id": "Summary2-previous-process",
         "type": "Summary2",
         "hidden": false,
         "whatToRender": {
-          "type": "process",
-          "id": "Side3"
+          "type": "task",
+          "id": "form"
         }
       }
     ]
