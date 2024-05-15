@@ -151,7 +151,9 @@ export const ResourceAccessLists = ({
             variant='tertiary'
             onClick={() => fetchNextPage()}
           >
-            {t('resourceadm.listadmin_load_more')}
+            {t('resourceadm.listadmin_load_more', {
+              unit: t('resourceadm.listadmin_list_unit'),
+            })}
           </Button>
         )}
       </div>

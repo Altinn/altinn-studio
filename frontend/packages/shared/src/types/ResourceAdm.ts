@@ -144,7 +144,6 @@ export interface AccessList {
   identifier: string;
   name: string;
   description?: string;
-  members?: AccessListMember[];
   resourceConnections?: {
     resourceIdentifier: string;
   }[];
@@ -152,7 +151,16 @@ export interface AccessList {
 
 export interface AccessListsResponse {
   data: AccessList[];
-  nextPage?: number;
+  nextPage?: string;
+}
+
+export interface AccessListMembersResponse {
+  data: AccessListMember[];
+  nextPage?: string;
+}
+
+export interface AccessListOrganizationNumbers {
+  data: string[];
 }
 
 export interface AccessListOrganizationNumbers {

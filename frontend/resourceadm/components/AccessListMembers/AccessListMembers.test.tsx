@@ -23,19 +23,20 @@ const defaultProps: AccessListMembersProps = {
     identifier: testListIdentifier,
     name: 'Test-list',
     description: 'This is a description',
-    members: [
-      {
-        orgNr: testMemberPartyId,
-        orgName: '',
-        isSubParty: false,
-      },
-      {
-        orgNr: '112233445',
-        orgName: 'test',
-        isSubParty: true,
-      },
-    ],
   },
+  members: [
+    {
+      orgNr: testMemberPartyId,
+      orgName: '',
+      isSubParty: false,
+    },
+    {
+      orgNr: '112233445',
+      orgName: 'test',
+      isSubParty: true,
+    },
+  ],
+  loadMoreButton: null,
 };
 
 describe('AccessListMembers', () => {
@@ -47,27 +48,32 @@ describe('AccessListMembers', () => {
   });
 
   it('should show message when list is empty', () => {
-    renderAccessListMembers({ list: { ...defaultProps.list, members: undefined } });
+    renderAccessListMembers({ members: [] });
     expect(screen.getByText(textMock('resourceadm.listadmin_empty_list'))).toBeInTheDocument();
   });
 
   it('should remove member from table when remove member button is clicked', async () => {
     const user = userEvent.setup();
-    renderAccessListMembers();
+    const removeAccessListMemberMock = jest.fn();
+    renderAccessListMembers({}, { removeAccessListMember: removeAccessListMemberMock });
 
     const removeButtons = screen.getAllByText(textMock('resourceadm.listadmin_remove_from_list'));
     await user.click(removeButtons[0]);
 
-    expect(screen.queryByText(testMemberPartyId)).not.toBeInTheDocument();
+    expect(removeAccessListMemberMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, {
+      data: [testMemberPartyId],
+    });
   });
 
   it('should show new member in list after member is added', async () => {
     const user = userEvent.setup();
+    const addAccessListMemberMock = jest.fn();
     const searchResultText = 'Digdir';
     const searchResultOrgNr = '987654321';
     renderAccessListMembers(
       {},
       {
+        addAccessListMember: addAccessListMemberMock,
         getParties: jest.fn().mockImplementation(() =>
           Promise.resolve({
             _embedded: {
@@ -90,7 +96,9 @@ describe('AccessListMembers', () => {
     const addMemberButton = screen.getByText(textMock('resourceadm.listadmin_add_to_list'));
     await user.click(addMemberButton);
 
-    expect(screen.queryAllByText(searchResultOrgNr)).toHaveLength(2);
+    expect(addAccessListMemberMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, {
+      data: [searchResultOrgNr],
+    });
   });
 
   it('should show message when no parties are found', async () => {

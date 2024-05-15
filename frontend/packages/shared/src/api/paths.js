@@ -139,11 +139,11 @@ export const resourceValidateResourcePath = (org, repo, id) => `${basePath}/${or
 export const publishResourcePath = (org, repo, id, env) => `${basePath}/${org}/resources/publish/${repo}/${id}?env=${env}`; // Get
 export const altinn2LinkServicesPath = (org, env) => `${basePath}/${org}/resources/altinn2linkservices/${env}`; // Get
 export const importResourceFromAltinn2Path = (org, env, serviceCode, serviceEdition) => `${basePath}/${org}/resources/importresource/${serviceCode}/${serviceEdition}/${env}`; // Post
-export const accessListsPath = (org, env, page) => `${basePath}/${org}/resources/accesslist/?env=${env}&page=${page}`; // Get
+export const accessListsPath = (org, env, page) => `${basePath}/${org}/resources/accesslist/?env=${env}${page ? `&page=${page}` : ''}`; // Get
 export const createAccessListsPath = (org, env) => `${basePath}/${org}/resources/accesslist/?env=${env}`; //  Post
 export const accessListPath = (org, listId, env) => `${basePath}/${org}/resources/accesslist/${listId}?env=${env}`; // Get, Patch, Delete
-export const accessListMemberPath = (org, listId, env) => `${basePath}/${org}/resources/accesslist/${listId}/members/?env=${env}`; // Post, Delete
-export const resourceAccessListsPath = (org, resourceId, env, page) => `${basePath}/${org}/resources/${resourceId}/accesslists/?env=${env}&page=${page}`; // Get
+export const accessListMemberPath = (org, listId, env, page) => `${basePath}/${org}/resources/accesslist/${listId}/members/?env=${env}${page ? `&page=${page}` : ''}`; // Get, Post, Delete
+export const resourceAccessListsPath = (org, resourceId, env, page) => `${basePath}/${org}/resources/${resourceId}/accesslists/?env=${env}${page ? `&page=${page}` : ''}`; // Get
 export const resourceAccessListPath = (org, resourceId, listId, env) => `${basePath}/${org}/resources/${resourceId}/accesslists/${listId}?env=${env}`; // Post, Delete, Patch
 
 // Process Editor

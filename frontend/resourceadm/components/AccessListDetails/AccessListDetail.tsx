@@ -2,15 +2,16 @@ import React, { useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import { Textfield, Modal, Heading, Link as DigdirLink } from '@digdir/design-system-react';
+import { Textfield, Modal, Heading, Link as DigdirLink, Button } from '@digdir/design-system-react';
 import classes from './AccessListDetail.module.css';
 import type { AccessList } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from '../FieldWrapper';
 import { useEditAccessListMutation } from '../../hooks/mutations/useEditAccessListMutation';
 import { useDeleteAccessListMutation } from '../../hooks/mutations/useDeleteAccessListMutation';
+import { useGetAccessListMembersQuery } from '../../hooks/queries/useGetAccessListMembersQuery';
 import { AccessListMembers } from '../AccessListMembers';
 import { TrashIcon } from '@studio/icons';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioSpinner } from '@studio/components';
 
 export interface AccessListDetailProps {
   org: string;
@@ -33,6 +34,12 @@ export const AccessListDetail = ({
   const [listName, setListName] = useState<string>(list.name || '');
   const [listDescription, setListDescription] = useState<string>(list.description || '');
 
+  const {
+    data: membersData,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useGetAccessListMembersQuery(org, list.identifier, env);
   const { mutate: editAccessList } = useEditAccessListMutation(org, list.identifier, env);
   const { mutate: deleteAccessList, isPending: isDeletingAccessList } = useDeleteAccessListMutation(
     org,
@@ -114,7 +121,31 @@ export const AccessListDetail = ({
           onBlur={(event) => handleSave({ ...list, description: event.target.value })}
         />
       </FieldWrapper>
-      <AccessListMembers org={org} env={env} list={list} />
+      {membersData && (
+        <AccessListMembers
+          org={org}
+          env={env}
+          list={list}
+          members={membersData.pages}
+          loadMoreButton={
+            hasNextPage && (
+              <Button
+                disabled={isFetchingNextPage}
+                size='small'
+                variant='tertiary'
+                onClick={() => fetchNextPage()}
+              >
+                {isFetchingNextPage && (
+                  <StudioSpinner size='small' spinnerTitle={t('general.loading')} />
+                )}
+                {t('resourceadm.listadmin_load_more', {
+                  unit: t('resourceadm.listadmin_member_unit'),
+                })}
+              </Button>
+            )
+          }
+        />
+      )}
       <div>
         <StudioButton
           variant='tertiary'

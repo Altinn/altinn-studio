@@ -13,7 +13,7 @@ const accessListResults = {
   data: [
     { env: 'tt02', identifier: 'listid', name: 'Test-list', description: 'Test-list description' },
   ],
-  nextPage: 1,
+  nextPage: 'http://at22-next-page',
 };
 
 const accessListResultsPage2 = {
@@ -25,7 +25,7 @@ const accessListResultsPage2 = {
       description: 'Test-list description2',
     },
   ],
-  nextPage: null,
+  nextPage: '',
 };
 
 const mockedNavigate = jest.fn();
@@ -103,8 +103,20 @@ describe('ListAdminPage', () => {
     const user = userEvent.setup();
     renderListAdminPage();
 
-    await waitFor(() => screen.findByText(textMock('resourceadm.listadmin_load_more')));
-    await user.click(screen.getByText(textMock('resourceadm.listadmin_load_more')));
+    await waitFor(() =>
+      screen.findByText(
+        textMock('resourceadm.listadmin_load_more', {
+          unit: textMock('resourceadm.listadmin_list_unit'),
+        }),
+      ),
+    );
+    await user.click(
+      screen.getByText(
+        textMock('resourceadm.listadmin_load_more', {
+          unit: textMock('resourceadm.listadmin_list_unit'),
+        }),
+      ),
+    );
 
     expect(await screen.findByText('Test-list2')).toBeInTheDocument();
   });

@@ -23,17 +23,20 @@ export interface AccessListMembersProps {
   org: string;
   env: string;
   list: AccessList;
+  members: AccessListMember[];
+  loadMoreButton: React.JSX.Element;
 }
 
 export const AccessListMembers = ({
   org,
   env,
   list,
+  members,
+  loadMoreButton,
 }: AccessListMembersProps): React.JSX.Element => {
   const { t } = useTranslation();
 
-  const [listItems, setListItems] = useState<AccessListMember[]>(list.members ?? []);
-  const [isAddMode, setIsAddMode] = useState<boolean>((list.members ?? []).length === 0);
+  const [isAddMode, setIsAddMode] = useState<boolean>(members.length === 0);
   const [isSubPartySearch, setIsSubPartySearch] = useState<boolean>(false);
   const [searchText, setSearchText] = useState<string>('');
   const [searchUrl, setSearchUrl] = useState<string>('');
@@ -56,19 +59,11 @@ export const AccessListMembers = ({
   );
 
   const handleAddMember = (memberToAdd: AccessListMember): void => {
-    addListMember([memberToAdd.orgNr], {
-      onSuccess: () => {
-        setListItems((old) => [...old, memberToAdd]);
-      },
-    });
+    addListMember([memberToAdd.orgNr]);
   };
 
   const handleRemoveMember = (memberIdToRemove: string): void => {
-    removeListMember([memberIdToRemove], {
-      onSuccess: () => {
-        setListItems((old) => old.filter((x) => x.orgNr !== memberIdToRemove));
-      },
-    });
+    removeListMember([memberIdToRemove]);
   };
 
   const getResultData = () => {
@@ -103,11 +98,12 @@ export const AccessListMembers = ({
       description={t('resourceadm.listadmin_list_organizations_description')}
     >
       <AccessListMembersTable
-        listItems={listItems}
+        listItems={members}
         isLoading={isRemovingMember}
         onButtonClick={(item: AccessListMember) => handleRemoveMember(item.orgNr)}
       />
-      {listItems.length === 0 && (
+      {loadMoreButton}
+      {members.length === 0 && (
         <Alert severity='info'>{t('resourceadm.listadmin_empty_list')}</Alert>
       )}
       {isAddMode && (
@@ -148,7 +144,7 @@ export const AccessListMembers = ({
             isHeaderHidden
             listItems={resultData?.parties ?? []}
             isLoading={isAddingNewListMember}
-            disabledItems={listItems}
+            disabledItems={members}
             isAdd
             onButtonClick={handleAddMember}
           />

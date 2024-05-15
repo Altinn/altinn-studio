@@ -28,13 +28,22 @@ const defaultProps: AccessListDetailProps = {
     identifier: testListIdentifier,
     name: 'Test-list',
     description: 'This is a description',
-    members: [],
   },
   backUrl: '/listadmin',
 };
 
+const membersPage2OrgNr = '987654321';
+const membersResults = {
+  data: [{ orgNr: '123456789', orgName: 'Skatteetaten', isSubParty: false }],
+  nextPage: 'http://at22-next-page',
+};
+
+const membersResultsPage2 = {
+  data: [{ orgNr: membersPage2OrgNr, orgName: 'Digitaliseringsdirektoratet', isSubParty: false }],
+  nextPage: '',
+};
+
 const updateAccessListMock = jest.fn();
-const addAccessListMemberMock = jest.fn();
 
 describe('AccessListDetail', () => {
   afterEach(jest.clearAllMocks);
@@ -87,7 +96,7 @@ describe('AccessListDetail', () => {
 
   it('should navigate back after list is deleted', async () => {
     const user = userEvent.setup();
-    renderAccessListDetail({}, { addAccessListMember: addAccessListMemberMock });
+    renderAccessListDetail();
 
     const deleteListButton = screen.getByText(textMock('resourceadm.listadmin_delete_list'));
     await user.click(deleteListButton);
@@ -100,7 +109,7 @@ describe('AccessListDetail', () => {
 
   it('should close modal on cancel delete', async () => {
     const user = userEvent.setup();
-    renderAccessListDetail({}, { addAccessListMember: addAccessListMemberMock });
+    renderAccessListDetail();
 
     const deleteListButton = screen.getByText(textMock('resourceadm.listadmin_delete_list'));
     await user.click(deleteListButton);
@@ -111,6 +120,32 @@ describe('AccessListDetail', () => {
     expect(
       screen.queryByText(textMock('resourceadm.listadmin_delete_list_header')),
     ).not.toBeInTheDocument();
+  });
+
+  it('should show more members when load more button is clicked', async () => {
+    const user = userEvent.setup();
+    const getAccessListMembersMock = jest
+      .fn()
+      .mockImplementationOnce(() => Promise.resolve(membersResults))
+      .mockImplementationOnce(() => Promise.resolve(membersResultsPage2));
+    renderAccessListDetail({}, { getAccessListMembers: getAccessListMembersMock });
+
+    await waitFor(() =>
+      screen.findByText(
+        textMock('resourceadm.listadmin_load_more', {
+          unit: textMock('resourceadm.listadmin_member_unit'),
+        }),
+      ),
+    );
+
+    const loadMoreButton = screen.getByText(
+      textMock('resourceadm.listadmin_load_more', {
+        unit: textMock('resourceadm.listadmin_member_unit'),
+      }),
+    );
+    await user.click(loadMoreButton);
+
+    expect(await screen.findByText(membersPage2OrgNr)).toBeInTheDocument();
   });
 });
 
