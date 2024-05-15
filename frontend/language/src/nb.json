@@ -745,7 +745,7 @@
   "preview.view_size_desktop": "Desktop",
   "preview.view_size_mobile": "Mobil",
   "process_editor.configuration_panel.edit_policy_alert_message": "Tilgangsreglene du lager må dekke alle oppgavene. Gå til innstillingene for appen og sjekk om du har en regel som dekker denne oppgaven. Hvis det ikke er dekket, lager du enten en ny regel eller inkluderer denne oppgaven i en regel som finnes fra før.",
-  "process_editor.configuration_panel.edit_policy_open_policy_editor_button": "Gå til tilganger",
+  "process_editor.configuration_panel.edit_policy_open_policy_editor_button": "Gå til Tilganger",
   "process_editor.configuration_panel.edit_policy_open_policy_editor_heading": "Åpne Tilganger for å redigere tilgangsregler",
   "process_editor.configuration_panel_actions_action_label": "Handling {{ actionIndex }}: {{ actionName }}",
   "process_editor.configuration_panel_actions_action_type_help_text": "Hjelpetekst for valg av handlingstype",
