@@ -123,6 +123,8 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
     modelerRef.current = getModeler(canvasRef.current);
     initializeEditor();
     initializeBpmnChanges();
+
+    // eslint-disable-next-line
   }, []); // Missing dependencies are not added to avoid getModeler to be called multiple times
 
   useEffect(() => {
