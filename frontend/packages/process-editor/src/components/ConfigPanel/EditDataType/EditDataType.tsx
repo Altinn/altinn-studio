@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { LinkIcon } from '@studio/icons';
 import { SelectDataType } from './SelectDataType';
 import classes from './EditDataType.module.css';
-import { useDatamodelSelectVisibility } from '../../../hooks/useDatamodelSelectVisibility';
+import { useBpmnContext } from '../../../contexts/BpmnContext';
 
 export type EditDataTypeProps = {
   datamodelIds: string[];
@@ -20,7 +20,12 @@ export const EditDataType = ({
   hideSelectDeleteButton = false,
 }: EditDataTypeProps) => {
   const { t } = useTranslation();
-  const { dataModelSelectVisible, setDataModelSelectVisible } = useDatamodelSelectVisibility();
+  const { bpmnDetails } = useBpmnContext();
+  const [dataModelSelectVisible, setDataModelSelectVisible] = useState(false);
+
+  useEffect(() => {
+    setDataModelSelectVisible(false);
+  }, [bpmnDetails]);
 
   const definedValueWithLinkIcon = (
     <span className={classes.definedValue}>
