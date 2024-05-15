@@ -139,6 +139,12 @@
           "type": "task",
           "id": "PreviousProcessSummary"
         }
+      },
+      {
+        "id": "NavigationButtons-dCTvo9",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
       }
     ]
   }

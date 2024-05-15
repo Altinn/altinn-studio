@@ -24,7 +24,33 @@
           "Group-84wghp-nested"
         ]
       },
-
+      {
+        "size": "L",
+        "id": "Header-tZjZtv",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Side3.Header-tZjZtv.title"
+        }
+      },
+      {
+        "componentRef": "Group-84wghp",
+        "id": "Summary-TdK4io",
+        "type": "Summary"
+      },
+      {
+        "id": "NavigationButtons-CKBzRC",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
+      },
+      {
+        "size": "L",
+        "id": "Header-Ecgzpw",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Side3.Header-Ecgzpw.title"
+        }
+      },
       {
         "id": "Group-84wghp-nested",
         "type": "Group",
@@ -51,27 +77,6 @@
         "type": "Input",
         "textResourceBindings": {
           "title": "I am nested input"
-        }
-      },
-      {
-        "size": "L",
-        "id": "Header-tZjZtv",
-        "type": "Header",
-        "textResourceBindings": {
-          "title": "Side3.Header-tZjZtv.title"
-        }
-      },
-      {
-        "componentRef": "Group-84wghp",
-        "id": "Summary-TdK4io",
-        "type": "Summary"
-      },
-      {
-        "size": "L",
-        "id": "Header-Ecgzpw",
-        "type": "Header",
-        "textResourceBindings": {
-          "title": "Side3.Header-Ecgzpw.title"
         }
       }
     ]

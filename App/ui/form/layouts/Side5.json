@@ -1,0 +1,31 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "NavigationBar-WhHNja",
+        "type": "NavigationBar"
+      },
+      {
+        "dataModelBindings": {
+          "address": "street",
+          "zipCode": "postnr",
+          "postPlace": "city",
+          "careOf": "co",
+          "houseNumber": "streetnr"
+        },
+        "simplified": false,
+        "saveWhileTyping": 400,
+        "id": "Address-4dIoFd",
+        "type": "Address",
+        "required": true
+      },
+      {
+        "id": "NavigationButtons-fyk6CS",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
+      }
+    ]
+  }
+}

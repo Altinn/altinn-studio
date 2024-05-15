@@ -2,6 +2,10 @@
   "language": "nb",
   "resources": [
     {
+      "id": "Side5",
+      "value": "Address"
+    },
+    {
       "id": "Side4.Button-qHGXDg.title",
       "value": "Send inn"
     },
