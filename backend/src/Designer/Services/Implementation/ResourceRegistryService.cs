@@ -317,30 +317,35 @@ namespace Altinn.Studio.Designer.Services.Implementation
             );
 
             IEnumerable<string> partyIds = membersDto.Data.Select(x => x.Identifiers.OrganizationNumber);
-            IEnumerable<AccessListMember> members = new List<AccessListMember>();
+            List<AccessListMember> members = new List<AccessListMember>();
 
+            int BATCH_LOOKUP_SIZE = 190; // url cannot exceed 2048 characters, if there are many members, lookup names from brreg in batches
             // lookup party names
             if (partyIds.Any())
             {
-                string brregUrl = "https://data.brreg.no/enhetsregisteret/api/{0}?organisasjonsnummer={1}&size=10000";
-                string partyIdsString = string.Join(",", partyIds);
-                List<BrregParty>[] parties = await Task.WhenAll(
-                    GetBrregParties(string.Format(brregUrl, "enheter", partyIdsString)),
-                    GetBrregParties(string.Format(brregUrl, "underenheter", partyIdsString))
-                );
-
-                members = partyIds.Select(orgnr =>
+                for (int i = 0; i < partyIds.Count(); i+=BATCH_LOOKUP_SIZE) 
                 {
-                    string enhetOrgName = parties[0].Find(enhet => enhet.Organisasjonsnummer.Equals(orgnr))?.Navn;
-                    string underenhetOrgName = parties[1].Find(enhet => enhet.Organisasjonsnummer.Equals(orgnr))?.Navn;
-                    AccessListMember member = new()
+                    IEnumerable<string> batchPartyIds = partyIds.Where((_x, index) => index >= i && index < (i + BATCH_LOOKUP_SIZE));
+                    string brregUrl = "https://data.brreg.no/enhetsregisteret/api/{0}?organisasjonsnummer={1}&size=10000";
+                    string partyIdsString = string.Join(",", batchPartyIds);
+                    List<BrregParty>[] parties = await Task.WhenAll(
+                        GetBrregParties(string.Format(brregUrl, "enheter", partyIdsString)),
+                        GetBrregParties(string.Format(brregUrl, "underenheter", partyIdsString))
+                    );
+
+                    members.AddRange(batchPartyIds.Select(orgnr =>
                     {
-                        OrgNr = orgnr,
-                        OrgName = enhetOrgName ?? underenhetOrgName ?? "",
-                        IsSubParty = enhetOrgName == null
-                    };
-                    return member;
-                });
+                        string enhetOrgName = parties[0].Find(enhet => enhet.Organisasjonsnummer.Equals(orgnr))?.Navn;
+                        string underenhetOrgName = parties[1].Find(enhet => enhet.Organisasjonsnummer.Equals(orgnr))?.Navn;
+                        AccessListMember member = new()
+                        {
+                            OrgNr = orgnr,
+                            OrgName = enhetOrgName ?? underenhetOrgName ?? "",
+                            IsSubParty = enhetOrgName == null
+                        };
+                        return member;
+                    }));
+                }
             }
 
             return new PagedAccessListMembersResponse()
