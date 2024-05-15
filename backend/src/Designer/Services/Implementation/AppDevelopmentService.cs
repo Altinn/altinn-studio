@@ -365,7 +365,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             LayoutSetConfig layoutSetToDelete = layoutSets.Sets.Find(set => set.Id == layoutSetToDeleteId);
             layoutSets.Sets.Remove(layoutSetToDelete);
-            await altinnAppGitRepository.SaveLayoutSetsFile(layoutSets);
+            await altinnAppGitRepository.SaveLayoutSets(layoutSets);
             return layoutSets;
         }
 
@@ -376,14 +376,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 altinnAppGitRepository.InitialLayout);
             await altinnAppGitRepository.SaveLayoutSettings(layoutSet.Id,
                 altinnAppGitRepository.InitialLayoutSettings);
-            await altinnAppGitRepository.SaveLayoutSetsFile(layoutSets);
+            await altinnAppGitRepository.SaveLayoutSets(layoutSets);
             return layoutSets;
         }
 
         private async Task<LayoutSets> UpdateLayoutSetName(AltinnAppGitRepository altinnAppGitRepository, LayoutSets layoutSets, string oldLayoutSetName, string newLayoutSetName)
         {
             layoutSets.Sets.Find(set => set.Id == oldLayoutSetName).Id = newLayoutSetName;
-            await altinnAppGitRepository.SaveLayoutSetsFile(layoutSets);
+            await altinnAppGitRepository.SaveLayoutSets(layoutSets);
             return layoutSets;
         }
 
