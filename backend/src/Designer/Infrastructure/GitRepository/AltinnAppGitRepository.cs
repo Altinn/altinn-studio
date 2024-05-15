@@ -584,7 +584,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             throw new NotFoundException("No layout set was found for this app");
         }
 
-        public async Task SaveLayoutSetsFile(LayoutSets layoutSets)
+        public async Task SaveLayoutSets(LayoutSets layoutSets)
         {
             if (AppUsesLayoutSets())
             {

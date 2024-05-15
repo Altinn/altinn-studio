@@ -28,7 +28,7 @@ const defaultActiveFeatures: SupportedFeatureFlags[] = [];
  */
 export const shouldDisplayFeature = (featureFlag: SupportedFeatureFlags): boolean => {
   // Check if feature should be persisted in session storage, (url)?persistFeatureFlag=true
-  if (shouldPersistInSession()) {
+  if (shouldPersistInSession() && isFeatureActivatedByUrl(featureFlag)) {
     addFeatureFlagToSessionStorage(featureFlag);
   }
 

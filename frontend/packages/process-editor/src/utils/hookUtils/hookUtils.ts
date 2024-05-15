@@ -2,6 +2,18 @@ import type { BpmnDetails } from '../../types/BpmnDetails';
 import type { BpmnBusinessObjectViewer } from '../../types/BpmnBusinessObjectViewer';
 import type { BpmnBusinessObjectEditor } from '../../types/BpmnBusinessObjectEditor';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
+
+export const bpmnTaskConfig = {
+  payment: {
+    configNode: 'paymentConfig',
+    dataTypeName: 'paymentDataType',
+  },
+  signing: {
+    configNode: 'signatureConfig',
+    dataTypeName: 'signatureDataType',
+  },
+};
 
 /**
  * Gets the bpmn details from the business object in viewer mode
@@ -12,15 +24,14 @@ export const getBpmnViewerDetailsFromBusinessObject = (
   businessObject: BpmnBusinessObjectViewer,
 ): BpmnDetails => {
   const bpmnAttrs = businessObject?.$attrs;
-  const bpmnTasktype = bpmnAttrs ? bpmnAttrs['altinn:tasktype'] : null;
+  const bpmnTaskType = bpmnAttrs ? bpmnAttrs['altinn:tasktype'] : null;
 
-  const bpmnDetails: BpmnDetails = {
+  return {
     id: businessObject?.id,
     name: businessObject?.name,
-    taskType: bpmnTasktype,
+    taskType: bpmnTaskType,
     type: businessObject?.$type,
   };
-  return bpmnDetails;
 };
 
 /**
@@ -37,13 +48,21 @@ export const getBpmnEditorDetailsFromBusinessObject = (
   const bpmnAttrs = businessObject.$attrs;
   const taskTypeFromV7 = bpmnAttrs ? bpmnAttrs['altinn:tasktype'] : null;
 
-  const bpmnDetails: BpmnDetails = {
+  return {
     id: businessObject?.id,
     name: businessObject?.name,
     taskType: taskTypeFromV8 || taskTypeFromV7,
     type: businessObject?.$type,
   };
-  return bpmnDetails;
+};
+
+export const getDataTypeIdFromBusinessObject = (
+  bpmnTaskType: BpmnTaskType,
+  businessObject: BpmnBusinessObjectEditor,
+): string => {
+  const configNode = bpmnTaskConfig[bpmnTaskType].configNode;
+  const dataTypeName = bpmnTaskConfig[bpmnTaskType].dataTypeName;
+  return businessObject?.extensionElements?.values[0][configNode][dataTypeName];
 };
 
 export const getLayoutSetIdFromTaskId = (bpmnDetails: BpmnDetails, layoutSets: LayoutSets) => {

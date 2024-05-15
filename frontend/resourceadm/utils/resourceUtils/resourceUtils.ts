@@ -87,7 +87,12 @@ const environments: Record<EnvId, Environment> = {
 export const getAvailableEnvironments = (org: string): Environment[] => {
   const availableEnvs = [environments['tt02'], environments['prod']];
   if (org === 'ttd') {
-    availableEnvs.push(environments['at22'], environments['at23']);
+    availableEnvs.push(
+      environments['at21'],
+      environments['at22'],
+      environments['at23'],
+      environments['at24'],
+    );
   }
   return availableEnvs;
 };
