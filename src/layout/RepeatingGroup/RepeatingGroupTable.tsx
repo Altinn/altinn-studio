@@ -12,6 +12,7 @@ import { GridRowRenderer } from 'src/layout/Grid/GridComponent';
 import { nodesFromGridRows } from 'src/layout/Grid/tools';
 import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
 import { useRepeatingGroup } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
+import { RepeatingGroupPagination } from 'src/layout/RepeatingGroup/RepeatingGroupPagination';
 import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/RepeatingGroupsEditContainer';
 import { RepeatingGroupTableRow } from 'src/layout/RepeatingGroup/RepeatingGroupTableRow';
 import { RepeatingGroupTableTitle } from 'src/layout/RepeatingGroup/RepeatingGroupTableTitle';
@@ -21,7 +22,7 @@ import type { ChildLookupRestriction } from 'src/utils/layout/HierarchyGenerator
 
 export function RepeatingGroupTable(): React.JSX.Element | null {
   const mobileView = useIsMobileOrTablet();
-  const { node, isEditing, visibleRows } = useRepeatingGroup();
+  const { node, isEditing, rowsToDisplay } = useRepeatingGroup();
   const { textResourceBindings, labelSettings, id, edit, minCount, stickyHeader } = node.item;
   const required = !!minCount && minCount > 0;
 
@@ -52,8 +53,8 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
   };
 
   const tableNodes = getTableNodes({ onlyInRowIndex: 0 });
-  const numRows = visibleRows.length;
-  const firstRowId = numRows >= 1 ? visibleRows[0].uuid : undefined;
+  const numRows = rowsToDisplay.length;
+  const firstRowId = numRows >= 1 ? rowsToDisplay[0].uuid : undefined;
 
   const isEmpty = numRows === 0;
   const showTableHeader = numRows > 0 && !(numRows == 1 && firstRowId !== undefined && isEditing(firstRowId));
@@ -61,7 +62,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
   const showDeleteButtonColumns = new Set<boolean>();
   const showEditButtonColumns = new Set<boolean>();
   for (const row of node.item.rows) {
-    if (visibleRows.some((r) => r.uuid === row.uuid)) {
+    if (rowsToDisplay.some((r) => r.uuid === row.uuid)) {
       showDeleteButtonColumns.add(row.groupExpressions.edit?.deleteButton !== false);
       showEditButtonColumns.add(row.groupExpressions.edit?.editButton !== false);
     }
@@ -109,7 +110,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
         )}
         // If the list is empty, the border of the table will be visible as a line above
         // the "Legg til ny" button.
-        border={isNested && visibleRows.length > 0}
+        border={isNested && rowsToDisplay.length > 0}
       >
         {textResourceBindings?.title && (
           <Caption
@@ -159,7 +160,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
           </Table.Head>
         )}
         <Table.Body id={`group-${id}-table-body`}>
-          {visibleRows.map((row) => {
+          {rowsToDisplay.map((row) => {
             const isEditingRow = isEditing(row.uuid) && edit?.mode !== 'onlyTable';
             return (
               <React.Fragment key={row.uuid}>
@@ -198,6 +199,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
             );
           })}
         </Table.Body>
+        <RepeatingGroupPagination />
         <ExtraRows
           where={'After'}
           extraCells={extraCells}
@@ -217,8 +219,7 @@ interface ExtraRowsProps {
 function ExtraRows({ where, extraCells, columnSettings }: ExtraRowsProps) {
   const mobileView = useIsMobileOrTablet();
   const { visibleRows, node } = useRepeatingGroup();
-  const numRows = visibleRows.length;
-  const isEmpty = numRows === 0;
+  const isEmpty = visibleRows.length === 0;
   const isNested = typeof node.item.baseComponentId === 'string';
 
   const rows = where === 'Before' ? node.item.rowsBefore : node.item.rowsAfter;

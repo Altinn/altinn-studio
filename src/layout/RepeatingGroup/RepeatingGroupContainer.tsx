@@ -14,12 +14,13 @@ import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/
 import classes from 'src/layout/RepeatingGroup/RepeatingGroupContainer.module.css';
 import { useRepeatingGroup, useRepeatingGroupSelector } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
 import { useRepeatingGroupsFocusContext } from 'src/layout/RepeatingGroup/RepeatingGroupFocusContext';
+import { RepeatingGroupPagination } from 'src/layout/RepeatingGroup/RepeatingGroupPagination';
 import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/RepeatingGroupsEditContainer';
 import { RepeatingGroupTable } from 'src/layout/RepeatingGroup/RepeatingGroupTable';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 
 export const RepeatingGroupContainer = forwardRef((_, ref: React.ForwardedRef<HTMLDivElement>): JSX.Element | null => {
-  const { node, visibleRows } = useRepeatingGroup();
+  const { node, rowsToDisplay } = useRepeatingGroup();
   const { editingId } = useRepeatingGroupSelector((state) => ({
     editingId: state.editingId,
   }));
@@ -28,8 +29,8 @@ export const RepeatingGroupContainer = forwardRef((_, ref: React.ForwardedRef<HT
   const { textResourceBindings, edit, type } = node.item;
   const { title, description } = textResourceBindings || {};
 
-  const numRows = visibleRows.length;
-  const lastIndex = visibleRows[numRows - 1];
+  const numRows = rowsToDisplay.length;
+  const lastIndex = rowsToDisplay[numRows - 1];
   const validations = useUnifiedValidationsForNode(node);
 
   if (node.isHidden() || type !== 'RepeatingGroup') {
@@ -59,29 +60,32 @@ export const RepeatingGroupContainer = forwardRef((_, ref: React.ForwardedRef<HT
             <RepeatingGroupsEditContainer editId={editingId} />
           )}
           {edit?.mode === 'showAll' && (
-            <Fieldset
-              legend={title && <Lang id={title} />}
-              description={
-                description && (
-                  <span className={classes.showAllDescription}>
-                    <Lang id={description} />
-                  </span>
-                )
-              }
-              className={classes.showAllFieldset}
-            >
-              {visibleRows.map((row) => (
-                <div
-                  key={`repeating-group-item-${row.uuid}`}
-                  style={{ width: '100%', marginBottom: !isNested && row == lastIndex ? 15 : 0 }}
-                >
-                  <RepeatingGroupsEditContainer
-                    editId={row.uuid}
-                    forceHideSaveButton={true}
-                  />
-                </div>
-              ))}
-            </Fieldset>
+            <>
+              <Fieldset
+                legend={title && <Lang id={title} />}
+                description={
+                  description && (
+                    <span className={classes.showAllDescription}>
+                      <Lang id={description} />
+                    </span>
+                  )
+                }
+                className={classes.showAllFieldset}
+              >
+                {rowsToDisplay.map((row) => (
+                  <div
+                    key={`repeating-group-item-${row.uuid}`}
+                    style={{ width: '100%', marginBottom: !isNested && row == lastIndex ? 15 : 0 }}
+                  >
+                    <RepeatingGroupsEditContainer
+                      editId={row.uuid}
+                      forceHideSaveButton={true}
+                    />
+                  </div>
+                ))}
+              </Fieldset>
+              <RepeatingGroupPagination inTable={false} />
+            </>
           )}
         </>
       </ConditionalWrapper>

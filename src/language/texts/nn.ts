@@ -146,6 +146,7 @@ export function nn(): FixedLanguageList {
       next: 'Neste',
       no_options: 'Ingen alternativ tilgjengeleg',
       optional: 'Valfri',
+      page_number: 'Side {0}',
       print_button_text: 'Print / Lagre PDF',
       progress: 'Side {0} av {1}',
       required: 'Obligatorisk',

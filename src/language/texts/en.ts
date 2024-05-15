@@ -144,6 +144,7 @@ export function en() {
       next: 'Next',
       no_options: 'No options available',
       optional: 'Optional',
+      page_number: 'Page {0}',
       print_button_text: 'Print / Save as PDF',
       progress: 'Page {0} of {1}',
       required: 'Required',

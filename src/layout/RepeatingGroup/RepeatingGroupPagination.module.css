@@ -1,0 +1,17 @@
+.pagination {
+  display: flex;
+  justify-content: center;
+}
+
+.pagination ul {
+  padding: 0;
+}
+
+.row,
+.row td {
+  background-color: var(--fds-semantic-surface-neutral-subtle);
+}
+
+.hidden {
+  visibility: hidden;
+}

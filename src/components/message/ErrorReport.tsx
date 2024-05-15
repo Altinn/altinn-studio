@@ -10,6 +10,7 @@ import { Lang } from 'src/features/language/Lang';
 import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
 import { GenericComponentById } from 'src/layout/GenericComponent';
 import { useNodesAsRef } from 'src/utils/layout/NodesContext';
+import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
 import type { NodeValidation } from 'src/features/validation';
 
 export interface IErrorReportProps {
@@ -26,6 +27,7 @@ export const ErrorReport = ({ renderIds }: IErrorReportProps) => {
   const { formErrors, taskErrors } = useTaskErrors();
   const hasErrors = Boolean(formErrors.length) || Boolean(taskErrors.length);
   const navigateTo = useNavigateToNode();
+  const getUniqueKeyFromObject = useGetUniqueKeyFromObject();
 
   if (!hasErrors) {
     return null;
@@ -66,7 +68,7 @@ export const ErrorReport = ({ renderIds }: IErrorReportProps) => {
               <ul className={classes.errorList}>
                 {taskErrors.map((error) => (
                   <li
-                    key={JSON.stringify(error)}
+                    key={getUniqueKeyFromObject(error)}
                     style={{ listStyleImage: listStyleImg }}
                   >
                     <Lang
@@ -77,7 +79,7 @@ export const ErrorReport = ({ renderIds }: IErrorReportProps) => {
                 ))}
                 {formErrors.map((error) => (
                   <li
-                    key={JSON.stringify(error)}
+                    key={getUniqueKeyFromObject(error)}
                     style={{ listStyleImage: listStyleImg }}
                   >
                     <button
