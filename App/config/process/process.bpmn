@@ -17,8 +17,8 @@
       <bpmn:incoming>Flow_03b9amp</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1n56yn5" sourceRef="StartEvent_1" targetRef="Task_1" />
-    <bpmn:sequenceFlow id="SequenceFlow_1oot28q" sourceRef="Task_1" targetRef="Activity_045nayg" />
-    <bpmn:task id="Activity_045nayg" name="Altinn data task">
+    <bpmn:sequenceFlow id="SequenceFlow_1oot28q" sourceRef="Task_1" targetRef="PreviousProcessSummary" />
+    <bpmn:task id="PreviousProcessSummary" name="Altinn data task">
       <bpmn:extensionElements>
         <altinn:taskExtension>
           <altinn:taskType>data</altinn:taskType>
@@ -27,7 +27,7 @@
       <bpmn:incoming>SequenceFlow_1oot28q</bpmn:incoming>
       <bpmn:outgoing>Flow_03b9amp</bpmn:outgoing>
     </bpmn:task>
-    <bpmn:sequenceFlow id="Flow_03b9amp" sourceRef="Activity_045nayg" targetRef="EndEvent_1" />
+    <bpmn:sequenceFlow id="Flow_03b9amp" sourceRef="PreviousProcessSummary" targetRef="EndEvent_1" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="SingleDataTask">
@@ -37,7 +37,7 @@
       <bpmndi:BPMNShape id="Task_1_di" bpmnElement="Task_1">
         <dc:Bounds x="300" y="59" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_045nayg_di" bpmnElement="Activity_045nayg">
+      <bpmndi:BPMNShape id="PreviousProcessSummary_di" bpmnElement="PreviousProcessSummary">
         <dc:Bounds x="510" y="59" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">

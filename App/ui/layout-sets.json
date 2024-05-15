@@ -9,9 +9,10 @@
       ]
     },
     {
-      "id": "Activity_045nayg",
+      "id": "PreviousProcessSummary",
+      "dataType": "model",
       "tasks": [
-        "Activity_045nayg"
+        "PreviousProcessSummary"
       ]
     }
   ],

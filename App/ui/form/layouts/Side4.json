@@ -14,8 +14,7 @@
         "type": "Input",
         "textResourceBindings": {
           "title": "Side1.Input-RvqppS.title"
-        },
-        "required": true
+        }
       },
       {
         "size": "M",

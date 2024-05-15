@@ -32,8 +32,7 @@
         "type": "Input",
         "textResourceBindings": {
           "title": "Side1.Input-RvqppS.title"
-        },
-        "required": true
+        }
       },
 
       {
@@ -44,8 +43,7 @@
         "type": "Input",
         "textResourceBindings": {
           "title": "Dette er en tekst!"
-        },
-        "required": true
+        }
       },
       {
         "size": "h4",
