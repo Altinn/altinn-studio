@@ -44,7 +44,7 @@
       },
       {
         "size": "M",
-        "id": "Header-in-new-summary",
+        "id": "Header-in-new-summaryaerg",
         "type": "Header",
         "textResourceBindings": {
           "title": "Denne tittelen skal gjemmes dersom det står 'test' i input feltet"
@@ -53,7 +53,7 @@
       },
       {
         "size": "M",
-        "id": "Header-in-new-summary",
+        "id": "Header-in-new-summaryegr",
         "type": "Header",
         "textResourceBindings": {
           "title": "Denne tittelen skal gjemmes dersom det står 'test' i input feltet"
@@ -62,7 +62,7 @@
       },
       {
         "size": "M",
-        "id": "Header-in-new-summary",
+        "id": "Header-in-new-summaryerg",
         "type": "Header",
         "textResourceBindings": {
           "title": "Her rendres side 1:"
