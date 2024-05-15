@@ -106,12 +106,7 @@ export const updateTranslationByLangCode = (org: string, app: string, language, 
 export const updateAppPolicy = (org: string, app: string, payload: Policy) => put(appPolicyPath(org, app), payload);
 export const updateAppMetadata = (org: string, app: string, payload: ApplicationMetadata) => put(appMetadataPath(org, app), payload);
 export const updateAppConfig = (org: string, app: string, payload: AppConfig) => post(serviceConfigPath(org, app), payload);
-export const uploadDatamodel = (org: string, app: string, form: FormData) =>
-  post<void, FormData>(datamodelsUploadPath(org, app), form, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+export const uploadDatamodel = (org: string, app: string, form: FormData) => post<void, FormData>(datamodelsUploadPath(org, app), form, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const upsertTextResources = (org: string, app: string, language: string, payload: ITextResourcesObjectFormat) => put<ITextResourcesObjectFormat>(textResourcesPath(org, app, language), payload);
 
 // Resourceadm
