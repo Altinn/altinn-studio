@@ -23,15 +23,16 @@ export function AltinnAttachment({ attachments, id, title }: IAltinnAttachmentPr
   const filteredAndSortedAttachments = attachments
     ?.filter((attachment) => attachment.name)
     .sort((a, b) => (a.name && b.name ? a.name.localeCompare(b.name, selectedLanguage, { numeric: true }) : 0));
-
   return (
     <List.Root
       id={id}
       data-testid='attachment-list'
     >
-      <List.Heading>
-        <Lang id={title} />
-      </List.Heading>
+      {title && (
+        <List.Heading>
+          <Lang id={title} />
+        </List.Heading>
+      )}
       <List.Unordered className={classes.attachmentList}>
         {filteredAndSortedAttachments?.map((attachment, index) => (
           <List.Item key={index}>

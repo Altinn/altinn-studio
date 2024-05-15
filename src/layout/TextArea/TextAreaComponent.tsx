@@ -33,7 +33,7 @@ export function TextAreaComponent({ node, isValid, overrideDisplay }: ITextAreaP
       value={value}
       data-testid={id}
       aria-describedby={
-        overrideDisplay?.renderedInTable !== true && textResourceBindings ? `description-${id}` : undefined
+        overrideDisplay?.renderedInTable !== true && textResourceBindings?.description ? `description-${id}` : undefined
       }
       aria-label={overrideDisplay?.renderedInTable === true ? langAsString(textResourceBindings?.title) : undefined}
       autoComplete={autocomplete}

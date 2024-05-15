@@ -64,7 +64,19 @@ describe('TextAreaComponent', () => {
     expect(formDataMethods.setLeafValue).not.toHaveBeenCalled();
   });
 
-  it('should have aria-describedby attribute if textResourceBindings is present', async () => {
+  it('should have aria-describedby attribute if textResourceBindings.description is present', async () => {
+    await render({
+      component: {
+        id: 'id',
+        textResourceBindings: { description: 'tekst' },
+      },
+    });
+
+    const textarea = screen.getByRole('textbox');
+    expect(textarea).toHaveAttribute('aria-describedby', 'description-id');
+  });
+
+  it('should not have aria-describedby attribute if textResourceBindings is present without description', async () => {
     await render({
       component: {
         id: 'id',
@@ -73,7 +85,7 @@ describe('TextAreaComponent', () => {
     });
 
     const textarea = screen.getByRole('textbox');
-    expect(textarea).toHaveAttribute('aria-describedby', 'description-id');
+    expect(textarea).not.toHaveAttribute('aria-describedby');
   });
 
   it('should not have aria-describedby attribute if textResourceBindings is not present', async () => {
