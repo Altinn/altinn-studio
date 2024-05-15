@@ -77,7 +77,7 @@ describe('XSDUpload', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(textMock(`api_errors.${errorCode}`));
   });
 
-  it('shows error text when file upload results in error', async () => {
+  it('shows a specific error message when api returns an errorCode', async () => {
     const errorCode = 'ModelWithTheSameTypeNameExists';
     const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
     render({
@@ -96,5 +96,27 @@ describe('XSDUpload', () => {
     await user.upload(fileInput, file);
 
     expect(await screen.findByRole('alert')).toHaveTextContent(textMock(`api_errors.${errorCode}`));
+  });
+
+  it('shows a custom generic error message', async () => {
+    const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
+    render({
+      queries: {
+        uploadDatamodel: jest
+          .fn()
+          .mockImplementation(() => Promise.reject(createApiErrorMock(400))),
+      },
+      queryClient: null,
+    });
+
+    await clickUploadButton();
+
+    const fileInput = screen.getByTestId(testids.fileSelectorInput);
+
+    await user.upload(fileInput, file);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      textMock('form_filler.file_uploader_validation_error_upload'),
+    );
   });
 });

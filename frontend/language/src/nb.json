@@ -309,6 +309,7 @@
   "form_filler.file_uploader_validation_error_file_size": "overskrider tillatt filstørrelse.",
   "form_filler.file_uploader_validation_error_general_1": "Det var et problem med filen",
   "form_filler.file_uploader_validation_error_general_2": ". Forsikre deg om at filen har rett filtype og ikke overskrider maks filstørrelse.",
+  "form_filler.file_uploader_validation_error_upload": "Noe gikk galt under opplastingen av filen, prøv igjen senere.",
   "form_filler.placeholder_receipt_header": "Skjemaet er nå fullført og sendt inn.",
   "form_filler.placeholder_user": "OLA PRIVATPERSON",
   "general.action": "Handling",

@@ -1,9 +1,10 @@
+import type { MutationMeta } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
-export const useUploadDatamodelMutation = () => {
+export const useUploadDatamodelMutation = (meta?: MutationMeta) => {
   const { uploadDatamodel } = useServicesContext();
   const { org, app } = useStudioUrlParams();
   const queryClient = useQueryClient();
@@ -15,5 +16,6 @@ export const useUploadDatamodelMutation = () => {
         queryClient.invalidateQueries({ queryKey: [QueryKey.DatamodelsXsd, org, app] }),
       ]);
     },
+    meta,
   });
 };
