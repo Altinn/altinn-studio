@@ -2,7 +2,6 @@ import type { SagaIterator } from 'redux-saga';
 import createSagaMiddleware from 'redux-saga';
 import { fork } from 'redux-saga/effects';
 import {
-  watchHandleFetchInitialCommitSaga,
   watchHandleFetchServiceConfigSaga,
   watchHandleFetchServiceNameSaga,
   watchHandleFetchServiceSaga,
@@ -15,7 +14,6 @@ function* root(): SagaIterator {
   yield fork(watchHandleFetchServiceSaga);
   yield fork(watchHandleFetchServiceNameSaga);
   yield fork(watchHandleSaveServiceNameSaga);
-  yield fork(watchHandleFetchInitialCommitSaga);
   yield fork(watchHandleFetchServiceConfigSaga);
   yield fork(watchHandleSaveServiceConfigSaga);
   yield fork(userSagas);

@@ -27,6 +27,7 @@ export type StudioModalProps = {
  *          <Heading level={1} size='small'>Some name</Heading>
  *        </div>
  *      }
+ *      closeButtonLabel='Close modal'
  *    >
  *      <div>
  *        <SomeChildrenComponents />

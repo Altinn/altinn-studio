@@ -237,6 +237,7 @@
   "expression.confirmDeleteSubexpression": "Er du sikker på at du vil slette dette underuttrykket?",
   "expression.datamodelPath": "Datamodellfelt",
   "expression.disabledLogicalOperator": "Det må være minst to underuttrykk i listen før en logisk operator kan legges til.",
+  "expression.error.componentIDNoLongerExists": "Opprinnelig komponent-ID eksisterer ikke lenger. Velg en ny fra listen.",
   "expression.error.invalidComponentId": "Det finnes ingen komponent med denne ID-en. Velg en fra listen.",
   "expression.error.invalidDatamodelPath": "Det finnes intet datamodellfelt med denne pekeren. Velg en peker fra listen.",
   "expression.error.invalidFirstOperand": "Den første verdien er ikke gyldig.",
