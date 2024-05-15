@@ -12,6 +12,8 @@ import { BpmnExpressionModeler } from '../../../utils/bpmn/BpmnExpressionModeler
 jest.mock('../../../utils/bpmn/BpmnExpressionModeler');
 
 describe('ConfigSequenceFlow', () => {
+  afterEach(jest.clearAllMocks);
+
   it('should render title for sequence flow configuration', () => {
     renderConfigSequenceFlow({
       bpmnDetails: { ...mockBpmnDetails, element: {} },
