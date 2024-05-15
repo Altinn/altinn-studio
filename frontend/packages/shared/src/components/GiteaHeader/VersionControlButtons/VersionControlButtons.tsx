@@ -57,16 +57,14 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
   }, [hasPushRights, currentRepo]);
   useEffect(() => {
     if (repoStatus) {
-      setHasMergeConflict(repoStatus.repositoryStatus === 'MergeConflict');
+      setHasMergeConflict(repoStatus.hasMergeConflict);
       setHasChangesInLocalRepo(hasLocalChanges(repoStatus));
     }
   }, [repoStatus]);
 
   const handleSyncModalClose = () => {
-    if (!(repoStatus?.repositoryStatus === 'MergeConflict')) {
-      setSyncModalAnchorEl(null);
-      setModalState(initialModalState);
-    }
+    setSyncModalAnchorEl(null);
+    setModalState(initialModalState);
   };
 
   const fetchChanges = async (currentTarget: any) => {
@@ -88,7 +86,7 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
         shouldShowDoneIcon: true,
       });
       forceRepoStatusCheck();
-    } else if (result.repositoryStatus === 'CheckoutConflict') {
+    } else if (result.hasMergeConflict || result.repositoryStatus === 'CheckoutConflict') {
       // if pull gives merge conflict, show user needs to commit message
       setModalState({
         ...initialModalState,
@@ -171,18 +169,10 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
     } catch (error) {
       console.error(error);
       const { data: result } = await fetchPullData();
-      if (result.hasMergeConflict) {
-        // if pull resulted in a mergeconflict, show mergeconflict message
-        setModalState({
-          ...initialModalState,
-          header: t('sync_header.merge_conflict_occured'),
-          descriptionText: [t('sync_header.merge_conflict_occured_submessage')],
-          btnText: t('sync_header.merge_conflict_btn'),
-          btnMethod: forceRepoStatusCheck,
-        });
-        setHasMergeConflict(true);
-      } else {
+      if (result.hasMergeConflict || result.repositoryStatus === 'CheckoutConflict') {
+        forceRepoStatusCheck();
         handleSyncModalClose();
+        setHasMergeConflict(true);
       }
       return;
     }
@@ -192,24 +182,15 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
       setModalState(initialModalState);
       setSyncModalAnchorEl(null);
       toast.success(t('sync_header.sharing_changes_completed'));
-    } else if (
-      result.repositoryStatus === 'MergeConflict' ||
-      result.repositoryStatus === 'CheckoutConflict'
-    ) {
+    } else if (result.hasMergeConflict || result.repositoryStatus === 'CheckoutConflict') {
       // if pull resulted in a mergeconflict, show mergeconflict message
-      setModalState({
-        ...initialModalState,
-        header: t('sync_header.merge_conflict_occured'),
-        descriptionText: [t('sync_header.merge_conflict_occured_submessage')],
-        btnText: t('sync_header.merge_conflict_btn'),
-        btnMethod: forceRepoStatusCheck,
-      });
+      forceRepoStatusCheck();
+      handleSyncModalClose();
       setHasMergeConflict(true);
     }
   };
 
   const forceRepoStatusCheck = () => {
-    handleSyncModalClose();
     window.postMessage('forceRepoStatusCheck', window.location.href);
   };
 
