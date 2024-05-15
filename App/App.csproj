@@ -27,6 +27,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="ui\footer.json" />
+    <_ContentIncludedByDefault Remove="ui\form\layouts\Side1.json" />
+    <_ContentIncludedByDefault Remove="ui\form\Settings.json" />
+    <_ContentIncludedByDefault Remove="ui\layout-sets.json" />
+  </ItemGroup>
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591;1998</NoWarn>

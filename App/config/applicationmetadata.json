@@ -1,8 +1,8 @@
 {
-  "id": "ttd/altinn-apps-component-library",
+  "id": "ttd/component-library",
   "org": "ttd",
   "title": {
-    "nb": "altinn-apps-component-library"
+    "nb": "component-library"
   },
   "dataTypes": [
     {

@@ -2,8 +2,68 @@
   "language": "nb",
   "resources": [
     {
+      "id": "Side4.Header-tZjZtv.title",
+      "value": "Eksempel på ny oppsummeringskomponent:"
+    },
+    {
+      "id": "Side4.Header-in-new-summary",
+      "value": "Jeg skal rendres inne i ny summary:"
+    },
+    {
+      "id": "Side3.Header-tZjZtv.title",
+      "value": "Her er oppsummeringen av gruppen:"
+    },
+    {
+      "id": "Side3.Header-Ecgzpw.title",
+      "value": "Her ligger en tekst inne i en gruppe"
+    },
+    {
+      "id": "Side3.Header-mgeHco.title",
+      "value": "Eksempel på gruppe:"
+    },
+    {
+      "id": "Side4",
+      "value": "Oppsummering 2.0"
+    },
+    {
+      "id": "Side3",
+      "value": "Gruppe"
+    },
+    {
+      "id": "Side2.Header-XLbSws.title",
+      "value": "Langt svar"
+    },
+    {
+      "id": "Side2",
+      "value": "Langt svar"
+    },
+    {
+      "id": "Side1",
+      "value": "Kort svar"
+    },
+    {
+      "id": "Side1.Header-YQNOBx.title",
+      "value": "Kort svar i oppsummering:"
+    },
+    {
+      "id": "Side1.Input-RvqppS.title",
+      "value": "Eksempel på kort svar komponent."
+    },
+    {
+      "id": "Side1.Header-Q9J9gN.title",
+      "value": "Kort svar"
+    },
+    {
+      "id": "undefined",
+      "value": "Her ligger en tittel inne i en gruppe"
+    },
+    {
+      "id": "Side1.Header-Ka9maP.title",
+      "value": "Komponenter"
+    },
+    {
       "id": "appName",
-      "value": "altinn-apps-component-library"
+      "value": "altinn-apps-all-components"
     }
   ]
 }
