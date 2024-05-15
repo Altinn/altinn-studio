@@ -199,7 +199,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string modelPath;
             ModelMetadata modelMetadata;
 
-            if (!string.IsNullOrEmpty(dataModelName))
+            if (dataModelName != null)
             {
                 modelPath = $"App/models/{dataModelName}.schema.json";
                 modelMetadata = await _schemaModelService.GenerateModelMetadataFromJsonSchema(altinnRepoEditingContext, modelPath, cancellationToken);
