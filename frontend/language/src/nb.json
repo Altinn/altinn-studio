@@ -756,8 +756,6 @@
   "process_editor.configuration_panel_confirmation_task": "Oppgave: Bekreftelse",
   "process_editor.configuration_panel_custom_receipt": "Egendefinert kvittering",
   "process_editor.configuration_panel_custom_receipt_accordion_header": "Kvittering",
-  "process_editor.configuration_panel_custom_receipt_add": "Opprett egendefinert kvittering ved å oppgi navn",
-  "process_editor.configuration_panel_custom_receipt_add_button_title": "Navn på egendefinert kvittering",
   "process_editor.configuration_panel_custom_receipt_cancel_button": "Avbryt",
   "process_editor.configuration_panel_custom_receipt_create_button": "Opprett",
   "process_editor.configuration_panel_custom_receipt_create_datamodel_error": "Du må velge en datamodellknytning for å opprette din egen kvittering",

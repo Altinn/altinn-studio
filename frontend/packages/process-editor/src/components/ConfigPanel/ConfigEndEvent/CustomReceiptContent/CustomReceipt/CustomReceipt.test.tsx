@@ -10,9 +10,24 @@ import {
   mockBpmnApiContextValue,
   mockBpmnContextValue,
 } from '../../../../../../test/mocks/bpmnContextMock';
+import { type LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
+import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
+
+const invalidFormatLayoutSetName: string = 'Receipt/';
+const emptyLayoutSetName: string = '';
+const existingLayoutSetName: string = 'layoutSetName1';
+
+const mockExistingCustomReceiptLayoutSetId: string = mockBpmnApiContextValue.layoutSets.sets[0].id;
+const layoutSetWithCustomReceipt: LayoutSetConfig = {
+  id: mockExistingCustomReceiptLayoutSetId,
+  tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
+};
+const layoutSetWithDataTask: LayoutSetConfig = {
+  id: existingLayoutSetName,
+  tasks: ['Task_1'],
+};
 
 const mockAvailableDatamodelIds: string[] = [mockBpmnApiContextValue.layoutSets.sets[1].dataType];
-const mockExistingCustomReceiptLayoutSetId: string = mockBpmnApiContextValue.layoutSets.sets[0].id; //  'testId';
 
 const defaultBpmnContextProps: BpmnApiContextProps = {
   ...mockBpmnApiContextValue,
@@ -63,9 +78,18 @@ describe('CustomReceipt', () => {
     expect(mockBpmnApiContextValue.mutateDataType).toHaveBeenCalledTimes(1);
   });
 
-  it('gives an error when trying to save layoutset id that is empty', async () => {
+  it.each([
+    invalidFormatLayoutSetName,
+    emptyLayoutSetName,
+    existingLayoutSetName,
+    mockExistingCustomReceiptLayoutSetId,
+  ])('shows correct errormessage when layoutSetId is %s', async (invalidLayoutSetId: string) => {
     const user = userEvent.setup();
-    renderCustomReceipt();
+    renderCustomReceipt({
+      bpmnApiContextProps: {
+        layoutSets: { sets: [layoutSetWithCustomReceipt, layoutSetWithDataTask] },
+      },
+    });
 
     const toggleableTextfieldButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
@@ -73,15 +97,31 @@ describe('CustomReceipt', () => {
 
     await user.click(toggleableTextfieldButton);
 
-    const textfield = screen.getByLabelText(
+    const inputField = screen.getByLabelText(
       textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
     );
-    await user.clear(textfield);
 
-    expect(mockBpmnApiContextValue.mutateLayoutSet).toHaveBeenCalledTimes(0);
-
-    const layoutIdError = screen.getByText(textMock('validation_errors.required'));
-    expect(layoutIdError).toBeInTheDocument();
+    if (invalidLayoutSetId === emptyLayoutSetName) {
+      await user.clear(inputField);
+      await user.tab();
+      const error = screen.getByText(textMock('validation_errors.required'));
+      expect(error).toBeInTheDocument();
+    } else {
+      await user.clear(inputField);
+      await user.type(inputField, invalidLayoutSetId);
+      await user.tab();
+    }
+    if (invalidLayoutSetId === invalidFormatLayoutSetName) {
+      const error = screen.getByText(textMock('ux_editor.pages_error_format'));
+      expect(error).toBeInTheDocument();
+    }
+    if (invalidLayoutSetId === existingLayoutSetName) {
+      const error = screen.getByText(
+        textMock('process_editor.configuration_panel_layout_set_id_not_unique'),
+      );
+      expect(error).toBeInTheDocument();
+    }
+    expect(mockBpmnApiContextValue.mutateLayoutSet).not.toHaveBeenCalled();
   });
 
   it('calls "deleteLayoutSet" when clicking delete layoutset', async () => {

@@ -1,148 +1,81 @@
 import React from 'react';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { ConfigEndEvent } from './ConfigEndEvent';
 import userEvent from '@testing-library/user-event';
-import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
-import type { LayoutSetConfig, LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
-
-jest.mock('../../../contexts/BpmnApiContext', () => ({
-  useBpmnApiContext: jest.fn().mockReturnValue({
-    layoutSets: {},
-    existingCustomReceiptLayoutSetId: undefined,
-    addLayoutSet: jest.fn(),
-    mutateLayoutSet: jest.fn(),
-  }),
-}));
-
-// Test data
-const invalidFormatLayoutSetName: string = 'Receipt/';
-const emptyLayoutSetName: string = '';
-const existingLayoutSetName: string = 'layoutSetName1';
-const existingCustomReceiptLayoutSetId: string = 'CustomReceipt';
-const layoutSetWithCustomReceipt: LayoutSetConfig = {
-  id: existingCustomReceiptLayoutSetId,
-  tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
-};
-const layoutSetWithDataTask: LayoutSetConfig = {
-  id: existingLayoutSetName,
-  tasks: ['Task_1'],
-};
-const layoutSetsWithCustomReceipt: LayoutSets = { sets: [layoutSetWithCustomReceipt] };
+import { BpmnContext, type BpmnContextProps } from '../../../contexts/BpmnContext';
+import { BpmnApiContext, type BpmnApiContextProps } from '../../../contexts/BpmnApiContext';
+import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
+import {
+  mockBpmnApiContextValue,
+  mockBpmnContextValue,
+} from '../../../../test/mocks/bpmnContextMock';
 
 describe('ConfigEndEvent', () => {
+  afterEach(() => jest.clearAllMocks());
+
   it('should display the header for end event', () => {
     renderConfigEndEventPanel();
-    screen.getByText(textMock('process_editor.configuration_panel_end_event'));
+
+    const header = screen.getByText(textMock('process_editor.configuration_panel_end_event'));
+    expect(header).toBeInTheDocument();
   });
 
-  it('should display informal text when no custom receipt layout set exists', () => {
+  it('should hide the custom receipt content behind closed accordion initially', async () => {
     renderConfigEndEventPanel();
-    screen.getByText(textMock('process_editor.configuration_panel_custom_receipt_add'));
+
+    const informationTextDefaultReceipt = screen.queryByText(
+      textMock('process_editor.configuration_panel_custom_receipt_default_receipt_info'),
+    );
+    expect(informationTextDefaultReceipt).not.toBeVisible();
   });
 
-  it('should display existing layout set name of receipt when custom receipt layout set exists', () => {
-    (useBpmnApiContext as jest.Mock).mockReturnValue({
-      existingCustomReceiptLayoutSetId,
-    });
-    renderConfigEndEventPanel();
-    screen.getByText(textMock('process_editor.configuration_panel_custom_receipt_name'));
-    screen.getByRole('button', { name: existingCustomReceiptLayoutSetId });
-  });
-
-  it('calls addLayoutSet mutation when layoutSetName for custom receipt is added', async () => {
-    const customReceiptLayoutSetName = 'CustomReceipt';
+  it('should display the informal text, the link to read more, and the custom receipt content when opening the accordion', async () => {
     const user = userEvent.setup();
-    const addLayoutSetMock = jest.fn();
-    (useBpmnApiContext as jest.Mock).mockReturnValue({
-      layoutSets: { sets: [layoutSetWithDataTask] },
-      addLayoutSet: addLayoutSetMock,
-    });
     renderConfigEndEventPanel();
-    const inputFieldButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_custom_receipt_add'),
-    });
-    await user.click(inputFieldButton);
-    const inputField = screen.getByRole('textbox', {
-      name: textMock('process_editor.configuration_panel_custom_receipt_add_button_title'),
-    });
-    await user.type(inputField, customReceiptLayoutSetName);
-    await user.tab();
-    expect(addLayoutSetMock).toHaveBeenCalledTimes(1);
-    expect(addLayoutSetMock).toHaveBeenCalledWith({
-      layoutSetIdToUpdate: undefined,
-      layoutSetConfig: {
-        id: customReceiptLayoutSetName,
-        tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
-      },
-    });
-  });
 
-  it('calls updateLayoutSet mutation when layoutSetName for custom receipt is changed', async () => {
-    const newCustomReceiptLayoutSetName = 'NewCustomReceipt';
-    const user = userEvent.setup();
-    const updateLayoutSetMock = jest.fn();
-    (useBpmnApiContext as jest.Mock).mockReturnValue({
-      layoutSets: layoutSetsWithCustomReceipt,
-      existingCustomReceiptLayoutSetId,
-      mutateLayoutSet: updateLayoutSetMock,
+    const accordion = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_custom_receipt_accordion_header'),
     });
-    renderConfigEndEventPanel();
-    const inputFieldButton = screen.getByRole('button', {
-      name: existingCustomReceiptLayoutSetId,
+    await user.click(accordion);
+
+    const informationTextDefaultReceipt = screen.getByText(
+      textMock('process_editor.configuration_panel_custom_receipt_default_receipt_info'),
+    );
+    expect(informationTextDefaultReceipt).toBeVisible();
+
+    const link = screen.getByRole('link', {
+      name: textMock('process_editor.configuration_panel_custom_receipt_default_receipt_link'),
     });
-    await user.click(inputFieldButton);
-    const inputField = screen.getByRole('textbox', {
-      name: textMock('process_editor.configuration_panel_custom_receipt_add_button_title'),
+    expect(link).toBeVisible();
+
+    const informationTextCustomReceipt = screen.getByText(
+      textMock('process_editor.configuration_panel_custom_receipt_info'),
+    );
+    expect(informationTextCustomReceipt).toBeVisible();
+
+    const createButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_custom_receipt_create_your_own_button'),
     });
-    await user.clear(inputField);
-    await user.type(inputField, newCustomReceiptLayoutSetName);
-    await user.tab();
-    expect(updateLayoutSetMock).toHaveBeenCalledTimes(1);
-    expect(updateLayoutSetMock).toHaveBeenCalledWith({
-      layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
-      newLayoutSetId: newCustomReceiptLayoutSetName,
-    });
-  });
-  it.each([
-    invalidFormatLayoutSetName,
-    emptyLayoutSetName,
-    existingLayoutSetName,
-    existingCustomReceiptLayoutSetId,
-  ])('shows correct errormessage when layoutSetId is %s', async (invalidLayoutSetId: string) => {
-    const user = userEvent.setup();
-    const updateLayoutSetMock = jest.fn();
-    (useBpmnApiContext as jest.Mock).mockReturnValue({
-      layoutSets: { sets: [layoutSetWithCustomReceipt, layoutSetWithDataTask] },
-      existingCustomReceiptLayoutSetId,
-      mutateLayoutSet: updateLayoutSetMock,
-    });
-    renderConfigEndEventPanel();
-    const inputFieldButton = screen.getByRole('button', {
-      name: existingCustomReceiptLayoutSetId,
-    });
-    await user.click(inputFieldButton);
-    const inputField = screen.getByRole('textbox', {
-      name: textMock('process_editor.configuration_panel_custom_receipt_add_button_title'),
-    });
-    if (invalidLayoutSetId === emptyLayoutSetName) {
-      await user.clear(inputField);
-      await user.tab();
-      screen.getByText(textMock('validation_errors.required'));
-    } else {
-      await user.clear(inputField);
-      await user.type(inputField, invalidLayoutSetId);
-      await user.tab();
-    }
-    if (invalidLayoutSetId === invalidFormatLayoutSetName)
-      screen.getByText(textMock('ux_editor.pages_error_format'));
-    if (invalidLayoutSetId === existingLayoutSetName)
-      screen.getByText(textMock('process_editor.configuration_panel_layout_set_id_not_unique'));
-    expect(updateLayoutSetMock).not.toHaveBeenCalled();
+    expect(createButton).toBeVisible();
   });
 });
 
-const renderConfigEndEventPanel = () => {
-  return rtlRender(<ConfigEndEvent />);
+type RenderProps = {
+  bpmnApiContextProps: Partial<BpmnApiContextProps>;
+  rootContextProps: Partial<BpmnContextProps>;
+};
+
+const renderConfigEndEventPanel = (props: Partial<RenderProps> = {}) => {
+  const { bpmnApiContextProps, rootContextProps } = props;
+
+  return render(
+    <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
+      <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
+        <BpmnConfigPanelFormContextProvider>
+          <ConfigEndEvent />
+        </BpmnConfigPanelFormContextProvider>
+      </BpmnContext.Provider>
+    </BpmnApiContext.Provider>,
+  );
 };

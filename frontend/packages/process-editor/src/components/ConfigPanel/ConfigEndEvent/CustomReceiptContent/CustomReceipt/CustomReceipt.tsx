@@ -33,6 +33,8 @@ export const CustomReceipt = (): React.ReactElement => {
   const handleEditLayoutSetId = (event: React.FocusEvent<HTMLInputElement, Element>) => {
     const newLayoutSetId: string = event.target.value;
 
+    if (newLayoutSetId === existingCustomReceiptLayoutSetId) return;
+
     mutateLayoutSet({
       layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
       newLayoutSetId,
