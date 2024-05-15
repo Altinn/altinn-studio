@@ -278,7 +278,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [UseSystemTextJson]
         [Route("model-metadata")]
-        public async Task<IActionResult> GetModelMetadata(string org, string app, [FromQuery] string layoutSetName, [FromQuery] [CanBeNull] string dataModelName, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetModelMetadata(string org, string app, [FromQuery] string layoutSetName, [FromQuery] string dataModelName, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             ModelMetadata modelMetadata = await _appDevelopmentService.GetModelMetadata(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), layoutSetName, dataModelName, cancellationToken);

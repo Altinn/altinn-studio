@@ -20,16 +20,38 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         }
 
         [Theory]
-        [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "TestData/Model/Metadata/datamodel.json")]
-        [InlineData("ttd", "app-without-layoutsets", "testUser", null, "TestData/Model/Metadata/datamodel.json")]
-        public async Task GetModelMetadata_Should_Return_ModelMetadata(string org, string app, string developer, string layoutSetName, string expectedModelMetadataPath)
+        [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", null, "TestData/Model/Metadata/datamodel.json")]
+        [InlineData("ttd", "app-without-layoutsets", "testUser", null, null, "TestData/Model/Metadata/datamodel.json")]
+        public async Task GetModelMetadata_Should_Return_ModelMetadata_From_LayoutSetParam(string org, string app, string developer, string layoutSetName, string dataModelName, string expectedModelMetadataPath)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
 
             string expectedModelMetadata = await AddModelMetadataToRepo(TestRepoPath, expectedModelMetadataPath);
 
-            string url = $"{VersionPrefix(org, targetRepository)}/model-metadata?layoutSetName={layoutSetName}";
+            string url = $"{VersionPrefix(org, targetRepository)}/model-metadata?layoutSetName={layoutSetName}&dataModelName={dataModelName}";
+            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            responseContent.Should().Be(expectedModelMetadata);
+            JsonUtils.DeepEquals(expectedModelMetadata, responseContent).Should().BeTrue();
+        }
+
+        [Theory]
+        [InlineData("ttd", "app-with-layoutsets", "testUser", null, "datamodel", "TestData/Model/Metadata/datamodel.json")]
+        [InlineData("ttd", "app-without-layoutsets", "testUser", null, "datamodel", "TestData/Model/Metadata/datamodel.json")]
+        public async Task GetModelMetadata_Should_Return_ModelMetadata_From_DataModelNameParam(string org, string app, string developer, string layoutSetName, string dataModelName, string expectedModelMetadataPath)
+        {
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
+
+            string expectedModelMetadata = await AddModelMetadataToRepo(TestRepoPath, expectedModelMetadataPath);
+
+            string url = $"{VersionPrefix(org, targetRepository)}/model-metadata?layoutSetName={layoutSetName}&dataModelName={dataModelName}";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
@@ -44,12 +66,27 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet3")]
         [InlineData("ttd", "app-without-layoutsets-mismatch-modelname", "testUser", null)]
-        public async Task GetModelMetadata_Should_Return_404_When_No_Corresponding_Datamodel_Exists(string org, string app, string developer, string layoutSetName)
+        public async Task GetModelMetadata_Should_Return_404_When_No_Datamodel_Exists_FromLayoutSetParam(string org, string app, string developer, string layoutSetName)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
 
             string url = $"{VersionPrefix(org, targetRepository)}/model-metadata?layoutSetName={layoutSetName}";
+            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
+            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Theory]
+        [InlineData("ttd", "app-with-layoutsets", "testUser", "datamodel3")]
+        [InlineData("ttd", "app-without-layoutsets-mismatch-modelname", "testUser", null)]
+        public async Task GetModelMetadata_Should_Return_404_When_No_Datamodel_Exists_FromDataModelNameParam(string org, string app, string developer, string dataModelName)
+        {
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
+
+            string url = $"{VersionPrefix(org, targetRepository)}/model-metadata?dataModelName={dataModelName}";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
