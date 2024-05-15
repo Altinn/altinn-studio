@@ -233,7 +233,7 @@ function usePagesWithErrors(rowsPerPage: number | undefined, node: BaseLayoutNod
 
     const visibleRows: HRepGroupRow[] = [];
     for (const row of rows) {
-      if (!row.groupExpressions.hidden) {
+      if (!row.groupExpressions?.hiddenRow) {
         visibleRows.push(row);
       }
     }
