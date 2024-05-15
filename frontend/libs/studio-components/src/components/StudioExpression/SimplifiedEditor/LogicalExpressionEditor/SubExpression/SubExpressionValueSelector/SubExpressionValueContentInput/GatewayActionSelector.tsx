@@ -1,10 +1,9 @@
+import React, { type ChangeEvent } from 'react';
+import { StudioNativeSelect } from '@studio/components';
 import type { Props } from './Props';
-import type { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSubexpressionValueType';
-import type { ChangeEvent } from 'react';
-import React from 'react';
-import { useStudioExpressionContext } from '../../../../../StudioExpressionContext';
-import { NativeSelect } from '@digdir/design-system-react';
 import { GatewayActionContext } from '../../../../../enums/GatewayActionContext';
+import { useStudioExpressionContext } from '../../../../../StudioExpressionContext';
+import type { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSubexpressionValueType';
 
 export const GatewayActionSelector = ({
   value,
@@ -16,7 +15,7 @@ export const GatewayActionSelector = ({
     onChange({ ...value, key: event.target.value as GatewayActionContext });
 
   return (
-    <NativeSelect
+    <StudioNativeSelect
       size='small'
       onChange={handleChange}
       label={texts.gatewayActionKey}
@@ -27,6 +26,6 @@ export const GatewayActionSelector = ({
           {texts.gatewayActionContext[option]}
         </option>
       ))}
-    </NativeSelect>
+    </StudioNativeSelect>
   );
 };

@@ -135,6 +135,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
     return () => {
       destroyModeler();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return { canvasRef, modelerRef };

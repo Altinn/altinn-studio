@@ -63,7 +63,7 @@ export const isProcessDataLookupFunc = (expression: Expression): expression is D
   );
 };
 
-export const isProcessUserAction = (expression: Expression): expression is KeyLookupFunc => {
+export const isProcessUserAction = (expression: Expression): expression is GatewayActionContext => {
   const actions = Object.values(GatewayActionContext);
   return typeof expression === 'string' && actions.includes(expression as GatewayActionContext);
 };

@@ -67,7 +67,7 @@ const complexValueToSimple = (value: ValueInComplexFormat): SimpleSubexpressionV
   if (isSimpleDataLookupFunc(value)) return dataLookupFuncToSimpleFormat(value);
   if (isSimpleKeyLookupFunc(value)) return keyLookupFuncToSimpleFormat(value);
   if (isProcessGatewayAction(value)) return processActionToSimpleFormat(value);
-  if (isProcessUserAction(value)) return processUserActionToSimpleFormat(value as string);
+  if (isProcessUserAction(value)) return processUserActionToSimpleFormat(value);
   return primitiveValueToSimpleFormat(value);
 };
 const dataLookupFuncToSimpleFormat = ([source, key]: DataLookupFunc): SimpleSubexpressionValue => {
@@ -97,7 +97,9 @@ const processActionToSimpleFormat = ([value]: DataLookupFunc): SimpleSubexpressi
   };
 };
 
-const processUserActionToSimpleFormat = (action: string): SimpleSubexpressionValue => {
+const processUserActionToSimpleFormat = (
+  action: GatewayActionContext,
+): SimpleSubexpressionValue => {
   return {
     type: SimpleSubexpressionValueType.GatewayActionContext,
     key: action as GatewayActionContext,

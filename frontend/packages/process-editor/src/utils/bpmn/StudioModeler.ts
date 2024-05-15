@@ -6,6 +6,7 @@ import { type Moddle } from 'bpmn-js/lib/model/Types';
 import { BpmnModelerInstance } from './BpmnModelerInstance';
 
 // Short description: This class is used to interact with the bpmn-js modeler instance to create, update and delete elements in the bpmn diagram.
+// We have not written test for this class then we need to mock the BpmnModelerInstance and its methods.
 enum AvailableInstanceGetters {
   Modeling = 'modeling',
   Moddle = 'moddle',

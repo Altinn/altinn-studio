@@ -1,6 +1,7 @@
 import type { Element } from 'bpmn-moddle';
 import { StudioModeler } from './StudioModeler';
 
+// We have not written test for this class then we need to mock the BpmnModelerInstance and its methods.
 export class BpmnExpressionModeler extends StudioModeler {
   public get conditionExpression(): string | null {
     const expressionString = this.getElement().di.bpmnElement.conditionExpression?.body;

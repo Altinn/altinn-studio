@@ -12,7 +12,6 @@ import { Paragraph } from '@digdir/design-system-react';
 import { BpmnExpressionModeler } from '../../../utils/bpmn/BpmnExpressionModeler';
 import { useExpressionTexts } from 'app-shared/components/Expression/useExpressionTexts';
 import { useTranslation } from 'react-i18next';
-
 import classes from './ConfigSequenceFlow.module.css';
 
 const defaultExpression: BooleanExpression = [
@@ -29,6 +28,8 @@ export const ConfigSequenceFlow = (): React.ReactElement => {
   const [expression, setExpression] = useState<BooleanExpression>(
     expressionModeler.conditionExpression,
   );
+
+  const expressionOptions: string[] = ['gatewayAction', 'gatewayActionContext'];
 
   const onAddNewExpressionClicked = (): void => {
     setExpression(defaultExpression);
@@ -53,6 +54,11 @@ export const ConfigSequenceFlow = (): React.ReactElement => {
     expressionModeler.updateElementProperties({
       conditionExpression: undefined,
     });
+  };
+
+  const handleOnExpressionChange = (updatedExpression: BooleanExpression): void => {
+    setExpression(updatedExpression);
+    addExpressionToSequenceFlow(updatedExpression);
   };
 
   return (
@@ -80,12 +86,9 @@ export const ConfigSequenceFlow = (): React.ReactElement => {
           <StudioExpression
             showAddSubexpression={false}
             expression={expression}
-            onChange={(updatedExpression: BooleanExpression) => {
-              setExpression(updatedExpression);
-              addExpressionToSequenceFlow(updatedExpression);
-            }}
+            onChange={handleOnExpressionChange}
             texts={texts}
-            expressionOptions={['gatewayAction', 'gatewayActionContext']}
+            expressionOptions={expressionOptions}
             dataLookupOptions={undefined}
           />
         )}

@@ -247,7 +247,7 @@
   "expression.errorListHeader": "Uttrykket kan ikke lagres på grunn av følgende feil:",
   "expression.false": "Usann",
   "expression.firstOperand": "Første operand",
-  "expression.gatewayActionContext.confirm": "Confirm",
+  "expression.gatewayActionContext.confirm": "Bekreft",
   "expression.gatewayActionContext.pay": "Pay",
   "expression.gatewayActionContext.reject": "Reject",
   "expression.gatewayActionContext.sign": "Sign",
