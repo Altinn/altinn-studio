@@ -9,7 +9,7 @@ import type { FormContainer } from '../../../../../types/FormContainer';
 import { useDeleteItem } from './useDeleteItem';
 import { isContainer } from '../../../../../utils/formItemUtils';
 import { useFormItemContext } from '../../../../FormItemContext';
-import { useAppContext } from '@altinn/ux-editor/hooks';
+import { useAppContext } from '../../../../../hooks';
 
 export interface FormItemTitleProps {
   children: ReactNode;

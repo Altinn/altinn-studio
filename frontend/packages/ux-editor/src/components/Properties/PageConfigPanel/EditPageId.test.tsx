@@ -7,8 +7,8 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import { EditPageId } from './EditPageId';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { appContextMock } from '@altinn/ux-editor/testing/appContextMock';
-import { externalLayoutsMock } from '@altinn/ux-editor/testing/layoutMock';
+import { appContextMock } from '../../../testing/appContextMock';
+import { externalLayoutsMock } from '../../../testing/layoutMock';
 
 // Test data
 const app = 'app';
