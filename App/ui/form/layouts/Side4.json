@@ -49,7 +49,14 @@
         "textResourceBindings": {
           "title": "Denne tittelen skal gjemmes dersom det står 'test' i input feltet"
         },
-        "hidden": ["equals",["component", "Input-Test" ],"test"]
+        "hidden": [
+          "equals",
+          [
+            "component",
+            "Input-Test"
+          ],
+          "test"
+        ]
       },
       {
         "size": "M",
@@ -58,7 +65,14 @@
         "textResourceBindings": {
           "title": "Denne tittelen skal gjemmes dersom det står 'test' i input feltet"
         },
-        "hidden": ["equals",["component", "Input-Test" ],"test"]
+        "hidden": [
+          "equals",
+          [
+            "component",
+            "Input-Test"
+          ],
+          "test"
+        ]
       },
       {
         "size": "M",
@@ -109,6 +123,13 @@
         "whatToRender": {
           "type": "page",
           "id": "Side3"
+        }
+      },
+      {
+        "id": "Button-qHGXDg",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Side4.Button-qHGXDg.title"
         }
       }
     ]

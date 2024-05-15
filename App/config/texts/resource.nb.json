@@ -2,6 +2,10 @@
   "language": "nb",
   "resources": [
     {
+      "id": "Side4.Button-qHGXDg.title",
+      "value": "Send inn"
+    },
+    {
       "id": "Side4.Header-tZjZtv.title",
       "value": "Eksempel på ny oppsummeringskomponent:"
     },
