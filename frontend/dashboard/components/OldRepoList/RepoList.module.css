@@ -5,25 +5,6 @@
   min-width: 40px;
 }
 
-/*new class*/
-.actionLinks {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--fds-spacing-1);
-}
-
-/*new class*/
-.giteaButton {
-  margin-right: var(--fds-spacing-2);
-}
-
-/*new class*/
-.giteaIcon {
-  font-size: 2rem;
-  margin-bottom: var(--fds-spacing-1);
-  margin-right: 0.4rem;
-}
-
 .actionLink:hover {
   text-decoration: none;
 }

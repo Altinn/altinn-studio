@@ -20,10 +20,8 @@ import { DATAGRID_DEFAULT_PAGE_SIZE, DATAGRID_PAGE_SIZE_OPTIONS } from '../../co
 import classes from './RepoList.module.css';
 import type { User } from 'app-shared/types/Repository';
 import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from '../../hooks/mutations';
+
 import { PencilIcon, FilesIcon, ExternalLinkIcon, StarIcon, StarFillIcon } from '@studio/icons';
-import { StudioTableRemotePagination } from '@studio/components';
-import { ActionLinks } from './ActionLinks';
-import { FavoriteButton } from './FavoriteButton';
 
 export interface IRepoListProps {
   isLoading: boolean;
@@ -105,43 +103,6 @@ export const RepoList = ({
   const { mutate: unsetStarredRepo } = useUnsetStarredRepoMutation();
   const copyModalAnchorRef = useRef(null);
   const { t } = useTranslation();
-
-  const studioColumns = [
-    {
-      accessor: 'favoriteIcon',
-      value: '',
-    },
-    {
-      accessor: 'name',
-      value: t('dashboard.name'),
-    },
-    {
-      accessor: 'createdBy',
-      value: t('dashboard.created_by'),
-    },
-    {
-      accessor: 'lastUpdated',
-      value: t('dashboard.last_modified'),
-    },
-    {
-      accessor: 'description',
-      value: t('dashboard.description'),
-    },
-    {
-      accessor: 'actionIcons',
-      value: '',
-    },
-  ];
-
-  const studioRows = repos.map((repo) => ({
-    id: repo.id,
-    favoriteIcon: <FavoriteButton repo={repo} />,
-    name: repo.name,
-    createdBy: repo.owner.full_name || repo.owner.login,
-    lastUpdated: new Date(repo.updated_at).toLocaleDateString('nb', { dateStyle: 'short' }),
-    description: repo.description,
-    actionIcons: <ActionLinks repo={repo} />,
-  }));
 
   const cols = useMemo(() => {
     const favouriteActionCol: GridActionsColDef = {
@@ -302,33 +263,25 @@ export const RepoList = ({
   return (
     <div ref={copyModalAnchorRef}>
       {isServerSort ? (
-        <>
-          <StudioTableRemotePagination
-            columns={studioColumns}
-            rows={studioRows}
-            size='small'
-            emptyTableMessage={t('dashboard.no_repos_result')}
-          />
-          <DataGrid
-            localeText={localText}
-            paginationModel={paginationModel}
-            onPaginationModelChange={handlePaginationModelChange}
-            autoHeight={true}
-            loading={isLoading}
-            rows={repos}
-            columns={cols}
-            disableColumnMenu={true}
-            isRowSelectable={isRowSelectable}
-            sortModel={sortModel}
-            paginationMode='server'
-            sortingMode='server'
-            onSortModelChange={onSortModelChange}
-            rowCount={rowCount ?? 0}
-            pageSizeOptions={pageSizeOptions}
-            sx={gridStyleOverride}
-            disableVirtualization={disableVirtualization}
-          />
-        </>
+        <DataGrid
+          localeText={localText}
+          paginationModel={paginationModel}
+          onPaginationModelChange={handlePaginationModelChange}
+          autoHeight={true}
+          loading={isLoading}
+          rows={repos}
+          columns={cols}
+          disableColumnMenu={true}
+          isRowSelectable={isRowSelectable}
+          sortModel={sortModel}
+          paginationMode='server'
+          sortingMode='server'
+          onSortModelChange={onSortModelChange}
+          rowCount={rowCount ?? 0}
+          pageSizeOptions={pageSizeOptions}
+          sx={gridStyleOverride}
+          disableVirtualization={disableVirtualization}
+        />
       ) : (
         <DataGrid
           localeText={localText}
