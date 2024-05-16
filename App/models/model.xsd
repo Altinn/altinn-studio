@@ -8,9 +8,11 @@
   <xs:element name="model">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="property1" type="xs:string" />
-        <xs:element name="property2" type="xs:string" />
-        <xs:element minOccurs="0" name="property3" type="xs:string" />
+        <xs:element name="streetnr" type="xs:string" />
+        <xs:element name="postnr" type="xs:string" />
+        <xs:element minOccurs="0" name="city" type="xs:string" />
+        <xs:element minOccurs="0" name="co" type="xs:string" />
+        <xs:element minOccurs="0" name="street" type="xs:string" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
