@@ -6,6 +6,7 @@ using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.OpenApi.Models;
 using SharedResources.Tests;
 using Xunit;
 
@@ -22,13 +23,12 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", null, "TestData/Model/Metadata/datamodel.json")]
         [InlineData("ttd", "app-without-layoutsets", "testUser", null, null, "TestData/Model/Metadata/datamodel.json")]
-        public async Task GetModelMetadata_Should_Return_ModelMetadata_From_LayoutSetParam(string org, string app, string developer, string layoutSetName, string dataModelName, string expectedModelMetadataPath)
+        public async Task GetModelMetadata_Should_Return_ModelMetadata_When_DataModelName_IsNull(string org, string app, string developer, string layoutSetName, string dataModelName, string expectedModelMetadataPath)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
 
             string expectedModelMetadata = await AddModelMetadataToRepo(TestRepoPath, expectedModelMetadataPath);
-
             string url = $"{VersionPrefix(org, targetRepository)}/model-metadata?layoutSetName={layoutSetName}&dataModelName={dataModelName}";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
@@ -42,9 +42,9 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         }
 
         [Theory]
-        [InlineData("ttd", "app-with-layoutsets", "testUser", null, "datamodel", "TestData/Model/Metadata/datamodel.json")]
+        [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "datamodel", "TestData/Model/Metadata/datamodel.json")]
         [InlineData("ttd", "app-without-layoutsets", "testUser", null, "datamodel", "TestData/Model/Metadata/datamodel.json")]
-        public async Task GetModelMetadata_Should_Return_ModelMetadata_From_DataModelNameParam(string org, string app, string developer, string layoutSetName, string dataModelName, string expectedModelMetadataPath)
+        public async Task GetModelMetadata_Should_Return_ModelMetadata_When_DataModelName_IsSpecified(string org, string app, string developer, string layoutSetName, string dataModelName, string expectedModelMetadataPath)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
