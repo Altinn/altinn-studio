@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Textfield, Radio } from '@digdir/design-system-react';
+import type { AxiosError } from 'axios';
 import classes from './AccessListMembers.module.css';
 import type { AccessList, AccessListMember } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from '../FieldWrapper';
@@ -36,6 +37,7 @@ export const AccessListMembers = ({
 }: AccessListMembersProps): React.JSX.Element => {
   const { t } = useTranslation();
 
+  const [invalidOrgnrs, setInvalidOrgnrs] = useState<string[]>([]);
   const [isAddMode, setIsAddMode] = useState<boolean>(members.length === 0);
   const [isSubPartySearch, setIsSubPartySearch] = useState<boolean>(false);
   const [searchText, setSearchText] = useState<string>('');
@@ -59,7 +61,13 @@ export const AccessListMembers = ({
   );
 
   const handleAddMember = (memberToAdd: AccessListMember): void => {
-    addListMember([memberToAdd.orgNr]);
+    addListMember([memberToAdd.orgNr], {
+      onError: (error: AxiosError) => {
+        if ((error.response.data as { code: string }).code === 'RR-00003') {
+          setInvalidOrgnrs((old) => [...old, memberToAdd.orgNr]);
+        }
+      },
+    });
   };
 
   const handleRemoveMember = (memberIdToRemove: string): void => {
@@ -145,6 +153,7 @@ export const AccessListMembers = ({
             listItems={resultData?.parties ?? []}
             isLoading={isAddingNewListMember}
             disabledItems={members}
+            invalidItems={invalidOrgnrs}
             isAdd
             onButtonClick={handleAddMember}
           />

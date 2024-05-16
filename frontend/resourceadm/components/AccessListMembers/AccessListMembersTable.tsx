@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Table } from '@digdir/design-system-react';
+import { ErrorMessage, Table } from '@digdir/design-system-react';
 import type { AccessListMember } from 'app-shared/types/ResourceAdm';
 import { StudioButton } from '@studio/components';
 import classes from './AccessListMembers.module.css';
@@ -13,6 +13,7 @@ interface AccessListMembersTableProps {
   isAdd?: boolean;
   isHeaderHidden?: boolean;
   disabledItems?: AccessListMember[];
+  invalidItems?: string[];
   onButtonClick: (member: AccessListMember) => void;
 }
 
@@ -22,6 +23,7 @@ export const AccessListMembersTable = ({
   isAdd,
   isHeaderHidden,
   disabledItems,
+  invalidItems,
   onButtonClick,
 }: AccessListMembersTableProps): React.JSX.Element => {
   const { t } = useTranslation();
@@ -30,6 +32,9 @@ export const AccessListMembersTable = ({
     let buttonAriaLabel: string;
     let buttonIcon: React.JSX.Element;
     let buttonText: string;
+    if (invalidItems?.indexOf(item.orgNr) > -1) {
+      return <ErrorMessage size='small'>{t('resourceadm.listadmin_invalid_org')}</ErrorMessage>;
+    }
     if (isAdd) {
       buttonAriaLabel = t('resourceadm.listadmin_add_to_list_org', { org: item.orgName });
       buttonIcon = <PlusCircleIcon className={classes.buttonIcon} />;

@@ -169,6 +169,43 @@ describe('AccessListMembers', () => {
     await screen.findByText(textMock('resourceadm.listadmin_list_tenor_org'));
   });
 
+  it('should show error message if organization cannot be added to list', async () => {
+    const user = userEvent.setup();
+    const searchResultText = 'Digdir';
+    const searchResultOrgNr = '987654321';
+
+    renderAccessListMembers(
+      {},
+      {
+        addAccessListMember: jest
+          .fn()
+          .mockImplementation(() => Promise.reject({ response: { data: { code: 'RR-00003' } } })),
+        getParties: jest.fn().mockImplementation(() =>
+          Promise.resolve({
+            _embedded: {
+              enheter: [{ organisasjonsnummer: searchResultOrgNr, navn: searchResultText }],
+            },
+          }),
+        ),
+      },
+    );
+
+    const addMoreButton = screen.getByRole('button', {
+      name: textMock('resourceadm.listadmin_search_add_more'),
+    });
+    await user.click(addMoreButton);
+
+    const textField = screen.getByLabelText(textMock('resourceadm.listadmin_search'));
+    await user.type(textField, searchResultOrgNr);
+
+    await waitFor(() => screen.findByText(searchResultText));
+
+    const addMemberButton = screen.getByText(textMock('resourceadm.listadmin_add_to_list'));
+    await user.click(addMemberButton);
+
+    expect(screen.getByText(textMock('resourceadm.listadmin_invalid_org'))).toBeInTheDocument();
+  });
+
   it('should go to next page when paging button is clicked', async () => {
     const user = userEvent.setup();
     const nextPageUrl = 'brreg/next';
