@@ -21,7 +21,7 @@ import classes from './RepoList.module.css';
 import type { User } from 'app-shared/types/Repository';
 import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from '../../hooks/mutations';
 import { PencilIcon, FilesIcon, ExternalLinkIcon, StarIcon, StarFillIcon } from '@studio/icons';
-import { StudioTableRemotePagination } from '@studio/components';
+import { StudioTableLocalPagination, StudioTableRemotePagination } from '@studio/components';
 import { ActionLinks } from './ActionLinks';
 import { FavoriteButton } from './FavoriteButton';
 
@@ -317,6 +317,7 @@ export const RepoList = ({
     <div ref={copyModalAnchorRef}>
       {isServerSort ? (
         <>
+          {/*Remember to fix bug on page out of range*/}
           <StudioTableRemotePagination
             columns={studioColumns}
             rows={studioRows}
@@ -346,6 +347,19 @@ export const RepoList = ({
         </>
       ) : (
         <>
+          <StudioTableLocalPagination
+            columns={studioColumns}
+            rows={studioRows}
+            size='small'
+            emptyTableMessage={t('dashboard.no_repos_result')}
+            pagination={{
+              pageSizeOptions: DATAGRID_PAGE_SIZE_OPTIONS,
+              pageSizeLabel: t('dashboard.rows_per_page'),
+              nextButtonText: t('ux_editor.modal_properties_button_type_next'),
+              previousButtonText: t('ux_editor.modal_properties_button_type_back'),
+              itemLabel: (num: number) => `${t('general.page')} ${num}`,
+            }}
+          />
           <DataGrid
             localeText={localText}
             paginationModel={paginationModel}
