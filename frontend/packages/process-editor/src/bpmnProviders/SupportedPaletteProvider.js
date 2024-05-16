@@ -61,14 +61,7 @@ class SupportedPaletteProvider {
                 dataTypesToSign: bpmnFactory.create('altinn:DataTypesToSign', {
                   dataTypes: [],
                 }),
-                signatureDataType: bpmnFactory.create(
-                  'altinn:SignatureDataType',
-                  {
-                    dataType: bpmnFactory.create('altinn:DataType', {
-                      dataType: `signatureInformation-${generateRandomId(4)}`,
-                    }),
-                  }, // What about uniqueFromSignaturesInDataTypes
-                ),
+                signatureDataType: `signatureInformation-${generateRandomId(4)}`,
               }),
             }),
           ],
@@ -135,11 +128,7 @@ class SupportedPaletteProvider {
                 ],
               }),
               paymentConfig: bpmnFactory.create('altinn:PaymentConfig', {
-                paymentDataType: bpmnFactory.create('altinn:PaymentDataType', {
-                  dataType: bpmnFactory.create('altinn:DataType', {
-                    dataType: `paymentInformation-${generateRandomId(4)}`,
-                  }),
-                }),
+                paymentDataType: `paymentInformation-${generateRandomId(4)}`,
               }),
             }),
           ],

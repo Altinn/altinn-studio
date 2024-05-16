@@ -4,18 +4,21 @@ import type { RelationalOperator } from '../../../../types/RelationalOperator';
 import { SimpleSubexpressionValueType } from '../../../../enums/SimpleSubexpressionValueType';
 import { ExpressionErrorKey } from '../../../../enums/ExpressionErrorKey';
 import type { SimpleSubexpressionValue } from '../../../../types/SimpleSubexpressionValue';
+import type { DataLookupOptions } from '../../../../types/DataLookupOptions';
+import { DataLookupFuncName } from '../../../../enums/DataLookupFuncName';
 
 export const findSubexpressionErrors = (
   subexpression: SimpleSubexpression,
+  dataLookupOptions: Partial<DataLookupOptions>,
 ): ExpressionErrorKey[] => {
   const errors: ExpressionErrorKey[] = [];
   if (hasNumberOperator(subexpression) && hasBooleanValue(subexpression)) {
     errors.push(ExpressionErrorKey.NumericRelationOperatorWithWrongType);
   }
-  if (!isOperandValid(subexpression.firstOperand)) {
+  if (!isOperandValid(subexpression.firstOperand, dataLookupOptions)) {
     errors.push(ExpressionErrorKey.InvalidFirstOperand);
   }
-  if (!isOperandValid(subexpression.secondOperand)) {
+  if (!isOperandValid(subexpression.secondOperand, dataLookupOptions)) {
     errors.push(ExpressionErrorKey.InvalidSecondOperand);
   }
   return errors;
@@ -33,12 +36,15 @@ const hasBooleanValue = ({ firstOperand, secondOperand }: SimpleSubexpression): 
     (value) => value.type === SimpleSubexpressionValueType.Boolean,
   );
 
-const isOperandValid = (value: SimpleSubexpressionValue): boolean => {
+const isOperandValid = (
+  value: SimpleSubexpressionValue,
+  dataLookupOptions: Partial<DataLookupOptions>,
+): boolean => {
   switch (value.type) {
     case SimpleSubexpressionValueType.Datamodel:
       return isDatamodelValueValid(value);
     case SimpleSubexpressionValueType.Component:
-      return isComponentValueValid(value);
+      return isComponentValueValid(value, dataLookupOptions);
     default:
       return true;
   }
@@ -50,4 +56,5 @@ const isDatamodelValueValid = (
 
 const isComponentValueValid = (
   value: SimpleSubexpressionValue<SimpleSubexpressionValueType.Component>,
-): boolean => !!value.id;
+  dataLookupOptions: Partial<DataLookupOptions>,
+): boolean => !!value.id && dataLookupOptions[DataLookupFuncName.Component]?.includes(value.id);

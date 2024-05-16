@@ -7,6 +7,7 @@ import { ConfigContent } from './ConfigContent';
 import { ConfigEndEvent } from './ConfigEndEvent';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { ConfigSurface } from '../ConfigSurface/ConfigSurface';
+import { ConfigSequenceFlow } from './ConfigSequenceFlow';
 
 export const ConfigPanel = (): React.ReactElement => {
   return (
@@ -34,6 +35,11 @@ const ConfigPanelContent = (): React.ReactElement => {
     shouldDisplayFeature('customizeEndEvent') && bpmnDetails.type === BpmnTypeEnum.EndEvent;
   if (shouldDisplayEndEventConfig) {
     return <ConfigEndEvent />;
+  }
+
+  const shouldDisplaySequenceFlow = bpmnDetails.type === BpmnTypeEnum.SequenceFlow;
+  if (shouldDisplaySequenceFlow) {
+    return <ConfigSequenceFlow />;
   }
 
   const isSupportedConfig =

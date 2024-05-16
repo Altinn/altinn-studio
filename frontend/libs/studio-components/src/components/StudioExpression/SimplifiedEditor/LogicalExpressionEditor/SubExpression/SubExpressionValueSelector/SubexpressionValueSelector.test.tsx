@@ -14,6 +14,7 @@ import { texts } from '../../../../test-data/texts';
 import userEvent from '@testing-library/user-event';
 import { InstanceContext } from '../../../../enums/InstanceContext';
 import { ExpressionErrorKey } from '../../../../enums/ExpressionErrorKey';
+import { GatewayActionContext } from '../../../../enums/GatewayActionContext';
 
 describe('SubexpressionValueSelector', () => {
   it('Renders with the given legend in edit mode', () => {
@@ -189,6 +190,80 @@ describe('SubexpressionValueSelector', () => {
       await user.type(input(), '{backspace}');
       await user.click(document.body);
       screen.getByText(texts.errorMessages[ExpressionErrorKey.InvalidComponentId]);
+    });
+
+    it('Displays initial error and handles non-existing component ID', () => {
+      const id = 'non-existing-id';
+      renderSubexpressionValueSelector({ value: { ...componentValue, id }, isInEditMode: true });
+      const errorMessage = screen.getByText(
+        texts.errorMessages[ExpressionErrorKey.ComponentIDNoLongerExists],
+      );
+      expect(errorMessage).toBeInTheDocument();
+      const input = screen.getByRole('combobox', { name: texts.componentId });
+      expect(input).toHaveValue('');
+    });
+  });
+
+  describe('When the value is an gateway context reference', () => {
+    it.each(Object.values(GatewayActionContext))(
+      'Displays the key in readonly mode when it is %s',
+      (key) => {
+        const gatewayContextValue: SimpleSubexpressionValue<SimpleSubexpressionValueType.GatewayActionContext> =
+          {
+            type: SimpleSubexpressionValueType.GatewayActionContext,
+            key,
+          };
+        renderSubexpressionValueSelector({ value: gatewayContextValue, isInEditMode: false });
+        expect(screen.getByText(texts.gatewayActionContext[key]));
+      },
+    );
+
+    it('Render GatewayAction in readonly mode', () => {
+      const gatewayAction: SimpleSubexpressionValue<SimpleSubexpressionValueType.GatewayAction> = {
+        type: SimpleSubexpressionValueType.GatewayAction,
+        value: 'gatewayAction',
+      };
+      renderSubexpressionValueSelector({ value: gatewayAction, isInEditMode: false });
+      expect(screen.getByText('gatewayAction'));
+    });
+
+    it('Lets the user edit the value in edit mode', async () => {
+      const gatewayContextValue: SimpleSubexpressionValue<SimpleSubexpressionValueType.GatewayActionContext> =
+        {
+          type: SimpleSubexpressionValueType.GatewayActionContext,
+          key: GatewayActionContext.Pay,
+        };
+      const user = userEvent.setup();
+      const onChange = jest.fn();
+      renderSubexpressionValueSelector({
+        value: gatewayContextValue,
+        isInEditMode: true,
+        onChange,
+      });
+      const newKey = GatewayActionContext.Sign;
+      const select = screen.getByRole('combobox', { name: texts.gatewayActionKey });
+      await user.selectOptions(select, newKey);
+      expect(onChange).toHaveBeenCalledWith({ ...gatewayContextValue, key: newKey });
+    });
+  });
+
+  describe('When the value is an gateway action', () => {
+    it('should display expression selector only', () => {
+      const gatewayAction: SimpleSubexpressionValue<SimpleSubexpressionValueType.GatewayAction> = {
+        type: SimpleSubexpressionValueType.GatewayAction,
+        value: 'gatewayAction',
+      };
+      renderSubexpressionValueSelector({ value: gatewayAction, isInEditMode: true });
+      expect(screen.getByText('Gateway action'));
+    });
+
+    it('should display readonly mode', () => {
+      const gatewayAction: SimpleSubexpressionValue<SimpleSubexpressionValueType.GatewayAction> = {
+        type: SimpleSubexpressionValueType.GatewayAction,
+        value: 'gatewayAction',
+      };
+      renderSubexpressionValueSelector({ value: gatewayAction, isInEditMode: false });
+      expect(screen.getByText('gatewayAction'));
     });
   });
 
