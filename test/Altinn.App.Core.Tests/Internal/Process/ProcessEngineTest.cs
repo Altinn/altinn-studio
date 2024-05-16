@@ -4,6 +4,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.UserAction;
@@ -26,6 +27,7 @@ public class ProcessEngineTest : IDisposable
     private readonly Mock<IProcessNavigator> _processNavigatorMock;
     private readonly Mock<IProcessEventHandlerDelegator> _processEventHandlingDelegatorMock;
     private readonly Mock<IProcessEventDispatcher> _processEventDispatcherMock;
+    private readonly Mock<IProcessTaskCleaner> _processTaskCleanerMock;
 
     public ProcessEngineTest()
     {
@@ -34,6 +36,7 @@ public class ProcessEngineTest : IDisposable
         _processNavigatorMock = new();
         _processEventHandlingDelegatorMock = new();
         _processEventDispatcherMock = new();
+        _processTaskCleanerMock = new();
     }
 
     [Fact]
@@ -444,6 +447,10 @@ public class ProcessEngineTest : IDisposable
         _processReaderMock.Verify(r => r.IsEndEvent("Task_2"), Times.Once);
         _processReaderMock.Verify(r => r.IsProcessTask("Task_2"), Times.Once);
         _processNavigatorMock.Verify(n => n.GetNextTask(It.IsAny<Instance>(), "Task_1", null), Times.Once);
+        _processTaskCleanerMock.Verify(
+            x => x.RemoveAllDataElementsGeneratedFromTask(It.IsAny<Instance>(), It.IsAny<string>()),
+            Times.Once
+        );
 
         var expectedInstanceEvents = new List<InstanceEvent>()
         {
@@ -974,6 +981,7 @@ public class ProcessEngineTest : IDisposable
             _processNavigatorMock.Object,
             _processEventHandlingDelegatorMock.Object,
             _processEventDispatcherMock.Object,
+            _processTaskCleanerMock.Object,
             new UserActionService(userActions ?? [])
         );
     }

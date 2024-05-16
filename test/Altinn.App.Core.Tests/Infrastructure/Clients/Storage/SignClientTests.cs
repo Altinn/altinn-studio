@@ -51,6 +51,7 @@ public class SignClientTests
         var dataElementId = Guid.NewGuid().ToString();
         var signatureContext = new SignatureContext(
             instanceIdentifier,
+            "TheTask",
             "sign-data-type",
             new Signee() { UserId = "1337", PersonNumber = "0101011337" },
             new DataElementSignature(dataElementId)
@@ -63,7 +64,8 @@ public class SignClientTests
             {
                 new() { DataElementId = dataElementId, Signed = true }
             },
-            SignatureDocumentDataType = "sign-data-type"
+            SignatureDocumentDataType = "sign-data-type",
+            GeneratedFromTask = "TheTask"
         };
 
         await signClient.SignDataElements(signatureContext);
@@ -103,6 +105,7 @@ public class SignClientTests
         var dataElementId = Guid.NewGuid().ToString();
         var signatureContext = new SignatureContext(
             instanceIdentifier,
+            "TheTask",
             "sign-data-type",
             new Signee() { UserId = "1337", PersonNumber = "0101011337" },
             new DataElementSignature(dataElementId)

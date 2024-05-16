@@ -76,18 +76,6 @@ namespace Altinn.App.Core.Tests.Internal.Process.ProcessTasks.Common
 
             // Assert
             _appMetadataMock.Verify(x => x.GetApplicationMetadata(), Times.Once);
-            _dataClientMock.Verify(
-                x =>
-                    x.DeleteData(
-                        It.IsAny<string>(),
-                        It.IsAny<string>(),
-                        It.IsAny<int>(),
-                        It.IsAny<Guid>(),
-                        It.IsAny<Guid>(),
-                        It.IsAny<bool>()
-                    ),
-                Times.AtLeastOnce
-            );
         }
 
         private static Instance CreateInstance()

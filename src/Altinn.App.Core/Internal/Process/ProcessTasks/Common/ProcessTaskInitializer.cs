@@ -6,6 +6,7 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Models;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 

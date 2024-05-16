@@ -66,7 +66,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
                     OrganisationNumber = signatureContext.Signee.OrganisationNumber
                 },
                 SignatureDocumentDataType = signatureContext.SignatureDataTypeId,
-                DataElementSignatures = new()
+                DataElementSignatures = new(),
+                GeneratedFromTask = signatureContext.GeneratedFromTask
             };
             foreach (var dataElementSignature in signatureContext.DataElementSignatures)
             {

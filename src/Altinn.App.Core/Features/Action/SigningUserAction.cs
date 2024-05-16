@@ -81,6 +81,7 @@ public class SigningUserAction : IUserAction
                 SignatureContext signatureContext =
                     new(
                         new InstanceIdentifier(context.Instance),
+                        currentTask.Id,
                         currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration?.SignatureDataType!,
                         await GetSignee(context.UserId.Value),
                         dataElementSignatures

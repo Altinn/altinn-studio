@@ -294,6 +294,7 @@ namespace Altinn.App.Core.Extensions
             services.AddTransient<IProcessTaskInitializer, ProcessTaskInitializer>();
             services.AddTransient<IProcessTaskFinalizer, ProcessTaskFinalizer>();
             services.AddTransient<IProcessTaskDataLocker, ProcessTaskDataLocker>();
+            services.AddTransient<IProcessTaskCleaner, ProcessTaskCleaner>();
             services.AddTransient<IStartTaskEventHandler, StartTaskEventHandler>();
             services.AddTransient<IEndTaskEventHandler, EndTaskEventHandler>();
             services.AddTransient<IAbandonTaskEventHandler, AbandonTaskEventHandler>();

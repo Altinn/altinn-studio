@@ -11,17 +11,20 @@ public class SignatureContext
     /// Create a new signing context for one data element
     /// </summary>
     /// <param name="instanceIdentifier">Identifier for the instance containing the data elements to sign</param>
+    /// <param name="generatedFromTask">The id of the task connected to this signature</param>
     /// <param name="signatureDataTypeId">The id of the DataType where the signature should be stored</param>
     /// <param name="signee">The signee</param>
     /// <param name="dataElementSignature">The data element to sign <see cref="DataElementSignature"/></param>
     public SignatureContext(
         InstanceIdentifier instanceIdentifier,
+        string generatedFromTask,
         string signatureDataTypeId,
         Signee signee,
         params DataElementSignature[] dataElementSignature
     )
     {
         InstanceIdentifier = instanceIdentifier;
+        GeneratedFromTask = generatedFromTask;
         SignatureDataTypeId = signatureDataTypeId;
         DataElementSignatures.AddRange(dataElementSignature);
         Signee = signee;
@@ -31,17 +34,20 @@ public class SignatureContext
     /// Create a new signing context for multiple data elements
     /// </summary>
     /// <param name="instanceIdentifier">Identifier for the instance containing the data elements to sign</param>
+    /// <param name="generatedFromTask">The id of the task connected to this signature</param>
     /// <param name="signatureDataTypeId">The id of the DataType where the signature should be stored</param>
     /// <param name="signee">The signee</param>
     /// <param name="dataElementSignatures">The data elements to sign <see cref="DataElementSignature"/></param>
     public SignatureContext(
         InstanceIdentifier instanceIdentifier,
+        string generatedFromTask,
         string signatureDataTypeId,
         Signee signee,
         List<DataElementSignature> dataElementSignatures
     )
     {
         InstanceIdentifier = instanceIdentifier;
+        GeneratedFromTask = generatedFromTask;
         SignatureDataTypeId = signatureDataTypeId;
         DataElementSignatures = dataElementSignatures;
         Signee = signee;
@@ -66,6 +72,11 @@ public class SignatureContext
     /// The user performing the signing <see cref="Signee"/>
     /// </summary>
     public Signee Signee { get; }
+
+    /// <summary>
+    /// The task which should be linked to this signature
+    /// </summary>
+    public string GeneratedFromTask { get; }
 }
 
 /// <summary>

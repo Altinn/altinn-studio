@@ -6,7 +6,6 @@ using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Options;
 
@@ -54,31 +53,7 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
         List<DataType> connectedDataTypes = applicationMetadata.DataTypes.FindAll(dt => dt.TaskId == taskId);
 
-        await RemoveDataElementsGeneratedFromTask(instance, taskId);
-
         await RunRemoveFieldsInModelOnTaskComplete(instance, connectedDataTypes);
-    }
-
-    private async Task RemoveDataElementsGeneratedFromTask(Instance instance, string taskId)
-    {
-        AppIdentifier appIdentifier = new(instance.AppId);
-        InstanceIdentifier instanceIdentifier = new(instance);
-        foreach (
-            DataElement dataElement in instance.Data?.Where(de =>
-                de.References != null
-                && de.References.Exists(r => r.ValueType == ReferenceType.Task && r.Value == taskId)
-            ) ?? Enumerable.Empty<DataElement>()
-        )
-        {
-            await _dataClient.DeleteData(
-                appIdentifier.Org,
-                appIdentifier.App,
-                instanceIdentifier.InstanceOwnerPartyId,
-                instanceIdentifier.InstanceGuid,
-                Guid.Parse(dataElement.Id),
-                false
-            );
-        }
     }
 
     private async Task RunRemoveFieldsInModelOnTaskComplete(Instance instance, List<DataType> dataTypesToLock)
