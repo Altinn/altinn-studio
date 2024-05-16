@@ -6,7 +6,6 @@ using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.OpenApi.Models;
 using SharedResources.Tests;
 using Xunit;
 
@@ -52,6 +51,30 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string expectedModelMetadata = await AddModelMetadataToRepo(TestRepoPath, expectedModelMetadataPath);
 
             string url = $"{VersionPrefix(org, targetRepository)}/model-metadata?layoutSetName={layoutSetName}&dataModelName={dataModelName}";
+
+            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            responseContent.Should().Be(expectedModelMetadata);
+            JsonUtils.DeepEquals(expectedModelMetadata, responseContent).Should().BeTrue();
+        }
+
+        [Theory]
+        [InlineData("ttd", "app-with-layoutsets", "testUser", null, "datamodel", "TestData/Model/Metadata/datamodel.json")]
+        [InlineData("ttd", "app-without-layoutsets", "testUser", null, "datamodel", "TestData/Model/Metadata/datamodel.json")]
+        public async Task GetModelMetadata_Should_Return_ModelMetadata_From_DataModelNameParam(string org, string app, string developer, string layoutSetName, string dataModelName, string expectedModelMetadataPath)
+        {
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
+
+            string expectedModelMetadata = await AddModelMetadataToRepo(TestRepoPath, expectedModelMetadataPath);
+
+            string url = $"{VersionPrefix(org, targetRepository)}/model-metadata?layoutSetName={layoutSetName}&dataModelName={dataModelName}";
+
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
