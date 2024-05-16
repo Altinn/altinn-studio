@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -11,20 +12,30 @@ namespace Altinn.App.Models.model
   [XmlRoot(ElementName="model")]
   public class model
   {
-    [XmlElement("property1", Order = 1)]
-    [JsonProperty("property1")]
-    [JsonPropertyName("property1")]
-    public string property1 { get; set; }
+    [XmlElement("streetnr", Order = 1)]
+    [JsonProperty("streetnr")]
+    [JsonPropertyName("streetnr")]
+    public string streetnr { get; set; }
 
-    [XmlElement("property2", Order = 2)]
-    [JsonProperty("property2")]
-    [JsonPropertyName("property2")]
-    public string property2 { get; set; }
+    [XmlElement("postnr", Order = 2)]
+    [JsonProperty("postnr")]
+    [JsonPropertyName("postnr")]
+    public string postnr { get; set; }
 
-    [XmlElement("property3", Order = 3)]
-    [JsonProperty("property3")]
-    [JsonPropertyName("property3")]
-    public string property3 { get; set; }
+    [XmlElement("city", Order = 3)]
+    [JsonProperty("city")]
+    [JsonPropertyName("city")]
+    public string city { get; set; }
+
+    [XmlElement("co", Order = 4)]
+    [JsonProperty("co")]
+    [JsonPropertyName("co")]
+    public string co { get; set; }
+
+    [XmlElement("street", Order = 5)]
+    [JsonProperty("street")]
+    [JsonPropertyName("street")]
+    public string street { get; set; }
 
   }
 }
