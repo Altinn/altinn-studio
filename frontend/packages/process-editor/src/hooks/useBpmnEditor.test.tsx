@@ -83,6 +83,7 @@ jest.mock('./useBpmnModeler', () => ({
 const overrideUseBpmnModeler = (currentEventName: string, currentTaskType: BpmnTaskType) => {
   (useBpmnModeler as jest.Mock).mockReturnValue({
     getModeler: () => new BpmnModelerMockImpl(currentEventName, currentTaskType),
+    destroyModeler: jest.fn(),
   });
 };
 

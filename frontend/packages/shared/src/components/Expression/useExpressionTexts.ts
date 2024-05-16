@@ -7,6 +7,7 @@ import {
   SimpleSubexpressionValueType,
   GeneralRelationOperator,
   InstanceContext,
+  GatewayActionContext,
 } from '@studio/components';
 
 export const useExpressionTexts = (): ExpressionTexts => {
@@ -46,6 +47,12 @@ export const useExpressionTexts = (): ExpressionTexts => {
     (key) => `expression.instanceContext.${key}`,
   );
 
+  const gatewayActionContextKeys = Object.values(GatewayActionContext);
+  const gatewayActionContext = mapArrayToTranslations<GatewayActionContext>(
+    gatewayActionContextKeys,
+    (key) => `expression.gatewayActionContext.${key}`,
+  );
+
   return {
     addSubexpression: t('expression.addSubexpression'),
     and: t('expression.and'),
@@ -65,6 +72,8 @@ export const useExpressionTexts = (): ExpressionTexts => {
     expression: t('expression'),
     false: t('expression.false'),
     firstOperand: t('expression.firstOperand'),
+    gatewayActionKey: t('expression.gatewayActionKey'),
+    gatewayActionContext,
     instanceContext,
     instanceContextKey: t('expression.instanceContextKey'),
     invalidExpression: t('expression.invalidExpression'),
@@ -76,6 +85,7 @@ export const useExpressionTexts = (): ExpressionTexts => {
     or: t('expression.or'),
     readonlyComponentId: t('expression.readonlyComponentId'),
     readonlyDatamodelPath: t('expression.readonlyDatamodelPath'),
+    readonlyGatewayActionContext: t('expression.readonlyGatewayActionContext'),
     readonlyInstanceContext: t('expression.readonlyInstanceContext'),
     relationalOperator: t('expression.relationalOperator'),
     relationalOperators,
