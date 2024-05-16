@@ -8,12 +8,17 @@ import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import type { IFooterLayout } from 'src/features/footer/types';
 
-const useFooterLayoutQuery = () => {
+// Also used for prefetching @see appPrefetcher.ts
+export function useFooterLayoutQueryDef() {
   const { fetchFooterLayout } = useAppQueries();
-  const utils = useQuery({
+  return {
     queryKey: ['fetchFooterLayout'],
     queryFn: fetchFooterLayout,
-  });
+  };
+}
+
+const useFooterLayoutQuery = () => {
+  const utils = useQuery(useFooterLayoutQueryDef());
 
   useEffect(() => {
     utils.error && window.logError('Fetching footer failed:\n', utils.error);

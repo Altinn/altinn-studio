@@ -14,6 +14,14 @@ function login(user: CyUser) {
       // Intercepting party list to only return the party we want to use. This will be automatically used by
       // app-frontend when it starts.
       let correctParty: IParty | undefined = undefined;
+
+      // The /parties request and /current request happen in parallel, so we need
+      // to await the first request in order to use its value in the second intercept.
+      let resolveParties: () => void;
+      const partiesPromise = new Promise<void>((res) => {
+        resolveParties = res;
+      });
+
       cy.intercept(
         {
           method: 'GET',
@@ -28,6 +36,7 @@ function login(user: CyUser) {
               throw new Error(`Could not find party with id ${partyId}`);
             }
             res.send([correctParty]);
+            resolveParties();
           });
         },
       );
@@ -38,7 +47,8 @@ function login(user: CyUser) {
           times: 1,
         },
         (req) => {
-          req.on('response', (res) => {
+          req.on('response', async (res) => {
+            await partiesPromise;
             if (!correctParty) {
               throw new Error(`Could not find party with id ${partyId}`);
             }

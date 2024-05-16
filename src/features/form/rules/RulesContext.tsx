@@ -1,26 +1,33 @@
 import { useEffect } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
+import { skipToken, useQuery } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSetId';
+import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 
 const RULES_SCRIPT_ID = 'rules-script';
 
-const useRulesQuery = () => {
+// Also used for prefetching @see formPrefetcher.ts
+export function useRulesQueryDef(layoutSetId?: string): QueryDefinition<string | null> {
   const { fetchRuleHandler } = useAppQueries();
+  return {
+    queryKey: ['fetchRules', layoutSetId],
+    queryFn: layoutSetId ? () => fetchRuleHandler(layoutSetId) : skipToken,
+    enabled: !!layoutSetId,
+  };
+}
+
+const useRulesQuery = () => {
   const layoutSetId = useCurrentLayoutSetId();
 
   if (!layoutSetId) {
     throw new Error('No layoutSet id found');
   }
 
-  const utils = useQuery({
-    queryKey: ['fetchRules', layoutSetId],
-    queryFn: () => fetchRuleHandler(layoutSetId),
-  });
+  const utils = useQuery(useRulesQueryDef(layoutSetId));
 
   useEffect(() => {
     if (utils.error) {

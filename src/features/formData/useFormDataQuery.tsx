@@ -1,19 +1,50 @@
 import { useEffect } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
+import { skipToken, useQuery } from '@tanstack/react-query';
 import type { AxiosRequestConfig } from 'axios';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { type QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useCurrentParty } from 'src/features/party/PartiesProvider';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { maybeAuthenticationRedirect } from 'src/utils/maybeAuthenticationRedirect';
 import { useIsStatelessApp } from 'src/utils/useIsStatelessApp';
 
-export function useFormDataQuery(url: string | undefined) {
+// Also used for prefetching @see formPrefetcher.ts
+export function useFormDataQueryDef(
+  cacheKeyUrl?: string,
+  currentTaskId?: string,
+  url?: string,
+  options?: AxiosRequestConfig,
+): QueryDefinition<any> {
+  const { fetchFormData } = useAppQueries();
+  return {
+    queryKey: ['fetchFormData', cacheKeyUrl, currentTaskId],
+    queryFn: url ? () => fetchFormData(url, options) : skipToken,
+    enabled: !!url,
+    gcTime: 0,
+  };
+}
+
+export function useFormDataQueryOptions() {
   const currentPartyId = useCurrentParty()?.partyId;
   const isStateless = useIsStatelessApp();
+  const options: AxiosRequestConfig = {};
+  if (isStateless && currentPartyId !== undefined) {
+    options.headers = {
+      party: `partyid:${currentPartyId}`,
+    };
+  }
+  return options;
+}
 
+// We dont want to include the current language in the cacheKey url
+export function getFormDataCacheKeyUrl(url: string | undefined) {
+  return url ? new URL(url).pathname : undefined;
+}
+
+export function useFormDataQuery(url: string | undefined) {
   // We also add the current task id to the query key, so that the query is re-fetched when the task changes. This
   // is needed because we provide this query two different places:
   // 1. In the <InitialFormDataProvider /> to fetch the initial form data for a task. At that point forwards, the
@@ -22,29 +53,13 @@ export function useFormDataQuery(url: string | undefined) {
   //    reads the data model, assumes it doesn't really change, and caches it indefinitely. So, if you start at Task_1
   //    and then navigate to Task_2, the form data fetched during Task_1 may still be used in Task_2 unless evicted
   //    from the cache by using a different query key.
+  const options = useFormDataQueryOptions();
   const currentTaskId = useLaxProcessData()?.currentTask?.elementId;
-
-  const options: AxiosRequestConfig = {};
-  if (isStateless && currentPartyId !== undefined) {
-    options.headers = {
-      party: `partyid:${currentPartyId}`,
-    };
-  }
+  const cacheKeyUrl = getFormDataCacheKeyUrl(url);
 
   // We dont want to refetch if only the language changes
-  const urlPath = url ? new URL(url).pathname : undefined;
-  const enabled = url !== undefined;
-  const { fetchFormData } = useAppQueries();
-  const utils = useQuery({
-    // Form data is only fetched to initially populate the context, after that we keep the state internally
-    // and push it back to the server.
-    gcTime: 0,
-    retry: false,
-
-    queryKey: ['fetchFormData', urlPath, currentTaskId],
-    queryFn: async () => await fetchFormData(url!, options),
-    enabled,
-  });
+  // const utils = useQuery({
+  const utils = useQuery(useFormDataQueryDef(cacheKeyUrl, currentTaskId, url, options));
 
   useEffect(() => {
     if (utils.error && isAxiosError(utils.error)) {

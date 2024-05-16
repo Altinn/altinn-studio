@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
+import { skipToken, useQuery } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
@@ -8,20 +8,27 @@ import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { useLayoutSetId } from 'src/features/form/layout/LayoutsContext';
 import { useLaxLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import type { GlobalPageSettings, ILayoutSets, ILayoutSettings, IPagesBaseSettings } from 'src/layout/common.generated';
 
-function useLayoutSettingsQuery() {
+// Also used for prefetching @see formPrefetcher.ts
+export function useLayoutSettingsQueryDef(layoutSetId?: string): QueryDefinition<ILayoutSettings> {
   const { fetchLayoutSettings } = useAppQueries();
+  return {
+    queryKey: ['layoutSettings', layoutSetId],
+    queryFn: layoutSetId ? () => fetchLayoutSettings(layoutSetId) : skipToken,
+    enabled: !!layoutSetId,
+  };
+}
+
+function useLayoutSettingsQuery() {
   const layoutSetId = useLayoutSetId();
 
   if (!layoutSetId) {
     throw new Error('No layoutSet id found');
   }
 
-  const utils = useQuery({
-    queryKey: ['layoutSettings', layoutSetId],
-    queryFn: () => fetchLayoutSettings(layoutSetId),
-  });
+  const utils = useQuery(useLayoutSettingsQueryDef(layoutSetId));
 
   useEffect(() => {
     utils.error && window.logError('Fetching layout settings failed:\n', utils.error);

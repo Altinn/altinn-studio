@@ -7,12 +7,17 @@ import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import type { ILayoutSets } from 'src/layout/common.generated';
 
-const useLayoutSetsQuery = () => {
+// Also used for prefetching @see appPrefetcher.ts
+export function useLayoutSetsQueryDef() {
   const { fetchLayoutSets } = useAppQueries();
-  const utils = useQuery({
+  return {
     queryKey: ['fetchLayoutSets'],
     queryFn: fetchLayoutSets,
-  });
+  };
+}
+
+const useLayoutSetsQuery = () => {
+  const utils = useQuery(useLayoutSetsQueryDef());
 
   useEffect(() => {
     utils.error && window.logError('Fetching layout sets failed:\n', utils.error);

@@ -7,12 +7,17 @@ import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { isAxiosError } from 'src/utils/isAxiosError';
 
-const useApplicationSettingsQuery = () => {
+// Also used for prefetching @see appPrefetcher.ts
+export function useApplicationSettingsQueryDef() {
   const { fetchApplicationSettings } = useAppQueries();
-  const utils = useQuery({
+  return {
     queryKey: ['fetchApplicationSettings'],
     queryFn: fetchApplicationSettings,
-  });
+  };
+}
+
+const useApplicationSettingsQuery = () => {
+  const utils = useQuery(useApplicationSettingsQueryDef());
 
   useEffect(() => {
     utils.error && window.logError('Fetching application settings failed:\n', utils.error);

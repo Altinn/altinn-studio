@@ -49,24 +49,30 @@ const profileResponse = {
 
 describe('Language', () => {
   it('should not crash if language is not specified', () => {
-    cy.goto('changename');
     cy.intercept('GET', '**/profile/user', profileResponse).as('profile');
     cy.intercept('GET', '**/texts/nb').as('texts');
 
+    cy.goto('changename');
+
     cy.wait('@profile');
     cy.wait('@texts');
+
+    cy.waitForLoad();
     cy.findByRole('heading', { name: 'Ukjent feil' }).should('not.exist');
   });
 
   it('should not crash if language is stored as "null" in local storage', () => {
-    cy.goto('changename').then(() => {
-      window.localStorage.setItem('selectedAppLanguagefrontend-test10000', 'null');
-    });
     cy.intercept('GET', '**/profile/user', profileResponse).as('profile');
     cy.intercept('GET', '**/texts/nb').as('texts');
 
+    cy.goto('changename').then(() => {
+      window.localStorage.setItem('selectedAppLanguagefrontend-test10000', 'null');
+    });
+
     cy.wait('@profile');
     cy.wait('@texts');
+
+    cy.waitForLoad();
     cy.findByRole('heading', { name: 'Ukjent feil' }).should('not.exist');
   });
 });

@@ -14,12 +14,17 @@ export const MINIMUM_APPLICATION_VERSION = {
   name: 'v8.0.0',
 };
 
-const useApplicationMetadataQuery = () => {
+// Also used for prefetching @see appPrefetcher.ts
+export function useApplicationMetadataQueryDef() {
   const { fetchApplicationMetadata } = useAppQueries();
-  const utils = useQuery({
+  return {
     queryKey: ['fetchApplicationMetadata'],
-    queryFn: () => fetchApplicationMetadata(),
-  });
+    queryFn: fetchApplicationMetadata,
+  };
+}
+
+const useApplicationMetadataQuery = () => {
+  const utils = useQuery(useApplicationMetadataQueryDef());
 
   useEffect(() => {
     utils.error && window.logError('Fetching application metadata failed:\n', utils.error);

@@ -13,10 +13,10 @@ import { RulesProvider } from 'src/features/form/rules/RulesContext';
 import { InitialFormDataProvider } from 'src/features/formData/InitialFormData';
 import { useHasProcessProvider } from 'src/features/instance/ProcessContext';
 import { ProcessNavigationProvider } from 'src/features/instance/ProcessNavigationContext';
-import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { AllOptionsProvider, AllOptionsStoreProvider } from 'src/features/options/useAllOptions';
 import { ValidationProvider } from 'src/features/validation/validationContext';
-import { TaskKeys } from 'src/hooks/useNavigatePage';
+import { FormPrefetcher } from 'src/queries/formPrefetcher';
+import { StaticOptionPrefetcher } from 'src/queries/staticOptionsPrefetcher';
 import { NodesProvider } from 'src/utils/layout/NodesContext';
 
 const { Provider, useLaxCtx } = createContext<undefined>({
@@ -33,45 +33,48 @@ export function useIsInFormContext() {
  */
 export function FormProvider({ children }: React.PropsWithChildren) {
   const hasProcess = useHasProcessProvider();
-  const isCustomReceipt = useProcessTaskId() === TaskKeys.CustomReceipt;
 
   return (
-    <CustomValidationConfigProvider>
+    <>
+      <FormPrefetcher />
       <LayoutsProvider>
-        <LayoutSettingsProvider>
-          <PageNavigationProvider>
-            <DynamicsProvider>
-              <RulesProvider>
-                <DataModelSchemaProvider>
-                  <InitialFormDataProvider>
-                    <AttachmentsStoreProvider>
-                      <AllOptionsStoreProvider>
-                        <NodesProvider>
-                          <NavigateToNodeProvider>
-                            <ValidationProvider isCustomReceipt={isCustomReceipt}>
-                              <AttachmentsProvider>
-                                <AllOptionsProvider>
-                                  {hasProcess ? (
-                                    <ProcessNavigationProvider>
+        <StaticOptionPrefetcher />
+        <CustomValidationConfigProvider>
+          <LayoutSettingsProvider>
+            <PageNavigationProvider>
+              <DynamicsProvider>
+                <RulesProvider>
+                  <DataModelSchemaProvider>
+                    <InitialFormDataProvider>
+                      <AttachmentsStoreProvider>
+                        <AllOptionsStoreProvider>
+                          <NodesProvider>
+                            <AllOptionsProvider>
+                              <NavigateToNodeProvider>
+                                <ValidationProvider>
+                                  <AttachmentsProvider>
+                                    {hasProcess ? (
+                                      <ProcessNavigationProvider>
+                                        <Provider value={undefined}>{children}</Provider>
+                                      </ProcessNavigationProvider>
+                                    ) : (
                                       <Provider value={undefined}>{children}</Provider>
-                                    </ProcessNavigationProvider>
-                                  ) : (
-                                    <Provider value={undefined}>{children}</Provider>
-                                  )}
-                                </AllOptionsProvider>
-                              </AttachmentsProvider>
-                            </ValidationProvider>
-                          </NavigateToNodeProvider>
-                        </NodesProvider>
-                      </AllOptionsStoreProvider>
-                    </AttachmentsStoreProvider>
-                  </InitialFormDataProvider>
-                </DataModelSchemaProvider>
-              </RulesProvider>
-            </DynamicsProvider>
-          </PageNavigationProvider>
-        </LayoutSettingsProvider>
+                                    )}
+                                  </AttachmentsProvider>
+                                </ValidationProvider>
+                              </NavigateToNodeProvider>
+                            </AllOptionsProvider>
+                          </NodesProvider>
+                        </AllOptionsStoreProvider>
+                      </AttachmentsStoreProvider>
+                    </InitialFormDataProvider>
+                  </DataModelSchemaProvider>
+                </RulesProvider>
+              </DynamicsProvider>
+            </PageNavigationProvider>
+          </LayoutSettingsProvider>
+        </CustomValidationConfigProvider>
       </LayoutsProvider>
-    </CustomValidationConfigProvider>
+    </>
   );
 }

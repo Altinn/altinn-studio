@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
+import { skipToken, useQuery } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
@@ -12,6 +12,7 @@ import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLa
 import { useHasInstance } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useNavigationParams } from 'src/hooks/useNavigatePage';
+import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import type { ExprObjConfig, ExprVal } from 'src/features/expressions/types';
 import type { ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { IExpandedWidthLayouts, IHiddenLayoutsExternal } from 'src/types';
@@ -22,19 +23,24 @@ export interface LayoutContextValue {
   expandedWidthLayouts: IExpandedWidthLayouts;
 }
 
-function useLayoutQuery() {
+// Also used for prefetching @see formPrefetcher.ts
+export function useLayoutQueryDef(enabled: boolean, layoutSetId?: string): QueryDefinition<LayoutContextValue> {
   const { fetchLayouts } = useAppQueries();
+  return {
+    queryKey: ['formLayouts', layoutSetId, enabled],
+    queryFn: layoutSetId ? () => fetchLayouts(layoutSetId).then(processLayouts) : skipToken,
+    enabled: enabled && !!layoutSetId,
+  };
+}
+
+function useLayoutQuery() {
   const hasInstance = useHasInstance();
   const process = useLaxProcessData();
   const currentLayoutSetId = useLayoutSetId();
 
-  const utils = useQuery({
-    // Waiting to fetch layouts until we have an instance, if we're supposed to have one
-    // We don't want to fetch form layouts for a process step which we are currently not on
-    enabled: hasInstance ? !!process : true,
-    queryKey: ['formLayouts', currentLayoutSetId],
-    queryFn: async () => processLayouts(await fetchLayouts(currentLayoutSetId!)),
-  });
+  // Waiting to fetch layouts until we have an instance, if we're supposed to have one
+  // We don't want to fetch form layouts for a process step which we are currently not on
+  const utils = useQuery(useLayoutQueryDef(hasInstance ? !!process : true, currentLayoutSetId));
 
   useEffect(() => {
     utils.error && window.logError('Fetching form layout failed:\n', utils.error);

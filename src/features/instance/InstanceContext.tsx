@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { useQuery } from '@tanstack/react-query';
+import { skipToken, useQuery } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
@@ -13,6 +13,7 @@ import { useInstantiation } from 'src/features/instantiate/InstantiationContext'
 import { useStateDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
 import { isAxiosError } from 'src/utils/isAxiosError';
+import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import type { IInstance, IInstanceDataSources } from 'src/types/shared';
 
 export interface InstanceContext {
@@ -42,13 +43,22 @@ const { Provider, useCtx, useHasProvider } = createContext<InstanceContext | und
   default: undefined,
 });
 
-function useGetInstanceDataQuery(enabled: boolean, partyId: string, instanceGuid: string) {
+// Also used for prefetching @see appPrefetcher.ts
+export function useInstanceDataQueryDef(
+  enabled: boolean,
+  partyId?: string,
+  instanceGuid?: string,
+): QueryDefinition<IInstance> {
   const { fetchInstanceData } = useAppQueries();
-  const utils = useQuery({
-    queryKey: ['fetchInstanceData', partyId, instanceGuid],
-    queryFn: () => fetchInstanceData(partyId, instanceGuid),
-    enabled,
-  });
+  return {
+    queryKey: ['fetchInstanceData', partyId, instanceGuid, enabled],
+    queryFn: partyId && instanceGuid ? () => fetchInstanceData(partyId, instanceGuid) : skipToken,
+    enabled: enabled && !!partyId && !!instanceGuid,
+  };
+}
+
+function useGetInstanceDataQuery(enabled: boolean, partyId: string, instanceGuid: string) {
+  const utils = useQuery(useInstanceDataQueryDef(enabled, partyId, instanceGuid));
 
   useEffect(() => {
     utils.error && window.logError('Fetching instance data failed:\n', utils.error);

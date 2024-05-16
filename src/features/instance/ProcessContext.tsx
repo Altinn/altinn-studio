@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { createContext } from 'src/core/contexts/context';
@@ -12,6 +12,7 @@ import { TaskKeys, useNavigatePage } from 'src/hooks/useNavigatePage';
 import { ProcessTaskType } from 'src/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
 import { useIsStatelessApp } from 'src/utils/useIsStatelessApp';
+import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import type { IInstance, IProcess } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
@@ -29,13 +30,18 @@ const { Provider, useCtx, useHasProvider } = createContext<IProcessContext | und
 
 export const useHasProcessProvider = () => useHasProvider();
 
-function useProcessQuery(instanceId: string) {
+// Also used for prefetching @see appPrefetcher.ts
+export function useProcessQueryDef(instanceId?: string): QueryDefinition<IProcess> {
   const { fetchProcessState } = useAppQueries();
-
-  const utils = useQuery<IProcess, HttpClientError>({
+  return {
     queryKey: ['fetchProcessState', instanceId],
-    queryFn: () => fetchProcessState(instanceId),
-  });
+    queryFn: instanceId ? () => fetchProcessState(instanceId) : skipToken,
+    enabled: !!instanceId,
+  };
+}
+
+function useProcessQuery(instanceId: string) {
+  const utils = useQuery<IProcess, HttpClientError>(useProcessQueryDef(instanceId));
 
   useEffect(() => {
     utils.error && window.logError('Fetching process state failed:\n', utils.error);

@@ -9,11 +9,19 @@ import type { IAltinnOrgs } from 'src/types/shared';
 
 const extractOrgsFromServerResponse = (response: { orgs: IAltinnOrgs }): IAltinnOrgs => response.orgs;
 
-const useOrgsQuery = () => {
+// Also used for prefetching @see appPrefetcher.ts
+export function useOrgsQueryDef() {
   const { fetchOrgs } = useAppQueries();
-  const utils = useQuery({
+  return {
     queryKey: ['fetchOrganizations'],
-    queryFn: () => fetchOrgs().then(extractOrgsFromServerResponse),
+    queryFn: fetchOrgs,
+  };
+}
+
+const useOrgsQuery = () => {
+  const utils = useQuery({
+    ...useOrgsQueryDef(),
+    select: extractOrgsFromServerResponse,
   });
 
   useEffect(() => {

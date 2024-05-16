@@ -8,6 +8,7 @@ import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { Loader } from 'src/core/loading/Loader';
 import { useHasPendingAttachments } from 'src/features/attachments/AttachmentsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
+import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { useBackendValidation } from 'src/features/validation/backendValidation/useBackendValidation';
 import { useExpressionValidation } from 'src/features/validation/expressionValidation/useExpressionValidation';
 import { useInvalidDataValidation } from 'src/features/validation/invalidDataValidation/useInvalidDataValidation';
@@ -26,6 +27,8 @@ import {
   setVisibilityForNode,
 } from 'src/features/validation/visibility/visibilityUtils';
 import { useAsRef } from 'src/hooks/useAsRef';
+import { useIsPdf } from 'src/hooks/useIsPdf';
+import { TaskKeys } from 'src/hooks/useNavigatePage';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import type {
   BackendValidationIssueGroups,
@@ -158,14 +161,18 @@ const {
   },
 });
 
-interface Props {
-  isCustomReceipt?: boolean;
+interface InternalProps {
+  shouldLoadValidations: boolean;
 }
 
-export function ValidationProvider({ children, isCustomReceipt = false }: PropsWithChildren<Props>) {
+export function ValidationProvider({ children }: PropsWithChildren) {
   const waitForSave = FD.useWaitForSave();
   const waitForStateRef = useRef<WaitForState<ValidationContext & Internals, unknown>>();
   const hasPendingAttachments = useHasPendingAttachments();
+
+  const isCustomReceipt = useProcessTaskId() === TaskKeys.CustomReceipt;
+  const isPDF = useIsPdf();
+  const shouldLoadValidations = !isCustomReceipt && !isPDF;
 
   // Provide a promise that resolves when all pending validations have been completed
   const pendingAttachmentsRef = useAsRef(hasPendingAttachments);
@@ -185,9 +192,9 @@ export function ValidationProvider({ children, isCustomReceipt = false }: PropsW
   return (
     <Provider validating={validating}>
       <MakeWaitForState waitForStateRef={waitForStateRef} />
-      <UpdateValidations isCustomReceipt={isCustomReceipt} />
+      <UpdateValidations shouldLoadValidations={shouldLoadValidations} />
       <ManageVisibility />
-      <LoadingBlocker isCustomReceipt={isCustomReceipt}>{children}</LoadingBlocker>
+      <LoadingBlocker shouldLoadValidations={shouldLoadValidations}>{children}</LoadingBlocker>
     </Provider>
   );
 }
@@ -201,18 +208,18 @@ function MakeWaitForState({
   return null;
 }
 
-function LoadingBlocker({ children, isCustomReceipt }: PropsWithChildren<Props>) {
+function LoadingBlocker({ children, shouldLoadValidations }: PropsWithChildren<InternalProps>) {
   const isLoading = useSelector((state) => state.isLoading);
-  if (isLoading && !isCustomReceipt) {
+  if (isLoading && shouldLoadValidations) {
     return <Loader reason='validation' />;
   }
 
   return <>{children}</>;
 }
 
-function UpdateValidations({ isCustomReceipt }: Props) {
+function UpdateValidations({ shouldLoadValidations }: InternalProps) {
   const updateValidations = useSelector((state) => state.updateValidations);
-  const backendValidation = useBackendValidation({ enabled: !isCustomReceipt });
+  const backendValidation = useBackendValidation({ enabled: shouldLoadValidations });
 
   useEffect(() => {
     const { validations: backendValidations, processedLast, initialValidationDone } = backendValidation;

@@ -3,9 +3,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useImmer } from 'use-immer';
 
-import type { BackendValidationIssueGroups, BackendValidatorGroups, FieldValidations } from '..';
+import type {
+  BackendValidationIssue,
+  BackendValidationIssueGroups,
+  BackendValidatorGroups,
+  FieldValidations,
+} from '..';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { type QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import { useCurrentDataModelGuid } from 'src/features/datamodel/useBindingSchema';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxInstance } from 'src/features/instance/InstanceContext';
@@ -16,6 +22,25 @@ interface RetVal {
   validations: FieldValidations;
   processedLast: BackendValidationIssueGroups | undefined;
   initialValidationDone: boolean;
+}
+
+// Also used for prefetching @see formPrefetcher.ts
+export function useBackendValidationQueryDef(
+  enabled: boolean,
+  currentLanguage: string,
+  instanceId?: string,
+  currentDataElementId?: string,
+): QueryDefinition<BackendValidationIssue[]> {
+  const { fetchBackendValidations } = useAppQueries();
+  return {
+    queryKey: ['validation', instanceId, currentDataElementId, enabled],
+    queryFn:
+      instanceId && currentDataElementId
+        ? () => fetchBackendValidations(instanceId, currentDataElementId, currentLanguage)
+        : () => [],
+    enabled,
+    gcTime: 0,
+  };
 }
 
 interface UseBackendValidationProps {
@@ -31,20 +56,13 @@ export function useBackendValidation({ enabled = true }: UseBackendValidationPro
   /**
    * Run full validation initially for each step
    */
-  const { fetchBackendValidations } = useAppQueries();
   const instanceId = useLaxInstance()?.instanceId;
   const currentDataElementId = useCurrentDataModelGuid();
   const currentLanguage = useCurrentLanguage();
 
-  const { data: initialValidations } = useQuery({
-    gcTime: 0,
-    queryKey: ['validation', instanceId, currentDataElementId],
-    enabled,
-    queryFn: () =>
-      instanceId?.length && currentDataElementId?.length
-        ? fetchBackendValidations(instanceId, currentDataElementId, currentLanguage)
-        : [],
-  });
+  const { data: initialValidations } = useQuery(
+    useBackendValidationQueryDef(enabled, currentLanguage, instanceId, currentDataElementId),
+  );
 
   /**
    * Overwrite validation groups with initial validation

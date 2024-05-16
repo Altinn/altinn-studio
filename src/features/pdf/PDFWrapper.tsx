@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
 import cn from 'classnames';
@@ -7,12 +6,12 @@ import cn from 'classnames';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { PDFView } from 'src/features/pdf/PDFView';
 import classes from 'src/features/pdf/PDFView.module.css';
+import { useIsPdf } from 'src/hooks/useIsPdf';
 
 export function PDFWrapper({ children }: PropsWithChildren) {
   const previewPDF = useDevToolsStore((state) => state.pdfPreview);
   const setPdfPreview = useDevToolsStore((state) => state.actions.setPdfPreview);
-  const [searchParams] = useSearchParams();
-  const renderInstead = searchParams.get('pdf') === '1';
+  const renderInstead = useIsPdf();
 
   useEffect(() => {
     if (previewPDF) {

@@ -18,7 +18,7 @@ function useLogoSvg() {
   const { fetchLogo } = useAppQueries();
   return useQuery({
     queryKey: ['logoSvg'],
-    queryFn: () => fetchLogo(),
+    queryFn: fetchLogo,
   });
 }
 
