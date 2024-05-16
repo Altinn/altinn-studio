@@ -2,9 +2,10 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import type { QueryClient } from '@tanstack/react-query';
 import { Queue } from 'app-shared/queue/Queue';
 
-class SyncSuccessQueriesInvalidator extends Queue {
+export class SyncSuccessQueriesInvalidator extends Queue {
   private org: string;
   private app: string;
+  private queryClient: QueryClient;
 
   private readonly fileNameCacheKeyMap: Record<string, Array<QueryKey | string>> = {
     'applicationmetadata.json': [QueryKey.AppMetadata, '[org]', '[app]'],
@@ -13,24 +14,28 @@ class SyncSuccessQueriesInvalidator extends Queue {
   };
 
   constructor(queryClient: QueryClient, org: string, app: string) {
-    super();
+    super({ timeout: 5000 });
     this.org = org;
     this.app = app;
+    this.queryClient = queryClient;
   }
 
   public invalidateQueryByFileName(fileName: string): void {
-    this.addCacheKeyToQueue(this.getCacheKeyByFileName(fileName));
+    this.addTaskToQueue({
+      id: fileName,
+      callback: () => {
+        const cacheKey = this.getCacheKeyByFileName(fileName);
+        this.queryClient.invalidateQueries({ queryKey: cacheKey });
+      },
+    });
   }
 
-  private getCacheKeyByFileName(fileName: string): QueryKey[] {
+  private getCacheKeyByFileName(fileName: string): string[] {
     const cacheKey = this.fileNameCacheKeyMap[fileName];
-
+    console.log({ cacheKey });
     if (cacheKey.includes('[org]') || cacheKey.includes('[app]')) {
-      return cacheKey.map((key) =>
-        key.replace('[org]', this.org).replace('[app]', this.app),
-      ) as QueryKey[];
+      return cacheKey.map((key) => key.replace('[org]', this.org).replace('[app]', this.app));
     }
-
-    return cacheKey as QueryKey[];
+    return cacheKey;
   }
 }

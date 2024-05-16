@@ -1,37 +1,47 @@
 import type { QueryKey } from 'app-shared/types/QueryKey';
-import type { QueryClient } from '@tanstack/react-query';
+// import type { QueryClient } from '@tanstack/react-query';
+
+type QueueTask = {
+  id: string;
+  callback: Function;
+};
 
 type QueueOptions = {
   timeout?: number;
 };
 
 export class Queue {
-  private queue: string[] = [];
-  private queueTimeoutId: number | null = null;
+  private queue: QueueTask[] = [];
+  private queueTimeoutId: NodeJS.Timeout | undefined;
   private readonly options: QueueOptions | undefined;
 
-  constructor(options?: { timeout?: number }) {
+  constructor(options: QueueOptions) {
     this.options = options;
+  }
+
+  public addTaskToQueue(queueTask: QueueTask): void {
+    console.log({ queueTask, queue: this.queue });
+    if (this.queue.find((task) => task.id === queueTask.id)) {
+      console.log('already added to queue');
+      return;
+    }
+    this.queue.push(queueTask);
+    this.resetTimeOutQueue();
     this.startProcessingQueue();
   }
 
-  public addCacheKeyToQueue(cacheKey: QueryKey): void {
-    if (this.queue.includes(cacheKey)) return;
-
-    this.queue.push(cacheKey);
-    this.resetTimeOutQueue();
-  }
-
   private resetTimeOutQueue() {
-    this.queueTimeoutId = null;
+    console.log('resetTimeOutQueue');
+    clearTimeout(this.queueTimeoutId);
   }
 
   private startProcessingQueue() {
-    this.queueTimeoutId = setTimeout(() => {
-      this.queue.forEach((cacheKey) => {
-        this.options.QueryClient.invalidateQueries(cacheKey);
-        // queryClient.invalid(cacheKey);
-      });
-    }, this.options?.timeout || 1000);
+    this.queueTimeoutId = setTimeout(
+      () =>
+        this.queue.forEach((task) => {
+          task.callback();
+        }),
+      this.options.timeout || 1000,
+    );
   }
 }
