@@ -9,14 +9,14 @@ import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
 import { useLangToolsDataSources } from 'src/features/language/LangToolsStore';
 import { getLanguageFromCode } from 'src/language/languages';
-import { getParsedLanguageFromText } from 'src/language/sharedLanguage';
+import { parseAndCleanText } from 'src/language/sharedLanguage';
 import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 import { getKeyWithoutIndexIndicators } from 'src/utils/databindings';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { smartLowerCaseFirst } from 'src/utils/formComponentUtils';
 import type { useDataModelReaders } from 'src/features/formData/FormDataReaders';
 import type { TextResourceMap } from 'src/features/language/textResources';
-import type { FixedLanguageList } from 'src/language/languages';
+import type { FixedLanguageList, NestedTexts } from 'src/language/languages';
 import type { FormDataSelector } from 'src/layout';
 import type { IApplicationSettings, IInstanceDataSources, ILanguage, IVariable } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -119,32 +119,6 @@ interface ILanguageState {
   dataSources: TextResourceVariablesDataSources;
 }
 
-/**
- * Static version, like the above and below functions, but with an API that lets you pass just the state you need.
- * This is useful for testing, but please do not use this in production code (where all arguments should be passed,
- * even if the signature is updated).
- */
-export function staticUseLanguageForTests({
-  textResources = {},
-  language = null,
-  selectedLanguage = 'nb',
-  dataSources = {
-    instanceDataSources: {
-      instanceId: 'instanceId',
-      appId: 'org/app',
-      instanceOwnerPartyId: '12345',
-      instanceOwnerPartyType: 'person',
-    },
-    dataModels: new DataModelReaders({}),
-    currentDataModelName: undefined,
-    currentDataModel: () => null,
-    applicationSettings: {},
-    node: undefined,
-  },
-}: Partial<ILanguageState> = {}) {
-  return staticUseLanguage(textResources, language, selectedLanguage, dataSources);
-}
-
 export function staticUseLanguage(
   textResources: TextResourceMap,
   _language: ILanguage | null,
@@ -152,30 +126,11 @@ export function staticUseLanguage(
   dataSources: TextResourceVariablesDataSources,
 ): IUseLanguage {
   const language = _language || getLanguageFromCode(selectedLanguage);
+  const lang: IUseLanguage['lang'] = (key, params) => {
+    const result = getUnprocessedTextValueByLanguage(key, params);
 
-  function base(
-    key: string | undefined,
-    params?: ValidLangParam[],
-    extendedSources?: Partial<TextResourceVariablesDataSources>,
-    processing = true,
-  ) {
-    if (!key) {
-      return '';
-    }
-
-    const textResource = getTextResourceByKey(key, textResources, { ...dataSources, ...extendedSources });
-    if (textResource !== key) {
-      // TODO(Validation): Use params if exists and only if no variables are specified (maybe add datasource params to variables definition)
-      return processing ? getParsedLanguageFromText(textResource) : textResource;
-    }
-
-    const name = getLanguageFromKey(key, language);
-    const out = params ? replaceParameters(name, simplifyParams(params, langAsString)) : name;
-
-    return processing ? getParsedLanguageFromText(out) : out;
-  }
-
-  const lang: IUseLanguage['lang'] = (key, params) => base(key, params);
+    return parseAndCleanText(result);
+  };
 
   const langAsString: IUseLanguage['langAsString'] = (key, params, makeLowerCase) => {
     const postProcess = makeLowerCase ? smartLowerCaseFirst : (str: string | undefined) => str;
@@ -193,7 +148,7 @@ export function staticUseLanguage(
     dataModelPath,
     params,
   ) => {
-    const result = base(key, params, { dataModelPath });
+    const result = parseAndCleanText(getUnprocessedTextValueByLanguage(key, params, { dataModelPath }));
     if (result === undefined || result === null) {
       return key || '';
     }
@@ -202,13 +157,34 @@ export function staticUseLanguage(
   };
 
   const langAsNonProcessedString: IUseLanguage['langAsNonProcessedString'] = (key, params) =>
-    base(key, params, undefined, false);
+    getUnprocessedTextValueByLanguage(key, params, undefined);
 
   const langAsNonProcessedStringUsingPathInDataModel: IUseLanguage['langAsNonProcessedStringUsingPathInDataModel'] = (
     key,
     dataModelPath,
     params,
-  ) => base(key, params, { dataModelPath }, false);
+  ) => getUnprocessedTextValueByLanguage(key, params, { dataModelPath });
+
+  function getUnprocessedTextValueByLanguage(
+    key: string | undefined,
+    params?: ValidLangParam[],
+    extendedSources?: Partial<TextResourceVariablesDataSources>,
+  ) {
+    if (!key) {
+      return '';
+    }
+
+    const textResource = getTextResourceByKey(key, textResources, { ...dataSources, ...extendedSources });
+
+    if (textResource !== key) {
+      // TODO(Validation): Use params if exists and only if no variables are specified (maybe add datasource params to variables definition)
+      return textResource;
+    }
+
+    const name = getLanguageSpecificText(key, language);
+
+    return params ? replaceParameters(name, simplifyParams(params, langAsString)) : name;
+  }
 
   return {
     language,
@@ -254,13 +230,20 @@ const getPlainTextFromNode = (node: ReactNode, langAsString: IUseLanguage['langA
   return text;
 };
 
-export function getLanguageFromKey(key: string, language: ILanguage) {
+function getLanguageSpecificText(key: string, language: ILanguage) {
   const path = key.split('.');
   const value = getNestedObject(language, path);
-  if (!value || typeof value === 'object') {
-    return key;
+  if (typeof value === 'string') {
+    return value;
   }
-  return value;
+  return key;
+}
+
+function getNestedObject(nestedObj: ILanguage | Record<string, string | ILanguage> | NestedTexts, pathArr: string[]) {
+  return pathArr.reduce<ILanguage | string | NestedTexts | undefined>(
+    (obj, key) => (obj && obj[key] !== 'undefined' ? obj[key] : undefined),
+    nestedObj,
+  );
 }
 
 function getTextResourceByKey(
@@ -365,12 +348,7 @@ function replaceVariables(text: string, variables: IVariable[], dataSources: Tex
 
   return out;
 }
-
-function getNestedObject(nestedObj: ILanguage, pathArr: string[]) {
-  return pathArr.reduce((obj, key) => (obj && obj[key] !== 'undefined' ? obj[key] : undefined), nestedObj);
-}
-
-const replaceParameters = (nameString: string | undefined, params: SimpleLangParam[]) => {
+const replaceParameters = (nameString: string, params: SimpleLangParam[]) => {
   if (nameString === undefined) {
     return nameString;
   }
@@ -401,4 +379,30 @@ function isTextReference(obj: any): obj is TextReference {
     Object.keys(obj).length <= 3 &&
     Object.keys(obj).every((k) => k === 'key' || k === 'params' || k === 'makeLowerCase')
   );
+}
+
+/**
+ * Static version, like the above and below functions, but with an API that lets you pass just the state you need.
+ * This is useful for testing, but please do not use this in production code (where all arguments should be passed,
+ * even if the signature is updated).
+ */
+export function staticUseLanguageForTests({
+  textResources = {},
+  language = null,
+  selectedLanguage = 'nb',
+  dataSources = {
+    instanceDataSources: {
+      instanceId: 'instanceId',
+      appId: 'org/app',
+      instanceOwnerPartyId: '12345',
+      instanceOwnerPartyType: 'person',
+    },
+    dataModels: new DataModelReaders({}),
+    currentDataModelName: undefined,
+    currentDataModel: () => null,
+    applicationSettings: {},
+    node: undefined,
+  },
+}: Partial<ILanguageState> = {}) {
+  return staticUseLanguage(textResources, language, selectedLanguage, dataSources);
 }

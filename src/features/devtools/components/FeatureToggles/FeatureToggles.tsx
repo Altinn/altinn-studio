@@ -5,7 +5,7 @@ import { Button, Checkbox, Heading, Label, Paragraph } from '@digdir/designsyste
 import classes from 'src/features/devtools/components/FeatureToggles/FeatureToggles.module.css';
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';
 import { getAugmentedFeatures } from 'src/features/toggles';
-import { getParsedLanguageFromText } from 'src/language/sharedLanguage';
+import { parseAndCleanText } from 'src/language/sharedLanguage';
 import type { FeatureToggleSource, IFeatureToggles } from 'src/features/toggles';
 
 const sourceMap: { [key in FeatureToggleSource]: string } = {
@@ -64,7 +64,7 @@ export function FeatureToggles() {
                   size={'small'}
                   level={4}
                 >
-                  {getParsedLanguageFromText(title)}
+                  {parseAndCleanText(title)}
                 </Heading>
                 <Label size={'xsmall'}>Nøkkel: {key}</Label>
                 <br />
@@ -74,7 +74,7 @@ export function FeatureToggles() {
                 <br />
                 <Label size={'xsmall'}>Kilde: {sourceMap[source]}</Label>
                 <Paragraph>
-                  {getParsedLanguageFromText(description)}
+                  {parseAndCleanText(description)}
                   {links && links.length && (
                     <ul className={classes.linkList}>
                       {links.map((url) => (

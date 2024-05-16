@@ -8,6 +8,7 @@
 .addressComponentPostplaceZipCode {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   align-content: space-between;
   align-items: baseline;
   gap: 0.937rem;

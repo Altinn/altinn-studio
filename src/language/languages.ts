@@ -3,6 +3,9 @@ import { nb } from 'src/language/texts/nb';
 import { nn } from 'src/language/texts/nn';
 
 export type FixedLanguageList = ReturnType<typeof en>;
+export interface NestedTexts {
+  [n: string]: string | NestedTexts;
+}
 
 // This makes sure we don't generate a new object
 // each time (which would fail shallow comparisons, in for example React.memo)

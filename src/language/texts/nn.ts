@@ -1,4 +1,4 @@
-import type { FixedLanguageList } from 'src/language/languages';
+import type { FixedLanguageList, NestedTexts } from 'src/language/languages';
 
 export function nn(): FixedLanguageList {
   return {
@@ -381,5 +381,5 @@ export function nn(): FixedLanguageList {
     likert: {
       left_column_default_header_text: 'Spørsmål',
     },
-  };
+  } satisfies NestedTexts;
 }

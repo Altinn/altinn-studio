@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { useLanguage } from 'src/features/language/useLanguage';
-import { getParsedLanguageFromText } from 'src/language/sharedLanguage';
+import { parseAndCleanText } from 'src/language/sharedLanguage';
 import { AlertBaseComponent } from 'src/layout/Alert/AlertBaseComponent';
 
 export interface ISoftValidationProps {
@@ -12,7 +12,7 @@ export interface ISoftValidationProps {
 export type SoftValidationVariant = 'warning' | 'info' | 'success';
 
 export const validationMessagesToList = (message: string, index: number) => (
-  <li key={`validationMessage-${index}`}>{getParsedLanguageFromText(message)}</li>
+  <li key={`validationMessage-${index}`}>{parseAndCleanText(message)}</li>
 );
 
 export function SoftValidations({ variant, errorMessages }: ISoftValidationProps) {

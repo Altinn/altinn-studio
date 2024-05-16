@@ -4,12 +4,12 @@ import { screen } from '@testing-library/react';
 
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { getParsedLanguageFromText } from 'src/language/sharedLanguage';
+import { parseAndCleanText } from 'src/language/sharedLanguage';
 import { renderWithMinimalProviders, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 
 const TestElementAsString = ({ input }: { input: string }) => {
   const { elementAsString } = useLanguage();
-  return <div data-testid='subject'>{elementAsString(getParsedLanguageFromText(input))}</div>;
+  return <div data-testid='subject'>{elementAsString(parseAndCleanText(input))}</div>;
 };
 
 const TestSimple = ({ input }: { input: string }) => {

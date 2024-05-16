@@ -32,7 +32,7 @@ DOMPurify.addHook('afterSanitizeAttributes', (node) => {
   }
 });
 
-export const getParsedLanguageFromText = cachedFunction(
+export const parseAndCleanText = cachedFunction(
   (text: string | undefined) => {
     if (typeof text !== 'string') {
       return null;

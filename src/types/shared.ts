@@ -104,7 +104,7 @@ export type ILanguage =
       [key: string]: string | ILanguage;
     };
 
-// Language for the rendered alltinn app
+// Language for the rendered altinn app
 export interface IAppLanguage {
   language: string; // Language code
 }

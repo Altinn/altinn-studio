@@ -150,6 +150,7 @@ describe('On Entry', () => {
     cy.findByRole('combobox', { name: 'Språk' }).click();
     cy.findByRole('option', { name: 'Engelsk' }).click();
     cy.get(appFrontend.selectInstance.header).should('contain.text', 'You have already started filling out this form');
+    cy.get(appFrontend.header).should('contain.text', `${appFrontend.apps.frontendTest} ENGLISH`);
 
     cy.get('[data-testid="presentation"]').should('have.attr', 'data-expanded', 'false');
     cy.findByRole('button', { name: 'Expand form' }).click();

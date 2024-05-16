@@ -11,7 +11,7 @@ import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { useLayoutValidationForPage } from 'src/features/devtools/layoutValidation/useLayoutValidation';
 import { useLayouts, useLayoutSetId } from 'src/features/form/layout/LayoutsContext';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
-import { getParsedLanguageFromText } from 'src/language/sharedLanguage';
+import { parseAndCleanText } from 'src/language/sharedLanguage';
 import { useNodes } from 'src/utils/layout/NodesContext';
 import type { LayoutContextValue } from 'src/features/form/layout/LayoutsContext';
 
@@ -130,7 +130,7 @@ export const LayoutInspector = () => {
                 <div className={classes.errorList}>
                   <ul>
                     {validationErrorsForPage[selectedComponent].map((error) => (
-                      <li key={error}>{getParsedLanguageFromText(error)}</li>
+                      <li key={error}>{parseAndCleanText(error)}</li>
                     ))}
                   </ul>
                 </div>
