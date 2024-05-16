@@ -48,6 +48,7 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
   const { data: currentRepo } = useRepoMetadataQuery(org, app);
   const { data: repoStatus, refetch: refetchRepoStatus } = useRepoStatusQuery(org, app);
   const { refetch: fetchPullData } = useRepoPullQuery(org, app, true);
+  const repoCommitAndPushMutation = useRepoCommitAndPushMutation(org, app);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -76,7 +77,7 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
     });
     const { data: result } = await fetchPullData();
     if (result.repositoryStatus === 'Ok') {
-      // force refetch  files
+      // force reFetch  files
       await queryClient.invalidateQueries(); // Todo: This invalidates ALL queries. Consider providing a list of relevant queries only.
       // if pull was successful, show app is updated message
       setModalState({
@@ -85,20 +86,9 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
         isLoading: false,
         shouldShowDoneIcon: true,
       });
-      forceRepoStatusCheck();
     } else if (result.hasMergeConflict || result.repositoryStatus === 'CheckoutConflict') {
-      // if pull gives merge conflict, show user needs to commit message
-      setModalState({
-        ...initialModalState,
-        header: t('sync_header.changes_made_samme_place_as_user'),
-        descriptionText: [
-          t('sync_header.changes_made_samme_place_submessage'),
-          t('sync_header.changes_made_samme_place_subsubmessage'),
-        ],
-        btnText: t('sync_header.fetch_changes_btn'),
-        shouldShowCommitBox: true,
-        btnMethod: commitAndPushChanges,
-      });
+      // Force push to catch 409 error and show merge conflict
+      await commitAndPushChanges('');
     }
   };
 
@@ -108,21 +98,13 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
       ...initialModalState,
       isLoading: true,
     });
-    const { data: repoStatusResult } = await refetchRepoStatus();
-    if (!hasLocalChanges(repoStatusResult)) {
-      setModalState({
-        ...initialModalState,
-        shouldShowDoneIcon: true,
-        header: t('sync_header.nothing_to_push'),
-      });
-    }
     if (hasPushRights) {
       setModalState({
         ...initialModalState,
         header: t('sync_header.controlling_service_status'),
         isLoading: true,
       });
-
+      const { data: repoStatusResult } = await refetchRepoStatus();
       if (repoStatusResult) {
         if (!hasLocalChanges(repoStatusResult) && repoStatusResult.aheadBy === 0) {
           // if user has nothing to commit => show nothing to push message
@@ -137,12 +119,11 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
             ...initialModalState,
             header: t('sync_header.describe_and_validate'),
             descriptionText: [
-              t('sync_header.describe_and_validate_submessage'),
-              t('sync_header.describe_and_validate_subsubmessage'),
+              t('sync_header.describe_and_validate_sub_message'),
+              t('sync_header.describe_and_validate_sub_sub_message'),
             ],
             btnText: t('sync_header.describe_and_validate_btnText'),
             shouldShowCommitBox: true,
-            isLoading: false,
             btnMethod: commitAndPushChanges,
           });
         }
@@ -152,12 +133,11 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
       setModalState({
         ...initialModalState,
         header: t('sync_header.sharing_changes_no_access'),
-        descriptionText: [t('sync_header.sharing_changes_no_access_submessage')],
+        descriptionText: [t('sync_header.sharing_changes_no_access_sub_message')],
       });
     }
   };
 
-  const repoCommitAndPushMutation = useRepoCommitAndPushMutation(org, app);
   const commitAndPushChanges = async (commitMessage: string) => {
     setModalState({
       ...initialModalState,
@@ -183,7 +163,7 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
       setSyncModalAnchorEl(null);
       toast.success(t('sync_header.sharing_changes_completed'));
     } else if (result.hasMergeConflict || result.repositoryStatus === 'CheckoutConflict') {
-      // if pull resulted in a mergeconflict, show mergeconflict message
+      // if pull resulted in a merge conflict, show merge conflict message
       forceRepoStatusCheck();
       handleSyncModalClose();
       setHasMergeConflict(true);

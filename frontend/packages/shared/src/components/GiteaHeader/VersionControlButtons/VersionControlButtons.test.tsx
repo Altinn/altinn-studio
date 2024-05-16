@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as renderRtl, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import type { IVersionControlButtonsProps } from './VersionControlButtons';
 import { VersionControlButtons } from './VersionControlButtons';
 import { setWindowLocationForTests } from '../../../../../../testing/testUtils';
@@ -70,13 +70,13 @@ describe('Shared > Version Control > VersionControlHeader', () => {
   afterEach(jest.clearAllMocks);
 
   it('should render header when type is not defined', async () => {
-    render();
+    renderVersionControllButtons();
     await waitFor(() => expect(queriesMock.getRepoMetadata).toHaveBeenCalledTimes(1));
     expect(await screen.findByTestId(testids.versionControlHeader)).not.toBeNull();
   });
 
-  it('Refetches queries when clicking the fetch button', async () => {
-    render();
+  it('ReFetches queries when clicking the fetch button', async () => {
+    renderVersionControllButtons();
     const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
     await user.click(fetchButton);
     await waitFor(() => expect(queriesMock.getRepoMetadata).toHaveBeenCalledTimes(1));
@@ -89,7 +89,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
     const mockQueries: Partial<ServicesContextProps> = {
       getRepoStatus: mockGetRepoStatus,
     };
-    render({}, mockQueries);
+    renderVersionControllButtons({}, mockQueries);
 
     // await waitFor(() => expect(getRepoPull).toHaveBeenCalledTimes(1));
     const shareButton = screen.getByRole('button', {
@@ -103,7 +103,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
   });
 
   it('should render no changes message when clicking the share button with no changes', async () => {
-    render();
+    renderVersionControllButtons();
 
     // await waitFor(() => expect(getRepoPull).toHaveBeenCalledTimes(1));
     const shareButton = screen.getByRole('button', {
@@ -121,7 +121,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
     const mockQueries: Partial<ServicesContextProps> = {
       getRepoStatus: mockGetRepoStatus,
     };
-    render({}, mockQueries);
+    renderVersionControllButtons({}, mockQueries);
 
     const shareButton = screen.getByRole('button', {
       name: textMock('sync_header.no_changes_to_share'),
@@ -138,7 +138,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
     const mockQueries: Partial<ServicesContextProps> = {
       getRepoStatus: mockGetRepoStatus,
     };
-    render({}, mockQueries);
+    renderVersionControllButtons({}, mockQueries);
 
     const shareButton = screen.getByRole('button', {
       name: textMock('sync_header.no_changes_to_share'),
@@ -160,7 +160,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
       getRepoStatus: mockGetRepoStatus,
       commitAndPushChanges: mockCommitAndPushChanges,
     };
-    render({}, mockQueries);
+    renderVersionControllButtons({}, mockQueries);
 
     const shareButton = screen.getByRole('button', {
       name: textMock('sync_header.no_changes_to_share'),
@@ -188,7 +188,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
       commitAndPushChanges: mockCommitAndPushChanges,
       getRepoPull: mockRepoPull,
     };
-    render({}, mockQueries);
+    renderVersionControllButtons({}, mockQueries);
 
     const shareButton = screen.getByRole('button', {
       name: textMock('sync_header.no_changes_to_share'),
@@ -207,11 +207,11 @@ describe('Shared > Version Control > VersionControlHeader', () => {
   });
 });
 
-const render = (
+const renderVersionControllButtons = (
   props: Partial<IVersionControlButtonsProps> = {},
   queries: Partial<ServicesContextProps> = {},
 ) =>
-  renderRtl(
+  render(
     <ServicesContextProvider
       {...queriesMock}
       {...defaultQueries}
