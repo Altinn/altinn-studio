@@ -21,6 +21,15 @@
         "required": true
       },
       {
+        "id": "Address-4dIoFd-Summary2",
+        "type": "Summary2",
+        "hidden": false,
+        "whatToRender": {
+          "type": "component",
+          "id": "Address-4dIoFd"
+        }
+      },
+      {
         "id": "NavigationButtons-fyk6CS",
         "showBackButton": true,
         "textResourceBindings": {},

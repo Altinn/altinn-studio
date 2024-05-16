@@ -22,6 +22,15 @@
     "postnr"
   ],
   "properties": {
+    "property1": {
+      "type": "string"
+    },
+    "property2": {
+      "type": "string"
+    },
+    "property3": {
+      "type": "string"
+    },
     "streetnr": {
       "type": "string"
     },
