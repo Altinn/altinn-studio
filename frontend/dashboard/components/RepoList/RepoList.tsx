@@ -74,6 +74,7 @@ export const RepoList = ({
   repos = defaultArray,
   isLoading,
   pageSize = DATAGRID_DEFAULT_PAGE_SIZE,
+  pageNumber,
   isServerSort = false,
   rowCount,
   onPageChange,
@@ -299,6 +300,19 @@ export const RepoList = ({
     noRowsLabel: t('dashboard.no_repos_result'),
   };
 
+  const paginationProps = {
+    currentPage: pageNumber + 1,
+    totalPages: Math.ceil(rowCount / pageSize),
+    pageSize,
+    pageSizeOptions: DATAGRID_PAGE_SIZE_OPTIONS,
+    pageSizeLabel: t('dashboard.rows_per_page'),
+    onPageChange: (page: number) => onPageChange(page - 1),
+    onPageSizeChange,
+    nextButtonText: t('ux_editor.modal_properties_button_type_next'),
+    previousButtonText: t('ux_editor.modal_properties_button_type_back'),
+    itemLabel: (num: number) => `${t('general.page')} ${num}`,
+  };
+
   return (
     <div ref={copyModalAnchorRef}>
       {isServerSort ? (
@@ -308,6 +322,7 @@ export const RepoList = ({
             rows={studioRows}
             size='small'
             emptyTableMessage={t('dashboard.no_repos_result')}
+            pagination={paginationProps}
           />
           <DataGrid
             localeText={localText}
@@ -330,20 +345,22 @@ export const RepoList = ({
           />
         </>
       ) : (
-        <DataGrid
-          localeText={localText}
-          paginationModel={paginationModel}
-          onPaginationModelChange={handlePaginationModelChange}
-          autoHeight={true}
-          loading={isLoading}
-          rows={repos}
-          columns={cols}
-          pageSizeOptions={pageSizeOptions}
-          disableColumnMenu={true}
-          isRowSelectable={isRowSelectable}
-          sx={gridStyleOverride}
-          disableVirtualization={disableVirtualization}
-        />
+        <>
+          <DataGrid
+            localeText={localText}
+            paginationModel={paginationModel}
+            onPaginationModelChange={handlePaginationModelChange}
+            autoHeight={true}
+            loading={isLoading}
+            rows={repos}
+            columns={cols}
+            pageSizeOptions={pageSizeOptions}
+            disableColumnMenu={true}
+            isRowSelectable={isRowSelectable}
+            sx={gridStyleOverride}
+            disableVirtualization={disableVirtualization}
+          />
+        </>
       )}
       {copyCurrentRepoName && (
         <MakeCopyModal

@@ -60,6 +60,7 @@ export const useReposSearch = ({
     isLoadingSearchResults,
     sortModel,
     pageSize,
+    pageNumber,
     setPageNumber,
     setSortModel,
     setPageSize,

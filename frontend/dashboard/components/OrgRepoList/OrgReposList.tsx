@@ -27,6 +27,7 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
     isLoadingSearchResults,
     sortModel,
     pageSize,
+    pageNumber,
     setSortModel,
     setPageNumber,
     setPageSize,
@@ -52,6 +53,7 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
         onSortModelChange={setSortModel}
         sortModel={sortModel}
         pageSize={pageSize}
+        pageNumber={pageNumber}
       />
     </div>
   );

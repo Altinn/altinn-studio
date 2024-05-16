@@ -16,6 +16,7 @@ export type Rows = (Record<string, React.ReactNode> & Record<'id', string | numb
 export type PaginationProps = {
   currentPage: number;
   totalPages: number;
+  pageSize: number;
   pageSizeOptions: number[];
   pageSizeLabel: string;
   onPageChange: (currentPage: number) => void;
@@ -48,6 +49,7 @@ export const StudioTableRemotePagination = forwardRef<
     const {
       currentPage,
       totalPages,
+      pageSize,
       pageSizeOptions,
       pageSizeLabel,
       onPageChange: handlePageChange,
@@ -100,7 +102,11 @@ export const StudioTableRemotePagination = forwardRef<
                 size={size}
               >
                 {pageSizeOptions.map((pageSizeOption) => (
-                  <option key={pageSizeOption} value={pageSizeOption}>
+                  <option
+                    key={pageSizeOption}
+                    value={pageSizeOption}
+                    selected={pageSize === pageSizeOption}
+                  >
                     {pageSizeOption}
                   </option>
                 ))}
