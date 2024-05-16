@@ -341,7 +341,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         {
                             OrgNr = orgnr,
                             OrgName = enhetOrgName ?? underenhetOrgName ?? "",
-                            IsSubParty = enhetOrgName == null
+                            IsSubParty = underenhetOrgName == null
                         };
                         return member;
                     }));
@@ -439,7 +439,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return await response.Content.ReadAsAsync<AccessList>();
         }
 
-        public async Task<HttpStatusCode> AddAccessListMember(
+        public async Task<ActionResult> AddAccessListMembers(
             string org,
             string identifier,
             AccessListOrganizationNumbers members,
@@ -454,13 +454,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
             HttpResponseMessage response = await _httpClient.SendAsync(request);
             if (response.StatusCode == HttpStatusCode.BadRequest)
             {
-                return response.StatusCode; // TODO: handle spesific error code from JSON after it is implemented in resource registry
+                string responseContent = await response.Content.ReadAsStringAsync();
+                try
+                {
+                    AltinnProblemDetails problems = JsonSerializer.Deserialize<AltinnProblemDetails>(responseContent);
+                    string content = JsonSerializer.Serialize(problems, _serializerOptions);
+                    return new ObjectResult(content) { StatusCode = (int)response.StatusCode };
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("error");
+                    return new ContentResult() { Content = responseContent, StatusCode = (int)response.StatusCode };
+                }
             }
             response.EnsureSuccessStatusCode();
-            return response.StatusCode;
+            return new StatusCodeResult(201); 
         }
 
-        public async Task<HttpStatusCode> RemoveAccessListMember(
+        public async Task<ActionResult> RemoveAccessListMembers(
             string org,
             string identifier,
             AccessListOrganizationNumbers members,
@@ -473,8 +484,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
             HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Delete, listUrl, removeMemberPayloadString);
 
             HttpResponseMessage response = await _httpClient.SendAsync(request);
+            if (response.StatusCode == HttpStatusCode.BadRequest)
+            {
+                string responseContent = await response.Content.ReadAsStringAsync();
+                try
+                {
+                    AltinnProblemDetails problems = JsonSerializer.Deserialize<AltinnProblemDetails>(responseContent);
+                    string content = JsonSerializer.Serialize(problems, _serializerOptions);
+                    return new ObjectResult(content) { StatusCode = (int)response.StatusCode };
+                }
+                catch (Exception)
+                {
+                    return new ContentResult() { Content = responseContent, StatusCode = (int)response.StatusCode };
+                }
+            }
             response.EnsureSuccessStatusCode();
-            return response.StatusCode;
+            return new StatusCodeResult(204); 
         }
 
         public async Task<HttpStatusCode> AddResourceAccessList(

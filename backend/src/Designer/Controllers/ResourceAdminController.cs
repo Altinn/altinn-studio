@@ -107,8 +107,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/accesslist/{identifier}/members/")]
         public async Task<ActionResult> AddAccessListMembers(string org, string identifier, string env, [FromBody] AccessListOrganizationNumbers members)
         {
-            HttpStatusCode statusCode = await _resourceRegistry.AddAccessListMember(org, identifier, members, env);
-            return new StatusCodeResult(((int)statusCode));
+            ActionResult result = await _resourceRegistry.AddAccessListMembers(org, identifier, members, env);
+            return result;
         }
 
         [HttpDelete]
@@ -116,8 +116,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/accesslist/{identifier}/members/")]
         public async Task<ActionResult> RemoveAccessListMember(string org, string identifier, string env, [FromBody] AccessListOrganizationNumbers members)
         {
-            HttpStatusCode statusCode = await _resourceRegistry.RemoveAccessListMember(org, identifier, members, env);
-            return new StatusCodeResult(((int)statusCode));
+            ActionResult result = await _resourceRegistry.RemoveAccessListMembers(org, identifier, members, env);
+            return result;
         }
 
         [HttpGet]
