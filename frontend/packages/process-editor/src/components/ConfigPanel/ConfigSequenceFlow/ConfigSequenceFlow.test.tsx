@@ -58,6 +58,32 @@ describe('ConfigSequenceFlow', () => {
     expect(simplifiedEditor).toBeInTheDocument();
   });
 
+  it('should save the default expression when add expression button is clicked', async () => {
+    const user = userEvent.setup();
+
+    const createExpressionElementMock = jest.fn();
+    const addChildElementToParentMock = jest.fn();
+    (BpmnExpressionModeler as jest.Mock).mockImplementation(() => ({
+      createExpressionElement: createExpressionElementMock,
+      addChildElementToParent: addChildElementToParentMock,
+    }));
+
+    renderConfigSequenceFlow({
+      bpmnDetails: { ...mockBpmnDetails, element: {} },
+    });
+
+    const addNewExpressionButton = screen.getByRole('button', {
+      name: textMock('process_editor.sequence_flow_configuration_add_new_rule'),
+    });
+
+    await user.click(addNewExpressionButton);
+
+    expect(createExpressionElementMock).toHaveBeenCalledWith(
+      JSON.stringify(['equals', ['gatewayAction'], 'reject']),
+    );
+    expect(addChildElementToParentMock).toHaveBeenCalledTimes(1);
+  });
+
   it('should save the expression when the save button is clicked', async () => {
     const user = userEvent.setup();
     renderConfigSequenceFlow({
@@ -88,6 +114,8 @@ describe('ConfigSequenceFlow', () => {
     const updateElementPropertiesMock = jest.fn();
     (BpmnExpressionModeler as jest.Mock).mockImplementation(() => ({
       updateElementProperties: updateElementPropertiesMock,
+      createExpressionElement: jest.fn(),
+      addChildElementToParent: jest.fn(),
     }));
 
     const user = userEvent.setup();
@@ -109,11 +137,10 @@ describe('ConfigSequenceFlow', () => {
     await user.click(editButton);
 
     const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
-
-    expect(deleteButton).toBeInTheDocument();
     await user.click(deleteButton);
 
     await waitFor(() => expect(updateElementPropertiesMock).toHaveBeenCalledTimes(1));
+    expect(updateElementPropertiesMock).toHaveBeenCalledTimes(1);
   });
 });
 
