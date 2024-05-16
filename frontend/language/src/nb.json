@@ -1011,6 +1011,7 @@
   "resourceadm.listadmin_empty_name": "<navn ikke funnet>",
   "resourceadm.listadmin_header": "Administrer tilgangslister",
   "resourceadm.listadmin_identifier_conflict": "En tilgangsliste med denne id-en finnes fra før",
+  "resourceadm.listadmin_invalid_org": "Denne enheten kan ikke legges til i listen",
   "resourceadm.listadmin_list_description": "Beskrivelse",
   "resourceadm.listadmin_list_description_description": "Her kan du beskrive listen",
   "resourceadm.listadmin_list_detail_header": "Administrer tilgangsliste",
