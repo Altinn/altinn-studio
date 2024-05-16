@@ -224,7 +224,7 @@ Cypress.Commands.add('clearSelectionAndWait', (viewport) => {
       for (const dropdown of asArray) {
         const inputInside = dropdown.querySelector('input');
         if (!inputInside) {
-          return false;
+          return cy.wrap(false);
         }
         const baseId = dropdown.getAttribute('data-componentbaseid');
 
@@ -255,7 +255,7 @@ Cypress.Commands.add('clearSelectionAndWait', (viewport) => {
         });
       }
 
-      return true;
+      return cy.wrap(true);
     });
   });
 });
