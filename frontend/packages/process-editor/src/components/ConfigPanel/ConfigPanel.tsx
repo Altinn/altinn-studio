@@ -39,7 +39,7 @@ const ConfigPanelContent = (): React.ReactElement => {
 
   const shouldDisplaySequenceFlow = bpmnDetails.type === BpmnTypeEnum.SequenceFlow;
   if (shouldDisplaySequenceFlow) {
-    return <ConfigSequenceFlow />;
+    return <ConfigSequenceFlow key={bpmnDetails.id} />;
   }
 
   const isSupportedConfig = bpmnDetails.type === BpmnTypeEnum.Task;

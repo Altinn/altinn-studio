@@ -32,7 +32,7 @@ export const ConfigSequenceFlow = (): React.ReactElement => {
   const expressionOptions: string[] = ['gatewayAction', 'gatewayActionContext'];
 
   const onAddNewExpressionClicked = (): void => {
-    setExpression(defaultExpression);
+    handleOnExpressionChange(defaultExpression);
   };
 
   const addExpressionToSequenceFlow = (expressionToAdd: BooleanExpression): void => {
