@@ -539,35 +539,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return await _resourceRegistryService.PublishServiceResource(resource, env, policy);
         }
 
-        public bool ResourceHasPolicy(string org, string repository, ServiceResource resource)
-        {
-            List<FileSystemObject> contents = new();
-            string repositoryPath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-
-            if (Directory.Exists(repositoryPath))
-            {
-                string[] dirs = Directory.GetDirectories(repositoryPath);
-                foreach (string directoryPath in dirs)
-                {
-                    FileSystemObject d = GetFileSystemObjectForDirectory(directoryPath);
-                    if (!d.Name.StartsWith(".") && d.Name.ToLower().Contains(resource.Identifier.ToLower()))
-                    {
-                        contents.Add(d);
-                        string[] files = Directory.GetFiles(d.Path);
-                        foreach (string file in files)
-                        {
-                            if (file.EndsWith("policy.xml"))
-                            {
-                                return true;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return false;
-        }
-
         private List<FileSystemObject> GetResourceFiles(string org, string repository, string path = "")
         {
             List<FileSystemObject> contents = GetContents(org, repository, path);
