@@ -1,6 +1,4 @@
-﻿
-
-namespace Altinn.Studio.Designer.Enums
+﻿namespace Altinn.Studio.Designer.Enums
 {
     /// <summary>
     /// Enum representation of the different types of resources supported by the resource registry
@@ -10,20 +8,18 @@ namespace Altinn.Studio.Designer.Enums
 
         Default = 0,
 
-        Systemresource = 1,
+        Systemresource = 1 << 0,
 
-        MaskinportenSchema = 2,
+        MaskinportenSchema = 1 << 1,
 
+        Altinn2Service = 1 << 2,
 
-        Altinn2Service = 4,
+        AltinnApp = 1 << 3,
 
+        GenericAccessResource = 1 << 4,
 
-        AltinnApp = 8,
+        BrokerService = 1 << 5,
 
-
-        GenericAccessResource = 16,
-
-
-        BrokerService = 32,
+        CorrespondenceService = 1 << 6,
     }
 }
