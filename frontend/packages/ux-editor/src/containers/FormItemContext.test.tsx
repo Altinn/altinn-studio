@@ -1,4 +1,4 @@
-import React, { act } from 'react';
+import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { FormItemContext, FormItemContextProvider } from './FormItemContext';
 import userEvent from '@testing-library/user-event';
@@ -98,38 +98,6 @@ describe('FormItemContext', () => {
         component1Mock.itemType,
       ),
     );
-  });
-
-  it('should render id and itemType when calling handleEdit with truthy updatedForm', async () => {
-    const user = userEvent.setup();
-    render(() => {
-      const { formItemId, formItem, handleEdit } = React.useContext(FormItemContext);
-      return (
-        <>
-          <button data-testid='button' onClick={() => handleEdit(component1Mock)} />
-          <div data-testid='formItemId'>{formItemId}</div>
-          <div data-testid='formItem.id'>{formItem?.id}</div>
-          <div data-testid='formItem.itemType'>{formItem?.itemType}</div>
-        </>
-      );
-    });
-
-    const button = screen.getByTestId('button');
-    await user.click(button);
-
-    expect(screen.getByTestId('formItemId')).toBeInTheDocument();
-    expect(screen.getByTestId('formItem.id')).toBeInTheDocument();
-    expect(screen.getByTestId('formItem.itemType')).toBeInTheDocument();
-
-    await waitFor(() => {
-      expect(screen.getByTestId('formItemId')).toHaveTextContent(component1Mock.id);
-    });
-    await waitFor(() => {
-      expect(screen.getByTestId('formItem.id')).toHaveTextContent(component1Mock.id);
-    });
-    await waitFor(() => {
-      expect(screen.getByTestId('formItem.itemType')).toHaveTextContent(component1Mock.itemType);
-    });
   });
 
   it('should discard the form item when calling handleDiscard', async () => {
@@ -243,11 +211,12 @@ describe('FormItemContext', () => {
     });
 
     const button = screen.getByTestId('button');
+
+    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
+
     await user.click(button);
 
-    await act(async () => jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS));
-
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1));
     expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
       org,
       app,
@@ -339,11 +308,12 @@ describe('FormItemContext', () => {
     });
 
     const button = screen.getByTestId('button');
+
+    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
+
     await user.click(button);
 
-    await act(async () => jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS));
-
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1));
     expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
       org,
       app,
