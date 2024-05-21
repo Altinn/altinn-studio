@@ -7,7 +7,6 @@ import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { appContextMock } from '../testing/appContextMock';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import {
   component1IdMock,
   component1Mock,
@@ -25,7 +24,17 @@ const layoutSetName = layoutSetsMock.sets[0].id;
 
 jest.useFakeTimers({ advanceTimers: true });
 
-const render = (ChildComponent: React.ElementType, queries: Partial<ServicesContextProps> = {}) => {
+const buttonTestId = 'button';
+const Button = ({ onClick }: { onClick: () => void }) => (
+  <button data-testid={buttonTestId} onClick={onClick} />
+);
+const clickButton = async () => {
+  const user = userEvent.setup();
+  const button = screen.getByTestId(buttonTestId);
+  await user.click(button);
+};
+
+const render = (ChildComponent: React.ElementType) => {
   return renderWithProviders(
     <FormItemContextProvider>
       <ChildComponent />
@@ -43,21 +52,18 @@ describe('FormItemContext', () => {
   afterEach(jest.clearAllMocks);
 
   it('should update the form item when calling handleUpdate', async () => {
-    const user = userEvent.setup();
-
     render(() => {
       const { formItem, handleUpdate } = React.useContext(FormItemContext);
       return (
         <>
-          <button data-testid='button' onClick={() => handleUpdate(component1Mock)} />
+          <Button onClick={() => handleUpdate(component1Mock)} />
           <div data-testid='formItem.id'>{formItem?.id}</div>
           <div data-testid='formItem.itemType'>{formItem?.itemType}</div>
         </>
       );
     });
 
-    const button = screen.getByTestId('button');
-    await user.click(button);
+    await clickButton();
 
     await waitFor(async () =>
       expect((await screen.findByTestId('formItem.id')).textContent).toEqual(component1Mock.id),
@@ -70,13 +76,11 @@ describe('FormItemContext', () => {
   });
 
   it('should edit the form item when calling handleEdit', async () => {
-    const user = userEvent.setup();
-
     render(() => {
       const { formItemId, formItem, handleEdit } = React.useContext(FormItemContext);
       return (
         <>
-          <button data-testid='button' onClick={() => handleEdit(component1Mock)} />
+          <Button onClick={() => handleEdit(component1Mock)} />
           <div data-testid='formItemId'>{formItemId}</div>
           <div data-testid='formItem.id'>{formItem?.id}</div>
           <div data-testid='formItem.itemType'>{formItem?.itemType}</div>
@@ -84,8 +88,7 @@ describe('FormItemContext', () => {
       );
     });
 
-    const button = screen.getByTestId('button');
-    await user.click(button);
+    await clickButton();
 
     await waitFor(async () =>
       expect((await screen.findByTestId('formItemId')).textContent).toEqual(component1Mock.id),
@@ -101,12 +104,11 @@ describe('FormItemContext', () => {
   });
 
   it('should discard the form item when calling handleDiscard', async () => {
-    const user = userEvent.setup();
     render(() => {
       const { formItemId, formItem, handleDiscard } = React.useContext(FormItemContext);
       return (
         <>
-          <button data-testid='button' onClick={() => handleDiscard()} />
+          <Button onClick={() => handleDiscard()} />
           <div data-testid='formItemId'>{formItemId}</div>
           <div data-testid='formItem.id'>{formItem?.id}</div>
           <div data-testid='formItem.itemType'>{formItem?.itemType}</div>
@@ -114,8 +116,7 @@ describe('FormItemContext', () => {
       );
     });
 
-    const button = screen.getByTestId('button');
-    await user.click(button);
+    await clickButton();
 
     await waitFor(async () =>
       expect((await screen.findByTestId('formItemId')).textContent).toBe(''),
@@ -129,20 +130,16 @@ describe('FormItemContext', () => {
   });
 
   it('should save the container when calling handleSave', async () => {
-    const user = userEvent.setup();
-
     render(() => {
       const { handleSave } = React.useContext(FormItemContext);
       return (
-        <button
-          data-testid='button'
+        <Button
           onClick={() => handleSave(container1IdMock, layoutMock.containers[container1IdMock])}
         />
       );
     });
 
-    const button = screen.getByTestId('button');
-    await user.click(button);
+    await clickButton();
 
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
     expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
@@ -157,15 +154,13 @@ describe('FormItemContext', () => {
   });
 
   it('should save the container and its new id when calling handleSave', async () => {
-    const user = userEvent.setup();
     const newId = 'new-id';
 
     render(() => {
       const { formItemId, handleSave } = React.useContext(FormItemContext);
       return (
         <>
-          <button
-            data-testid='button'
+          <Button
             onClick={async () =>
               await handleSave(container1IdMock, {
                 ...layoutMock.containers[container1IdMock],
@@ -178,8 +173,7 @@ describe('FormItemContext', () => {
       );
     });
 
-    const button = screen.getByTestId('button');
-    await user.click(button);
+    await clickButton();
 
     await waitFor(async () =>
       expect((await screen.findByTestId('formItemId')).textContent).toEqual(newId),
@@ -198,23 +192,18 @@ describe('FormItemContext', () => {
   });
 
   it('should save the container when calling debounceSave', async () => {
-    const user = userEvent.setup();
-
     render(() => {
       const { debounceSave } = React.useContext(FormItemContext);
       return (
-        <button
-          data-testid='button'
+        <Button
           onClick={() => debounceSave(container1IdMock, layoutMock.containers[container1IdMock])}
         />
       );
     });
 
-    const button = screen.getByTestId('button');
-
     jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
 
-    await user.click(button);
+    await clickButton();
 
     await waitFor(() => expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1));
     expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
@@ -229,17 +218,12 @@ describe('FormItemContext', () => {
   });
 
   it('should save the component when calling handleSave', async () => {
-    const user = userEvent.setup();
-
     render(() => {
       const { handleSave } = React.useContext(FormItemContext);
-      return (
-        <button data-testid='button' onClick={() => handleSave(component1IdMock, component1Mock)} />
-      );
+      return <Button onClick={() => handleSave(component1IdMock, component1Mock)} />;
     });
 
-    const button = screen.getByTestId('button');
-    await user.click(button);
+    await clickButton();
 
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
     expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
@@ -254,15 +238,13 @@ describe('FormItemContext', () => {
   });
 
   it('should save the component and its new id when calling handleSave', async () => {
-    const user = userEvent.setup();
     const newId = 'new-id';
 
     render(() => {
       const { formItemId, handleSave } = React.useContext(FormItemContext);
       return (
         <>
-          <button
-            data-testid='button'
+          <Button
             onClick={async () =>
               await handleSave(component1IdMock, {
                 ...component1Mock,
@@ -275,8 +257,7 @@ describe('FormItemContext', () => {
       );
     });
 
-    const button = screen.getByTestId('button');
-    await user.click(button);
+    await clickButton();
 
     await waitFor(async () =>
       expect((await screen.findByTestId('formItemId')).textContent).toEqual(newId),
@@ -295,23 +276,14 @@ describe('FormItemContext', () => {
   });
 
   it('should save the component when calling debounceSave', async () => {
-    const user = userEvent.setup();
-
     render(() => {
       const { debounceSave } = React.useContext(FormItemContext);
-      return (
-        <button
-          data-testid='button'
-          onClick={() => debounceSave(component1IdMock, component1Mock)}
-        />
-      );
+      return <Button onClick={() => debounceSave(component1IdMock, component1Mock)} />;
     });
-
-    const button = screen.getByTestId('button');
 
     jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
 
-    await user.click(button);
+    await clickButton();
 
     await waitFor(() => expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1));
     expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(

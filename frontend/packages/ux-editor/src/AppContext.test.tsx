@@ -39,6 +39,16 @@ const TestComponent = ({
   );
 };
 
+const buttonTestId = 'button';
+const Button = ({ onClick }: { onClick: () => void }) => (
+  <button data-testid={buttonTestId} onClick={onClick} />
+);
+const clickButton = async () => {
+  const user = userEvent.setup();
+  const button = screen.getByTestId(buttonTestId);
+  await user.click(button);
+};
+
 const renderAppContext = (children: (appContext: AppContextProps) => React.ReactNode) => {
   const queryClient = createQueryClientMock();
   queryClient.invalidateQueries = jest.fn();
@@ -76,22 +86,16 @@ describe('AppContext', () => {
   afterEach(jest.clearAllMocks);
 
   it('sets selectedFormLayoutSetName correctly', async () => {
-    const user = userEvent.setup();
-
     renderAppContext(
       ({ selectedFormLayoutSetName, setSelectedFormLayoutSetName }: AppContextProps) => (
         <>
-          <button
-            data-testid='button'
-            onClick={() => setSelectedFormLayoutSetName(mockSelectedFormLayoutSetName)}
-          />
+          <Button onClick={() => setSelectedFormLayoutSetName(mockSelectedFormLayoutSetName)} />
           <div data-testid='selectedFormLayoutSetName'>{selectedFormLayoutSetName}</div>
         </>
       ),
     );
 
-    const button = screen.getByTestId('button');
-    await user.click(button);
+    await clickButton();
 
     await waitFor(async () =>
       expect((await screen.findByTestId('selectedFormLayoutSetName')).textContent).toEqual(
@@ -101,22 +105,16 @@ describe('AppContext', () => {
   });
 
   it('sets selectedFormLayoutName correctly', async () => {
-    const user = userEvent.setup();
-
     renderAppContext(({ selectedFormLayoutName, setSelectedFormLayoutName }: AppContextProps) => (
       <>
-        <button
-          data-testid='button'
-          onClick={() => setSelectedFormLayoutName(mockSelectedFormLayoutName)}
-        />
+        <Button onClick={() => setSelectedFormLayoutName(mockSelectedFormLayoutName)} />
         <div data-testid='selectedFormLayoutName'>{selectedFormLayoutName}</div>
       </>
     ));
 
     expect((await screen.findByTestId('selectedFormLayoutName')).textContent).toEqual('');
 
-    const button = screen.getByTestId('button');
-    await user.click(button);
+    await clickButton();
 
     await waitFor(async () =>
       expect((await screen.findByTestId('selectedFormLayoutName')).textContent).toEqual(
@@ -126,16 +124,13 @@ describe('AppContext', () => {
   });
 
   it('invalidates layout query', async () => {
-    const user = userEvent.setup();
-
     const { queryClient } = renderAppContext(
       ({ refetchLayouts, selectedFormLayoutSetName }: AppContextProps) => (
-        <button data-testid='button' onClick={() => refetchLayouts(selectedFormLayoutSetName)} />
+        <Button onClick={() => refetchLayouts(selectedFormLayoutSetName)} />
       ),
     );
 
-    const button = screen.getByTestId('button');
-    await user.click(button);
+    await clickButton();
 
     await waitFor(async () => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
     await waitFor(async () =>
@@ -146,19 +141,13 @@ describe('AppContext', () => {
   });
 
   it('resets layout query', async () => {
-    const user = userEvent.setup();
-
     const { queryClient } = renderAppContext(
       ({ refetchLayouts, selectedFormLayoutSetName }: AppContextProps) => (
-        <button
-          data-testid='button'
-          onClick={() => refetchLayouts(selectedFormLayoutSetName, true)}
-        />
+        <Button onClick={() => refetchLayouts(selectedFormLayoutSetName, true)} />
       ),
     );
 
-    const button = screen.getByTestId('button');
-    await user.click(button);
+    await clickButton();
 
     await waitFor(async () => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
     await waitFor(async () =>
@@ -169,19 +158,13 @@ describe('AppContext', () => {
   });
 
   it('invalidates layout settings query', async () => {
-    const user = userEvent.setup();
-
     const { queryClient } = renderAppContext(
       ({ refetchLayoutSettings, selectedFormLayoutSetName }: AppContextProps) => (
-        <button
-          data-testid='button'
-          onClick={() => refetchLayoutSettings(selectedFormLayoutSetName)}
-        />
+        <Button onClick={() => refetchLayoutSettings(selectedFormLayoutSetName)} />
       ),
     );
 
-    const button = screen.getByTestId('button');
-    await user.click(button);
+    await clickButton();
 
     await waitFor(async () => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
     await waitFor(async () =>
@@ -192,19 +175,13 @@ describe('AppContext', () => {
   });
 
   it('reset layout settings query', async () => {
-    const user = userEvent.setup();
-
     const { queryClient } = renderAppContext(
       ({ refetchLayoutSettings, selectedFormLayoutSetName }: AppContextProps) => (
-        <button
-          data-testid='button'
-          onClick={() => refetchLayoutSettings(selectedFormLayoutSetName, true)}
-        />
+        <Button onClick={() => refetchLayoutSettings(selectedFormLayoutSetName, true)} />
       ),
     );
 
-    const button = screen.getByTestId('button');
-    await user.click(button);
+    await clickButton();
 
     await waitFor(async () => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
     await waitFor(async () =>
@@ -215,16 +192,13 @@ describe('AppContext', () => {
   });
 
   it('invalidates text query', async () => {
-    const user = userEvent.setup();
-
     const mockLanguage = 'nb';
 
     const { queryClient } = renderAppContext(({ refetchTexts }: AppContextProps) => (
-      <button data-testid='button' onClick={() => refetchTexts(mockLanguage)} />
+      <Button onClick={() => refetchTexts(mockLanguage)} />
     ));
 
-    const button = screen.getByTestId('button');
-    await user.click(button);
+    await clickButton();
 
     await waitFor(async () => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
     await waitFor(async () =>
@@ -235,16 +209,13 @@ describe('AppContext', () => {
   });
 
   it('resets text query', async () => {
-    const user = userEvent.setup();
-
     const mockLanguage = 'nb';
 
     const { queryClient } = renderAppContext(({ refetchTexts }: AppContextProps) => (
-      <button data-testid='button' onClick={() => refetchTexts(mockLanguage, true)} />
+      <Button onClick={() => refetchTexts(mockLanguage, true)} />
     ));
 
-    const button = screen.getByTestId('button');
-    await user.click(button);
+    await clickButton();
 
     await waitFor(async () => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
     await waitFor(async () =>
