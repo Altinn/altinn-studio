@@ -209,6 +209,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             // get task_id since we might not maintain dataType ref in layout-sets-file
             string taskId = await GetTaskIdBasedOnLayoutSet(altinnRepoEditingContext, layoutSetName, cancellationToken);
             string modelName = GetModelName(applicationMetadata, taskId);
+
             if (string.IsNullOrEmpty(modelName))
             {
                 return new ModelMetadata();

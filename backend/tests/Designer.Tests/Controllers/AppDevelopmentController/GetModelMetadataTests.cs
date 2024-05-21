@@ -2,6 +2,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Altinn.Studio.DataModeling.Metamodel;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
@@ -72,6 +73,25 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Theory]
+        [InlineData("ttd", "app-without-layoutsets", "testUser", null, null)]
+        public async Task GetModelMetadata_Should_Return_Empty_Metadata_Object_When_DataTypeId_Is_NonExisting(string org, string app, string developer, string layoutSetName, string dataModelName)
+        {
+            // Arrange
+            (string url, _) = await ArrangeGetModelMetadataTest(org, app, developer, layoutSetName, dataModelName);
+            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+
+            // Act
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
+            ModelMetadata responseContent = await response.Content.ReadAsAsync<ModelMetadata>();
+
+            // Assert
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            Assert.Null(responseContent.Org);
+            Assert.Null(responseContent.ServiceName);
+            Assert.Null(responseContent.RepositoryName);
         }
 
         private async Task<string> AddModelMetadataToRepo(string createdFolderPath, string expectedModelMetadataPath)
