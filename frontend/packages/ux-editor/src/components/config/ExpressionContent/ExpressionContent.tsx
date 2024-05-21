@@ -32,6 +32,7 @@ export const ExpressionContent = ({
     org,
     app,
     selectedFormLayoutSetName,
+    null,
   );
 
   const dataLookupOptions: DataLookupOptions = useMemo(
