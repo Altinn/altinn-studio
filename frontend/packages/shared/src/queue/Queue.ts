@@ -1,6 +1,3 @@
-import type { QueryKey } from 'app-shared/types/QueryKey';
-// import type { QueryClient } from '@tanstack/react-query';
-
 type QueueTask = {
   id: string;
   callback: Function;
