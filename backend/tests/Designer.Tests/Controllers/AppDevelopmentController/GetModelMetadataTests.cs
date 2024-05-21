@@ -87,29 +87,15 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         }
 
         [Theory]
-        [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet3")]
-        [InlineData("ttd", "app-without-layoutsets-mismatch-modelname", "testUser", null)]
-        public async Task GetModelMetadata_Should_Return_404_When_No_Datamodel_Exists_FromLayoutSetParam(string org, string app, string developer, string layoutSetName)
+        [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet3", null)]
+        [InlineData("ttd", "app-without-layoutsets-mismatch-modelname", "testUser", null, null)]
+        [InlineData("ttd", "app-with-layoutsets", "testUser", null, "non-existing-dataModelName")]
+        public async Task GetModelMetadata_Should_Return_404_When_No_Corresponding_Datamodel_Exists(string org, string app, string developer, string layoutSetName, string dataModelName)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-            string url = $"{VersionPrefix(org, targetRepository)}/model-metadata?layoutSetName={layoutSetName}";
-            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
-
-            using var response = await HttpClient.SendAsync(httpRequestMessage);
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        }
-
-        [Theory]
-        [InlineData("ttd", "app-with-layoutsets", "testUser", "datamodel3")]
-        [InlineData("ttd", "app-without-layoutsets-mismatch-modelname", "testUser", null)]
-        public async Task GetModelMetadata_Should_Return_404_When_No_Datamodel_Exists_FromDataModelNameParam(string org, string app, string developer, string dataModelName)
-        {
-            string targetRepository = TestDataHelper.GenerateTestRepoName();
-            await CopyRepositoryForTest(org, app, developer, targetRepository);
-
-            string url = $"{VersionPrefix(org, targetRepository)}/model-metadata?dataModelName={dataModelName}";
+            string url = $"{VersionPrefix(org, targetRepository)}/model-metadata?layoutSetName={layoutSetName}&dataModelName={dataModelName}";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
