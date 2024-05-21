@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,18 +25,19 @@ public class OrderDetailsCalculator : IOrderDetailsCalculator
         _dataClient = dataClient;
     }
     
-    public async Task<OrderDetails> CalculateOrderDetails(Instance instance, string language)
+    public async Task<OrderDetails> CalculateOrderDetails(Instance instance, string? language)
     {
         Form formData = await GetFormData(instance);
 
-        List<PaymentOrderLine> paymentOrderLines = formData.GoodsAndServicesProperties.Inventory.InventoryProperties
+        List<PaymentOrderLine> paymentOrderLines = formData?.GoodsAndServicesProperties?.Inventory?.InventoryProperties != null ? 
+          formData.GoodsAndServicesProperties.Inventory.InventoryProperties
             .Where(x => !string.IsNullOrEmpty(x.NiceClassification) && !string.IsNullOrEmpty(x.GoodsAndServices))
             .Select((x, index) =>
                 new PaymentOrderLine
                 {
                     Id = index.ToString(), Name = $"{x.NiceClassification} - {x.GoodsAndServices}", PriceExVat = GetPriceForNiceClassification(x), Quantity = 1, VatPercent = 25.00M
                 })
-            .ToList();
+            .ToList() : new List<PaymentOrderLine>();
 
         return new OrderDetails { PaymentProcessorId = "Nets Easy", Currency = "NOK", OrderLines = paymentOrderLines, Receiver = GetReceiverDetails()};
     }
@@ -69,11 +72,7 @@ public class OrderDetailsCalculator : IOrderDetailsCalculator
             OrganisationNumber = "971 526 157",
             BankAccountNumber = "123456789",
             Email = "test.mail@patentstyret.no",
-            PhoneNumber = new PhoneNumber
-            {
-                Prefix = "+47",
-                Number = "12345678"
-            },
+            PhoneNumber = new PhoneNumber { Prefix = "+47", Number = "12345678" },
             PostalAddress = new Address
             {
                 Name = "Patentstyret",
