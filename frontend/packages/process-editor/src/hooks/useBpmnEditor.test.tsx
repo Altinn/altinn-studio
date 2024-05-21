@@ -137,7 +137,31 @@ describe('useBpmnEditor', () => {
     expect(setBpmnDetailsMock).toHaveBeenCalledWith(mockBpmnDetails);
   });
 
-  it.each(['confirmation', 'signing', 'payment', 'feedback', 'endEvent'])(
+  it.each(['data', 'payment'])(
+    'should call addLayoutSet when "shape.add" event is triggered on modelerInstance when taskType is %s',
+    (taskType: BpmnTaskType) => {
+      const mockBpmnDetailsAutomaticLayoutSet: BpmnDetails = {
+        ...mockBpmnDetails,
+        taskType,
+        element: getMockBpmnElementForTask(taskType),
+      };
+      const currentEventName = 'shape.add';
+      renderUseBpmnEditor(true, currentEventName, taskType, mockBpmnDetailsAutomaticLayoutSet);
+
+      expect(addLayoutSetMock).toHaveBeenCalledTimes(1);
+      expect(addLayoutSetMock).toHaveBeenCalledWith({
+        layoutSetIdToUpdate: mockBpmnDetailsAutomaticLayoutSet.id,
+        layoutSetConfig: {
+          id: mockBpmnDetailsAutomaticLayoutSet.id,
+          tasks: [mockBpmnDetailsAutomaticLayoutSet.id],
+        },
+      });
+      expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1);
+      expect(setBpmnDetailsMock).toHaveBeenCalledWith(mockBpmnDetailsAutomaticLayoutSet);
+    },
+  );
+
+  it.each(['confirmation', 'signing', 'feedback', 'endEvent'])(
     'should not call addLayoutSet when "shape.add" event is triggered on modelerInstance when taskType is %s',
     (taskType: BpmnTaskType) => {
       const mockBpmnDetailsNotData: BpmnDetails = {
