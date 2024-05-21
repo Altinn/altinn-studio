@@ -99,58 +99,6 @@ export const FormItemContextProvider = ({
     formItemRef.current = formItem;
   }, [formItemId, formItem]);
 
-  const handleContainerSave = useCallback(
-    async (
-      id: string,
-      updatedContainer: FormContainer,
-      mutateOptions?: UpdateFormMutateOptions,
-    ): Promise<void> => {
-      const hasNewId = id !== updatedContainer.id;
-      await updateFormContainer(
-        {
-          id,
-          updatedContainer,
-        },
-        {
-          onSuccess: async () => {
-            await refetchLayouts(selectedFormLayoutSetName, hasNewId);
-          },
-          ...mutateOptions,
-        },
-      );
-      if (hasNewId) {
-        setFormItemId(updatedContainer.id);
-      }
-    },
-    [refetchLayouts, selectedFormLayoutSetName, updateFormContainer],
-  );
-
-  const handleComponentSave = useCallback(
-    async (
-      id: string,
-      updatedComponent: FormComponent,
-      mutateOptions?: UpdateFormMutateOptions,
-    ): Promise<void> => {
-      const hasNewId = id !== updatedComponent.id;
-      await updateFormComponent(
-        {
-          id,
-          updatedComponent,
-        },
-        {
-          onSuccess: async () => {
-            await refetchLayouts(selectedFormLayoutSetName, hasNewId);
-          },
-          ...mutateOptions,
-        },
-      );
-      if (hasNewId) {
-        setFormItemId(updatedComponent.id);
-      }
-    },
-    [refetchLayouts, selectedFormLayoutSetName, updateFormComponent],
-  );
-
   const handleSave = useCallback(
     async (
       id: string = formItemIdRef.current,
@@ -159,14 +107,27 @@ export const FormItemContextProvider = ({
     ): Promise<void> => {
       clearTimeout(autoSaveTimeoutRef.current);
       if (updatedForm) {
+        const hasNewId = id !== updatedForm.id;
+
+        const mutationOptions = {
+          onSuccess: async () => {
+            await refetchLayouts(selectedFormLayoutSetName, hasNewId);
+          },
+          ...mutateOptions,
+        };
+
         if (updatedForm.itemType === LayoutItemType.Container) {
-          await handleContainerSave(id, updatedForm as FormContainer, mutateOptions);
+          await updateFormContainer({ id, updatedContainer: updatedForm }, mutationOptions);
         } else {
-          await handleComponentSave(id, updatedForm as FormComponent, mutateOptions);
+          await updateFormComponent({ id, updatedComponent: updatedForm }, mutationOptions);
+        }
+
+        if (hasNewId) {
+          setFormItemId(updatedForm.id);
         }
       }
     },
-    [handleComponentSave, handleContainerSave],
+    [refetchLayouts, selectedFormLayoutSetName, updateFormComponent, updateFormContainer],
   );
 
   const handleEdit = useCallback((updatedForm: FormContainer | FormComponent): void => {
