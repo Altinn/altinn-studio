@@ -271,7 +271,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="layoutSetName">Name of current layoutSet in ux-editor that edited layout belongs to</param>
-        /// <param name="dataModelName">Name of data model to fetch (optional)</param>
+        /// <param name="dataModelName">Name of data model to fetch</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The model as JSON</returns>
         [HttpGet]
