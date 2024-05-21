@@ -12,7 +12,6 @@ import {
 } from 'app-shared/hooks/queries';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRepoCommitAndPushMutation } from 'app-shared/hooks/mutations';
-import * as testids from '../../../../../../testing/testids';
 import { toast } from 'react-toastify';
 
 const initialModalState = {
@@ -32,34 +31,31 @@ function hasLocalChanges(result: IGitStatus) {
 }
 
 export interface IVersionControlButtonsProps {
-  hasPushRight?: boolean;
   org: string;
   app: string;
 }
 
-export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionControlButtonsProps) => {
+export const VersionControlButtons = ({ org, app }: IVersionControlButtonsProps) => {
   const { t } = useTranslation();
-  const [hasPushRights, setHasPushRights] = useState(hasPushRight);
+  const [hasPushRights, setHasPushRights] = useState(false);
   const [hasMergeConflict, setHasMergeConflict] = useState(false);
-  const [hasChangesInLocalRepo, setHasChangesInLocalRepo] = useState(false);
   const [modalState, setModalState] = useState(initialModalState);
   const [syncModalAnchorEl, setSyncModalAnchorEl] = useState(null);
 
   const { data: currentRepo } = useRepoMetadataQuery(org, app);
   const { data: repoStatus, refetch: refetchRepoStatus } = useRepoStatusQuery(org, app);
   const { refetch: fetchPullData } = useRepoPullQuery(org, app, true);
-  const repoCommitAndPushMutation = useRepoCommitAndPushMutation(org, app);
+  const { mutateAsync: repoCommitAndPushMutation } = useRepoCommitAndPushMutation(org, app);
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (hasPushRights === undefined && currentRepo) {
+    if (currentRepo) {
       setHasPushRights(currentRepo.permissions.push);
     }
   }, [hasPushRights, currentRepo]);
   useEffect(() => {
     if (repoStatus) {
       setHasMergeConflict(repoStatus.hasMergeConflict);
-      setHasChangesInLocalRepo(hasLocalChanges(repoStatus));
     }
   }, [repoStatus]);
 
@@ -96,45 +92,32 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
     setSyncModalAnchorEl(currentTarget);
     setModalState({
       ...initialModalState,
+      header: t('sync_header.controlling_service_status'),
       isLoading: true,
     });
-    if (hasPushRights) {
-      setModalState({
-        ...initialModalState,
-        header: t('sync_header.controlling_service_status'),
-        isLoading: true,
-      });
-      const { data: repoStatusResult } = await refetchRepoStatus();
-      if (repoStatusResult) {
-        if (!hasLocalChanges(repoStatusResult) && repoStatusResult.aheadBy === 0) {
-          // if user has nothing to commit => show nothing to push message
-          setModalState({
-            ...initialModalState,
-            shouldShowDoneIcon: true,
-            header: t('sync_header.nothing_to_push'),
-          });
-        } else {
-          // if user has changes to share, show write commit message modal
-          setModalState({
-            ...initialModalState,
-            header: t('sync_header.describe_and_validate'),
-            descriptionText: [
-              t('sync_header.describe_and_validate_sub_message'),
-              t('sync_header.describe_and_validate_sub_sub_message'),
-            ],
-            btnText: t('sync_header.describe_and_validate_btnText'),
-            shouldShowCommitBox: true,
-            btnMethod: commitAndPushChanges,
-          });
-        }
+    const { data: repoStatusResult } = await refetchRepoStatus();
+    if (repoStatusResult) {
+      if (!hasLocalChanges(repoStatusResult) && repoStatusResult.aheadBy === 0) {
+        // if user has nothing to commit => show nothing to push message
+        setModalState({
+          ...initialModalState,
+          shouldShowDoneIcon: true,
+          header: t('sync_header.nothing_to_push'),
+        });
+      } else {
+        // if user has changes to share, show write commit message modal
+        setModalState({
+          ...initialModalState,
+          header: t('sync_header.describe_and_validate'),
+          descriptionText: [
+            t('sync_header.describe_and_validate_sub_message'),
+            t('sync_header.describe_and_validate_sub_sub_message'),
+          ],
+          btnText: t('sync_header.describe_and_validate_btnText'),
+          shouldShowCommitBox: true,
+          btnMethod: commitAndPushChanges,
+        });
       }
-    } else {
-      // if user don't have push rights, show modal stating no access to share changes
-      setModalState({
-        ...initialModalState,
-        header: t('sync_header.sharing_changes_no_access'),
-        descriptionText: [t('sync_header.sharing_changes_no_access_sub_message')],
-      });
     }
   };
 
@@ -145,11 +128,12 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
       isLoading: true,
     });
     try {
-      await repoCommitAndPushMutation.mutateAsync({ commitMessage });
+      await repoCommitAndPushMutation({ commitMessage });
     } catch (error) {
       console.error(error);
       const { data: result } = await fetchPullData();
       if (result.hasMergeConflict || result.repositoryStatus === 'CheckoutConflict') {
+        // if pull resulted in a merge conflict, show merge conflict message
         forceRepoStatusCheck();
         handleSyncModalClose();
         setHasMergeConflict(true);
@@ -162,20 +146,14 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
       setModalState(initialModalState);
       setSyncModalAnchorEl(null);
       toast.success(t('sync_header.sharing_changes_completed'));
-    } else if (result.hasMergeConflict || result.repositoryStatus === 'CheckoutConflict') {
-      // if pull resulted in a merge conflict, show merge conflict message
-      forceRepoStatusCheck();
-      handleSyncModalClose();
-      setHasMergeConflict(true);
     }
   };
 
-  const forceRepoStatusCheck = () => {
+  const forceRepoStatusCheck = () =>
     window.postMessage('forceRepoStatusCheck', window.location.href);
-  };
 
   return (
-    <div className={classes.headerStyling} data-testid={testids.versionControlHeader}>
+    <div className={classes.headerStyling}>
       <FetchChangesButton
         fetchChanges={fetchChanges}
         hasMergeConflict={hasMergeConflict}
@@ -183,7 +161,6 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
         numChanges={repoStatus?.behindBy ?? 0}
       />
       <ShareChangesButton
-        changesInLocalRepo={hasChangesInLocalRepo}
         hasMergeConflict={hasMergeConflict}
         hasPushRight={hasPushRights}
         shareChanges={shareChanges}

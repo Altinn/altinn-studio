@@ -6,7 +6,6 @@ import { useTranslation } from 'react-i18next';
 import { Notification } from '../Notification';
 
 export interface IShareChangesButtonProps {
-  changesInLocalRepo: boolean;
   hasMergeConflict: boolean;
   hasPushRight: boolean;
   shareChanges: any;
@@ -14,7 +13,6 @@ export interface IShareChangesButtonProps {
 }
 
 export const ShareChangesButton = ({
-  changesInLocalRepo,
   hasMergeConflict,
   hasPushRight,
   shareChanges,
@@ -24,19 +22,20 @@ export const ShareChangesButton = ({
 
   const shareChangesHandler = (event: any) => shareChanges(event.currentTarget);
 
-  const renderCorrectText = () => {
-    if (hasMergeConflict) {
-      return t('sync_header.merge_conflict');
-    } else if (changesInLocalRepo) {
-      return t('sync_header.changes_to_share');
-    } else {
-      return t('sync_header.no_changes_to_share');
+  const renderCorrectTitle = () => {
+    if (!hasPushRight) {
+      return t('sync_header.sharing_changes_no_access');
     }
+    if (hasMergeConflict) {
+      return t('sync_header.merge_conflict_title');
+    }
+    return t('sync_header.changes_to_share');
   };
 
   return (
     <StudioButton
       className={classes.button}
+      title={renderCorrectTitle()}
       color='inverted'
       disabled={!hasPushRight || hasMergeConflict}
       icon={hasMergeConflict ? <XMarkIcon /> : <UploadIcon />}
@@ -45,7 +44,7 @@ export const ShareChangesButton = ({
       size='small'
       variant='tertiary'
     >
-      {renderCorrectText()}
+      {hasMergeConflict ? t('sync_header.merge_conflict') : t('sync_header.changes_to_share')}
       {displayNotification && !hasMergeConflict && <Notification numChanges={1} />}
     </StudioButton>
   );
