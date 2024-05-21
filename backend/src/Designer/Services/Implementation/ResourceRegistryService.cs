@@ -338,7 +338,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             // lookup party names
             if (partyIds.Any())
             {
-                for (int i = 0; i < partyIds.Count(); i+=BATCH_LOOKUP_SIZE) 
+                for (int i = 0; i < partyIds.Count(); i += BATCH_LOOKUP_SIZE)
                 {
                     IEnumerable<string> batchPartyIds = partyIds.Where((_x, index) => index >= i && index < (i + BATCH_LOOKUP_SIZE));
                     string brregUrl = "https://data.brreg.no/enhetsregisteret/api/{0}?organisasjonsnummer={1}&size=10000";
@@ -483,7 +483,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
             }
             response.EnsureSuccessStatusCode();
-            return new StatusCodeResult(201); 
+            return new StatusCodeResult(201);
         }
 
         public async Task<ActionResult> RemoveAccessListMembers(
@@ -514,7 +514,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
             }
             response.EnsureSuccessStatusCode();
-            return new StatusCodeResult(204); 
+            return new StatusCodeResult(204);
         }
 
         public async Task<HttpStatusCode> AddResourceAccessList(
