@@ -8,7 +8,7 @@
       },
       {
         "dataModelBindings": {
-          "simpleBinding": "property1"
+          "simpleBinding": "shortAnswerInput"
         },
         "id": "Input-Test",
         "type": "Input",

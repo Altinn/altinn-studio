@@ -22,13 +22,13 @@
     "postnr"
   ],
   "properties": {
-    "property1": {
+    "shortAnswerInput": {
       "type": "string"
     },
-    "property2": {
+    "longAnswerInput": {
       "type": "string"
     },
-    "property3": {
+    "nestedInput": {
       "type": "string"
     },
     "streetnr": {

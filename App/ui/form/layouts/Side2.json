@@ -16,7 +16,7 @@
       },
       {
         "dataModelBindings": {
-          "simpleBinding": "property3"
+          "simpleBinding": "longAnswerInput"
         },
         "id": "TextArea-2mCi7T",
         "type": "TextArea"

@@ -71,7 +71,7 @@
       },
       {
         "dataModelBindings": {
-          "simpleBinding": "property2"
+          "simpleBinding": "nestedInput"
         },
         "id": "Input-RvqppSnested",
         "type": "Input",

@@ -37,5 +37,20 @@ namespace Altinn.App.Models.model
     [JsonPropertyName("street")]
     public string street { get; set; }
 
+    [XmlElement("shortAnswerInput", Order = 6)]
+    [JsonProperty("shortAnswerInput")]
+    [JsonPropertyName("shortAnswerInput")]
+    public string shortAnswerInput { get; set; }
+
+    [XmlElement("longAnswerInput", Order = 7)]
+    [JsonProperty("longAnswerInput")]
+    [JsonPropertyName("longAnswerInput")]
+    public string longAnswerInput { get; set; }
+
+    [XmlElement("nestedInput", Order = 8)]
+    [JsonProperty("nestedInput")]
+    [JsonPropertyName("nestedInput")]
+    public string nestedInput { get; set; }
+
   }
 }
