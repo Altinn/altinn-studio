@@ -4,8 +4,8 @@ import { StudioButton } from '@studio/components';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { useTranslation } from 'react-i18next';
 
-import classes from './EditPolicy.module.css';
 import { ShieldLockIcon } from '@studio/icons';
+import classes from './EditPolicy.module.css';
 
 export const EditPolicy = () => {
   const { t } = useTranslation();

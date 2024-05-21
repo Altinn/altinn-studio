@@ -3,9 +3,6 @@ import { render, screen } from '@testing-library/react';
 import { SettingsModalContextProvider, useSettingsModalContext } from './SettingsModalContext';
 
 describe('SettingsModalContext', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
   it('should render children', () => {
     render(
       <SettingsModalContextProvider>
