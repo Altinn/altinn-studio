@@ -83,7 +83,6 @@ export const ProcessEditor = (): React.ReactElement => {
     const isSuccessMessage = 'source' in message;
     if (isSuccessMessage) {
       // Here we can handle the SyncSuccess message or invalidate the query cache
-      console.log('SyncSuccess received', message.source.name);
       invalidator.invalidateQueryByFileName(message.source.name);
     }
   });
