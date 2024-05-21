@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -148,28 +149,38 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task AddAccessListMember_Ok()
         {
             //Arrange
-            string uri = $"{VersionPrefix}/ttd/resources/accesslist/test-liste/members?env=testEnv";
+            string uri = $"{VersionPrefix}/ttd/resources/accesslist/test-liste/members/?env=testEnv";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
-            ResourceRegistryMock.Setup(r => r.AddAccessListMembers(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AccessListOrganizationNumbers>(), It.IsAny<string>())).ReturnsAsync(new ObjectResult(HttpStatusCode.OK));
-
+            ResourceRegistryMock.Setup(r => r.AddAccessListMembers(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AccessListOrganizationNumbers>(), It.IsAny<string>())).ReturnsAsync(new StatusCodeResult(201));
+            AccessListOrganizationNumbers payload = new() 
+            {
+                Data = ["991825827"]
+            };
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+            
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
 
             //Assert
             RepositoryMock.VerifyAll();
-            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            Assert.Equal(HttpStatusCode.Created, res.StatusCode);
         }
 
         [Fact]
         public async Task RemoveAccessListMember_Ok()
         {
             //Arrange
-            string uri = $"{VersionPrefix}/ttd/resources/accesslist/test-liste/members?env=testEnv";
+            string uri = $"{VersionPrefix}/ttd/resources/accesslist/test-liste/members/?env=testEnv";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, uri);
 
-            ResourceRegistryMock.Setup(r => r.RemoveAccessListMembers(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AccessListOrganizationNumbers>(), It.IsAny<string>())).ReturnsAsync(new ObjectResult(HttpStatusCode.OK));
-
+            ResourceRegistryMock.Setup(r => r.RemoveAccessListMembers(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AccessListOrganizationNumbers>(), It.IsAny<string>())).ReturnsAsync(new StatusCodeResult(204));
+            AccessListOrganizationNumbers payload = new() 
+            {
+                Data = ["991825827"]
+            };
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+            
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
 
