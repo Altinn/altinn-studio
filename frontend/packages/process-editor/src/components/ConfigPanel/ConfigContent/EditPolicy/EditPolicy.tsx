@@ -3,7 +3,6 @@ import { Alert, Heading } from '@digdir/design-system-react';
 import { StudioButton } from '@studio/components';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { useTranslation } from 'react-i18next';
-
 import { ShieldLockIcon } from '@studio/icons';
 import classes from './EditPolicy.module.css';
 
