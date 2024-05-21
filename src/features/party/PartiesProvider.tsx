@@ -14,7 +14,7 @@ import { useShouldFetchProfile } from 'src/features/profile/ProfileProvider';
 import type { IParty } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
-// Also used for prefetching @see appPrefetcher.ts
+// Also used for prefetching @see appPrefetcher.ts, partyPrefetcher.ts
 export function usePartiesQueryDef(enabled: boolean) {
   const { fetchParties } = useAppQueries();
   return {
@@ -39,7 +39,7 @@ const usePartiesQuery = () => {
   };
 };
 
-// Also used for prefetching @see appPrefetcher.ts
+// Also used for prefetching @see appPrefetcher.ts, partyPrefetcher.ts
 export function useCurrentPartyQueryDef(enabled: boolean) {
   const { fetchCurrentParty } = useAppQueries();
   return {

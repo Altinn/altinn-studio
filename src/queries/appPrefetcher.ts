@@ -13,20 +13,22 @@ import { useProfileQueryDef } from 'src/features/profile/ProfileProvider';
 
 /**
  * Prefetches requests that require no processed data to determine the url
+ * Only prefetches profile, parties, and current party if a partyId is present in the URL, this is to avoid 401 errors for anonymous apps
+ * Only prefetches instance and process if a party- and instanceid is present in the URL
  */
 export function AppPrefetcher() {
-  usePrefetchQuery(useApplicationMetadataQueryDef());
-  usePrefetchQuery(useLayoutSetsQueryDef());
-  usePrefetchQuery(useProfileQueryDef(true));
-  usePrefetchQuery(useOrgsQueryDef());
-  usePrefetchQuery(useApplicationSettingsQueryDef());
-  usePrefetchQuery(useFooterLayoutQueryDef());
-  usePrefetchQuery(usePartiesQueryDef(true));
-  usePrefetchQuery(useCurrentPartyQueryDef(true));
-
   const { partyId, instanceGuid } =
     matchPath({ path: '/instance/:partyId/:instanceGuid/*' }, window.location.hash.slice(1))?.params ?? {};
   const instanceId = partyId && instanceGuid ? `${partyId}/${instanceGuid}` : undefined;
+
+  usePrefetchQuery(useApplicationMetadataQueryDef());
+  usePrefetchQuery(useLayoutSetsQueryDef());
+  usePrefetchQuery(useProfileQueryDef(true), Boolean(partyId));
+  usePrefetchQuery(useOrgsQueryDef());
+  usePrefetchQuery(useApplicationSettingsQueryDef());
+  usePrefetchQuery(useFooterLayoutQueryDef());
+  usePrefetchQuery(usePartiesQueryDef(true), Boolean(partyId));
+  usePrefetchQuery(useCurrentPartyQueryDef(true), Boolean(partyId));
 
   usePrefetchQuery(useInstanceDataQueryDef(true, partyId, instanceGuid));
   usePrefetchQuery(useProcessQueryDef(instanceId));

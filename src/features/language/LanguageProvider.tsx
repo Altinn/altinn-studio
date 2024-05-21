@@ -6,6 +6,7 @@ import type { IProfile } from 'src/types/shared';
 
 interface LanguageCtx {
   current: string;
+  profileLoaded: boolean;
   updateProfile: (profile: IProfile) => void;
   setWithLanguageSelector: (language: string) => void;
 }
@@ -15,6 +16,7 @@ const { Provider, useCtx } = createContext<LanguageCtx>({
   required: false,
   default: {
     current: 'nb',
+    profileLoaded: false,
     updateProfile: () => {
       throw new Error('LanguageProvider not initialized');
     },
@@ -26,10 +28,12 @@ const { Provider, useCtx } = createContext<LanguageCtx>({
 
 export const LanguageProvider = ({ children }: PropsWithChildren) => {
   const [current, setCurrent] = useState('nb');
+  const [profileLoaded, setProfileLoaded] = useState(false);
   const [userId, setUserId] = useState<number | undefined>(undefined);
 
   const updateProfile = (profile: IProfile) => {
     setUserId(profile.userId);
+    setProfileLoaded(true);
     const localStorageKey = `selectedAppLanguage${window.app}${profile.userId ?? ''}`;
     let localStorageValue = localStorage.getItem(localStorageKey);
     if (localStorageValue === 'null' || localStorageValue === 'undefined') {
@@ -47,10 +51,11 @@ export const LanguageProvider = ({ children }: PropsWithChildren) => {
     localStorage.setItem(`selectedAppLanguage${window.app}${userId}`, language);
   };
 
-  return <Provider value={{ current, updateProfile, setWithLanguageSelector }}>{children}</Provider>;
+  return <Provider value={{ current, profileLoaded, updateProfile, setWithLanguageSelector }}>{children}</Provider>;
 };
 
 export const useCurrentLanguage = () => useCtx().current;
+export const useIsProfileLanguageLoaded = () => useCtx().profileLoaded;
 export const useSetCurrentLanguage = () => {
   const { setWithLanguageSelector, updateProfile } = useCtx();
   return { setWithLanguageSelector, updateProfile };

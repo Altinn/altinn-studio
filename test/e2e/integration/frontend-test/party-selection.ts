@@ -284,6 +284,12 @@ describe('Party selection', () => {
         doNotPromptForParty,
       });
 
+      // The /parties request and /current request happen in parallel, so we need
+      // to await the first request in order to use its value in the second intercept.
+      let resolveParties: () => void;
+      const partiesPromise = new Promise<void>((res) => {
+        resolveParties = res;
+      });
       // Need to make sure the returned party is the same current party:
       let correctParty: IParty | undefined = undefined;
       cy.intercept(
@@ -300,6 +306,7 @@ describe('Party selection', () => {
               throw new Error(`No parties returned from api`);
             }
             res.send([correctParty]);
+            resolveParties();
           });
         },
       );
@@ -310,7 +317,8 @@ describe('Party selection', () => {
           times: 1,
         },
         (req) => {
-          req.on('response', (res) => {
+          req.on('response', async (res) => {
+            await partiesPromise;
             if (!correctParty) {
               throw new Error(`No parties returned from api`);
             }
