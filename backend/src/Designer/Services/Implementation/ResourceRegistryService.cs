@@ -366,7 +366,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new PagedAccessListMembersResponse()
             {
                 Data = members,
-                NextPage = membersDto?.Links?.Next
+                NextPage = membersDto.Links?.Next
             };
         }
 
