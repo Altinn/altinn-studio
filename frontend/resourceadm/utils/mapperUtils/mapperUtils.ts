@@ -17,10 +17,6 @@ export const sortResourceListByDate = (resourceList: ResourceListItem[]): Resour
     };
   });
   return listWithSortedEnvs.sort((a, b) => {
-    // if lastChanged date of both resources is null, sort by most significant published environment instead
-    if (!b.lastChanged && !a.lastChanged) {
-      return EnvOrder.indexOf(a.environments[0]) - EnvOrder.indexOf(b.environments[0]);
-    }
     return new Date(b.lastChanged).getTime() - new Date(a.lastChanged).getTime();
   });
 };
