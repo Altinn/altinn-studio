@@ -181,7 +181,7 @@ namespace Altinn.Studio.Designer.Controllers
                             .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
                         _memoryCache.Set(cacheKey, environmentResources, cacheEntryOptions);
                     }
-                    
+
                     IEnumerable<ServiceResource> environmentResourcesForOrg = environmentResources.Where(x =>
                         x.HasCompetentAuthority?.Orgcode != null &&
                         x.HasCompetentAuthority.Orgcode.Equals(org, StringComparison.OrdinalIgnoreCase)
