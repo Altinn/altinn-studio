@@ -34,6 +34,7 @@ import {
   resourceAccessListPath,
   processEditorPathPut,
   layoutSetPath,
+  processEditorDataTypePath,
   processEditorDataTypeChangePath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
@@ -73,7 +74,7 @@ export const updateLayoutSet = (org: string, app: string, layoutSetIdToUpdate: s
 export const addRepo = (repoToAdd: AddRepoParams) => post<Repository>(`${createRepoPath()}${buildQueryParams(repoToAdd)}`);
 export const addXsdFromRepo = (org: string, app: string, modelPath: string) => post<JsonSchema>(datamodelAddXsdFromRepoPath(org, app, modelPath));
 export const commitAndPushChanges = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPushPath(org, app), payload, { headers });
-export const copyApp = (org: string, app: string, repoName: string) => post(copyAppPath(org, app, repoName));
+export const copyApp = (org: string, app: string, newRepoName: string, newOrg: string) => post(copyAppPath(org, app, newRepoName, newOrg));
 export const createDatamodel = (org: string, app: string, payload: CreateDatamodelPayload) => post<JsonSchema, CreateDatamodelPayload>(createDatamodelPath(org, app), payload);
 export const createDeployment = (org: string, app: string, payload: CreateDeploymentPayload) => post<PipelineDeployment, CreateDeploymentPayload>(deploymentsPath(org, app), payload);
 export const createRelease = (org: string, app: string, payload: CreateReleasePayload) => post<void, CreateReleasePayload>(releasesPath(org, app), payload);
@@ -121,6 +122,9 @@ export const updatePolicy = (org: string, repo: string, id: string, payload: Pol
 export const updateResource = (org: string, repo: string, payload: Resource) => put(resourceEditPath(org, repo), payload);
 
 // ProcessEditor
+
+export const addDataTypeToAppMetadata = (org: string, app: string, dataTypeId: string) => post(processEditorDataTypePath(org, app, dataTypeId));
+export const deleteDataTypeFromAppMetadata = (org: string, app: string, dataTypeId: string) => del(processEditorDataTypePath(org, app, dataTypeId));
 export const updateBpmnXml = (org: string, app: string, form: any) =>
   put(processEditorPathPut(org, app), form, {
     headers: {

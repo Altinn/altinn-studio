@@ -1,4 +1,4 @@
-import React, { type HTMLAttributes } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { checkForInvalidCharacters } from '../../../../utils/configPanelUtils';
 import { StudioToggleableTextfield } from '@studio/components';
@@ -10,8 +10,7 @@ import classes from './EditTaskId.module.css';
 import { useTaskIds } from '../../../../hooks/useTaskIds';
 import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 
-type EditTaskIdProps = HTMLAttributes<HTMLDivElement>;
-export const EditTaskId = ({ ...rest }: EditTaskIdProps): React.ReactElement => {
+export const EditTaskId = (): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails, modelerRef, setBpmnDetails } = useBpmnContext();
   const { metaDataFormRef } = useBpmnConfigPanelFormContext();
@@ -80,29 +79,27 @@ export const EditTaskId = ({ ...rest }: EditTaskIdProps): React.ReactElement => 
   };
 
   return (
-    <div {...rest}>
-      <StudioToggleableTextfield
-        customValidation={validateTaskId}
-        inputProps={{
-          className: classes.textfield,
-          icon: <KeyVerticalIcon />,
-          label: t('process_editor.configuration_panel_change_task_id'),
-          value: bpmnDetails.id,
-          onBlur: (event) => handleOnTaskIdBlur(event),
-          size: 'small',
-        }}
-        viewProps={{
-          className: classes.view,
-          children: (
-            <span>
-              <b>ID:</b> {bpmnDetails.id}
-            </span>
-          ),
-          value: bpmnDetails.id,
-          variant: 'tertiary',
-          'aria-label': t('process_editor.configuration_panel_change_task_id'),
-        }}
-      />
-    </div>
+    <StudioToggleableTextfield
+      customValidation={validateTaskId}
+      inputProps={{
+        className: classes.textfield,
+        icon: <KeyVerticalIcon />,
+        label: t('process_editor.configuration_panel_change_task_id'),
+        value: bpmnDetails.id,
+        onBlur: (event) => handleOnTaskIdBlur(event),
+        size: 'small',
+      }}
+      viewProps={{
+        className: classes.view,
+        children: (
+          <span>
+            <b>ID:</b> {bpmnDetails.id}
+          </span>
+        ),
+        value: bpmnDetails.id,
+        variant: 'tertiary',
+        'aria-label': t('process_editor.configuration_panel_change_task_id'),
+      }}
+    />
   );
 };

@@ -13,7 +13,6 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -32,20 +31,18 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IResourceRegistryOptions _resourceRegistryOptions;
         private readonly IMemoryCache _memoryCache;
         private readonly CacheSettings _cacheSettings;
-        private readonly IAltinn2MetadataClient _altinn2MetadataClient;
         private readonly IOrgService _orgService;
         private readonly IResourceRegistry _resourceRegistry;
         private readonly ResourceRegistryIntegrationSettings _resourceRegistrySettings;
         private readonly IUserRequestsSynchronizationService _userRequestsSynchronizationService;
 
-        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IAltinn2MetadataClient altinn2MetadataClient, IOrgService orgService, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IResourceRegistry resourceRegistry, IUserRequestsSynchronizationService userRequestsSynchronizationService)
+        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IOrgService orgService, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IResourceRegistry resourceRegistry, IUserRequestsSynchronizationService userRequestsSynchronizationService)
         {
             _giteaApi = gitea;
             _repository = repository;
             _resourceRegistryOptions = resourceRegistryOptions;
             _memoryCache = memoryCache;
             _cacheSettings = cacheSettings.Value;
-            _altinn2MetadataClient = altinn2MetadataClient;
             _orgService = orgService;
             _resourceRegistrySettings = resourceRegistryEnvironment.Value;
             _resourceRegistry = resourceRegistry;
@@ -165,7 +162,7 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpGet]
         [Route("designer/api/{org}/resources/resourcelist")]
-        public async Task<ActionResult<List<ListviewServiceResource>>> GetRepositoryResourceList(string org)
+        public async Task<ActionResult<List<ListviewServiceResource>>> GetRepositoryResourceList(string org, [FromQuery] bool includeEnvResources = false)
         {
             string repository = string.Format("{0}-resources", org);
             List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repository);
@@ -174,8 +171,39 @@ namespace Altinn.Studio.Designer.Controllers
             foreach (ServiceResource resource in repositoryResourceList)
             {
                 ListviewServiceResource listviewResource = await _giteaApi.MapServiceResourceToListViewResource(org, string.Format("{0}-resources", org), resource);
-                listviewResource.HasPolicy = _repository.ResourceHasPolicy(org, repository, resource);
+                listviewResource.HasPolicy = true;
+                listviewResource.Environments = ["gitea"];
                 listviewServiceResources.Add(listviewResource);
+            }
+
+            if (includeEnvResources)
+            {
+                foreach (string environment in _resourceRegistrySettings.Keys)
+                {
+                    List<ServiceResource> environmentResources = await _resourceRegistry.GetResourceList(environment, false);
+                    IEnumerable<ServiceResource> environmentResourcesForOrg = environmentResources.Where(x =>
+                        x.HasCompetentAuthority?.Orgcode != null &&
+                        x.HasCompetentAuthority.Orgcode.Equals(org, StringComparison.OrdinalIgnoreCase)
+                    );
+
+                    foreach (ServiceResource resource in environmentResourcesForOrg)
+                    {
+                        ListviewServiceResource listResource = listviewServiceResources.FirstOrDefault(x => x.Identifier == resource.Identifier);
+                        if (listResource == null)
+                        {
+                            listResource = new ListviewServiceResource
+                            {
+                                Identifier = resource.Identifier,
+                                Title = resource.Title,
+                                CreatedBy = "",
+                                LastChanged = null,
+                                Environments = []
+                            };
+                            listviewServiceResources.Add(listResource);
+                        }
+                        listResource.Environments.Add(environment);
+                    }
+                }
             }
 
             return listviewServiceResources;
@@ -284,6 +312,28 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpPost]
+        [Route("designer/api/{org}/resources/addexistingresource/{resourceId}/{environment}")]
+        public async Task<ActionResult> AddExistingResource(string org, string resourceId, string environment)
+        {
+            string repository = string.Format("{0}-resources", org);
+            ServiceResource resource = await _resourceRegistry.GetResource(resourceId, environment);
+            if (resource == null)
+            {
+                return new StatusCodeResult(404);
+            }
+            resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
+            StatusCodeResult statusCodeResult = _repository.AddServiceResource(org, resource);
+            if (statusCodeResult.StatusCode != (int)HttpStatusCode.Created)
+            {
+                return statusCodeResult;
+            }
+
+            XacmlPolicy policy = await _resourceRegistry.GetResourcePolicy(resourceId, environment);
+            await _repository.SavePolicy(org, repository, resource.Identifier, policy);
+            return Ok(resource);
+        }
+
+        [HttpPost]
         [Route("designer/api/{org}/resources/addresource")]
         public async Task<StatusCodeResult> AddResource(string org, [FromBody] ServiceResource resource)
         {
@@ -318,8 +368,8 @@ namespace Altinn.Studio.Designer.Controllers
                 DataThemesContainer dataThemesContainer = await _resourceRegistryOptions.GetSectors(cancellationToken);
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
-               .SetPriority(CacheItemPriority.High)
-               .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
+                   .SetPriority(CacheItemPriority.High)
+                   .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
 
                 sectors = dataThemesContainer.DataThemes;
 
@@ -339,8 +389,8 @@ namespace Altinn.Studio.Designer.Controllers
                 LosTerms losTerms = await _resourceRegistryOptions.GetLosTerms(cancellationToken);
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
-               .SetPriority(CacheItemPriority.High)
-               .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
+                   .SetPriority(CacheItemPriority.High)
+                   .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
 
                 sectors = losTerms.LosNodes;
 
@@ -361,8 +411,8 @@ namespace Altinn.Studio.Designer.Controllers
                 EuroVocTerms euroVocTerms = await _resourceRegistryOptions.GetEuroVocTerms(cancellationToken);
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
-               .SetPriority(CacheItemPriority.High)
-               .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
+                   .SetPriority(CacheItemPriority.High)
+                   .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
 
                 sectors = euroVocTerms.EuroVocs;
                 _memoryCache.Set(cacheKey, sectors, cacheEntryOptions);
@@ -380,7 +430,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
 
                 List<AvailableService> unfiltered = new List<AvailableService>();
-                List<ServiceResource> allResources = await _resourceRegistry.GetResourceList(environment.ToLower());
+                List<ServiceResource> allResources = await _resourceRegistry.GetResourceList(environment.ToLower(), true);
 
                 foreach (ServiceResource resource in allResources)
                 {
@@ -401,8 +451,8 @@ namespace Altinn.Studio.Designer.Controllers
                 }
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
-               .SetPriority(CacheItemPriority.High)
-               .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
+                   .SetPriority(CacheItemPriority.High)
+                   .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
 
                 if (OrgUtil.IsTestEnv(org))
                 {
@@ -528,8 +578,8 @@ namespace Altinn.Studio.Designer.Controllers
                 orgList = await _orgService.GetOrgList();
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
-               .SetPriority(CacheItemPriority.High)
-               .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.OrgListCacheTimeout, 0));
+                   .SetPriority(CacheItemPriority.High)
+                   .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.OrgListCacheTimeout, 0));
 
                 _memoryCache.Set(cacheKey, orgList, cacheEntryOptions);
             }

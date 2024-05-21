@@ -1,0 +1,23 @@
+.table {
+  width: 100%;
+}
+
+.emptyTableMessage {
+  padding: var(--fds-spacing-3);
+  text-align: center;
+}
+
+.paginationContainer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--fds-spacing-5);
+}
+
+.selectorContainer {
+  display: flex;
+  gap: var(--fds-spacing-3);
+}
+
+.label {
+  margin: auto 0;
+}

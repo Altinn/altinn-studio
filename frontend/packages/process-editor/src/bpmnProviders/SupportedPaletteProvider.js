@@ -1,4 +1,5 @@
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { generateRandomId } from 'app-shared/utils/generateRandomId';
 
 const supportedEntries = ['create.exclusive-gateway', 'create.start-event', 'create.end-event'];
 
@@ -58,8 +59,9 @@ class SupportedPaletteProvider {
               }),
               signatureConfig: bpmnFactory.create('altinn:SignatureConfig', {
                 dataTypesToSign: bpmnFactory.create('altinn:DataTypesToSign', {
-                  dataType: ['Model'],
+                  dataTypes: [],
                 }),
+                signatureDataType: `signatureInformation-${generateRandomId(4)}`,
               }),
             }),
           ],
@@ -113,12 +115,20 @@ class SupportedPaletteProvider {
             bpmnFactory.create('altinn:TaskExtension', {
               taskType: taskType,
               actions: bpmnFactory.create('altinn:Actions', {
-                action: ['pay', 'reject'],
+                action: [
+                  bpmnFactory.create('altinn:Action', {
+                    action: 'pay',
+                  }),
+                  bpmnFactory.create('altinn:Action', {
+                    action: 'reject',
+                  }),
+                  bpmnFactory.create('altinn:Action', {
+                    action: 'confirm',
+                  }),
+                ],
               }),
               paymentConfig: bpmnFactory.create('altinn:PaymentConfig', {
-                paymentDataType: bpmnFactory.create('altinn:PaymentDataType', {
-                  dataType: ['paymentInformation'],
-                }),
+                paymentDataType: `paymentInformation-${generateRandomId(4)}`,
               }),
             }),
           ],
@@ -174,10 +184,10 @@ class SupportedPaletteProvider {
         },
         'create.altinn-confirmation-task': {
           group: 'activity',
-          title: translate('Create Altinn Confirm Task'),
           className: 'bpmn-icon-task-generic bpmn-icon-confirmation-task',
+          title: translate('Create Altinn Confirm Task'),
           action: {
-            dragstart: createCustomConfirmationTask('confirmation'),
+            dragstart: createCustomConfirmationTask(),
           },
         },
         'create.altinn-payment-task': {

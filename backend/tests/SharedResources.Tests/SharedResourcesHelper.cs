@@ -43,4 +43,9 @@ public static class SharedResourcesHelper
 
         return xmlSchema;
     }
+
+    public static void WriteUpdatedTestData(string resourceName, string cSharpClasses)
+    {
+        File.WriteAllText(Path.Join("..", "..", "..", "..", "..", "..", "testdata", resourceName), cSharpClasses);
+    }
 }

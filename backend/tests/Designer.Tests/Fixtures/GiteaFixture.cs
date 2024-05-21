@@ -120,8 +120,11 @@ namespace Designer.Tests.Fixtures
 
             await CreateGiteaUsers();
             await CreateTestOrg();
+            await CreateTestOrg(GiteaConstants.SecondaryTestOrgUsername, GiteaConstants.SecondaryTestOrgName, GiteaConstants.SecondaryTestOrgDescription);
             await CreateTestOrgTeams();
-            await AddUserToTeams("Owners", "Deploy-TT02", "Devs", "Deploy-AT21", "Deploy-AT22");
+            await CreateTestOrgTeams(GiteaConstants.SecondaryTestOrgUsername);
+            await AddUserToTeams(GiteaConstants.TestOrgUsername, "Owners", "Deploy-TT02", "Devs", "Deploy-AT21", "Deploy-AT22");
+            await AddUserToTeams(GiteaConstants.SecondaryTestOrgUsername, "Owners", "Deploy-TT02", "Devs", "Deploy-AT21", "Deploy-AT22");
         }
 
         private async Task CreateGiteaUsers()
@@ -144,12 +147,12 @@ namespace Designer.Tests.Fixtures
             }, _), CancellationToken.None);
         }
 
-        private async Task CreateTestOrg()
+        private async Task CreateTestOrg(string orgUserName = GiteaConstants.TestOrgUsername, string orgName = GiteaConstants.TestOrgName, string orgDescription = GiteaConstants.TestOrgDescription)
         {
-            const string body = @$"{{
-                    ""username"": ""{GiteaConstants.TestOrgUsername}"",
-                    ""full_name"": ""{GiteaConstants.TestOrgName}"",
-                    ""description"": ""{GiteaConstants.TestOrgDescription}""
+            string body = @$"{{
+                    ""username"": ""{orgUserName}"",
+                    ""full_name"": ""{orgName}"",
+                    ""description"": ""{orgDescription}""
                 }}";
 
             using var content = new StringContent(body, Encoding.UTF8, MediaTypeNames.Application.Json);
@@ -157,7 +160,7 @@ namespace Designer.Tests.Fixtures
             await GiteaClientRetryPolicy.ExecuteAsync(async _ => await GiteaClient.Value.PostAsync("orgs", content, _), CancellationToken.None);
         }
 
-        private async Task CreateTestOrgTeams()
+        private async Task CreateTestOrgTeams(string org = GiteaConstants.TestOrgUsername)
         {
             string teamsJsonFile = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "development", "data", "gitea-teams.json");
             string teamsContent = await File.ReadAllTextAsync(teamsJsonFile);
@@ -166,13 +169,13 @@ namespace Designer.Tests.Fixtures
             {
                 team["units"] = JsonNode.Parse(@"[""repo.code"", ""repo.issues"", ""repo.pulls"", ""repo.releases""]");
                 using var content = new StringContent(team.ToString(), Encoding.UTF8, MediaTypeNames.Application.Json);
-                await GiteaClientRetryPolicy.ExecuteAsync(async _ => await GiteaClient.Value.PostAsync($"orgs/{GiteaConstants.TestOrgUsername}/teams", content, _), CancellationToken.None);
+                await GiteaClientRetryPolicy.ExecuteAsync(async _ => await GiteaClient.Value.PostAsync($"orgs/{org}/teams", content, _), CancellationToken.None);
             }
         }
 
-        private async Task AddUserToTeams(params string[] teams)
+        private async Task AddUserToTeams(string org, params string[] teams)
         {
-            var allTeams = await GiteaClient.Value.GetAsync($"orgs/{GiteaConstants.TestOrgUsername}/teams");
+            var allTeams = await GiteaClient.Value.GetAsync($"orgs/{org}/teams");
             string allTeamsContent = await allTeams.Content.ReadAsStringAsync();
             JsonArray teamsJson = JsonNode.Parse(allTeamsContent) as JsonArray;
             var teamIds = teamsJson.Where(x => teams.Contains(x["name"].GetValue<string>())).Select(x => x["id"].GetValue<long>());

@@ -17,7 +17,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_Options_when_options_exists_Ok()
         {
-            string dataPathWithData = $"{Org}/{App}/api/options/test-options";
+            string dataPathWithData = $"{Org}/{AppV3}/api/options/test-options";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -29,9 +29,9 @@ namespace Designer.Tests.Controllers.PreviewController
         }
 
         [Fact]
-        public async Task Get_Options_when_options_exists_for_stateful_app_Ok()
+        public async Task Get_Options_when_options_exists_for_v4_app_Ok()
         {
-            string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/options/test-options";
+            string dataPathWithData = $"{Org}/{AppV4}/instances/{PartyId}/{InstanceGuId}/options/test-options";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -45,7 +45,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_Options_when_no_options_exist_returns_Ok_empty_list()
         {
-            string dataPathWithData = $"{Org}/{App}/api/options/non-existing-options";
+            string dataPathWithData = $"{Org}/{AppV3}/api/options/non-existing-options";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

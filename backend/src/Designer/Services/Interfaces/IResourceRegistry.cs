@@ -36,7 +36,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Integration point for retrieving the full list of resources
         /// </summary>
         /// <returns>The resource full list of all resources if exists</returns>
-        Task<List<ServiceResource>> GetResourceList(string env);
+        Task<List<ServiceResource>> GetResourceList(string env, bool includeAltinn2);
 
         /// <summary>
         /// Get Resource from Altinn 2 service
@@ -47,6 +47,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Get Policy from Altinn 2 Service
         /// </summary>
         Task<XacmlPolicy> GetXacmlPolicy(string serviceCode, int serviceEditionCode, string identifier, string environment);
+
+        /// <summary>
+        /// Get Policy from Altinn 3 resource
+        /// </summary>
+        Task<XacmlPolicy> GetResourcePolicy(string resourceId, string environment);
 
         /// <summary>
         /// Create a new access list for an organization in a given environment
