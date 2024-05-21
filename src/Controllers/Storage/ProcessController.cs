@@ -91,6 +91,9 @@ namespace Altinn.Platform.Storage.Controllers
                 case "feedback":
                     action = "write";
                     break;
+                case "payment":
+                    action = "pay";
+                    break;
                 case "confirmation":
                     action = "confirm";
                     break;
