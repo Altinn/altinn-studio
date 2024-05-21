@@ -43,7 +43,7 @@ export const ResourceTable = ({
         ...listItem,
         title:
           listItem.title[i18n?.language] ||
-          listItem.title.nb ||
+          listItem.title?.nb ||
           t('resourceadm.dashboard_table_row_missing_title'),
       };
     });
