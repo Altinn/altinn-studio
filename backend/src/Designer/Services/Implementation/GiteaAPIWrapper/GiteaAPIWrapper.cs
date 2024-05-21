@@ -247,7 +247,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 listviewResource.CreatedBy = userFullName;
             }
 
-            if (listviewResource.LastChanged.Year.Equals(1))
+            if (listviewResource.LastChanged == null)
             {
                 listviewResource.LastChanged = DateTime.Now;
             }

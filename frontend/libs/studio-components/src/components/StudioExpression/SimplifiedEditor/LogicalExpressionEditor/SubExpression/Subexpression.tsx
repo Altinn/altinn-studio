@@ -26,10 +26,12 @@ export type SubexpressionProps = {
 };
 
 export const Subexpression = ({ expression, legend, onChange, onDelete }: SubexpressionProps) => {
-  const { texts } = useStudioExpressionContext();
+  const { texts, dataLookupOptions } = useStudioExpressionContext();
   const [isInEditMode, setIsInEditMode] = useState<boolean>(false);
   const [expressionState, setExpressionState] = useState<SimpleSubexpression>(expression);
-  const [errors, setErrors] = useState<ExpressionErrorKey[]>([]);
+  const [errors, setErrors] = useState<ExpressionErrorKey[]>(
+    findSubexpressionErrors(expression, dataLookupOptions),
+  );
 
   useEffect(() => {
     setExpressionState(expression);
@@ -40,7 +42,7 @@ export const Subexpression = ({ expression, legend, onChange, onDelete }: Subexp
   };
 
   const handleSave = () => {
-    const errorList = findSubexpressionErrors(expressionState);
+    const errorList = findSubexpressionErrors(expressionState, dataLookupOptions);
     setErrors(errorList);
     if (!errorList.length) {
       onChange(expressionState);
@@ -96,7 +98,7 @@ export const Subexpression = ({ expression, legend, onChange, onDelete }: Subexp
           onSave={handleSave}
           onEnableEditMode={handleEnableEditMode}
         />
-        {!!errors.length && <SubexpressionErrors errorKeys={errors} />}
+        {!!errors.length && isInEditMode && <SubexpressionErrors errorKeys={errors} />}
       </div>
     </Fieldset>
   );

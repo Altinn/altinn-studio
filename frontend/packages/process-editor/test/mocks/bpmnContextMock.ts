@@ -44,4 +44,5 @@ export const mockBpmnApiContextValue: BpmnApiContextProps = {
   addDataTypeToAppMetadata: jest.fn(),
   deleteDataTypeFromAppMetadata: jest.fn(),
   saveBpmn: jest.fn(),
+  openPolicyEditor: jest.fn(),
 };
