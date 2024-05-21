@@ -12,12 +12,12 @@ import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 
 export const EditTaskId = (): React.ReactElement => {
   const { t } = useTranslation();
-  const { bpmnDetails, modelerRef, setBpmnDetails, bpmnXml } = useBpmnContext();
+  const { bpmnDetails, modelerRef, setBpmnDetails } = useBpmnContext();
   const { metaDataFormRef } = useBpmnConfigPanelFormContext();
 
   const modelerInstance = modelerRef.current;
   const modeling: Modeling = modelerInstance.get('modeling');
-  const otherTaskIds = useTaskIds(bpmnXml).filter((id) => id !== bpmnDetails.id);
+  const otherTaskIds = useTaskIds().filter((id) => id !== bpmnDetails.id);
 
   const updateId = (value: string): void => {
     modeling.updateProperties(bpmnDetails.element, {

@@ -34,7 +34,7 @@ export const ProcessEditor = (): React.ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
   const queryClient = useQueryClient();
-  const invalidator = new SyncSuccessQueriesInvalidator(queryClient, org, app);
+  const invalidator = SyncSuccessQueriesInvalidator.getInstance(queryClient, org, app);
   const { setSettingsModalOpen, setSettingsModalSelectedTab } = useSettingsModalContext();
   const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
   const { data: appLibData, isLoading: appLibDataLoading } = useAppVersionQuery(org, app);

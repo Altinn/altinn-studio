@@ -17,28 +17,22 @@ export class Queue {
   }
 
   public addTaskToQueue(queueTask: QueueTask): void {
-    console.log({ queueTask, queue: this.queue });
-    if (this.queue.find((task) => task.id === queueTask.id)) {
-      console.log('already added to queue');
-      return;
-    }
+    const alreadyInQueue = this.queue.find((task) => task.id === queueTask.id);
+    if (alreadyInQueue) return;
+
     this.queue.push(queueTask);
     this.resetTimeOutQueue();
     this.startProcessingQueue();
   }
 
   private resetTimeOutQueue() {
-    console.log('resetTimeOutQueue');
     clearTimeout(this.queueTimeoutId);
   }
 
   private startProcessingQueue() {
-    this.queueTimeoutId = setTimeout(
-      () =>
-        this.queue.forEach((task) => {
-          task.callback();
-        }),
-      this.options.timeout || 1000,
-    );
+    this.queueTimeoutId = setTimeout(() => {
+      this.queue.forEach((task) => task.callback());
+      this.queue = [];
+    }, this.options.timeout || 1000);
   }
 }

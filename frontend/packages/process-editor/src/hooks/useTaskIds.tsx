@@ -1,9 +1,8 @@
-export const useTaskIds = (bpmnXml: string): string[] => {
-  const parser = new DOMParser();
-  const xmlDoc = parser.parseFromString(bpmnXml, 'text/xml');
-  const tasks = xmlDoc.getElementsByTagName('bpmn:task');
+import { StudioModeler } from '../utils/bpmn/StudioModeler';
 
-  const taskIds = Array.from(tasks).map((task) => task.getAttribute('id') || '');
+export const useTaskIds = (): string[] => {
+  const studioModeler = new StudioModeler();
+  const tasks = studioModeler.getAllTasksByType('bpmn:Task');
 
-  return taskIds;
+  return tasks.map((task) => task.id);
 };
