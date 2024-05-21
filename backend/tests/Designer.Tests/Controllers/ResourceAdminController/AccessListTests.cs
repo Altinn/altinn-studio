@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Moq;
 using Newtonsoft.Json;
@@ -25,7 +25,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
 
-            ResourceRegistryMock.Setup(r => r.GetAccessLists(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(new PagedAccessListResponse());
+            ResourceRegistryMock.Setup(r => r.GetAccessLists(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(new PagedAccessListResponse());
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -46,8 +46,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             {
                 Identifier = "test-list",
                 Name = "Test list",
-                Description = "",
-                Members = new List<AccessListMember>()
+                Description = ""
             };
 
             ResourceRegistryMock.Setup(r => r.GetAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(list);
@@ -68,7 +67,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
 
-            ResourceRegistryMock.Setup(r => r.GetResourceAccessLists(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(new PagedAccessListResponse());
+            ResourceRegistryMock.Setup(r => r.GetResourceAccessLists(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(new PagedAccessListResponse());
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -89,8 +88,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             {
                 Identifier = "test-list",
                 Name = "Test list",
-                Description = "",
-                Members = new List<AccessListMember>()
+                Description = ""
             };
 
             ResourceRegistryMock.Setup(r => r.CreateAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AccessList>())).ReturnsAsync(list);
@@ -132,8 +130,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             {
                 Identifier = "test-list",
                 Name = "Test list",
-                Description = "",
-                Members = new List<AccessListMember>()
+                Description = ""
             };
 
             ResourceRegistryMock.Setup(r => r.UpdateAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AccessList>())).ReturnsAsync(list);
@@ -151,10 +148,10 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task AddAccessListMember_Ok()
         {
             //Arrange
-            string uri = $"{VersionPrefix}/ttd/resources/accesslist/test-liste/members/991825827?env=testEnv";
+            string uri = $"{VersionPrefix}/ttd/resources/accesslist/test-liste/members?env=testEnv";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
-            ResourceRegistryMock.Setup(r => r.AddAccessListMember(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(HttpStatusCode.OK);
+            ResourceRegistryMock.Setup(r => r.AddAccessListMembers(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AccessListOrganizationNumbers>(), It.IsAny<string>())).ReturnsAsync(new ObjectResult(HttpStatusCode.OK));
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -168,10 +165,10 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task RemoveAccessListMember_Ok()
         {
             //Arrange
-            string uri = $"{VersionPrefix}/ttd/resources/accesslist/test-liste/members/991825827?env=testEnv";
+            string uri = $"{VersionPrefix}/ttd/resources/accesslist/test-liste/members?env=testEnv";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, uri);
 
-            ResourceRegistryMock.Setup(r => r.RemoveAccessListMember(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(HttpStatusCode.NoContent);
+            ResourceRegistryMock.Setup(r => r.RemoveAccessListMembers(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AccessListOrganizationNumbers>(), It.IsAny<string>())).ReturnsAsync(new ObjectResult(HttpStatusCode.OK));
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
