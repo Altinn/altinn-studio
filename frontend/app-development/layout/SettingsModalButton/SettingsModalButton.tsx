@@ -4,7 +4,7 @@ import { StudioButton } from '@studio/components';
 import { CogIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { SettingsModal } from './SettingsModal';
-import { useSettingsModalContext } from 'app-development/contexts/SettingsModalContext';
+import { useSettingsModalContext } from '../../contexts/SettingsModalContext';
 
 export type SettingsModalButtonProps = {
   org: string;

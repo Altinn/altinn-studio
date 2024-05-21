@@ -10,7 +10,7 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { MemoryRouter } from 'react-router-dom';
-import { AppDevelopmentContextProvider } from 'app-development/contexts/AppDevelopmentContext';
+import { AppDevelopmentContextProvider } from '../../contexts/AppDevelopmentContext';
 
 const mockApp: string = 'app';
 const mockOrg: string = 'org';

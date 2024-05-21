@@ -1,4 +1,4 @@
-import type { SettingsModalTab } from 'app-development/types/SettingsModalTab';
+import type { SettingsModalTab } from '../types/SettingsModalTab';
 import React, { createContext, useContext, useState } from 'react';
 
 export type SettingsModalContextProps = {

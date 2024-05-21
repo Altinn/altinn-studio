@@ -5,11 +5,11 @@
 
 .policyButtonPanel {
   background-color: var(--fds-semantic-surface-neutral-subtle);
-  border-radius: 5px;
+  border-radius: var(--fds-border_radius-medium);
   padding: var(--fds-spacing-5);
   margin-top: var(--fds-spacing-5);
 }
 
 .policyEditorButton {
-  margin-top: 12px;
+  margin-top: var(--fds-spacing-5);
 }

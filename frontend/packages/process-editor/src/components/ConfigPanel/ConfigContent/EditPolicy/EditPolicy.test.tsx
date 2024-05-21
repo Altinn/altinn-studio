@@ -6,7 +6,7 @@ import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import {
   type BpmnApiContextProps,
   BpmnApiContextProvider,
-} from '@altinn/process-editor/contexts/BpmnApiContext';
+} from '../../../../contexts/BpmnApiContext';
 import { mockBpmnApiContextValue } from '../../../../../test/mocks/bpmnContextMock';
 
 describe('EditPolicy', () => {

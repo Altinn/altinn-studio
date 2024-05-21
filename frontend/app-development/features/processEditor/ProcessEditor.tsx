@@ -1,7 +1,7 @@
 import React from 'react';
 import { ProcessEditor as ProcessEditorImpl } from '@altinn/process-editor';
-import { useBpmnMutation } from 'app-development/hooks/mutations';
-import { useBpmnQuery } from 'app-development/hooks/queries/useBpmnQuery';
+import { useBpmnMutation } from '../../hooks/mutations';
+import { useBpmnQuery } from '../../hooks/queries/useBpmnQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { toast } from 'react-toastify';
 import { StudioPageSpinner } from '@studio/components';
@@ -21,7 +21,7 @@ import { useUpdateProcessDataTypeMutation } from '../../hooks/mutations/useUpdat
 import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 import { useAddDataTypeToAppMetadata } from '../../hooks/mutations/useAddDataTypeToAppMetadata';
 import { useDeleteDataTypeFromAppMetadata } from '../../hooks/mutations/useDeleteDataTypeFromAppMetadata';
-import { useSettingsModalContext } from 'app-development/contexts/SettingsModalContext';
+import { useSettingsModalContext } from '../../contexts/SettingsModalContext';
 
 enum SyncClientsName {
   FileSyncSuccess = 'FileSyncSuccess',

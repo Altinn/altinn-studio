@@ -1,5 +1,5 @@
 import { SettingsModalContextProvider } from './SettingsModalContext';
-import { combineComponents } from 'app-development/utils/context/combineComponents';
+import { combineComponents } from '../utils/context/combineComponents';
 
 /**
  * Add all context providers for app-development to the providers-array.
