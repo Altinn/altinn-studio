@@ -50,12 +50,6 @@ const handleError = (
     return;
   }
 
-  if (
-    meta?.hideDefaultError === true ||
-    (meta?.hideDefaultError instanceof Function && meta?.hideDefaultError?.(error))
-  )
-    return;
-
   const errorCode = error?.response?.data?.errorCode;
   if (errorCode) {
     const errorMessageKey = `api_errors.${errorCode}`;
@@ -65,6 +59,12 @@ const handleError = (
       return;
     }
   }
+
+  if (
+    meta?.hideDefaultError === true ||
+    (meta?.hideDefaultError instanceof Function && meta?.hideDefaultError?.(error))
+  )
+    return;
 
   toast.error(
     () => (

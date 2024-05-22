@@ -13,7 +13,7 @@ import { useDebounce } from 'app-shared/hooks/useDebounce';
 export const HiddenExpressionOnLayout = () => {
   const { app, org } = useStudioUrlParams();
   const { layout, layoutName } = useSelectedFormLayoutWithName();
-  const { selectedFormLayoutSetName } = useAppContext();
+  const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
   const { mutate: saveLayout } = useFormLayoutMutation(
     org,
     app,
@@ -24,7 +24,16 @@ export const HiddenExpressionOnLayout = () => {
 
   const handleChangeHiddenExpressionOnLayout = (expression: Expression) => {
     const updatedLayout: IInternalLayout = ObjectUtils.deepCopy(layout);
-    debounce(() => saveLayout({ ...updatedLayout, hidden: expression }));
+    debounce(() =>
+      saveLayout(
+        { ...updatedLayout, hidden: expression },
+        {
+          onSuccess: async () => {
+            await refetchLayouts(selectedFormLayoutSetName);
+          },
+        },
+      ),
+    );
   };
 
   const handleDeleteHiddenExpressionOnLayout = async () => {
