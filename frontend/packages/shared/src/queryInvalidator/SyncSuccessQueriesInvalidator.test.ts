@@ -32,4 +32,14 @@ describe('SyncSuccessQueriesInvalidator', () => {
     );
     expect(queryClientMock.invalidateQueries).toHaveBeenCalledTimes(1);
   });
+
+  it('should not invalidate query cache when invalidateQueryByFileName is called with an unknown file name', async () => {
+    const instance = SyncSuccessQueriesInvalidator.getInstance(queryClientMock, org, app);
+
+    const fileName = 'unknown.json';
+    instance.invalidateQueryByFileName(fileName);
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    expect(queryClientMock.invalidateQueries).not.toHaveBeenCalled();
+  });
 });

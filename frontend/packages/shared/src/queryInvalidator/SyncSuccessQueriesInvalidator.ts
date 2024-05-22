@@ -57,16 +57,15 @@ export class SyncSuccessQueriesInvalidator extends Queue {
       id: fileName,
       callback: () => {
         const cacheKey = this.getCacheKeyByFileName(fileName);
-        this.queryClient.invalidateQueries({ queryKey: cacheKey });
+        cacheKey && this.queryClient.invalidateQueries({ queryKey: cacheKey });
       },
     });
   }
 
   private getCacheKeyByFileName(fileName: string): string[] {
     const cacheKey = this.fileNameCacheKeyMap[fileName];
-    if (cacheKey.includes('[org]') || cacheKey.includes('[app]')) {
-      return cacheKey.map((key) => key.replace('[org]', this.org).replace('[app]', this.app));
-    }
-    return cacheKey;
+    if (!cacheKey) return undefined;
+
+    return cacheKey.map((key) => key.replace('[org]', this.org).replace('[app]', this.app));
   }
 }
