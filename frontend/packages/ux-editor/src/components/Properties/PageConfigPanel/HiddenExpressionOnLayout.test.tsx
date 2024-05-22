@@ -116,7 +116,11 @@ describe('HiddenExpressionOnLayout', () => {
 });
 
 const renderHiddenExpressionOnLayout = (layouts = defaultLayouts) => {
+  const dataModelName = null;
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet], layouts);
-  queryClientMock.setQueryData([QueryKey.DatamodelMetadata, org, app, layoutSet], []);
+  queryClientMock.setQueryData(
+    [QueryKey.DatamodelMetadata, org, app, layoutSet, dataModelName],
+    [],
+  );
   return renderWithProviders(<HiddenExpressionOnLayout />);
 };

@@ -56,7 +56,7 @@ describe('Expressions', () => {
     screen.getByRole('button', { name: textMock('right_menu.expressions_add') });
   });
 
-  it('renders the expression and the button for adding an expression when th hidden field on the component has an expression', () => {
+  it('renders the expression and the button for adding an expression when the hidden field on the component has an expression', () => {
     renderExpressions();
     const expressionName = textMock('right_menu.expressions_property_preview_hidden');
     screen.getByRole('group', { name: expressionName });
@@ -173,9 +173,13 @@ describe('Expressions', () => {
 const renderExpressions = (formItemContext: Partial<FormItemContext> = {}) => {
   const appContextProps: Partial<AppContextProps> = { selectedFormLayoutSetName: layoutSetName };
 
+  const dataModelName = null;
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
-  queryClient.setQueryData([QueryKey.DatamodelMetadata, org, app, layoutSetName], []);
+  queryClient.setQueryData(
+    [QueryKey.DatamodelMetadata, org, app, layoutSetName, dataModelName],
+    [],
+  );
 
   return renderWithProviders(
     <FormItemContext.Provider value={{ ...defaultFormItemContext, ...formItemContext }}>

@@ -67,7 +67,7 @@ const render = async ({
   handleComponentChange = jest.fn(),
 } = {}) => {
   queryClientMock.setQueryData(
-    [QueryKey.DatamodelMetadata, 'org', 'app', 'test-layout-set'],
+    [QueryKey.DatamodelMetadata, 'org', 'app', 'test-layout-set', null],
     dataModelMetadata,
   );
   renderWithProviders(

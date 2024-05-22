@@ -92,9 +92,13 @@ const renderPageConfigPanel = (
   selectedLayoutName: string = DEFAULT_SELECTED_LAYOUT_NAME,
   textResources = defaultTexts,
 ) => {
+  const dataModelName = null;
   queryClientMock.setQueryData([QueryKey.TextResources, org, app], textResources);
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet], layouts);
-  queryClientMock.setQueryData([QueryKey.DatamodelMetadata, org, app, layoutSet], []);
+  queryClientMock.setQueryData(
+    [QueryKey.DatamodelMetadata, org, app, layoutSet, dataModelName],
+    [],
+  );
 
   return renderWithProviders(<PageConfigPanel />, {
     appContextProps: { selectedFormLayoutName: selectedLayoutName },
