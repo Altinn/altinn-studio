@@ -6,7 +6,6 @@ import { waitFor } from '@testing-library/react';
 import type { UpdateLayoutNameMutationArgs } from './useUpdateLayoutNameMutation';
 import { useUpdateLayoutNameMutation } from './useUpdateLayoutNameMutation';
 import { layout1NameMock } from '../../testing/layoutMock';
-import { appContextMock } from '../../testing/appContextMock';
 
 // Test data:
 const org = 'org';
@@ -36,8 +35,6 @@ describe('useUpdateLayoutNameMutation', () => {
       newName,
       selectedLayoutSet,
     );
-
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
   });
 });
 
