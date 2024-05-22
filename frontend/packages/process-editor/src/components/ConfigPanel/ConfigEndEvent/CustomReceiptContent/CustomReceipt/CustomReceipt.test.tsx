@@ -17,9 +17,9 @@ const invalidFormatLayoutSetName: string = 'Receipt/';
 const emptyLayoutSetName: string = '';
 const existingLayoutSetName: string = 'layoutSetName1';
 
-const mockExistingCustomReceiptLayoutSetId: string = mockBpmnApiContextValue.layoutSets.sets[0].id;
+const existingCustomReceiptLayoutSetId: string = mockBpmnApiContextValue.layoutSets.sets[0].id;
 const layoutSetWithCustomReceipt: LayoutSetConfig = {
-  id: mockExistingCustomReceiptLayoutSetId,
+  id: existingCustomReceiptLayoutSetId,
   tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
 };
 const layoutSetWithDataTask: LayoutSetConfig = {
@@ -27,11 +27,18 @@ const layoutSetWithDataTask: LayoutSetConfig = {
   tasks: ['Task_1'],
 };
 
+const layoutSetIdTextKeys: Record<string, string> = {
+  [emptyLayoutSetName]: 'validation_errors.required',
+  [invalidFormatLayoutSetName]: 'ux_editor.pages_error_format',
+  [existingLayoutSetName]: 'process_editor.configuration_panel_layout_set_id_not_unique',
+  [existingCustomReceiptLayoutSetId]: '', // Define the text key for this layoutSetId
+};
+
 const mockAvailableDatamodelIds: string[] = [mockBpmnApiContextValue.layoutSets.sets[1].dataType];
 
 const defaultBpmnContextProps: BpmnApiContextProps = {
   ...mockBpmnApiContextValue,
-  existingCustomReceiptLayoutSetId: mockExistingCustomReceiptLayoutSetId,
+  existingCustomReceiptLayoutSetId: existingCustomReceiptLayoutSetId,
   availableDataModelIds: mockAvailableDatamodelIds,
 };
 
@@ -51,38 +58,47 @@ describe('CustomReceipt', () => {
     const textfield = screen.getByLabelText(
       textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
     );
-    const newLayoutsetId: string = 'Test2';
+    const newLayoutSetId: string = 'Test2';
     await user.clear(textfield);
-    await user.type(textfield, newLayoutsetId);
+    await user.type(textfield, newLayoutSetId);
     await user.tab();
 
     expect(mockBpmnApiContextValue.mutateLayoutSet).toHaveBeenCalledTimes(1);
+    expect(mockBpmnApiContextValue.mutateLayoutSet).toHaveBeenCalledWith({
+      layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
+      newLayoutSetId,
+    });
   });
 
   it('calls "mutateDataType" when the datamodel id is changed', async () => {
     const user = userEvent.setup();
     renderCustomReceipt();
 
-    const properyButton = screen.getByRole('button', {
+    const propertyButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
-    await user.click(properyButton);
+    await user.click(propertyButton);
 
     const select = screen.getByLabelText(
       textMock('process_editor.configuration_panel_set_datamodel'),
     );
     await user.click(select);
-    const option = screen.getByRole('option', { name: mockAvailableDatamodelIds[0] });
+    const newOption: string = mockAvailableDatamodelIds[0];
+    const option = screen.getByRole('option', { name: newOption });
     await user.selectOptions(select, option);
 
     expect(mockBpmnApiContextValue.mutateDataType).toHaveBeenCalledTimes(1);
+    expect(mockBpmnApiContextValue.mutateDataType).toHaveBeenCalledWith({
+      connectedTaskId: PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
+      newDataType: newOption,
+    });
   });
 
   it.each([
     invalidFormatLayoutSetName,
     emptyLayoutSetName,
     existingLayoutSetName,
-    mockExistingCustomReceiptLayoutSetId,
+    existingCustomReceiptLayoutSetId,
   ])('shows correct errormessage when layoutSetId is %s', async (invalidLayoutSetId: string) => {
     const user = userEvent.setup();
     renderCustomReceipt({
@@ -99,26 +115,17 @@ describe('CustomReceipt', () => {
       textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
     );
 
-    if (invalidLayoutSetId === emptyLayoutSetName) {
-      await user.clear(inputField);
-      await user.tab();
-      const error = screen.getByText(textMock('validation_errors.required'));
-      expect(error).toBeInTheDocument();
-    } else {
-      await user.clear(inputField);
-      await user.type(inputField, invalidLayoutSetId);
-      await user.tab();
-    }
-    if (invalidLayoutSetId === invalidFormatLayoutSetName) {
-      const error = screen.getByText(textMock('ux_editor.pages_error_format'));
+    await user.clear(inputField);
+    if (invalidLayoutSetId !== emptyLayoutSetName) await user.type(inputField, invalidLayoutSetId);
+    await user.tab();
+
+    const errorTextKey = layoutSetIdTextKeys[invalidLayoutSetId];
+
+    if (errorTextKey) {
+      const error = screen.getByText(textMock(errorTextKey));
       expect(error).toBeInTheDocument();
     }
-    if (invalidLayoutSetId === existingLayoutSetName) {
-      const error = screen.getByText(
-        textMock('process_editor.configuration_panel_layout_set_id_not_unique'),
-      );
-      expect(error).toBeInTheDocument();
-    }
+
     expect(mockBpmnApiContextValue.mutateLayoutSet).not.toHaveBeenCalled();
   });
 
@@ -133,7 +140,7 @@ describe('CustomReceipt', () => {
     await user.click(deleteButton);
     expect(mockBpmnApiContextValue.deleteLayoutSet).toHaveBeenCalledTimes(1);
     expect(mockBpmnApiContextValue.deleteLayoutSet).toHaveBeenCalledWith({
-      layoutSetIdToUpdate: mockExistingCustomReceiptLayoutSetId,
+      layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
     });
   });
 });
