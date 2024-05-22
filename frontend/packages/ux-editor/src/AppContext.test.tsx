@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import type { WindowWithQueryClient } from './AppContext';
+import type { AppContextProps, WindowWithQueryClient } from './AppContext';
 import { AppContextProvider } from './AppContext';
 import userEvent from '@testing-library/user-event';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
@@ -9,14 +9,50 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useAppContext } from './hooks';
+import type { QueryClient } from '@tanstack/react-query';
 
 const org = 'org';
 const app = 'app';
 const mockSelectedFormLayoutSetName = 'test-layout-set';
 const mockSelectedFormLayoutName = 'Side1';
 
-const renderAppContext = (ChildComponent: React.ElementType) => {
+const TestComponent = ({
+  queryClient,
+  children,
+}: {
+  queryClient: QueryClient;
+  children: (appContext: AppContextProps) => React.ReactNode;
+}) => {
+  const appContext = useAppContext();
+  useEffect(() => {
+    if (appContext.previewIframeRef) {
+      const contentWindow: WindowWithQueryClient =
+        appContext.previewIframeRef?.current?.contentWindow;
+      contentWindow.queryClient = queryClient;
+    }
+  }, [appContext.previewIframeRef, queryClient]);
+  return (
+    <>
+      {children(appContext)}
+      <iframe data-testid='previewIframeRef' ref={appContext.previewIframeRef} />
+    </>
+  );
+};
+
+const buttonTestId = 'button';
+const Button = ({ onClick }: { onClick: () => void }) => (
+  <button data-testid={buttonTestId} onClick={onClick} />
+);
+const clickButton = async () => {
+  const user = userEvent.setup();
+  const button = screen.getByTestId(buttonTestId);
+  await user.click(button);
+};
+
+const renderAppContext = (children: (appContext: AppContextProps) => React.ReactNode) => {
   const queryClient = createQueryClientMock();
+  queryClient.invalidateQueries = jest.fn();
+  queryClient.resetQueries = jest.fn();
   queryClient.setQueryData([QueryKey.LayoutSets, org, app], {
     sets: [
       {
@@ -29,38 +65,37 @@ const renderAppContext = (ChildComponent: React.ElementType) => {
       order: [mockSelectedFormLayoutName],
     },
   });
-  return render(
-    <MemoryRouter>
-      <ServicesContextProvider {...queriesMock} client={queryClient}>
-        <AppContextProvider>
-          <ChildComponent />
-        </AppContextProvider>
-      </ServicesContextProvider>
-    </MemoryRouter>,
-  );
+
+  return {
+    ...render(
+      <MemoryRouter>
+        <ServicesContextProvider {...queriesMock} client={queryClient}>
+          <AppContextProvider>
+            <TestComponent queryClient={queryClient}>
+              {(appContext: AppContextProps) => children(appContext)}
+            </TestComponent>
+          </AppContextProvider>
+        </ServicesContextProvider>
+      </MemoryRouter>,
+    ),
+    queryClient,
+  };
 };
 
 describe('AppContext', () => {
   afterEach(jest.clearAllMocks);
 
   it('sets selectedFormLayoutSetName correctly', async () => {
-    const user = userEvent.setup();
-
-    renderAppContext(() => {
-      const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } = useAppContext();
-      return (
+    renderAppContext(
+      ({ selectedFormLayoutSetName, setSelectedFormLayoutSetName }: AppContextProps) => (
         <>
-          <button
-            data-testid='button'
-            onClick={() => setSelectedFormLayoutSetName(mockSelectedFormLayoutSetName)}
-          />
+          <Button onClick={() => setSelectedFormLayoutSetName(mockSelectedFormLayoutSetName)} />
           <div data-testid='selectedFormLayoutSetName'>{selectedFormLayoutSetName}</div>
         </>
-      );
-    });
+      ),
+    );
 
-    const button = screen.getByTestId('button');
-    await user.click(button);
+    await clickButton();
 
     await waitFor(async () =>
       expect((await screen.findByTestId('selectedFormLayoutSetName')).textContent).toEqual(
@@ -70,25 +105,16 @@ describe('AppContext', () => {
   });
 
   it('sets selectedFormLayoutName correctly', async () => {
-    const user = userEvent.setup();
-
-    renderAppContext(() => {
-      const { selectedFormLayoutName, setSelectedFormLayoutName } = useAppContext();
-      return (
-        <>
-          <button
-            data-testid='button'
-            onClick={() => setSelectedFormLayoutName(mockSelectedFormLayoutName)}
-          />
-          <div data-testid='selectedFormLayoutName'>{selectedFormLayoutName}</div>
-        </>
-      );
-    });
+    renderAppContext(({ selectedFormLayoutName, setSelectedFormLayoutName }: AppContextProps) => (
+      <>
+        <Button onClick={() => setSelectedFormLayoutName(mockSelectedFormLayoutName)} />
+        <div data-testid='selectedFormLayoutName'>{selectedFormLayoutName}</div>
+      </>
+    ));
 
     expect((await screen.findByTestId('selectedFormLayoutName')).textContent).toEqual('');
 
-    const button = screen.getByTestId('button');
-    await user.click(button);
+    await clickButton();
 
     await waitFor(async () =>
       expect((await screen.findByTestId('selectedFormLayoutName')).textContent).toEqual(
@@ -97,30 +123,14 @@ describe('AppContext', () => {
     );
   });
 
-  it('refetches layouts correctly', async () => {
-    const user = userEvent.setup();
+  it('invalidates layout query', async () => {
+    const { queryClient } = renderAppContext(
+      ({ refetchLayouts, selectedFormLayoutSetName }: AppContextProps) => (
+        <Button onClick={() => refetchLayouts(selectedFormLayoutSetName)} />
+      ),
+    );
 
-    const queryClient = createQueryClientMock();
-    queryClient.invalidateQueries = jest.fn();
-
-    renderAppContext(() => {
-      const { previewIframeRef, refetchLayouts, selectedFormLayoutSetName } = useAppContext();
-      useEffect(() => {
-        if (previewIframeRef) {
-          const contentWindow: WindowWithQueryClient = previewIframeRef?.current?.contentWindow;
-          contentWindow.queryClient = queryClient;
-        }
-      }, [previewIframeRef]);
-      return (
-        <>
-          <button data-testid='button' onClick={() => refetchLayouts(selectedFormLayoutSetName)} />
-          <iframe data-testid='previewIframeRef' ref={previewIframeRef} />
-        </>
-      );
-    });
-
-    const button = screen.getByTestId('button');
-    await user.click(button);
+    await clickButton();
 
     await waitFor(async () => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
     await waitFor(async () =>
@@ -130,34 +140,31 @@ describe('AppContext', () => {
     );
   });
 
-  it('refetches layout settings correctly', async () => {
-    const user = userEvent.setup();
+  it('resets layout query', async () => {
+    const { queryClient } = renderAppContext(
+      ({ refetchLayouts, selectedFormLayoutSetName }: AppContextProps) => (
+        <Button onClick={() => refetchLayouts(selectedFormLayoutSetName, true)} />
+      ),
+    );
 
-    const queryClient = createQueryClientMock();
-    queryClient.invalidateQueries = jest.fn();
+    await clickButton();
 
-    renderAppContext(() => {
-      const { previewIframeRef, refetchLayoutSettings, selectedFormLayoutSetName } =
-        useAppContext();
-      useEffect(() => {
-        if (previewIframeRef) {
-          const contentWindow: WindowWithQueryClient = previewIframeRef?.current?.contentWindow;
-          contentWindow.queryClient = queryClient;
-        }
-      }, [previewIframeRef]);
-      return (
-        <>
-          <button
-            data-testid='button'
-            onClick={() => refetchLayoutSettings(selectedFormLayoutSetName)}
-          />
-          <iframe data-testid='previewIframeRef' ref={previewIframeRef} />
-        </>
-      );
-    });
+    await waitFor(async () => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
+    await waitFor(async () =>
+      expect(queryClient.resetQueries).toHaveBeenCalledWith({
+        queryKey: ['formLayouts', mockSelectedFormLayoutSetName],
+      }),
+    );
+  });
 
-    const button = screen.getByTestId('button');
-    await user.click(button);
+  it('invalidates layout settings query', async () => {
+    const { queryClient } = renderAppContext(
+      ({ refetchLayoutSettings, selectedFormLayoutSetName }: AppContextProps) => (
+        <Button onClick={() => refetchLayoutSettings(selectedFormLayoutSetName)} />
+      ),
+    );
+
+    await clickButton();
 
     await waitFor(async () => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
     await waitFor(async () =>
@@ -167,36 +174,52 @@ describe('AppContext', () => {
     );
   });
 
-  it('refetches texts correctly', async () => {
-    const user = userEvent.setup();
+  it('reset layout settings query', async () => {
+    const { queryClient } = renderAppContext(
+      ({ refetchLayoutSettings, selectedFormLayoutSetName }: AppContextProps) => (
+        <Button onClick={() => refetchLayoutSettings(selectedFormLayoutSetName, true)} />
+      ),
+    );
 
+    await clickButton();
+
+    await waitFor(async () => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
+    await waitFor(async () =>
+      expect(queryClient.resetQueries).toHaveBeenCalledWith({
+        queryKey: ['layoutSettings', mockSelectedFormLayoutSetName],
+      }),
+    );
+  });
+
+  it('invalidates text query', async () => {
     const mockLanguage = 'nb';
 
-    const queryClient = createQueryClientMock();
-    queryClient.invalidateQueries = jest.fn();
+    const { queryClient } = renderAppContext(({ refetchTexts }: AppContextProps) => (
+      <Button onClick={() => refetchTexts(mockLanguage)} />
+    ));
 
-    renderAppContext(() => {
-      const { previewIframeRef, refetchTexts } = useAppContext();
-      useEffect(() => {
-        if (previewIframeRef) {
-          const contentWindow: WindowWithQueryClient = previewIframeRef?.current?.contentWindow;
-          contentWindow.queryClient = queryClient;
-        }
-      }, [previewIframeRef]);
-      return (
-        <>
-          <button data-testid='button' onClick={() => refetchTexts(mockLanguage)} />
-          <iframe data-testid='previewIframeRef' ref={previewIframeRef} />
-        </>
-      );
-    });
-
-    const button = screen.getByTestId('button');
-    await user.click(button);
+    await clickButton();
 
     await waitFor(async () => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
     await waitFor(async () =>
       expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['fetchTextResources', mockLanguage],
+      }),
+    );
+  });
+
+  it('resets text query', async () => {
+    const mockLanguage = 'nb';
+
+    const { queryClient } = renderAppContext(({ refetchTexts }: AppContextProps) => (
+      <Button onClick={() => refetchTexts(mockLanguage, true)} />
+    ));
+
+    await clickButton();
+
+    await waitFor(async () => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
+    await waitFor(async () =>
+      expect(queryClient.resetQueries).toHaveBeenCalledWith({
         queryKey: ['fetchTextResources', mockLanguage],
       }),
     );
