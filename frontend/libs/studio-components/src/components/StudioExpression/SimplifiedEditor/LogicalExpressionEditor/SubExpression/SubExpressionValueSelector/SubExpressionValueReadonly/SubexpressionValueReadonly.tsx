@@ -20,6 +20,10 @@ export const SubexpressionValueReadonly = ({
       return <DatamodelLookupValue value={value} />;
     case SimpleSubexpressionValueType.Component:
       return <ComponentLookupValue value={value} />;
+    case SimpleSubexpressionValueType.GatewayAction:
+      return <GatewayAction value={value} />;
+    case SimpleSubexpressionValueType.GatewayActionContext:
+      return <GatewayActionContextValue value={value} />;
     case SimpleSubexpressionValueType.InstanceContext:
       return <InstanceContextValue value={value} />;
     case SimpleSubexpressionValueType.String:
@@ -72,6 +76,29 @@ const InstanceContextValue = ({
       }
     />
   );
+};
+
+const GatewayActionContextValue = ({
+  value,
+}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.GatewayActionContext>) => {
+  const { texts } = useStudioExpressionContext();
+  const name = texts.gatewayActionContext[value.key];
+  return (
+    <Binding
+      name={texts.readonlyGatewayActionContext}
+      binding={
+        <Tag size='small' color='info'>
+          {name}
+        </Tag>
+      }
+    />
+  );
+};
+
+const GatewayAction = ({
+  value,
+}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.GatewayAction>) => {
+  return <Paragraph size='small'>{value.value}</Paragraph>;
 };
 
 const Binding = ({ name, binding }: { name: string; binding: ReactNode }) => {

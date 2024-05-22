@@ -4,7 +4,6 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import type { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
-import { useAppContext } from '../useAppContext';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
 
 export const useFormLayoutMutation = (
@@ -16,7 +15,6 @@ export const useFormLayoutMutation = (
   const previewConnection = usePreviewConnection();
   const { saveFormLayout } = useServicesContext();
   const queryClient = useQueryClient();
-  const { refetchLayouts } = useAppContext();
 
   return useMutation({
     mutationFn: (layout: IInternalLayout) => {
@@ -36,8 +34,6 @@ export const useFormLayoutMutation = (
         [QueryKey.FormLayouts, org, app, layoutSetName],
         (oldData: IFormLayouts) => ({ ...oldData, [layoutName]: savedLayout }),
       );
-
-      await refetchLayouts(layoutSetName);
     },
   });
 };
