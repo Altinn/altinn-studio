@@ -8,6 +8,7 @@ using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Tests.Infrastructure.Clients.Storage.TestData;
+using Altinn.App.Core.Tests.Mocks;
 using Altinn.App.PlatformServices.Tests.Data;
 using Altinn.App.PlatformServices.Tests.Mocks;
 using Altinn.Platform.Storage.Interface.Models;
@@ -16,7 +17,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Infrastructure.Clients.Storage
 {
@@ -43,6 +43,7 @@ namespace Altinn.App.Core.Tests.Infrastructure.Clients.Storage
         {
             // Arrange
             HttpRequestMessage? platformRequest = null;
+            TelemetrySink telemetrySink = new();
 
             var target = GetDataClient(
                 async (HttpRequestMessage request, CancellationToken token) =>
@@ -52,7 +53,8 @@ namespace Altinn.App.Core.Tests.Infrastructure.Clients.Storage
                     DataElement dataElement = new DataElement { Id = "DataElement.Id", InstanceGuid = "InstanceGuid" };
                     await Task.CompletedTask;
                     return new HttpResponseMessage() { Content = JsonContent.Create(dataElement) };
-                }
+                },
+                telemetrySink
             );
 
             var stream = new MemoryStream(Encoding.UTF8.GetBytes("This is not a pdf, but no one here will care."));
@@ -76,6 +78,8 @@ namespace Altinn.App.Core.Tests.Infrastructure.Clients.Storage
 
             Assert.NotNull(platformRequest);
             AssertHttpRequest(platformRequest, expectedUri, HttpMethod.Post, "\"a cats story.pdf\"", "application/pdf");
+
+            await Verify(telemetrySink.GetSnapshot());
         }
 
         [Fact]
@@ -835,7 +839,8 @@ namespace Altinn.App.Core.Tests.Infrastructure.Clients.Storage
         }
 
         private DataClient GetDataClient(
-            Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> handlerFunc
+            Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> handlerFunc,
+            TelemetrySink? telemetrySink = null
         )
         {
             DelegatingHandlerStub delegatingHandlerStub = new(handlerFunc);
@@ -843,7 +848,8 @@ namespace Altinn.App.Core.Tests.Infrastructure.Clients.Storage
                 platformSettingsOptions.Object,
                 logger,
                 new HttpClient(delegatingHandlerStub),
-                userTokenProvide.Object
+                userTokenProvide.Object,
+                telemetrySink?.Object
             );
         }
 

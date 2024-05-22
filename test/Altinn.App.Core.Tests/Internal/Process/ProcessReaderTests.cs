@@ -1,8 +1,10 @@
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Tests.Internal.Process.TestUtils;
+using Altinn.App.Core.Tests.Mocks;
 using FluentAssertions;
 using Xunit;
 
@@ -22,10 +24,13 @@ public class ProcessReaderTests
     }
 
     [Fact]
-    public void IsStartEvent_returns_true_when_element_is_StartEvent()
+    public async Task IsStartEvent_returns_true_when_element_is_StartEvent()
     {
-        IProcessReader pr = ProcessTestUtils.SetupProcessReader("simple-gateway.bpmn");
+        TelemetrySink telemetrySink = new();
+        IProcessReader pr = ProcessTestUtils.SetupProcessReader("simple-gateway.bpmn", null, telemetrySink);
         pr.IsStartEvent("StartEvent").Should().BeTrue();
+
+        await Verify(telemetrySink.GetSnapshot());
     }
 
     [Fact]

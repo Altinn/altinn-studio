@@ -9,13 +9,15 @@ namespace Altinn.App.Core.Features.FileAnalyzis
     public class FileAnalysisService : IFileAnalysisService
     {
         private readonly IFileAnalyserFactory _fileAnalyserFactory;
+        private readonly Telemetry? _telemetry;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FileAnalysisService"/> class.
         /// </summary>
-        public FileAnalysisService(IFileAnalyserFactory fileAnalyserFactory)
+        public FileAnalysisService(IFileAnalyserFactory fileAnalyserFactory, Telemetry? telemetry = null)
         {
             _fileAnalyserFactory = fileAnalyserFactory;
+            _telemetry = telemetry;
         }
 
         /// <summary>
@@ -27,6 +29,7 @@ namespace Altinn.App.Core.Features.FileAnalyzis
             string? filename = null
         )
         {
+            using var activity = _telemetry?.StartAnalyseActivity();
             List<IFileAnalyser> fileAnalysers = _fileAnalyserFactory
                 .GetFileAnalysers(dataType.EnabledFileAnalysers)
                 .ToList();

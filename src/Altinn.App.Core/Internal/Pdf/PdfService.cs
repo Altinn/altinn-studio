@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Xml.Serialization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.Extensions;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
@@ -28,7 +29,7 @@ public class PdfService : IPdfService
     private readonly IPdfGeneratorClient _pdfGeneratorClient;
     private readonly PdfGeneratorSettings _pdfGeneratorSettings;
     private readonly GeneralSettings _generalSettings;
-
+    private readonly Telemetry? _telemetry;
     private const string PdfElementType = "ref-data-as-pdf";
     private const string PdfContentType = "application/pdf";
 
@@ -42,6 +43,7 @@ public class PdfService : IPdfService
     /// <param name="pdfGeneratorClient">PDF generator client for the experimental PDF generator service</param>
     /// <param name="pdfGeneratorSettings">PDF generator related settings.</param>
     /// <param name="generalSettings">The app general settings.</param>
+    /// <param name="telemetry">Telemetry for metrics and traces.</param>
     public PdfService(
         IAppResources appResources,
         IDataClient dataClient,
@@ -49,7 +51,8 @@ public class PdfService : IPdfService
         IProfileClient profileClient,
         IPdfGeneratorClient pdfGeneratorClient,
         IOptions<PdfGeneratorSettings> pdfGeneratorSettings,
-        IOptions<GeneralSettings> generalSettings
+        IOptions<GeneralSettings> generalSettings,
+        Telemetry? telemetry = null
     )
     {
         _resourceService = appResources;
@@ -59,11 +62,13 @@ public class PdfService : IPdfService
         _pdfGeneratorClient = pdfGeneratorClient;
         _pdfGeneratorSettings = pdfGeneratorSettings.Value;
         _generalSettings = generalSettings.Value;
+        _telemetry = telemetry;
     }
 
     /// <inheritdoc/>
     public async Task GenerateAndStorePdf(Instance instance, string taskId, CancellationToken ct)
     {
+        using var activity = _telemetry?.StartGenerateAndStorePdfActivity(instance, taskId);
         string language = GetOverriddenLanguage();
         // Avoid a costly call if the language is allready overriden by the user
         language = string.IsNullOrEmpty(language) ? await GetLanguage() : language;
@@ -80,6 +85,7 @@ public class PdfService : IPdfService
     /// <inheritdoc/>
     public async Task<Stream> GeneratePdf(Instance instance, string taskId, CancellationToken ct)
     {
+        using var activity = _telemetry?.StartGeneratePdfActivity(instance, taskId);
         var language = GetOverriddenLanguage();
         // Avoid a costly call if the language is allready overriden by the user
         language = string.IsNullOrEmpty(language) ? await GetLanguage() : language;

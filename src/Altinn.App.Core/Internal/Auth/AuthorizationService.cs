@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Internal.Process.Authorization;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -16,30 +17,36 @@ public class AuthorizationService : IAuthorizationService
 {
     private readonly IAuthorizationClient _authorizationClient;
     private readonly IEnumerable<IUserActionAuthorizerProvider> _userActionAuthorizers;
+    private readonly Telemetry? _telemetry;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AuthorizationService"/> class
     /// </summary>
     /// <param name="authorizationClient">The authorization client</param>
     /// <param name="userActionAuthorizers">The user action authorizers</param>
+    /// <param name="telemetry">Telemetry for traces and metrics.</param>
     public AuthorizationService(
         IAuthorizationClient authorizationClient,
-        IEnumerable<IUserActionAuthorizerProvider> userActionAuthorizers
+        IEnumerable<IUserActionAuthorizerProvider> userActionAuthorizers,
+        Telemetry? telemetry = null
     )
     {
         _authorizationClient = authorizationClient;
         _userActionAuthorizers = userActionAuthorizers;
+        _telemetry = telemetry;
     }
 
     /// <inheritdoc />
     public async Task<List<Party>?> GetPartyList(int userId)
     {
+        using var activity = _telemetry?.StartGetPartyListActivity(userId);
         return await _authorizationClient.GetPartyList(userId);
     }
 
     /// <inheritdoc />
     public async Task<bool?> ValidateSelectedParty(int userId, int partyId)
     {
+        using var activity = _telemetry?.StartValidateSelectedPartyActivity(userId, partyId);
         return await _authorizationClient.ValidateSelectedParty(userId, partyId);
     }
 
@@ -52,6 +59,7 @@ public class AuthorizationService : IAuthorizationService
         string? taskId = null
     )
     {
+        using var activity = _telemetry?.StartAuthorizeActionActivity(instanceIdentifier, action, taskId);
         if (!await _authorizationClient.AuthorizeAction(appIdentifier, instanceIdentifier, user, action, taskId))
         {
             return false;
@@ -80,12 +88,13 @@ public class AuthorizationService : IAuthorizationService
         List<AltinnAction> actions
     )
     {
+        using var activity = _telemetry?.StartAuthorizeActionsActivity(instance, actions);
         var authDecisions = await _authorizationClient.AuthorizeActions(
             instance,
             user,
             actions.Select(a => a.Value).ToList()
         );
-        List<UserAction> authorizedActions = new();
+        List<UserAction> authorizedActions = [];
         foreach (var action in actions)
         {
             authorizedActions.Add(

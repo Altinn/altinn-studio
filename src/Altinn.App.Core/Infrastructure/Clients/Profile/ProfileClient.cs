@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Profile;
@@ -26,6 +27,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Profile
         private readonly HttpClient _client;
         private readonly IAppMetadata _appMetadata;
         private readonly IAccessTokenGenerator _accessTokenGenerator;
+        private readonly Telemetry? _telemetry;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProfileClient"/> class
@@ -37,6 +39,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Profile
         /// <param name="httpClient">A HttpClient provided by the HttpClientFactory.</param>
         /// <param name="appMetadata">An instance of the IAppMetadata service.</param>
         /// <param name="accessTokenGenerator">An instance of the AccessTokenGenerator service.</param>
+        /// <param name="telemetry">Telemetry for traces and metrics.</param>
         public ProfileClient(
             IOptions<PlatformSettings> platformSettings,
             ILogger<ProfileClient> logger,
@@ -44,7 +47,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Profile
             IOptionsMonitor<AppSettings> settings,
             HttpClient httpClient,
             IAppMetadata appMetadata,
-            IAccessTokenGenerator accessTokenGenerator
+            IAccessTokenGenerator accessTokenGenerator,
+            Telemetry? telemetry = null
         )
         {
             _logger = logger;
@@ -59,11 +63,13 @@ namespace Altinn.App.Core.Infrastructure.Clients.Profile
             _client = httpClient;
             _appMetadata = appMetadata;
             _accessTokenGenerator = accessTokenGenerator;
+            _telemetry = telemetry;
         }
 
         /// <inheritdoc />
         public async Task<UserProfile?> GetUserProfile(int userId)
         {
+            using var activity = _telemetry?.StartGetUserProfileActivity(userId);
             UserProfile? userProfile = null;
 
             string endpointUrl = $"users/{userId}";

@@ -5,7 +5,6 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models.Notifications.Sms;
 using Altinn.Common.AccessTokenClient.Services;
-using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -13,12 +12,14 @@ namespace Altinn.App.Core.Features.Notifications.Sms;
 
 internal sealed class SmsNotificationClient : ISmsNotificationClient
 {
+    private static readonly Telemetry.Notifications.OrderType _orderType = Telemetry.Notifications.OrderType.Sms;
+
     private readonly ILogger<SmsNotificationClient> _logger;
     private readonly HttpClient _httpClient;
     private readonly PlatformSettings _platformSettings;
     private readonly IAppMetadata _appMetadata;
     private readonly IAccessTokenGenerator _accessTokenGenerator;
-    private readonly TelemetryClient? _telemetryClient;
+    private readonly Telemetry? _telemetry;
 
     public SmsNotificationClient(
         ILogger<SmsNotificationClient> logger,
@@ -26,7 +27,7 @@ internal sealed class SmsNotificationClient : ISmsNotificationClient
         IOptions<PlatformSettings> platformSettings,
         IAppMetadata appMetadata,
         IAccessTokenGenerator accessTokenGenerator,
-        TelemetryClient? telemetryClient = null
+        Telemetry? telemetry = null
     )
     {
         _logger = logger;
@@ -34,23 +35,15 @@ internal sealed class SmsNotificationClient : ISmsNotificationClient
         _platformSettings = platformSettings.Value;
         _appMetadata = appMetadata;
         _accessTokenGenerator = accessTokenGenerator;
-        _telemetryClient = telemetryClient;
+        _telemetry = telemetry;
     }
 
     public async Task<SmsNotificationOrderResponse> Order(SmsNotification smsNotification, CancellationToken ct)
     {
-        DateTime startDateTime = default;
-        long startTimestamp = default;
-        if (_telemetryClient is not null)
-        {
-            startDateTime = DateTime.UtcNow;
-            startTimestamp = Stopwatch.GetTimestamp();
-        }
+        using var activity = _telemetry?.StartNotificationOrderActivity(_orderType);
 
         HttpResponseMessage? httpResponseMessage = null;
         string? httpContent = null;
-        Exception? exception = null;
-
         try
         {
             Models.ApplicationMetadata? application = await _appMetadata.GetApplicationMetadata();
@@ -79,7 +72,7 @@ internal sealed class SmsNotificationClient : ISmsNotificationClient
                 if (orderResponse is null)
                     throw new JsonException("Couldn't deserialize SMS notification order response");
 
-                Telemetry.OrderCount.WithLabels(Telemetry.Types.Sms, Telemetry.Result.Success).Inc();
+                _telemetry?.RecordNotificationOrder(_orderType, Telemetry.Notifications.OrderResult.Success);
                 return orderResponse;
             }
             else
@@ -89,8 +82,6 @@ internal sealed class SmsNotificationClient : ISmsNotificationClient
         }
         catch (Exception e)
         {
-            exception = e;
-            Telemetry.OrderCount.WithLabels(Telemetry.Types.Sms, Telemetry.Result.Error).Inc();
             var ex = new SmsNotificationException(
                 $"Something went wrong when processing the SMS notification order",
                 httpResponseMessage,
@@ -98,25 +89,14 @@ internal sealed class SmsNotificationClient : ISmsNotificationClient
                 e
             );
             _logger.LogError(ex, "Error when processing SMS notification order");
+
+            _telemetry?.RecordNotificationOrder(_orderType, Telemetry.Notifications.OrderResult.Error);
+
             throw ex;
         }
         finally
         {
             httpResponseMessage?.Dispose();
-            if (_telemetryClient is not null)
-            {
-                var stopTimestamp = Stopwatch.GetTimestamp();
-                var elapsed = Stopwatch.GetElapsedTime(startTimestamp, stopTimestamp);
-
-                _telemetryClient.TrackDependency(
-                    Telemetry.Dependency.TypeName,
-                    Telemetry.Dependency.Name,
-                    null,
-                    startDateTime,
-                    elapsed,
-                    exception is null
-                );
-            }
         }
     }
 }

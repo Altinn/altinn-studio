@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
@@ -31,6 +32,7 @@ namespace Altinn.App.Core.Implementation
         private readonly IAppMetadata _appMetadata;
         private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly ILogger _logger;
+        private readonly Telemetry? _telemetry;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AppResourcesSI"/> class.
@@ -39,22 +41,26 @@ namespace Altinn.App.Core.Implementation
         /// <param name="appMetadata">App metadata service</param>
         /// <param name="hostingEnvironment">The hosting environment</param>
         /// <param name="logger">A logger from the built in logger factory.</param>
+        /// <param name="telemetry">Telemetry for traces and metrics.</param>
         public AppResourcesSI(
             IOptions<AppSettings> settings,
             IAppMetadata appMetadata,
             IWebHostEnvironment hostingEnvironment,
-            ILogger<AppResourcesSI> logger
+            ILogger<AppResourcesSI> logger,
+            Telemetry? telemetry = null
         )
         {
             _settings = settings.Value;
             _appMetadata = appMetadata;
             _hostingEnvironment = hostingEnvironment;
             _logger = logger;
+            _telemetry = telemetry;
         }
 
         /// <inheritdoc />
         public byte[] GetText(string org, string app, string textResource)
         {
+            using var activity = _telemetry?.StartGetTextActivity();
             return ReadFileContentsFromLegalPath(
                 _settings.AppBasePath + _settings.ConfigurationFolder + _settings.TextFolder,
                 textResource
@@ -64,6 +70,7 @@ namespace Altinn.App.Core.Implementation
         /// <inheritdoc />
         public async Task<TextResource?> GetTexts(string org, string app, string language)
         {
+            using var activity = _telemetry?.StartGetTextsActivity();
             string pathTextsFolder = _settings.AppBasePath + _settings.ConfigurationFolder + _settings.TextFolder;
             string fullFileName = Path.Join(pathTextsFolder, $"resource.{language}.json");
 
@@ -93,6 +100,7 @@ namespace Altinn.App.Core.Implementation
         /// <inheritdoc />
         public Application GetApplication()
         {
+            using var activity = _telemetry?.StartGetApplicationActivity();
             try
             {
                 ApplicationMetadata applicationMetadata = _appMetadata.GetApplicationMetadata().Result;
@@ -113,6 +121,7 @@ namespace Altinn.App.Core.Implementation
         /// <inheritdoc/>
         public string? GetApplicationXACMLPolicy()
         {
+            using var activity = _telemetry?.StartClientGetApplicationXACMLPolicyActivity();
             try
             {
                 return _appMetadata.GetApplicationXACMLPolicy().Result;
@@ -127,6 +136,7 @@ namespace Altinn.App.Core.Implementation
         /// <inheritdoc/>
         public string? GetApplicationBPMNProcess()
         {
+            using var activity = _telemetry?.StartClientGetApplicationBPMNProcessActivity();
             try
             {
                 return _appMetadata.GetApplicationBPMNProcess().Result;
@@ -141,6 +151,7 @@ namespace Altinn.App.Core.Implementation
         /// <inheritdoc/>
         public string GetModelJsonSchema(string modelId)
         {
+            using var activity = _telemetry?.StartGetModelJsonSchemaActivity();
             string legalPath = $"{_settings.AppBasePath}{_settings.ModelsFolder}";
             string filename = $"{legalPath}{modelId}.{_settings.JsonSchemaFileName}";
             PathHelper.EnsureLegalPath(legalPath, filename);
@@ -153,6 +164,7 @@ namespace Altinn.App.Core.Implementation
         /// <inheritdoc />
         public string? GetPrefillJson(string dataModelName = "ServiceModel")
         {
+            using var activity = _telemetry?.StartGetPrefillJsonActivity();
             string legalPath = _settings.AppBasePath + _settings.ModelsFolder;
             string filename = legalPath + dataModelName + ".prefill.json";
             PathHelper.EnsureLegalPath(legalPath, filename);
@@ -169,6 +181,7 @@ namespace Altinn.App.Core.Implementation
         /// <inheritdoc />
         public string? GetLayoutSettingsString()
         {
+            using var activity = _telemetry?.StartGetLayoutSettingsStringActivity();
             string filename = Path.Join(
                 _settings.AppBasePath,
                 _settings.UiFolder,
@@ -186,6 +199,7 @@ namespace Altinn.App.Core.Implementation
         /// <inheritdoc />
         public LayoutSettings GetLayoutSettings()
         {
+            using var activity = _telemetry?.StartGetLayoutSettingsActivity();
             string filename = Path.Join(
                 _settings.AppBasePath,
                 _settings.UiFolder,
@@ -204,6 +218,7 @@ namespace Altinn.App.Core.Implementation
         /// <inheritdoc />
         public string GetClassRefForLogicDataType(string dataType)
         {
+            using var activity = _telemetry?.StartGetClassRefActivity();
             Application application = GetApplication();
             string classRef = string.Empty;
 
@@ -220,6 +235,7 @@ namespace Altinn.App.Core.Implementation
         /// <inheritdoc />
         public string GetLayouts()
         {
+            using var activity = _telemetry?.StartGetLayoutsActivity();
             Dictionary<string, object> layouts = new Dictionary<string, object>();
 
             // Get FormLayout.json if it exists and return it (for backwards compatibility)
@@ -248,6 +264,7 @@ namespace Altinn.App.Core.Implementation
         /// <inheritdoc />
         public string GetLayoutSets()
         {
+            using var activity = _telemetry?.StartGetLayoutSetsActivity();
             string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.LayoutSetsFileName);
             string? filedata = null;
             if (File.Exists(filename))
@@ -262,6 +279,7 @@ namespace Altinn.App.Core.Implementation
         /// <inheritdoc />
         public LayoutSets? GetLayoutSet()
         {
+            using var activity = _telemetry?.StartGetLayoutSetActivity();
             string? layoutSetsString = GetLayoutSets();
             if (layoutSetsString is not null)
             {
@@ -277,6 +295,7 @@ namespace Altinn.App.Core.Implementation
         /// <inheritdoc />
         public LayoutSet? GetLayoutSetForTask(string taskId)
         {
+            using var activity = _telemetry?.StartGetLayoutSetsForTaskActivity();
             var sets = GetLayoutSet();
             return sets?.Sets?.FirstOrDefault(s => s?.Tasks?.Contains(taskId) ?? false);
         }
@@ -284,6 +303,7 @@ namespace Altinn.App.Core.Implementation
         /// <inheritdoc />
         public string GetLayoutsForSet(string layoutSetId)
         {
+            using var activity = _telemetry?.StartGetLayoutsForSetActivity();
             Dictionary<string, object> layouts = new Dictionary<string, object>();
 
             string layoutsPath = _settings.AppBasePath + _settings.UiFolder + layoutSetId + "/layouts/";
@@ -303,6 +323,7 @@ namespace Altinn.App.Core.Implementation
         /// <inheritdoc />
         public LayoutModel GetLayoutModel(string? layoutSetId = null)
         {
+            using var activity = _telemetry?.StartGetLayoutModelActivity();
             string folder = Path.Join(_settings.AppBasePath, _settings.UiFolder, layoutSetId, "layouts");
             var order = GetLayoutSettingsForSet(layoutSetId)?.Pages?.Order;
             if (order is null)
@@ -331,6 +352,7 @@ namespace Altinn.App.Core.Implementation
         /// <inheritdoc />
         public string? GetLayoutSettingsStringForSet(string layoutSetId)
         {
+            using var activity = _telemetry?.StartGetLayoutSettingsStringForSetActivity();
             string filename = Path.Join(
                 _settings.AppBasePath,
                 _settings.UiFolder,
@@ -349,6 +371,7 @@ namespace Altinn.App.Core.Implementation
         /// <inheritdoc />
         public LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId)
         {
+            using var activity = _telemetry?.StartGetLayoutSettingsForSetActivity();
             string filename = Path.Join(
                 _settings.AppBasePath,
                 _settings.UiFolder,
@@ -369,6 +392,7 @@ namespace Altinn.App.Core.Implementation
         /// <inheritdoc />
         public byte[] GetRuleConfigurationForSet(string id)
         {
+            using var activity = _telemetry?.StartGetRuleConfigurationForSetActivity();
             string legalPath = Path.Join(_settings.AppBasePath, _settings.UiFolder);
             string filename = Path.Join(legalPath, id, _settings.RuleConfigurationJSONFileName);
 
@@ -380,6 +404,7 @@ namespace Altinn.App.Core.Implementation
         /// <inheritdoc />
         public byte[] GetRuleHandlerForSet(string id)
         {
+            using var activity = _telemetry?.StartGetRuleHandlerForSetActivity();
             string legalPath = Path.Join(_settings.AppBasePath, _settings.UiFolder);
             string filename = Path.Join(legalPath, id, _settings.RuleHandlerFileName);
 
@@ -422,6 +447,7 @@ namespace Altinn.App.Core.Implementation
         /// <inheritdoc />
         public async Task<string?> GetFooter()
         {
+            using var activity = _telemetry?.StartGetFooterActivity();
             string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.FooterFileName);
             string? filedata = null;
             if (File.Exists(filename))
@@ -435,6 +461,7 @@ namespace Altinn.App.Core.Implementation
         /// <inheritdoc />
         public string? GetValidationConfiguration(string modelId)
         {
+            using var activity = _telemetry?.StartGetValidationConfigurationActivity();
             string legalPath = $"{_settings.AppBasePath}{_settings.ModelsFolder}";
             string filename = $"{legalPath}{modelId}.{_settings.ValidationConfigurationFileName}";
             PathHelper.EnsureLegalPath(legalPath, filename);

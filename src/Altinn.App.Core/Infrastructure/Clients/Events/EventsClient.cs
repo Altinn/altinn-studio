@@ -4,6 +4,7 @@ using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Events;
@@ -25,6 +26,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
         private readonly AppSettings _settings;
         private readonly GeneralSettings _generalSettings;
         private readonly HttpClient _client;
+        private readonly Telemetry? _telemetry;
         private readonly IAccessTokenGenerator _accessTokenGenerator;
         private readonly IAppMetadata _appMetadata;
 
@@ -38,6 +40,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
         /// <param name="appMetadata">The app metadata service</param>
         /// <param name="settings">The application settings.</param>
         /// <param name="generalSettings">The general settings of the application.</param>
+        /// <param name="telemetry">Telemetry for metrics and traces.</param>
         public EventsClient(
             IOptions<PlatformSettings> platformSettings,
             IHttpContextAccessor httpContextAccessor,
@@ -45,7 +48,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
             IAccessTokenGenerator accessTokenGenerator,
             IAppMetadata appMetadata,
             IOptionsMonitor<AppSettings> settings,
-            IOptions<GeneralSettings> generalSettings
+            IOptions<GeneralSettings> generalSettings,
+            Telemetry? telemetry = null
         )
         {
             _httpContextAccessor = httpContextAccessor;
@@ -60,11 +64,13 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
             );
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _client = httpClient;
+            _telemetry = telemetry;
         }
 
         /// <inheritdoc/>
         public async Task<string> AddEvent(string eventType, Instance instance)
         {
+            using var activity = _telemetry?.StartAddEventActivity(instance);
             string? alternativeSubject = null;
             if (!string.IsNullOrWhiteSpace(instance.InstanceOwner.OrganisationNumber))
             {

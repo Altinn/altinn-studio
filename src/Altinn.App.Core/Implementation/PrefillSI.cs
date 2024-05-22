@@ -1,4 +1,5 @@
 using System.Reflection;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Prefill;
@@ -20,6 +21,7 @@ namespace Altinn.App.Core.Implementation
         private readonly IAppResources _appResourcesService;
         private readonly IAltinnPartyClient _altinnPartyClientClient;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly Telemetry? _telemetry;
         private static readonly string ER_KEY = "ER";
         private static readonly string DSF_KEY = "DSF";
         private static readonly string USER_PROFILE_KEY = "UserProfile";
@@ -34,12 +36,14 @@ namespace Altinn.App.Core.Implementation
         /// <param name="appResourcesService">The app's resource service</param>
         /// <param name="altinnPartyClientClient">The register client</param>
         /// <param name="httpContextAccessor">A service with access to the http context.</param>
+        /// <param name="telemetry">Telemetry for traces and metrics.</param>
         public PrefillSI(
             ILogger<PrefillSI> logger,
             IProfileClient profileClient,
             IAppResources appResourcesService,
             IAltinnPartyClient altinnPartyClientClient,
-            IHttpContextAccessor httpContextAccessor
+            IHttpContextAccessor httpContextAccessor,
+            Telemetry? telemetry = null
         )
         {
             _logger = logger;
@@ -47,6 +51,7 @@ namespace Altinn.App.Core.Implementation
             _appResourcesService = appResourcesService;
             _altinnPartyClientClient = altinnPartyClientClient;
             _httpContextAccessor = httpContextAccessor;
+            _telemetry = telemetry;
         }
 
         /// <inheritdoc/>
@@ -56,6 +61,7 @@ namespace Altinn.App.Core.Implementation
             bool continueOnError = false
         )
         {
+            using var activity = _telemetry?.StartPrefillDataModelActivity();
             LoopThroughDictionaryAndAssignValuesToDataModel(externalPrefill, null, dataModel, continueOnError);
         }
 
@@ -67,6 +73,7 @@ namespace Altinn.App.Core.Implementation
             Dictionary<string, string>? externalPrefill = null
         )
         {
+            using var activity = _telemetry?.StartPrefillDataModelActivity(partyId);
             // Prefill from external input. Only available during instansiation
             if (externalPrefill != null && externalPrefill.Count > 0)
             {

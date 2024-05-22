@@ -11,6 +11,7 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Result;
 using Altinn.Platform.Storage.Interface.Models;
 using Json.Patch;
+using static Altinn.App.Core.Features.Telemetry;
 
 namespace Altinn.App.Core.Internal.Patch;
 
@@ -22,6 +23,7 @@ public class PatchService : IPatchService
     private readonly IAppMetadata _appMetadata;
     private readonly IDataClient _dataClient;
     private readonly IAppModel _appModel;
+    private readonly Telemetry? _telemetry;
     private readonly IValidationService _validationService;
     private readonly IEnumerable<IDataProcessor> _dataProcessors;
 
@@ -36,12 +38,14 @@ public class PatchService : IPatchService
     /// <param name="validationService"></param>
     /// <param name="dataProcessors"></param>
     /// <param name="appModel"></param>
+    /// <param name="telemetry"></param>
     public PatchService(
         IAppMetadata appMetadata,
         IDataClient dataClient,
         IValidationService validationService,
         IEnumerable<IDataProcessor> dataProcessors,
-        IAppModel appModel
+        IAppModel appModel,
+        Telemetry? telemetry = null
     )
     {
         _appMetadata = appMetadata;
@@ -49,6 +53,7 @@ public class PatchService : IPatchService
         _validationService = validationService;
         _dataProcessors = dataProcessors;
         _appModel = appModel;
+        _telemetry = telemetry;
     }
 
     /// <inheritdoc />
@@ -61,6 +66,8 @@ public class PatchService : IPatchService
         List<string>? ignoredValidators = null
     )
     {
+        using var activity = _telemetry?.StartDataPatchActivity(instance);
+
         InstanceIdentifier instanceIdentifier = new InstanceIdentifier(instance);
         AppIdentifier appIdentifier = (await _appMetadata.GetApplicationMetadata()).AppIdentifier;
         var modelType = _appModel.GetModelType(dataType.AppLogic.ClassRef);
@@ -74,6 +81,13 @@ public class PatchService : IPatchService
         );
         var oldModelNode = JsonSerializer.SerializeToNode(oldModel);
         var patchResult = jsonPatch.Apply(oldModelNode);
+
+        var telemetryPatchResult = (
+            patchResult.IsSuccess ? Telemetry.Data.PatchResult.Success : Telemetry.Data.PatchResult.Error
+        );
+        activity?.SetTag(InternalLabels.Result, telemetryPatchResult.ToStringFast());
+        _telemetry?.DataPatched(telemetryPatchResult);
+
         if (!patchResult.IsSuccess)
         {
             bool testOperationFailed = patchResult.Error!.Contains("is not equal to the indicated value.");

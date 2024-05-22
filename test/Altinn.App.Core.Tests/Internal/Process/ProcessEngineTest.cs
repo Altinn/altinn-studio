@@ -8,6 +8,7 @@ using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.UserAction;
+using Altinn.App.Core.Tests.Mocks;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Enums;
@@ -102,7 +103,8 @@ public class ProcessEngineTest : IDisposable
     [Fact]
     public async Task StartProcess_starts_process_and_moves_to_first_task()
     {
-        ProcessEngine processEngine = GetProcessEngine();
+        TelemetrySink telemetrySink = new();
+        ProcessEngine processEngine = GetProcessEngine(telemetrySink: telemetrySink);
         Instance instance = new Instance() { InstanceOwner = new InstanceOwner() { PartyId = "1337" } };
         ClaimsPrincipal user =
             new(
@@ -203,6 +205,8 @@ public class ProcessEngineTest : IDisposable
         );
 
         result.Success.Should().BeTrue();
+
+        await Verify(telemetrySink.GetSnapshot());
     }
 
     [Fact]
@@ -901,7 +905,8 @@ public class ProcessEngineTest : IDisposable
     private ProcessEngine GetProcessEngine(
         Mock<IProcessReader>? processReaderMock = null,
         Instance? updatedInstance = null,
-        List<IUserAction>? userActions = null
+        List<IUserAction>? userActions = null,
+        TelemetrySink? telemetrySink = null
     )
     {
         if (processReaderMock == null)
@@ -982,7 +987,8 @@ public class ProcessEngineTest : IDisposable
             _processEventHandlingDelegatorMock.Object,
             _processEventDispatcherMock.Object,
             _processTaskCleanerMock.Object,
-            new UserActionService(userActions ?? [])
+            new UserActionService(userActions ?? []),
+            telemetrySink?.Object
         );
     }
 

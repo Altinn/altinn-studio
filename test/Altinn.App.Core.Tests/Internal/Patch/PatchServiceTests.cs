@@ -7,18 +7,18 @@ using Altinn.App.Core.Internal.Patch;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
+using Altinn.App.Core.Tests.Mocks;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Json.Patch;
 using Json.Pointer;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 using DataType = Altinn.Platform.Storage.Interface.Models.DataType;
 
 namespace Altinn.App.Core.Tests.Internal.Patch;
 
-public class PatchServiceTests
+public class PatchServiceTests : IDisposable
 {
     // Test data
     private static readonly Guid DataGuid = new("12345678-1234-1234-1234-123456789123");
@@ -31,6 +31,7 @@ public class PatchServiceTests
     private readonly Mock<IDataProcessor> _dataProcessorMock = new(MockBehavior.Strict);
     private readonly Mock<IAppModel> _appModelMock = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
+    private readonly TelemetrySink _telemetrySink = new();
 
     // ValidatorMocks
     private readonly Mock<IFormDataValidator> _formDataValidator = new(MockBehavior.Strict);
@@ -83,7 +84,8 @@ public class PatchServiceTests
             _dataClientMock.Object,
             validationService,
             new List<IDataProcessor> { _dataProcessorMock.Object },
-            _appModelMock.Object
+            _appModelMock.Object,
+            _telemetrySink.Object
         );
     }
 
@@ -171,6 +173,8 @@ public class PatchServiceTests
         _dataProcessorMock.Verify(d =>
             d.ProcessDataWrite(It.IsAny<Instance>(), It.IsAny<Guid>(), It.IsAny<MyModel>(), It.IsAny<MyModel?>(), null)
         );
+
+        await Verify(_telemetrySink.GetSnapshot());
     }
 
     [Fact]
@@ -310,5 +314,10 @@ public class PatchServiceTests
                 "The JSON property 'Age' could not be mapped to any .NET member contained in type 'Altinn.App.Core.Tests.Internal.Patch.PatchServiceTests+MyModel'."
             );
         err.ErrorType.Should().Be(DataPatchErrorType.DeserializationFailed);
+    }
+
+    public void Dispose()
+    {
+        _telemetrySink.Dispose();
     }
 }

@@ -183,7 +183,6 @@ namespace Altinn.App.Core.Extensions
             AddProcessServices(services);
             AddFileAnalyserServices(services);
             AddFileValidatorServices(services);
-            AddMetricsDecorators(services, configuration);
 
             if (!env.IsDevelopment())
             {
@@ -329,17 +328,6 @@ namespace Altinn.App.Core.Extensions
         {
             services.TryAddTransient<IFileValidationService, FileValidationService>();
             services.TryAddTransient<IFileValidatorFactory, FileValidatorFactory>();
-        }
-
-        private static void AddMetricsDecorators(IServiceCollection services, IConfiguration configuration)
-        {
-            MetricsSettings metricsSettings =
-                configuration.GetSection("MetricsSettings")?.Get<MetricsSettings>() ?? new MetricsSettings();
-            if (metricsSettings.Enabled)
-            {
-                services.Decorate<IInstanceClient, InstanceClientMetricsDecorator>();
-                services.Decorate<IProcessEngine, ProcessEngineMetricsDecorator>();
-            }
         }
     }
 }

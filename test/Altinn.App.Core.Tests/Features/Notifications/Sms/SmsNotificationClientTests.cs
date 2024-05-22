@@ -10,9 +10,9 @@ using Altinn.App.Core.Features.Notifications.Sms;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Notifications.Sms;
+using Altinn.App.Core.Tests.Mocks;
 using Altinn.Common.AccessTokenClient.Services;
 using FluentAssertions;
-using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -20,13 +20,12 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
 using Xunit;
+using static Altinn.App.Core.Features.Telemetry;
 
 public class SmsNotificationClientTests
 {
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task Order_VerifyHttpCall(bool includeTelemetryClient)
+    [Fact]
+    public async Task Order_VerifyHttpCall()
     {
         // Arrange
         var smsNotification = new SmsNotification
@@ -68,16 +67,19 @@ public class SmsNotificationClientTests
 
         using var httpClient = new HttpClient(handlerMock.Object);
 
-        var smsNotificationClient = CreateSmsNotificationClient(httpClient, includeTelemetryClient);
+        using var fixture = CreateFixture(httpClient, true);
+        var (_, client, telemetrySink) = fixture;
 
         // Act
-        _ = await smsNotificationClient.Order(smsNotification, default);
+        _ = await client.Order(smsNotification, default);
 
         // Assert
         capturedContent.Should().Be(expectedContent);
         capturedRequest.Should().NotBeNull();
         capturedRequest!.RequestUri.Should().NotBeNull();
         capturedRequest!.RequestUri!.ToString().Should().Be(expectedUri);
+
+        await Verify(telemetrySink?.GetSnapshot());
     }
 
     [Fact]
@@ -101,7 +103,9 @@ public class SmsNotificationClientTests
 
         using var httpClient = new HttpClient(handlerMock.Object);
 
-        var smsNotificationClient = CreateSmsNotificationClient(httpClient);
+        using var fixture = CreateFixture(httpClient);
+        var (_, client, _) = fixture;
+
         var recipients = new List<SmsRecipient>() { new("test.testesen@testdirektoratet.no") };
 
         var smsNotification = new SmsNotification
@@ -114,7 +118,7 @@ public class SmsNotificationClientTests
         };
 
         // Act
-        var smsOrderResponse = await smsNotificationClient.Order(smsNotification, default);
+        var smsOrderResponse = await client.Order(smsNotification, default);
 
         // Assert
         smsOrderResponse.Should().NotBeNull();
@@ -142,7 +146,9 @@ public class SmsNotificationClientTests
 
         using var httpClient = new HttpClient(handlerMock.Object);
 
-        var smsNotificationClient = CreateSmsNotificationClient(httpClient);
+        using var fixture = CreateFixture(httpClient);
+        var (_, client, _) = fixture;
+
         var recipients = new List<SmsRecipient>() { new("test.testesen@testdirektoratet.no") };
 
         var smsNotification = new SmsNotification
@@ -155,7 +161,7 @@ public class SmsNotificationClientTests
         };
 
         // Act
-        Func<Task> orderSmsNotification = async () => await smsNotificationClient.Order(smsNotification, default);
+        Func<Task> orderSmsNotification = async () => await client.Order(smsNotification, default);
 
         // Assert
         await FluentActions.Awaiting(orderSmsNotification).Should().ThrowAsync<SmsNotificationException>();
@@ -182,7 +188,9 @@ public class SmsNotificationClientTests
 
         using var httpClient = new HttpClient(handlerMock.Object);
 
-        var smsNotificationClient = CreateSmsNotificationClient(httpClient);
+        using var fixture = CreateFixture(httpClient);
+        var (_, client, _) = fixture;
+
         var recipients = new List<SmsRecipient>() { new("test.testesen@testdirektoratet.no") };
 
         var smsNotification = new SmsNotification
@@ -195,7 +203,7 @@ public class SmsNotificationClientTests
         };
 
         // Act
-        Func<Task> orderSmsNotification = async () => await smsNotificationClient.Order(smsNotification, default);
+        Func<Task> orderSmsNotification = async () => await client.Order(smsNotification, default);
 
         // Assert
         await FluentActions.Awaiting(orderSmsNotification).Should().ThrowAsync<SmsNotificationException>();
@@ -229,8 +237,24 @@ public class SmsNotificationClientTests
     [Fact]
     public void DIContainer_Accepts_Missing_TelemetryClient()
     {
+        using var fixture = CreateFixture(withTelemetry: false);
+        var (_, client, _) = fixture;
+        Assert.NotNull(client);
+    }
+
+    private static Fixture CreateFixture(HttpClient? httpClient = null, bool withTelemetry = true)
+    {
         var services = new ServiceCollection();
-        services.AddSingleton<HttpClient>(_ => new HttpClient());
+
+        if (httpClient is not null)
+        {
+            services.AddSingleton<HttpClient>(httpClient);
+        }
+        else
+        {
+            services.AddSingleton<HttpClient>(_ => new HttpClient());
+        }
+
         services.AddSingleton<IAppMetadata>(new Mock<IAppMetadata>().Object);
         services.AddSingleton<IAccessTokenGenerator>(new Mock<IAccessTokenGenerator>().Object);
         services.AddSingleton<IOptions<PlatformSettings>>(Options.Create(new PlatformSettings()));
@@ -239,35 +263,45 @@ public class SmsNotificationClientTests
             logging.ClearProviders();
             logging.AddProvider(NullLoggerProvider.Instance);
         });
-        services.AddTransient<ISmsNotificationClient, SmsNotificationClient>();
 
-        using var serviceProvider = services.BuildServiceProvider(
-            new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true, }
-        );
-        var smsNotificationClient = serviceProvider.GetRequiredService<ISmsNotificationClient>();
-        smsNotificationClient.Should().NotBeNull();
-    }
-
-    private static SmsNotificationClient CreateSmsNotificationClient(
-        HttpClient httpClient,
-        bool withTelemetryClient = false
-    )
-    {
-        using var loggerFactory = new NullLoggerFactory();
+        var appId = Guid.NewGuid().ToString();
 
         var appDataMock = new Mock<IAppMetadata>();
-        appDataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata("ttd/app-lib-test"));
+        appDataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata($"ttd/{appId}"));
+        services.AddSingleton<IAppMetadata>(appDataMock.Object);
 
         var accessTokenGenerator = new Mock<IAccessTokenGenerator>();
         accessTokenGenerator.Setup(a => a.GenerateAccessToken(It.IsAny<string>(), It.IsAny<string>())).Returns("token");
+        services.AddSingleton<IAccessTokenGenerator>(accessTokenGenerator.Object);
 
-        return new SmsNotificationClient(
-            loggerFactory.CreateLogger<SmsNotificationClient>(),
-            httpClient,
-            Options.Create(new PlatformSettings()),
-            appDataMock.Object,
-            accessTokenGenerator.Object,
-            withTelemetryClient ? new TelemetryClient() : null
+        if (withTelemetry)
+        {
+            services.AddTelemetrySink();
+        }
+
+        services.AddTransient<ISmsNotificationClient, SmsNotificationClient>();
+
+        var sp = services.BuildServiceProvider(
+            new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true, }
         );
+
+        var client = (SmsNotificationClient)sp.GetRequiredService<ISmsNotificationClient>();
+        var telemetryFake = sp.GetService<TelemetrySink>();
+        return new(sp, client, telemetryFake);
+    }
+
+    private readonly record struct Fixture(
+        IServiceProvider ServiceProvider,
+        SmsNotificationClient Client,
+        TelemetrySink? TelemetryFake
+    ) : IDisposable
+    {
+        public void Dispose()
+        {
+            if (ServiceProvider is IDisposable sp)
+            {
+                sp.Dispose();
+            }
+        }
     }
 }

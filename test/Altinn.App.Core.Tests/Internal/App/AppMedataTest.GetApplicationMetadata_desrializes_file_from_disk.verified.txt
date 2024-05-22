@@ -1,0 +1,9 @@
+﻿{
+  Activities: [
+    {
+      ActivityName: ApplicationMetadata.Client.Get,
+      IdFormat: W3C
+    }
+  ],
+  Metrics: []
+}

@@ -4,6 +4,7 @@ using System.Security.Claims;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
@@ -30,6 +31,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
         private readonly HttpClient _client;
         private readonly IPDP _pdp;
         private readonly ILogger _logger;
+        private readonly Telemetry? _telemetry;
         private const string ForwardedForHeaderName = "x-forwarded-for";
 
         /// <summary>
@@ -41,19 +43,22 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
         /// <param name="settings">The application settings.</param>
         /// <param name="pdp"></param>
         /// <param name="logger">the handler for logger service</param>
+        /// <param name="telemetry">Telemetry for traces and metrics.</param>
         public AuthorizationClient(
             IOptions<PlatformSettings> platformSettings,
             IHttpContextAccessor httpContextAccessor,
             HttpClient httpClient,
             IOptionsMonitor<AppSettings> settings,
             IPDP pdp,
-            ILogger<AuthorizationClient> logger
+            ILogger<AuthorizationClient> logger,
+            Telemetry? telemetry = null
         )
         {
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;
             _pdp = pdp;
             _logger = logger;
+            _telemetry = telemetry;
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiAuthorizationEndpoint);
 
             if (!httpClient.DefaultRequestHeaders.Contains(ForwardedForHeaderName))
@@ -72,6 +77,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
         /// <inheritdoc />
         public async Task<List<Party>?> GetPartyList(int userId)
         {
+            using var activity = _telemetry?.StartClientGetPartyListActivity(userId);
             List<Party>? partyList = null;
             string apiUrl = $"parties?userid={userId}";
             string token = JwtTokenUtil.GetTokenFromContext(
@@ -99,6 +105,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
         /// <inheritdoc />
         public async Task<bool?> ValidateSelectedParty(int userId, int partyId)
         {
+            using var activity = _telemetry?.StartClientValidateSelectedPartyActivity(userId, partyId);
             bool? result;
             string apiUrl = $"parties/{partyId}/validate?userid={userId}";
             string token = JwtTokenUtil.GetTokenFromContext(
@@ -133,6 +140,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
             string? taskId = null
         )
         {
+            using var activity = _telemetry?.StartClientAuthorizeActionActivity(instanceIdentifier, action, taskId);
             XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(
                 appIdentifier.Org,
                 appIdentifier.App,
@@ -163,6 +171,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
             List<string> actions
         )
         {
+            using var activity = _telemetry?.StartClientAuthorizeActionsActivity(instance);
             XacmlJsonRequestRoot request = MultiDecisionHelper.CreateMultiDecisionRequest(user, instance, actions);
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
             if (response?.Response == null)

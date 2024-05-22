@@ -1,4 +1,3 @@
-#nullable disable
 using Altinn.App.Core.Extensions;
 
 namespace Altinn.App.Api.Extensions;
@@ -16,8 +15,18 @@ public static class WebHostBuilderExtensions
     public static void ConfigureAppWebHost(this IWebHostBuilder builder, string[] args)
     {
         builder.ConfigureAppConfiguration(
-            (_, configBuilder) =>
+            (context, configBuilder) =>
             {
+                var config = new List<KeyValuePair<string, string?>>();
+
+                if (context.HostingEnvironment.IsDevelopment())
+                {
+                    config.Add(new("OTEL_TRACES_SAMPLER", "always_on"));
+                    config.Add(new("OTEL_METRIC_EXPORT_INTERVAL", "10000"));
+                    config.Add(new("OTEL_METRIC_EXPORT_TIMEOUT", "8000"));
+                }
+
+                configBuilder.AddInMemoryCollection(config);
                 configBuilder.LoadAppConfig(args);
             }
         );

@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
 using Microsoft.Extensions.Options;
 
@@ -21,6 +22,7 @@ namespace Altinn.App.Core.Internal.App
 
         private readonly AppSettings _settings;
         private readonly IFrontendFeatures _frontendFeatures;
+        private readonly Telemetry? _telemetry;
         private ApplicationMetadata? _application;
 
         /// <summary>
@@ -28,10 +30,16 @@ namespace Altinn.App.Core.Internal.App
         /// </summary>
         /// <param name="settings">The app repository settings.</param>
         /// <param name="frontendFeatures">Application features service</param>
-        public AppMetadata(IOptions<AppSettings> settings, IFrontendFeatures frontendFeatures)
+        /// <param name="telemetry">Telemetry for traces and metrics.</param>
+        public AppMetadata(
+            IOptions<AppSettings> settings,
+            IFrontendFeatures frontendFeatures,
+            Telemetry? telemetry = null
+        )
         {
             _settings = settings.Value;
             _frontendFeatures = frontendFeatures;
+            _telemetry = telemetry;
         }
 
         /// <inheritdoc />
@@ -39,6 +47,7 @@ namespace Altinn.App.Core.Internal.App
         /// <exception cref="System.IO.FileNotFoundException">Thrown if applicationmetadata.json file not found</exception>
         public async Task<ApplicationMetadata> GetApplicationMetadata()
         {
+            using var activity = _telemetry?.StartGetApplicationMetadataActivity();
             // Cache application metadata
             if (_application != null)
             {
@@ -86,6 +95,7 @@ namespace Altinn.App.Core.Internal.App
         /// <inheritdoc />
         public async Task<string> GetApplicationXACMLPolicy()
         {
+            using var activity = _telemetry?.StartGetApplicationXACMLPolicyActivity();
             string filename = Path.Join(
                 _settings.AppBasePath,
                 _settings.ConfigurationFolder,
@@ -103,6 +113,7 @@ namespace Altinn.App.Core.Internal.App
         /// <inheritdoc />
         public async Task<string> GetApplicationBPMNProcess()
         {
+            using var activity = _telemetry?.StartGetApplicationBPMNProcessActivity();
             string filename = Path.Join(
                 _settings.AppBasePath,
                 _settings.ConfigurationFolder,

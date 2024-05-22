@@ -5,6 +5,7 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Tests.Mocks;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -13,17 +14,17 @@ using Microsoft.Extensions.Primitives;
 using Moq;
 using Moq.Protected;
 using Newtonsoft.Json;
-using Xunit;
 
 namespace Altinn.App.PlatformServices.Tests.Implementation
 {
-    public class InstanceClientTests
+    public class InstanceClientTests : IDisposable
     {
         private readonly Mock<IOptions<PlatformSettings>> platformSettingsOptions;
         private readonly Mock<IOptionsMonitor<AppSettings>> appSettingsOptions;
         private readonly Mock<HttpMessageHandler> handlerMock;
         private readonly Mock<IHttpContextAccessor> contextAccessor;
         private readonly Mock<ILogger<InstanceClient>> logger;
+        private readonly TelemetrySink telemetry;
 
         public InstanceClientTests()
         {
@@ -32,6 +33,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             contextAccessor = new Mock<IHttpContextAccessor>();
             logger = new Mock<ILogger<InstanceClient>>();
+            telemetry = new TelemetrySink();
         }
 
         [Fact]
@@ -61,7 +63,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 logger.Object,
                 contextAccessor.Object,
                 httpClient,
-                appSettingsOptions.Object
+                appSettingsOptions.Object,
+                telemetry.Object
             );
 
             // Act
@@ -69,6 +72,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             // Assert
             handlerMock.VerifyAll();
+
+            await Verify(telemetry.GetSnapshot());
         }
 
         [Fact]
@@ -90,7 +95,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 logger.Object,
                 contextAccessor.Object,
                 httpClient,
-                appSettingsOptions.Object
+                appSettingsOptions.Object,
+                telemetry.Object
             );
 
             PlatformHttpException actualException = null;
@@ -130,7 +136,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 logger.Object,
                 contextAccessor.Object,
                 httpClient,
-                appSettingsOptions.Object
+                appSettingsOptions.Object,
+                telemetry.Object
             );
 
             PlatformHttpException actualException = null;
@@ -172,7 +179,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 logger.Object,
                 contextAccessor.Object,
                 httpClient,
-                appSettingsOptions.Object
+                appSettingsOptions.Object,
+                telemetry.Object
             );
 
             // Act
@@ -210,7 +218,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 logger.Object,
                 contextAccessor.Object,
                 httpClient,
-                appSettingsOptions.Object
+                appSettingsOptions.Object,
+                telemetry.Object
             );
 
             // Act
@@ -245,7 +254,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 logger.Object,
                 contextAccessor.Object,
                 httpClient,
-                appSettingsOptions.Object
+                appSettingsOptions.Object,
+                telemetry.Object
             );
 
             PlatformHttpException actualException = null;
@@ -294,7 +304,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 logger.Object,
                 contextAccessor.Object,
                 httpClient,
-                appSettingsOptions.Object
+                appSettingsOptions.Object,
+                telemetry.Object
             );
 
             // Act
@@ -326,7 +337,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 logger.Object,
                 contextAccessor.Object,
                 httpClient,
-                appSettingsOptions.Object
+                appSettingsOptions.Object,
+                telemetry.Object
             );
 
             PlatformHttpException actualException = null;
@@ -368,7 +380,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 logger.Object,
                 contextAccessor.Object,
                 httpClient,
-                appSettingsOptions.Object
+                appSettingsOptions.Object,
+                telemetry.Object
             );
 
             PlatformHttpException actualException = null;
@@ -417,7 +430,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 logger.Object,
                 contextAccessor.Object,
                 httpClient,
-                appSettingsOptions.Object
+                appSettingsOptions.Object,
+                telemetry.Object
             );
 
             // Act
@@ -481,7 +495,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 logger.Object,
                 contextAccessor.Object,
                 httpClient,
-                appSettingsOptions.Object
+                appSettingsOptions.Object,
+                telemetry.Object
             );
 
             Dictionary<string, StringValues> queryParams =
@@ -541,6 +556,11 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                     .ReturnsAsync(httpResponseMessages[0])
                     .Verifiable();
             }
+        }
+
+        public void Dispose()
+        {
+            telemetry.Dispose();
         }
     }
 }

@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Registers;
@@ -25,6 +26,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
         private readonly AppSettings _settings;
         private readonly HttpClient _client;
         private readonly IAppMetadata _appMetadata;
+        private readonly Telemetry? _telemetry;
         private readonly IAccessTokenGenerator _accessTokenGenerator;
 
         /// <summary>
@@ -37,6 +39,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
         /// <param name="httpClient">The http client</param>
         /// <param name="accessTokenGenerator">The platform access token generator</param>
         /// <param name="appMetadata">The app metadata service</param>
+        /// <param name="telemetry">Telemetry for metrics and traces.</param>
         public RegisterERClient(
             IOptions<PlatformSettings> platformSettings,
             ILogger<RegisterERClient> logger,
@@ -44,7 +47,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
             IOptionsMonitor<AppSettings> settings,
             HttpClient httpClient,
             IAccessTokenGenerator accessTokenGenerator,
-            IAppMetadata appMetadata
+            IAppMetadata appMetadata,
+            Telemetry? telemetry = null
         )
         {
             _logger = logger;
@@ -59,11 +63,13 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
             _client = httpClient;
             _accessTokenGenerator = accessTokenGenerator;
             _appMetadata = appMetadata;
+            _telemetry = telemetry;
         }
 
         /// <inheritdoc />
         public async Task<Organization?> GetOrganization(string OrgNr)
         {
+            using var activity = _telemetry?.StartGetOrganizationActivity(OrgNr);
             Organization? organization = null;
 
             string endpointUrl = $"organizations/{OrgNr}";

@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Process;
 using Altinn.Platform.Storage.Interface.Models;
@@ -21,6 +22,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         private readonly AppSettings _appSettings;
         private readonly ILogger<ProcessClient> _logger;
         private readonly HttpClient _client;
+        private readonly Telemetry? _telemetry;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
@@ -31,7 +33,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             IOptions<AppSettings> appSettings,
             ILogger<ProcessClient> logger,
             IHttpContextAccessor httpContextAccessor,
-            HttpClient httpClient
+            HttpClient httpClient,
+            Telemetry? telemetry = null
         )
         {
             _appSettings = appSettings.Value;
@@ -45,11 +48,13 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
             _client = httpClient;
+            _telemetry = telemetry;
         }
 
         /// <inheritdoc/>
         public Stream GetProcessDefinition()
         {
+            using var activity = _telemetry?.StartGetProcessDefinitionActivity();
             string bpmnFilePath = Path.Join(
                 _appSettings.AppBasePath,
                 _appSettings.ConfigurationFolder,
@@ -75,6 +80,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         /// <inheritdoc />
         public async Task<ProcessHistoryList> GetProcessHistory(string instanceGuid, string instanceOwnerPartyId)
         {
+            using var activity = _telemetry?.StartGetProcessHistoryActivity(instanceGuid, instanceOwnerPartyId);
             string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/process/history";
             string token = JwtTokenUtil.GetTokenFromContext(
                 _httpContextAccessor.HttpContext,

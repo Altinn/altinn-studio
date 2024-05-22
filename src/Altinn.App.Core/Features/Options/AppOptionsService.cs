@@ -9,17 +9,20 @@ namespace Altinn.App.Core.Features.Options
     {
         private readonly AppOptionsFactory _appOpptionsFactory;
         private readonly InstanceAppOptionsFactory _instanceAppOptionsFactory;
+        private readonly Telemetry? _telemetry;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AppOptionsService"/> class.
         /// </summary>
         public AppOptionsService(
             AppOptionsFactory appOptionsFactory,
-            InstanceAppOptionsFactory instanceAppOptionsFactory
+            InstanceAppOptionsFactory instanceAppOptionsFactory,
+            Telemetry? telemetry = null
         )
         {
             _appOpptionsFactory = appOptionsFactory;
             _instanceAppOptionsFactory = instanceAppOptionsFactory;
+            _telemetry = telemetry;
         }
 
         /// <inheritdoc/>
@@ -29,6 +32,7 @@ namespace Altinn.App.Core.Features.Options
             Dictionary<string, string> keyValuePairs
         )
         {
+            using var activity = _telemetry?.StartGetOptionsActivity();
             return await _appOpptionsFactory.GetOptionsProvider(optionId).GetAppOptionsAsync(language, keyValuePairs);
         }
 
@@ -40,6 +44,7 @@ namespace Altinn.App.Core.Features.Options
             Dictionary<string, string> keyValuePairs
         )
         {
+            using var activity = _telemetry?.StartGetOptionsActivity(instanceIdentifier);
             return await _instanceAppOptionsFactory
                 .GetOptionsProvider(optionId)
                 .GetInstanceAppOptionsAsync(instanceIdentifier, language, keyValuePairs);

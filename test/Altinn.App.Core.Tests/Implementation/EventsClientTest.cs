@@ -2,17 +2,18 @@
 using System.Net;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Events;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Tests.Mocks;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Implementation
 {
@@ -42,35 +43,36 @@ namespace Altinn.App.Core.Tests.Implementation
         [Fact]
         public async Task AddEvent_RegisterEventWithInstanceOwnerOrganisation_CloudEventInRequestContainOrganisationNumber()
         {
+            TelemetrySink telemetrySink = new();
             // Arrange
-            Instance instance = new Instance
-            {
-                AppId = "ttd/best-app",
-                Org = "ttd",
-                InstanceOwner = new InstanceOwner { OrganisationNumber = "org", PartyId = 123.ToString() }
-            };
+            Instance instance =
+                new()
+                {
+                    AppId = "ttd/best-app",
+                    Org = "ttd",
+                    InstanceOwner = new InstanceOwner { OrganisationNumber = "org", PartyId = 123.ToString() }
+                };
 
-            HttpResponseMessage httpResponseMessage = new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(Guid.NewGuid().ToString())
-            };
+            HttpResponseMessage httpResponseMessage =
+                new() { StatusCode = HttpStatusCode.OK, Content = new StringContent(Guid.NewGuid().ToString()) };
 
             HttpRequestMessage actualRequest = null;
             void SetRequest(HttpRequestMessage request) => actualRequest = request;
             InitializeMocks(httpResponseMessage, SetRequest);
 
-            HttpClient httpClient = new HttpClient(handlerMock.Object);
+            HttpClient httpClient = new(handlerMock.Object);
 
-            EventsClient target = new EventsClient(
-                platformSettingsOptions,
-                contextAccessor.Object,
-                httpClient,
-                accessTokenGeneratorMock.Object,
-                _appMetadataMock.Object,
-                appSettingsOptions.Object,
-                generalSettingsOptions
-            );
+            EventsClient target =
+                new(
+                    platformSettingsOptions,
+                    contextAccessor.Object,
+                    httpClient,
+                    accessTokenGeneratorMock.Object,
+                    _appMetadataMock.Object,
+                    appSettingsOptions.Object,
+                    generalSettingsOptions,
+                    telemetrySink.Object
+                );
 
             // Act
             await target.AddEvent("created", instance);
@@ -89,6 +91,8 @@ namespace Altinn.App.Core.Tests.Implementation
             Assert.Contains("ttd.apps.at22.altinn.cloud/ttd/best-app/instances", actualEvent.Source.OriginalString);
 
             handlerMock.VerifyAll();
+
+            await Verify(telemetrySink.GetSnapshot());
         }
 
         [Fact]

@@ -1,0 +1,25 @@
+﻿{
+  Activities: [
+    {
+      ActivityName: Instance.CompleteConfirmation,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        },
+        {
+          instance.owner_party_id: 1337
+        }
+      ],
+      IdFormat: W3C
+    }
+  ],
+  Metrics: [
+    {
+      altinn_app_lib_instances_completed: [
+        {
+          Value: 1
+        }
+      ]
+    }
+  ]
+}

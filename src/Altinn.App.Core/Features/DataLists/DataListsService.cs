@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Altinn.App.Core.Models;
 
 namespace Altinn.App.Core.Features.DataLists
@@ -14,14 +9,20 @@ namespace Altinn.App.Core.Features.DataLists
     {
         private readonly DataListsFactory _dataListsFactory;
         private readonly InstanceDataListsFactory _instanceDataListsFactory;
+        private readonly Telemetry? _telemetry;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataListsService"/> class.
         /// </summary>
-        public DataListsService(DataListsFactory dataListsFactory, InstanceDataListsFactory instanceDataListsFactory)
+        public DataListsService(
+            DataListsFactory dataListsFactory,
+            InstanceDataListsFactory instanceDataListsFactory,
+            Telemetry? telemetry = null
+        )
         {
             _dataListsFactory = dataListsFactory;
             _instanceDataListsFactory = instanceDataListsFactory;
+            _telemetry = telemetry;
         }
 
         /// <inheritdoc/>
@@ -31,6 +32,7 @@ namespace Altinn.App.Core.Features.DataLists
             Dictionary<string, string> keyValuePairs
         )
         {
+            using var activity = _telemetry?.StartDataListActivity();
             return await _dataListsFactory.GetDataListProvider(dataListId).GetDataListAsync(language, keyValuePairs);
         }
 
@@ -42,6 +44,7 @@ namespace Altinn.App.Core.Features.DataLists
             Dictionary<string, string> keyValuePairs
         )
         {
+            using var activity = _telemetry?.StartDataListActivity(instanceIdentifier);
             return await _instanceDataListsFactory
                 .GetDataListProvider(dataListId)
                 .GetInstanceDataListAsync(instanceIdentifier, language, keyValuePairs);

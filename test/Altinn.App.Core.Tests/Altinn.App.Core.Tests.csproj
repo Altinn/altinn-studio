@@ -42,6 +42,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Verify.Xunit" Version="24.2.0" />
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="3.3.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />

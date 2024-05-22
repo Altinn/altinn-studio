@@ -1,0 +1,14 @@
+﻿{
+  Activities: [
+    {
+      ActivityName: DataClient.InsertBinaryData,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        }
+      ],
+      IdFormat: W3C
+    }
+  ],
+  Metrics: []
+}

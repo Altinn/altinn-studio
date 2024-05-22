@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Models.Validation;
@@ -11,13 +12,15 @@ namespace Altinn.App.Core.Internal.Validation
     public class FileValidationService : IFileValidationService
     {
         private readonly IFileValidatorFactory _fileValidatorFactory;
+        private readonly Telemetry? _telemetry;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FileValidationService"/> class.
         /// </summary>
-        public FileValidationService(IFileValidatorFactory fileValidatorFactory)
+        public FileValidationService(IFileValidatorFactory fileValidatorFactory, Telemetry? telemetry = null)
         {
             _fileValidatorFactory = fileValidatorFactory;
+            _telemetry = telemetry;
         }
 
         /// <summary>
@@ -28,6 +31,7 @@ namespace Altinn.App.Core.Internal.Validation
             IEnumerable<FileAnalysisResult> fileAnalysisResults
         )
         {
+            using var activity = _telemetry?.StartFileValidateActivity();
             List<ValidationIssue> allErrors = new();
             bool allSuccess = true;
 

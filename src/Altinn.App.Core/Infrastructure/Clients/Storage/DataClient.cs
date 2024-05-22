@@ -7,6 +7,7 @@ using System.Xml.Serialization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.Auth;
@@ -28,6 +29,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         private readonly PlatformSettings _platformSettings;
         private readonly ILogger _logger;
         private readonly IUserTokenProvider _userTokenProvider;
+        private readonly Telemetry? _telemetry;
         private readonly HttpClient _client;
 
         /// <summary>
@@ -37,11 +39,13 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         /// <param name="logger">the logger</param>
         /// <param name="httpClient">A HttpClient from the built in HttpClient factory.</param>
         /// <param name="userTokenProvider">Service to obtain json web token</param>
+        /// <param name="telemetry">Telemetry for traces and metrics.</param>
         public DataClient(
             IOptions<PlatformSettings> platformSettings,
             ILogger<DataClient> logger,
             HttpClient httpClient,
-            IUserTokenProvider userTokenProvider
+            IUserTokenProvider userTokenProvider,
+            Telemetry? telemetry = null
         )
         {
             _platformSettings = platformSettings.Value;
@@ -53,6 +57,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
             _client = httpClient;
             _userTokenProvider = userTokenProvider;
+            _telemetry = telemetry;
         }
 
         /// <inheritdoc />
@@ -66,8 +71,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             string dataType
         )
         {
-            Instance instance = new Instance { Id = $"{instanceOwnerPartyId}/{instanceGuid}", };
-
+            using var activity = _telemetry?.StartInsertFormDataActivity(instanceGuid, instanceOwnerPartyId);
+            Instance instance = new() { Id = $"{instanceOwnerPartyId}/{instanceGuid}", };
             return await InsertFormData(instance, dataType, dataToSerialize, type);
         }
 
@@ -79,6 +84,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             Type type
         )
         {
+            using var activity = _telemetry?.StartInsertFormDataActivity(instance);
             string apiUrl = $"instances/{instance.Id}/data?dataType={dataType}";
             string token = _userTokenProvider.GetUserToken();
             DataElement dataElement;
@@ -119,6 +125,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             Guid dataId
         )
         {
+            using var activity = _telemetry?.StartUpdateDataActivity(instanceGuid, instanceOwnerPartyId);
             string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
             string token = _userTokenProvider.GetUserToken();
@@ -170,6 +177,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             Guid dataId
         )
         {
+            using var activity = _telemetry?.StartGetBinaryDataActivity(instanceGuid, instanceOwnerPartyId);
             string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
 
@@ -201,6 +209,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             Guid dataId
         )
         {
+            using var activity = _telemetry?.StartGetFormDataActivity(instanceGuid, instanceOwnerPartyId);
             string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
             string token = _userTokenProvider.GetUserToken();
@@ -235,6 +244,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             Guid instanceGuid
         )
         {
+            using var activity = _telemetry?.StartGetBinaryDataListActivity(instanceGuid, instanceOwnerPartyId);
             string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/dataelements";
             string token = _userTokenProvider.GetUserToken();
@@ -304,6 +314,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             Guid dataGuid
         )
         {
+            using var activity = _telemetry?.StartDeleteBinaryDataActivity(instanceGuid, instanceOwnerPartyId);
             return await DeleteData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, false);
         }
 
@@ -317,6 +328,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             bool delay
         )
         {
+            using var activity = _telemetry?.StartDeleteDataActivity(instanceGuid, instanceOwnerPartyId);
             string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataGuid}?delay={delay}";
             string token = _userTokenProvider.GetUserToken();
@@ -344,6 +356,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             HttpRequest request
         )
         {
+            using var activity = _telemetry?.StartInsertBinaryDataActivity(instanceGuid, instanceOwnerPartyId);
             string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl =
                 $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data?dataType={dataType}";
@@ -378,6 +391,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             string? generatedFromTask = null
         )
         {
+            using var activity = _telemetry?.StartInsertBinaryDataActivity(instanceId);
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceId}/data?dataType={dataType}";
             if (!string.IsNullOrEmpty(generatedFromTask))
             {
@@ -423,6 +437,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             HttpRequest request
         )
         {
+            using var activity = _telemetry?.StartUpdateBinaryDataActivity(instanceGuid, instanceOwnerPartyId);
             string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}";
             string token = _userTokenProvider.GetUserToken();
@@ -454,6 +469,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             Stream stream
         )
         {
+            using var activity = _telemetry?.StartUpdateBinaryDataActivity(instanceIdentifier.GetInstanceId());
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}";
             string token = _userTokenProvider.GetUserToken();
             StreamContent content = new StreamContent(stream);
@@ -479,6 +495,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         /// <inheritdoc />
         public async Task<DataElement> Update(Instance instance, DataElement dataElement)
         {
+            using var activity = _telemetry?.StartUpdateDataActivity(instance);
             string apiUrl =
                 $"{_platformSettings.ApiStorageEndpoint}instances/{instance.Id}/dataelements/{dataElement.Id}";
             string token = _userTokenProvider.GetUserToken();
@@ -505,6 +522,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         /// <inheritdoc />
         public async Task<DataElement> LockDataElement(InstanceIdentifier instanceIdentifier, Guid dataGuid)
         {
+            using var activity = _telemetry?.StartLockDataElementActivity(instanceIdentifier.GetInstanceId(), dataGuid);
             string apiUrl =
                 $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}/lock";
             string token = _userTokenProvider.GetUserToken();
@@ -534,6 +552,10 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         /// <inheritdoc />
         public async Task<DataElement> UnlockDataElement(InstanceIdentifier instanceIdentifier, Guid dataGuid)
         {
+            using var activity = _telemetry?.StartUnlockDataElementActivity(
+                instanceIdentifier.GetInstanceId(),
+                dataGuid
+            );
             string apiUrl =
                 $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}/lock";
             string token = _userTokenProvider.GetUserToken();

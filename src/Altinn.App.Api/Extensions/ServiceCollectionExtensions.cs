@@ -1,19 +1,24 @@
 using Altinn.App.Api.Controllers;
+using Altinn.App.Api.Helpers;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Infrastructure.Health;
 using Altinn.App.Api.Infrastructure.Telemetry;
-using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Features;
 using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
 using AltinnCore.Authentication.JwtCookie;
+using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.FeatureManagement;
 using Microsoft.IdentityModel.Tokens;
-using Prometheus;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 namespace Altinn.App.Api.Extensions
 {
@@ -58,7 +63,18 @@ namespace Altinn.App.Api.Extensions
             services.AddAppServices(config, env);
             services.ConfigureDataProtection();
 
-            AddApplicationInsights(services, config, env);
+            var useOpenTelemetrySetting = config.GetValue<bool?>("AppSettings:UseOpenTelemetry");
+
+            // Use Application Insights as default, opt in to use Open Telemetry
+            if (useOpenTelemetrySetting is true)
+            {
+                AddOpenTelemetry(services, config, env);
+            }
+            else
+            {
+                AddApplicationInsights(services, config, env);
+            }
+
             AddAuthenticationScheme(services, config, env);
             AddAuthorizationPolicies(services);
             AddAntiforgery(services);
@@ -74,7 +90,6 @@ namespace Altinn.App.Api.Extensions
             services.AddHttpClient<AuthorizationApiClient>();
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.AddMetricsServer(config);
         }
 
         /// <summary>
@@ -89,12 +104,7 @@ namespace Altinn.App.Api.Extensions
             IWebHostEnvironment env
         )
         {
-            string? applicationInsightsKey = env.IsDevelopment()
-                ? config["ApplicationInsights:InstrumentationKey"]
-                : Environment.GetEnvironmentVariable("ApplicationInsights__InstrumentationKey");
-            string? applicationInsightsConnectionString = env.IsDevelopment()
-                ? config["ApplicationInsights:ConnectionString"]
-                : Environment.GetEnvironmentVariable("ApplicationInsights__ConnectionString");
+            var (applicationInsightsKey, applicationInsightsConnectionString) = GetAppInsightsConfig(config, env);
 
             if (
                 !string.IsNullOrEmpty(applicationInsightsKey)
@@ -121,6 +131,132 @@ namespace Altinn.App.Api.Extensions
                 services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
             }
+        }
+
+        private static void AddOpenTelemetry(
+            IServiceCollection services,
+            IConfiguration config,
+            IWebHostEnvironment env
+        )
+        {
+            var appId = StartupHelper.GetApplicationId().Split("/")[1];
+            var appVersion = config.GetSection("AppSettings").GetValue<string>("AppVersion");
+            if (string.IsNullOrWhiteSpace(appVersion))
+            {
+                appVersion = "Local";
+            }
+            services.AddHostedService<TelemetryInitialization>();
+            services.AddSingleton<Telemetry>();
+
+            var appInsightsConnectionString = GetAppInsightsConnectionStringForOtel(config, env);
+
+            services
+                .AddOpenTelemetry()
+                .ConfigureResource(r =>
+                    r.AddService(
+                        serviceName: appId,
+                        serviceVersion: appVersion,
+                        serviceInstanceId: Environment.MachineName
+                    )
+                )
+                .WithTracing(builder =>
+                {
+                    builder = builder
+                        .AddSource(appId)
+                        .AddHttpClientInstrumentation(opts =>
+                        {
+                            opts.RecordException = true;
+                        })
+                        .AddAspNetCoreInstrumentation(opts =>
+                        {
+                            opts.RecordException = true;
+                        });
+
+                    if (!string.IsNullOrWhiteSpace(appInsightsConnectionString))
+                    {
+                        builder = builder.AddAzureMonitorTraceExporter(options =>
+                        {
+                            options.ConnectionString = appInsightsConnectionString;
+                        });
+                    }
+                    else
+                    {
+                        builder = builder.AddOtlpExporter();
+                    }
+                })
+                .WithMetrics(builder =>
+                {
+                    builder = builder
+                        .AddMeter(appId)
+                        .AddRuntimeInstrumentation()
+                        .AddHttpClientInstrumentation()
+                        .AddAspNetCoreInstrumentation();
+
+                    if (!string.IsNullOrWhiteSpace(appInsightsConnectionString))
+                    {
+                        builder = builder.AddAzureMonitorMetricExporter(options =>
+                        {
+                            options.ConnectionString = appInsightsConnectionString;
+                        });
+                    }
+                    else
+                    {
+                        builder = builder.AddOtlpExporter();
+                    }
+                });
+
+            services.AddLogging(logging =>
+            {
+                logging.AddOpenTelemetry(options =>
+                {
+                    options.IncludeFormattedMessage = true;
+
+                    if (!string.IsNullOrWhiteSpace(appInsightsConnectionString))
+                    {
+                        options.AddAzureMonitorLogExporter(options =>
+                        {
+                            options.ConnectionString = appInsightsConnectionString;
+                        });
+                    }
+                    else
+                    {
+                        options.AddOtlpExporter();
+                    }
+                });
+            });
+        }
+
+        private sealed class TelemetryInitialization(
+            ILogger<TelemetryInitialization> logger,
+            Telemetry telemetry,
+            MeterProvider meterProvider
+        ) : IHostedService
+        {
+            public Task StartAsync(CancellationToken cancellationToken)
+            {
+                // This codepath for initialization is here only because it makes it a lot easier to
+                // query the metrics from Prometheus using 'increase' without the appearance of a "missed" sample.
+                // 'increase' in Prometheus will not interpret 'none' -> 1 as a delta/increase,
+                // so when querying the increase within a range, there may be 1 less sample than expected.
+                // So here we let the metrics be initialized to 0,
+                // and then run collection/flush on the OTel MeterProvider to make sure they are exported.
+                // The first time we then increment the metric, it will count as a change from 0 -> 1
+                telemetry.Init();
+                try
+                {
+                    if (!meterProvider.ForceFlush(10_000))
+                    {
+                        logger.LogWarning("Failed to flush metrics after 10 seconds");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Failed to flush metrics");
+                }
+                return Task.CompletedTask;
+            }
+
+            public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
         }
 
         private static void AddAuthorizationPolicies(IServiceCollection services)
@@ -194,17 +330,40 @@ namespace Altinn.App.Api.Extensions
             services.TryAddSingleton<ValidateAntiforgeryTokenIfAuthCookieAuthorizationFilter>();
         }
 
-        private static void AddMetricsServer(this IServiceCollection services, IConfiguration config)
+        private static (string? Key, string? ConnectionString) GetAppInsightsConfig(
+            IConfiguration config,
+            IHostEnvironment env
+        )
         {
-            var metricsSettings = config.GetSection("MetricsSettings").Get<MetricsSettings>() ?? new MetricsSettings();
-            if (metricsSettings.Enabled)
+            var isDevelopment = env.IsDevelopment();
+            string? key = isDevelopment
+                ? config["ApplicationInsights:InstrumentationKey"]
+                : Environment.GetEnvironmentVariable("ApplicationInsights__InstrumentationKey");
+            string? connectionString = isDevelopment
+                ? config["ApplicationInsights:ConnectionString"]
+                : Environment.GetEnvironmentVariable("ApplicationInsights__ConnectionString");
+
+            return (key, connectionString);
+        }
+
+        private static string? GetAppInsightsConnectionStringForOtel(IConfiguration config, IHostEnvironment env)
+        {
+            var (key, connString) = GetAppInsightsConfig(config, env);
+            if (string.IsNullOrWhiteSpace(connString))
             {
-                ushort port = metricsSettings.Port;
-                services.AddMetricServer(options =>
-                {
-                    options.Port = port;
-                });
+                connString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
             }
+            if (!string.IsNullOrWhiteSpace(connString))
+            {
+                return connString;
+            }
+
+            if (!Guid.TryParse(key, out _))
+            {
+                return null;
+            }
+
+            return $"InstrumentationKey={key}";
         }
     }
 }

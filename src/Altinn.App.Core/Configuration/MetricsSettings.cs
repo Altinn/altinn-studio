@@ -3,6 +3,7 @@ namespace Altinn.App.Core.Configuration;
 /// <summary>
 /// Metric settings for Altinn Apps
 /// </summary>
+[Obsolete("MetricSettings will no longer be supported in version 9.")]
 public class MetricsSettings
 {
     /// <summary>

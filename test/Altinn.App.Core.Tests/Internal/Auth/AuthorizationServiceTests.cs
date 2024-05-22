@@ -6,6 +6,7 @@ using Altinn.App.Core.Internal.Process.Authorization;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Tests.Mocks;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
@@ -21,6 +22,7 @@ public class AuthorizationServiceTests
     {
         // Input
         int userId = 1337;
+        TelemetrySink telemetrySink = new();
 
         // Arrange
         Mock<IAuthorizationClient> authorizationClientMock = new Mock<IAuthorizationClient>();
@@ -28,7 +30,8 @@ public class AuthorizationServiceTests
         authorizationClientMock.Setup(a => a.GetPartyList(userId)).ReturnsAsync(partyList);
         AuthorizationService authorizationService = new AuthorizationService(
             authorizationClientMock.Object,
-            new List<IUserActionAuthorizerProvider>()
+            new List<IUserActionAuthorizerProvider>(),
+            telemetrySink.Object
         );
 
         // Act
@@ -37,6 +40,8 @@ public class AuthorizationServiceTests
         // Assert
         result.Should().BeSameAs(partyList);
         authorizationClientMock.Verify(a => a.GetPartyList(userId), Times.Once);
+
+        await Verify(telemetrySink.GetSnapshot());
     }
 
     [Fact]

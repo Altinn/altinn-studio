@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Registers;
@@ -27,6 +28,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
         private readonly HttpClient _client;
         private readonly IAppMetadata _appMetadata;
         private readonly IAccessTokenGenerator _accessTokenGenerator;
+        private readonly Telemetry? _telemetry;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AltinnPartyClient"/> class
@@ -38,6 +40,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
         /// <param name="httpClient">The http client</param>
         /// <param name="appMetadata">The app metadata service</param>
         /// <param name="accessTokenGenerator">The platform access token generator</param>
+        /// <param name="telemetry">Telemetry for metrics and traces.</param>
         public AltinnPartyClient(
             IOptions<PlatformSettings> platformSettings,
             ILogger<AltinnPartyClient> logger,
@@ -45,7 +48,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
             IOptionsMonitor<AppSettings> settings,
             HttpClient httpClient,
             IAppMetadata appMetadata,
-            IAccessTokenGenerator accessTokenGenerator
+            IAccessTokenGenerator accessTokenGenerator,
+            Telemetry? telemetry = null
         )
         {
             _logger = logger;
@@ -60,11 +64,13 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
             _client = httpClient;
             _appMetadata = appMetadata;
             _accessTokenGenerator = accessTokenGenerator;
+            _telemetry = telemetry;
         }
 
         /// <inheritdoc/>
         public async Task<Party?> GetParty(int partyId)
         {
+            using var activity = _telemetry?.StartGetPartyActivity(partyId);
             Party? party = null;
 
             string endpointUrl = $"parties/{partyId}";
@@ -101,6 +107,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
         /// <inheritdoc/>
         public async Task<Party> LookupParty(PartyLookup partyLookup)
         {
+            using var activity = _telemetry?.StartLookupPartyActivity();
             Party party;
 
             string endpointUrl = "parties/lookup";

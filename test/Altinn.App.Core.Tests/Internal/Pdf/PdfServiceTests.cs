@@ -1,11 +1,13 @@
 using System.Net;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Infrastructure.Clients.Pdf;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Profile;
+using Altinn.App.Core.Tests.Mocks;
 using Altinn.App.PlatformServices.Tests.Helpers;
 using Altinn.App.PlatformServices.Tests.Mocks;
 using Altinn.Platform.Storage.Interface.Models;
@@ -129,6 +131,7 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Pdf
         public async Task GenerateAndStorePdf()
         {
             // Arrange
+            TelemetrySink telemetrySink = new();
             _pdfGeneratorClient.Setup(s => s.GeneratePdf(It.IsAny<Uri>(), It.IsAny<CancellationToken>()));
             _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
 
@@ -139,7 +142,8 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Pdf
                 _profile.Object,
                 _pdfGeneratorClient.Object,
                 _pdfGeneratorSettingsOptions,
-                _generalSettingsOptions
+                _generalSettingsOptions,
+                telemetrySink.Object
             );
 
             Instance instance =
@@ -180,6 +184,8 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Pdf
                     ),
                 Times.Once
             );
+
+            await Verify(telemetrySink.GetSnapshot());
         }
 
         [Fact]

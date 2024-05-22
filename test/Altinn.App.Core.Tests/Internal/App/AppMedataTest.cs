@@ -2,8 +2,10 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Tests.Mocks;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
@@ -25,11 +27,12 @@ namespace Altinn.App.Core.Tests.Internal.App
         public async Task GetApplicationMetadata_desrializes_file_from_disk()
         {
             var featureManagerMock = new Mock<IFeatureManager>();
-            IFrontendFeatures frontendFeatures = new FrontendFeatures(featureManagerMock.Object);
+            FrontendFeatures frontendFeatures = new(featureManagerMock.Object);
             Dictionary<string, bool> enabledFrontendFeatures = await frontendFeatures.GetFrontendFeatures();
+            TelemetrySink telemetrySink = new();
 
             AppSettings appSettings = GetAppSettings("AppMetadata", "default.applicationmetadata.json");
-            IAppMetadata appMetadata = SetupAppMedata(Microsoft.Extensions.Options.Options.Create(appSettings));
+            IAppMetadata appMetadata = SetupAppMedata(Options.Create(appSettings), null, telemetrySink);
             ApplicationMetadata expected = new ApplicationMetadata("tdd/bestilling")
             {
                 Id = "tdd/bestilling",
@@ -67,6 +70,8 @@ namespace Altinn.App.Core.Tests.Internal.App
             var actual = await appMetadata.GetApplicationMetadata();
             actual.Should().NotBeNull();
             actual.Should().BeEquivalentTo(expected);
+
+            await Verify(telemetrySink.GetSnapshot());
         }
 
         [Fact]
@@ -555,17 +560,22 @@ namespace Altinn.App.Core.Tests.Internal.App
 
         private static IAppMetadata SetupAppMedata(
             IOptions<AppSettings> appsettings,
-            IFrontendFeatures frontendFeatures = null
+            IFrontendFeatures frontendFeatures = null,
+            TelemetrySink telemetrySink = null
         )
         {
             var featureManagerMock = new Mock<IFeatureManager>();
-
+            telemetrySink ??= new TelemetrySink();
             if (frontendFeatures == null)
             {
-                return new AppMetadata(appsettings, new FrontendFeatures(featureManagerMock.Object));
+                return new AppMetadata(
+                    appsettings,
+                    new FrontendFeatures(featureManagerMock.Object),
+                    telemetrySink.Object
+                );
             }
 
-            return new AppMetadata(appsettings, frontendFeatures);
+            return new AppMetadata(appsettings, frontendFeatures, telemetrySink.Object);
         }
     }
 }

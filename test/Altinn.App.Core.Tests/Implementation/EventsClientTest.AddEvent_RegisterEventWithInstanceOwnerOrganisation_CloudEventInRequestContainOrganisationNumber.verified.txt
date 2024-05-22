@@ -1,0 +1,9 @@
+﻿{
+  Activities: [
+    {
+      ActivityName: EventClient.GetAsyncWithId,
+      IdFormat: W3C
+    }
+  ],
+  Metrics: []
+}
