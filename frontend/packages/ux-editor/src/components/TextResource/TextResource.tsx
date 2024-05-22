@@ -7,8 +7,8 @@ import { XMarkIcon } from '@studio/icons';
 import { TextResourceValue } from './TextResourceValue';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { useFormItemContext } from '@altinn/ux-editor/containers/FormItemContext';
-import { useAppContext } from '@altinn/ux-editor/hooks';
+import { useFormItemContext } from '../../containers/FormItemContext';
+import { useAppContext } from '../../hooks';
 
 export interface TextResourceProps {
   handleIdChange: (id: string) => void;

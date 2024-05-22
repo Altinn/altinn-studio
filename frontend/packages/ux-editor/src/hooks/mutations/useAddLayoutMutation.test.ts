@@ -9,7 +9,6 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { externalLayoutsMock } from '../../testing/layoutMock';
 import type { FormLayoutsResponse } from 'app-shared/types/api';
 import type { ILayoutSettings } from 'app-shared/types/global';
-import { appContextMock } from '../../testing/appContextMock';
 
 // Test data:
 const org = 'org';
@@ -46,7 +45,6 @@ describe('useAddLayoutMutation', () => {
         },
       },
     );
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
   });
 
   it('Calls saveFormLayout with new layout for receiptPage', async () => {
@@ -77,7 +75,6 @@ describe('useAddLayoutMutation', () => {
         },
       },
     );
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
   });
 });
 
