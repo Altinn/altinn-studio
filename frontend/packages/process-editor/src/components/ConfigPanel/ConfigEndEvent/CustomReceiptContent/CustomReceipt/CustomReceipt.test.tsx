@@ -45,7 +45,7 @@ const defaultBpmnContextProps: BpmnApiContextProps = {
 describe('CustomReceipt', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('calls "mutateLayoutSet" when the layoutset id is changed', async () => {
+  it('calls "mutateLayoutSetId" when the layoutset id is changed', async () => {
     const user = userEvent.setup();
     renderCustomReceipt();
 
@@ -63,8 +63,8 @@ describe('CustomReceipt', () => {
     await user.type(textfield, newLayoutSetId);
     await user.tab();
 
-    expect(mockBpmnApiContextValue.mutateLayoutSet).toHaveBeenCalledTimes(1);
-    expect(mockBpmnApiContextValue.mutateLayoutSet).toHaveBeenCalledWith({
+    expect(mockBpmnApiContextValue.mutateLayoutSetId).toHaveBeenCalledTimes(1);
+    expect(mockBpmnApiContextValue.mutateLayoutSetId).toHaveBeenCalledWith({
       layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
       newLayoutSetId,
     });
@@ -126,7 +126,7 @@ describe('CustomReceipt', () => {
       expect(error).toBeInTheDocument();
     }
 
-    expect(mockBpmnApiContextValue.mutateLayoutSet).not.toHaveBeenCalled();
+    expect(mockBpmnApiContextValue.mutateLayoutSetId).not.toHaveBeenCalled();
   });
 
   it('calls "deleteLayoutSet" when clicking delete layoutset', async () => {

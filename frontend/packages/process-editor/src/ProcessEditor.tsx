@@ -22,7 +22,7 @@ export type ProcessEditorProps = {
   existingCustomReceiptLayoutSetId: BpmnApiContextProps['existingCustomReceiptLayoutSetId'];
   addLayoutSet: BpmnApiContextProps['addLayoutSet'];
   deleteLayoutSet: BpmnApiContextProps['deleteLayoutSet'];
-  mutateLayoutSet: BpmnApiContextProps['mutateLayoutSet'];
+  mutateLayoutSetId: BpmnApiContextProps['mutateLayoutSetId'];
   mutateDataType: BpmnApiContextProps['mutateDataType'];
   addDataTypeToAppMetadata: BpmnApiContextProps['addDataTypeToAppMetadata'];
   deleteDataTypeFromAppMetadata: BpmnApiContextProps['deleteDataTypeFromAppMetadata'];
@@ -39,7 +39,7 @@ export const ProcessEditor = ({
   existingCustomReceiptLayoutSetId,
   addLayoutSet,
   deleteLayoutSet,
-  mutateLayoutSet,
+  mutateLayoutSetId,
   mutateDataType,
   addDataTypeToAppMetadata,
   deleteDataTypeFromAppMetadata,
@@ -65,7 +65,7 @@ export const ProcessEditor = ({
         existingCustomReceiptLayoutSetId={existingCustomReceiptLayoutSetId}
         addLayoutSet={addLayoutSet}
         deleteLayoutSet={deleteLayoutSet}
-        mutateLayoutSet={mutateLayoutSet}
+        mutateLayoutSetId={mutateLayoutSetId}
         mutateDataType={mutateDataType}
         addDataTypeToAppMetadata={addDataTypeToAppMetadata}
         deleteDataTypeFromAppMetadata={deleteDataTypeFromAppMetadata}

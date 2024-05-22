@@ -35,10 +35,8 @@ export const ProcessEditor = (): React.ReactElement => {
   const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
   const { data: appLibData, isLoading: appLibDataLoading } = useAppVersionQuery(org, app);
   const { mutate: mutateBpmn, isPending: mutateBpmnPending } = useBpmnMutation(org, app);
-  const { mutate: mutateLayoutSet, isPending: mutateLayoutSetPending } = useUpdateLayoutSetMutation(
-    org,
-    app,
-  );
+  const { mutate: mutateLayoutSetId, isPending: mutateLayoutSetIdPending } =
+    useUpdateLayoutSetMutation(org, app);
   const { mutate: addLayoutSet, isPending: addLayoutSetPending } = useAddLayoutSetMutation(
     org,
     app,
@@ -61,7 +59,7 @@ export const ProcessEditor = (): React.ReactElement => {
 
   const pendingApiOperations: boolean =
     mutateBpmnPending ||
-    mutateLayoutSetPending ||
+    mutateLayoutSetIdPending ||
     addLayoutSetPending ||
     deleteLayoutSetPending ||
     updateDataTypePending ||
@@ -115,7 +113,7 @@ export const ProcessEditor = (): React.ReactElement => {
       existingCustomReceiptLayoutSetId={existingCustomReceiptId}
       addLayoutSet={addLayoutSet}
       deleteLayoutSet={deleteLayoutSet}
-      mutateLayoutSet={mutateLayoutSet}
+      mutateLayoutSetId={mutateLayoutSetId}
       appLibVersion={appLibData.backendVersion}
       bpmnXml={hasBpmnQueryError ? null : bpmnXml}
       mutateDataType={mutateDataType}

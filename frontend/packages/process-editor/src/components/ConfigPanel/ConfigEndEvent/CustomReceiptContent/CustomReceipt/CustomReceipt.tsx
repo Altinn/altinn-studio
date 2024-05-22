@@ -21,7 +21,7 @@ export const CustomReceipt = (): React.ReactElement => {
     availableDataModelIds,
     existingCustomReceiptLayoutSetId,
     deleteLayoutSet,
-    mutateLayoutSet,
+    mutateLayoutSetId,
   } = useBpmnApiContext();
 
   const existingDatamodelId: string = getDataTypeFromLayoutSetsWithExistingId(
@@ -38,7 +38,7 @@ export const CustomReceipt = (): React.ReactElement => {
 
     if (newLayoutSetId === existingCustomReceiptLayoutSetId) return;
 
-    mutateLayoutSet({
+    mutateLayoutSetId({
       layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
       newLayoutSetId,
     });

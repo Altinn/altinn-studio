@@ -39,7 +39,7 @@ export const mockBpmnApiContextValue: BpmnApiContextProps = {
   availableDataModelIds: [],
   addLayoutSet: jest.fn(),
   deleteLayoutSet: jest.fn(),
-  mutateLayoutSet: jest.fn(),
+  mutateLayoutSetId: jest.fn(),
   mutateDataType: jest.fn(),
   addDataTypeToAppMetadata: jest.fn(),
   deleteDataTypeFromAppMetadata: jest.fn(),
