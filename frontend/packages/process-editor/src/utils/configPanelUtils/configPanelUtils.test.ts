@@ -1,4 +1,9 @@
-import { getConfigTitleHelpTextKey, getConfigTitleKey } from './configPanelUtils';
+import {
+  getConfigTitleHelpTextKey,
+  getConfigTitleKey,
+  getDataTypeFromLayoutSetsWithExistingId,
+  getDatamodelOptions,
+} from './configPanelUtils';
 
 describe('configPanelUtils', () => {
   describe('getConfigTitleKey', () => {
@@ -42,6 +47,54 @@ describe('configPanelUtils', () => {
     it('returns signing helptext key when taskType is "signing"', () => {
       const key = getConfigTitleHelpTextKey('signing');
       expect(key).toEqual('process_editor.configuration_panel_header_help_text_signing');
+    });
+  });
+
+  describe('getDataTypeFromLayoutSetsWithExistingId', () => {
+    const layoutSetId1: string = 'layoutSet1';
+    const layoutSetId2: string = 'layoutSet2';
+    const layoutSetDataType1: string = 'dataType1';
+    const layoutSetDataType2: string = 'dataType2';
+
+    const layoutSets = {
+      sets: [
+        { id: layoutSetId1, dataType: layoutSetDataType1, tasks: [] },
+        { id: layoutSetId2, dataType: layoutSetDataType2, tasks: [] },
+      ],
+    };
+
+    it('returns existing datamodel id when layout set id matches', () => {
+      const existingDatamodelId = getDataTypeFromLayoutSetsWithExistingId(layoutSets, layoutSetId1);
+      expect(existingDatamodelId).toBe(layoutSetDataType1);
+    });
+
+    it('returns undefined when layout set id does not match', () => {
+      const existingCustomReceiptLayoutSetId = 'nonExistentLayoutSet';
+      const existingDatamodelId = getDataTypeFromLayoutSetsWithExistingId(
+        layoutSets,
+        existingCustomReceiptLayoutSetId,
+      );
+      expect(existingDatamodelId).toBeUndefined();
+    });
+  });
+
+  describe('getDatamodelOptions', () => {
+    it('should return availableIds with existingId appended when existingId is provided', () => {
+      const availableIds = ['id1', 'id2', 'id3'];
+      const existingId = 'existingId';
+
+      const result = getDatamodelOptions(availableIds, existingId);
+
+      expect(result).toEqual([...availableIds, existingId]);
+    });
+
+    it('should return availableIds unchanged when existingId is not provided', () => {
+      const availableIds = ['id1', 'id2', 'id3'];
+      const existingId = '';
+
+      const result = getDatamodelOptions(availableIds, existingId);
+
+      expect(result).toEqual(availableIds);
     });
   });
 });

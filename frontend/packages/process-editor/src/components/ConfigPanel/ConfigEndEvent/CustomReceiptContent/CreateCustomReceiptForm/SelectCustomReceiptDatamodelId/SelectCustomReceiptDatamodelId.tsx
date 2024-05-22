@@ -2,7 +2,10 @@ import React from 'react';
 import { StudioNativeSelect } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '../../../../../../contexts/BpmnApiContext';
-import { getExistingDatamodelIdFromLayoutsets } from '../../../../../../utils/customReceiptUtils';
+import {
+  getDataTypeFromLayoutSetsWithExistingId,
+  getDatamodelOptions,
+} from '../../../../../../utils/configPanelUtils';
 
 export type SelectCustomReceiptDatamodelIdProps = {
   error: string;
@@ -17,15 +20,14 @@ export const SelectCustomReceiptDatamodelId = ({
   const { layoutSets, existingCustomReceiptLayoutSetId, availableDataModelIds } =
     useBpmnApiContext();
 
-  const existingDatamodelId: string = getExistingDatamodelIdFromLayoutsets(
+  const existingDatamodelId: string = getDataTypeFromLayoutSetsWithExistingId(
     layoutSets,
     existingCustomReceiptLayoutSetId,
   );
-  const options = existingDatamodelId
-    ? [...availableDataModelIds, existingDatamodelId]
-    : availableDataModelIds;
 
-  const availableDatamodelIdsEmpty: boolean = options.length === 0;
+  const datamodelOptions = getDatamodelOptions(availableDataModelIds, existingDatamodelId);
+
+  const availableDatamodelIdsEmpty: boolean = datamodelOptions.length === 0;
 
   return (
     <StudioNativeSelect
@@ -45,7 +47,7 @@ export const SelectCustomReceiptDatamodelId = ({
       <option disabled={true} value='noModelKey'>
         {t('process_editor.configuration_panel_select_datamodel')}
       </option>
-      {options.map((id: string) => (
+      {datamodelOptions.map((id: string) => (
         <option key={id} value={id}>
           {id}
         </option>

@@ -4,7 +4,10 @@ import { StudioDeleteButton, StudioToggleableTextfield } from '@studio/component
 import { KeyVerticalIcon } from '@studio/icons';
 import { Paragraph } from '@digdir/design-system-react';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
-import { getExistingDatamodelIdFromLayoutsets } from '../../../../../utils/customReceiptUtils';
+import {
+  getDataTypeFromLayoutSetsWithExistingId,
+  getDatamodelOptions,
+} from '../../../../../utils/configPanelUtils';
 import { RedirectToCreatePageButton } from '../RedirectToCreatePageButton';
 import { useTranslation } from 'react-i18next';
 import { EditDataType } from '../../../EditDataType';
@@ -21,7 +24,7 @@ export const CustomReceipt = (): React.ReactElement => {
     mutateLayoutSet,
   } = useBpmnApiContext();
 
-  const existingDatamodelId: string = getExistingDatamodelIdFromLayoutsets(
+  const existingDatamodelId: string = getDataTypeFromLayoutSetsWithExistingId(
     layoutSets,
     existingCustomReceiptLayoutSetId,
   );
@@ -41,9 +44,7 @@ export const CustomReceipt = (): React.ReactElement => {
     });
   };
 
-  const options = existingDatamodelId
-    ? [...availableDataModelIds, existingDatamodelId]
-    : availableDataModelIds;
+  const datamodelOptions = getDatamodelOptions(availableDataModelIds, existingDatamodelId);
 
   const handleValidation = (newLayoutSetId: string): string => {
     const validationResult = getLayoutSetIdValidationErrorKey(
@@ -82,7 +83,7 @@ export const CustomReceipt = (): React.ReactElement => {
         />
         <EditDataType
           connectedTaskId={PROTECTED_TASK_NAME_CUSTOM_RECEIPT}
-          datamodelIds={options}
+          datamodelIds={datamodelOptions}
           existingDataTypeForTask={existingDatamodelId}
           hideSelectDeleteButton
         />

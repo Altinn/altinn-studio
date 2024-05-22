@@ -1,4 +1,5 @@
-import type { BpmnTaskType } from '../../types/BpmnTaskType';
+import { type BpmnTaskType } from '../../types/BpmnTaskType';
+import { type LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
 /**
  * Returns the title to show in the config panel when a task is selected.
@@ -45,4 +46,27 @@ export const checkForInvalidCharacters = (newId: string): InvalidCharacter | und
     }
   }
   return undefined;
+};
+
+/**
+ * Returns the data type from a layout set if the id of the layout set matches the existing id sent in
+ * @param layoutSets the layout sets to look through
+ * @param existingId the existing it to use for lookup
+ * @returns the data type if found, undefined otherwise
+ */
+export const getDataTypeFromLayoutSetsWithExistingId = (
+  layoutSets: LayoutSets,
+  existingId: string,
+): string | undefined => {
+  return layoutSets.sets.find((layoutSet) => layoutSet.id === existingId)?.dataType;
+};
+
+/**
+ * Gets the datamodel id options based on the available ids and the existing id
+ * @param availableIds the list of available ids
+ * @param existingId the exsiting id
+ * @returns a list datamodel options
+ */
+export const getDatamodelOptions = (availableIds: string[], existingId: string): string[] => {
+  return existingId ? [...availableIds, existingId] : availableIds;
 };

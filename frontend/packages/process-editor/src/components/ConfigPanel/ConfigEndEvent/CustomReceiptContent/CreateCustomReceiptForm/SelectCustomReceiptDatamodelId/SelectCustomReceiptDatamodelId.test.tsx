@@ -5,7 +5,7 @@ import {
 } from './SelectCustomReceiptDatamodelId';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../../../../testing/mocks/i18nMock';
-import { BpmnContext, type BpmnContextProps } from '../../../../../../contexts/BpmnContext';
+import { BpmnContext } from '../../../../../../contexts/BpmnContext';
 import userEvent from '@testing-library/user-event';
 import {
   BpmnApiContext,
@@ -32,9 +32,7 @@ describe('SelectCustomReceiptDatamodelId', () => {
   it('calls onChange function when an option is selected', async () => {
     const user = userEvent.setup();
     renderSelectCustomReceiptDatamodelId({
-      bpmnApiContextProps: {
-        availableDataModelIds: mockAvailableDatamodelIds,
-      },
+      availableDataModelIds: mockAvailableDatamodelIds,
     });
 
     const selectElement = screen.getByLabelText(
@@ -48,7 +46,7 @@ describe('SelectCustomReceiptDatamodelId', () => {
     expect(mockOnChange).toHaveBeenCalledTimes(1);
   });
 
-  it('displays the description when there is no available datamodel ids', () => {
+  it('displays the description when there are no available datamodel ids', () => {
     renderSelectCustomReceiptDatamodelId();
 
     const description = screen.getByText(
@@ -57,11 +55,9 @@ describe('SelectCustomReceiptDatamodelId', () => {
     expect(description).toBeInTheDocument();
   });
 
-  it('hides the description when there is are available datamodel ids', () => {
+  it('hides the description when there are available datamodel ids', () => {
     renderSelectCustomReceiptDatamodelId({
-      bpmnApiContextProps: {
-        availableDataModelIds: mockAvailableDatamodelIds,
-      },
+      availableDataModelIds: mockAvailableDatamodelIds,
     });
 
     const description = screen.queryByText(
@@ -71,19 +67,14 @@ describe('SelectCustomReceiptDatamodelId', () => {
   });
 });
 
-type RenderProps = {
-  bpmnApiContextProps: Partial<BpmnApiContextProps>;
-  rootContextProps: Partial<BpmnContextProps>;
-  componentProps: Partial<SelectCustomReceiptDatamodelIdProps>;
-};
-
-const renderSelectCustomReceiptDatamodelId = (props: Partial<RenderProps> = {}) => {
-  const { bpmnApiContextProps, rootContextProps, componentProps } = props;
+const renderSelectCustomReceiptDatamodelId = (
+  bpmnApiContextProps: Partial<BpmnApiContextProps> = {},
+) => {
   return render(
     <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
-      <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
+      <BpmnContext.Provider value={{ ...mockBpmnContextValue }}>
         <BpmnConfigPanelFormContextProvider>
-          <SelectCustomReceiptDatamodelId {...defaultProps} {...componentProps} />
+          <SelectCustomReceiptDatamodelId {...defaultProps} />
         </BpmnConfigPanelFormContextProvider>
       </BpmnContext.Provider>
     </BpmnApiContext.Provider>,
