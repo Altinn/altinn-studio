@@ -23,7 +23,7 @@ export const Header = () => {
   }
 
   if (isError) {
-    toast.error(t('overview.fetch_title_error_message'));
+    return toast.error(t('overview.fetch_title_error_message'));
   }
 
   return (
