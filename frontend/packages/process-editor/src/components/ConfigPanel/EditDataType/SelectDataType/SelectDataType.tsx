@@ -1,5 +1,6 @@
 import React from 'react';
-import { StudioButton, StudioDeleteButton, StudioNativeSelect } from '@studio/components';
+import { Combobox } from '@digdir/design-system-react';
+import { StudioButton, StudioDeleteButton } from '@studio/components';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
@@ -22,10 +23,12 @@ export const SelectDataType = ({
 }: SelectDataTypeProps): React.ReactElement => {
   const { t } = useTranslation();
   const { mutateDataType } = useBpmnApiContext();
-  const handleChangeDataModel = (dataModelId?: string) => {
-    if (dataModelId === existingDataType) return;
+  const currentValue = existingDataType ? [existingDataType] : [];
+  const handleChangeDataModel = (newDataModelIds?: string[]) => {
+    const newDataModelId = newDataModelIds ? newDataModelIds[0] : undefined;
+    if (newDataModelId === existingDataType) return;
     const dataTypeChange: DataTypeChange = {
-      newDataType: dataModelId,
+      newDataType: newDataModelId,
       connectedTaskId: connectedTaskId,
     };
     mutateDataType(dataTypeChange);
@@ -34,22 +37,28 @@ export const SelectDataType = ({
 
   return (
     <div className={classes.dataTypeSelect}>
-      <StudioNativeSelect
-        size='small'
-        onChange={({ target }) => handleChangeDataModel(target.value)}
+
+      <Combobox
         label={t('process_editor.configuration_panel_set_datamodel')}
-        value={existingDataType ?? 'noModelKey'}
+        inputValue={currentValue[0]}
+        value={currentValue}
+        description={
+            datamodelIds.length > 0
+            ? t('process_editor.configuration_panel_datamodel_selection_description')
+            : t('process_editor.configuration_panel_no_datamodel_to_select_description')
+        }
       >
-        <option disabled={true} value={'noModelKey'}>
-          {t('process_editor.configuration_panel_select_datamodel')}
-        </option>
         {datamodelIds.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
+          <Combobox.Option
+            value={option}
+            key={option}
+            onClick={() => handleChangeDataModel([option])}
+          >
+              {option}
+          </Combobox.Option>
         ))}
-      </StudioNativeSelect>
-      <div className={classes.buttons}>
+      </Combobox>
+        <div className={classes.buttons}>
         <StudioButton
           icon={<XMarkIcon />}
           onClick={onClose}

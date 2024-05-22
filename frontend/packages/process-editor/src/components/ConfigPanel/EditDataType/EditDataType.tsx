@@ -25,7 +25,7 @@ export const EditDataType = ({
 
   useEffect(() => {
     setDataModelSelectVisible(false);
-  }, [bpmnDetails]);
+  }, [bpmnDetails.id]);
 
   const definedValueWithLinkIcon = (
     <span className={classes.definedValue}>
