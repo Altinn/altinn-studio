@@ -13,7 +13,7 @@
         "id": "Input-Test",
         "type": "Input",
         "textResourceBindings": {
-          "title": "Side1.Input-RvqppS.title"
+          "title": "InputPage.Input.title"
         }
       },
       {
@@ -87,7 +87,7 @@
         "hidden": false,
         "whatToRender": {
           "type": "page",
-          "id": "Side1"
+          "id": "InputPage"
         }
       },
       {
