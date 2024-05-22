@@ -758,7 +758,7 @@
   "process_editor.configuration_panel_actions_action_label": "Handling {{ actionIndex }}: {{ actionName }}",
   "process_editor.configuration_panel_actions_action_type_help_text": "Hjelpetekst for valg av handlingstype",
   "process_editor.configuration_panel_actions_add_new": "Legg til ny handling",
-  "process_editor.configuration_panel_actions_combobox_description": "Velg en handling eller definer din egen",
+  "process_editor.configuration_panel_actions_combobox_description": "Velg en predefinert handling eller definer din egen ved å skrive inn navnet som fritekst i feltet",
   "process_editor.configuration_panel_actions_custom_action": "Skriv en egendefinert handling",
   "process_editor.configuration_panel_actions_delete_action": "Slett {{ actionName }}-handlingen",
   "process_editor.configuration_panel_actions_set_server_action_info": "Handlingen skal utføres uten å endre status på prosessen. Dette alternativet er kun tilgjengelig for egendefinerte handlinger.",
