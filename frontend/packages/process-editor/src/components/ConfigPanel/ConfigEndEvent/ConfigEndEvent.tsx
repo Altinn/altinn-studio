@@ -18,7 +18,7 @@ export const ConfigEndEvent = () => {
           level: 2,
         }}
       />
-      <Accordion color='subtle'>
+      <Accordion color='neutral'>
         <Accordion.Item>
           <Accordion.Header>
             {t('process_editor.configuration_panel_custom_receipt_accordion_header')}

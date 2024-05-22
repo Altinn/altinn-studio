@@ -10,6 +10,7 @@ import { EditDataType } from '../EditDataType';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { Accordion } from '@digdir/design-system-react';
 import { EditActions } from './EditActions';
+import { EditPolicy } from './EditPolicy';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -60,6 +61,14 @@ export const ConfigContent = (): React.ReactElement => {
           </Accordion.Header>
           <Accordion.Content className={classes.accordion}>
             <EditActions />
+          </Accordion.Content>
+        </Accordion.Item>
+        <Accordion.Item>
+          <Accordion.Header>
+            {t('process_editor.configuration_panel_policy_title')}
+          </Accordion.Header>
+          <Accordion.Content className={classes.accordion}>
+            <EditPolicy />
           </Accordion.Content>
         </Accordion.Item>
       </Accordion>

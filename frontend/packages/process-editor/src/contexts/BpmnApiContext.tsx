@@ -23,6 +23,7 @@ export type BpmnApiContextProps = {
   deleteDataTypeFromAppMetadata: (data: { dataTypeId: string }) => void;
 
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
+  openPolicyEditor: () => void;
 };
 
 export const BpmnApiContext = createContext<Partial<BpmnApiContextProps>>(undefined);
@@ -44,6 +45,7 @@ export const BpmnApiContextProvider = ({
   addDataTypeToAppMetadata,
   deleteDataTypeFromAppMetadata,
   saveBpmn,
+  openPolicyEditor,
 }: Partial<BpmnApiContextProviderProps>) => {
   return (
     <BpmnApiContext.Provider
@@ -59,6 +61,7 @@ export const BpmnApiContextProvider = ({
         addDataTypeToAppMetadata,
         deleteDataTypeFromAppMetadata,
         saveBpmn,
+        openPolicyEditor,
       }}
     >
       {children}
