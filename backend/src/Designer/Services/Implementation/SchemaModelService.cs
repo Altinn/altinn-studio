@@ -247,7 +247,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 var altinnCoreFile = altinnGitRepository.GetAltinnCoreFileByRelativePath(relativeFilePath);
                 var schemaName = altinnGitRepository.GetSchemaName(relativeFilePath);
 
-                await DeleteDatatypeFromApplicationMetadata(altinnAppGitRepository, schemaName);
+                await DeleteDatatypeFromApplicationMetadataAndLayoutSets(altinnAppGitRepository, schemaName);
                 DeleteRelatedSchemaFiles(altinnAppGitRepository, schemaName, altinnCoreFile.Directory);
             }
             else
@@ -338,7 +338,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 application.DataTypes = new List<DataType>();
             }
 
-            DataType existingLogicElement = application.DataTypes.FirstOrDefault(d => d.AppLogic?.ClassRef != null);
             DataType logicElement = application.DataTypes.SingleOrDefault(d => d.Id == dataTypeId);
 
             if (logicElement == null)
@@ -346,7 +345,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 logicElement = new DataType
                 {
                     Id = dataTypeId,
-                    TaskId = existingLogicElement == null ? "Task_1" : null,
+                    TaskId = null,
                     AllowedContentTypes = new List<string>() { "application/xml" },
                     MaxCount = 1,
                     MinCount = 1,
@@ -407,17 +406,26 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new List<string>() { jsonSchemaFile, xsdFile, jsonMetadataFile, csharpModelFile };
         }
 
-        private static async Task DeleteDatatypeFromApplicationMetadata(AltinnAppGitRepository altinnAppGitRepository, string id)
+        private static async Task DeleteDatatypeFromApplicationMetadataAndLayoutSets(AltinnAppGitRepository altinnAppGitRepository, string id)
         {
             var applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
 
             if (applicationMetadata.DataTypes != null)
             {
                 DataType removeForm = applicationMetadata.DataTypes.Find(m => m.Id == id);
+                if (altinnAppGitRepository.AppUsesLayoutSets())
+                {
+                    var layoutSets = await altinnAppGitRepository.GetLayoutSetsFile();
+                    var layoutSet = layoutSets.Sets.Find(set => set.Tasks[0] == removeForm.TaskId);
+                    if (layoutSet is not null)
+                    {
+                        layoutSet.DataType = null;
+                        await altinnAppGitRepository.SaveLayoutSets(layoutSets);
+                    }
+                }
                 applicationMetadata.DataTypes.Remove(removeForm);
+                await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
             }
-
-            await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
         }
 
         private async Task<string> ProcessNewXsd(AltinnAppGitRepository altinnAppGitRepository, MemoryStream xsdMemoryStream, string filePath)

@@ -120,6 +120,19 @@ describe('ConfigContent', () => {
     ).toBeInTheDocument();
     expect(screen.getByText(connectedDataType)).toBeInTheDocument();
   });
+
+  it('should render the Policy accordion', async () => {
+    renderConfigContent();
+    const policyAccordion = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_policy_title'),
+    });
+    const user = userEvent.setup();
+    await user.click(policyAccordion);
+    const editPolicyButton = await screen.findByText(
+      textMock('process_editor.configuration_panel.edit_policy_open_policy_editor_button'),
+    );
+    expect(editPolicyButton).toBeInTheDocument();
+  });
 });
 
 const renderConfigContent = (

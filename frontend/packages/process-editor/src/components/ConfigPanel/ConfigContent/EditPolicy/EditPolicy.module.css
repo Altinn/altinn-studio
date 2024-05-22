@@ -1,0 +1,15 @@
+.configContent {
+  padding: var(--studio-property-button-vertical-spacing) var(--fds-spacing-5);
+  margin-bottom: var(--studio-property-button-vertical-spacing);
+}
+
+.policyButtonPanel {
+  background-color: var(--fds-semantic-surface-neutral-subtle);
+  border-radius: var(--fds-border_radius-medium);
+  padding: var(--fds-spacing-5);
+  margin-top: var(--fds-spacing-5);
+}
+
+.policyEditorButton {
+  margin-top: var(--fds-spacing-5);
+}

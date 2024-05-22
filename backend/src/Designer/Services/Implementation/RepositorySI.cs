@@ -283,53 +283,54 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<RepositoryClient.Model.Repository> CopyRepository(string org, string sourceRepository, string targetRepository, string developer)
+        public async Task<RepositoryClient.Model.Repository> CopyRepository(string org, string sourceRepository, string targetRepository, string developer, string targetOrg = null)
         {
+            targetOrg ??= org;
             var options = new CreateRepoOption(targetRepository);
 
-            RepositoryClient.Model.Repository repository = await CreateRemoteRepository(org, options);
+            RepositoryClient.Model.Repository repository = await CreateRemoteRepository(targetOrg, options);
 
             if (repository == null || repository.RepositoryCreatedStatus != HttpStatusCode.Created)
             {
                 return repository;
             }
 
-            string targetRepositoryPath = _settings.GetServicePath(org, targetRepository, developer);
+            string targetRepositoryPath = _settings.GetServicePath(targetOrg, targetRepository, developer);
 
             if (Directory.Exists(targetRepositoryPath))
             {
-                FireDeletionOfLocalRepo(org, targetRepository, developer);
+                FireDeletionOfLocalRepo(targetOrg, targetRepository, developer);
             }
 
             _sourceControl.CloneRemoteRepository(org, sourceRepository, targetRepositoryPath);
-            var targetAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
+            var targetAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(targetOrg, targetRepository, developer);
 
             await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{org}/{targetRepository}.git");
 
             ApplicationMetadata appMetadata = await targetAppRepository.GetApplicationMetadata();
-            appMetadata.Id = $"{org}/{targetRepository}";
+            appMetadata.Id = $"{targetOrg}/{targetRepository}";
             appMetadata.CreatedBy = developer;
             appMetadata.LastChangedBy = developer;
             appMetadata.Created = DateTime.UtcNow;
             appMetadata.LastChanged = appMetadata.Created;
             await targetAppRepository.SaveApplicationMetadata(appMetadata);
 
-            CommitInfo commitInfo = new() { Org = org, Repository = targetRepository, Message = $"App cloned from {sourceRepository} {DateTime.Now.Date.ToShortDateString()}" };
+            CommitInfo commitInfo = new() { Org = targetOrg, Repository = targetRepository, Message = $"App cloned from {sourceRepository} {DateTime.Now.Date.ToShortDateString()}" };
             _sourceControl.PushChangesForRepository(commitInfo);
 
             // Final changes are made in a seperate branch to be reviewed by developer
             string branchName = "complete_copy_of_app";
             string branchCloneName = $"{targetRepository}_{branchName}_{Guid.NewGuid()}";
 
-            await _sourceControl.CreateBranch(org, targetRepository, branchName);
-            _sourceControl.CloneRemoteRepository(org, targetRepository, _settings.GetServicePath(org, branchCloneName, developer), branchName);
+            await _sourceControl.CreateBranch(targetOrg, targetRepository, branchName);
+            _sourceControl.CloneRemoteRepository(targetOrg, targetRepository, _settings.GetServicePath(targetOrg, branchCloneName, developer), branchName);
 
-            var branchAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, branchCloneName, developer);
+            var branchAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(targetOrg, branchCloneName, developer);
 
             await branchAppRepository.SearchAndReplaceInFile("App/config/authorization/policy.xml", $"{sourceRepository}", $"{targetRepository}");
 
-            _sourceControl.CommitAndPushChanges(org, targetRepository, branchName, branchAppRepository.RepositoryDirectory, "Updated policy.xml");
-            await _sourceControl.CreatePullRequest(org, targetRepository, "master", branchName, "Auto-generated: Final changes for cloning app.");
+            _sourceControl.CommitAndPushChanges(targetOrg, targetRepository, branchName, branchAppRepository.RepositoryDirectory, "Updated policy.xml");
+            await _sourceControl.CreatePullRequest(targetOrg, targetRepository, "master", branchName, "Auto-generated: Final changes for cloning app.");
 
             DirectoryHelper.DeleteFilesAndDirectory(branchAppRepository.RepositoryDirectory);
 
@@ -536,35 +537,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             ServiceResource resource = GetServiceResourceById(org, repository, id);
             return await _resourceRegistryService.PublishServiceResource(resource, env, policy);
-        }
-
-        public bool ResourceHasPolicy(string org, string repository, ServiceResource resource)
-        {
-            List<FileSystemObject> contents = new();
-            string repositoryPath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-
-            if (Directory.Exists(repositoryPath))
-            {
-                string[] dirs = Directory.GetDirectories(repositoryPath);
-                foreach (string directoryPath in dirs)
-                {
-                    FileSystemObject d = GetFileSystemObjectForDirectory(directoryPath);
-                    if (!d.Name.StartsWith(".") && d.Name.ToLower().Contains(resource.Identifier.ToLower()))
-                    {
-                        contents.Add(d);
-                        string[] files = Directory.GetFiles(d.Path);
-                        foreach (string file in files)
-                        {
-                            if (file.EndsWith("policy.xml"))
-                            {
-                                return true;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return false;
         }
 
         private List<FileSystemObject> GetResourceFiles(string org, string repository, string path = "")

@@ -1,5 +1,5 @@
 import React, { useId } from 'react';
-import { Label, NativeSelect } from '@digdir/design-system-react';
+import { NativeSelect } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import type { Organization } from 'app-shared/types/Organization';
 import type { User } from 'app-shared/types/Repository';
@@ -31,24 +31,20 @@ export const ServiceOwnerSelector = ({
     selectableUser.value;
 
   return (
-    <div>
-      <Label spacing htmlFor={serviceOwnerId}>
-        {t('general.service_owner')}
-      </Label>
-      <NativeSelect
-        hideLabel
-        error={errorMessage}
-        id={serviceOwnerId}
-        name={name}
-        defaultValue={defaultValue}
-      >
-        {selectableOptions.map(({ value, label }) => (
-          <option key={value} value={value}>
-            {label}
-          </option>
-        ))}
-      </NativeSelect>
-    </div>
+    <NativeSelect
+      label={t('general.service_owner')}
+      error={errorMessage}
+      size='small'
+      name={name}
+      id={serviceOwnerId}
+      defaultValue={defaultValue}
+    >
+      {selectableOptions.map(({ value, label }) => (
+        <option key={value} value={value}>
+          {label}
+        </option>
+      ))}
+    </NativeSelect>
   );
 };
 

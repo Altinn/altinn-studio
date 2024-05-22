@@ -56,11 +56,7 @@ export const getMockBpmnElementForTask = (taskType: BpmnTaskType) => {
               {
                 actions: signingActions,
                 signatureConfig: {
-                  signatureDataType: {
-                    dataType: {
-                      dataType: 'signatureInformation-1234',
-                    },
-                  },
+                  signatureDataType: 'signatureInformation-1234',
                 },
               },
             ],
@@ -75,11 +71,7 @@ export const getMockBpmnElementForTask = (taskType: BpmnTaskType) => {
               {
                 actions: paymentActions,
                 paymentConfig: {
-                  paymentDataType: {
-                    dataType: {
-                      dataType: 'paymentInformation-1234',
-                    },
-                  },
+                  paymentDataType: 'paymentInformation-1234',
                 },
               },
             ],

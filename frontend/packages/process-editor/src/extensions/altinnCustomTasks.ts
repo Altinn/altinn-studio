@@ -72,7 +72,7 @@ export const altinnCustomTasks = {
         {
           name: 'signatureDataType',
           isMany: false,
-          type: 'SignatureDataType',
+          type: 'String',
         },
       ],
     },
@@ -82,29 +82,7 @@ export const altinnCustomTasks = {
         {
           name: 'paymentDataType',
           isMany: false,
-          type: 'PaymentDataType',
-        },
-      ],
-    },
-    {
-      name: 'PaymentDataType',
-      properties: [
-        {
-          name: 'dataType',
-          isMany: false,
-          isAttr: false,
-          type: 'DataType',
-        },
-      ],
-    },
-    {
-      name: 'SignatureDataType',
-      properties: [
-        {
-          name: 'dataType',
-          isMany: false,
-          isAttr: false,
-          type: 'DataType',
+          type: 'String',
         },
       ],
     },

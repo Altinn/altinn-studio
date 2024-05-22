@@ -12,6 +12,7 @@ export type { StudioExpressionProps } from './StudioExpression';
 export { DataLookupFuncName } from './enums/DataLookupFuncName';
 export { ExpressionErrorKey } from './enums/ExpressionErrorKey';
 export { GeneralRelationOperator } from './enums/GeneralRelationOperator';
+export { GatewayActionContext } from './enums/GatewayActionContext';
 export { InstanceContext } from './enums/InstanceContext';
 export { KeyLookupFuncName } from './enums/KeyLookupFuncName';
 export { LogicalTupleOperator } from './enums/LogicalTupleOperator';
