@@ -3,10 +3,9 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../testing/mocks';
-import { formDesignerMock } from '../../../testing/stateMocks';
 import { formItemContextProviderMock } from '../../../testing/formItemContextMocks';
 import type { IFormLayouts } from '../../../types/global';
-import { layout1NameMock, layoutMock } from '../../../testing/layoutMock';
+import { layout1NameMock, layoutMock, layoutSet1NameMock } from '../../../testing/layoutMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -18,7 +17,7 @@ import { parsableExternalExpression } from '../../../testing/expressionMocks';
 import type { FormContainer } from '../../../types/FormContainer';
 import { app, org } from '@studio/testing/testids';
 
-const layoutSetName = formDesignerMock.layout.selectedLayoutSet;
+const layoutSetName = layoutSet1NameMock;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };

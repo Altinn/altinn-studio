@@ -65,9 +65,9 @@ export const Properties = () => {
                 <EditFormComponent
                   editFormId={formItemId}
                   component={formItem}
-                  handleComponentUpdate={async (updatedComponent) => {
+                  handleComponentUpdate={async (updatedComponent, mutateOptions) => {
                     handleUpdate(updatedComponent);
-                    debounceSave(formItemId, updatedComponent);
+                    debounceSave(formItemId, updatedComponent, mutateOptions);
                   }}
                 />
               </Accordion.Content>

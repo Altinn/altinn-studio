@@ -13,6 +13,7 @@ import { GeneralRelationOperator } from '../enums/GeneralRelationOperator';
 import { DataLookupFuncName } from '../enums/DataLookupFuncName';
 import { KeyLookupFuncName } from '../enums/KeyLookupFuncName';
 import { LogicalTupleOperator } from '../enums/LogicalTupleOperator';
+import { GatewayActionContext } from '../enums/GatewayActionContext';
 
 /** Returns true if the expression can be converted to a SimpleExpression object */
 export const isExpressionSimple = (
@@ -30,14 +31,14 @@ const isNumberRelationFunc = (expression: Expression): expression is NumberRelat
   Array.isArray(expression) &&
   expression.length === 3 &&
   Object.values(NumberRelationOperator).includes(expression[0] as NumberRelationOperator) &&
-  isSimpleValueFunc(expression[1]) &&
+  isSimpleValueFunc(expression[1] as Expression) &&
   isSimpleValueFunc(expression[2]);
 
 const isTypeIndependentRelationFunc = (expression: Expression): expression is GenericRelationFunc =>
   Array.isArray(expression) &&
   expression.length === 3 &&
   Object.values(GeneralRelationOperator).includes(expression[0] as GeneralRelationOperator) &&
-  isSimpleValueFunc(expression[1]) &&
+  isSimpleValueFunc(expression[1] as Expression) &&
   isSimpleValueFunc(expression[2]);
 
 export const isSimpleValueFunc = (expression: Expression): expression is ValueInComplexFormat =>
@@ -46,13 +47,30 @@ export const isSimpleValueFunc = (expression: Expression): expression is ValueIn
   typeof expression === 'string' ||
   typeof expression === 'boolean' ||
   isSimpleDataLookupFunc(expression) ||
-  isSimpleKeyLookupFunc(expression);
+  isSimpleKeyLookupFunc(expression) ||
+  isProcessDataLookupFunc(expression);
 
 export const isSimpleDataLookupFunc = (expression: Expression): expression is DataLookupFunc =>
   Array.isArray(expression) &&
   expression.length === 2 &&
   Object.values(DataLookupFuncName).includes(expression[0] as DataLookupFuncName) &&
   typeof expression[1] === 'string';
+
+export const isProcessDataLookupFunc = (expression: Expression): expression is DataLookupFunc => {
+  return (
+    Array.isArray(expression) &&
+    [DataLookupFuncName.GatewayAction].includes(expression[0] as DataLookupFuncName)
+  );
+};
+
+export const isProcessUserAction = (expression: Expression): expression is GatewayActionContext => {
+  const actions = Object.values(GatewayActionContext);
+  return typeof expression === 'string' && actions.includes(expression as GatewayActionContext);
+};
+
+export const isProcessGatewayAction = (expression: Expression): expression is DataLookupFunc => {
+  return Array.isArray(expression) && expression[0] === DataLookupFuncName.GatewayAction;
+};
 
 export const isSimpleKeyLookupFunc = (expression: Expression): expression is KeyLookupFunc =>
   Array.isArray(expression) &&

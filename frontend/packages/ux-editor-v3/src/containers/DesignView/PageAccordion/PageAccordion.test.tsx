@@ -5,17 +5,16 @@ import type { PageAccordionProps } from './PageAccordion';
 import { PageAccordion } from './PageAccordion';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { formDesignerMock } from '../../../testing/stateMocks';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import {
   formLayoutSettingsMock,
   renderHookWithMockStore,
   renderWithMockStore,
 } from '../../../testing/mocks';
-import { layout2NameMock, layoutSet1NameMock } from '../../../testing/layoutMock';
+import { layout1NameMock, layout2NameMock, layoutSet1NameMock } from '../../../testing/layoutMock';
 import { app, org } from '@studio/testing/testids';
 
-const mockPageName1: string = formDesignerMock.layout.selectedLayout;
+const mockPageName1: string = layout1NameMock;
 const mockSelectedLayoutSet = layoutSet1NameMock;
 const mockPageName2 = layout2NameMock;
 

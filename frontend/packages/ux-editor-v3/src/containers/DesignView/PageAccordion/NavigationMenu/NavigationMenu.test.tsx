@@ -10,7 +10,6 @@ import {
   renderHookWithMockStore,
   renderWithMockStore,
 } from '../../../../testing/mocks';
-import { formDesignerMock } from '../../../../testing/stateMocks';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
 import { app, org } from '@studio/testing/testids';
 import {
@@ -19,7 +18,7 @@ import {
   layoutSet1NameMock,
 } from '@altinn/ux-editor-v3/testing/layoutMock';
 
-const mockPageName1: string = formDesignerMock.layout.selectedLayout;
+const mockPageName1: string = layout1NameMock;
 const mockSelectedLayoutSet = layoutSet1NameMock;
 
 const mockSetSearchParams = jest.fn();

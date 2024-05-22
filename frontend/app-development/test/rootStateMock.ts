@@ -5,7 +5,6 @@ export const rootStateMock: RootState = {
   serviceInformation: {
     repositoryInfo: repository,
     error: null,
-    initialCommit: null,
     serviceDescriptionObj: {
       description: 'mockDescription',
       saving: false,

@@ -19,6 +19,15 @@ const expressionsTestId = 'expressions';
 const calculationsTestId = 'calculations';
 
 // Mocks:
+jest.mock('../config/EditFormComponent', () => ({
+  __esModule: true,
+  ...jest.requireActual('../config/EditFormComponent'),
+}));
+const editFormComponentSpy = jest.spyOn(
+  require('../config/EditFormComponent'),
+  'EditFormComponent',
+);
+
 jest.mock('./PageConfigPanel', () => ({
   PageConfigPanel: () => <div data-testid={pageConfigPanelTestId} />,
 }));
@@ -27,9 +36,6 @@ jest.mock('./Text', () => ({
 }));
 jest.mock('./DataModelBindings', () => ({
   DataModelBindings: () => <div data-testid={DataModelBindingsTestId} />,
-}));
-jest.mock('../config/EditFormComponent', () => ({
-  EditFormComponent: () => <div data-testid={editFormComponentTestId} />,
 }));
 jest.mock('./ConditionalRendering', () => ({
   ConditionalRendering: () => <div data-testid={conditionalRenderingTestId} />,
@@ -97,6 +103,17 @@ describe('Properties', () => {
       const validId = 'valid-id';
       await user.type(textbox, validId);
       await user.click(document.body);
+      expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalledTimes(1);
+      expect(formItemContextProviderMock.debounceSave).toHaveBeenCalledTimes(1);
+    });
+
+    it('saves the component when changes are made in the component', async () => {
+      const user = userEvent.setup();
+      renderProperties();
+      const button = screen.queryByRole('button', { name: textMock('right_menu.content') });
+      await user.click(button);
+      const readOnly = screen.getByText(textMock('ux_editor.component_properties.readOnly'));
+      await user.click(readOnly);
       expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalledTimes(1);
       expect(formItemContextProviderMock.debounceSave).toHaveBeenCalledTimes(1);
     });
@@ -198,6 +215,7 @@ describe('Properties', () => {
   });
 
   it('Renders properties accordions when formItem is selected', () => {
+    editFormComponentSpy.mockReturnValue(<input data-testid={editFormComponentTestId}></input>);
     renderProperties();
     expect(screen.getByText(textMock('right_menu.text'))).toBeInTheDocument();
     expect(screen.getByText(textMock('right_menu.dataModelBindings'))).toBeInTheDocument();

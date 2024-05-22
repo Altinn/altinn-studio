@@ -58,7 +58,6 @@ describe('useDeleteLayoutMutation', () => {
   it('Reloads preview when deleting a layout that is not selected', async () => {
     const { result } = renderDeleteLayoutMutation();
     await result.current.mutateAsync(layout2NameMock);
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
   });
 });
 

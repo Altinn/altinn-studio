@@ -1,14 +1,15 @@
 import React from 'react';
-import { render as rtlRender, screen, within } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import type { ServiceOwnerSelectorProps } from './ServiceOwnerSelector';
 import { ServiceOwnerSelector } from './ServiceOwnerSelector';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { user } from 'app-shared/mocks/mocks';
+import { textMock } from '../../../testing/mocks/i18nMock';
+import { user as mockUser } from 'app-shared/mocks/mocks';
+import userEvent from '@testing-library/user-event';
 
 const defaultProps = {
   selectedOrgOrUser: 'userLogin',
   user: {
-    ...user,
+    ...mockUser,
     login: 'userLogin',
   },
   organizations: [
@@ -22,27 +23,30 @@ const defaultProps = {
   name: '',
 };
 
-const render = (props: Partial<ServiceOwnerSelectorProps> = {}) => {
-  rtlRender(<ServiceOwnerSelector {...defaultProps} {...props} />);
+const renderServiceOwnerSelector = (props: Partial<ServiceOwnerSelectorProps> = {}) => {
+  render(<ServiceOwnerSelector {...defaultProps} {...props} />);
 };
 
 describe('ServiceOwnerSelector', () => {
+  afterEach(jest.clearAllMocks);
+
   it('renders select with all options', async () => {
-    render();
+    const user = userEvent.setup();
+    renderServiceOwnerSelector();
 
     const select = screen.getByLabelText(textMock('general.service_owner'));
+    await act(() => user.click(select));
+
+    expect(screen.getByRole('option', { name: defaultProps.user.login })).toBeInTheDocument();
     expect(
-      within(select).getByRole('option', { name: defaultProps.user.login }),
-    ).toBeInTheDocument();
-    expect(
-      within(select).getByRole('option', { name: defaultProps.organizations[0].username }),
+      screen.getByRole('option', { name: defaultProps.organizations[0].username }),
     ).toBeInTheDocument();
   });
 
   it('shows validation errors', async () => {
     const errorMessage = 'Field cannot be empty';
 
-    render({ errorMessage });
+    renderServiceOwnerSelector({ errorMessage });
 
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
   });
@@ -50,7 +54,7 @@ describe('ServiceOwnerSelector', () => {
   it('selects the org when the current context is the org', async () => {
     const selectedOrgOrUser = defaultProps.organizations[0].username;
 
-    render({ selectedOrgOrUser });
+    renderServiceOwnerSelector({ selectedOrgOrUser });
 
     const select = screen.getByLabelText(textMock('general.service_owner'));
     expect(select).toHaveValue(selectedOrgOrUser);
@@ -59,7 +63,7 @@ describe('ServiceOwnerSelector', () => {
   it('selects the user when the current context is the user', async () => {
     const selectedOrgOrUser = defaultProps.user.login;
 
-    render({ selectedOrgOrUser });
+    renderServiceOwnerSelector({ selectedOrgOrUser });
 
     const select = screen.getByLabelText(textMock('general.service_owner'));
     expect(select).toHaveValue(selectedOrgOrUser);
@@ -68,7 +72,7 @@ describe('ServiceOwnerSelector', () => {
   it('selects the user when the current context is invalid', async () => {
     const selectedOrgOrUser = 'all';
 
-    render({ selectedOrgOrUser });
+    renderServiceOwnerSelector({ selectedOrgOrUser });
 
     const select = screen.getByLabelText(textMock('general.service_owner'));
     expect(select).toHaveValue(defaultProps.user.login);

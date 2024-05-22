@@ -61,6 +61,9 @@ jest.mock('react-i18next', () => ({
   Trans: ({ i18nKey }) => textMock(i18nKey),
   useTranslation: () => ({
     t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
+    i18n: {
+      exists: () => true,
+    },
   }),
   withTranslation: () => (Component: ReactNode) => Component,
 }));

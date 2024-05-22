@@ -21,7 +21,6 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.PolicyAdmin.Constants;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -191,6 +190,23 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return null;
         }
 
+        public async Task<XacmlPolicy> GetResourcePolicy(string id, string env)
+        {
+            string policyUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/{id}/policy";
+
+            HttpResponseMessage response = await _httpClient.GetAsync(policyUrl);
+            response.EnsureSuccessStatusCode();
+
+            string contentString = await response.Content.ReadAsStringAsync();
+            XacmlPolicy policy;
+            using (XmlReader reader = XmlReader.Create(new StringReader(contentString)))
+            {
+                policy = XacmlParser.ParseXacmlPolicy(reader);
+            }
+
+            return policy;
+        }
+
         public async Task<List<ServiceResource>> GetResources(string env)
         {
             string resourceUrl;
@@ -218,7 +234,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         ///     Get resource list
         /// </summary>
         /// <returns>List of all resources</returns>
-        public async Task<List<ServiceResource>> GetResourceList(string env)
+        public async Task<List<ServiceResource>> GetResourceList(string env, bool includeAltinn2)
         {
 
             string endpointUrl;
@@ -226,11 +242,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             //Checks if not tested locally by passing dev as env parameter
             if (!env.ToLower().Equals("dev"))
             {
-                endpointUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/resourcelist/";
+                endpointUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/resourcelist/?includeApps=false&includeAltinn2={includeAltinn2}";
             }
             else
             {
-                endpointUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/resourcelist/";
+                endpointUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/resourcelist/?includeApps=false&includeAltinn2={includeAltinn2}";
             }
 
             JsonSerializerOptions options = new JsonSerializerOptions
@@ -276,7 +292,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             response.EnsureSuccessStatusCode();
 
             string contentString = await response.Content.ReadAsStringAsync();
-            contentString = contentString.Replace("urn:altinn:resourceregistry", AltinnXacmlConstants.MatchAttributeIdentifiers.ResourceRegistryResource);
             XacmlPolicy policy;
             using (XmlReader reader = XmlReader.Create(new StringReader(contentString)))
             {

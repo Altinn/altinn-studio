@@ -1,7 +1,7 @@
 import React from 'react';
 import { ProcessEditor as ProcessEditorImpl } from '@altinn/process-editor';
-import { useBpmnMutation } from 'app-development/hooks/mutations';
-import { useBpmnQuery } from 'app-development/hooks/queries/useBpmnQuery';
+import { useBpmnMutation } from '../../hooks/mutations';
+import { useBpmnQuery } from '../../hooks/queries/useBpmnQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { toast } from 'react-toastify';
 import { StudioPageSpinner } from '@studio/components';
@@ -21,6 +21,7 @@ import { useUpdateProcessDataTypeMutation } from '../../hooks/mutations/useUpdat
 import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 import { useAddDataTypeToAppMetadata } from '../../hooks/mutations/useAddDataTypeToAppMetadata';
 import { useDeleteDataTypeFromAppMetadata } from '../../hooks/mutations/useDeleteDataTypeFromAppMetadata';
+import { useSettingsModalContext } from '../../contexts/SettingsModalContext';
 
 enum SyncClientsName {
   FileSyncSuccess = 'FileSyncSuccess',
@@ -30,6 +31,7 @@ enum SyncClientsName {
 export const ProcessEditor = (): React.ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
+  const { setSettingsModalOpen, setSettingsModalSelectedTab } = useSettingsModalContext();
   const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
   const { data: appLibData, isLoading: appLibDataLoading } = useAppVersionQuery(org, app);
   const { mutate: mutateBpmn, isPending: mutateBpmnPending } = useBpmnMutation(org, app);
@@ -116,6 +118,10 @@ export const ProcessEditor = (): React.ReactElement => {
       addDataTypeToAppMetadata={addDataTypeToAppMetadata}
       deleteDataTypeFromAppMetadata={deleteDataTypeFromAppMetadata}
       saveBpmn={saveBpmnXml}
+      openPolicyEditor={() => {
+        setSettingsModalSelectedTab('policy');
+        setSettingsModalOpen(true);
+      }}
     />
   );
 };

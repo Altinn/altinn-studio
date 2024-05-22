@@ -6,11 +6,14 @@ import type { RelationalOperator } from '../types/RelationalOperator';
 import { NumberRelationOperator } from '../enums/NumberRelationOperator';
 import { GeneralRelationOperator } from '../enums/GeneralRelationOperator';
 import { SimpleSubexpressionValueType } from '../enums/SimpleSubexpressionValueType';
+import { GatewayActionContext } from '../enums/GatewayActionContext';
 
 const valueTypes: Record<SimpleSubexpressionValueType, string> = {
   [SimpleSubexpressionValueType.Boolean]: 'Boolean',
   [SimpleSubexpressionValueType.Component]: 'Component',
   [SimpleSubexpressionValueType.Datamodel]: 'Datamodel',
+  [SimpleSubexpressionValueType.GatewayAction]: 'Gateway action',
+  [SimpleSubexpressionValueType.GatewayActionContext]: 'Gateway action context',
   [SimpleSubexpressionValueType.InstanceContext]: 'Instance context',
   [SimpleSubexpressionValueType.Null]: 'Null',
   [SimpleSubexpressionValueType.Number]: 'Number',
@@ -31,6 +34,13 @@ const logicalTupleOperators: Record<LogicalTupleOperator, string> = {
   [LogicalTupleOperator.Or]: 'Or',
 };
 
+const gatewayActionContext: Record<GatewayActionContext, string> = {
+  [GatewayActionContext.Confirm]: 'Confirm',
+  [GatewayActionContext.Pay]: 'Pay',
+  [GatewayActionContext.Sign]: 'Sign',
+  [GatewayActionContext.Reject]: 'Reject',
+};
+
 const instanceContext: Record<InstanceContext, string> = {
   [InstanceContext.AppId]: 'App ID',
   [InstanceContext.InstanceId]: 'Instance ID',
@@ -45,6 +55,7 @@ const errorMessages: Record<ExpressionErrorKey, string> = {
   [ExpressionErrorKey.InvalidSecondOperand]: 'The second operand is invalid.',
   [ExpressionErrorKey.NumericRelationOperatorWithWrongType]:
     'The relational operator is invalid for the selected operand types.',
+  [ExpressionErrorKey.ComponentIDNoLongerExists]: 'The component ID no longer exists.',
 };
 
 export const texts: ExpressionTexts = {
@@ -67,6 +78,8 @@ export const texts: ExpressionTexts = {
   expression: 'Expression',
   false: 'False',
   firstOperand: 'First operand',
+  gatewayActionKey: 'Gateway action key',
+  gatewayActionContext,
   instanceContext,
   instanceContextKey: 'Instance context key',
   invalidExpression: 'Invalid expression',
@@ -78,6 +91,7 @@ export const texts: ExpressionTexts = {
   or: 'or',
   readonlyComponentId: 'Component ID:',
   readonlyDatamodelPath: 'Datamodel path:',
+  readonlyGatewayActionContext: 'Gateway action context:',
   readonlyInstanceContext: 'Instance context:',
   relationalOperator: 'Relational operator',
   relationalOperators,

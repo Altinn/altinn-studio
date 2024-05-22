@@ -14,25 +14,16 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { mockRepository1, mockRepository2 } from '../../../mocks/repositoryMock';
 import { mockAppConfig } from '../../../mocks/appConfigMock';
 import { formatDateToDateAndTimeString } from 'app-development/utils/dateUtils';
-import type { Commit, CommitAuthor } from 'app-shared/types/Commit';
 import { MemoryRouter } from 'react-router-dom';
+import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { app, org } from '@studio/testing/testids';
 
 const mockNewText: string = 'test';
 
-const mockCommitAuthor: CommitAuthor = {
-  email: '',
-  name: 'Mock Mockesen',
-  when: new Date(2023, 9, 22),
-};
-
-const mockInitialCommit: Commit = {
-  message: '',
-  author: mockCommitAuthor,
-  comitter: mockCommitAuthor,
-  sha: '',
-  messageShort: '',
-  encoding: '',
+const mockAppMetadata: ApplicationMetadata = {
+  id: `${org}/${app}`,
+  org,
+  createdBy: 'Test Testesen',
 };
 
 jest.mock('../../../../../../hooks/mutations/useAppConfigMutation');
@@ -46,7 +37,7 @@ mockUpdateAppConfigMutation.mockReturnValue({
 
 const getAppConfig = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getRepoMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
-const getRepoInitialCommit = jest.fn().mockImplementation(() => Promise.resolve({}));
+const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 
 const defaultProps: AboutTabProps = {
   org,
@@ -72,12 +63,12 @@ describe('AboutTab', () => {
     expect(getRepoMetadata).toHaveBeenCalledTimes(1);
   });
 
-  it('fetches commit data on mount', () => {
+  it('fetches applicationMetadata on mount', () => {
     render();
-    expect(getRepoInitialCommit).toHaveBeenCalledTimes(1);
+    expect(getAppMetadata).toHaveBeenCalledTimes(1);
   });
 
-  it.each(['getAppConfig', 'getRepoMetadata', 'getRepoInitialCommit'])(
+  it.each(['getAppConfig', 'getRepoMetadata', 'getAppMetadata'])(
     'shows an error message if an error occured on the %s query',
     async (queryName) => {
       const errorMessage = 'error-message-test';
@@ -167,12 +158,18 @@ describe('AboutTab', () => {
       ),
     ).toBeInTheDocument();
   });
+
+  it('displays the user that created the app correctly', async () => {
+    await resolveAndWaitForSpinnerToDisappear();
+
+    expect(screen.getByText(mockAppMetadata.createdBy)).toBeInTheDocument();
+  });
 });
 
 const resolveAndWaitForSpinnerToDisappear = async (props: Partial<AboutTabProps> = {}) => {
   getAppConfig.mockImplementation(() => Promise.resolve(mockAppConfig));
   getRepoMetadata.mockImplementation(() => Promise.resolve(mockRepository1));
-  getRepoInitialCommit.mockImplementation(() => Promise.resolve(mockInitialCommit));
+  getAppMetadata.mockImplementation(() => Promise.resolve(mockAppMetadata));
 
   render(props);
   await waitForElementToBeRemoved(() =>
@@ -189,7 +186,7 @@ const render = (
     ...queriesMock,
     getAppConfig,
     getRepoMetadata,
-    getRepoInitialCommit,
+    getAppMetadata,
     ...queries,
   };
 

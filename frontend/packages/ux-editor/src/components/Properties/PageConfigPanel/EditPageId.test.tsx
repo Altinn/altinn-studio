@@ -7,12 +7,14 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { EditPageId } from './EditPageId';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { app, org } from '@studio/testing/testids';
+import { appContextMock } from '../../../testing/appContextMock';
 import {
+  externalLayoutsMock,
   layout1NameMock,
   layout2NameMock,
   layoutSet1NameMock,
-} from '@altinn/ux-editor/testing/layoutMock';
+} from '../../../testing/layoutMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data
 const selectedLayout = layout2NameMock;
@@ -28,7 +30,7 @@ describe('EditPageId', () => {
     const user = userEvent.setup();
     const newPageName = 'myNewPageName';
     const updateTextId = jest.fn();
-    const updateFormLayoutName = jest.fn();
+    const updateFormLayoutName = jest.fn().mockImplementation(() => Promise.resolve());
     const mockQueries: Partial<ServicesContextProps> = {
       updateTextId,
       updateFormLayoutName,
@@ -51,6 +53,8 @@ describe('EditPageId', () => {
       layoutSetName,
     );
     expect(updateTextId).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchLayouts).toHaveBeenCalledWith(layoutSetName);
   });
 
   it('does not call updateFormLayoutName and textIdMutation when page ID is unchanged', async () => {
@@ -96,5 +100,6 @@ const renderEditPageId = (queries?: Partial<ServicesContextProps>) => {
     [QueryKey.FormLayoutSettings, org, app, layoutSetName],
     formLayoutSettingsMock,
   );
+  queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], externalLayoutsMock);
   return renderWithProviders(<EditPageId layoutName={selectedLayout} />, { queries, queryClient });
 };

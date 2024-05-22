@@ -13,12 +13,7 @@ import classes from './App.module.css';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { RepositoryType } from 'app-shared/types/global';
-import {
-  repoInitialCommitPath,
-  repoMetaPath,
-  serviceConfigPath,
-  serviceNamePath,
-} from 'app-shared/api/paths';
+import { repoMetaPath, serviceConfigPath, serviceNamePath } from 'app-shared/api/paths';
 import i18next from 'i18next';
 import { initReactI18next, useTranslation } from 'react-i18next';
 import nb from '../../language/src/nb.json';
@@ -68,11 +63,6 @@ export function App() {
       dispatch(
         HandleServiceInformationActions.fetchService({
           url: repoMetaPath(org, app),
-        }),
-      );
-      dispatch(
-        HandleServiceInformationActions.fetchInitialCommit({
-          url: repoInitialCommitPath(org, app),
         }),
       );
 

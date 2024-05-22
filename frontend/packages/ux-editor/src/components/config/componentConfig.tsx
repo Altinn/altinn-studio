@@ -6,11 +6,12 @@ import { EditReadOnly } from './editModal/EditReadOnly';
 import { EditRequired } from './editModal/EditRequired';
 import { EditAutoComplete } from './editModal/EditAutoComplete';
 import type { FormItem } from '../../types/FormItem';
+import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
 
 export interface IGenericEditComponent<T extends ComponentType = ComponentType> {
   editFormId?: string;
   component: FormItem<T>;
-  handleComponentChange: (component: FormItem<T>) => void;
+  handleComponentChange: (component: FormItem<T>, mutateOptions?: UpdateFormMutateOptions) => void;
   layoutName?: string;
 }
 

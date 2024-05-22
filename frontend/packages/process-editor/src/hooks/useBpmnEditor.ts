@@ -1,5 +1,4 @@
-import type { MutableRefObject } from 'react';
-import { useCallback, useEffect, useRef } from 'react';
+import { type MutableRefObject, useEffect, useCallback, useRef } from 'react';
 import type BpmnModeler from 'bpmn-js/lib/Modeler';
 import { useBpmnContext } from '../contexts/BpmnContext';
 import { useBpmnModeler } from './useBpmnModeler';
@@ -23,7 +22,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   const { getUpdatedXml, bpmnXml, modelerRef, setBpmnDetails } = useBpmnContext();
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const { metaDataFormRef, resetForm } = useBpmnConfigPanelFormContext();
-  const { getModeler } = useBpmnModeler();
+  const { getModeler, destroyModeler } = useBpmnModeler();
   const {
     addLayoutSet,
     deleteLayoutSet,
@@ -40,7 +39,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
 
   const handleShapeAdd = (e) => {
     const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
-    if (bpmnDetails.taskType === 'data') {
+    if (bpmnDetails.taskType === 'data' || bpmnDetails.taskType === 'payment') {
       addLayoutSet({
         layoutSetIdToUpdate: bpmnDetails.id,
         layoutSetConfig: { id: bpmnDetails.id, tasks: [bpmnDetails.id] },
@@ -123,12 +122,21 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
     modelerRef.current = getModeler(canvasRef.current);
     initializeEditor();
     initializeBpmnChanges();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Missing dependencies are not added to avoid getModeler to be called multiple times
 
   useEffect(() => {
     const eventBus: BpmnModeler = modelerRef.current.get('eventBus');
     eventBus.on('element.click', handleSetBpmnDetails);
   }, [modelerRef, handleSetBpmnDetails]);
+
+  useEffect(() => {
+    // Destroy the modeler instance when the component is unmounted
+    return () => {
+      destroyModeler();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return { canvasRef, modelerRef };
 };
