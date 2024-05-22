@@ -31,6 +31,7 @@ export const SummaryPaymentComponent = ({ targetNode }: ISummaryPaymentComponent
   const instance = useLaxInstanceData();
   const privatePersonPayer = paymentInfo?.paymentDetails?.payer.privatePerson;
   const reciever = paymentInfo?.orderDetails?.receiver;
+  const cardExpiryDate = paymentInfo?.paymentDetails?.cardDetails?.expiryDate;
 
   return (
     <div className={classes.paymentSummaryContainer}>
@@ -233,7 +234,7 @@ export const SummaryPaymentComponent = ({ targetNode }: ISummaryPaymentComponent
                     spacing={false}
                     asChild
                   >
-                    <span>{paymentInfo?.paymentDetails?.paymentId}</span>
+                    <span>{`${privatePersonPayer.firstName} ${privatePersonPayer.lastName}`}</span>
                   </Label>
                 </td>
               </tr>
@@ -320,7 +321,7 @@ export const SummaryPaymentComponent = ({ targetNode }: ISummaryPaymentComponent
                     spacing={false}
                     asChild
                   >
-                    <span>{paymentInfo?.paymentDetails?.cardDetails?.expiryDate}</span>
+                    <span>{`${cardExpiryDate?.slice(0, 2)}/${cardExpiryDate?.slice(2)}`}</span>
                   </Label>
                 </td>
               </tr>
