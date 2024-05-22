@@ -1,46 +1,47 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import { Alert, Button } from '@digdir/designsystemet-react';
 
 import { useProcessNavigation } from 'src/features/instance/ProcessNavigationContext';
 import { Lang } from 'src/features/language/Lang';
+import { usePaymentInformation } from 'src/features/payment/PaymentInformationProvider';
+import { PaymentStatus } from 'src/features/payment/types';
+import { usePerformPayActionMutation } from 'src/features/payment/usePerformPaymentMutation';
 import { useInstanceIdParams } from 'src/hooks/useInstanceIdParams';
 import classes from 'src/layout/Payment/PaymentComponent.module.css';
-import { PaymentStatus } from 'src/layout/Payment/queries/types';
-import { usePaymentInformationQuery } from 'src/layout/Payment/queries/usePaymentInformationQuery';
-import { usePerformPayActionMutation } from 'src/layout/Payment/queries/usePerformPaymentMutation';
-import { SkeletonLoader } from 'src/layout/Payment/SkeletonLoader/SkeletonLoader';
+import { SkeletonLoader } from 'src/layout/Payment/SkeletonLoader';
 import { PaymentDetailsTable } from 'src/layout/PaymentDetails/PaymentDetailsTable';
 
 export const PaymentComponent = ({ node }) => {
   const { partyId, instanceGuid } = useInstanceIdParams();
   const { next, busy } = useProcessNavigation() || {};
-  const { data: paymentInfo, isFetched: isPaymentInformationFetched } = usePaymentInformationQuery(
-    partyId,
-    instanceGuid,
-  );
-  const performPayActionMutation = usePerformPayActionMutation(partyId, instanceGuid);
-  const paymentDoesNotExist = isPaymentInformationFetched && !paymentInfo?.paymentDetails;
+  const paymentInfo = usePaymentInformation();
+  const { mutate: performPayment } = usePerformPayActionMutation(partyId, instanceGuid);
+  const paymentDoesNotExist = paymentInfo?.status === PaymentStatus.Uninitialized;
   const { title, description } = node.item.textResourceBindings;
-
-  // performPayActionMutation changes each render, so we need to destructure it to get the mutate function
-  // which does not change and is safe to use in the useEffect dependency array
-  const { mutate: performPayment } = performPayActionMutation;
+  const actionCalled = useRef(false);
+  const nextCalled = useRef(false);
 
   useEffect(() => {
     // if no paymentDetails exists, the payment has not been initiated, initiate it by calling the pay action
-    if (paymentDoesNotExist) {
+    if (paymentDoesNotExist && !actionCalled.current) {
+      actionCalled.current = true;
       performPayment();
     }
-  }, [performPayment, paymentDoesNotExist]);
+  }, [paymentDoesNotExist, performPayment]);
 
   useEffect(() => {
-    if (paymentInfo?.status === PaymentStatus.Paid) {
-      next && next({ action: 'confirm', nodeId: 'next-button' });
+    if (
+      (paymentInfo?.status === PaymentStatus.Paid || paymentInfo?.status === PaymentStatus.Skipped) &&
+      next &&
+      !nextCalled.current
+    ) {
+      nextCalled.current = true;
+      next({ action: 'confirm', nodeId: 'next-button' });
     }
   }, [paymentInfo, next]);
 
-  if (busy || !isPaymentInformationFetched || paymentDoesNotExist) {
+  if (busy || paymentDoesNotExist) {
     return <SkeletonLoader />;
   }
 

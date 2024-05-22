@@ -21,11 +21,11 @@ export const getSetCurrentPartyUrl = (partyId: number) => `${appPath}/api/v1/par
 
 export const textResourcesUrl = (language: string) => `${origin}/${org}/${app}/api/v1/texts/${language}`;
 
-export const getPaymentInformationUrl = (instanceOwnerPartyId: string, instanceGuid: string) =>
-  `${origin}/${org}/${app}/instances/${instanceOwnerPartyId}/${instanceGuid}/payment`;
+export const getPaymentInformationUrl = (instanceId: string) =>
+  `${origin}/${org}/${app}/instances/${instanceId}/payment`;
 
-export const getOrderDetailsUrl = (instanceOwnerPartyId: string, instanceGuid: string) =>
-  `${origin}/${org}/${app}/instances/${instanceOwnerPartyId}/${instanceGuid}/payment/order-details`;
+export const getOrderDetailsUrl = (instanceId: string) =>
+  `${origin}/${org}/${app}/instances/${instanceId}/payment/order-details`;
 
 export const getFileUploadUrl = (instanceId: string, attachmentType: string) =>
   `${appPath}/instances/${instanceId}/data?dataType=${attachmentType}`;

@@ -8,8 +8,8 @@ import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/O
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { useIsPayment } from 'src/features/payment/utils';
 import classes from 'src/features/pdf/PDFView.module.css';
 import { usePdfPage } from 'src/hooks/usePdfPage';
 import { CompCategory } from 'src/layout/common';
@@ -60,10 +60,9 @@ export const PDFView = () => {
   const pdfPage = usePdfPage();
   const appName = useAppName();
   const appOwner = useAppOwner();
-  const processData = useLaxProcessData();
   const { langAsString } = useLanguage();
 
-  const isPayment = processData?.currentTask?.altinnTaskType === 'payment';
+  const isPayment = useIsPayment();
   const enableOrgLogo = Boolean(useApplicationMetadata().logo);
 
   if (!pdfPage) {

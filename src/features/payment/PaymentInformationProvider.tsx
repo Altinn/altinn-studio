@@ -1,0 +1,52 @@
+import { useEffect } from 'react';
+
+import { skipToken, useQuery } from '@tanstack/react-query';
+
+import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { delayedContext } from 'src/core/contexts/delayedContext';
+import { createQueryContext } from 'src/core/contexts/queryContext';
+import { useLaxInstance } from 'src/features/instance/InstanceContext';
+import { useIsPayment } from 'src/features/payment/utils';
+import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
+import type { PaymentResponsePayload } from 'src/features/payment/types';
+
+// Also used for prefetching @see formPrefetcher.ts
+export function usePaymentInformationQueryDef(
+  enabled: boolean,
+  instanceId?: string,
+): QueryDefinition<PaymentResponsePayload> {
+  const { fetchPaymentInformation } = useAppQueries();
+  return {
+    queryKey: ['fetchPaymentInfo'],
+    queryFn: instanceId ? () => fetchPaymentInformation(instanceId) : skipToken,
+    enabled: enabled && !!instanceId,
+  };
+}
+
+const usePaymentInformationQuery = () => {
+  const instanceId = useLaxInstance()?.instanceId;
+  const enabled = useIsPayment();
+
+  const utils = useQuery(usePaymentInformationQueryDef(enabled, instanceId));
+
+  useEffect(() => {
+    utils.error && window.logError('Fetching paymentInfo failed:\n', utils.error);
+  }, [utils.error]);
+
+  return {
+    ...utils,
+    enabled,
+  };
+};
+
+const { Provider, useCtx } = delayedContext(() =>
+  createQueryContext<PaymentResponsePayload | undefined, false>({
+    name: 'PaymentInfo',
+    required: false,
+    default: undefined,
+    query: usePaymentInformationQuery,
+  }),
+);
+
+export const PaymentInformationProvider = Provider;
+export const usePaymentInformation = () => useCtx();

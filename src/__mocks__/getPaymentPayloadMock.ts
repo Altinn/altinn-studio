@@ -1,5 +1,5 @@
-import { PaymentStatus } from 'src/layout/Payment/queries/types';
-import type { PaymentResponsePayload } from 'src/layout/Payment/queries/types';
+import { PaymentStatus } from 'src/features/payment/types';
+import type { PaymentResponsePayload } from 'src/features/payment/types';
 
 export const paymentResponsePayload: PaymentResponsePayload = {
   taskId: 'Task_2',

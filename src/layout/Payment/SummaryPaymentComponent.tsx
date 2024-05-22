@@ -6,10 +6,9 @@ import { Caption } from 'src/components/form/Caption';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useInstanceIdParams } from 'src/hooks/useInstanceIdParams';
+import { usePaymentInformation } from 'src/features/payment/PaymentInformationProvider';
 import { getInstanceReferenceNumber } from 'src/layout/InstanceInformation/InstanceInformationComponent';
 import classes from 'src/layout/Payment/PaymentComponent.module.css';
-import { usePaymentInformationQuery } from 'src/layout/Payment/queries/usePaymentInformationQuery';
 import { PaymentDetailsTable } from 'src/layout/PaymentDetails/PaymentDetailsTable';
 import { formatDateLocale } from 'src/utils/formatDateLocale';
 import type { ISummaryComponent } from 'src/layout/Summary/SummaryComponent';
@@ -25,9 +24,8 @@ interface ISummaryPaymentComponentProps {
 
 export const SummaryPaymentComponent = ({ targetNode }: ISummaryPaymentComponentProps) => {
   const textResourceBindings = targetNode.item.textResourceBindings;
-  const { partyId, instanceGuid } = useInstanceIdParams();
   const selectedLanguage = useCurrentLanguage();
-  const { data: paymentInfo } = usePaymentInformationQuery(partyId, instanceGuid);
+  const paymentInfo = usePaymentInformation();
   const instance = useLaxInstanceData();
   const privatePersonPayer = paymentInfo?.paymentDetails?.payer.privatePerson;
   const reciever = paymentInfo?.orderDetails?.receiver;
