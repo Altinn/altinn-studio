@@ -10,6 +10,7 @@
       <xs:sequence>
         <xs:element name="shortAnswerInput" type="xs:string" />
         <xs:element minOccurs="0" name="longAnswerInput" type="xs:string" />
+        <xs:element name="radioButtonInput" type="xs:string" />
         <xs:element name="nestedInput" type="xs:string" />
         <xs:element name="streetnr" type="xs:string" />
         <xs:element name="postnr" type="xs:string" />

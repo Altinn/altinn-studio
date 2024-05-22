@@ -28,6 +28,9 @@
     "longAnswerInput": {
       "type": "string"
     },
+    "radioButtonInput": {
+      "type": "string"
+    },
     "nestedInput": {
       "type": "string"
     },

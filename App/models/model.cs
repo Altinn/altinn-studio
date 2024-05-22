@@ -47,7 +47,12 @@ namespace Altinn.App.Models.model
     [JsonPropertyName("longAnswerInput")]
     public string longAnswerInput { get; set; }
 
-    [XmlElement("nestedInput", Order = 8)]
+    [XmlElement("radioButtonInput", Order = 8)]
+    [JsonProperty("radioButtonInput")]
+    [JsonPropertyName("radioButtonInput")]
+    public string radioButtonInput { get; set; }
+
+    [XmlElement("nestedInput", Order = 9)]
     [JsonProperty("nestedInput")]
     [JsonPropertyName("nestedInput")]
     public string nestedInput { get; set; }
