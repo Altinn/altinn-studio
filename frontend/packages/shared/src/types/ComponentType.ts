@@ -32,6 +32,7 @@ export enum ComponentType {
   NavigationButtons = 'NavigationButtons',
   Panel = 'Panel',
   Paragraph = 'Paragraph',
+  Payment = 'Payment',
   PrintButton = 'PrintButton',
   RadioButtons = 'RadioButtons',
   RepeatingGroup = 'RepeatingGroup',

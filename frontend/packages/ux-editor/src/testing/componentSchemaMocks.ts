@@ -31,6 +31,7 @@ import NavigationBarSchema from './schemas/json/component/NavigationBar.schema.v
 import NavigationButtonsSchema from './schemas/json/component/NavigationButtons.schema.v1.json';
 import PanelSchema from './schemas/json/component/Panel.schema.v1.json';
 import ParagraphSchema from './schemas/json/component/Paragraph.schema.v1.json';
+import PaymentSchema from './schemas/json/component/Payment.schema.v1.json';
 import PrintButtonSchema from './schemas/json/component/PrintButton.schema.v1.json';
 import RadioButtonsSchema from './schemas/json/component/RadioButtons.schema.v1.json';
 import RepeatingGroupSchema from './schemas/json/component/RepeatingGroup.schema.v1.json';
@@ -73,6 +74,7 @@ export const componentSchemaMocks: Record<ComponentType, JsonSchema> = {
   [ComponentType.NavigationButtons]: NavigationButtonsSchema,
   [ComponentType.Panel]: PanelSchema,
   [ComponentType.Paragraph]: ParagraphSchema,
+  [ComponentType.Payment]: PaymentSchema,
   [ComponentType.PrintButton]: PrintButtonSchema,
   [ComponentType.RadioButtons]: RadioButtonsSchema,
   [ComponentType.RepeatingGroup]: RepeatingGroupSchema,
