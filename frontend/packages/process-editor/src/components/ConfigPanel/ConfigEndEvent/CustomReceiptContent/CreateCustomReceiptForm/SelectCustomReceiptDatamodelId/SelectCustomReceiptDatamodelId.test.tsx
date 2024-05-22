@@ -72,7 +72,7 @@ const renderSelectCustomReceiptDatamodelId = (
 ) => {
   return render(
     <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
-      <BpmnContext.Provider value={{ ...mockBpmnContextValue }}>
+      <BpmnContext.Provider value={mockBpmnContextValue}>
         <BpmnConfigPanelFormContextProvider>
           <SelectCustomReceiptDatamodelId {...defaultProps} />
         </BpmnConfigPanelFormContextProvider>

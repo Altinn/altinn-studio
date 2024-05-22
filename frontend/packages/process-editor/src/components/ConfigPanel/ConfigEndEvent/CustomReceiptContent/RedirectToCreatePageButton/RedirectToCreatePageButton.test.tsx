@@ -6,7 +6,7 @@ import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 describe('RedirectToCreatePageButton', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('Navigates to "Lage" page when the button is clicked', () => {
+  it('Checks that the button to go to "Lage" page has the correct href', () => {
     render(<RedirectToCreatePageButton />);
 
     const navigationButton = screen.getByRole('link', {

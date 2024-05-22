@@ -148,7 +148,7 @@ describe('CustomReceipt', () => {
 const renderCustomReceipt = (bpmnApiContextProps: Partial<BpmnApiContextProps> = {}) => {
   return render(
     <BpmnApiContext.Provider value={{ ...defaultBpmnContextProps, ...bpmnApiContextProps }}>
-      <BpmnContext.Provider value={{ ...mockBpmnContextValue }}>
+      <BpmnContext.Provider value={mockBpmnContextValue}>
         <BpmnConfigPanelFormContextProvider>
           <CustomReceipt />
         </BpmnConfigPanelFormContextProvider>

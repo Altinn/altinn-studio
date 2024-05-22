@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { type BpmnApiContextProps, BpmnApiContext } from '../../../contexts/BpmnApiContext';
-import { BpmnContext, type BpmnContextProps } from '../../../contexts/BpmnContext';
+import { BpmnContext } from '../../../contexts/BpmnContext';
 import { EditDataType, type EditDataTypeProps } from './EditDataType';
 import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
 import {
@@ -26,7 +26,7 @@ const defaultProps: EditDataTypeProps = {
   datamodelIds: [],
   connectedTaskId: '',
   existingDataTypeForTask: undefined,
-  hideSelectDeleteButton: true,
+  hideDeleteButton: true,
 };
 
 describe('EditDataType', () => {
@@ -117,7 +117,6 @@ describe('EditDataType', () => {
     const user = userEvent.setup();
     renderEditDataType({
       componentProps: {
-        hideSelectDeleteButton: false,
         existingDataTypeForTask: mockBpmnApiContextValue.layoutSets.sets[0].dataType,
       },
     });
@@ -159,16 +158,15 @@ describe('EditDataType', () => {
 
 type RenderProps = {
   bpmnApiContextProps: Partial<BpmnApiContextProps>;
-  rootContextProps: Partial<BpmnContextProps>;
   componentProps: Partial<EditDataTypeProps>;
 };
 
 const renderEditDataType = (props: Partial<RenderProps> = {}) => {
-  const { bpmnApiContextProps, rootContextProps, componentProps } = props;
+  const { bpmnApiContextProps, componentProps } = props;
 
   return render(
     <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
-      <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
+      <BpmnContext.Provider value={mockBpmnContextValue}>
         <BpmnConfigPanelFormContextProvider>
           <EditDataType {...defaultProps} {...componentProps} />
         </BpmnConfigPanelFormContextProvider>

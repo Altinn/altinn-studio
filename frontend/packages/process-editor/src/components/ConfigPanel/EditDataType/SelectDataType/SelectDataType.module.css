@@ -8,3 +8,10 @@
   padding-left: var(--fds-spacing-3);
   padding-right: var(--fds-spacing-3);
 }
+
+.selectWithButtonNextToIt {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: var(--fds-spacing-3);
+}

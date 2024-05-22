@@ -85,7 +85,7 @@ export const CustomReceipt = (): React.ReactElement => {
           connectedTaskId={PROTECTED_TASK_NAME_CUSTOM_RECEIPT}
           datamodelIds={datamodelOptions}
           existingDataTypeForTask={existingDatamodelId}
-          hideSelectDeleteButton
+          hideDeleteButton
         />
       </div>
       <div className={classes.buttonWrapper}>

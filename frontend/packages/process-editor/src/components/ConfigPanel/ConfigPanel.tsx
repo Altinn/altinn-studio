@@ -31,8 +31,9 @@ const ConfigPanelContent = (): React.ReactElement => {
     );
   }
 
+  const elementIsEndEvent = bpmnDetails.type === BpmnTypeEnum.EndEvent;
   const shouldDisplayEndEventConfig =
-    shouldDisplayFeature('customizeEndEvent') && bpmnDetails.type === BpmnTypeEnum.EndEvent;
+    shouldDisplayFeature('customizeEndEvent') && elementIsEndEvent;
   if (shouldDisplayEndEventConfig) {
     return <ConfigEndEvent />;
   }
@@ -42,9 +43,8 @@ const ConfigPanelContent = (): React.ReactElement => {
     return <ConfigSequenceFlow key={bpmnDetails.id} />;
   }
 
-  const isSupportedConfig =
-    bpmnDetails.type === BpmnTypeEnum.Task || bpmnDetails.type === BpmnTypeEnum.EndEvent;
-  if (isSupportedConfig) {
+  const elementIsTask = bpmnDetails.type === BpmnTypeEnum.Task;
+  if (elementIsTask) {
     return <ConfigContent />;
   }
 

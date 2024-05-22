@@ -2,3 +2,7 @@
   margin-top: var(--fds-spacing-6);
   text-align: center;
 }
+
+.createButton {
+  margin-top: var(--fds-spacing-2);
+}

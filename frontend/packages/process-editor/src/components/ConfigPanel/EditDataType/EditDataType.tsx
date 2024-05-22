@@ -10,14 +10,14 @@ export type EditDataTypeProps = {
   datamodelIds: string[];
   connectedTaskId: string;
   existingDataTypeForTask: string | undefined;
-  hideSelectDeleteButton?: boolean;
+  hideDeleteButton?: boolean;
 };
 
 export const EditDataType = ({
   datamodelIds,
   connectedTaskId,
   existingDataTypeForTask,
-  hideSelectDeleteButton = false,
+  hideDeleteButton = false,
 }: EditDataTypeProps) => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
@@ -48,7 +48,7 @@ export const EditDataType = ({
           existingDataType={existingDataTypeForTask}
           connectedTaskId={connectedTaskId}
           onClose={() => setDataModelSelectVisible(false)}
-          hideDeleteButton={hideSelectDeleteButton}
+          hideDeleteButton={hideDeleteButton}
         />
       ) : (
         <StudioProperty.Button
@@ -57,7 +57,6 @@ export const EditDataType = ({
           property={t('process_editor.configuration_panel_set_datamodel')}
           title={t('process_editor.configuration_panel_set_datamodel')}
           value={definedValueWithLinkIcon}
-          className={classes.datamodelDefined}
         />
       )}
     </>

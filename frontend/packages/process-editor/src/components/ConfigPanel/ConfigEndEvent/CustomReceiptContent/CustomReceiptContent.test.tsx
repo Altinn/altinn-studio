@@ -2,7 +2,7 @@ import React from 'react';
 import { CustomReceiptContent } from './CustomReceiptContent';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
-import { BpmnContext, type BpmnContextProps } from '../../../../contexts/BpmnContext';
+import { BpmnContext } from '../../../../contexts/BpmnContext';
 import userEvent from '@testing-library/user-event';
 import { BpmnApiContext, type BpmnApiContextProps } from '../../../../contexts/BpmnApiContext';
 import { BpmnConfigPanelFormContextProvider } from '../../../../contexts/BpmnConfigPanelContext';
@@ -15,7 +15,7 @@ describe('CustomReceiptContent', () => {
   afterEach(() => jest.clearAllMocks());
 
   it('Shows the spinner when there are pending API operations', () => {
-    renderCustomReceiptContent({ bpmnApiContextProps: { pendingApiOperations: true } });
+    renderCustomReceiptContent({ pendingApiOperations: true });
 
     const spinner = screen.getByTitle(
       textMock('process_editor.configuration_panel_custom_receipt_spinner_title'),
@@ -24,7 +24,7 @@ describe('CustomReceiptContent', () => {
   });
 
   it('Hides the spinner when there are no pending API operations', () => {
-    renderCustomReceiptContent({ bpmnApiContextProps: { pendingApiOperations: false } });
+    renderCustomReceiptContent({ pendingApiOperations: false });
 
     const spinner = screen.queryByTitle(
       textMock('process_editor.configuration_panel_custom_receipt_spinner_title'),
@@ -32,7 +32,7 @@ describe('CustomReceiptContent', () => {
     expect(spinner).not.toBeInTheDocument();
   });
 
-  it('Shows the add button when there are no existing custom receipt layout set id', async () => {
+  it('Shows the add button when there are no existing custom receipt layout set id', () => {
     renderCustomReceiptContent();
 
     const addButton = screen.getByRole('button', {
@@ -80,10 +80,10 @@ describe('CustomReceiptContent', () => {
       }),
     ).not.toBeInTheDocument();
 
-    const closeButton = screen.getByRole('button', {
+    const cancelButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_custom_receipt_cancel_button'),
     });
-    await user.click(closeButton);
+    await user.click(cancelButton);
 
     expect(
       screen.getByRole('button', {
@@ -92,11 +92,9 @@ describe('CustomReceiptContent', () => {
     ).toBeInTheDocument();
   });
 
-  it('shows the custom receipt when there is an existing custom receipt layput set id', () => {
+  it('shows the custom receipt when there is an existing custom receipt layout set id', () => {
     renderCustomReceiptContent({
-      bpmnApiContextProps: {
-        existingCustomReceiptLayoutSetId: 'testId',
-      },
+      existingCustomReceiptLayoutSetId: 'testId',
     });
 
     const toggleableTextfieldButton = screen.getByRole('button', {
@@ -106,17 +104,10 @@ describe('CustomReceiptContent', () => {
   });
 });
 
-type RenderProps = {
-  bpmnApiContextProps: Partial<BpmnApiContextProps>;
-  rootContextProps: Partial<BpmnContextProps>;
-};
-
-const renderCustomReceiptContent = (props: Partial<RenderProps> = {}) => {
-  const { bpmnApiContextProps, rootContextProps } = props;
-
+const renderCustomReceiptContent = (bpmnApiContextProps: Partial<BpmnApiContextProps> = {}) => {
   return render(
     <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
-      <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
+      <BpmnContext.Provider value={mockBpmnContextValue}>
         <BpmnConfigPanelFormContextProvider>
           <CustomReceiptContent />
         </BpmnConfigPanelFormContextProvider>

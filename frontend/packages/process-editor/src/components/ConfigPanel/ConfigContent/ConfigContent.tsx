@@ -4,7 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { EditTaskId } from './EditTaskId/EditTaskId';
 import { StudioDisplayTile, StudioSectionHeader } from '@studio/components';
-import { getConfigTitleKey, getConfigTitleHelpTextKey } from '../../../utils/configPanelUtils';
+import {
+  getConfigTitleKey,
+  getConfigTitleHelpTextKey,
+  getDatamodelOptions,
+} from '../../../utils/configPanelUtils';
 import { ConfigIcon } from './ConfigIcon';
 import { EditDataType } from '../EditDataType';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
@@ -22,9 +26,8 @@ export const ConfigContent = (): React.ReactElement => {
   };
   const layoutSet = layoutSets?.sets.find((set) => set.tasks.includes(bpmnDetails.id));
   const existingDataTypeForTask = layoutSet?.dataType;
-  const datamodelIds = availableDataModelIds
-    ? [...availableDataModelIds, ...(existingDataTypeForTask ? [existingDataTypeForTask] : [])]
-    : [];
+
+  const datamodelIds = getDatamodelOptions(availableDataModelIds, existingDataTypeForTask);
 
   const taskHasConnectedLayoutSet = layoutSets?.sets?.some((set) => set.tasks[0] == bpmnDetails.id);
 
