@@ -28,6 +28,7 @@ const defaultTexts: ITextResources = {
 };
 
 const render = () => {
+  const dataModelName = null;
   const queryClient = createQueryClientMock();
   const queries = {
     getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock)),
@@ -37,7 +38,10 @@ const render = () => {
     getRuleModel: jest.fn().mockImplementation(() => Promise.resolve<string>(ruleHandlerMock)),
     getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve<string>('test')),
   };
-  queryClient.setQueryData([QueryKey.DatamodelMetadata, org, app, 'test-layout-set'], []);
+  queryClient.setQueryData(
+    [QueryKey.DatamodelMetadata, org, app, 'test-layout-set', dataModelName],
+    [],
+  );
   queryClient.setQueryData([QueryKey.TextResources, org, app], defaultTexts);
   return renderWithProviders(
     <FormItemContext.Provider
