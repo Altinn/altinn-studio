@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { ProcessEditor } from './ProcessEditor';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../test/testUtils';
@@ -12,6 +12,7 @@ import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { type SyncError, type SyncSuccess } from './syncUtils';
 import { processEditorWebSocketHub } from 'app-shared/api/paths';
+import { SyncSuccessQueriesInvalidator } from 'app-shared/queryInvalidator/SyncSuccessQueriesInvalidator';
 
 // test data
 const org = 'org';
@@ -125,7 +126,7 @@ describe('ProcessEditor', () => {
     await screen.findByText(textMock('process_editor.sync_error_application_metadata_task_id'));
   });
 
-  it('should invoke mockOnWSMessageReceived with success details and console.log success', async () => {
+  it('should invalidate query cache to the updated file when mockOnWSMessageReceived is invoked with success details', async () => {
     const syncSuccessMock: SyncSuccess = {
       source: {
         name: 'applicationMetadata.json',
@@ -133,7 +134,9 @@ describe('ProcessEditor', () => {
       },
     };
 
-    const consoleSpy = jest.spyOn(console, 'log');
+    const queryClientMock = createQueryClientMock();
+    const invalidator = SyncSuccessQueriesInvalidator.getInstance(queryClientMock, org, app);
+    const invalidateQueryByFileNameSpy = jest.spyOn(invalidator, 'invalidateQueryByFileName');
 
     const mockOnWSMessageReceived = jest
       .fn()
@@ -145,7 +148,9 @@ describe('ProcessEditor', () => {
     });
 
     renderProcessEditor();
-    expect(consoleSpy).toHaveBeenCalledWith('SyncSuccess received');
+    await waitFor(() => {
+      expect(invalidateQueryByFileNameSpy).toHaveBeenCalledWith(syncSuccessMock.source.name);
+    });
   });
 });
 
