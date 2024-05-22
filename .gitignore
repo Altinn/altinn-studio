@@ -15,3 +15,9 @@ AltinnPlatformLocal/
 # Visual Studio
 .vs/
 *.user
+
+.mono/
+
+node_modules/
+k6/*
+!k6/*.sample.js

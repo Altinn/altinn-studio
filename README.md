@@ -7,11 +7,14 @@ These are some of the required steps, tips, and tricks when it comes to running 
   - [Clone the repository](#clone-the-repository)
   - [Option A: Start the containers using podman](#option-a-start-the-containers-using-podman)
   - [Option B: Start the containers using Docker](#option-b-start-the-containers-using-docker)
+  - [Option C (preview): Automatic detection](#option-c-preview-automatic-detection)
   - [Start your app](#start-your-app)
 - [Changing configuration](#changing-configuration)
 - [Multiple apps at the same time (running LocalTest locally)](#multiple-apps-at-the-same-time-running-localtest-locally)
 - [Changing test data](#changing-test-data)
+  - [Add a missing role for a test user](#add-a-missing-role-for-a-test-user)
 - [Known issues](#known-issues)
+  - [Localtest reports that the app is not running even though it is](#localtest-reports-that-the-app-is-not-running-even-though-it-is)
 
 ### Prerequisites
 
@@ -54,6 +57,14 @@ Start the containers with the following command:
 podman compose --file podman-compose.yml up -d --build
 ```
 
+Optionally, if you want access to Grafana and a local monitoring setup based on OpenTelemetry:
+
+```shell
+podman compose --file podman-compose.yml --profile "monitoring" up -d --build
+# Grafana should be available at http://local.altinn.cloud:8000/grafana
+# Remember to enable the 'UseOpenTelemetry' configuration flag in the appsettings.json of the app
+```
+
 > [!NOTE]
 > If you are using linux or mac you can use the Makefile to build and run the containers.
 > 
@@ -83,6 +94,14 @@ This mode supports running one app at a time. If you need to run multiple apps a
 ```shell
 docker compose up -d --build
 ```
+
+Optionally, if you want access to Grafana and a local monitoring setup based on OpenTelemetry:
+
+```shell
+docker compose --profile "monitoring" up -d --build
+# Grafana should be available at http://local.altinn.cloud/grafana
+# Remember to enable the 'UseOpenTelemetry' configuration flag in the appsettings.json of the app
+```
    
 > [!NOTE]
 > If you are using linux or mac you can use the Makefile to build and run the containers.
@@ -92,6 +111,28 @@ docker compose up -d --build
 > ```
 
 Localtest should now be runningn on port 80 and can be accessed on <http://local.altinn.cloud:80>.
+
+#### Option C (preview): Automatic detection
+
+There is a preview helper script that will execute the correct commands in a cross-platform way.
+Either docker or podman must be installed.
+
+```shell
+./run.cmd
+```
+
+Optionally, if you want access to Grafana and a local monitoring setup based on OpenTelemetry:
+
+```shell
+./run.cmd -m
+```
+
+If the localtest setup is already running, it will restart.
+
+To stop localtest
+```shell
+./run.cmd stop
+```
 
 #### Start your app
 _This step requires that you have already [created an app](https://docs.altinn.studio/app/getting-started/create-app/), added a [data model](https://docs.altinn.studio/app/development/data/data-model/data-models-tool/), and [cloned the app](https://docs.altinn.studio/app/getting-started/local-dev/) to your local environment._
@@ -215,6 +256,23 @@ This would be required if your app requires a role which none of the test users 
 
 4. Save and close the file
 5. Restart LocalTest
+
+### k6 testing
+
+In the k6 folder there is a sample loadtest that can be adapted to run automated tests against a local app
+It was created to simulate workloads and test monitoring and instrumentation.
+
+```shell
+cp k6/loadtest.sample.js k6/loadtest.js
+# Now make edits to k6/loadtest.js to fit your application
+
+# To run, either
+./run.cmd k6
+# or 
+docker run --rm -i --net=host grafana/k6:master-with-browser run - <k6/loadtest.js
+```
+
+For a decent editing experience, run `npm install` and use a editor with JS support.
 
 ### Known issues
 

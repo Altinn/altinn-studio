@@ -1,0 +1,41 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+
+processors:
+  batch:
+    timeout: 5s
+    send_batch_size: 10000
+
+exporters:
+  otlp/tempo:
+    endpoint: monitoring_tempo:4317
+    tls:
+      insecure: true
+  otlphttp/loki:
+    endpoint: http://monitoring_loki:3100/otlp
+    tls:
+      insecure: true
+  prometheusremotewrite/mimir:
+    endpoint: http://monitoring_mimir:9009/api/v1/push
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    logs:
+      level: error
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/tempo]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheusremotewrite/mimir]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlphttp/loki]

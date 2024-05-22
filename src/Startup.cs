@@ -24,7 +24,6 @@ using Altinn.ResourceRegistry.Core;
 
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
-
 using LocalTest.Clients.CdnAltinnOrgs;
 using LocalTest.Configuration;
 using LocalTest.Helpers;

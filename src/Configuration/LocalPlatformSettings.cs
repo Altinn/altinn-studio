@@ -78,5 +78,7 @@ namespace LocalTest.Configuration
         public string ClaimsFolder { get; set; } = "claims/";
 
         public string TenorDataFolder { get; set; } = "tenorUsers";
+
+        public string LocalGrafanaUrl { get; set; }
     }
 }
