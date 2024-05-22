@@ -10,6 +10,5 @@ export const orgMenuItem = (orgUserName) =>
 export const resetRepoContainer = 'reset-repo-container';
 export const typeItem = (pointer) => `type-item-${pointer}`;
 export const userMenuItem = 'user-menu-item';
-export const versionControlHeader = 'version-control-header';
 export const pageAccordionContent = (pageName) => `page-accordion-content-${pageName}`;
 export const profileButton = 'profileButton';
