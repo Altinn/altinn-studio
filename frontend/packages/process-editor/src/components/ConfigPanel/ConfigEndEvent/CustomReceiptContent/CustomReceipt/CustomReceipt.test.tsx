@@ -2,7 +2,7 @@ import React from 'react';
 import { CustomReceipt } from './CustomReceipt';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
-import { BpmnContext, type BpmnContextProps } from '../../../../../contexts/BpmnContext';
+import { BpmnContext } from '../../../../../contexts/BpmnContext';
 import userEvent from '@testing-library/user-event';
 import { BpmnApiContext, type BpmnApiContextProps } from '../../../../../contexts/BpmnApiContext';
 import { BpmnConfigPanelFormContextProvider } from '../../../../../contexts/BpmnConfigPanelContext';
@@ -86,9 +86,7 @@ describe('CustomReceipt', () => {
   ])('shows correct errormessage when layoutSetId is %s', async (invalidLayoutSetId: string) => {
     const user = userEvent.setup();
     renderCustomReceipt({
-      bpmnApiContextProps: {
-        layoutSets: { sets: [layoutSetWithCustomReceipt, layoutSetWithDataTask] },
-      },
+      layoutSets: { sets: [layoutSetWithCustomReceipt, layoutSetWithDataTask] },
     });
 
     const toggleableTextfieldButton = screen.getByRole('button', {
@@ -134,20 +132,16 @@ describe('CustomReceipt', () => {
     });
     await user.click(deleteButton);
     expect(mockBpmnApiContextValue.deleteLayoutSet).toHaveBeenCalledTimes(1);
+    expect(mockBpmnApiContextValue.deleteLayoutSet).toHaveBeenCalledWith({
+      layoutSetIdToUpdate: mockExistingCustomReceiptLayoutSetId,
+    });
   });
 });
 
-type RenderProps = {
-  bpmnApiContextProps: Partial<BpmnApiContextProps>;
-  rootContextProps: Partial<BpmnContextProps>;
-};
-
-const renderCustomReceipt = (props: Partial<RenderProps> = {}) => {
-  const { bpmnApiContextProps, rootContextProps } = props;
-
+const renderCustomReceipt = (bpmnApiContextProps: Partial<BpmnApiContextProps> = {}) => {
   return render(
     <BpmnApiContext.Provider value={{ ...defaultBpmnContextProps, ...bpmnApiContextProps }}>
-      <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
+      <BpmnContext.Provider value={{ ...mockBpmnContextValue }}>
         <BpmnConfigPanelFormContextProvider>
           <CustomReceipt />
         </BpmnConfigPanelFormContextProvider>
