@@ -9,6 +9,7 @@ import type { FilterKeysOfType } from 'app-shared/types/FilterKeysOfType';
 import { useComponentPropertyLabel } from '../../../hooks/useComponentPropertyLabel';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { useTranslation } from 'react-i18next';
+import { useAppContext } from '../../../hooks';
 
 type NumberKeys<ObjectType extends KeyValuePairs> = FilterKeysOfType<ObjectType, number>;
 
@@ -26,8 +27,17 @@ export const EditNumberValue = <T extends ComponentType, K extends NumberKeys<Fo
 }: EditNumberValueProps<T, K>) => {
   const { t } = useTranslation();
   const componentPropertyLabel = useComponentPropertyLabel();
-  const handleValueChange = (newValue: number) =>
-    handleComponentChange(setComponentProperty<T, number, K>(component, propertyKey, newValue));
+  const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
+  const handleValueChange = async (newValue: number) => {
+    await handleComponentChange(
+      setComponentProperty<T, number, K>(component, propertyKey, newValue),
+      {
+        onSuccess: async () => {
+          await refetchLayouts(selectedFormLayoutSetName, true);
+        },
+      },
+    );
+  };
 
   return (
     <FormField

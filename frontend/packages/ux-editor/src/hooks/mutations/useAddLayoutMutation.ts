@@ -23,7 +23,7 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
   const formLayoutsQuery = useFormLayoutsQuery(org, app, layoutSetName);
   const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, layoutSetName);
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
-  const { setSelectedFormLayoutName, refetchLayouts } = useAppContext();
+  const { setSelectedFormLayoutName } = useAppContext();
   const queryClient = useQueryClient();
 
   const save = async (updatedLayoutName: string, updatedLayout: IInternalLayout) => {
@@ -59,8 +59,6 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
       await formLayoutSettingsMutation.mutateAsync(layoutSettings);
 
       queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], () => newLayouts);
-
-      await refetchLayouts(layoutSetName);
 
       setSelectedFormLayoutName(layoutName);
     },

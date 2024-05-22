@@ -129,15 +129,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         StatusCodeResult AddServiceResource(string org, ServiceResource newResource);
 
         /// <summary>
-        /// Checks a resource if it has a policy by checking if a policyfile exists in the same folder as the resourcefile.
-        /// </summary>
-        /// <param name="org">The organisation which owns the repository</param>
-        /// <param name="repository">The repository</param>
-        /// <param name="resource">The resource which is to be checked for policy</param>
-        /// <returns>Returns true if resourcefile has a policyfile along with it. If not, returns false</returns>
-        bool ResourceHasPolicy(string org, string repository, ServiceResource resource);
-
-        /// <summary>
         /// Publishes a specific resource to the ResourceRegistry
         /// </summary>
         /// <param name="org">The organisation that owns the repository</param>

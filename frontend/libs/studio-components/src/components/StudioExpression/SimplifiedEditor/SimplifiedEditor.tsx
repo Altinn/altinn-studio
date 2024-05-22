@@ -10,10 +10,15 @@ import { useStudioExpressionContext } from '../StudioExpressionContext';
 
 export type SimplifiedEditorProps = {
   expression: Expression;
+  showAddSubexpression?: boolean;
   onChange: (expression: Expression) => void;
 };
 
-export const SimplifiedEditor = ({ expression, onChange }: SimplifiedEditorProps) => {
+export const SimplifiedEditor = ({
+  expression,
+  showAddSubexpression,
+  onChange,
+}: SimplifiedEditorProps) => {
   const { texts } = useStudioExpressionContext();
 
   if (!isExpressionSimple(expression)) {
@@ -28,6 +33,10 @@ export const SimplifiedEditor = ({ expression, onChange }: SimplifiedEditorProps
   };
 
   return (
-    <InternalFormatEditor simplifiedExpression={simplifiedExpression} onChange={handleChange} />
+    <InternalFormatEditor
+      simplifiedExpression={simplifiedExpression}
+      onChange={handleChange}
+      showAddSubexpression={showAddSubexpression}
+    />
   );
 };

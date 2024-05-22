@@ -86,6 +86,9 @@
           "$ref": "#/definitions/func-dataModel"
         },
         {
+          "$ref": "#/definitions/func-gatewayAction"
+        },
+        {
           "$ref": "#/definitions/func-displayValue"
         },
         {
@@ -303,6 +306,19 @@
         }
       ],
       "additionalItems": false
+    },
+    "func-gatewayAction": {
+      "title": "Gateway action lookup function",
+      "description": "This function will look up a value in the gateway action",
+      "type": "array",
+      "items": [
+        {
+          "const": "gatewayAction"
+        },
+        {
+          "enum": ["confirm", "pay", "reject"]
+        }
+      ]
     },
     "func-displayValue": {
       "title": "Component display value lookup function",

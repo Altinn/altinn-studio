@@ -34,8 +34,7 @@ export const ExpressionContent = ({
     selectedFormLayoutSetName,
     null,
   );
-
-  const dataLookupOptions: DataLookupOptions = useMemo(
+  const dataLookupOptions: Partial<DataLookupOptions> = useMemo(
     () => ({
       [DataLookupFuncName.Component]: getComponentIds(formLayoutsData),
       [DataLookupFuncName.DataModel]: getDataModelElementNames(datamodelMetadata),

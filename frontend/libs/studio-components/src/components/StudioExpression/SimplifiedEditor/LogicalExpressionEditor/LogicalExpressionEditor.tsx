@@ -26,10 +26,15 @@ import { ArrayUtils } from '@studio/pure-functions';
 
 export type LogicalExpressionEditorProps = {
   expression: SimpleLogicalExpression;
+  showAddSubexpression?: boolean;
   onChange: (expression: SimplifiedExpression) => void;
 };
 
-export const LogicalExpressionEditor = ({ expression, onChange }: LogicalExpressionEditorProps) => {
+export const LogicalExpressionEditor = ({
+  expression,
+  showAddSubexpression = true,
+  onChange,
+}: LogicalExpressionEditorProps) => {
   const { texts } = useStudioExpressionContext();
   const internalIds = useRef<string[]>([]); // Used to keep track of the order of the subcomponents
   const { subexpressions, logicalOperator } = expression;
@@ -60,19 +65,25 @@ export const LogicalExpressionEditor = ({ expression, onChange }: LogicalExpress
           <LogicalOperatorToggle onChange={handleOperatorChange} operator={logicalOperator} />
         )}
         <SubexpressionList
-          componentBetween={<OperatorBetweenSubexpressions logicalExpression={expression} />}
+          componentBetween={
+            showAddSubexpression ? (
+              <OperatorBetweenSubexpressions logicalExpression={expression} />
+            ) : undefined
+          }
           expressions={subexpressions}
           internalIds={internalIds}
           onChange={handleSubexpressionsChange}
         />
-        <StudioButton
-          icon={<PlusIcon />}
-          onClick={handleAddSubexpression}
-          size='small'
-          variant='secondary'
-        >
-          {texts.addSubexpression}
-        </StudioButton>
+        {showAddSubexpression && (
+          <StudioButton
+            icon={<PlusIcon />}
+            onClick={handleAddSubexpression}
+            size='small'
+            variant='secondary'
+          >
+            {texts.addSubexpression}
+          </StudioButton>
+        )}
       </div>
     </Fieldset>
   );

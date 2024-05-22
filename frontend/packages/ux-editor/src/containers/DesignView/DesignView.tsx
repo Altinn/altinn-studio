@@ -34,8 +34,12 @@ const mapFormLayoutsToFormLayoutPages = (formLayouts: IFormLayouts): FormLayoutP
  */
 export const DesignView = (): ReactNode => {
   const { org, app } = useStudioUrlParams();
-  const { selectedFormLayoutSetName, selectedFormLayoutName, setSelectedFormLayoutName } =
-    useAppContext();
+  const {
+    selectedFormLayoutSetName,
+    selectedFormLayoutName,
+    setSelectedFormLayoutName,
+    refetchLayouts,
+  } = useAppContext();
   const { mutate: addLayoutMutation, isPending: isAddLayoutMutationPending } = useAddLayoutMutation(
     org,
     app,
@@ -75,7 +79,14 @@ export const DesignView = (): ReactNode => {
       newNum += 1;
       newLayoutName = `${t('ux_editor.page')}${newNum}`;
     }
-    addLayoutMutation({ layoutName: newLayoutName, isReceiptPage: false });
+    addLayoutMutation(
+      { layoutName: newLayoutName, isReceiptPage: false },
+      {
+        onSuccess: async () => {
+          await refetchLayouts(selectedFormLayoutSetName);
+        },
+      },
+    );
   };
 
   /**
