@@ -316,7 +316,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string org,
             string identifier,
             string env,
-            string? page
+            string page
         )
         {
             string listMembersUrl = string.IsNullOrEmpty(page) ? $"/{org}/{identifier}/members" : $"/{GetAccessListPageUrlSuffix(page, env)}";
@@ -373,7 +373,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<PagedAccessListResponse> GetAccessLists(
             string org,
             string env,
-            string? page
+            string page
         )
         {
             string listUrl = string.IsNullOrEmpty(page) ? $"/{org}" : $"/{GetAccessListPageUrlSuffix(page, env)}";
@@ -394,7 +394,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string org,
             string resourceId,
             string env,
-            string? page
+            string page
         )
         {
             string listUrl = $"/{org}?include=resources&resource={resourceId}";
@@ -563,7 +563,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return results.Embedded != null ? results.Embedded.Parties ?? results.Embedded.SubParties : new List<BrregParty>();
         }
 
-        private string? GetAccessListPageUrlSuffix(string pageUrl, string env)
+        private string GetAccessListPageUrlSuffix(string pageUrl, string env)
         {
             string accessListBaseUrl = !env.ToLower().Equals("dev")
                 ? $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryAccessListUrl}"
