@@ -36,11 +36,17 @@ const layoutSetWithDataTask: LayoutSetConfig = {
   tasks: ['Task_1'],
 };
 
+const layoutSetIdTextKeys: Record<string, string> = {
+  [emptyLayoutSetName]: 'validation_errors.required',
+  [invalidFormatLayoutSetName]: 'ux_editor.pages_error_format',
+  [existingLayoutSetName]: 'process_editor.configuration_panel_layout_set_id_not_unique',
+};
+
 const defaultProps: CreateCustomReceiptFormProps = {
   onCloseForm: mockOnCloseForm,
 };
 
-const defaultBpmnContextProps: BpmnApiContextProps = {
+const defaultBpmnApiContextProps: BpmnApiContextProps = {
   ...mockBpmnApiContextValue,
   availableDataModelIds: mockAvailableDatamodelIds,
   addLayoutSet: mockAddLayoutSet,
@@ -57,7 +63,8 @@ describe('CreateCustomReceiptForm', () => {
     const layoutSetInput = screen.getByLabelText(
       textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
     );
-    await user.type(layoutSetInput, 'newLayoutSetId');
+    const newId: string = 'newLayoutSetId';
+    await user.type(layoutSetInput, newId);
 
     const selectElement = screen.getByLabelText(
       textMock('process_editor.configuration_panel_custom_receipt_select_datamodel_label'),
@@ -73,7 +80,34 @@ describe('CreateCustomReceiptForm', () => {
     await user.click(createButton);
 
     await waitFor(() => expect(mockAddLayoutSet).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(mockAddLayoutSet).toHaveBeenCalledWith(
+        {
+          layoutSetConfig: {
+            id: newId,
+            tasks: [existingCustomReceiptLayoutSetId],
+          },
+          layoutSetIdToUpdate: newId,
+        },
+        {
+          onSuccess: expect.any(Function),
+        },
+      ),
+    );
+
     await waitFor(() => expect(mockMutateDataType).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(mockMutateDataType).toHaveBeenCalledWith(
+        {
+          connectedTaskId: existingCustomReceiptLayoutSetId,
+          newDataType: mockAvailableDatamodelIds[0],
+        },
+        {
+          onSuccess: expect.any(Function),
+        },
+      ),
+    );
+
     expect(mockOnCloseForm).toHaveBeenCalled();
   });
 
@@ -123,26 +157,20 @@ describe('CreateCustomReceiptForm', () => {
       textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
     );
 
-    if (invalidLayoutSetId === emptyLayoutSetName) {
-      await user.clear(inputField);
-      await user.tab();
-      const error = screen.getByText(textMock('validation_errors.required'));
-      expect(error).toBeInTheDocument();
-    } else {
-      await user.clear(inputField);
-      await user.type(inputField, invalidLayoutSetId);
-      await user.tab();
-    }
-    if (invalidLayoutSetId === invalidFormatLayoutSetName) {
-      const error = screen.getByText(textMock('ux_editor.pages_error_format'));
+    await user.clear(inputField);
+    if (invalidLayoutSetId !== emptyLayoutSetName) await user.type(inputField, invalidLayoutSetId);
+    await user.tab();
+
+    const errorTextKey = layoutSetIdTextKeys[invalidLayoutSetId];
+
+    if (errorTextKey) {
+      const error = screen.getByText(textMock(errorTextKey));
       expect(error).toBeInTheDocument();
     }
-    if (invalidLayoutSetId === existingLayoutSetName) {
-      const error = screen.getByText(
-        textMock('process_editor.configuration_panel_layout_set_id_not_unique'),
-      );
-      expect(error).toBeInTheDocument();
-    }
+    const button = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_custom_receipt_create_button'),
+    });
+    await user.click(button);
     expect(mockAddLayoutSet).not.toHaveBeenCalled();
   });
 
@@ -198,7 +226,7 @@ const renderCreateCustomReceiptForm = (props: Partial<RenderProps> = {}) => {
   const { bpmnApiContextProps, rootContextProps, componentProps } = props;
 
   return render(
-    <BpmnApiContext.Provider value={{ ...defaultBpmnContextProps, ...bpmnApiContextProps }}>
+    <BpmnApiContext.Provider value={{ ...defaultBpmnApiContextProps, ...bpmnApiContextProps }}>
       <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
         <BpmnConfigPanelFormContextProvider>
           <CreateCustomReceiptForm {...defaultProps} {...componentProps} />

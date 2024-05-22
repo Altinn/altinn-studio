@@ -45,8 +45,7 @@ export const CreateCustomReceiptForm = ({
       saveCustomReceipt(customReceiptForm);
     }
 
-    const validationResult = handleValidateLayoutSetId(layoutSetId);
-    setLayoutSetError(validationResult);
+    handleValidateLayoutSetId(layoutSetId);
     setDatamodelError(
       !datamodelId
         ? t('process_editor.configuration_panel_custom_receipt_create_datamodel_error')
@@ -93,9 +92,7 @@ export const CreateCustomReceiptForm = ({
   };
 
   const handleChangeLayoutsetName = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newLayoutSetId: string = event.target.value;
-    const validationResult = handleValidateLayoutSetId(newLayoutSetId);
-    setLayoutSetError(validationResult);
+    handleValidateLayoutSetId(event.target.value);
   };
 
   const handleValidateLayoutSetId = (newLayoutSetId: string): string => {
@@ -104,6 +101,7 @@ export const CreateCustomReceiptForm = ({
       existingCustomReceiptLayoutSetId,
       newLayoutSetId,
     );
+    setLayoutSetError(validationResult ? t(validationResult) : null);
     return validationResult ? t(validationResult) : null;
   };
 

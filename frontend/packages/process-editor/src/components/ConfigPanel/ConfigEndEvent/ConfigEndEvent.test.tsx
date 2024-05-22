@@ -21,7 +21,7 @@ describe('ConfigEndEvent', () => {
     expect(header).toBeInTheDocument();
   });
 
-  it('should hide the custom receipt content behind closed accordion initially', async () => {
+  it('should hide the custom receipt content behind closed accordion initially', () => {
     renderConfigEndEventPanel();
 
     const informationTextDefaultReceipt = screen.queryByText(
