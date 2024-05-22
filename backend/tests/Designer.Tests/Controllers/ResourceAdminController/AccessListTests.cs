@@ -153,12 +153,12 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
             ResourceRegistryMock.Setup(r => r.AddAccessListMembers(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AccessListOrganizationNumbers>(), It.IsAny<string>())).ReturnsAsync(new StatusCodeResult(201));
-            AccessListOrganizationNumbers payload = new() 
+            AccessListOrganizationNumbers payload = new()
             {
                 Data = ["991825827"]
             };
             httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
-            
+
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
 
@@ -175,12 +175,12 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, uri);
 
             ResourceRegistryMock.Setup(r => r.RemoveAccessListMembers(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AccessListOrganizationNumbers>(), It.IsAny<string>())).ReturnsAsync(new StatusCodeResult(204));
-            AccessListOrganizationNumbers payload = new() 
+            AccessListOrganizationNumbers payload = new()
             {
                 Data = ["991825827"]
             };
             httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
-            
+
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
 
