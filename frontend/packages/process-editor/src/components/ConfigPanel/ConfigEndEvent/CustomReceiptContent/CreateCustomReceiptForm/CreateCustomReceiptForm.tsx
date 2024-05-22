@@ -8,7 +8,6 @@ import { type DataTypeChange } from 'app-shared/types/api/DataTypeChange';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import { type LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { SelectCustomReceiptDatamodelId } from './SelectCustomReceiptDatamodelId';
-import { getExistingDatamodelIdFromLayoutsets } from '../../../../../utils/customReceiptUtils';
 import { getLayoutSetIdValidationErrorKey } from 'app-shared/utils/layoutSetsUtils';
 
 export type CreateCustomReceiptFormProps = {
@@ -25,44 +24,33 @@ export const CreateCustomReceiptForm = ({
   const [layoutSetError, setLayoutSetError] = useState<string>(null);
   const [datamodelError, setDatamodelError] = useState<string>(null);
 
-  const existingDatamodelId: string = getExistingDatamodelIdFromLayoutsets(
-    layoutSets,
-    existingCustomReceiptLayoutSetId,
-  );
-
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const formData: FormData = new FormData(event.currentTarget);
-
-    const customReceiptForm: CustomReceiptType = {
-      layoutSetId: formData.get('customReceiptLayoutSetId') as string,
-      datamodelId: formData.get('customReceiptDatamodel') as string,
-    };
+    const customReceiptForm: CustomReceiptType = getCustomReceiptFormData(formData);
     const { layoutSetId, datamodelId } = customReceiptForm;
 
-    if (layoutSetId && datamodelId) {
-      saveCustomReceipt(customReceiptForm);
+    if (layoutSetId && datamodelId && !layoutSetError) {
+      createNewCustomReceipt(customReceiptForm);
     }
+    updateErrors(customReceiptForm);
+  };
 
-    handleValidateLayoutSetId(layoutSetId);
+  const getCustomReceiptFormData = (formData: FormData): CustomReceiptType => {
+    const layoutSetId = formData.get('customReceiptLayoutSetId') as string;
+    const datamodelId = formData.get('customReceiptDatamodel') as string;
+    return { layoutSetId, datamodelId };
+  };
+
+  const updateErrors = (customReceiptForm: CustomReceiptType) => {
+    const { layoutSetId, datamodelId } = customReceiptForm;
+    setLayoutSetError(!layoutSetId ? t('validation_errors.required') : null);
     setDatamodelError(
       !datamodelId
         ? t('process_editor.configuration_panel_custom_receipt_create_datamodel_error')
         : null,
     );
-  };
-
-  const saveCustomReceipt = (customReceipt: CustomReceiptType) => {
-    const isSameLayoutId: boolean = existingCustomReceiptLayoutSetId === customReceipt.layoutSetId;
-    const isSameDatamodelId: boolean = existingDatamodelId === customReceipt.datamodelId;
-
-    if (isSameLayoutId && isSameDatamodelId) return;
-
-    if (!existingCustomReceiptLayoutSetId) {
-      createNewCustomReceipt(customReceipt);
-      return;
-    }
   };
 
   const createNewCustomReceipt = (customReceipt: CustomReceiptType) => {
@@ -91,18 +79,14 @@ export const CreateCustomReceiptForm = ({
     });
   };
 
-  const handleChangeLayoutsetName = (event: React.ChangeEvent<HTMLInputElement>) => {
-    handleValidateLayoutSetId(event.target.value);
-  };
-
-  const handleValidateLayoutSetId = (newLayoutSetId: string): string => {
+  const handleValidateLayoutSetId = (event: React.ChangeEvent<HTMLInputElement>) => {
     const validationResult = getLayoutSetIdValidationErrorKey(
       layoutSets,
       existingCustomReceiptLayoutSetId,
-      newLayoutSetId,
+      event.target.value,
     );
     setLayoutSetError(validationResult ? t(validationResult) : null);
-    return validationResult ? t(validationResult) : null;
+    // return validationResult ? t(validationResult) : null;
   };
 
   return (
@@ -113,7 +97,7 @@ export const CreateCustomReceiptForm = ({
         value={existingCustomReceiptLayoutSetId}
         size='small'
         error={layoutSetError}
-        onChange={handleChangeLayoutsetName}
+        onChange={handleValidateLayoutSetId}
       />
       <SelectCustomReceiptDatamodelId
         error={datamodelError}

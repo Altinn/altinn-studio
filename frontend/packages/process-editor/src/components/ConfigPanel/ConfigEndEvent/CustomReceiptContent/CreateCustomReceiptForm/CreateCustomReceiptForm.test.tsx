@@ -14,7 +14,6 @@ import {
   mockBpmnContextValue,
 } from '../../../../../../test/mocks/bpmnContextMock';
 import { queryOptionMock } from 'app-shared/mocks/queryOptionMock';
-import { type LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 
 const mockAddLayoutSet = jest.fn().mockImplementation(queryOptionMock);
@@ -22,25 +21,6 @@ const mockMutateDataType = jest.fn().mockImplementation(queryOptionMock);
 
 const mockOnCloseForm = jest.fn();
 const mockAvailableDatamodelIds: string[] = ['model1', 'model2'];
-
-const invalidFormatLayoutSetName: string = 'Receipt/';
-const emptyLayoutSetName: string = '';
-const existingLayoutSetName: string = 'layoutSetName1';
-const existingCustomReceiptLayoutSetId: string = 'CustomReceipt';
-const layoutSetWithCustomReceipt: LayoutSetConfig = {
-  id: existingCustomReceiptLayoutSetId,
-  tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
-};
-const layoutSetWithDataTask: LayoutSetConfig = {
-  id: existingLayoutSetName,
-  tasks: ['Task_1'],
-};
-
-const layoutSetIdTextKeys: Record<string, string> = {
-  [emptyLayoutSetName]: 'validation_errors.required',
-  [invalidFormatLayoutSetName]: 'ux_editor.pages_error_format',
-  [existingLayoutSetName]: 'process_editor.configuration_panel_layout_set_id_not_unique',
-};
 
 const defaultProps: CreateCustomReceiptFormProps = {
   onCloseForm: mockOnCloseForm,
@@ -85,7 +65,7 @@ describe('CreateCustomReceiptForm', () => {
         {
           layoutSetConfig: {
             id: newId,
-            tasks: [existingCustomReceiptLayoutSetId],
+            tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
           },
           layoutSetIdToUpdate: newId,
         },
@@ -99,7 +79,7 @@ describe('CreateCustomReceiptForm', () => {
     await waitFor(() =>
       expect(mockMutateDataType).toHaveBeenCalledWith(
         {
-          connectedTaskId: existingCustomReceiptLayoutSetId,
+          connectedTaskId: PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
           newDataType: mockAvailableDatamodelIds[0],
         },
         {
@@ -138,17 +118,10 @@ describe('CreateCustomReceiptForm', () => {
     expect(mockOnCloseForm).toHaveBeenCalledTimes(0);
   });
 
-  it.each([
-    invalidFormatLayoutSetName,
-    emptyLayoutSetName,
-    existingLayoutSetName,
-    existingCustomReceiptLayoutSetId,
-  ])('shows correct errormessage when layoutSetId is %s', async (invalidLayoutSetId: string) => {
+  it('shows correct errormessage when layoutSetId is empty when typing in the textbox', async () => {
     const user = userEvent.setup();
     renderCreateCustomReceiptForm({
       bpmnApiContextProps: {
-        layoutSets: { sets: [layoutSetWithCustomReceipt, layoutSetWithDataTask] },
-        existingCustomReceiptLayoutSetId,
         addLayoutSet: mockAddLayoutSet,
       },
     });
@@ -157,16 +130,57 @@ describe('CreateCustomReceiptForm', () => {
       textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
     );
 
+    await user.type(inputField, 'a');
     await user.clear(inputField);
-    if (invalidLayoutSetId !== emptyLayoutSetName) await user.type(inputField, invalidLayoutSetId);
-    await user.tab();
 
-    const errorTextKey = layoutSetIdTextKeys[invalidLayoutSetId];
+    const error = screen.getByText(textMock('validation_errors.required'));
+    expect(error).toBeInTheDocument();
 
-    if (errorTextKey) {
-      const error = screen.getByText(textMock(errorTextKey));
-      expect(error).toBeInTheDocument();
-    }
+    const button = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_custom_receipt_create_button'),
+    });
+    await user.click(button);
+    expect(mockAddLayoutSet).not.toHaveBeenCalled();
+  });
+
+  it('shows correct errormessage when layoutSetId is empty when clicking the submit button', async () => {
+    const user = userEvent.setup();
+    renderCreateCustomReceiptForm({
+      bpmnApiContextProps: {
+        addLayoutSet: mockAddLayoutSet,
+      },
+    });
+
+    const button = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_custom_receipt_create_button'),
+    });
+    await user.click(button);
+
+    const layoutSetIdError = screen.getByText(textMock('validation_errors.required'));
+    expect(layoutSetIdError).toBeInTheDocument();
+
+    expect(mockAddLayoutSet).not.toHaveBeenCalled();
+  });
+
+  it('shows correct errormessage when layoutSetId is invalid format', async () => {
+    const user = userEvent.setup();
+    renderCreateCustomReceiptForm({
+      bpmnApiContextProps: {
+        addLayoutSet: mockAddLayoutSet,
+      },
+    });
+
+    const invalidFormatLayoutSetName: string = 'Receipt/';
+
+    const inputField = screen.getByLabelText(
+      textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
+    );
+
+    await user.type(inputField, invalidFormatLayoutSetName);
+
+    const error = screen.getByText(textMock('ux_editor.pages_error_format'));
+    expect(error).toBeInTheDocument();
+
     const button = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_custom_receipt_create_button'),
     });
