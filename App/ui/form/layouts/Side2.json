@@ -3,6 +3,10 @@
   "data": {
     "layout": [
       {
+        "id": "nav2",
+        "type": "NavigationBar"
+      },
+      {
         "id": "choose-sector",
         "type": "RadioButtons",
         "textResourceBindings": {

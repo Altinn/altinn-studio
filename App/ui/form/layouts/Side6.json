@@ -3,6 +3,10 @@
   "data": {
     "layout": [
       {
+        "id": "nav6",
+        "type": "NavigationBar"
+      },
+      {
         "id": "searchForList",
         "type": "Input",
         "variant": "search",

@@ -4,6 +4,10 @@
     "hidden": false,
     "layout": [
       {
+        "id": "nav1",
+        "type": "NavigationBar"
+      },
+      {
         "size": "M",
         "id": "Header-GPW9rL",
         "type": "Header",

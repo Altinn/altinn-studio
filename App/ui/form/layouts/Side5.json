@@ -3,6 +3,10 @@
   "data": {
     "layout": [
       {
+        "id": "nav5",
+        "type": "NavigationBar"
+      },
+      {
         "id": "rnd-num",
         "type": "Input",
         "textResourceBindings": {

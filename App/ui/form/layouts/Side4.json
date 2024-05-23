@@ -3,6 +3,10 @@
   "data": {
     "layout": [
       {
+        "id": "nav4",
+        "type": "NavigationBar"
+      },
+      {
         "id": "likert",
         "type": "Likert",
         "textResourceBindings": {

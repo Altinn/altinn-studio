@@ -3,6 +3,10 @@
   "data": {
     "layout": [
       {
+        "id": "nav3",
+        "type": "NavigationBar"
+      },
+      {
         "id": "personer-group",
         "type": "RepeatingGroup",
         "textResourceBindings": {
