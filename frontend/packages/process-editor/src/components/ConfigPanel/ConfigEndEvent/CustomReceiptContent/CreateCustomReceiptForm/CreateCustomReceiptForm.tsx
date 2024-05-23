@@ -86,7 +86,6 @@ export const CreateCustomReceiptForm = ({
       event.target.value,
     );
     setLayoutSetError(validationResult ? t(validationResult) : null);
-    // return validationResult ? t(validationResult) : null;
   };
 
   return (

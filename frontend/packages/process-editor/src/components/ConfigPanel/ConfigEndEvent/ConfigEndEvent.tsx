@@ -24,9 +24,9 @@ export const ConfigEndEvent = () => {
           <Accordion.Header>
             {t('process_editor.configuration_panel_custom_receipt_accordion_header')}
           </Accordion.Header>
-          <Accordion.Content>
+          <Accordion.Content className={classes.accordionContent}>
             <div className={classes.container}>
-              <div>
+              <div className={classes.customReceiptText}>
                 <StudioLabelAsParagraph size='small' spacing>
                   {t('process_editor.configuration_panel_custom_receipt_default_receipt_heading')}
                 </StudioLabelAsParagraph>
@@ -42,12 +42,14 @@ export const ConfigEndEvent = () => {
                 </Link>
               </div>
               <div>
-                <StudioLabelAsParagraph size='small' spacing>
-                  {t('process_editor.configuration_panel_custom_receipt_heading')}
-                </StudioLabelAsParagraph>
-                <Paragraph size='small'>
-                  {t('process_editor.configuration_panel_custom_receipt_info')}
-                </Paragraph>
+                <div className={classes.customReceiptText}>
+                  <StudioLabelAsParagraph size='small' spacing>
+                    {t('process_editor.configuration_panel_custom_receipt_heading')}
+                  </StudioLabelAsParagraph>
+                  <Paragraph size='small'>
+                    {t('process_editor.configuration_panel_custom_receipt_info')}
+                  </Paragraph>
+                </div>
                 <CustomReceiptContent />
               </div>
             </div>

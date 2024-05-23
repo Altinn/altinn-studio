@@ -57,7 +57,7 @@ export const CustomReceipt = (): React.ReactElement => {
 
   return (
     <div className={classes.wrapper}>
-      <div className={classes.inputfields}>
+      <div className={classes.inputFields}>
         <StudioToggleableTextfield
           customValidation={handleValidation}
           inputProps={{

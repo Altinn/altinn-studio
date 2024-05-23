@@ -5,7 +5,7 @@
   margin-top: var(--fds-spacing-3);
 }
 
-.inputfields {
+.inputFields {
   display: flex;
   flex-direction: column;
   gap: var(--fds-spacing-2);
@@ -29,4 +29,5 @@
 .buttonWrapper {
   display: flex;
   gap: var(--fds-spacing-2);
+  padding-inline: var(--custom-receipt-spacing);
 }
