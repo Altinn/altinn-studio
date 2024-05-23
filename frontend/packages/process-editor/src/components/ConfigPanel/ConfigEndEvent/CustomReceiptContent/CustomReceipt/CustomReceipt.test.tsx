@@ -31,7 +31,6 @@ const layoutSetIdTextKeys: Record<string, string> = {
   [emptyLayoutSetName]: 'validation_errors.required',
   [invalidFormatLayoutSetName]: 'ux_editor.pages_error_format',
   [existingLayoutSetName]: 'process_editor.configuration_panel_layout_set_id_not_unique',
-  [existingCustomReceiptLayoutSetId]: '', // Define the text key for this layoutSetId
 };
 
 const mockAvailableDatamodelIds: string[] = [mockBpmnApiContextValue.layoutSets.sets[1].dataType];
