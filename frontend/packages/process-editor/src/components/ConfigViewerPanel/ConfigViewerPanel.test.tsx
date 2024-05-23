@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { ConfigViewerPanel } from './ConfigViewerPanel';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
@@ -32,7 +32,7 @@ describe('ConfigViewerPanel', () => {
       name: textMock('process_editor.configuration_panel_header_help_text_title'),
     });
 
-    await act(() => user.click(helpTextButton));
+    await user.click(helpTextButton);
 
     const configHeaderHelpText = screen.getByText(
       textMock('process_editor.configuration_panel_header_help_text_data'),

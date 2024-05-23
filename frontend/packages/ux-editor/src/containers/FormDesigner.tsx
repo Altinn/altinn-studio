@@ -32,7 +32,7 @@ import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 export const FormDesigner = (): JSX.Element => {
   const { org, app } = useStudioUrlParams();
   const { data: instanceId } = useInstanceIdQuery(org, app);
-  const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
+  const { selectedFormLayoutSetName, selectedFormLayoutName, refetchLayouts } = useAppContext();
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(
     org,
     app,
@@ -108,7 +108,14 @@ export const FormDesigner = (): JSX.Element => {
         triggerDepthAlert();
         return;
       }
-      addItemToLayout({ componentType: type, newId, parentId, index });
+      addItemToLayout(
+        { componentType: type, newId, parentId, index },
+        {
+          onSuccess: async () => {
+            await refetchLayouts(selectedFormLayoutSetName);
+          },
+        },
+      );
       handleEdit(getItem(updatedLayout, newId));
     };
     const moveItem: HandleMove = (id, { parentId, index }) => {
@@ -122,7 +129,11 @@ export const FormDesigner = (): JSX.Element => {
         triggerDepthAlert();
         return;
       }
-      updateFormLayout(updatedLayout);
+      updateFormLayout(updatedLayout, {
+        onSuccess: async () => {
+          await refetchLayouts(selectedFormLayoutSetName);
+        },
+      });
     };
 
     return (

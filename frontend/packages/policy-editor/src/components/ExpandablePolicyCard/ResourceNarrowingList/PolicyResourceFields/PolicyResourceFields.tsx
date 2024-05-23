@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './PolicyResourceFields.module.css';
 import { Textfield } from '@digdir/design-system-react';
-import { MultiplyIcon } from '@navikt/aksel-icons';
+import { MultiplyIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 

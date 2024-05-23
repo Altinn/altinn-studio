@@ -4,39 +4,47 @@ import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import { StudioPageSpinner } from '@studio/components';
 import { Canvas } from './components/Canvas';
 import { BpmnContextProvider, useBpmnContext } from './contexts/BpmnContext';
-import {
-  BpmnConfigPanelFormContextProvider,
-  type MetaDataForm,
-} from './contexts/BpmnConfigPanelContext';
 import { ConfigPanel } from './components/ConfigPanel';
 import { ConfigViewerPanel } from './components/ConfigViewerPanel';
 
 import classes from './ProcessEditor.module.css';
 import type { BpmnApiContextProps } from './contexts/BpmnApiContext';
 import { BpmnApiContextProvider } from './contexts/BpmnApiContext';
+import { BpmnConfigPanelFormContextProvider } from './contexts/BpmnConfigPanelContext';
+import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 
 export type ProcessEditorProps = {
   appLibVersion: string;
   bpmnXml: string | undefined | null;
+  availableDataModelIds: BpmnApiContextProps['availableDataModelIds'];
   layoutSets: BpmnApiContextProps['layoutSets'];
   pendingApiOperations: boolean;
-  existingCustomReceiptLayoutSetName: BpmnApiContextProps['existingCustomReceiptLayoutSetName'];
+  existingCustomReceiptLayoutSetId: BpmnApiContextProps['existingCustomReceiptLayoutSetId'];
   addLayoutSet: BpmnApiContextProps['addLayoutSet'];
   deleteLayoutSet: BpmnApiContextProps['deleteLayoutSet'];
-  mutateLayoutSet: BpmnApiContextProps['mutateLayoutSet'];
+  mutateLayoutSetId: BpmnApiContextProps['mutateLayoutSetId'];
+  mutateDataType: BpmnApiContextProps['mutateDataType'];
+  addDataTypeToAppMetadata: BpmnApiContextProps['addDataTypeToAppMetadata'];
+  deleteDataTypeFromAppMetadata: BpmnApiContextProps['deleteDataTypeFromAppMetadata'];
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
+  openPolicyEditor: BpmnApiContextProps['openPolicyEditor'];
 };
 
 export const ProcessEditor = ({
   appLibVersion,
   bpmnXml,
+  availableDataModelIds,
   layoutSets,
   pendingApiOperations,
-  existingCustomReceiptLayoutSetName,
+  existingCustomReceiptLayoutSetId,
   addLayoutSet,
   deleteLayoutSet,
-  mutateLayoutSet,
+  mutateLayoutSetId,
+  mutateDataType,
+  addDataTypeToAppMetadata,
+  deleteDataTypeFromAppMetadata,
   saveBpmn,
+  openPolicyEditor,
 }: ProcessEditorProps): JSX.Element => {
   const { t } = useTranslation();
 
@@ -51,13 +59,18 @@ export const ProcessEditor = ({
   return (
     <BpmnContextProvider bpmnXml={bpmnXml} appLibVersion={appLibVersion}>
       <BpmnApiContextProvider
+        availableDataModelIds={availableDataModelIds}
         layoutSets={layoutSets}
         pendingApiOperations={pendingApiOperations}
-        existingCustomReceiptLayoutSetName={existingCustomReceiptLayoutSetName}
+        existingCustomReceiptLayoutSetId={existingCustomReceiptLayoutSetId}
         addLayoutSet={addLayoutSet}
         deleteLayoutSet={deleteLayoutSet}
-        mutateLayoutSet={mutateLayoutSet}
+        mutateLayoutSetId={mutateLayoutSetId}
+        mutateDataType={mutateDataType}
+        addDataTypeToAppMetadata={addDataTypeToAppMetadata}
+        deleteDataTypeFromAppMetadata={deleteDataTypeFromAppMetadata}
         saveBpmn={saveBpmn}
+        openPolicyEditor={openPolicyEditor}
       >
         <BpmnConfigPanelFormContextProvider>
           <BpmnCanvas />

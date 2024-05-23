@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IEditFormContainerProps } from './EditFormContainer';
 import { EditFormContainer } from './EditFormContainer';
@@ -76,7 +76,7 @@ describe('EditFormContainer', () => {
     const containerIdInput = screen.getByLabelText(
       textMock('ux_editor.modal_properties_group_change_id'),
     );
-    await act(() => user.type(containerIdInput, 'test'));
+    await user.type(containerIdInput, 'test');
     expect(handleContainerUpdateMock).toHaveBeenCalledTimes(4);
   });
 
@@ -86,7 +86,7 @@ describe('EditFormContainer', () => {
     const containerIdInput = screen.getByLabelText(
       textMock('ux_editor.modal_properties_group_change_id'),
     );
-    await act(() => user.type(containerIdInput, 'test@'));
+    await user.type(containerIdInput, 'test@');
     expect(
       screen.getByText(textMock('ux_editor.modal_properties_component_id_not_valid')),
     ).toBeInTheDocument();
@@ -106,14 +106,14 @@ describe('EditFormContainer', () => {
       textMock('ux_editor.modal_properties_group_repeating'),
     );
 
-    await act(() => user.click(repeatingGroupSwitch));
+    await user.click(repeatingGroupSwitch);
 
     expect(
       screen.getByText(textMock('ux_editor.modal_properties_group_table_headers')),
     ).toBeInTheDocument();
 
     const firstCheckbox = screen.getByRole('checkbox', { name: 'Component-1' });
-    await act(() => user.click(firstCheckbox));
+    await user.click(firstCheckbox);
 
     expect(handleContainerUpdateMock).toHaveBeenCalled();
   });

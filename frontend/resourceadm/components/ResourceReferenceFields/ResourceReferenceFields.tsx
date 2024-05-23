@@ -1,7 +1,9 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import type { ResourceReference } from 'app-shared/types/ResourceAdm';
 import { ResourceReferenceFieldset } from './ResourceReferenceFieldset';
 import { FieldsetWrapper } from '../FieldsetWrapper';
+import { InputFieldErrorMessage } from '../ResourcePageInputs/InputFieldErrorMessage';
 
 // Empty value for when adding a new field
 const emptyResourceReference: ResourceReference = {
@@ -55,34 +57,46 @@ export const ResourceReferenceFields = ({
   showErrors,
   required,
 }: ResourceReferenceFieldsProps): React.JSX.Element => {
+  const { t } = useTranslation();
+
+  const hasMaskinportenScope = resourceReferenceList?.some(
+    (ref) => ref.referenceType === 'MaskinportenScope',
+  );
   return (
-    <FieldsetWrapper<ResourceReference>
-      list={resourceReferenceList}
-      onListFieldChanged={onResourceReferenceFieldChanged}
-      emptyItem={emptyResourceReference}
-      translations={{
-        deleteButton: 'resourceadm.about_resource_reference_delete',
-        deleteHeader: 'resourceadm.about_resource_reference_delete',
-        deleteConfirmation: 'resourceadm.about_resource_reference_confirm_delete',
-        deleteConfirmationButton: 'resourceadm.about_resource_reference_confirm_delete_button',
-        addButton: 'resourceadm.about_resource_reference_add_reference',
-      }}
-      renderItem={(
-        item: ResourceReference,
-        index: number,
-        onChange: (changedItem: ResourceReference) => void,
-      ) => {
-        return (
-          <ResourceReferenceFieldset
-            resourceReference={item}
-            onChangeResourceReferenceField={onChange}
-            onFocus={onFocus}
-            showErrors={showErrors}
-            required={required}
-            index={index}
-          />
-        );
-      }}
-    />
+    <div>
+      <FieldsetWrapper<ResourceReference>
+        list={resourceReferenceList}
+        onListFieldChanged={onResourceReferenceFieldChanged}
+        emptyItem={emptyResourceReference}
+        translations={{
+          deleteButton: 'resourceadm.about_resource_reference_delete',
+          deleteHeader: 'resourceadm.about_resource_reference_delete',
+          deleteConfirmation: 'resourceadm.about_resource_reference_confirm_delete',
+          deleteConfirmationButton: 'resourceadm.about_resource_reference_confirm_delete_button',
+          addButton: 'resourceadm.about_resource_reference_add_reference',
+        }}
+        renderItem={(
+          item: ResourceReference,
+          index: number,
+          onChange: (changedItem: ResourceReference) => void,
+        ) => {
+          return (
+            <ResourceReferenceFieldset
+              resourceReference={item}
+              onChangeResourceReferenceField={onChange}
+              onFocus={onFocus}
+              showErrors={showErrors}
+              required={required}
+              index={index}
+            />
+          );
+        }}
+      />
+      {showErrors && !hasMaskinportenScope && (
+        <InputFieldErrorMessage
+          message={t('resourceadm.about_resource_reference_maskinporten_missing')}
+        />
+      )}
+    </div>
   );
 };

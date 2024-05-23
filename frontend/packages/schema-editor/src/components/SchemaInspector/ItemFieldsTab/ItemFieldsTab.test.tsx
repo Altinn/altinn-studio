@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import type { ItemFieldsTabProps } from './ItemFieldsTab';
 import { ItemFieldsTab } from './ItemFieldsTab';
 import type { FieldNode, UiSchemaNodes } from '@altinn/schema-model';
@@ -122,8 +122,8 @@ describe('ItemFieldsTab', () => {
     renderItemFieldsTab();
     const suffix = 'Duck';
     for (const fieldName of fieldNames) {
-      await act(() => user.type(screen.getByDisplayValue(fieldName), suffix));
-      await act(() => user.tab());
+      await user.type(screen.getByDisplayValue(fieldName), suffix);
+      await user.tab();
     }
     expect(saveDatamodel).toHaveBeenCalledTimes(numberOfFields);
   });
@@ -132,7 +132,7 @@ describe('ItemFieldsTab', () => {
     renderItemFieldsTab();
     const newType = FieldType.Integer;
     for (let i = 0; i < fieldNames.length; i++) {
-      await act(() => user.selectOptions(screen.getAllByRole('combobox')[i], newType));
+      await user.selectOptions(screen.getAllByRole('combobox')[i], newType);
       expect(saveDatamodel).toHaveBeenCalledTimes(i + 1);
       const updatedModel = getSavedModel(saveDatamodel, i);
       const updatedNode = updatedModel.getNode(childNodes[i].pointer) as FieldNode;
@@ -142,7 +142,7 @@ describe('ItemFieldsTab', () => {
 
   test('Model is saved correctly when the "Add field" button is clicked', async () => {
     renderItemFieldsTab();
-    await act(() => user.click(screen.getByText(textAdd)));
+    await user.click(screen.getByText(textAdd));
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
     const updatedNode = updatedModel.getNode(selectedItem.pointer) as FieldNode;
@@ -151,8 +151,8 @@ describe('ItemFieldsTab', () => {
 
   test('Model is saved correctly when a field is focused and the Enter key is clicked', async () => {
     renderItemFieldsTab();
-    await act(() => user.click(screen.getAllByRole('textbox')[0]));
-    await act(() => user.keyboard('{Enter}'));
+    await user.click(screen.getAllByRole('textbox')[0]);
+    await user.keyboard('{Enter}');
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
     const updatedNode = updatedModel.getNode(selectedItem.pointer) as FieldNode;
@@ -163,7 +163,7 @@ describe('ItemFieldsTab', () => {
     renderItemFieldsTab();
 
     const deleteButton = screen.getAllByRole('button', { name: textDeleteField })[0];
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
 
     const dialog = screen.getByRole('dialog');
     expect(dialog).toBeInTheDocument();
@@ -171,7 +171,7 @@ describe('ItemFieldsTab', () => {
     const confirmButton = screen.getByRole('button', {
       name: texts['schema_editor.datamodel_field_deletion_confirm'],
     });
-    await act(() => user.click(confirmButton));
+    await user.click(confirmButton);
 
     expect(saveDatamodel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDatamodel);
@@ -198,7 +198,7 @@ describe('ItemFieldsTab', () => {
       appContextProps: { schemaModel: SchemaModel.fromArray(newUiSchema), save: saveDatamodel },
     })(<ItemFieldsTab {...defaultProps} selectedItem={newSelectedItem} />);
     expect(screen.getByDisplayValue(newChildNodeName)).toHaveFocus();
-    await act(() => user.keyboard('a')); // Should replace the current value since the text should be selected
+    await user.keyboard('a'); // Should replace the current value since the text should be selected
     expect(screen.getByDisplayValue('a')).toBeDefined();
     expect(screen.queryByDisplayValue(newChildNodeName)).toBeFalsy();
   });

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { render, screen, act, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   BpmnConfigPanelFormContextProvider,
@@ -58,7 +58,7 @@ describe('BpmnConfigPanelContext', () => {
 
       const handleSetMetaData = () => {
         setState('test');
-        metaDataFormRef.current = { taskIdChanges: [{ oldId: 'old', newId: 'new' }] };
+        metaDataFormRef.current = { taskIdChange: { oldId: 'old', newId: 'new' } };
       };
 
       const handleResetMetaData = () => {
@@ -82,14 +82,14 @@ describe('BpmnConfigPanelContext', () => {
         <TestComponent />
       </BpmnConfigPanelFormContextProvider>,
     );
-    await act(() => user.click(screen.getByRole('button', { name: 'Set meta data' })));
+    await user.click(screen.getByRole('button', { name: 'Set meta data' }));
     await waitFor(() =>
       expect(screen.getByTestId('context')).toHaveTextContent(
-        '{"taskIdChanges":[{"oldId":"old","newId":"new"}]}',
+        '{"taskIdChange":{"oldId":"old","newId":"new"}}',
       ),
     );
 
-    await act(() => user.click(screen.getByRole('button', { name: 'Reset meta data' })));
+    await user.click(screen.getByRole('button', { name: 'Reset meta data' }));
     expect(screen.getByTestId('context')).toHaveTextContent('Empty');
   });
 });

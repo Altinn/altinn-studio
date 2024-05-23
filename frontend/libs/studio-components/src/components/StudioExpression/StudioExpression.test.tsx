@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen, within } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import type { Expression, LogicalTupleFunc } from './types/Expression';
 import { dataLookupOptions } from './test-data/dataLookupOptions';
 import { texts } from './test-data/texts';
@@ -41,7 +41,7 @@ describe('StudioExpression', () => {
   it('Displays an information message when the expression is not simplifiable and the user opens the simplified editor', async () => {
     const user = userEvent.setup();
     renderExpression(tooComplexExpression);
-    await act(() => user.click(screen.getByRole('tab', { name: texts.simplified })));
+    await user.click(screen.getByRole('tab', { name: texts.simplified }));
     expect(screen.getByText(texts.cannotSimplify)).toBeInTheDocument();
   });
 
@@ -63,9 +63,8 @@ describe('StudioExpression', () => {
     async (expression) => {
       const user = userEvent.setup();
       renderExpression(expression);
-      await act(() =>
-        user.click(screen.getByRole('radio', { name: expression ? texts.false : texts.true })),
-      );
+      await user.click(screen.getByRole('radio', { name: expression ? texts.false : texts.true }));
+
       expect(onChange).toHaveBeenCalledWith(!expression);
     },
   );
@@ -73,7 +72,7 @@ describe('StudioExpression', () => {
   it('Calls the onChange function with the default expression when the expression is a boolean and the user clicks the transform button', async () => {
     const user = userEvent.setup();
     renderExpression(true);
-    await act(() => user.click(screen.getByRole('button', { name: texts.transformToLogical })));
+    await user.click(screen.getByRole('button', { name: texts.transformToLogical }));
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith([GeneralRelationOperator.Equals, 0, 0]);
   });
@@ -117,7 +116,7 @@ describe('StudioExpression', () => {
   it('Calls the onChange function with the new expression when the user adds a subexpression', async () => {
     const user = userEvent.setup();
     renderExpression(logicalExpression);
-    await act(() => user.click(screen.getByRole('button', { name: texts.addSubexpression })));
+    await user.click(screen.getByRole('button', { name: texts.addSubexpression }));
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith([
       ...logicalExpression,
@@ -131,7 +130,7 @@ describe('StudioExpression', () => {
     renderExpression(logicalExpression);
     const subexpressionToDelete = screen.getByRole('group', { name: texts.subexpression(0) });
     const deleteButton = within(subexpressionToDelete).getByRole('button', { name: texts.delete });
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith(numberOperatorRelation);
   });
@@ -145,7 +144,7 @@ describe('StudioExpression', () => {
     const user = userEvent.setup();
     renderExpression(generalOperatorRelation);
     const editButton = screen.getByRole('button', { name: texts.edit });
-    await act(() => user.click(editButton));
+    await user.click(editButton);
     expect(screen.queryByRole('button', { name: texts.edit })).not.toBeInTheDocument();
     screen.getByRole('button', { name: texts.saveAndClose });
   });
@@ -154,12 +153,12 @@ describe('StudioExpression', () => {
     const user = userEvent.setup();
     renderExpression(generalOperatorRelation);
     const editButton = screen.getByRole('button', { name: texts.edit });
-    await act(() => user.click(editButton));
+    await user.click(editButton);
     const secondOperandGroup = screen.getByRole('group', { name: texts.secondOperand });
     const input = within(secondOperandGroup).getByRole('textbox', { name: texts.value });
-    await act(() => user.type(input, '1'));
+    await user.type(input, '1');
     const saveButton = screen.getByRole('button', { name: texts.saveAndClose });
-    await act(() => user.click(saveButton));
+    await user.click(saveButton);
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith([...generalOperatorRelation.slice(0, 2), 'some-text1']);
   });
@@ -168,11 +167,11 @@ describe('StudioExpression', () => {
     const user = userEvent.setup();
     renderExpression(generalOperatorRelation);
     const editButton = screen.getByRole('button', { name: texts.edit });
-    await act(() => user.click(editButton));
+    await user.click(editButton);
     const input = screen.getByRole('combobox', { name: texts.relationalOperator });
-    await act(() => user.selectOptions(input, GeneralRelationOperator.NotEquals));
+    await user.selectOptions(input, GeneralRelationOperator.NotEquals);
     const saveButton = screen.getByRole('button', { name: texts.saveAndClose });
-    await act(() => user.click(saveButton));
+    await user.click(saveButton);
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith([
       GeneralRelationOperator.NotEquals,
@@ -184,9 +183,9 @@ describe('StudioExpression', () => {
     const user = userEvent.setup();
     renderExpression(generalOperatorRelation);
     const editButton = screen.getByRole('button', { name: texts.edit });
-    await act(() => user.click(editButton));
+    await user.click(editButton);
     const saveButton = screen.getByRole('button', { name: texts.saveAndClose });
-    await act(() => user.click(saveButton));
+    await user.click(saveButton);
     screen.getByRole('button', { name: texts.edit });
   });
 
@@ -194,12 +193,12 @@ describe('StudioExpression', () => {
     const user = userEvent.setup();
     renderExpression(numberOperatorRelation);
     const editButton = screen.getByRole('button', { name: texts.edit });
-    await act(() => user.click(editButton));
+    await user.click(editButton);
     const firstOperandGroup = screen.getByRole('group', { name: texts.firstOperand });
     const typeSelect = within(firstOperandGroup).getByRole('combobox', { name: texts.valueType });
-    await act(() => user.selectOptions(typeSelect, SimpleSubexpressionValueType.Boolean));
+    await user.selectOptions(typeSelect, SimpleSubexpressionValueType.Boolean);
     const saveButton = screen.getByRole('button', { name: texts.saveAndClose });
-    await act(() => user.click(saveButton));
+    await user.click(saveButton);
     expect(onChange).not.toHaveBeenCalled();
     screen.getByText(texts.errorMessages.numericRelationOperatorWithWrongType);
   });
@@ -213,8 +212,8 @@ describe('StudioExpression', () => {
     const user = userEvent.setup();
     renderExpression(tooComplexExpression);
     const input = screen.getByRole('textbox');
-    await act(() => user.clear(input));
-    await act(() => user.type(input, 'true'));
+    await user.clear(input);
+    await user.type(input, 'true');
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith(true);
   });
@@ -224,9 +223,9 @@ describe('StudioExpression', () => {
     jest.spyOn(window, 'confirm').mockReturnValue(false);
     renderExpression(tooComplexExpression);
     const input = screen.getByRole('textbox');
-    await act(() => user.clear(input));
-    await act(() => user.type(input, 'tru'));
-    await act(() => user.click(screen.getByRole('tab', { name: texts.simplified })));
+    await user.clear(input);
+    await user.type(input, 'tru');
+    await user.click(screen.getByRole('tab', { name: texts.simplified }));
     expect(onChange).not.toHaveBeenCalled();
     expect(screen.getByRole('tab', { name: texts.manual })).toHaveAttribute(
       'aria-selected',
@@ -239,9 +238,9 @@ describe('StudioExpression', () => {
     jest.spyOn(window, 'confirm').mockReturnValue(true);
     renderExpression(tooComplexExpression);
     const input = screen.getByRole('textbox');
-    await act(() => user.clear(input));
-    await act(() => user.type(input, 'tru'));
-    await act(() => user.click(screen.getByRole('tab', { name: texts.simplified })));
+    await user.clear(input);
+    await user.type(input, 'tru');
+    await user.click(screen.getByRole('tab', { name: texts.simplified }));
     expect(onChange).not.toHaveBeenCalled();
     expect(screen.getByRole('tab', { name: texts.simplified })).toHaveAttribute(
       'aria-selected',
@@ -253,9 +252,9 @@ describe('StudioExpression', () => {
     const user = userEvent.setup();
     renderExpression(tooComplexExpression);
     const input = screen.getByRole('textbox');
-    await act(() => user.clear(input));
-    await act(() => user.type(input, 'tru'));
-    await act(() => user.tab());
+    await user.clear(input);
+    await user.type(input, 'tru');
+    await user.tab();
     expect(onChange).not.toHaveBeenCalled();
     screen.getByText(texts.cannotSaveSinceInvalid);
   });

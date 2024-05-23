@@ -1,1 +1,7 @@
-export { getConfigTitleKey, getConfigTitleHelpTextKey } from './configPanelUtils';
+export {
+  getConfigTitleKey,
+  getConfigTitleHelpTextKey,
+  checkForInvalidCharacters,
+  getDataTypeFromLayoutSetsWithExistingId,
+  getDatamodelOptions,
+} from './configPanelUtils';

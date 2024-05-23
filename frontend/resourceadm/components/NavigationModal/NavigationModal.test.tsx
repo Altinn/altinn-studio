@@ -4,7 +4,6 @@ import userEvent from '@testing-library/user-event';
 import type { NavigationModalProps } from './NavigationModal';
 import { NavigationModal } from './NavigationModal';
 import { textMock } from '../../../testing/mocks/i18nMock';
-import { act } from 'react-dom/test-utils';
 
 describe('NavigationModal', () => {
   const mockOnClose = jest.fn();
@@ -32,7 +31,7 @@ describe('NavigationModal', () => {
     const closeButton = screen.getByRole('button', {
       name: textMock('resourceadm.resource_navigation_modal_button_stay'),
     });
-    await act(() => user.click(closeButton));
+    await user.click(closeButton);
 
     expect(mockOnClose).toHaveBeenCalled();
   });
@@ -44,7 +43,7 @@ describe('NavigationModal', () => {
     const navigateButton = screen.getByRole('button', {
       name: textMock('resourceadm.resource_navigation_modal_button_move_on'),
     });
-    await act(() => user.click(navigateButton));
+    await user.click(navigateButton);
 
     expect(mockOnNavigate).toHaveBeenCalled();
   });

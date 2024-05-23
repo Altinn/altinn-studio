@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as rtlRender, act, screen } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { AltinnConfirmDialogProps } from './AltinnConfirmDialog';
 import { AltinnConfirmDialog } from './AltinnConfirmDialog';
@@ -42,7 +42,7 @@ describe('AltinnConfirmDialog', () => {
     await render();
 
     const confirmButton = screen.getByRole('button', { name: confirmTextMock });
-    await act(() => user.click(confirmButton));
+    await user.click(confirmButton);
 
     expect(onConfirmMock).toHaveBeenCalledTimes(1);
     expect(onCloseMock).toHaveBeenCalledTimes(1);
@@ -52,7 +52,7 @@ describe('AltinnConfirmDialog', () => {
     await render();
 
     const cancelButton = screen.getByRole('button', { name: cancelTextMock });
-    await act(() => user.click(cancelButton));
+    await user.click(cancelButton);
 
     expect(onCloseMock).toHaveBeenCalledTimes(1);
   });
@@ -60,7 +60,7 @@ describe('AltinnConfirmDialog', () => {
   it('should call onClose when clicking outside the dialog', async () => {
     await render();
 
-    await act(() => user.click(document.body));
+    await user.click(document.body);
 
     expect(onCloseMock).toHaveBeenCalledTimes(1);
   });

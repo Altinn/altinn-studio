@@ -11,10 +11,12 @@ export const ComponentIdSelector = ({
   onChange,
 }: Props<SimpleSubexpressionValueType.Component>) => {
   const { dataLookupOptions, texts } = useStudioExpressionContext();
-  const [errorKey, setErrorKey] = useState<ExpressionErrorKey | null>(null);
-  const [idValue, setIdValue] = useState<string>(value.id);
-
   const options = dataLookupOptions[DataLookupFuncName.Component];
+  const idValueExist = options.includes(value.id) || value.id === '';
+  const [errorKey, setErrorKey] = useState<ExpressionErrorKey | null>(
+    idValueExist ? null : ExpressionErrorKey.ComponentIDNoLongerExists,
+  );
+  const [idValue, setIdValue] = useState<string>(value.id);
 
   const handleChange = (values: string[]) => {
     if (values.length) {
@@ -33,7 +35,7 @@ export const ComponentIdSelector = ({
       label={texts.componentId}
       onValueChange={handleChange}
       size='small'
-      value={idValue ? [idValue] : []}
+      value={idValue && idValueExist ? [idValue] : []}
     >
       {options.map((option) => (
         <Combobox.Option key={option} value={option}>

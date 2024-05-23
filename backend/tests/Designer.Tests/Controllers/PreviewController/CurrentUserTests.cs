@@ -19,7 +19,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_CurrentUser_Ok()
         {
-            string dataPathWithData = $"{Org}/{App}/api/v1/profile/user";
+            string dataPathWithData = $"{Org}/{AppV3}/api/v1/profile/user";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

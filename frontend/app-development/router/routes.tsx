@@ -1,5 +1,5 @@
-import { SubApp as UiEditorLatest } from '../../packages/ux-editor/src/SubApp';
-import { SubApp as UiEditorV3 } from '../../packages/ux-editor-v3/src/SubApp';
+import { SubApp as UiEditorLatest } from '@altinn/ux-editor/SubApp';
+import { SubApp as UiEditorV3 } from '@altinn/ux-editor-v3/SubApp';
 import { Overview } from '../features/overview/components/Overview';
 import { TextEditor } from '../features/textEditor/TextEditor';
 import DataModellingContainer from '../features/dataModelling/containers/DataModellingContainer';

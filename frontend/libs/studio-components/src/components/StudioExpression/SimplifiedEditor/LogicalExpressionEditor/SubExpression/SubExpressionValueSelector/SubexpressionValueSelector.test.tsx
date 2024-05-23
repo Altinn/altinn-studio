@@ -1,4 +1,4 @@
-import { act, render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { StudioExpressionContext } from '../../../../StudioExpressionContext';
 import type { SubexpressionValueSelectorProps } from './SubexpressionValueSelector';
 import { SubexpressionValueSelector } from './SubexpressionValueSelector';
@@ -14,6 +14,7 @@ import { texts } from '../../../../test-data/texts';
 import userEvent from '@testing-library/user-event';
 import { InstanceContext } from '../../../../enums/InstanceContext';
 import { ExpressionErrorKey } from '../../../../enums/ExpressionErrorKey';
+import { GatewayActionContext } from '../../../../enums/GatewayActionContext';
 
 describe('SubexpressionValueSelector', () => {
   it('Renders with the given legend in edit mode', () => {
@@ -28,7 +29,7 @@ describe('SubexpressionValueSelector', () => {
     renderSubexpressionValueSelector({ onChange, isInEditMode: true });
     const select = screen.getByRole('combobox');
     const newValueType = SimpleSubexpressionValueType.Number;
-    await act(() => user.selectOptions(select, newValueType));
+    await user.selectOptions(select, newValueType);
     expect(onChange).toHaveBeenCalledWith({ type: newValueType, value: 0 });
   });
 
@@ -44,7 +45,7 @@ describe('SubexpressionValueSelector', () => {
       renderSubexpressionValueSelector({ value: stringValue, isInEditMode: true, onChange });
       const input = screen.getByRole('textbox');
       const addedText = 'A';
-      await act(() => user.type(input, addedText));
+      await user.type(input, addedText);
       expect(onChange).toHaveBeenLastCalledWith({
         ...stringValue,
         value: stringValue.value + addedText,
@@ -69,7 +70,7 @@ describe('SubexpressionValueSelector', () => {
       renderSubexpressionValueSelector({ value: numberValue, isInEditMode: true, onChange });
       const input = screen.getByRole('textbox');
       const addedValue = 1;
-      await act(() => user.type(input, addedValue.toString()));
+      await user.type(input, addedValue.toString());
       expect(onChange).toHaveBeenLastCalledWith({ ...numberValue, value: 421 });
     });
   });
@@ -91,7 +92,7 @@ describe('SubexpressionValueSelector', () => {
       const onChange = jest.fn();
       renderSubexpressionValueSelector({ value: booleanValue, isInEditMode: true, onChange });
       const newValue = !value;
-      await act(() => user.click(screen.getByRole('radio', { name: booleanText(newValue) })));
+      await user.click(screen.getByRole('radio', { name: booleanText(newValue) }));
       expect(onChange).toHaveBeenLastCalledWith({ ...booleanValue, value: newValue });
     });
   });
@@ -127,8 +128,8 @@ describe('SubexpressionValueSelector', () => {
       const onChange = jest.fn();
       renderSubexpressionValueSelector({ value: datamodelValue, isInEditMode: true, onChange });
       const newPointer = datamodelPointers[1];
-      await act(() => user.click(screen.getByRole('combobox', { name: texts.datamodelPath })));
-      await act(() => user.click(screen.getByRole('option', { name: newPointer })));
+      await user.click(screen.getByRole('combobox', { name: texts.datamodelPath }));
+      await user.click(screen.getByRole('option', { name: newPointer }));
       await waitForElementToBeRemoved(screen.queryByRole('listbox')); // Needs to wait here because the Combobox component's change function is asynchronous
       expect(onChange).toHaveBeenCalledWith({ ...datamodelValue, path: newPointer });
     });
@@ -138,8 +139,8 @@ describe('SubexpressionValueSelector', () => {
       const onChange = jest.fn();
       renderSubexpressionValueSelector({ value: datamodelValue, isInEditMode: true, onChange });
       const input = () => screen.getByRole('combobox', { name: texts.datamodelPath });
-      await act(() => user.type(input(), '{backspace}'));
-      await act(() => user.click(document.body));
+      await user.type(input(), '{backspace}');
+      await user.click(document.body);
       screen.getByText(texts.errorMessages[ExpressionErrorKey.InvalidDatamodelPath]);
     });
   });
@@ -175,8 +176,8 @@ describe('SubexpressionValueSelector', () => {
       const onChange = jest.fn();
       renderSubexpressionValueSelector({ value: componentValue, isInEditMode: true, onChange });
       const newId = componentIds[1];
-      await act(() => user.click(screen.getByRole('combobox', { name: texts.componentId })));
-      await act(() => user.click(screen.getByRole('option', { name: newId })));
+      await user.click(screen.getByRole('combobox', { name: texts.componentId }));
+      await user.click(screen.getByRole('option', { name: newId }));
       await waitForElementToBeRemoved(screen.queryByRole('listbox')); // Needs to wait here because the Combobox component's change function is asynchronous
       expect(onChange).toHaveBeenCalledWith({ ...componentValue, id: newId });
     });
@@ -186,9 +187,83 @@ describe('SubexpressionValueSelector', () => {
       const onChange = jest.fn();
       renderSubexpressionValueSelector({ value: componentValue, isInEditMode: true, onChange });
       const input = () => screen.getByRole('combobox', { name: texts.componentId });
-      await act(() => user.type(input(), '{backspace}'));
-      await act(() => user.click(document.body));
+      await user.type(input(), '{backspace}');
+      await user.click(document.body);
       screen.getByText(texts.errorMessages[ExpressionErrorKey.InvalidComponentId]);
+    });
+
+    it('Displays initial error and handles non-existing component ID', () => {
+      const id = 'non-existing-id';
+      renderSubexpressionValueSelector({ value: { ...componentValue, id }, isInEditMode: true });
+      const errorMessage = screen.getByText(
+        texts.errorMessages[ExpressionErrorKey.ComponentIDNoLongerExists],
+      );
+      expect(errorMessage).toBeInTheDocument();
+      const input = screen.getByRole('combobox', { name: texts.componentId });
+      expect(input).toHaveValue('');
+    });
+  });
+
+  describe('When the value is an gateway context reference', () => {
+    it.each(Object.values(GatewayActionContext))(
+      'Displays the key in readonly mode when it is %s',
+      (key) => {
+        const gatewayContextValue: SimpleSubexpressionValue<SimpleSubexpressionValueType.GatewayActionContext> =
+          {
+            type: SimpleSubexpressionValueType.GatewayActionContext,
+            key,
+          };
+        renderSubexpressionValueSelector({ value: gatewayContextValue, isInEditMode: false });
+        expect(screen.getByText(texts.gatewayActionContext[key]));
+      },
+    );
+
+    it('Render GatewayAction in readonly mode', () => {
+      const gatewayAction: SimpleSubexpressionValue<SimpleSubexpressionValueType.GatewayAction> = {
+        type: SimpleSubexpressionValueType.GatewayAction,
+        value: 'gatewayAction',
+      };
+      renderSubexpressionValueSelector({ value: gatewayAction, isInEditMode: false });
+      expect(screen.getByText('gatewayAction'));
+    });
+
+    it('Lets the user edit the value in edit mode', async () => {
+      const gatewayContextValue: SimpleSubexpressionValue<SimpleSubexpressionValueType.GatewayActionContext> =
+        {
+          type: SimpleSubexpressionValueType.GatewayActionContext,
+          key: GatewayActionContext.Pay,
+        };
+      const user = userEvent.setup();
+      const onChange = jest.fn();
+      renderSubexpressionValueSelector({
+        value: gatewayContextValue,
+        isInEditMode: true,
+        onChange,
+      });
+      const newKey = GatewayActionContext.Sign;
+      const select = screen.getByRole('combobox', { name: texts.gatewayActionKey });
+      await user.selectOptions(select, newKey);
+      expect(onChange).toHaveBeenCalledWith({ ...gatewayContextValue, key: newKey });
+    });
+  });
+
+  describe('When the value is an gateway action', () => {
+    it('should display expression selector only', () => {
+      const gatewayAction: SimpleSubexpressionValue<SimpleSubexpressionValueType.GatewayAction> = {
+        type: SimpleSubexpressionValueType.GatewayAction,
+        value: 'gatewayAction',
+      };
+      renderSubexpressionValueSelector({ value: gatewayAction, isInEditMode: true });
+      expect(screen.getByText('Gateway action'));
+    });
+
+    it('should display readonly mode', () => {
+      const gatewayAction: SimpleSubexpressionValue<SimpleSubexpressionValueType.GatewayAction> = {
+        type: SimpleSubexpressionValueType.GatewayAction,
+        value: 'gatewayAction',
+      };
+      renderSubexpressionValueSelector({ value: gatewayAction, isInEditMode: false });
+      expect(screen.getByText('gatewayAction'));
     });
   });
 
@@ -221,7 +296,7 @@ describe('SubexpressionValueSelector', () => {
       });
       const newKey = InstanceContext.AppId;
       const select = screen.getByRole('combobox', { name: texts.instanceContextKey });
-      await act(() => user.selectOptions(select, newKey));
+      await user.selectOptions(select, newKey);
       expect(onChange).toHaveBeenCalledWith({ ...instanceContextValue, key: newKey });
     });
   });

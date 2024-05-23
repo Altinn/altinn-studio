@@ -21,13 +21,7 @@ import classes from './RepoList.module.css';
 import type { User } from 'app-shared/types/Repository';
 import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from '../../hooks/mutations';
 
-import {
-  PencilIcon,
-  FilesIcon,
-  ExternalLinkIcon,
-  StarIcon,
-  StarFillIcon,
-} from '@navikt/aksel-icons';
+import { PencilIcon, FilesIcon, ExternalLinkIcon, StarIcon, StarFillIcon } from '@studio/icons';
 
 export interface IRepoListProps {
   isLoading: boolean;
@@ -91,6 +85,7 @@ export const RepoList = ({
     pageSize,
     page: 0,
   });
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
 
   const handlePaginationModelChange = (newPaginationModel: GridPaginationModel) => {
     if (newPaginationModel.page !== paginationModel.page) {
@@ -234,7 +229,10 @@ export const RepoList = ({
               icon={<FilesIcon className={classes.dropdownIcon} />}
               key={`dashboard.make_copy${params.row.id}`}
               label={t('dashboard.make_copy')}
-              onClick={() => setCopyCurrentRepoName(repoFullName)}
+              onClick={() => {
+                setModalOpen(true);
+                setCopyCurrentRepoName(repoFullName);
+              }}
               showInMenu
             />,
             <GridActionsCellItem
@@ -252,7 +250,10 @@ export const RepoList = ({
     return [favouriteActionCol, ...columns, ...actionsCol];
   }, [setStarredRepo, t, unsetStarredRepo]);
 
-  const handleCloseCopyModal = () => setCopyCurrentRepoName(null);
+  const handleCloseCopyModal = () => {
+    setModalOpen(false);
+    setCopyCurrentRepoName(null);
+  };
 
   const localText = {
     ...nbNO.components.MuiDataGrid.defaultProps.localeText,
@@ -299,8 +300,9 @@ export const RepoList = ({
       )}
       {copyCurrentRepoName && (
         <MakeCopyModal
-          anchorEl={copyModalAnchorRef.current}
-          handleClose={handleCloseCopyModal}
+          ref={copyModalAnchorRef}
+          open={modalOpen}
+          onClose={handleCloseCopyModal}
           serviceFullName={copyCurrentRepoName}
         />
       )}

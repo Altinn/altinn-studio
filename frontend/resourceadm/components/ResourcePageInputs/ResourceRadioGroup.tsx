@@ -12,7 +12,7 @@ type ResourceRadioGroupProps = {
   /**
    * The description of the dropdown
    */
-  description: string;
+  description?: string;
   /**
    * The value selected
    */

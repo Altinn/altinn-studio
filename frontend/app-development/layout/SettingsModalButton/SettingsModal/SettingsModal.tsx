@@ -8,7 +8,7 @@ import {
   TimerStartIcon,
   ShieldLockIcon,
   SidebarBothIcon,
-} from '@navikt/aksel-icons';
+} from '@studio/icons';
 import { StudioModal } from '@studio/components';
 import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
@@ -25,6 +25,7 @@ export type SettingsModalProps = {
   onClose: () => void;
   org: string;
   app: string;
+  defaultTab?: SettingsModalTab;
 };
 
 /**
@@ -36,10 +37,16 @@ export type SettingsModalProps = {
  *
  * @returns {ReactNode} - The rendered component
  */
-export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps): ReactNode => {
+export const SettingsModal = ({
+  isOpen,
+  onClose,
+  org,
+  app,
+  defaultTab,
+}: SettingsModalProps): ReactNode => {
   const { t } = useTranslation();
 
-  const [currentTab, setCurrentTab] = useState<SettingsModalTab>('about');
+  const [currentTab, setCurrentTab] = useState<SettingsModalTab>(defaultTab || 'about');
 
   /**
    * Ids for the navigation tabs

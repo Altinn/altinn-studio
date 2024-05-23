@@ -23,7 +23,6 @@ import {
   accessListPath,
   processEditorPath,
   releasesPath,
-  repoInitialCommitPath,
   repoMetaPath,
   repoPullPath,
   repoSearchPath,
@@ -46,6 +45,7 @@ import {
   widgetSettingsPath,
   resourceAccessListsPath,
   layoutNamesPath,
+  appMetadataModelIdsPath,
 } from './paths';
 import type { AppReleasesResponse, DatamodelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
@@ -68,13 +68,13 @@ import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { PolicyAction, Policy, PolicySubject } from '@altinn/policy-editor';
 import type { BrregPartySearchResult, BrregSubPartySearchResult, AccessList, Resource, ResourceListItem, ResourceVersionStatus, Validation, AccessListsResponse } from 'app-shared/types/ResourceAdm';
 import type { AppConfig } from 'app-shared/types/AppConfig';
-import type { Commit } from 'app-shared/types/Commit';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import type { NewsList } from 'app-shared/types/api/NewsList';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
 
+export const getAppMetadataModelIds = (org: string, app: string, onlyUnReferenced: boolean) => get<string[]>(appMetadataModelIdsPath(org, app, onlyUnReferenced));
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getAppVersion = (org: string, app: string) => get<AppVersion>(appVersionPath(org, app));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
@@ -96,7 +96,6 @@ export const getNewsList = (language: 'nb' | 'en') => get<NewsList>(newsListUrl(
 export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));
 export const getOrgList = () => get<OrgList>(orgListUrl());
 export const getOrganizations = () => get<Organization[]>(orgsListPath());
-export const getRepoInitialCommit = (owner: string, app: string) => get<Commit>(repoInitialCommitPath(owner, app));
 export const getRepoMetadata = (owner: string, app: string) => get<Repository>(repoMetaPath(owner, app));
 export const getRepoPull = (owner: string, app: string) => get<RepoStatus>(repoPullPath(owner, app));
 export const getRepoStatus = (owner: string, app: string) => get<RepoStatus>(repoStatusPath(owner, app));

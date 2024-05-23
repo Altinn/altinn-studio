@@ -4,7 +4,7 @@ import type { IGenericEditComponent } from '../../componentConfig';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { AttachmentListComponent } from './AttachmentListComponent';
 import React from 'react';
-import { screen, act, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
@@ -21,22 +21,22 @@ const defaultLayoutSets: LayoutSets = {
   sets: [
     {
       id: 'layoutSetId1',
-      dataTypes: 'layoutSetId1',
+      dataType: 'layoutSetId1',
       tasks: ['Task_1'],
     },
     {
       id: 'layoutSetId2',
-      dataTypes: 'layoutSetId2',
+      dataType: 'layoutSetId2',
       tasks: ['Task_2'],
     },
     {
       id: 'layoutSetId3',
-      dataTypes: 'layoutSetId3',
+      dataType: 'layoutSetId3',
       tasks: ['Task_3'],
     },
     {
       id: 'layoutSetId4',
-      dataTypes: 'layoutSetId4',
+      dataType: 'layoutSetId4',
       tasks: ['CustomReceipt'],
     },
   ],
@@ -133,7 +133,7 @@ describe('AttachmentListComponent', () => {
       name: textMock('ux_editor.component_properties.select_pdf'),
     });
 
-    await act(() => user.click(includePdfCheckbox));
+    await user.click(includePdfCheckbox);
     expect(includePdfCheckbox).toBeChecked();
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...defaultComponent,
@@ -141,7 +141,7 @@ describe('AttachmentListComponent', () => {
     });
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
 
-    await act(() => user.click(includePdfCheckbox));
+    await user.click(includePdfCheckbox);
     expect(includePdfCheckbox).not.toBeChecked();
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...defaultComponent,
@@ -186,7 +186,7 @@ describe('AttachmentListComponent', () => {
       name: textMock('ux_editor.component_properties.current_task'),
     });
 
-    await act(() => user.click(currentTaskCheckbox));
+    await user.click(currentTaskCheckbox);
     expect(currentTaskCheckbox).toBeChecked();
 
     expect(handleComponentChange).toHaveBeenCalledWith({
@@ -196,7 +196,7 @@ describe('AttachmentListComponent', () => {
     // Combobox is also triggered, because current task is set to true and makes the combobox to trigger onChangeValue because of filter update
     expect(handleComponentChange).toHaveBeenCalledTimes(2);
 
-    await act(() => user.click(currentTaskCheckbox));
+    await user.click(currentTaskCheckbox);
     expect(currentTaskCheckbox).not.toBeChecked();
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...defaultComponent,
@@ -224,7 +224,7 @@ describe('AttachmentListComponent', () => {
       name: textMock('ux_editor.component_properties.current_task'),
     });
 
-    await act(() => user.click(currentTaskCheckbox));
+    await user.click(currentTaskCheckbox);
     expect(currentTaskCheckbox).toBeChecked();
 
     expect(handleComponentChange).not.toHaveBeenCalled();
@@ -248,7 +248,7 @@ describe('AttachmentListComponent', () => {
     const selectAllCheckbox = screen.getByRole('checkbox', {
       name: textMock('ux_editor.component_properties.select_all_attachments'),
     });
-    await act(() => user.click(selectAllCheckbox));
+    await user.click(selectAllCheckbox);
     expect(selectAllCheckbox).toBeChecked();
     // Combobox is also triggered, because current task is set to true and makes the combobox to trigger onChangeValue because of filter update
     expect(handleComponentChange).toHaveBeenCalledWith({
@@ -258,7 +258,7 @@ describe('AttachmentListComponent', () => {
     expect(handleComponentChange).toHaveBeenCalledTimes(2);
 
     handleComponentChange.mockClear();
-    await act(() => user.click(selectAllCheckbox));
+    await user.click(selectAllCheckbox);
     expect(selectAllCheckbox).not.toBeChecked();
 
     expect(handleComponentChange).not.toHaveBeenCalled();

@@ -18,7 +18,7 @@ import type {
 } from 'app-shared/types/RuleConfig';
 import type i18next from 'i18next';
 import type { FormComponent } from '../../types/FormComponent';
-import { Buldings2Icon, XMarkOctagonFillIcon } from '@navikt/aksel-icons';
+import { Buldings2Icon, XMarkOctagonFillIcon } from '@studio/icons';
 import type { FormContainer } from '../../types/FormContainer';
 
 export interface IConditionalRenderingComponentProps {

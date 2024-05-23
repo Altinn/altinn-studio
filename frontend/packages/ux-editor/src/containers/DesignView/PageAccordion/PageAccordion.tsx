@@ -18,6 +18,7 @@ export type PageAccordionProps = {
   isOpen: boolean;
   onClick: () => void;
   pageIsReceipt?: boolean;
+  isValid?: boolean;
 };
 
 /**
@@ -39,10 +40,11 @@ export const PageAccordion = ({
   isOpen,
   onClick,
   pageIsReceipt,
+  isValid,
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
-  const { selectedFormLayoutSetName } = useAppContext();
+  const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
 
   const { mutate: deleteLayout, isPending } = useDeleteLayoutMutation(
     org,
@@ -52,7 +54,11 @@ export const PageAccordion = ({
 
   const handleConfirmDelete = () => {
     if (confirm(t('ux_editor.page_delete_text'))) {
-      deleteLayout(pageName);
+      deleteLayout(pageName, {
+        onSuccess: async ({ layouts }) => {
+          await refetchLayouts(selectedFormLayoutSetName, Object.keys(layouts).length === 1);
+        },
+      });
     }
   };
 
@@ -62,7 +68,11 @@ export const PageAccordion = ({
       open={isOpen}
     >
       <div className={classes.accordionHeaderRow}>
-        <Accordion.Header className={classes.accordionHeader} level={3} onHeaderClick={onClick}>
+        <Accordion.Header
+          className={isValid ? classes.accordionHeader : classes.accordionHeaderWarning}
+          level={3}
+          onHeaderClick={onClick}
+        >
           {pageName}
         </Accordion.Header>
         <div className={classes.navigationMenu}>

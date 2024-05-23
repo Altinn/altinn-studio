@@ -4,7 +4,7 @@ import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { Textfield } from '@digdir/design-system-react';
 import { StudioButton } from '@studio/components';
-import { XMarkIcon } from '@navikt/aksel-icons';
+import { XMarkIcon } from '@studio/icons';
 import { CenterContainer } from '../../components/CenterContainer';
 import { DatamodelsReposList } from '../../components/DataModelsRepoList';
 import { OrgReposList } from '../../components/OrgRepoList';

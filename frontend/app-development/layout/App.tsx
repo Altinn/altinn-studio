@@ -13,12 +13,7 @@ import classes from './App.module.css';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { RepositoryType } from 'app-shared/types/global';
-import {
-  repoInitialCommitPath,
-  repoMetaPath,
-  serviceConfigPath,
-  serviceNamePath,
-} from 'app-shared/api/paths';
+import { repoMetaPath, serviceConfigPath, serviceNamePath } from 'app-shared/api/paths';
 import i18next from 'i18next';
 import { initReactI18next, useTranslation } from 'react-i18next';
 import nb from '../../language/src/nb.json';
@@ -50,7 +45,7 @@ export function App() {
 
   const repositoryType = getRepositoryType(org, app);
   const { t } = useTranslation();
-  const { refetch } = useRepoStatusQuery(org, app);
+  const { refetch: reFetchRepoStatus } = useRepoStatusQuery(org, app);
   const remainingSessionMinutes = useAppSelector(
     (state) => state.userState.session.remainingMinutes,
   );
@@ -68,11 +63,6 @@ export function App() {
       dispatch(
         HandleServiceInformationActions.fetchService({
           url: repoMetaPath(org, app),
-        }),
-      );
-      dispatch(
-        HandleServiceInformationActions.fetchInitialCommit({
-          url: repoInitialCommitPath(org, app),
         }),
       );
 
@@ -104,7 +94,7 @@ export function App() {
     };
     const windowEventReceived = async (event: any) => {
       if (event.data === postMessages.forceRepoStatusCheck) {
-        await refetch();
+        await reFetchRepoStatus();
       }
     };
     const keepAliveSessionState = () => {
@@ -125,7 +115,7 @@ export function App() {
       window.removeEventListener('message', windowEventReceived);
       setEventListeners(false);
     };
-  }, [app, dispatch, lastKeepAliveTimestamp, org, refetch, remainingSessionMinutes]);
+  }, [app, dispatch, lastKeepAliveTimestamp, org, reFetchRepoStatus, remainingSessionMinutes]);
 
   const handleSessionExpiresClose = useCallback(
     (action: string) => {

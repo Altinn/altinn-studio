@@ -30,6 +30,7 @@ import {
   TableIcon,
   TasklistIcon,
   TitleIcon,
+  WalletIcon,
 } from '@studio/icons';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import { LayoutItemType } from '../types/global';
@@ -375,6 +376,12 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: TextIcon,
   },
+  [ComponentType.Payment]: {
+    name: ComponentType.Payment,
+    itemType: LayoutItemType.Component,
+    defaultProperties: {},
+    icon: WalletIcon,
+  },
   [ComponentType.PrintButton]: {
     name: ComponentType.PrintButton,
     itemType: LayoutItemType.Component,
@@ -478,4 +485,9 @@ export const confOnScreenComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Paragraph],
   formItemConfigs[ComponentType.AttachmentList],
   formItemConfigs[ComponentType.Image],
+];
+
+export const paymentLayoutComponents: FormItemConfigs[ComponentType][] = [
+  formItemConfigs[ComponentType.Payment],
+  ...confOnScreenComponents,
 ];

@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import { generateTextResourceId } from '../../utils/generateId';
 import { TextResourceEditor } from './TextResourceEditor';
-import { StudioButton, StudioDeleteButton, StudioProperty } from '@studio/components';
-import { XMarkIcon } from '@navikt/aksel-icons';
+import { StudioButton, StudioDeleteButton, StudioProperty, usePrevious } from '@studio/components';
+import { XMarkIcon } from '@studio/icons';
 import { TextResourceValue } from './TextResourceValue';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { useFormItemContext } from '../../containers/FormItemContext';
+import { useAppContext } from '../../hooks';
 
 export interface TextResourceProps {
   handleIdChange: (id: string) => void;
@@ -38,6 +40,12 @@ export const TextResource = ({
   label,
   textResourceId,
 }: TextResourceProps) => {
+  const { formItemId } = useFormItemContext();
+  const { selectedFormLayoutName: formLayoutName } = useAppContext();
+
+  const prevFormItemId = usePrevious(formItemId);
+  const prevFormLayoutName = usePrevious(formLayoutName);
+
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const handleOpen = () => {
@@ -46,6 +54,12 @@ export const TextResource = ({
     }
     setIsOpen(true);
   };
+
+  useEffect(() => {
+    if (formItemId !== prevFormItemId || formLayoutName !== prevFormLayoutName) {
+      setIsOpen(false);
+    }
+  }, [formItemId, prevFormItemId, formLayoutName, prevFormLayoutName]);
 
   return isOpen ? (
     <TextResourceFieldset

@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DataModelBindings } from './DataModelBindings';
 import { FormItemContext } from '../../containers/FormItemContext';
@@ -195,7 +195,7 @@ describe('DataModelBindings', () => {
       name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
     });
     expect(switchElement).not.toBeChecked();
-    await act(() => user.click(switchElement));
+    await user.click(switchElement);
     expect(switchElement).toBeChecked();
   });
 
@@ -212,7 +212,7 @@ describe('DataModelBindings', () => {
     const switchElement = screen.getByRole('checkbox', {
       name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
     });
-    await act(() => user.click(switchElement));
+    await user.click(switchElement);
     expect(handleUpdate).toHaveBeenCalledTimes(1);
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentMocks[ComponentType.FileUpload],
@@ -236,7 +236,7 @@ describe('DataModelBindings', () => {
     const switchElement = screen.getByRole('checkbox', {
       name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
     });
-    await act(() => user.click(switchElement));
+    await user.click(switchElement);
     expect(handleUpdate).toHaveBeenCalledTimes(1);
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentMocks[ComponentType.FileUpload],

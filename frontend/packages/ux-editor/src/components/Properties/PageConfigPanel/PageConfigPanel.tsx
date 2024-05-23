@@ -1,14 +1,16 @@
 import React from 'react';
 import { Accordion } from '@digdir/design-system-react';
-import { FileIcon } from '@navikt/aksel-icons';
+import { FileIcon } from '@studio/icons';
 import { StudioSectionHeader } from '@studio/components';
-import { useText, useTextResourcesSelector, useAppContext } from '../../../hooks';
+import { useText, useTextResourcesSelector, useAppContext, useFormLayouts } from '../../../hooks';
 import { DEFAULT_LANGUAGE, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { HiddenExpressionOnLayout } from './HiddenExpressionOnLayout';
 import { TextResource } from '../../TextResource/TextResource';
 import { EditPageId } from './EditPageId';
 import { textResourceByLanguageAndIdSelector } from '../../../selectors/textResourceSelectors';
 import type { ITextResource } from 'app-shared/types/global';
+import { duplicatedIdsExistsInLayout } from '../../../utils/formLayoutUtils';
+import { PageConfigWarning } from './PageConfigWarning';
 
 export const PageConfigPanel = () => {
   const { selectedFormLayoutName } = useAppContext();
@@ -29,6 +31,13 @@ export const PageConfigPanel = () => {
   const headingTitle = !layoutIsSelected
     ? t('right_menu.content_empty')
     : layoutNameText ?? selectedFormLayoutName;
+
+  const layout = useFormLayouts()[selectedFormLayoutName];
+  const hasDuplicatedIds = duplicatedIdsExistsInLayout(layout);
+
+  if (layoutIsSelected && hasDuplicatedIds) {
+    return <PageConfigWarning selectedFormLayoutName={selectedFormLayoutName} layout={layout} />;
+  }
 
   return (
     <>

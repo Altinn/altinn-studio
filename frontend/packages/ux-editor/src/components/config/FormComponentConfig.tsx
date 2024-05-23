@@ -12,11 +12,12 @@ import {
 } from '../../utils/component';
 import { EditGrid } from './editModal/EditGrid';
 import type { FormItem } from '../../types/FormItem';
+import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
 
 export interface IEditFormComponentProps {
   editFormId: string;
   component: FormItem;
-  handleComponentUpdate: (component: FormItem) => void;
+  handleComponentUpdate: (component: FormItem, mutateOptions?: UpdateFormMutateOptions) => void;
 }
 
 export interface FormComponentConfigProps extends IEditFormComponentProps {

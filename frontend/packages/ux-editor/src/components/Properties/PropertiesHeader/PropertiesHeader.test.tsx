@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { PropertiesHeader, type PropertiesHeaderProps } from './PropertiesHeader';
 import { FormItemContext } from '../../../containers/FormItemContext';
 import userEvent from '@testing-library/user-event';
@@ -43,7 +43,7 @@ describe('PropertiesHeader', () => {
       screen.queryByText(textMock(`ux_editor.component_help_text.${component1Mock.type}`)),
     ).not.toBeInTheDocument();
 
-    await act(() => user.click(helpTextButton));
+    await user.click(helpTextButton);
 
     expect(
       screen.getByText(textMock(`ux_editor.component_help_text.${component1Mock.type}`)),
@@ -56,12 +56,12 @@ describe('PropertiesHeader', () => {
     const editComponentIdButton = screen.getByRole('button', {
       name: textMock('ux_editor.id_identifier'),
     });
-    await act(() => user.click(editComponentIdButton));
+    await user.click(editComponentIdButton);
 
     const inputField = screen.getByLabelText(
       textMock('ux_editor.modal_properties_component_change_id'),
     );
-    await act(() => user.type(inputField, 'someNewId'));
+    await user.type(inputField, 'someNewId');
     fireEvent.blur(inputField);
 
     expect(mockHandleComponentUpdate).toHaveBeenCalledTimes(1);
@@ -73,14 +73,14 @@ describe('PropertiesHeader', () => {
     const editComponentIdButton = screen.getByRole('button', {
       name: textMock('ux_editor.id_identifier'),
     });
-    await act(() => user.click(editComponentIdButton));
+    await user.click(editComponentIdButton);
 
     const containerIdInput = screen.getByLabelText(
       textMock('ux_editor.modal_properties_component_change_id'),
     );
 
     const invalidId = 'test@';
-    await act(() => user.type(containerIdInput, invalidId));
+    await user.type(containerIdInput, invalidId);
     fireEvent.blur(containerIdInput);
 
     expect(screen.getByText(textMock('ux_editor.modal_properties_component_id_not_valid')));

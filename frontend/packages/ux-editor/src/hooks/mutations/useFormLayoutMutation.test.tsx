@@ -5,7 +5,6 @@ import { useFormLayoutMutation } from './useFormLayoutMutation';
 import type { IInternalLayout } from '../../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { baseContainerIdMock } from '../../testing/layoutMock';
-import { appContextMock } from '../../testing/appContextMock';
 
 // Test data:
 const org = 'org';
@@ -76,11 +75,6 @@ describe('useFormLayoutMutation', () => {
         },
       }),
     );
-  });
-
-  it('Reloads preview iframe', async () => {
-    await renderAndMutate(newLayout);
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
   });
 });
 

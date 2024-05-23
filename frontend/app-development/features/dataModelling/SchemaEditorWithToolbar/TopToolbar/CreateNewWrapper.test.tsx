@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render as renderRtl, screen } from '@testing-library/react';
+import { render as renderRtl, screen } from '@testing-library/react';
 import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
 import type { CreateNewWrapperProps } from './CreateNewWrapper';
 import { CreateNewWrapper } from './CreateNewWrapper';
@@ -16,7 +16,7 @@ const handleCreateSchema = jest.fn();
 const setCreateNewOpen = jest.fn();
 const defaultProps: CreateNewWrapperProps = {
   createNewOpen: false,
-  datamodels: [],
+  dataModels: [],
   disabled: false,
   handleCreateSchema,
   setCreateNewOpen,
@@ -57,7 +57,7 @@ describe('CreateNewWrapper', () => {
       name: textMock('general.create_new'),
     });
 
-    await act(() => user.click(newButton));
+    await user.click(newButton);
     expect(setCreateNewOpen).toHaveBeenCalledTimes(1);
     expect(setCreateNewOpen).toHaveBeenCalledWith(false);
   });
@@ -70,8 +70,8 @@ describe('CreateNewWrapper', () => {
       const okButton = screen.getByRole('button', {
         name: textMock('schema_editor.create_model_confirm_button'),
       });
-      await act(() => user.type(textInput, 'new-model'));
-      await act(() => user.click(okButton));
+      await user.type(textInput, 'new-model');
+      await user.click(okButton);
       expect(handleCreateSchema).toHaveBeenCalledWith({
         name: 'new-model',
         relativePath: undefined,
@@ -83,8 +83,8 @@ describe('CreateNewWrapper', () => {
 
       const textInput = screen.getByRole('textbox');
 
-      await act(() => user.type(textInput, 'new-model'));
-      await act(() => user.keyboard('{Enter}'));
+      await user.type(textInput, 'new-model');
+      await user.keyboard('{Enter}');
       expect(handleCreateSchema).toHaveBeenCalledWith({
         name: 'new-model',
         relativePath: undefined,
@@ -98,8 +98,8 @@ describe('CreateNewWrapper', () => {
       const okButton = screen.getByRole('button', {
         name: textMock('schema_editor.create_model_confirm_button'),
       });
-      await act(() => user.type(textInput, 'new-model'));
-      await act(() => user.click(okButton));
+      await user.type(textInput, 'new-model');
+      await user.click(okButton);
       expect(handleCreateSchema).toHaveBeenCalledWith({
         name: 'new-model',
         relativePath: '',
@@ -109,17 +109,17 @@ describe('CreateNewWrapper', () => {
     it('should not call handleCreateSchema callback and show error message when trying to create a new model with the same name as an existing one when ok button is clicked', async () => {
       const newModelName = datamodel1NameMock;
       const errMessage = textMock('schema_editor.error_model_name_exists', { newModelName });
-      render({ createNewOpen: true, datamodels: [jsonMetadata1Mock] });
+      render({ createNewOpen: true, dataModels: [jsonMetadata1Mock] });
 
       const textInput = screen.getByRole('textbox');
       const okButton = screen.getByRole('button', {
         name: textMock('schema_editor.create_model_confirm_button'),
       });
 
-      await act(() => user.type(textInput, newModelName));
+      await user.type(textInput, newModelName);
       expect(screen.queryByText(errMessage)).not.toBeInTheDocument();
 
-      await act(() => user.click(okButton));
+      await user.click(okButton);
 
       expect(handleCreateSchema).not.toHaveBeenCalled();
       expect(screen.getByText(errMessage)).toBeInTheDocument();
@@ -129,13 +129,13 @@ describe('CreateNewWrapper', () => {
       const userWithNoPointerEventCheck = userEvent.setup({
         pointerEventsCheck: PointerEventsCheckLevel.Never,
       });
-      render({ createNewOpen: true, datamodels: [jsonMetadata1Mock] });
+      render({ createNewOpen: true, dataModels: [jsonMetadata1Mock] });
 
       const okButton = screen.getByRole('button', {
         name: textMock('schema_editor.create_model_confirm_button'),
       });
 
-      await act(() => userWithNoPointerEventCheck.click(okButton));
+      await userWithNoPointerEventCheck.click(okButton);
 
       expect(handleCreateSchema).not.toHaveBeenCalled();
     });

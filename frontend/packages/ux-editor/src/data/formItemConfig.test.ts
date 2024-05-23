@@ -15,10 +15,14 @@ describe('formItemConfig', () => {
   ];
   const allAvailableComponents = allAvailableLists.flat();
 
-  it.each(Object.values(ComponentType))(
-    '%s is available through one of the visible lists',
-    (componentType) => {
-      expect(allAvailableComponents.map(({ name }) => name)).toContain(componentType);
-    },
-  );
+  /**  Test that all components, except Payment, are available in one of the visible lists */
+  it.each(
+    Object.values(ComponentType).filter((componentType) => componentType !== ComponentType.Payment),
+  )('%s is available through one of the visible lists', (componentType) => {
+    expect(allAvailableComponents.map(({ name }) => name)).toContain(componentType);
+  });
+
+  test('that payment component is not available in the visible lists', () => {
+    expect(allAvailableComponents.map(({ name }) => name)).not.toContain(ComponentType.Payment);
+  });
 });

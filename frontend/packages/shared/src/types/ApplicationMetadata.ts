@@ -3,10 +3,14 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 export interface ApplicationMetadata {
   autoDeleteOnProcessEnd?: boolean;
   copyInstanceSettings?: CopyInstanceSettings;
+  created?: string;
+  createdBy?: string;
   dataFields?: DataFieldElement[];
   dataTypes?: DataTypeElement[];
   eFormidling?: EFormidling;
   id: string;
+  lastChanged?: string;
+  lastChangedBy?: string;
   messageBoxConfig?: MessageBoxConfig;
   onEntry?: OnEntry;
   org: string;

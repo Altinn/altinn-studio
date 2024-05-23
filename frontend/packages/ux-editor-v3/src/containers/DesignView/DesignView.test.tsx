@@ -1,7 +1,7 @@
 import React from 'react';
 import { formLayoutSettingsMock, renderWithMockStore } from '../../testing/mocks';
 import { DesignView } from './DesignView';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { textMock } from '../../../../../testing/mocks/i18nMock';
 import { FormItemContextProvider } from '../FormItemContext';
 import { DragAndDrop } from 'app-shared/components/dragAndDrop';
@@ -52,7 +52,7 @@ describe('DesignView', () => {
     await render();
 
     const accordionButton1 = screen.getByRole('button', { name: mockPageName1 });
-    await act(() => user.click(accordionButton1));
+    await user.click(accordionButton1);
 
     expect(mockSetSearchParams).toHaveBeenCalledTimes(1);
     expect(mockSetSearchParams).toHaveBeenCalledWith(undefined);
@@ -63,7 +63,7 @@ describe('DesignView', () => {
     await render();
 
     const accordionButton2 = screen.getByRole('button', { name: mockPageName2 });
-    await act(() => user.click(accordionButton2));
+    await user.click(accordionButton2);
 
     expect(mockSetSearchParams).toHaveBeenCalledTimes(1);
   });
@@ -73,7 +73,7 @@ describe('DesignView', () => {
     await render();
 
     const addButton = screen.getByRole('button', { name: textMock('ux_editor.pages_add') });
-    await act(() => user.click(addButton));
+    await user.click(addButton);
 
     expect(queriesMock.saveFormLayoutV3).toHaveBeenCalled();
   });

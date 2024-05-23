@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../testing/mocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -53,7 +53,7 @@ describe('HiddenExpressionOnLayout', () => {
     const addSubExpressionButton = screen.getByRole('button', {
       name: textMock('expression.addSubexpression'),
     });
-    await act(() => user.click(addSubExpressionButton));
+    await user.click(addSubExpressionButton);
 
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
     expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
@@ -79,11 +79,11 @@ describe('HiddenExpressionOnLayout', () => {
     const editExpressionButton = screen.getByRole('button', {
       name: textMock('general.edit'),
     });
-    await act(() => user.click(editExpressionButton));
+    await user.click(editExpressionButton);
     const saveExpressionButton = screen.getByRole('button', {
       name: textMock('expression.saveAndClose'),
     });
-    await act(() => user.click(saveExpressionButton));
+    await user.click(saveExpressionButton);
 
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
     expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
@@ -110,7 +110,7 @@ describe('HiddenExpressionOnLayout', () => {
     const deleteExpressionButton = screen.getByRole('button', {
       name: textMock('right_menu.expression_delete'),
     });
-    await act(() => user.click(deleteExpressionButton));
+    await user.click(deleteExpressionButton);
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
   });
 });

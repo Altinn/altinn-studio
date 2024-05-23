@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ErrorMessage, Textfield, LegacyPopover } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { PlusIcon } from '@navikt/aksel-icons';
+import { PlusIcon } from '@studio/icons';
 import { extractModelNamesFromMetadataList } from '../../../../utils/metadataUtils';
 import type { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
 import { StudioButton } from '@studio/components';
@@ -10,16 +10,16 @@ export interface CreateNewWrapperProps {
   disabled: boolean;
   createNewOpen: boolean;
   createPathOption?: boolean;
-  datamodels: DatamodelMetadata[];
+  dataModels: DatamodelMetadata[];
   setCreateNewOpen: (open: boolean) => void;
   handleCreateSchema: (props: { name: string; relativePath: string | undefined }) => void;
 }
 
 export function CreateNewWrapper({
   disabled,
-  createPathOption,
+  createPathOption = false,
   createNewOpen,
-  datamodels,
+  dataModels,
   setCreateNewOpen,
   handleCreateSchema,
 }: CreateNewWrapperProps) {
@@ -28,7 +28,7 @@ export function CreateNewWrapper({
   const [nameError, setNameError] = useState('');
   const [confirmedWithReturn, setConfirmedWithReturn] = useState(false);
 
-  const modelNames = extractModelNamesFromMetadataList(datamodels);
+  const modelNames = extractModelNamesFromMetadataList(dataModels);
 
   const relativePath = createPathOption ? '' : undefined;
 
@@ -112,6 +112,3 @@ export function CreateNewWrapper({
     </LegacyPopover>
   );
 }
-CreateNewWrapper.defaultProps = {
-  createPathOption: false,
-};

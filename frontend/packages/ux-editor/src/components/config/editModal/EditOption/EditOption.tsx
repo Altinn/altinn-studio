@@ -7,7 +7,7 @@ import {
 } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { Option } from 'app-shared/types/Option';
-import { XMarkIcon } from '@navikt/aksel-icons';
+import { XMarkIcon } from '@studio/icons';
 import { TextResource } from '../../../TextResource/TextResource';
 import {
   deleteDescription,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render as rtlRender, screen } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import type { LocalChangesProps } from './LocalChanges';
 import { LocalChanges } from './LocalChanges';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
@@ -70,7 +70,7 @@ describe('LocalChanges', () => {
     const deleteButton = screen.getByRole('button', {
       name: textMock('local_changes.modal_delete_button'),
     });
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
 
     const deleteModalHeading = screen.getByRole('heading', {
       name: textMock('local_changes.modal_delete_modal_title'),
@@ -86,7 +86,7 @@ describe('LocalChanges', () => {
     const deleteButton = screen.getByRole('button', {
       name: textMock('local_changes.modal_delete_button'),
     });
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
 
     const deleteModalDeleteButton = screen.getByRole('button', {
       name: textMock('local_changes.modal_confirm_delete_button'),
@@ -96,13 +96,13 @@ describe('LocalChanges', () => {
     const textfield = screen.getByLabelText(
       textMock('local_changes.modal_delete_modal_textfield_label'),
     );
-    await act(() => user.type(textfield, mockApp));
+    await user.type(textfield, mockApp);
 
     const deleteModalDeleteButtonAfterTyping = screen.getByRole('button', {
       name: textMock('local_changes.modal_confirm_delete_button'),
     });
     expect(deleteModalDeleteButton).not.toBeDisabled();
-    await act(() => user.click(deleteModalDeleteButtonAfterTyping));
+    await user.click(deleteModalDeleteButtonAfterTyping);
 
     expect(deleteLocalChangesMutation).toHaveBeenCalledTimes(1);
   });
@@ -114,7 +114,7 @@ describe('LocalChanges', () => {
     const deleteButton = screen.getByRole('button', {
       name: textMock('local_changes.modal_delete_button'),
     });
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
 
     const deleteModalHeading = screen.getByRole('heading', {
       name: textMock('local_changes.modal_delete_modal_title'),
@@ -125,7 +125,7 @@ describe('LocalChanges', () => {
     const deleteModalCancelButton = screen.getByRole('button', {
       name: textMock('general.cancel'),
     });
-    await act(() => user.click(deleteModalCancelButton));
+    await user.click(deleteModalCancelButton);
 
     const deleteModalHeadingAfterClose = screen.queryByRole('heading', {
       name: textMock('local_changes.modal_delete_modal_title'),

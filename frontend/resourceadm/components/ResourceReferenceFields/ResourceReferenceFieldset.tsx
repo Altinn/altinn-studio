@@ -119,6 +119,26 @@ export const ResourceReferenceFieldset = ({
   const isValid = referenceSource && referenceType && reference;
   const hasError = !isValid && showErrors;
 
+  const handleChangeReferenceSource = (newSource: ResourceReferenceSource): void => {
+    setReferenceSource(newSource);
+    onChangeResourceReferenceField({
+      ...resourceReference,
+      referenceSource: newSource,
+    });
+  };
+
+  const handleChangeReferenceType = (newType: ResourceReferenceType): void => {
+    setReferenceType(newType);
+    onChangeResourceReferenceField({
+      ...resourceReference,
+      referenceType: newType,
+    });
+  };
+
+  const handleBlurReference = (): void => {
+    onChangeResourceReferenceField({ ...resourceReference, reference });
+  };
+
   return (
     <>
       <Fieldset
@@ -133,14 +153,13 @@ export const ResourceReferenceFieldset = ({
       >
         <NativeSelect
           size='small'
-          onChange={(event) => setReferenceSource(event.target.value as ResourceReferenceSource)}
+          onChange={(event) =>
+            handleChangeReferenceSource(event.target.value as ResourceReferenceSource)
+          }
           value={referenceSource}
           label={t('resourceadm.about_resource_reference_source')}
           error={hasError}
           onFocus={onFocus}
-          onBlur={() => {
-            onChangeResourceReferenceField({ ...resourceReference, referenceSource });
-          }}
         >
           {referenceSourceOptions.map((opt) => {
             return (
@@ -152,14 +171,13 @@ export const ResourceReferenceFieldset = ({
         </NativeSelect>
         <NativeSelect
           size='small'
-          onChange={(event) => setReferenceType(event.target.value as ResourceReferenceType)}
+          onChange={(event) =>
+            handleChangeReferenceType(event.target.value as ResourceReferenceType)
+          }
           value={referenceType}
           label={t('resourceadm.about_resource_reference_type')}
           error={hasError}
           onFocus={onFocus}
-          onBlur={() => {
-            onChangeResourceReferenceField({ ...resourceReference, referenceType });
-          }}
         >
           {referenceTypeOptions.map((opt) => {
             return (
@@ -176,9 +194,7 @@ export const ResourceReferenceFieldset = ({
           onChange={(e) => setReference(e.target.value)}
           error={hasError}
           onFocus={onFocus}
-          onBlur={() => {
-            onChangeResourceReferenceField({ ...resourceReference, reference });
-          }}
+          onBlur={handleBlurReference}
         />
       </Fieldset>
       {hasError && (
