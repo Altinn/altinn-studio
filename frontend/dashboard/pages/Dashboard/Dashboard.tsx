@@ -14,11 +14,13 @@ import { Footer } from '../../components/Footer';
 import { Link } from 'react-router-dom';
 import { useDebounce } from 'react-use';
 import { useTranslation } from 'react-i18next';
+import { ErrorBoundary } from 'react-error-boundary';
 import type { User } from 'app-shared/types/Repository';
 import type { Organization } from 'app-shared/types/Organization';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { ResourcesRepoList } from 'dashboard/components/ResourcesRepoList/ResourcesRepoList';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
+import { SafeErrorView } from '../../components/SafeErrorView';
 
 type DashboardProps = {
   user: User;
@@ -41,6 +43,9 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
   const handleClearSearch = () => setSearchText('');
   const handleNewLinkFocus = () => setIsNewLinkFocused(true);
   const handleNewLinkFocusOut = () => setIsNewLinkFocused(false);
+
+  const shouldDisplayResources =
+    selectedContext !== SelectedContextType.All && selectedContext !== SelectedContextType.Self;
 
   return (
     <>
@@ -85,15 +90,56 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
             <SearchResultReposList searchValue={debouncedSearchText} />
           ) : (
             <>
-              <FavoriteReposList />
+              <ErrorBoundary
+                fallback={
+                  <SafeErrorView
+                    heading={t('dashboard.favourites')}
+                    title={t('dashboard.view_favorites_error_title')}
+                    message={t('dashboard.view_table_error_message')}
+                  />
+                }
+              >
+                <FavoriteReposList />
+              </ErrorBoundary>
               <div>
-                <OrgReposList user={user} organizations={organizations} />
+                <ErrorBoundary
+                  fallback={
+                    <SafeErrorView
+                      heading={t('dashboard.all_apps')}
+                      title={t('dashboard.view_apps_error_title')}
+                      message={t('dashboard.view_table_error_message')}
+                    />
+                  }
+                >
+                  <OrgReposList user={user} organizations={organizations} />
+                </ErrorBoundary>
               </div>
-              <DatamodelsReposList user={user} organizations={organizations} />
-              {selectedContext !== SelectedContextType.All &&
-                selectedContext !== SelectedContextType.Self && (
+
+              <ErrorBoundary
+                fallback={
+                  <SafeErrorView
+                    heading={t('dashboard.all_datamodels')}
+                    title={t('dashboard.view_datamodels_error_title')}
+                    message={t('dashboard.view_table_error_message')}
+                  />
+                }
+              >
+                <DatamodelsReposList user={user} organizations={organizations} />
+              </ErrorBoundary>
+
+              {shouldDisplayResources && (
+                <ErrorBoundary
+                  fallback={
+                    <SafeErrorView
+                      heading={t('dashboard.all_resources')}
+                      title={t('dashboard.view_resources_error_title')}
+                      message={t('dashboard.view_table_error_message')}
+                    />
+                  }
+                >
                   <ResourcesRepoList user={user} organizations={organizations} />
-                )}
+                </ErrorBoundary>
+              )}
             </>
           )}
         </div>
