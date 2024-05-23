@@ -21,6 +21,8 @@ import { useUpdateProcessDataTypeMutation } from '../../hooks/mutations/useUpdat
 import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 import { useAddDataTypeToAppMetadata } from '../../hooks/mutations/useAddDataTypeToAppMetadata';
 import { useDeleteDataTypeFromAppMetadata } from '../../hooks/mutations/useDeleteDataTypeFromAppMetadata';
+import { SyncSuccessQueriesInvalidator } from 'app-shared/queryInvalidator/SyncSuccessQueriesInvalidator';
+import { useQueryClient } from '@tanstack/react-query';
 import { useSettingsModalContext } from '../../contexts/SettingsModalContext';
 
 enum SyncClientsName {
@@ -31,6 +33,8 @@ enum SyncClientsName {
 export const ProcessEditor = (): React.ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
+  const queryClient = useQueryClient();
+  const invalidator = SyncSuccessQueriesInvalidator.getInstance(queryClient, org, app);
   const { setSettingsModalOpen, setSettingsModalSelectedTab } = useSettingsModalContext();
   const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
   const { data: appLibData, isLoading: appLibDataLoading } = useAppVersionQuery(org, app);
@@ -79,7 +83,7 @@ export const ProcessEditor = (): React.ReactElement => {
     const isSuccessMessage = 'source' in message;
     if (isSuccessMessage) {
       // Here we can handle the SyncSuccess message or invalidate the query cache
-      console.log('SyncSuccess received');
+      invalidator.invalidateQueryByFileName(message.source.name);
     }
   });
 
