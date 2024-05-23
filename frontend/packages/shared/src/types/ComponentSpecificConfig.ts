@@ -320,6 +320,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     showIcon?: boolean;
   };
   [ComponentType.Paragraph]: {};
+  [ComponentType.Payment]: SummarizableComponentProps;
   [ComponentType.PrintButton]: {};
   [ComponentType.RadioButtons]: FormComponentProps &
     SummarizableComponentProps &
