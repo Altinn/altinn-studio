@@ -1,16 +1,4 @@
 .goToCreatePageWrapper {
-  display: flex;
-  flex-direction: column;
-  margin-top: var(--fds-spacing-6);
-  border-radius: var(--fds-sizing-1);
-  padding-block: var(--fds-spacing-3);
-  padding-inline: var(--fds-spacing-4);
-  background-color: var(--fds-semantic-surface-neutral-default);
-  border: 0.5px solid var(--fds-semantic-border-neutral-subtle);
   margin-inline: var(--custom-receipt-spacing);
-  margin-bottom: var(--fds-spacing-5);
-}
-
-.goToCreateButton {
-  margin-top: var(--fds-spacing-4);
+  margin-block: var(--fds-spacing-5);
 }

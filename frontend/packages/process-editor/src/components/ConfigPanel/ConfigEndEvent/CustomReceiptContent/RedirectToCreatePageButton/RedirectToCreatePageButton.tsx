@@ -3,10 +3,11 @@ import classes from './RedirectToCreatePageButton.module.css';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { PencilWritingIcon } from '@studio/icons';
-import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
+import { StudioButton } from '@studio/components';
 import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
 import { useTranslation } from 'react-i18next';
-import { useBpmnApiContext } from '@altinn/process-editor/contexts/BpmnApiContext';
+import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
+import { RedirectBox } from '../../../../RedirectBox';
 
 export const RedirectToCreatePageButton = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -22,10 +23,9 @@ export const RedirectToCreatePageButton = (): React.ReactElement => {
 
   return (
     <div className={classes.goToCreatePageWrapper}>
-      <StudioLabelAsParagraph size='small'>
-        {t('process_editor.configuration_panel_custom_receipt_navigate_to_lage_title')}
-      </StudioLabelAsParagraph>
-      <div>
+      <RedirectBox
+        title={t('process_editor.configuration_panel_custom_receipt_navigate_to_lage_title')}
+      >
         <StudioButton
           as='a'
           size='small'
@@ -38,7 +38,7 @@ export const RedirectToCreatePageButton = (): React.ReactElement => {
         >
           {t('process_editor.configuration_panel_custom_receipt_navigate_to_lage_button')}
         </StudioButton>
-      </div>
+      </RedirectBox>
     </div>
   );
 };

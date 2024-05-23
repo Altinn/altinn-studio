@@ -1,10 +1,11 @@
 import React from 'react';
-import { Alert, Heading } from '@digdir/design-system-react';
+import { Alert } from '@digdir/design-system-react';
 import { StudioButton } from '@studio/components';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { useTranslation } from 'react-i18next';
 import { ShieldLockIcon } from '@studio/icons';
 import classes from './EditPolicy.module.css';
+import { RedirectBox } from '@altinn/process-editor/components/RedirectBox';
 
 export const EditPolicy = () => {
   const { t } = useTranslation();
@@ -12,13 +13,12 @@ export const EditPolicy = () => {
 
   return (
     <div className={classes.configContent}>
-      <Alert severity='info'>
+      <Alert severity='info' className={classes.alert}>
         {t('process_editor.configuration_panel.edit_policy_alert_message')}
       </Alert>
-      <div className={classes.policyButtonPanel}>
-        <Heading level={3} size='xxsmall' spacing>
-          {t('process_editor.configuration_panel.edit_policy_open_policy_editor_heading')}
-        </Heading>
+      <RedirectBox
+        title={t('process_editor.configuration_panel.edit_policy_open_policy_editor_heading')}
+      >
         <StudioButton
           onClick={openPolicyEditor}
           variant='primary'
@@ -26,10 +26,11 @@ export const EditPolicy = () => {
           icon={<ShieldLockIcon />}
           iconPlacement='left'
           className={classes.policyEditorButton}
+          size='small'
         >
           {t('process_editor.configuration_panel.edit_policy_open_policy_editor_button')}
         </StudioButton>
-      </div>
+      </RedirectBox>
     </div>
   );
 };
