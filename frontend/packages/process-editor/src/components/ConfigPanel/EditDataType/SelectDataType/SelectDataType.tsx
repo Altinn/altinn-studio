@@ -38,10 +38,8 @@ export const SelectDataType = ({
 
   return (
     <div className={classes.dataTypeSelect}>
-
       <Combobox
         label={t('process_editor.configuration_panel_set_datamodel')}
-        inputValue={currentValue[0]}
         value={currentValue}
         description={t('process_editor.configuration_panel_datamodel_selection_description')}
       >
@@ -54,11 +52,11 @@ export const SelectDataType = ({
             key={option}
             onClick={() => handleChangeDataModel([option])}
           >
-              {option}
+            {option}
           </Combobox.Option>
         ))}
       </Combobox>
-        <div className={classes.buttons}>
+      <div className={classes.buttons}>
         <StudioButton
           icon={<XMarkIcon />}
           onClick={onClose}

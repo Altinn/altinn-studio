@@ -78,13 +78,13 @@ describe('CustomReceipt', () => {
     });
     await user.click(propertyButton);
 
-    const select = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_set_datamodel'),
-    );
-    await user.click(select);
+    const combobox = screen.getByRole('combobox', {
+      name: textMock('process_editor.configuration_panel_set_datamodel'),
+    });
+    await user.click(combobox);
     const newOption: string = mockAvailableDatamodelIds[0];
     const option = screen.getByRole('option', { name: newOption });
-    await user.selectOptions(select, option);
+    await user.click(option);
 
     expect(mockBpmnApiContextValue.mutateDataType).toHaveBeenCalledTimes(1);
     expect(mockBpmnApiContextValue.mutateDataType).toHaveBeenCalledWith({

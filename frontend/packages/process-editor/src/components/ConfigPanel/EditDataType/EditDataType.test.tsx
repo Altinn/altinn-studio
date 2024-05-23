@@ -43,7 +43,7 @@ describe('EditDataType', () => {
     ).toBeInTheDocument();
   });
 
-  it('should display a combobox without value and a description of lacking data models when clicking "add datamodel" ', async () => {
+  it('should display a combobox without value and a description that datamodels are missing when clicking "add datamodel" when there are no datamodels', async () => {
     const user = userEvent.setup();
     renderEditDataType({
       bpmnApiContextProps: {

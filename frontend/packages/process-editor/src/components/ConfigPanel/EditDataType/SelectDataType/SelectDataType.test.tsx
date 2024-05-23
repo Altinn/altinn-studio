@@ -18,7 +18,7 @@ const mockOnClose = jest.fn();
 
 const defaultSelectDataTypeProps: SelectDataTypeProps = {
   connectedTaskId,
-  datamodelIds: [], 
+  datamodelIds: [],
   existingDataType: undefined,
   onClose: mockOnClose,
 };
@@ -43,7 +43,7 @@ describe('SelectDataType', () => {
     });
     await user.click(combobox);
     await user.click(screen.getByRole('option', { name: dataTypeToConnect }));
-    
+
     expect(mutateDataTypeMock).toHaveBeenCalledWith({
       connectedTaskId,
       newDataType: dataTypeToConnect,
