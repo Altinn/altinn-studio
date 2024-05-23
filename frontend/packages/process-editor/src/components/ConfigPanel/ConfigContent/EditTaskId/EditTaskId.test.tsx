@@ -30,7 +30,7 @@ jest.mock('../../../../utils/bpmn/StudioModeler', () => {
       return {
         getAllTasksByType: jest
           .fn()
-          .mockReturnValue([{ id: 'Task_2' }, { id: 'task2' }, { id: 'task3' }]),
+          .mockReturnValue([{ id: 'task_1' }, { id: 'task_2' }, { id: 'task_3' }]),
       };
     }),
   };
@@ -102,7 +102,7 @@ describe('EditTaskId', () => {
       },
       {
         description: 'is not unique',
-        inputValue: 'Task_2',
+        inputValue: 'task_1',
         expectedError: 'process_editor.validation_error.id_not_unique',
       },
       {
