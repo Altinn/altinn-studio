@@ -15,6 +15,7 @@ export const FavoriteReposList = () => {
         {t('dashboard.favourites')}
       </Heading>
       <RepoList
+        pageNumber={1}
         repos={userStarredRepos}
         isLoading={areUserStarredReposPending}
         rowCount={userStarredRepos?.length ?? 0}

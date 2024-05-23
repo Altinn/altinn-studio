@@ -86,9 +86,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
           ) : (
             <>
               <FavoriteReposList />
-              <div>
-                <OrgReposList user={user} organizations={organizations} />
-              </div>
+              <OrgReposList user={user} organizations={organizations} />
               <DatamodelsReposList user={user} organizations={organizations} />
               {selectedContext !== SelectedContextType.All &&
                 selectedContext !== SelectedContextType.Self && (

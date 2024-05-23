@@ -16,6 +16,7 @@ export const SearchResultReposList = ({ searchValue }: SearchResultReposList) =>
     isLoadingSearchResults,
     sortModel,
     pageSize,
+    pageNumber,
     setPageNumber,
     setSortModel,
     setPageSize,
@@ -35,6 +36,7 @@ export const SearchResultReposList = ({ searchValue }: SearchResultReposList) =>
         onPageSizeChange={setPageSize}
         isServerSort={true}
         rowCount={searchResults?.totalCount}
+        pageNumber={pageNumber}
         onPageChange={setPageNumber}
         onSortModelChange={setSortModel}
         sortModel={sortModel}

@@ -63,7 +63,7 @@ export const StudioTableRemotePagination = forwardRef<
     const labelSize = resizeLabelMap[size];
 
     return (
-      <>
+      <div className={classes.componentContainer}>
         <Table size={size} className={classes.table} ref={ref}>
           <Table.Head>
             <Table.Row>
@@ -130,7 +130,7 @@ export const StudioTableRemotePagination = forwardRef<
             )}
           </div>
         )}
-      </>
+      </div>
     );
   },
 );

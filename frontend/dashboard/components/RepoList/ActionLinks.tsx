@@ -1,5 +1,5 @@
 import { Button, DropdownMenu } from '@digdir/design-system-react';
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import classes from './RepoList.module.css';
 import cn from 'classnames';
 import {
@@ -11,6 +11,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { getRepoEditUrl } from '../../utils/urlUtils';
 import type { Repository } from 'app-shared/types/Repository';
+import { MakeCopyModal } from '../MakeCopyModal';
 
 type ActionLinksProps = {
   repo: Repository;
@@ -18,6 +19,19 @@ type ActionLinksProps = {
 
 export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
   const { t } = useTranslation();
+  const [copyCurrentRepoName, setCopyCurrentRepoName] = useState('');
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const copyModalAnchorRef = useRef(null);
+
+  const handleOpenCopyModal = (repoFullName) => {
+    setModalOpen(true);
+    setCopyCurrentRepoName(repoFullName);
+  };
+
+  const handleCloseCopyModal = () => {
+    setModalOpen(false);
+    setCopyCurrentRepoName(null);
+  };
 
   const repoFullName = repo.full_name as string;
   const [org, repoName] = repoFullName.split('/');
@@ -26,7 +40,7 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
   const editTextKey = t(isDatamodelling ? 'dashboard.edit_datamodels' : 'dashboard.edit_service');
 
   return (
-    <div className={classes.actionLinks}>
+    <div className={classes.actionLinks} ref={copyModalAnchorRef}>
       <Button
         onClick={(e) => e.stopPropagation()}
         variant={'tertiary'}
@@ -50,16 +64,24 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
           </Button>
         </DropdownMenu.Trigger>
         <DropdownMenu.Content>
-          <DropdownMenu.Item>
+          <DropdownMenu.Item onClick={() => handleOpenCopyModal(repoFullName)}>
             {<FilesIcon />}
             {t('dashboard.make_copy')}
           </DropdownMenu.Item>
-          <DropdownMenu.Item>
+          <DropdownMenu.Item onClick={() => window.open(editUrl, '_blank')}>
             {<ExternalLinkIcon />}
             {t('dashboard.open_in_new')}
           </DropdownMenu.Item>
         </DropdownMenu.Content>
       </DropdownMenu>
+      {copyCurrentRepoName && (
+        <MakeCopyModal
+          ref={copyModalAnchorRef}
+          open={modalOpen}
+          onClose={handleCloseCopyModal}
+          serviceFullName={copyCurrentRepoName}
+        />
+      )}
     </div>
   );
 };

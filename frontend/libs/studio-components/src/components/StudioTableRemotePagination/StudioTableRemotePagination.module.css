@@ -1,3 +1,7 @@
+.componentContainer {
+  margin-bottom: var(--fds-spacing-10);
+}
+
 .table {
   width: 100%;
 }

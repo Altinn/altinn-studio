@@ -46,34 +46,14 @@ export const RepoList = ({
   isServerSort = false,
   rowCount,
   onPageChange,
-  onSortModelChange,
   onPageSizeChange,
   pageSizeOptions = DATAGRID_PAGE_SIZE_OPTIONS,
-  sortModel,
-  disableVirtualization = false,
   handleSorting,
 }: IRepoListProps) => {
   const [paginationModel, setPaginationModel] = React.useState<GridPaginationModel>({
     pageSize,
     page: 0,
   });
-  const [modalOpen, setModalOpen] = useState<boolean>(false);
-
-  const handlePaginationModelChange = (newPaginationModel: GridPaginationModel) => {
-    if (newPaginationModel.page !== paginationModel.page) {
-      onPageChange?.(newPaginationModel.page);
-    }
-    if (newPaginationModel.pageSize !== paginationModel.pageSize) {
-      onPageSizeChange?.(newPaginationModel.pageSize as DATAGRID_PAGE_SIZE_TYPE);
-    }
-    setPaginationModel(newPaginationModel);
-  };
-
-  const [copyCurrentRepoName, setCopyCurrentRepoName] = useState('');
-
-  const { mutate: setStarredRepo } = useSetStarredRepoMutation();
-  const { mutate: unsetStarredRepo } = useUnsetStarredRepoMutation();
-  const copyModalAnchorRef = useRef(null);
   const { t } = useTranslation();
 
   const studioColumns = [
@@ -113,89 +93,11 @@ export const RepoList = ({
     actionIcons: <ActionLinks repo={repo} />,
   }));
 
-  const cols = useMemo(() => {
-    const actionsCol: GridActionsColDef[] = [
-      {
-        field: 'links',
-        width: 400,
-        renderHeader: (): null => null,
-        type: 'actions',
-        align: 'right',
-        getActions: (params: GridRowParams) => {
-          const repoFullName = params.row.full_name as string;
-          const [org, repo] = repoFullName.split('/');
-          const isDatamodelling = repoFullName.endsWith('-datamodels');
-          const editUrl = getRepoEditUrl({ org, repo });
-          const editTextKey = isDatamodelling ? 'dashboard.edit_datamodels' : 'dashboard.edit_app';
-
-          return [
-            <GridActionsCellItem
-              className={cn(classes.actionLink, classes.repoLink)}
-              icon={<i className={cn('fa fa-gitea', classes.linkIcon, classes.repoLink)} />}
-              key={`dashboard.repository${params.row.id}`}
-              label={t('dashboard.repository_in_list', { appName: repo })}
-              onClick={() => (window.location.href = params.row.html_url)}
-              showInMenu={false}
-              edge='end'
-            />,
-            <GridActionsCellItem
-              className={cn(classes.actionLink, classes.editLink)}
-              icon={
-                <PencilIcon
-                  title={t('dashboard.edit_app_icon')}
-                  className={cn(classes.linkIcon, classes.editLink)}
-                />
-              }
-              key={`dashboard.edit_app${params.row.id}`}
-              label={t('dashboard.edit_app', { appName: repo })}
-              onClick={() => (window.location.href = editUrl)}
-              showInMenu={false}
-            >
-              <a
-                key={params.row.id}
-                href={params.row.html_url}
-                className={cn(classes.actionLink, classes.repoLink)}
-              >
-                <span>{t(editTextKey)}</span>
-                <PencilIcon className={classes.linkIcon} />
-              </a>
-              ,
-            </GridActionsCellItem>,
-            <GridActionsCellItem
-              icon={<FilesIcon className={classes.dropdownIcon} />}
-              key={`dashboard.make_copy${params.row.id}`}
-              label={t('dashboard.make_copy')}
-              onClick={() => {
-                setModalOpen(true);
-                setCopyCurrentRepoName(repoFullName);
-              }}
-              showInMenu
-            />,
-            <GridActionsCellItem
-              icon={<ExternalLinkIcon className={classes.dropdownIcon} />}
-              key={`dashboard.open_in_new${params.row.id}`}
-              label={t('dashboard.open_in_new')}
-              onClick={() => window.open(editUrl, '_blank')}
-              showInMenu
-            />,
-          ];
-        },
-      },
-    ];
-
-    return [...actionsCol];
-  }, [setStarredRepo, t, unsetStarredRepo]);
-
-  const handleCloseCopyModal = () => {
-    setModalOpen(false);
-    setCopyCurrentRepoName(null);
-  };
-
   const paginationProps = {
     currentPage: pageNumber + 1,
     totalPages: Math.ceil(rowCount / pageSize),
     pageSize,
-    pageSizeOptions: DATAGRID_PAGE_SIZE_OPTIONS,
+    pageSizeOptions,
     pageSizeLabel: t('dashboard.rows_per_page'),
     onPageChange: (page: number) => onPageChange(page - 1),
     onPageSizeChange,
@@ -205,7 +107,7 @@ export const RepoList = ({
   };
 
   return (
-    <div ref={copyModalAnchorRef}>
+    <div>
       {isServerSort ? (
         <>
           {/*Remember to fix bug on page out of range*/}
@@ -216,6 +118,7 @@ export const RepoList = ({
             emptyTableMessage={t('dashboard.no_repos_result')}
             pagination={paginationProps}
             onSortClick={handleSorting}
+            isLoading={isLoading}
           />
         </>
       ) : (
@@ -231,14 +134,7 @@ export const RepoList = ({
             previousButtonText: t('ux_editor.modal_properties_button_type_back'),
             itemLabel: (num: number) => `${t('general.page')} ${num}`,
           }}
-        />
-      )}
-      {copyCurrentRepoName && (
-        <MakeCopyModal
-          ref={copyModalAnchorRef}
-          open={modalOpen}
-          onClose={handleCloseCopyModal}
-          serviceFullName={copyCurrentRepoName}
+          isLoading={isLoading}
         />
       )}
     </div>
