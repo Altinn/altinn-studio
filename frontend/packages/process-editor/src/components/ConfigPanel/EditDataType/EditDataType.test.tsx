@@ -43,7 +43,7 @@ describe('EditDataType', () => {
     ).toBeInTheDocument();
   });
 
-  it('should display a native select with default value when clicking "add datamodel"', async () => {
+  it('should display a combobox without value and a description of lacking data models when clicking "add datamodel" ', async () => {
     const user = userEvent.setup();
     renderEditDataType({
       bpmnApiContextProps: {
@@ -54,13 +54,24 @@ describe('EditDataType', () => {
       name: textMock('process_editor.configuration_panel_set_datamodel_link'),
     });
     await user.click(addDataModelButton);
-    const nativeSelect = screen.getByRole('combobox', {
+    const combobox = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
-    expect(nativeSelect).toHaveValue('noModelKey');
+    const description = screen.getByText(
+      textMock('process_editor.configuration_panel_datamodel_selection_description'),
+    );
+    expect(description).toBeInTheDocument();
+
+    await user.click(combobox);
+    expect(combobox).not.toHaveValue();
+
+    const noAvailableModelsOption = screen.getByText(
+      textMock('process_editor.configuration_panel_no_datamodel_to_select'),
+    );
+    expect(noAvailableModelsOption).toBeInTheDocument();
   });
 
-  it('should display all available data types including existing and no-model-key as options for data type select', async () => {
+  it('should display description to select data type and show all available data types including existing as options', async () => {
     const user = userEvent.setup();
     const availableDataModelIds = ['dataModel1', 'dataModel2'];
     const existingDataType = mockBpmnApiContextValue.layoutSets.sets[0].dataType;
@@ -75,14 +86,17 @@ describe('EditDataType', () => {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
     await user.click(updateDataTypeButton);
+    const description = screen.getByText(
+      textMock('process_editor.configuration_panel_datamodel_selection_description'),
+    );
+    expect(description).toBeInTheDocument();
 
-    expect(
-      screen.getByRole('option', {
-        name: textMock('process_editor.configuration_panel_select_datamodel'),
-      }),
-    ).toBeInTheDocument();
+    const combobox = screen.getByRole('combobox', {
+      name: textMock('process_editor.configuration_panel_set_datamodel'),
+    });
+    await user.click(combobox);
+
     expect(screen.getByRole('option', { name: existingDataType })).toBeInTheDocument();
-
     availableDataModelIds.forEach((dataType) =>
       expect(screen.getByRole('option', { name: dataType })).toBeInTheDocument(),
     );
@@ -105,12 +119,10 @@ describe('EditDataType', () => {
     expect(screen.getByText(existingDataType)).toBeInTheDocument();
 
     await user.click(updateDataTypeButton);
-
-    const nativeSelect = screen.getByRole('combobox', {
+    const combobox = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
-
-    expect(nativeSelect).toHaveValue(existingDataType);
+    expect(combobox).toHaveValue(existingDataType);
   });
 
   it('should display the existing data type in preview when clicking the close button after edit mode and task has data type', async () => {

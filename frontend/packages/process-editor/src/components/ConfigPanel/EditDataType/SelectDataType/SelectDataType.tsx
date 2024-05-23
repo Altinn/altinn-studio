@@ -26,12 +26,13 @@ export const SelectDataType = ({
   const currentValue = existingDataType ? [existingDataType] : [];
   const handleChangeDataModel = (newDataModelIds?: string[]) => {
     const newDataModelId = newDataModelIds ? newDataModelIds[0] : undefined;
-    if (newDataModelId === existingDataType) return;
-    const dataTypeChange: DataTypeChange = {
-      newDataType: newDataModelId,
-      connectedTaskId: connectedTaskId,
-    };
-    mutateDataType(dataTypeChange);
+    if (newDataModelId !== existingDataType) {
+      const dataTypeChange: DataTypeChange = {
+        newDataType: newDataModelId,
+        connectedTaskId: connectedTaskId,
+      };
+      mutateDataType(dataTypeChange);
+    }
     onClose();
   };
 
@@ -42,12 +43,11 @@ export const SelectDataType = ({
         label={t('process_editor.configuration_panel_set_datamodel')}
         inputValue={currentValue[0]}
         value={currentValue}
-        description={
-            datamodelIds.length > 0
-            ? t('process_editor.configuration_panel_datamodel_selection_description')
-            : t('process_editor.configuration_panel_no_datamodel_to_select_description')
-        }
+        description={t('process_editor.configuration_panel_datamodel_selection_description')}
       >
+        <Combobox.Empty>
+          {t('process_editor.configuration_panel_no_datamodel_to_select')}
+        </Combobox.Empty>
         {datamodelIds.map((option) => (
           <Combobox.Option
             value={option}

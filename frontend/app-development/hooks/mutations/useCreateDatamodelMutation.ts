@@ -24,6 +24,7 @@ export const useCreateDatamodelMutation = () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: [QueryKey.DatamodelsJson, org, app] }),
         queryClient.invalidateQueries({ queryKey: [QueryKey.DatamodelsXsd, org, app] }),
+        queryClient.invalidateQueries({ queryKey: [QueryKey.AppMetadataModelIds, org, app] }),
       ]);
     },
   });
