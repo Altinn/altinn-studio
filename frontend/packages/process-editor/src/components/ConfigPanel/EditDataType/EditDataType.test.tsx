@@ -1,16 +1,15 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import type { BpmnApiContextProps } from '../../../../contexts/BpmnApiContext';
-import { BpmnApiContext } from '../../../../contexts/BpmnApiContext';
-import { BpmnContext } from '../../../../contexts/BpmnContext';
-import { EditDataType } from './EditDataType';
-import { BpmnConfigPanelFormContextProvider } from '../../../../contexts/BpmnConfigPanelContext';
+import { type BpmnApiContextProps, BpmnApiContext } from '../../../contexts/BpmnApiContext';
+import { BpmnContext } from '../../../contexts/BpmnContext';
+import { EditDataType, type EditDataTypeProps } from './EditDataType';
+import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
 import {
   mockBpmnApiContextValue,
   mockBpmnContextValue,
-} from '../../../../../test/mocks/bpmnContextMock';
+} from '../../../../test/mocks/bpmnContextMock';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
 const mockTaskId: string = 'testId';
@@ -23,10 +22,20 @@ const layoutSetsWithoutDataTypeConnection: LayoutSets = {
   ],
 };
 
+const defaultProps: EditDataTypeProps = {
+  datamodelIds: [],
+  connectedTaskId: '',
+  existingDataTypeForTask: undefined,
+  hideDeleteButton: true,
+};
+
 describe('EditDataType', () => {
   afterEach(jest.clearAllMocks);
+
   it('should display a button to add datamodel when task has no datamodel', () => {
-    renderEditDataType({ layoutSets: layoutSetsWithoutDataTypeConnection });
+    renderEditDataType({
+      bpmnApiContextProps: { layoutSets: layoutSetsWithoutDataTypeConnection },
+    });
     expect(
       screen.getByRole('button', {
         name: textMock('process_editor.configuration_panel_set_datamodel_link'),
@@ -36,7 +45,11 @@ describe('EditDataType', () => {
 
   it('should display a native select with default value when clicking "add datamodel"', async () => {
     const user = userEvent.setup();
-    renderEditDataType({ layoutSets: layoutSetsWithoutDataTypeConnection });
+    renderEditDataType({
+      bpmnApiContextProps: {
+        layoutSets: layoutSetsWithoutDataTypeConnection,
+      },
+    });
     const addDataModelButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_datamodel_link'),
     });
@@ -52,7 +65,11 @@ describe('EditDataType', () => {
     const availableDataModelIds = ['dataModel1', 'dataModel2'];
     const existingDataType = mockBpmnApiContextValue.layoutSets.sets[0].dataType;
     renderEditDataType({
-      availableDataModelIds,
+      bpmnApiContextProps: { availableDataModelIds },
+      componentProps: {
+        existingDataTypeForTask: existingDataType,
+        datamodelIds: [...availableDataModelIds, existingDataType],
+      },
     });
     const updateDataTypeButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
@@ -74,25 +91,40 @@ describe('EditDataType', () => {
   it('should display the existing data type in preview as a button to edit when task has connected data model', async () => {
     const user = userEvent.setup();
     const existingDataType = mockBpmnApiContextValue.layoutSets.sets[0].dataType;
-    renderEditDataType();
+
+    renderEditDataType({
+      componentProps: {
+        existingDataTypeForTask: existingDataType,
+        datamodelIds: [existingDataType],
+      },
+    });
+
     const updateDataTypeButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
     expect(screen.getByText(existingDataType)).toBeInTheDocument();
 
     await user.click(updateDataTypeButton);
+
     const nativeSelect = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
+
     expect(nativeSelect).toHaveValue(existingDataType);
   });
 
   it('should display the existing data type in preview when clicking the close button after edit mode and task has data type', async () => {
     const user = userEvent.setup();
-    renderEditDataType();
+    renderEditDataType({
+      componentProps: {
+        existingDataTypeForTask: mockBpmnApiContextValue.layoutSets.sets[0].dataType,
+      },
+    });
+
     const updateDataTypeButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
+
     await user.click(updateDataTypeButton);
     const closeButton = screen.getByRole('button', { name: textMock('general.close') });
     await user.click(closeButton);
@@ -105,7 +137,11 @@ describe('EditDataType', () => {
 
   it('should display the button to add datamodel when clicking the close button after edit mode and task has no data type', async () => {
     const user = userEvent.setup();
-    renderEditDataType({ layoutSets: layoutSetsWithoutDataTypeConnection });
+    renderEditDataType({
+      bpmnApiContextProps: { layoutSets: layoutSetsWithoutDataTypeConnection },
+      componentProps: { existingDataTypeForTask: '' },
+    });
+
     const addDataModelButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_datamodel_link'),
     });
@@ -120,12 +156,19 @@ describe('EditDataType', () => {
   });
 });
 
-const renderEditDataType = (bpmnApiContextProps: Partial<BpmnApiContextProps> = {}) => {
+type RenderProps = {
+  bpmnApiContextProps: Partial<BpmnApiContextProps>;
+  componentProps: Partial<EditDataTypeProps>;
+};
+
+const renderEditDataType = (props: Partial<RenderProps> = {}) => {
+  const { bpmnApiContextProps, componentProps } = props;
+
   return render(
     <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
-      <BpmnContext.Provider value={{ ...mockBpmnContextValue }}>
+      <BpmnContext.Provider value={mockBpmnContextValue}>
         <BpmnConfigPanelFormContextProvider>
-          <EditDataType />
+          <EditDataType {...defaultProps} {...componentProps} />
         </BpmnConfigPanelFormContextProvider>
       </BpmnContext.Provider>
     </BpmnApiContext.Provider>,

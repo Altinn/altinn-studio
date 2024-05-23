@@ -11,7 +11,7 @@ import { processEditorWebSocketHub } from 'app-shared/api/paths';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { type SyncSuccess, type SyncError, SyncUtils } from './syncUtils';
-import { useUpdateLayoutSetMutation } from '../../hooks/mutations/useUpdateLayoutSetMutation';
+import { useUpdateLayoutSetIdMutation } from '../../hooks/mutations/useUpdateLayoutSetIdMutation';
 import { useAddLayoutSetMutation } from '../../hooks/mutations/useAddLayoutSetMutation';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
@@ -39,10 +39,8 @@ export const ProcessEditor = (): React.ReactElement => {
   const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
   const { data: appLibData, isLoading: appLibDataLoading } = useAppVersionQuery(org, app);
   const { mutate: mutateBpmn, isPending: mutateBpmnPending } = useBpmnMutation(org, app);
-  const { mutate: mutateLayoutSet, isPending: mutateLayoutSetPending } = useUpdateLayoutSetMutation(
-    org,
-    app,
-  );
+  const { mutate: mutateLayoutSetId, isPending: mutateLayoutSetIdPending } =
+    useUpdateLayoutSetIdMutation(org, app);
   const { mutate: addLayoutSet, isPending: addLayoutSetPending } = useAddLayoutSetMutation(
     org,
     app,
@@ -53,15 +51,19 @@ export const ProcessEditor = (): React.ReactElement => {
   );
   const { mutate: mutateDataType, isPending: updateDataTypePending } =
     useUpdateProcessDataTypeMutation(org, app);
+
+  const existingCustomReceiptId: string | undefined = useCustomReceiptLayoutSetName(org, app);
+
   const { mutate: addDataTypeToAppMetadata } = useAddDataTypeToAppMetadata(org, app);
   const { mutate: deleteDataTypeFromAppMetadata } = useDeleteDataTypeFromAppMetadata(org, app);
-  const existingCustomReceiptName: string | undefined = useCustomReceiptLayoutSetName(org, app);
+
   const { data: availableDataModelIds, isPending: availableDataModelIdsPending } =
     useAppMetadataModelIdsQuery(org, app);
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
+
   const pendingApiOperations: boolean =
     mutateBpmnPending ||
-    mutateLayoutSetPending ||
+    mutateLayoutSetIdPending ||
     addLayoutSetPending ||
     deleteLayoutSetPending ||
     updateDataTypePending ||
@@ -112,10 +114,10 @@ export const ProcessEditor = (): React.ReactElement => {
       availableDataModelIds={availableDataModelIds}
       layoutSets={layoutSets}
       pendingApiOperations={pendingApiOperations}
-      existingCustomReceiptLayoutSetName={existingCustomReceiptName}
+      existingCustomReceiptLayoutSetId={existingCustomReceiptId}
       addLayoutSet={addLayoutSet}
       deleteLayoutSet={deleteLayoutSet}
-      mutateLayoutSet={mutateLayoutSet}
+      mutateLayoutSetId={mutateLayoutSetId}
       appLibVersion={appLibData.backendVersion}
       bpmnXml={hasBpmnQueryError ? null : bpmnXml}
       mutateDataType={mutateDataType}

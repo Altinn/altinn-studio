@@ -7,3 +7,7 @@
 .accordion {
   padding-inline: 0;
 }
+
+.displayTile {
+  padding-inline: var(--fds-spacing-5);
+}
