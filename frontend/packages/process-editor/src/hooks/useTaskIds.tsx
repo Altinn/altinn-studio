@@ -1,7 +1,8 @@
-import { useBpmnApiContext } from '../contexts/BpmnApiContext';
+import { StudioModeler } from '../utils/bpmn/StudioModeler';
 
 export const useTaskIds = (): string[] => {
-  const { layoutSets } = useBpmnApiContext();
-  const taskIds: string[] = layoutSets?.sets.flatMap((layoutSet) => layoutSet.tasks) ?? [];
-  return taskIds;
+  const studioModeler = new StudioModeler();
+  const tasks = studioModeler.getAllTasksByType('bpmn:Task');
+
+  return tasks.map((task) => task.id);
 };
