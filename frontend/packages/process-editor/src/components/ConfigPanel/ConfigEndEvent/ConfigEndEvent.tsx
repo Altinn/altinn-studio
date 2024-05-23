@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import classes from './ConfigEndEvent.module.css';
 import { ConfigIcon } from '../ConfigContent/ConfigIcon';
 import { CustomReceiptContent } from './CustomReceiptContent';
+import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 export const ConfigEndEvent = () => {
   const { t } = useTranslation();
@@ -33,7 +34,7 @@ export const ConfigEndEvent = () => {
                   {t('process_editor.configuration_panel_custom_receipt_default_receipt_info')}
                 </Paragraph>
                 <Link
-                  href='https://docs.altinn.studio/app/development/configuration/process/customize/#receipt'
+                  href={altinnDocsUrl('app/development/configuration/process/customize/#receipt')}
                   rel='noopener noreferrer'
                   size='small'
                 >
