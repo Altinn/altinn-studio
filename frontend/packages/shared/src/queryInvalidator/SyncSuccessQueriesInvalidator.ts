@@ -53,11 +53,13 @@ export class SyncSuccessQueriesInvalidator extends Queue {
   }
 
   public invalidateQueryByFileName(fileName: string): void {
+    const cacheKey = this.getCacheKeyByFileName(fileName);
+    if (!cacheKey) return;
+
     this.addTaskToQueue({
       id: fileName,
       callback: () => {
-        const cacheKey = this.getCacheKeyByFileName(fileName);
-        cacheKey && this.queryClient.invalidateQueries({ queryKey: cacheKey });
+        this.queryClient.invalidateQueries({ queryKey: cacheKey });
       },
     });
   }
