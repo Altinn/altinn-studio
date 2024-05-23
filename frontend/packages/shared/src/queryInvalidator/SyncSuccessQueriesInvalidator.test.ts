@@ -24,7 +24,7 @@ describe('SyncSuccessQueriesInvalidator', () => {
 
     const fileName = 'applicationmetadata.json';
     instance.invalidateQueryByFileName(fileName);
-
+    instance.invalidateQueryByFileName(fileName);
     await waitFor(() =>
       expect(queryClientMock.invalidateQueries).toHaveBeenCalledWith({
         queryKey: [QueryKey.AppMetadata, org, app],
