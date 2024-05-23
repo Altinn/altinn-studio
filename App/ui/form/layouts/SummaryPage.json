@@ -132,15 +132,6 @@
         }
       },
       {
-        "id": "Summary2-previous-processarg",
-        "type": "Summary2",
-        "hidden": false,
-        "whatToRender": {
-          "type": "task",
-          "id": "PreviousProcessSummary"
-        }
-      },
-      {
         "id": "NavigationButtons-dCTvo9",
         "showBackButton": true,
         "textResourceBindings": {},
