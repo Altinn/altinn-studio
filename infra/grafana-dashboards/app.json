@@ -87,7 +87,7 @@
             "uid": "mimir"
           },
           "editorMode": "code",
-          "expr": "increase(altinn_app_lib_instances_created_total{job=\"$app\"}[$__range])",
+          "expr": "increase(altinn_app_lib_processes_started_total{job=\"$app\"}[$__range])",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -220,7 +220,7 @@
             "uid": "mimir"
           },
           "editorMode": "code",
-          "expr": "increase(altinn_app_lib_processes_ended_total{job=\"$app\"}[$__range]) / increase(altinn_app_lib_processes_created_total{job=\"$app\"}[$__range])",
+          "expr": "increase(altinn_app_lib_processes_ended_total{job=\"$app\"}[$__range]) / increase(altinn_app_lib_processes_started_total{job=\"$app\"}[$__range])",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -519,7 +519,7 @@
             "uid": "mimir"
           },
           "editorMode": "code",
-          "expr": "rate(altinn_app_lib_instances_created_total{job=\"$app\"}[$__rate_interval]) * 60",
+          "expr": "rate(altinn_app_lib_processes_started_total{job=\"$app\"}[$__rate_interval]) * 60",
           "hide": false,
           "legendFormat": "Skjemaer startet",
           "range": true,
@@ -1108,8 +1108,8 @@
       {
         "current": {
           "selected": false,
-          "text": "martinotest",
-          "value": "martinotest"
+          "text": "default",
+          "value": "default"
         },
         "datasource": {
           "type": "prometheus",
