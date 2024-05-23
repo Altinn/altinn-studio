@@ -136,8 +136,8 @@ describe('ProcessEditor', () => {
 
     const queryClientMock = createQueryClientMock();
     const invalidator = SyncSuccessQueriesInvalidator.getInstance(queryClientMock, org, app);
-    const invalidateQueryByFileNameSpy = jest.spyOn(invalidator, 'invalidateQueryByFileName');
 
+    invalidator.invalidateQueryByFileName = jest.fn();
     const mockOnWSMessageReceived = jest
       .fn()
       .mockImplementation((callback: Function) => callback(syncSuccessMock));
@@ -149,7 +149,9 @@ describe('ProcessEditor', () => {
 
     renderProcessEditor();
     await waitFor(() => {
-      expect(invalidateQueryByFileNameSpy).toHaveBeenCalledWith(syncSuccessMock.source.name);
+      expect(invalidator.invalidateQueryByFileName).toHaveBeenCalledWith(
+        syncSuccessMock.source.name,
+      );
     });
   });
 });
