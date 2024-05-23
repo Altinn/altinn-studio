@@ -38,7 +38,7 @@
         "hidden": false,
         "whatToRender": {
           "type": "page",
-          "id": "Side4"
+          "id": "SummaryPage"
         }
       },
       {
@@ -121,7 +121,7 @@
         "hidden": false,
         "whatToRender": {
           "type": "page",
-          "id": "Side3"
+          "id": "GroupPage"
         }
       },
       {
