@@ -25,11 +25,11 @@ export class Queue {
     this.startProcessingQueue();
   }
 
-  private resetTimeOutQueue() {
+  private resetTimeOutQueue(): void {
     clearTimeout(this.queueTimeoutId);
   }
 
-  private startProcessingQueue() {
+  private startProcessingQueue(): void {
     this.queueTimeoutId = setTimeout(() => {
       this.queue.forEach((task) => task.callback());
       this.queue = [];
