@@ -8,7 +8,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { app, org, versionControlHeader } from '@studio/testing/testids';
+import { app, org, versionControlHeaderId } from '@studio/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { repoStatus } from 'app-shared/mocks/mocks';
 
@@ -59,7 +59,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
   it('should render header when type is not defined', async () => {
     render();
     await waitFor(() => expect(queriesMock.getRepoMetadata).toHaveBeenCalledTimes(1));
-    expect(await screen.findByTestId(versionControlHeader)).not.toBeNull();
+    expect(await screen.findByTestId(versionControlHeaderId)).not.toBeNull();
   });
 
   it('Refetches queries when clicking the fetch button', async () => {

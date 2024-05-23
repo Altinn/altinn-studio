@@ -6,7 +6,7 @@ import { TextEditor } from './TextEditor';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import userEvent from '@testing-library/user-event';
-import * as testids from '@studio/testing/testids';
+import { org, app, deleteButtonId } from '@studio/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -87,13 +87,13 @@ describe('TextEditor', () => {
     await user.type(textarea, 'test');
     await user.tab();
 
-    expect(queriesMock.upsertTextResources).toHaveBeenCalledWith(testids.org, testids.app, 'nb', {
+    expect(queriesMock.upsertTextResources).toHaveBeenCalledWith(org, app, 'nb', {
       [testTextResourceKey]: 'test',
     });
   });
 
   it('updates text id when editing text id', async () => {
-    queryClientMock.setQueryData([QueryKey.LayoutNames, testids.org, testids.app], []);
+    queryClientMock.setQueryData([QueryKey.LayoutNames, org, app], []);
     const user = userEvent.setup();
     renderTextEditor();
 
@@ -109,7 +109,7 @@ describe('TextEditor', () => {
     await user.type(textarea, 'test');
     await user.tab();
 
-    expect(queriesMock.updateTextId).toHaveBeenCalledWith(testids.org, testids.app, [
+    expect(queriesMock.updateTextId).toHaveBeenCalledWith(org, app, [
       { newId: 'test', oldId: testTextResourceKey },
     ]);
   });
@@ -127,7 +127,7 @@ describe('TextEditor', () => {
     });
     await user.click(confirmButton);
 
-    expect(queriesMock.updateTextId).toHaveBeenCalledWith(testids.org, testids.app, [
+    expect(queriesMock.updateTextId).toHaveBeenCalledWith(org, app, [
       { oldId: testTextResourceKey },
     ]);
   });
@@ -149,7 +149,7 @@ describe('TextEditor', () => {
     expect(addBtn).not.toBeDisabled();
     await user.click(addBtn);
 
-    expect(queriesMock.addLanguageCode).toHaveBeenCalledWith(testids.org, testids.app, 'se', {
+    expect(queriesMock.addLanguageCode).toHaveBeenCalledWith(org, app, 'se', {
       language: 'se',
       resources: [{ id: testTextResourceKey, value: '' }],
     });
@@ -160,7 +160,7 @@ describe('TextEditor', () => {
 
     renderTextEditor();
 
-    const deleteButton = screen.getByTestId(testids.deleteButton('en'));
+    const deleteButton = screen.getByTestId(deleteButtonId('en'));
     await user.click(deleteButton);
 
     const confirmButton = await screen.findByRole('button', {
@@ -168,14 +168,14 @@ describe('TextEditor', () => {
     });
     await user.click(confirmButton);
 
-    expect(queriesMock.deleteLanguageCode).toHaveBeenCalledWith(testids.org, testids.app, 'en');
+    expect(queriesMock.deleteLanguageCode).toHaveBeenCalledWith(org, app, 'en');
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 
   it('renders the spinner', () => {
     renderWithProviders(<TextEditor />, {
-      startUrl: `${APP_DEVELOPMENT_BASENAME}/${testids.org}/${testids.app}`,
+      startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
     });
     expect(screen.getByText(textMock('text_editor.loading_page'))).toBeInTheDocument();
   });
@@ -189,6 +189,6 @@ const renderTextEditor = (queries: Partial<ServicesContextProps> = {}) => {
       getTextLanguages,
       ...queries,
     },
-    startUrl: `${APP_DEVELOPMENT_BASENAME}/${testids.org}/${testids.app}`,
+    startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
   });
 };

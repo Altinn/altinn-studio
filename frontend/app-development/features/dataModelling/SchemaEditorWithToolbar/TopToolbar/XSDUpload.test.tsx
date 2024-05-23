@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import * as testids from '@studio/testing/testids';
+import { fileSelectorInputId } from '@studio/testing/testids';
 import { renderWithMockStore } from '../../../../test/mocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
@@ -52,7 +52,7 @@ describe('XSDUpload', () => {
     const button = screen.getByRole('button', { name: textMock('app_data_modelling.upload_xsd') });
     expect(button).toBeInTheDocument();
 
-    const fileInput = screen.getByTestId(testids.fileSelectorInput);
+    const fileInput = screen.getByTestId(fileSelectorInputId);
     expect(fileInput).toBeInTheDocument();
   });
 
@@ -70,7 +70,7 @@ describe('XSDUpload', () => {
 
     await clickUploadButton();
 
-    const fileInput = screen.getByTestId(testids.fileSelectorInput);
+    const fileInput = screen.getByTestId(fileSelectorInputId);
 
     await user.upload(fileInput, file);
 
@@ -91,7 +91,7 @@ describe('XSDUpload', () => {
 
     await clickUploadButton();
 
-    const fileInput = screen.getByTestId(testids.fileSelectorInput);
+    const fileInput = screen.getByTestId(fileSelectorInputId);
 
     await user.upload(fileInput, file);
 
@@ -111,7 +111,7 @@ describe('XSDUpload', () => {
 
     await clickUploadButton();
 
-    const fileInput = screen.getByTestId(testids.fileSelectorInput);
+    const fileInput = screen.getByTestId(fileSelectorInputId);
 
     await user.upload(fileInput, file);
 

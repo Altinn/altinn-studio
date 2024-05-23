@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioButton } from '@studio/components';
 import { UploadIcon } from '@studio/icons';
-import * as testids from '@studio/testing/testids';
+import { fileSelectorInputId } from '@studio/testing/testids';
 
 export interface IFileSelectorProps {
   accept?: string;
@@ -55,7 +55,7 @@ export const FileSelector = ({
   return (
     <form onSubmit={handleSubmit}>
       <input
-        data-testid={testids.fileSelectorInput}
+        data-testid={fileSelectorInputId}
         type='file'
         id='file-upload-picker'
         className='sr-only'

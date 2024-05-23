@@ -12,7 +12,7 @@ import {
 } from 'app-shared/hooks/queries';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRepoCommitAndPushMutation } from 'app-shared/hooks/mutations';
-import * as testids from '@studio/testing/testids';
+import { versionControlHeaderId } from '@studio/testing/testids';
 import { toast } from 'react-toastify';
 
 const initialModalState = {
@@ -212,7 +212,7 @@ export const VersionControlButtons = ({ hasPushRight, org, app }: IVersionContro
     window.postMessage('forceRepoStatusCheck', window.location.href);
 
   return (
-    <div className={classes.headerStyling} data-testid={testids.versionControlHeader}>
+    <div className={classes.headerStyling} data-testid={versionControlHeaderId}>
       <FetchChangesButton
         fetchChanges={fetchChanges}
         displayNotification={repoStatus?.behindBy > 0 ?? false}

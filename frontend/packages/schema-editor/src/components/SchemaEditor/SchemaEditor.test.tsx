@@ -14,7 +14,7 @@ import type { RenderWithProvidersData } from '../../../test/renderWithProviders'
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { getSavedModel } from '../../../test/test-utils';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
-import * as testids from '@studio/testing/testids';
+import { typeItemId } from '@studio/testing/testids';
 import { uiSchemaNodesMock } from '../../../test/mocks/uiSchemaMock';
 
 const user = userEvent.setup();
@@ -222,7 +222,7 @@ describe('SchemaEditor', () => {
         setSelectedTypePointer: setSelectedTypePointerMock,
       },
     });
-    const type = screen.getByTestId(testids.typeItem(selectedTypePointer));
+    const type = screen.getByTestId(typeItemId(selectedTypePointer));
     await user.click(type);
     expect(screen.getByRole('heading', { name: typeName, level: 1 })).toBeInTheDocument();
   });
