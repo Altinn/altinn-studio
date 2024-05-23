@@ -53,6 +53,7 @@ export const Preview: Story = (args) => {
   const paginationProps = {
     currentPage,
     totalPages,
+    pageSize,
     pageSizeOptions: [5, 10, 20, 50],
     pageSizeLabel: 'Rows per page',
     onPageChange: setCurrentPage,

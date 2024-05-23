@@ -31,6 +31,7 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
     setSortModel,
     setPageNumber,
     setPageSize,
+    handleSorting,
   } = useReposSearch({ uid: uid as number, defaultPageSize: DATAGRID_DEFAULT_PAGE_SIZE });
 
   const reposWithStarred = useAugmentReposWithStarred({
@@ -54,6 +55,7 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
         sortModel={sortModel}
         pageSize={pageSize}
         pageNumber={pageNumber}
+        handleSorting={handleSorting}
       />
     </div>
   );

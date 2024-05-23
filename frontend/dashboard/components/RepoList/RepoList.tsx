@@ -1,15 +1,11 @@
 import React, { useMemo, useRef, useState } from 'react';
 import type {
   GridActionsColDef,
-  GridColDef,
   GridPaginationModel,
-  GridRenderCellParams,
   GridRowParams,
   GridSortModel,
-  GridValueFormatterParams,
-  GridValueGetterParams,
 } from '@mui/x-data-grid';
-import { DataGrid, GridActionsCellItem, GridOverlay, nbNO } from '@mui/x-data-grid';
+import { GridActionsCellItem } from '@mui/x-data-grid';
 import cn from 'classnames';
 import type { RepositoryWithStarred } from 'dashboard/utils/repoUtils/repoUtils';
 import { MakeCopyModal } from '../MakeCopyModal';
@@ -30,6 +26,7 @@ export interface IRepoListProps {
   repos?: RepositoryWithStarred[];
   isServerSort?: boolean;
   pageSize?: DATAGRID_PAGE_SIZE_TYPE;
+  pageNumber: number;
   rowCount: number;
   onPageChange?: (page: number) => void;
   onSortModelChange?: (newSortModel: GridSortModel) => void;
@@ -39,36 +36,7 @@ export interface IRepoListProps {
   disableVirtualization?: boolean;
 }
 
-const isRowSelectable = () => false;
-
 const defaultArray: RepositoryWithStarred[] = [];
-
-const gridStyleOverride = {
-  border: 'none',
-  '.MuiDataGrid-iconSeparator': {
-    visibility: 'hidden',
-  },
-  '.MuiDataGrid-cell--withRenderer:focus-within': {
-    outline: 'none',
-  },
-};
-
-export const NoResults = () => {
-  const { t } = useTranslation();
-  return (
-    <GridOverlay>
-      <p>{t('dashboard.no_repos_result')}</p>
-    </GridOverlay>
-  );
-};
-
-const TextWithTooltip = (params: GridRenderCellParams) => {
-  return (
-    <div className={classes.textWithTooltip} title={params.value}>
-      {params.value}
-    </div>
-  );
-};
 
 export const RepoList = ({
   repos = defaultArray,
@@ -83,6 +51,7 @@ export const RepoList = ({
   pageSizeOptions = DATAGRID_PAGE_SIZE_OPTIONS,
   sortModel,
   disableVirtualization = false,
+  handleSorting,
 }: IRepoListProps) => {
   const [paginationModel, setPaginationModel] = React.useState<GridPaginationModel>({
     pageSize,
@@ -145,79 +114,6 @@ export const RepoList = ({
   }));
 
   const cols = useMemo(() => {
-    const favouriteActionCol: GridActionsColDef = {
-      field: '',
-      renderHeader: (): null => null,
-      hideSortIcons: true,
-      type: 'actions',
-      headerClassName: classes.columnHeader,
-      width: 50,
-      getActions: (params: GridRowParams) => {
-        const repo = params.row as RepositoryWithStarred;
-
-        const handleToggleFav = () => {
-          if (repo.hasStarred) {
-            unsetStarredRepo(repo);
-          } else {
-            setStarredRepo(repo);
-          }
-        };
-
-        return [
-          <GridActionsCellItem
-            key={repo.id}
-            id={`fav-repo-${repo.id}`}
-            onClick={handleToggleFav}
-            label={t(repo.hasStarred ? 'dashboard.unstar' : 'dashboard.star', {
-              appName: repo.name,
-            })}
-            icon={
-              repo.hasStarred ? (
-                <StarFillIcon name='star-fill-icon' className={classes.favoriteIcon} />
-              ) : (
-                <StarIcon name='star-icon' className={classes.dropdownIcon} />
-              )
-            }
-          />,
-        ];
-      },
-    };
-
-    const columns: GridColDef[] = [
-      {
-        field: 'name',
-        headerName: t('dashboard.name'),
-        width: 200,
-        renderCell: TextWithTooltip,
-      },
-      {
-        field: 'owner.created_by',
-        headerName: t('dashboard.created_by'),
-        width: 180,
-        renderCell: TextWithTooltip,
-        valueGetter: (params: GridValueGetterParams) => {
-          const owner = params.row.owner as User;
-          return owner.full_name || owner.login;
-        },
-      },
-      {
-        field: 'updated_at',
-        headerName: t('dashboard.last_modified'),
-        width: 120,
-        type: 'date',
-        valueFormatter: (params: GridValueFormatterParams) => {
-          const date = params.value as string;
-          return new Date(date).toLocaleDateString('nb', { dateStyle: 'short' });
-        },
-      },
-      {
-        field: 'description',
-        headerName: t('dashboard.description'),
-        flex: 1,
-        minWidth: 120,
-        renderCell: TextWithTooltip,
-      },
-    ];
     const actionsCol: GridActionsColDef[] = [
       {
         field: 'links',
@@ -287,17 +183,12 @@ export const RepoList = ({
       },
     ];
 
-    return [favouriteActionCol, ...columns, ...actionsCol];
+    return [...actionsCol];
   }, [setStarredRepo, t, unsetStarredRepo]);
 
   const handleCloseCopyModal = () => {
     setModalOpen(false);
     setCopyCurrentRepoName(null);
-  };
-
-  const localText = {
-    ...nbNO.components.MuiDataGrid.defaultProps.localeText,
-    noRowsLabel: t('dashboard.no_repos_result'),
   };
 
   const paginationProps = {
@@ -324,57 +215,23 @@ export const RepoList = ({
             size='small'
             emptyTableMessage={t('dashboard.no_repos_result')}
             pagination={paginationProps}
-          />
-          <DataGrid
-            localeText={localText}
-            paginationModel={paginationModel}
-            onPaginationModelChange={handlePaginationModelChange}
-            autoHeight={true}
-            loading={isLoading}
-            rows={repos}
-            columns={cols}
-            disableColumnMenu={true}
-            isRowSelectable={isRowSelectable}
-            sortModel={sortModel}
-            paginationMode='server'
-            sortingMode='server'
-            onSortModelChange={onSortModelChange}
-            rowCount={rowCount ?? 0}
-            pageSizeOptions={pageSizeOptions}
-            sx={gridStyleOverride}
-            disableVirtualization={disableVirtualization}
+            onSortClick={handleSorting}
           />
         </>
       ) : (
-        <>
-          <StudioTableLocalPagination
-            columns={studioColumns}
-            rows={studioRows}
-            size='small'
-            emptyTableMessage={t('dashboard.no_repos_result')}
-            pagination={{
-              pageSizeOptions: DATAGRID_PAGE_SIZE_OPTIONS,
-              pageSizeLabel: t('dashboard.rows_per_page'),
-              nextButtonText: t('ux_editor.modal_properties_button_type_next'),
-              previousButtonText: t('ux_editor.modal_properties_button_type_back'),
-              itemLabel: (num: number) => `${t('general.page')} ${num}`,
-            }}
-          />
-          <DataGrid
-            localeText={localText}
-            paginationModel={paginationModel}
-            onPaginationModelChange={handlePaginationModelChange}
-            autoHeight={true}
-            loading={isLoading}
-            rows={repos}
-            columns={cols}
-            pageSizeOptions={pageSizeOptions}
-            disableColumnMenu={true}
-            isRowSelectable={isRowSelectable}
-            sx={gridStyleOverride}
-            disableVirtualization={disableVirtualization}
-          />
-        </>
+        <StudioTableLocalPagination
+          columns={studioColumns}
+          rows={studioRows}
+          size='small'
+          emptyTableMessage={t('dashboard.no_repos_result')}
+          pagination={{
+            pageSizeOptions: DATAGRID_PAGE_SIZE_OPTIONS,
+            pageSizeLabel: t('dashboard.rows_per_page'),
+            nextButtonText: t('ux_editor.modal_properties_button_type_next'),
+            previousButtonText: t('ux_editor.modal_properties_button_type_back'),
+            itemLabel: (num: number) => `${t('general.page')} ${num}`,
+          }}
+        />
       )}
       {copyCurrentRepoName && (
         <MakeCopyModal

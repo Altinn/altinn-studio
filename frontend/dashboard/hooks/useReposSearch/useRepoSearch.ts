@@ -5,11 +5,13 @@ import type { SearchRepositoryResponse } from 'app-shared/types/api/SearchReposi
 import { useSearchParamsState } from 'app-shared/hooks/useSearchParamsState';
 import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import { DATAGRID_PAGE_SIZE_OPTIONS, DATAGRID_DEFAULT_PAGE_SIZE } from '../../constants';
+// import { useTableSorting } from '../../../libs/studio-components/src/hooks/useTableSorting';
 
 type UseRepoSearchResult = {
   searchResults: SearchRepositoryResponse | undefined;
   isLoadingSearchResults: boolean;
   pageSize: DATAGRID_PAGE_SIZE_TYPE;
+  pageNumber: number;
   sortModel: GridSortModel;
   setSortModel: (selectedSortModel: GridSortModel) => void;
   setPageNumber: (pageNumber: number) => void;
@@ -39,13 +41,29 @@ export const useReposSearch = ({
   );
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'alpha', sort: 'asc' }]);
 
+  const [sortColumn, setSortColumn] = useState('alpha');
+  const [sortDirection, setSortDirection] = useState('asc');
+
+  const toggleSortDirection = () => {
+    setSortDirection((prevDirection) => (prevDirection === 'asc' ? 'desc' : 'asc'));
+  };
+
+  const handleSorting = (columnKey: string) => {
+    if (sortColumn === columnKey) {
+      toggleSortDirection();
+    } else {
+      setSortColumn(columnKey);
+      setSortDirection('asc');
+    }
+  };
+
   const filter = {
     uid,
     keyword,
     limit: pageSize,
     page: pageNumber,
-    sortby: sortModel?.[0]?.field,
-    order: sortModel?.[0]?.sort as string,
+    sortby: sortColumn,
+    order: sortDirection,
   };
 
   const cleanFilter = Object.entries(filter)
@@ -64,5 +82,6 @@ export const useReposSearch = ({
     setPageNumber,
     setSortModel,
     setPageSize,
+    handleSorting,
   };
 };
