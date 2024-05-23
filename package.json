@@ -79,6 +79,9 @@
     "webpack-dev-server": "5.0.4",
     "whatwg-fetch": "3.6.20"
   },
+  "resolutions": {
+    "@testing-library/dom": "10.1.0"
+  },
   "lint-staged": {
     "*{js,jsx,tsx,ts,css,md}": "prettier -w",
     "./frontend/language/src/*.json": "yarn run sort-texts"
