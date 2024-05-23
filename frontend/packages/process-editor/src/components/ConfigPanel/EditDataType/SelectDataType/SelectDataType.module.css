@@ -5,13 +5,10 @@
 }
 
 .dataTypeSelect {
-  padding-left: var(--fds-spacing-3);
-  padding-right: var(--fds-spacing-3);
-}
-
-.selectWithButtonNextToIt {
   display: flex;
   flex-direction: row;
   align-items: flex-end;
-  gap: var(--fds-spacing-3);
+  gap: var(--fds-spacing-4);
+  padding-inline: var(--fds-spacing-5);
+  padding-bottom: var(--fds-spacing-3);
 }

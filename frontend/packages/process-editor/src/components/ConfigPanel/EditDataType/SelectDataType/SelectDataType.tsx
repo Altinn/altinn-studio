@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
 import classes from './SelectDataType.module.css';
 import type { DataTypeChange } from 'app-shared/types/api/DataTypeChange';
-import cn from 'classnames';
 
 export interface SelectDataTypeProps {
   datamodelIds: string[];
@@ -34,9 +33,7 @@ export const SelectDataType = ({
   };
 
   return (
-    <div
-      className={cn(classes.dataTypeSelect, hideDeleteButton && classes.selectWithButtonNextToIt)}
-    >
+    <div className={classes.dataTypeSelect}>
       <StudioNativeSelect
         size='small'
         onChange={({ target }) => handleChangeDataModel(target.value)}
