@@ -33,6 +33,7 @@ export class Queue {
     this.queueTimeoutId = setTimeout(() => {
       this.queue.forEach((task) => task.callback());
       this.queue = [];
+      this.queueTimeoutId = undefined;
     }, this.options.timeout || 1000);
   }
 }
