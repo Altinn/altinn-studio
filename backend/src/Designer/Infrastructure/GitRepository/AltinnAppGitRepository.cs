@@ -44,6 +44,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string LayoutSettingsFilename = "Settings.json";
         private const string AppMetadataFilename = "applicationmetadata.json";
         private const string LayoutSetsFilename = "layout-sets.json";
+        private const string FooterFilename = "footer.json";
         private const string RuleHandlerFilename = "RuleHandler.js";
         private const string RuleConfigurationFilename = "RuleConfiguration.json";
         private const string ProcessDefinitionFilename = "process.bpmn";
@@ -598,6 +599,15 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
         }
 
+        public async Task<FooterFile> GetFooter(CancellationToken cancellationToken = default)
+        {
+            string footerFilePath = GetPathToFooterFile();
+            cancellationToken.ThrowIfCancellationRequested();
+            string fileContent = await ReadTextByRelativePathAsync(footerFilePath, cancellationToken);
+            FooterFile footerFileFile = JsonSerializer.Deserialize<FooterFile>(fileContent, JsonOptions);
+            return footerFileFile;
+        }
+
         /// <summary>
         /// Saves the RuleHandler.js for a specific layout set
         /// </summary>
@@ -836,6 +846,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private static string GetPathToLayoutSetsFile()
         {
             return Path.Combine(LayoutsFolderName, LayoutSetsFilename);
+        }
+
+        private static string GetPathToFooterFile()
+        {
+            return Path.Combine(LayoutsFolderName, FooterFilename);
         }
 
         private static string GetPathToRuleHandler(string layoutSetName)
