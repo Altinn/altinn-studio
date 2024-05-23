@@ -9,7 +9,6 @@ export const orgMenuItemId = (orgUserName) =>
 export const resetRepoContainerId = 'reset-repo-container';
 export const typeItemId = (pointer) => `type-item-${pointer}`;
 export const userMenuItemId = 'user-menu-item';
-export const versionControlHeaderId = 'version-control-header';
 export const pageAccordionContentId = (pageName) => `page-accordion-content-${pageName}`;
 export const profileButtonId = 'profileButton';
 export const org = 'org';

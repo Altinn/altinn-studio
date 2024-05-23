@@ -45,7 +45,7 @@ export function App() {
 
   const repositoryType = getRepositoryType(org, app);
   const { t } = useTranslation();
-  const { refetch } = useRepoStatusQuery(org, app);
+  const { refetch: reFetchRepoStatus } = useRepoStatusQuery(org, app);
   const remainingSessionMinutes = useAppSelector(
     (state) => state.userState.session.remainingMinutes,
   );
@@ -94,7 +94,7 @@ export function App() {
     };
     const windowEventReceived = async (event: any) => {
       if (event.data === postMessages.forceRepoStatusCheck) {
-        await refetch();
+        await reFetchRepoStatus();
       }
     };
     const keepAliveSessionState = () => {
@@ -115,7 +115,7 @@ export function App() {
       window.removeEventListener('message', windowEventReceived);
       setEventListeners(false);
     };
-  }, [app, dispatch, lastKeepAliveTimestamp, org, refetch, remainingSessionMinutes]);
+  }, [app, dispatch, lastKeepAliveTimestamp, org, reFetchRepoStatus, remainingSessionMinutes]);
 
   const handleSessionExpiresClose = useCallback(
     (action: string) => {

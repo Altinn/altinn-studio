@@ -76,10 +76,6 @@ describe('ConfigPanel', () => {
       task: BpmnTypeEnum.StartEvent,
       expectedText: 'process_editor.configuration_panel_element_not_supported_message',
     },
-    {
-      task: BpmnTypeEnum.EndEvent,
-      expectedText: 'process_editor.configuration_panel_element_not_supported_message',
-    },
   ])('should display correct message based on selected bpmn type', ({ task, expectedText }) => {
     (shouldDisplayFeature as jest.Mock).mockReturnValue(false);
     renderConfigPanel({

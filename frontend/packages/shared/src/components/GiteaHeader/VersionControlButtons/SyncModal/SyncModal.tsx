@@ -99,7 +99,6 @@ export const SyncModal = ({
           <StudioButton
             variant='primary'
             color='first'
-            className={classes.button}
             onClick={btnClickedHandler}
             id='share_changes_modal_button'
             size='small'

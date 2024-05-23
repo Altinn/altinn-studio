@@ -1,6 +1,6 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithMockStore } from '../../test/mocks';
-import { useUpdateLayoutSetMutation } from './useUpdateLayoutSetMutation';
+import { useUpdateLayoutSetIdMutation } from './useUpdateLayoutSetIdMutation';
 import { waitFor } from '@testing-library/react';
 import { app, org } from '@studio/testing/testids';
 
@@ -8,10 +8,10 @@ import { app, org } from '@studio/testing/testids';
 const layoutSetIdToUpdate = 'oldLayoutSetName';
 const newLayoutSetId: string = 'newLayoutSetName';
 
-describe('useUpdateLayoutSetMutation', () => {
-  it('Calls updateLayoutSetMutation with correct arguments and payload', async () => {
+describe('useUpdateLayoutSetIdMutation', () => {
+  it('Calls updateLayoutSetIdMutation with correct arguments and payload', async () => {
     const updateLayoutSetResult = renderHookWithMockStore()(() =>
-      useUpdateLayoutSetMutation(org, app),
+      useUpdateLayoutSetIdMutation(org, app),
     ).renderHookResult.result;
     await waitFor(() =>
       updateLayoutSetResult.current.mutateAsync({

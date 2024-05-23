@@ -3,5 +3,7 @@ export interface RepoStatus {
   behindBy: number;
   contentStatus: any[];
   hasMergeConflict: boolean;
-  repositoryStatus: string;
+  repositoryStatus: string | RepositoryStatus;
 }
+
+export type RepositoryStatus = 'Ok' | 'CheckoutConflict' | 'MergeConflict';
