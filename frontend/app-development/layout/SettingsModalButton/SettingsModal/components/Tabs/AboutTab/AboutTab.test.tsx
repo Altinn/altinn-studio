@@ -17,6 +17,7 @@ import { formatDateToDateAndTimeString } from 'app-development/utils/dateUtils';
 import { MemoryRouter } from 'react-router-dom';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { app, org } from '@studio/testing/testids';
+import { SettingsModalContextProvider } from '../../../../../../contexts/SettingsModalContext';
 
 const mockNewText: string = 'test';
 
@@ -193,7 +194,9 @@ const render = (
   return rtlRender(
     <MemoryRouter>
       <ServicesContextProvider {...allQueries} client={queryClient}>
-        <AboutTab {...defaultProps} {...props} />
+        <SettingsModalContextProvider>
+          <AboutTab {...defaultProps} {...props} />
+        </SettingsModalContextProvider>
       </ServicesContextProvider>
     </MemoryRouter>,
   );

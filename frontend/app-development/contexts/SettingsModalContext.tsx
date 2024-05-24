@@ -6,6 +6,8 @@ export type SettingsModalContextProps = {
   setSettingsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   settingsModalSelectedTab?: SettingsModalTab;
   setSettingsModalSelectedTab: React.Dispatch<React.SetStateAction<SettingsModalTab>>;
+  appNameHasChanged: boolean;
+  setAppNameHasChanged: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export const SettingsModalContext = createContext<Partial<SettingsModalContextProps>>(undefined);
@@ -21,6 +23,8 @@ export const SettingsModalContextProvider = ({
   const [settingsModalSelectedTab, setSettingsModalSelectedTab] =
     useState<SettingsModalTab>('about');
 
+  const [appNameHasChanged, setAppNameHasChanged] = useState(false);
+
   return (
     <SettingsModalContext.Provider
       value={{
@@ -28,6 +32,8 @@ export const SettingsModalContextProvider = ({
         setSettingsModalOpen,
         settingsModalSelectedTab,
         setSettingsModalSelectedTab,
+        appNameHasChanged,
+        setAppNameHasChanged,
       }}
     >
       {children}

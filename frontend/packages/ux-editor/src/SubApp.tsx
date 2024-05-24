@@ -3,9 +3,14 @@ import { App } from './App';
 import './styles/index.css';
 import { AppContextProvider } from './AppContext';
 
-export const SubApp = () => {
+type SubAppProps = {
+  appNameHasChanged: boolean;
+  setAppNameHasChanged: (hasChanged: boolean) => void;
+};
+
+export const SubApp = (props: SubAppProps) => {
   return (
-    <AppContextProvider>
+    <AppContextProvider {...props}>
       <App />
     </AppContextProvider>
   );

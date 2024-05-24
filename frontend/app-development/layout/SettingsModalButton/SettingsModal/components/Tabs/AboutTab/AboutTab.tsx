@@ -15,25 +15,18 @@ import { TabDataError } from '../../TabDataError';
 import { InputFields } from './InputFields';
 import { CreatedFor } from './CreatedFor';
 import { TabContent } from '../../TabContent';
+import { useSettingsModalContext } from '../../../../../../contexts/SettingsModalContext';
 
 export type AboutTabProps = {
   org: string;
   app: string;
 };
 
-/**
- * @component
- *    Displays the tab rendering the config for an app
- *
- * @property {string}[org] - The org
- * @property {string}[app] - The app
- *
- * @returns {ReactNode} - The rendered component
- */
 export const AboutTab = ({ org, app }: AboutTabProps): ReactNode => {
   const { t } = useTranslation();
-
   const repositoryType = getRepositoryType(org, app);
+
+  const { setAppNameHasChanged } = useSettingsModalContext();
 
   const {
     status: appConfigStatus,
@@ -54,6 +47,9 @@ export const AboutTab = ({ org, app }: AboutTabProps): ReactNode => {
   const { mutate: updateAppConfigMutation } = useAppConfigMutation(org, app);
 
   const handleSaveAppConfig = (appConfig: AppConfig) => {
+    if (appConfigData.serviceName !== appConfig.serviceName) {
+      setAppNameHasChanged(true);
+    }
     updateAppConfigMutation(appConfig);
   };
 

@@ -8,6 +8,7 @@ import type { AppVersion } from 'app-shared/types/AppVersion';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
+import { SettingsModalContextProvider } from '../contexts/SettingsModalContext';
 
 // Mocks:
 jest.mock('@altinn/ux-editor-v3/SubApp', () => ({
@@ -52,7 +53,9 @@ const renderSubapp = (path: RoutePaths, frontendVersion: string = null) => {
   queryClient.setQueryData([QueryKey.AppVersion, org, app], appVersion);
   return render(
     <ServicesContextProvider {...queriesMock} client={queryClient}>
-      <Subapp />
+      <SettingsModalContextProvider>
+        <Subapp />
+      </SettingsModalContextProvider>
     </ServicesContextProvider>,
   );
 };

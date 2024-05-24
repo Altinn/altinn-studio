@@ -64,11 +64,23 @@ const PreviewFrame = () => {
   const taskId = useSelectedTaskId(selectedFormLayoutSetName);
   const { t } = useTranslation();
 
+  const { appNameHasChanged, setAppNameHasChanged } = useAppContext();
+
   useEffect(() => {
     return () => {
       previewIframeRef.current = null;
     };
   }, [previewIframeRef]);
+
+  const [iframeKey, setIframeKey] = useState<number>(0);
+
+  useEffect(() => {
+    if (appNameHasChanged) {
+      // By incrementing the key by one, we force the previw to reload
+      setIframeKey((v) => v + 1);
+      setAppNameHasChanged(false);
+    }
+  }, [appNameHasChanged, setAppNameHasChanged]);
 
   return (
     <div className={classes.root}>
@@ -76,6 +88,7 @@ const PreviewFrame = () => {
       <div className={classes.previewArea}>
         <div className={classes.iframeContainer}>
           <iframe
+            key={iframeKey}
             ref={previewIframeRef}
             className={cn(classes.iframe, classes[viewportToSimulate])}
             title={t('ux_editor.preview')}

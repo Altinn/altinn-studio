@@ -16,15 +16,23 @@ export interface AppContextProps {
   refetchLayouts: (layoutSetName: string, resetQueries?: boolean) => Promise<void>;
   refetchLayoutSettings: (layoutSetName: string, resetQueries?: boolean) => Promise<void>;
   refetchTexts: (language: string, resetQueries?: boolean) => Promise<void>;
+  appNameHasChanged: boolean;
+  setAppNameHasChanged: (hasChanged: boolean) => void;
 }
 
 export const AppContext = createContext<AppContextProps>(null);
 
 type AppContextProviderProps = {
   children: React.ReactNode;
+  appNameHasChanged: boolean;
+  setAppNameHasChanged: (hasChanged: boolean) => void;
 };
 
-export const AppContextProvider = ({ children }: AppContextProviderProps): React.JSX.Element => {
+export const AppContextProvider = ({
+  children,
+  appNameHasChanged,
+  setAppNameHasChanged,
+}: AppContextProviderProps): React.JSX.Element => {
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
   const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } =
     useSelectedFormLayoutSetName();
@@ -77,6 +85,8 @@ export const AppContextProvider = ({ children }: AppContextProviderProps): React
       refetchLayouts,
       refetchLayoutSettings,
       refetchTexts,
+      appNameHasChanged,
+      setAppNameHasChanged,
     }),
     [
       selectedFormLayoutSetName,
@@ -86,6 +96,8 @@ export const AppContextProvider = ({ children }: AppContextProviderProps): React
       refetchLayouts,
       refetchLayoutSettings,
       refetchTexts,
+      appNameHasChanged,
+      setAppNameHasChanged,
     ],
   );
 
