@@ -19,17 +19,22 @@ describe('SafeErrorView', () => {
   });
 
   it('should render heading, title and message, with a reload button', () => {
-    renderSafeErrorView({
+    const safeErrorViewProps: SafeErrorViewProps = {
       heading: 'All users list',
       title: 'Failed to load users',
       message: 'Some unexpected happen when loading users',
-    });
+    };
+    renderSafeErrorView(safeErrorViewProps);
 
-    expect(screen.getByRole('heading', { name: 'All users list', level: 2 })).toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', { name: 'Failed to load users', level: 3 }),
-    ).toBeInTheDocument();
-    expect(screen.getByText('Some unexpected happen when loading users')).toBeInTheDocument();
+    const heading = screen.getByRole('heading', { name: safeErrorViewProps.heading, level: 2 });
+    expect(heading).toBeInTheDocument();
+
+    const title = screen.getByRole('heading', { name: safeErrorViewProps.title, level: 3 });
+    expect(title).toBeInTheDocument();
+
+    const alertMessage = screen.getByText(safeErrorViewProps.message);
+    expect(alertMessage).toBeInTheDocument();
+
     expect(screen.getByRole('button', { name: textMock('general.reload') })).toBeInTheDocument();
   });
 
