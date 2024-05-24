@@ -3,20 +3,19 @@ import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { SettingsModalButtonProps } from './SettingsModalButton';
 import { SettingsModalButton } from './SettingsModalButton';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { QueryClient } from '@tanstack/react-query';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { MemoryRouter } from 'react-router-dom';
-
-const mockApp: string = 'app';
-const mockOrg: string = 'org';
+import { AppDevelopmentContextProvider } from '../../contexts/AppDevelopmentContext';
+import { app, org } from '@studio/testing/testids';
 
 const defaultProps: SettingsModalButtonProps = {
-  org: mockOrg,
-  app: mockApp,
+  org,
+  app,
 };
 
 describe('SettingsModal', () => {
@@ -24,7 +23,7 @@ describe('SettingsModal', () => {
   afterEach(jest.clearAllMocks);
 
   it('has SettingsModal default to closed', async () => {
-    render();
+    renderSettingsModalButton();
 
     const modalHeading = screen.queryByRole('heading', {
       name: textMock('settings_modal.heading'),
@@ -35,7 +34,7 @@ describe('SettingsModal', () => {
   });
 
   it('opens the SettingsModal when the button is clicked', async () => {
-    render();
+    renderSettingsModalButton();
 
     const modalHeading = screen.queryByRole('heading', {
       name: textMock('settings_modal.heading'),
@@ -54,7 +53,7 @@ describe('SettingsModal', () => {
   });
 
   it('closes the SettingsModal when the modal is closed', async () => {
-    render();
+    renderSettingsModalButton();
     const button = screen.getByRole('button', { name: textMock('sync_header.settings') });
     await user.click(button);
 
@@ -77,7 +76,7 @@ describe('SettingsModal', () => {
   });
 });
 
-const render = (
+const renderSettingsModalButton = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
@@ -88,7 +87,9 @@ const render = (
   return rtlRender(
     <MemoryRouter>
       <ServicesContextProvider {...allQueries} client={queryClient}>
-        <SettingsModalButton {...defaultProps} />
+        <AppDevelopmentContextProvider>
+          <SettingsModalButton {...defaultProps} />
+        </AppDevelopmentContextProvider>
       </ServicesContextProvider>
     </MemoryRouter>,
   );

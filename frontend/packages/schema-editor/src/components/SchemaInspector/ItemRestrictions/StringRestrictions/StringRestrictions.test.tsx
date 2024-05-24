@@ -4,7 +4,7 @@ import { StringRestrictions } from './StringRestrictions';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import userEvent from '@testing-library/user-event';
-import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
+import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 
 // Test data
 const texts = {

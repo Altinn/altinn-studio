@@ -56,7 +56,7 @@ const subexpressionToComplex = <O extends RelationalOperator>({
 
 const subexpressionValueToComplex = (
   subexpression: SimpleSubexpressionValue,
-): DataLookupFunc | KeyLookupFunc | string | number | boolean | null => {
+): DataLookupFunc | KeyLookupFunc | string | number | boolean | null | [string] => {
   switch (subexpression.type) {
     case SimpleSubexpressionValueType.Component:
       return [DataLookupFuncName.Component, subexpression.id];
@@ -66,6 +66,10 @@ const subexpressionValueToComplex = (
       return [KeyLookupFuncName.InstanceContext, subexpression.key];
     case SimpleSubexpressionValueType.Null:
       return null;
+    case SimpleSubexpressionValueType.GatewayAction:
+      return [DataLookupFuncName.GatewayAction];
+    case SimpleSubexpressionValueType.GatewayActionContext:
+      return subexpression.key;
     default:
       return subexpression.value;
   }

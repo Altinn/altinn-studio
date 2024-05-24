@@ -2,10 +2,9 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithMockStore } from '../../test/mocks';
 import { waitFor } from '@testing-library/react';
 import { useDeleteLayoutSetMutation } from './useDeleteLayoutSetMutation';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const layoutSetToDeleteId = 'oldLayoutSetName';
 
 describe('useDeleteLayoutSetMutation', () => {

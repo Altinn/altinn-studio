@@ -3,21 +3,10 @@ import { PageLayout } from './PageLayout';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../test/testUtils';
-import { textMock } from '../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { repoStatus } from 'app-shared/mocks/mocks';
-
-const mockOrg: string = 'org';
-const mockApp: string = 'app';
-
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({
-    org: mockOrg,
-    app: mockApp,
-  }),
-}));
 
 describe('PageLayout', () => {
   afterEach(() => {

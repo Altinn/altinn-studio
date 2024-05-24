@@ -6,7 +6,7 @@ import { MemoryRouter } from 'react-router-dom';
 import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { RepositoryType } from 'app-shared/types/global';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const mockMenuItems: TopBarMenuItem[] = [
   {

@@ -2,7 +2,7 @@ import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ResourceAccessListsProps } from './ResourceAccessLists';
 import { ResourceAccessLists } from './ResourceAccessLists';

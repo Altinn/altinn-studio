@@ -3,7 +3,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 
 import { EditOptions } from './EditOptions';
 import { renderWithProviders } from '../../../testing/mocks';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 import type { FormComponent } from '../../../types/FormComponent';

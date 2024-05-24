@@ -1,66 +1,22 @@
 import React from 'react';
 import { ConfigContent } from './ConfigContent';
 import { render, screen } from '@testing-library/react';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { BpmnContextProps } from '../../../contexts/BpmnContext';
 import { BpmnContext } from '../../../contexts/BpmnContext';
 import userEvent from '@testing-library/user-event';
-import type { BpmnDetails } from '../../../types/BpmnDetails';
-import { BpmnTypeEnum } from '../../../enum/BpmnTypeEnum';
-import type Modeler from 'bpmn-js/lib/Modeler';
-import { type BpmnTaskType } from '../../../types/BpmnTaskType';
-import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
 import { BpmnApiContext } from '../../../contexts/BpmnApiContext';
 import type { BpmnApiContextProps } from '../../../contexts/BpmnApiContext';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-
-const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
-const mockAppLibVersion8: string = '8.0.3';
-
-const mockTaskId: string = 'testId';
-const mockName: string = 'testName';
-const layoutSetIdToUpdate: string = 'layoutSet1';
-
-const modelerRefMock = {
-  current: {
-    get: () => {},
-  } as unknown as Modeler,
-};
-
-const mockBpmnDetails: BpmnDetails = {
-  id: mockTaskId,
-  name: mockName,
-  taskType: 'data',
-  type: BpmnTypeEnum.Task,
-};
-
-const mockBpmnApiContextValue: Partial<BpmnApiContextProps> = {
-  layoutSets: { sets: [] },
-  availableDataModelIds: [],
-};
-
-const mockBpmnContextValue: BpmnContextProps = {
-  bpmnXml: mockBPMNXML,
-  appLibVersion: mockAppLibVersion8,
-  getUpdatedXml: jest.fn(),
-  isEditAllowed: true,
-  bpmnDetails: mockBpmnDetails,
-  setBpmnDetails: jest.fn(),
-  modelerRef: modelerRefMock,
-};
-
-jest.mock('../../../hooks/useBpmnModeler', () => ({
-  useBpmnModeler: () => ({
-    getModeler: () => ({
-      get: () => ({
-        updateProperties: jest.fn(),
-      }),
-    }),
-  }),
-}));
+import { type BpmnTaskType } from '../../../types/BpmnTaskType';
+import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
+import { mockBpmnDetails } from '../../../../test/mocks/bpmnDetailsMock';
+import {
+  mockBpmnApiContextValue,
+  mockBpmnContextValue,
+} from '../../../../test/mocks/bpmnContextMock';
 
 describe('ConfigContent', () => {
-  beforeEach(() => {
+  afterEach(() => {
     jest.clearAllMocks();
   });
   it('should render heading for selected task', () => {
@@ -155,23 +111,27 @@ describe('ConfigContent', () => {
   });
 
   it('should display the connected data model as selected by default when data type is connected to task', () => {
-    const connectedDataType = 'dataModel0';
-    const existingLayoutSets: LayoutSets = {
-      sets: [
-        {
-          id: layoutSetIdToUpdate,
-          tasks: [mockTaskId],
-          dataType: connectedDataType,
-        },
-      ],
-    };
-    renderConfigContent({ layoutSets: existingLayoutSets });
+    const connectedDataType = mockBpmnApiContextValue.layoutSets.sets[0].dataType;
+    renderConfigContent();
     expect(
       screen.getByRole('button', {
         name: textMock('process_editor.configuration_panel_set_datamodel'),
       }),
     ).toBeInTheDocument();
     expect(screen.getByText(connectedDataType)).toBeInTheDocument();
+  });
+
+  it('should render the Policy accordion', async () => {
+    renderConfigContent();
+    const policyAccordion = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_policy_title'),
+    });
+    const user = userEvent.setup();
+    await user.click(policyAccordion);
+    const editPolicyButton = await screen.findByText(
+      textMock('process_editor.configuration_panel.edit_policy_open_policy_editor_button'),
+    );
+    expect(editPolicyButton).toBeInTheDocument();
   });
 });
 

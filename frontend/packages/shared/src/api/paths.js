@@ -83,7 +83,7 @@ export const envConfigPath = () => `${basePath}/environments`;
 export const abortmergePath = (org, app) => `${basePath}/repos/repo/${org}/${app}/abort-merge`;
 export const branchStatusPath = (org, app, branch) => `${basePath}/repos/repo/${org}/${app}/branches/branch?${s({ branch })}`; // Get
 export const cloneAppPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/clone`; // Get
-export const copyAppPath = (org, sourceRepository, targetRepository) => `${basePath}/repos/repo/${org}/copy-app?${s({ sourceRepository, targetRepository })}`;
+export const copyAppPath = (org, sourceRepository, targetRepository, targetOrg) => `${basePath}/repos/repo/${org}/copy-app?${s({ sourceRepository, targetRepository, targetOrg })}`;
 export const createRepoPath = () => `${basePath}/repos/create-app`; // Post
 export const discardChangesPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/discard`; // Get
 export const discardFileChangesPath = (org, app, filename) => `${basePath}/repos/repo/${org}/${app}/discard/${filename}`; // Get
@@ -92,7 +92,6 @@ export const repoBranchesPath = (org, app) => `${basePath}/repos/repo/${org}/${a
 export const repoCommitPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/commit`; // Post
 export const repoCommitPushPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/commit-and-push`; // Post
 export const repoDownloadPath = (org, app, full) => `${basePath}/repos/repo/${org}/${app}/contents.zip?${s({ full })}`;
-export const repoInitialCommitPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/initial-commit`; // Get
 export const repoLatestCommitPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/latest-commit`; // Get
 export const repoLogPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/log`; // Get
 export const repoMetaPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/metadata`; // Get
@@ -130,7 +129,7 @@ export const resourcePolicyPath = (org, repo, id) => `${basePath}/${org}/${repo}
 export const resourceActionsPath = (org, repo) => `${basePath}/${org}/${repo}/policy/actionoptions`; // Get
 export const resourceSubjectsPath = (org, repo) => `${basePath}/${org}/${repo}/policy/subjectoptions`; // Get
 export const resourcePublishStatusPath = (org, repo, id) => `${basePath}/${org}/resources/publishstatus/${repo}/${id}`; // Get
-export const resourceListPath = (org) => `${basePath}/${org}/resources/resourcelist`; // Get
+export const resourceListPath = (org) => `${basePath}/${org}/resources/resourcelist?includeEnvResources=true`; // Get
 export const resourceCreatePath = (org) => `${basePath}/${org}/resources/addresource`; // Post
 export const resourceSinglePath = (org, repo, id) => `${basePath}/${org}/resources/${repo}/${id}`; // Get
 export const resourceEditPath = (org, id) => `${basePath}/${org}/resources/updateresource/${id}`; // Put
@@ -140,6 +139,7 @@ export const publishResourcePath = (org, repo, id, env) => `${basePath}/${org}/r
 export const altinn2LinkServicesPath = (org, env) => `${basePath}/${org}/resources/altinn2linkservices/${env}`; // Get
 export const importResourceFromAltinn2Path = (org, env, serviceCode, serviceEdition) => `${basePath}/${org}/resources/importresource/${serviceCode}/${serviceEdition}/${env}`; // Post
 export const accessListsPath = (org, env, page) => `${basePath}/${org}/resources/accesslist/?env=${env}${page ? `&page=${page}` : ''}`; // Get
+export const importResourceFromAltinn3Path = (org, resourceId, env) => `${basePath}/${org}/resources/addexistingresource/${resourceId}/${env}`; // Post
 export const createAccessListsPath = (org, env) => `${basePath}/${org}/resources/accesslist/?env=${env}`; //  Post
 export const accessListPath = (org, listId, env) => `${basePath}/${org}/resources/accesslist/${listId}?env=${env}`; // Get, Patch, Delete
 export const accessListMemberPath = (org, listId, env, page) => `${basePath}/${org}/resources/accesslist/${listId}/members/?env=${env}${page ? `&page=${page}` : ''}`; // Get, Post, Delete
@@ -151,3 +151,4 @@ export const processEditorPath = (org, app) => `${basePath}/${org}/${app}/proces
 export const processEditorWebSocketHub = () => '/sync-hub';
 export const processEditorPathPut = (org, app) => `${basePath}/${org}/${app}/process-modelling/process-definition-latest`;
 export const processEditorDataTypeChangePath = (org, app) => `${basePath}/${org}/${app}/process-modelling/data-type`;
+export const processEditorDataTypePath = (org, app, dataTypeId) => `${basePath}/${org}/${app}/process-modelling/data-type/${dataTypeId}`;

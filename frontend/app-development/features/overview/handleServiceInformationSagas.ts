@@ -5,7 +5,6 @@ import postMessages from 'app-shared/utils/postMessages';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { HandleServiceInformationActions } from './handleServiceInformationSlice';
 import type {
-  IFetchInitialCommitAction,
   IFetchServiceAction,
   IFetchServiceConfigAction,
   IFetchServiceNameAction,
@@ -72,25 +71,6 @@ export function* watchHandleSaveServiceNameSaga(): SagaIterator {
   yield takeLatest(HandleServiceInformationActions.saveServiceName, handleSaveServiceNameSaga);
 }
 
-export function* handleFetchInitialCommitSaga({
-  payload: { url },
-}: PayloadAction<IFetchInitialCommitAction>): SagaIterator {
-  try {
-    const result = yield call(get, url);
-
-    yield put(HandleServiceInformationActions.fetchInitialCommitFulfilled({ result }));
-  } catch (error) {
-    yield put(HandleServiceInformationActions.fetchInitialCommitRejected({ error }));
-  }
-}
-
-export function* watchHandleFetchInitialCommitSaga(): SagaIterator {
-  yield takeLatest(
-    HandleServiceInformationActions.fetchInitialCommit,
-    handleFetchInitialCommitSaga,
-  );
-}
-
 export function* handleFetchServiceConfigSaga({
   payload: { url },
 }: PayloadAction<IFetchServiceConfigAction>): SagaIterator {
@@ -103,7 +83,7 @@ export function* handleFetchServiceConfigSaga({
       }),
     );
   } catch (error) {
-    yield put(HandleServiceInformationActions.fetchInitialCommitRejected({ error }));
+    yield put(HandleServiceInformationActions.fetchServiceConfigRejected({ error }));
   }
 }
 

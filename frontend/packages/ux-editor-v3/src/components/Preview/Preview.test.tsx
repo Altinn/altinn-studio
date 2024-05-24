@@ -4,7 +4,7 @@ import { screen } from '@testing-library/react';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithMockStore } from '../../testing/mocks';
 import type { IAppState } from '../../types/global';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 describe('Preview', () => {

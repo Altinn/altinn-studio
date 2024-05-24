@@ -1,13 +1,14 @@
 import React from 'react';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
-import { layoutSetsMock } from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock, layoutSetsMock } from '@altinn/ux-editor/testing/layoutMock';
 import type { AppPreviewSubMenuProps } from './AppPreviewSubMenu';
 import { AppPreviewSubMenu } from './AppPreviewSubMenu';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { app, org } from '@studio/testing/testids';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -17,17 +18,13 @@ jest.mock('react-i18next', () => ({
 
 const user = userEvent.setup();
 
-// Test data
-const org = 'org';
-const app = 'app';
-
 describe('AppPreviewSubMenu', () => {
   afterEach(jest.clearAllMocks);
 
   const props: AppPreviewSubMenuProps = {
     viewSize: 'desktop',
     setViewSize: jest.fn(),
-    selectedLayoutSet: 'test-layout-set',
+    selectedLayoutSet: layoutSet1NameMock,
     handleChangeLayoutSet: jest.fn(),
   };
 

@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import type { User } from 'app-shared/types/Repository';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { StudioButton } from '@studio/components';
-import * as testids from '../../../../../../testing/testids';
+import { profileButtonId } from '@studio/testing/testids';
 
 export interface IProfileMenuComponentProps {
   showlogout?: boolean;
@@ -84,7 +84,7 @@ export const ProfileMenu = ({
       variant='tertiary'
       color='inverted'
       onClick={handleClick}
-      data-testid={testids.profileButton}
+      data-testid={profileButtonId}
       aria-haspopup
       ref={menuRef}
     >

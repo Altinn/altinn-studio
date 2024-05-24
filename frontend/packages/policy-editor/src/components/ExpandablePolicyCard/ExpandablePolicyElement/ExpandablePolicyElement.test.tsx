@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ExpandablePolicyElementProps } from './ExpandablePolicyElement';
 import { ExpandablePolicyElement } from './ExpandablePolicyElement';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const mockTitle: string = 'Test';
 const mockTextChildren: string = 'Test Content';

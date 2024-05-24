@@ -19,12 +19,15 @@ export type ProcessEditorProps = {
   availableDataModelIds: BpmnApiContextProps['availableDataModelIds'];
   layoutSets: BpmnApiContextProps['layoutSets'];
   pendingApiOperations: boolean;
-  existingCustomReceiptLayoutSetName: BpmnApiContextProps['existingCustomReceiptLayoutSetName'];
+  existingCustomReceiptLayoutSetId: BpmnApiContextProps['existingCustomReceiptLayoutSetId'];
   addLayoutSet: BpmnApiContextProps['addLayoutSet'];
   deleteLayoutSet: BpmnApiContextProps['deleteLayoutSet'];
-  mutateLayoutSet: BpmnApiContextProps['mutateLayoutSet'];
+  mutateLayoutSetId: BpmnApiContextProps['mutateLayoutSetId'];
   mutateDataType: BpmnApiContextProps['mutateDataType'];
+  addDataTypeToAppMetadata: BpmnApiContextProps['addDataTypeToAppMetadata'];
+  deleteDataTypeFromAppMetadata: BpmnApiContextProps['deleteDataTypeFromAppMetadata'];
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
+  openPolicyEditor: BpmnApiContextProps['openPolicyEditor'];
 };
 
 export const ProcessEditor = ({
@@ -33,12 +36,15 @@ export const ProcessEditor = ({
   availableDataModelIds,
   layoutSets,
   pendingApiOperations,
-  existingCustomReceiptLayoutSetName,
+  existingCustomReceiptLayoutSetId,
   addLayoutSet,
   deleteLayoutSet,
-  mutateLayoutSet,
+  mutateLayoutSetId,
   mutateDataType,
+  addDataTypeToAppMetadata,
+  deleteDataTypeFromAppMetadata,
   saveBpmn,
+  openPolicyEditor,
 }: ProcessEditorProps): JSX.Element => {
   const { t } = useTranslation();
 
@@ -56,12 +62,15 @@ export const ProcessEditor = ({
         availableDataModelIds={availableDataModelIds}
         layoutSets={layoutSets}
         pendingApiOperations={pendingApiOperations}
-        existingCustomReceiptLayoutSetName={existingCustomReceiptLayoutSetName}
+        existingCustomReceiptLayoutSetId={existingCustomReceiptLayoutSetId}
         addLayoutSet={addLayoutSet}
         deleteLayoutSet={deleteLayoutSet}
-        mutateLayoutSet={mutateLayoutSet}
+        mutateLayoutSetId={mutateLayoutSetId}
         mutateDataType={mutateDataType}
+        addDataTypeToAppMetadata={addDataTypeToAppMetadata}
+        deleteDataTypeFromAppMetadata={deleteDataTypeFromAppMetadata}
         saveBpmn={saveBpmn}
+        openPolicyEditor={openPolicyEditor}
       >
         <BpmnConfigPanelFormContextProvider>
           <BpmnCanvas />

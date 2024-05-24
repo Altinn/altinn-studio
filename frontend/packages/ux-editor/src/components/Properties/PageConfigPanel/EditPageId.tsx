@@ -15,7 +15,7 @@ export interface EditPageIdProps {
 }
 export const EditPageId = ({ layoutName }: EditPageIdProps) => {
   const { app, org } = useStudioUrlParams();
-  const { selectedFormLayoutSetName } = useAppContext();
+  const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
   const { mutate: mutateTextId } = useTextIdMutation(org, app);
   const { mutate: updateLayoutName } = useUpdateLayoutNameMutation(
     org,
@@ -33,7 +33,14 @@ export const EditPageId = ({ layoutName }: EditPageIdProps) => {
 
   const handleSaveNewName = (newName: string) => {
     if (newName === layoutName) return;
-    updateLayoutName({ oldName: layoutName, newName });
+    updateLayoutName(
+      { oldName: layoutName, newName },
+      {
+        onSuccess: async () => {
+          await refetchLayouts(selectedFormLayoutSetName);
+        },
+      },
+    );
     mutateTextId([{ oldId: layoutName, newId: newName }]);
   };
 

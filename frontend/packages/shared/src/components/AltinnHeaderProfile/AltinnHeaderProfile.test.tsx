@@ -2,7 +2,8 @@ import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 import type { AltinnHeaderProfileProps } from './AltinnHeaderProfile';
 import { AltinnHeaderProfile } from './AltinnHeaderProfile';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+import { app, org } from '@studio/testing/testids';
 
 describe('AltinnHeaderProfile', () => {
   it('should render users name if user and org are the same', () => {
@@ -27,7 +28,7 @@ describe('AltinnHeaderProfile', () => {
   });
 
   it('should render users name and name of org the user represents', () => {
-    render({ org: 'test-org' });
+    render({ org });
     expect(
       screen.getByText(
         textMock('shared.header_user_for_org', { user: 'test-user', org: 'Test Org' }),
@@ -38,7 +39,7 @@ describe('AltinnHeaderProfile', () => {
 
 export const render = (props?: Partial<AltinnHeaderProfileProps>) => {
   const defaultProps: AltinnHeaderProfileProps = {
-    org: 'test-org',
+    org,
     repository: {
       clone_url: 'clone_url',
       description: 'description',
@@ -46,11 +47,11 @@ export const render = (props?: Partial<AltinnHeaderProfileProps>) => {
       html_url: 'html_url',
       id: 1,
       is_cloned_to_local: false,
-      name: 'test-app',
+      name: app,
       owner: {
         avatar_url: 'avatar_url',
         full_name: 'Test Org',
-        login: 'test-org',
+        login: org,
         email: 'test-email',
         id: 1,
         userType: 1,

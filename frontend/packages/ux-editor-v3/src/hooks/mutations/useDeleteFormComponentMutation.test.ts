@@ -3,12 +3,11 @@ import { renderHookWithMockStore } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import { useDeleteFormComponentMutation } from './useDeleteFormComponentMutation';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
-import { component2IdMock, layout1NameMock } from '../../testing/layoutMock';
+import { component2IdMock, layout1NameMock, layoutSet1NameMock } from '../../testing/layoutMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 
 describe('useDeleteFormComponentMutation', () => {
   it('Should save layout without deleted component', async () => {

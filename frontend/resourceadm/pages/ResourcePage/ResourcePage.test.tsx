@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { ResourcePage } from './ResourcePage';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { Resource } from 'app-shared/types/ResourceAdm';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter, useParams } from 'react-router-dom';

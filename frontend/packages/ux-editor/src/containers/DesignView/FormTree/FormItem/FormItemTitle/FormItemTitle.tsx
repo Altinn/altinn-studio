@@ -9,6 +9,7 @@ import type { FormContainer } from '../../../../../types/FormContainer';
 import { useDeleteItem } from './useDeleteItem';
 import { isContainer } from '../../../../../utils/formItemUtils';
 import { useFormItemContext } from '../../../../FormItemContext';
+import { useAppContext } from '../../../../../hooks';
 
 export interface FormItemTitleProps {
   children: ReactNode;
@@ -18,6 +19,7 @@ export interface FormItemTitleProps {
 export const FormItemTitle = ({ children, formItem }: FormItemTitleProps) => {
   const { t } = useTranslation();
   const deleteItem = useDeleteItem(formItem);
+  const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
   const { handleDiscard } = useFormItemContext();
 
   const handleDelete = useCallback(() => {
@@ -27,12 +29,13 @@ export const FormItemTitle = ({ children, formItem }: FormItemTitleProps) => {
 
     if (confirm(confirmMessage)) {
       deleteItem(formItem.id, {
-        onSuccess: () => {
+        onSuccess: async () => {
+          await refetchLayouts(selectedFormLayoutSetName, true);
           handleDiscard();
         },
       });
     }
-  }, [formItem, t, deleteItem, handleDiscard]);
+  }, [formItem, t, deleteItem, refetchLayouts, selectedFormLayoutSetName, handleDiscard]);
 
   return (
     <div className={classes.root}>

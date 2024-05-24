@@ -4,15 +4,21 @@ import { formLayoutSettingsMock, renderWithProviders } from '../../../testing/mo
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { EditPageId } from './EditPageId';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { appContextMock } from '../../../testing/appContextMock';
+import {
+  externalLayoutsMock,
+  layout1NameMock,
+  layout2NameMock,
+  layoutSet1NameMock,
+} from '../../../testing/layoutMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data
-const app = 'app';
-const org = 'org';
-const selectedLayout = 'layoutPageName';
-const layoutSetName = 'test-layout-set';
+const selectedLayout = layout2NameMock;
+const layoutSetName = layoutSet1NameMock;
 
 describe('EditPageId', () => {
   it('renders given page ID', () => {
@@ -24,7 +30,7 @@ describe('EditPageId', () => {
     const user = userEvent.setup();
     const newPageName = 'myNewPageName';
     const updateTextId = jest.fn();
-    const updateFormLayoutName = jest.fn();
+    const updateFormLayoutName = jest.fn().mockImplementation(() => Promise.resolve());
     const mockQueries: Partial<ServicesContextProps> = {
       updateTextId,
       updateFormLayoutName,
@@ -47,6 +53,8 @@ describe('EditPageId', () => {
       layoutSetName,
     );
     expect(updateTextId).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchLayouts).toHaveBeenCalledWith(layoutSetName);
   });
 
   it('does not call updateFormLayoutName and textIdMutation when page ID is unchanged', async () => {
@@ -71,7 +79,7 @@ describe('EditPageId', () => {
 
   it('renders error message if page ID exist in layout settings order', async () => {
     const user = userEvent.setup();
-    const existingPageName = formLayoutSettingsMock.pages.order[0];
+    const existingPageName = layout1NameMock;
     renderEditPageId();
     const notUniqueErrorMessage = screen.queryByText(textMock('ux_editor.pages_error_unique'));
     expect(notUniqueErrorMessage).not.toBeInTheDocument();
@@ -92,5 +100,6 @@ const renderEditPageId = (queries?: Partial<ServicesContextProps>) => {
     [QueryKey.FormLayoutSettings, org, app, layoutSetName],
     formLayoutSettingsMock,
   );
+  queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], externalLayoutsMock);
   return renderWithProviders(<EditPageId layoutName={selectedLayout} />, { queries, queryClient });
 };

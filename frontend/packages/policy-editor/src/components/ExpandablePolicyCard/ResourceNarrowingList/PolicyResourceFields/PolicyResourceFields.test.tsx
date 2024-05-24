@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { PolicyResourceFieldsProps } from './PolicyResourceFields';
 import { PolicyResourceFields } from './PolicyResourceFields';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const mockValueId: string = 'Test123';
 const mockValueType: string = '123Test';
