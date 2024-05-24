@@ -5,11 +5,14 @@ using System.Net.Mime;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.PolicyAdmin;
+using Altinn.Studio.PolicyAdmin.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -28,11 +31,13 @@ namespace Altinn.Studio.Designer.Controllers
     {
         private readonly IProcessModelingService _processModelingService;
         private readonly IMediator _mediator;
+        private readonly IRepository _repository;
 
-        public ProcessModelingController(IProcessModelingService processModelingService, IMediator mediator)
+        public ProcessModelingController(IProcessModelingService processModelingService, IMediator mediator, IRepository repository)
         {
             _processModelingService = processModelingService;
             _mediator = mediator;
+            _repository = repository;
         }
 
         [HttpGet("process-definition")]
@@ -148,11 +153,15 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpPost("data-type/{dataTypeId}")]
-        public async Task<ActionResult> AddDataTypeToApplicationMetadata(string org, string repo, [FromRoute] string dataTypeId, CancellationToken cancellationToken)
+        public async Task<ActionResult> AddDataTypeToApplicationMetadata(string org, string repo, [FromRoute] string dataTypeId, CancellationToken cancellationToken, [FromBody] ResourcePolicy applicationPolicy)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
             await _processModelingService.AddDataTypeToApplicationMetadataAsync(editingContext, dataTypeId, cancellationToken);
+
+            XacmlPolicy xacmlPolicy = PolicyConverter.ConvertPolicy(applicationPolicy);
+            await _repository.SavePolicy(org, repo, null, xacmlPolicy);
+
             return Ok();
         }
 
