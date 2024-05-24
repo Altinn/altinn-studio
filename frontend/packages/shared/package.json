@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "author": "Altinn",
   "dependencies": {
-    "@mui/material": "5.15.15",
+    "@mui/material": "5.15.16",
     "@reduxjs/toolkit": "1.9.7",
     "axios": "1.6.8",
     "classnames": "2.5.1",
