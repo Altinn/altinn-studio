@@ -224,7 +224,7 @@ const waitForData = async () => {
   const dataModelMetadataResult = renderHookWithMockStore(
     {},
     { getDatamodelMetadata },
-  )(() => useDatamodelMetadataQuery('test-org', 'test-app', 'test-layout-set', null))
+  )(() => useDatamodelMetadataQuery('test-org', 'test-app', 'test-layout-set', 'test-data-model'))
     .renderHookResult.result;
   await waitFor(() => expect(dataModelMetadataResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
