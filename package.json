@@ -80,7 +80,7 @@
     "whatwg-fetch": "3.6.20"
   },
   "resolutions": {
-    "@testing-library/dom": "10.1.0"
+    "@testing-library/dom": "latest"
   },
   "lint-staged": {
     "*{js,jsx,tsx,ts,css,md}": "prettier -w",
