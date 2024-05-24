@@ -76,7 +76,7 @@ const PreviewFrame = () => {
 
   useEffect(() => {
     if (appNameHasChanged) {
-      // By incrementing the key by one, we force the previw to reload
+      // By incrementing the key by one, we force the preview to reload
       setIframeKey((v) => v + 1);
       setAppNameHasChanged(false);
     }
