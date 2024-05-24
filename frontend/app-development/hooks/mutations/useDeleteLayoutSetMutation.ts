@@ -11,6 +11,7 @@ export const useDeleteLayoutSetMutation = (org: string, app: string) => {
       deleteLayoutSet(org, app, layoutSetIdToUpdate),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSets, org, app] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.AppMetadataModelIds, org, app] });
     },
   });
 };
