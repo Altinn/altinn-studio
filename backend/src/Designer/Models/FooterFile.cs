@@ -9,20 +9,24 @@ public class FooterFile
     public string Schema { get; set; }
 
     [JsonPropertyName("footer")]
-    public List<FooterConfig> Footer { get; set; }
+    public List<Footer> Footer { get; set; }
 }
 
-public class FooterConfig
+public class Footer
 {
     [JsonPropertyName("type")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string Type { get; set; }
 
     [JsonPropertyName("icon")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string Icon { get; set; }
 
     [JsonPropertyName("title")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string Title { get; set; }
 
     [JsonPropertyName("target")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string Target { get; set; }
 }

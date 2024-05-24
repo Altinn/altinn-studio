@@ -937,12 +937,20 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>Empty response</returns>
         [HttpGet]
         [Route("api/v1/footer")]
-        public async Task<IActionResult> Footer(string org, string app, CancellationToken cancellationToken)
+        public async Task<ActionResult<Footer>> Footer(string org, string app, CancellationToken cancellationToken)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            FooterFile footerFile = await altinnAppGitRepository.GetFooter(cancellationToken);
-            return Ok(footerFile);
+            try
+            {
+                string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+                AltinnAppGitRepository altinnAppGitRepository =
+                    _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+                FooterFile footerFile = await altinnAppGitRepository.GetFooter(cancellationToken);
+                return Ok(footerFile);
+            }
+            catch (FileNotFoundException)
+            {
+                return Ok();
+            }
         }
 
         /// <summary>
