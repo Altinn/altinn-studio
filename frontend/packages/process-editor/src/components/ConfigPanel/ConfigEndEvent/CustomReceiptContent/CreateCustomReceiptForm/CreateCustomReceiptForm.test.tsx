@@ -4,7 +4,7 @@ import {
   type CreateCustomReceiptFormProps,
 } from './CreateCustomReceiptForm';
 import { render, screen, waitFor } from '@testing-library/react';
-import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { BpmnContext, type BpmnContextProps } from '../../../../../contexts/BpmnContext';
 import userEvent from '@testing-library/user-event';
 import { BpmnApiContext, type BpmnApiContextProps } from '../../../../../contexts/BpmnApiContext';
@@ -17,7 +17,6 @@ import { queryOptionMock } from 'app-shared/mocks/queryOptionMock';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 
 const mockAddLayoutSet = jest.fn().mockImplementation(queryOptionMock);
-
 const mockOnCloseForm = jest.fn();
 const mockAllDataModelIds: string[] = ['model1', 'model2'];
 
@@ -34,7 +33,7 @@ const defaultBpmnApiContextProps: BpmnApiContextProps = {
 describe('CreateCustomReceiptForm', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('Submits the form with valid inputs and calls "addLayoutSet", "mutateDataType", and "onCloseForm" when submit button is clicked', async () => {
+  it('Submits the form with valid inputs and calls "addLayoutSet", "mutateDataTypes", and "onCloseForm" when submit button is clicked', async () => {
     const user = userEvent.setup();
     renderCreateCustomReceiptForm();
 
@@ -74,7 +73,7 @@ describe('CreateCustomReceiptForm', () => {
         },
       ),
     );
-
+    
     expect(mockOnCloseForm).toHaveBeenCalled();
   });
 

@@ -55,7 +55,7 @@ export const ProcessEditor = (): React.ReactElement => {
     org,
     app,
   );
-  const { mutate: mutateDataType, isPending: updateDataTypePending } =
+  const { mutate: mutateDataTypes, isPending: updateDataTypePending } =
     useUpdateProcessDataTypeMutation(org, app);
 
   const existingCustomReceiptId: string | undefined = useCustomReceiptLayoutSetName(org, app);
@@ -162,7 +162,7 @@ export const ProcessEditor = (): React.ReactElement => {
       mutateLayoutSetId={mutateLayoutSetId}
       appLibVersion={appLibData.backendVersion}
       bpmnXml={hasBpmnQueryError ? null : bpmnXml}
-      mutateDataType={mutateDataType}
+      mutateDataTypes={mutateDataTypes}
       saveBpmn={saveBpmnXml}
       openPolicyEditor={() => {
         setSettingsModalSelectedTab('policy');

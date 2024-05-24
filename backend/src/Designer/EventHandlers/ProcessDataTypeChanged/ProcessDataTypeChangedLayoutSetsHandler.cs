@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Events;
@@ -39,20 +40,20 @@ public class ProcessDataTypeChangedLayoutSetsHandler : INotificationHandler<Proc
                 }
 
                 var layoutSets = await repository.GetLayoutSetsFile(cancellationToken);
-                if (TryChangeDataType(layoutSets, notification.NewDataType, notification.ConnectedTaskId))
+                if (TryChangeDataTypes(layoutSets, notification.NewDataTypes, notification.ConnectedTaskId))
                 {
                     await repository.SaveLayoutSets(layoutSets);
                 }
             });
     }
 
-    private static bool TryChangeDataType(LayoutSets layoutSets, string newDataType, string connectedTaskId)
+    private static bool TryChangeDataTypes(LayoutSets layoutSets, List<string> newDataTypes, string connectedTaskId)
     {
         bool hasChanges = false;
         var layoutSet = layoutSets.Sets?.Find(layoutSet => layoutSet.Tasks[0] == connectedTaskId);
-        if (layoutSet is not null)
+        if (layoutSet is not null && !newDataTypes.Contains(layoutSet.DataType))
         {
-            layoutSet.DataType = newDataType;
+            layoutSet.DataType = newDataTypes[0];
             hasChanges = true;
         }
 

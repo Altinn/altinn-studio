@@ -1,8 +1,8 @@
 import type { LayoutSets, LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import React, { createContext, useContext } from 'react';
 import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
-import type { DataTypeChange } from 'app-shared/types/api/DataTypeChange';
 import type { OnProcessTaskEvent } from '../types/OnProcessTask';
+import type { DataTypesChange } from 'app-shared/types/api/DataTypesChange';
 
 type QueryOptions = {
   onSuccess: () => void;
@@ -21,7 +21,7 @@ export type BpmnApiContextProps = {
   ) => void;
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
   mutateLayoutSetId: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
-  mutateDataType: (dataTypeChange: DataTypeChange, options?: QueryOptions) => void;
+  mutateDataTypes: (dataTypesChange: DataTypesChange, options?: QueryOptions) => void;
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
   openPolicyEditor: () => void;
   onProcessTaskAdd: (taskMetadata: OnProcessTaskEvent) => void;

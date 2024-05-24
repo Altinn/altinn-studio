@@ -26,16 +26,16 @@ const defaultSelectDataTypeProps: SelectDataTypeProps = {
 describe('SelectDataType', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should call updateDataType with new data type when new option is clicked', async () => {
+  it('should call updateDataTypes with new data type when new option is clicked', async () => {
     const user = userEvent.setup();
-    const mutateDataTypeMock = jest.fn();
+    const mutateDataTypesMock = jest.fn();
     const dataTypeToConnect = 'dataModel0';
     const dataModelIds = [dataTypeToConnect, 'dataModel1', 'dataModel2'];
 
-    renderEditDataType(
+    renderSelectDataTypes(
       { dataModelIds },
       {
-        mutateDataType: mutateDataTypeMock,
+        mutateDataTypes: mutateDataTypesMock,
       },
     );
     const combobox = screen.getByRole('combobox', {
@@ -44,17 +44,17 @@ describe('SelectDataType', () => {
     await user.click(combobox);
     await user.click(screen.getByRole('option', { name: dataTypeToConnect }));
 
-    expect(mutateDataTypeMock).toHaveBeenCalledWith({
+    expect(mutateDataTypesMock).toHaveBeenCalledWith({
       connectedTaskId,
-      newDataType: dataTypeToConnect,
+      newDataTypes: [dataTypeToConnect],
     });
   });
-
+  
   it('should add existing data type to combobox options', async () => {
     const user = userEvent.setup();
     const existingDataType = 'dataModel0';
     const dataModelIds = ['dataModel1', 'dataModel2'];
-    renderEditDataType({ dataModelIds, existingDataType });
+    renderSelectDataTypes({ dataModelIds, existingDataType });
 
     const combobox = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_data_model'),
@@ -66,16 +66,16 @@ describe('SelectDataType', () => {
     expect(addedOption).toBeInTheDocument();
   });
 
-  it('should call updateDataType with new data type when data type is changed', async () => {
+  it('should call updateDataTypes with new data type when data type is changed', async () => {
     const user = userEvent.setup();
-    const mutateDataTypeMock = jest.fn();
+    const mutateDataTypesMock = jest.fn();
     const existingDataType = 'dataModel0';
     const dataTypeToConnect = 'dataModel1';
     const dataModelIds = [existingDataType, dataTypeToConnect, 'dataModel2'];
-    renderEditDataType(
+    renderSelectDataTypes(
       { dataModelIds, existingDataType },
       {
-        mutateDataType: mutateDataTypeMock,
+        mutateDataTypes: mutateDataTypesMock,
       },
     );
     const combobox = screen.getByRole('combobox', {
@@ -84,44 +84,44 @@ describe('SelectDataType', () => {
     await user.click(combobox);
     await user.click(screen.getByRole('option', { name: dataTypeToConnect }));
 
-    expect(mutateDataTypeMock).toHaveBeenCalledWith({
+    expect(mutateDataTypesMock).toHaveBeenCalledWith({
       connectedTaskId,
-      newDataType: dataTypeToConnect,
+      newDataTypes: [dataTypeToConnect],
     });
     expect(mockOnClose).toHaveBeenCalled();
   });
 
-  it('should call updateDataType with no data type when data type is deleted', async () => {
+  it('should call updateDataTypes with no data type when data type is deleted', async () => {
     const user = userEvent.setup();
-    const mutateDataTypeMock = jest.fn();
+    const mutateDataTypesMock = jest.fn();
     const existingDataType = 'dataModel0';
     const dataModelIds = [existingDataType, 'dataModel1', 'dataModel2'];
-    renderEditDataType(
+    renderSelectDataTypes(
       { dataModelIds, existingDataType },
       {
-        mutateDataType: mutateDataTypeMock,
+        mutateDataTypes: mutateDataTypesMock,
       },
     );
     const deleteDataTypeButton = screen.getByRole('button', {
       name: textMock('general.delete'),
     });
     await user.click(deleteDataTypeButton);
-    expect(mutateDataTypeMock).toHaveBeenCalledWith({
+    expect(mutateDataTypesMock).toHaveBeenCalledWith({
       connectedTaskId,
-      newDataType: undefined,
+      newDataTypes: [undefined],
     });
     expect(mockOnClose).toHaveBeenCalled();
   });
 
-  it('should not call updateDataType when data type is set to existing', async () => {
+  it('should not call updateDataTypes when data type is set to existing', async () => {
     const user = userEvent.setup();
-    const mutateDataTypeMock = jest.fn();
+    const mutateDataTypesMock = jest.fn();
     const existingDataType = 'dataModel0';
     const dataModelIds = [existingDataType, 'dataModel1', 'dataModel2'];
-    renderEditDataType(
+    renderSelectDataTypes(
       { dataModelIds, existingDataType },
       {
-        mutateDataType: mutateDataTypeMock,
+        mutateDataTypes: mutateDataTypesMock,
       },
     );
     const combobox = screen.getByRole('combobox', {
@@ -130,12 +130,12 @@ describe('SelectDataType', () => {
     await user.click(combobox);
     await user.click(screen.getByRole('option', { name: existingDataType }));
 
-    expect(mutateDataTypeMock).not.toHaveBeenCalled();
+    expect(mutateDataTypesMock).not.toHaveBeenCalled();
     expect(mockOnClose).toHaveBeenCalled();
   });
 });
 
-const renderEditDataType = (
+const renderSelectDataTypes = (
   props: Partial<SelectDataTypeProps> = {},
   bpmnApiContextProps: Partial<BpmnApiContextProps> = {},
 ) => {

@@ -106,21 +106,20 @@ namespace Altinn.Studio.Designer.Controllers
             return Accepted();
         }
 
-        [HttpPut("data-type")]
-        public async Task<IActionResult> ProcessDataTypeChangedNotify(string org, string repo, [FromBody] DataTypeChange dataTypeChange, CancellationToken cancellationToken)
+        [HttpPut("data-types")]
+        public async Task<IActionResult> ProcessDataTypesChangedNotify(string org, string repo, [FromBody] DataTypesChange dataTypesChange, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
 
-            if (dataTypeChange is not null)
+            if (dataTypesChange is not null)
             {
-
-                await _mediator.Publish(new ProcessDataTypeChangedEvent
-                {
-                    NewDataType = dataTypeChange.NewDataType,
-                    ConnectedTaskId = dataTypeChange.ConnectedTaskId,
-                    EditingContext = editingContext
-                }, cancellationToken);
+                    await _mediator.Publish(new ProcessDataTypeChangedEvent
+                    {
+                        NewDataTypes = dataTypesChange.NewDataTypes,
+                        ConnectedTaskId = dataTypesChange.ConnectedTaskId,
+                        EditingContext = editingContext
+                    }, cancellationToken);
             }
 
             return Accepted();

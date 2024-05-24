@@ -19,7 +19,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const { metaDataFormRef, resetForm } = useBpmnConfigPanelFormContext();
   const { getModeler, destroyModeler } = useBpmnModeler();
-
+  
   const { saveBpmn, onProcessTaskAdd, onProcessTaskRemove } = useBpmnApiContext();
 
   const handleCommandStackChanged = async () => {
