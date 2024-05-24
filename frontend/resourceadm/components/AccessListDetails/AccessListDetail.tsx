@@ -11,7 +11,7 @@ import { useDeleteAccessListMutation } from '../../hooks/mutations/useDeleteAcce
 import { useGetAccessListMembersQuery } from '../../hooks/queries/useGetAccessListMembersQuery';
 import { AccessListMembers } from '../AccessListMembers';
 import { TrashIcon } from '@studio/icons';
-import { StudioButton, StudioSpinner } from '@studio/components';
+import { StudioButton } from '@studio/components';
 
 export interface AccessListDetailProps {
   org: string;
@@ -135,9 +135,6 @@ export const AccessListDetail = ({
                 variant='tertiary'
                 onClick={() => fetchNextPage()}
               >
-                {isFetchingNextPage && (
-                  <StudioSpinner size='small' spinnerTitle={t('general.loading')} />
-                )}
                 {t('resourceadm.listadmin_load_more', {
                   unit: t('resourceadm.listadmin_member_unit'),
                 })}
