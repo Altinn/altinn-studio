@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import type { ResourceNameAndIdProps } from './ResourceNameAndId';
 import { ResourceNameAndId } from './ResourceNameAndId';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const mockTitleLabel = 'TitleLabel';
 const mockIdLabel = 'IdLabel';

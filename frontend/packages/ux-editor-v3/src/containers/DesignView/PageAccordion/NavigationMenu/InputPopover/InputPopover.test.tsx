@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import type { InputPopoverProps } from './InputPopover';
 import { InputPopover } from './InputPopover';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const mockOldName: string = 'layout1';
 const mockNewValue: string = '1';

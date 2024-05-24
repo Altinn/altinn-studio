@@ -11,9 +11,8 @@ import { type Organization } from 'app-shared/types/Organization';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
+import { app, org } from '@studio/testing/testids';
 
-const org = 'org';
-const app = 'app';
 const mockServiceFullName: string = `${org}/${app}`;
 const mockUser: User = {
   id: 1,

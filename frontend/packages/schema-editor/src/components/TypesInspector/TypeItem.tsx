@@ -4,7 +4,7 @@ import { extractNameFromPointer } from '@altinn/schema-model';
 import { CogIcon, FileJsonIcon } from '@studio/icons';
 import classes from './TypeItem.module.css';
 import classNames from 'classnames';
-import * as testids from '../../../../../testing/testids';
+import { typeItemId } from '@studio/testing/testids';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 
 export interface TypeItemProps {
@@ -26,7 +26,7 @@ export const TypeItem = ({ uiSchemaNode, selected, setSelectedTypePointer }: Typ
           [classes.itemSelected]: selected,
         })}
         onClick={handleClick}
-        data-testid={testids.typeItem(uiSchemaNode.pointer)}
+        data-testid={typeItemId(uiSchemaNode.pointer)}
       >
         <div>
           <FileJsonIcon className={classes.typeIcon} />

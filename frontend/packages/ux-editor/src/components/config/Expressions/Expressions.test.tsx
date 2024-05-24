@@ -3,8 +3,8 @@ import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../testing/mocks';
 import type { IFormLayouts } from '../../../types/global';
-import { layout1NameMock, layoutMock, layoutSetsMock } from '../../../testing/layoutMock';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { layout1NameMock, layoutMock, layoutSet1NameMock } from '../../../testing/layoutMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { Expressions } from './Expressions';
@@ -16,11 +16,10 @@ import type { FormContainer } from '../../../types/FormContainer';
 import type { AppContextProps } from '../../../AppContext';
 import { ObjectUtils } from '@studio/pure-functions';
 import { LogicalTupleOperator } from '@studio/components';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const layoutSetName = layoutSetsMock.sets[0].id;
+const layoutSetName = layoutSet1NameMock;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };

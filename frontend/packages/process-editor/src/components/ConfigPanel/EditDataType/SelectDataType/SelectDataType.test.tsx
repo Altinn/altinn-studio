@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { BpmnApiContextProps } from '../../../../contexts/BpmnApiContext';
 import { BpmnApiContext } from '../../../../contexts/BpmnApiContext';
@@ -37,7 +37,7 @@ const mockBpmnContextValue: Partial<BpmnContextProps> = {
 
 const defaultSelectDataTypeProps: SelectDataTypeProps = {
   connectedTaskId: mockTaskId,
-  dataModelIds: [],
+  datamodelIds: [],
   existingDataType: undefined,
   onClose: jest.fn(),
 };
@@ -46,11 +46,11 @@ describe('SelectDataType', () => {
   afterEach(jest.clearAllMocks);
   it('should display the default text as disabled in the select list when no data type is connected to task and there are available data types', () => {
     renderEditDataType();
-    const selectDataModel = screen.getByRole('combobox', {
+    const selectDatamodel = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
-    expect(selectDataModel).toBeInTheDocument();
-    expect(selectDataModel).toHaveValue(noModelKey);
+    expect(selectDatamodel).toBeInTheDocument();
+    expect(selectDatamodel).toHaveValue(noModelKey);
     expect(
       screen.getByRole('option', {
         name: textMock('process_editor.configuration_panel_select_datamodel'),
@@ -62,18 +62,18 @@ describe('SelectDataType', () => {
     const user = userEvent.setup();
     const mutateDataTypeMock = jest.fn();
     const dataTypeToConnect = 'datamodel0';
-    const dataModelIds = [dataTypeToConnect, 'dataModel1', 'dataModel2'];
+    const datamodelIds = [dataTypeToConnect, 'dataModel1', 'dataModel2'];
 
     renderEditDataType(
-      { dataModelIds },
+      { datamodelIds },
       {
         mutateDataType: mutateDataTypeMock,
       },
     );
-    const selectDataModel = screen.getByRole('combobox', {
+    const selectDatamodel = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
-    await user.selectOptions(selectDataModel, dataTypeToConnect);
+    await user.selectOptions(selectDatamodel, dataTypeToConnect);
     expect(mutateDataTypeMock).toHaveBeenCalledWith({
       connectedTaskId: mockTaskId,
       newDataType: dataTypeToConnect,
@@ -85,17 +85,17 @@ describe('SelectDataType', () => {
     const mutateDataTypeMock = jest.fn();
     const existingDataType = 'dataModel0';
     const dataTypeToConnect = 'datamodel1';
-    const dataModelIds = [existingDataType, dataTypeToConnect, 'dataModel2'];
+    const datamodelIds = [existingDataType, dataTypeToConnect, 'dataModel2'];
     renderEditDataType(
-      { dataModelIds, existingDataType },
+      { datamodelIds, existingDataType },
       {
         mutateDataType: mutateDataTypeMock,
       },
     );
-    const selectDataModel = screen.getByRole('combobox', {
+    const selectDatamodel = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
-    await user.selectOptions(selectDataModel, dataTypeToConnect);
+    await user.selectOptions(selectDatamodel, dataTypeToConnect);
     expect(mutateDataTypeMock).toHaveBeenCalledWith({
       connectedTaskId: mockTaskId,
       newDataType: dataTypeToConnect,
@@ -106,9 +106,9 @@ describe('SelectDataType', () => {
     const user = userEvent.setup();
     const mutateDataTypeMock = jest.fn();
     const existingDataType = 'dataModel0';
-    const dataModelIds = [existingDataType, 'datamodel1', 'dataModel2'];
+    const datamodelIds = [existingDataType, 'datamodel1', 'dataModel2'];
     renderEditDataType(
-      { dataModelIds, existingDataType },
+      { datamodelIds, existingDataType },
       {
         mutateDataType: mutateDataTypeMock,
       },
@@ -127,17 +127,17 @@ describe('SelectDataType', () => {
     const user = userEvent.setup();
     const mutateDataTypeMock = jest.fn();
     const existingDataType = 'dataModel0';
-    const dataModelIds = [existingDataType, 'datamodel1', 'dataModel2'];
+    const datamodelIds = [existingDataType, 'datamodel1', 'dataModel2'];
     renderEditDataType(
-      { dataModelIds, existingDataType },
+      { datamodelIds, existingDataType },
       {
         mutateDataType: mutateDataTypeMock,
       },
     );
-    const selectDataModel = screen.getByRole('combobox', {
+    const selectDatamodel = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_datamodel'),
     });
-    await user.selectOptions(selectDataModel, existingDataType);
+    await user.selectOptions(selectDatamodel, existingDataType);
     expect(mutateDataTypeMock).not.toHaveBeenCalled();
   });
 });

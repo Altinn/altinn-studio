@@ -1,10 +1,7 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithMockStore } from '../../test/mocks';
 import { useResetRepositoryMutation } from './useResetRepositoryMutation';
-
-// Test data:
-const org = 'org';
-const app = 'app';
+import { app, org } from '@studio/testing/testids';
 
 describe('useResetRepositoryMutation', () => {
   it('Calls updateServiceConfig with correct arguments and payload', async () => {

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import { useSelectedFormLayoutSetName } from './';
-import { layoutSetsMock } from '../testing/layoutMock';
+import { layoutSet1NameMock, layoutSetsMock } from '../testing/layoutMock';
 import { renderHook } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
@@ -10,19 +10,10 @@ import { MemoryRouter } from 'react-router-dom';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const selectedLayoutSet = layoutSetsMock.sets[0].id;
-
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({
-    org,
-    app,
-  }),
-}));
+const selectedLayoutSet = layoutSet1NameMock;
 
 const wrapper = ({
   children,

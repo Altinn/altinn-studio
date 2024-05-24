@@ -6,7 +6,7 @@ import { TestFlaskIcon } from '@studio/icons';
 import type { TabProps } from './Tab';
 import { Tab } from './Tab';
 import { MemoryRouter } from 'react-router-dom';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const mockOnClick = jest.fn();
 const mockOnKeyDown = jest.fn();

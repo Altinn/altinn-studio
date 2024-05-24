@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ResourceReference } from 'app-shared/types/ResourceAdm';
 import type { ResourceReferenceFieldsProps } from './ResourceReferenceFields';
 import { ResourceReferenceFields } from './ResourceReferenceFields';

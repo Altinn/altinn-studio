@@ -3,7 +3,7 @@ import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing
 import userEvent from '@testing-library/user-event';
 import type { SettingsModalProps } from './SettingsModal';
 import { SettingsModal } from './SettingsModal';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient, UseMutationResult } from '@tanstack/react-query';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -11,17 +11,7 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';
 import { MemoryRouter } from 'react-router-dom';
-
-const mockApp: string = 'app';
-const mockOrg: string = 'org';
-
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({
-    app: mockApp,
-    org: mockOrg,
-  }),
-}));
+import { app, org } from '@studio/testing/testids';
 
 jest.mock('../../../hooks/mutations/useAppConfigMutation');
 const updateAppConfigMutation = jest.fn();
@@ -43,8 +33,8 @@ describe('SettingsModal', () => {
   const defaultProps: SettingsModalProps = {
     isOpen: true,
     onClose: mockOnClose,
-    org: mockOrg,
-    app: mockApp,
+    org,
+    app,
   };
 
   it('closes the modal when the close button is clicked', async () => {

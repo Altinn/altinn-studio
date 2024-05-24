@@ -5,7 +5,7 @@ import { SchemaGenerationErrorsPanel } from './SchemaGenerationErrorsPanel';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 const schemaGenerationErrorMessages = ['custom error message', 'another custom error message'];

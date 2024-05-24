@@ -3,9 +3,9 @@ import { TextEditor } from './TextEditor';
 import type { TextEditorProps } from './TextEditor';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
-import * as testids from '../../../testing/testids';
+import { deleteButtonId, app, org } from '@studio/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -44,7 +44,7 @@ describe('TextEditor', () => {
       updateTextId: jest.fn(),
       upsertTextResource: jest.fn(),
     };
-    queryClientMock.setQueryData([QueryKey.LayoutNames, 'org', 'app'], []);
+    queryClientMock.setQueryData([QueryKey.LayoutNames, org, app], []);
     return rtlRender(
       <ServicesContextProvider {...queriesMock} client={queryClientMock}>
         <TextEditor {...defaultProps} {...props} />
@@ -83,7 +83,7 @@ describe('TextEditor', () => {
     renderTextEditor({
       deleteLanguage: handleDeleteLang,
     });
-    const deleteBtn = screen.getByTestId(testids.deleteButton('en'));
+    const deleteBtn = screen.getByTestId(deleteButtonId('en'));
 
     await user.click(deleteBtn);
     await screen.findByRole('dialog');
@@ -104,7 +104,7 @@ describe('TextEditor', () => {
       setSelectedLangCodes: setSelectedLangCodes,
       deleteLanguage: handleDeleteLang,
     });
-    const deleteBtn = screen.getByTestId(testids.deleteButton('en'));
+    const deleteBtn = screen.getByTestId(deleteButtonId('en'));
 
     await user.click(deleteBtn);
     await screen.findByRole('dialog');

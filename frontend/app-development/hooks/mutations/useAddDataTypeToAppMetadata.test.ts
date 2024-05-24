@@ -2,9 +2,8 @@ import { renderHookWithMockStore } from '../../test/mocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { waitFor } from '@testing-library/react';
 import { useAddDataTypeToAppMetadata } from './useAddDataTypeToAppMetadata';
+import { app, org } from '@studio/testing/testids';
 
-const org = 'org';
-const app = 'app';
 const dataTypeId = 'paymentInformation-1234';
 
 describe('useAddDataTypeToAppMetadata', () => {

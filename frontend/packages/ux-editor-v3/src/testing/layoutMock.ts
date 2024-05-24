@@ -11,7 +11,9 @@ import type {
 
 export const layout1NameMock = 'Side1';
 export const layout2NameMock = 'Side2';
-
+export const layoutSet1NameMock = 'test-layout-set';
+export const layoutSet2NameMock = 'test-layout-set-2';
+export const dataModelNameMock = 'test-data-model';
 export const baseContainerIdMock = BASE_CONTAINER_ID;
 export const component1IdMock = 'Component-1';
 export const component1TypeMock = ComponentTypeV3.Input;
@@ -104,12 +106,12 @@ export const externalLayoutsMock: FormLayoutsResponseV3 = {
 export const layoutSetsMock: LayoutSets = {
   sets: [
     {
-      id: 'test-layout-set',
+      id: layoutSet1NameMock,
       dataType: 'datamodel',
       tasks: ['Task_1'],
     },
     {
-      id: 'test-layout-set-2',
+      id: layoutSet2NameMock,
       dataType: 'datamodel-2',
       tasks: ['Task_2'],
     },

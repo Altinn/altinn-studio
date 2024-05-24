@@ -3,7 +3,7 @@ import { render, screen, waitForElementToBeRemoved, waitFor } from '@testing-lib
 import type { ServiceContentProps } from './ServiceContent';
 import { ServiceContent } from './ServiceContent';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';

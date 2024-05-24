@@ -4,7 +4,7 @@ import { SchemaEditorApp } from './SchemaEditorApp';
 import { jsonMetadataMock } from 'app-shared/mocks/datamodelMetadataMocks';
 import { jsonSchemaMock } from '../test/mocks/jsonSchemaMock';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 // Mocks:
 const saveMock = jest.fn();

@@ -1,6 +1,5 @@
 import React from 'react';
-import { NativeSelect } from '@digdir/design-system-react';
-import { StudioButton, StudioDeleteButton } from '@studio/components';
+import { StudioButton, StudioDeleteButton, StudioNativeSelect } from '@studio/components';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
@@ -8,17 +7,19 @@ import classes from './SelectDataType.module.css';
 import type { DataTypeChange } from 'app-shared/types/api/DataTypeChange';
 
 export interface SelectDataTypeProps {
-  dataModelIds: string[];
+  datamodelIds: string[];
   existingDataType: string;
   connectedTaskId: string;
   onClose: () => void;
+  hideDeleteButton?: boolean;
 }
 export const SelectDataType = ({
-  dataModelIds,
+  datamodelIds,
   existingDataType,
   connectedTaskId,
   onClose,
-}: SelectDataTypeProps) => {
+  hideDeleteButton,
+}: SelectDataTypeProps): React.ReactElement => {
   const { t } = useTranslation();
   const { mutateDataType } = useBpmnApiContext();
   const handleChangeDataModel = (dataModelId?: string) => {
@@ -33,7 +34,7 @@ export const SelectDataType = ({
 
   return (
     <div className={classes.dataTypeSelect}>
-      <NativeSelect
+      <StudioNativeSelect
         size='small'
         onChange={({ target }) => handleChangeDataModel(target.value)}
         label={t('process_editor.configuration_panel_set_datamodel')}
@@ -42,12 +43,12 @@ export const SelectDataType = ({
         <option disabled={true} value={'noModelKey'}>
           {t('process_editor.configuration_panel_select_datamodel')}
         </option>
-        {dataModelIds.map((option) => (
+        {datamodelIds.map((option) => (
           <option key={option} value={option}>
             {option}
           </option>
         ))}
-      </NativeSelect>
+      </StudioNativeSelect>
       <div className={classes.buttons}>
         <StudioButton
           icon={<XMarkIcon />}
@@ -56,11 +57,13 @@ export const SelectDataType = ({
           title={t('general.close')}
           variant='secondary'
         />
-        <StudioDeleteButton
-          onDelete={handleChangeDataModel}
-          size='small'
-          title={t('general.delete')}
-        />
+        {!hideDeleteButton && (
+          <StudioDeleteButton
+            onDelete={handleChangeDataModel}
+            size='small'
+            title={t('general.delete')}
+          />
+        )}
       </div>
     </div>
   );

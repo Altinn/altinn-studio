@@ -4,13 +4,17 @@ import { waitFor } from '@testing-library/react';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { useDeleteFormContainerMutation } from './useDeleteFormContainerMutation';
-import { container1IdMock, externalLayoutsMock, layout1NameMock } from '../../testing/layoutMock';
+import {
+  container1IdMock,
+  externalLayoutsMock,
+  layout1NameMock,
+  layoutSet1NameMock,
+} from '../../testing/layoutMock';
 import type { FormLayoutsResponse } from 'app-shared/types/api';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 const id = container1IdMock;
 
 describe('useDeleteFormContainerMutation', () => {

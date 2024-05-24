@@ -5,7 +5,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../../../testing/mocks';
 import type { SimpleExpressionPreviewProps } from './SimpleExpressionPreview';
 import { SimpleExpressionPreview } from './SimpleExpressionPreview';
-import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ExpressionFunction, ExpressionPropertyBase } from '../../../../../types/Expressions';
 
 describe('SimpleExpressionPreview', () => {

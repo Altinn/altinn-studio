@@ -6,10 +6,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { DatamodelMetadataJson } from 'app-shared/types/DatamodelMetadata';
 import { jsonMetadataMock } from 'app-shared/mocks/datamodelMetadataMocks';
-
-// Test data:
-const org = 'org';
-const app = 'app';
+import { app, org } from '@studio/testing/testids';
 
 describe('useDatamodelsJsonQuery', () => {
   it('Calls getDatamodels with correct arguments and returns the data', async () => {

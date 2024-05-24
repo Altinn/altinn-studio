@@ -6,16 +6,15 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { HiddenExpressionOnLayout } from './HiddenExpressionOnLayout';
 import type { IFormLayouts } from '../../../types/global';
-import { layout1NameMock, layoutMock, layoutSetsMock } from '../../../testing/layoutMock';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { layout1NameMock, layoutMock, layoutSet1NameMock } from '../../../testing/layoutMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { BooleanExpression } from '@studio/components';
 import { GeneralRelationOperator } from '@studio/components';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data
-const app = 'app';
-const org = 'org';
-const layoutSet = layoutSetsMock.sets[0].id;
+const layoutSet = layoutSet1NameMock;
 const dataModelName = undefined;
 
 const defaultLayouts: IFormLayouts = {

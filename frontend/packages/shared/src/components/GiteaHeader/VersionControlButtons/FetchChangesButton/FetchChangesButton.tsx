@@ -7,12 +7,14 @@ import { Notification } from '../Notification';
 
 export interface IFetchChangesButtonProps {
   fetchChanges: any;
+  hasMergeConflict: boolean;
   displayNotification: boolean;
   numChanges: number;
 }
 
 export const FetchChangesButton = ({
   fetchChanges,
+  hasMergeConflict,
   displayNotification,
   numChanges,
 }: IFetchChangesButtonProps) => {
@@ -24,13 +26,14 @@ export const FetchChangesButton = ({
     <StudioButton
       className={classes.button}
       color='inverted'
+      disabled={hasMergeConflict}
       icon={<DownloadIcon />}
       onClick={fetchChangesHandler}
       size='small'
       variant='tertiary'
     >
       {t('sync_header.fetch_changes')}
-      {displayNotification && <Notification numChanges={numChanges} />}
+      {displayNotification && !hasMergeConflict && <Notification numChanges={numChanges} />}
     </StudioButton>
   );
 };

@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { BPMNEditor } from './BPMNEditor';
 import { BpmnApiContextProvider } from '../../../contexts/BpmnApiContext';
 import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 jest.mock('../../../hooks/useBpmnEditor', () => ({
   useBpmnEditor: jest.fn().mockReturnValue({
