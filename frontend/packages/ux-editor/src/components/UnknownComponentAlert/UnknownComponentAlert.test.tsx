@@ -1,7 +1,7 @@
 ﻿import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { UnknownComponentAlert } from './UnknownComponentAlert';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('UnknownComponentAlert', () => {
   it('should render information about unknown component', () => {

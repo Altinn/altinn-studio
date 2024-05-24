@@ -6,7 +6,7 @@ import { renderWithProviders } from '../../../../test/renderWithProviders';
 import { extractNameFromPointer, ROOT_POINTER, SchemaModel } from '@altinn/schema-model';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import {
   booleanDefinitionPointer,
   combinationDefinitionPointer,

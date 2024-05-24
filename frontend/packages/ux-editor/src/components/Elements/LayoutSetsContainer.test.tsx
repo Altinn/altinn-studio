@@ -4,15 +4,14 @@ import userEvent from '@testing-library/user-event';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../testing/mocks';
-import { layoutSetsMock } from '../../testing/layoutMock';
+import { layoutSet1NameMock, layoutSet2NameMock, layoutSetsMock } from '../../testing/layoutMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { appContextMock } from '../../testing/appContextMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data
-const org = 'org';
-const app = 'app';
-const layoutSetName1 = layoutSetsMock.sets[0].id;
-const layoutSetName2 = layoutSetsMock.sets[1].id;
+const layoutSetName1 = layoutSet1NameMock;
+const layoutSetName2 = layoutSet2NameMock;
 
 describe('LayoutSetsContainer', () => {
   it('renders component', async () => {

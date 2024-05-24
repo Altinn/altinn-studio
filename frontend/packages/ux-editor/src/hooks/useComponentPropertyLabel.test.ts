@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { useComponentPropertyLabel } from './useComponentPropertyLabel';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('useComponentPropertyLabel', () => {
   it('Returns a function that returns the property name', () => {

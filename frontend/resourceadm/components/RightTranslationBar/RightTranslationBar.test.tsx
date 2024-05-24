@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { RightTranslationBarProps } from './RightTranslationBar';
 import { RightTranslationBar } from './RightTranslationBar';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('RightTranslationBar', () => {
   const mockOnLanguageChange = jest.fn();

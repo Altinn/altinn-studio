@@ -20,7 +20,7 @@ import nb from '../../language/src/nb.json';
 import en from '../../language/src/en.json';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
-import * as testids from '../../testing/testids';
+import { appContentWrapperId } from '@studio/testing/testids';
 
 const TEN_MINUTES_IN_MILLISECONDS = 600000;
 
@@ -146,7 +146,7 @@ export function App() {
         <h2>{t('session.expires')}</h2>
         <p style={{ marginTop: '1.6rem' }}>{t('session.inactive')}</p>
       </AltinnPopoverSimple>
-      <div data-testid={testids.appContentWrapper}>
+      <div data-testid={appContentWrapperId}>
         <Outlet />
       </div>
     </div>

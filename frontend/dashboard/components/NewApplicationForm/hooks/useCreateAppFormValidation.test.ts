@@ -1,6 +1,6 @@
 ﻿import { renderHook } from '@testing-library/react';
 import { useCreateAppFormValidation } from './useCreateAppFormValidation';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('useCreateAppFormValidation', () => {
   describe('validateRepoName', () => {

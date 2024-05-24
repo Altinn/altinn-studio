@@ -3,11 +3,12 @@ import { Preview } from './Preview';
 import { screen } from '@testing-library/react';
 import type { ExtendedRenderOptions } from '../../testing/mocks';
 import { renderWithProviders } from '../../testing/mocks';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { appContextMock } from '../../testing/appContextMock';
 import { previewPage } from 'app-shared/api/paths';
 import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
+import { app, org } from '@studio/testing/testids';
 
 describe('Preview', () => {
   it('Renders an iframe with the ref from AppContext', () => {
@@ -79,8 +80,8 @@ describe('Preview', () => {
     expect(appContextMock.previewIframeRef?.current?.src).toBe(
       'http://localhost' +
         previewPage(
-          'org',
-          'app',
+          org,
+          app,
           appContextMock.selectedFormLayoutSetName,
           TASKID_FOR_STATELESS_APPS,
           appContextMock.selectedFormLayoutName,
@@ -95,8 +96,8 @@ describe('Preview', () => {
     expect(appContextMock.previewIframeRef?.current?.src).toBe(
       'http://localhost' +
         previewPage(
-          'org',
-          'app',
+          org,
+          app,
           appContextMock.selectedFormLayoutSetName,
           TASKID_FOR_STATELESS_APPS,
           newSelectedFormLayoutName,

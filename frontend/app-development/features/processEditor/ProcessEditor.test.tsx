@@ -5,18 +5,17 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../test/testUtils';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { AppVersion } from 'app-shared/types/AppVersion';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { useBpmnContext } from '@altinn/process-editor/contexts/BpmnContext';
 import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { type SyncError, type SyncSuccess } from './syncUtils';
 import { processEditorWebSocketHub } from 'app-shared/api/paths';
+import { app, org } from '@studio/testing/testids';
 import { SyncSuccessQueriesInvalidator } from 'app-shared/queryInvalidator/SyncSuccessQueriesInvalidator';
 
 // test data
-const org = 'org';
-const app = 'app';
 const defaultAppVersion: AppVersion = { backendVersion: '8.0.0', frontendVersion: '4.0.0' };
 
 jest.mock('app-shared/hooks/useWebSocket', () => ({

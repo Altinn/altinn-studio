@@ -3,13 +3,12 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { useSchemaQuery } from './useSchemaQuery';
 import { renderHookWithMockStore } from '../../test/mocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
 const jsonModelPathWithSlash = '/App/models/model.schema.json';
 const xsdModelPath = 'App/models/model.xsd';
 const xsdModelPathWithSlash = '/' + xsdModelPath;
-const org = 'org';
-const app = 'app';
 
 describe('useSchemaQuery', () => {
   afterEach(jest.clearAllMocks);

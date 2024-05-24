@@ -3,7 +3,7 @@ import { render as rtlRender, screen } from '@testing-library/react';
 import type { SetupTabContentProps } from './SetupTabContent';
 import { SetupTabContent } from './SetupTabContent';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
-import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { UseMutationResult } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

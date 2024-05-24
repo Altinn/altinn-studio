@@ -4,20 +4,18 @@ import { screen, waitFor } from '@testing-library/react';
 import type { PageAccordionProps } from './PageAccordion';
 import { PageAccordion } from './PageAccordion';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
-import { formDesignerMock } from '../../../testing/stateMocks';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import {
   formLayoutSettingsMock,
   renderHookWithMockStore,
   renderWithMockStore,
 } from '../../../testing/mocks';
-import { layout2NameMock } from '../../../testing/layoutMock';
+import { layout1NameMock, layout2NameMock, layoutSet1NameMock } from '../../../testing/layoutMock';
+import { app, org } from '@studio/testing/testids';
 
-const mockOrg = 'org';
-const mockApp = 'app';
-const mockPageName1: string = formDesignerMock.layout.selectedLayout;
-const mockSelectedLayoutSet = 'test-layout-set';
+const mockPageName1: string = layout1NameMock;
+const mockSelectedLayoutSet = layoutSet1NameMock;
 const mockPageName2 = layout2NameMock;
 
 const mockSetSearchParams = jest.fn();
@@ -25,8 +23,8 @@ const mockSearchParams = { layout: mockPageName1 };
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
-    org: mockOrg,
-    app: mockApp,
+    org,
+    app,
   }),
   useSearchParams: () => {
     return [new URLSearchParams(mockSearchParams), mockSetSearchParams];
@@ -131,8 +129,7 @@ const waitForData = async () => {
   const settingsResult = renderHookWithMockStore(
     {},
     { getFormLayoutSettings },
-  )(() => useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet)).renderHookResult
-    .result;
+  )(() => useFormLayoutSettingsQuery(org, app, mockSelectedLayoutSet)).renderHookResult.result;
 
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 };

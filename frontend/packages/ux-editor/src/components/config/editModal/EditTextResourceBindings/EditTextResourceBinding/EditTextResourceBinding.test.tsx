@@ -10,17 +10,14 @@ import {
 } from '../../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../../hooks/queries/useLayoutSchemaQuery';
 import type { ITextResource, ITextResourcesWithLanguage } from 'app-shared/types/global';
-import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import type { FormComponent } from '../../../../../types/FormComponent';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
-
-// Test data:
-const org = 'org';
-const app = 'app';
 
 describe('EditTextResourceBindings component', () => {
   const mockComponent: FormComponent = {
