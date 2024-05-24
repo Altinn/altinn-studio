@@ -3,10 +3,9 @@ import { useUpsertTextResourceMutation } from './useUpsertTextResourceMutation';
 import { renderHookWithProviders } from '../../testing/mocks';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 import { appContextMock } from '../../testing/appContextMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const language = 'nb';
 const textId = 'testid';
 const translation = 'testvalue';

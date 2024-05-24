@@ -3,7 +3,7 @@ import { screen, queryByAttribute, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LandingPage } from './LandingPage';
 import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('LandingPage', () => {
   it('should render an iframe', () => {

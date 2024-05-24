@@ -1,3 +1,4 @@
+import { layout1NameMock, layout2NameMock } from '../testing/layoutMock';
 import type { IFormLayouts } from '../types/global';
 import {
   getAllLayoutComponents,
@@ -7,8 +8,8 @@ import {
 import { ComponentType } from 'app-shared/types/ComponentType';
 
 // Test data:
-const layout1Name = 'Side1';
-const layout2Name = 'Side2';
+const layout1Name = layout1NameMock;
+const layout2Name = layout2NameMock;
 const container0Id = '42d928ea-57bc-4744-84d0-52d8ed80fd4d';
 const container1Id = '46c74255-82b2-41a3-8208-39e552547b3f';
 const container2Id = '990f0895-c7ad-4d69-81df-3cade0cbe574';

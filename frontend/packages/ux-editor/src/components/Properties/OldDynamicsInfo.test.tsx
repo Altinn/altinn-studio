@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../testing/mocks';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { OldDynamicsInfo } from './OldDynamicsInfo';
 import type { AppContextProps } from '../../AppContext';
 import { AppContext } from '../../AppContext';

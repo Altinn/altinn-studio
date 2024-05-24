@@ -1,8 +1,8 @@
-import * as testids from '../../testids';
+import { draggableToolbarItemId, droppableListId, fileSelectorInputId } from '../../testids';
 
 export enum DataTestId {
   PushToGiteaSpinner = 'studio-spinner-test-id',
-  DraggableToolbarItem = testids.draggableToolbarItem,
-  DroppableList = testids.droppableList,
-  FileSelectorInput = testids.fileSelectorInput,
+  DraggableToolbarItem = draggableToolbarItemId,
+  DroppableList = droppableListId,
+  FileSelectorInput = fileSelectorInputId,
 }

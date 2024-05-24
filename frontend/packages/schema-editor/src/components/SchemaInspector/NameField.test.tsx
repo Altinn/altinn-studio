@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { NameFieldProps } from './NameField';
 import { NameField } from './NameField';
 import { renderWithProviders } from '../../../test/renderWithProviders';

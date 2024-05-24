@@ -14,13 +14,12 @@ import {
   externalLayoutsMock,
   layout1NameMock,
   layoutMock,
-  layoutSetsMock,
+  layoutSet1NameMock,
 } from '../testing/layoutMock';
+import { app, org } from '@studio/testing/testids';
 
-const org = 'org';
-const app = 'app';
 const layoutName = layout1NameMock;
-const layoutSetName = layoutSetsMock.sets[0].id;
+const layoutSetName = layoutSet1NameMock;
 
 jest.useFakeTimers({ advanceTimers: true });
 

@@ -5,7 +5,7 @@ import { MapComponent } from './MapComponent';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
 import { appDataMock } from '../../../../testing/stateMocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
-import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
+import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import type { IGenericEditComponent } from '../../componentConfig';
 
 const texts: Record<string, string> = {

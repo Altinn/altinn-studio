@@ -2,7 +2,7 @@ import React from 'react';
 import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { PolicyTabProps } from './PolicyTab';
 import { PolicyTab } from './PolicyTab';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -12,6 +12,7 @@ import type { Policy, PolicyAction, PolicySubject } from '@altinn/policy-editor'
 import userEvent from '@testing-library/user-event';
 import { useAppPolicyMutation } from 'app-development/hooks/mutations';
 import { mockPolicy } from '../../../mocks/policyMock';
+import { app, org } from '@studio/testing/testids';
 
 const mockActions: PolicyAction[] = [
   { actionId: 'a1', actionTitle: 'Action 1', actionDescription: 'The first action' },
@@ -40,9 +41,6 @@ const mockSubjects: PolicySubject[] = [
   },
 ];
 
-const mockApp: string = 'app';
-const mockOrg: string = 'org';
-
 jest.mock('../../../../../../hooks/mutations/useAppPolicyMutation');
 const updateAppPolicyMutation = jest.fn();
 const mockUpdateAppPolicyMutation = useAppPolicyMutation as jest.MockedFunction<
@@ -57,8 +55,8 @@ const getPolicyActions = jest.fn().mockImplementation(() => Promise.resolve({}))
 const getPolicySubjects = jest.fn().mockImplementation(() => Promise.resolve({}));
 
 const defaultProps: PolicyTabProps = {
-  org: mockOrg,
-  app: mockApp,
+  org,
+  app,
 };
 
 describe('PolicyTab', () => {

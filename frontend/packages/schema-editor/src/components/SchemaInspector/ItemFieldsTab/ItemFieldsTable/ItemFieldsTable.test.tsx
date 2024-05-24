@@ -13,7 +13,7 @@ import {
 import type { RenderWithProvidersData } from '../../../../../test/renderWithProviders';
 import { renderWithProviders } from '../../../../../test/renderWithProviders';
 import { nodeMockBase, rootNodeMock } from '../../../../../test/mocks/uiSchemaMock';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 const selectedItemPointer = '#/properties/test';

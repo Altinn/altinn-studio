@@ -2,25 +2,24 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../testing/mocks';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { RepeatingGroupComponent } from './RepeatingGroupComponent';
 import {
   component2IdMock,
   container2IdMock,
   layout1NameMock,
   layoutMock,
-  layoutSetsMock,
+  layoutSet1NameMock,
 } from '../../../../testing/layoutMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { IFormLayouts } from '../../../../types/global';
 import type { FormContainer } from '../../../../types/FormContainer';
 import type { ComponentType } from 'app-shared/types/ComponentType';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const layoutSetName = layoutSetsMock.sets[0].id;
+const layoutSetName = layoutSet1NameMock;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };

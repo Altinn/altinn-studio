@@ -2,10 +2,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithMockStore } from '../../testing/mocks';
 import { useUpdateAppAttachmentMetadataMutation } from './useUpdateAppAttachmentMetadataMutation';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
-
-// Test data:
-const org = 'org';
-const app = 'app';
+import { app, org } from '@studio/testing/testids';
 
 describe('useUpdateAppAttachmentMetadataMutation', () => {
   it('Calls updateAppAttachmentMetadata with correct arguments and payload', async () => {

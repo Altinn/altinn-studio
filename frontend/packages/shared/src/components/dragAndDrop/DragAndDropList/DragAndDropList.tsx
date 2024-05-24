@@ -5,7 +5,7 @@ import { useDrop } from 'react-dnd';
 import type { DndItem } from 'app-shared/types/dndTypes';
 import { DraggableEditorItemType } from 'app-shared/types/dndTypes';
 import classes from './DragAndDropList.module.css';
-import * as testids from '../../../../../../testing/testids';
+import { droppableListId } from '@studio/testing/testids';
 import { useIsParentDisabled } from '../hooks/useIsParentDisabled';
 import { useParentId } from '../hooks/useParentId';
 import { useOnDrop } from 'app-shared/components/dragAndDrop/hooks/useOnDrop';
@@ -44,7 +44,7 @@ export function DragAndDropList<T>({ children }: DragAndDropListProps) {
   return (
     <div
       className={classes.root + ' ' + domSelectors.list.className}
-      data-testid={testids.droppableList}
+      data-testid={droppableListId}
       id={domSelectors.list.id}
       ref={drop}
       style={{ backgroundColor }}

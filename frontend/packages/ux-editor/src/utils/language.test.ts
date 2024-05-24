@@ -4,7 +4,7 @@ import {
   getTextResource,
 } from './language';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 
 describe('Designer > utils/language', () => {
   describe('getComponentHelperTextByComponentType', () => {

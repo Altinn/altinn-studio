@@ -3,7 +3,7 @@ import { LangSelector } from './LangSelector';
 import type { ILangSelectorProps } from './LangSelector';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 

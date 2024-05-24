@@ -3,8 +3,8 @@ import { screen } from '@testing-library/react';
 import type { LandingPagePanelProps } from './LandingPagePanel';
 import { LandingPagePanel } from './LandingPagePanel';
 import userEvent from '@testing-library/user-event';
-import * as testids from '../../../../testing/testids';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { fileSelectorInputId } from '@studio/testing/testids';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithMockStore } from '../../../test/mocks';
 
 const user = userEvent.setup();
@@ -23,7 +23,7 @@ describe('LandingPagePanel', () => {
     expect(
       screen.getByText(textMock('app_data_modelling.landing_dialog_paragraph')),
     ).toBeInTheDocument();
-    expect(screen.getByTestId(testids.fileSelectorInput)).toBeInTheDocument();
+    expect(screen.getByTestId(fileSelectorInputId)).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: textMock('app_data_modelling.landing_dialog_upload') }),
     ).toBeInTheDocument();

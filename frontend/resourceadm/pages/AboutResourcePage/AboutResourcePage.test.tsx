@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import type { AboutResourcePageProps } from './AboutResourcePage';
 import { AboutResourcePage } from './AboutResourcePage';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type {
   Resource,
   ResourceContactPoint,

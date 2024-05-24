@@ -6,7 +6,7 @@ import { ButtonComponent } from './ButtonComponent';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { FormButtonComponent } from '../../../../types/FormComponent';
 import type { IGenericEditComponent } from '../../componentConfig';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 // Test data:
 const component: FormButtonComponent = {

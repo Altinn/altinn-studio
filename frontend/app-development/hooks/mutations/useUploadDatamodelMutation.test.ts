@@ -5,10 +5,9 @@ import { waitFor } from '@testing-library/react';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
 
 const renderHook = async ({

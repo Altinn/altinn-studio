@@ -5,9 +5,9 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithMockStore } from 'app-development/test/mocks';
 
-import { mockUseTranslation } from '../../../testing/mocks/i18nMock';
+import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import * as testids from '../../../testing/testids';
+import { resetRepoContainerId } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
@@ -64,7 +64,7 @@ describe('ResetRepoModal', () => {
 
   it('renders the component', () => {
     render();
-    const resetRepoContainer = screen.getByTestId(testids.resetRepoContainer);
+    const resetRepoContainer = screen.getByTestId(resetRepoContainerId);
     expect(resetRepoContainer).toBeDefined();
   });
 

@@ -4,10 +4,9 @@ import { useWidgetsQuery } from './useWidgetsQuery';
 import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import type { IWidget } from '../../types/global';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const widgetUrl1 = 'url1';
 const widgetUrl2 = 'url2';
 const widgetUrls = [widgetUrl1, widgetUrl2];

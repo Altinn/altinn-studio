@@ -11,18 +11,17 @@ import {
   textLanguagesMock,
 } from '../../testing/mocks';
 import { component1IdMock, component1Mock } from '../../testing/layoutMock';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import type { ITextResource } from 'app-shared/types/global';
 import { useDeleteFormComponentMutation } from '../../hooks/mutations/useDeleteFormComponentMutation';
 import type { UseMutationResult } from '@tanstack/react-query';
 import type { IInternalLayout } from '../../types/global';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const testTextResourceKey = 'test-key';
 const testTextResourceValue = 'test-value';
 const emptyTextResourceKey = 'empty-key';

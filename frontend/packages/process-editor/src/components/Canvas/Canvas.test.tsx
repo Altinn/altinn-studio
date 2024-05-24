@@ -4,7 +4,7 @@ import { Canvas } from './Canvas';
 import { type BpmnContextProviderProps, useBpmnContext } from '../../contexts/BpmnContext';
 import { BpmnContextProvider } from '../../contexts/BpmnContext';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 jest.mock('../../contexts/BpmnContext', () => ({
   ...jest.requireActual('../../contexts/BpmnContext'),

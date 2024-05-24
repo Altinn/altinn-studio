@@ -7,7 +7,7 @@ import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../test/renderWithProviders';
 import type { FieldNode } from '@altinn/schema-model';
 import { SchemaModel } from '@altinn/schema-model';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const mockEnums: string[] = ['a', 'b', 'c'];
 

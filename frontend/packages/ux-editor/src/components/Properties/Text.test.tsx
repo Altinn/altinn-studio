@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text } from './Text';
 import { screen } from '@testing-library/react';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { FormItemContext } from '../../containers/FormItemContext';
 import {
   component1IdMock,
@@ -16,10 +16,9 @@ import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { componentSchemaMocks } from '../../testing/componentSchemaMocks';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const labelTextId = 'labelTextId';
 const descriptionTextId = 'descriptionTextId';
 const addButtonTextId = 'customAddButtonTextId';
