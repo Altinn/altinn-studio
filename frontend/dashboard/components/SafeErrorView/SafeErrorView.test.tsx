@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { SafeErrorView } from './SafeErrorView';
+import { SafeErrorView, type SafeErrorViewProps } from './SafeErrorView';
 import { textMock } from '../../../testing/mocks/i18nMock';
 
 const { reload: originalReload } = window.location;
@@ -18,14 +18,12 @@ describe('SafeErrorView', () => {
     window.location.reload = originalReload;
   });
 
-  it('should render heading, title and message, with a relaod button', () => {
-    render(
-      <SafeErrorView
-        heading='All users list'
-        title='Failed to load users'
-        message='Some unexpected happen when loading users'
-      />,
-    );
+  it('should render heading, title and message, with a reload button', () => {
+    renderSafeErrorView({
+      heading: 'All users list',
+      title: 'Failed to load users',
+      message: 'Some unexpected happen when loading users',
+    });
 
     expect(screen.getByRole('heading', { name: 'All users list', level: 2 })).toBeInTheDocument();
     expect(
@@ -38,13 +36,7 @@ describe('SafeErrorView', () => {
   it('should use call reload on window.location to ensure full page refresh', async () => {
     const user = userEvent.setup();
 
-    render(
-      <SafeErrorView
-        heading='All users list'
-        title='Failed to load users'
-        message='Some unexpected happen when loading users'
-      />,
-    );
+    renderSafeErrorView();
 
     const reloadPageButton = screen.getByRole('button', { name: textMock('general.reload') });
     await user.click(reloadPageButton);
@@ -52,3 +44,8 @@ describe('SafeErrorView', () => {
     expect(window.location.reload).toHaveBeenCalled();
   });
 });
+
+const renderSafeErrorView = (props?: SafeErrorViewProps): void => {
+  const { heading = '', title = '', message = '' } = props || {};
+  render(<SafeErrorView heading={heading} title={title} message={message} />);
+};

@@ -114,7 +114,6 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                   <OrgReposList user={user} organizations={organizations} />
                 </ErrorBoundary>
               </div>
-
               <ErrorBoundary
                 fallback={
                   <SafeErrorView
@@ -126,7 +125,6 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
               >
                 <DatamodelsReposList user={user} organizations={organizations} />
               </ErrorBoundary>
-
               {shouldDisplayResources && (
                 <ErrorBoundary
                   fallback={
