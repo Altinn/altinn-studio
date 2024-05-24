@@ -98,7 +98,7 @@ const waitForData = async () => {
   const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
   const dataModelMetadataResult = renderHookWithProviders(
-    () => useDatamodelMetadataQuery('test-org', 'test-app', 'test-layout-set', null),
+    () => useDatamodelMetadataQuery('test-org', 'test-app', 'test-layout-set', 'test-data-model'),
     { queries: { getDatamodelMetadata } },
   ).result;
   await waitFor(() => expect(dataModelMetadataResult.current.isSuccess).toBe(true));

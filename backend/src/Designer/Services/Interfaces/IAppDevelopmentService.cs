@@ -92,11 +92,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <param name="layoutSetName">Name of layoutSet to fetch corresponding model metadata for</param>
-        /// <param name="modelMetaData">Name of data model to fetch</param>
+        /// <param name="dataModelName">Name of data model to fetch</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The model metadata for a given layout set.</returns>
         public Task<ModelMetadata> GetModelMetadata(
-            AltinnRepoEditingContext altinnRepoEditingContext, [CanBeNull] string layoutSetName, [CanBeNull] string modelMetaData,
+            AltinnRepoEditingContext altinnRepoEditingContext, [CanBeNull] string layoutSetName, [CanBeNull] string dataModelName,
             CancellationToken cancellationToken = default);
 
         /// <summary>

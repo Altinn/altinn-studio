@@ -20,6 +20,7 @@ const layoutSetName = layoutSetsMock.sets[0].id;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };
+const dataModelName = undefined;
 const heading = 'Test';
 const defaultProps: ExpressionContentProps = {
   expression: null,
@@ -68,7 +69,6 @@ describe('ExpressionContent', () => {
 const renderExpressionContent = (props: Partial<ExpressionContentProps> = {}) => {
   const appContextProps: Partial<AppContextProps> = { selectedFormLayoutSetName: layoutSetName };
 
-  const dataModelName = null;
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
   queryClient.setQueryData(

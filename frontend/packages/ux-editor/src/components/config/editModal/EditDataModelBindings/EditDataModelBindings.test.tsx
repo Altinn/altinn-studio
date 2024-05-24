@@ -303,7 +303,7 @@ describe('EditDataModelBindings', () => {
     const dataBindingNameMock = 'element';
     const maxCountMock = 2;
     queryClientMock.setQueryData(
-      [QueryKey.DatamodelMetadata, 'org', 'app', 'test-layout-set', null],
+      [QueryKey.DatamodelMetadata, 'org', 'app', 'test-layout-set', 'test-data-model'],
       [{ dataBindingName: dataBindingNameMock, maxOccurs: maxCountMock }],
     );
     render({

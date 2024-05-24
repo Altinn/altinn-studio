@@ -15,6 +15,7 @@ const app = 'app';
 const org = 'org';
 const layoutSet = layoutSetsMock.sets[0].id;
 const duplicatedLayout = 'duplicatedLayout';
+const dataModelName = undefined;
 
 const defaultTexts: ITextResources = {
   [DEFAULT_LANGUAGE]: [
@@ -92,7 +93,6 @@ const renderPageConfigPanel = (
   selectedLayoutName: string = DEFAULT_SELECTED_LAYOUT_NAME,
   textResources = defaultTexts,
 ) => {
-  const dataModelName = null;
   queryClientMock.setQueryData([QueryKey.TextResources, org, app], textResources);
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet], layouts);
   queryClientMock.setQueryData(

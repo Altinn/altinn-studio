@@ -24,6 +24,7 @@ const layoutSetName = layoutSetsMock.sets[0].id;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };
+const dataModelName = undefined;
 const componentWithExpression: FormComponent<ComponentType.Input> = {
   id: 'some-id',
   type: ComponentType.Input,
@@ -173,7 +174,6 @@ describe('Expressions', () => {
 const renderExpressions = (formItemContext: Partial<FormItemContext> = {}) => {
   const appContextProps: Partial<AppContextProps> = { selectedFormLayoutSetName: layoutSetName };
 
-  const dataModelName = null;
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
   queryClient.setQueryData(

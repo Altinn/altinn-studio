@@ -33,7 +33,7 @@ export const SelectDataModelComponent = ({
 }: ISelectDataModelProps) => {
   const { org, app } = useStudioUrlParams();
   const { selectedFormLayoutSetName } = useAppContext();
-  const { data } = useDatamodelMetadataQuery(org, app, selectedFormLayoutSetName, null);
+  const { data } = useDatamodelMetadataQuery(org, app, selectedFormLayoutSetName, undefined);
   const [dataModelElementNames, setDataModelElementNames] = React.useState<Option[]>([]);
 
   useEffect(() => {

@@ -22,7 +22,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", null)]
         [InlineData("ttd", "app-without-layoutsets", "testUser", null, null)]
-        public async Task GetModelMetadata_Should_Return_ModelMetadata_When_DataModelName_Is_Undefined(string org, string app, string developer, string layoutSetName, string dataModelName)
+        public async Task GetModelMetadata_Should_Return_ModelMetadata_Based_On_LayoutSet_When_DataModelName_Is_Undefined(string org, string app, string developer, string layoutSetName, string dataModelName)
         {
             // Arrange
             (string url, string expectedModelMetadata) = await ArrangeGetModelMetadataTest(org, app, developer, layoutSetName, dataModelName);

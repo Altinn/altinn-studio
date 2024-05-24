@@ -16,6 +16,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 const app = 'app';
 const org = 'org';
 const layoutSet = layoutSetsMock.sets[0].id;
+const dataModelName = undefined;
 
 const defaultLayouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
@@ -116,7 +117,6 @@ describe('HiddenExpressionOnLayout', () => {
 });
 
 const renderHiddenExpressionOnLayout = (layouts = defaultLayouts) => {
-  const dataModelName = null;
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet], layouts);
   queryClientMock.setQueryData(
     [QueryKey.DatamodelMetadata, org, app, layoutSet, dataModelName],
