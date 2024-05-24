@@ -6,6 +6,7 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { useLaxInstance } from 'src/features/instance/InstanceContext';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useIsPayment } from 'src/features/payment/utils';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import type { PaymentResponsePayload } from 'src/features/payment/types';
@@ -16,10 +17,12 @@ export function usePaymentInformationQueryDef(
   instanceId?: string,
 ): QueryDefinition<PaymentResponsePayload> {
   const { fetchPaymentInformation } = useAppQueries();
+  const selectedLanguage = useCurrentLanguage();
   return {
     queryKey: ['fetchPaymentInfo'],
-    queryFn: instanceId ? () => fetchPaymentInformation(instanceId) : skipToken,
+    queryFn: instanceId ? () => fetchPaymentInformation(instanceId, selectedLanguage) : skipToken,
     enabled: enabled && !!instanceId,
+    gcTime: 0,
   };
 }
 

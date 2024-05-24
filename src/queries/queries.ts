@@ -130,8 +130,13 @@ export const doAttachmentAddTag = async (instanceId: string, dataGuid: string, t
   return response.data;
 };
 
-export const doPerformAction = async (partyId: string, dataGuid: string, data: any): Promise<ActionResult> => {
-  const response = await httpPost(getActionsUrl(partyId, dataGuid), undefined, data);
+export const doPerformAction = async (
+  partyId: string,
+  dataGuid: string,
+  data: any,
+  language?: string,
+): Promise<ActionResult> => {
+  const response = await httpPost(getActionsUrl(partyId, dataGuid, language), undefined, data);
   if (response.status !== 200) {
     throw new Error('Failed to perform action');
   }
@@ -223,10 +228,11 @@ export const fetchRuleHandler = (layoutSetId: string): Promise<string | null> =>
 export const fetchTextResources = (selectedLanguage: string): Promise<ITextResourceResult> =>
   httpGet(textResourcesUrl(selectedLanguage));
 
-export const fetchPaymentInformation = (instanceId: string): Promise<PaymentResponsePayload> =>
-  httpGet(getPaymentInformationUrl(instanceId));
+export const fetchPaymentInformation = (instanceId: string, language?: string): Promise<PaymentResponsePayload> =>
+  httpGet(getPaymentInformationUrl(instanceId, language));
 
-export const fetchOrderDetails = (instanceId: string): Promise<OrderDetails> => httpGet(getOrderDetailsUrl(instanceId));
+export const fetchOrderDetails = (instanceId: string, language?: string): Promise<OrderDetails> =>
+  httpGet(getOrderDetailsUrl(instanceId, language));
 
 export const fetchBackendValidations = (
   instanceId: string,

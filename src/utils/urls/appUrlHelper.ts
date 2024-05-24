@@ -21,12 +21,15 @@ export const getSetCurrentPartyUrl = (partyId: number) => `${appPath}/api/v1/par
 
 export const textResourcesUrl = (language: string) => `${origin}/${org}/${app}/api/v1/texts/${language}`;
 
-export const getPaymentInformationUrl = (instanceId: string) =>
-  `${origin}/${org}/${app}/instances/${instanceId}/payment`;
+export const getPaymentInformationUrl = (instanceId: string, language?: string) => {
+  const queryString = getQueryStringFromObject({ language });
+  return `${origin}/${org}/${app}/instances/${instanceId}/payment${queryString}`;
+};
 
-export const getOrderDetailsUrl = (instanceId: string) =>
-  `${origin}/${org}/${app}/instances/${instanceId}/payment/order-details`;
-
+export const getOrderDetailsUrl = (instanceId: string, language?: string) => {
+  const queryString = getQueryStringFromObject({ language });
+  return `${origin}/${org}/${app}/instances/${instanceId}/payment/order-details${queryString}`;
+};
 export const getFileUploadUrl = (instanceId: string, attachmentType: string) =>
   `${appPath}/instances/${instanceId}/data?dataType=${attachmentType}`;
 
@@ -49,8 +52,10 @@ export const getDataElementUrl = (instanceId: string, dataGuid: string, language
   `${appPath}/instances/${instanceId}/data/${dataGuid}?language=${language}`;
 
 export const getProcessStateUrl = (instanceId: string) => `${appPath}/instances/${instanceId}/process`;
-export const getActionsUrl = (partyId: string, instanceId: string) =>
-  `${appPath}/instances/${partyId}/${instanceId}/actions`;
+export const getActionsUrl = (partyId: string, instanceId: string, language?: string) => {
+  const queryString = getQueryStringFromObject({ language });
+  return `${appPath}/instances/${partyId}/${instanceId}/actions${queryString}`;
+};
 
 export const getCreateInstancesUrl = (partyId: number) => `${appPath}/instances?instanceOwnerPartyId=${partyId}`;
 

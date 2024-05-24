@@ -28,7 +28,7 @@ describe('Payment', () => {
     cy.findByRole('button', { name: /Til betaling/ }).click();
     cy.intercept({
       method: 'GET',
-      url: '**/ttd/payment-test/instances/**/**/payment',
+      url: '**/ttd/payment-test/instances/**/**/payment*',
     }).as('paymentInfoRequest');
 
     cy.wait('@paymentInfoRequest').then((_) => {

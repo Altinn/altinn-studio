@@ -2,14 +2,16 @@ import { useMutation } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 
 export const usePerformPayActionMutation = (partyId?: string, instanceGuid?: string) => {
   const { doPerformAction } = useAppMutations();
+  const selectedLanguage = useCurrentLanguage();
   return useMutation({
     mutationKey: ['performPayAction', partyId, instanceGuid],
     mutationFn: async () => {
       if (partyId && instanceGuid) {
-        return await doPerformAction(partyId, instanceGuid, { action: 'pay' });
+        return await doPerformAction(partyId, instanceGuid, { action: 'pay' }, selectedLanguage);
       }
     },
     onError: (error: AxiosError) => {
