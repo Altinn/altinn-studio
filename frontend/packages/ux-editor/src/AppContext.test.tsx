@@ -70,7 +70,7 @@ const renderAppContext = (children: (appContext: AppContextProps) => React.React
     ...render(
       <MemoryRouter>
         <ServicesContextProvider {...queriesMock} client={queryClient}>
-          <AppContextProvider>
+          <AppContextProvider appNameHasChanged={false} setAppNameHasChanged={jest.fn()}>
             <TestComponent queryClient={queryClient}>
               {(appContext: AppContextProps) => children(appContext)}
             </TestComponent>
