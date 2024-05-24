@@ -7,14 +7,14 @@ import classes from './EditDataType.module.css';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 
 export type EditDataTypeProps = {
-  datamodelIds: string[];
+  dataModelIds: string[];
   connectedTaskId: string;
   existingDataTypeForTask: string | undefined;
   hideDeleteButton?: boolean;
 };
 
 export const EditDataType = ({
-  datamodelIds,
+  dataModelIds,
   connectedTaskId,
   existingDataTypeForTask,
   hideDeleteButton = false,
@@ -38,13 +38,13 @@ export const EditDataType = ({
       {!existingDataTypeForTask && !dataModelSelectVisible ? (
         <StudioProperty.Button
           onClick={() => setDataModelSelectVisible(true)}
-          property={t('process_editor.configuration_panel_set_datamodel_link')}
+          property={t('process_editor.configuration_panel_set_data_model_link')}
           size='small'
           icon={<LinkIcon />}
         />
       ) : dataModelSelectVisible ? (
         <SelectDataType
-          datamodelIds={datamodelIds}
+          dataModelIds={dataModelIds}
           existingDataType={existingDataTypeForTask}
           connectedTaskId={connectedTaskId}
           onClose={() => setDataModelSelectVisible(false)}
@@ -52,10 +52,10 @@ export const EditDataType = ({
         />
       ) : (
         <StudioProperty.Button
-          aria-label={t('process_editor.configuration_panel_set_datamodel')}
+          aria-label={t('process_editor.configuration_panel_set_data_model')}
           onClick={() => setDataModelSelectVisible(true)}
-          property={t('process_editor.configuration_panel_set_datamodel')}
-          title={t('process_editor.configuration_panel_set_datamodel')}
+          property={t('process_editor.configuration_panel_set_data_model')}
+          title={t('process_editor.configuration_panel_set_data_model')}
           value={definedValueWithLinkIcon}
         />
       )}

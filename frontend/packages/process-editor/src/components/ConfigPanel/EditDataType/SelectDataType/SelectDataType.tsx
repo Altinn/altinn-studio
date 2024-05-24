@@ -8,14 +8,14 @@ import classes from './SelectDataType.module.css';
 import type { DataTypeChange } from 'app-shared/types/api/DataTypeChange';
 
 export interface SelectDataTypeProps {
-  datamodelIds: string[];
+  dataModelIds: string[];
   existingDataType: string;
   connectedTaskId: string;
   onClose: () => void;
   hideDeleteButton?: boolean;
 }
 export const SelectDataType = ({
-  datamodelIds,
+  dataModelIds,
   existingDataType,
   connectedTaskId,
   onClose,
@@ -39,14 +39,14 @@ export const SelectDataType = ({
   return (
     <div className={classes.dataTypeSelect}>
       <Combobox
-        label={t('process_editor.configuration_panel_set_datamodel')}
+        label={t('process_editor.configuration_panel_set_data_model')}
         value={currentValue}
-        description={t('process_editor.configuration_panel_datamodel_selection_description')}
+        description={t('process_editor.configuration_panel_data_model_selection_description')}
       >
         <Combobox.Empty>
-          {t('process_editor.configuration_panel_no_datamodel_to_select')}
+          {t('process_editor.configuration_panel_no_data_model_to_select')}
         </Combobox.Empty>
-        {datamodelIds.map((option) => (
+        {dataModelIds.map((option) => (
           <Combobox.Option
             value={option}
             key={option}

@@ -107,7 +107,7 @@ export const appPreviewButtonActions = (
 
   const action: AltinnButtonActionItem[] = [
     {
-      title: 'top_menu.preview_back_to_editing',
+      title: 'top_menu.preview-back-to-editing',
       menuKey: TopBarMenu.Preview,
       to: `${packagesRouter.getPackageNavigationUrl('editorUiEditor')}${queryParams}`,
     },

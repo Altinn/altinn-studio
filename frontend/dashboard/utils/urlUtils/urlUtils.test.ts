@@ -14,7 +14,7 @@ describe('urlUtils', () => {
   });
 
   describe('getRepoEditUrl', () => {
-    it('should return url to datamodelling when repo name matches "<org>-datamodels"', () => {
+    it('should return url to dataModelling when repo name matches "<org>-datamodels"', () => {
       const result = getRepoEditUrl({
         org: 'org-name',
         repo: 'org-name-datamodels',
@@ -23,10 +23,10 @@ describe('urlUtils', () => {
       expect(result).toBe(`${APP_DEVELOPMENT_BASENAME}/org-name/org-name-datamodels/datamodel`);
     });
 
-    it('should not return url to datamodelling when repo name does not match "<org>-datamodels"', () => {
+    it('should not return url to dataModelling when repo name does not match "<org>-dataModels"', () => {
       const result = getRepoEditUrl({
         org: 'org-name',
-        repo: 'org-name-datamodels-not',
+        repo: 'org-name-data-models-not',
       });
 
       expect(result).not.toContain('#/datamodelling/');

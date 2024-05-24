@@ -5,7 +5,7 @@ import { EditDataModelBindings } from './EditDataModelBindings';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
-import type { DatamodelMetadataResponse } from 'app-shared/types/api';
+import type { DataModelMetadataResponse } from 'app-shared/types/api';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { componentMocks } from '../../../../testing/componentMocks';
@@ -15,7 +15,7 @@ import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
 const dataModelName = undefined;
 
-const datamodelMetadata: DatamodelMetadataResponse = {
+const dataModelMetadata: DataModelMetadataResponse = {
   elements: {
     testModel: {
       id: 'testModel',
@@ -72,10 +72,10 @@ const datamodelMetadata: DatamodelMetadataResponse = {
   },
 };
 
-const getDatamodelMetadata = () => Promise.resolve(datamodelMetadata);
+const getDataModelMetadata = () => Promise.resolve(dataModelMetadata);
 const defaultComponent = componentMocks[ComponentType.Input];
 const defaultRenderOptions = {
-  uniqueKey: 'someComponentId-datamodel-select',
+  uniqueKey: 'someComponentId-data-model-select',
   key: undefined,
   label: undefined,
 };
@@ -96,7 +96,7 @@ const render = ({
       renderOptions={renderOptions}
     />,
     {
-      queries: { getDatamodelMetadata },
+      queries: { getDataModelMetadata },
     },
   );
 };
@@ -307,7 +307,7 @@ describe('EditDataModelBindings', () => {
     const dataBindingNameMock = 'element';
     const maxCountMock = 2;
     queryClientMock.setQueryData(
-      [QueryKey.DatamodelMetadata, org, app, layoutSet1NameMock, dataModelName],
+      [QueryKey.DataModelMetadata, org, app, layoutSet1NameMock, dataModelName],
       [{ dataBindingName: dataBindingNameMock, maxOccurs: maxCountMock }],
     );
     render({

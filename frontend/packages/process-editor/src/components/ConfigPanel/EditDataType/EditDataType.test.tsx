@@ -23,7 +23,7 @@ const layoutSetsWithoutDataTypeConnection: LayoutSets = {
 };
 
 const defaultProps: EditDataTypeProps = {
-  datamodelIds: [],
+  dataModelIds: [],
   connectedTaskId: '',
   existingDataTypeForTask: undefined,
   hideDeleteButton: true,
@@ -32,18 +32,18 @@ const defaultProps: EditDataTypeProps = {
 describe('EditDataType', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should display a button to add datamodel when task has no datamodel', () => {
+  it('should display a button to add data model when task has no data model', () => {
     renderEditDataType({
       bpmnApiContextProps: { layoutSets: layoutSetsWithoutDataTypeConnection },
     });
     expect(
       screen.getByRole('button', {
-        name: textMock('process_editor.configuration_panel_set_datamodel_link'),
+        name: textMock('process_editor.configuration_panel_set_data_model_link'),
       }),
     ).toBeInTheDocument();
   });
 
-  it('should display a combobox without value and a description that datamodels are missing when clicking "add datamodel" when there are no datamodels', async () => {
+  it('should display a combobox without value and a description that data models are missing when clicking "add data model" when there are no data models', async () => {
     const user = userEvent.setup();
     renderEditDataType({
       bpmnApiContextProps: {
@@ -51,24 +51,24 @@ describe('EditDataType', () => {
       },
     });
     const addDataModelButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_set_datamodel_link'),
+      name: textMock('process_editor.configuration_panel_set_data_model_link'),
     });
     await user.click(addDataModelButton);
     const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_datamodel'),
+      name: textMock('process_editor.configuration_panel_set_data_model'),
     });
     const description = screen.getByText(
-      textMock('process_editor.configuration_panel_datamodel_selection_description'),
+      textMock('process_editor.configuration_panel_data_model_selection_description'),
     );
     expect(description).toBeInTheDocument();
 
     await user.click(combobox);
     expect(combobox).not.toHaveValue();
 
-    const noAvailableModelsOption = screen.getByText(
-      textMock('process_editor.configuration_panel_no_datamodel_to_select'),
+    const noAvailablemodelsOption = screen.getByText(
+      textMock('process_editor.configuration_panel_no_data_model_to_select'),
     );
-    expect(noAvailableModelsOption).toBeInTheDocument();
+    expect(noAvailablemodelsOption).toBeInTheDocument();
   });
 
   it('should display description to select data type and show all available data types including existing as options', async () => {
@@ -79,20 +79,20 @@ describe('EditDataType', () => {
       bpmnApiContextProps: { availableDataModelIds },
       componentProps: {
         existingDataTypeForTask: existingDataType,
-        datamodelIds: [...availableDataModelIds, existingDataType],
+        dataModelIds: [...availableDataModelIds, existingDataType],
       },
     });
     const updateDataTypeButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_set_datamodel'),
+      name: textMock('process_editor.configuration_panel_set_data_model'),
     });
     await user.click(updateDataTypeButton);
     const description = screen.getByText(
-      textMock('process_editor.configuration_panel_datamodel_selection_description'),
+      textMock('process_editor.configuration_panel_data_model_selection_description'),
     );
     expect(description).toBeInTheDocument();
 
     const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_datamodel'),
+      name: textMock('process_editor.configuration_panel_set_data_model'),
     });
     await user.click(combobox);
 
@@ -109,18 +109,18 @@ describe('EditDataType', () => {
     renderEditDataType({
       componentProps: {
         existingDataTypeForTask: existingDataType,
-        datamodelIds: [existingDataType],
+        dataModelIds: [existingDataType],
       },
     });
 
     const updateDataTypeButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_set_datamodel'),
+      name: textMock('process_editor.configuration_panel_set_data_model'),
     });
     expect(screen.getByText(existingDataType)).toBeInTheDocument();
 
     await user.click(updateDataTypeButton);
     const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_datamodel'),
+      name: textMock('process_editor.configuration_panel_set_data_model'),
     });
     expect(combobox).toHaveValue(existingDataType);
   });
@@ -134,7 +134,7 @@ describe('EditDataType', () => {
     });
 
     const updateDataTypeButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_set_datamodel'),
+      name: textMock('process_editor.configuration_panel_set_data_model'),
     });
 
     await user.click(updateDataTypeButton);
@@ -142,12 +142,12 @@ describe('EditDataType', () => {
     await user.click(closeButton);
     expect(
       screen.getByRole('button', {
-        name: textMock('process_editor.configuration_panel_set_datamodel'),
+        name: textMock('process_editor.configuration_panel_set_data_model'),
       }),
     ).toBeInTheDocument();
   });
 
-  it('should display the button to add datamodel when clicking the close button after edit mode and task has no data type', async () => {
+  it('should display the button to add data model when clicking the close button after edit mode and task has no data type', async () => {
     const user = userEvent.setup();
     renderEditDataType({
       bpmnApiContextProps: { layoutSets: layoutSetsWithoutDataTypeConnection },
@@ -155,14 +155,14 @@ describe('EditDataType', () => {
     });
 
     const addDataModelButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_set_datamodel_link'),
+      name: textMock('process_editor.configuration_panel_set_data_model_link'),
     });
     await user.click(addDataModelButton);
     const closeButton = screen.getByRole('button', { name: textMock('general.close') });
     await user.click(closeButton);
     expect(
       screen.getByRole('button', {
-        name: textMock('process_editor.configuration_panel_set_datamodel_link'),
+        name: textMock('process_editor.configuration_panel_set_data_model_link'),
       }),
     ).toBeInTheDocument();
   });

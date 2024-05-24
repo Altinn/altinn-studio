@@ -20,7 +20,7 @@ const mockAddLayoutSet = jest.fn().mockImplementation(queryOptionMock);
 const mockMutateDataType = jest.fn().mockImplementation(queryOptionMock);
 
 const mockOnCloseForm = jest.fn();
-const mockAvailableDatamodelIds: string[] = ['model1', 'model2'];
+const mockAvailableDataModelIds: string[] = ['model1', 'model2'];
 
 const defaultProps: CreateCustomReceiptFormProps = {
   onCloseForm: mockOnCloseForm,
@@ -28,7 +28,7 @@ const defaultProps: CreateCustomReceiptFormProps = {
 
 const defaultBpmnApiContextProps: BpmnApiContextProps = {
   ...mockBpmnApiContextValue,
-  availableDataModelIds: mockAvailableDatamodelIds,
+  availableDataModelIds: mockAvailableDataModelIds,
   addLayoutSet: mockAddLayoutSet,
   mutateDataType: mockMutateDataType,
 };
@@ -47,11 +47,11 @@ describe('CreateCustomReceiptForm', () => {
     await user.type(layoutSetInput, newId);
 
     const selectElement = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_custom_receipt_select_datamodel_label'),
+      textMock('process_editor.configuration_panel_custom_receipt_select_data_model_label'),
     );
     await user.click(selectElement);
 
-    const optionElement = screen.getByRole('option', { name: mockAvailableDatamodelIds[0] });
+    const optionElement = screen.getByRole('option', { name: mockAvailableDataModelIds[0] });
     await user.selectOptions(selectElement, optionElement);
 
     const createButton = screen.getByRole('button', {
@@ -80,7 +80,7 @@ describe('CreateCustomReceiptForm', () => {
       expect(mockMutateDataType).toHaveBeenCalledWith(
         {
           connectedTaskId: PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
-          newDataType: mockAvailableDatamodelIds[0],
+          newDataType: mockAvailableDataModelIds[0],
         },
         {
           onSuccess: expect.any(Function),
@@ -96,11 +96,11 @@ describe('CreateCustomReceiptForm', () => {
     renderCreateCustomReceiptForm();
 
     const selectElement = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_custom_receipt_select_datamodel_label'),
+      textMock('process_editor.configuration_panel_custom_receipt_select_data_model_label'),
     );
     await user.click(selectElement);
 
-    const optionElement = screen.getByRole('option', { name: mockAvailableDatamodelIds[0] });
+    const optionElement = screen.getByRole('option', { name: mockAvailableDataModelIds[0] });
     await user.selectOptions(selectElement, optionElement);
 
     const createButton = screen.getByRole('button', {
@@ -111,10 +111,10 @@ describe('CreateCustomReceiptForm', () => {
     const layoutIdError = screen.getByText(textMock('validation_errors.required'));
     expect(layoutIdError).toBeInTheDocument();
 
-    const datamodelIdError = screen.queryByText(
+    const dataModelIdError = screen.queryByText(
       textMock('process_editor.configuration_panel_custom_receipt_create_datamodel_error'),
     );
-    expect(datamodelIdError).not.toBeInTheDocument();
+    expect(dataModelIdError).not.toBeInTheDocument();
     expect(mockOnCloseForm).toHaveBeenCalledTimes(0);
   });
 
@@ -188,7 +188,7 @@ describe('CreateCustomReceiptForm', () => {
     expect(mockAddLayoutSet).not.toHaveBeenCalled();
   });
 
-  it('displays error when there are no value present for datamodel id', async () => {
+  it('displays error when there are no value present for data model id', async () => {
     const user = userEvent.setup();
     renderCreateCustomReceiptForm({ bpmnApiContextProps: mockBpmnApiContextValue });
 
@@ -198,7 +198,7 @@ describe('CreateCustomReceiptForm', () => {
     await user.type(layoutSetInput, 'newLayoutSetId');
 
     const selectElement = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_custom_receipt_select_datamodel_label'),
+      textMock('process_editor.configuration_panel_custom_receipt_select_data_model_label'),
     );
     await user.click(selectElement);
 
@@ -210,10 +210,10 @@ describe('CreateCustomReceiptForm', () => {
     const layoutIdError = screen.queryByText(textMock('validation_errors.required'));
     expect(layoutIdError).not.toBeInTheDocument();
 
-    const datamodelIdError = screen.getByText(
-      textMock('process_editor.configuration_panel_custom_receipt_create_datamodel_error'),
+    const dataModelIdError = screen.getByText(
+      textMock('process_editor.configuration_panel_custom_receipt_create_data_model_error'),
     );
-    expect(datamodelIdError).toBeInTheDocument();
+    expect(dataModelIdError).toBeInTheDocument();
     expect(mockOnCloseForm).toHaveBeenCalledTimes(0);
   });
 

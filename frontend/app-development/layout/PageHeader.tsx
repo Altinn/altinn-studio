@@ -26,7 +26,7 @@ export const subMenuContent = ({ org, app, hasRepoError }: SubMenuContentProps) 
       app={app}
       hasCloneModal
       leftComponent={
-        repositoryType !== RepositoryType.Datamodels && <SettingsModalButton org={org} app={app} />
+        repositoryType !== RepositoryType.DataModels && <SettingsModalButton org={org} app={app} />
       }
       hasRepoError={hasRepoError}
     />

@@ -1,29 +1,29 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import type { CreateDatamodelPayload } from 'app-shared/types/api';
+import type { CreateDataModelPayload } from 'app-shared/types/api';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
-export interface CreateDatamodelMutationArgs {
+export interface CreateDataModelMutationArgs {
   name: string;
   relativePath: string;
 }
 
-export const useCreateDatamodelMutation = () => {
-  const { createDatamodel } = useServicesContext();
+export const useCreateDataModelMutation = () => {
+  const { createDataModel } = useServicesContext();
   const { org, app } = useStudioUrlParams();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ name, relativePath }: CreateDatamodelMutationArgs) => {
-      const payload: CreateDatamodelPayload = {
+    mutationFn: async ({ name, relativePath }: CreateDataModelMutationArgs) => {
+      const payload: CreateDataModelPayload = {
         modelName: name,
         relativeDirectory: relativePath,
       };
-      const schema = await createDatamodel(org, app, payload);
+      const schema = await createDataModel(org, app, payload);
       queryClient.setQueryData([QueryKey.JsonSchema, org, app, name], schema);
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: [QueryKey.DatamodelsJson, org, app] }),
-        queryClient.invalidateQueries({ queryKey: [QueryKey.DatamodelsXsd, org, app] }),
+        queryClient.invalidateQueries({ queryKey: [QueryKey.DataModelsJson, org, app] }),
+        queryClient.invalidateQueries({ queryKey: [QueryKey.DataModelsXsd, org, app] }),
         queryClient.invalidateQueries({ queryKey: [QueryKey.AppMetadataModelIds, org, app] }),
       ]);
     },

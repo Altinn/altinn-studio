@@ -60,7 +60,7 @@ test('That it is possible to navigate from overview to the app builder page and 
   await overviewPage.verifyOverviewPage();
 });
 
-test('That it is possible to navigate from overview to the datamodel page and back again', async ({
+test('That it is possible to navigate from overview to the data model page and back again', async ({
   page,
   testAppName,
 }) => {
@@ -68,7 +68,7 @@ test('That it is possible to navigate from overview to the datamodel page and ba
   const dataModelPage = new DataModelPage(page, { app: testAppName });
   const header = new Header(page, { app: testAppName });
 
-  await header.clickOnNavigateToPageInTopMenuHeader('datamodel');
+  await header.clickOnNavigateToPageInTopMenuHeader('data-model');
   await dataModelPage.verifyDataModelPage();
 
   await header.clickOnNavigateToPageInTopMenuHeader('about');
@@ -129,7 +129,7 @@ test('That it is possible to navigate from overview to the preview page and back
   await header.clickOnNavigateToPageInTopMenuHeader('preview');
   await previewPage.verifyPreviewPage();
 
-  await header.clickOnNavigateToPageInTopMenuHeader('preview_back_to_editing');
+  await header.clickOnNavigateToPageInTopMenuHeader('preview-back-to-editing');
   await uiEditor.verifyUiEditorPage(null);
 });
 

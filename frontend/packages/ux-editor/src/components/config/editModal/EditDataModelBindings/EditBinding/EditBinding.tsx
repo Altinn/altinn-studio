@@ -1,6 +1,6 @@
 import React from 'react';
 import { SelectDataModelComponent } from '../../../SelectDataModelComponent';
-import { getDataModelFieldsFilter } from '../../../../../utils/datamodel';
+import { getDataModelFieldsFilter } from '../../../../../utils/dataModel';
 import type { FormItem } from '../../../../../types/FormItem';
 import { StudioButton, StudioDeleteButton } from '@studio/components';
 import { XMarkIcon } from '@studio/icons';

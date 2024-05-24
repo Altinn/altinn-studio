@@ -7,7 +7,7 @@ type GetReposLabel = {
   selectedContext: string | SelectedContextType;
   orgs: Organization[];
   t: typeof i18next.t;
-  isDatamodelsRepo?: boolean;
+  isDataModelsRepo?: boolean;
   isResourcesRepo?: boolean;
 };
 
@@ -26,11 +26,11 @@ const appsTranslationMap: TranslationMap = {
   org: 'dashboard.apps',
   named_org: 'dashboard.org_apps',
 };
-const datamodelsTranslationMap: TranslationMap = {
-  all: 'dashboard.all_datamodels',
-  self: 'dashboard.my_datamodels',
-  org: 'dashboard.datamodels',
-  named_org: 'dashboard.org_datamodels',
+const dataModelsTranslationMap: TranslationMap = {
+  all: 'dashboard.all_dataModels',
+  self: 'dashboard.my_dataModels',
+  org: 'dashboard.dataModels',
+  named_org: 'dashboard.org_dataModels',
 };
 const resourcesTranslationMap: TranslationMap = {
   all: 'dashboard.all_resources',
@@ -43,7 +43,7 @@ export const getReposLabel = ({
   selectedContext,
   orgs,
   t,
-  isDatamodelsRepo = false,
+  isDataModelsRepo = false,
   isResourcesRepo = false,
 }: GetReposLabel): string => {
   const orgName =
@@ -51,7 +51,7 @@ export const getReposLabel = ({
 
   const concatenatedTranslationMap: TranslationMap = {
     ...appsTranslationMap,
-    ...(isDatamodelsRepo && datamodelsTranslationMap),
+    ...(isDataModelsRepo && dataModelsTranslationMap),
     ...(isResourcesRepo && resourcesTranslationMap),
   };
 

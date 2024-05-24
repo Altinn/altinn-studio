@@ -1,7 +1,7 @@
 import type {
   AppReleasesResponse,
   CreateRepoCommitPayload,
-  DatamodelMetadataResponse,
+  DataModelMetadataResponse,
   SearchRepositoryResponse,
 } from 'app-shared/types/api';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
@@ -66,7 +66,7 @@ export const branchStatus: BranchStatus = {
   name: '',
 };
 
-export const datamodelMetadataResponse: DatamodelMetadataResponse = {
+export const dataModelMetadataResponse: DataModelMetadataResponse = {
   elements: {},
 };
 

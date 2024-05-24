@@ -65,10 +65,10 @@ const texts = {
   'schema_editor.integer': fieldTypeNames[FieldType.Integer],
   'schema_editor.object': fieldTypeNames[FieldType.Object],
   'schema_editor.string': fieldTypeNames[FieldType.String],
-  'schema_editor.datamodel_field_deletion_confirm': 'Confirm',
+  'schema_editor.data_model_field_deletion_confirm': 'Confirm',
 };
 const defaultProps: ItemFieldsTabProps = { selectedItem };
-const saveDatamodel = jest.fn();
+const saveDataModel = jest.fn();
 const model = SchemaModel.fromArray(uiSchema);
 const createModel = () => model.deepClone();
 
@@ -83,7 +83,7 @@ const renderItemFieldsTab = (
     ...data,
     appContextProps: {
       schemaModel: createModel(),
-      save: saveDatamodel,
+      save: saveDataModel,
       ...data.appContextProps,
     },
   })(<ItemFieldsTab {...defaultProps} {...props} />);
@@ -125,7 +125,7 @@ describe('ItemFieldsTab', () => {
       await user.type(screen.getByDisplayValue(fieldName), suffix);
       await user.tab();
     }
-    expect(saveDatamodel).toHaveBeenCalledTimes(numberOfFields);
+    expect(saveDataModel).toHaveBeenCalledTimes(numberOfFields);
   });
 
   test('Model is saved correctly when a type is changed', async () => {
@@ -133,8 +133,8 @@ describe('ItemFieldsTab', () => {
     const newType = FieldType.Integer;
     for (let i = 0; i < fieldNames.length; i++) {
       await user.selectOptions(screen.getAllByRole('combobox')[i], newType);
-      expect(saveDatamodel).toHaveBeenCalledTimes(i + 1);
-      const updatedModel = getSavedModel(saveDatamodel, i);
+      expect(saveDataModel).toHaveBeenCalledTimes(i + 1);
+      const updatedModel = getSavedModel(saveDataModel, i);
       const updatedNode = updatedModel.getNode(childNodes[i].pointer) as FieldNode;
       expect(updatedNode.fieldType).toEqual(newType);
     }
@@ -143,8 +143,8 @@ describe('ItemFieldsTab', () => {
   test('Model is saved correctly when the "Add field" button is clicked', async () => {
     renderItemFieldsTab();
     await user.click(screen.getByText(textAdd));
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
-    const updatedModel = getSavedModel(saveDatamodel);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(saveDataModel);
     const updatedNode = updatedModel.getNode(selectedItem.pointer) as FieldNode;
     expect(updatedNode.children).toHaveLength(numberOfFields + 1); // eslint-disable-line testing-library/no-node-access
   });
@@ -153,8 +153,8 @@ describe('ItemFieldsTab', () => {
     renderItemFieldsTab();
     await user.click(screen.getAllByRole('textbox')[0]);
     await user.keyboard('{Enter}');
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
-    const updatedModel = getSavedModel(saveDatamodel);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(saveDataModel);
     const updatedNode = updatedModel.getNode(selectedItem.pointer) as FieldNode;
     expect(updatedNode.children).toHaveLength(numberOfFields + 1); // eslint-disable-line testing-library/no-node-access
   });
@@ -169,12 +169,12 @@ describe('ItemFieldsTab', () => {
     expect(dialog).toBeInTheDocument();
 
     const confirmButton = screen.getByRole('button', {
-      name: texts['schema_editor.datamodel_field_deletion_confirm'],
+      name: texts['schema_editor.data_model_field_deletion_confirm'],
     });
     await user.click(confirmButton);
 
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
-    const updatedModel = getSavedModel(saveDatamodel);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(saveDataModel);
     const updatedNode = updatedModel.getNode(selectedItem.pointer) as FieldNode;
     expect(updatedNode.children).toHaveLength(numberOfFields - 1); // eslint-disable-line testing-library/no-node-access
   });
@@ -195,7 +195,7 @@ describe('ItemFieldsTab', () => {
     const newUiSchema = [rootItem, newSelectedItem, ...childNodes, newChildNode];
     validateTestUiSchema(newUiSchema);
     rerender({
-      appContextProps: { schemaModel: SchemaModel.fromArray(newUiSchema), save: saveDatamodel },
+      appContextProps: { schemaModel: SchemaModel.fromArray(newUiSchema), save: saveDataModel },
     })(<ItemFieldsTab {...defaultProps} selectedItem={newSelectedItem} />);
     expect(screen.getByDisplayValue(newChildNodeName)).toHaveFocus();
     await user.keyboard('a'); // Should replace the current value since the text should be selected

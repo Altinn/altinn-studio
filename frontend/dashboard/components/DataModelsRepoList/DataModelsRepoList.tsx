@@ -16,7 +16,7 @@ type DataModelsReposListProps = {
   user: User;
   organizations: Organization[];
 };
-export const DatamodelsReposList = ({ user, organizations }: DataModelsReposListProps) => {
+export const DataModelsReposList = ({ user, organizations }: DataModelsReposListProps) => {
   const { data: starredRepos = [], isPending: areStarredReposPending } = useStarredReposQuery();
   const selectedContext = useSelectedContext();
   const { t } = useTranslation();
@@ -29,7 +29,7 @@ export const DatamodelsReposList = ({ user, organizations }: DataModelsReposList
 
   const { data: repos, isPending: isPendingOrgRepos } = useSearchReposQuery({
     uid: uid as number,
-    keyword: '-datamodels',
+    keyword: '-dataModels',
     page: 0,
   });
 
@@ -45,7 +45,7 @@ export const DatamodelsReposList = ({ user, organizations }: DataModelsReposList
   return (
     <div>
       <Heading level={2} size='small' spacing>
-        {getReposLabel({ selectedContext, orgs: organizations, t, isDatamodelsRepo: true })}
+        {getReposLabel({ selectedContext, orgs: organizations, t, isDataModelsRepo: true })}
       </Heading>
       <RepoList
         repos={reposWithStarred}

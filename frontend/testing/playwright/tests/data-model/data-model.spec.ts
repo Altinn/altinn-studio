@@ -19,7 +19,7 @@ test.afterAll(async ({ request, testAppName }) => {
   expect(response.ok()).toBeTruthy();
 });
 
-test('Allows to add a datamodel, include an object with custom name and fields in it, generate a C# model from it, and then delete it', async ({
+test('Allows to add a data model, include an object with custom name and fields in it, generate a C# model from it, and then delete it', async ({
   page,
   testAppName,
 }): Promise<void> => {
@@ -28,9 +28,9 @@ test('Allows to add a datamodel, include an object with custom name and fields i
   await dataModelPage.loadDataModelPage();
   await dataModelPage.verifyDataModelPage();
 
-  // Add datamodel
+  // Add data model
   await dataModelPage.clickOnCreateNewDataModelButton();
-  const dataModelName: string = 'testdatamodel';
+  const dataModelName: string = 'testDataModel';
   await dataModelPage.typeDataModelName(dataModelName);
   await dataModelPage.clickOnCreateModelButton();
   await dataModelPage.waitForDataModelToAppear(dataModelName);
@@ -114,7 +114,7 @@ test('Allows to upload and then delete an XSD file', async ({ page, testAppName 
   await dataModelPage.verifyDataModelPage();
 
   // Select the file to upload
-  const dataModelName: string = 'testdatamodel';
+  const dataModelName: string = 'testDataModel';
   const dataModelFileName: string = `${dataModelName}.xsd`;
   await dataModelPage.selectFileToUpload(dataModelFileName);
   await dataModelPage.waitForDataModelToBeUploaded();

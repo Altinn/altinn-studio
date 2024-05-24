@@ -5,10 +5,10 @@ import {
   appPolicyPath,
   appVersionPath,
   branchStatusPath,
-  datamodelMetadataPath,
-  datamodelPath,
-  datamodelsPath,
-  datamodelsXsdPath,
+  dataModelMetadataPath,
+  dataModelPath,
+  dataModelsPath,
+  dataModelsXsdPath,
   deployPermissionsPath,
   deploymentsPath,
   envConfigPath,
@@ -47,10 +47,10 @@ import {
   layoutNamesPath,
   appMetadataModelIdsPath,
 } from './paths';
-import type { AppReleasesResponse, DatamodelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
+import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
-import type { DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
+import type { DataModelMetadataJson, DataModelMetadataXsd } from 'app-shared/types/DataModelMetadata';
 import type { Environment } from 'app-shared/types/Environment';
 import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
@@ -79,10 +79,10 @@ export const getAppMetadataModelIds = (org: string, app: string, onlyUnReference
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getAppVersion = (org: string, app: string) => get<AppVersion>(appVersionPath(org, app));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
-export const getDatamodel = (owner: string, app: string, modelPath: string) => get<JsonSchema>(datamodelPath(owner, app, modelPath));
-export const getDatamodelMetadata = (owner: string, app: string, layoutSetName: string, dataModelName: string) => get<DatamodelMetadataResponse>(datamodelMetadataPath(owner, app, layoutSetName, dataModelName));
-export const getDatamodelsJson = (owner: string, app: string) => get<DatamodelMetadataJson[]>(datamodelsPath(owner, app));
-export const getDatamodelsXsd = (owner: string, app: string) => get<DatamodelMetadataXsd[]>(datamodelsXsdPath(owner, app));
+export const getDataModel = (owner: string, app: string, modelPath: string) => get<JsonSchema>(dataModelPath(owner, app, modelPath));
+export const getDataModelMetadata = (owner: string, app: string, layoutSetName: string, dataModelName: string) => get<DataModelMetadataResponse>(dataModelMetadataPath(owner, app, layoutSetName, dataModelName));
+export const getDataModelsJson = (owner: string, app: string) => get<DataModelMetadataJson[]>(dataModelsPath(owner, app));
+export const getDataModelsXsd = (owner: string, app: string) => get<DataModelMetadataXsd[]>(dataModelsXsdPath(owner, app));
 export const getDeployPermissions = (owner: string, app: string) => get<string[]>(deployPermissionsPath(owner, app));
 export const getDeployments = (owner: string, app: string) => get<DeploymentsResponse>(deploymentsPath(owner, app, 'Descending'));
 export const getEnvironments = () => get<Environment[]>(envConfigPath());

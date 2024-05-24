@@ -7,7 +7,7 @@ type SupportedRoutes =
   | 'dashboardCreateApp'
   | 'deploy'
   | 'editorOverview'
-  | 'editorDatamodel'
+  | 'editorDataModel'
   | 'editorProcess'
   | 'editorText'
   | 'editorUi'
@@ -22,7 +22,7 @@ const routerRoutes: RouterRoutes = {
   dashboardCreateApp: '/dashboard/self/new',
   deploy: '/editor/{{org}}/{{app}}/deploy',
   editorOverview: `/editor/{{org}}/{{app}}/overview`,
-  editorDatamodel: `/editor/{{org}}/{{app}}/datamodel`,
+  editorDataModel: `/editor/{{org}}/{{app}}/data-model`,
   editorProcess: `/editor/{{org}}/{{app}}/process-editor`,
   editorText: `/editor/{{org}}/{{app}}/text-editor`,
   editorUi: `/editor/{{org}}/{{app}}/ui-editor`,

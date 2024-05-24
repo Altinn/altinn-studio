@@ -8,10 +8,10 @@ type TopMenuNames =
   | 'about'
   | 'create'
   | 'dashboard'
-  | 'datamodel'
+  | 'data-model'
   | 'deploy'
   | 'preview'
-  | 'preview_back_to_editing'
+  | 'preview-back-to-editing'
   | 'process-editor'
   | 'texts';
 

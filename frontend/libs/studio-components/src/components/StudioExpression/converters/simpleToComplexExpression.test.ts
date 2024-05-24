@@ -64,7 +64,7 @@ describe('simpleToComplexExpression', () => {
           {
             relationalOperator,
             firstOperand: {
-              type: SimpleSubexpressionValueType.Datamodel,
+              type: SimpleSubexpressionValueType.DataModel,
               path: '#/properties/test',
             },
             secondOperand: { type: SimpleSubexpressionValueType.String, value: 'Lorem ipsum' },
@@ -92,9 +92,9 @@ describe('simpleToComplexExpression', () => {
       subexpressionValue: { type: SimpleSubexpressionValueType.Component, id: 'test' },
       expectedResult: [DataLookupFuncName.Component, 'test'],
     },
-    datamodel: {
+    dataModel: {
       subexpressionValue: {
-        type: SimpleSubexpressionValueType.Datamodel,
+        type: SimpleSubexpressionValueType.DataModel,
         path: '#/properties/test',
       },
       expectedResult: [DataLookupFuncName.DataModel, '#/properties/test'],
@@ -170,7 +170,7 @@ describe('simpleToComplexExpression', () => {
           {
             relationalOperator: GeneralRelationOperator.NotEquals,
             firstOperand: {
-              type: SimpleSubexpressionValueType.Datamodel,
+              type: SimpleSubexpressionValueType.DataModel,
               path: '#/properties/test',
             },
             secondOperand: { type: SimpleSubexpressionValueType.String, value: 'Lorem ipsum' },

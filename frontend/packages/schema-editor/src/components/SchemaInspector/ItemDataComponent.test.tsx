@@ -18,7 +18,7 @@ import { getSavedModel } from '../../../test/test-utils';
 const user = userEvent.setup();
 
 // Test data:
-const saveDatamodel = jest.fn();
+const saveDataModel = jest.fn();
 const defaultNode: UiSchemaNode = combinationNodeMock;
 
 const renderItemDataComponent = (schemaNode: UiSchemaNode = defaultNode) => {
@@ -26,7 +26,7 @@ const renderItemDataComponent = (schemaNode: UiSchemaNode = defaultNode) => {
   return renderWithProviders({
     appContextProps: {
       schemaModel,
-      save: saveDatamodel,
+      save: saveDataModel,
       selectedNodePointer: schemaNode.pointer,
     },
   })(<ItemDataComponent schemaNode={schemaNode} />);
@@ -51,7 +51,7 @@ describe('ItemDataComponent', () => {
     const checkbox = screen.queryByLabelText(textMock('schema_editor.multiple_answers'));
     if (checkbox === null) fail();
     await user.click(checkbox);
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
   });
 
   test('"Nullable" checkbox should appear if selected item is combination', async () => {
@@ -70,7 +70,7 @@ describe('ItemDataComponent', () => {
     const checkbox = screen.getByLabelText(textMock('schema_editor.nullable'));
     if (checkbox === null) fail();
     await user.click(checkbox);
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
   });
 
   test('"Title" field appears', async () => {
@@ -84,8 +84,8 @@ describe('ItemDataComponent', () => {
     const title = 'Lorem ipsum';
     await user.type(inputField, title);
     await user.tab();
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
-    const updatedModel = getSavedModel(saveDatamodel);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(saveDataModel);
     const updatedNode = updatedModel.getNode(combinationNodeMock.pointer);
     expect(updatedNode.title).toEqual(title);
   });
@@ -101,8 +101,8 @@ describe('ItemDataComponent', () => {
     const description = 'Lorem ipsum dolor sit amet.';
     await user.type(textArea, description);
     await user.tab();
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
-    const updatedModel = getSavedModel(saveDatamodel);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(saveDataModel);
     const updatedNode = updatedModel.getNode(combinationNodeMock.pointer);
     expect(updatedNode.description).toEqual(description);
   });

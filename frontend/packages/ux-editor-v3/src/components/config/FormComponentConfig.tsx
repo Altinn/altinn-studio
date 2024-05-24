@@ -84,12 +84,12 @@ export const FormComponentConfig = ({
       {dataModelBindings?.properties && (
         <>
           <Heading level={3} size='xxsmall'>
-            {t('top_menu.datamodel')}
+            {t('top_menu.data_model')}
           </Heading>
           {Object.keys(dataModelBindings?.properties).map((propertyKey: any) => {
             return (
               <EditDataModelBindings
-                key={`${component.id}-datamodel-${propertyKey}`}
+                key={`${component.id}-data-model-${propertyKey}`}
                 component={component}
                 handleComponentChange={handleComponentUpdate}
                 editFormId={editFormId}

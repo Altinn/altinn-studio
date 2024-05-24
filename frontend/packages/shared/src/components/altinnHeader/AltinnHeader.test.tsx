@@ -27,29 +27,29 @@ describe('AltinnHeader', () => {
         {
           key: TopBarMenu.About,
           link: 'Link1',
-          repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
+          repositoryTypes: [RepositoryType.App, RepositoryType.DataModels],
         },
       ],
     });
     expect(screen.getByTitle('Altinn logo')).toBeInTheDocument();
   });
 
-  it('should render AltinnHeaderMenu with only datamodels menu item when repositoryType is datamodels', () => {
+  it('should render AltinnHeaderMenu with only data models menu item when repositoryType is data models', () => {
     render({
       menuItems: [
         {
           key: TopBarMenu.About,
           link: 'Link1',
-          repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
+          repositoryTypes: [RepositoryType.App, RepositoryType.DataModels],
         },
         {
-          key: TopBarMenu.Datamodel,
+          key: TopBarMenu.DataModel,
           link: 'Link2',
-          repositoryTypes: [RepositoryType.Datamodels],
+          repositoryTypes: [RepositoryType.DataModels],
         },
       ],
     });
-    expect(screen.getByRole('link', { name: textMock('top_menu.datamodel') })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: textMock('top_menu.data-model') })).toBeInTheDocument();
     expect(screen.queryByText(textMock('about'))).not.toBeInTheDocument();
   });
 
