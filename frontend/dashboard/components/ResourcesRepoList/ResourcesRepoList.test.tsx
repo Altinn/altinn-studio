@@ -26,8 +26,8 @@ const getResourceListResponse = [
     },
     createdBy: '',
     lastChanged: new Date(),
-    hasPolicy: true,
     identifier: 'test-ressurs',
+    environments: ['gitea'],
   },
 ];
 
