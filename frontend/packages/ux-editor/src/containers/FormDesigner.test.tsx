@@ -24,6 +24,7 @@ import { app, org } from '@studio/testing/testids';
 const defaultTexts: ITextResources = {
   [DEFAULT_LANGUAGE]: [],
 };
+const dataModelName = undefined;
 
 const render = () => {
   const queryClient = createQueryClientMock();
@@ -36,7 +37,7 @@ const render = () => {
     getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve<string>('test')),
   };
   queryClient.setQueryData(
-    [QueryKey.DatamodelMetadata, org, app, 'test-layout-set', 'test-data-model'],
+    [QueryKey.DatamodelMetadata, org, app, 'test-layout-set', dataModelName],
     [],
   );
   queryClient.setQueryData([QueryKey.TextResources, org, app], defaultTexts);
