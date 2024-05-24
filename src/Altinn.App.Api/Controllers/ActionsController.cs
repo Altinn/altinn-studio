@@ -131,7 +131,7 @@ public class ActionsController : ControllerBase
         }
 
         UserActionContext userActionContext =
-            new(instance, userId.Value, actionRequest.ButtonId, actionRequest.Metadata);
+            new(instance, userId.Value, actionRequest.ButtonId, actionRequest.Metadata, language);
         IUserAction? actionHandler = _userActionService.GetActionHandler(action);
         if (actionHandler == null)
         {
@@ -148,12 +148,8 @@ public class ActionsController : ControllerBase
         }
 
         UserActionResult result = await actionHandler.HandleAction(userActionContext);
-        if (result.ResultType == ResultType.Redirect)
-        {
-            return new RedirectResult(result.RedirectUrl ?? throw new ProcessException("Redirect URL missing"));
-        }
 
-        if (result.ResultType != ResultType.Success)
+        if (result.ResultType == ResultType.Failure)
         {
             return StatusCode(
                 statusCode: result.ErrorType switch
@@ -183,6 +179,7 @@ public class ActionsController : ControllerBase
                     actionRequest.IgnoredValidators,
                     language
                 ),
+                RedirectUrl = result.RedirectUrl,
             }
         );
     }

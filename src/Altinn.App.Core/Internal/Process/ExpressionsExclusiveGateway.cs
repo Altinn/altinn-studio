@@ -25,6 +25,7 @@ namespace Altinn.App.Core.Internal.Process
                 ReadCommentHandling = JsonCommentHandling.Skip,
                 PropertyNameCaseInsensitive = true,
             };
+
         private static readonly JsonSerializerOptions _jsonSerializerOptionsCamelCase =
             new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
@@ -112,7 +113,11 @@ namespace Altinn.App.Core.Internal.Process
             if (sequenceFlow.ConditionExpression != null)
             {
                 var expression = GetExpressionFromCondition(sequenceFlow.ConditionExpression);
-                foreach (var componentContext in state.GetComponentContexts())
+                // If there is no component context in the state, evaluate the expression once without a component context
+                var stateComponentContexts = state.GetComponentContexts().Any()
+                    ? state.GetComponentContexts().ToList()
+                    : [null];
+                foreach (ComponentContext? componentContext in stateComponentContexts)
                 {
                     var result = ExpressionEvaluator.EvaluateExpression(state, expression, componentContext);
                     if (result is bool boolResult && boolResult)

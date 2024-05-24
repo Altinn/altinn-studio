@@ -8,6 +8,9 @@ using Altinn.App.Core.Features.Notifications.Email;
 using Altinn.App.Core.Features.Notifications.Sms;
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Features.PageOrder;
+using Altinn.App.Core.Features.Payment.Processors;
+using Altinn.App.Core.Features.Payment.Processors.Nets;
+using Altinn.App.Core.Features.Payment.Services;
 using Altinn.App.Core.Features.Pdf;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Features.Validation.Default;
@@ -177,6 +180,7 @@ namespace Altinn.App.Core.Extensions
             AddAppOptions(services);
             AddActionServices(services);
             AddPdfServices(services);
+            AddNetsPaymentServices(services, configuration);
             AddSignatureServices(services);
             AddEventServices(services);
             AddNotificationServices(services);
@@ -259,6 +263,22 @@ namespace Altinn.App.Core.Extensions
 #pragma warning disable CS0618 // Type or member is obsolete
             services.TryAddTransient<IPdfFormatter, NullPdfFormatter>();
 #pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        private static void AddNetsPaymentServices(this IServiceCollection services, IConfiguration configuration)
+        {
+            IConfigurationSection configurationSection = configuration.GetSection("NetsPaymentSettings");
+
+            if (configurationSection.Exists())
+            {
+                services.Configure<NetsPaymentSettings>(configurationSection);
+                services.AddHttpClient<INetsClient, NetsClient>();
+                services.AddTransient<IPaymentProcessor, NetsPaymentProcessor>();
+            }
+
+            services.AddTransient<IPaymentService, PaymentService>();
+            services.AddTransient<IProcessTask, PaymentProcessTask>();
+            services.AddTransient<IUserAction, PaymentUserAction>();
         }
 
         private static void AddSignatureServices(IServiceCollection services)

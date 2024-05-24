@@ -1461,6 +1461,142 @@ paths:
       responses:
         '200':
           description: Success
+  '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/payment':
+    get:
+      tags:
+        - Payment
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: language
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/PaymentInformation'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentInformation'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/PaymentInformation'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/PaymentInformation'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/PaymentInformation'
+        '404':
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/payment/order-details':
+    get:
+      tags:
+        - Payment
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: language
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/OrderDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetails'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetails'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/OrderDetails'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/OrderDetails'
+        '404':
+          description: Not Found
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/pdf/format':
     get:
       tags:
@@ -2589,6 +2725,28 @@ components:
         - 1
       type: integer
       format: int32
+    Address:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+        addressLine1:
+          type: string
+          nullable: true
+        addressLine2:
+          type: string
+          nullable: true
+        postalCode:
+          type: string
+          nullable: true
+        city:
+          type: string
+          nullable: true
+        country:
+          type: string
+          nullable: true
+      additionalProperties: false
     AppProcessElementInfo:
       type: object
       properties:
@@ -2848,6 +3006,16 @@ components:
           type: object
           additionalProperties:
             nullable: true
+          nullable: true
+      additionalProperties: false
+    CardDetails:
+      type: object
+      properties:
+        maskedPan:
+          type: string
+          nullable: true
+        expiryDate:
+          type: string
           nullable: true
       additionalProperties: false
     ClientAction:
@@ -3345,6 +3513,13 @@ components:
           type: string
           nullable: true
       additionalProperties: false
+    InvoiceDetails:
+      type: object
+      properties:
+        invoiceNumber:
+          type: string
+          nullable: true
+      additionalProperties: false
     JsonNode:
       type: object
       properties:
@@ -3414,6 +3589,43 @@ components:
         - copy
         - test
       type: string
+    OrderDetails:
+      type: object
+      properties:
+        paymentProcessorId:
+          type: string
+          nullable: true
+        receiver:
+          $ref: '#/components/schemas/PaymentReceiver'
+        currency:
+          type: string
+          nullable: true
+        orderLines:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentOrderLine'
+          nullable: true
+        allowedPayerTypes:
+          type: array
+          items:
+            $ref: '#/components/schemas/PayerType'
+          nullable: true
+        orderReference:
+          type: string
+          nullable: true
+        totalPriceExVat:
+          type: number
+          format: double
+          readOnly: true
+        totalVat:
+          type: number
+          format: double
+          readOnly: true
+        totalPriceIncVat:
+          type: number
+          format: double
+          readOnly: true
+      additionalProperties: false
     PartyTypesAllowed:
       type: object
       properties:
@@ -3445,6 +3657,155 @@ components:
           readOnly: true
         value:
           $ref: '#/components/schemas/JsonNode'
+      additionalProperties: false
+    Payer:
+      type: object
+      properties:
+        privatePerson:
+          $ref: '#/components/schemas/PayerPrivatePerson'
+        company:
+          $ref: '#/components/schemas/PayerCompany'
+        shippingAddress:
+          $ref: '#/components/schemas/Address'
+        billingAddress:
+          $ref: '#/components/schemas/Address'
+      additionalProperties: false
+    PayerCompany:
+      type: object
+      properties:
+        organisationNumber:
+          type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        contactPerson:
+          $ref: '#/components/schemas/PayerPrivatePerson'
+      additionalProperties: false
+    PayerPrivatePerson:
+      type: object
+      properties:
+        firstName:
+          type: string
+          nullable: true
+        lastName:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        phoneNumber:
+          $ref: '#/components/schemas/PhoneNumber'
+      additionalProperties: false
+    PayerType:
+      enum:
+        - Person
+        - Company
+      type: string
+    PaymentDetails:
+      type: object
+      properties:
+        paymentId:
+          type: string
+          nullable: true
+        redirectUrl:
+          type: string
+          nullable: true
+        payer:
+          $ref: '#/components/schemas/Payer'
+        paymentType:
+          type: string
+          nullable: true
+        paymentMethod:
+          type: string
+          nullable: true
+        createdDate:
+          type: string
+          nullable: true
+        chargedDate:
+          type: string
+          nullable: true
+        invoiceDetails:
+          $ref: '#/components/schemas/InvoiceDetails'
+        cardDetails:
+          $ref: '#/components/schemas/CardDetails'
+      additionalProperties: false
+    PaymentInformation:
+      type: object
+      properties:
+        taskId:
+          type: string
+          nullable: true
+        status:
+          $ref: '#/components/schemas/PaymentStatus'
+        orderDetails:
+          $ref: '#/components/schemas/OrderDetails'
+        paymentDetails:
+          $ref: '#/components/schemas/PaymentDetails'
+      additionalProperties: false
+    PaymentOrderLine:
+      type: object
+      properties:
+        id:
+          type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        textResourceKey:
+          type: string
+          nullable: true
+        priceExVat:
+          type: number
+          format: double
+        quantity:
+          type: integer
+          format: int32
+        vatPercent:
+          type: number
+          format: double
+        unit:
+          type: string
+          nullable: true
+      additionalProperties: false
+    PaymentReceiver:
+      type: object
+      properties:
+        organisationNumber:
+          type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        postalAddress:
+          $ref: '#/components/schemas/Address'
+        bankAccountNumber:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        phoneNumber:
+          $ref: '#/components/schemas/PhoneNumber'
+      additionalProperties: false
+    PaymentStatus:
+      enum:
+        - Uninitialized
+        - Created
+        - Paid
+        - Failed
+        - Cancelled
+        - Skipped
+      type: string
+    PhoneNumber:
+      type: object
+      properties:
+        prefix:
+          type: string
+          nullable: true
+        number:
+          type: string
+          nullable: true
       additionalProperties: false
     ProblemDetails:
       type: object
@@ -3713,6 +4074,10 @@ components:
           nullable: true
         error:
           $ref: '#/components/schemas/ActionError'
+        redirectUrl:
+          type: string
+          format: uri
+          nullable: true
       additionalProperties: false
     ValidationIssue:
       type: object

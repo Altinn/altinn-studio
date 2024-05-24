@@ -26,5 +26,11 @@ namespace Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties
         /// </summary>
         [XmlElement("signatureConfig", Namespace = "http://altinn.no/process")]
         public AltinnSignatureConfiguration? SignatureConfiguration { get; set; } = new AltinnSignatureConfiguration();
+
+        /// <summary>
+        /// Gets or sets the configuration for signature
+        /// </summary>
+        [XmlElement("paymentConfig", Namespace = "http://altinn.no/process")]
+        public AltinnPaymentConfiguration? PaymentConfiguration { get; set; } = new AltinnPaymentConfiguration();
     }
 }

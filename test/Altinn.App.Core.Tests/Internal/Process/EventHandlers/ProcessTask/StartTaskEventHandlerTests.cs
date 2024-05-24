@@ -21,7 +21,7 @@ public class StartTaskEventHandlerTests
     }
 
     [Fact]
-    public async Task Execute_handles_no_IProcessTaskStart_injected()
+    public async Task Execute_handles_happy_path()
     {
         StartTaskEventHandler steh = new StartTaskEventHandler(
             _processTaskDataLocker.Object,

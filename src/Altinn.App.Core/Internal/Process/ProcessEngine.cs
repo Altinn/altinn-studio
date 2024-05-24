@@ -305,7 +305,9 @@ public class ProcessEngine : IProcessEngine
                 Name = nextElement!.Name,
                 Started = now,
                 AltinnTaskType = task?.ExtensionElements?.TaskExtension?.TaskType,
-                FlowType = ProcessSequenceFlowType.CompleteCurrentMoveToNext.ToString(),
+                FlowType = action is "reject"
+                    ? ProcessSequenceFlowType.AbandonCurrentMoveToNext.ToString()
+                    : ProcessSequenceFlowType.CompleteCurrentMoveToNext.ToString(),
                 Validated = null,
             };
 

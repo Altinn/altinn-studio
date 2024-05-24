@@ -31,7 +31,7 @@ public class UserActionResult
     /// <summary>
     /// Gets or sets a value indicating whether the user action was a success
     /// </summary>
-    public bool Success { get; init; }
+    public bool Success { get; set; }
 
     /// <summary>
     /// Indicates the type of result
@@ -61,7 +61,7 @@ public class UserActionResult
     /// <summary>
     /// If this is set, the client should redirect to this url
     /// </summary>
-    public string? RedirectUrl { get; set; }
+    public Uri? RedirectUrl { get; set; }
 
     /// <summary>
     /// Creates a success result
@@ -102,7 +102,7 @@ public class UserActionResult
     /// </summary>
     /// <param name="redirectUrl"></param>
     /// <returns></returns>
-    public static UserActionResult RedirectResult(string redirectUrl)
+    public static UserActionResult RedirectResult(Uri redirectUrl)
     {
         return new UserActionResult
         {
