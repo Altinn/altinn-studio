@@ -59,10 +59,13 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   const handleShapeRemove = (taskEvent: TaskEvent): void => {
     const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(taskEvent?.element?.businessObject);
     const removeProcessTaskManager = new RemoveProcessTaskManager(
+      org,
+      app,
       layoutSets,
       deleteLayoutSet,
       deleteDataTypeFromAppMetadata,
       bpmnDetails,
+      currentPolicy,
     );
 
     removeProcessTaskManager.handleTaskRemove(taskEvent);

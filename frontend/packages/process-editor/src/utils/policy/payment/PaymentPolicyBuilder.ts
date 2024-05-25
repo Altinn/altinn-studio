@@ -10,6 +10,10 @@ export class PaymentPolicyBuilder {
     return this.buildPaymentPolicy(taskId);
   }
 
+  public getPolicyRuleId(taskId: string): string {
+    return this.buildRuleId(taskId);
+  }
+
   private buildPaymentPolicy(taskId: string): Policy {
     return {
       rules: [this.buildPaymentRule(taskId)],

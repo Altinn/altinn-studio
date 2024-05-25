@@ -6,16 +6,18 @@ import {
   getDataTypeIdFromBusinessObject,
   getLayoutSetIdFromTaskId,
 } from '@altinn/process-editor/utils/hookUtils/hookUtils';
+import { Policy } from '@altinn/process-editor/utils/policy/types';
+import { PaymentPolicyBuilder } from '@altinn/process-editor/utils/policy';
 
 export class RemoveProcessTaskManager {
   constructor(
-    // org and app might be needed for deleting, check when the endpoint is implemented
-    // private readonly org: string,
-    // private readonly app: string,
+    private readonly org: string,
+    private readonly app: string,
     private readonly layoutSets: BpmnApiContextProps['layoutSets'],
     private readonly deleteLayoutSet: BpmnApiContextProps['deleteLayoutSet'],
     private readonly deleteDataTypeFromAppMetadata: BpmnApiContextProps['deleteDataTypeFromAppMetadata'],
     private readonly bpmnDetails: BpmnDetails,
+    private readonly currentPolicy: Policy,
   ) {}
 
   public handleTaskRemove(taskEvent: TaskEvent): void {
@@ -47,9 +49,17 @@ export class RemoveProcessTaskManager {
       taskEvent.element.businessObject,
     );
 
-    // TODO should add the policy that we want to keep. Meaning we need to remove the policy from the frontend.
+    const paymentPolicyBuilder = new PaymentPolicyBuilder(this.org, this.app);
+    const currentPaymentRuleId = paymentPolicyBuilder.getPolicyRuleId(this.bpmnDetails.id);
+
+    const updatedPolicy: Policy = {
+      ...this.currentPolicy,
+      rules: this.currentPolicy.rules.filter((rule) => rule.ruleId !== currentPaymentRuleId),
+    };
+
     this.deleteDataTypeFromAppMetadata({
       dataTypeId,
+      policy: updatedPolicy,
     });
   }
 

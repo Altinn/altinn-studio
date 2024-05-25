@@ -166,11 +166,15 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpDelete("data-type/{dataTypeId}")]
-        public async Task<ActionResult> DeleteDataTypeFromApplicationMetadata(string org, string repo, [FromRoute] string dataTypeId, CancellationToken cancellationToken)
+        public async Task<ActionResult> DeleteDataTypeFromApplicationMetadata(string org, string repo, [FromRoute] string dataTypeId, CancellationToken cancellationToken, [FromBody] ResourcePolicy applicationPolicy)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
             await _processModelingService.DeleteDataTypeFromApplicationMetadataAsync(editingContext, dataTypeId, cancellationToken);
+
+            XacmlPolicy xacmlPolicy = PolicyConverter.ConvertPolicy(applicationPolicy);
+            await _repository.SavePolicy(org, repo, null, xacmlPolicy);
+
             return Ok();
         }
     }
