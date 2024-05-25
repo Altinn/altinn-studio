@@ -231,10 +231,15 @@ namespace Altinn.App.Api.Controllers
             }
             else
             {
+                if (instanceOwnerPartyId is null)
+                {
+                    return StatusCode(500, "Can't create minimal instance when Instance owner Party ID is null");
+                }
+
                 // create minimum instance template
                 instanceTemplate = new Instance
                 {
-                    InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId!.Value.ToString() }
+                    InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.Value.ToString() }
                 };
             }
 
@@ -1072,6 +1077,15 @@ namespace Altinn.App.Api.Controllers
 
             foreach (RequestPart part in parts)
             {
+                // NOTE: part.Name is nullable on the type here, but `RequestPartValidator.ValidatePart` which is called
+                // further up the stack will error out if it actually null, so we just sanity-check here
+                // and throw if it is null.
+                // TODO: improve the modelling of this type.
+                if (part.Name is null)
+                {
+                    throw new InvalidOperationException("Unexpected state - part name is null");
+                }
+
                 DataType? dataType = appInfo.DataTypes.Find(d => d.Id == part.Name);
 
                 DataElement dataElement;
@@ -1101,7 +1115,7 @@ namespace Altinn.App.Api.Controllers
                         throw new InvalidOperationException(deserializer.Error);
                     }
 
-                    await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, part.Name!, data);
+                    await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, part.Name, data);
 
                     await _instantiationProcessor.DataCreation(instance, data, null);
 
@@ -1114,14 +1128,14 @@ namespace Altinn.App.Api.Controllers
                         org,
                         app,
                         instanceOwnerIdAsInt,
-                        part.Name!
+                        part.Name
                     );
                 }
                 else
                 {
                     dataElement = await _dataClient.InsertBinaryData(
                         instance.Id,
-                        part.Name!,
+                        part.Name,
                         part.ContentType,
                         part.FileName,
                         part.Stream

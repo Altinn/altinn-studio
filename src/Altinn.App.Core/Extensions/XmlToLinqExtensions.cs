@@ -27,7 +27,10 @@ namespace Altinn.App.Core.Extensions
         /// </returns>
         public static XElement AddAttribute(this XElement element, string attributeName, object value)
         {
-            element.Add(new XAttribute(attributeName, value.ToString()!));
+            var valueStr =
+                value.ToString()
+                ?? throw new ArgumentException("String representation of parameter 'value' is null", nameof(value));
+            element.Add(new XAttribute(attributeName, valueStr));
             return element;
         }
 

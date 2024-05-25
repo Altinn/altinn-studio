@@ -16,10 +16,5 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>
-        <!-- TODO: enable this at some point, when we've got a handle on NRTs -->
-        <!-- <PackageReference Include="Nullable.Extended.Analyzer" Version="1.15.6169">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-          </PackageReference> -->
     </ItemGroup>
 </Project>

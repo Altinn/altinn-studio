@@ -53,6 +53,7 @@ internal class PaymentService : IPaymentService
         }
 
         ValidateConfig(paymentConfiguration);
+        // ! TODO: restructure code to avoid assertion (it is validated above)
         string dataTypeId = paymentConfiguration.PaymentDataType!;
 
         (Guid dataElementId, PaymentInformation? existingPaymentInformation) =
@@ -132,6 +133,7 @@ internal class PaymentService : IPaymentService
 
         ValidateConfig(paymentConfiguration);
 
+        // ! TODO: restructure code to avoid assertion (it is validated above)
         string dataTypeId = paymentConfiguration.PaymentDataType!;
         (Guid dataElementId, PaymentInformation? paymentInformation) = await _dataService.GetByType<PaymentInformation>(
             instance,
@@ -153,7 +155,6 @@ internal class PaymentService : IPaymentService
             };
         }
 
-        PaymentDetails paymentDetails = paymentInformation.PaymentDetails!;
         decimal totalPriceIncVat = paymentInformation.OrderDetails.TotalPriceIncVat;
         string paymentProcessorId = paymentInformation.OrderDetails.PaymentProcessorId;
 
@@ -171,6 +172,10 @@ internal class PaymentService : IPaymentService
         IPaymentProcessor paymentProcessor =
             _paymentProcessors.FirstOrDefault(p => p.PaymentProcessorId == paymentProcessorId)
             ?? throw new PaymentException($"Payment processor with ID '{paymentProcessorId}' not found.");
+
+        PaymentDetails paymentDetails =
+            paymentInformation.PaymentDetails
+            ?? throw new PaymentException("Payment details unexpectedly missing from payment information.");
 
         (PaymentStatus paymentStatus, PaymentDetails updatedPaymentDetails) = await paymentProcessor.GetPaymentStatus(
             instance,
@@ -203,6 +208,7 @@ internal class PaymentService : IPaymentService
     {
         ValidateConfig(paymentConfiguration);
 
+        // ! TODO: restructure code to avoid assertion (it is validated above)
         string dataTypeId = paymentConfiguration.PaymentDataType!;
         (Guid _, PaymentInformation? paymentInformation) = await _dataService.GetByType<PaymentInformation>(
             instance,
@@ -225,6 +231,7 @@ internal class PaymentService : IPaymentService
     {
         ValidateConfig(paymentConfiguration);
 
+        // ! TODO: restructure code to avoid assertion (it is validated above)
         string dataTypeId = paymentConfiguration.PaymentDataType!;
         (Guid dataElementId, PaymentInformation? paymentInformation) = await _dataService.GetByType<PaymentInformation>(
             instance,

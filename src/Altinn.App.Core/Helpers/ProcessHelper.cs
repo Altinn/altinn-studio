@@ -17,6 +17,9 @@ namespace Altinn.App.Core.Helpers
         /// <param name="possibleStartEvents">List of possible start events <see cref="IProcessReader.GetStartEventIds"/></param>
         /// <param name="startEventError">Any error preventing the process from starting.</param>
         /// <returns>The name of the start event or null if start event wasn't found.</returns>
+        // TODO: improve implementation of this so that we help out nullability flow analysis in the compiler
+        // i.e. startEventError is non-null when the function returns null
+        // this should probably also be internal...
         public static string? GetValidStartEventOrError(
             string? proposedStartEvent,
             List<string> possibleStartEvents,

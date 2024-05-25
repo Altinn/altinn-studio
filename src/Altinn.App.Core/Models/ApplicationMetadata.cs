@@ -63,7 +63,8 @@ namespace Altinn.App.Core.Models
         /// </summary>
         [JsonProperty(PropertyName = "altinnNugetVersion")]
         public string AltinnNugetVersion { get; set; } =
-            typeof(ApplicationMetadata).Assembly!.GetName().Version!.ToString();
+            typeof(ApplicationMetadata).Assembly.GetName().Version?.ToString()
+            ?? throw new Exception("Assembly version is null");
 
         /// <summary>
         /// Holds properties that are not mapped to other properties

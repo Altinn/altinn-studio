@@ -72,6 +72,7 @@ namespace Altinn.App.Core.Internal.Process
                         case InstanceEventType.process_StartEvent:
                             break;
                         case InstanceEventType.process_StartTask:
+                            // ! TODO: figure out why taskId can be null here
                             await _startTaskEventHandler.Execute(
                                 GetProcessTaskInstance(altinnTaskType),
                                 taskId!,
@@ -80,6 +81,7 @@ namespace Altinn.App.Core.Internal.Process
                             );
                             break;
                         case InstanceEventType.process_EndTask:
+                            // ! TODO: figure out why taskId can be null here
                             await _endTaskEventHandler.Execute(
                                 GetProcessTaskInstance(altinnTaskType),
                                 taskId!,
@@ -88,6 +90,7 @@ namespace Altinn.App.Core.Internal.Process
                             break;
                         case InstanceEventType.process_AbandonTask:
                             // InstanceEventType is set to Abandon when action performed is `Reject`. This is to keep backwards compatability with existing code that only should be run when a task is abandoned/rejected.
+                            // ! TODO: figure out why taskId can be null here
                             await _abandonTaskEventHandler.Execute(
                                 GetProcessTaskInstance(altinnTaskType),
                                 taskId!,

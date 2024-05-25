@@ -146,17 +146,24 @@ internal class NetsPaymentProcessor : IPaymentProcessor
             );
         }
 
-        NetsPayment payment = httpApiResult.Result.Payment!;
+        NetsPayment payment =
+            httpApiResult.Result.Payment
+            ?? throw new PaymentException("Payment information is null in the response from Nets");
         decimal? chargedAmount = payment.Summary?.ChargedAmount;
 
         PaymentStatus status = chargedAmount > 0 ? PaymentStatus.Paid : PaymentStatus.Created;
         NetsPaymentDetails? paymentPaymentDetails = payment.PaymentDetails;
 
+        var checkout =
+            payment.Checkout ?? throw new PaymentException("Checkout information is missing in the response from Nets");
+        var checkoutUrl =
+            checkout.Url ?? throw new PaymentException("Checkout URL is missing in the response from Nets");
+
         PaymentDetails paymentDetails =
             new()
             {
                 PaymentId = paymentId,
-                RedirectUrl = AddLanguageQueryParam(payment.Checkout!.Url!, language),
+                RedirectUrl = AddLanguageQueryParam(checkoutUrl, language),
                 Payer = NetsMapper.MapPayerDetails(payment.Consumer),
                 PaymentType = paymentPaymentDetails?.PaymentType,
                 PaymentMethod = paymentPaymentDetails?.PaymentMethod,

@@ -8,7 +8,10 @@ namespace Altinn.App.Api.Helpers.RequestHandling
         /// <summary>
         /// The stream to access this part.
         /// </summary>
-        public Stream Stream { get; set; } = default!;
+#nullable disable
+        public Stream Stream { get; set; }
+
+#nullable restore
 
         /// <summary>
         /// The file name as given in content description.
@@ -23,7 +26,10 @@ namespace Altinn.App.Api.Helpers.RequestHandling
         /// <summary>
         /// The content type of the part.
         /// </summary>
-        public string ContentType { get; set; } = default!;
+#nullable disable
+        public string ContentType { get; set; }
+
+#nullable restore
 
         /// <summary>
         /// The file size of the part, 0 if not given.

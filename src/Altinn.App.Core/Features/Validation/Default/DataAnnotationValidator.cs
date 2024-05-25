@@ -60,13 +60,21 @@ public class DataAnnotationValidator : IFormDataValidator
         try
         {
             var modelState = new ModelStateDictionary();
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext is null)
+            {
+                throw new Exception("Could not get HttpContext - must be in a request context to validate form data");
+            }
             var actionContext = new ActionContext(
-                _httpContextAccessor.HttpContext!,
+                httpContext,
                 new Microsoft.AspNetCore.Routing.RouteData(),
                 new ActionDescriptor(),
                 modelState
             );
             ValidationStateDictionary validationState = new ValidationStateDictionary();
+            // ! TODO: 'prefix' on the interfacee is non-nullable, but on the actual implementation
+            // ! TODO: it seems to be nullable, so this should be safe..
+            // ! TODO: https://github.com/dotnet/aspnetcore/blob/5ff2399a2b9ea6346dcdcf2cc8ba65fba67d035a/src/Mvc/Mvc.Core/src/ModelBinding/ObjectModelValidator.cs#L41
             _objectModelValidator.Validate(actionContext, validationState, null!, data);
 
             return Task.FromResult(

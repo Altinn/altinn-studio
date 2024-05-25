@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Security.Claims;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
@@ -81,7 +82,7 @@ public class ProcessEngine : IProcessEngine
             _processReader.GetStartEventIds(),
             out ProcessError? startEventError
         );
-        if (startEventError != null)
+        if (startEventError is not null)
         {
             return new ProcessChangeResult()
             {
@@ -91,10 +92,16 @@ public class ProcessEngine : IProcessEngine
             };
         }
 
+        // TODO: assert can be removed when we improve nullability annotation in GetValidStartEventOrError
+        Debug.Assert(
+            validStartElement is not null,
+            "validStartElement should always be nonnull when startEventError is null"
+        );
+
         // start process
         ProcessStateChange? startChange = await ProcessStart(
             processStartRequest.Instance,
-            validStartElement!,
+            validStartElement,
             processStartRequest.User
         );
         InstanceEvent? startEvent = startChange?.Events?[0].CopyValues();
@@ -210,6 +217,7 @@ public class ProcessEngine : IProcessEngine
             await GenerateProcessChangeEvent(InstanceEventType.process_StartEvent.ToString(), instance, now, user)
         ];
 
+        // ! TODO: should probably improve nullability handling in the next major version
         return new ProcessStateChange
         {
             OldProcessState = null!,
@@ -280,13 +288,14 @@ public class ProcessEngine : IProcessEngine
         }
 
         // ending process if next element is end event
-        if (_processReader.IsEndEvent(nextElement?.Id))
+        var nextElementId = nextElement?.Id;
+        if (_processReader.IsEndEvent(nextElementId))
         {
             using var activity = _telemetry?.StartProcessEndActivity(instance);
 
             currentState.CurrentTask = null;
             currentState.Ended = now;
-            currentState.EndEvent = nextElement!.Id;
+            currentState.EndEvent = nextElementId;
 
             events.Add(
                 await GenerateProcessChangeEvent(InstanceEventType.process_EndEvent.ToString(), instance, now, user)
@@ -295,14 +304,19 @@ public class ProcessEngine : IProcessEngine
             // add submit event (to support Altinn2 SBL)
             events.Add(await GenerateProcessChangeEvent(InstanceEventType.Submited.ToString(), instance, now, user));
         }
-        else if (_processReader.IsProcessTask(nextElement?.Id))
+        else if (_processReader.IsProcessTask(nextElementId))
         {
+            if (nextElement is null)
+            {
+                throw new Exception("Next process element was unexpectedly null");
+            }
+
             var task = nextElement as ProcessTask;
             currentState.CurrentTask = new ProcessElementInfo
             {
                 Flow = currentState.CurrentTask?.Flow + 1,
-                ElementId = nextElement!.Id,
-                Name = nextElement!.Name,
+                ElementId = nextElementId,
+                Name = nextElement.Name,
                 Started = now,
                 AltinnTaskType = task?.ExtensionElements?.TaskExtension?.TaskType,
                 FlowType = action is "reject"

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -75,14 +76,16 @@ public class SigningUserAction : IUserAction
                 ?.DataTypes?.Where(d => dataTypeIds.Contains(d.Id, StringComparer.OrdinalIgnoreCase))
                 .ToList();
 
-            if (ShouldSign(currentTask, context.Instance.Data, dataTypesToSign))
+            if (
+                GetDataTypeForSignature(currentTask, context.Instance.Data, dataTypesToSign) is string signatureDataType
+            )
             {
                 var dataElementSignatures = GetDataElementSignatures(context.Instance.Data, dataTypesToSign);
                 SignatureContext signatureContext =
                     new(
                         new InstanceIdentifier(context.Instance),
                         currentTask.Id,
-                        currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration?.SignatureDataType!,
+                        signatureDataType,
                         await GetSignee(context.UserId.Value),
                         dataElementSignatures
                     );
@@ -100,24 +103,23 @@ public class SigningUserAction : IUserAction
         );
     }
 
-    private static bool ShouldSign(
+    private static string? GetDataTypeForSignature(
         ProcessTask currentTask,
         List<DataElement> dataElements,
         List<DataType>? dataTypesToSign
     )
     {
-        var signatureIsConfigured =
-            currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration?.SignatureDataType is not null;
-        if (dataTypesToSign is null or [] || !signatureIsConfigured)
+        var signatureDataType = currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration?.SignatureDataType;
+        if (dataTypesToSign is null or [] || signatureDataType is null)
         {
-            return false;
+            return null;
         }
 
         var dataElementMatchExists = dataElements.Any(de =>
             dataTypesToSign.Any(dt => string.Equals(dt.Id, de.DataType, StringComparison.OrdinalIgnoreCase))
         );
         var allDataTypesAreOptional = dataTypesToSign.All(d => d.MinCount == 0);
-        return dataElementMatchExists || allDataTypesAreOptional;
+        return dataElementMatchExists || allDataTypesAreOptional ? signatureDataType : null;
     }
 
     private static List<DataElementSignature> GetDataElementSignatures(

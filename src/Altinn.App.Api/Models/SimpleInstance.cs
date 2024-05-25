@@ -8,7 +8,10 @@ public class SimpleInstance
     /// <summary>
     /// The instance identifier formated as {instanceOwner.partyId}/{instanceGuid}.
     /// </summary>
-    public string Id { get; set; } = default!;
+#nullable disable
+    public string Id { get; set; }
+
+#nullable restore
 
     /// <summary>
     /// Presentation texts from the instance
@@ -28,5 +31,7 @@ public class SimpleInstance
     /// <summary>
     /// Full name of user to last change the instance.
     /// </summary>
-    public string LastChangedBy { get; set; } = default!;
+#nullable disable
+    public string LastChangedBy { get; set; }
+#nullable restore
 }

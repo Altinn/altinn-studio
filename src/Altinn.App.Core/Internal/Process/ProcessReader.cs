@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Xml.Serialization;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -46,7 +47,7 @@ public class ProcessReader : IProcessReader
     }
 
     /// <inheritdoc />
-    public bool IsStartEvent(string? elementId)
+    public bool IsStartEvent([NotNullWhen(true)] string? elementId)
     {
         using var activity = _telemetry?.StartIsStartEventActivity();
         return elementId != null && GetStartEventIds().Contains(elementId);
@@ -67,7 +68,7 @@ public class ProcessReader : IProcessReader
     }
 
     /// <inheritdoc />
-    public bool IsProcessTask(string? elementId)
+    public bool IsProcessTask([NotNullWhen(true)] string? elementId)
     {
         using var activity = _telemetry?.StartIsProcessTaskActivity();
         return elementId != null && GetProcessTaskIds().Contains(elementId);
@@ -102,7 +103,7 @@ public class ProcessReader : IProcessReader
     }
 
     /// <inheritdoc />
-    public bool IsEndEvent(string? elementId)
+    public bool IsEndEvent([NotNullWhen(true)] string? elementId)
     {
         using var activity = _telemetry?.StartIsEndEventActivity();
         return elementId != null && GetEndEventIds().Contains(elementId);

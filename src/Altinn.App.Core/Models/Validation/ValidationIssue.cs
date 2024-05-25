@@ -71,7 +71,10 @@ namespace Altinn.App.Core.Models.Validation
         /// </remarks>
         [JsonProperty(PropertyName = "source")]
         [JsonPropertyName("source")]
-        public string Source { get; set; } = default!;
+#nullable disable
+        public string Source { get; set; }
+
+#nullable restore
 
         /// <summary>
         /// The custom text key to use for the localized text in the frontend.

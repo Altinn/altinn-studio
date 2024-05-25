@@ -83,12 +83,11 @@ namespace Altinn.App.Core.Implementation
 
             using (FileStream fileStream = new(fullFileName, FileMode.Open, FileAccess.Read))
             {
-                TextResource textResource = (
+                TextResource textResource =
                     await System.Text.Json.JsonSerializer.DeserializeAsync<TextResource>(
                         fileStream,
                         _jsonSerializerOptions
-                    )
-                )!;
+                    ) ?? throw new System.Text.Json.JsonException("Failed to deserialize text resource");
                 textResource.Id = $"{org}-{app}-{language}";
                 textResource.Org = org;
                 textResource.Language = language;
@@ -208,6 +207,7 @@ namespace Altinn.App.Core.Implementation
             if (File.Exists(filename))
             {
                 var filedata = File.ReadAllText(filename, Encoding.UTF8);
+                // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
                 LayoutSettings layoutSettings = JsonConvert.DeserializeObject<LayoutSettings>(filedata)!;
                 return layoutSettings;
             }
@@ -243,6 +243,7 @@ namespace Altinn.App.Core.Implementation
             if (File.Exists(fileName))
             {
                 string fileData = File.ReadAllText(fileName, Encoding.UTF8);
+                // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
                 layouts.Add("FormLayout", JsonConvert.DeserializeObject<object>(fileData)!);
                 return JsonConvert.SerializeObject(layouts);
             }
@@ -254,6 +255,7 @@ namespace Altinn.App.Core.Implementation
                 {
                     string data = File.ReadAllText(file, Encoding.UTF8);
                     string name = file.Replace(layoutsPath, string.Empty).Replace(".json", string.Empty);
+                    // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
                     layouts.Add(name, JsonConvert.DeserializeObject<object>(data)!);
                 }
             }
@@ -313,6 +315,7 @@ namespace Altinn.App.Core.Implementation
                 {
                     string data = File.ReadAllText(file, Encoding.UTF8);
                     string name = file.Replace(layoutsPath, string.Empty).Replace(".json", string.Empty);
+                    // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
                     layouts.Add(name, JsonConvert.DeserializeObject<object>(data)!);
                 }
             }

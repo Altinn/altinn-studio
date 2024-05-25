@@ -132,7 +132,8 @@ namespace Altinn.App.Api.Helpers.RequestHandling
         private string GetBoundary()
         {
             MediaTypeHeaderValue mediaType = MediaTypeHeaderValue.Parse(request.ContentType);
-            return mediaType.Boundary.Value!.Trim('"');
+            return mediaType.Boundary.Value?.Trim('"')
+                ?? throw new Exception("Could not retrieve boundary value from Content-Type header");
         }
     }
 }

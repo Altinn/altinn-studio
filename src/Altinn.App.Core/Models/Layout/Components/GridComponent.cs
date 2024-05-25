@@ -78,12 +78,12 @@ public class GridConfig
     /// Returns the child component IDs
     /// </summary>
     /// <returns></returns>
-    public List<String> Children()
+    public List<string> Children()
     {
         return this.Rows?.Where(r => r.Cells is not null)
-                .SelectMany(r => r.Cells!)
-                .Where(c => c.ComponentId is not null)
-                .Select(c => c.ComponentId!)
-                .ToList() ?? new List<String>();
+                .SelectMany(r => r.Cells ?? [])
+                .Select(c => c.ComponentId)
+                .WhereNotNull()
+                .ToList() ?? [];
     }
 }

@@ -19,7 +19,9 @@ public class LayoutModelConverterFromObject : JsonConverter<LayoutModel>
     {
         if (reader.TokenType != JsonTokenType.StartObject)
         {
-            throw new JsonException();
+            throw new JsonException(
+                $"Unexpected JSON token type '{reader.TokenType}', expected '{nameof(JsonTokenType.StartObject)}'"
+            );
         }
 
         var componentModel = new LayoutModel();
@@ -29,10 +31,17 @@ public class LayoutModelConverterFromObject : JsonConverter<LayoutModel>
         {
             if (reader.TokenType != JsonTokenType.PropertyName)
             {
-                throw new JsonException(); // Think this is impossible. After a JsonTokenType.StartObject, everything should be JsonTokenType.PropertyName
+                // Think this is impossible. After a JsonTokenType.StartObject, everything should be JsonTokenType.PropertyName
+                throw new JsonException(
+                    $"Unexpected JSON token type after StartObject: '{reader.TokenType}', expected '{nameof(JsonTokenType.PropertyName)}'"
+                );
             }
 
-            var pageName = reader.GetString()!;
+            var pageName =
+                reader.GetString()
+                ?? throw new JsonException(
+                    $"Could not read property name from JSON token with type '{nameof(JsonTokenType.PropertyName)}'"
+                );
             reader.Read();
 
             PageComponentConverter.SetAsyncLocalPageName(pageName);

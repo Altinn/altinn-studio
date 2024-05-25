@@ -128,7 +128,9 @@ namespace Altinn.App.Api.Controllers
             LayoutSet? layoutSet = null;
             if (!string.IsNullOrEmpty(layoutSetsString))
             {
-                layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, _jsonSerializerOptions)!;
+                layoutSets =
+                    JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, _jsonSerializerOptions)
+                    ?? throw new JsonException("Could not deserialize LayoutSets");
                 layoutSet = layoutSets.Sets?.FirstOrDefault(t =>
                     t.DataType.Equals(dataElement.DataType) && t.Tasks.Contains(taskId)
                 );
@@ -145,7 +147,7 @@ namespace Altinn.App.Api.Controllers
                 layoutSettings = JsonSerializer.Deserialize<LayoutSettings>(
                     layoutSettingsFileContent,
                     _jsonSerializerOptions
-                )!;
+                );
             }
 
             // Ensure layoutsettings are initialized in FormatPdf

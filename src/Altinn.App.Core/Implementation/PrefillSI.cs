@@ -106,11 +106,18 @@ namespace Altinn.App.Core.Implementation
 
             if (profilePrefill != null)
             {
-                var userProfileDict = profilePrefill.ToObject<Dictionary<string, string>>()!;
+                var userProfileDict =
+                    profilePrefill.ToObject<Dictionary<string, string>>()
+                    ?? throw new Exception("Unexpectedly failed to convert profilePrefill JToken to dictionary");
 
                 if (userProfileDict.Count > 0)
                 {
-                    int userId = AuthenticationHelper.GetUserId(_httpContextAccessor.HttpContext!);
+                    var httpContext =
+                        _httpContextAccessor.HttpContext
+                        ?? throw new Exception(
+                            "Could not get HttpContext - must be in a request context to get current user"
+                        );
+                    int userId = AuthenticationHelper.GetUserId(httpContext);
                     UserProfile? userProfile = userId != 0 ? await _profileClient.GetUserProfile(userId) : null;
                     if (userProfile != null)
                     {
@@ -135,7 +142,9 @@ namespace Altinn.App.Core.Implementation
             JToken? enhetsregisteret = prefillConfiguration.SelectToken(ER_KEY);
             if (enhetsregisteret != null)
             {
-                var enhetsregisterPrefill = enhetsregisteret.ToObject<Dictionary<string, string>>()!;
+                var enhetsregisterPrefill =
+                    enhetsregisteret.ToObject<Dictionary<string, string>>()
+                    ?? throw new Exception("Unexpectedly failed to convert enhetsregisteret JToken to dictionary");
 
                 if (enhetsregisterPrefill.Count > 0)
                 {
@@ -162,7 +171,9 @@ namespace Altinn.App.Core.Implementation
             JToken? folkeregisteret = prefillConfiguration.SelectToken(DSF_KEY);
             if (folkeregisteret != null)
             {
-                var folkeregisterPrefill = folkeregisteret.ToObject<Dictionary<string, string>>()!;
+                var folkeregisterPrefill =
+                    folkeregisteret.ToObject<Dictionary<string, string>>()
+                    ?? throw new Exception("Unexpectedly failed to convert folkeregisteret JToken to dictionary");
 
                 if (folkeregisterPrefill.Count > 0)
                 {
@@ -240,11 +251,18 @@ namespace Altinn.App.Core.Implementation
                     if (propertyValue == null)
                     {
                         // the object does not exsist, create a new one with the property type
-                        propertyValue = Activator.CreateInstance(property.PropertyType)!;
+                        propertyValue =
+                            Activator.CreateInstance(property.PropertyType)
+                            ?? throw new Exception(
+                                $"Could not create instance of type {property.PropertyType.Name} while prefilling"
+                            );
                         property.SetValue(currentObject, propertyValue, null);
                     }
 
-                    // recurivly assign values
+                    // recursively assign values
+                    // TODO: handle Nullable<T> (nullable value types), propertyValue may be null here
+                    // due to Activator.CreateInstance above. Right now there is an exception
+                    // but we could handle this better
                     AssignValueToDataModel(keys, value, propertyValue, index + 1, continueOnError);
                 }
             }

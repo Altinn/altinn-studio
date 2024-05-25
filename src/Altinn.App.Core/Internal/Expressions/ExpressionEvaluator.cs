@@ -72,6 +72,7 @@ public static class ExpressionEvaluator
         }
 
         var args = expr.Args.Select(a => EvaluateExpression(state, a, context, positionalArguments)).ToArray();
+        // ! TODO: should find better ways to deal with nulls here for the next major version
         var ret = expr.Function switch
         {
             ExpressionFunction.dataModel => DataModel(args.First()?.ToString(), context, state),

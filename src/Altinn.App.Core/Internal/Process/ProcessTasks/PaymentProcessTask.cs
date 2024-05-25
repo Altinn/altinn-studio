@@ -57,9 +57,12 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks
 
             Stream pdfStream = await _pdfService.GeneratePdf(instance, taskId, CancellationToken.None);
 
+            // ! TODO: restructure code to avoid assertion. Codepaths above have already validated this field
+            var paymentDataType = paymentConfiguration.PaymentDataType!;
+
             await _dataClient.InsertBinaryData(
                 instance.Id,
-                paymentConfiguration.PaymentDataType!,
+                paymentDataType,
                 PdfContentType,
                 ReceiptFileName,
                 pdfStream,

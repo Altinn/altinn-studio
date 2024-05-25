@@ -49,7 +49,7 @@ public static class ModelStateHelpers
                             DataElementId = dataElement.Id,
                             Source = source,
                             Code = severityAndMessage.Message,
-                            Field = ModelKeyToField(modelKey, objectType)!,
+                            Field = ModelKeyToField(modelKey, objectType),
                             Severity = severityAndMessage.Severity,
                             Description = severityAndMessage.Message
                         }

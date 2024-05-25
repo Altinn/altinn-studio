@@ -70,7 +70,7 @@ namespace Altinn.App.Core.Helpers.Serialization
             {
                 using StreamReader reader = new StreamReader(stream, Encoding.UTF8);
                 string content = await reader.ReadToEndAsync();
-                return JsonSerializer.Deserialize(content, _modelType, _jsonSerializerOptions)!;
+                return JsonSerializer.Deserialize(content, _modelType, _jsonSerializerOptions);
             }
             catch (JsonException jsonReaderException)
             {

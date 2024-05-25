@@ -64,9 +64,9 @@ public class UniqueSignatureAuthorizer : IUserActionAuthorizer
                 context.InstanceIdentifier.InstanceGuid
             );
             var dataTypes = flowElement
-                .ExtensionElements!
-                .TaskExtension!
-                .SignatureConfiguration!
+                .ExtensionElements
+                .TaskExtension
+                .SignatureConfiguration
                 .UniqueFromSignaturesInDataTypes;
             var signatureDataElements = instance.Data.Where(d => dataTypes.Contains(d.DataType)).ToList();
             foreach (var signatureDataElement in signatureDataElements)

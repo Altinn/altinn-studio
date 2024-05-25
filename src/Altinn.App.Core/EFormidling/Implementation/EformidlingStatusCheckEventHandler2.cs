@@ -133,7 +133,7 @@ namespace Altinn.App.Core.EFormidling.Implementation
         /// endpoint in InstanceController. This method should be removed once we have a better
         /// alernative for authenticating the app/org without having a http request context with
         /// a logged on user/org.
-        private async Task<Instance> AddCompleteConfirmation(InstanceIdentifier instanceIdentifier)
+        private async Task<Instance?> AddCompleteConfirmation(InstanceIdentifier instanceIdentifier)
         {
             string url =
                 $"instances/{instanceIdentifier.InstanceOwnerPartyId}/{instanceIdentifier.InstanceGuid}/complete";
@@ -154,7 +154,7 @@ namespace Altinn.App.Core.EFormidling.Implementation
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string instanceData = await response.Content.ReadAsStringAsync();
-                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData)!;
+                Instance? instance = JsonConvert.DeserializeObject<Instance>(instanceData);
                 return instance;
             }
 

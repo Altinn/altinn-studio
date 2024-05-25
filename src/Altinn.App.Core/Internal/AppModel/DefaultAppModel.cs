@@ -20,6 +20,7 @@ public class DefaultAppModel : IAppModel
     public object Create(string classRef)
     {
         _logger.LogInformation($"CreateNewAppModel {classRef}");
+        // ! TODO: Activator.CreateInstance only returns null for Nullable<T> (nullable value types)
         return Activator.CreateInstance(GetModelType(classRef))!;
     }
 
@@ -27,6 +28,10 @@ public class DefaultAppModel : IAppModel
     public Type GetModelType(string classRef)
     {
         _logger.LogInformation($"GetAppModelType {classRef}");
-        return Assembly.GetEntryAssembly()!.GetType(classRef, true)!;
+        var assembly =
+            Assembly.GetEntryAssembly()
+            ?? throw new Exception("Could not get entry assembly while resolving model type");
+        // ! TODO: need some way to handle this for the next major version
+        return assembly.GetType(classRef, true)!;
     }
 }

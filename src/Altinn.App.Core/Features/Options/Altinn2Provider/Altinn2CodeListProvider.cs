@@ -76,6 +76,7 @@ namespace Altinn.App.Core.Features.Options.Altinn2Provider
                 _ => "1044", // default to norwegian bokmål
             };
 
+            // ! TODO: address this is next major release, should never return null
             return (
                 await _cache.GetOrCreateAsync(
                     $"{_metadataApiId}{langCode}{_codeListVersion}",
