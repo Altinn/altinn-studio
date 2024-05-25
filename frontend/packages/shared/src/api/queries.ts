@@ -112,7 +112,7 @@ export const searchRepos = (filter: SearchRepoFilterParams) => get<SearchReposit
 export const getAppConfig = (org: string, app: string) => get<AppConfig>(serviceConfigPath(org, app));
 export const getAppPolicy = (org: string, app: string) => get<Policy>(appPolicyPath(org, app));
 export const getAppMetadata = (org: string, app: string) => get<ApplicationMetadata>(appMetadataPath(org, app));
-resourcePolicyPath;
+
 // Resourceadm
 export const getAltinn2LinkServices = (org: string, environment: string) => get<Altinn2LinkService[]>(altinn2LinkServicesPath(org, environment));
 export const getPolicyActions = (org: string, repo: string) => get<PolicyAction[]>(resourceActionsPath(org, repo));
