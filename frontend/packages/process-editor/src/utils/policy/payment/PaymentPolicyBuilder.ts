@@ -12,8 +12,6 @@ export class PaymentPolicyBuilder {
 
   private buildPaymentPolicy(taskId: string): Policy {
     return {
-      requiredAuthenticationLevelEndUser: '3',
-      requiredAuthenticationLevelOrg: '3',
       rules: [this.buildPaymentRule(taskId)],
     };
   }

@@ -2,6 +2,7 @@ import type { LayoutSets, LayoutSetConfig } from 'app-shared/types/api/LayoutSet
 import React, { createContext, useContext } from 'react';
 import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 import type { DataTypeChange } from 'app-shared/types/api/DataTypeChange';
+import { Policy } from '@altinn/process-editor/utils/policy/types';
 
 type QueryOptions = {
   onSuccess: () => void;
@@ -9,6 +10,7 @@ type QueryOptions = {
 
 export type BpmnApiContextProps = {
   availableDataModelIds: string[];
+  currentPolicy: Policy;
   layoutSets: LayoutSets;
   pendingApiOperations: boolean;
   existingCustomReceiptLayoutSetId: string | undefined;
@@ -19,8 +21,7 @@ export type BpmnApiContextProps = {
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
   mutateLayoutSetId: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
   mutateDataType: (dataTypeChange: DataTypeChange, options?: QueryOptions) => void;
-  // TODO: Add type for policy
-  addDataTypeToAppMetadata: (data: { dataTypeId: string; policy?: any }) => void;
+  addDataTypeToAppMetadata: (data: { dataTypeId: string; policy?: Policy }) => void;
   deleteDataTypeFromAppMetadata: (data: { dataTypeId: string }) => void;
 
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
@@ -36,6 +37,7 @@ export type BpmnApiContextProviderProps = {
 export const BpmnApiContextProvider = ({
   children,
   availableDataModelIds,
+  currentPolicy,
   layoutSets,
   pendingApiOperations,
   existingCustomReceiptLayoutSetId,
@@ -52,6 +54,7 @@ export const BpmnApiContextProvider = ({
     <BpmnApiContext.Provider
       value={{
         availableDataModelIds,
+        currentPolicy,
         layoutSets,
         pendingApiOperations,
         existingCustomReceiptLayoutSetId,

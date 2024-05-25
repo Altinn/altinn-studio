@@ -24,6 +24,8 @@ import { useDeleteDataTypeFromAppMetadata } from '../../hooks/mutations/useDelet
 import { SyncSuccessQueriesInvalidator } from 'app-shared/queryInvalidator/SyncSuccessQueriesInvalidator';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSettingsModalContext } from '../../contexts/SettingsModalContext';
+import { useAppPolicyQuery } from '../../hooks/queries';
+import { Policy } from '@altinn/process-editor/utils/policy/types';
 
 enum SyncClientsName {
   FileSyncSuccess = 'FileSyncSuccess',
@@ -34,6 +36,7 @@ export const ProcessEditor = (): React.ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioUrlParams();
   const queryClient = useQueryClient();
+  const { data: currentPolicy, isPending: isPendingCurrentPolicy } = useAppPolicyQuery(org, app);
   const invalidator = SyncSuccessQueriesInvalidator.getInstance(queryClient, org, app);
   const { setSettingsModalOpen, setSettingsModalSelectedTab } = useSettingsModalContext();
   const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
@@ -67,7 +70,8 @@ export const ProcessEditor = (): React.ReactElement => {
     addLayoutSetPending ||
     deleteLayoutSetPending ||
     updateDataTypePending ||
-    availableDataModelIdsPending;
+    availableDataModelIdsPending ||
+    isPendingCurrentPolicy;
 
   const { onWSMessageReceived } = useWebSocket({
     webSocketUrl: processEditorWebSocketHub(),
@@ -84,7 +88,7 @@ export const ProcessEditor = (): React.ReactElement => {
 
     const isSuccessMessage = 'source' in message;
     if (isSuccessMessage) {
-      // Here we can handle the SyncSuccess message or invalidate the query cache
+      // Please extend the "fileNameCacheKeyMap" inside the "SyncSuccessQueriesInvalidator" class. Do not add query-client invalidation directly here.
       invalidator.invalidateQueryByFileName(message.source.name);
     }
   });
@@ -112,6 +116,7 @@ export const ProcessEditor = (): React.ReactElement => {
   return (
     <ProcessEditorImpl
       availableDataModelIds={availableDataModelIds}
+      currentPolicy={currentPolicy as Policy}
       layoutSets={layoutSets}
       pendingApiOperations={pendingApiOperations}
       existingCustomReceiptLayoutSetId={existingCustomReceiptId}

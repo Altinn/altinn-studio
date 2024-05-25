@@ -33,6 +33,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
     deleteDataTypeFromAppMetadata,
     saveBpmn,
     layoutSets,
+    currentPolicy,
   } = useBpmnApiContext();
 
   const handleCommandStackChanged = async () => {
@@ -48,6 +49,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
       addLayoutSet,
       addDataTypeToAppMetadata,
       bpmnDetails,
+      currentPolicy,
     );
 
     addProcessTaskManager.handleTaskAdd(taskEvent);

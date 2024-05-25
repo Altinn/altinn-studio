@@ -4,6 +4,7 @@ import { BpmnApiContextProps } from '@altinn/process-editor/contexts/BpmnApiCont
 import { BpmnDetails } from '@altinn/process-editor/types/BpmnDetails';
 import { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { TaskEvent } from './types';
+import { Policy } from '@altinn/process-editor/utils/policy/types';
 
 export class AddProcessTaskManager {
   constructor(
@@ -12,6 +13,7 @@ export class AddProcessTaskManager {
     private readonly addLayoutSet: BpmnApiContextProps['addLayoutSet'],
     private readonly addDataTypeToAppMetadata: BpmnApiContextProps['addDataTypeToAppMetadata'],
     private readonly bpmnDetails: BpmnDetails,
+    private readonly currentPolicy: Policy,
   ) {}
 
   public handleTaskAdd(taskEvent: TaskEvent): void {
@@ -41,9 +43,17 @@ export class AddProcessTaskManager {
     );
 
     const paymentPolicyBuilder = new PaymentPolicyBuilder(this.org, this.app);
+    const defaultPaymentPolicy = paymentPolicyBuilder.getDefaultPaymentPolicy(this.bpmnDetails.id);
+
+    // Need to merge the default payment policy with the current policy, since backend does not support partial updates.
+    const updatedPolicy: Policy = {
+      ...this.currentPolicy,
+      rules: [...this.currentPolicy.rules, ...defaultPaymentPolicy.rules],
+    };
+
     this.addDataTypeToAppMetadata({
       dataTypeId,
-      policy: paymentPolicyBuilder.getDefaultPaymentPolicy(this.bpmnDetails.id),
+      policy: updatedPolicy,
     });
   }
 
