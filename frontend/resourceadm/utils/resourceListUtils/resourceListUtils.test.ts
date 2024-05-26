@@ -8,22 +8,22 @@ describe('filterTableData', () => {
         title: { nb: 'Test', nn: 'Test', en: 'Test' },
         createdBy: 'William',
         lastChanged: new Date('2023-08-24'),
-        hasPolicy: true,
         identifier: '1',
+        environments: ['gitea'],
       },
       {
         title: { nb: 'Test 2', nn: 'Test 2', en: 'Test 2' },
         createdBy: 'William',
         lastChanged: new Date('2023-08-24'),
-        hasPolicy: true,
         identifier: '1',
+        environments: ['gitea'],
       },
       {
         title: { nb: '123', nn: '123', en: '123' },
         createdBy: 'William',
         lastChanged: new Date('2023-08-24'),
-        hasPolicy: true,
         identifier: '1',
+        environments: ['gitea'],
       },
     ];
 
@@ -32,8 +32,8 @@ describe('filterTableData', () => {
         title: { nb: 'Test 2', nn: 'Test 2', en: 'Test 2' },
         createdBy: 'William',
         lastChanged: new Date('2023-08-24'),
-        hasPolicy: true,
         identifier: '1',
+        environments: ['gitea'],
       },
     ];
 

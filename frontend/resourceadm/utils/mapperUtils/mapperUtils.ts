@@ -1,6 +1,7 @@
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 
+const EnvOrder = ['prod', 'tt02', 'at21', 'at22', 'at23', 'at24', 'gitea'];
 /**
  * Sorts a resource list by the date so the newest is at the top
  *
@@ -9,7 +10,13 @@ import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
  * @returns the sorted list
  */
 export const sortResourceListByDate = (resourceList: ResourceListItem[]): ResourceListItem[] => {
-  return resourceList.sort((a, b) => {
+  const listWithSortedEnvs = resourceList.map((resource) => {
+    return {
+      ...resource,
+      environments: resource.environments.sort((a, b) => EnvOrder.indexOf(a) - EnvOrder.indexOf(b)),
+    };
+  });
+  return listWithSortedEnvs.sort((a, b) => {
     return new Date(b.lastChanged).getTime() - new Date(a.lastChanged).getTime();
   });
 };
