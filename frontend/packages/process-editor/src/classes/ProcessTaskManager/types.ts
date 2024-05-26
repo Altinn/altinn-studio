@@ -1,4 +1,4 @@
-import { BpmnBusinessObjectEditor } from '@altinn/process-editor/types/BpmnBusinessObjectEditor';
+import { type BpmnBusinessObjectEditor } from '../../types/BpmnBusinessObjectEditor';
 
 export type TaskEvent = Event & {
   element: {

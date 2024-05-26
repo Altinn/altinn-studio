@@ -1,9 +1,9 @@
-import { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
+import { type LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { getDataTypeIdFromBusinessObject } from '../../utils/hookUtils/hookUtils';
 import { PaymentPolicyBuilder } from '../../utils/policy';
-import { BpmnApiContextProps } from '../../contexts/BpmnApiContext';
+import { type BpmnApiContextProps } from '../../contexts/BpmnApiContext';
 import { type BpmnDetails } from '../../types/BpmnDetails';
-import { TaskEvent } from './types';
+import { type TaskEvent } from './types';
 import { type Policy } from '../../utils/policy/types';
 
 export class AddProcessTaskManager {

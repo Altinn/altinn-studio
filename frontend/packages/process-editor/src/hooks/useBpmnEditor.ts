@@ -73,10 +73,10 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   };
 
   const updateBpmnDetailsByTaskEvent = useCallback(
-    (e: TaskEvent) => {
+    (taskEvent: TaskEvent) => {
       const bpmnDetails = {
-        ...getBpmnEditorDetailsFromBusinessObject(e.element?.businessObject),
-        element: e.element,
+        ...getBpmnEditorDetailsFromBusinessObject(taskEvent.element?.businessObject),
+        element: taskEvent.element,
       };
       setBpmnDetails(bpmnDetails);
     },

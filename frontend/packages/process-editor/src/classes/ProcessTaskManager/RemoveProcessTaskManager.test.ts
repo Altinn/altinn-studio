@@ -1,10 +1,10 @@
 import { RemoveProcessTaskManager } from './RemoveProcessTaskManager';
-import { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import { BpmnTaskType } from '../../types/BpmnTaskType';
-import { BpmnDetails } from '../../types/BpmnDetails';
+import { type LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import { type BpmnTaskType } from '../../types/BpmnTaskType';
+import { type BpmnDetails } from '../../types/BpmnDetails';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
-import { TaskEvent } from '../../classes/ProcessTaskManager/types';
-import { Policy } from '../../utils/policy/types';
+import { type TaskEvent } from '../../classes/ProcessTaskManager/types';
+import { type Policy } from '../../utils/policy/types';
 
 describe('RemoveProcessTaskManager', () => {
   beforeEach(() => {

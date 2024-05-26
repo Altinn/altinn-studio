@@ -1,13 +1,13 @@
-import { BpmnApiContextProps } from '@altinn/process-editor/contexts/BpmnApiContext';
-import { BpmnDetails } from '@altinn/process-editor/types/BpmnDetails';
-import { TaskEvent } from './types';
-import { BpmnTypeEnum } from '@altinn/process-editor/enum/BpmnTypeEnum';
+import { type BpmnApiContextProps } from '../../contexts/BpmnApiContext';
+import { type BpmnDetails } from '../../types/BpmnDetails';
+import { type TaskEvent } from './types';
+import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 import {
   getDataTypeIdFromBusinessObject,
   getLayoutSetIdFromTaskId,
-} from '@altinn/process-editor/utils/hookUtils/hookUtils';
-import { Policy } from '@altinn/process-editor/utils/policy/types';
-import { PaymentPolicyBuilder } from '@altinn/process-editor/utils/policy';
+} from '../../utils/hookUtils/hookUtils';
+import { type Policy } from '../../utils/policy/types';
+import { PaymentPolicyBuilder } from '../../utils/policy';
 
 export class RemoveProcessTaskManager {
   constructor(

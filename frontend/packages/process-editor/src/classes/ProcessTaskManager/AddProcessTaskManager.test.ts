@@ -1,9 +1,9 @@
 import { AddProcessTaskManager } from './AddProcessTaskManager';
-import { BpmnTypeEnum } from '@altinn/process-editor/enum/BpmnTypeEnum';
-import { TaskEvent } from '@altinn/process-editor/classes/ProcessTaskManager/types';
-import { BpmnDetails } from '@altinn/process-editor/types/BpmnDetails';
-import { Policy } from '@altinn/process-editor/utils/policy/types';
-import { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
+import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
+import { type TaskEvent } from '../../classes/ProcessTaskManager/types';
+import { type BpmnDetails } from '../../types/BpmnDetails';
+import { type Policy } from '../../utils/policy/types';
+import { type BpmnTaskType } from '../../types/BpmnTaskType';
 
 describe('AddProcessTaskManager', () => {
   const org = 'testOrg';

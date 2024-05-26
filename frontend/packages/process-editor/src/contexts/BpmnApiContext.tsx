@@ -2,7 +2,7 @@ import type { LayoutSets, LayoutSetConfig } from 'app-shared/types/api/LayoutSet
 import React, { createContext, useContext } from 'react';
 import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 import type { DataTypeChange } from 'app-shared/types/api/DataTypeChange';
-import { Policy } from '@altinn/process-editor/utils/policy/types';
+import type { Policy } from '../utils/policy/types';
 
 type QueryOptions = {
   onSuccess: () => void;

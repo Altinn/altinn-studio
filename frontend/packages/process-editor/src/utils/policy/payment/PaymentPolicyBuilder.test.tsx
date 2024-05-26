@@ -1,5 +1,5 @@
 import { PaymentPolicyBuilder } from './PaymentPolicyBuilder';
-import { Policy } from '@altinn/process-editor/utils/policy/types';
+import type { Policy } from '../../../utils/policy/types';
 
 describe('DefaultPaymentPolicyBuilder', () => {
   it('should build a default payment policy based on org, app and taskId as input parameters', () => {

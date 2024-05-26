@@ -1,10 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { Policy } from '@altinn/process-editor/utils/policy/types';
 
 type AddDataTypeToAppMetadataMutation = {
   dataTypeId: string;
-  policy: any; // TODO use the shared-types for Policy
+  policy: Policy;
 };
 
 export const useAddDataTypeToAppMetadata = (org: string, app: string) => {
@@ -15,7 +16,6 @@ export const useAddDataTypeToAppMetadata = (org: string, app: string) => {
     mutationFn: ({ dataTypeId, policy }: AddDataTypeToAppMetadataMutation) =>
       addDataTypeToAppMetadata(org, app, dataTypeId, policy),
     onSuccess: () => {
-      // This invalidation should be moved to ProcessEditor.tsx onSuccessMessage which is sent over websockets. This is a temporary solution since that is not implemented in the backend yet.
       queryClient.invalidateQueries({ queryKey: [QueryKey.AppPolicy, org, app] });
     },
   });
