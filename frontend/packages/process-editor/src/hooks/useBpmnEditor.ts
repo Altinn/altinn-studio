@@ -97,11 +97,11 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
     modelerRef.current.on('commandStack.changed', async () => {
       await handleCommandStackChanged();
     });
-    modelerRef.current.on('shape.add', (e: TaskEvent) => {
-      handleShapeAdd(e);
+    modelerRef.current.on('shape.add', (taskEvent: TaskEvent) => {
+      handleShapeAdd(taskEvent);
     });
-    modelerRef.current.on('shape.remove', (e: TaskEvent) => {
-      handleShapeRemove(e);
+    modelerRef.current.on('shape.remove', (taskEvent: TaskEvent) => {
+      handleShapeRemove(taskEvent);
     });
   };
 

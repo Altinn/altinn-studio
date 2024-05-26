@@ -25,6 +25,9 @@ const defaultProps: ProcessEditorProps = {
   addDataTypeToAppMetadata: jest.fn(),
   deleteDataTypeFromAppMetadata: jest.fn(),
   openPolicyEditor: jest.fn(),
+  currentPolicy: {
+    rules: [],
+  },
 };
 
 const renderProcessEditor = (bpmnXml: string) => {
