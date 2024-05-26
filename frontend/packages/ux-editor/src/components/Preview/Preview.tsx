@@ -64,7 +64,7 @@ const PreviewFrame = () => {
   const taskId = useSelectedTaskId(selectedFormLayoutSetName);
   const { t } = useTranslation();
 
-  const { appNameHasChanged, setAppNameHasChanged } = useAppContext();
+  const { shouldReloadPreview, previewHasLoaded } = useAppContext();
 
   useEffect(() => {
     return () => {
@@ -75,12 +75,12 @@ const PreviewFrame = () => {
   const [iframeKey, setIframeKey] = useState<number>(0);
 
   useEffect(() => {
-    if (appNameHasChanged) {
+    if (shouldReloadPreview) {
       // By incrementing the key by one, we force the preview to reload
       setIframeKey((v) => v + 1);
-      setAppNameHasChanged(false);
+      previewHasLoaded();
     }
-  }, [appNameHasChanged, setAppNameHasChanged]);
+  }, [shouldReloadPreview, previewHasLoaded]);
 
   return (
     <div className={classes.root}>

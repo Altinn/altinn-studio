@@ -4,8 +4,8 @@ import './styles/index.css';
 import { AppContextProvider } from './AppContext';
 
 type SubAppProps = {
-  appNameHasChanged: boolean;
-  setAppNameHasChanged: (hasChanged: boolean) => void;
+  shouldReloadPreview: boolean;
+  previewHasLoaded: () => void;
 };
 
 export const SubApp = (props: SubAppProps) => {

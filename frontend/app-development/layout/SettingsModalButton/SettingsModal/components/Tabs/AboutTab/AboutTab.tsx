@@ -15,7 +15,7 @@ import { TabDataError } from '../../TabDataError';
 import { InputFields } from './InputFields';
 import { CreatedFor } from './CreatedFor';
 import { TabContent } from '../../TabContent';
-import { useSettingsModalContext } from '../../../../../../contexts/SettingsModalContext';
+import { usePreviewContext } from '../../../../../../contexts/PreviewContext';
 
 export type AboutTabProps = {
   org: string;
@@ -26,7 +26,7 @@ export const AboutTab = ({ org, app }: AboutTabProps): ReactNode => {
   const { t } = useTranslation();
   const repositoryType = getRepositoryType(org, app);
 
-  const { setAppNameHasChanged } = useSettingsModalContext();
+  const { doReloadPreview } = usePreviewContext();
 
   const {
     status: appConfigStatus,
@@ -48,7 +48,7 @@ export const AboutTab = ({ org, app }: AboutTabProps): ReactNode => {
 
   const handleSaveAppConfig = (appConfig: AppConfig) => {
     if (appConfigData.serviceName !== appConfig.serviceName) {
-      setAppNameHasChanged(true);
+      doReloadPreview();
     }
     updateAppConfigMutation(appConfig);
   };

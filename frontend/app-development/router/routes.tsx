@@ -10,7 +10,7 @@ import type { AppVersion } from 'app-shared/types/AppVersion';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
 import React from 'react';
-import { useSettingsModalContext } from '../contexts/SettingsModalContext';
+import { usePreviewContext } from '../contexts/PreviewContext';
 
 interface IRouteProps {
   headerTextKey?: string;
@@ -38,15 +38,12 @@ const isLatestFrontendVersion = (version: AppVersion): boolean =>
 const UiEditor = () => {
   const { org, app } = useStudioUrlParams();
   const { data: version } = useAppVersionQuery(org, app);
-  const { appNameHasChanged, setAppNameHasChanged } = useSettingsModalContext();
+  const { shouldReloadPreview, previewHasLoaded } = usePreviewContext();
 
   if (!version) return null;
 
   return isLatestFrontendVersion(version) ? (
-    <UiEditorLatest
-      appNameHasChanged={appNameHasChanged}
-      setAppNameHasChanged={setAppNameHasChanged}
-    />
+    <UiEditorLatest shouldReloadPreview={shouldReloadPreview} previewHasLoaded={previewHasLoaded} />
   ) : (
     <UiEditorV3 />
   );
