@@ -36,6 +36,7 @@ export class RemoveProcessTaskManager {
 
   private handleDataTaskRemove(): void {
     const layoutSetId = getLayoutSetIdFromTaskId(this.bpmnDetails, this.layoutSets);
+
     if (layoutSetId) {
       this.deleteLayoutSet({
         layoutSetIdToUpdate: layoutSetId,

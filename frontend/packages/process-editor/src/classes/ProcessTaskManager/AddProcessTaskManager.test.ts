@@ -8,6 +8,7 @@ import { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
 describe('AddProcessTaskManager', () => {
   const org = 'testOrg';
   const app = 'testApp';
+
   const createBpmnDetails = (id: string, name: string, taskType: BpmnTaskType): BpmnDetails => ({
     id,
     name,
