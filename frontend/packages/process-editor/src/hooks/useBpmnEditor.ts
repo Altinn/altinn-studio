@@ -9,7 +9,7 @@ import {
   AddProcessTaskManager,
   RemoveProcessTaskManager,
   type TaskEvent,
-} from '@altinn/process-editor/classes/ProcessTaskManager';
+} from '../classes/ProcessTaskManager';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 // Wrapper around bpmn-js to Reactify it
