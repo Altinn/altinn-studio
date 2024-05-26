@@ -98,7 +98,6 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
       await handleCommandStackChanged();
     });
     modelerRef.current.on('shape.add', (e: TaskEvent) => {
-      console.log({ e });
       handleShapeAdd(e);
     });
     modelerRef.current.on('shape.remove', (e: TaskEvent) => {
@@ -114,8 +113,12 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
     // new instance and will attach the same canvasRef container to all instances it fetches.
     // Set modelerRef.current to the Context so that it can be used in other components
     modelerRef.current = getModeler(canvasRef.current);
-    initializeEditor();
-    initializeBpmnChanges();
+
+    initializeEditor().then(() => {
+      // Wait for the initializeEditor to be initialized before attaching event listeners, to avoid trigger add.shape events on first draw
+      initializeBpmnChanges();
+    });
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Missing dependencies are not added to avoid getModeler to be called multiple times
 
