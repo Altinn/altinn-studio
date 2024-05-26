@@ -14,6 +14,7 @@ describe('AddProcessTaskManager', () => {
     taskType,
     type: BpmnTypeEnum.Task,
   });
+
   const createTaskEvent = (taskType: string, extensionConfig?: object): TaskEvent =>
     ({
       element: {
@@ -25,12 +26,11 @@ describe('AddProcessTaskManager', () => {
       },
     }) as TaskEvent;
 
-  let addLayoutSet: jest.Mock;
-  let addDataTypeToAppMetadata: jest.Mock;
+  const addLayoutSet = jest.fn();
+  const addDataTypeToAppMetadata = jest.fn();
 
   beforeEach(() => {
-    addLayoutSet = jest.fn();
-    addDataTypeToAppMetadata = jest.fn();
+    jest.resetAllMocks();
   });
 
   const createAddProcessTaskManager = (
