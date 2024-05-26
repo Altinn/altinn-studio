@@ -15,7 +15,7 @@ export const useAddDataTypeToAppMetadata = (org: string, app: string) => {
     mutationFn: ({ dataTypeId, policy }: AddDataTypeToAppMetadataMutation) =>
       addDataTypeToAppMetadata(org, app, dataTypeId, policy),
     onSuccess: () => {
-      // This invalidation should be moved to ProcessEditor.tsx onSuccessMessage from web-sockets when refactored to use process-definition-latest endpoint.
+      // This invalidation should be moved to ProcessEditor.tsx onSuccessMessage which is sent over websockets. This is a temporary solution since that is not implemented in the backend yet.
       queryClient.invalidateQueries({ queryKey: [QueryKey.AppPolicy, org, app] });
     },
   });
