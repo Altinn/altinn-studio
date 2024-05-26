@@ -1,10 +1,10 @@
-import { getDataTypeIdFromBusinessObject } from '@altinn/process-editor/utils/hookUtils/hookUtils';
-import { PaymentPolicyBuilder } from '@altinn/process-editor/utils/policy';
-import { BpmnApiContextProps } from '@altinn/process-editor/contexts/BpmnApiContext';
-import { BpmnDetails } from '@altinn/process-editor/types/BpmnDetails';
 import { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
+import { getDataTypeIdFromBusinessObject } from '../../utils/hookUtils/hookUtils';
+import { PaymentPolicyBuilder } from '../../utils/policy';
+import { BpmnApiContextProps } from '../../contexts/BpmnApiContext';
+import { type BpmnDetails } from '../../types/BpmnDetails';
 import { TaskEvent } from './types';
-import { Policy } from '@altinn/process-editor/utils/policy/types';
+import { type Policy } from '../../utils/policy/types';
 
 export class AddProcessTaskManager {
   constructor(
