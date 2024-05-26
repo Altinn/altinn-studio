@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { QueryKey } from 'app-shared/types/QueryKey';
-import { Policy } from '@altinn/process-editor/utils/policy/types';
+import type { QueryKey } from 'app-shared/types/QueryKey';
+import type { Policy } from '@altinn/process-editor/utils/policy/types';
 
 type AddDataTypeToAppMetadataMutation = {
   dataTypeId: string;
