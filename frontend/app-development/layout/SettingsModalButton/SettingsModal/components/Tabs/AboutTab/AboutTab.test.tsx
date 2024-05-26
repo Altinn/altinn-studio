@@ -18,6 +18,7 @@ import { MemoryRouter } from 'react-router-dom';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { app, org } from '@studio/testing/testids';
 import { SettingsModalContextProvider } from '../../../../../../contexts/SettingsModalContext';
+import { PreviewContextProvider } from '../../../../../../contexts/PreviewContext';
 
 const mockNewText: string = 'test';
 
@@ -195,7 +196,9 @@ const render = (
     <MemoryRouter>
       <ServicesContextProvider {...allQueries} client={queryClient}>
         <SettingsModalContextProvider>
-          <AboutTab {...defaultProps} {...props} />
+          <PreviewContextProvider>
+            <AboutTab {...defaultProps} {...props} />
+          </PreviewContextProvider>
         </SettingsModalContextProvider>
       </ServicesContextProvider>
     </MemoryRouter>,

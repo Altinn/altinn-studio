@@ -13,6 +13,7 @@ import { useAppConfigMutation } from '../../../hooks/mutations';
 import { MemoryRouter } from 'react-router-dom';
 import { app, org } from '@studio/testing/testids';
 import { SettingsModalContextProvider } from '../../../contexts/SettingsModalContext';
+import { PreviewContextProvider } from '../../../contexts/PreviewContext';
 
 jest.mock('../../../hooks/mutations/useAppConfigMutation');
 const updateAppConfigMutation = jest.fn();
@@ -209,7 +210,9 @@ const renderSettingsModal = (
     <MemoryRouter>
       <ServicesContextProvider {...queries} client={queryClient}>
         <SettingsModalContextProvider>
-          <SettingsModal {...props} />
+          <PreviewContextProvider>
+            <SettingsModal {...props} />
+          </PreviewContextProvider>
         </SettingsModalContextProvider>
       </ServicesContextProvider>
     </MemoryRouter>,
