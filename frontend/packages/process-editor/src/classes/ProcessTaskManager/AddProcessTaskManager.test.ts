@@ -3,85 +3,78 @@ import { BpmnTypeEnum } from '@altinn/process-editor/enum/BpmnTypeEnum';
 import { TaskEvent } from '@altinn/process-editor/classes/ProcessTaskManager/types';
 import { BpmnDetails } from '@altinn/process-editor/types/BpmnDetails';
 import { Policy } from '@altinn/process-editor/utils/policy/types';
+import { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
 
 describe('AddProcessTaskManager', () => {
-  it('should add layoutSet when data-task is added', () => {
-    const org = 'testOrg';
-    const app = 'testApp';
-    const addLayoutSet = jest.fn();
-    const addDataTypeToAppMetadata = jest.fn();
-
-    const bpmnDetails: BpmnDetails = {
-      id: 'testId',
-      name: 'dataTask',
-      taskType: 'data',
-      type: BpmnTypeEnum.Task,
-    };
-    const currentPolicy: Policy = { rules: [] };
-
-    const addProcessTaskManager = new AddProcessTaskManager(
-      org,
-      app,
-      addLayoutSet,
-      addDataTypeToAppMetadata,
-      bpmnDetails,
-      currentPolicy,
-    );
-
-    addProcessTaskManager.handleTaskAdd({
-      element: { businessObject: { id: 'testEventId', $type: BpmnTypeEnum.Task } },
-    } as TaskEvent);
-
-    const expectedResult = {
-      layoutSetConfig: { id: 'testId', tasks: ['testId'] },
-      layoutSetIdToUpdate: 'testId',
-    };
-    expect(addLayoutSet).toHaveBeenCalledWith(expectedResult);
+  const org = 'testOrg';
+  const app = 'testApp';
+  const createBpmnDetails = (id: string, name: string, taskType: BpmnTaskType): BpmnDetails => ({
+    id,
+    name,
+    taskType,
+    type: BpmnTypeEnum.Task,
   });
-
-  it('should add data-type and add default payment policy when PaymentTask is added', () => {
-    const org = 'testOrg';
-    const app = 'testApp';
-    const addLayoutSet = jest.fn();
-    const addDataTypeToAppMetadata = jest.fn();
-
-    const bpmnDetails: BpmnDetails = {
-      id: 'testId',
-      name: 'paymentTask',
-      taskType: 'payment',
-      type: BpmnTypeEnum.Task,
-    };
-    const currentPolicy: Policy = { rules: [] };
-
-    const addProcessTaskManager = new AddProcessTaskManager(
-      org,
-      app,
-      addLayoutSet,
-      addDataTypeToAppMetadata,
-      bpmnDetails,
-      currentPolicy,
-    );
-
-    addProcessTaskManager.handleTaskAdd({
+  const createTaskEvent = (taskType: string, extensionConfig?: object): TaskEvent =>
+    ({
       element: {
         businessObject: {
           id: 'testEventId',
           $type: BpmnTypeEnum.Task,
-          extensionElements: {
-            values: [
-              { taskType: 'payment', paymentConfig: { paymentDataType: 'paymentInformation' } },
-            ],
-          },
+          extensionElements: extensionConfig ? { values: [extensionConfig] } : undefined,
         },
       },
-    } as TaskEvent);
+    }) as TaskEvent;
 
-    const expectedAddLayoutSetResults = {
+  let addLayoutSet: jest.Mock;
+  let addDataTypeToAppMetadata: jest.Mock;
+
+  beforeEach(() => {
+    addLayoutSet = jest.fn();
+    addDataTypeToAppMetadata = jest.fn();
+  });
+
+  const createAddProcessTaskManager = (
+    bpmnDetails: BpmnDetails,
+    currentPolicy: Policy = { rules: [] },
+  ) =>
+    new AddProcessTaskManager(
+      org,
+      app,
+      addLayoutSet,
+      addDataTypeToAppMetadata,
+      bpmnDetails,
+      currentPolicy,
+    );
+
+  it('should add layoutSet when data-task is added', () => {
+    const bpmnDetails = createBpmnDetails('testId', 'dataTask', 'data');
+    const addProcessTaskManager = createAddProcessTaskManager(bpmnDetails);
+
+    addProcessTaskManager.handleTaskAdd(createTaskEvent('data'));
+
+    expect(addLayoutSet).toHaveBeenCalledWith({
       layoutSetConfig: { id: 'testId', tasks: ['testId'] },
       layoutSetIdToUpdate: 'testId',
-    };
+    });
+  });
 
-    const expectedAddDataTypeToAppMetadataResults = {
+  it('should add data-type and add default payment policy when PaymentTask is added', () => {
+    const bpmnDetails = createBpmnDetails('testId', 'paymentTask', 'payment');
+    const addProcessTaskManager = createAddProcessTaskManager(bpmnDetails);
+
+    addProcessTaskManager.handleTaskAdd(
+      createTaskEvent('payment', {
+        taskType: 'payment',
+        paymentConfig: { paymentDataType: 'paymentInformation' },
+      }),
+    );
+
+    expect(addLayoutSet).toHaveBeenCalledWith({
+      layoutSetConfig: { id: 'testId', tasks: ['testId'] },
+      layoutSetIdToUpdate: 'testId',
+    });
+
+    expect(addDataTypeToAppMetadata).toHaveBeenCalledWith({
       dataTypeId: 'paymentInformation',
       policy: {
         rules: [
@@ -97,59 +90,27 @@ describe('AddProcessTaskManager', () => {
           },
         ],
       },
-    };
-
-    expect(addLayoutSet).toHaveBeenCalledWith(expectedAddLayoutSetResults);
-    expect(addDataTypeToAppMetadata).toHaveBeenCalledWith(expectedAddDataTypeToAppMetadataResults);
+    });
   });
 
   it('should add layoutSet and datatype when signing task is added', () => {
-    const org = 'testOrg';
-    const app = 'testApp';
-    const addLayoutSet = jest.fn();
-    const addDataTypeToAppMetadata = jest.fn();
+    const bpmnDetails = createBpmnDetails('testId', 'signingTask', 'signing');
+    const addProcessTaskManager = createAddProcessTaskManager(bpmnDetails);
 
-    const bpmnDetails: BpmnDetails = {
-      id: 'testId',
-      name: 'signingTask',
-      taskType: 'signing',
-      type: BpmnTypeEnum.Task,
-    };
-    const currentPolicy: Policy = { rules: [] };
-
-    const addProcessTaskManager = new AddProcessTaskManager(
-      org,
-      app,
-      addLayoutSet,
-      addDataTypeToAppMetadata,
-      bpmnDetails,
-      currentPolicy,
+    addProcessTaskManager.handleTaskAdd(
+      createTaskEvent('signing', {
+        taskType: 'signing',
+        signatureConfig: { signatureDataType: 'signingInformation' },
+      }),
     );
 
-    addProcessTaskManager.handleTaskAdd({
-      element: {
-        businessObject: {
-          id: 'testEventId',
-          $type: BpmnTypeEnum.Task,
-          extensionElements: {
-            values: [
-              { taskType: 'signing', signatureConfig: { signatureDataType: 'signingInformation' } },
-            ],
-          },
-        },
-      },
-    } as TaskEvent);
-
-    const expectedAddLayoutSetResults = {
+    expect(addLayoutSet).toHaveBeenCalledWith({
       layoutSetConfig: { id: 'testId', tasks: ['testId'] },
       layoutSetIdToUpdate: 'testId',
-    };
+    });
 
-    const expectedAddDataTypeToAppMetadataResults = {
+    expect(addDataTypeToAppMetadata).toHaveBeenCalledWith({
       dataTypeId: 'signingInformation',
-    };
-
-    expect(addLayoutSet).toHaveBeenCalledWith(expectedAddLayoutSetResults);
-    expect(addDataTypeToAppMetadata).toHaveBeenCalledWith(expectedAddDataTypeToAppMetadataResults);
+    });
   });
 });
