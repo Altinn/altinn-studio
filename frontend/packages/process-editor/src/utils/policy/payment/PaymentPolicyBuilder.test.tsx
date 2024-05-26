@@ -1,4 +1,5 @@
 import { PaymentPolicyBuilder } from './PaymentPolicyBuilder';
+import { Policy } from '@altinn/process-editor/utils/policy/types';
 
 describe('DefaultPaymentPolicyBuilder', () => {
   it('should build a default payment policy based on org, app and taskId as input parameters', () => {
@@ -8,9 +9,7 @@ describe('DefaultPaymentPolicyBuilder', () => {
       taskId: 'testTaskId',
     };
 
-    const expectedOutputData = {
-      requiredAuthenticationLevelEndUser: '3',
-      requiredAuthenticationLevelOrg: '3',
+    const expectedOutputData: Policy = {
       rules: [
         {
           ruleId: 'urn:altinn:resource:app_testOrg_testApp:policyid:1:ruleid:testTaskId',
