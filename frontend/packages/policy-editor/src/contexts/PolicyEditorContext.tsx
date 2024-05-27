@@ -7,6 +7,7 @@ export type PolicyEditorContextProps = {
   subjects: PolicySubject[];
   usageType: PolicyEditorUsage;
   resourceType: string;
+  showAllErrors: boolean;
 };
 
 export const PolicyEditorContext = createContext<Partial<PolicyEditorContextProps>>(undefined);
@@ -17,16 +18,12 @@ export type PolicyEditorContextProviderProps = {
 
 export const PolicyEditorContextProvider = ({
   children,
-  policyRules,
-  actions,
-  subjects,
+  ...rest
 }: PolicyEditorContextProviderProps) => {
   return (
     <PolicyEditorContext.Provider
       value={{
-        policyRules,
-        actions,
-        subjects,
+        ...rest,
       }}
     >
       {children}

@@ -21,24 +21,24 @@ const mockPolicy: Policy = {
 
 const mockUsageType: PolicyEditorUsage = 'app';
 
+const mockOnSave = jest.fn();
+
+const defaultProps: PolicyEditorProps = {
+  policy: mockPolicy,
+  actions: mockActions,
+  subjects: mockSubjects,
+  resourceId: mockResourecId1,
+  onSave: mockOnSave,
+  showAllErrors: false,
+  usageType: mockUsageType,
+};
+
 describe('PolicyEditor', () => {
   afterEach(jest.clearAllMocks);
 
-  const mockOnSave = jest.fn();
-
-  const defaultProps: PolicyEditorProps = {
-    policy: mockPolicy,
-    actions: mockActions,
-    subjects: mockSubjects,
-    resourceId: mockResourecId1,
-    onSave: mockOnSave,
-    showAllErrors: false,
-    usageType: mockUsageType,
-  };
-
   it('changes the auth level when the user selects a different auth level', async () => {
     const user = userEvent.setup();
-    render(<PolicyEditor {...defaultProps} />);
+    renderPolicyEditor();
 
     const [selectElement] = screen.getAllByLabelText(
       textMock('policy_editor.select_auth_level_label'),
@@ -58,7 +58,7 @@ describe('PolicyEditor', () => {
 
   it('calls "onSave" when the auth level changes', async () => {
     const user = userEvent.setup();
-    render(<PolicyEditor {...defaultProps} />);
+    renderPolicyEditor();
 
     const [selectElement] = screen.getAllByLabelText(
       textMock('policy_editor.select_auth_level_label'),
@@ -74,7 +74,7 @@ describe('PolicyEditor', () => {
 
   it('displays the rules when there are more than 0 rules', async () => {
     const user = userEvent.setup();
-    render(<PolicyEditor {...defaultProps} />);
+    renderPolicyEditor();
 
     const aLabelFromPolicyCard = screen.getAllByText(
       textMock('policy_editor.rule_card_sub_resource_title'),
@@ -87,7 +87,7 @@ describe('PolicyEditor', () => {
 
   it('displays no rules when the policy has no rules', async () => {
     const user = userEvent.setup();
-    render(<PolicyEditor {...defaultProps} policy={{ ...mockPolicy, rules: [] }} />);
+    renderPolicyEditor({ policy: { ...mockPolicy, rules: [] } });
 
     const aLabelFromPolicyCard = screen.queryAllByText(
       textMock('policy_editor.rule_card_sub_resource_title'),
@@ -100,7 +100,7 @@ describe('PolicyEditor', () => {
 
   it('increases the rule list length when add rule button is clicked', async () => {
     const user = userEvent.setup();
-    render(<PolicyEditor {...defaultProps} />);
+    renderPolicyEditor();
 
     const originalLength = mockPolicy.rules.length;
 
@@ -119,7 +119,7 @@ describe('PolicyEditor', () => {
 
   it('calls "onSave" when a new rule is added', async () => {
     const user = userEvent.setup();
-    render(<PolicyEditor {...defaultProps} />);
+    renderPolicyEditor();
 
     const addButton = screen.getByRole('button', {
       name: textMock('policy_editor.card_button_text'),
@@ -132,7 +132,7 @@ describe('PolicyEditor', () => {
 
   it('hides verification modal when initially rendering the page, and opens it on click', async () => {
     const user = userEvent.setup();
-    render(<PolicyEditor {...defaultProps} />);
+    renderPolicyEditor();
 
     const modalTitle = screen.queryByRole('heading', {
       name: textMock('policy_editor.verification_modal_heading'),
@@ -153,3 +153,7 @@ describe('PolicyEditor', () => {
     expect(modalTitleAfter).toBeInTheDocument();
   });
 });
+
+const renderPolicyEditor = (policyEditorProps: Partial<PolicyEditorProps> = {}) => {
+  return render(<PolicyEditor {...defaultProps} {...policyEditorProps} />);
+};

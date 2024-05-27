@@ -17,14 +17,14 @@ import {
   createNewPolicyResource,
 } from './utils';
 import classes from './PolicyEditor.module.css';
-import { VerificationModal } from './components/VerificationModal';
-import { ExpandablePolicyCard } from './components/ExpandablePolicyCard';
 import { CardButton } from './components/CardButton';
 import { PolicyEditorAlert } from './components/PolicyEditorAlert';
-import { ObjectUtils } from '@studio/pure-functions';
 import { useTranslation } from 'react-i18next';
 import { SecurityLevelSelect } from './components/SecurityLevelSelect';
+import { ObjectUtils } from '@studio/pure-functions';
 import { PolicyEditorContextProvider } from './contexts/PolicyEditorContext';
+import { PolicyCardRules } from './components/PolicyCardRules';
+import { ExpandablePolicyCard } from './components/ExpandablePolicyCard';
 
 export type PolicyEditorProps = {
   policy: Policy;
@@ -53,17 +53,9 @@ export const PolicyEditor = ({
     mapPolicyRulesBackendObjectToPolicyRuleCard(policy?.rules ?? []),
   );
 
-  // Handle the new updated IDs of the rules when a rule is deleted / duplicated
-  const [lastRuleId, setLastRuleId] = useState((policy?.rules?.length ?? 0) + 1);
-
-  const [verificationModalOpen, setVerificationModalOpen] = useState(false);
-
-  // To keep track of which rule to delete
-  // TODO - FIX LOGIC TO DELETE RULE
-  const [ruleIdToDelete, setRuleIdToDelete] = useState('0');
   const [showErrorsOnAllRulesAboveNew, setShowErrorsOnAllRulesAboveNew] = useState(false);
 
-  // CAN THIS BE ITS OWN COMPONENT??
+  // FIX LOGIC
   const displayRules = policyRules.map((pr, i) => {
     return (
       <div className={classes.space} key={pr.ruleId}>
@@ -72,10 +64,7 @@ export const PolicyEditor = ({
           setPolicyRules={setPolicyRules}
           resourceId={resourceId ?? ''}
           handleCloneRule={() => handleCloneRule(i)}
-          handleDeleteRule={() => {
-            setVerificationModalOpen(true);
-            setRuleIdToDelete(pr.ruleId);
-          }}
+          handleDeleteRule={() => handleDeleteRule(pr.ruleId)}
           showErrors={
             showAllErrors || (showErrorsOnAllRulesAboveNew && policyRules.length - 1 !== i)
           }
@@ -85,13 +74,18 @@ export const PolicyEditor = ({
     );
   });
 
-  // FIX LOGIC
-  const getRuleId = () => {
-    const idTaken: boolean = policyRules.map((p) => p.ruleId).includes(lastRuleId.toString());
+  const handleCloneRule = (index: number) => {
+    const newRuleId: string = getNewRuleId(policyRules);
 
-    const currentRuleId = idTaken ? lastRuleId + 1 : lastRuleId;
-    setLastRuleId(currentRuleId + 1);
-    return currentRuleId;
+    const ruleToDuplicate: PolicyRuleCard = {
+      ...policyRules[index],
+      ruleId: newRuleId,
+    };
+    const deepCopiedRuleToDuplicate: PolicyRuleCard = ObjectUtils.deepCopy(ruleToDuplicate);
+
+    const updatedRules = [...policyRules, deepCopiedRuleToDuplicate];
+    setPolicyRules(updatedRules);
+    handleSavePolicy(updatedRules);
   };
 
   const handleAddCardClick = () => {
@@ -100,10 +94,11 @@ export const PolicyEditor = ({
     const newResource: PolicyRuleResource[][] = [
       createNewPolicyResource(usageType, resourceType, resourceId),
     ];
+    const newRuleId: string = getNewRuleId(policyRules);
 
     const newRule: PolicyRuleCard = {
       ...emptyPolicyRule,
-      ruleId: getRuleId().toString(),
+      ruleId: newRuleId,
       resources: newResource,
     };
 
@@ -113,28 +108,15 @@ export const PolicyEditor = ({
     handleSavePolicy(updatedRules);
   };
 
-  const handleCloneRule = (index: number) => {
-    const ruleToDuplicate: PolicyRuleCard = {
-      ...policyRules[index],
-      ruleId: getRuleId().toString(),
-    };
-    const deepCopiedRuleToDuplicate: PolicyRuleCard = ObjectUtils.deepCopy(ruleToDuplicate);
+  const handleDeleteRule = (ruleIdToDelete: string) => {
+    if (confirm(t('policy_editor.verification_modal_text'))) {
+      const updatedRules = [...policyRules];
+      const indexToRemove = updatedRules.findIndex((a) => a.ruleId === ruleIdToDelete);
+      updatedRules.splice(indexToRemove, 1);
+      setPolicyRules(updatedRules);
 
-    const updatedRules = [...policyRules, deepCopiedRuleToDuplicate];
-    setPolicyRules(updatedRules);
-    handleSavePolicy(updatedRules);
-  };
-
-  const handleDeleteRule = (ruleId: string) => {
-    const updatedRules = [...policyRules];
-    const indexToRemove = updatedRules.findIndex((a) => a.ruleId === ruleId);
-    updatedRules.splice(indexToRemove, 1);
-    setPolicyRules(updatedRules);
-
-    setVerificationModalOpen(false);
-    setRuleIdToDelete('0');
-
-    handleSavePolicy(updatedRules);
+      handleSavePolicy(updatedRules);
+    }
   };
 
   const handleSavePolicy = (rules: PolicyRuleCard[]) => {
@@ -159,6 +141,7 @@ export const PolicyEditor = ({
       subjects={subjects}
       usageType={usageType}
       resourceType={resourceType}
+      showAllErrors={showAllErrors}
     >
       <div>
         <SecurityLevelSelect
@@ -172,20 +155,13 @@ export const PolicyEditor = ({
           <PolicyEditorAlert />
         </div>
         {displayRules}
+        <PolicyCardRules showErrorsOnAllRulesAboveNew={showErrorsOnAllRulesAboveNew} />
         <div className={classes.addCardButtonWrapper}>
           <CardButton
             buttonText={t('policy_editor.card_button_text')}
             onClick={handleAddCardClick}
           />
         </div>
-        <VerificationModal // - REPLACE WITG ALERT
-          isOpen={verificationModalOpen}
-          onClose={() => setVerificationModalOpen(false)}
-          text={t('policy_editor.verification_modal_text')}
-          closeButtonText={t('policy_editor.verification_modal_close_button')}
-          actionButtonText={t('policy_editor.verification_modal_action_button')}
-          onPerformAction={() => handleDeleteRule(ruleIdToDelete)}
-        />
       </div>
     </PolicyEditorContextProvider>
   );
@@ -195,4 +171,9 @@ export const PolicyEditor = ({
 // TODO - Find out how this should be set. Issue: #10880
 const getResourceType = (usageType: PolicyEditorUsage): string => {
   return usageType === 'app' ? 'urn:altinn' : 'urn:altinn:resource';
+};
+
+const getNewRuleId = (rules: PolicyRuleCard[]): string => {
+  const lastId: number = Number(rules[rules.length - 1].ruleId) + 1;
+  return String(lastId);
 };

@@ -13,4 +13,5 @@ export const mockPolicyEditorContextValue: PolicyEditorContextProps = {
   subjects: mockSubjects,
   usageType: mockUsageType,
   resourceType: mockResourceType,
+  showAllErrors: false,
 };
