@@ -34,7 +34,7 @@ export const EditDataModelBindings = <T extends ComponentType>({
   helpText,
 }: EditDataModelBindingsProps<T>) => {
   const { org, app } = useStudioUrlParams();
-  const { selectedFormLayoutSetName } = useAppContext();
+  const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
   const { data } = useDatamodelMetadataQuery(org, app, selectedFormLayoutSetName);
   const { t } = useTranslation();
   const [dataModelSelectVisible, setDataModelSelectVisible] = useState(false);
@@ -47,22 +47,29 @@ export const EditDataModelBindings = <T extends ComponentType>({
   const bindingKey = key || 'simpleBinding';
 
   const handleBindingChange = (selectedDataModelElement: string) => {
-    handleComponentChange({
-      ...component,
-      dataModelBindings: {
-        ...component.dataModelBindings,
-        [bindingKey]: selectedDataModelElement,
+    handleComponentChange(
+      {
+        ...component,
+        dataModelBindings: {
+          ...component.dataModelBindings,
+          [bindingKey]: selectedDataModelElement,
+        },
+        required: getMinOccursFromDataModel(selectedDataModelElement, data) > 0 || undefined,
+        timeStamp:
+          component.type === ComponentType.Datepicker
+            ? getXsdDataTypeFromDataModel(selectedDataModelElement, data) === 'DateTime'
+            : undefined,
+        maxCount:
+          component.type === ComponentType.RepeatingGroup
+            ? getMaxOccursFromDataModel(selectedDataModelElement, data)
+            : undefined,
+      } as FormItem<T>,
+      {
+        onSuccess: async () => {
+          await refetchLayouts(selectedFormLayoutSetName, true);
+        },
       },
-      required: getMinOccursFromDataModel(selectedDataModelElement, data) > 0 || undefined,
-      timeStamp:
-        component.type === ComponentType.Datepicker
-          ? getXsdDataTypeFromDataModel(selectedDataModelElement, data) === 'DateTime'
-          : undefined,
-      maxCount:
-        component.type === ComponentType.RepeatingGroup
-          ? getMaxOccursFromDataModel(selectedDataModelElement, data)
-          : undefined,
-    } as FormItem<T>);
+    );
   };
 
   const handleDelete = () => {
