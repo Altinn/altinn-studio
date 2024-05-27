@@ -31,14 +31,11 @@ namespace Altinn.Studio.Designer.Controllers
     {
         private readonly IProcessModelingService _processModelingService;
         private readonly IMediator _mediator;
-        private readonly IRepository _repository;
 
-        public ProcessModelingController(IProcessModelingService processModelingService, IMediator mediator,
-            IRepository repository)
+        public ProcessModelingController(IProcessModelingService processModelingService, IMediator mediator)
         {
             _processModelingService = processModelingService;
             _mediator = mediator;
-            _repository = repository;
         }
 
         [HttpGet("process-definition")]
@@ -54,8 +51,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpPut("process-definition")]
-        [Obsolete(
-            "This endpoint should be replaced by process-definition-latest, and url fixed after integration with frontend")]
+        [Obsolete("This endpoint should be replaced by process-definition-latest, and url fixed after integration with frontend")]
         public async Task<IActionResult> SaveProcessDefinition(string org, string repo,
             CancellationToken cancellationToken)
         {
@@ -76,8 +72,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpPut("process-definition-latest")]
-        public async Task<IActionResult> UpsertProcessDefinitionAndNotify(string org, string repo,
-            [FromForm] IFormFile content, [FromForm] string metadata, CancellationToken cancellationToken)
+        public async Task<IActionResult> UpsertProcessDefinitionAndNotify(string org, string repo, [FromForm] IFormFile content, [FromForm] string metadata, CancellationToken cancellationToken)
         {
             Request.EnableBuffering();
 
@@ -103,34 +98,31 @@ namespace Altinn.Studio.Designer.Controllers
 
             if (metadataObject?.TaskIdChange is not null)
             {
-                await _mediator.Publish(
-                    new ProcessTaskIdChangedEvent
-                    {
-                        OldId = metadataObject.TaskIdChange.OldId,
-                        NewId = metadataObject.TaskIdChange.NewId,
-                        EditingContext = editingContext
-                    }, cancellationToken);
+                await _mediator.Publish(new ProcessTaskIdChangedEvent
+                {
+                    OldId = metadataObject.TaskIdChange.OldId,
+                    NewId = metadataObject.TaskIdChange.NewId,
+                    EditingContext = editingContext
+                }, cancellationToken);
             }
 
             return Accepted();
         }
 
         [HttpPut("data-type")]
-        public async Task<IActionResult> ProcessDataTypeChangedNotify(string org, string repo,
-            [FromBody] DataTypeChange dataTypeChange, CancellationToken cancellationToken)
+        public async Task<IActionResult> ProcessDataTypeChangedNotify(string org, string repo, [FromBody] DataTypeChange dataTypeChange, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
 
             if (dataTypeChange is not null)
             {
-                await _mediator.Publish(
-                    new ProcessDataTypeChangedEvent
-                    {
-                        NewDataType = dataTypeChange.NewDataType,
-                        ConnectedTaskId = dataTypeChange.ConnectedTaskId,
-                        EditingContext = editingContext
-                    }, cancellationToken);
+                await _mediator.Publish(new ProcessDataTypeChangedEvent
+                {
+                    NewDataType = dataTypeChange.NewDataType,
+                    ConnectedTaskId = dataTypeChange.ConnectedTaskId,
+                    EditingContext = editingContext
+                }, cancellationToken);
             }
 
             return Accepted();
@@ -158,38 +150,24 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpPost("data-type/{dataTypeId}")]
-        public async Task<ActionResult> AddDataTypeToApplicationMetadata(string org, string repo, [FromRoute] string dataTypeId, [FromBody] ResourcePolicy applicationPolicy, CancellationToken cancellationToken)
+        public async Task<ActionResult> AddDataTypeToApplicationMetadata(string org, string repo, [FromRoute] string dataTypeId, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
             await _processModelingService.AddDataTypeToApplicationMetadataAsync(editingContext, dataTypeId,
                 cancellationToken);
 
-            if (applicationPolicy is null)
-            {
-                return Ok();
-            }
-
-            XacmlPolicy xacmlPolicy = PolicyConverter.ConvertPolicy(applicationPolicy);
-            await _repository.SavePolicy(org, repo, null, xacmlPolicy);
             return Ok();
         }
 
         [HttpDelete("data-type/{dataTypeId}")]
-        public async Task<ActionResult> DeleteDataTypeFromApplicationMetadata(string org, string repo, [FromRoute] string dataTypeId, [FromBody] ResourcePolicy applicationPolicy, CancellationToken cancellationToken)
+        public async Task<ActionResult> DeleteDataTypeFromApplicationMetadata(string org, string repo, [FromRoute] string dataTypeId, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
             await _processModelingService.DeleteDataTypeFromApplicationMetadataAsync(editingContext, dataTypeId,
                 cancellationToken);
 
-            if (applicationPolicy is null)
-            {
-                return Ok();
-            }
-
-            XacmlPolicy xacmlPolicy = PolicyConverter.ConvertPolicy(applicationPolicy);
-            await _repository.SavePolicy(org, repo, null, xacmlPolicy);
             return Ok();
         }
     }

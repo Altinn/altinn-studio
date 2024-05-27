@@ -16,6 +16,7 @@ export class RemoveProcessTaskManager {
     private readonly layoutSets: BpmnApiContextProps['layoutSets'],
     private readonly deleteLayoutSet: BpmnApiContextProps['deleteLayoutSet'],
     private readonly deleteDataTypeFromAppMetadata: BpmnApiContextProps['deleteDataTypeFromAppMetadata'],
+    private readonly mutateApplicationPolicy: BpmnApiContextProps['mutateApplicationPolicy'],
     private readonly bpmnDetails: BpmnDetails,
     private readonly currentPolicy: Policy,
   ) {}
@@ -58,11 +59,17 @@ export class RemoveProcessTaskManager {
    * @private
    */
   private handlePaymentTaskRemove(taskEvent: TaskEvent): void {
+    // Delete dataType
     const dataTypeId = getDataTypeIdFromBusinessObject(
       this.bpmnDetails.taskType,
       taskEvent.element.businessObject,
     );
 
+    this.deleteDataTypeFromAppMetadata({
+      dataTypeId,
+    });
+
+    // Delete Payment Policy
     const paymentPolicyBuilder = new PaymentPolicyBuilder(this.org, this.app);
     const currentPaymentRuleId = paymentPolicyBuilder.getPolicyRuleId(this.bpmnDetails.id);
 
@@ -71,11 +78,9 @@ export class RemoveProcessTaskManager {
       rules: this.currentPolicy.rules.filter((rule) => rule.ruleId !== currentPaymentRuleId),
     };
 
-    this.deleteDataTypeFromAppMetadata({
-      dataTypeId,
-      policy: updatedPolicy,
-    });
+    this.mutateApplicationPolicy(updatedPolicy);
 
+    // Delete layout set
     const layoutSetId = getLayoutSetIdFromTaskId(this.bpmnDetails, this.layoutSets);
     if (layoutSetId) {
       this.deleteLayoutSet({

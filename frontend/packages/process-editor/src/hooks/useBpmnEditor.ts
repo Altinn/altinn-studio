@@ -31,6 +31,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
     deleteLayoutSet,
     addDataTypeToAppMetadata,
     deleteDataTypeFromAppMetadata,
+    mutateApplicationPolicy,
     saveBpmn,
     layoutSets,
     currentPolicy,
@@ -54,6 +55,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
       app,
       addLayoutSet,
       addDataTypeToAppMetadata,
+      mutateApplicationPolicy,
       bpmnDetails,
       currentPolicy,
     );
@@ -70,6 +72,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
       layoutSetsRef.current,
       deleteLayoutSet,
       deleteDataTypeFromAppMetadata,
+      mutateApplicationPolicy,
       bpmnDetails,
       currentPolicy,
     );

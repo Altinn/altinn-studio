@@ -19,6 +19,7 @@ export type BpmnApiContextProps = {
     options?: QueryOptions,
   ) => void;
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
+  mutateApplicationPolicy: (policy: Policy) => void;
   mutateLayoutSetId: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
   mutateDataType: (dataTypeChange: DataTypeChange, options?: QueryOptions) => void;
   addDataTypeToAppMetadata: (data: { dataTypeId: string; policy?: Policy }) => void;
@@ -43,6 +44,7 @@ export const BpmnApiContextProvider = ({
   existingCustomReceiptLayoutSetId,
   addLayoutSet,
   deleteLayoutSet,
+  mutateApplicationPolicy,
   mutateLayoutSetId,
   mutateDataType,
   addDataTypeToAppMetadata,
@@ -59,6 +61,7 @@ export const BpmnApiContextProvider = ({
         pendingApiOperations,
         existingCustomReceiptLayoutSetId,
         addLayoutSet,
+        mutateApplicationPolicy,
         deleteLayoutSet,
         mutateLayoutSetId,
         mutateDataType,

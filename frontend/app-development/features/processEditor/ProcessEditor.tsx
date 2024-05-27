@@ -1,6 +1,6 @@
 import React from 'react';
 import { ProcessEditor as ProcessEditorImpl } from '@altinn/process-editor';
-import { useBpmnMutation } from '../../hooks/mutations';
+import { useAppPolicyMutation, useBpmnMutation } from '../../hooks/mutations';
 import { useBpmnQuery } from '../../hooks/queries/useBpmnQuery';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { toast } from 'react-toastify';
@@ -37,6 +37,7 @@ export const ProcessEditor = (): React.ReactElement => {
   const { org, app } = useStudioUrlParams();
   const queryClient = useQueryClient();
   const { data: currentPolicy, isPending: isPendingCurrentPolicy } = useAppPolicyQuery(org, app);
+  const { mutate: mutateApplicationPolicy } = useAppPolicyMutation(org, app);
   const invalidator = SyncSuccessQueriesInvalidator.getInstance(queryClient, org, app);
   const { setSettingsModalOpen, setSettingsModalSelectedTab } = useSettingsModalContext();
   const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
@@ -125,6 +126,7 @@ export const ProcessEditor = (): React.ReactElement => {
       mutateLayoutSetId={mutateLayoutSetId}
       appLibVersion={appLibData.backendVersion}
       bpmnXml={hasBpmnQueryError ? null : bpmnXml}
+      mutateApplicationPolicy={mutateApplicationPolicy}
       mutateDataType={mutateDataType}
       addDataTypeToAppMetadata={addDataTypeToAppMetadata}
       deleteDataTypeFromAppMetadata={deleteDataTypeFromAppMetadata}

@@ -29,6 +29,7 @@ describe('AddProcessTaskManager', () => {
 
   const addLayoutSet = jest.fn();
   const addDataTypeToAppMetadata = jest.fn();
+  const mutateApplicationPolicy = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -43,6 +44,7 @@ describe('AddProcessTaskManager', () => {
       app,
       addLayoutSet,
       addDataTypeToAppMetadata,
+      mutateApplicationPolicy,
       bpmnDetails,
       currentPolicy,
     );
@@ -77,20 +79,21 @@ describe('AddProcessTaskManager', () => {
 
     expect(addDataTypeToAppMetadata).toHaveBeenCalledWith({
       dataTypeId: 'paymentInformation',
-      policy: {
-        rules: [
-          {
-            ruleId: 'urn:altinn:resource:app_testOrg_testApp:policyid:1:ruleid:testId',
-            description:
-              'Rule that defines that user with specified role(s) can pay, reject and confirm for testOrg/testApp when it is in payment task',
-            subject: [],
-            actions: ['read', 'pay', 'confirm', 'reject'],
-            resources: [
-              ['urn:altinn:org:testOrg', 'urn:altinn:app:testApp', 'urn:altinn:task:testId'],
-            ],
-          },
-        ],
-      },
+    });
+
+    expect(mutateApplicationPolicy).toHaveBeenCalledWith({
+      rules: [
+        {
+          ruleId: 'urn:altinn:resource:app_testOrg_testApp:policyid:1:ruleid:testId',
+          description:
+            'Rule that defines that user with specified role(s) can pay, reject and confirm for testOrg/testApp when it is in payment task',
+          subject: [],
+          actions: ['read', 'pay', 'confirm', 'reject'],
+          resources: [
+            ['urn:altinn:org:testOrg', 'urn:altinn:app:testApp', 'urn:altinn:task:testId'],
+          ],
+        },
+      ],
     });
   });
 

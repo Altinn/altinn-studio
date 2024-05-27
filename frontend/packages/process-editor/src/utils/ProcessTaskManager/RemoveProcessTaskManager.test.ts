@@ -45,6 +45,7 @@ describe('RemoveProcessTaskManager', () => {
       layoutSets,
       deleteLayoutSet,
       jest.fn(),
+      jest.fn(),
       bpmnDetails,
       currentPolicy,
     );
@@ -59,6 +60,7 @@ describe('RemoveProcessTaskManager', () => {
     };
 
     const deleteLayoutSet = jest.fn();
+    const mutateApplicationPolicy = jest.fn();
     const deleteDataTypeFromAppMetadata = jest.fn();
     const bpmnDetails = createBpmnDetails('testTask', 'testTask', 'payment');
     const currentPolicy: Policy = {
@@ -79,6 +81,7 @@ describe('RemoveProcessTaskManager', () => {
       layoutSets,
       deleteLayoutSet,
       deleteDataTypeFromAppMetadata,
+      mutateApplicationPolicy,
       bpmnDetails,
       currentPolicy,
     );
@@ -86,17 +89,18 @@ describe('RemoveProcessTaskManager', () => {
     removeProcessTaskManager.handleTaskRemove(createTaskEvent('payment'));
     expect(deleteDataTypeFromAppMetadata).toHaveBeenCalledWith({
       dataTypeId: undefined,
-      policy: {
-        rules: [
-          {
-            actions: ['pay'],
-            description: 'testDescription',
-            resources: [['testResource']],
-            ruleId: 'alreadyExistingRule',
-            subject: ['testSubject'],
-          },
-        ],
-      },
+    });
+
+    expect(mutateApplicationPolicy).toHaveBeenCalledWith({
+      rules: [
+        {
+          actions: ['pay'],
+          description: 'testDescription',
+          resources: [['testResource']],
+          ruleId: 'alreadyExistingRule',
+          subject: ['testSubject'],
+        },
+      ],
     });
   });
 
@@ -118,6 +122,7 @@ describe('RemoveProcessTaskManager', () => {
       layoutSets,
       deleteLayoutSet,
       deleteDataTypeFromAppMetadata,
+      jest.fn(),
       bpmnDetails,
       currentPolicy,
     );

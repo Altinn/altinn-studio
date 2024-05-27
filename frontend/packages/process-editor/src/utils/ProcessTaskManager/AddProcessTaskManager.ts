@@ -12,6 +12,7 @@ export class AddProcessTaskManager {
     private readonly app: string,
     private readonly addLayoutSet: BpmnApiContextProps['addLayoutSet'],
     private readonly addDataTypeToAppMetadata: BpmnApiContextProps['addDataTypeToAppMetadata'],
+    private readonly mutateApplicationPolicy: BpmnApiContextProps['mutateApplicationPolicy'],
     private readonly bpmnDetails: BpmnDetails,
     private readonly currentPolicy: Policy,
   ) {}
@@ -48,13 +49,20 @@ export class AddProcessTaskManager {
    * @private
    */
   private handlePaymentTaskAdd(taskEvent: TaskEvent): void {
+    // Add layout set to the task
     this.addLayoutSet(this.createLayoutSetConfig());
 
+    // Add dataType
     const dataTypeId = getDataTypeIdFromBusinessObject(
       this.bpmnDetails.taskType,
       taskEvent.element.businessObject,
     );
 
+    this.addDataTypeToAppMetadata({
+      dataTypeId,
+    });
+
+    // Add default payment policy
     const paymentPolicyBuilder = new PaymentPolicyBuilder(this.org, this.app);
     const defaultPaymentPolicy = paymentPolicyBuilder.getDefaultPaymentPolicy(this.bpmnDetails.id);
 
@@ -64,10 +72,7 @@ export class AddProcessTaskManager {
       rules: [...this.currentPolicy.rules, ...defaultPaymentPolicy.rules],
     };
 
-    this.addDataTypeToAppMetadata({
-      dataTypeId,
-      policy: updatedPolicy,
-    });
+    this.mutateApplicationPolicy(updatedPolicy);
   }
 
   /**
