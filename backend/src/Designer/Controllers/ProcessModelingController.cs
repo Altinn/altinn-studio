@@ -159,7 +159,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpPost("data-type/{dataTypeId}")]
-        public async Task<ActionResult> AddDataTypeToApplicationMetadata(string org, string repo, [FromRoute] string dataTypeId, CancellationToken cancellationToken, [FromBody] [CanBeNull] ResourcePolicy applicationPolicy)
+        public async Task<ActionResult> AddDataTypeToApplicationMetadata(string org, string repo, [FromRoute] string dataTypeId, [FromBody] ResourcePolicy applicationPolicy, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
@@ -177,7 +177,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpDelete("data-type/{dataTypeId}")]
-        public async Task<ActionResult> DeleteDataTypeFromApplicationMetadata(string org, string repo, [FromRoute] string dataTypeId, CancellationToken cancellationToken, [FromBody] [CanBeNull] ResourcePolicy applicationPolicy)
+        public async Task<ActionResult> DeleteDataTypeFromApplicationMetadata(string org, string repo, [FromRoute] string dataTypeId, [FromBody] ResourcePolicy applicationPolicy, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
