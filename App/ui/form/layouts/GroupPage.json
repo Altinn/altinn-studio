@@ -1,84 +1,103 @@
 {
-  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
-  "data": {
-    "layout": [
-      {
-        "id": "NavigationBar-dd9oO8",
-        "type": "NavigationBar"
-      },
-      {
-        "size": "L",
-        "id": "Header-mgeHco",
-        "type": "Header",
-        "textResourceBindings": {
-          "title": "Side3.Header-mgeHco.title"
-        }
-      },
-      {
-        "id": "Group-84wghp",
-        "type": "Group",
-        "groupingIndicator": "indented",
-        "hidden": false,
-        "children": [
-          "Header-Ecgzpw",
-          "Group-84wghp-nested"
+    "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+    "data": {
+        "layout": [
+            {
+                "id": "NavigationBar",
+                "type": "NavigationBar"
+            },
+            {
+                "size": "h2",
+                "id": "GroupPage-Header",
+                "type": "Header",
+                "textResourceBindings": {
+                    "title": "GroupPage"
+                }
+            },
+            {
+                "size": "h3",
+                "id": "GroupPage-Header-Component",
+                "type": "Header",
+                "textResourceBindings": {
+                    "title": "Header.Component"
+                }
+            },
+            {
+                "id": "GroupPage-Group",
+                "type": "Group",
+                "groupingIndicator": "indented",
+                "hidden": false,
+                "children": ["GroupPage-Group-Header", "GroupPage-Group-Nested"]
+            },
+            {
+                "size": "h3",
+                "id": "GroupPage-Header-Summary",
+                "type": "Header",
+                "textResourceBindings": {
+                    "title": "Header.Summary"
+                }
+            },
+            {
+                "componentRef": "GroupPage-Group",
+                "id": "GroupPage-Summary",
+                "type": "Summary"
+            },
+            {
+                "size": "h3",
+                "id": "GroupPage-Header-Summary2",
+                "type": "Header",
+                "textResourceBindings": {
+                    "title": "Header.Summary2"
+                }
+            },
+            {
+                "id": "GroupPage-Summary2",
+                "type": "Summary2",
+                "hidden": false,
+                "whatToRender": {
+                    "type": "component",
+                    "id": "GroupPage-Group"
+                }
+            },
+            {
+                "id": "NavigationButtons",
+                "showBackButton": true,
+                "textResourceBindings": {},
+                "type": "NavigationButtons"
+            },
+            {
+                "size": "L",
+                "id": "GroupPage-Group-Header",
+                "type": "Header",
+                "textResourceBindings": {
+                    "title": "GroupPage-Group-Header.title"
+                }
+            },
+            {
+                "id": "GroupPage-Group-Nested",
+                "type": "Group",
+                "groupingIndicator": "indented",
+                "hidden": false,
+                "children": ["GroupPage-Nested-Header", "GroupPage-Nested-Input"]
+            },
+            {
+                "size": "L",
+                "id": "GroupPage-Nested-Header",
+                "type": "Header",
+                "textResourceBindings": {
+                    "title": "I am a nested header"
+                }
+            },
+            {
+                "dataModelBindings": {
+                    "simpleBinding": "nestedInput"
+                },
+                "id": "GroupPage-Nested-Input",
+                "type": "Input",
+                "textResourceBindings": {
+                    "title": "I am nested input"
+                }
+            }
         ]
-      },
-      {
-        "size": "L",
-        "id": "Header-tZjZtv",
-        "type": "Header",
-        "textResourceBindings": {
-          "title": "Side3.Header-tZjZtv.title"
-        }
-      },
-      {
-        "componentRef": "Group-84wghp",
-        "id": "Summary-TdK4io",
-        "type": "Summary"
-      },
-      {
-        "id": "NavigationButtons-CKBzRC",
-        "showBackButton": true,
-        "textResourceBindings": {},
-        "type": "NavigationButtons"
-      },
-      {
-        "size": "L",
-        "id": "Header-Ecgzpw",
-        "type": "Header",
-        "textResourceBindings": {
-          "title": "Side3.Header-Ecgzpw.title"
-        }
-      },
-      {
-        "id": "Group-84wghp-nested",
-        "type": "Group",
-        "groupingIndicator": "indented",
-        "hidden": false,
-        "children": [
-          "Nested-Header-Ecgzpw",
-          "Input-RvqppSnested"
-        ]
-      },
-      {
-        "size": "L",
-        "id": "Nested-Header-Ecgzpw",
-        "type": "Header",
-        "textResourceBindings": {
-          "title": "I am a nested header"
-        }
-      },
-      {
-        "dataModelBindings": {
-          "simpleBinding": "nestedInput"
-        },
-        "id": "Input-RvqppSnested",
-        "type": "Input",
-        "textResourceBindings": {
-          "title": "I am nested input"
-        }
-      }
-    ]
-  }
+    }
 }

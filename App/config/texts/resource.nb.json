@@ -46,6 +46,10 @@
             "value": "Gruppe"
         },
         {
+            "id": "GroupPage-Group-Header.title",
+            "value": "Her ligger en tekst inne i en gruppe"
+        },
+        {
             "id": "AddressPage",
             "value": "Adresse"
         },
@@ -64,18 +68,6 @@
         {
             "id": "Side4.Header-in-new-summary",
             "value": "Jeg skal rendres inne i ny summary:"
-        },
-        {
-            "id": "Side3.Header-tZjZtv.title",
-            "value": "Her er oppsummeringen av gruppen:"
-        },
-        {
-            "id": "Side3.Header-Ecgzpw.title",
-            "value": "Her ligger en tekst inne i en gruppe"
-        },
-        {
-            "id": "Side3.Header-mgeHco.title",
-            "value": "Eksempel på gruppe:"
         },
 
         {
