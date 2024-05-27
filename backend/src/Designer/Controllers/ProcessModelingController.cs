@@ -114,6 +114,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             if (dataTypeChange is not null)
             {
+
                 await _mediator.Publish(new ProcessDataTypeChangedEvent
                 {
                     NewDataType = dataTypeChange.NewDataType,
@@ -152,7 +153,6 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
             await _processModelingService.AddDataTypeToApplicationMetadataAsync(editingContext, dataTypeId, cancellationToken);
-
             return Ok();
         }
 
@@ -162,7 +162,6 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
             await _processModelingService.DeleteDataTypeFromApplicationMetadataAsync(editingContext, dataTypeId, cancellationToken);
-
             return Ok();
         }
     }
