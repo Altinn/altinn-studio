@@ -52,7 +52,12 @@ namespace Altinn.App.Models.model
     [JsonPropertyName("radioButtonInput")]
     public string radioButtonInput { get; set; }
 
-    [XmlElement("nestedInput", Order = 9)]
+    [XmlElement("checkboxesInput", Order = 9)]
+    [JsonProperty("checkboxesInput")]
+    [JsonPropertyName("checkboxesInput")]
+    public string checkboxesInput { get; set; }
+
+    [XmlElement("nestedInput", Order = 10)]
     [JsonProperty("nestedInput")]
     [JsonPropertyName("nestedInput")]
     public string nestedInput { get; set; }

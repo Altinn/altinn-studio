@@ -31,6 +31,9 @@
     "radioButtonInput": {
       "type": "string"
     },
+    "checkboxesInput": {
+      "type": "string"
+    },
     "nestedInput": {
       "type": "string"
     },

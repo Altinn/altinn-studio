@@ -42,6 +42,14 @@
             "value": "Hva slags kjøretøy har du?"
         },
         {
+            "id": "CheckboxesPage",
+            "value": "Avkryssningsbokser"
+        },
+        {
+            "id": "CheckboxesPage.Checkboxes.title",
+            "value": "Hva skal kjøretøyet brukes til?"
+        },
+        {
             "id": "GroupPage",
             "value": "Gruppe"
         },

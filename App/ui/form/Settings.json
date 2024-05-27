@@ -5,6 +5,7 @@
       "InputPage",
       "TextareaPage",
       "RadioButtonsPage",
+      "CheckboxesPage",
       "GroupPage",
       "AddressPage",
       "SummaryPage"
