@@ -9,7 +9,6 @@ using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Designer.Tests.Controllers.ProcessModelingController
 {
