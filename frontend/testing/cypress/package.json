@@ -5,8 +5,8 @@
   "devDependencies": {
     "@faker-js/faker": "8.4.1",
     "@testing-library/cypress": "10.0.1",
-    "axe-core": "4.9.0",
-    "cypress": "13.8.1",
+    "axe-core": "4.9.1",
+    "cypress": "13.10.0",
     "cypress-axe": "1.5.0",
     "cypress-plugin-tab": "1.0.5",
     "eslint": "8.57.0",
