@@ -82,10 +82,6 @@ const overrideUseBpmnContext = () => {
     getUpdatedXml: jest.fn(),
     modelerRef: {
       ...mockModelerRef,
-      on: (eventName: string, callback: Function) => {
-        console.log({ eventName });
-        callback();
-      },
     },
     setBpmnDetails: setBpmnDetailsMock,
   });
