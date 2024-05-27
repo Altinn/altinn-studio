@@ -84,7 +84,9 @@ export const AccessListMembersTable = ({
           return (
             <Table.Row key={item.orgNr}>
               <Table.Cell aria-label={stringNumberToAriaLabel(item.orgNr)}>{item.orgNr}</Table.Cell>
-              <Table.Cell>{item.orgName || t('resourceadm.listadmin_empty_name')}</Table.Cell>
+              <Table.Cell className={classes.textCell}>
+                {item.orgName || t('resourceadm.listadmin_empty_name')}
+              </Table.Cell>
               <Table.Cell>
                 {item.isSubParty
                   ? t('resourceadm.listadmin_sub_party')

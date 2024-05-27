@@ -12,7 +12,7 @@
 }
 
 .spinnerContainer {
-  height: 250px; /* height of 5 grid rows (must be equal to height of grid to avoid scroll jumping when changing pagination page) */
+  height: 500px; /* height of 10 grid rows (must be equal to height of grid to avoid scroll jumping when changing pagination page) */
 }
 
 .addMoreWrapper {
@@ -37,6 +37,10 @@
 .membersTable {
   width: 100%;
   margin-bottom: var(--fds-spacing-2);
+}
+
+.textCell {
+  height: 47px;
 }
 
 .smallColumn {
