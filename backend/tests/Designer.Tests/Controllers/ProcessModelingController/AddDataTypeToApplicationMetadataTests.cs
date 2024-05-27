@@ -13,7 +13,6 @@ using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Newtonsoft.Json;
-using Polly;
 using Xunit;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
