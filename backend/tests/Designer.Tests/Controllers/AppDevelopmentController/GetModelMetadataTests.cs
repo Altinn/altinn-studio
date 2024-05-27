@@ -69,6 +69,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             // Act
             using var response = await HttpClient.SendAsync(httpRequestMessage);
+            var responseContent = await response.Content.ReadAsStringAsync();
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
