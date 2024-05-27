@@ -937,7 +937,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>Empty response</returns>
         [HttpGet]
         [Route("api/v1/footer")]
-        public async Task<ActionResult<Footer>> Footer(string org, string app, CancellationToken cancellationToken)
+        public async Task<ActionResult<FooterFile>> Footer(string org, string app, CancellationToken cancellationToken)
         {
             try
             {

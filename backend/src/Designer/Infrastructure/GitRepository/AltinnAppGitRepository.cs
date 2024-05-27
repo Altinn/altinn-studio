@@ -604,8 +604,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             string footerFilePath = GetPathToFooterFile();
             cancellationToken.ThrowIfCancellationRequested();
             string fileContent = await ReadTextByRelativePathAsync(footerFilePath, cancellationToken);
-            FooterFile footerFileFile = JsonSerializer.Deserialize<FooterFile>(fileContent, JsonOptions);
-            return footerFileFile;
+            FooterFile footerFile = JsonSerializer.Deserialize<FooterFile>(fileContent, JsonOptions);
+            return footerFile;
         }
 
         /// <summary>

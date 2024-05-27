@@ -22,7 +22,7 @@ namespace Designer.Tests.Controllers.PreviewController
         public async Task Get_Footer_Exists_Ok()
         {
             string expectedFooter = TestDataHelper.GetFileFromRepo(Org, AppV4, Developer, "App/ui/footer.json");
-            FooterFile actualFooter = JsonSerializer.Deserialize<FooterFile>(expectedFooter);
+            FooterFile actualFooterFile = JsonSerializer.Deserialize<FooterFile>(expectedFooter);
 
             string dataPathWithData = $"{Org}/{AppV4}/api/v1/footer";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
@@ -31,9 +31,9 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseString = await response.Content.ReadAsStringAsync();
-            FooterFile responseFooter = JsonSerializer.Deserialize<FooterFile>(responseString);
+            FooterFile responseFooterFile = JsonSerializer.Deserialize<FooterFile>(responseString);
 
-            responseFooter.Footer.Should().BeEquivalentTo(actualFooter.Footer);
+            responseFooterFile.Footer.Should().BeEquivalentTo(actualFooterFile.Footer);
         }
 
         [Fact]
@@ -44,6 +44,9 @@ namespace Designer.Tests.Controllers.PreviewController
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            string responseString = await response.Content.ReadAsStringAsync();
+            responseString.Should().BeEmpty();
         }
     }
 }
