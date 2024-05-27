@@ -44,5 +44,22 @@ namespace Designer.Tests.Controllers.ProcessModelingController
 
             appMetadata.DataTypes.Count.Should().Be(0);
         }
+
+        [Theory]
+        [InlineData("ttd", "apps-test", "testUser", "ref-data-as-pdf")]
+        public async Task DeletePolicyFromPolicyFile_ShouldReturnOK(string org, string app, string developer, string dataTypeId)
+        {
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
+            string url = VersionPrefix(org, targetRepository, dataTypeId);
+
+            using var request = new HttpRequestMessage(HttpMethod.Delete, url)
+            {
+                Content = new StringContent(string.Empty, Encoding.UTF8, "application/json")
+            };
+            using var response = await HttpClient.SendAsync(request);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        }
     }
 }

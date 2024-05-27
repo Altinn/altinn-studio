@@ -1,15 +1,21 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.PolicyAdmin.Models;
 using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.Controllers.PolicyControllerTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Newtonsoft.Json;
+using Polly;
 using Xunit;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Designer.Tests.Controllers.ProcessModelingController
 {
@@ -80,6 +86,28 @@ namespace Designer.Tests.Controllers.ProcessModelingController
             });
 
             appMetadata.DataTypes.Count.Should().Be(1);
+        }
+
+        [Theory]
+        [InlineData("ttd", "apps-test", "testUser", "paymentInformation-1234")]
+        public async Task AddPolicyToPolicyFile_ShouldReturnOK(string org, string app,
+            string developer, string dataTypeId)
+        {
+
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
+            string url = VersionPrefix(org, targetRepository, dataTypeId);
+
+            ResourcePolicy applicationPolicy = TestPolicyHelper.GenerateTestPolicy("ttd", targetRepository);
+
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(applicationPolicy), Encoding.UTF8, MediaTypeNames.Application.Json)
+            };
+
+            using var response = await HttpClient.SendAsync(request);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
     }
 }
