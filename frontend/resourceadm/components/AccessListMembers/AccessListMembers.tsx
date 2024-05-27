@@ -19,6 +19,7 @@ import { isOrgNrString } from 'resourceadm/utils/stringUtils';
 
 const PARTY_SEARCH_TYPE = 'PARTY';
 const SUBPARTY_SEARCH_TYPE = 'SUBPARTY';
+const INVALID_ORG_ERROR_CODE = 'RR-00001';
 
 export interface AccessListMembersProps {
   org: string;
@@ -63,7 +64,7 @@ export const AccessListMembers = ({
   const handleAddMember = (memberToAdd: AccessListMember): void => {
     addListMember([memberToAdd.orgNr], {
       onError: (error: AxiosError) => {
-        if ((error.response.data as { code: string }).code === 'RR-00003') {
+        if ((error.response.data as { code: string }).code === INVALID_ORG_ERROR_CODE) {
           setInvalidOrgnrs((old) => [...old, memberToAdd.orgNr]);
         }
       },

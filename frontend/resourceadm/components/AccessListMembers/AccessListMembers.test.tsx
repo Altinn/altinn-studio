@@ -179,7 +179,7 @@ describe('AccessListMembers', () => {
       {
         addAccessListMember: jest
           .fn()
-          .mockImplementation(() => Promise.reject({ response: { data: { code: 'RR-00003' } } })),
+          .mockImplementation(() => Promise.reject({ response: { data: { code: 'RR-00001' } } })),
         getParties: jest.fn().mockImplementation(() =>
           Promise.resolve({
             _embedded: {
