@@ -142,9 +142,6 @@ export function getValidationsForNode(
   severity?: ValidationSeverity,
 ): NodeValidation[] {
   const validationMessages: NodeValidation[] = [];
-  if (!shouldValidateNode(node)) {
-    return validationMessages;
-  }
 
   const selector: ValidationSelector = (cacheKey, selector) => {
     if (typeof findIn === 'function') {

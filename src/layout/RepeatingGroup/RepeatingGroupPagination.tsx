@@ -6,7 +6,7 @@ import deepEqual from 'fast-deep-equal';
 
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { getValidationsForNode, hasValidationErrors } from 'src/features/validation/utils';
+import { getValidationsForNode, hasValidationErrors, shouldValidateNode } from 'src/features/validation/utils';
 import { Validation } from 'src/features/validation/validationContext';
 import { getVisibilityForNode } from 'src/features/validation/visibility/visibilityUtils';
 import { useIsMini, useIsMobile, useIsMobileOrTablet } from 'src/hooks/useIsMobile';
@@ -249,6 +249,10 @@ function usePagesWithErrors(rowsPerPage: number | undefined, node: BaseLayoutNod
       const deepNodes = visibleRows[i].items.flatMap((node) => [node, ...node.flat(true)]);
 
       for (const node of deepNodes) {
+        if (!shouldValidateNode(node)) {
+          continue;
+        }
+
         if (
           hasValidationErrors(getValidationsForNode(node, selector, getVisibilityForNode(node, visibilitySelector)))
         ) {

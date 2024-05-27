@@ -167,7 +167,7 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
     return (
       <SummaryComponent
         summaryNode={node as LayoutNode<'Summary'>}
-        overrides={{ display: { hideChangeButton: true } }}
+        overrides={{ display: { hideChangeButton: true, hideValidationMessages: true } }}
       />
     );
   }
