@@ -17,7 +17,7 @@
     "react-redux": "9.1.2",
     "react-select": "5.8.0",
     "redux": "4.2.1",
-    "reselect": "4.1.8",
+    "reselect": "5.1.0",
     "typescript": "5.4.5",
     "uuid": "9.0.1"
   },
